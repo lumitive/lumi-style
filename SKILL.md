@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "1.1.0"
+  version: "1.3.0"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -12,6 +12,10 @@ metadata:
 LUMI is an AI-native consulting firm serving a global audience. This skill gives
 every output the same voice and the same visual discipline, and iterates through
 a score-and-review loop (rule revisions go through CHANGELOG).
+
+**Defaults**: output language is **American English** unless the user specifies
+another; the canvas is **light** unless the user asks for dark
+(see `references/writing-rules.md` §0 and `references/design-rules.md` §1).
 
 **Repository language: English only (red line).** Chinese strings appear in the
 rules only as rule data for Chinese-language output.
@@ -34,7 +38,12 @@ rules only as rule data for Chinese-language output.
    H1–H6 self-score per
    [`references/eval-rubric.md`](references/eval-rubric.md);
    **never self-score 5 before a reader has scored it**.
-5. **Review loop**: decks embed the scoring table as the final page; on receiving
+5. **Version lockstep**: stamp every deliverable with the lumi-style version
+   that produced it (cover meta strip + closing colophon, "built with
+   lumi-style X.Y.Z") — the deliverable's own version number **is** that
+   version. Decks open with a cover and end with a closing page
+   (see `references/storyline-templates.md`).
+6. **Review loop**: decks embed the scoring table as the final page; on receiving
    reviews, any dimension diverging ≥2 forces a retrospective that produces a rule
    revision (CHANGELOG + version bump) — this is the skill's iteration engine.
 

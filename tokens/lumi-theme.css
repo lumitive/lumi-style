@@ -1,73 +1,66 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · V2 (2026-08-06)
+   LUMI visual theme · v1.3.0 (2026-08-06)
    Single source of truth for palette and typography. New documents reference
-   this file or copy the :root block verbatim (note the provenance when copying).
-   V2 rationale: SpaceX/Tesla design research — adopt the skeleton, keep the
-   palette (see design-rules.md).
+   this file or copy the token blocks verbatim (note the provenance when
+   copying). Version lockstep: a deliverable's version = the lumi-style
+   version that produced it.
 
-   V2 changes: ① transparency ladder (hierarchy derives from one hue via alpha,
-   no new grays); ② dual-voice typography (narrative = rounded + CJK fallback;
-   data = D-DIN/monospace — codes, rates, dates, counters always use the data
-   voice); ③ dark-canvas text is cold white #F0F0FA, never pure white;
-   ④ eyebrow and CJK display-title tracking rules.
+   v1.3.0: light-first. The default canvas is near-white with the ink ladder;
+   the dark canvas is applied only on explicit user request, by adding
+   class="dark" to <body> — one override block, never a forked file.
+   Build components and inline SVG with these semantic tokens only; a literal
+   color is a defect (it silently ignores the palette switch).
 
    D-DIN: SIL OFL 1.1 (Datto 2017) — free for commercial use and embedding;
-   Latin-only, CJK falls back to a Chinese face. Font files pending vendoring;
-   until then the fallback chain applies (no blocker).
-
-   Chart data colors are an independent CVD-validated triple (blue/red/teal) and
-   never change with the brand palette — data distinguishability outranks brand.
+   Latin-only, CJK falls back to a Chinese face. Vendor and embed the woff2
+   (~20 KB each as a data URI) — a declared face that never ships renders
+   nothing. Reserved name "D-DIN" may not be used for derivatives.
    ═══════════════════════════════════════════════════════════════════ */
 :root {
-  /* ── space gray · light canvas (default for long documents) ── */
-  --bg:         #F4F6F5;
-  --card:       #FFFFFF;
-  --ink:        #2B2E33;                  /* body ink */
-  /* light-canvas transparency ladder: every level derives from --ink */
-  --t-90:  rgba(43,46,51,.90);            /* strong body */
-  --t-70:  rgba(43,46,51,.70);            /* secondary text */
-  --t-50:  rgba(43,46,51,.50);            /* notes / source lines */
-  --t-30:  rgba(43,46,51,.30);            /* disabled / placeholders */
-  --t-15:  rgba(43,46,51,.15);            /* rules / separators */
-  --t-08:  rgba(43,46,51,.08);            /* washes */
+  /* ── light palette (default) ── */
+  --bg:  #FAFAF8;                /* near-white canvas */
+  --nw:  #212621;                /* primary ink; doubles as the inverted-highlight fill */
+  /* foreground ladder: one hue, hierarchy via alpha (ink on light canvas) */
+  --w85: rgba(43,46,51,.85); --w70: rgba(43,46,51,.70); --w65: rgba(43,46,51,.65);
+  --w60: rgba(43,46,51,.60); --w50: rgba(43,46,51,.50); --w45: rgba(43,46,51,.45);
+  --w40: rgba(43,46,51,.40); --w35: rgba(43,46,51,.35); --w30: rgba(43,46,51,.30);
+  --w28: rgba(43,46,51,.28); --w25: rgba(43,46,51,.25); --w18: rgba(43,46,51,.18);
+  --w15: rgba(43,46,51,.15); --w12: rgba(43,46,51,.12); --w08: rgba(43,46,51,.08);
 
-  /* ── dark canvas (cover / end-state / future pages; max 3 per deck) ── */
-  --night-1:    #1E2A1B;
-  --night-2:    #48633E;
-  --night-3:    #5F7D52;
-  --nw:         #F0F0FA;                  /* cold white: dark-canvas text */
-  --nw-70: rgba(240,240,250,.70);
-  --nw-50: rgba(240,240,250,.50);
-  --nw-25: rgba(240,240,250,.25);         /* dark-canvas strokes/separators */
-  --nw-10: rgba(240,240,250,.10);         /* dark-canvas card fills */
+  /* ── semantic colors (one color, one meaning) ── */
+  --acc:       #48633E;          /* the single accent: emphasis / pass / built */
+  --acc-deep:  #48633E;          /* accent-filled surfaces (headers, bars) */
+  --acc-inbox: #9FC384;          /* accent text inside an inverted (ink-filled) box */
+  --on-acc:    #F0F0FA;          /* text on accent-filled surfaces (both palettes) */
+  --seal:      #C8102E;          /* warnings / red lines / vetoes ONLY */
+  --seal-t:    #C8102E;          /* seal as text */
+  --d-blue:    #2F6DB4;          /* chart data colors (CVD-validated) */
+  --d-teal:    #1E8E6E;
+  --card-bg:   #FFFFFF;          /* elevated surfaces (mock-UI cards) */
 
-  /* ── semantic colors (one color, one meaning — stricter than the refs) ── */
-  --accent:      #48633E;                 /* natural green: the single accent / pass / built */
-  --accent-deep: #3A5232;
-  --accent-wash: #EDF2EA;
-  --seal:        #C8102E;                 /* China red: warnings/red-lines/vetoes ONLY */
-  --seal-wash:   #FBECEE;
-  --ok:          #1E8E6E;                 /* verification-pass green (distinct from accent) */
-  --warn:        #A5691E;
-
-  /* ── chart data colors (CVD-validated; never restyle with the brand) ── */
-  --d-blue: #2F6DB4;
-  --d-red:  #C0392B;
-  --d-teal: #1E8E6E;
-
-  /* ── dual-voice typography ── */
-  /* narrative voice: titles and body (rounded Latin + CJK fallback) */
-  --sans:  "Quicksand", "Nunito", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
-  --sans-light: "Nunito", "Quicksand", "PingFang SC", sans-serif;
-  /* data voice: codes/rates/dates/counters/specs — D-DIN (OFL, pending vendor) → mono fallback */
-  --data:  "D-DIN", "IBM Plex Mono", "SF Mono", Menlo, monospace;
-  --mono:  "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;   /* code */
-
-  /* ── typographic discipline tokens ── */
-  --ls-eyebrow: .14em;    /* Latin eyebrow: small ALL-CAPS + this tracking */
-  --ls-title:   .02em;    /* CJK display-title tracking (the CJK stand-in for ALL-CAPS) */
-  --num-feature: "tnum";  /* data voice: tabular-nums always on; counters use fixed-width digit boxes */
+  /* ── typography: D-DIN takes over (v1.2+) ── */
+  --din:  'D-DIN', "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", Arial, sans-serif;
+  --mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+  /* display titles: uppercase (Latin), weight 400, leading .95–1.0;
+     CJK titles: weight 700 + .04em tracking — CJK has no uppercase */
+  --ls-eyebrow: .3em;            /* mono eyebrows, ALL-CAPS */
+  --ls-title-cjk: .04em;
+  --num-feature: "tnum";         /* tabular-nums always on for data */
 }
-/* Google Fonts (place in <head> for single-file documents):
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-   display=swap — never block (load-time blank text is a documented anti-pattern). */
+
+/* ── dark palette: on explicit user request only ── */
+body.dark {
+  --bg:  #060806;                /* near-black with a breath of green */
+  --nw:  #F0F0FA;                /* cold white — never pure white */
+  --w85: rgba(240,240,250,.85); --w70: rgba(240,240,250,.70); --w65: rgba(240,240,250,.65);
+  --w60: rgba(240,240,250,.60); --w50: rgba(240,240,250,.50); --w45: rgba(240,240,250,.45);
+  --w40: rgba(240,240,250,.40); --w35: rgba(240,240,250,.35); --w30: rgba(240,240,250,.30);
+  --w28: rgba(240,240,250,.28); --w25: rgba(240,240,250,.25); --w18: rgba(240,240,250,.18);
+  --w15: rgba(240,240,250,.15); --w12: rgba(240,240,250,.12); --w08: rgba(240,240,250,.08);
+  --acc:       #7C9F63;          /* lifted for contrast on near-black */
+  --acc-inbox: #48633E;
+  --seal-t:    #E0685A;          /* lifted seal for text on black; fills keep --seal */
+  --d-blue:    #5B8FC9;
+  --d-teal:    #3FA98C;
+  --card-bg:   #0D110C;
+}

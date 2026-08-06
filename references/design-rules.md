@@ -7,10 +7,14 @@
 
 ## 1 · Color: one color, one meaning; hierarchy via transparency
 
-- **Canvas — decks are dark-first** (v1.2, SpaceX-aligned): near-black with a
-  breath of green (#060806), cold-white ink ladder, every page dark. The
-  three-act light/dark rhythm is retired for decks; space-gray light canvas
-  remains the default for long documents only.
+- **Canvas — light by default, dark on request** (v1.3): the default canvas for
+  every deliverable is near-white (#FAFAF8) with the ink ladder. The dark canvas
+  (near-black #060806 with a breath of green, cold-white ladder) is applied only
+  when the user explicitly asks for dark. Both palettes share one structure —
+  build with semantic tokens (`--bg`, `--nw`, ladder, accents) and switch the
+  whole palette with a single `body.dark` override block; never fork the file.
+  Literal colors in component CSS or inline SVG are a defect: they silently
+  ignore the palette switch.
 - **Single accent = natural green** (#48633E on light; lift to #7C9F63 on the
   dark canvas — the deep green fails contrast on near-black): emphasis, pass, built.
   **China red (#C8102E) is for warnings/red-lines/vetoes only** — never
@@ -87,6 +91,12 @@ Field-tested layout guards (each from a real defect):
 - A right-anchored label on a full-width bar must be anchored **inside the fill**,
   or its tail lands on the canvas and white text goes invisible — anchor position
   must track fill width.
+- **An icon on a text line lives in a flex container** —
+  `display:flex;align-items:center;gap` — never a bare inline SVG nudged with
+  `vertical-align`: the manual nudge breaks the moment font size, line height,
+  or icon size changes (field defect: caption icons floating above their text).
+  Size an inline icon at roughly 1.4× the text size it accompanies (11px caption
+  → ~16px icon; 20px+ next to 11px text reads as clutter).
 - **Icon size is fixed and never inherits container scaling.** Blanket rules like
   `.fig svg{width:100%}` must exclude icons (`.fig svg.ic{width:20px}`) — a
   stretched 24px icon becoming a 110px graphic is an accident, not a design

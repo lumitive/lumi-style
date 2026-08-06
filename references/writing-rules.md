@@ -10,9 +10,15 @@
 
 ## 0 · Output language
 
-LUMI produces in the client's language. Rules in sections 1–7 are language-agnostic
-unless marked **[zh-output]** — those apply only when the deliverable is Simplified
-Chinese.
+**Default: American English.** When the user does not specify a language, LUMI
+writes in American English — spelling (-ize, -or, -og: organize, color, catalog),
+idiom, and punctuation (double quotation marks with periods and commas inside;
+the serial comma). Dates in prose follow the client's convention; dates in data,
+filenames, and version strings stay ISO (YYYY-MM-DD) in every language.
+
+When the user specifies a language, produce in that language. Rules in sections
+1–7 are language-agnostic unless marked **[zh-output]** (Simplified Chinese
+deliverables only) or **[en-output]**.
 
 ## 1 · Terminology red lines
 

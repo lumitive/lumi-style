@@ -1,94 +1,99 @@
 {
- "$schema_note": "LUMI design tokens v2 (2026-08-06). Mirrors tokens/lumi-theme.css. Usage: references/design-rules.md. Repository language: English only (red line).",
- "color": {
-  "bg": {
-   "light": "#F4F6F5",
-   "card": "#FFFFFF",
-   "night": [
-    "#1E2A1B",
-    "#48633E",
-    "#5F7D52"
-   ]
-  },
-  "ink": {
-   "base": "#2B2E33",
-   "ladder_alpha": [
-    0.9,
-    0.7,
-    0.5,
-    0.3,
-    0.15,
-    0.08
-   ]
-  },
-  "night_text": {
-   "base": "#F0F0FA",
-   "ladder_alpha": [
-    1.0,
-    0.7,
-    0.5,
-    0.25,
-    0.1
-   ],
-   "note": "dark-canvas text is cold white, never pure white"
-  },
-  "semantic": {
+ "$schema_note": "LUMI design tokens v1.3.0 (2026-08-06). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
+ "palette_default": "light",
+ "palette": {
+  "light": {
+   "bg": "#FAFAF8",
+   "ink": "#212621",
+   "ladder_base": "rgba(43,46,51,ALPHA)",
    "accent": "#48633E",
-   "accent_deep": "#3A5232",
-   "accent_wash": "#EDF2EA",
+   "accent_deep": "#48633E",
+   "accent_inbox": "#9FC384",
+   "on_accent": "#F0F0FA",
    "seal": "#C8102E",
-   "seal_wash": "#FBECEE",
-   "ok": "#1E8E6E",
-   "warn": "#A5691E",
-   "note": "one color, one meaning: accent = emphasis/pass; seal = warnings only, never decoration"
+   "seal_text": "#C8102E",
+   "data_blue": "#2F6DB4",
+   "data_teal": "#1E8E6E",
+   "card_bg": "#FFFFFF"
   },
-  "chart": {
-   "blue": "#2F6DB4",
-   "red": "#C0392B",
-   "teal": "#1E8E6E",
-   "note": "CVD-validated triple; never restyled with the brand palette"
-  }
+  "dark": {
+   "bg": "#060806",
+   "ink": "#F0F0FA",
+   "ladder_base": "rgba(240,240,250,ALPHA)",
+   "accent": "#7C9F63",
+   "accent_deep": "#48633E",
+   "accent_inbox": "#48633E",
+   "on_accent": "#F0F0FA",
+   "seal": "#C8102E",
+   "seal_text": "#E0685A",
+   "data_blue": "#5B8FC9",
+   "data_teal": "#3FA98C",
+   "card_bg": "#0D110C",
+   "note": "applied only on explicit user request, via one body.dark override block — never a forked file"
+  },
+  "ladder_alpha": [
+   0.85,
+   0.7,
+   0.65,
+   0.6,
+   0.5,
+   0.45,
+   0.4,
+   0.35,
+   0.3,
+   0.28,
+   0.25,
+   0.18,
+   0.15,
+   0.12,
+   0.08
+  ],
+  "note": "one structure, two palettes; semantic meaning (accent = emphasis/pass, seal = warnings only) never changes with the palette"
+ },
+ "chart": {
+  "blue": "#2F6DB4",
+  "red": "#C0392B",
+  "teal": "#1E8E6E",
+  "note": "CVD-validated triple; on dark canvas use the lifted forms from palette.dark"
  },
  "font": {
-  "narrative": [
-   "Quicksand",
-   "Nunito",
+  "primary": [
+   "D-DIN",
    "PingFang SC",
    "Hiragino Sans GB",
    "Noto Sans SC",
+   "Arial",
    "sans-serif"
   ],
-  "data": [
-   "D-DIN",
-   "IBM Plex Mono",
-   "SF Mono",
-   "Menlo",
-   "monospace"
-  ],
-  "code": [
+  "mono": [
    "IBM Plex Mono",
    "SF Mono",
    "Menlo",
    "Consolas",
    "monospace"
   ],
-  "note": "dual voice: values that will be read out and verified use data (tabular-nums always on, fixed-width digit boxes for counters); prose uses narrative. D-DIN = SIL OFL (Datto 2017), Latin-only, CJK falls back"
+  "note": "v1.2+: D-DIN is the single Latin face (titles ALL-CAPS weight 400, tight leading; CJK titles: weight 700 + 0.04em tracking, no uppercase). SIL OFL (Datto 2017), Latin-only; vendor and embed it — a declared face that never ships renders nothing. tabular-nums always on for data."
  },
  "typography": {
   "letter_spacing": {
-   "eyebrow_latin": "0.14em",
-   "title_cjk": "0.02em"
+   "eyebrow_latin": "0.3em",
+   "title_cjk": "0.04em"
   },
   "chart_scale_px": {
-   "fig_title": 14,
+   "fig_title": 11,
    "axis": 10.5,
-   "source": 11
+   "source": 9.5
   },
-  "note": "Latin eyebrows: small ALL-CAPS + tracking; the CJK display equivalent is size contrast + tracking, never scaling alone"
+  "display_title": {
+   "transform": "uppercase (Latin only)",
+   "weight": 400,
+   "leading": "0.95-1.0"
+  }
  },
  "layout": {
   "one_claim_per_screen": true,
-  "night_pages_max": 3,
-  "scroll_snap": "decks only, never long documents"
+  "cover_and_closing": "every deck; see storyline-templates.md",
+  "scroll_snap": "decks only, never long documents",
+  "verification_matrix": "language x viewport (design / print / short-laptop); footer visible at every point"
  }
 }

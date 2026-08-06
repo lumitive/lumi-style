@@ -32,6 +32,28 @@ Page arc (add/remove pages, never reorder):
 11. **Feedback page** — embedded scoring table; readers score right after reading,
     no separate file.
 
+## Cover and closing pages (every deck scenario)
+
+A deck opens with a **cover** and ends with a **closing page**; the content arc
+sits between them.
+
+- **Cover**: wordmark (typographic, no logo file needed) · document title as the
+  page's single statement · one-line subtitle saying who it is for and what it
+  answers · a meta strip in spec-band form (audience / date / version /
+  classification) · a colophon line ("built with lumi-style X.Y.Z"). No charts,
+  no body copy — the cover is typography.
+- **Closing**: one closing statement (an imperative that echoes the action page,
+  e.g. "Let the numbers decide.") · a one-sentence recap of the ask · contact
+  slots in spec-band form. **Contact details are placeholder slots by design**
+  (`[TO FILL]`) unless the user supplies real ones — inventing an email address
+  is inventing a fact. State on the page that a bracketed version must not ship.
+  End with the colophon (owner · date · "built with lumi-style X.Y.Z" · the
+  number-discipline line).
+- **Version lockstep**: a deliverable's version number **is** the lumi-style
+  version that produced it (deck V1.3.0 ⇔ lumi-style 1.3.0). Two version
+  sequences drifting apart makes provenance unanswerable; the cover meta strip
+  and the closing colophon both carry it.
+
 ## Template 2 · Consulting / client documents: PwC frame, McKinsey punch
 
 - **Titles**: "Topic: assertive subtitle" — PwC's structure carrying a McKinsey

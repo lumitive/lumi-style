@@ -3,6 +3,29 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 1.3.0 — 2026-08-06
+
+Reviewer-driven round (five inputs from deck review):
+
+- **Light-first**: the default canvas is near-white with the ink ladder; dark is
+  applied only on explicit request via one `body.dark` override block. Both
+  palettes share one token structure; literal colors in components or inline
+  SVG are defects. Full dual-palette token set in `tokens/` (lumi-theme.css
+  rewritten to v1.3.0; design-tokens.json restructured as palette.light /
+  palette.dark).
+- **American English by default**: when the user does not specify a language,
+  output is American English (spelling, idiom, double quotes, serial comma);
+  writing-rules §0 rewritten.
+- **Icon-alignment guard** (from a reported alignment bug): an icon on a text
+  line lives in a flex container with align-items:center — never a bare inline
+  SVG nudged with vertical-align; icon ≈ 1.4× the accompanying text size.
+- **Version lockstep**: a deliverable's version number is the lumi-style version
+  that produced it; carried on the cover meta strip and closing colophon.
+- **Cover and closing templates**: every deck opens with a typographic cover
+  (wordmark / title / meta strip) and ends with a closing page (closing
+  statement / recap / contact placeholder slots `[TO FILL]` — inventing contact
+  details is inventing a fact / colophon). Added to storyline-templates.
+
 ## 1.2.0 — 2026-08-06
 
 Direction change, reviewer-driven: "the output diverged from spacex.com — why?"
