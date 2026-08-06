@@ -5,6 +5,7 @@ Covers only what a machine can decide. Whether a rule change was re-flowed into
 the three entry points is a reading task and stays with the reviewer.
 """
 
+import ast
 import json
 import pathlib
 import re
@@ -213,11 +214,94 @@ def check_palette_parity():
     return errors
 
 
+def _rules_ban_phrases():
+    """The [en-output] phrases from writing-rules.md section 2, normalized."""
+    text = (ROOT / "references/writing-rules.md").read_text(encoding="utf-8")
+    # Scope to section 2 first: "[en-output]" also appears in section 0, where it
+    # is named as a marker rather than introducing the list.
+    section = re.search(r"^## 2 [^\n]*\n(.*?)(?=^## )", text, re.S | re.M)
+    if not section:
+        raise ValueError("could not locate section 2 in writing-rules.md")
+    block = re.search(r"\*\*\[en-output\].*", section.group(1), re.S)
+    if not block:
+        raise ValueError("could not locate the [en-output] block inside section 2")
+
+    # The eight groups form one paragraph; the attribution note that follows is a
+    # separate one and must not be read as banned phrases.
+    listing = next((p for p in block.group(0).split("\n\n")
+                    if re.match(r"^\d+\.\s+\*\*", p)), None)
+    if listing is None:
+        raise ValueError("could not locate the numbered groups in section 2")
+
+    phrases = set()
+    # "N. **Group name**[, qualifier] — item · item · item.", wrapped across lines.
+    for group in re.split(r"\n(?=\d+\.\s+\*\*)", listing):
+        body = re.sub(r"\s+", " ", group).strip()
+        if "—" not in body:
+            continue
+        for item in body.split("—", 1)[1].split("·"):
+            item = item.split("→")[0]              # filler entries carry their fix
+            item = re.sub(r"\s+", " ", item.replace('"', "")).strip().rstrip(".").strip()
+            if item:
+                phrases.add(item.lower())
+    return phrases
+
+
+def _script_ban_phrases():
+    """(matched, waived) phrase sets declared in check_prose.py, read via AST.
+
+    Parsed rather than imported: this guard must not execute the other script.
+    """
+    tree = ast.parse((ROOT / "scripts/check_prose.py").read_text(encoding="utf-8"))
+    matched, waived = set(), set()
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        name = getattr(node.targets[0], "id", None)
+        if name == "BANNED":
+            for element in node.value.elts:
+                matched.add(element.elts[1].value.lower())
+        elif name == "NOT_MECHANIZED":
+            for key in node.value.keys:
+                waived.add(key.value.lower())
+    return matched, waived
+
+
+def check_ban_list_parity():
+    """check_prose.py's list is a second copy of the rules; hold them together.
+
+    Every phrase section 2 bans must be either matched by a pattern or waived
+    with a reason, so a rule added to the prose without deciding what the machine
+    does about it fails here instead of going quietly unenforced.
+    """
+    try:
+        rules = _rules_ban_phrases()
+        matched, waived = _script_ban_phrases()
+    except (OSError, ValueError, SyntaxError, AttributeError) as exc:
+        return [f"could not compare the ban lists: {exc}"]
+
+    errors = []
+    for phrase in sorted(rules - (matched | waived)):
+        errors.append(
+            f"writing-rules.md section 2 bans {phrase!r}, but check_prose.py neither "
+            f"matches it nor lists it in NOT_MECHANIZED with a reason"
+        )
+    for phrase in sorted((matched | waived) - rules):
+        errors.append(
+            f"check_prose.py declares {phrase!r}, which writing-rules.md section 2 "
+            f"does not list — the rules are the source, not the script"
+        )
+    for phrase in sorted(matched & waived):
+        errors.append(f"{phrase!r} is both matched and waived in check_prose.py")
+    return errors
+
+
 CHECKS = (
     ("version stamps", check_versions),
     ("english-only red line", check_english_only),
     ("markdown link targets", check_links),
     ("token palette parity", check_palette_parity),
+    ("ban-list parity", check_ban_list_parity),
 )
 
 
