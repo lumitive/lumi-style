@@ -3,24 +3,31 @@
 #
 # Branch protection on main requires the "checks" status and enforces it for
 # admins too, so nobody can merge while Actions is down. This opens that lock for
-# one merge and closes it again — including on failure, Ctrl-C, or any error, via
-# the EXIT trap.
+# one merge and closes it again.
 #
 #   Usage:  bash scripts/emergency_merge.sh <PR-NUMBER>
 #
-# Threat model. This runs on a maintainer's machine with live gh credentials, on
-# a PUBLIC repo where anyone may open a pull request. Three rules follow:
+# Exit codes (a caller must be able to tell these apart):
+#   0  merged, protection restored
+#   1  refused before anything was touched
+#   2  the required check failed on the merge result — a real defect in the PR
+#   3  the checker could not RUN (local toolchain problem, not a PR defect)
+#   4  unlocked, merge failed, protection restored
+#   5  PROTECTION IS STILL OFF — act immediately
 #
-#   1. Never execute code that came from the pull request. An earlier version of
-#      this script cloned the PR branch and ran *its* copy of check_repo.py —
-#      arbitrary code execution for any fork contributor. The checker is now
-#      always the trusted local copy, overwritten on top of the fetched tree;
-#      only the data being checked comes from the PR.
-#   2. Fork PRs are refused outright. A same-repo branch means someone with push
-#      access created it; a fork branch means anyone did.
-#   3. Verify what will actually be merged, not what the branch tip happens to
-#      be. We fetch refs/pull/N/merge (the merge result) and pin the head SHA so
-#      a push landing mid-run aborts the merge instead of sneaking in.
+# Threat model. This runs on a maintainer's machine with live gh credentials
+# against a PUBLIC repo. Three rules follow, each earned from a review finding:
+#
+#   1. Never execute code that came from the pull request. Overwriting the PR's
+#      check_repo.py is NOT sufficient: the script's own directory is sys.path[0],
+#      so a PR adding scripts/json.py hijacks an import and runs arbitrary code.
+#      Verified. PYTHONSAFEPATH=1 (Python 3.11+) removes that directory from the
+#      path, so we require 3.11 and refuse otherwise.
+#   2. Fork PRs are refused. A same-repo branch means someone with push access
+#      made it; a fork branch means anyone did.
+#   3. Verify what will actually be merged. We fetch refs/pull/N/merge, confirm
+#      its second parent is the head SHA we validated, and pin the merge with
+#      --match-head-commit so a push landing mid-run aborts instead of sneaking in.
 
 set -uo pipefail
 
@@ -30,33 +37,56 @@ PROT="repos/$REPO/branches/main/protection/enforce_admins"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TRUSTED_CHECK="$SCRIPT_DIR/check_repo.py"
 UNLOCKED=0
+RESTORE_FAILED=0
 WORK=""
 
 cleanup() {
   [ -n "$WORK" ] && rm -rf "$WORK"
-  if [ "$UNLOCKED" -eq 1 ]; then
-    echo
-    echo "==> Restoring enforce_admins"
-    for attempt in 1 2 3; do
-      if gh api --method POST "$PROT" >/dev/null 2>&1; then break; fi
-      echo "    retry $attempt failed"
-      sleep 3
-    done
-    STATE=$(gh api "$PROT" --jq '.enabled' 2>/dev/null || echo "unknown")
-    echo "    enforce_admins = $STATE"
-    if [ "$STATE" != "true" ]; then
-      echo "    !! PROTECTION IS STILL OFF. Run this now:"
-      echo "       gh api --method POST $PROT"
-    fi
-  fi
-}
-trap cleanup EXIT INT TERM
+  WORK=""
+  [ "$UNLOCKED" -eq 1 ] || return 0
 
-[ -f "$TRUSTED_CHECK" ] || { echo "!! $TRUSTED_CHECK not found."; exit 1; }
+  echo
+  echo "==> Restoring enforce_admins"
+  local out delay=2
+  for attempt in 1 2 3 4; do
+    if out=$(gh api --method POST "$PROT" 2>&1); then
+      if [ "$(gh api "$PROT" --jq '.enabled' 2>/dev/null)" = "true" ]; then
+        echo "    enforce_admins = true (restored)"
+        UNLOCKED=0            # idempotent: a second call is now a no-op
+        RESTORE_FAILED=0
+        return 0
+      fi
+      out="POST reported success but .enabled is not true"
+    fi
+    # Show the reason. Expired token, missing scope, SAML re-auth and a rate
+    # limit all look identical without it, and they need different responses.
+    echo "    attempt $attempt failed: ${out//$'\n'/ | }"
+    [ "$attempt" -lt 4 ] && sleep "$delay" && delay=$((delay * 2))
+  done
+
+  RESTORE_FAILED=1
+  echo
+  echo "    !!!!  PROTECTION IS STILL OFF ON main  !!!!"
+  echo "    !!!!  Run this now:                    !!!!"
+  echo "    !!!!  gh api --method POST $PROT"
+  return 1
+}
+# Signal handlers must terminate. A bare `trap cleanup INT` returns and lets the
+# script RESUME, which made a killed `gh pr merge` report success.
+trap cleanup EXIT
+trap 'cleanup; exit 130' INT
+trap 'cleanup; exit 143' TERM
+
+die() { echo "!! $2"; exit "$1"; }
+
+[ -f "$TRUSTED_CHECK" ] || die 1 "$TRUSTED_CHECK not found."
+python3 - <<'PY' || die 1 "Python 3.11+ required (PYTHONSAFEPATH); refusing to run PR code without it."
+import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)
+PY
 
 echo "==> PR #$PR"
-# One call, tab-separated, read straight into shell vars. Every guard below is
-# fail-closed: an empty or unexpected value takes the refusing branch.
+# One call, tab-separated. Every guard below is fail-closed: an empty or
+# unexpected value takes the refusing branch.
 IFS=$'\t' read -r TITLE STATE MERGEABLE FORK HEAD_SHA HEAD_REF < <(
   gh pr view "$PR" --repo "$REPO" \
     --json title,state,mergeable,isCrossRepository,headRefOid,headRefName \
@@ -64,66 +94,56 @@ IFS=$'\t' read -r TITLE STATE MERGEABLE FORK HEAD_SHA HEAD_REF < <(
            .headRefOid, .headRefName] | @tsv'
 ) || true
 
-echo "    ${TITLE:-<no title>}"
+echo "    ${TITLE:-<could not read PR metadata>}"
 echo "    state=${STATE:-?} mergeable=${MERGEABLE:-?} fork=${FORK:-?} head=${HEAD_REF:-?}@${HEAD_SHA:0:7}"
 
-if [ "${FORK:-true}" != "false" ]; then
-  echo "!! This PR comes from a fork (or its origin could not be determined). Refusing."
-  echo "   Merging it would mean trusting a tree anyone could have authored, with no"
-  echo "   CI having run on it. Wait for Actions, or review and merge it by hand."
-  exit 1
-fi
-if [ "${STATE:-}" != "OPEN" ]; then
-  echo "!! PR state is ${STATE:-unknown}, not OPEN. Nothing changed."
-  exit 1
-fi
-if [ "${MERGEABLE:-}" != "MERGEABLE" ]; then
-  echo "!! Not mergeable (${MERGEABLE:-unknown}). Nothing changed."
-  exit 1
-fi
-if ! [[ "${HEAD_SHA:-}" =~ ^[0-9a-f]{40}$ ]]; then
-  echo "!! Could not read a valid head SHA. Refusing: without it the merge cannot"
-  echo "   be pinned, and a push landing mid-run would slip in unchecked."
-  exit 1
-fi
+[ -n "${STATE:-}" ] || die 1 "Could not read PR metadata (network or auth?). Nothing changed."
+[ "${FORK:-true}" = "false" ] || die 1 "PR is from a fork. Refusing: merging it would trust a tree anyone could author, with no CI having run."
+[ "${STATE}" = "OPEN" ] || die 1 "PR state is ${STATE}, not OPEN. Nothing changed."
+[ "${MERGEABLE:-}" = "MERGEABLE" ] || die 1 "Not mergeable (${MERGEABLE:-unknown}). Nothing changed."
+[[ "${HEAD_SHA:-}" =~ ^[0-9a-f]{40}$ ]] || die 1 "No valid head SHA. Without it the merge cannot be pinned."
 
 echo
 echo "==> Fetching the merge result (refs/pull/$PR/merge), not the branch tip"
-WORK=$(mktemp -d)
-git init --quiet "$WORK/repo" || { echo "!! git init failed"; exit 1; }
-if ! git -C "$WORK/repo" fetch --quiet --depth 1 \
-       "https://github.com/$REPO.git" "refs/pull/$PR/merge" 2>/dev/null; then
-  echo "!! Could not fetch refs/pull/$PR/merge. GitHub may not have computed it"
-  echo "   yet, or the PR is not mergeable. Nothing changed."
-  exit 1
-fi
-git -C "$WORK/repo" checkout --quiet FETCH_HEAD || { echo "!! checkout failed"; exit 1; }
+WORK=$(mktemp -d) || die 1 "mktemp failed."
+git init --quiet "$WORK/repo" || die 1 "git init failed."
+git -C "$WORK/repo" fetch --quiet --depth 2 \
+  "https://github.com/$REPO.git" "refs/pull/$PR/merge" 2>/dev/null \
+  || die 1 "Could not fetch refs/pull/$PR/merge. GitHub may not have computed it yet."
+git -C "$WORK/repo" checkout --quiet FETCH_HEAD || die 1 "checkout failed."
+
+# GitHub computes the merge ref asynchronously. A stale one means we would verify
+# an older tree than the one --match-head-commit merges.
+MERGE_PARENT=$(git -C "$WORK/repo" rev-parse --verify --quiet 'FETCH_HEAD^2' || true)
+[ "$MERGE_PARENT" = "$HEAD_SHA" ] \
+  || die 1 "Merge ref is stale (its head parent ${MERGE_PARENT:0:7} != ${HEAD_SHA:0:7}). Re-run in a moment."
+echo "    merge ref confirmed against head ${HEAD_SHA:0:7}"
 
 echo "==> Running the TRUSTED local checker over that tree"
 mkdir -p "$WORK/repo/scripts"
-cp "$TRUSTED_CHECK" "$WORK/repo/scripts/check_repo.py"   # never run the PR's copy
-if ! python3 "$WORK/repo/scripts/check_repo.py"; then
-  echo
-  echo "!! The required check FAILS on the merge result. Not unlocking, not merging."
-  echo "   This is a real defect, not the Actions outage. Fix it and re-run."
-  exit 2
+cp "$TRUSTED_CHECK" "$WORK/repo/scripts/check_repo.py"
+# PYTHONSAFEPATH keeps the PR's scripts/ off sys.path, so a planted json.py
+# cannot hijack an import. Overwriting the checker alone does not do this.
+PYTHONSAFEPATH=1 python3 "$WORK/repo/scripts/check_repo.py"
+RC=$?
+if [ "$RC" -ge 126 ]; then
+  die 3 "Could not RUN the checker (exit $RC) — a local toolchain problem, not a PR defect."
+elif [ "$RC" -ne 0 ]; then
+  die 2 "The required check FAILS on the merge result. Not unlocking, not merging. This is a real defect."
 fi
 echo "    all checks pass on the exact tree that merging would produce"
 
 echo
 echo "==> Opening the lock (enforce_admins off)"
-# Arm the restore BEFORE the call. If the request reaches GitHub but the response
-# is lost, the lock is open and we would otherwise never put it back — an extra
-# restore is free, a missed one leaves main unprotected.
+# Arm the restore BEFORE the call: if the request lands but the response is lost,
+# the lock is open and we must still put it back. An extra restore is free.
 UNLOCKED=1
-if ! gh api --method DELETE "$PROT" >/dev/null 2>&1; then
-  echo "!! Could not disable enforce_admins. Nothing merged; trap will re-assert it."
+if ! OUT=$(gh api --method DELETE "$PROT" 2>&1); then
+  echo "!! Could not disable enforce_admins: ${OUT//$'\n'/ | }"
   exit 1
 fi
-if [ "$(gh api "$PROT" --jq '.enabled' 2>/dev/null)" != "false" ]; then
-  echo "!! enforce_admins did not actually turn off. Aborting; trap will restore."
-  exit 1
-fi
+[ "$(gh api "$PROT" --jq '.enabled' 2>/dev/null)" = "false" ] \
+  || { echo "!! enforce_admins did not actually turn off. Aborting."; exit 1; }
 echo "    enforce_admins = false"
 
 echo
@@ -134,16 +154,28 @@ if gh pr merge "$PR" --repo "$REPO" --rebase --delete-branch --admin \
   echo "    merged"
   MERGED=0
 else
-  echo "!! Merge failed or was refused (a mid-run push to the branch will do this)."
-  echo "   Protection is restored by the trap regardless."
+  echo "!! Merge failed or was refused (a mid-run push to the branch does this)."
 fi
 
-trap - EXIT INT TERM
+# Restore while still trapped, then report. Disarming first would leave the
+# slowest, most failure-prone part of the run unprotected against Ctrl-C.
 cleanup
+trap - EXIT INT TERM
 
 echo
 echo "==> Final state"
 gh api "repos/$REPO/branches/main/protection" --jq \
-  '"    enforce_admins=\(.enforce_admins.enabled) required=\(.required_status_checks.checks[].context) linear=\(.required_linear_history.enabled) force_push_blocked=\(.allow_force_pushes.enabled|not)"'
-gh pr view "$PR" --repo "$REPO" --json state --jq '"    PR state=\(.state)"'
-exit "$MERGED"
+  '"    enforce_admins=\(.enforce_admins.enabled)
+    required=\(.required_status_checks.checks | map(.context) | join(","))
+    linear=\(.required_linear_history.enabled) force_push_blocked=\(.allow_force_pushes.enabled|not)"' \
+  || echo "    !! could not read protection state — check it by hand"
+gh pr view "$PR" --repo "$REPO" --json state --jq '"    PR state=\(.state)"' || true
+
+if [ "$RESTORE_FAILED" -eq 1 ]; then
+  echo
+  echo "!!!! EXIT 5: main is UNPROTECTED. Restore it now:"
+  echo "!!!! gh api --method POST $PROT"
+  exit 5
+fi
+[ "$MERGED" -eq 0 ] || exit 4
+exit 0

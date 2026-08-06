@@ -22,4 +22,9 @@ jobs:
         with:
           python-version: '3.12'
       # Standard library only — no dependency step, nothing to pin or update.
+      # scripts/ had no CI coverage at all until 1.6.0: a syntax error in either
+      # script would have shipped silently, including into the emergency merge
+      # path that runs when CI itself is unavailable.
+      - run: python3 -m py_compile scripts/check_repo.py scripts/check_prose.py
+      - run: bash -n scripts/emergency_merge.sh
       - run: python3 scripts/check_repo.py
