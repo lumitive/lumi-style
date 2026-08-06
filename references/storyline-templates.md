@@ -49,10 +49,11 @@ sits between them.
   is inventing a fact. State on the page that a bracketed version must not ship.
   End with the colophon (owner · date · "built with lumi-style X.Y.Z" · the
   number-discipline line).
-- **Version lockstep**: a deliverable's version number **is** the lumi-style
-  version that produced it (deck V1.3.0 ⇔ lumi-style 1.3.0). Two version
-  sequences drifting apart makes provenance unanswerable; the cover meta strip
-  and the closing colophon both carry it.
+- **Version lockstep**: by default a deliverable's version number **is** the
+  lumi-style version that produced it. When the user assigns a document-edition
+  sequence instead (e.g. v1.01), the filename and masthead carry the document
+  edition and the colophon still records "built with lumi-style X.Y.Z" — the
+  producing-skill version is never lost either way.
 
 ## Template 2 · Consulting / client documents: PwC frame, McKinsey punch
 

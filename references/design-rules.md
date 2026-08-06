@@ -63,7 +63,15 @@
 - Navigation preserves traceability (documents are not landing pages): long
   documents keep a table of contents; decks use a narrative rail;
 - scroll-snap is for decks only — never long documents (it breaks table and
-  citation reading).
+  citation reading);
+- **Long-document callouts form a three-tier hierarchy** (reader-reported: one
+  uniform left-rule for every highlight flattens the page): key conclusions get
+  a tinted box with a full 1px border plus a strong left edge; standard guidance
+  keeps the plain left rule; weak notes are muted text with no frame;
+- **Deliverables state results, not process**: edit history, deletion notices,
+  strikethrough leftovers, and "this section moved on <date>" asides belong in
+  the working ledger, never in a formal deliverable — keep the design rationale,
+  drop the revision story.
 
 ## 4 · Five chart iron rules + form selection
 
@@ -71,7 +79,16 @@
 green), everything else grayscale, red only for warnings; 3. no gridlines, no
 chart borders, no legend for single series; 4. every figure carries a source line
 (small light-gray text); 5. fixed type scale (figure title 14 / axis 10–11 /
-source 11).
+source 11); 6. **the legend sits at the top right of the figure, above the plot**;
+7. **caption anatomy is two-part** — "Figure N · Name" centered and bold on its
+own line, then the detailed description left-aligned at the figure's width.
+
+Flow-diagram shape vocabulary (shapes carry semantics, never decoration):
+**parallelogram** = data input/output · **rectangle** = process ·
+**diamond** = decision · **stadium/ellipse** = start or terminal ·
+dashed outline = not built · one accent-colored arrow marker throughout.
+A flow chart drawn entirely in rectangles hides where decisions happen
+(reader-requested UML/use-case richness).
 
 Form selection: one number is the story → stat callout (big figure + small label,
 data voice); composition/trend → segmented bars / tick bands; a bridge between
@@ -105,6 +122,9 @@ Field-tested layout guards (each from a real defect):
 - **Page titles budget two lines at the design viewport** — shorten the title,
   never shrink the type. A third title line eats the content area and pushes the
   footer below the fold.
+- **Figure vocabulary ⊆ body vocabulary**: when body terminology is renamed,
+  sweep every figure label in the same pass — a chart that still speaks the old
+  names contradicts the text beside it.
 - Cards in a row need internal alignment constraints: equalize title heights
   (min-height) and stack stat numbers above their labels, or differing title
   wraps misalign every row below.

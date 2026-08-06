@@ -3,6 +3,21 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 1.4.0 — 2026-08-06
+
+Reader review of the anchor document (five annotated screenshots):
+
+- Long-document callout hierarchy: three tiers (tinted+bordered key conclusion /
+  left-rule guidance / muted note) — one uniform left-rule flattens the page.
+- Charts: legend at the top right above the plot; two-part caption anatomy
+  ("Figure N · Name" centered bold, description left-aligned at figure width).
+- Flow-diagram shape vocabulary: parallelogram=I/O, rectangle=process,
+  diamond=decision, stadium=terminal, dashed=not built — shapes carry semantics.
+- Figure vocabulary ⊆ body vocabulary: body renames must sweep figure labels.
+- Deliverables state results, not process: revision stories live in the ledger.
+- Version lockstep refined: a user-assigned document-edition sequence (v1.01)
+  owns filename+masthead; the colophon still records the producing skill version.
+
 ## 1.3.0 — 2026-08-06
 
 Reviewer-driven round (five inputs from deck review):
