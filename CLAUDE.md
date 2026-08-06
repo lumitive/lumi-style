@@ -18,15 +18,21 @@ python3 scripts/check_prose.py <file>    # AI-flavor metrics on a deliverable
 
 Standard library only, no dependencies. `.github/workflows/ci.yml` runs
 `check_repo.py` plus syntax checks on every push to `main` and every pull
-request. Its four guards are the mechanical half of the invariants below: version
-stamps, the English-only red line, markdown link targets, and palette parity
-between the two `tokens/` files.
+request. Its five guards are the mechanical half of the invariants below: version
+stamps, the English-only red line, markdown link targets, palette parity between
+the two `tokens/` files, and ban-list parity.
 
 `check_prose.py` measures the AI-flavor metrics (M4, M8–M11) on a **deliverable**,
 not on this repo, so CI cannot run it — there are no deliverables here. It is
 English-only and takes `--genre internal` to exempt internal analysis documents
-from the em-dash rule. Its banned-phrase list is a second copy of
-`references/writing-rules.md` §2 and can drift from it; change both together.
+from the em-dash rule.
+
+Its banned-phrase list is a second copy of `references/writing-rules.md` §2, so
+the **ban-list parity** guard holds the two together: every phrase §2 bans must
+appear in the script either as a matching pattern or in `NOT_MECHANIZED` with a
+reason, and the script may not ban anything §2 does not list. Adding a phrase to
+the rules without deciding what the machine does about it fails CI, which is the
+point — the alternative is a rule that looks enforced and is not.
 
 Everything the checks cannot decide — above all whether a rule change was
 re-flowed into the entry points — stays with the reviewer.

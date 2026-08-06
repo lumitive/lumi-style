@@ -17,7 +17,11 @@ could NOT measure: a file that yields no prose is reported unmeasurable and fail
 because a linter that says "clean" when it read nothing is worse than no linter.
 
 The banned list below mirrors references/writing-rules.md section 2 [en-output].
-It is a second copy and can drift; when you change one, change the other.
+It is a second copy, so check_repo.py's `ban-list parity` guard holds the two
+together: every phrase in section 2 must appear here either as a pattern or in
+NOT_MECHANIZED with a reason, and nothing may appear here that section 2 does not
+list. Adding a phrase to the rules without deciding what the machine does about
+it now fails CI.
 """
 
 import argparse
@@ -28,69 +32,109 @@ import re
 import statistics
 import sys
 
-# (regex, label). Written as explicit patterns because the two obvious shortcuts
-# are both wrong: bare substrings match inside ordinary words ("serves as" inside
-# "deserves as much"), and \bword\b misses the inflections that are the actual
-# tell ("leveraging", "fostering"). Entries that are ordinary business English on
-# their own -- leverage as a noun, a person named Foster, a genuinely
-# comprehensive report -- are qualified rather than banned outright.
+# (regex, phrase). The phrase is verbatim from writing-rules.md section 2 and is
+# the key the parity guard matches on -- do not reword it to read better.
+#
+# Patterns are explicit because the two obvious shortcuts are both wrong: bare
+# substrings match inside ordinary words ("serves as" inside "deserves as much"),
+# and \bword\b misses the inflections that are the actual tell ("leveraging").
+# Entries that are ordinary business English on their own are qualified rather
+# than banned outright.
 BANNED = [
-    # significance inflation
-    (r"\b(?:serves?|stands?)\s+as\b", "serves/stands as"),
-    (r"\b(?:is|are|was|were)\s+a\s+testament\b", "is a testament"),
-    (r"\ba\s+(?:vital|crucial|pivotal|key)\s+(?:role|moment)\b", "vital/pivotal role"),
-    (r"\bunderscor(?:es?|ing)\s+(?:its|the)\s+(?:importance|significance)\b", "underscores its importance"),
+    # 1 significance inflation
+    (r"\b(?:serves?|stands?)\s+as\b", "stands/serves as"),
+    (r"\b(?:is|are|was|were)\s+a\s+testament\s+to\b", "is a testament to"),
+    (r"\ba\s+(?:vital|crucial|pivotal|key)\s+(?:role|moment)\b",
+     "a vital / crucial / pivotal / key role"),
+    (r"\bunderscor(?:es?|ing)\s+(?:its|the)\s+(?:importance|significance)\b",
+     "underscores its importance"),
     (r"\breflects?\s+broader\b", "reflects broader"),
+    (r"\bmark(?:s|ing)\s+a\s+shift\b", "marking a shift"),
+    (r"\ba\s+turning\s+point\b", "a turning point"),
     (r"\bevolving\s+landscape\b", "evolving landscape"),
     (r"\bindelible\s+mark\b", "indelible mark"),
     (r"\bdeeply\s+rooted\b", "deeply rooted"),
-    (r"\b(?:marks?|marking)\s+a\s+(?:shift|turning\s+point)\b", "marks a shift"),
-    # promotional register
+    # 2 promotional register
     (r"\bboasts?\b", "boasts"),
     (r"\bvibrant\b", "vibrant"),
-    (r"\bbreathtaking\b", "breathtaking"),
+    (r"\bshowcasing\b", "showcasing"),
+    (r"\bexemplif(?:y|ies|ied)\b", "exemplifies"),
+    (r"\bcommitment\s+to\s+(?:excellence|quality|innovation)\b", "commitment to"),
+    (r"\bgroundbreaking\b", "groundbreaking (figurative)"),
     (r"\brenowned\b", "renowned"),
-    (r"\bgroundbreaking\b", "groundbreaking"),
+    (r"\bbreathtaking\b", "breathtaking"),
+    (r"\bstunning\b", "stunning"),
+    (r"\bseamless(?:ly)?\b", "seamless"),
+    (r"\b(?:a|an|our|the)\s+robust\b", "robust"),
     (r"\bbest-in-class\b", "best-in-class"),
     (r"\bworld-class\b", "world-class"),
-    (r"\bseamless(?:ly)?\b", "seamless"),
-    (r"\b(?:a|our|the)\s+robust\b", "robust (as a boast)"),
-    (r"\bshowcas(?:e|es|ed|ing)\b", "showcase"),
-    (r"\bexemplif(?:y|ies|ied)\b", "exemplifies"),
-    (r"\bcommitment\s+to\s+(?:excellence|quality|innovation)\b", "commitment to excellence"),
-    # AI high-frequency vocabulary
+    # 3 AI high-frequency vocabulary
+    (r"(?:^|(?<=[.!?]\s))Additionally\s*,", "additionally"),
     (r"\bdelv(?:e|es|ed|ing)\b", "delve"),
+    (r"\bfoster(?:s|ed|ing)\b", "fostering"),
     (r"\bgarner(?:s|ed|ing)?\b", "garner"),
     (r"\binterplay\b", "interplay"),
     (r"\bintricat(?:e|ies)\b", "intricate"),
+    (r"\bleverag(?:es|ed|ing)\b", "leverage (verb)"),
+    (r"\bpivotal\b", "pivotal"),
+    (r"\bshowcas(?:e|es|ed)\b", "showcase"),
     (r"\btapestry\b", "tapestry"),
     (r"\btestament\b", "testament"),
-    (r"\bleverag(?:es|ed|ing)\b", "leveraging (verb)"),
-    (r"\butiliz(?:e|es|ed|ing)\b", "utilize"),
-    (r"\bfoster(?:s|ed|ing)\b", "fostering (verb)"),
     (r"\bunderscor(?:es|ed|ing)\b", "underscore (verb)"),
-    # filler
+    (r"\butiliz(?:e|es|ed|ing)\b", "utilize"),
+    # 4 filler
     (r"\bin\s+order\s+to\b", "in order to"),
     (r"\bdue\s+to\s+the\s+fact\s+that\b", "due to the fact that"),
     (r"\bat\s+this\s+point\s+in\s+time\b", "at this point in time"),
     (r"\bin\s+the\s+event\s+that\b", "in the event that"),
     (r"\bhas\s+the\s+ability\s+to\b", "has the ability to"),
-    (r"\bit\s+is\s+important\s+to\s+note\b", "it is important to note"),
-    # authority tropes
+    (r"\bit\s+is\s+important\s+to\s+note\s+that\b", "it is important to note that"),
+    # 5 authority tropes
     (r"\bthe\s+real\s+question\s+is\b", "the real question is"),
     (r"\bat\s+its\s+core\b", "at its core"),
     (r"\bwhat\s+really\s+matters\b", "what really matters"),
-    # signposting
-    (r"\blet'?s\s+(?:dive\s+in|explore|break\s+this\s+down)\b", "let's dive in"),
+    (r"\bit'?s\s+not\s+about\s+.{1,40}?,\s*it'?s\s+about\b",
+     "it's not about X, it's about Y"),
+    # 6 signposting
+    (r"\blet'?s\s+dive\s+in\b", "let's dive in"),
+    (r"\blet'?s\s+explore\b", "let's explore"),
+    (r"\blet'?s\s+break\s+this\s+down\b", "let's break this down"),
     (r"\bhere'?s\s+what\s+you\s+need\s+to\s+know\b", "here's what you need to know"),
+    (r"\bnow\s+let'?s\s+look\s+at\b", "now let's look at"),
     (r"\bwithout\s+further\s+ado\b", "without further ado"),
-    # fake-candid openers, sentence-initial only
-    (r"(?:^|(?<=[.!?]\s))(?:Honestly|Look|The\s+thing\s+is)\s*[,?]", "fake-candid opener"),
-    # closing filler
-    (r"\bit'?s\s+worth\s+noting\b", "it's worth noting"),
+    # 7 fake-candid openers — sentence-initial only
+    (r"(?:^|(?<=[.!?]\s))Honestly\s*\?", "honestly?"),
+    (r"(?:^|(?<=[.!?]\s))Look\s*,", "look,"),
+    (r"(?:^|(?<=[.!?]\s))The\s+thing\s+is\s*,", "the thing is,"),
+    (r"(?:^|(?<=[.!?]\s))Here'?s\s+the\s+thing\b", "here's the thing"),
+    # 8 closing filler
+    (r"\bit'?s\s+worth\s+noting\s+that\b", "it's worth noting that"),
     (r"\bundeniably\b", "undeniably"),
-    (r"\bin\s+conclusion\b", "in conclusion"),
+    (r"\bin\s+conclusion\b", "in conclusion as filler"),
+    (r"\blet'?s\s+embark\b", "let's embark"),
 ]
+
+# Phrases section 2 bans that this script deliberately does NOT match, each with
+# the reason. The parity guard requires every section 2 phrase to be in exactly
+# one of BANNED or here, so a rule added without deciding its mechanization fails
+# CI instead of quietly going unenforced.
+NOT_MECHANIZED = {
+    "rich (figurative)": "sense-dependent; 'rich data' and 'rich history' need a human",
+    "profound": "legitimate in analysis prose; too many false positives to gate on",
+    "comprehensive": "ordinary business English ('a comprehensive review')",
+    "actually": "legitimate adverb; only the discourse-marker use is a tell",
+    "align with": "legitimate ('align with the strategy'); the tell is register, not the phrase",
+    "crucial": "bare use is often legitimate; the 'a crucial role' collocation is matched",
+    "enhance": "ordinary verb; banning it outright would rewrite honest sentences",
+    "highlight (verb)": "legitimate ('the chart highlights the gap'); needs POS tagging",
+    "key (adjective)": "far too common in legitimate business English",
+    "landscape (abstract)": "needs sense disambiguation from the literal noun",
+    "valuable": "ordinary adjective; the tell is unquantified praise, caught by M-number rules",
+    "in reality": "legitimate contrastive marker outside authority-trope register",
+    "fundamentally": "legitimate adverb in analysis; only the trope stacking is a tell",
+    "adjective stacks in place of numbers": "not a fixed string; requires judgment about "
+                                           "whether a number was available",
+}
 
 OVERLONG_WORDS = 32
 MIN_SENTENCES = 30      # below this, rhythm is noise
