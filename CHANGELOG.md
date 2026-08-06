@@ -56,10 +56,35 @@ Changes:
   title-shape uniformity.
 - **`scripts/check_prose.py` added.** M1-M8 were called "scriptable" for six
   versions with no script in the repo. This measures M4 and M8-M11 on a real
-  deliverable. Fault-injected against clean and AI-flavored samples before use.
+  deliverable, and reports a file it could not parse as *unmeasurable* rather
+  than clean — a linter that says "pass" when it read nothing is worse than none.
 - `scripts/emergency_merge.sh` added: a documented, self-restoring path to merge
   when GitHub Actions cannot run the required check. `.gitignore` now also blocks
   deliverable exports and renders — this repo holds the skill, never its output.
+- **CI now covers `scripts/`** (`py_compile` plus `bash -n`). It had none, so a
+  syntax error would have shipped silently — including into the emergency path
+  that runs precisely when CI is unavailable.
+
+Review round on this release, recorded because the findings were real:
+
+- The emergency merge script executed code supplied by the pull request. Copying
+  a trusted `check_repo.py` over the PR's copy was not enough — the script's own
+  directory is `sys.path[0]`, so a planted `scripts/json.py` hijacks an import
+  and runs. Reproduced, then fixed with `PYTHONSAFEPATH=1` (Python 3.11+ now
+  required) plus fork refusal and a merge-ref parent check.
+- Its restore path could leave `main` unprotected while exiting 0, and a signal
+  handler that returned instead of exiting let a killed merge report success.
+  Distinct exit codes now separate "refused", "check failed", "could not run the
+  checker", "merge failed", and "protection still off".
+- `check_prose.py` matched multi-word entries as unanchored substrings and single
+  words with word boundaries — exactly backwards. It flagged "deserves as much"
+  and a finance "leverage ratio" while missing "leveraging" and "fostering", the
+  actual tells. Every entry is now an explicit anchored pattern with its
+  inflections, and ordinary business words are qualified rather than banned.
+- Empty, non-UTF-8, and unparseable files reported "all metrics pass"; `--json`
+  never evaluated a threshold and always exited 0; HTML markup merged into
+  27-word pseudo-sentences that inflated the rhythm metric. All fixed and each
+  verified against the failing case.
 
 ## 1.5.0 — 2026-08-07
 

@@ -6,14 +6,21 @@ so every AI-flavor rule was enforced by good intentions alone. This runs the
 machine-checkable half against a real file.
 
     python3 scripts/check_prose.py deck.en.html [more files ...]
-    python3 scripts/check_prose.py --json report.html
+    python3 scripts/check_prose.py --genre internal report.md   # skips M9
+    python3 scripts/check_prose.py --json deck.en.html
 
-Reports M4 (banned phrases), M8 (sentence rhythm, two-tailed), M9 (em dashes),
-M10 (triad rate) and M11 (title-shape uniformity). English deliverables only —
-sentence and word segmentation here does not apply to Chinese, and the zh side is
-governed by the de-translationese pass in writing-rules.md section 6b.
+English deliverables only: the segmentation here does not apply to Chinese, which
+is governed by the de-translationese pass in writing-rules.md section 6b.
+
+Extraction is regex-based and best-effort. It is deliberately loud about what it
+could NOT measure: a file that yields no prose is reported unmeasurable and fails,
+because a linter that says "clean" when it read nothing is worse than no linter.
+
+The banned list below mirrors references/writing-rules.md section 2 [en-output].
+It is a second copy and can drift; when you change one, change the other.
 """
 
+import argparse
 import html
 import json
 import pathlib
@@ -21,163 +28,252 @@ import re
 import statistics
 import sys
 
-# references/writing-rules.md section 2, [en-output]. Substrings, matched
-# case-insensitively on word boundaries where the entry is a single word.
+# (regex, label). Written as explicit patterns because the two obvious shortcuts
+# are both wrong: bare substrings match inside ordinary words ("serves as" inside
+# "deserves as much"), and \bword\b misses the inflections that are the actual
+# tell ("leveraging", "fostering"). Entries that are ordinary business English on
+# their own -- leverage as a noun, a person named Foster, a genuinely
+# comprehensive report -- are qualified rather than banned outright.
 BANNED = [
-    # 1 significance inflation
-    "serves as", "stands as", "is a testament", "a testament to", "vital role",
-    "crucial role", "pivotal role", "key role", "underscores its importance",
-    "reflects broader", "evolving landscape", "indelible mark", "deeply rooted",
-    "turning point",
-    # 2 promotional register
-    "boasts", "vibrant", "profound", "showcasing", "exemplifies",
-    "commitment to", "groundbreaking", "renowned", "breathtaking", "stunning",
-    "seamless", "robust", "comprehensive", "best-in-class", "world-class",
-    # 3 AI high-frequency vocabulary
-    "delve", "garner", "interplay", "intricate", "pivotal", "showcase",
-    "tapestry", "testament", "underscore", "leverage", "utilize", "foster",
-    # 4 filler
-    "in order to", "due to the fact that", "at this point in time",
-    "in the event that", "has the ability to", "it is important to note",
-    # 5 authority tropes
-    "the real question is", "at its core", "in reality", "what really matters",
-    "fundamentally",
-    # 6 signposting
-    "let's dive in", "let's explore", "let's break this down",
-    "here's what you need to know", "without further ado",
-    # 7 fake-candid openers
-    "honestly,", "the thing is,", "here's the thing",
-    # 8 closing filler
-    "it's worth noting", "undeniably", "in conclusion", "let's embark",
+    # significance inflation
+    (r"\b(?:serves?|stands?)\s+as\b", "serves/stands as"),
+    (r"\b(?:is|are|was|were)\s+a\s+testament\b", "is a testament"),
+    (r"\ba\s+(?:vital|crucial|pivotal|key)\s+(?:role|moment)\b", "vital/pivotal role"),
+    (r"\bunderscor(?:es?|ing)\s+(?:its|the)\s+(?:importance|significance)\b", "underscores its importance"),
+    (r"\breflects?\s+broader\b", "reflects broader"),
+    (r"\bevolving\s+landscape\b", "evolving landscape"),
+    (r"\bindelible\s+mark\b", "indelible mark"),
+    (r"\bdeeply\s+rooted\b", "deeply rooted"),
+    (r"\b(?:marks?|marking)\s+a\s+(?:shift|turning\s+point)\b", "marks a shift"),
+    # promotional register
+    (r"\bboasts?\b", "boasts"),
+    (r"\bvibrant\b", "vibrant"),
+    (r"\bbreathtaking\b", "breathtaking"),
+    (r"\brenowned\b", "renowned"),
+    (r"\bgroundbreaking\b", "groundbreaking"),
+    (r"\bbest-in-class\b", "best-in-class"),
+    (r"\bworld-class\b", "world-class"),
+    (r"\bseamless(?:ly)?\b", "seamless"),
+    (r"\b(?:a|our|the)\s+robust\b", "robust (as a boast)"),
+    (r"\bshowcas(?:e|es|ed|ing)\b", "showcase"),
+    (r"\bexemplif(?:y|ies|ied)\b", "exemplifies"),
+    (r"\bcommitment\s+to\s+(?:excellence|quality|innovation)\b", "commitment to excellence"),
+    # AI high-frequency vocabulary
+    (r"\bdelv(?:e|es|ed|ing)\b", "delve"),
+    (r"\bgarner(?:s|ed|ing)?\b", "garner"),
+    (r"\binterplay\b", "interplay"),
+    (r"\bintricat(?:e|ies)\b", "intricate"),
+    (r"\btapestry\b", "tapestry"),
+    (r"\btestament\b", "testament"),
+    (r"\bleverag(?:es|ed|ing)\b", "leveraging (verb)"),
+    (r"\butiliz(?:e|es|ed|ing)\b", "utilize"),
+    (r"\bfoster(?:s|ed|ing)\b", "fostering (verb)"),
+    (r"\bunderscor(?:es|ed|ing)\b", "underscore (verb)"),
+    # filler
+    (r"\bin\s+order\s+to\b", "in order to"),
+    (r"\bdue\s+to\s+the\s+fact\s+that\b", "due to the fact that"),
+    (r"\bat\s+this\s+point\s+in\s+time\b", "at this point in time"),
+    (r"\bin\s+the\s+event\s+that\b", "in the event that"),
+    (r"\bhas\s+the\s+ability\s+to\b", "has the ability to"),
+    (r"\bit\s+is\s+important\s+to\s+note\b", "it is important to note"),
+    # authority tropes
+    (r"\bthe\s+real\s+question\s+is\b", "the real question is"),
+    (r"\bat\s+its\s+core\b", "at its core"),
+    (r"\bwhat\s+really\s+matters\b", "what really matters"),
+    # signposting
+    (r"\blet'?s\s+(?:dive\s+in|explore|break\s+this\s+down)\b", "let's dive in"),
+    (r"\bhere'?s\s+what\s+you\s+need\s+to\s+know\b", "here's what you need to know"),
+    (r"\bwithout\s+further\s+ado\b", "without further ado"),
+    # fake-candid openers, sentence-initial only
+    (r"(?:^|(?<=[.!?]\s))(?:Honestly|Look|The\s+thing\s+is)\s*[,?]", "fake-candid opener"),
+    # closing filler
+    (r"\bit'?s\s+worth\s+noting\b", "it's worth noting"),
+    (r"\bundeniably\b", "undeniably"),
+    (r"\bin\s+conclusion\b", "in conclusion"),
 ]
 
 OVERLONG_WORDS = 32
-THRESHOLDS = {
-    "M4_banned_hits": ("=0", lambda v: v == 0),
-    "M8_overlong_share": ("<=8%", lambda v: v <= 8.0),
-    "M8_length_cv": (">=0.35", lambda v: v >= 0.35),
-    "M9_dashes": ("=0", lambda v: v == 0),
-    "M10_triad_rate": ("<=50%", lambda v: v <= 50.0),
-    "M11_title_uniformity": ("<=60%", lambda v: v <= 60.0),
-}
+MIN_SENTENCES = 30      # below this, rhythm is noise
+MIN_TITLES = 8          # below this, one frame dominating means nothing
+BLOCK_END = re.compile(r"</(?:p|li|h[1-6]|td|th|div|section|figcaption|blockquote)>", re.I)
+NUMERIC_RANGE = re.compile(r"\d\s*[–—]\s*\d")
+
+
+class Unmeasurable(Exception):
+    """The file yielded nothing to measure. Never silently a pass."""
 
 
 def extract(path):
-    """Return (body_text, [titles]) for an HTML or Markdown file."""
-    raw = path.read_text(encoding="utf-8", errors="replace")
+    """Return (body_text, [titles], [enumeration_sizes])."""
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise Unmeasurable(f"not valid UTF-8 ({exc.reason}) — re-export as UTF-8") from exc
+
     if path.suffix.lower() in {".html", ".htm"}:
-        raw = re.sub(r"<(script|style|svg)\b.*?</\1>", " ", raw, flags=re.S | re.I)
+        if re.search(r"<(script|style)\b", raw, re.I) and not re.search(
+                r"</(script|style)>", raw, re.I):
+            raise Unmeasurable("unclosed <script>/<style>; code would be scored as prose")
+        raw_nostrip = re.sub(r"<(script|style|svg|head)\b.*?</\1>", " ", raw, flags=re.S | re.I)
         titles = [
             re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", m.group(1)))).strip()
-            for m in re.finditer(r"<h[12][^>]*>(.*?)</h[12]>", raw, re.S | re.I)
+            for m in re.finditer(r"<h[12][^>]*>(.*?)</h[12]>", raw_nostrip, re.S | re.I)
         ]
-        body = html.unescape(re.sub(r"<[^>]+>", " ", raw))
+        enums = [len(re.findall(r"<li\b", m.group(1), re.I))
+                 for m in re.finditer(r"<(?:ul|ol)\b[^>]*>(.*?)</(?:ul|ol)>",
+                                      raw_nostrip, re.S | re.I)]
+        # Block boundaries become sentence boundaries; without this a nav bar, a
+        # heading and six list items merge into one 27-word "sentence".
+        body = BLOCK_END.sub(".\n", raw_nostrip)
+        body = html.unescape(re.sub(r"<[^>]+>", " ", body))
     else:
         titles = [m.group(2).strip() for m in re.finditer(r"^(#{1,2})\s+(.*)$", raw, re.M)]
+        enums = [len(list(g)) for g in _markdown_lists(raw)]
         body = re.sub(r"^#{1,6}\s+", "", raw, flags=re.M)
-    return re.sub(r"[ \t]+", " ", body), [t for t in titles if t]
+
+    body = re.sub(r"[ \t]+", " ", body)
+    return body, [t for t in titles if t], enums
+
+
+def _markdown_lists(raw):
+    block = []
+    for line in raw.splitlines():
+        if re.match(r"^\s*(?:[-*+]|\d+\.)\s+\S", line):
+            block.append(line)
+        elif block:
+            yield block
+            block = []
+    if block:
+        yield block
 
 
 def sentences(text):
-    parts = re.split(r"(?<=[.!?])\s+", text)
     out = []
-    for p in parts:
-        words = re.findall(r"[A-Za-z][A-Za-z'-]*", p)
-        if len(words) >= 3:          # ignore labels, nav fragments, stray numbers
+    for part in re.split(r"(?<=[.!?])\s+|\n+", text):
+        # Count digits as words: a numbers-first house style otherwise reads as
+        # systematically shorter than it is.
+        words = re.findall(r"[A-Za-z0-9][A-Za-z0-9'%$-]*", part)
+        if len(words) >= 4:
             out.append(len(words))
     return out
 
 
-def measure(path):
-    body, titles = extract(path)
-    low = body.lower()
+def measure(path, genre):
+    body, titles, enums = extract(path)
+    lengths = sentences(body)
+    if not lengths:
+        raise Unmeasurable("no prose extracted (0 sentences)")
 
     hits = []
-    for phrase in BANNED:
-        pattern = (r"\b%s\b" % re.escape(phrase) if phrase.isalpha()
-                   else re.escape(phrase))
-        n = len(re.findall(pattern, low))
+    for pattern, label in BANNED:
+        n = len(re.findall(pattern, body, re.I | re.M))
         if n:
-            hits.append((phrase, n))
+            hits.append((label, n))
 
-    lengths = sentences(body)
-    mean = statistics.fmean(lengths) if lengths else 0.0
-    cv = (statistics.pstdev(lengths) / mean) if len(lengths) > 1 and mean else 0.0
-    overlong = 100.0 * sum(1 for n in lengths if n > OVERLONG_WORDS) / len(lengths) if lengths else 0.0
+    mean = statistics.fmean(lengths)
+    cv = statistics.pstdev(lengths) / mean if len(lengths) > 1 and mean else 0.0
+    overlong = 100.0 * sum(1 for n in lengths if n > OVERLONG_WORDS) / len(lengths)
 
-    dashes = body.count("—") + body.count("–")
+    # An en dash between digits is a numeric range, which is data, not prose
+    # punctuation -- writing-rules.md exempts it.
+    dashes = len(re.findall(r"[–—]", NUMERIC_RANGE.sub(" ", body)))
 
-    # Enumerations: HTML/markdown lists are counted by the caller's structure, so
-    # approximate with comma series -- "A, B, and C" and "A, B, C" -- which is the
-    # form the rule-of-three tell actually takes in prose.
-    series = re.findall(r"\b\w[\w'-]*(?:,\s+\w[\w'-]*){1,5}(?:,?\s+and\s+\w[\w'-]*)?", body)
-    triples = [s for s in series if s.count(",") == 2]
-    triad_rate = 100.0 * len(triples) / len(series) if series else 0.0
+    triads = sum(1 for n in enums if n == 3)
+    triad_rate = 100.0 * triads / len(enums) if enums else None
 
     def frame(t):
-        head = t[: max(1, len(t) // 2)]
-        if ":" in head:
-            return "colon"
-        if t.rstrip().endswith("?"):
-            return "question"
-        return "plain"
+        return (
+            "colon" if ":" in t else
+            "question" if t.rstrip().endswith("?") else
+            "number-led" if re.match(r"^\s*[\d$]", t) else
+            "verb-led" if re.match(r"^\s*(?:[A-Z][a-z]+ing|How|Why|What|When)\b", t) else
+            "plain"
+        )
 
     frames = [frame(t) for t in titles]
-    uniformity = (100.0 * max((frames.count(f) for f in set(frames)), default=0)
-                  / len(frames)) if frames else 0.0
+    uniformity = (100.0 * max(frames.count(f) for f in set(frames)) / len(frames)
+                  if frames else None)
 
     return {
         "file": str(path),
+        "genre": genre,
         "sentences": len(lengths),
         "titles": len(titles),
+        "enumerations": len(enums),
         "M4_banned_hits": sum(n for _, n in hits),
         "M4_detail": hits,
         "M8_overlong_share": round(overlong, 1),
         "M8_length_cv": round(cv, 3),
-        "M9_dashes": dashes,
-        "M10_triad_rate": round(triad_rate, 1),
-        "M11_title_uniformity": round(uniformity, 1),
+        "M9_dashes": dashes if genre == "sales" else None,
+        "M10_triad_rate": None if triad_rate is None else round(triad_rate, 1),
+        "M11_title_uniformity": None if uniformity is None else round(uniformity, 1),
     }
 
 
+def grade(r):
+    """[(metric, value, target, verdict)] — verdict is ok / FAIL / n/a."""
+    thin_rhythm = r["sentences"] < MIN_SENTENCES
+    rows = [
+        ("M4_banned_hits", r["M4_banned_hits"], "=0", r["M4_banned_hits"] == 0, False),
+        ("M8_overlong_share", r["M8_overlong_share"], "<=8%",
+         r["M8_overlong_share"] <= 8.0, thin_rhythm),
+        ("M8_length_cv", r["M8_length_cv"], ">=0.35", r["M8_length_cv"] >= 0.35, thin_rhythm),
+        ("M9_dashes", r["M9_dashes"], "=0", r["M9_dashes"] == 0, r["M9_dashes"] is None),
+        ("M10_triad_rate", r["M10_triad_rate"], "<=50%",
+         (r["M10_triad_rate"] or 0) <= 50.0, r["M10_triad_rate"] is None),
+        ("M11_title_uniformity", r["M11_title_uniformity"], "<=60%",
+         (r["M11_title_uniformity"] or 0) <= 60.0,
+         r["M11_title_uniformity"] is None or r["titles"] < MIN_TITLES),
+    ]
+    return [(name, value, target, "n/a" if skip else ("ok" if good else "FAIL"))
+            for name, value, target, good, skip in rows]
+
+
 def main(argv):
-    as_json = "--json" in argv
-    paths = [pathlib.Path(a) for a in argv if not a.startswith("--")]
-    if not paths:
-        print(__doc__.strip())
-        return 1
+    ap = argparse.ArgumentParser(add_help=True, description=__doc__.split("\n")[0])
+    ap.add_argument("files", nargs="+")
+    ap.add_argument("--genre", choices=["sales", "internal"], default="sales",
+                    help="internal analysis documents are exempt from the M9 dash ban")
+    ap.add_argument("--json", action="store_true")
+    args = ap.parse_args(argv)
 
     reports, failed = [], 0
-    for path in paths:
-        if not path.exists():
-            print(f"missing: {path}")
+    for name in args.files:
+        path = pathlib.Path(name)
+        try:
+            if not path.is_file():
+                raise Unmeasurable("not a readable file")
+            r = measure(path, args.genre)
+        except (Unmeasurable, OSError) as exc:
             failed += 1
+            print(f"FAIL  {path}: unmeasurable — {exc}", file=sys.stderr)
+            reports.append({"file": str(path), "unmeasurable": str(exc)})
             continue
-        r = measure(path)
+
+        rows = grade(r)
+        r["verdicts"] = {n: v for n, _, _, v in rows}
+        failed += sum(1 for _, _, _, v in rows if v == "FAIL")
         reports.append(r)
-        if as_json:
+        if args.json:
             continue
-        print(f"\n{r['file']}  ({r['sentences']} sentences, {r['titles']} titles)")
-        for key, (label, ok) in THRESHOLDS.items():
-            value = r[key]
-            # A rhythm share computed over a handful of sentences swings wildly on
-            # one long sentence, so report it without failing the run.
-            thin = key.startswith("M8") and r["sentences"] < 30
-            good = ok(value)
-            if thin:
-                print(f"  n/a   {key:<22} {value:<8} target {label}  (only "
-                      f"{r['sentences']} sentences — too few to judge)")
-                continue
-            failed += 0 if good else 1
-            print(f"  {'ok  ' if good else 'FAIL'}  {key:<22} {value:<8} target {label}")
+
+        print(f"\n{r['file']}  ({r['sentences']} sentences, {r['titles']} titles, "
+              f"{r['enumerations']} lists, genre={r['genre']})")
+        for name_, value, target, verdict in rows:
+            note = ""
+            if verdict == "n/a":
+                note = ("  (exempt for internal documents)" if name_ == "M9_dashes"
+                        else f"  (too little data: {r['sentences']} sentences, "
+                             f"{r['titles']} titles)")
+            print(f"  {verdict:<4}  {name_:<22} {str(value):<8} target {target}{note}")
         if r["M4_detail"]:
             worst = sorted(r["M4_detail"], key=lambda kv: -kv[1])[:8]
-            print("        banned: " + ", ".join(f"{p}×{n}" for p, n in worst))
+            print("        banned: " + ", ".join(f"{p}x{n}" for p, n in worst))
 
-    if as_json:
+    if args.json:
         print(json.dumps(reports, indent=2))
-        return 0
-    print(f"\n{failed} metric failure(s)" if failed else "\nall metrics pass")
+    else:
+        print(f"\n{failed} metric failure(s)" if failed else "\nall metrics pass")
     return 1 if failed else 0
 
 
