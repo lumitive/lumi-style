@@ -50,9 +50,12 @@
 
 ## 3 · Layout: one claim per screen
 
-- Each screen/page carries exactly one claim: a conclusion-style headline (one
-  accent word in green), one sentence of support, one centerpiece, a thin footer
-  rule with source + page number — nothing else. **The headline has no word
+- Each screen/page carries exactly one claim: a conclusion-style headline (an
+  accent word in green is available, not required — mechanical emphasis on every
+  headline is inflation), **one to three sentences of support whose lengths
+  visibly differ**, one centerpiece, a thin footer rule with source + page number
+  — nothing else. (The rule read "one sentence of support" until 1.6.0, which
+  drove sentence-length variance across a deck to near zero; see M8.) **The headline has no word
   ceiling**: its length is set by the title contract in
   `storyline-templates.md` — topic + assertive subtitle carrying a verifiable
   fact — and the only hard limit is two lines at the design viewport. (Lesson:

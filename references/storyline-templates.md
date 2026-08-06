@@ -9,13 +9,18 @@
 > was rejected in reader review — **"Leading with boundaries is wrong; value and
 > future are the sales storyline."**
 
-Page arc (add/remove pages, never reorder):
+Page arc — the **default** order, not a lock. Add or remove pages freely; reorder
+when the argument genuinely requires it and say why in the delivery note. (It used
+to read "never reorder", which meant every LUMI sales deck opened the same way and
+two decks side by side read as one document.)
 
 1. **Hook** — negation-first definition ("Not another X. Your Y.") + a stat band;
 2. **Shift** — why now: external facts the reader can verify without your product;
-3. **Value** (layered, one page each) — what the reader gets daily/weekly, made
-   concrete as "what your morning looks like" (a mock-UI card beats a mechanism
-   description);
+3. **Value** (layered, one page each) — what the reader gets daily or weekly, made
+   concrete in *their* working day (a mock-UI card beats a mechanism description).
+   Find the framing from the client's own routine; "what your morning looks like"
+   was a worked example that became a stock phrase appearing in every deck, which
+   is how a good device turns into a tell;
 4. **Evidence** — one memorable comparison pair (A vs B, same task, same ground
    truth);
 5. **Scenarios** — two standard stories: one about speed, one about money; a
@@ -42,8 +47,10 @@ sits between them.
   answers · a meta strip in spec-band form (audience / date / version /
   classification) · a colophon line ("built with lumi-style X.Y.Z"). No charts,
   no body copy — the cover is typography.
-- **Closing**: one closing statement (an imperative that echoes the action page,
-  e.g. "Let the numbers decide.") · a one-sentence recap of the ask · contact
+- **Closing**: one closing statement that echoes the action page. A short
+  imperative ("Let the numbers decide.") is one option, not the required form —
+  a punchy four-word command is a recognized AI-deck ending, and it is weaker than
+  naming the concrete next step and who owns it · a one-sentence recap of the ask · contact
   slots in spec-band form. **Contact details are placeholder slots by design**
   (`[TO FILL]`) unless the user supplies real ones — inventing an email address
   is inventing a fact. State on the page that a bracketed version must not ship.
@@ -77,11 +84,17 @@ sits between them.
 
 ## Shared discipline
 
-- **Title contract — "Topic: assertive subtitle"** (all three scenarios, decks
-  included): PwC's structure carrying a McKinsey conclusion. Every page/section
+- **Title contract** (all three scenarios, decks included): every page/section
   title names its **subject** and carries at least one **verifiable fact** — a
   figure, a date, a named mechanism. Length follows the fact; **there is no word
   ceiling**, only the two-line budget in `design-rules.md`.
+  **"Topic: assertive subtitle" is the reference form, not the required one.**
+  PwC's structure carrying a McKinsey conclusion is what to reach for when a page
+  needs a frame, but a document in which *every* title is a colon construction
+  reads as generated — twenty identically-shaped headings is itself a tell. Vary
+  the frame: a plain assertion, a question the page answers, and a colon title all
+  satisfy the contract as long as the subject and the fact are there. M11 caps
+  one frame at 60% of titles.
 - **Information floor**: a title that states only a contrast ("codes, not words"),
   only a slogan, or only a section label ("the end-state") is not a title.
   Contrast is a *lead-in*, never the whole title — keep the evidence that earns
@@ -100,8 +113,11 @@ sits between them.
   bullet pileups are banned;
 - **Every page answers one question a real reader would ask** — write that
   question down before writing the page;
-- Parallel structure: sibling pages share sentence shape ("Factor 1: X" on page 5
-  forces "Factor 2: Y" on page 6);
+- Parallel structure **only where it aids comparison** — a genuine enumeration
+  (three options scored on the same dimensions) earns matching shapes. Consecutive
+  value or capability pages do not: forcing "Factor 1: X" / "Factor 2: Y" across a
+  run of pages manufactures the uniformity readers read as machine-written. When in
+  doubt, let sibling pages differ;
 - **Pre-delivery critic gate** (structure before polish): four checks
   (structure / rigor / so-what / completeness) → Green (ship) / Yellow (fixable —
   don't ship as-is) / Red (the argument collapsed) → Top 3 fixes (what's wrong +

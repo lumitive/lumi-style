@@ -15,7 +15,10 @@
 | M5 | Punctuation violations (zh) | =0 | half-width punctuation adjacent to CJK (code/pre/formula exempt) |
 | M6 | Unsourced range figures | =0 | range-shaped numbers with no nearby source |
 | M7 | Term mixing | =0 | old and new names of one concept co-occurring |
-| M8 | Overlong-sentence share | ≤8% (distorted for slides — advisory) | share of sentences beyond the length threshold |
+| M8 | Sentence-rhythm health (two-tailed) | overlong ≤8% **and** length CV ≥0.35 (decks included — never waived) | share of sentences past the length threshold, **and** the coefficient of variation of sentence length |
+| M9 | Em dashes in en sales/marketing | =0 | em/en dash characters outside code, data, and internal analysis documents |
+| M10 | Triad rate | ≤50% | share of enumerations (lists, appositive series) containing exactly three items |
+| M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame (e.g. "Topic: clause") |
 
 ## Human metrics H1–H6 (anchors 1–5 — **anchors must be written in the reviewer's language, not internal jargon**)
 
@@ -54,9 +57,16 @@
 
 ## Known genre distortions (never chase the score)
 
-M8 is distorted for slide decks (figure fragments concatenate into false
-run-ons). When a metric is distorted, **note it and skip it** — genre adaptation
-is the metric's debt, not the document's.
+Figure fragments concatenate into false run-ons when a deck is parsed as prose, so
+**M8's overlong tail** is unreliable on decks: measure it on body copy only rather
+than skipping the metric. When a metric is genuinely distorted, **note it and skip
+it** — genre adaptation is the metric's debt, not the document's.
+
+**M8 as a whole is never skipped, and neither are M9–M11.** M8 used to be
+one-tailed and marked advisory for decks: it counted only sentences that ran too
+long, so prose in which every sentence is uniformly clipped — the dominant modern
+AI tell, and what §5 used to mandate outright — scored a perfect zero. The
+variance floor is the half that matters, and it is the half that was missing.
 
 **M1 is not distorted and is never skipped.** A deck's page titles are precisely
 where its claims live, so a low assertive-title rate on a deck is a real defect,
