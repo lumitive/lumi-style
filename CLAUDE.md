@@ -5,9 +5,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this repository is
 
 lumi-style packages LUMI's design language and writing style as a cross-platform
-LLM skill. It contains only Markdown rules and design tokens — there is no build,
-lint, or test tooling. "Development" here means editing rules, keeping the entry
-points in sync, and recording changes in the changelog.
+LLM skill. It ships Markdown rules and design tokens — there is nothing to build
+or install. "Development" here means editing rules, keeping the entry points in
+sync, and recording changes in the changelog.
+
+## Checks
+
+```bash
+python3 scripts/check_repo.py     # all four guards; exit 1 on any failure
+```
+
+Standard library only, no dependencies. `.github/workflows/ci.yml` runs the same
+command on every push to `main` and every pull request. The four guards are the
+mechanical half of the invariants below: version stamps, the English-only red
+line, markdown link targets, and palette parity between the two `tokens/` files.
+Everything the checks cannot decide — above all whether a rule change was
+re-flowed into the entry points — stays with the reviewer.
 
 ## Architecture: one rule set, three entry points
 
@@ -34,8 +47,9 @@ Three entry points load these rules, and each restates part of them:
 `adapters/` holds per-platform loading notes plus the precedence rule that
 `references/` wins on conflict.
 
-**Drift is this repo's main hazard and there is no tooling to catch it.** After
-changing `references/`, re-read all three entry points *and* `README.md`, which
+**Drift is this repo's main hazard, and the checks catch only its mechanical
+half — semantic drift between prose copies is invisible to them.** After changing
+`references/`, re-read all three entry points *and* `README.md`, which
 independently restates the file map, the design language, and the iteration
 protocol. Two known-stale spots to fix when you touch their subject matter:
 `prompts/lumi-style-core.md:74-77` still carries pre-1.2.0 canvas hexes and the
