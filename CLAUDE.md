@@ -73,13 +73,14 @@ repo itself.)
    is itself editable under the protocol. A lesson is promoted to a formal rule
    once it has appeared across two documents.
 3. **A rule revision requires a `CHANGELOG.md` entry and a version bump.**
-   `metadata.version` in SKILL.md frontmatter and the CHANGELOG always move
-   together. The version header inside each `tokens/` file records the last
-   version that changed *that file* — both currently read 1.3.0 while the skill
-   is at 1.4.0, which is correct, not drift. Bump a token header only when you
-   edit that file, and bump both when you do, since their palettes mirror. Those
-   four files are the only places a version string lives. Commit messages follow
-   `X.Y.Z — comma-separated summary of the rule changes`.
+   The repo carries **one version**: `metadata.version` in SKILL.md frontmatter,
+   the newest CHANGELOG heading, and the version stamp in each `tokens/` file all
+   read the same number and bump together, even when a revision leaves the tokens
+   untouched. Those four places are the only ones a version string lives, and the
+   `version stamps` check fails on any mismatch. The historical notes inside
+   `tokens/lumi-theme.css` ("v1.3.0: light-first…") name the version that
+   introduced a change and are not stamps — leave them alone. Commit messages
+   follow `X.Y.Z — comma-separated summary of the rule changes`.
 4. This repo holds style rules and templates only — never add client names,
    project figures, or engagement facts. This binds `CHANGELOG.md` hardest, since
    every entry summarizes a real engagement's review: record the lesson and the

@@ -71,8 +71,8 @@ def css_vars(block):
 
 
 def check_versions():
-    """SKILL.md and CHANGELOG move together; a tokens/ header records the last
-    version that changed that file, so it may lag but must still be real."""
+    """One version across the repo: SKILL.md, CHANGELOG, and both tokens/ headers
+    carry the same number, so a rule revision bumps all four together."""
     errors = []
     skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
     m = re.search(r"^\s*version:\s*[\"']?(\d+\.\d+\.\d+)", skill, re.M)
@@ -90,9 +90,6 @@ def check_versions():
             f"SKILL.md metadata.version ({skill_version}) != newest CHANGELOG "
             f"entry ({released[0]}); a rule revision bumps both together"
         )
-
-    def as_tuple(v):
-        return tuple(int(p) for p in v.split("."))
 
     token_versions = {}
     for name, pattern in (
@@ -114,9 +111,10 @@ def check_versions():
     for name, version in token_versions.items():
         if version not in released:
             errors.append(f"{name}: version {version} has no CHANGELOG entry")
-        elif as_tuple(version) > as_tuple(skill_version):
+        elif version != skill_version:
             errors.append(
-                f"{name}: version {version} is ahead of the skill version {skill_version}"
+                f"{name}: version {version} != skill version {skill_version}; "
+                f"tokens carry the skill version, so all four stamps bump together"
             )
     return errors
 
