@@ -57,3 +57,5 @@ No rule is added or removed without a documented case behind it.
 ## License
 
 MIT
+
+[broken](references/nope.md)
