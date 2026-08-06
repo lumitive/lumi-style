@@ -1,0 +1,94 @@
+{
+ "$schema_note": "LUMI design tokens v2 (2026-08-06). Source of truth mirrors tokens/lumi-theme.css. 用法见 references/design-rules.md。",
+ "color": {
+  "bg": {
+   "light": "#F4F6F5",
+   "card": "#FFFFFF",
+   "night": [
+    "#1E2A1B",
+    "#48633E",
+    "#5F7D52"
+   ]
+  },
+  "ink": {
+   "base": "#2B2E33",
+   "ladder_alpha": [
+    0.9,
+    0.7,
+    0.5,
+    0.3,
+    0.15,
+    0.08
+   ]
+  },
+  "night_text": {
+   "base": "#F0F0FA",
+   "ladder_alpha": [
+    1.0,
+    0.7,
+    0.5,
+    0.25,
+    0.1
+   ],
+   "note": "深底文字用冷白,不用纯白"
+  },
+  "semantic": {
+   "accent": "#48633E",
+   "accent_deep": "#3A5232",
+   "accent_wash": "#EDF2EA",
+   "seal": "#C8102E",
+   "seal_wash": "#FBECEE",
+   "ok": "#1E8E6E",
+   "warn": "#A5691E",
+   "note": "一色一义:accent=强调/通过,seal=仅警示,永不装饰"
+  },
+  "chart": {
+   "blue": "#2F6DB4",
+   "red": "#C0392B",
+   "teal": "#1E8E6E",
+   "note": "CVD 已验证三色组,不随品牌色改"
+  }
+ },
+ "font": {
+  "narrative": [
+   "Quicksand",
+   "Nunito",
+   "PingFang SC",
+   "Hiragino Sans GB",
+   "Noto Sans SC",
+   "sans-serif"
+  ],
+  "data": [
+   "D-DIN",
+   "IBM Plex Mono",
+   "SF Mono",
+   "Menlo",
+   "monospace"
+  ],
+  "code": [
+   "IBM Plex Mono",
+   "SF Mono",
+   "Menlo",
+   "Consolas",
+   "monospace"
+  ],
+  "note": "双声道:会被核对的值走 data(恒 tabular-nums,计数器每位定宽);讲给人听的走 narrative。D-DIN=SIL OFL(Datto 2017),仅拉丁,中文回退苹方"
+ },
+ "typography": {
+  "letter_spacing": {
+   "eyebrow_latin": "0.14em",
+   "title_cjk": "0.02em"
+  },
+  "chart_scale_px": {
+   "fig_title": 14,
+   "axis": 10.5,
+   "source": 11
+  },
+  "note": "拉丁眉题=小字全大写+字距;中文标题等价物=字号对比+字距,不变大喊"
+ },
+ "layout": {
+  "one_claim_per_screen": true,
+  "night_pages_max": 3,
+  "scroll_snap": "slides only, never long docs"
+ }
+}
