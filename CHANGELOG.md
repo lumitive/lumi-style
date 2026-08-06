@@ -3,6 +3,13 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 1.1.1 — 2026-08-06
+
+- Added the localization layout guard to design-rules: translated text runs
+  30–50% longer/shorter — re-inspect every fixed-width container page by page
+  after any localization pass. (From the English-deck audit: seven layout defects
+  found — a wrapped stat band, ragged stat labels, and three SVG text overflows.)
+
 ## 1.1.0 — 2026-08-06
 
 - **Repository language: English only — declared a red line.** LUMI serves a

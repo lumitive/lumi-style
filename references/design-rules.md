@@ -77,6 +77,12 @@ Field-tested layout guard: a right-anchored label on a full-width bar must be
 anchored **inside the fill**, or its tail lands on the canvas and white text goes
 invisible — anchor position must track fill width.
 
+Localization layout guard: translated text runs 30–50% longer or shorter than the
+original. After any localization pass, **re-inspect every fixed-width container**
+— SVG text inside fixed-coordinate boxes, stat-band labels, flex rows near their
+wrap point — page by page, with screenshots. A layout verified in one language is
+not verified in another.
+
 ## 6 · Numbers are the copy
 
 - Exact values, never rounded for effect (671 stays 671, not "670+");
