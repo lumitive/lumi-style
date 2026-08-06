@@ -50,9 +50,15 @@
 
 ## 3 · Layout: one claim per screen
 
-- Each screen/page carries exactly one claim: a giant short headline (3–6
-  words, one accent word in green), one sentence of support, one centerpiece,
-  a thin footer rule with source + page number — nothing else. Prefer
+- Each screen/page carries exactly one claim: a conclusion-style headline (one
+  accent word in green), one sentence of support, one centerpiece, a thin footer
+  rule with source + page number — nothing else. **The headline has no word
+  ceiling**: its length is set by the title contract in
+  `storyline-templates.md` — topic + assertive subtitle carrying a verifiable
+  fact — and the only hard limit is two lines at the design viewport. (Lesson:
+  v1.2 replaced that contract with "a giant short headline (3–6 words)", which
+  compressed deck titles to 4–8 CJK characters, deleted every evidence figure
+  from the title line, and left bare antitheses that read as AI filler.) Prefer
   hairline-separated rows over card boxes: on a dark canvas, borders are
   furniture; hierarchy comes from the ink ladder;
 - Generous whitespace is part of the design; content distributes across the full
@@ -119,9 +125,15 @@ Field-tested layout guards (each from a real defect):
   stretched 24px icon becoming a 110px graphic is an accident, not a design
   choice, even when it accidentally looks bold. If a reviewer has to ask "is this
   the reference style?", it isn't.
-- **Page titles budget two lines at the design viewport** — shorten the title,
-  never shrink the type. A third title line eats the content area and pushes the
-  footer below the fold.
+- **Page titles budget two lines at the design viewport.** Display titles are set
+  as a size *range*, not a single size, and a long title takes the lower end
+  before any word is cut. Order of remedy: (1) drop to the bottom of the title
+  range; (2) tighten wording without losing the subject or the fact; (3) split the
+  claim across the title and the support line. **Never cut below the information
+  floor.** A third title line eats the content area and pushes the footer below
+  the fold. (The original guard read "shorten the title, never shrink the type";
+  once v1.2 made display titles giant, that phrasing left cutting words as the
+  only legal move and the evidence went first.)
 - **Figure vocabulary ⊆ body vocabulary**: when body terminology is renamed,
   sweep every figure label in the same pass — a chart that still speaks the old
   names contradicts the text beside it.

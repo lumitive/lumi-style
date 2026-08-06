@@ -8,7 +8,7 @@
 
 | id | Metric | Target | Predicate |
 |---|---|---|---|
-| M1 | Assertive-title rate | ≥70% (distorted for slides — advisory) | share of titles containing a number or judgment predicate |
+| M1 | Assertive-title rate | ≥70% (decks included — never waived) | share of titles that name a subject and carry a verifiable fact |
 | M2 | Number-sourcing rate | ≥90% | share of percentage figures with a nearby source marker |
 | M3 | Coined-term violations | =0 | occurrences of banned legacy coinages (substring exemptions apply) |
 | M4 | Banned AI-tell phrases | =0 | banned-phrase hits (fixed-collocation exemptions apply) |
@@ -54,6 +54,12 @@
 
 ## Known genre distortions (never chase the score)
 
-M1/M8 are distorted for slide decks (claims live in page headlines; figure
-fragments concatenate into false run-ons). When a metric is distorted, **note it
-and skip it** — genre adaptation is the metric's debt, not the document's.
+M8 is distorted for slide decks (figure fragments concatenate into false
+run-ons). When a metric is distorted, **note it and skip it** — genre adaptation
+is the metric's debt, not the document's.
+
+**M1 is not distorted and is never skipped.** A deck's page titles are precisely
+where its claims live, so a low assertive-title rate on a deck is a real defect,
+not a genre artifact. (Lesson: M1 was waived for decks as "advisory", which
+removed the only metric that would have caught deck titles collapsing to bare
+antitheses — the regression ran for three versions unmeasured.)
