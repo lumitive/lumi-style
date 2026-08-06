@@ -64,6 +64,14 @@ Changes:
 - **CI now covers `scripts/`** (`py_compile` plus `bash -n`). It had none, so a
   syntax error would have shipped silently — including into the emergency path
   that runs precisely when CI is unavailable.
+- **Fifth guard: ban-list parity.** `check_prose.py`'s phrase list is a second
+  copy of §2 and was held to it only by a comment saying "change both together".
+  `check_repo.py` now parses §2 and the script's declarations (by AST, so the
+  guard never executes the other script) and fails when they disagree in either
+  direction. Phrases that cannot be matched mechanically — `rich (figurative)`,
+  `key (adjective)`, "adjective stacks in place of numbers" — must now be listed
+  in `NOT_MECHANIZED` with a reason, which turns the gap between what the rules
+  ban and what the machine can enforce from invisible into documented.
 
 Review round on this release, recorded because the findings were real:
 
