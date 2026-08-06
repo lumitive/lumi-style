@@ -57,3 +57,5 @@ No rule is added or removed without a documented case behind it.
 ## License
 
 MIT
+
+<!-- 故意注入的中文,用于验证 CI 拦截 -->
