@@ -1,2 +1,28 @@
 .DS_Store
 __pycache__/
+
+# Tooling scratch
+.playwright-mcp/
+*.bak
+
+# This repository holds the skill only: rule prose, design tokens, entry points,
+# and the check scripts. Deliverables produced *with* the skill — decks, reports,
+# their exports and renders — live with the engagement, never here. Committing one
+# would also breach the no-engagement-facts red line in CLAUDE.md.
+*.pdf
+*.pptx
+*.docx
+*.key
+*.numbers
+*.xlsx
+*.mp4
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg
+*.woff
+*.woff2
+*.ttf
+*.otf

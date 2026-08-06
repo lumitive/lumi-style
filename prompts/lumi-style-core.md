@@ -35,16 +35,32 @@ bilingual; later occurrences use Chinese only. One name per concept, document-wi
 众所周知; 赋能 only inside 销售赋能/市场赋能. Full-width punctuation in Chinese
 body text (,:;?); half-width inside code/URLs/filenames/English runs; quotes
 are 「」; run a punctuation pass before delivery.
-[en] Avoid "It's worth noting", "delve into", "game-changing", filler
-"In conclusion", adjective stacks replacing numbers.
+[en] Hard block, by kind of tell — **significance inflation**: serves/stands as,
+is a testament to, vital/crucial/pivotal role, underscores its importance,
+evolving landscape, turning point; **promotional**: boasts, vibrant, profound,
+showcasing, exemplifies, commitment to, groundbreaking, renowned, stunning,
+seamless, robust, comprehensive, world-class; **AI vocabulary**: delve, garner,
+interplay, intricate, tapestry, testament, underscore, leverage, utilize, foster;
+**filler (with the fix)**: "in order to"→"to", "due to the fact that"→"because",
+"at this point in time"→"now", "has the ability to"→"can", "it is important to
+note that"→delete; **authority tropes**: the real question is, at its core, in
+reality, what really matters, fundamentally; **signposting**: let's dive in,
+let's explore, here's what you need to know; **fake-candid openers**: "Honestly?",
+"Look,", "The thing is,"; plus adjective stacks replacing numbers.
+(Adapted from the humanizer skill, MIT — see NOTICE.)
 
 ## 4 Voice (the LUMI register)
 
-Negation-first openings ("Not X. Y.") — **on the cover and hook only, once per
-document; never as a page-title form**. Numbers are the copy — state parameters
-plainly, strip marketing adjectives. Short sentences, active voice, conclusion
-first. Three-tier responsibility phrasing: "verified (source)" / "we recommend —
-the decision is yours" / "X unverified; the gap is Y". Say "uncertain" plainly.
+Negation-first openings ("Not X. Y.") are **retired as a signature**: at most once
+per document, on the cover or hook, never a page-title or section-opener form, and
+**no exemption from the de-AI pass**. Numbers are the copy — state parameters
+plainly, strip marketing adjectives. Active voice, conclusion first. **Sentence
+length must vary**; runs of short emphatic fragments for drama are banned (the
+former "short sentences" mandate produced uniformly clipped, machine-sounding
+prose). Responsibility is always legible — a reader can tell whether a claim is
+verified (and by what), recommended (their decision), or unverified (and what the
+gap is) — but say it in the sentence's own words, not in three canned frames.
+Say "uncertain" plainly.
 
 ## 5 Structure (pick by scenario)
 
@@ -85,10 +101,39 @@ never new grays, never pure white on dark. Narrative voice: rounded Latin + CJK
 fallback; data voice (codes/rates/dates/counters): D-DIN or monospace with
 tabular-nums and fixed-width digit boxes.
 
-## 8 Pre-delivery checklist
+## 8 De-AI-flavor pass (mandatory, before delivery)
+
+**Word and sentence**: weak verb → direct verb, and kill copula avoidance
+("serves as / boasts / features" → "is / has"); vary sentence length across each
+section, checking the distribution rather than just fixing outliers; delete filler
+(§3 lists the fixes); replace abstraction with concrete detail **already in the
+source, never invented** — when the source is thin, say less; convert passive and
+subjectless fragments back to an actor; cut idle connectives (Moreover,
+Furthermore, Additionally).
+
+**Structural** — these catch what a wordlist cannot: [en] **no em or en dashes**
+in sales/marketing output (use a period, comma, colon, or parentheses); break the
+rule of three, do not force ideas into triplets; vary list-item shape; avoid
+`**Item:** description` bullets as the default list form; no manufactured
+punchlines, no "X is the Y of Z" aphorisms, no generic upbeat ending; bold only
+where it carries meaning; one name per concept, never synonym cycling.
+
+**Two-pass audit** — after rewriting, ask the draft: (1) "What makes this
+obviously AI-generated?" Answer in specifics and fix what you named; if the honest
+answer is "every title has the same shape", the fix is structural, not lexical.
+(2) "Does the rewrite state any fact, name, number, date, or citation not in the
+source?" If yes, remove it — de-flavoring never adds facts.
+
+[zh, when translated from English] **De-translationese**: read the Chinese without
+the English beside it; rewrite any sentence you would not have written from
+scratch; kill inverted English word order, over-explicit pronouns and possessives,
+and the imported "X, not Y" antithesis; re-run the punctuation pass afterwards.
+
+## 9 Pre-delivery checklist
 
 ① punctuation pass [zh]; ② banned-phrase and coined-term sweep; ③ every number
 traced to its source; ④ titles-only test; ⑤ per-figure: is the title a
-conclusion, is there a source line; ⑥ self-score H1–H6 (reader value / structural
+conclusion, is there a source line; ⑥ **the §8 de-AI pass, including its two-pass
+audit**; ⑦ self-score H1–H6 (reader value / structural
 expression / chart self-explanation / honest boundaries / business readability /
 narrative persuasion) — never self-score full marks before a reader has scored it.

@@ -1,0 +1,27 @@
+lumi-style
+Copyright (c) LUMI. Licensed under the MIT License (see LICENSE).
+
+--------------------------------------------------------------------------------
+Third-party material adapted into this repository
+--------------------------------------------------------------------------------
+
+humanizer — https://github.com/blader/humanizer
+Copyright (c) blader. MIT License.
+
+Adapted in release 1.6.0 into references/writing-rules.md (section 2 groups 1-7,
+and the structural moves and two-pass audit in section 6) and into the metric
+definitions M9-M11 in references/eval-rubric.md.
+
+What was taken: the categorisation of AI-writing tells, the English blocklists
+(significance inflation, promotional register, high-frequency AI vocabulary,
+filler phrases with their replacements, authority tropes, signposting, fake-candid
+openers), and the two-pass audit method — rewrite, then ask the draft what makes
+it obviously AI-generated, then rewrite again.
+
+What was not taken, and why: humanizer is a general-purpose prose rewriter and
+English-only. Rules that conflict with LUMI's fact discipline were dropped, its
+patterns were re-scoped to LUMI's sales and marketing deliverables, and nothing
+from it applies to Chinese output, which is governed instead by the
+de-translationese pass in references/writing-rules.md section 6b. The skill itself
+is not vendored, installed, or invoked; only its rules were adapted, so this
+repository remains a single source of truth with no runtime dependency.

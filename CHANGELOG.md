@@ -3,6 +3,64 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 1.6.0 — 2026-08-07
+
+Internal review: sales and marketing deliverables still read as AI-written. The
+`humanizer` skill (github.com/blader/humanizer, MIT) was evaluated as a candidate
+fix and its rules adapted rather than the skill adopted — LUMI keeps one source of
+truth and no runtime dependency. See `NOTICE` for attribution and scope.
+
+The evaluation found three causes, and humanizer only addresses the first:
+
+1. **Coverage was lexical, not structural.** The `[en-output]` ban list was a
+   five-item seed while English had been the default output language since 1.3.0,
+   and the "delete filler phrases" move shipped without a list of filler phrases.
+2. **The de-AI-flavor pass was an orphan.** It is the repo's only real
+   anti-AI-flavor machinery and no workflow step, checklist, gate, or metric
+   invoked it; it was absent from `prompts/lumi-style-core.md` entirely, so Kimi
+   and DeepSeek users got none of it. The repo already knew the lesson — "a pass
+   in the pipeline beats good intentions" — and had applied it only to punctuation.
+3. **The mandated forms were themselves the tells.** A deliverable could satisfy
+   every rule, score clean on all eight metrics, and still read as machine-written,
+   because compliance is what made it read that way.
+
+Changes:
+
+- **[en-output] ban list grown from 5 entries to 8 grouped classes** — significance
+  inflation, promotional register, AI high-frequency vocabulary, filler with its
+  fixes, authority tropes, signposting, fake-candid openers, closing filler.
+- **De-AI-flavor pass is now mandatory and gated**, with seven structural moves
+  added (em/en dash ban for en sales/marketing, rule-of-three, list-shape variety,
+  inline-header bullets, manufactured punchlines and aphorism formulas, boldface
+  inflation, synonym cycling) and a two-pass audit: ask the draft what makes it
+  obviously AI-generated, then fix what you named, and confirm no fact was added.
+- **New section 6b, de-translationese** — sales and marketing material is now
+  authored in English with Chinese translated from it, which imports a second
+  failure mode. Precedent: 1.1.0 translated the Chinese rule "not X, but Y" into
+  "Not X. Y.", models rendered it back into Chinese, and the round trip amplified
+  until readers called the decks AI-flavored.
+- **Conflicts with LUMI house style resolved in humanizer's favor**: negation-first
+  openings retired as a mandated signature and stripped of their de-flavor
+  exemption; the three canned responsibility frames reduced to a disclosure
+  requirement phrased in the sentence's own words; the "short sentences" mandate
+  replaced by a variance requirement; the accent-word bold made optional.
+- **Structural loosening** — the colon title is the reference form, not the
+  required one (capped at 60% of titles by M11); sibling-page parallelism only
+  where it aids comparison; one to three support sentences of visibly differing
+  length per page; the page arc is a default order rather than "never reorder";
+  the stock metaphor and the imperative closing line are no longer mandated.
+- **M8 is now two-tailed** (overlong share plus a sentence-length variance floor)
+  and never waived for decks: it used to count only long sentences, so uniformly
+  clipped prose — the dominant modern AI tell, and what the voice rule itself
+  mandated — scored a perfect zero. **M9-M11 added**: em dashes, triad rate,
+  title-shape uniformity.
+- **`scripts/check_prose.py` added.** M1-M8 were called "scriptable" for six
+  versions with no script in the repo. This measures M4 and M8-M11 on a real
+  deliverable. Fault-injected against clean and AI-flavored samples before use.
+- `scripts/emergency_merge.sh` added: a documented, self-restoring path to merge
+  when GitHub Actions cannot run the required check. `.gitignore` now also blocks
+  deliverable exports and renders — this repo holds the skill, never its output.
+
 ## 1.5.0 — 2026-08-07
 
 Reader review of two shipped sales decks (zh + en, V1.3.0) against their own

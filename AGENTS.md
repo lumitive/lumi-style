@@ -28,7 +28,11 @@ AI never signs — money/safety conclusions never come from a language model.
 
 **Workflow note**: after drafting Chinese prose, run a full-width punctuation pass
 (Chinese text uses full-width ,:;? — half-width stays only inside code, URLs,
-filenames, and pure-English runs), then the pre-delivery checklist in the rubric.
+filenames, and pure-English runs). Then run the **mandatory de-AI-flavor pass**
+(`references/writing-rules.md` §6 — word, sentence and structural moves plus the
+two-pass audit; §6b de-translationese when the Chinese was translated from
+English), and only then the pre-delivery checklist in the rubric. For English
+deliverables, measure it: `python3 scripts/check_prose.py <file>`.
 
 Rule changes go through the feedback-review loop only (see `references/eval-rubric.md`)
 and are recorded in `CHANGELOG.md` with a version bump.
