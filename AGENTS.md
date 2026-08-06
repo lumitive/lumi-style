@@ -20,7 +20,9 @@ slides, and HTML reports.
 illustrative values are labeled 示意); no invented Chinese coinages (use the
 standard Chinese term, or the English term directly when none exists); sales
 narrative leads with value & future (honesty boundaries take exactly one page);
-titles are conclusions and must read as a complete argument when concatenated;
+titles follow the contract "Topic: assertive subtitle" — each names its subject
+and carries a verifiable fact, with no word ceiling and no bare-antithesis
+titles, and all titles concatenated must read as a complete argument;
 charts use one accent color, conclusion-style titles, and a source line;
 AI never signs — money/safety conclusions never come from a language model.
 

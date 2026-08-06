@@ -93,6 +93,11 @@ distinguish fixed collocations from abuse — check the collocation first.
 
 - **Negation-first openings**: "Not X. Y." — reject the peer approach, then define
   your own. This is a LUMI signature, not an AI tell; do not "de-flavor" it away.
+  **Scope: the cover and the hook, once per document.** It is not a page-title
+  form. A title reduced to a bare antithesis has lost its subject and its
+  evidence, and the same shape repeated down a deck becomes the very AI tell the
+  signature is meant not to be. Used inside a title, the contrast must be followed
+  by the fact that earns it.
 - **Numbers are the copy**: state parameters plainly and let them speak
   (rule data: 「每天最多 3 条 · 不够就不推」); strip marketing adjectives that
   wrap numbers.

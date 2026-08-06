@@ -40,7 +40,8 @@ are 「」; run a punctuation pass before delivery.
 
 ## 4 Voice (the LUMI register)
 
-Negation-first openings ("Not X. Y."). Numbers are the copy — state parameters
+Negation-first openings ("Not X. Y.") — **on the cover and hook only, once per
+document; never as a page-title form**. Numbers are the copy — state parameters
 plainly, strip marketing adjectives. Short sentences, active voice, conclusion
 first. Three-tier responsibility phrasing: "verified (source)" / "we recommend —
 the decision is yours" / "X unverified; the gap is Y". Say "uncertain" plainly.
@@ -54,13 +55,19 @@ the decision is yours" / "X unverified; the gap is Y". Say "uncertain" plainly.
   labeled) → journey → trust base (one clean page of "what we don't do" — never
   the spine) → action → embedded feedback page. **Value and future are the
   spine; boundaries get exactly one page.**
-- **Consulting/client docs**: titles = "Topic: assertive subtitle"; opening =
-  scope/method/findings + the one client decision; key sections carry scope
-  lines; a single closing build-status declaration wins over conflicting text.
-- **Universal**: titles are conclusions (verb or number in every title); all
-  titles concatenated must read as a complete argument; comparisons use tables,
-  never bullet pileups; write down the reader's question before writing each
-  page; no "so-what" labels on pages — the takeaway lives in the title.
+- **Consulting/client docs**: opening = scope/method/findings + the one client
+  decision; key sections carry scope lines; a single closing build-status
+  declaration wins over conflicting text.
+- **Universal — the title contract**: every title is "Topic: assertive subtitle",
+  naming its **subject** and carrying a **verifiable fact** (figure, date, named
+  mechanism). **No word ceiling** — length follows the fact; the only limit is two
+  lines at the design viewport, and a long title takes a smaller size before any
+  word is cut. **Information floor**: a bare contrast ("codes, not words"), a
+  slogan, or a section label is not a title — keep the evidence that earns it
+  ("Codes, not words: same task, different criteria, 18× recall gap"). All titles
+  concatenated must read as a complete argument; comparisons use tables, never
+  bullet pileups; write down the reader's question before writing each page; no
+  "so-what" labels on pages — the takeaway lives in the title.
 
 ## 6 Five chart iron rules (for HTML/SVG output)
 

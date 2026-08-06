@@ -3,6 +3,40 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 1.5.0 — 2026-08-07
+
+Reader review of two shipped sales decks (zh + en, V1.3.0) against their own
+V4.1 predecessor: "page titles suddenly became very short and AI-flavored,
+overusing the it-is-X-not-Y contrast — this violates the PwC title principle the
+skill was founded on." Measured: title length fell from a median of ~29 CJK
+characters to ~8; display type rose 29.8pt → 37.4pt; every evidence figure
+(18×, 4,557, 194, 29,845) vanished from the title line.
+
+Root cause: 1.2.0 answered a review complaint about *visual* divergence from
+spacex.com by writing a *writing* rule — "a giant short headline (3–6 words)" —
+into design-rules §3, without reconciling it against the PwC title contract that
+already existed in storyline-templates. The word ceiling then collided with the
+still-standing requirement that a title be a complete assertion carrying the
+takeaway, and with the negation-first signature's explicit de-flavor exemption;
+in ~6 CJK characters the only form that satisfies all three is a bare antithesis.
+
+- **The word ceiling is removed.** design-rules §3 now defers to the title
+  contract; headline length follows the fact, bounded only by the two-line budget.
+- **Title contract promoted to shared discipline** (was scoped to the consulting
+  template, so sales decks had no title rule at all): "Topic: assertive subtitle",
+  naming a subject and carrying a verifiable fact.
+- **Information floor added**: a bare contrast, a slogan, or a section label is
+  not a title. Contrast is a lead-in that must keep the evidence that earns it.
+- **Two-line guard rewritten**: display titles are a size *range*; a long title
+  takes the lower end before any word is cut. The old "shorten the title, never
+  shrink the type" left cutting words as the only legal move once titles went
+  giant, and the evidence went first.
+- **Negation-first scoped** to the cover and hook, once per document; it is not a
+  page-title form.
+- **M1 is never waived for decks.** It had been marked "distorted for slides —
+  advisory", which removed the only metric that measures this exact failure; the
+  regression ran three versions unmeasured.
+
 ## 1.4.0 — 2026-08-06
 
 Reader review of the anchor document (five annotated screenshots):

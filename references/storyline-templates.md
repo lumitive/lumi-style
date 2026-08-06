@@ -57,9 +57,9 @@ sits between them.
 
 ## Template 2 · Consulting / client documents: PwC frame, McKinsey punch
 
-- **Titles**: "Topic: assertive subtitle" — PwC's structure carrying a McKinsey
-  conclusion ("Master data ledger: codes come only from the client's list —
-  the system never derives its own");
+- **Titles**: the shared title contract below, in its fullest form — "Master data
+  ledger: codes come only from the client's list — the system never derives its
+  own";
 - **Opening**: scope, method, and findings summary + the one decision the client
   must make;
 - **Per-section scope lines** on key sections (sample size / data version /
@@ -77,9 +77,20 @@ sits between them.
 
 ## Shared discipline
 
-- **Titles are conclusions + the titles-only test**: every page/section title is a
-  complete assertion containing a verb or a number; concatenate all titles — they
-  must read as a complete argument, or rewrite them.
+- **Title contract — "Topic: assertive subtitle"** (all three scenarios, decks
+  included): PwC's structure carrying a McKinsey conclusion. Every page/section
+  title names its **subject** and carries at least one **verifiable fact** — a
+  figure, a date, a named mechanism. Length follows the fact; **there is no word
+  ceiling**, only the two-line budget in `design-rules.md`.
+- **Information floor**: a title that states only a contrast ("codes, not words"),
+  only a slogan, or only a section label ("the end-state") is not a title.
+  Contrast is a *lead-in*, never the whole title — keep the evidence that earns
+  it: "Codes, not words: same task, different criteria, 18× recall gap".
+  (Lesson: a word ceiling amputated the evidence clause from every title in a
+  deck; what survived was the rhetorical shell, and readers correctly called it
+  AI-flavored.)
+- **Titles-only test**: concatenate all titles — they must read as a complete
+  argument, or rewrite them.
 - **So-what is a writing discipline, not a page element**: sales/client material
   never carries a "→ so-what" label — the takeaway lives in the title and the
   figure title. Only internal analysis documents keep explicit so-what lines.

@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "1.4.0"
+  version: "1.5.0"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -55,8 +55,9 @@ rules only as rule data for Chinese-language output.
    English term directly;
 3. The sales storyline is **value and future**; honesty boundaries converge to a
    single trust page;
-4. Titles are conclusions; all titles concatenated must read as a complete
-   argument;
+4. Titles follow the contract "Topic: assertive subtitle" — each names its subject
+   and carries a verifiable fact, with no word ceiling and no bare-antithesis
+   titles; all titles concatenated must read as a complete argument;
 5. Charts: one accent color, conclusion-style titles, a source line on every
    figure;
 6. AI never signs; money/safety conclusions never come from a language model.
