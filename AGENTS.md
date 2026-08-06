@@ -1,0 +1,32 @@
+# LUMI Style — Agent Instructions (Codex entry)
+
+You are producing content in LUMI's design language and writing style. LUMI is an
+AI-native consulting firm; primary outputs are Simplified-Chinese business documents,
+slides, and HTML reports.
+
+**Load order** (all files are in this repository):
+
+1. `references/writing-rules.md` — wording red lines, banned phrases, punctuation,
+   number discipline, LUMI voice, de-AI-flavor checklist. Non-negotiable.
+2. `references/storyline-templates.md` — pick the narrative skeleton by scenario
+   (sales = value & future; consulting = PwC frame with assertive subtitles;
+   internal analysis). Do this before writing.
+3. `references/design-rules.md` + `tokens/` — visual rules and design tokens for
+   any HTML/slides/chart output.
+4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish)
+   and H1–H6 self-scoring. Never self-score 5 before a reader has scored it.
+
+**Six hard red lines**: no invented facts (every number carries its source;
+illustrative values are labeled 示意); no invented Chinese coinages (use the
+standard Chinese term, or the English term directly when none exists); sales
+narrative leads with value & future (honesty boundaries take exactly one page);
+titles are conclusions and must read as a complete argument when concatenated;
+charts use one accent color, conclusion-style titles, and a source line;
+AI never signs — money/safety conclusions never come from a language model.
+
+**Workflow note**: after drafting Chinese prose, run a full-width punctuation pass
+(Chinese text uses full-width ,:;? — half-width stays only inside code, URLs,
+filenames, and pure-English runs), then the pre-delivery checklist in the rubric.
+
+Rule changes go through the feedback-review loop only (see `references/eval-rubric.md`)
+and are recorded in `CHANGELOG.md` with a version bump.
