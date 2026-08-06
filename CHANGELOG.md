@@ -3,6 +3,18 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 1.1.2 — 2026-08-06
+
+- design-rules: added three field-tested guards from a reader-reported bug round —
+  two-line title budget (shorten, never shrink); icon size independent of
+  container scaling (blanket `svg{width:100%}` rules must exclude icons; an
+  accidentally-stretched icon is not a design choice); in-row card alignment
+  constraints (equalized title heights, stat numbers stacked above labels).
+- design-rules: new "Verification matrix" section — language axis × viewport axis
+  (design / print / short-laptop); footer rule and page number must be visible at
+  every matrix point; height-based media queries as the mechanism. Supersedes the
+  standalone localization guard (merged in).
+
 ## 1.1.1 — 2026-08-06
 
 - Added the localization layout guard to design-rules: translated text runs

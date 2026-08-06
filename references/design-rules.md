@@ -73,15 +73,38 @@ holds one fixed meaning (ledger=master data · radar=watch · funnel=adjudicatio
 bell=alert · shield=compliance · pen=signature · gauge=measurement ·
 slashed circle=forbidden); never add icons to "look rich".
 
-Field-tested layout guard: a right-anchored label on a full-width bar must be
-anchored **inside the fill**, or its tail lands on the canvas and white text goes
-invisible — anchor position must track fill width.
+Field-tested layout guards (each from a real defect):
 
-Localization layout guard: translated text runs 30–50% longer or shorter than the
-original. After any localization pass, **re-inspect every fixed-width container**
-— SVG text inside fixed-coordinate boxes, stat-band labels, flex rows near their
-wrap point — page by page, with screenshots. A layout verified in one language is
-not verified in another.
+- A right-anchored label on a full-width bar must be anchored **inside the fill**,
+  or its tail lands on the canvas and white text goes invisible — anchor position
+  must track fill width.
+- **Icon size is fixed and never inherits container scaling.** Blanket rules like
+  `.fig svg{width:100%}` must exclude icons (`.fig svg.ic{width:20px}`) — a
+  stretched 24px icon becoming a 110px graphic is an accident, not a design
+  choice, even when it accidentally looks bold. If a reviewer has to ask "is this
+  the reference style?", it isn't.
+- **Page titles budget two lines at the design viewport** — shorten the title,
+  never shrink the type. A third title line eats the content area and pushes the
+  footer below the fold.
+- Cards in a row need internal alignment constraints: equalize title heights
+  (min-height) and stack stat numbers above their labels, or differing title
+  wraps misalign every row below.
+
+## 7 · The verification matrix
+
+A layout is verified only across the **matrix**, not at a point:
+
+- **Language axis**: translated text runs 30–50% longer or shorter — after any
+  localization pass, re-inspect every fixed-width container (SVG text in
+  fixed-coordinate boxes, stat-band labels, flex rows near their wrap point).
+- **Viewport axis**: verify at minimum three sizes — the design viewport
+  (e.g. 1450×900), the print page (e.g. 1280×720), and a short laptop window
+  (e.g. 1000×550). Slides use `min-height:100svh`, so an overflowing page pushes
+  its footer below the fold silently. **The footer rule and page number must be
+  visible on every page at every matrix point** — provide height-based media
+  queries that step down type and spacing.
+- Verified at one matrix point is not verified. Screenshot page by page; a
+  defect found by the reader is a matrix point you skipped.
 
 ## 6 · Numbers are the copy
 
