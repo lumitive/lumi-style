@@ -1,10 +1,12 @@
-# Kimi 装载
+# Loading in Kimi
 
-Kimi 无技能机制,用单文件核心版:
+Kimi has no skill mechanism — use the self-contained single-file core:
 
-1. 打开 `prompts/lumi-style-core.md`,整体复制;
-2. 作为系统提示(API:system 字段;网页版:对话第一条消息)粘贴;
-3. 之后正常下达任务(「按以上规则写一份…」)。
+1. Open `prompts/lumi-style-core.md` and copy it in full;
+2. Paste it as the system prompt (API: the `system` field; web: the first message
+   of the conversation);
+3. Then issue tasks normally ("Following the rules above, write…").
 
-core 是 references/ 的严格子集(自含、无文件引用);细则冲突以本仓库
-references/ 为准。规则更新后重新复制最新 core。
+The core is a strict subset of `references/` (self-contained, no file
+references); on any conflict, `references/` wins. Re-copy the latest core after
+rule updates.

@@ -1,47 +1,59 @@
-# LUMI 文档评分卡(eval rubric)
+# LUMI Document Eval Rubric
 
-> 每份对外输出先自评、再收读者回评;分歧驱动规则迭代。这是 skill「持续迭代」的引擎。
+> Every external deliverable is self-scored first, then reader-scored; divergence
+> drives rule iteration. This is the skill's continuous-improvement engine.
+> (Repository language: English only — red line.)
 
-## 机器指标 M1–M8(可脚本化;无脚本时人工抽查)
+## Machine metrics M1–M8 (scriptable; spot-check manually when no script)
 
-| id | 指标 | 目标 | 判据 |
+| id | Metric | Target | Predicate |
 |---|---|---|---|
-| M1 | 判断句标题率 | ≥70%(slides 体裁失真,仅参考) | 标题含数字或判断谓词的比例 |
-| M2 | 数字溯源率 | ≥90% | 百分比数字邻近有出处标记的比例 |
-| M3 | 自造词违规 | =0 | 被禁旧词形出现次数(注意子串豁免) |
-| M4 | AI 腔禁词 | =0 | 禁词表命中(含固定搭配豁免) |
-| M5 | 标点违规 | =0 | 汉字后紧跟半角句读(豁免 code/pre/公式) |
-| M6 | 无源数字区间 | =0 | 区间形态数字且邻近无出处 |
-| M7 | 术语混用 | =0 | 同一概念新旧叫法同现 |
-| M8 | 超长句占比 | ≤8%(slides 失真,仅参考) | >80 汉字句的比例 |
+| M1 | Assertive-title rate | ≥70% (distorted for slides — advisory) | share of titles containing a number or judgment predicate |
+| M2 | Number-sourcing rate | ≥90% | share of percentage figures with a nearby source marker |
+| M3 | Coined-term violations | =0 | occurrences of banned legacy coinages (substring exemptions apply) |
+| M4 | Banned AI-tell phrases | =0 | banned-phrase hits (fixed-collocation exemptions apply) |
+| M5 | Punctuation violations (zh) | =0 | half-width punctuation adjacent to CJK (code/pre/formula exempt) |
+| M6 | Unsourced range figures | =0 | range-shaped numbers with no nearby source |
+| M7 | Term mixing | =0 | old and new names of one concept co-occurring |
+| M8 | Overlong-sentence share | ≤8% (distorted for slides — advisory) | share of sentences beyond the length threshold |
 
-## 人工指标 H1–H6(1–5 锚点,**锚点必须用被评读者的语言写**)
+## Human metrics H1–H6 (anchors 1–5 — **anchors must be written in the reviewer's language, not internal jargon**)
 
-- **H1 读者价值**:5 = 每页读完知道自己得到什么、该做什么;3 = 多数页有价值信息,
-  少数页只是在陈述;1 = 页面在自说自话。
-- **H2 结构表达力**:5 = 页面版式最好地表达本页主题,全篇顺序最好地表达故事线;
-  3 = 结构能用但有页面与版式打架;1 = 结构是模板硬套的。
-- **H3 图表自解释**:5 = 不读正文也知道每张图想说什么;3 = 多数图需正文配合;
-  1 = 图是装饰。
-- **H4 诚实边界披露**:5 = 示意/提案/未建成全部显式标注且集中可查;3 = 有披露但散落;
-  1 = 只讲建成的。
-- **H5 商业可读性**:5 = 非项目读者一遍读懂无需查表;3 = 每几段要查一次术语;
-  1 = 只有内部人读得懂。
-- **H6 叙事说服力**:5 = 读完自然得出与作者相同的结论;3 = 论据都在但读者要自己
-  组装因果;1 = 事实罗列无叙事线。
+- **H1 Reader value**: 5 = after each page the reader knows what they got and what
+  to do next; 3 = most pages carry value, some merely state; 1 = the page talks to
+  itself.
+- **H2 Structural expression**: 5 = each page's layout best expresses its topic and
+  the page order best expresses the storyline; 3 = usable but some pages fight
+  their layout; 1 = a template forced onto the content.
+- **H3 Chart self-explanation**: 5 = every figure's message is clear without the
+  body text; 3 = most figures need the text; 1 = figures are decoration.
+- **H4 Honest-boundary disclosure**: 5 = every illustrative/proposal/not-built item
+  is labeled and findable in one place; 3 = disclosed but scattered; 1 = only the
+  built parts are shown.
+- **H5 Business readability**: 5 = a reader outside the project understands in one
+  pass, no glossary needed; 3 = pauses to look things up every few paragraphs;
+  1 = insiders only.
+- **H6 Narrative persuasion**: 5 = the reader arrives at the author's conclusion
+  naturally; 3 = evidence present but the reader assembles the causality; 1 = fact
+  list, no storyline.
 
-## 回评协议(迭代引擎)
+## Review protocol (the iteration engine)
 
-1. 交付时附自评(**未经读者检验不给 5**——把「机械完成度」当「读者价值」是已犯过
-   并被打回的错);
-2. 读者按锚点回评,每维一句意见;slides 类文档把评分表内嵌为最后一页,长文档用
-   独立回评表;
-3. **分歧 ≥2 分的维度强制复盘**:写清根因(自评错在哪/规则缺在哪);
-4. 复盘产出落地三选一:修订规则(进 CHANGELOG+版本号)/修订锚点(锚点也会错)/
-   仅记录(说明为什么不改);
-5. 同一教训跨 2 份文档出现 → 升为正式规则。
+1. Ship with a self-score attached (**never self-score 5 before a reader has
+   scored it** — mistaking mechanical completeness for reader value is a
+   documented, once-punished failure);
+2. Readers score against the anchors with a one-line comment each; slide decks
+   embed the scoring table as the final page; long documents use a standalone
+   review form;
+3. **Any dimension diverging ≥2 points forces a retrospective**: name the root
+   cause (what the self-score missed / which rule is absent);
+4. The retrospective produces one of three outcomes: a rule revision (CHANGELOG +
+   version bump) / an anchor revision (anchors can be wrong too) / a recorded
+   no-change with reasons;
+5. The same lesson appearing across 2 documents → promoted to a formal rule.
 
-## 已知体裁失真(不硬凑分)
+## Known genre distortions (never chase the score)
 
-M1/M8 对 slides 失真(论点在页标题、图内短语被并句)——指标失真时**注明并跳过**,
-不为凑分改写内容;体裁适配是指标的欠账,不是文档的。
+M1/M8 are distorted for slide decks (claims live in page headlines; figure
+fragments concatenate into false run-ons). When a metric is distorted, **note it
+and skip it** — genre adaptation is the metric's debt, not the document's.

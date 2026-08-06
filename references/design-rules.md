@@ -1,62 +1,89 @@
-# LUMI 设计语言规则(design rules)
+# LUMI Design Rules
 
-> 骨架研究并借鉴 SpaceX 与 Tesla 的公开网页设计(一屏一事/数字即文案/单色纪律),
-> 色板与语义是 LUMI 自己的。token 在 `tokens/`;本文讲用法与判断。
+> Skeleton researched from the public web design of SpaceX and Tesla (one claim
+> per screen / numbers-as-copy / monochrome discipline); the palette and its
+> semantics are LUMI's own. Tokens live in `tokens/`; this file covers usage and
+> judgment. (Repository language: English only — red line.)
 
-## 一 · 色彩:一色一义,层次靠透明度
+## 1 · Color: one color, one meaning; hierarchy via transparency
 
-- **基底**:太空灰亮底(长文档)/夜绿深底(封面、终局、未来页——用深底做叙事的
-  「三幕节奏」,全篇深底页不超过三处)。
-- **唯一强调色 = 自然绿**:强调、通过、已建成。**中国红只给警示/红线/否决**,
-  永不作装饰。这是比 SpaceX/Tesla 更严格的执行:它们「彩色只在语义处出现」,
-  LUMI 把每个语义固定到一个颜色。
-- **层次靠透明度阶梯,不靠新灰**:亮底一切层次从墨色按 α 派生(90/70/50/30/15/08),
-  深底从冷白 #F0F0FA 派生(70/50/25/10)。**深底文字用冷白,不用纯白。**
-- 图表数据色是独立的已验证组(蓝/红/青,CVD 通过),不随品牌色改——
-  数据可分辨性优先于品牌。
+- **Canvas**: space-gray light canvas for long documents; night-green dark canvas
+  for cover / end-state / future pages — dark pages create the narrative's
+  "three-act rhythm" and never exceed three per deck.
+- **Single accent = natural green** (#48633E): emphasis, pass, built.
+  **China red (#C8102E) is for warnings/red-lines/vetoes only** — never
+  decoration. This is stricter than SpaceX/Tesla: they let color appear only where
+  it carries meaning; LUMI pins each meaning to exactly one color.
+- **Hierarchy comes from a transparency ladder, not new grays**: on light canvas
+  every level (body/secondary/notes/rules) derives from ink #2B2E33 at α
+  90/70/50/30/15/08; on dark canvas from cold white **#F0F0FA** at α 70/55/45/25/10.
+  **Dark-canvas text is cold white, never pure white.**
+- Chart data colors are an independent CVD-validated triple (blue/red/teal) and
+  never change with the brand palette — data distinguishability outranks branding.
 
-## 二 · 字体:双声道,从不混用
+## 2 · Typography: two voices, never mixed
 
-- **叙事声道**(标题/正文):圆体拉丁(Quicksand/Nunito)+ 中文苹方系。
-  字重规律:标题重、正文轻、对比大。
-- **数据声道**(HTS 码/税率/百分比/日期/计数/参数):D-DIN 或等宽字体,
-  恒开 tabular-nums;**计数器与倒计时每位数字一个定宽盒**,变化不跳版。
-- 判断规则:**一个值会被读出来核对的,走数据声道**;讲给人听的,走叙事声道。
-- D-DIN 为 SIL OFL 1.1(Datto,2017),可自由商用与嵌入;仅拉丁字符集,
-  中文必须回退中文字体;改版不得使用「D-DIN」保留名。
-- **中文没有大写**:拉丁眉题用「小字全大写 + .14em 字距」;中文大标题的等价物是
-  「字号对比 + .02em 字距」,不是把中文变大喊。
+- **Narrative voice** (titles/body): rounded Latin (Quicksand/Nunito) with CJK
+  fallback (PingFang SC / Noto Sans SC). Weight rule: heavy titles, light body,
+  large contrast.
+- **Data voice** (codes/rates/percentages/dates/counters/specs): D-DIN or
+  monospace, tabular-nums always on; **counters and countdowns give each digit a
+  fixed-width box** so changes never reflow.
+- Judgment rule: **a value someone will read out and verify goes in the data
+  voice**; anything spoken to a human goes in the narrative voice.
+- D-DIN is SIL OFL 1.1 (Datto, 2017): free for commercial use and embedding;
+  Latin-only, so CJK must fall back to a Chinese face; derivatives may not use the
+  reserved name "D-DIN".
+- **CJK has no uppercase**: Latin eyebrows use small caps-style ALL-CAPS +
+  0.14em tracking; the CJK equivalent for display titles is size contrast +
+  0.02em tracking — never "shout" CJK by scaling alone.
 
-## 三 · 版式:一屏一事
+## 3 · Layout: one claim per screen
 
-- 每屏/每页恰好一个主张:一条结论式标题 + 一件视觉主件 + 至多一组支撑点;
-- 大留白是设计的一部分,内容垂直满幅分布(不允许挤在上半页);
-- 全幅版块骨架(单标题 + 单 CTA)可用,但主体是图表/示意图/方向渐变——
-  没有专业摄影库就不压图,文字永远不无遮罩压图;
-- 导航保持可追溯性(文档不是落地页):长文档要目录,slides 用叙事导航轨;
-- scroll-snap 只用于 slides,长文档禁用(打断表格与引文阅读)。
+- Each screen/page carries exactly one claim: one conclusion-style title + one
+  visual centerpiece + at most one supporting group;
+- Generous whitespace is part of the design; content distributes across the full
+  page height (never crowds the top half);
+- The full-bleed block skeleton (single title + single CTA) is usable, but the
+  centerpiece is a chart/diagram/directional gradient — without a professional
+  photo library, never set text directly on imagery;
+- Navigation preserves traceability (documents are not landing pages): long
+  documents keep a table of contents; decks use a narrative rail;
+- scroll-snap is for decks only — never long documents (it breaks table and
+  citation reading).
 
-## 四 · 图表五铁律 + 选型
+## 4 · Five chart iron rules + form selection
 
-1. 图题写结论,不写标签;2. 单一强调色(自然绿),其余灰阶,红只给警示;
-3. 无网格线、无图表边框、单系列不配图例;4. 每图必带 source 行(浅灰小字);
-5. 字号阶梯固定(图题 14 / 轴标 10–11 / source 11)。
+1. Figure titles state conclusions, not labels; 2. one accent color (natural
+green), everything else grayscale, red only for warnings; 3. no gridlines, no
+chart borders, no legend for single series; 4. every figure carries a source line
+(small light-gray text); 5. fixed type scale (figure title 14 / axis 10–11 /
+source 11).
 
-选型:一个数字就是故事 → stat callout(大数字+小标签,数据声道);构成/趋势 →
-分段条/刻度带;两数之桥 → waterfall;概念关系 → 图标化流程图;时间承诺 →
-里程碑时间线;**对比一律用表**(列=选项,行=维度)。示意值必须标「示意」。
+Form selection: one number is the story → stat callout (big figure + small label,
+data voice); composition/trend → segmented bars / tick bands; a bridge between
+two numbers → waterfall; concept relations → icon-led flow diagram; time
+commitments → milestone timeline; **comparisons always use tables** (columns =
+options, rows = dimensions). Illustrative values must be labeled.
 
-## 五 · 图标:语义对应,不做装饰
+## 5 · Icons: semantic, never decorative
 
-线性风格,stroke=currentColor,symbol 库随文档内嵌;每个图标一个固定语义
-(账本=底账 · 雷达=盯防 · 漏斗=判定 · 铃=提醒 · 盾=合规 · 笔=签署 · 仪表=计量 ·
-圆斜杠=禁止);不为「显得丰富」加图标。
+Line style, stroke=currentColor, symbol library embedded per document; each icon
+holds one fixed meaning (ledger=master data · radar=watch · funnel=adjudication ·
+bell=alert · shield=compliance · pen=signature · gauge=measurement ·
+slashed circle=forbidden); never add icons to "look rich".
 
-## 六 · 数字即文案
+Field-tested layout guard: a right-anchored label on a full-width bar must be
+anchored **inside the fill**, or its tail lands on the canvas and white text goes
+invisible — anchor position must track fill width.
 
-- 精确值不取整(671 就写 671,不写「670+」);
-- 标签+值直排的参数条(HEIGHT 70 m 式),值走数据声道;
-- 负面/限定信息括注直述(「(示意)」「(提案值)」「(未校准)」),
-  不藏脚注也不渲染;
-- **形式学,口径不学**:不挑最漂亮的测量条件做标题数字——数字当文案的前提是
-  口径经得起追问。
+## 6 · Numbers are the copy
+
+- Exact values, never rounded for effect (671 stays 671, not "670+");
+- Label + value spec strips (HEIGHT 70 m style), values in the data voice;
+- Negative/qualifying information is stated inline in parentheses
+  ("(illustrative)", "(proposal value)", "(uncalibrated)") — neither buried in
+  footnotes nor dramatized;
+- **Copy the form, not the framing**: never pick the most flattering measurement
+  condition for a headline number — numbers may serve as copy only when the
+  framing survives scrutiny.

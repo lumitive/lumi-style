@@ -1,52 +1,74 @@
-# LUMI 叙事模板(storyline templates)
+# LUMI Storyline Templates
 
-> 三种输出场景,三套已验证的故事线骨架。共同纪律在最后。
+> Three proven narrative skeletons for three output scenarios, plus the shared
+> discipline. (Repository language: English only — red line.)
 
-## 模板一 · 销售/市场材料:价值与未来
+## Template 1 · Sales / marketing material: Value & Future
 
-> 教训出处:一版以「诚实边界」为主线的销售材料被读者回评打回——
-> **「突出边界感是错误的,突出价值和未来才是销售的故事线。」**
+> Lesson provenance: a sales deck built around "honesty boundaries" as its spine
+> was rejected in reader review — **"Leading with boundaries is wrong; value and
+> future are the sales storyline."**
 
-页面弧(可增减,顺序不换):
+Page arc (add/remove pages, never reorder):
 
-1. **钩子**:否定式开场立定义(「不是又一个 X,是你的 Y」)+ 数字带;
-2. **变局**:为什么是现在——用读者自己就能验证的外部事实,不渲染;
-3. **价值**(分层,每层一页):读者每天/每周得到什么,用「一天的样子」具象化
-   (界面示意卡比机制描述有效);
-4. **证据**:一组记得住的对比数字(A vs B,同任务同真值);
-5. **场景**:两个标准故事——一个讲快,一个讲钱;收尾句统一;
-6. **能力**:为什么是我们——已在生产环境跑出的数字,不是承诺;
-7. **未来**:产品终局 + 路线图(已建成/待建如实标注,不拿路线图当承诺卖);
-8. **旅程**:怎么开始,门槛讲低是诚实(启动清单里刻意不含重型输入);
-9. **信任基础**:一页收干净「我们不做什么」——服务于价值,不作主线;
-10. **行动**:给销售的三步 + 资料使用分级(哪些页可直接给客户);
-11. **反馈页**:内嵌评分表,读完直接评,不另开文件。
+1. **Hook** — negation-first definition ("Not another X. Your Y.") + a stat band;
+2. **Shift** — why now: external facts the reader can verify without your product;
+3. **Value** (layered, one page each) — what the reader gets daily/weekly, made
+   concrete as "what your morning looks like" (a mock-UI card beats a mechanism
+   description);
+4. **Evidence** — one memorable comparison pair (A vs B, same task, same ground
+   truth);
+5. **Scenarios** — two standard stories: one about speed, one about money; a
+   shared closing line;
+6. **Capability** — why us: numbers already produced in production, not promises;
+7. **Future** — product end-state + roadmap (built vs not-built labeled honestly;
+   a roadmap is never sold as a commitment);
+8. **Journey** — how to start; a low entry bar is honest (deliberately exclude
+   heavyweight inputs from the starter list);
+9. **Trust base** — one clean page of "what we don't do", serving the value story,
+   never the spine;
+10. **Action** — three steps for sales + a usage tier (which pages go straight to
+    clients);
+11. **Feedback page** — embedded scoring table; readers score right after reading,
+    no separate file.
 
-## 模板二 · 咨询/客户文档:PwC 为体,麦肯锡为用
+## Template 2 · Consulting / client documents: PwC frame, McKinsey punch
 
-- **标题**:「主题:判断句副题」——PwC 的结构,麦肯锡的结论性
-  (「基础数据台账:码只从客户清单来,系统从不自己推」);
-- **开篇**:范围、方法与发现摘要 + 「要客户做的决定」一条;
-- **节口径行**:关键章节配「本节口径」(样本量/数据版次/更新即需重算);
-- **图表**:每张图带一句结论式图题与 source 行;
-- **收尾声明**:全文唯一的建成状态声明节,与其冲突的表述以它为准。
+- **Titles**: "Topic: assertive subtitle" — PwC's structure carrying a McKinsey
+  conclusion ("Master data ledger: codes come only from the client's list —
+  the system never derives its own");
+- **Opening**: scope, method, and findings summary + the one decision the client
+  must make;
+- **Per-section scope lines** on key sections (sample size / data version /
+  recompute-on-update);
+- **Charts**: every figure has a conclusion-style title and a source line;
+- **Closing statement**: the document's single build-status declaration section;
+  when other passages conflict with it, it wins.
 
-## 模板三 · 内部分析文档
+## Template 3 · Internal analysis documents
 
-- 结论先行;显式 so-what 行允许使用(见下方纪律);
-- 三类结论显式标注:实测(带样本量与出处)/构建期断言(可复跑)/推断(标「推断」);
-- 「什么没建成」独立成节,单点收拢,不散落。
+- Conclusion first; explicit so-what lines are allowed here (see discipline below);
+- Three claim classes labeled explicitly: measured (with sample size and source) /
+  build-time assertion (re-runnable) / inference (labeled as such);
+- "What is not built" is a single consolidated section, never scattered.
 
-## 共同纪律
+## Shared discipline
 
-- **标题即结论 + 只读标题测试**:每页/每节标题是含动词或数字的完整断言;
-  成稿后把全部标题连读,必须构成完整论证——读不通就重写标题。
-- **so-what 是写作纪律,不是页面元素**:销售/客户材料**不贴**「→ so-what」标签,
-  takeaway 写进标题与图题本身;只有内部分析文档保留显式 so-what 行。
-  (教训:贴上去的标签与内容关联度差,等于把写作纪律的失败可视化。)
-- **对比一律用表**(列=选项,行=维度),禁 bullet 堆砌;
-- **每页回答一个读者真实会问的问题**——写每页前先写下那个问题;
-- 平行结构:同层级页面句式同构(第 5 页是「因素一:X」,第 6 页必须是「因素二:Y」);
-- **发稿前 critic 门**(先修结构再美化):四维检查(结构/严谨/so-what/完整性)→
-  Green 可发 / Yellow 能修别原样发 / Red 论证垮了 → Top 3 修改(错在哪+怎么改)→
-  点名一个必须保护的强项。
+- **Titles are conclusions + the titles-only test**: every page/section title is a
+  complete assertion containing a verb or a number; concatenate all titles — they
+  must read as a complete argument, or rewrite them.
+- **So-what is a writing discipline, not a page element**: sales/client material
+  never carries a "→ so-what" label — the takeaway lives in the title and the
+  figure title. Only internal analysis documents keep explicit so-what lines.
+  (Lesson: pasted-on labels correlate poorly with content; they visualize the
+  failure of the discipline.)
+- **Comparisons always use tables** (columns = options, rows = dimensions);
+  bullet pileups are banned;
+- **Every page answers one question a real reader would ask** — write that
+  question down before writing the page;
+- Parallel structure: sibling pages share sentence shape ("Factor 1: X" on page 5
+  forces "Factor 2: Y" on page 6);
+- **Pre-delivery critic gate** (structure before polish): four checks
+  (structure / rigor / so-what / completeness) → Green (ship) / Yellow (fixable —
+  don't ship as-is) / Red (the argument collapsed) → Top 3 fixes (what's wrong +
+  how to fix) → name one strength that must be protected.

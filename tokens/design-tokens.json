@@ -1,5 +1,5 @@
 {
- "$schema_note": "LUMI design tokens v2 (2026-08-06). Source of truth mirrors tokens/lumi-theme.css. 用法见 references/design-rules.md。",
+ "$schema_note": "LUMI design tokens v2 (2026-08-06). Mirrors tokens/lumi-theme.css. Usage: references/design-rules.md. Repository language: English only (red line).",
  "color": {
   "bg": {
    "light": "#F4F6F5",
@@ -30,7 +30,7 @@
     0.25,
     0.1
    ],
-   "note": "深底文字用冷白,不用纯白"
+   "note": "dark-canvas text is cold white, never pure white"
   },
   "semantic": {
    "accent": "#48633E",
@@ -40,13 +40,13 @@
    "seal_wash": "#FBECEE",
    "ok": "#1E8E6E",
    "warn": "#A5691E",
-   "note": "一色一义:accent=强调/通过,seal=仅警示,永不装饰"
+   "note": "one color, one meaning: accent = emphasis/pass; seal = warnings only, never decoration"
   },
   "chart": {
    "blue": "#2F6DB4",
    "red": "#C0392B",
    "teal": "#1E8E6E",
-   "note": "CVD 已验证三色组,不随品牌色改"
+   "note": "CVD-validated triple; never restyled with the brand palette"
   }
  },
  "font": {
@@ -72,7 +72,7 @@
    "Consolas",
    "monospace"
   ],
-  "note": "双声道:会被核对的值走 data(恒 tabular-nums,计数器每位定宽);讲给人听的走 narrative。D-DIN=SIL OFL(Datto 2017),仅拉丁,中文回退苹方"
+  "note": "dual voice: values that will be read out and verified use data (tabular-nums always on, fixed-width digit boxes for counters); prose uses narrative. D-DIN = SIL OFL (Datto 2017), Latin-only, CJK falls back"
  },
  "typography": {
   "letter_spacing": {
@@ -84,11 +84,11 @@
    "axis": 10.5,
    "source": 11
   },
-  "note": "拉丁眉题=小字全大写+字距;中文标题等价物=字号对比+字距,不变大喊"
+  "note": "Latin eyebrows: small ALL-CAPS + tracking; the CJK display equivalent is size contrast + tracking, never scaling alone"
  },
  "layout": {
   "one_claim_per_screen": true,
   "night_pages_max": 3,
-  "scroll_snap": "slides only, never long docs"
+  "scroll_snap": "decks only, never long documents"
  }
 }

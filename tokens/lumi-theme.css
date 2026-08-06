@@ -1,69 +1,73 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI 视觉主题 · V2(2026-08-06)
-   色板与字体的唯一事实源——新文档引用本文件或整块拷贝 :root(拷贝须注明
-   「源自 style/lumi-theme.css」)。V2 依据 SpaceX/Tesla 设计研究(融合决策见
-   style/research-spacex-tesla-design.zh.md):学骨架留色板。
+   LUMI visual theme · V2 (2026-08-06)
+   Single source of truth for palette and typography. New documents reference
+   this file or copy the :root block verbatim (note the provenance when copying).
+   V2 rationale: SpaceX/Tesla design research — adopt the skeleton, keep the
+   palette (see design-rules.md).
 
-   V2 变化:①透明度阶梯(层次从单一色相按 α 派生,不再新增灰);②双声道字体
-   (叙事=圆体+苹方;数据=D-DIN/等宽,HTS 码、税率、日期、计数一律走数据声道);
-   ③深底文字改冷白 #F0F0FA 系;④眉题与中文标题字距规范。
+   V2 changes: ① transparency ladder (hierarchy derives from one hue via alpha,
+   no new grays); ② dual-voice typography (narrative = rounded + CJK fallback;
+   data = D-DIN/monospace — codes, rates, dates, counters always use the data
+   voice); ③ dark-canvas text is cold white #F0F0FA, never pure white;
+   ④ eyebrow and CJK display-title tracking rules.
 
-   D-DIN:SIL OFL 1.1(Datto 2017),可自由商用与嵌入;仅拉丁字符集——中文回退
-   苹方。字体文件待 vendoring(未自托管前按回退链降级到等宽/圆体,不阻塞使用)。
+   D-DIN: SIL OFL 1.1 (Datto 2017) — free for commercial use and embedding;
+   Latin-only, CJK falls back to a Chinese face. Font files pending vendoring;
+   until then the fallback chain applies (no blocker).
 
-   图表数据色沿用已过 CVD 校验的三色组(蓝/红/青),不因主题改——
-   数据可分辨性优先于品牌色。
+   Chart data colors are an independent CVD-validated triple (blue/red/teal) and
+   never change with the brand palette — data distinguishability outranks brand.
    ═══════════════════════════════════════════════════════════════════ */
 :root {
-  /* ── 太空灰 · 亮底(长文档默认) ── */
+  /* ── space gray · light canvas (default for long documents) ── */
   --bg:         #F4F6F5;
   --card:       #FFFFFF;
-  --ink:        #2B2E33;                  /* 墨:正文 */
-  /* 亮底透明度阶梯:全部层次从 --ink 派生(SpaceX 式,不新增灰) */
-  --t-90:  rgba(43,46,51,.90);            /* 强正文 */
-  --t-70:  rgba(43,46,51,.70);            /* 次级文字 */
-  --t-50:  rgba(43,46,51,.50);            /* 注记/source 行 */
-  --t-30:  rgba(43,46,51,.30);            /* 失效/占位 */
-  --t-15:  rgba(43,46,51,.15);            /* 分隔线 */
-  --t-08:  rgba(43,46,51,.08);            /* 底纹/wash */
+  --ink:        #2B2E33;                  /* body ink */
+  /* light-canvas transparency ladder: every level derives from --ink */
+  --t-90:  rgba(43,46,51,.90);            /* strong body */
+  --t-70:  rgba(43,46,51,.70);            /* secondary text */
+  --t-50:  rgba(43,46,51,.50);            /* notes / source lines */
+  --t-30:  rgba(43,46,51,.30);            /* disabled / placeholders */
+  --t-15:  rgba(43,46,51,.15);            /* rules / separators */
+  --t-08:  rgba(43,46,51,.08);            /* washes */
 
-  /* ── 深底(封面/终局/未来页,三幕节奏) ── */
+  /* ── dark canvas (cover / end-state / future pages; max 3 per deck) ── */
   --night-1:    #1E2A1B;
   --night-2:    #48633E;
   --night-3:    #5F7D52;
-  --nw:         #F0F0FA;                  /* 冷白:深底文字,不用纯白 */
+  --nw:         #F0F0FA;                  /* cold white: dark-canvas text */
   --nw-70: rgba(240,240,250,.70);
   --nw-50: rgba(240,240,250,.50);
-  --nw-25: rgba(240,240,250,.25);         /* 深底描边/分隔 */
-  --nw-10: rgba(240,240,250,.10);         /* 深底卡片底 */
+  --nw-25: rgba(240,240,250,.25);         /* dark-canvas strokes/separators */
+  --nw-10: rgba(240,240,250,.10);         /* dark-canvas card fills */
 
-  /* ── 语义色(一色一义,严格于 SpaceX/Tesla:彩色只在语义处出现) ── */
-  --accent:      #48633E;                 /* 自然绿:唯一强调/通过/已建成 */
+  /* ── semantic colors (one color, one meaning — stricter than the refs) ── */
+  --accent:      #48633E;                 /* natural green: the single accent / pass / built */
   --accent-deep: #3A5232;
   --accent-wash: #EDF2EA;
-  --seal:        #C8102E;                 /* 中国红:仅警示/红线/否决,不作装饰 */
+  --seal:        #C8102E;                 /* China red: warnings/red-lines/vetoes ONLY */
   --seal-wash:   #FBECEE;
-  --ok:          #1E8E6E;                 /* 核对绿(与 accent 区分:校验通过态) */
+  --ok:          #1E8E6E;                 /* verification-pass green (distinct from accent) */
   --warn:        #A5691E;
 
-  /* ── 图表数据色(CVD 已验证,勿随主题改) ── */
+  /* ── chart data colors (CVD-validated; never restyle with the brand) ── */
   --d-blue: #2F6DB4;
   --d-red:  #C0392B;
   --d-teal: #1E8E6E;
 
-  /* ── 双声道字体 ── */
-  /* 叙事声道:标题与正文(圆体拉丁 + 中文苹方;用户既定裁定保留) */
+  /* ── dual-voice typography ── */
+  /* narrative voice: titles and body (rounded Latin + CJK fallback) */
   --sans:  "Quicksand", "Nunito", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
   --sans-light: "Nunito", "Quicksand", "PingFang SC", sans-serif;
-  /* 数据声道:HTS 码/税率/日期/计数/参数——D-DIN(OFL,待 vendor)→ 等宽回退 */
+  /* data voice: codes/rates/dates/counters/specs — D-DIN (OFL, pending vendor) → mono fallback */
   --data:  "D-DIN", "IBM Plex Mono", "SF Mono", Menlo, monospace;
-  --mono:  "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;   /* 代码 */
+  --mono:  "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;   /* code */
 
-  /* ── 排版纪律 token ── */
-  --ls-eyebrow: .14em;    /* 拉丁眉题:小字全大写 + 此字距 */
-  --ls-title:   .02em;    /* 中文大标题字距(替代「全大写」的中文等价物) */
-  --num-feature: "tnum";  /* 数据声道恒开 tabular-nums;计数器每位定宽盒 */
+  /* ── typographic discipline tokens ── */
+  --ls-eyebrow: .14em;    /* Latin eyebrow: small ALL-CAPS + this tracking */
+  --ls-title:   .02em;    /* CJK display-title tracking (the CJK stand-in for ALL-CAPS) */
+  --num-feature: "tnum";  /* data voice: tabular-nums always on; counters use fixed-width digit boxes */
 }
-/* Google Fonts(单文件文档放 <head>):
+/* Google Fonts (place in <head> for single-file documents):
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-   display=swap(不用 block——SpaceX 的加载期白屏是反模式,不学)。 */
+   display=swap — never block (load-time blank text is a documented anti-pattern). */

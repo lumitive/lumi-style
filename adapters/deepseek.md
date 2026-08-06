@@ -1,9 +1,12 @@
-# DeepSeek 装载
+# Loading in DeepSeek
 
-同 Kimi:使用 `prompts/lumi-style-core.md` 单文件核心版。
+Same as Kimi: use `prompts/lumi-style-core.md`, the self-contained single-file
+core.
 
-- API:放入 `messages[0]`(role=system);
-- 网页版:作为对话第一条消息发送;
-- 长任务建议每次新会话重新注入,避免规则被上下文挤出。
+- API: put it in `messages[0]` (role=system);
+- Web: send it as the first message of the conversation;
+- For long tasks, re-inject at the start of each new session so the rules are
+  not pushed out of context.
 
-core 自含、零工具假设;与 references/ 冲突时以 references/ 为准。
+The core is self-contained with zero tool assumptions; on any conflict,
+`references/` wins.

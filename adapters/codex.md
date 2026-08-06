@@ -1,8 +1,9 @@
-# Codex 装载
+# Loading in Codex
 
-Codex 按约定读取项目根的 `AGENTS.md`。两种方式:
+Codex reads `AGENTS.md` from the project root by convention. Two options:
 
-1. 在工作目录克隆本仓库,并让 `AGENTS.md` 位于 Codex 的指令搜索路径
-   (仓库根或上级目录合并);
-2. 或将 `AGENTS.md` 的内容并入你项目现有的 AGENTS.md 的「风格」小节,
-   并把 references/、tokens/ 一并复制到项目内(AGENTS.md 中的相对路径需可解析)。
+1. Clone this repository into your working tree so `AGENTS.md` sits on Codex's
+   instruction search path (repo root, or merged with a parent AGENTS.md);
+2. Or merge the contents of `AGENTS.md` into your project's existing AGENTS.md
+   under a "style" section, copying `references/` and `tokens/` alongside so the
+   relative paths resolve.

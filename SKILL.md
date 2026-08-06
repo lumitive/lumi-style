@@ -1,49 +1,68 @@
 ---
 name: lumi-style
 description: |
-  LUMI 的设计语言与输出文字风格。产出中文商业文档、slides、客户材料、市场文案、HTML 报告或图表时使用;也用于按 LUMI 标准审校既有文稿。触发词:「按 LUMI 风格」「lumi-style」「LUMI 文档」。不用于:纯代码任务、英文长文写作、与 LUMI 输出物无关的内容。
+  LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
-# LUMI Style · 设计语言与文字风格
+# LUMI Style · Design Language & Writing Style
 
-LUMI 是 AI-Native 咨询公司。本 skill 让任何产出都带着同一副声口与同一套视觉纪律,
-并通过评分回评机制持续迭代(规则修订走 CHANGELOG)。
+LUMI is an AI-native consulting firm serving a global audience. This skill gives
+every output the same voice and the same visual discipline, and iterates through
+a score-and-review loop (rule revisions go through CHANGELOG).
 
-## 使用流程
+**Repository language: English only (red line).** Chinese strings appear in the
+rules only as rule data for Chinese-language output.
 
-1. **判断场景**:销售/市场材料 · 咨询/客户文档 · 内部分析——三种场景的叙事骨架不同,
-   读 [`references/storyline-templates.md`](references/storyline-templates.md) 选对模板再动笔。
-2. **写作与审校**:遵守 [`references/writing-rules.md`](references/writing-rules.md)
-   (用词红线/禁词/标点/数字纪律/LUMI 声口/去 AI 味六动作)。**写完先跑标点归一。**
-3. **视觉与图表**:产出 HTML/slides/图表时,遵守
-   [`references/design-rules.md`](references/design-rules.md),token 取
-   [`tokens/lumi-theme.css`](tokens/lumi-theme.css) 与
-   [`tokens/design-tokens.json`](tokens/design-tokens.json)。
-4. **交付前**:按 [`references/eval-rubric.md`](references/eval-rubric.md) 走 critic 门
-   (先修结构再美化)与 H1–H6 自评;**未经读者检验不给 5 分**。
-5. **回评闭环**:slides 末页内嵌评分表;收到回评后,分歧 ≥2 的维度强制复盘,
-   产出规则修订(CHANGELOG + 版本号)——这是本 skill 的迭代引擎。
+## Workflow
 
-## 六条不可谈判红线(任何场景)
+1. **Pick the scenario**: sales/marketing · consulting/client document · internal
+   analysis — three different narrative skeletons. Read
+   [`references/storyline-templates.md`](references/storyline-templates.md) and
+   choose before writing.
+2. **Write and review** under
+   [`references/writing-rules.md`](references/writing-rules.md) (terminology red
+   lines / banned phrases / punctuation / number discipline / the LUMI voice /
+   de-AI-flavor pass). **Run the punctuation pass after drafting.**
+3. **Visuals and charts**: for HTML/slides/chart output follow
+   [`references/design-rules.md`](references/design-rules.md); tokens come from
+   [`tokens/lumi-theme.css`](tokens/lumi-theme.css) and
+   [`tokens/design-tokens.json`](tokens/design-tokens.json).
+4. **Before delivery**: run the critic gate (structure before polish) and the
+   H1–H6 self-score per
+   [`references/eval-rubric.md`](references/eval-rubric.md);
+   **never self-score 5 before a reader has scored it**.
+5. **Review loop**: decks embed the scoring table as the final page; on receiving
+   reviews, any dimension diverging ≥2 forces a retrospective that produces a rule
+   revision (CHANGELOG + version bump) — this is the skill's iteration engine.
 
-1. 不发明事实;每个数字带出处;示意值必标「示意」;
-2. 不编中文:新概念无标准中文直接用英文,禁自造比喻词;
-3. 销售叙事主线是**价值与未来**,诚实边界收敛为一页信任基础;
-4. 标题即结论;全篇标题连读必须构成完整论证;
-5. 图表单一强调色、图题写结论、必带 source 行;
-6. AI 不签字;涉钱涉安全的结论不由语言模型给出。
+## Six non-negotiable red lines (every scenario)
 
-## 跨平台
+1. No invented facts; every number carries its source; illustrative values are
+   labeled;
+2. No coined Chinese: new concepts with no established Chinese term take the
+   English term directly;
+3. The sales storyline is **value and future**; honesty boundaries converge to a
+   single trust page;
+4. Titles are conclusions; all titles concatenated must read as a complete
+   argument;
+5. Charts: one accent color, conclusion-style titles, a source line on every
+   figure;
+6. AI never signs; money/safety conclusions never come from a language model.
 
-本仓库四个入口装载同一套规则(内容单源在 `references/`):
-Claude Code 用本文件;Codex 读 `AGENTS.md`;Kimi / DeepSeek 用
-`prompts/lumi-style-core.md`(自含单文件)。各平台装载说明见 `adapters/`。
+## Cross-platform
 
-## 边界
+Four entry points load one rule set (single source in `references/`):
+Claude Code uses this file; Codex reads `AGENTS.md`; Kimi / DeepSeek use
+`prompts/lumi-style-core.md` (self-contained single file). Per-platform loading
+notes live in `adapters/`.
 
-- 本 skill 只含风格规则与模板,不含任何客户名称、项目数字或商业事实;
-- 风格改写不得改变事实与口径;
-- 规则修订只通过回评复盘产生,不接受无案例的凭空增删。
+## Boundaries
+
+- This skill contains style rules and templates only — no client names, project
+  figures, or engagement facts;
+- Style rewrites must not change facts or framing;
+- Rule revisions come only from review retrospectives — no additions or deletions
+  without a documented case.

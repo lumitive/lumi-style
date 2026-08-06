@@ -1,17 +1,40 @@
 # Changelog
 
-规则修订只通过回评复盘产生(分歧 ≥2 → 复盘 → 修订),每次修订记录于此并升版本号。
+Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
+→ revision), recorded here with a version bump.
+
+## 1.1.0 — 2026-08-06
+
+- **Repository language: English only — declared a red line.** LUMI serves a
+  global audience; all rule prose, entry points, adapters, tokens, and this
+  changelog are now English. Chinese strings remain only as rule data for
+  Chinese-language output (banned phrases, punctuation patterns, collocation
+  examples).
+- Rules generalized to be output-language-aware: language-agnostic core
+  (facts / voice / structure / charts) + a marked [zh-output] module; an
+  [en-output] banned-phrase seed added.
+- New field-tested layout guard in design-rules: right-anchored labels on
+  full-width bars must anchor inside the fill (white-on-white invisibility bug,
+  caught in per-page inspection).
 
 ## 1.0.0 — 2026-08-06
 
-首发。规则沉淀自 LUMI 某咨询项目交付物的六轮真实打磨与首轮读者回评,包括:
+Initial release. Rules distilled from six rounds of real delivery polishing and a
+first round of reader review on a consulting engagement's deliverables:
 
-- 不编中文红线与中英对照规则(含子串误伤豁免机制);
-- AI 腔禁词表(含「销售赋能」固定搭配豁免的教训);
-- 数字纪律:溯源/示意标注/不可靠引用的全仓撤引与退役注记;
-- 销售叙事「价值与未来」主线(边界收敛为一页)——来自读者回评 H5=2 的复盘;
-- 「so-what 是写作纪律不是页面元素」——来自读者回评 H1=1 的复盘;
-- 评分锚点白话化(「锚点必须用被评读者的语言写」)——来自读者回评 H2=1 的复盘;
-- 图表五铁律与选型规则(部分迁移自 enterprise-ai-skills 并本地化,见 design-rules);
-- 视觉 token v2:太空灰基底 + 自然绿唯一强调 + 中国红警示,排版纪律参照
-  SpaceX/Tesla 研究(学骨架留色板)。
+- Terminology red lines: no coined Chinese; direct English for concepts without
+  an established Chinese term; substring-collision exemptions;
+- Banned AI-tell phrases (with the "sales enablement" fixed-collocation lesson);
+- Number discipline: sourcing, illustrative labels, repo-wide retraction with
+  retirement notes for unreliable citations;
+- The "value & future" sales storyline (boundaries converge to one trust page) —
+  from a reader review scoring H5=2;
+- "So-what is a writing discipline, not a page element" — from a reader review
+  scoring H1=1;
+- Plain-language scoring anchors ("anchors must be written in the reviewer's
+  language") — from a reader review scoring H2=1;
+- Five chart iron rules and form selection (partly adapted from
+  enterprise-ai-skills, localized);
+- Visual tokens v2: space-gray canvas + natural green single accent + China red
+  warnings; layout skeleton informed by SpaceX/Tesla research (transparency
+  ladder, dual-voice typography, cold-white dark canvas).
