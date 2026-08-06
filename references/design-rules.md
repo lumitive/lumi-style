@@ -7,10 +7,12 @@
 
 ## 1 · Color: one color, one meaning; hierarchy via transparency
 
-- **Canvas**: space-gray light canvas for long documents; night-green dark canvas
-  for cover / end-state / future pages — dark pages create the narrative's
-  "three-act rhythm" and never exceed three per deck.
-- **Single accent = natural green** (#48633E): emphasis, pass, built.
+- **Canvas — decks are dark-first** (v1.2, SpaceX-aligned): near-black with a
+  breath of green (#060806), cold-white ink ladder, every page dark. The
+  three-act light/dark rhythm is retired for decks; space-gray light canvas
+  remains the default for long documents only.
+- **Single accent = natural green** (#48633E on light; lift to #7C9F63 on the
+  dark canvas — the deep green fails contrast on near-black): emphasis, pass, built.
   **China red (#C8102E) is for warnings/red-lines/vetoes only** — never
   decoration. This is stricter than SpaceX/Tesla: they let color appear only where
   it carries meaning; LUMI pins each meaning to exactly one color.
@@ -23,9 +25,13 @@
 
 ## 2 · Typography: two voices, never mixed
 
-- **Narrative voice** (titles/body): rounded Latin (Quicksand/Nunito) with CJK
-  fallback (PingFang SC / Noto Sans SC). Weight rule: heavy titles, light body,
-  large contrast.
+- **Primary face — D-DIN takes over** (v1.2): D-DIN is the single Latin face
+  for titles, body, and data alike, with CJK fallback (PingFang SC / Noto Sans
+  SC). Display titles are ALL-CAPS at **weight 400** with tight leading
+  (0.95–1.0) — size and case carry the authority, not boldness; bold is
+  reserved for the accent word. Rounded faces (Quicksand/Nunito) are retired
+  from decks. Vendor the font (SIL OFL) and embed it — a declared face that
+  never ships falls back silently and the identity never renders.
 - **Data voice** (codes/rates/percentages/dates/counters/specs): D-DIN or
   monospace, tabular-nums always on; **counters and countdowns give each digit a
   fixed-width box** so changes never reflow.
@@ -40,8 +46,11 @@
 
 ## 3 · Layout: one claim per screen
 
-- Each screen/page carries exactly one claim: one conclusion-style title + one
-  visual centerpiece + at most one supporting group;
+- Each screen/page carries exactly one claim: a giant short headline (3–6
+  words, one accent word in green), one sentence of support, one centerpiece,
+  a thin footer rule with source + page number — nothing else. Prefer
+  hairline-separated rows over card boxes: on a dark canvas, borders are
+  furniture; hierarchy comes from the ink ladder;
 - Generous whitespace is part of the design; content distributes across the full
   page height (never crowds the top half);
 - The full-bleed block skeleton (single title + single CTA) is usable, but the

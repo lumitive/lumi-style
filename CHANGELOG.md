@@ -3,6 +3,24 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 1.2.0 — 2026-08-06
+
+Direction change, reviewer-driven: "the output diverged from spacex.com — why?"
+The 1.x fusion ("skeleton only, keep rounded type and light canvas") kept too
+much consulting-deck idiom, and the one adopted SpaceX element (D-DIN in the
+data voice) never shipped because the font was declared but not vendored.
+
+- design-rules: decks are **dark-first** (near-black canvas, cold-white ink
+  ladder); light canvas stays for long documents.
+- design-rules: **D-DIN takes over** as the single Latin face; ALL-CAPS
+  display titles at weight 400; rounded faces retired from decks; vendor and
+  embed the font — a declared-but-unshipped face renders nothing.
+- design-rules: one-statement-per-screen sharpened (giant short headline, one
+  support sentence, one centerpiece, thin footer); hairline rows over card
+  boxes on dark canvases.
+- Accent green lifts to a dark-canvas form (#7C9F63); red text on black uses a
+  lifted form while fills keep the seal red.
+
 ## 1.1.2 — 2026-08-06
 
 - design-rules: added three field-tested guards from a reader-reported bug round —
