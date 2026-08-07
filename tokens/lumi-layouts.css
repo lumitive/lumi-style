@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v2.2.0 (2026-08-07)
+   LUMI page layouts · v2.3.0 (2026-08-07)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -44,6 +44,13 @@
    with the content above it. The cap is correct; applying it to one child was
    not. Anything that shares the page frame takes the same width and centers. */
 .page > .foot, .page > .body { max-width: 1180px; margin-inline: auto; width: 100%; }
+/* The commercial footer, on every page: handling terms and the origin of the
+   document, then the page number. Pages travel alone — a slide is screenshotted
+   out of a deck and forwarded without the cover — so the terms cannot live only
+   on page one. This is the one piece of page furniture that is not a design
+   judgement, and check_design.py fails on a page missing it. */
+.foot .conf { color: var(--tx4); }
+.foot .site { margin-right: auto; color: var(--accent); letter-spacing: .1em; }
 .body > * { min-width: 0; min-height: 0; }
 /* The lede block holds eyebrow, title and support. Only the prose takes the
    measure; constraining the block would re-break the title across two lines. */
@@ -213,7 +220,14 @@
    line rather than claiming a grid row of its own. */
 .lead.row { flex-direction: row; align-items: baseline; gap: 18px; }
 .lead.row .g { max-width: 62ch; }
-/* A lead sitting above other content in the same cell keeps its distance. */
+/* A lead sitting above other content *in the same cell* keeps its distance.
+   Scoped, because `.lead + *` in a grid does not mean "the block below" — it
+   means the next sibling in DOM order, which is the next **column**. Written
+   unscoped it put a 4px margin on the first cell of every page whose lead spans
+   the row, so one column of six pages sat 4px below the other and a reader
+   called it a bug. An adjacent-sibling selector inside a grid container is
+   almost always a mistake. */
+.body > .lead + * { margin-top: 0; }
 .lead + * { margin-top: 4px; }
 
 /* quad — 2x2. Four parallel items, or a matrix whose axes are named in the lede. */

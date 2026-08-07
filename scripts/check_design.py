@@ -15,13 +15,23 @@ metric. Four of them were arithmetic:
     D9  layout spread  which layouts a deck uses (reported)
     D10 label icons   figure nodes and row-heads carrying an icon (reported)
 
-**Nothing here gates.** Every number is a diagnostic for a designer to read, and
-the exit code is 0 unless a file could not be measured at all. SKILL.md rule 4 is
-the reason: a page is done when a human reads it as intentional, and a metric that
-can be satisfied without improving the page ends the looking instead of directing
-it. D7, an 82% page-fill floor, was withdrawn in 2.0.0 for exactly that — it was
-satisfied by stretching table rows while four diagrams rendered at 40% of their
-cell. For page geometry and centerpiece scale use scripts/inspect_layout.py.
+    D12 commercial footer  handling terms and origin on every page (**gates**)
+
+**Nothing here gates except D12.** Every other number is a diagnostic for a
+designer to read, and the exit code is 0 unless a file could not be measured at
+all. SKILL.md rule 4 is the reason: a page is done when a human reads it as
+intentional, and a metric that can be satisfied without improving the page ends
+the looking instead of directing it. D7, an 82% page-fill floor, was withdrawn in
+2.0.0 for exactly that — it was satisfied by stretching table rows while four
+diagrams rendered at 40% of their cell. For page geometry and centerpiece scale
+use scripts/inspect_layout.py.
+
+**D12 is different in kind, which is why it is the exception.** It is not a
+judgement about whether a page is well made; it is a commercial requirement on
+the artifact, like a contract term. Pages travel alone — a slide is screenshotted
+out of a deck and forwarded without the cover — so terms that live only on page
+one do not travel with the page. A design metric that gates is a mistake; a
+commercial one that does not is a different mistake.
 
     python3 scripts/check_design.py deck.html [more files ...]
     python3 scripts/check_design.py --json deck.html
@@ -371,6 +381,35 @@ def d8_support_line(raw):
     return missing
 
 
+def d12_commercial_footer(raw, site=None):
+    """Every page carries its handling terms and the origin of the document.
+
+    **This is the one design check that fails the run.** Everything else here is
+    a diagnostic for a designer to read, because a page is done when a human
+    reads it as intentional and a threshold that can be satisfied without
+    improving the page ends the looking. This one is different in kind: it is not
+    a judgement about a page, it is a commercial requirement on the artifact. A
+    slide gets screenshotted out of a deck and forwarded on its own, so terms
+    that live only on the cover do not travel with it.
+    """
+    pages = re.findall(r'<section[^>]*class="[^"]*\bpage\b[^"]*"[^>]*>(.*?)</section>',
+                       raw, re.S | re.I)
+    if not pages:
+        return None
+    missing_terms, missing_site = [], []
+    for i, body in enumerate(pages):
+        foot = re.search(r'class="[^"]*\bfoot\b[^"]*"[^>]*>(.*?)</div>', body, re.S)
+        text = re.sub(r"<[^>]+>", " ", foot.group(1)) if foot else ""
+        low = text.lower()
+        if not any(w in low for w in ("confidential", "privileged", "internal use",
+                                      "do not forward", "proprietary")):
+            missing_terms.append(i)
+        if not re.search(r"\b[\w.-]+\.(io|com|cn|ai|net|org)\b", low):
+            missing_site.append(i)
+    return {"pages": len(pages), "missing_terms": missing_terms,
+            "missing_site": missing_site}
+
+
 def d9_layout_variety(raw):
     """One layout on 25 consecutive pages is what this metric exists to stop."""
     used, unknown = [], []
@@ -420,19 +459,20 @@ def d6_footer(raw):
     for i, body in enumerate(pages):
         foot = re.search(r'class="[^"]*\bfoot\b[^"]*"[^>]*>(.*?)</div>', body, re.S)
         text = re.sub(r"<[^>]+>", " ", foot.group(1)) if foot else ""
-        # The page is sourced, wherever the line lives. A single-figure page
-        # states its source under the figure, and repeating it in the footer is
-        # what 2.2.0 removed: eleven pages said the same thing twice and two
-        # said it word for word. What this metric is for is a page that cites
-        # nothing at all, so it asks the page, not the footer.
-        footer_src = bool(foot) and 'class="src"' in foot.group(1) and \
-            re.sub(r"<[^>]+>", "", re.search(r'class="src"[^>]*>(.*?)</span>',
-                                             foot.group(1), re.S).group(1)).strip()
-        figure_src = re.search(r'class="[^"]*\bsrcline\b', body) is not None
-        if not (footer_src or figure_src):
-            missing_src.append(i)
+        pass  # provenance is a document-level question now; see below
         if not re.search(r"\b\w+\s*/\s*\d+\b", text):
             missing_total.append(i)
+    # Provenance is stated once for the document, not on every page. 2.3.0
+    # retired the per-page source line for sales and marketing material at a
+    # reader's request: a source under every figure and again in every footer is
+    # apparatus a customs manager does not need, and it was crowding out the
+    # handling terms that a commercial document does need. The obligation did not
+    # go away — it moved to where it is read once, on the cover and the closing.
+    # So this asks the document, and D12 asks every page for its terms.
+    doc = re.search(r'class="[^"]*\bcolophon\b[^"]*"[^>]*>(.*?)</div>', raw, re.S)
+    doc_text = re.sub(r"<[^>]+>", " ", doc.group(1)).lower() if doc else ""
+    if not re.search(r"source|derived from|based on|provenance", doc_text):
+        missing_src = list(range(len(pages)))
     return {"pages": len(pages), "missing_source": missing_src,
             "missing_total": missing_total}
 
@@ -456,6 +496,7 @@ def measure(path):
         "D5_figure_parity": d5_figure_parity(raw),
         "D6_footer": d6_footer(raw),
         "D8_support_line": d8_support_line(raw),
+        "D12_commercial_footer": d12_commercial_footer(raw),
         "D9_layout_variety": d9_layout_variety(raw),
         "D10_label_icons": d10_label_icons(raw),
     }
@@ -485,6 +526,15 @@ def grade(r):
                  if f else None, "=0", ok6, f is None))
     rows.append(("D8_support_line", len(r["D8_support_line"]), "=0",
                  not r["D8_support_line"], False))
+    cf = r["D12_commercial_footer"]
+    # The fifth field is "could not be measured", not "gates" — passing True here
+    # would have printed the one check that matters as n/a. Gating is decided in
+    # main() from the finding itself.
+    rows.append(("D12_commercial_footer",
+                 (len(cf["missing_terms"]) + len(cf["missing_site"])) if cf else None,
+                 "=0 (gates)",
+                 bool(cf) and not cf["missing_terms"] and not cf["missing_site"],
+                 cf is None))
     v = r["D9_layout_variety"]
     rows.append(("D9_layout_spread",
                  f"{v['distinct']} layouts, top {v['top_share']}%" if v else None,
@@ -503,7 +553,7 @@ def main(argv):
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
 
-    results, failures, unmeasurable = [], 0, 0
+    results, failures, unmeasurable, gated_failure = [], 0, 0, 0
     for name in args.files:
         path = pathlib.Path(name)
         try:
@@ -515,11 +565,15 @@ def main(argv):
             continue
         r["verdicts"] = {n: v for n, _, _, v in
                          ((a, b, c, d) for a, b, c, d in grade(r))}
+        # The single gating metric. It is a commercial requirement on the
+        # artifact, not a judgement about a page — see d12_commercial_footer.
+        if r["verdicts"].get("D12_commercial_footer") == "FAIL":
+            gated_failure += 1
         results.append(r)
 
     if args.json:
         print(json.dumps(results, indent=2))
-        return 1 if unmeasurable else 0
+        return 1 if (unmeasurable or gated_failure) else 0
 
     for r in results:
         rows = grade(r)
@@ -540,6 +594,12 @@ def main(argv):
             print(f"        page {o['page_index']} carries {o['tier1']} tier-1 callouts")
         for pid in r["D8_support_line"][:8]:
             print(f"        {pid} has no support line under its title")
+        cf = r.get("D12_commercial_footer")
+        if cf:
+            for i in cf["missing_terms"][:6]:
+                print(f"        page {i + 1} footer states no handling terms")
+            for i in cf["missing_site"][:6]:
+                print(f"        page {i + 1} footer does not say where the document is from")
         v = r["D9_layout_variety"]
         if v:
             for pid, cls in v["unknown"][:6]:
@@ -554,7 +614,7 @@ def main(argv):
                f"read them, then look at the page")
     if unmeasurable:
         print(f"{unmeasurable} file(s) could not be measured at all")
-    return 1 if unmeasurable else 0
+    return 1 if (unmeasurable or gated_failure) else 0
 
 
 if __name__ == "__main__":

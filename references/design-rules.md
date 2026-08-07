@@ -273,7 +273,17 @@ there. The caption aligns with the drawing's left edge rather than centring, so
 the eye returns to where the figure began. `inspect_layout.py` reports caption
 word count and any sentence that already appears elsewhere on the page.
 
-7c. **A page states its source once.** §4 rule 4 asks every figure for a source
+7c. **Sales and marketing material states its provenance once for the document,
+not on every page.** The cover and the closing carry it; the pages carry the
+handling terms instead. A source under every figure and again in every footer is
+apparatus a customs manager does not need, and it was crowding out the line a
+commercial document does need. **This is genre-scoped**: consulting deliverables
+and internal analysis keep per-page sourcing, because there the reader is
+auditing the claim rather than being sold to. Red line 1 is unchanged — no
+invented facts, and every number still traces — the obligation moved to where it
+is read once rather than skipped thirty times. *Reader-requested.*
+
+7d. **A page states its source once (any genre).** §4 rule 4 asks every figure for a source
 line and the footer contract asks every page for one; on a single-figure page
 they are the same sentence twice. The figure's line wins — it is where a reader
 is standing when they ask where the number came from, and it was the more
@@ -281,6 +291,16 @@ specific of the two on all thirteen pages that carried both. The footer keeps a
 source line only when it says something the figure's cannot, and then says only
 that. *Provenance: eleven pages cited overlapping sections in both places and two
 were identical word for word; a reader asked why the information appears twice.*
+
+7e. **One table per page.** Two grids side by side is two documents on one page:
+a grid claims its cells are comparable along the axis its header names, and two
+grids with different columns and different row counts share no axis, so their
+rows can never line up and a reader sees the misalignment before they can say
+what is wrong. If you have two tables, either they are one table, or one of them
+is not a table, or they are two pages. *Provenance: a page held a three-step
+table beside a three-tier table; a reader called the misalignment a bug and the
+design uncreative, and was right on both. It became one drawing — the deck's own
+thirty pages as a strip, each coloured by tier — and one numbered sequence.*
 
 8. **A table is for values. Prose poured into a grid is a layout error wearing a
 table's clothes.** A grid claims its cells are comparable along the axis its
@@ -321,6 +341,22 @@ data voice); composition/trend → segmented bars / tick bands; a bridge between
 two numbers → waterfall; concept relations → icon-led flow diagram; time
 commitments → milestone timeline; **comparisons always use tables** (columns =
 options, rows = dimensions). Illustrative values must be labeled.
+
+## 4b · The commercial footer
+
+**Every page carries its handling terms and where the document is from.** Left of
+the footer rule: the confidentiality line, then the organisation's site. Right:
+`N / total`. Pages travel alone — a slide is screenshotted out of a deck and
+forwarded without the cover — so terms that live only on page one do not travel
+with the page.
+
+**This is the one design check that fails the run** (`check_design.py` D12).
+Everything else there reports, because a page is done when a human reads it as
+intentional and a threshold satisfiable without improving the page ends the
+looking. This is different in kind: not a judgement about whether a page is well
+made, but a commercial requirement on the artifact, like a contract term. A
+design metric that gates is a mistake; a commercial one that does not is a
+different mistake.
 
 ## 5 · Icons: semantic, never decorative
 
@@ -458,6 +494,16 @@ A layout is verified only across the **matrix**, not at a point:
   it was satisfiable by stretching table rows while four diagrams rendered at 40%
   of their cell, and it measured the bounding box of all ink, so a small chart
   with a long caption scored as full.
+- **Units axis.** Once the page is a scaled stage, a device pixel is no longer
+  the unit of the design. Divide every measured distance by the page's scale
+  before comparing it to a threshold, or the same layout reports 3px of skew at
+  one window size and 4px at another and the check silently tightens as the
+  window grows.
+- **An adjacent-sibling selector inside a grid is almost always wrong.** `.lead +
+  *` means the next sibling in DOM order, which in a grid is **the next column**,
+  not the block below. Written unscoped it put a 4px top margin on the first cell
+  of every page whose lead spanned the row: six pages with one column sitting 4px
+  low, and a reader who saw it as a bug before any probe did.
 - **Column axis.** Side-by-side cells start on one line and carry comparable
   weight, or the page reads as two unrelated documents. Measure the outcome, never
   the declaration: `lumi-layouts.css` had said `.body.split > div { justify-content:
@@ -479,6 +525,12 @@ A layout is verified only across the **matrix**, not at a point:
   28 pages ran the footer to the window edge past a left-anchored composition,
   and the contact sheet could not see it because it renders only the two design
   geometries. Check that the page frame's parts stay the same width and centre.
+- **Ink axis, and it keeps catching the same class of thing.** Ask the drawing,
+  never the box: `scrollHeight` on an `overflow:visible` box **does not count
+  children that spill out of it**, so a spill probe built on it reported exactly
+  zero while two pages ran 26px and 8px past their footer rule. That is the third
+  probe in three releases to measure a container instead of its contents. Measure
+  the deepest ink against the footer rule.
 - **Frame axis.** A page is a fixed box or it is not a page. Landscape is a
   1280x720 stage and A4 is a 794x1123 sheet, each scaled to fit the window with
   `zoom` and letterboxed; the leftover window is a gutter that never holds page

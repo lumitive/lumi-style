@@ -31,6 +31,14 @@ another language or a dark canvas only when the user asks.
    and H1–H6 self-scoring. Never self-score 5 before a reader has scored it, and
    always give the reason for the score, not just the number.
 
+**Every page carries a commercial footer**: confidentiality terms and the
+organisation's site on the left, `N / total` on the right. `check_design.py`'s
+D12 is the only design check that fails the run, because it is a requirement on
+the artifact rather than a judgement about a page. **Sales and marketing state
+provenance once for the document** (cover and closing), not on every page;
+consulting and internal analysis keep per-page sourcing. **One table per page** —
+two grids side by side share no axis and can never align.
+
 **A page is a fixed box.** Landscape is a 1280×720 stage, A4 a 794×1123 sheet,
 each scaled to fit the window and letterboxed — never a box that takes the
 window's shape. State the source once per page: on a single-figure page the line
