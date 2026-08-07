@@ -91,8 +91,12 @@
 - Each screen/page carries exactly one claim: a conclusion-style headline (an
   accent word in green is available, not required — mechanical emphasis on every
   headline is inflation), **one to three sentences of support whose lengths
-  visibly differ**, one centerpiece, a thin footer rule with source + page number
-  — nothing else. (The rule read "one sentence of support" until 1.6.0, which
+  visibly differ — on every content page without exception, figure pages
+  included** (D8), one centerpiece, a thin footer rule with source + page number
+  — nothing else. *Provenance: this rule has stood since 1.6.0 and 10 of 25 pages
+  shipped without a support line — all six figure pages plus four table pages —
+  because a figure felt like it spoke for itself. It does not: the reader arrives
+  at a diagram with nothing telling them what they are about to look at.* (The rule read "one sentence of support" until 1.6.0, which
   drove sentence-length variance across a deck to near zero; see M8.) **The headline has no word
   ceiling**: its length is set by the title contract in
   `storyline-templates.md` — topic + assertive subtitle carrying a verifiable
@@ -102,6 +106,50 @@
   from the title line, and left bare antitheses that read as AI filler.) Prefer
   hairline-separated rows over card boxes: on a dark canvas, borders are
   furniture; hierarchy comes from the ink ladder;
+- **A page has a layout, chosen for its content.** Fifteen ship in
+  `tokens/lumi-layouts.css` as `.body.<name>`; pick with the table below. This is
+  the same discipline as §4's chart form-selection: the point is not that many
+  layouts exist, it is that the content decides which one.
+
+  | The content is | Layout |
+  |---|---|
+  | one number, and it is the story | `hero-band` |
+  | a short frame, then a dominant block | `band-hero` |
+  | 2 / 3 / 4 parallel items of equal weight | `columns-2` / `columns-3` / `columns-4` |
+  | four parallel items, or a matrix with named axes | `quad` |
+  | a centerpiece wider than 3:1 | `stack` |
+  | a map, globe or wide timeline | `full-bleed` |
+  | a tall or square centerpiece **and** long prose | `split` or `split-wide` |
+  | long prose with small supporting evidence | `split-narrow` |
+  | a claim whose qualifications are as load-bearing as itself | `sidebar-notes` |
+  | a three-stage sequence read downward | `thirds-v` |
+  | a progression where direction carries meaning | `diagonal-flow` |
+  | a part divider or section opener | `rail` |
+  | a table of 6 or more columns | `stack`, no exceptions |
+
+  **No single layout may carry more than 40% of a deck's pages, and a deck of 15
+  or more pages uses at least 5 distinct layouts** (D9). *Provenance: a shipped
+  deck used one layout on 25 consecutive pages, `.body` and `.body.top` differing
+  only in `justify-content`, with zero grid rules in the file. The reader's note
+  was that the pages read flat and that roughly 40% of every text page was empty.*
+
+- **Layout answers the empty half; the measure does not.** Body prose stays at a
+  comfortable measure (88ch cap, `--measure`). An 1180px column at 14.5px would
+  hold ~115 characters against a comfortable 45–75, so widening prose to fill the
+  page makes it harder to read, not easier. When a text page looks half empty the
+  fix is a second column carrying real content — a stat rail, the figure, the
+  caveats — never a longer line.
+
+- **Fill discipline: a page is at least 82% full** (D7, measured as content
+  height over available height at the design viewport). The mechanism ships with
+  the layouts: the centerpiece row is `1fr` and the centerpiece grows into it via
+  `.fill`, so a figure expands rather than sitting at its intrinsic aspect and
+  leaving the difference under the footer. **A page that still cannot reach the
+  floor has the wrong layout, not a padding problem** — go back to the table
+  above. *Provenance: `.fig svg{width:100%;height:auto}` gave every figure a fixed
+  aspect and no way to grow; §3 had said "content distributes across the full page
+  height" since 1.2 with no floor and no mechanism, so it was true and unbuildable.*
+
 - Generous whitespace is part of the design; content distributes across the full
   page height (never crowds the top half);
 - The full-bleed block skeleton (single title + single CTA) is usable, but the
@@ -192,9 +240,13 @@ exactly one thing** — an icon reused for a second meaning is worse than no ico
 because the reader learns a vocabulary that then lies to them.
 
 **Where they go**: the section eyebrow on a content page carries the icon that
-names that page's subject. Never add icons to "look rich". Never draw one ad hoc
-either: with 2007 available, "nothing fits" almost always means the page's
-subject is not what you thought it was.
+names that page's subject. **So does every labelled node inside a figure and
+every table row-head group** — a named box in a diagram is a sub-heading, and it
+carries the same weight of meaning as the eyebrow above it. Minimum **14px
+effective size** at the design viewport, which for an SVG node means checking the
+rendered size, not the authored one. Never add icons to "look rich". Never draw
+one ad hoc either: with 2007 available, "nothing fits" almost always means the
+page's subject is not what you thought it was.
 
 *Provenance, two rounds.* This section required "symbol library embedded per
 document" from 1.2 to 1.7 while the package shipped nothing, so the 1.7.0 deck
@@ -273,9 +325,16 @@ A layout is verified only across the **matrix**, not at a point:
      seven labels out of their boxes at once. §7's language axis already said to
      re-inspect fixed-coordinate SVG boxes after a text change; a size change is
      a text change.
+- **Fill axis (D7).** For every page, measure content height over available
+  height between the title and the footer rule, and require **≥82%** at the
+  design viewport. This cannot be a static check: the figure that failed to grow
+  had perfectly legal CSS. Report the worst pages by ratio rather than a pass or
+  fail alone, because the number tells you which layout to reconsider.
 - **A probe that has never failed is not a probe.** Before trusting a new check,
   reintroduce the defect it was written for and confirm it fires. Two of the
-  three above passed clean on a document that was visibly broken.
+  three geometry probes above passed clean on a document that was visibly broken,
+  and D8 and D9 were both confirmed by running them against the deck that
+  prompted them: 10 missing support lines, 0 layouts.
 
 ## 6 · Numbers are the copy
 

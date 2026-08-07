@@ -1,0 +1,181 @@
+/* ═══════════════════════════════════════════════════════════════════
+   LUMI page layouts · v1.9.0 (2026-08-07)
+   Fifteen page layouts as grid definitions. Copy this block into a deliverable
+   alongside lumi-theme.css; choose per page with the selection table in
+   references/design-rules.md §3. Version lockstep: layouts carry the skill
+   version, like the other two token files.
+
+   Why this file exists: a reader review found one layout used on 25 consecutive
+   pages, which is what made the deck read flat and left ~40% of every text page
+   empty. §3 had said "content distributes across the full page height" since
+   1.2 without a mechanism or a floor, so the rule was true and unbuildable —
+   the same shape of failure as an icon library that shipped no icons.
+
+   Two rules bind every layout here:
+     · The centerpiece row is 1fr and the centerpiece grows into it, so a page
+       fills rather than leaving a band above the footer (D7, floor 82%).
+     · No rotated body text or tables. `diagonal-flow` gets its movement from
+       stepped offsets and an angled accent rule; rotation breaks printing,
+       copy and paste, and screen reading, and a tariff document cannot pay
+       that for a flourish.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── shared frame ─────────────────────────────────────────────────────
+   .body is the content area between the eyebrow/title and the footer rule.
+   Every layout is a grid on it; --gap and --measure are the two knobs. */
+.body {
+  --gap: 26px;
+  --measure: 88ch;          /* comfortable measure; never widen to fill space */
+  flex: 1;
+  display: grid;
+  gap: var(--gap);
+  width: 100%;
+  max-width: 1180px;
+  padding: 14px 0 10px;
+  align-content: stretch;
+  min-height: 0;            /* lets a 1fr row actually shrink and grow */
+}
+.body > * { min-width: 0; min-height: 0; }
+/* The lede block holds eyebrow, title and support. Only the prose takes the
+   measure; constraining the block would re-break the title across two lines. */
+.body .lede { display: flex; flex-direction: column; gap: 10px; }
+.body .lede > p { max-width: var(--measure); }
+
+/* The fill mechanism, in two halves. A grid cell stretching is not enough: the
+   cell fills and the content sits in the middle of it, which is how a page
+   measures 56% full while every cell reports 100%. So each cell is itself a
+   column that distributes, and the centerpiece inside it grows. */
+.body > div, .body > header {
+  display: flex; flex-direction: column; min-height: 0; gap: 14px;
+}
+.body > div { justify-content: center; }
+.body .fill > table,
+.body .fill > .fig { flex: 1; }
+/* The figure starts under its legend and grows downward. Centring it inside the
+   cell instead leaves a gap above and below, which is the same empty band the
+   fill rule exists to remove, just moved inside the cell. */
+.body .fill > .fig { display: flex; flex-direction: column; justify-content: flex-start; gap: 8px; }
+.body .fill > .fig > svg:not(.ic) { flex: 1; min-height: 0; width: 100%; }
+/* A table given the height distributes it across its own rows. Two bounds keep
+   that from becoming the padding-fudge the fill rule exists to forbid: rows
+   centre their content so the rhythm reads as spacing rather than as text
+   hugging the top of a gap, and a table with very few rows is capped, because
+   stretching three rows over a full page is a layout error wearing a disguise. */
+.body .fill > table { height: 100%; }
+.body .fill > table td,
+.body .fill > table th { vertical-align: middle; }
+.body .fill > table:has(tr:nth-child(4)) { max-height: none; }
+.body .fill > table:not(:has(tr:nth-child(4))) { height: auto; flex: 0 1 auto; }
+
+/* ── vertical family ─────────────────────────────────────────────────── */
+
+/* stack — one full-width centerpiece. Wide-and-short figures, 6+ column tables. */
+.body.stack { grid-template-rows: auto 1fr; }
+.body.stack.no-lede { grid-template-rows: 1fr; }
+
+/* hero-band — dominant block over a thin evidence strip.
+   One number is the story, with its specs beneath. */
+.body.hero-band { grid-template-rows: auto 1fr auto; }
+
+/* band-hero — a short framing strip over a dominant block. */
+.body.band-hero { grid-template-rows: auto auto 1fr; }
+
+/* thirds-v — three stacked bands of roughly equal weight, read top to bottom. */
+.body.thirds-v { grid-template-rows: auto repeat(3, 1fr); }
+
+/* ── horizontal family ───────────────────────────────────────────────── */
+
+/* split — argument one side, evidence the other. The default answer when a
+   centerpiece is tall or square and the prose is long. */
+.body.split       { grid-template-columns: 1fr 1fr;      grid-template-rows: auto 1fr; }
+.body.split-wide  { grid-template-columns: 38fr 62fr;    grid-template-rows: auto 1fr; }
+.body.split-narrow{ grid-template-columns: 62fr 38fr;    grid-template-rows: auto 1fr; }
+.body.split > .lede,
+.body.split-wide > .lede,
+.body.split-narrow > .lede { grid-column: 1 / -1; }
+.body.split > .span,
+.body.split-wide > .span,
+.body.split-narrow > .span { grid-column: 1 / -1; }
+.body.split, .body.split-wide, .body.split-narrow { column-gap: 44px; }
+.body.split > div, .body.split-wide > div, .body.split-narrow > div,
+.body.columns-2 > div, .body.columns-3 > div, .body.columns-4 > div,
+.body.quad > div, .body.sidebar-notes > div { justify-content: flex-start; }
+
+/* columns — parallel items of equal weight. Two, three or four. */
+.body.columns-2 { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto 1fr; column-gap: 36px; }
+.body.columns-3 { grid-template-columns: repeat(3, 1fr); grid-template-rows: auto 1fr; column-gap: 30px; }
+.body.columns-4 { grid-template-columns: repeat(4, 1fr); grid-template-rows: auto 1fr; column-gap: 24px; }
+.body.columns-2 > .lede, .body.columns-3 > .lede, .body.columns-4 > .lede,
+.body.columns-2 > .span, .body.columns-3 > .span, .body.columns-4 > .span { grid-column: 1 / -1; }
+
+/* ── composite ───────────────────────────────────────────────────────── */
+
+/* rail — a narrow label column beside wide content. Part dividers, openers. */
+.body.rail { grid-template-columns: 190px 1fr; grid-template-rows: 1fr; column-gap: 40px; }
+.body.rail > .railhead {
+  display: flex; flex-direction: column; justify-content: flex-start; gap: 12px;
+  border-right: 1px solid var(--ln2); padding-right: 32px;
+}
+
+/* quad — 2x2. Four parallel items, or a matrix whose axes are named in the lede. */
+.body.quad { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto 1fr 1fr; column-gap: 36px; }
+.body.quad > .lede, .body.quad > .span { grid-column: 1 / -1; }
+
+/* sidebar-notes — content with a persistent column for caveats and red lines.
+   For pages where the qualification is as load-bearing as the claim. */
+.body.sidebar-notes { grid-template-columns: 1fr 300px; grid-template-rows: auto 1fr; column-gap: 40px; }
+.body.sidebar-notes > .lede { grid-column: 1 / -1; }
+.body.sidebar-notes > .notes {
+  border-left: 1px solid var(--ln2); padding-left: 26px;
+  display: flex; flex-direction: column; gap: 16px; justify-content: center;
+}
+
+/* full-bleed — the centerpiece runs past the content margin to the page edge.
+   Maps, globes, wide timelines. The page padding is cancelled on that row. */
+.body.full-bleed { grid-template-rows: auto 1fr; }
+.body.full-bleed > .bleed { margin-inline: calc(-1 * var(--page-pad, 92px)); }
+
+/* diagonal-flow — movement without rotation. Blocks step down a descending
+   axis and an angled accent rule runs behind them. Body text stays horizontal. */
+.body.diagonal-flow { grid-template-rows: auto 1fr; position: relative; }
+.body.diagonal-flow > .steps {
+  display: flex; flex-direction: column; gap: 18px; justify-content: center;
+  position: relative; z-index: 1;
+}
+.body.diagonal-flow > .steps > * { width: min(100%, 62ch); }
+.body.diagonal-flow > .steps > :nth-child(2) { margin-inline-start: 12%; }
+.body.diagonal-flow > .steps > :nth-child(3) { margin-inline-start: 24%; }
+.body.diagonal-flow > .steps > :nth-child(4) { margin-inline-start: 36%; }
+.body.diagonal-flow::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(var(--diag-angle, 22deg), transparent calc(50% - 1px),
+              var(--ln2) 50%, transparent calc(50% + 1px));
+}
+
+/* ── height-based step-down, matching lumi-theme.css ─────────────────── */
+@media (max-height: 760px) {
+  .body { --gap: 18px; }
+  .body.split, .body.split-wide, .body.split-narrow { column-gap: 32px; }
+  .body.sidebar-notes { grid-template-columns: 1fr 260px; }
+}
+@media (max-height: 600px) {
+  .body { --gap: 12px; padding: 8px 0 6px; }
+  .body.rail { grid-template-columns: 150px 1fr; column-gap: 28px; }
+  .body.sidebar-notes { grid-template-columns: 1fr 230px; column-gap: 28px; }
+  .body.diagonal-flow > .steps > :nth-child(2) { margin-inline-start: 8%; }
+  .body.diagonal-flow > .steps > :nth-child(3) { margin-inline-start: 16%; }
+  .body.diagonal-flow > .steps > :nth-child(4) { margin-inline-start: 24%; }
+}
+/* Below the narrow breakpoint every horizontal layout collapses to one column:
+   a 38/62 split at 900px is two unreadable gutters. */
+@media (max-width: 1000px) {
+  .body.split, .body.split-wide, .body.split-narrow,
+  .body.columns-2, .body.columns-3, .body.columns-4,
+  .body.quad, .body.sidebar-notes, .body.rail {
+    grid-template-columns: 1fr;
+  }
+  .body.rail > .railhead { border-right: 0; border-bottom: 1px solid var(--ln2);
+                           padding-right: 0; padding-bottom: 14px; }
+  .body.sidebar-notes > .notes { border-left: 0; border-top: 1px solid var(--ln2);
+                                 padding-left: 0; padding-top: 16px; }
+}

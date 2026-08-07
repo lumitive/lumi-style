@@ -121,8 +121,23 @@ Data voice (codes/rates/dates/counters): tabular-nums with fixed-width digit box
 **Nothing below 11px**; chart scale is figure title 13 / axis 11.5 / source 10.5,
 and 10.5 for source lines is the only exception to the floor.
 
-**Layout**: one claim per page. One title line is the goal and two is the ceiling —
-never narrow the title container to manufacture a break. At most one tier-one
+**Layout**: one claim per page, and **a layout chosen for the content**, not one
+template repeated. Vertical: stack, hero-band (dominant block over a thin strip),
+band-hero (its inverse), thirds-v. Horizontal: split 50/50, split-wide 38/62,
+split-narrow 62/38, columns-2/3/4. Composite: rail, quad, sidebar-notes,
+full-bleed, diagonal-flow. Choose by content: one number is the story → hero-band;
+2-4 parallel items → columns-N or quad; centerpiece wider than 3:1 → stack; tall or
+square centerpiece with long prose → split; long prose, small evidence →
+split-narrow; heavy caveats → sidebar-notes; a table of 6+ columns → stack, no
+exceptions. **No single layout on more than 40% of a deck's pages.** A page fills
+at least 82% of its height, with the centerpiece growing into the space rather
+than sitting at its intrinsic aspect; a page that cannot fill has the wrong
+layout, not a padding problem. Body prose stays at an 88ch measure — when a page
+looks half empty the fix is a second column, never a longer line. **Diagonal
+layouts are implied only**: stepped offsets and angled accent rules, never rotated
+body text or tables. Every content page carries one to three sentences of support
+under the title, figure pages included. One title line is the goal and two is the
+ceiling — never narrow the title container to manufacture a break. At most one tier-one
 callout (tinted + bordered + strong left edge) per page and on no more than a
 third of a deck's pages. Footers carry a source line and `N / total`. Every figure
 in a document is built to the same level: if one has decision shapes, dashed

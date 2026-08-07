@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "1.8.0"
+  version: "1.9.0"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -32,8 +32,11 @@ rules only as rule data for Chinese-language output.
    de-AI-flavor pass). **Run the punctuation pass after drafting.**
 3. **Visuals and charts**: for HTML/slides/chart output follow
    [`references/design-rules.md`](references/design-rules.md); tokens come from
-   [`tokens/lumi-theme.css`](tokens/lumi-theme.css) and
-   [`tokens/design-tokens.json`](tokens/design-tokens.json). **Embed the vendored
+   [`tokens/lumi-theme.css`](tokens/lumi-theme.css),
+   [`tokens/design-tokens.json`](tokens/design-tokens.json) and
+   [`tokens/lumi-layouts.css`](tokens/lumi-layouts.css). **Choose a page layout
+   from the selection table in §3 — the content decides, and no single layout may
+   carry more than 40% of a deck.** **Embed the vendored
    assets rather than improvising**: `scripts/embed_font.py` for the display face,
    `scripts/embed_icons.py` for the eight semantic icons, `assets/vectors/` for
    the globe and trade map. Text uses the `--tx*` ladder only; `--ln*` is rules

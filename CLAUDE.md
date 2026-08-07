@@ -124,8 +124,11 @@ repo itself.)
    The repo carries **one version**: `metadata.version` in SKILL.md frontmatter,
    the newest CHANGELOG heading, and the version stamp in each `tokens/` file all
    read the same number and bump together, even when a revision leaves the tokens
-   untouched. Those four places are the only ones a version string lives, and the
-   `version stamps` check fails on any mismatch. The historical notes inside
+   untouched. That is **five places** as of 1.9.0 — SKILL.md, CHANGELOG, and the
+   three `tokens/` files (`lumi-theme.css`, `design-tokens.json`,
+   `lumi-layouts.css`) — and they are the only ones a version string lives. The
+   `version stamps` check fails on any mismatch; adding a token file means adding
+   it to the tuple in `check_versions`, which is what keeps this list honest. The historical notes inside
    `tokens/lumi-theme.css` ("v1.3.0: light-first…") name the version that
    introduced a change and are not stamps — leave them alone. Commit messages
    follow `X.Y.Z — comma-separated summary of the rule changes`.
