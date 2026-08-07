@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · v2.0.1 (2026-08-07)
+   LUMI visual theme · v2.1.0 (2026-08-07)
    Single source of truth for palette and typography. New documents reference
    this file or copy the token blocks verbatim (note the provenance when
    copying). Version lockstep: a deliverable's version = the lumi-style
@@ -77,12 +77,24 @@
   --ls-title-cjk: .04em;
   --num-feature: "tnum";         /* tabular-nums always on for data */
 
-  /* type floor (v1.8.0) — no text in a deliverable below --fs-floor at the
-     design viewport; --fs-source is the single documented exception. */
+  /* small end of the type scale (v1.8.0). These are the sizes the deliverable
+     actually uses down there, not a floor — 2.0.0 withdrew the 11px floor,
+     which had been invented without an ask. check_design.py reports D2. */
   --fs-floor:     11px;
   --fs-fig-title: 13px;
   --fs-axis:      11.5px;
   --fs-source:    10.5px;
+
+  /* display tier (v2.1.0). The jump is the point: a page whose largest element
+     is body copy gives the eye nowhere to enter, so it gets read top-left as a
+     document rather than looked at. A reader called 28 pages flat and the
+     measurement agreed — 17 of them had nothing above 15px and no dominant
+     drawing. These are the sizes an entry point comes in; which pages get one,
+     and whether it is a number, a sentence or a figure, is a design decision
+     per page. Do not read this as "every page needs a big number". */
+  --fs-lead:    clamp(30px, 3.4vw, 46px);   /* the number that is the page */
+  --fs-lead-xl: clamp(44px, 6.4vw, 88px);   /* one number, alone, full stop */
+  --fs-say:     clamp(22px, 1.9vw, 26px);   /* the claim that is the page */
 }
 
 /* ── dark palette: on explicit user request only ── */

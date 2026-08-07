@@ -253,7 +253,11 @@ def d4_palette(raw):
         stripped = stripped.replace(re.sub(r"/\*.*?\*/", " ", body, flags=re.S), " ")
     stripped = re.sub(r"src:\s*url\(data:[^)]*\)", " ", stripped)
     stripped = re.sub(r"<!--.*?-->", " ", stripped, flags=re.S)
-    hits = re.findall(r"(?<![\w#])#[0-9A-Fa-f]{6}\b|(?<![\w#])#[0-9A-Fa-f]{3}(?![\w-])",
+    # Numeric HTML entities are not colours. `&#183;` is a middot and the deck
+    # is full of them; three of them reported as literal hexes, which is the
+    # kind of false positive that teaches an author to stop reading the output.
+    stripped = re.sub(r"&#\d+;", " ", stripped)
+    hits = re.findall(r"(?<![\w#&])#[0-9A-Fa-f]{6}\b|(?<![\w#&])#[0-9A-Fa-f]{3}(?![\w-])",
                       stripped)
     return sorted(set(hits))
 
@@ -304,8 +308,15 @@ def d8_support_line(raw):
     for cls, pid, body in _pages(raw):
         if "cover" in cls or "closing" in cls:
             continue
-        if not re.search(r'<p class="(?:sup|lede)\b', body):
-            missing.append(pid)
+        # A .lead block does exactly what a support line does — say what the
+        # page is about, under the title — and 2.1.0 made it the answer on the
+        # pages whose point is one number or one claim. A statement page that
+        # carries only a claim needs nothing else under it.
+        if re.search(r'<p class="(?:sup|lede)\b', body):
+            continue
+        if re.search(r'class="[^"]*\blead\b', body) or "opener" in cls:
+            continue
+        missing.append(pid)
     return missing
 
 

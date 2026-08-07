@@ -92,20 +92,36 @@ Say "uncertain" plainly.
 
 Figure titles state conclusions; one accent color with all else grayscale
 (warning color only for warnings); no gridlines/borders/single-series legends;
-every figure has a source line; fixed type scale. The legend sits top right above
-the plot; captions are two-part, "Figure N · Name" centred and bold, then the
-description left-aligned at the figure's width. Shapes carry meaning:
-parallelogram = input/output, rectangle = process, diamond = decision,
-stadium = terminal, dashed outline = not built. Icons are semantic, never
-decorative.
+every figure has a source line; a type scale that suits the figure.
+
+**The legend goes where the figure's own layout wants it** — top right above the
+plot is one good answer, not the rule, and a figure with two labelled marks may
+want none. It is quieter than the plot and never takes a heading's line at the top
+of a page. **Below the figure: "Figure N · Name", then the source line, and
+nothing else.** Explanation belongs in the page's own column at reading size;
+under the figure it sits at caption size a page away from its argument, and it
+grows and then repeats — two captions reached 72 and 124 words and both turned out
+to be the opposite column restated. Align the caption to the drawing's left edge.
+
+Shapes carry meaning: parallelogram = input/output, rectangle = process,
+diamond = decision, stadium = terminal, dashed outline = not built. Icons are
+semantic, never decorative. **A table is for values.** Prose poured into a grid is
+a layout error wearing a table's clothes: a grid claims its cells are comparable
+along the axis its header names, and sentences make that claim false. Draw what
+the content is — a sequence is a flow, a duration is a timeline, a pair of
+alternatives is a swap, a ranking is a ladder, a two-by-two is a two-by-two. A
+scoring form stays a form.
 
 ## 7 Visual tokens (for HTML output)
 
-**Canvas**: light #FAFAF8 by default; dark #060806 only when the user asks, as one
-`body.dark` override block, never a forked file. Card surfaces #FFFFFF / #0D110C.
+**Canvas**: pure white #FFFFFF by default — not a warm cream, which reads as a
+template default; dark is Apple space grey #1D1D1F, only when the user asks, as one
+`body.dark` override block, never a forked file. Card surfaces #FAFAFA / #2C2C2E.
 Single accent #48633E on light, lifted to #7C9F63 on dark; warning #C8102E (China
-red, warnings only, lifted to #E0685A as text on dark). A literal color anywhere
-outside the token block is a defect.
+red, warnings only, lifted to #E0685A as text on dark). Two more state colors, one
+meaning each: amber #A86407 / #E0A73E = partial, in progress, awaiting an input;
+brass #7A6C52 / #C3B393 = reference, archival, out of scope but real. A literal
+color anywhere outside the token block is a defect.
 
 **Two ladders, and text may use only one.** Text ladder, from ink #2B2E33 on light
 at α .92/.80/.72/.66 and from cold white #F0F0FA on dark at α .88/.76/.66/.58 —
@@ -118,8 +134,11 @@ cold white on the lifted dark accent measures 2.65 and fails.
 **Type**: D-DIN for titles, body and data alike, with a CJK fallback; display
 titles ALL-CAPS at weight 400 (CJK: weight 700 + .04em tracking, never uppercase).
 Data voice (codes/rates/dates/counters): tabular-nums with fixed-width digit boxes.
-**Nothing below 11px**; chart scale is figure title 13 / axis 11.5 / source 10.5,
-and 10.5 for source lines is the only exception to the floor.
+The small end of the scale runs figure title 13 / axis 11.5 / source 10.5. **There
+is no type floor** — 2.0.0 withdrew the 11px one, invented without an ask.
+A display tier sits above body copy for focal elements: `--fs-lead`
+clamp(30px,3.4vw,46px), `--fs-lead-xl` clamp(44px,6.4vw,88px) for one number
+alone, `--fs-say` clamp(22px,1.9vw,26px) for a claim.
 
 **Layout**: one claim per page, and **a layout chosen for the content**, not one
 template repeated. Vertical: stack, hero-band (dominant block over a thin strip),
@@ -129,10 +148,17 @@ full-bleed, diagonal-flow. Choose by content: one number is the story → hero-b
 2-4 parallel items → columns-N or quad; centerpiece wider than 3:1 → stack; tall or
 square centerpiece with long prose → split; long prose, small evidence →
 split-narrow; heavy caveats → sidebar-notes; a table of 6+ columns → stack, no
-exceptions. **No single layout on more than 40% of a deck's pages.** A page fills
-at least 82% of its height, with the centerpiece growing into the space rather
-than sitting at its intrinsic aspect; a page that cannot fill has the wrong
-layout, not a padding problem. Body prose stays at an 88ch measure — when a page
+exceptions. **No fill floor and no layout-share cap** — 2.0.0 withdrew both; the 82% fill
+floor measured the bounding box of all ink, so a small chart with a long caption
+scored as full, and it was satisfied by stretching table rows while four diagrams
+rendered at 40% of their cell. **Every page gets one focal element instead**: the
+thing the eye lands on before it starts reading — a display number with its gloss,
+a claim at display size, or a figure composed to dominate its cell. Which of the
+three is a decision for that page, and a page whose figure carries it needs no
+number. **Side-by-side cells start on one line** and carry comparable weight, and
+that is checked on the render rather than trusted from the CSS. A part opener —
+one line at display scale saying where the reader is and what the next run of
+pages argues — earns its page. Body prose stays at an 88ch measure — when a page
 looks half empty the fix is a second column, never a longer line. **Diagonal
 layouts are implied only**: stepped offsets and angled accent rules, never rotated
 body text or tables. Every content page carries one to three sentences of support
@@ -182,14 +208,16 @@ and the imported "X, not Y" antithesis; re-run the punctuation pass afterwards.
 ① punctuation pass [zh]; ② banned-phrase and coined-term sweep; ③ every number
 traced to its source; ④ titles-only test; ⑤ per-figure: is the title a
 conclusion, is there a source line; ⑥ **the §8 de-AI pass, including its two-pass
-audit**; ⑦ for HTML, walk §7 as a checklist — no text on the non-text ladder,
-nothing under 11px, one tier-one callout per page, footers carrying `N / total`,
-figures at one level, no literal colors outside the token block; ⑧ self-score
+audit**; ⑦ for HTML, walk §7 as a checklist — no text on the non-text ladder, one focal
+element per page, no prose in a table, one tier-one callout per page, footers
+carrying `N / total`, side-by-side cells starting on one line, figures at one
+level, no literal colors outside the token block, and **every page exactly one
+page** at both geometries; ⑧ self-score
 H1–H6 (reader value / structural expression / chart self-explanation / honest
 boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **1.8.0** snapshot, cut 2026-08-07. It is self-contained by
+> This file is the **2.1.0** snapshot, cut 2026-08-07. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

@@ -3,6 +3,72 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 2.1.0 — a focal element on every page, a table only for values, and probes for both
+
+A reader called all 28 pages flat, mediocre and without visual impact, named the
+split layouts as ugly, said far too many tables carried non-numeric information,
+and pointed at one figure caption as plainly odd. Every one of the four was
+measurable, and three had a single mechanical cause.
+
+**The flatness had a number: 24 of 28 pages carried nothing larger than 15px body
+copy.** Only the cover and two stat-band pages had any display tier at all. A page
+with no entry point gets read top-left like a document instead of looked at. Every
+page now has one focal element — a display number with its gloss, a claim at
+display size, or a figure composed to dominate — chosen per page, and half the
+pages got a redrawn figure rather than a number. A display tier (`--fs-lead`,
+`--fs-lead-xl`, `--fs-say`) and a `.lead` block ship in `tokens/`. **There is no
+floor on it**, and there will not be one: a threshold would push a number onto a
+page whose figure already carries it, which is the 82% fill floor's mistake in a
+new costume.
+
+**Fourteen of sixteen tables held prose, not values** — digit density at or below
+2%, including a literal two-by-two truth table laid out as four rows and three
+pages whose "table" was a tempting sentence beside a safer one. A grid claims its
+cells are comparable along the axis its header names, and sentences make that
+claim false. They are now a timeline, a relay, a two-by-two, three maturity cards,
+a veto diagram, two graded ladders, numbered vows and paired swaps. A scoring form
+stayed a form.
+
+**The split layouts were ugly for one reason, and it was a specificity bug.**
+`lumi-layouts.css` had said `.body.split > div { justify-content: flex-start }`
+since 1.9.0 and it had **never once applied**: the fill rule above it reaches
+(0,6,1) because every `:not()` contributes its argument, against that selector's
+(0,2,1). Twelve of fifteen multi-column pages centred their columns independently
+and drifted by up to 132px. One line fixed twelve pages. The same chain has since
+won two more arguments it should not have.
+
+**The odd caption was a duplicate.** Two of its four sentences appeared verbatim in
+the same page's right-hand column, and a second page's 124-word caption restated
+that page's entire ordered list. Below a figure now goes the number, its
+conclusion name and the source line, and nothing else; explanation moves into the
+page's own column where it is set at reading size beside the argument it serves.
+Eight caption prose blocks retired.
+
+Two part-opener statement pages join the deck — one line at display scale saying
+where the reader is and what the next run of pages argues. A navigation rail
+cannot do that at a glance, and the quiet page is what makes the dense ones read
+as dense on purpose.
+
+Six probes join `inspect_layout.py`, each confirmed by reintroducing the defect it
+was written for: column tops, column weight, focal ratio, caption budget and
+duplication, table census, figure share. Three of them were wrong within a day of
+being written — two because their selector did not know a new block class, and one
+because it counted a table stretched to 100% of its cell as a dominant figure,
+which is D7's own failure reproduced inside the tool built to replace it. **A probe
+is only as good as its vocabulary** is now recorded in the rubric.
+
+Three checker defects fixed while measuring: `check_design.py` read `&#183;` as a
+literal hex colour, and required a support line on pages whose display lead does
+that job better; `check_prose.py` counted only `<ul>/<ol>`, so M10 measured three
+enumerations on a deck that enumerates constantly in named blocks and reported a
+66.7% triad rate off a sample of three.
+
+Also corrected: `AGENTS.md` and `prompts/lumi-style-core.md` still carried the
+82% fill floor and the 11px type floor, both withdrawn in 2.0.0, and the core
+prompt still described the pre-2.0.0 cream and near-black canvases, the fixed
+legend position and the retired caption description. That is four versions of
+semantic drift in the two entry points the checks cannot read.
+
 ## 2.0.1 — the measure cap belonged to the page, not to one of its children
 
 `.body` carried `max-width: 1180px` and `.foot` carried nothing. On the design

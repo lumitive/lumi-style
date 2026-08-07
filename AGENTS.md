@@ -14,14 +14,28 @@ another language or a dark canvas only when the user asks.
    internal analysis). Do this before writing.
 3. `references/design-rules.md` + `tokens/` — visual rules and design tokens for
    any HTML/slides/chart output. Text uses the `--tx1..--tx4` ladder only;
-   `--ln1..--ln3` is for rules, borders and fills and never carries text. Nothing
-   below 11px. Pick a page layout from the §3 selection table (15 ship in
-   `tokens/lumi-layouts.css`); a page fills at least 82% of its height, and if it
-   cannot, the layout is wrong rather than the padding. Embed the vendored assets rather than improvising:
-   `scripts/embed_font.py`, `scripts/embed_icons.py`, `assets/vectors/`.
+   `--ln1..--ln3` is for rules, borders and fills and never carries text. Choose
+   a page layout for the content (15 ship in `tokens/lumi-layouts.css`; §3's table
+   is a reference, not a lookup). **Give every page one focal element** — a
+   display number, a claim at display size, or a figure composed to dominate;
+   which one is a decision for that page. **A table is for values**: prose in a
+   grid is a layout error, so draw what the content actually is. Under a figure
+   goes the number, its conclusion name and the source line, and nothing else.
+   Embed the vendored assets rather than improvising: `scripts/embed_font.py`,
+   `scripts/embed_icons.py`, `assets/vectors/`. **No size or fill floors** —
+   2.0.0 withdrew the 82% page-fill floor and the 11px type floor, both invented
+   without an ask, and the fill floor was satisfiable by stretching a table while
+   four diagrams rendered at 40% of their cell.
 4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish),
-   D1–D6 design metrics and H1–H6 self-scoring. Never self-score 5 before a reader
-   has scored it, and always give the reason for the score, not just the number.
+   the D-series and `inspect_layout.py` diagnostics (**reported, never gating**),
+   and H1–H6 self-scoring. Never self-score 5 before a reader has scored it, and
+   always give the reason for the score, not just the number.
+
+**Rendered geometry decides, not declared CSS.** Run
+`python3 scripts/inspect_layout.py <file>` and look at the contact sheet it
+builds. A rule that loses on specificity is indistinguishable from no rule: one
+had been in the layout file since 1.9.0, had never once applied, and left twelve
+of fifteen multi-column pages with their columns out of line.
 
 **Six hard red lines**: no invented facts (every number carries its source;
 illustrative values are labeled 示意); no invented Chinese coinages (use the

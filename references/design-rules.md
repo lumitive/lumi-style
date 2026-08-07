@@ -125,6 +125,23 @@
   from the title line, and left bare antitheses that read as AI filler.) Prefer
   hairline-separated rows over card boxes: on a dark canvas, borders are
   furniture; hierarchy comes from the ink ladder;
+- **Every page has one focal element, and it is not the title.** The thing the
+  eye lands on before it starts reading: a display number with its gloss, a
+  claim set at display size, or a figure composed to dominate its cell. Which of
+  the three, and whether a page wants a number at all, is a design decision for
+  that page — **there is no size floor and no requirement that it be type.**
+  `.lead` and the `--fs-lead / --fs-lead-xl / --fs-say` tier are in
+  `tokens/`; `inspect_layout.py` reports the ratio of the largest element to
+  body copy and names the pages that have neither. *Provenance: a reader called
+  a 28-page deck flat and mediocre, and the measurement agreed exactly — 24 of
+  28 pages had nothing on them larger than 15px body copy, and only the cover
+  and two stat-band pages carried any display tier at all. A page with no entry
+  point gets read top-left like a document instead of looked at. The fix is per
+  page: half of those pages got a number, the rest got a redrawn figure.*
+- **A part opener earns its page.** One line at display scale saying where the
+  reader is and what the next run of pages argues, and nothing else. A navigation
+  rail cannot do this at a glance, and the quiet page is what makes the dense
+  ones read as dense on purpose.
 - **A page has a layout, chosen for its content.** Fifteen ship in
   `tokens/lumi-layouts.css` as `.body.<name>`; pick with the table below. This is
   the same discipline as §4's chart form-selection: the point is not that many
@@ -221,13 +238,36 @@ takes a line of its own at the top of a page where it reads as a heading.
 *Provenance: "top right, above the plot" was applied to every figure regardless of
 shape, at a size that competed with the figure title.*
 
-7. **Figure number and name go below the figure. This does not change.** Caption
-anatomy is two-part — "Figure N · Name" as its own line, then the description at
-the figure's width, then the source line. A reader looks at the picture and then
-asks what it is; putting the name above answers a question they have not formed
-yet, and putting it beside breaks the pairing when the column stacks.
-*Provenance: two split-layout pages moved the caption into the side column, which
-detached the number from the figure it numbers.*
+7. **Figure number and name go below the figure. This does not change.** A reader
+looks at the picture and then asks what it is; putting the name above answers a
+question they have not formed yet, and putting it beside breaks the pairing when
+the column stacks. *Provenance: two split-layout pages moved the caption into the
+side column, which detached the number from the figure it numbers.*
+
+7b. **Below the figure: the number, its conclusion name, and the source line.
+Nothing else.** Explanation belongs in the page's own column, where it is set at
+reading size next to the argument it serves. Under the figure it sits at caption
+size, a page away from that argument, and it grows: the two longest ran 72 and
+124 words. Worse, it repeats — on both of those pages the "caption" turned out to
+be the opposite column restated, two of four sentences word for word on one and
+the entire ordered list on the other. A reader sees the duplication before they
+can say what is wrong with it, which is why one asked what those blocks were doing
+there. The caption aligns with the drawing's left edge rather than centring, so
+the eye returns to where the figure began. `inspect_layout.py` reports caption
+word count and any sentence that already appears elsewhere on the page.
+
+8. **A table is for values. Prose poured into a grid is a layout error wearing a
+table's clothes.** A grid claims its cells are comparable along the axis its
+header names; when the cells hold sentences, the claim is false and the page reads
+as a form. Ask what the content actually is and draw that: a sequence is a flow, a
+duration is a timeline, a pair of alternatives is a swap, a ranking is a ladder, a
+two-by-two is a two-by-two, a set with one distinguished member is an annotated
+set. *Provenance: a reader said a 28-page deck used far too many tables for
+non-numeric information. Measured, 16 pages carried a table and 14 of them had a
+digit density at or below 2% — including a literal 2×2 truth table laid out as
+four rows, and three pages whose "table" was a tempting sentence beside a safer
+one. `inspect_layout.py` reports the census.* Genuinely tabular things stay
+tables: a scoring form is a form.
 
 Flow-diagram shape vocabulary (shapes carry semantics, never decoration):
 **parallelogram** = data input/output · **rectangle** = process ·
@@ -392,6 +432,20 @@ A layout is verified only across the **matrix**, not at a point:
   it was satisfiable by stretching table rows while four diagrams rendered at 40%
   of their cell, and it measured the bounding box of all ink, so a small chart
   with a long caption scored as full.
+- **Column axis.** Side-by-side cells start on one line and carry comparable
+  weight, or the page reads as two unrelated documents. Measure the outcome, never
+  the declaration: `lumi-layouts.css` had said `.body.split > div { justify-content:
+  flex-start }` since 1.9.0 and it had **never once applied**, because the fill
+  rule above it reaches specificity (0,6,1) — every `:not()` contributes its
+  argument — against that selector's (0,2,1). Twelve of fifteen multi-column pages
+  centred their columns independently and drifted by up to 132px, which is what a
+  reader meant by "the left and right are not level". A rule that loses silently
+  is indistinguishable from no rule. The same chain has since won two more
+  arguments it should not have, against `.lead.row` and against `.sidebar-notes >
+  .notes`; when a declaration and the render disagree, suspect specificity first.
+- **Focal axis.** The largest element on the page against body copy, and whether
+  a drawing dominates its cell. Report it, never floor it — a page whose figure
+  is the entry point should not be made to grow a number.
 - **Off-geometry axis.** Render one size the document was **not** designed for —
   a window wider than the design page is the cheap one. Constraints set on a
   single child of the page frame are invisible at 1280×720 and open a dead band
