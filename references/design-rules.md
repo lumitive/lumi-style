@@ -34,8 +34,13 @@
   SC). Display titles are ALL-CAPS at **weight 400** with tight leading
   (0.95–1.0) — size and case carry the authority, not boldness; bold is
   reserved for the accent word. Rounded faces (Quicksand/Nunito) are retired
-  from decks. Vendor the font (SIL OFL) and embed it — a declared face that
-  never ships falls back silently and the identity never renders.
+  from decks. **The face ships with this skill** — `assets/fonts/D-DIN.woff2`
+  and `D-DIN-Bold.woff2` (SIL OFL, `COPYING.txt` alongside). Embed it as a data
+  URI, never link it: `python3 scripts/embed_font.py` prints the ready
+  `@font-face` block, and `--check` verifies the vendored files are intact.
+  A linked font falls back the moment a deliverable is opened offline, emailed,
+  or printed elsewhere; a declared-but-unvendored one renders nothing at all,
+  which is what shipped in 1.2.
 - **Data voice** (codes/rates/percentages/dates/counters/specs): D-DIN or
   monospace, tabular-nums always on; **counters and countdowns give each digit a
   fixed-width box** so changes never reflow.

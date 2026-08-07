@@ -18,7 +18,18 @@ filler phrases with their replacements, authority tropes, signposting, fake-cand
 openers), and the two-pass audit method — rewrite, then ask the draft what makes
 it obviously AI-generated, then rewrite again.
 
-What was not taken, and why: humanizer is a general-purpose prose rewriter and
+D-DIN — https://www.datto.com/fonts/d-din
+Copyright (c) 2017 Datto Inc., with Reserved Font Name "D-DIN".
+SIL Open Font License 1.1 — full text in assets/fonts/COPYING.txt.
+
+Vendored unmodified as assets/fonts/D-DIN.woff2 and D-DIN-Bold.woff2 because
+design-rules.md requires the display face to be embedded in every deliverable,
+and a release that declared it without shipping it rendered nothing. The OFL
+permits redistribution provided the font is not sold on its own and the license
+travels with it; the Reserved Font Name restricts derivatives, and none are made
+here. Regenerate the embed block with scripts/embed_font.py.
+
+What was not taken from humanizer, and why: it is a general-purpose prose rewriter and
 English-only. Rules that conflict with LUMI's fact discipline were dropped, its
 patterns were re-scoped to LUMI's sales and marketing deliverables, and nothing
 from it applies to Chinese output, which is governed instead by the

@@ -26,3 +26,8 @@ __pycache__/
 *.woff2
 *.ttf
 *.otf
+
+# Exception: the display face is part of the design language, not a deliverable.
+# design-rules.md requires embedding it, and a version that shipped with the face
+# declared but not vendored rendered nothing (CHANGELOG 1.2.0).
+!assets/fonts/*.woff2
