@@ -70,6 +70,23 @@
 - Chart data colors are an independent CVD-validated triple (blue/red/teal) and
   never change with the brand palette — data distinguishability outranks branding.
 
+**A colour is verified against the surface it is printed on, not against the
+canvas.** A status chip sits on its own wash and never touches `--bg`; an accent
+field is a third surface with its own foreground. 2.2.0's amber measured 4.68
+against a canvas it never touches and **4.24 against the wash it actually sits
+on**, and the dark seal did the same — both had been "verified" since 1.8.0.
+`check_design.py` now discovers painted surfaces by reading the CSS, composites
+translucent washes onto the canvas first, and grades a rule that declares its own
+background against that background.
+
+**Colour at page scale is a claim; colour as hairlines is decoration.** The part
+openers are full accent fields with the claim reversed out, and they are the only
+pages in the deck that are. Restraint everywhere is not a voice — a deck in one
+register reads as careful rather than as anything. Text on a field takes the
+solid `--on-accent`: fading it to 72% for hierarchy drops it to 3.97:1, which is
+the 1.8.0 contrast defect returning through a colour choice. Hierarchy on a field
+comes from size and letterspacing.
+
 ## 2 · Typography: two voices, never mixed
 
 - **Primary face — D-DIN takes over** (v1.2): D-DIN is the single Latin face
@@ -255,6 +272,15 @@ can say what is wrong with it, which is why one asked what those blocks were doi
 there. The caption aligns with the drawing's left edge rather than centring, so
 the eye returns to where the figure began. `inspect_layout.py` reports caption
 word count and any sentence that already appears elsewhere on the page.
+
+7c. **A page states its source once.** §4 rule 4 asks every figure for a source
+line and the footer contract asks every page for one; on a single-figure page
+they are the same sentence twice. The figure's line wins — it is where a reader
+is standing when they ask where the number came from, and it was the more
+specific of the two on all thirteen pages that carried both. The footer keeps a
+source line only when it says something the figure's cannot, and then says only
+that. *Provenance: eleven pages cited overlapping sections in both places and two
+were identical word for word; a reader asked why the information appears twice.*
 
 8. **A table is for values. Prose poured into a grid is a layout error wearing a
 table's clothes.** A grid claims its cells are comparable along the axis its
@@ -453,6 +479,26 @@ A layout is verified only across the **matrix**, not at a point:
   28 pages ran the footer to the window edge past a left-anchored composition,
   and the contact sheet could not see it because it renders only the two design
   geometries. Check that the page frame's parts stay the same width and centre.
+- **Frame axis.** A page is a fixed box or it is not a page. Landscape is a
+  1280x720 stage and A4 is a 794x1123 sheet, each scaled to fit the window with
+  `zoom` and letterboxed; the leftover window is a gutter that never holds page
+  content. Assert the aspect **at window shapes that are not the design
+  geometry** — 1280x960, 1440x900, 1600x1200 — because that is the only place
+  the answer can be wrong. *Provenance: `.page` was `min-height:100svh` with no
+  aspect lock, so a page was whatever shape the reader's window was: 16:9 at
+  1280x720 and 4:3 at 1280x960. The surplus height was the dead band above the
+  footer that a reader circled on four pages.* Locking the height moves the
+  failure rather than removing it — a fixed box does not grow when its content
+  does, it spills — so **measure content against the box** (`scrollHeight`
+  against `clientHeight`) as well as the box against the viewport.
+- **A probe that establishes the condition it verifies proves nothing.** This
+  outranks every other line in this section. The page-height check set the
+  viewport to 1280x720 and then measured `section.height - window.innerHeight`
+  on a page that was `min-height:100svh`: zero by construction, for every page,
+  forever. "All 30 pages are exactly 720px" meant "the page filled the window I
+  made 720px tall". Before trusting a probe, write down what a failure would
+  look like; if you cannot construct one, the probe is a thermometer in a glass
+  of its own water.
 - **A probe that has never failed is not a probe.** Before trusting a new check,
   reintroduce the defect it was written for and confirm it fires. Two of the
   three geometry probes above passed clean on a document that was visibly broken,

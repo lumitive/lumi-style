@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · v2.1.0 (2026-08-07)
+   LUMI visual theme · v2.2.0 (2026-08-07)
    Single source of truth for palette and typography. New documents reference
    this file or copy the token blocks verbatim (note the provenance when
    copying). Version lockstep: a deliverable's version = the lumi-style
@@ -60,7 +60,13 @@
   /* v2.0.0 state palette. One colour, one meaning, same as the accent and seal.
      Before this, "partial" and "not built" both rendered as dashed grey, so a
      deck could not say the one thing it most needed to say about itself. */
-  --amber:     #A86407;          /* partial · in progress · awaiting an input — 4.68 */
+  /* 2.2.0: both moved because D1 learned to measure a token against the
+     surface it is actually printed on. A status chip sits on its own wash,
+     never on the canvas, and amber measured 4.24 there while passing 4.68
+     against a canvas it never touches. A ladder verified against the wrong
+     surface is not verified. */
+  --amber:     #9C5D06;          /* partial · in progress · awaiting an input
+                                    5.27 on the canvas, 4.78 on --amber-wash */
   --amber-wash:#FBF3E4;
   --brass:     #7A6C52;          /* reference · archival · out of scope but real — 5.13 */
   --brass-wash:#F4F1EA;
@@ -123,8 +129,9 @@ body.dark {
      measures 2.65 and fails. Until 1.8.0 this token claimed to serve both
      palettes, and a white label inside an accent bar shipped unreadable. */
   --on-acc:    #1D1D1F;          /* 6.4 on #7C9F63 */
-  --seal-t:    #E0685A;          /* lifted seal for text on grey; fills keep --seal */
-  --seal-wash: rgba(224,104,90,.15);
+  --seal-t:    #E97C6E;          /* lifted seal for text on grey; fills keep --seal.
+                                    6.07 on the canvas, 5.00 on --seal-wash */
+  --seal-wash: rgba(233,124,110,.15);
   --amber:     #E0A73E;          /* 7.83 on space grey */
   --amber-wash:rgba(224,167,62,.15);
   --brass:     #C3B393;          /* 8.17 on space grey */

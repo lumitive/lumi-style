@@ -3,6 +3,68 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 2.2.0 — the page becomes a page, and a probe stops verifying its own setup
+
+A reader suspected the landscape page was not 16:9, asked why the layout tool had
+not caught it, and marked three more things on four screenshots. The suspicion was
+right, the tool could never have caught it, and the three marks turned out to be
+one cause.
+
+**The page was whatever shape the window was.** `.page` was `min-height: 100svh`
+with no aspect lock anywhere: 16:9 at 1280x720, **4:3 at 1280x960**, 1.6:1 at
+1440x900. The surplus height was the dead band above the footer that the reader
+circled. Landscape is now a fixed **1280x720** stage and A4 a fixed **794x1123**
+sheet, each scaled to fit with `zoom` and letterboxed in a gutter that never holds
+page content. `zoom` rather than `transform`, because zoom participates in layout,
+so pages still stack, scroll and snap.
+
+**The probe could not have caught it, and the reason is the most important line in
+this release.** `inspect_layout.py` set the viewport to 1280x720 and then measured
+`section.height - window.innerHeight` on a `100svh` page: **zero by construction**,
+on every page, in every run since it was written. "All 30 pages are exactly 720px"
+meant "the page filled the window I made 720px tall". It had never tested the
+aspect ratio at all. **A probe that establishes the condition it verifies proves
+nothing** now leads the verification section of `design-rules.md` §7 and the
+rubric, above "a probe that has never failed is not a probe". The new aspect probe
+renders five window shapes chosen because they are *not* the design geometry.
+
+Locking the geometry moved the blind spot rather than removing it: a fixed box does
+not grow when its content does, it spills, and the height probe would report zero
+while the page was visibly broken. A content-spill probe measures `scrollHeight`
+against `clientHeight`, confirmed by shrinking the stage to 620px and watching four
+pages fire.
+
+**Three of the reader's four marks were one cause.** `.fig svg` was `flex: 1 1 0`,
+so the box grew into all leftover height and `preserveAspectRatio` centred the
+drawing inside it. Measured: the first mark sat **79-185px below the top of its own
+box**, and the caption **95-205px below the drawing**. That is why six pages read
+as "columns not level" while the column probe reported 0px — **it compared element
+boxes and the reader was looking at ink**. Column tops and weight now map an SVG's
+`getBBox()` through its CTM. The drawing takes its own aspect, ten viewBoxes were
+trimmed to the art they hold, and the caption's doubled spacing (a gap on `.fig`
+and a margin on `.cap`) became one.
+
+**A page states its source once.** Thirteen figure pages carried both a figure
+source line and a footer one; eleven cited overlapping sections and two were
+identical word for word. The figure's line wins, and the footer keeps a source only
+when it says something the figure's cannot.
+
+**And the deck got a voice.** Asked how 2.1.0 answered "no visual impact,
+mediocre, flat", the honest answer was that it fixed hierarchy and structure, not
+brand presence — and that nothing could be composed to a frame while there was no
+frame. With one: the two part openers are full accent fields with the claim
+reversed out, and the cover's globe is height-led and bleeds off the right edge
+instead of sitting beside the type as an ornament.
+
+Three checker defects surfaced doing it. `D1` graded every colour against `--bg`
+and `--card-bg` because those were the only surfaces the deck had; it now
+discovers painted surfaces by reading the CSS, composites translucent washes onto
+the canvas first, and grades a rule that declares its own background against that
+background. That found two real defects invisible since 1.8.0: **amber measured
+4.68 against a canvas it never touches and 4.24 against the wash it actually sits
+on**, and the dark seal the same. Both moved. `D6` asked the footer for a source
+line; it now asks the page.
+
 ## 2.1.0 — a focal element on every page, a table only for values, and probes for both
 
 A reader called all 28 pages flat, mediocre and without visual impact, named the

@@ -31,11 +31,19 @@ another language or a dark canvas only when the user asks.
    and H1–H6 self-scoring. Never self-score 5 before a reader has scored it, and
    always give the reason for the score, not just the number.
 
+**A page is a fixed box.** Landscape is a 1280×720 stage, A4 a 794×1123 sheet,
+each scaled to fit the window and letterboxed — never a box that takes the
+window's shape. State the source once per page: on a single-figure page the line
+under the figure is the page's source and the footer carries the page number.
+
 **Rendered geometry decides, not declared CSS.** Run
 `python3 scripts/inspect_layout.py <file>` and look at the contact sheet it
 builds. A rule that loses on specificity is indistinguishable from no rule: one
 had been in the layout file since 1.9.0, had never once applied, and left twelve
-of fifteen multi-column pages with their columns out of line.
+of fifteen multi-column pages with their columns out of line. Worse: a probe that
+establishes the condition it verifies proves nothing — the page-height check
+made the viewport 1280×720 and then measured the page against it, and reported
+success for two releases while every page was 4:3 in a 4:3 window.
 
 **Six hard red lines**: no invented facts (every number carries its source;
 illustrative values are labeled 示意); no invented Chinese coinages (use the
