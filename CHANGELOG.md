@@ -133,6 +133,17 @@ palettes. The four-tile stat band became a grid that owns its cell and goes 2x2 
 portrait, taking two pages from 37% fill to 100%, and the trade map lost a fixed
 620px cap it had been given to stop it overflowing a page it no longer overflows.
 
+
+**Sixth pass · the last thin page.** p17 argued that the public record exists on
+filing day while the industry announcement waits for approval, and it argued it
+with a three-row table. A table cannot carry a duration. The page is now a split
+with **Figure 3, a timeline**, drawn for both geometries: three accent nodes on
+filing day, a dashed run of weeks or months, and a muted node where everyone
+without the docket starts. Its type is set larger than the default figure scale,
+because a figure carrying half a page's argument should not read as secondary to
+the table beside it. No content page in the deck now sits below 45% cell fill in
+either geometry.
+
 The cover and closing are recomposed: the globe is part of the composition rather
 than absolutely-positioned decoration mostly off-page. The remaining page-by-page
 design work is open and tracked.
