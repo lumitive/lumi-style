@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v1.9.0 (2026-08-07)
+   LUMI page layouts · v2.0.0 (2026-08-07)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -45,10 +45,17 @@
    cell fills and the content sits in the middle of it, which is how a page
    measures 56% full while every cell reports 100%. So each cell is itself a
    column that distributes, and the centerpiece inside it grows. */
-.body > div, .body > header {
+/* Grid cells distribute their own children. The exclusions matter: this rule
+   was written as a blanket `.body > div` and it overrode the row direction of
+   every spec strip and stat band, which turned the cover's five-item strip into
+   a 652px vertical stack and made the page 1301px tall inside a 720px page. */
+.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body > header {
   display: flex; flex-direction: column; min-height: 0; gap: 14px;
 }
-.body > div { justify-content: center; }
+.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend) {
+  justify-content: center;
+}
 .body .fill > table,
 .body .fill > .fig { flex: 1; }
 /* The figure starts under its legend and grows downward. Centring it inside the

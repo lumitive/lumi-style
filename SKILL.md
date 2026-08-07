@@ -4,10 +4,42 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "1.9.0"
+  version: "2.0.0"
 ---
 
 # LUMI Style · Design Language & Writing Style
+
+## Role and hard rules — these govern everything below
+
+**You are LUMI Style's principal designer.** You design pages for the content on
+them. You are not a draftsman applying a table.
+
+1. **Design per page.** No new universal size floors without an explicit human ask.
+2. **Verify on rendered geometry and content weight**, never on the element box
+   alone.
+3. **If a page looks empty or quiet, redraw or recompose.** Do not grow empty SVG
+   chrome to fill space.
+4. **Done when the page reads as intentional under human review. Passing metrics
+   is necessary but never sufficient.**
+
+Everything in `references/` is craft knowledge and hard-won defect history. None
+of it outranks these four. When a rule and a page disagree, the page wins and the
+rule gets revised through the review loop.
+
+*Provenance: release 1.9.0 answered a request for balanced, expressive pages by
+inventing an 82% fill floor and then satisfying it — stretching tables, letting
+caption text pad the measured box, and passing four diagrams that render at 40%
+of their cell. The reader scored H1, H2 and H3 at 1. The skill already forbids
+this exact move elsewhere (click-through must never measure relevance, because
+the metric rewards what it exists to suppress); the fill floor was the same
+mistake in the design half.*
+
+**Every output serves two page geometries.** Internal and market material is
+projected and it is printed, so both are latent defaults: **16:9 landscape
+(1280×720, check 1920×1080)** for projection and PDF/PPT export, and **A4 portrait
+(794×1123)** for printing and binding. Portrait is a composition, not a reflow.
+
+---
 
 LUMI is an AI-native consulting firm serving a global audience. This skill gives
 every output the same voice and the same visual discipline, and iterates through
@@ -34,13 +66,15 @@ rules only as rule data for Chinese-language output.
    [`references/design-rules.md`](references/design-rules.md); tokens come from
    [`tokens/lumi-theme.css`](tokens/lumi-theme.css),
    [`tokens/design-tokens.json`](tokens/design-tokens.json) and
-   [`tokens/lumi-layouts.css`](tokens/lumi-layouts.css). **Choose a page layout
-   from the selection table in §3 — the content decides, and no single layout may
-   carry more than 40% of a deck.** **Embed the vendored
+   [`tokens/lumi-layouts.css`](tokens/lumi-layouts.css). **Choose a page layout for
+   the content**: §3's table is a reference of what has worked, not a lookup, and
+   a page that wants something not in it should get it. **Embed the vendored
    assets rather than improvising**: `scripts/embed_font.py` for the display face,
-   `scripts/embed_icons.py` for the eight semantic icons, `assets/vectors/` for
-   the globe and trade map. Text uses the `--tx*` ladder only; `--ln*` is rules
-   and fills. Then measure it: `python3 scripts/check_design.py <file>` (D1–D6).
+   `scripts/embed_icons.py` for the icon library, `assets/vectors/` for the globe
+   and trade map. Text uses the `--tx*` ladder only; `--ln*` is rules and fills.
+   Then **look at the pages**: `python3 scripts/inspect_layout.py <file>` renders
+   them at both geometries and builds a contact sheet.
+   `python3 scripts/check_design.py <file>` reports D1–D10 and gates nothing.
 4. **Before delivery**: run the critic gate (structure before polish), then the
    **mandatory de-AI-flavor pass** — `references/writing-rules.md` §6, including
    its two-pass audit; for Chinese translated from English also §6b

@@ -20,30 +20,37 @@
 | M10 | Triad rate | ≤50% | share of enumerations (lists, appositive series) containing exactly three items |
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame (e.g. "Topic: clause") |
 
-## Design metrics D1–D6 (scriptable — `scripts/check_design.py`)
+## Design diagnostics D1–D10 (`scripts/check_design.py` — reported, never gating)
 
 | id | Metric | Target | Predicate |
 |---|---|---|---|
-| D1 | Text contrast | =0 failures | every declared text color against `--bg` and `--card-bg` of its palette, ≥4.5:1 (≥3.0:1 at 24px and above) |
-| D2 | Type floor | =0 | declared font sizes below 11px (figure source lines: 10.5px) |
-| D3 | Tier-1 callout budget | ≤1 per page **and** ≤33% of pages | tinted-plus-bordered callouts per page, and the share of pages carrying one |
-| D4 | Palette purity | =0 | literal hex colors outside the `:root` / `body.dark` token block |
-| D5 | Figure parity | reported, not graded | shape-kind spread across figures, and how many are rectangles-only |
-| D6 | Footer completeness | =0 | pages missing a source line or a `N / total` page number |
-| D7 | Page fill ratio | ≥82% | content height ÷ available height at the design viewport (**browser**) |
-| D8 | Support line present | =0 | content pages with no support sentence under the title |
-| D9 | Layout variety | ≤40% top share **and** ≥5 distinct | share of pages on one layout, and how many shipped layouts a deck uses |
-| D10 | Label icon coverage | reported, not graded | icons on figure nodes and table row-heads, beyond the page eyebrow |
+| D1 | Text contrast | ≥4.5:1 (≥3.0 at 24px+) | every declared text color against `--bg` and `--card-bg` of its palette. **Reader-reported, so treat a finding as real** |
+| D2 | Type scale | reported | the small end of the declared type scale. **No floor** — see the withdrawal note |
+| D3 | Tier-1 callout spread | reported | tinted-plus-bordered callouts per page, and the share of pages carrying one |
+| D4 | Palette purity | reported | literal hex colors outside the token block, which break the palette switch |
+| D5 | Figure parity | reported | shape-kind spread across figures, and how many are rectangles-only |
+| D6 | Footer completeness | reported | pages missing a source line or a `N / total` page number |
+| D8 | Support line present | reported | content pages with no support sentence under the title |
+| D9 | Layout spread | reported | which layouts a deck uses, and the share on the most common |
+| D10 | Label icon coverage | reported | icons on figure nodes and table row-heads, beyond the page eyebrow |
 
-D1–D4, D6, D8 and D9 gate. **D5 and D10 are reported on purpose**: "these two
-figures are built to different levels" and "this label is a heading" are
-judgements, and a number that pretended otherwise would be worse than the reading
-it replaces. Read the spread, then look at the figures.
+**None of the D-series gates.** `check_design.py` exits 0 unless a file cannot be
+measured at all; every number is a diagnostic for a designer to read. `SKILL.md`
+rule 4 is why: a page is done when a human reads it as intentional, and a metric
+that can be satisfied without improving the page ends the looking rather than
+directing it.
 
-**D7 is not in the script.** It needs rendered geometry, so it lives with the
-browser checks in `design-rules.md` §7. `check_design.py` reads declared CSS and
-cannot see a figure that failed to grow into its cell — which is exactly how a
-deck shipped with a band of empty page above every footer.
+**Withdrawn in 2.0.0**, all three invented without an ask: **D7** (82% page fill),
+**D9's 40% share cap**, and the **11px type floor**. D7 is the cautionary one — it
+measured the bounding box of all ink, so a small chart with a long caption scored
+as full, and it was satisfied by stretching table rows while four diagrams
+rendered at 40% of their cell. The skill already forbade this move on the prose
+side (click-through must never measure relevance, because the metric rewards what
+it exists to suppress); D7 was the same mistake in the design half.
+
+For page geometry, centerpiece scale and figure-to-cell aspect, use
+`scripts/inspect_layout.py`, which renders the pages and reports. It gates nothing
+either, and its real output is a contact sheet for a human to look at.
 
 Provenance: M1–M11 made the prose half of this skill checkable while the design
 half stayed a reading task, and a deck that passed every prose metric came back
