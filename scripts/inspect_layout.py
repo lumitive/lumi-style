@@ -364,6 +364,38 @@ PROBE = r"""
     // none and it is a document again.
     const horizons = s.querySelectorAll('.foot').length;
 
+    // Text sitting on text. Every other probe here measures a block against the
+    // page — its top, its bottom, its column, the footer rule — and none of them
+    // can see two blocks landing on each other in the middle of a page. A reader
+    // found this before any check did, twice, when 3.1.0's heavier register grew
+    // past grid rows that had been sized for the old one. Leaf text only: a
+    // container legitimately encloses its children.
+    const TSEL = 'p,li,dt,dd,h1,h2,td,th,.k,.v,.g,.say,.gd,.key,.note,.listhead,'
+               + '.eyebrow,.cap,.srcline,.conf,.site,.tick,.vt,.vw,.vn,.no,.yes,'
+               + '.who,.verdict,.wordmark,.sub,.colophon,.openpart,.openclaim,'
+               + '.openrun,.ledname';
+    const leaves = [...s.querySelectorAll(TSEL)].filter(e => !e.closest('.ground')
+      && (e.textContent || '').trim()
+      && ![...e.children].some(c => c.matches && c.matches(TSEL)));
+    let textOverlaps = 0, worstOverlap = null;
+    for (let i = 0; i < leaves.length; i++) {
+      for (let j = i + 1; j < leaves.length; j++) {
+        const A = leaves[i].getBoundingClientRect();
+        const B = leaves[j].getBoundingClientRect();
+        if (A.height < 2 || B.height < 2) continue;
+        const ox = Math.min(A.right, B.right) - Math.max(A.left, B.left);
+        const oy = Math.min(A.bottom, B.bottom) - Math.max(A.top, B.top);
+        if (ox > 2 && oy > 2) {
+          textOverlaps++;
+          const area = ox * oy;
+          if (!worstOverlap || area > worstOverlap.area) {
+            worstOverlap = {area, w: inPageUnits(ox), h: inPageUnits(oy),
+                            a: tagOf(leaves[i]), b: tagOf(leaves[j])};
+          }
+        }
+      }
+    }
+
     // A ground may be decorative only because it cannot be counted. The moment
     // it is built from repeated identical marks it is pretending to be a field,
     // and a reader will try to read meaning into it. Continuous paths of
@@ -402,6 +434,7 @@ PROBE = r"""
       focalRatio: +(focalPx / Math.max(1, bodyPx)).toFixed(2),
       figLeadPct: +(100 * figLead).toFixed(0),
       caps, tables, drawn, capGapPx, sourceEcho, fields, horizons,
+      textOverlaps, worstOverlap,
       groundMarks, groundRepeats,
       overflowPct: +(100 * overflowPx / window.innerHeight).toFixed(1),
       centerScale: best ? +(100 * best.w * best.h / best.cellArea).toFixed(1) : null,
@@ -718,6 +751,15 @@ def main(argv):
                                   f"{f['declared']} declared)" for r, f in loose[:5]))
             elif nf:
                 print(f"  fields: all {nf} carry one mark per real item")
+            clash = [r for r in rows if r.get('textOverlaps', 0)]
+            if clash:
+                print(f"  TEXT ON TEXT: {len(clash)} pages have blocks landing on each "
+                      "other — " + ", ".join(
+                          f"{r['id']} {r['worstOverlap']['a']}/{r['worstOverlap']['b']} "
+                          f"{r['worstOverlap']['w']}x{r['worstOverlap']['h']}px"
+                          for r in clash[:5]))
+            else:
+                print(f"  text: nothing overlaps anything on {len(rows)} pages")
             countable = [r for r in rows if r.get('groundRepeats', 0)]
             if countable:
                 print(f"  GROUND IS COUNTABLE: {len(countable)} pages draw their ground from "

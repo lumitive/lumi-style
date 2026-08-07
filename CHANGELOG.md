@@ -3,6 +3,42 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 3.2.0 — text on text, the display pulled back, and one lime event in the body
+
+A reader reviewing 3.1.0 found characters overlapping at the bottom of two pages,
+asked for the display type 30% smaller, and asked whether the acid green could
+appear once inside the body rather than only on the part openers.
+
+**The overlaps were real and neither existing probe could see them.** Every check
+in `inspect_layout.py` measures a block against the *page* — its top, its bottom,
+its column, the footer rule — so two blocks landing on each other in the middle of
+a page is invisible to all of them. The cover's support paragraph sat 34px into
+the spec strip and the catalogue page's stat labels sat 48px into the paragraph
+below. One cause: **3.1.0's heavier register outgrew grid rows sized for the old
+one**, so a block overflowed its track onto the next instead of lengthening its
+own. `min-content` on those rows fixes it, and that is now a rule — when the type
+scale moves, the tracks that hold it move with it.
+
+A **text-collision probe** joins the set: leaf text against leaf text, since a
+container legitimately encloses its children. Confirmed by restoring the old
+`hero-band` row definition and watching it fire.
+
+**Display type is down 30%** — `clamp(64px, 9vw, 132px)` to
+`clamp(45px, 6.3vw, 92px)`. Big enough to be the event, not so big the page
+becomes a poster with a caption.
+
+**One lime event per body page, and it is a fill.** The deck's single most
+important number — code intersection at 100% — is now an acid-lime bar with
+near-black numerals. Measured, because "is this comfortable to read" deserves an
+answer rather than an opinion: the panel's edge against the canvas is **1.21:1**,
+so it *glows rather than cuts*; near-black on it is **16.44:1**; at **chroma 102**
+it is right at panel size and would be harsh as a hairline or as small text, so it
+is never a rule or a caption. Once per page, because ΔE against the semantic
+forest is **94** — plainly a different colour, and two greens on one page would
+read as two meanings.
+
+Ground tiers unchanged at the reader's request.
+
 ## 3.1.0 — the ground, the acid green, and type that commits
 
 The reader asked for water and light behind every page, and pointed at

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · v3.1.0 (2026-08-07)
+   LUMI visual theme · v3.2.0 (2026-08-07)
    Single source of truth for palette and typography. New documents reference
    this file or copy the token blocks verbatim (note the provenance when
    copying). Version lockstep: a deliverable's version = the lumi-style
@@ -145,7 +145,7 @@
   --lh-display: .92;
   --ls-display: -.02em;
   --ls-title:   -.01em;
-  --fs-display: clamp(64px, 9vw, 132px);   /* cover, closing, part openers */
+  --fs-display: clamp(45px, 6.3vw, 92px);   /* cover, closing, part openers */
   --fs-title:   clamp(26px, 2.7vw, 36px);  /* page titles */
   --fs-support: 17px;                      /* the second voice, not small print */
 
