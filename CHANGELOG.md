@@ -3,6 +3,53 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 2.0.0 — 2026-08-07
+
+Reader review scored H1, H2 and H3 at **1**, against self-scores of 3. The anchors
+for 1 are "the page talks to itself", "a template forced onto the content" and
+"figures are decoration". All three were fair, and the root cause is one sentence:
+**1.9.0 turned qualitative design feedback into metrics and then optimised the
+metrics instead of designing the pages.**
+
+**Principles now govern.** `SKILL.md` opens with the principal-designer role and
+four hard rules, above every mechanical rule in `references/`: design per page; no
+new universal size floors without an explicit ask; verify on rendered geometry and
+content weight, never the element box alone; if a page looks empty, redraw or
+recompose rather than growing chrome. **Done when a human reads the page as
+intentional — passing metrics is necessary but never sufficient.**
+
+**Three invented floors withdrawn.** D7 (82% page fill), D9's 40% layout-share cap,
+and the 11px type floor. D7 is the cautionary one: it measured the bounding box of
+all ink, so a small chart with a long caption scored as full, and it was satisfied
+by stretching table rows while four diagrams rendered at 40% of their cell. The
+skill already forbade this move on the prose side — click-through must never
+measure relevance, because the metric rewards what it exists to suppress. D7 was
+the same mistake in the design half. **The whole D-series stops gating**;
+`check_design.py` reports and exits 0.
+
+**Two output geometries are now a governing principle**, both latent defaults for
+internal and market material: 16:9 landscape at 1280×720 (primary, checked at
+1920×1080) for projection and PDF/PPT export, and A4 portrait at 794×1123 for
+printing and binding. Portrait is a composition, not a reflow; collapsing every
+horizontal layout at a width breakpoint is the landscape design giving up.
+
+**`scripts/inspect_layout.py`** renders a deliverable page by page at both
+geometries and emits a **contact sheet** — the whole deck as one image, which is
+what makes human review of 27 pages possible at all — plus centerpiece scale,
+figure-to-cell aspect, and the largest empty band. It gates nothing. Its own first
+version shot the viewport after a smooth scroll and produced a sheet of half-pages
+under the wrong captions; it screenshots the section element now.
+
+What the tool found immediately, and D7 had hidden: four diagrams at 4.6–5.4:1
+sitting in 2.4:1 cells and filling 44–51% of the available height, two pages with
+centerpieces at 13–15% and empty bands over a third of the page, and a blanket
+`.body > div{flex-direction:column}` rule from 1.9.0 that stacked every spec strip
+vertically — which alone made the cover 1301px tall inside a 720px page.
+
+The cover and closing are recomposed: the globe is part of the composition rather
+than absolutely-positioned decoration mostly off-page. The remaining page-by-page
+design work is open and tracked.
+
 ## 1.9.0 — 2026-08-07
 
 Reader review of five annotated pages, all about layout. One measurement explains

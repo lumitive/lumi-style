@@ -12,17 +12,16 @@ metric. Four of them were arithmetic:
     D5  figure parity shape-vocabulary spread across figures (reported)
     D6  footer        every page carries a source line and "N / total"
     D8  support line  every content page has one under its title
-    D9  layout variety no layout on >40% of pages, >=5 distinct in a long deck
+    D9  layout spread  which layouts a deck uses (reported)
     D10 label icons   figure nodes and row-heads carrying an icon (reported)
 
-D5 and D10 are reported rather than graded: "these two figures are built to
-different levels" and "this label is a heading" are judgements, and a number that
-pretends otherwise would be worse than the reading it replaces.
-
-D7, the page fill ratio, is not here. It needs rendered geometry and lives with
-the browser checks in references/design-rules.md §7, alongside the viewBox and
-label-containment probes — this script reads declared CSS and cannot see a figure
-that fails to grow into its cell.
+**Nothing here gates.** Every number is a diagnostic for a designer to read, and
+the exit code is 0 unless a file could not be measured at all. SKILL.md rule 4 is
+the reason: a page is done when a human reads it as intentional, and a metric that
+can be satisfied without improving the page ends the looking instead of directing
+it. D7, an 82% page-fill floor, was withdrawn in 2.0.0 for exactly that — it was
+satisfied by stretching table rows while four diagrams rendered at 40% of their
+cell. For page geometry and centerpiece scale use scripts/inspect_layout.py.
 
     python3 scripts/check_design.py deck.html [more files ...]
     python3 scripts/check_design.py --json deck.html
@@ -213,16 +212,19 @@ def d1_contrast(css, resolved, palette):
     return findings
 
 
-def d2_type_floor(css):
-    findings = []
+def d2_type_scale(css):
+    """Report the small end of the type scale. There is no floor: 2.0.0 withdrew
+    the 11px one as a universal size invented without an ask. Small type is a
+    problem when it is also low contrast (D1) or when the page cannot carry it —
+    both are judgements about a page, not a threshold."""
+    sizes = []
     for sel, props in rules(css):
         size = px(props.get("font-size", ""))
-        if size is None:
-            continue
-        floor = SOURCE_FLOOR_PX if re.search(r"src|source", sel, re.I) else TYPE_FLOOR_PX
-        if size < floor:
-            findings.append({"selector": sel, "font_size_px": size, "floor": floor})
-    return findings
+        if size is not None:
+            sizes.append((size, sel))
+    sizes.sort()
+    return {"smallest_px": sizes[0][0] if sizes else None,
+            "smallest": [f"{s}px {sel[:44]}" for s, sel in sizes[:4]]}
 
 
 def d3_callouts(raw):
@@ -377,7 +379,7 @@ def measure(path):
     return {
         "file": str(path), "palette": palette,
         "D1_contrast": d1_contrast(css, resolved, palette),
-        "D2_type_floor": d2_type_floor(css),
+        "D2_type_scale": d2_type_scale(css),
         "D3_callouts": d3_callouts(raw),
         "D4_palette_literals": d4_palette(raw),
         "D5_figure_parity": d5_figure_parity(raw),
@@ -392,8 +394,8 @@ def grade(r):
     rows = []
     rows.append(("D1_contrast", len(r["D1_contrast"]), "=0",
                  not r["D1_contrast"], False))
-    rows.append(("D2_type_floor", len(r["D2_type_floor"]), "=0",
-                 not r["D2_type_floor"], False))
+    rows.append(("D2_type_scale",
+                 f"smallest {r['D2_type_scale']['smallest_px']}px", "reported", True, False))
     c = r["D3_callouts"]
     rows.append(("D3_tier1_per_page", len(c["over_budget"]) if c else None,
                  f"<={TIER1_PER_PAGE} per page", not (c and c["over_budget"]), c is None))
@@ -413,11 +415,9 @@ def grade(r):
     rows.append(("D8_support_line", len(r["D8_support_line"]), "=0",
                  not r["D8_support_line"], False))
     v = r["D9_layout_variety"]
-    ok9 = bool(v) and not v["unknown"] and v["top_share"] <= LAYOUT_MAX_SHARE and (
-        v["pages"] < LAYOUT_MIN_PAGES or v["distinct"] >= LAYOUT_MIN_DISTINCT)
-    rows.append(("D9_layout_variety",
+    rows.append(("D9_layout_spread",
                  f"{v['distinct']} layouts, top {v['top_share']}%" if v else None,
-                 f"<={LAYOUT_MAX_SHARE}%, >={LAYOUT_MIN_DISTINCT} distinct", ok9, v is None))
+                 "reported", True, v is None))
     i = r["D10_label_icons"]
     rows.append(("D10_label_icons",
                  f"{i['eyebrow_icons']} eyebrow, {i['figure_or_row_icons']} in figures"
@@ -455,14 +455,14 @@ def main(argv):
         print(f"\n{r['file']}  ({r['palette']} palette)")
         for name, value, target, verdict in rows:
             print(f"  {verdict:<5} {name:<22} {str(value):<24} target {target}")
-            if verdict == "FAIL":
+            if verdict == "note":
                 failures += 1
         for f in r["D1_contrast"][:6]:
             print(f"        contrast {f['ratio']}:1 on {f['on']} — "
                   f"{f['selector']} uses --{f['token']}"
                   + (f" at {f['font_size_px']}px" if f["font_size_px"] else ""))
-        for f in r["D2_type_floor"][:6]:
-            print(f"        {f['font_size_px']}px < {f['floor']}px — {f['selector']}")
+        for line in r["D2_type_scale"]["smallest"]:
+            print(f"        {line}")
         for h in r["D4_palette_literals"][:6]:
             print(f"        literal colour {h} outside the token block")
         for o in (r["D3_callouts"] or {}).get("over_budget", [])[:6]:
@@ -478,10 +478,12 @@ def main(argv):
             if v["pages"] >= LAYOUT_MIN_PAGES and v["distinct"] < LAYOUT_MIN_DISTINCT:
                 print(f"        only {v['distinct']} distinct layouts across {v['pages']} pages")
 
-    print("\nall metrics pass" if not failures and not unmeasurable
-          else f"\n{failures} metric failure(s)" + (
-              f", {unmeasurable} unmeasurable file(s)" if unmeasurable else ""))
-    return 1 if failures or unmeasurable else 0
+    print("\nnothing flagged" if not failures
+          else f"\n{failures} thing(s) worth a look — none of this blocks; "
+               f"read them, then look at the page")
+    if unmeasurable:
+        print(f"{unmeasurable} file(s) could not be measured at all")
+    return 1 if unmeasurable else 0
 
 
 if __name__ == "__main__":

@@ -1,5 +1,11 @@
 # LUMI Design Rules
 
+> **Subordinate to the four hard rules in `SKILL.md`.** This file is craft
+> knowledge and defect history: what has gone wrong before and what fixed it.
+> None of it outranks *design per page*, *verify on rendered geometry*, *redraw
+> rather than grow chrome*, and *done when a human reads the page as intentional*.
+> Read it as a designer reads a body of precedent, not as a checklist to satisfy.
+>
 > Skeleton researched from the public web design of SpaceX and Tesla (one claim
 > per screen / numbers-as-copy / monochrome discipline); the palette and its
 > semantics are LUMI's own. Tokens live in `tokens/`; this file covers usage and
@@ -66,14 +72,15 @@
   A linked font falls back the moment a deliverable is opened offline, emailed,
   or printed elsewhere; a declared-but-unvendored one renders nothing at all,
   which is what shipped in 1.2.
-- **Type floor: nothing below 11px** at the design viewport, anywhere in a
-  deliverable. Figure source lines may go to 10.5px and that is the only
-  exception. Eyebrows, captions, legends, table headers, page numbers and SVG
-  labels are all held to the floor. The chart scale is figure title 13 / axis
-  11.5 / source 10.5. (Until 1.8.0 the tokens said 11 / 10.5 / **9.5** while this
-  file's prose said 14 / 10–11 / 11; the tokens win per `CLAUDE.md`, so
-  deliverables shipped 9.5px source lines set in a failing ladder step. Small and
-  faint compound: either alone is survivable, together they are the defect.)
+- **Small type is a contrast problem before it is a size problem.** A reader
+  reported both canvases exhausting to read when 9.5px labels sat on ladder steps
+  measuring 1.81:1; raising the contrast fixed most of it. **There is no universal
+  size floor** — 1.8.0 set one at 11px without being asked, and a floor applied to
+  every label in every figure is the kind of blanket rule that stops a designer
+  looking at the page. Set type for the page: a dense reference table and a
+  three-node diagram do not want the same scale. The chart scale of figure title
+  13 / axis 11.5 / source 10.5 is a **starting point**, not a minimum. What is not
+  negotiable is §1's contrast floor, because that came from a reader.
 - **Data voice** (codes/rates/percentages/dates/counters/specs): D-DIN or
   monospace, tabular-nums always on; **counters and countdowns give each digit a
   fixed-width box** so changes never reflow.
@@ -127,11 +134,13 @@
   | a part divider or section opener | `rail` |
   | a table of 6 or more columns | `stack`, no exceptions |
 
-  **No single layout may carry more than 40% of a deck's pages, and a deck of 15
-  or more pages uses at least 5 distinct layouts** (D9). *Provenance: a shipped
-  deck used one layout on 25 consecutive pages, `.body` and `.body.top` differing
-  only in `justify-content`, with zero grid rules in the file. The reader's note
-  was that the pages read flat and that roughly 40% of every text page was empty.*
+  **This table is a reference, not a lookup.** It says what has worked, not what
+  to apply. Which layout a page uses is a judgement about that page's content, its
+  emphasis, and where it sits in the story — and a page that wants something not
+  in the table should get it. *Provenance, from both directions: a shipped deck
+  used one layout on 25 consecutive pages and read flat; the release that fixed
+  that assigned layouts from this table like a lookup and scored 1 on structural
+  expression. A vocabulary is not a design.*
 
 - **Layout answers the empty half; the measure does not.** Body prose stays at a
   comfortable measure (88ch cap, `--measure`). An 1180px column at 14.5px would
@@ -140,15 +149,20 @@
   fix is a second column carrying real content — a stat rail, the figure, the
   caveats — never a longer line.
 
-- **Fill discipline: a page is at least 82% full** (D7, measured as content
-  height over available height at the design viewport). The mechanism ships with
-  the layouts: the centerpiece row is `1fr` and the centerpiece grows into it via
-  `.fill`, so a figure expands rather than sitting at its intrinsic aspect and
-  leaving the difference under the footer. **A page that still cannot reach the
-  floor has the wrong layout, not a padding problem** — go back to the table
-  above. *Provenance: `.fig svg{width:100%;height:auto}` gave every figure a fixed
-  aspect and no way to grow; §3 had said "content distributes across the full page
-  height" since 1.2 with no floor and no mechanism, so it was true and unbuildable.*
+- **When a page looks empty, the centerpiece is too small or the wrong shape.
+  Redraw it.** Do not grow chrome to fill the gap, and do not measure your way out
+  of it. The diagnostic that helps is **centerpiece scale** — how much of the
+  content area the figure or table actually occupies — together with the
+  **figure-to-cell aspect ratio**: a 5:1 diagram in a 1.8:1 cell renders at 40% of
+  the available height no matter how it is scaled, and the only fix is a different
+  drawing. `scripts/inspect_layout.py` reports both, per page, and gates nothing.
+
+  *Provenance: 1.9.0 turned "the pages look empty" into an 82% fill floor and then
+  satisfied it — stretching table rows, and measuring the bounding box of all ink
+  so that a small chart with a long caption scored as full. Four diagrams at 4.6
+  to 5.4:1 passed while rendering at 40% of their cell. The floor is withdrawn.
+  A number that can be satisfied without improving the page is worse than no
+  number, because it ends the looking.*
 
 - Generous whitespace is part of the design; content distributes across the full
   page height (never crowds the top half);
@@ -302,12 +316,21 @@ A layout is verified only across the **matrix**, not at a point:
 - **Language axis**: translated text runs 30–50% longer or shorter — after any
   localization pass, re-inspect every fixed-width container (SVG text in
   fixed-coordinate boxes, stat-band labels, flex rows near their wrap point).
-- **Viewport axis**: verify at minimum three sizes — the design viewport
-  (e.g. 1450×900), the print page (e.g. 1280×720), and a short laptop window
-  (e.g. 1000×550). Slides use `min-height:100svh`, so an overflowing page pushes
-  its footer below the fold silently. **The footer rule and page number must be
-  visible on every page at every matrix point** — provide height-based media
-  queries that step down type and spacing.
+- **Page-geometry axis — the primary one.** Every deliverable serves two output
+  formats, so both are matrix points, not options:
+  - **16:9 landscape, 1280×720**, checked at 1920×1080 — projection, PDF and PPT
+    export. This is the primary geometry.
+  - **A4 portrait, 794×1123** — printing and binding.
+
+  **Portrait is a composition, not a reflow.** A two-column split at 794px wide
+  gives two 370px gutters, so a page that is a split in landscape usually wants a
+  different structure in portrait. Collapsing every horizontal layout at a width
+  breakpoint is not a portrait design; it is the landscape design giving up.
+- **Viewport axis**: also check a short laptop window (e.g. 1000×550). Slides use
+  `min-height:100svh`, so an overflowing page pushes its footer below the fold
+  silently. **The footer rule and page number must be visible on every page at
+  every matrix point** — provide height-based media queries that step down type
+  and spacing.
 - Verified at one matrix point is not verified. Screenshot page by page; a
   defect found by the reader is a matrix point you skipped.
 - **Geometry axis (SVG).** `check_design.py` reads declared CSS and cannot see
