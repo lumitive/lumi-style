@@ -41,6 +41,13 @@ PALETTE_KEY_TO_VAR = {
     "amber_wash": "amber-wash",
     "brass": "brass",
     "brass_wash": "brass-wash",
+    "light_ramp_5": "acc-5",
+    "light_ramp_4": "acc-4",
+    "light_ramp_3": "acc-3",
+    "light_ramp_2": "acc-2",
+    "light_ramp_1": "acc-1",
+    "on_light_ramp_5": "on-acc-5",
+    "on_light_ramp_low": "on-acc-lo",
     "data_blue": "d-blue",
     "data_red": "d-red",
     "data_teal": "d-teal",
@@ -134,17 +141,42 @@ def check_versions():
     return errors
 
 
+def _strip_code(line, in_fence):
+    """Remove fenced and inline code from a line, returning (prose, in_fence).
+
+    Code spans are where a rule file quotes a string as *data*: a banned phrase,
+    a punctuation example, the source text of a thesis. Prose is everything else.
+    """
+    if line.lstrip().startswith("```"):
+        return "", not in_fence
+    if in_fence:
+        return "", in_fence
+    return re.sub(r"`[^`]*`", " ", line), in_fence
+
+
 def check_english_only():
+    """Repository language is English. CJK appears only as quoted data.
+
+    The allowlist used to be per file, which is too coarse in both directions: it
+    let prose drift into an allowlisted file, and it forced a whole file onto the
+    list for one quoted line. Outside the allowlist, CJK is now permitted inside
+    backticks or a fenced block and nowhere else — which is exactly the
+    distinction the red line always meant. `references/brand.md` quotes the
+    source text of the brand thesis that way; every sentence around it is
+    English, so the file stays readable on a platform that renders CJK poorly.
+    """
     errors = []
     for path in md_files():
         name = rel(path)
         if name in CJK_ALLOWED:
             continue
+        in_fence = False
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-            if CJK.search(line):
+            prose, in_fence = _strip_code(line, in_fence)
+            if CJK.search(prose):
                 errors.append(
-                    f"{name}:{lineno}: CJK characters outside the rule-data allowlist "
-                    f"(repository language is English only)"
+                    f"{name}:{lineno}: CJK in prose (repository language is English; "
+                    f"quote it in backticks if it is rule data)"
                 )
     return errors
 

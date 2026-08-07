@@ -1,168 +1,182 @@
 {
- "$schema_note": "LUMI design tokens v2.3.0 (2026-08-07). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
- "palette_default": "light",
- "palette": {
-  "light": {
-   "bg": "#FFFFFF",
-   "ink": "#212621",
-   "ladder_base": "rgba(43,46,51,ALPHA)",
-   "text_ladder": [
-    0.92,
-    0.8,
-    0.72,
-    0.66
-   ],
-   "rule_ladder": [
-    0.2,
-    0.12,
-    0.07
-   ],
-   "accent": "#48633E",
-   "accent_deep": "#48633E",
-   "accent_inbox": "#9FC384",
-   "accent_wash": "#EDF2EA",
-   "on_accent": "#F0F0FA",
-   "seal": "#C8102E",
-   "seal_text": "#C8102E",
-   "seal_wash": "#F9ECEE",
-   "data_blue": "#2F6DB4",
-   "data_red": "#C0392B",
-   "data_teal": "#1E8E6E",
-   "card_bg": "#FAFAFA",
-   "amber": "#9C5D06",
-   "amber_wash": "#FBF3E4",
-   "brass": "#7A6C52",
-   "brass_wash": "#F4F1EA"
+  "$schema_note": "LUMI design tokens v3.0.0 (2026-08-07). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
+  "palette_default": "light",
+  "palette": {
+    "light": {
+      "bg": "#FFFFFF",
+      "ink": "#212621",
+      "ladder_base": "rgba(43,46,51,ALPHA)",
+      "text_ladder": [
+        0.92,
+        0.8,
+        0.72,
+        0.66
+      ],
+      "rule_ladder": [
+        0.2,
+        0.12,
+        0.07
+      ],
+      "accent": "#48633E",
+      "accent_deep": "#48633E",
+      "accent_inbox": "#9FC384",
+      "accent_wash": "#EDF2EA",
+      "on_accent": "#F0F0FA",
+      "seal": "#C8102E",
+      "seal_text": "#C8102E",
+      "seal_wash": "#F9ECEE",
+      "data_blue": "#2F6DB4",
+      "data_red": "#C0392B",
+      "data_teal": "#1E8E6E",
+      "card_bg": "#FAFAFA",
+      "amber": "#9C5D06",
+      "amber_wash": "#FBF3E4",
+      "brass": "#7A6C52",
+      "brass_wash": "#F4F1EA",
+      "light_ramp_5": "#48633E",
+      "light_ramp_4": "#889A82",
+      "light_ramp_3": "#ABB7A6",
+      "light_ramp_2": "#CFD6CD",
+      "light_ramp_1": "#F2F4F1",
+      "on_light_ramp_5": "#F0F0FA",
+      "on_light_ramp_low": "#2B2E33"
+    },
+    "dark": {
+      "bg": "#1D1D1F",
+      "ink": "#F0F0FA",
+      "ladder_base": "rgba(240,240,250,ALPHA)",
+      "text_ladder": [
+        0.88,
+        0.76,
+        0.66,
+        0.58
+      ],
+      "rule_ladder": [
+        0.18,
+        0.11,
+        0.07
+      ],
+      "accent": "#7C9F63",
+      "accent_deep": "#48633E",
+      "accent_inbox": "#48633E",
+      "accent_wash": "rgba(124,159,99,.14)",
+      "on_accent": "#1D1D1F",
+      "seal": "#C8102E",
+      "seal_text": "#E97C6E",
+      "seal_wash": "rgba(233,124,110,.15)",
+      "data_blue": "#5B8FC9",
+      "data_red": "#C0392B",
+      "data_teal": "#3FA98C",
+      "card_bg": "#2C2C2E",
+      "note": "applied only on explicit user request, via one body.dark override block — never a forked file",
+      "amber": "#E0A73E",
+      "amber_wash": "rgba(224,167,62,.15)",
+      "brass": "#C3B393",
+      "brass_wash": "rgba(195,179,147,.14)",
+      "light_ramp_5": "#7C9F63",
+      "light_ramp_4": "#5B724B",
+      "light_ramp_3": "#49593E",
+      "light_ramp_2": "#363F31",
+      "light_ramp_1": "#242624",
+      "on_light_ramp_5": "#1D1D1F",
+      "on_light_ramp_low": "#F0F0FA"
+    },
+    "note": "one structure, two palettes. v2.0.0: the light canvas is pure white, not the warm cream the field has settled on, and the dark canvas is Apple space grey. The state palette grew by two with fixed meanings: amber = partial, in progress, awaiting an input; brass = reference, archival, out of scope but real. Before this, partial and not-built both rendered as dashed grey, so a deck could not say the one thing it most needed to say about itself. Every semantic colour clears 4.5:1 as text on its own canvas. v3.0.0: the light ramp. Five discrete steps from the accent toward the canvas, for fields and surfaces only — it carries no meaning. One colour one meaning still governs data. Every step carries text on both canvases; on-light-ramp-5 is the foreground for step 5 and on-light-ramp-low for steps 4 down to 1."
   },
-  "dark": {
-   "bg": "#1D1D1F",
-   "ink": "#F0F0FA",
-   "ladder_base": "rgba(240,240,250,ALPHA)",
-   "text_ladder": [
-    0.88,
-    0.76,
-    0.66,
-    0.58
-   ],
-   "rule_ladder": [
-    0.18,
-    0.11,
-    0.07
-   ],
-   "accent": "#7C9F63",
-   "accent_deep": "#48633E",
-   "accent_inbox": "#48633E",
-   "accent_wash": "rgba(124,159,99,.14)",
-   "on_accent": "#1D1D1F",
-   "seal": "#C8102E",
-   "seal_text": "#E97C6E",
-   "seal_wash": "rgba(233,124,110,.15)",
-   "data_blue": "#5B8FC9",
-   "data_red": "#C0392B",
-   "data_teal": "#3FA98C",
-   "card_bg": "#2C2C2E",
-   "note": "applied only on explicit user request, via one body.dark override block — never a forked file",
-   "amber": "#E0A73E",
-   "amber_wash": "rgba(224,167,62,.15)",
-   "brass": "#C3B393",
-   "brass_wash": "rgba(195,179,147,.14)"
+  "contrast": {
+    "floor_text": 4.5,
+    "floor_large_text": 3.0,
+    "large_text_px": 24,
+    "measured": {
+      "light_on_bg": {
+        "tx1": 10.61,
+        "tx2": 7.16,
+        "tx3": 5.54,
+        "tx4": 4.62,
+        "accent": 6.71,
+        "seal_text": 5.88,
+        "amber": 4.68,
+        "brass": 5.13
+      },
+      "light_on_card": {
+        "tx1": 10.23,
+        "tx2": 6.97,
+        "tx3": 5.42,
+        "tx4": 4.53
+      },
+      "dark_on_bg": {
+        "tx1": 11.73,
+        "tx2": 9.05,
+        "tx3": 7.14,
+        "tx4": 5.82,
+        "accent": 5.61,
+        "seal_text": 5.05,
+        "amber": 7.83,
+        "brass": 8.17
+      },
+      "dark_on_card": {
+        "tx1": 9.89,
+        "tx2": 7.79,
+        "tx3": 6.27,
+        "tx4": 5.21
+      }
+    },
+    "note": "WCAG 2.1 relative-luminance ratios, recomputed by scripts/check_design.py (D1). Recompute and update this block whenever a palette value moves; the numbers are the reason the alphas are what they are."
   },
-  "note": "one structure, two palettes. v2.0.0: the light canvas is pure white, not the warm cream the field has settled on, and the dark canvas is Apple space grey. The state palette grew by two with fixed meanings: amber = partial, in progress, awaiting an input; brass = reference, archival, out of scope but real. Before this, partial and not-built both rendered as dashed grey, so a deck could not say the one thing it most needed to say about itself. Every semantic colour clears 4.5:1 as text on its own canvas."
- },
- "contrast": {
-  "floor_text": 4.5,
-  "floor_large_text": 3.0,
-  "large_text_px": 24,
-  "measured": {
-   "light_on_bg": {
-    "tx1": 10.61,
-    "tx2": 7.16,
-    "tx3": 5.54,
-    "tx4": 4.62,
-    "accent": 6.71,
-    "seal_text": 5.88,
-    "amber": 4.68,
-    "brass": 5.13
-   },
-   "light_on_card": {
-    "tx1": 10.23,
-    "tx2": 6.97,
-    "tx3": 5.42,
-    "tx4": 4.53
-   },
-   "dark_on_bg": {
-    "tx1": 11.73,
-    "tx2": 9.05,
-    "tx3": 7.14,
-    "tx4": 5.82,
-    "accent": 5.61,
-    "seal_text": 5.05,
-    "amber": 7.83,
-    "brass": 8.17
-   },
-   "dark_on_card": {
-    "tx1": 9.89,
-    "tx2": 7.79,
-    "tx3": 6.27,
-    "tx4": 5.21
-   }
+  "chart": {
+    "blue": "#2F6DB4",
+    "red": "#C0392B",
+    "teal": "#1E8E6E",
+    "note": "CVD-validated triple; on dark canvas use the lifted forms from palette.dark"
   },
-  "note": "WCAG 2.1 relative-luminance ratios, recomputed by scripts/check_design.py (D1). Recompute and update this block whenever a palette value moves; the numbers are the reason the alphas are what they are."
- },
- "chart": {
-  "blue": "#2F6DB4",
-  "red": "#C0392B",
-  "teal": "#1E8E6E",
-  "note": "CVD-validated triple; on dark canvas use the lifted forms from palette.dark"
- },
- "font": {
-  "primary": [
-   "D-DIN",
-   "PingFang SC",
-   "Hiragino Sans GB",
-   "Noto Sans SC",
-   "Arial",
-   "sans-serif"
-  ],
-  "mono": [
-   "IBM Plex Mono",
-   "SF Mono",
-   "Menlo",
-   "Consolas",
-   "monospace"
-  ],
-  "note": "v1.2+: D-DIN is the single Latin face (titles ALL-CAPS weight 400, tight leading; CJK titles: weight 700 + 0.04em tracking, no uppercase). SIL OFL (Datto 2017), Latin-only; vendored in assets/fonts/ and embedded by scripts/embed_font.py. tabular-nums always on for data."
- },
- "typography": {
-  "letter_spacing": {
-   "eyebrow_latin": "0.3em",
-   "title_cjk": "0.04em"
+  "font": {
+    "primary": [
+      "D-DIN",
+      "PingFang SC",
+      "Hiragino Sans GB",
+      "Noto Sans SC",
+      "Arial",
+      "sans-serif"
+    ],
+    "mono": [
+      "IBM Plex Mono",
+      "SF Mono",
+      "Menlo",
+      "Consolas",
+      "monospace"
+    ],
+    "note": "v1.2+: D-DIN is the single Latin face (titles ALL-CAPS weight 400, tight leading; CJK titles: weight 700 + 0.04em tracking, no uppercase). SIL OFL (Datto 2017), Latin-only; vendored in assets/fonts/ and embedded by scripts/embed_font.py. tabular-nums always on for data."
   },
-  "size_floor_px": 11,
-  "chart_scale_px": {
-   "fig_title": 13,
-   "axis": 11.5,
-   "source": 10.5
+  "typography": {
+    "letter_spacing": {
+      "eyebrow_latin": "0.3em",
+      "title_cjk": "0.04em"
+    },
+    "size_floor_px": 11,
+    "chart_scale_px": {
+      "fig_title": 13,
+      "axis": 11.5,
+      "source": 10.5
+    },
+    "display_title": {
+      "transform": "uppercase (Latin only)",
+      "weight": 400,
+      "leading": "0.95-1.0"
+    },
+    "note": "v1.8.0 raised the chart scale and added size_floor_px. The old scale (11 / 10.5 / 9.5) contradicted design-rules.md prose (14 / 10-11 / 11); tokens win per CLAUDE.md, so deliverables shipped 9.5px source lines. size_floor_px binds every text run except chart_scale_px.source, the single documented exception."
   },
-  "display_title": {
-   "transform": "uppercase (Latin only)",
-   "weight": 400,
-   "leading": "0.95-1.0"
+  "assets": {
+    "fonts": "assets/fonts/ — D-DIN.woff2, D-DIN-Bold.woff2, COPYING.txt (SIL OFL)",
+    "icons": "assets/icons/ — the eight semantic icons named in design-rules.md §5, hairline 1.25px, stroke=currentColor, 24x24",
+    "vectors": "assets/vectors/ — globe-orthographic.svg and world-flat.svg, original geometry",
+    "note": "v1.8.0. A rule may not mandate an asset the package does not ship: §5 required a semantic icon library for six versions and shipped none, so deliverables carried zero icons, and the cover rule banned imagery because there was no photo library rather than shipping vector geography that needs none."
   },
-  "note": "v1.8.0 raised the chart scale and added size_floor_px. The old scale (11 / 10.5 / 9.5) contradicted design-rules.md prose (14 / 10-11 / 11); tokens win per CLAUDE.md, so deliverables shipped 9.5px source lines. size_floor_px binds every text run except chart_scale_px.source, the single documented exception."
- },
- "assets": {
-  "fonts": "assets/fonts/ — D-DIN.woff2, D-DIN-Bold.woff2, COPYING.txt (SIL OFL)",
-  "icons": "assets/icons/ — the eight semantic icons named in design-rules.md §5, hairline 1.25px, stroke=currentColor, 24x24",
-  "vectors": "assets/vectors/ — globe-orthographic.svg and world-flat.svg, original geometry",
-  "note": "v1.8.0. A rule may not mandate an asset the package does not ship: §5 required a semantic icon library for six versions and shipped none, so deliverables carried zero icons, and the cover rule banned imagery because there was no photo library rather than shipping vector geography that needs none."
- },
- "layout": {
-  "one_claim_per_screen": true,
-  "cover_and_closing": "every deck; see storyline-templates.md",
-  "scroll_snap": "decks only, never long documents",
-  "tier1_callouts": "at most 1 per page, and no more than a third of a deck's pages",
-  "footer": "source line + page number as N / total",
-  "verification_matrix": "language x viewport (design / print / short-laptop); footer visible at every point"
- }
+  "layout": {
+    "one_claim_per_screen": true,
+    "cover_and_closing": "every deck; see storyline-templates.md",
+    "scroll_snap": "decks only, never long documents",
+    "tier1_callouts": "at most 1 per page, and no more than a third of a deck's pages",
+    "footer": "source line + page number as N / total",
+    "verification_matrix": "language x viewport (design / print / short-laptop); footer visible at every point"
+  }
 }

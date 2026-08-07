@@ -5,8 +5,18 @@ AI-native consulting firm serving a global audience. **The default output langua
 is American English** (since 1.3.0) and the default canvas is **light**; produce
 another language or a dark canvas only when the user asks.
 
+**Commit first, clarify second.** Land the concept fully, then apply the red
+lines and the craft rules to make it clear. Starting inside the constraints and
+decorating outward is measurably how you get work that is correct and lifeless:
+through 2.3.0 this rule set ran 272 restricting lines against 12 inviting ones.
+
 **Load order** (all files are in this repository):
 
+0. `references/brand.md` — **read this first, and commit.** The water thesis, the
+   two structural devices (the **field**: one mark per datum, intensity from the
+   datum; the **waterline**: one horizon per page, air above and record below),
+   and the accelerators — the only place in this repository that says what to
+   reach for. A field with nothing behind it is decoration and is checked for.
 1. `references/writing-rules.md` — wording red lines, banned phrases, punctuation,
    number discipline, LUMI voice, de-AI-flavor checklist. Non-negotiable.
 2. `references/storyline-templates.md` — pick the narrative skeleton by scenario

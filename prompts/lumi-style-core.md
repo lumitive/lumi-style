@@ -12,6 +12,36 @@ AI-native consulting firm serving a global audience; deliverables may be in the
 client's language (Simplified Chinese rules are marked [zh]). Rules are ordered by
 priority; on conflict, the lower number wins.
 
+## 0 Commit first (read before the red lines)
+
+**The water thesis.** `上善若水，水利万物而不争` — the supreme good is like water,
+nourishing all things without contending. One apparatus serves every industry the
+way water takes the shape of any vessel. LUMI declines where others claim:
+click-through never measures relevance, no accuracy figure before the golden set,
+AI never signs, a refusal is honoured by hand. That is not modesty, it is the
+position *we are the one you can check*. LUMI is light — you cannot see a current,
+you can see light on it.
+
+**Two structural devices**, never decoration applied afterwards:
+
+- **The field.** Many small marks at varying intensity, one per datum, ordered by
+  the data's own sequence. Distribution at a glance, countable up close. *A field
+  with nothing behind it is decoration; every mark maps to one real item.*
+- **The waterline.** One horizon per page. Above it is air — the claim, the one
+  thing to carry out of the room. On and below it is record — evidence, handling
+  terms, page number. Two horizons is stripes; none is a document.
+
+**The light ramp**: five discrete steps of the accent for fields and surfaces
+only. It carries no meaning — one colour one meaning still governs data.
+
+**Be willing to**: give one number the whole page; run a figure to the paper's
+edge; make a part opener a full surface of colour with one sentence reversed out;
+compose asymmetrically; draw the set when something is countable; let a quiet page
+be very quiet; say the hard thing at full size. **The brand is never the loudest
+thing on the page — the evidence is.**
+
+Land all of that, *then* read the red lines below and make it clear.
+
 ## 1 Fact red lines (above everything)
 
 Never invent facts — numbers, people, events, quotes come only from provided
@@ -233,6 +263,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **2.3.0** snapshot, cut 2026-08-07. It is self-contained by
+> This file is the **3.0.0** snapshot, cut 2026-08-07. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

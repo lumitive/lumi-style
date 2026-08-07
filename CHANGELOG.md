@@ -3,6 +3,69 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 3.0.0 — the water thesis: LUMI gets a brand, and the skill finally says what to reach for
+
+Four rounds of review made this skill measurably more correct and no more alive.
+The reader said the same thing four times. Two measurements say why.
+
+**The rule set was 23 : 1 brakes to accelerators** — 272 lines that restrict
+against 12 that invite. A documented study of this exact failure mode
+(`impeccable.style/research`, ~30 skill iterations, ~200 sampled concepts) found
+that **5 : 1 produced "65% commitment, and 65% commitment is what bland looks
+like"**, and that inverting the order — land fully committed first, then make it
+clear — was "the biggest single quality jump" in the whole study. This repo ran
+nearly five times more braked than the ratio that already produced bland, and
+every release had added more, because every release fixed a defect a reader found.
+Nothing was ever added on the other side.
+
+**And there was no brand.** `references/` held writing rules, storyline templates,
+design rules and an eval rubric — all craft, no identity. The word "brand"
+appeared once in the entire rule set, and it said branding was subordinate to
+data. A style guide answers *is this correct*; a brand answers *what is this, and
+why does it look like nothing else*. Only one of those had ever been asked here.
+
+**`references/brand.md` is new and it loads first.** The thesis is
+`上善若水，水利万物而不争`, and three of its four parts were already true of what
+LUMI does — one of them already in the source code. One apparatus serves every
+industry the way water takes the shape of any vessel. LUMI declines where others
+claim: click-through never measures relevance, no accuracy figure before the
+golden set, AI never signs, a refusal is honoured by hand — that is not modesty,
+it is *we are the one you can check*. LUMI is light, and you cannot see a current,
+only the light on it.
+
+**Two structural devices**, because "committed skin hides template bones" — a
+fully-committed surface on a standard grid is the trap:
+
+- **The field** — many small marks at varying intensity, one per datum, ordered by
+  the data's own sequence. The deck was already drawing this by accident in the
+  tier strip and the stat bands. Page 3 now carries the whole catalogue as 161
+  marks, 121 on the automated chain and 40 off it because those sources refused.
+  **A field with nothing behind it is decoration**, so every mark declares its
+  datum and `inspect_layout.py` fails a field whose marks outnumber its data. That
+  is the one new brake this release adds, and it is what keeps the shimmer honest.
+- **The waterline** — one horizon per page: air above, record below. The footer
+  hairline stops being a border closing a box and becomes the surface the page
+  sits on. Two horizons is stripes, none is a document; exactly one is checked.
+
+**The accent gains a five-step ramp** for fields and surfaces. It carries no
+meaning — one colour one meaning still governs data, and those tokens stay flat
+and measurable. Keeping the two jobs in separate tokens is what lets the brand
+shimmer without the data lying. Every step was measured on both canvases and every
+one carries text: 5.93 / 4.54 / 6.52 / 9.18 / 12.32 on light, 5.61 / 4.69 / 6.67 /
+9.70 / 13.46 on dark.
+
+**The ratio moved from 23 : 1 to 9.1 : 1 — and brakes went up, not down**, from
+272 to 309. Nothing was deleted; all of it is hard-won defect history and all of
+it still applies. What changed is that the skill now says what to reach for, and
+the brakes apply at step 4 instead of framing step 0. Still roughly twice the
+ratio the study used, so this is a direction and not a destination.
+
+The English-only guard was tightened while doing it. The allowlist was per file,
+which is too coarse in both directions — it let prose drift into an allowlisted
+file and forced a whole file onto the list for one quoted line. CJK is now
+permitted inside backticks or a fenced block and nowhere else, which is exactly
+the distinction the red line always meant.
+
 ## 2.3.0 — handling terms on every page, provenance once per document, and one table per page
 
 A reader asked for four things and two of them were defects the checks had just

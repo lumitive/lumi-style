@@ -45,6 +45,18 @@ package did not contain — an embedded display face, then a semantic icon set �
 both times deliverables simply went without. `CLAUDE.md` §5 states the resulting
 maintenance rule.
 
+## The brand in one line
+
+**`上善若水，水利万物而不争`** — the supreme good is like water, nourishing all
+things without contending. One apparatus for every industry; a company that
+declines where others claim, and can show you the code where it declines. LUMI is
+light: you cannot see a current, you can see light on it. The visual key is
+`波光鳞鳞`, shimmer on water — **many small marks at varying intensity, arranged by
+a flow you cannot otherwise see** — which is why the signature device is a field
+of one mark per datum, and why a field with nothing behind it is forbidden.
+See [`references/brand.md`](references/brand.md), which loads before everything
+else.
+
 ## The design language in one line
 
 **Pure-white canvas (Apple space grey on request) · natural green as the single

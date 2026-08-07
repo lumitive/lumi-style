@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · v2.3.0 (2026-08-07)
+   LUMI visual theme · v3.0.0 (2026-08-07)
    Single source of truth for palette and typography. New documents reference
    this file or copy the token blocks verbatim (note the provenance when
    copying). Version lockstep: a deliverable's version = the lumi-style
@@ -70,6 +70,30 @@
   --amber-wash:#FBF3E4;
   --brass:     #7A6C52;          /* reference · archival · out of scope but real — 5.13 */
   --brass-wash:#F4F1EA;
+
+  /* ── the light ramp (v3.0.0) ────────────────────────────────────────────
+     Shimmer on water is many marks at varying intensity, not one flat value.
+     Five discrete steps from the accent toward the canvas — steps, never a
+     gradient, so a figure can say near/far or strong/weak in one voice instead
+     of reaching for a second and third hue to express a single dimension.
+
+     THE RAMP IS FOR FIELDS AND SURFACES. It does not carry meaning. One colour
+     one meaning still governs data: --acc = built/pass, --seal = red line,
+     --amber = partial, --brass = reference, and those stay flat and measurable.
+     Keeping the two jobs in separate tokens is what lets the brand shimmer
+     without the data lying.
+
+     Every step carries text, measured against both foregrounds:
+     acc-5 cold white 5.93 · acc-4 ink 4.54 · acc-3 ink 6.52 ·
+     acc-2 ink 9.18 · acc-1 ink 12.32 */
+  --acc-5: #48633E;
+  --acc-4: #889A82;
+  --acc-3: #ABB7A6;
+  --acc-2: #CFD6CD;
+  --acc-1: #F2F4F1;
+  --on-acc-5: #F0F0FA;           /* only step 5 takes the cold white */
+  --on-acc-lo: #2B2E33;          /* steps 4 down to 1 take canvas ink */
+
   --d-blue:    #2F6DB4;          /* chart data colors (CVD-validated) */
   --d-red:     #C0392B;
   --d-teal:    #1E8E6E;
@@ -136,6 +160,18 @@ body.dark {
   --amber-wash:rgba(224,167,62,.15);
   --brass:     #C3B393;          /* 8.17 on space grey */
   --brass-wash:rgba(195,179,147,.14);
+
+  /* the ramp on space grey. Its own values, like every other ladder here:
+     acc-5 space grey 5.61 · acc-4 cold white 4.69 · acc-3 6.67 ·
+     acc-2 9.70 · acc-1 13.46 */
+  --acc-5: #7C9F63;
+  --acc-4: #5B724B;
+  --acc-3: #49593E;
+  --acc-2: #363F31;
+  --acc-1: #242624;
+  --on-acc-5: #1D1D1F;
+  --on-acc-lo: #F0F0FA;
+
   --d-blue:    #5B8FC9;
   --d-teal:    #3FA98C;
 }
