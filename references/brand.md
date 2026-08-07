@@ -178,6 +178,32 @@ never a rule, a stroke or a caption. **Once per page**: ΔE against the semantic
 forest is **94**, plainly a different colour, so two greens on one page would read
 as two meanings.
 
+**The lime marks a number panel. It never marks a chart mark.** A chart mark
+encodes a value a reader compares across pages, so a bar that is lime here and
+forest there asks what the difference means. A page with no number panel simply
+has no lime, and that is fine — not every page needs one. *Provenance: two
+comparison bars, one lime and one forest, and a reader asked why. It was a
+collision between two of these rules — one lime event per page met the same
+component always looks the same — and the component lost.*
+
+**One role, one rendering.** Every role that repeats across a deck — title,
+support line, eyebrow, band value, band label, caption, listhead, callout, footer
+terms, page number — renders exactly one way. Exceptions exist (band values rank
+by importance; the footer inverts on a lime opener) and every one of them is
+**declared in the probe**, because "that one is on purpose" living in someone's
+head is how a deck ends up with a callout at three sizes.
+
+**One datum.** The content area begins at the same height on every page of a
+geometry. Reserve the title block, do not let it float: titles all started at the
+same y here while the first content cell started at **ten different heights**, and
+that is what a reader feels flipping through even when every type style matches.
+The datum is per geometry — portrait sets its own, because portrait is a
+composition and not a reflow.
+
+**A page that no longer fits gets its content trimmed, never its type nudged.**
+Nudging type per page is what produced three callout sizes over three releases,
+each fix locally right and the accumulation an inconsistency a reader could see.
+
 **It carries no meaning.** `--acc` stays the semantic accent for data, and one
 colour one meaning is untouched. The lime is where the brand is loud: the part
 openers are full lime fields with the claim in near-black at display size, and

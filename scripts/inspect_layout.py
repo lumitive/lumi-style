@@ -601,6 +601,121 @@ def ground_report(url, dark=False):
     return out
 
 
+CONSISTENCY_PROBE = r"""
+() => {
+  // One role, one rendering.
+  //
+  // A reader asked for a full consistency audit and this is its general form:
+  // for every role that repeats across the deck, collect what it actually
+  // computes to and count the distinct renderings. More than one is a finding.
+  //
+  // The sanctioned exceptions are DECLARED here rather than tolerated, because
+  // "that one is on purpose" living in someone's head is exactly how a deck ends
+  // up with a callout at three sizes. If a new exception is needed it gets
+  // written down, and the write-down is the review.
+  const ROLES = [
+    ['title',         'h1, h2.t, .cover h1, .closing h2', ['size']],
+    ['support',       '.sup',            []],
+    ['eyebrow',       '.eyebrow',        []],
+    ['band value',    '.band .v',        ['color']],   // three importance tiers
+    ['band label',    '.band .k',        []],
+    ['figure caption','.cap .n',         []],
+    ['listhead',      '.listhead',       []],
+    ['callout',       '.gd',             []],
+    ['footer terms',  '.foot .conf',     ['color']],   // inverts on the lime openers
+    ['page number',   '.foot span:last-child', ['color']],  // same lime openers
+  ];
+  const key = (e, ignore) => {
+    const c = getComputedStyle(e);
+    // Tracking is authored in em and computes to px, so comparing the px across
+    // two sizes can never agree even when the design is identical. Normalise it
+    // back to em — that is the number a designer actually set.
+    const fs = parseFloat(c.fontSize) || 1;
+    const ls = c.letterSpacing === 'normal' ? 'normal'
+             : (Math.round(parseFloat(c.letterSpacing) / fs * 1000) / 1000) + 'em';
+    const parts = [c.fontFamily.split(',')[0].replace(/["']/g, ''), c.fontWeight,
+                   Math.round(parseFloat(c.fontSize) * 10) / 10 + 'px',
+                   c.textTransform, ls];
+    if (!ignore.includes('color')) parts.push(c.color);
+    if (ignore.includes('size')) parts[2] = '(size varies by role)';
+    return parts.join(' | ');
+  };
+  const roles = [];
+  for (const [name, sel, ignore] of ROLES) {
+    const seen = {};
+    for (const s of document.querySelectorAll('section.page')) {
+      for (const e of s.querySelectorAll(sel)) {
+        if (!(e.textContent || '').trim()) continue;
+        const k = key(e, ignore);
+        (seen[k] = seen[k] || []).push(s.id);
+      }
+    }
+    const variants = Object.entries(seen).map(([k, ids]) => ({k, n: ids.length, ids}));
+    if (variants.length) roles.push({name, variants, ignored: ignore});
+  }
+
+  // One datum: content begins at the same height on every page.
+  const datums = {};
+  for (const s of document.querySelectorAll('section.page')) {
+    const b = s.querySelector('.body'); if (!b) continue;
+    const cell = [...b.children].find(x => !x.classList.contains('lede'));
+    if (!cell || !s.querySelector('h2.t')) continue;   // covers compose freely
+    const sc = s.getBoundingClientRect().width / (s.offsetWidth || 1);
+    const y = Math.round((cell.getBoundingClientRect().top
+                          - b.getBoundingClientRect().top) / (sc || 1));
+    (datums[y] = datums[y] || []).push(s.id);
+  }
+
+  // The same component may not change colour between pages: a bar that is one
+  // green here and another there asks a reader what the difference means.
+  const comps = {};
+  for (const s of document.querySelectorAll('section.page')) {
+    for (const r of s.querySelectorAll('.fig svg rect')) {
+      const bb = r.getBoundingClientRect();
+      if (bb.width < 120 || bb.height < 30 || bb.height > 90) continue;
+      // The filled measure bar specifically — the rect whose length IS the
+      // number. Washes, card fills and callout panels are furniture and are
+      // allowed to differ; the mark that encodes a value is not, because a
+      // reader compares it across pages.
+      const cls = (r.getAttribute('class') || '');
+      if (!/\bf-(acc|lime)\b/.test(cls)) continue;
+      (comps['filled measure bar'] = comps['filled measure bar'] || [])
+        .push({page: s.id, cls, fill: getComputedStyle(r).fill});
+    }
+  }
+
+  // Values and labels inside one band share their edges.
+  const bandSkew = [];
+  for (const s of document.querySelectorAll('section.page')) {
+    for (const band of s.querySelectorAll('.band')) {
+      const ks = [...band.querySelectorAll('.k')].map(x => x.getBoundingClientRect().top);
+      const vs = [...band.querySelectorAll('.v')].map(x => x.getBoundingClientRect().bottom);
+      if (ks.length < 2) continue;
+      const sc = s.getBoundingClientRect().width / (s.offsetWidth || 1);
+      const k = Math.round((Math.max(...ks) - Math.min(...ks)) / (sc || 1));
+      const v = Math.round((Math.max(...vs) - Math.min(...vs)) / (sc || 1));
+      if (k > 1 || v > 1) bandSkew.push({page: s.id, labels: k, values: v});
+    }
+  }
+  return {roles, datums, comps, bandSkew};
+}
+"""
+
+
+def consistency_report(url):
+    """Read the deck as a system rather than as pages. Returns the raw findings;
+    main() decides what to print. Nothing here gates."""
+    from playwright.sync_api import sync_playwright
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page = browser.new_page(viewport={"width": 1280, "height": 720})
+        page.goto(url)
+        page.wait_for_timeout(600)
+        out = page.evaluate(CONSISTENCY_PROBE)
+        browser.close()
+    return out
+
+
 def contact_sheet(shots, out_path, cols=4):
     """Stitch the page shots into one image. Pure stdlib is not enough for PNG
     compositing, so this shells out to `sips`/`montage` when present and
@@ -816,6 +931,56 @@ def main(argv):
             if shots:
                 print(f"  contact sheet: {sheet}")
                 print("  Look at it. That is the check; the numbers only say where to look.")
+
+    if not args.json:
+        for name in args.files:
+            path = pathlib.Path(name).resolve()
+            try:
+                c = consistency_report(path.as_uri())
+            except Exception:                                   # noqa: BLE001
+                c = None
+            if not c:
+                continue
+            print(f"\n{path.name} — one role, one rendering")
+            for role in c["roles"]:
+                v = sorted(role["variants"], key=lambda x: -x["n"])
+                if len(v) > 1:
+                    note = (f" (ignoring {', '.join(role['ignored'])})"
+                            if role["ignored"] else "")
+                    print(f"  ROLE SPLIT: {role['name']} renders {len(v)} "
+                          f"different ways{note}")
+                    for x in v:
+                        who = ", ".join(sorted(set(x["ids"]))[:5])
+                        print(f"      {x['n']:>3}x  {x['k']}")
+                        print(f"           on: {who}")
+                else:
+                    print(f"  ok  {role['name']}: one rendering, {v[0]['n']} uses")
+            d = c["datums"]
+            if len(d) > 1:
+                worst = sorted(d.items(), key=lambda kv: -len(kv[1]))
+                print(f"  NO DATUM: content starts at {len(d)} different heights — "
+                      + ", ".join(f"{y}px x{len(ids)}" for y, ids in worst[:6]))
+            elif d:
+                y = list(d)[0]
+                print(f"  ok  datum: content starts at {y}px on all "
+                      f"{len(list(d.values())[0])} pages")
+            for comp, uses in (c["comps"] or {}).items():
+                fills = {}
+                for u in uses:
+                    fills.setdefault(u["fill"], []).append(u["page"])
+                if len(fills) > 1:
+                    print(f"  COMPONENT COLOUR: the {comp} is drawn in "
+                          f"{len(fills)} colours — "
+                          + "; ".join(f"{f} on {', '.join(sorted(set(p)))}"
+                                      for f, p in fills.items()))
+                else:
+                    print(f"  ok  {comp}: one colour across {len(uses)} uses")
+            if c["bandSkew"]:
+                print("  BAND BASELINE: " + ", ".join(
+                    f"{b['page']} labels {b['labels']}px / values {b['values']}px apart"
+                    for b in c["bandSkew"][:5]))
+            else:
+                print("  ok  band baseline: values and labels share their edges")
 
     if not args.json:
         GROUND_CEILING = 1.40
