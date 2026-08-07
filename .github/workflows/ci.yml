@@ -25,9 +25,15 @@ jobs:
       # scripts/ had no CI coverage at all until 1.6.0: a syntax error in either
       # script would have shipped silently, including into the emergency merge
       # path that runs when CI itself is unavailable.
-      - run: python3 -m py_compile scripts/check_repo.py scripts/check_prose.py scripts/embed_font.py
+      - run: |
+          python3 -m py_compile \
+            scripts/check_repo.py scripts/check_prose.py scripts/check_design.py \
+            scripts/embed_font.py scripts/embed_icons.py scripts/build_geography.py
       - run: bash -n scripts/emergency_merge.sh scripts/ci_wait.sh
-      # The display face must stay byte-identical: a silent change would alter the
-      # metrics of every deliverable that embeds it.
+      # Every vendored asset must stay byte-identical: a silent change would alter
+      # the metrics or the marks of every deliverable that embeds it. The icons
+      # and geography arrived in 1.8.0 under the same reasoning as the face.
       - run: python3 scripts/embed_font.py --check
+      - run: python3 scripts/embed_icons.py --check
+      - run: python3 scripts/build_geography.py --check
       - run: python3 scripts/check_repo.py

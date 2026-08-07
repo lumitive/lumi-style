@@ -74,11 +74,14 @@ Say "uncertain" plainly.
 - **Consulting/client docs**: opening = scope/method/findings + the one client
   decision; key sections carry scope lines; a single closing build-status
   declaration wins over conflicting text.
-- **Universal — the title contract**: every title is "Topic: assertive subtitle",
-  naming its **subject** and carrying a **verifiable fact** (figure, date, named
-  mechanism). **No word ceiling** — length follows the fact; the only limit is two
-  lines at the design viewport, and a long title takes a smaller size before any
-  word is cut. **Information floor**: a bare contrast ("codes, not words"), a
+- **Universal — the title contract**: every title names its **subject** and carries
+  a **verifiable fact** (figure, date, named mechanism). "Topic: assertive
+  subtitle" is the reference form, not the required one — a document where every
+  title is a colon construction reads as generated, so vary the frame and keep any
+  one shape under 60% of titles. **No word ceiling** — length follows the fact;
+  one line is the goal and two the ceiling at the design viewport, a long title
+  takes a smaller size before any word is cut, and the container is never narrowed
+  to force a break. **Information floor**: a bare contrast ("codes, not words"), a
   slogan, or a section label is not a title — keep the evidence that earns it
   ("Codes, not words: same task, different criteria, 18× recall gap"). All titles
   concatenated must read as a complete argument; comparisons use tables, never
@@ -89,17 +92,47 @@ Say "uncertain" plainly.
 
 Figure titles state conclusions; one accent color with all else grayscale
 (warning color only for warnings); no gridlines/borders/single-series legends;
-every figure has a source line; fixed type scale. Icons are semantic, never
+every figure has a source line; fixed type scale. The legend sits top right above
+the plot; captions are two-part, "Figure N · Name" centred and bold, then the
+description left-aligned at the figure's width. Shapes carry meaning:
+parallelogram = input/output, rectangle = process, diamond = decision,
+stadium = terminal, dashed outline = not built. Icons are semantic, never
 decorative.
 
 ## 7 Visual tokens (for HTML output)
 
-Light canvas #F4F6F5 / dark canvas #1E2A1B→#48633E; body ink #2B2E33; single
-accent #48633E (natural green); warning #C8102E (China red — warnings only);
-hierarchy via transparency ladder from ink (light) or cold white #F0F0FA (dark) —
-never new grays, never pure white on dark. Narrative voice: rounded Latin + CJK
-fallback; data voice (codes/rates/dates/counters): D-DIN or monospace with
-tabular-nums and fixed-width digit boxes.
+**Canvas**: light #FAFAF8 by default; dark #060806 only when the user asks, as one
+`body.dark` override block, never a forked file. Card surfaces #FFFFFF / #0D110C.
+Single accent #48633E on light, lifted to #7C9F63 on dark; warning #C8102E (China
+red, warnings only, lifted to #E0685A as text on dark). A literal color anywhere
+outside the token block is a defect.
+
+**Two ladders, and text may use only one.** Text ladder, from ink #2B2E33 on light
+at α .92/.80/.72/.66 and from cold white #F0F0FA on dark at α .88/.76/.66/.58 —
+every step clears 4.5:1 against its own canvas and card. Non-text ladder for rules,
+borders and fills, light .20/.12/.07 and dark .18/.11/.07 — **never text**. Never
+new grays, never pure white on dark. A mark a reader must distinguish counts as
+text here. Text on an accent fill is cold white on light and canvas ink on dark;
+cold white on the lifted dark accent measures 2.65 and fails.
+
+**Type**: D-DIN for titles, body and data alike, with a CJK fallback; display
+titles ALL-CAPS at weight 400 (CJK: weight 700 + .04em tracking, never uppercase).
+Data voice (codes/rates/dates/counters): tabular-nums with fixed-width digit boxes.
+**Nothing below 11px**; chart scale is figure title 13 / axis 11.5 / source 10.5,
+and 10.5 for source lines is the only exception to the floor.
+
+**Layout**: one claim per page. One title line is the goal and two is the ceiling —
+never narrow the title container to manufacture a break. At most one tier-one
+callout (tinted + bordered + strong left edge) per page and on no more than a
+third of a deck's pages. Footers carry a source line and `N / total`. Every figure
+in a document is built to the same level: if one has decision shapes, dashed
+not-built states and arrows, they all do, and a grid of rectangles holding
+sentences is a table, so draw the table. Icons are semantic and each holds one
+fixed meaning (ledger=master data · radar=watch · funnel=adjudication · bell=alert
+· shield=compliance · pen=signature · gauge=measurement · slashed circle=forbidden);
+a section eyebrow carries its icon, hairline, inheriting currentColor. A cover
+carries typography plus exactly one vector mark, no photography and no body copy,
+and if that mark is geography then a region drawn is a region claimed.
 
 ## 8 De-AI-flavor pass (mandatory, before delivery)
 
@@ -134,6 +167,14 @@ and the imported "X, not Y" antithesis; re-run the punctuation pass afterwards.
 ① punctuation pass [zh]; ② banned-phrase and coined-term sweep; ③ every number
 traced to its source; ④ titles-only test; ⑤ per-figure: is the title a
 conclusion, is there a source line; ⑥ **the §8 de-AI pass, including its two-pass
-audit**; ⑦ self-score H1–H6 (reader value / structural
-expression / chart self-explanation / honest boundaries / business readability /
-narrative persuasion) — never self-score full marks before a reader has scored it.
+audit**; ⑦ for HTML, walk §7 as a checklist — no text on the non-text ladder,
+nothing under 11px, one tier-one callout per page, footers carrying `N / total`,
+figures at one level, no literal colors outside the token block; ⑧ self-score
+H1–H6 (reader value / structural expression / chart self-explanation / honest
+boundaries / business readability / narrative persuasion), **with a reason for
+each score, not just a number** — never self-score full marks before a reader has
+scored it.
+
+> This file is the **1.8.0** snapshot, cut 2026-08-07. It is self-contained by
+> design and therefore cannot check itself against upstream: if the date above is
+> more than a quarter old, fetch the current copy before relying on it.

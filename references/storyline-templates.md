@@ -45,8 +45,26 @@ sits between them.
 - **Cover**: wordmark (typographic, no logo file needed) · document title as the
   page's single statement · one-line subtitle saying who it is for and what it
   answers · a meta strip in spec-band form (audience / date / version /
-  classification) · a colophon line ("built with lumi-style X.Y.Z"). No charts,
-  no body copy — the cover is typography.
+  classification) · a colophon line ("built with lumi-style X.Y.Z") · **and
+  exactly one vector mark.** Body copy and photography stay out. The mark is
+  drawn from `assets/vectors/` (the orthographic globe, the flat trade map) or is
+  the document's own subject rendered as geometry; it is sized as a field the
+  typography sits against, not as a spot illustration, and it is painted from the
+  non-text ladder so it never competes with the title.
+
+  **The mark must say something true about the document.** A globe on a deck about
+  one supply chain shows that chain's nodes and routes and nothing else. Geography
+  implies coverage, so a region drawn is a region claimed: mark the built ones in
+  accent, the empty ones as hollow dashed rings, and the out-of-scope ones muted.
+  Decoration that implies reach the engagement does not have breaks red line 1 as
+  surely as a sentence would.
+
+  *Provenance:* this rule read "No charts, no body copy — the cover is typography"
+  through 1.7.0. The ban existed because the skill had no photo library, and it
+  was applied to every kind of image rather than to photography, which is what
+  the risk actually was. A reader called the resulting covers unprofessional and
+  asked for vector geography. Vector geography needs no photo library, so 1.8.0
+  ships it instead of banning it.
 - **Closing**: one closing statement that echoes the action page. A short
   imperative ("Let the numbers decide.") is one option, not the required form —
   a punchy four-word command is a recognized AI-deck ending, and it is weaker than

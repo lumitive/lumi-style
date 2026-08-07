@@ -32,14 +32,23 @@ PALETTE_KEY_TO_VAR = {
     "accent": "acc",
     "accent_deep": "acc-deep",
     "accent_inbox": "acc-inbox",
+    "accent_wash": "acc-wash",
     "on_accent": "on-acc",
     "seal": "seal",
     "seal_text": "seal-t",
+    "seal_wash": "seal-wash",
     "data_blue": "d-blue",
+    "data_red": "d-red",
     "data_teal": "d-teal",
     "card_bg": "card-bg",
 }
-PALETTE_NON_COLOR = {"ladder_base", "note"}
+PALETTE_NON_COLOR = {"ladder_base", "note", "text_ladder", "rule_ladder"}
+
+# v1.8.0: the ladder is two ladders, and each palette carries its own alphas.
+# Until 1.7.0 one shared alpha list served both canvases, and this guard enforced
+# the sharing — which is how a ladder measuring 1.81:1 on light shipped as the
+# colour of every page number in a deck. Ladder name -> (json key, css prefix).
+LADDERS = {"text": ("text_ladder", "tx"), "rule": ("rule_ladder", "ln")}
 
 VERSION = re.compile(r"\b(\d+\.\d+\.\d+)\b")
 
@@ -196,21 +205,71 @@ def check_palette_parity():
             )
             continue
         channels = base.group(1).replace(" ", "")
-        for alpha in tokens["palette"]["ladder_alpha"]:
-            var = f"w{f'{alpha:.2f}'[2:]}"
-            actual = variables.get(var)
-            if actual is None:
+        for ladder, (json_key, prefix) in LADDERS.items():
+            alphas = palette.get(json_key)
+            if not alphas:
                 errors.append(
-                    f"tokens/lumi-theme.css: --{var} missing for the {palette_name} "
-                    f"ladder (design-tokens.json lists alpha {alpha})"
+                    f"tokens/design-tokens.json: palette.{palette_name}.{json_key} is "
+                    f"missing; each palette carries its own {ladder} ladder since 1.8.0"
                 )
                 continue
-            got = re.match(r"rgba\(([\d,\s]+),\s*(0?\.\d+|1|0)\)", actual.replace(" ", ""))
-            if not got or got.group(1) != channels or float(got.group(2)) != alpha:
-                errors.append(
-                    f"tokens/lumi-theme.css: --{var} is {actual}, expected "
-                    f"rgba({channels},{alpha}) for the {palette_name} ladder"
-                )
+            for i, alpha in enumerate(alphas, 1):
+                var = f"{prefix}{i}"
+                actual = variables.get(var)
+                if actual is None:
+                    errors.append(
+                        f"tokens/lumi-theme.css: --{var} missing for the {palette_name} "
+                        f"{ladder} ladder (design-tokens.json lists alpha {alpha})"
+                    )
+                    continue
+                got = re.match(r"rgba\(([\d,\s]+),\s*(0?\.\d+|1|0)\)",
+                               actual.replace(" ", ""))
+                if not got or got.group(1) != channels or float(got.group(2)) != alpha:
+                    errors.append(
+                        f"tokens/lumi-theme.css: --{var} is {actual}, expected "
+                        f"rgba({channels},{alpha}) for the {palette_name} {ladder} ladder"
+                    )
+    errors.extend(_check_contrast_floor(tokens))
+    return errors
+
+
+def _check_contrast_floor(tokens):
+    """Every text-ladder step must clear the documented floor against both
+    surfaces of its own palette. This is the guard that would have caught the
+    1.7.0 defect: the alphas were legal, they were simply unreadable."""
+    def _lin(c):
+        c /= 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+
+    def _luma(rgb):
+        r, g, b = (_lin(x) for x in rgb)
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+    def _hex(value):
+        v = value.lstrip("#")
+        return tuple(int(v[i:i + 2], 16) for i in (0, 2, 4))
+
+    floor = tokens["contrast"]["floor_text"]
+    errors = []
+    for palette_name, palette in tokens["palette"].items():
+        if not isinstance(palette, dict):
+            continue
+        base = re.match(r"rgba\(([\d,\s]+),ALPHA\)", palette["ladder_base"])
+        ink = tuple(int(c) for c in base.group(1).replace(" ", "").split(","))
+        for surface_key in ("bg", "card_bg"):
+            surface = _hex(palette[surface_key])
+            ls = _luma(surface)
+            for i, alpha in enumerate(palette["text_ladder"], 1):
+                mixed = tuple(ink[c] * alpha + surface[c] * (1 - alpha) for c in range(3))
+                lm = _luma(mixed)
+                hi, lo = max(ls, lm), min(ls, lm)
+                ratio = (hi + 0.05) / (lo + 0.05)
+                if ratio < floor:
+                    errors.append(
+                        f"contrast: palette.{palette_name}.text_ladder[{i - 1}] "
+                        f"(--tx{i}, alpha {alpha}) measures {ratio:.2f}:1 on "
+                        f"{surface_key}, below the {floor}:1 text floor"
+                    )
     return errors
 
 

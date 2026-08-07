@@ -20,10 +20,35 @@
   **China red (#C8102E) is for warnings/red-lines/vetoes only** — never
   decoration. This is stricter than SpaceX/Tesla: they let color appear only where
   it carries meaning; LUMI pins each meaning to exactly one color.
-- **Hierarchy comes from a transparency ladder, not new grays**: on light canvas
-  every level (body/secondary/notes/rules) derives from ink #2B2E33 at α
-  90/70/50/30/15/08; on dark canvas from cold white **#F0F0FA** at α 70/55/45/25/10.
-  **Dark-canvas text is cold white, never pure white.**
+- **Hierarchy comes from a transparency ladder, not new grays** — and since 1.8.0
+  it is **two ladders**, because one of them was unreadable. The token names carry
+  the rule:
+  - `--tx1..--tx4` is the **text ladder**. Every step clears **4.5:1** against
+    both `--bg` and `--card-bg` of its own palette. Text may use nothing else.
+  - `--ln1..--ln3` is the **non-text ladder**: rules, borders, hairlines, tint
+    fills, chart furniture. It may never carry text.
+  - Marks a reader must distinguish (a data dot, a status ring) are text for this
+    purpose, not furniture. Use the text ladder.
+
+  **The two palettes do not share one alpha list.** Light derives from ink
+  #2B2E33 at α .92/.80/.72/.66 (text) and .20/.12/.07 (non-text); dark from cold
+  white **#F0F0FA** at α .88/.76/.66/.58 and .18/.11/.07. **Dark-canvas text is
+  cold white, never pure white.** Measured ratios live in `tokens/design-tokens.json`
+  under `contrast.measured`; `check_repo.py` recomputes them and refuses a ladder
+  that drops below the floor.
+
+  *Provenance:* until 1.7.0 one alpha list served both canvases and the lower
+  steps ran 2.91 / 1.81 / 1.32 / 1.16 on light and 4.08 / 1.99 / 1.36 / 1.16 on
+  dark. A shipped deck put its eyebrows, captions, source lines, page numbers and
+  table headers on those steps, and the reader's first note was that both canvases
+  were exhausting to read. **Pick a text color by contrast, never by how quiet you
+  want it to look**; if a thing should be quieter than `--tx4`, make it smaller or
+  cut it, do not fade it below legibility.
+- **Text on a filled surface is checked separately.** `--on-acc` is
+  palette-dependent: cold white on the light accent measures 5.93, and on the
+  lifted dark accent 2.65, so the dark palette flips it to canvas ink (6.69).
+  Until 1.8.0 one value claimed to serve both and white labels inside accent bars
+  shipped unreadable on dark.
 - Chart data colors are an independent CVD-validated triple (blue/red/teal) and
   never change with the brand palette — data distinguishability outranks branding.
 
@@ -41,6 +66,14 @@
   A linked font falls back the moment a deliverable is opened offline, emailed,
   or printed elsewhere; a declared-but-unvendored one renders nothing at all,
   which is what shipped in 1.2.
+- **Type floor: nothing below 11px** at the design viewport, anywhere in a
+  deliverable. Figure source lines may go to 10.5px and that is the only
+  exception. Eyebrows, captions, legends, table headers, page numbers and SVG
+  labels are all held to the floor. The chart scale is figure title 13 / axis
+  11.5 / source 10.5. (Until 1.8.0 the tokens said 11 / 10.5 / **9.5** while this
+  file's prose said 14 / 10–11 / 11; the tokens win per `CLAUDE.md`, so
+  deliverables shipped 9.5px source lines set in a failing ladder step. Small and
+  faint compound: either alone is survivable, together they are the defect.)
 - **Data voice** (codes/rates/percentages/dates/counters/specs): D-DIN or
   monospace, tabular-nums always on; **counters and countdowns give each digit a
   fixed-width box** so changes never reflow.
@@ -75,13 +108,23 @@
   centerpiece is a chart/diagram/directional gradient — without a professional
   photo library, never set text directly on imagery;
 - Navigation preserves traceability (documents are not landing pages): long
-  documents keep a table of contents; decks use a narrative rail;
+  documents keep a table of contents; decks use a narrative rail; **the footer
+  carries the source line and the page number as `N / total`.** A bare page
+  number tells a reader where they are and not how far they have to go, which is
+  the one thing a page number is for.
 - scroll-snap is for decks only — never long documents (it breaks table and
   citation reading);
-- **Long-document callouts form a three-tier hierarchy** (reader-reported: one
-  uniform left-rule for every highlight flattens the page): key conclusions get
-  a tinted box with a full 1px border plus a strong left edge; standard guidance
-  keeps the plain left rule; weak notes are muted text with no frame;
+- **Callouts form a three-tier hierarchy, and tier one has a budget** (reader-
+  reported twice, from both directions): key conclusions get a tinted box with a
+  full 1px border plus a strong left edge; standard guidance keeps the plain left
+  rule; weak notes are muted text with no frame. **At most one tier-one callout
+  per page, and tier one on no more than a third of a deck's pages.** If two
+  things on a page both read as the conclusion, the page has two claims and
+  should be two pages. (The first review said one uniform rule for every
+  highlight flattens the page; the tiers fixed that and the next deck put 18
+  tier-one callouts on 14 of 27 pages, so the reader's note became "not every
+  paragraph needs a bold vertical rule". A hierarchy with no budget degrades into
+  the flat page it replaced.)
 - **Deliverables state results, not process**: edit history, deletion notices,
   strikethrough leftovers, and "this section moved on <date>" asides belong in
   the working ledger, never in a formal deliverable — keep the design rationale,
@@ -104,6 +147,20 @@ dashed outline = not built · one accent-colored arrow marker throughout.
 A flow chart drawn entirely in rectangles hides where decisions happen
 (reader-requested UML/use-case richness).
 
+**Figure parity across a document.** The shape vocabulary and the level of
+construction have to hold across every figure in one deliverable. If one figure
+earns decision diamonds, dashed not-built states and directional arrows, the
+others are built to that level or they are not figures. (Reader-reported: "page 4's
+flow diagram is very good, the others are too simple, the design rules look
+inconsistent." Measured, figure 1 carried three shape kinds, six dashed states and
+nine arrows while four of the remaining six were rectangles and text with no
+arrows at all. One good figure beside five weak ones does not read as one good
+figure; it reads as a document that stopped trying.)
+
+**A grid of rectangles containing sentences is a table.** Draw the table. An SVG
+that has no arrows, no decisions and no encoding is prose in a box, and it costs
+a reader more than the table would.
+
 Form selection: one number is the story → stat callout (big figure + small label,
 data voice); composition/trend → segmented bars / tick bands; a bridge between
 two numbers → waterfall; concept relations → icon-led flow diagram; time
@@ -112,10 +169,41 @@ options, rows = dimensions). Illustrative values must be labeled.
 
 ## 5 · Icons: semantic, never decorative
 
-Line style, stroke=currentColor, symbol library embedded per document; each icon
-holds one fixed meaning (ledger=master data · radar=watch · funnel=adjudication ·
-bell=alert · shield=compliance · pen=signature · gauge=measurement ·
-slashed circle=forbidden); never add icons to "look rich".
+**The icon library ships with this skill** — `assets/icons/lucide/`, 2007 icons
+on a 24×24 grid, `stroke=currentColor` re-stroked to 1.25px, so they follow the
+text ladder and switch with the palette for free. Two commands do the work:
+
+```bash
+python3 scripts/embed_icons.py --search tariff   # find one
+python3 scripts/embed_icons.py radar route code  # sprite of just these
+```
+
+**Embed only what the document uses.** A full-library sprite is 0.9 MB of dead
+weight in every deliverable, which is how a library becomes a liability.
+
+**Breadth and consistency are two different problems and both need solving.**
+Breadth comes from the library: a page about a tariff line, a page about a court
+ruling and a page about a comment deadline should not share one icon, and they
+will if the set is small. Consistency comes from the **reserved bindings** in
+`scripts/embed_icons.py` (`--list`), which pin one icon per recurring LUMI
+meaning so the same concept looks the same in every deliverable. Outside those
+bindings the choice is free, but **within one document an icon still means
+exactly one thing** — an icon reused for a second meaning is worse than no icon,
+because the reader learns a vocabulary that then lies to them.
+
+**Where they go**: the section eyebrow on a content page carries the icon that
+names that page's subject. Never add icons to "look rich". Never draw one ad hoc
+either: with 2007 available, "nothing fits" almost always means the page's
+subject is not what you thought it was.
+
+*Provenance, two rounds.* This section required "symbol library embedded per
+document" from 1.2 to 1.7 while the package shipped nothing, so the 1.7.0 deck
+contained zero icons — the same defect 1.7.0 fixed for the display face, one
+directory over. **A rule may not mandate an asset the package does not ship.**
+1.8.0 then shipped eight hand-drawn icons and the reader said the expressiveness
+was still short and the icons did not match the content: eight meanings across
+twenty-five pages meant `gauge` did five jobs. **A vocabulary too small to say the
+thing is its own defect**, and a house set of eight was the wrong shape of answer.
 
 Field-tested layout guards (each from a real defect):
 
@@ -133,15 +221,21 @@ Field-tested layout guards (each from a real defect):
   stretched 24px icon becoming a 110px graphic is an accident, not a design
   choice, even when it accidentally looks bold. If a reviewer has to ask "is this
   the reference style?", it isn't.
-- **Page titles budget two lines at the design viewport.** Display titles are set
-  as a size *range*, not a single size, and a long title takes the lower end
-  before any word is cut. Order of remedy: (1) drop to the bottom of the title
-  range; (2) tighten wording without losing the subject or the fact; (3) split the
-  claim across the title and the support line. **Never cut below the information
-  floor.** A third title line eats the content area and pushes the footer below
-  the fold. (The original guard read "shorten the title, never shrink the type";
-  once v1.2 made display titles giant, that phrasing left cutting words as the
-  only legal move and the evidence went first.)
+- **One title line is the goal; two is the ceiling.** This is a bound, not a
+  target: a title that fits on one line at the design viewport should be on one
+  line. **Never narrow the title container below the content width to manufacture
+  a break** — a title folded in half mid-phrase reads worse than the long line it
+  was avoiding, and the reader sees the seam. Display titles are set as a size
+  *range*, not a single size, and a long title takes the lower end before any word
+  is cut. Order of remedy: (1) drop to the bottom of the title range; (2) tighten
+  wording without losing the subject or the fact; (3) split the claim across the
+  title and the support line. **Never cut below the information floor.** A third
+  title line eats the content area and pushes the footer below the fold. (Two
+  lessons here. The original guard read "shorten the title, never shrink the
+  type"; once v1.2 made display titles giant, that left cutting words as the only
+  legal move and the evidence went first. Then 1.7.0's author read "budget two
+  lines" as a target and capped every title at 48ch, so all 24 content titles
+  broke near the middle and the reader asked why they were not filling the line.)
 - **Figure vocabulary ⊆ body vocabulary**: when body terminology is renamed,
   sweep every figure label in the same pass — a chart that still speaks the old
   names contradicts the text beside it.
@@ -164,6 +258,24 @@ A layout is verified only across the **matrix**, not at a point:
   queries that step down type and spacing.
 - Verified at one matrix point is not verified. Screenshot page by page; a
   defect found by the reader is a matrix point you skipped.
+- **Geometry axis (SVG).** `check_design.py` reads declared CSS and cannot see
+  rendered geometry, so figures need browser checks. Three, in this order,
+  because each caught a defect the previous one missed:
+  1. **Every drawn element inside its viewBox.** Not just text — a band extended
+     to y=212 inside a viewBox 208 tall is clipped and collides with the caption
+     below it. Editing a shape without editing the viewBox is the single easiest
+     figure defect to ship.
+  2. **Every label inside its own shape, at the corners.** Test the text's four
+     bbox corners with `isPointInFill`, not the midline: against a sloped edge the
+     midline fits while the corners cross, which is exactly how a sentence in a
+     diamond passed inspection and read as struck through.
+  3. **Re-run both after any type-size change.** Raising the type floor moved
+     seven labels out of their boxes at once. §7's language axis already said to
+     re-inspect fixed-coordinate SVG boxes after a text change; a size change is
+     a text change.
+- **A probe that has never failed is not a probe.** Before trusting a new check,
+  reintroduce the defect it was written for and confirm it fires. Two of the
+  three above passed clean on a document that was visibly broken.
 
 ## 6 · Numbers are the copy
 

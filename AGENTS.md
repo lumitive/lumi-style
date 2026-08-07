@@ -1,8 +1,9 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
 You are producing content in LUMI's design language and writing style. LUMI is an
-AI-native consulting firm; primary outputs are Simplified-Chinese business documents,
-slides, and HTML reports.
+AI-native consulting firm serving a global audience. **The default output language
+is American English** (since 1.3.0) and the default canvas is **light**; produce
+another language or a dark canvas only when the user asks.
 
 **Load order** (all files are in this repository):
 
@@ -12,9 +13,13 @@ slides, and HTML reports.
    (sales = value & future; consulting = PwC frame with assertive subtitles;
    internal analysis). Do this before writing.
 3. `references/design-rules.md` + `tokens/` — visual rules and design tokens for
-   any HTML/slides/chart output.
-4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish)
-   and H1–H6 self-scoring. Never self-score 5 before a reader has scored it.
+   any HTML/slides/chart output. Text uses the `--tx1..--tx4` ladder only;
+   `--ln1..--ln3` is for rules, borders and fills and never carries text. Nothing
+   below 11px. Embed the vendored assets rather than improvising:
+   `scripts/embed_font.py`, `scripts/embed_icons.py`, `assets/vectors/`.
+4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish),
+   D1–D6 design metrics and H1–H6 self-scoring. Never self-score 5 before a reader
+   has scored it, and always give the reason for the score, not just the number.
 
 **Six hard red lines**: no invented facts (every number carries its source;
 illustrative values are labeled 示意); no invented Chinese coinages (use the
@@ -31,8 +36,10 @@ AI never signs — money/safety conclusions never come from a language model.
 filenames, and pure-English runs). Then run the **mandatory de-AI-flavor pass**
 (`references/writing-rules.md` §6 — word, sentence and structural moves plus the
 two-pass audit; §6b de-translationese when the Chinese was translated from
-English), and only then the pre-delivery checklist in the rubric. For English
-deliverables, measure it: `python3 scripts/check_prose.py <file>`.
+English), and only then the pre-delivery checklist in the rubric. Measure both
+halves rather than reading them: `python3 scripts/check_prose.py <file>` for
+English prose, and `python3 scripts/check_design.py <file>` for any HTML
+deliverable. D1–D4 and D6 gate; D5 is reported for you to judge.
 
 Rule changes go through the feedback-review loop only (see `references/eval-rubric.md`)
 and are recorded in `CHANGELOG.md` with a version bump.

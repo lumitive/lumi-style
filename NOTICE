@@ -29,6 +29,28 @@ permits redistribution provided the font is not sold on its own and the license
 travels with it; the Reserved Font Name restricts derivatives, and none are made
 here. Regenerate the embed block with scripts/embed_font.py.
 
+Lucide — https://github.com/lucide-icons/lucide
+Copyright (c) 2026 Lucide Icons and Contributors. ISC License — full text in
+assets/icons/lucide/LICENSE.
+
+Vendored in release 1.8.0 as assets/icons/lucide/, 2007 icons from lucide-static
+v1.28.0, together with the project's tags.json so the set is searchable. The
+files are reformatted only: comments stripped, whitespace collapsed, and the
+baked width/height/class attributes removed so the host document sizes and
+colours them. No path data is altered. The ISC licence permits redistribution
+with the copyright notice, which travels in assets/icons/lucide/LICENSE.
+
+Why a library rather than a house set: design-rules.md §5 required an embedded
+semantic icon library from 1.2 and the package shipped none, so deliverables
+carried zero icons. Release 1.8.0 first shipped eight hand-drawn icons, and a
+reader found the expressiveness short and the icons poorly matched to the
+content — eight meanings cannot cover a twenty-five page deck, so they were
+reused for meanings they did not fit. Breadth is what fixes that, and drawing
+two thousand icons by hand is not a design language, it is a second project.
+LUMI's own contribution is the reserved bindings in scripts/embed_icons.py,
+which pin one icon per recurring LUMI meaning. Re-vendor by fetching the
+lucide-static tarball from the npm registry and re-running the same reformatting.
+
 What was not taken from humanizer, and why: it is a general-purpose prose rewriter and
 English-only. Rules that conflict with LUMI's fact discipline were dropped, its
 patterns were re-scoped to LUMI's sales and marketing deliverables, and nothing
