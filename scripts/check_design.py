@@ -11,10 +11,18 @@ metric. Four of them were arithmetic:
     D4  palette       no literal colour outside the token block
     D5  figure parity shape-vocabulary spread across figures (reported)
     D6  footer        every page carries a source line and "N / total"
+    D8  support line  every content page has one under its title
+    D9  layout variety no layout on >40% of pages, >=5 distinct in a long deck
+    D10 label icons   figure nodes and row-heads carrying an icon (reported)
 
-D5 is reported rather than graded: "these two figures are built to different
-levels" is a judgement, and a number that pretends otherwise would be worse than
-the reading it replaces.
+D5 and D10 are reported rather than graded: "these two figures are built to
+different levels" and "this label is a heading" are judgements, and a number that
+pretends otherwise would be worse than the reading it replaces.
+
+D7, the page fill ratio, is not here. It needs rendered geometry and lives with
+the browser checks in references/design-rules.md §7, alongside the viewBox and
+label-containment probes — this script reads declared CSS and cannot see a figure
+that fails to grow into its cell.
 
     python3 scripts/check_design.py deck.html [more files ...]
     python3 scripts/check_design.py --json deck.html
@@ -38,6 +46,17 @@ CONTRAST_FLOOR_LARGE = 3.0
 LARGE_TEXT_PX = 24.0
 TIER1_PER_PAGE = 1
 TIER1_PAGE_SHARE = 33.0     # percent of a deck's pages that may carry one
+LAYOUT_MAX_SHARE = 40.0     # percent of a deck's pages one layout may carry
+LAYOUT_MIN_DISTINCT = 5     # in a deck of this many pages or more
+LAYOUT_MIN_PAGES = 15
+
+# The layouts shipped in tokens/lumi-layouts.css. A .body class outside this set
+# is either a typo or a layout invented in the document, and both defeat D9.
+LAYOUTS = {
+    "stack", "hero-band", "band-hero", "thirds-v",
+    "split", "split-wide", "split-narrow", "columns-2", "columns-3", "columns-4",
+    "rail", "quad", "sidebar-notes", "full-bleed", "diagonal-flow",
+}
 
 # Class names the house style uses for a tier-1 callout (tinted + border + edge).
 TIER1_CLASSES = ("key", "red")
@@ -270,6 +289,64 @@ def d5_figure_parity(raw):
     }
 
 
+def _pages(raw):
+    return re.findall(
+        r'<section[^>]*class="[^"]*\bpage\b([^"]*)"[^>]*id="([^"]*)"[^>]*>(.*?)</section>',
+        raw, re.S | re.I)
+
+
+def d8_support_line(raw):
+    """Every content page carries a support line under the title. Figure pages
+    are not exempt: a diagram with nothing introducing it drops the reader in."""
+    missing = []
+    for cls, pid, body in _pages(raw):
+        if "cover" in cls or "closing" in cls:
+            continue
+        if not re.search(r'<p class="(?:sup|lede)\b', body):
+            missing.append(pid)
+    return missing
+
+
+def d9_layout_variety(raw):
+    """One layout on 25 consecutive pages is what this metric exists to stop."""
+    used, unknown = [], []
+    for cls, pid, body in _pages(raw):
+        if "cover" in cls or "closing" in cls:
+            continue
+        m = re.search(r'<div class="body([^"]*)"', body)
+        names = [c for c in (m.group(1).split() if m else []) if c not in ("top",)]
+        layout = next((n for n in names if n in LAYOUTS), None)
+        if layout is None:
+            unknown.append((pid, " ".join(names) or "(none)"))
+        else:
+            used.append(layout)
+    if not used and not unknown:
+        return None
+    counts = {}
+    for layout in used:
+        counts[layout] = counts.get(layout, 0) + 1
+    total = len(used) + len(unknown)
+    top = max(counts.values()) if counts else 0
+    return {
+        "pages": total, "distinct": len(counts),
+        "top_share": round(100.0 * top / total, 1) if total else 0.0,
+        "top_layout": max(counts, key=counts.get) if counts else None,
+        "counts": dict(sorted(counts.items(), key=lambda kv: -kv[1])),
+        "unknown": unknown,
+    }
+
+
+def d10_label_icons(raw):
+    """Reported, not graded. Labelled figure nodes and table row-head groups
+    should carry a semantic icon; whether a given label is a heading is a
+    judgement, so this counts rather than gates."""
+    eyebrow = len(re.findall(r'<div class="eyebrow">\s*<svg class="ic"', raw))
+    in_fig = len(re.findall(r'<use href="#i-[\w-]+"/>\s*</svg>\s*(?:<text|</g>)', raw))
+    svg_icons = len(re.findall(r'<svg[^>]*class="[^"]*\bic\b[^"]*"', raw))
+    return {"eyebrow_icons": eyebrow, "icon_instances": svg_icons,
+            "figure_or_row_icons": max(0, svg_icons - eyebrow)}
+
+
 def d6_footer(raw):
     pages = re.findall(r'<section[^>]*class="[^"]*\bpage\b[^"]*"[^>]*>(.*?)</section>',
                        raw, re.S | re.I)
@@ -305,6 +382,9 @@ def measure(path):
         "D4_palette_literals": d4_palette(raw),
         "D5_figure_parity": d5_figure_parity(raw),
         "D6_footer": d6_footer(raw),
+        "D8_support_line": d8_support_line(raw),
+        "D9_layout_variety": d9_layout_variety(raw),
+        "D10_label_icons": d10_label_icons(raw),
     }
 
 
@@ -330,6 +410,18 @@ def grade(r):
     ok6 = bool(f) and not f["missing_source"] and not f["missing_total"]
     rows.append(("D6_footer", (len(f["missing_source"]) + len(f["missing_total"]))
                  if f else None, "=0", ok6, f is None))
+    rows.append(("D8_support_line", len(r["D8_support_line"]), "=0",
+                 not r["D8_support_line"], False))
+    v = r["D9_layout_variety"]
+    ok9 = bool(v) and not v["unknown"] and v["top_share"] <= LAYOUT_MAX_SHARE and (
+        v["pages"] < LAYOUT_MIN_PAGES or v["distinct"] >= LAYOUT_MIN_DISTINCT)
+    rows.append(("D9_layout_variety",
+                 f"{v['distinct']} layouts, top {v['top_share']}%" if v else None,
+                 f"<={LAYOUT_MAX_SHARE}%, >={LAYOUT_MIN_DISTINCT} distinct", ok9, v is None))
+    i = r["D10_label_icons"]
+    rows.append(("D10_label_icons",
+                 f"{i['eyebrow_icons']} eyebrow, {i['figure_or_row_icons']} in figures"
+                 if i else None, "reported", True, i is None))
     return [(n, v, t, "n/a" if skip else ("ok" if good else "FAIL"))
             for n, v, t, good, skip in rows]
 
@@ -375,6 +467,16 @@ def main(argv):
             print(f"        literal colour {h} outside the token block")
         for o in (r["D3_callouts"] or {}).get("over_budget", [])[:6]:
             print(f"        page {o['page_index']} carries {o['tier1']} tier-1 callouts")
+        for pid in r["D8_support_line"][:8]:
+            print(f"        {pid} has no support line under its title")
+        v = r["D9_layout_variety"]
+        if v:
+            for pid, cls in v["unknown"][:6]:
+                print(f"        {pid} uses no shipped layout (body class: {cls})")
+            if v["top_share"] > LAYOUT_MAX_SHARE:
+                print(f"        {v['top_layout']} carries {v['top_share']}% of pages")
+            if v["pages"] >= LAYOUT_MIN_PAGES and v["distinct"] < LAYOUT_MIN_DISTINCT:
+                print(f"        only {v['distinct']} distinct layouts across {v['pages']} pages")
 
     print("\nall metrics pass" if not failures and not unmeasurable
           else f"\n{failures} metric failure(s)" + (

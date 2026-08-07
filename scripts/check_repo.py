@@ -81,8 +81,8 @@ def css_vars(block):
 
 
 def check_versions():
-    """One version across the repo: SKILL.md, CHANGELOG, and both tokens/ headers
-    carry the same number, so a rule revision bumps all four together."""
+    """One version across the repo: SKILL.md, CHANGELOG, and all three tokens/
+    headers carry the same number, so a rule revision bumps all five together."""
     errors = []
     skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
     m = re.search(r"^\s*version:\s*[\"']?(\d+\.\d+\.\d+)", skill, re.M)
@@ -105,6 +105,7 @@ def check_versions():
     for name, pattern in (
         ("tokens/lumi-theme.css", r"LUMI visual theme\s*·\s*v(\d+\.\d+\.\d+)"),
         ("tokens/design-tokens.json", r"LUMI design tokens v(\d+\.\d+\.\d+)"),
+        ("tokens/lumi-layouts.css", r"LUMI page layouts\s*·\s*v(\d+\.\d+\.\d+)"),
     ):
         text = (ROOT / name).read_text(encoding="utf-8")
         found = re.search(pattern, text)
@@ -115,8 +116,8 @@ def check_versions():
 
     if len(set(token_versions.values())) > 1:
         errors.append(
-            "tokens/lumi-theme.css and tokens/design-tokens.json carry different "
-            f"versions ({token_versions}); their palettes mirror, so both bump together"
+            f"the tokens/ files carry different versions ({token_versions}); they "
+            f"mirror one design language, so they bump together"
         )
     for name, version in token_versions.items():
         if version not in released:
@@ -124,7 +125,7 @@ def check_versions():
         elif version != skill_version:
             errors.append(
                 f"{name}: version {version} != skill version {skill_version}; "
-                f"tokens carry the skill version, so all four stamps bump together"
+                f"tokens carry the skill version, so all five stamps bump together"
             )
     return errors
 

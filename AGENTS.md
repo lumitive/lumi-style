@@ -15,7 +15,9 @@ another language or a dark canvas only when the user asks.
 3. `references/design-rules.md` + `tokens/` — visual rules and design tokens for
    any HTML/slides/chart output. Text uses the `--tx1..--tx4` ladder only;
    `--ln1..--ln3` is for rules, borders and fills and never carries text. Nothing
-   below 11px. Embed the vendored assets rather than improvising:
+   below 11px. Pick a page layout from the §3 selection table (15 ship in
+   `tokens/lumi-layouts.css`); a page fills at least 82% of its height, and if it
+   cannot, the layout is wrong rather than the padding. Embed the vendored assets rather than improvising:
    `scripts/embed_font.py`, `scripts/embed_icons.py`, `assets/vectors/`.
 4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish),
    D1–D6 design metrics and H1–H6 self-scoring. Never self-score 5 before a reader

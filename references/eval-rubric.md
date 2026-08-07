@@ -30,10 +30,20 @@
 | D4 | Palette purity | =0 | literal hex colors outside the `:root` / `body.dark` token block |
 | D5 | Figure parity | reported, not graded | shape-kind spread across figures, and how many are rectangles-only |
 | D6 | Footer completeness | =0 | pages missing a source line or a `N / total` page number |
+| D7 | Page fill ratio | ≥82% | content height ÷ available height at the design viewport (**browser**) |
+| D8 | Support line present | =0 | content pages with no support sentence under the title |
+| D9 | Layout variety | ≤40% top share **and** ≥5 distinct | share of pages on one layout, and how many shipped layouts a deck uses |
+| D10 | Label icon coverage | reported, not graded | icons on figure nodes and table row-heads, beyond the page eyebrow |
 
-D1–D4 and D6 gate. **D5 is reported on purpose**: "these two figures are built to
-different levels" is a judgement, and a number that pretended otherwise would be
-worse than the reading it replaces. Read the spread, then look at the figures.
+D1–D4, D6, D8 and D9 gate. **D5 and D10 are reported on purpose**: "these two
+figures are built to different levels" and "this label is a heading" are
+judgements, and a number that pretended otherwise would be worse than the reading
+it replaces. Read the spread, then look at the figures.
+
+**D7 is not in the script.** It needs rendered geometry, so it lives with the
+browser checks in `design-rules.md` §7. `check_design.py` reads declared CSS and
+cannot see a figure that failed to grow into its cell — which is exactly how a
+deck shipped with a band of empty page above every footer.
 
 Provenance: M1–M11 made the prose half of this skill checkable while the design
 half stayed a reading task, and a deck that passed every prose metric came back

@@ -3,6 +3,54 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 1.9.0 — 2026-08-07
+
+Reader review of five annotated pages, all about layout. One measurement explains
+most of it: **the deck contained exactly one layout, used on 25 consecutive
+pages.** `.body` and `.body.top` differed only in `justify-content`, and there
+were zero grid rules in the file. Every page was eyebrow, title, one block,
+footer. That is a template rather than a design language, and it is why the pages
+read flat and left roughly 40% of every text page empty.
+
+**Fifteen layouts now ship**, in `tokens/lumi-layouts.css`. Vertical: `stack`,
+`hero-band` (dominant block over a thin strip), `band-hero` (its inverse),
+`thirds-v`. Horizontal: `split`, `split-wide` at 38/62, `split-narrow` at 62/38,
+`columns-2`, `columns-3`, `columns-4`. Composite: `rail`, `quad`,
+`sidebar-notes`, `full-bleed`, `diagonal-flow`.
+`design-rules.md` §3 gains a content-to-layout selection table in the same shape
+as §4's chart form-selection, because a vocabulary without a rule for choosing
+just moves the arbitrariness one level up. This is a third token file, so version
+lockstep now covers five stamps rather than four.
+
+**The gap above the footer was mechanical.** `.fig svg{width:100%;height:auto}`
+gave every figure its intrinsic aspect and no way to grow, so a 3:1 diagram in a
+tall page left the difference under the footer. The centerpiece row is now `1fr`
+and the figure fills it. **D7** puts a floor under it at 82% of available height,
+and a page that still cannot fill has the wrong layout, which the selection table
+is there to fix.
+
+**A rule that had no floor was simply not followed.** §3 has required "one to
+three sentences of support" since 1.6.0, and 10 of 25 pages had none — every
+figure page plus four table pages. It is now unconditional and checked by **D8**.
+Third release running that a prescribed value without a floor produced a visible
+defect, which is why `CLAUDE.md` §6 exists.
+
+**Icons extend past the eyebrow.** Labelled nodes inside figures and table
+row-head groups carry their semantic icon, minimum 14px effective, honouring the
+reserved bindings. **D9** caps any single layout at 40% of a deck's pages and
+requires at least five distinct layouts in a deck of fifteen or more, so 25
+identical pages cannot recur. **D10** reports label icon coverage.
+
+On tilted layouts, asked for at 15, 30 and 45 degrees: **implied diagonal only**.
+`diagonal-flow` gets its movement from stepped offsets and an angled accent rule
+behind the blocks. Rotating body text and tables breaks printing, copy and paste
+and screen reading, and a document about tariff law cannot pay that for a
+flourish. On filling the text measure to the full column width, also asked for:
+the cap stays at 88ch. An 1180px column at 14.5px holds about 115 characters
+against a comfortable measure of 45 to 75, so filling the line would read worse.
+The page was unbalanced because the right half was empty, and a second column is
+what fixes that.
+
 ## 1.8.0 — 2026-08-07
 
 Reader review of a sales-enablement deck: seven defects, and measurement said
