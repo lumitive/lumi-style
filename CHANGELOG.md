@@ -46,6 +46,21 @@ centerpieces at 13–15% and empty bands over a third of the page, and a blanket
 `.body > div{flex-direction:column}` rule from 1.9.0 that stacked every spec strip
 vertically — which alone made the cover 1301px tall inside a 720px page.
 
+
+**Second pass, same release.** The four wide diagrams were redrawn rather than
+rescaled, per hard rule 3. Nodes went from 46px strips to 112px cards carrying the
+detail that earns the space: the S0–S4 chain gained the three ledgers with their
+real status and a feedback band with a return path; the origin chain gained the
+tier scale and the watershed as a decision; the funnel gained its below-threshold
+branch and the two exempt classes; the evals ladder gained what each layer tests,
+what it needs, and its status. Captions were compressed to a reading plus a source.
+
+**Every page now fits 1280×720**, the primary geometry. Eight did not, and the
+causes were a flex chain missing `min-height:0` at three levels, so a figure's
+intrinsic height beat its cell, and an absolutely-sized cover mark. Twelve
+stroke-only `<path>` polylines in the new figures had no `fill:none` and rendered
+as solid black wedges — visible on the contact sheet, invisible to every metric.
+
 The cover and closing are recomposed: the globe is part of the composition rather
 than absolutely-positioned decoration mostly off-page. The remaining page-by-page
 design work is open and tracked.

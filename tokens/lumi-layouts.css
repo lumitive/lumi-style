@@ -61,8 +61,14 @@
 /* The figure starts under its legend and grows downward. Centring it inside the
    cell instead leaves a gap above and below, which is the same empty band the
    fill rule exists to remove, just moved inside the cell. */
-.body .fill > .fig { display: flex; flex-direction: column; justify-content: flex-start; gap: 8px; }
-.body .fill > .fig > svg:not(.ic) { flex: 1; min-height: 0; width: 100%; }
+/* min-height:0 at every level of the flex chain, or the figure's intrinsic
+   height wins and the page grows past the page. The SVG keeps its aspect and
+   letterboxes inside whatever height is left, which is what preserveAspectRatio
+   is for; a figure narrower than its cell with even margins reads as composed. */
+.body .fill > .fig { display: flex; flex-direction: column; justify-content: flex-start;
+  gap: 8px; min-height: 0; }
+.body .fill > .fig > svg:not(.ic) { flex: 1 1 0; min-height: 0; width: 100%; }
+.body .fill > .fig > .cap { flex: none; }
 /* A table given the height distributes it across its own rows. Two bounds keep
    that from becoming the padding-fudge the fill rule exists to forbid: rows
    centre their content so the rhythm reads as spacing rather than as text
