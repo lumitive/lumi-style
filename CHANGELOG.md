@@ -144,6 +144,19 @@ because a figure carrying half a page's argument should not read as secondary to
 the table beside it. No content page in the deck now sits below 45% cell fill in
 either geometry.
 
+
+**Seventh pass · the glossary, and H5 off 3.** Business readability had sat at 3
+for four rounds because layout and colour work cannot touch it: a sales reader
+meets HTS, 301, 232, GN11, RVC, HS2012, USMCA's four names and two unrelated L
+numberings, and the deck offered nothing to resolve them. Twelve terms now sit at
+page 7, **before the pillar pages that first use the vocabulary** rather than in
+an appendix nobody reaches, and the last entry is the two-L trap the source
+document calls the easiest misreading in the engagement. Four terms a reader can
+infer from context were cut so the twelve that actually block a reading stand
+clearly. The deck is 28 pages, still exactly one page each in both geometries, and
+the usage-tier citations are now generated from page ids so they cannot drift when
+a page is inserted.
+
 The cover and closing are recomposed: the globe is part of the composition rather
 than absolutely-positioned decoration mostly off-page. The remaining page-by-page
 design work is open and tracked.
