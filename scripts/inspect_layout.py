@@ -128,8 +128,16 @@ PROBE = r"""
       if (hit) { run = 0; } else { if (!run) runTop = y; run += STEP;
         if (run > maxRun) { maxRun = run; bestTop = runTop; } }
     }
+    // Page-height conformance. A deck is a set of fixed pages: one page must be
+    // exactly one page. A section taller than the geometry prints across two
+    // sheets and scrolls past the fold when projected, and it is invisible to
+    // every fill or aspect number because those are all measured *within* it.
+    const overflowPx = Math.round(sr.height - window.innerHeight);
     out.push({
       id: s.id,
+      pageH: Math.round(sr.height),
+      overflowPx,
+      overflowPct: +(100 * overflowPx / window.innerHeight).toFixed(1),
       centerScale: best ? +(100 * best.w * best.h / best.cellArea).toFixed(1) : null,
       cells,
       centerpiece: best ? `${best.tag}.${best.cls}` : null,
@@ -235,10 +243,17 @@ def main(argv):
                             f"fills {a['fillsCellHeight']}% of cell height")
                 elif a:
                     note = f"fig {a['figure']}:1 in cell {a['cell']}:1"
-                print(f"  {r['id']:8} {str(r['centerpiece'] or '-'):22} "
+                over = f"  +{r['overflowPx']}px" if r['overflowPx'] > 1 else ""
+            print(f"  {r['id']:8} {str(r['centerpiece'] or '-'):22} "
                       f"{str(r['centerScale'] or '-'):>5}%  "
                       f"{str(r['emptyBandPct'])+'%':>11}  "
-                      f"{' '.join(c['cls'][:4]+':'+str(c['fill'])+'%' for c in r['cells']):<34}{note}")
+                      f"{' '.join(c['cls'][:4]+':'+str(c['fill'])+'%' for c in r['cells']):<34}{note}{over}")
+            tall = [r for r in rows if r['overflowPx'] > 1]
+            if tall:
+                print(f"  PAGE HEIGHT: {len(tall)} of {len(rows)} pages exceed the "
+                      f"{h}px page — " + ", ".join(f"{r['id']} +{r['overflowPx']}px" for r in tall[:8]))
+            else:
+                print(f"  page height: all {len(rows)} pages are exactly {h}px")
             if shots:
                 print(f"  contact sheet: {sheet}")
                 print("  Look at it. That is the check; the numbers only say where to look.")

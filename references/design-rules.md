@@ -343,8 +343,19 @@ A layout is verified only across the **matrix**, not at a point:
 - **Language axis**: translated text runs 30–50% longer or shorter — after any
   localization pass, re-inspect every fixed-width container (SVG text in
   fixed-coordinate boxes, stat-band labels, flex rows near their wrap point).
-- **Page-geometry axis — the primary one.** Every deliverable serves two output
-  formats, so both are matrix points, not options:
+- **Page-height conformance comes first: one page is exactly one page.** Every
+  section renders at exactly the geometry's height in both formats — not less and
+  never more. A section taller than the page prints across two sheets, scrolls past
+  the fold when projected, and is **invisible to every other measurement**, because
+  fill, aspect and centerpiece scale are all measured *within* the page. Check it
+  before anything else; `inspect_layout.py` reports it per geometry.
+  *Provenance: two pages ran 94px and 116px past A4 while every other number on
+  them looked healthy. The reader spotted it by eye — they were simply longer than
+  their neighbours. The causes were a callout pasted into both cells of a split and
+  an orphan one-paragraph cell left behind by a re-lay, neither of which any
+  content metric can see.*
+- **Page-geometry axis.** Every deliverable serves two output formats, so both are
+  matrix points, not options:
   - **16:9 landscape, 1280×720**, checked at 1920×1080 — projection, PDF and PPT
     export. This is the primary geometry.
   - **A4 portrait, 794×1123** — printing and binding.

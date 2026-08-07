@@ -33,6 +33,7 @@
 | D8 | Support line present | reported | content pages with no support sentence under the title |
 | D9 | Layout spread | reported | which layouts a deck uses, and the share on the most common |
 | D10 | Label icon coverage | reported | icons on figure nodes and table row-heads, beyond the page eyebrow |
+| D11 | Page-height conformance | reported, and the first thing to read | pages whose rendered height differs from the geometry's, per format (`inspect_layout.py`) |
 
 **None of the D-series gates.** `check_design.py` exits 0 unless a file cannot be
 measured at all; every number is a diagnostic for a designer to read. `SKILL.md`
