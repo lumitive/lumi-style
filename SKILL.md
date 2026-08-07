@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "3.2.0"
+  version: "3.3.0"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -111,8 +111,12 @@ been removed; they now apply at step 4 instead of framing step 0.
    until 1.8.0, and a deck that passed every prose metric came back from its
    reader with seven defects, four of them arithmetic.)
 5. **Version lockstep**: stamp every deliverable with the lumi-style version
-   that produced it (cover meta strip + closing colophon, "built with
-   lumi-style X.Y.Z") — the deliverable's own version number **is** that
+   that produced it — **once, in the closing colophon**, small and out of the
+   way ("built with lumi-style X.Y.Z"). It used to be stamped on the cover as
+   well; a reader pointed out that a build stamp and a source citation on the
+   opening page are apparatus for the author, not information for the reader.
+   The stamp still has to exist and still has to match — `check_repo.py` fails on
+   a mismatch — it just does not open the document — the deliverable's own version number **is** that
    version. Decks open with a cover and end with a closing page
    (see `references/storyline-templates.md`).
 6. **Review loop**: decks embed the scoring table as the final page; on receiving

@@ -498,7 +498,15 @@ A layout is verified only across the **matrix**, not at a point:
   it was satisfiable by stretching table rows while four diagrams rendered at 40%
   of their cell, and it measured the bounding box of all ink, so a small chart
   with a long caption scored as full.
-- **Collision axis.** Two text blocks may not land on each other. Every other
+- **Collision axis.** Nothing may land on anything. Text against text **and text
+  against every drawn element** — field, figure, band, spec, geography. 3.2.0
+  shipped this comparing text to text only, and a reader immediately found two
+  defects it could not see: a field sitting 22px on a paragraph, and the cover
+  globe crossing the document attributes on both the cover and the closing.
+  Eleven pairs, every one of them text against a drawing. *A probe that knows one
+  kind of collision finds one kind of collision.* Containment is not collision: a
+  caption inside its own figure is fine. Two text blocks may not land on each
+  other. Every other
   probe measures a block against the *page* — its top, its bottom, its column,
   the footer rule — and none of them can see two blocks overlapping in the middle
   of one. A reader found it twice before any check did, when 3.1.0's heavier

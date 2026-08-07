@@ -3,6 +3,61 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 3.3.0 — the working green and the event green, numbers that rank, a quieter cover
+
+Six items from a review. One needed measurement rather than taste, two were
+defects, and both defects were invisible to the probe added one release earlier.
+
+**Can the new green be used everywhere on content pages?** No, and the usage
+counts say why. The accent appears there **84 times as a fill, 71 times as a
+stroke, 23 times as a wash, and 0 times as text**. The lime cannot do the strokes:
+1.21:1 on white makes a chart rule, a connector or a decision outline invisible,
+and §1 already counts a mark a reader must tell apart as text. It could do the
+fills, but 84 acid panels is the opposite of non-contention and destroys the thing
+that makes it an event. So the two greens are named for the two jobs the canvas
+forces apart: **`--acc` forest is the working green** — anything that must read on
+white — and **`--lime` is the event green** — large panels only. Collapsing them
+into one would take a dark content canvas, declined in 3.1.0.
+
+**The collision probe only knew one kind of collision.** 3.2.0 added it after a
+reader found text on text; it compares text to text and nothing else. The same
+reader immediately found two defects it could not see, and measuring text against
+*drawn* elements found **11 pairs**: a field sitting 22px on a paragraph, and the
+globe crossing `DATE`, `VERSION` and `CLASSIFICATION` on both the cover and the
+closing. It now compares text against every drawn element — field, figure, band,
+spec, geography — with containment excluded, because a caption inside its own
+figure is not a collision.
+
+**The catalogue field is removed from page 3.** Its label was cut in 3.2.0 to fix
+a different collision, and unlabelled the 161 marks read as texture rather than as
+evidence — which is exactly what the reader called them. The stat band on that
+page already says 161. The field survives where it earns its place: the
+thirty-page tier strip, where the distribution *is* the argument and no number
+states it. A signature device used twice, once meaningfully and once not, is used
+once.
+
+**Key numbers rank in three steps and are set like arguments.** `.band .v` was
+weight **400** — a caption with large type. It is now the display weight, and
+importance is three tiers rather than a single highlight: the number the page
+turns on gets a **lime panel** with near-black numerals (16.44:1), its support is
+**forest**, and context is **ink**. One lime panel per page, because ΔE against
+the forest is 94 and two greens on one page would read as two meanings.
+
+**The cover and closing get quieter.** Both subtitles are gone — the title is the
+page. The source clause is cut from the cover colophon, after verifying `D6` still
+finds the document's provenance on the closing. The build stamp now appears
+**once**, in the closing colophon: `SKILL.md`'s version-lockstep rule said cover
+*and* closing, so the rule moved with the deck rather than being quietly broken.
+The document attributes are retained and stop competing — out from under the globe
+into one narrow mono column in the clear lower-left. The closing title takes the
+cover's register.
+
+One self-inflicted defect on the way: the new number tier was first called
+`.v.lead`, which collides with `.lead`, the focal block. D1's surface discovery
+keys on class tokens, so it began grading every focal element against the lime
+panel — five false contrast failures on the dark palette. Renamed to `.v.first`.
+**A class name is an interface.**
+
 ## 3.2.0 — text on text, the display pulled back, and one lime event in the body
 
 A reader reviewing 3.1.0 found characters overlapping at the bottom of two pages,
