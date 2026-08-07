@@ -61,6 +61,38 @@ intrinsic height beat its cell, and an absolutely-sized cover mark. Twelve
 stroke-only `<path>` polylines in the new figures had no `fill:none` and rendered
 as solid black wedges — visible on the contact sheet, invisible to every metric.
 
+
+**Third pass · palette, lists, captions, legends.** Four reader items.
+
+*Colour.* The light canvas is **pure white (#FFFFFF)**, not the warm cream the
+field has settled on, and the dark canvas is **Apple space grey (#1D1D1F)**. The
+state palette grew from two colours to four, each with one fixed meaning and each
+measured as text on its own canvas: `--amber` (#A86407 / #E0A73E) for partial, in
+progress, awaiting an input; `--brass` (#7A6C52 / #C3B393) for reference and
+archival. Before this, "partial" and "not built" both rendered as dashed grey, so
+a deck could not say the one thing it most needed to say about itself.
+
+*Lists are back.* "Bullet pileups are banned" had been read as "lists are banned",
+and a 27-page deck shipped with **zero** `ul` or `ol` — M10 could not even be
+computed. The rule now separates the pileup from the list and says what each form
+is for: ordered for a sequence performed in order, bulleted for conditions that
+must all hold, dashed for alternatives.
+
+*Figure number and name go below the figure, and that does not change.* Two split
+pages had moved the caption into the side column, which detached the number from
+the thing it numbers.
+
+*The legend goes where the figure wants it.* "Top right, above the plot" was
+applied to every figure regardless of shape, at a size that competed with the
+figure title. It is now a key in the narrative voice at caption weight, positioned
+by the figure's own layout.
+
+`inspect_layout.py` gained per-cell fill and now measures centerpiece scale against
+the cell the centerpiece lives in rather than the whole page — measuring against
+the page made every split look half empty when both its columns were full. Its ink
+selector had also omitted lists and spec strips, so a full column of ordered steps
+reported as 10% ink.
+
 The cover and closing are recomposed: the globe is part of the composition rather
 than absolutely-positioned decoration mostly off-page. The remaining page-by-page
 design work is open and tracked.

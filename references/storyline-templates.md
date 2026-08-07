@@ -127,8 +127,16 @@ sits between them.
   figure title. Only internal analysis documents keep explicit so-what lines.
   (Lesson: pasted-on labels correlate poorly with content; they visualize the
   failure of the discipline.)
-- **Comparisons always use tables** (columns = options, rows = dimensions);
-  bullet pileups are banned;
+- **Comparisons always use tables** (columns = options, rows = dimensions). What
+  is banned is the bullet *pileup* — a page of fragments standing in for an
+  argument — **not the list**. A numbered list is the right form for a sequence a
+  reader must perform in order; a bulleted list is right for a small set of
+  criteria that must all hold; a dashed list is right for options that are
+  alternatives. These are clearer than the same content buried in prose and far
+  easier to remember, which is the whole point of enumerating.
+  *Provenance: the ban was read as a ban on lists, and a 27-page deck shipped with
+  **zero** `ul` or `ol` elements — M10 could not even be computed. Prose that
+  should have been three numbered steps was three sentences in a paragraph.*
 - **Every page answers one question a real reader would ask** — write that
   question down before writing the page;
 - Parallel structure **only where it aids comparison** — a genuine enumeration

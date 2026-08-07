@@ -13,19 +13,31 @@
 
 ## 1 · Color: one color, one meaning; hierarchy via transparency
 
-- **Canvas — light by default, dark on request** (v1.3): the default canvas for
-  every deliverable is near-white (#FAFAF8) with the ink ladder. The dark canvas
-  (near-black #060806 with a breath of green, cold-white ladder) is applied only
-  when the user explicitly asks for dark. Both palettes share one structure —
-  build with semantic tokens (`--bg`, `--nw`, ladder, accents) and switch the
-  whole palette with a single `body.dark` override block; never fork the file.
-  Literal colors in component CSS or inline SVG are a defect: they silently
-  ignore the palette switch.
-- **Single accent = natural green** (#48633E on light; lift to #7C9F63 on the
-  dark canvas — the deep green fails contrast on near-black): emphasis, pass, built.
-  **China red (#C8102E) is for warnings/red-lines/vetoes only** — never
-  decoration. This is stricter than SpaceX/Tesla: they let color appear only where
-  it carries meaning; LUMI pins each meaning to exactly one color.
+- **Canvas — light by default, dark on request.** The light canvas is **pure
+  white (#FFFFFF)** with cards a hair off it (#FAFAFA). **Not the warm cream**
+  (#F4F1EA and its neighbours) that has become the field default: it reads as a
+  template, and it drags every accent toward a sepia cast. The dark canvas is
+  **Apple space grey (#1D1D1F)**, cards #2C2C2E — a grey that has been looked at
+  by a lot of people on a lot of screens. Both palettes share one structure: build
+  with semantic tokens and switch with a single `body.dark` override block, never
+  a forked file. Literal colors in component CSS or inline SVG are a defect,
+  because they silently ignore the switch.
+- **One color, one meaning — four of them, each clearing 4.5:1 as text on its own
+  canvas.** This is stricter than SpaceX/Tesla: they let color appear only where it
+  carries meaning; LUMI pins each meaning to exactly one color.
+
+  | Token | Light | Dark | Means |
+  |---|---|---|---|
+  | `--acc` | #48633E (6.71) | #7C9F63 (5.61) | built · running · pass · emphasis |
+  | `--seal` | #C8102E (5.88) | #E0685A (5.05) | warning · red line · veto · blocked |
+  | `--amber` | #A86407 (4.68) | #E0A73E (7.83) | partial · in progress · awaiting an input |
+  | `--brass` | #7A6C52 (5.13) | #C3B393 (8.17) | reference · archival · out of scope but real |
+
+  *Provenance: the palette was accent-plus-warning only, so "partial" and "not
+  built" both rendered as dashed grey and a deck could not say the one thing it
+  most needed to say about itself. Amber and brass exist to carry state, not to
+  decorate — adding a fifth colour needs a meaning that none of these four covers,
+  and a contrast measurement on both canvases.*
 - **Hierarchy comes from a transparency ladder, not new grays** — and since 1.8.0
   it is **two ladders**, because one of them was unreadable. The token names carry
   the rule:
@@ -197,10 +209,25 @@
 1. Figure titles state conclusions, not labels; 2. one accent color (natural
 green), everything else grayscale, red only for warnings; 3. no gridlines, no
 chart borders, no legend for single series; 4. every figure carries a source line
-(small light-gray text); 5. fixed type scale (figure title 14 / axis 10–11 /
-source 11); 6. **the legend sits at the top right of the figure, above the plot**;
-7. **caption anatomy is two-part** — "Figure N · Name" centered and bold on its
-own line, then the detailed description left-aligned at the figure's width.
+(small light-gray text); 5. a type scale that suits the figure, not a fixed one.
+
+6. **The legend goes where the figure's own layout wants it.** Top right above the
+plot is one good answer, not the rule — a vertical bar chart may want it under the
+title, a small-multiple grid may want it once at the bottom, and a figure with two
+marks may not want a legend at all if the marks are labelled in place. What is
+fixed: the legend is quieter than the plot (it is a key, not a finding), it sits
+close enough that the eye pairs it with the marks without hunting, and it never
+takes a line of its own at the top of a page where it reads as a heading.
+*Provenance: "top right, above the plot" was applied to every figure regardless of
+shape, at a size that competed with the figure title.*
+
+7. **Figure number and name go below the figure. This does not change.** Caption
+anatomy is two-part — "Figure N · Name" as its own line, then the description at
+the figure's width, then the source line. A reader looks at the picture and then
+asks what it is; putting the name above answers a question they have not formed
+yet, and putting it beside breaks the pairing when the column stacks.
+*Provenance: two split-layout pages moved the caption into the side column, which
+detached the number from the figure it numbers.*
 
 Flow-diagram shape vocabulary (shapes carry semantics, never decoration):
 **parallelogram** = data input/output · **rectangle** = process ·
