@@ -58,11 +58,15 @@ DEFAULT_GEOMETRIES = ["16x9", "a4", "wide"]
 PROBE = r"""
 () => {
   const CENTER = 'table, .fig, .band, .geo-flat';
-  // Widen this and the numbers change: lists and spec strips were absent, so a
-  // full column of ordered steps reported as 10% ink and a cover spec as 0%.
+  // Widen this and the numbers change: lists and spec strips were absent once,
+  // so a full column of ordered steps reported as 10% ink. Any new block class
+  // has to be added here too — a probe is only as good as its vocabulary, and
+  // one that cannot see .say or .vow reports a column as empty and its
+  // neighbour as misaligned.
   const INK = 'table, svg, p, h1, h2, li, ol, ul, .listhead, .band, .key, .gd, .red,'
             + ' .note, .cap, .legend, .eyebrow, .spec, .spec div, .colophon, .wordmark,'
-            + ' .card, .who, dl, dt, dd, .verdict';
+            + ' .card, .who, dl, dt, dd, .verdict, .say, .g, .swap, .vow, .vt, .vw,'
+            + ' .ledname, .lead, .tag';
   const out = [];
   for (const s of document.querySelectorAll('section.page')) {
     const sr = s.getBoundingClientRect();
@@ -148,12 +152,131 @@ PROBE = r"""
       frameSkewPx = Math.round(Math.max(Math.abs(f.left - body.left),
                                         Math.abs(f.right - body.right)));
     }
+
+    // ── column alignment and weight ───────────────────────────────────────
+    // Side-by-side cells must start on one line and carry comparable weight, or
+    // the page reads as two unrelated documents. 2.1.0's provenance: layouts.css
+    // said `.body.split > div { justify-content: flex-start }` at specificity
+    // (0,2,1) while the fill rule above it reached (0,6,1) — each :not() counts
+    // its argument — so every multi-column page centred its columns
+    // independently and drifted by up to 333px. A rule that loses silently is
+    // indistinguishable from no rule, which is why this is measured and not read.
+    const layout = bodyEl ? ([...bodyEl.classList].filter(c => c !== 'body')[0] || '') : '';
+    const multi = /split|columns|sidebar|quad/.test(layout);
+    let colTopSkewPx = 0, colWeightRatio = 1, colCount = 0;
+    if (multi && bodyEl) {
+      const cells = [...bodyEl.children].filter(e => !e.classList.contains('lede')
+                                               && !e.classList.contains('span'));
+      colCount = cells.length;
+      const boxes = [], tops = [], weights = [];
+      for (const c of cells) {
+        let t = Infinity, w = 0;
+        for (const e of c.querySelectorAll(INK)) {
+          const r = e.getBoundingClientRect();
+          if (r.height < 2 || r.width < 2) continue;
+          t = Math.min(t, r.top); w += r.height * r.width;
+        }
+        if (t < Infinity) {
+          const cr = c.getBoundingClientRect();
+          boxes.push(cr); tops.push(t); weights.push(Math.max(1, w));
+        }
+      }
+      // Only cells that actually sit side by side can be out of line. In
+      // portrait every horizontal layout becomes a vertical one by design, and
+      // comparing a stacked cell's top to the one above it reported a 792px
+      // "misalignment" that is the composition working exactly as intended.
+      for (let i = 0; i < boxes.length; i++) {
+        for (let j = i + 1; j < boxes.length; j++) {
+          const sideBySide = (boxes[i].right <= boxes[j].left + 1
+                           || boxes[j].right <= boxes[i].left + 1)
+                          && (boxes[i].top < boxes[j].bottom
+                           && boxes[j].top < boxes[i].bottom);
+          if (!sideBySide) continue;
+          colTopSkewPx = Math.max(colTopSkewPx, Math.round(Math.abs(tops[i] - tops[j])));
+          const r = Math.max(weights[i], weights[j]) / Math.min(weights[i], weights[j]);
+          colWeightRatio = Math.max(colWeightRatio, +r.toFixed(1));
+        }
+      }
+    }
+
+    // ── focal element ─────────────────────────────────────────────────────
+    // The largest type below the title, against body copy. A page whose biggest
+    // thing is a paragraph has no entry point: the eye starts top-left and reads
+    // it as a document. Measured after a reader called 28 pages flat and 24 of
+    // them turned out to have nothing above 15px on them at all. Reported as a
+    // ratio, never a floor — the answer for some pages is a dominant figure, and
+    // a type threshold would push a number onto a page that does not want one.
+    let focalPx = 0, focalText = '', bodyPx = parseFloat(getComputedStyle(document.body).fontSize) || 15;
+    for (const e of s.querySelectorAll('*')) {
+      // The page title is excluded, or it masks every flat page beneath it. A
+      // cover or closing whose h2 *is* the composition carries no .t class,
+      // so exclude the title specifically rather than the tag.
+      if (e.closest('h2.t') || e.closest('.foot')) continue;
+      // Own text, not descendants'. Testing e.children.length instead skipped
+      // every display number that carried a unit in a <span> — which was all of
+      // them — and reported four newly-composed pages as having no focal
+      // element at all.
+      const own = [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+      if (!own) continue;
+      const r = e.getBoundingClientRect();
+      if (r.height < 2) continue;
+      // SVG type scales with the viewBox, so the declared size lies. Use the
+      // rendered height of the line instead.
+      const px = e.ownerSVGElement ? r.height : parseFloat(getComputedStyle(e).fontSize);
+      if (px > focalPx) { focalPx = px; focalText = (e.textContent || '').trim().slice(0, 24); }
+    }
+    // A *drawing* that owns most of its cell is a focal element in its own
+    // right. A table is not, however much of the cell it fills: `.fill > table`
+    // is given `height:100%`, so every prose table on the deck reports 100% of
+    // its cell and would have counted as a focal element here. That is D7's
+    // exact failure — measuring the box instead of the thing in it — and it
+    // reached this probe before the probe was a day old.
+    const centerIsDrawing = best && (best.tag === 'svg' || best.cls === 'fig');
+    const figLead = (best && centerIsDrawing) ? (best.w * best.h / best.cellArea) : 0;
+
+    // ── caption budget ────────────────────────────────────────────────────
+    // Under a figure belongs the number, the name and the source. Prose there is
+    // body copy in a caption's clothes: it sits at caption size, far from the
+    // sentence it explains, and on two pages it turned out to repeat the page's
+    // own column verbatim. Duplication is the part worth measuring — a reader
+    // sees it before they can say why.
+    const pageText = (s.innerText || '').replace(/\s+/g, ' ');
+    const caps = [];
+    for (const cap of s.querySelectorAll('.cap')) {
+      const d = cap.querySelector('.d');
+      if (!d) continue;
+      const txt = (d.innerText || '').replace(/\s+/g, ' ').trim();
+      const sentences = txt.split(/(?<=[.?!])\s+/).filter(x => x.split(' ').length > 6);
+      const rest = pageText.replace(txt, '');
+      const dup = sentences.filter(x => rest.includes(x.slice(0, 45))).length;
+      caps.push({words: txt.split(/\s+/).filter(Boolean).length,
+                 sentences: sentences.length, duplicated: dup});
+    }
+
+    // ── what the page is built out of ─────────────────────────────────────
+    // Digit density separates a table of values from prose poured into a grid.
+    // A grid says "these cells are comparable on this axis"; prose in one says
+    // only that the author had a list and reached for a table.
+    const tables = [];
+    for (const t of s.querySelectorAll('table')) {
+      const txt = (t.innerText || '');
+      const digits = (txt.match(/\d/g) || []).length;
+      tables.push({rows: t.querySelectorAll('tr').length,
+                   digitPct: +(100 * digits / Math.max(1, txt.length)).toFixed(0)});
+    }
+    const drawn = [...s.querySelectorAll('svg[viewBox]:not(.ic)')]
+      .some(e => e.getBoundingClientRect().height > 60);
     out.push({
       id: s.id,
       pageH: Math.round(sr.height),
       overflowPx,
       frameSkewPx,
       sideMarginSkewPx: Math.round(Math.abs((body.left - sr.left) - (sr.right - body.right))),
+      layout, colCount, colTopSkewPx, colWeightRatio,
+      focalPx: Math.round(focalPx), focalText, bodyPx: Math.round(bodyPx),
+      focalRatio: +(focalPx / Math.max(1, bodyPx)).toFixed(2),
+      figLeadPct: +(100 * figLead).toFixed(0),
+      caps, tables, drawn,
       overflowPct: +(100 * overflowPx / window.innerHeight).toFixed(1),
       centerScale: best ? +(100 * best.w * best.h / best.cellArea).toFixed(1) : null,
       cells,
@@ -268,6 +391,62 @@ def main(argv):
                       f"{str(r['centerScale'] or '-'):>5}%  "
                       f"{str(r['emptyBandPct'])+'%':>11}  "
                       f"{' '.join(c['cls'][:4]+':'+str(c['fill'])+'%' for c in r['cells']):<34}{note}{over}")
+            # Every block below reports and returns. The counts name pages so a
+            # designer knows where to look; none of them is a threshold a page
+            # must clear, because the fix for each is a design decision and a
+            # number that can be satisfied without making the page better ends
+            # the looking rather than directing it (SKILL.md rule 4).
+            multi = [r for r in rows if r.get('colCount', 0) > 1]
+            bad_top = [r for r in multi if r['colTopSkewPx'] > 8]
+            if bad_top:
+                print(f"  COLUMN TOPS: {len(bad_top)} of {len(multi)} multi-column pages — "
+                      "side-by-side cells do not start on one line: "
+                      + ", ".join(f"{r['id']} {r['colTopSkewPx']}px"
+                                  for r in sorted(bad_top, key=lambda r: -r['colTopSkewPx'])[:6]))
+            elif multi:
+                print(f"  column tops: all {len(multi)} multi-column pages start on one line")
+            heavy = sorted((r for r in multi if r['colWeightRatio'] > 3),
+                           key=lambda r: -r['colWeightRatio'])
+            if heavy:
+                print(f"  COLUMN WEIGHT: {len(heavy)} of {len(multi)} pages carry one column "
+                      "far heavier than its neighbour: "
+                      + ", ".join(f"{r['id']} {r['colWeightRatio']}:1" for r in heavy[:6]))
+            elif multi:
+                print(f"  column weight: no page exceeds 3:1 across {len(multi)} multi-column pages")
+
+            flat = [r for r in rows if r['focalRatio'] < 1.35 and r['figLeadPct'] < 45]
+            if flat:
+                print(f"  FOCAL: {len(flat)} of {len(rows)} pages have no element larger than "
+                      f"body copy and no dominant figure — nothing for the eye to enter on: "
+                      + ", ".join(r['id'] for r in flat[:10])
+                      + (f" (+{len(flat)-10} more)" if len(flat) > 10 else ""))
+            else:
+                print(f"  focal: every one of {len(rows)} pages has a focal element")
+
+            capbad = [(r, c) for r in rows for c in r['caps']
+                      if c['duplicated'] or c['words'] > 45]
+            if capbad:
+                print(f"  CAPTIONS: {len(capbad)} figure captions carry prose: "
+                      + ", ".join(f"{r['id']} {c['words']}w"
+                                  + (f", {c['duplicated']} sentence(s) repeated on the page"
+                                     if c['duplicated'] else "")
+                                  for r, c in capbad[:5]))
+            else:
+                ncap = sum(len(r['caps']) for r in rows)
+                print(f"  captions: {ncap} carry prose under the figure number, none repeated")
+
+            prose_t = [(r, t) for r in rows for t in r['tables'] if t['digitPct'] <= 2]
+            alltab = sum(len(r['tables']) for r in rows)
+            if prose_t:
+                print(f"  TABLES: {len(prose_t)} of {alltab} tables hold prose, not values "
+                      f"(digit density <=2%): " + ", ".join(f"{r['id']}" for r, _ in prose_t[:10])
+                      + (f" (+{len(prose_t)-10} more)" if len(prose_t) > 10 else ""))
+            elif alltab:
+                print(f"  tables: all {alltab} tables carry values")
+            ndrawn = sum(1 for r in rows if r['drawn'])
+            print(f"  figures: {ndrawn} of {len(rows)} pages are built on a drawing "
+                  f"rather than a grid or a block of prose")
+
             skew = [r for r in rows if r.get('frameSkewPx', 0) > 1
                     or r.get('sideMarginSkewPx', 0) > 2]
             if skew:

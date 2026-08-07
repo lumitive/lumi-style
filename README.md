@@ -47,8 +47,10 @@ maintenance rule.
 
 ## The design language in one line
 
-**Space-gray canvas · natural green as the single accent · China red for warnings
-only; one claim per screen, numbers are the copy, titles are conclusions.**
+**Pure-white canvas (Apple space grey on request) · natural green as the single
+accent · China red for warnings only, amber for partial, brass for reference;
+one claim per screen and one focal element on it, numbers are the copy, titles
+are conclusions, and a table is for values.**
 The layout skeleton was researched from the public web design of SpaceX and Tesla
 (whitespace, spec-first copy, monochrome discipline); the palette and its
 semantics are LUMI's own — one color, one meaning, enforced more strictly than

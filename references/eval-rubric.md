@@ -49,9 +49,29 @@ rendered at 40% of their cell. The skill already forbade this move on the prose
 side (click-through must never measure relevance, because the metric rewards what
 it exists to suppress); D7 was the same mistake in the design half.
 
-For page geometry, centerpiece scale and figure-to-cell aspect, use
-`scripts/inspect_layout.py`, which renders the pages and reports. It gates nothing
-either, and its real output is a contact sheet for a human to look at.
+For anything that has to be rendered before it can be seen, use
+`scripts/inspect_layout.py`. It gates nothing either, and its real output is a
+contact sheet for a human to look at.
+
+| Probe | Reports | What it caught |
+|---|---|---|
+| page height | pages whose rendered height differs from the geometry's | the first thing to read |
+| frame | footer and composition sharing one width and centre | a dead band down 28 of 28 pages, visible only off-geometry |
+| column tops | top-edge skew between side-by-side cells | 12 of 15 pages, from a rule that had never once applied |
+| column weight | ink-area ratio between siblings | one column at 9.1:1 against its neighbour |
+| focal | largest element against body copy; pages with neither that nor a dominant drawing | 24 of 28 pages had nothing above body copy |
+| captions | caption word count, and sentences repeated elsewhere on the page | 124 words under one figure; another repeating its own page |
+| tables | tables by digit density | 14 of 16 tables held prose, not values |
+| figures | share of pages built on a drawing | 9 of 28 |
+| centerpiece scale · aspect · empty band | what "too small" and "looks empty" mean geometrically | — |
+
+**A probe is only as good as its vocabulary.** Every one of these reads the DOM
+through a selector list, and a selector that does not know a block class reports
+its column as empty and its neighbour as misaligned. Adding a block pattern to a
+deliverable means adding it to `INK`. Two probes were wrong within a day of being
+written for exactly this reason, and a third counted a table stretched to 100% of
+its cell as a "dominant figure" — D7's own failure, reproduced inside the tool
+built to replace it.
 
 Provenance: M1–M11 made the prose half of this skill checkable while the design
 half stayed a reading task, and a deck that passed every prose metric came back

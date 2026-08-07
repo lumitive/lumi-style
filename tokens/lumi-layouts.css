@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v2.0.1 (2026-08-07)
+   LUMI page layouts · v2.1.0 (2026-08-07)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -58,11 +58,16 @@
    was written as a blanket `.body > div` and it overrode the row direction of
    every spec strip and stat band, which turned the cover's five-item strip into
    a 652px vertical stack and made the page 1301px tall inside a 720px page. */
-.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+/* .lead joins the exclusions: it is a display block with its own direction and
+   gap, not a cell that distributes its children. Without this the rule turned
+   every `.lead.row` back into a column — .lead.row is (0,2,0) against this
+   rule's (0,6,1) — and the one-line leads silently stacked, which is what put a
+   page ten pixels over. Third time this chain has quietly won an argument. */
+.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead),
 .body > header {
   display: flex; flex-direction: column; min-height: 0; gap: 14px;
 }
-.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend) {
+.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead) {
   justify-content: center;
 }
 .body .fill > table,
@@ -76,6 +81,14 @@
    is for; a figure narrower than its cell with even margins reads as composed. */
 .body .fill > .fig { display: flex; flex-direction: column; justify-content: flex-start;
   gap: 8px; min-height: 0; }
+/* The drawing gets the height that is left and letterboxes inside it, which is
+   what guarantees a page is exactly one page. 2.1.0 tried `flex: 0 1 auto` to
+   kill the letterbox gap and put eleven of twenty-eight pages over the page
+   edge: an SVG with a viewBox and width:100% resolves its height from the
+   aspect ratio and does not shrink out of it. The letterbox band is not a CSS
+   problem — a figure that letterboxes is drawn for the wrong proportion, and
+   the fix is to redraw it (SKILL.md rule 3). inspect_layout.py's aspect column
+   names which ones. */
 .body .fill > .fig > svg:not(.ic) { flex: 1 1 0; min-height: 0; width: 100%; }
 .body .fill > .fig > .cap { flex: none; }
 /* A table given the height distributes it across its own rows. Two bounds keep
@@ -119,12 +132,32 @@
 .body.split-wide > .span,
 .body.split-narrow > .span { grid-column: 1 / -1; }
 .body.split, .body.split-wide, .body.split-narrow { column-gap: 44px; }
-.body.split > div, .body.split-wide > div, .body.split-narrow > div,
-.body.columns-2 > div, .body.columns-3 > div, .body.columns-4 > div,
-.body.quad > div, .body.sidebar-notes > div { justify-content: flex-start; }
+/* Side-by-side cells start on one line, so the reader's eye can cross between
+   them. This repeats the fill rule's whole :not() chain on purpose: that rule
+   reaches specificity (0,6,1) because every :not() contributes its argument,
+   and the plain `.body.split > div` form written here since 1.9.0 reached only
+   (0,2,1) and lost every time. It had never once applied. Twelve of fifteen
+   multi-column pages centred their columns independently and drifted apart by
+   up to 132px, which is what "the left and right are not level" turned out to
+   be. A rule that loses silently is indistinguishable from no rule, so the
+   column-tops probe in inspect_layout.py now measures the outcome rather than
+   trusting the declaration. */
+.body.split > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.split-wide > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.split-narrow > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.columns-2 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.columns-3 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.columns-4 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.quad > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.sidebar-notes > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend)
+  { justify-content: flex-start; }
 
 /* columns — parallel items of equal weight. Two, three or four. */
-.body.columns-2 { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto 1fr; column-gap: 36px; }
+/* auto for the lede, auto for an optional lead band, 1fr for the columns.
+   A three-block page on a two-track grid put its third block in an implicit
+   row that the 1fr had already spent. */
+.body.columns-2 { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto auto 1fr; column-gap: 36px; }
+.body.columns-2:not(:has(> .lead)) { grid-template-rows: auto 1fr; }
 .body.columns-3 { grid-template-columns: repeat(3, 1fr); grid-template-rows: auto 1fr; column-gap: 30px; }
 .body.columns-4 { grid-template-columns: repeat(4, 1fr); grid-template-rows: auto 1fr; column-gap: 24px; }
 .body.columns-2 > .lede, .body.columns-3 > .lede, .body.columns-4 > .lede,
@@ -139,6 +172,39 @@
   border-right: 1px solid var(--ln2); padding-right: 32px;
 }
 
+/* ── the focal element ───────────────────────────────────────────────────
+   One thing per page that the eye lands on before it starts reading. It is a
+   number when the page turns on a number, a sentence when the page turns on a
+   claim, and neither when the page's figure already dominates — that judgement
+   is the designer's and there is no floor here. `.lead` is the block; it is a
+   grid cell like any other and can sit in any layout. */
+.lead { display: flex; flex-direction: column; gap: 10px; }
+.lead .v {
+  font-family: var(--display, var(--sans)); font-size: var(--fs-lead);
+  line-height: .94; letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+  color: var(--tx1);
+}
+.lead.xl .v { font-size: var(--fs-lead-xl); }
+.lead .v .u { font-size: .42em; letter-spacing: 0; color: var(--tx3); }
+.lead .say {
+  font-size: var(--fs-say); line-height: 1.28; letter-spacing: -.01em;
+  color: var(--tx1); max-width: 46ch;
+}
+/* The gloss carries the number's meaning and its source. Without it a display
+   number is decoration, and red line 1 says every number carries its source. */
+.lead .g {
+  font-family: var(--mono); font-size: var(--fs-floor); line-height: 1.55;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--tx3);
+  max-width: 64ch;
+}
+.lead .v em { font-style: normal; color: var(--accent); }
+/* A lead that has to share a page with content already filling it sits on one
+   line rather than claiming a grid row of its own. */
+.lead.row { flex-direction: row; align-items: baseline; gap: 18px; }
+.lead.row .g { max-width: 62ch; }
+/* A lead sitting above other content in the same cell keeps its distance. */
+.lead + * { margin-top: 4px; }
+
 /* quad — 2x2. Four parallel items, or a matrix whose axes are named in the lede. */
 .body.quad { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto 1fr 1fr; column-gap: 36px; }
 .body.quad > .lede, .body.quad > .span { grid-column: 1 / -1; }
@@ -149,12 +215,16 @@
 .body.sidebar-notes > .lede { grid-column: 1 / -1; }
 .body.sidebar-notes > .notes {
   border-left: 1px solid var(--ln2); padding-left: 26px;
-  display: flex; flex-direction: column; gap: 16px; justify-content: center;
+  display: flex; flex-direction: column; gap: 16px;
+  /* Not centred. A sidebar centred against a full-height table floats in the
+     middle of its own rule, which is what made one page's single note read as
+     a small block dropped onto the right of the page. */
 }
 
 /* full-bleed — the centerpiece runs past the content margin to the page edge.
    Maps, globes, wide timelines. The page padding is cancelled on that row. */
 .body.full-bleed { grid-template-rows: auto 1fr; }
+.body.full-bleed.no-lede { grid-template-rows: 1fr; }
 .body.full-bleed > .bleed { margin-inline: calc(-1 * var(--page-pad, 92px)); }
 
 /* diagonal-flow — movement without rotation. Blocks step down a descending
@@ -212,7 +282,31 @@
   .body.rail { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
   .body.rail > .railhead { border-right: 0; border-bottom: 1px solid var(--ln1);
                            padding-right: 0; padding-bottom: 14px; }
-  .body.columns-3 { grid-template-columns: 1fr; grid-template-rows: auto repeat(3, 1fr); }
+  /* Three cards read fine side by side on A4's 682px: each gets 218px, which is
+     a card and not a gutter. Stacking them made the page 292px too tall, and
+     the point of the page is that the three are compared. */
+  .body.columns-3 { grid-template-columns: repeat(3, 1fr); column-gap: 18px; }
+  /* The new block patterns get portrait proportions rather than a reflow. */
+  .vows { grid-template-columns: 1fr; gap: 12px; }
+  .vows .vow:nth-child(5) { border-top: 0; padding-top: 0; }
+  /* Stacking a swap turns seven pairs into fourteen rows; two pages went nearly
+     3000px over. A swap is a swap in both geometries — it just gets tighter. */
+  .swaps.tight .swap { grid-template-columns: 1fr 18px 1.15fr; padding: 7px 0; }
+  .swaps.tight .no, .swaps.tight .yes { font-size: 11.5px; line-height: 1.42; }
+  .swap { grid-template-columns: 1fr 24px 1fr; }
+  .grades { gap: 8px; }
+  .gr .gc { display: none; }
+  /* A figure column plus a full notes column is two pages of material on one
+     A4 page. The notes tighten; the figure keeps its drawing. */
+  .body.split > .notes .gd, .body.split-narrow > .notes .gd,
+  .body.split > .notes li, .body.split-narrow > .notes li { font-size: 12px; line-height: 1.5; }
+  .body.split > .notes .swap, .body.split-narrow > .notes .swap { padding: 9px 0; }
+  .body.split > .notes .no, .body.split > .notes .yes,
+  .body.split-narrow > .notes .no, .body.split-narrow > .notes .yes { font-size: 12px; line-height: 1.45; }
+  .card { padding: 14px 15px; gap: 9px; }
+  .ledname { font-size: 18px; }
+  .card dd { font-size: 12.5px; }
+  .lead.row { flex-direction: column; align-items: flex-start; gap: 6px; }
   .body.columns-4 { grid-template-columns: repeat(2, 1fr); }
   .body.cover-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
   .duo { grid-template-columns: 1fr; gap: 16px; }

@@ -163,9 +163,22 @@ def extract(path):
             re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", m.group(1)))).strip()
             for m in re.finditer(r"<h[12][^>]*>(.*?)</h[12]>", raw_nostrip, re.S | re.I)
         ]
+        # An enumeration is an enumeration whatever it is marked up as. Counting
+        # only <ul>/<ol> made M10 measure three lists on a 30 page deck that
+        # enumerates constantly in named blocks, and two of the three happening
+        # to hold three items read as a 66.7% triad rate. The rule is about how
+        # often an author reaches for three, so the sample has to be every place
+        # they reached.
         enums = [len(re.findall(r"<li\b", m.group(1), re.I))
                  for m in re.finditer(r"<(?:ul|ol)\b[^>]*>(.*?)</(?:ul|ol)>",
                                       raw_nostrip, re.S | re.I)]
+        for wrapper, item in (("swaps", "swap"), ("vows", "vow"), ("grades", "gr"),
+                              ("gloss", "dt"), ("duo", "gd")):
+            for m in re.finditer(rf'<[^>]*class="[^"]*\b{wrapper}\b[^"]*"[^>]*>(.*?)(?=<div class="(?:foot|body|listhead)|</section>)',
+                                 raw_nostrip, re.S | re.I):
+                n = len(re.findall(rf'class="[^"]*\b{item}\b', m.group(1), re.I))
+                if n >= 2:
+                    enums.append(n)
         # Block boundaries become sentence boundaries; without this a nav bar, a
         # heading and six list items merge into one 27-word "sentence".
         body = BLOCK_END.sub(".\n", raw_nostrip)
