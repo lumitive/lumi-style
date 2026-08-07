@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "2.3.0"
+  version: "3.0.0"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -63,6 +63,18 @@ rules only as rule data for Chinese-language output.
 
 ## Workflow
 
+**The order matters, and it is commit first, clarify second.** Land the concept
+fully, then apply the red lines and the craft rules to make it clear. Doing it the
+other way — starting inside the constraints and decorating outward — is
+measurably how you get work that is correct and lifeless. Through 2.3.0 this
+skill ran 272 restricting lines against 12 inviting ones, and every release added
+more brakes because every release fixed a defect a reader had found. No brake has
+been removed; they now apply at step 4 instead of framing step 0.
+
+0. **Read [`references/brand.md`](references/brand.md) and commit.** 上善若水 —
+   what LUMI is, the field and the waterline, and the accelerators. This is the
+   only file that says what to reach for. Decide what the deliverable *is* before
+   you decide what it may not do.
 1. **Pick the scenario**: sales/marketing · consulting/client document · internal
    analysis — three different narrative skeletons. Read
    [`references/storyline-templates.md`](references/storyline-templates.md) and
@@ -71,8 +83,10 @@ rules only as rule data for Chinese-language output.
    [`references/writing-rules.md`](references/writing-rules.md) (terminology red
    lines / banned phrases / punctuation / number discipline / the LUMI voice /
    de-AI-flavor pass). **Run the punctuation pass after drafting.**
-3. **Visuals and charts**: for HTML/slides/chart output follow
-   [`references/design-rules.md`](references/design-rules.md); tokens come from
+3. **Visuals and charts**: compose against `brand.md`'s two devices first — the
+   **field** (one mark per datum, intensity from the datum) and the **waterline**
+   (one horizon per page: air above, record below) — then follow
+   [`references/design-rules.md`](references/design-rules.md) for craft; tokens come from
    [`tokens/lumi-theme.css`](tokens/lumi-theme.css),
    [`tokens/design-tokens.json`](tokens/design-tokens.json) and
    [`tokens/lumi-layouts.css`](tokens/lumi-layouts.css). **Choose a page layout for
@@ -122,7 +136,8 @@ rules only as rule data for Chinese-language output.
 
 ## Cross-platform
 
-Four entry points load one rule set (single source in `references/`):
+Four entry points load one rule set (single source in `references/`, with
+`brand.md` first in every load order):
 Claude Code uses this file; Codex reads `AGENTS.md`; Kimi / DeepSeek use
 `prompts/lumi-style-core.md` (self-contained single file). Per-platform loading
 notes live in `adapters/`.

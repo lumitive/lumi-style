@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v2.3.0 (2026-08-07)
+   LUMI page layouts · v3.0.0 (2026-08-07)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -311,6 +311,68 @@
     zoom: min(100vw / 1280px, 100svh / 720px);
   }
 }
+
+/* ═══ the two brand devices (v3.0.0, references/brand.md) ═══════════════════
+   Both are structural. A committed surface sitting on a template grid is the
+   failure the brand file exists to avoid, so neither of these is a decoration
+   applied after the layout is decided — they are how the page is built.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── the waterline ────────────────────────────────────────────────────────
+   One horizon per page, where the light collects. Above it is air: the claim,
+   the title, the one thing to carry out of the room. On and below it is
+   record: the evidence, the handling terms, the page number. The footer rule
+   was already at this line and was drawn as a border closing a box; it becomes
+   the surface the page sits on. Two horizons and a page has stripes instead of
+   a datum; none and it is a document again — inspect_layout.py checks for
+   exactly one. */
+.page > .foot {
+  border-top: 0;
+  position: relative;
+  padding-top: 10px;
+}
+.page > .foot::before {
+  content: "";
+  position: absolute; inset-inline: 0; top: 0; height: 1px;
+  background: linear-gradient(90deg,
+    var(--acc-5) 0 22%, var(--ln1) 22% 62%, var(--ln2) 62% 100%);
+}
+
+/* ── the field ────────────────────────────────────────────────────────────
+   One mark per datum, intensity from the datum, order from the data's own
+   sequence. At a glance the distribution; up close, countable. This is the
+   deck's signature and it was already being drawn by accident — the thirty
+   page tier strip, the stat bands, the timeline dots.
+
+   A field with nothing behind it is decoration, and decoration is the page
+   competing for attention it has not earned. Every mark carries a
+   `data-datum`; inspect_layout.py fails a field whose marks outnumber its
+   data. If you want the texture and do not have the data, you do not want the
+   texture. */
+.field { display: flex; align-items: flex-end; gap: 3px; width: 100%; }
+.field > i {
+  display: block; flex: 1 1 0; min-width: 2px;
+  background: var(--acc-3);
+  height: 100%;
+}
+.field.tall > i { height: 62px; }
+.field > i[data-w="5"] { background: var(--acc-5); }
+.field > i[data-w="4"] { background: var(--acc-4); }
+.field > i[data-w="3"] { background: var(--acc-3); }
+.field > i[data-w="2"] { background: var(--acc-2); }
+.field > i[data-w="1"] { background: var(--acc-1); }
+/* A mark may carry a semantic colour instead of a ramp step when the datum has
+   a meaning rather than an intensity. Meaning outranks shimmer. */
+.field > i[data-sem="seal"]  { background: var(--seal); }
+.field > i[data-sem="amber"] { background: var(--amber); }
+.field > i[data-sem="brass"] { background: var(--brass); }
+.fieldkey {
+  display: flex; gap: 22px; margin-top: 10px;
+  font-family: var(--mono); font-size: var(--fs-floor);
+  letter-spacing: .1em; color: var(--tx3);
+}
+.fieldkey span { display: flex; align-items: center; gap: 7px; }
+.fieldkey i { width: 11px; height: 11px; display: block; flex: none; }
 
 /* ── portrait · A4 and anything taller than it is wide ────────────────────
    Portrait is a composition, not a reflow. Collapsing every horizontal layout

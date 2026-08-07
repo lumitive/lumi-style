@@ -1,7 +1,11 @@
 # LUMI Design Rules
 
-> **Subordinate to the four hard rules in `SKILL.md`.** This file is craft
-> knowledge and defect history: what has gone wrong before and what fixed it.
+> **Subordinate to the four hard rules in `SKILL.md`, and to
+> [`brand.md`](brand.md), which loads before it.** `brand.md` says what to reach
+> for; this file says what has gone wrong before. Reach first, then read this.
+>
+> This file is craft knowledge and defect history: what has gone wrong and what
+> fixed it.
 > None of it outranks *design per page*, *verify on rendered geometry*, *redraw
 > rather than grow chrome*, and *done when a human reads the page as intentional*.
 > Read it as a designer reads a body of precedent, not as a checklist to satisfy.

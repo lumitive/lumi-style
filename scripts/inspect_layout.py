@@ -333,6 +333,23 @@ PROBE = r"""
       sourceEcho = [...a].filter(x => b.has(x)).length;
     }
 
+    // ── the two brand devices, checked for honesty (references/brand.md) ──
+    // A field with nothing behind it is decoration, and decoration is the page
+    // competing for attention it has not earned. Every mark must map to one
+    // real item: the container declares data-count, each mark declares its own
+    // data-datum, and the two have to agree. This is the one new brake 3.0.0
+    // adds, and it is what keeps the shimmer from becoming texture.
+    const fields = [];
+    for (const f of s.querySelectorAll('.field')) {
+      const marks = f.querySelectorAll(':scope > i');
+      const declared = parseInt(f.getAttribute('data-count') || '0', 10);
+      const bound = [...marks].filter(m => m.getAttribute('data-datum')).length;
+      fields.push({marks: marks.length, declared, bound});
+    }
+    // One horizon per page. Two and the page has stripes instead of a datum;
+    // none and it is a document again.
+    const horizons = s.querySelectorAll('.foot').length;
+
     const tables = [];
     for (const t of s.querySelectorAll('table')) {
       const txt = (t.innerText || '');
@@ -353,7 +370,7 @@ PROBE = r"""
       focalPx: Math.round(focalPx), focalText, bodyPx: Math.round(bodyPx),
       focalRatio: +(focalPx / Math.max(1, bodyPx)).toFixed(2),
       figLeadPct: +(100 * figLead).toFixed(0),
-      caps, tables, drawn, capGapPx, sourceEcho,
+      caps, tables, drawn, capGapPx, sourceEcho, fields, horizons,
       overflowPct: +(100 * overflowPx / window.innerHeight).toFixed(1),
       centerScale: best ? +(100 * best.w * best.h / best.cellArea).toFixed(1) : null,
       cells,
@@ -598,6 +615,22 @@ def main(argv):
                       + ", ".join(r['id'] for r in echo[:8]))
             else:
                 print(f"  source: no page states the same source twice")
+            loose = [(r, f) for r in rows for f in r.get('fields', [])
+                     if f['bound'] != f['marks'] or f['declared'] != f['marks']]
+            nf = sum(len(r.get('fields', [])) for r in rows)
+            if loose:
+                print(f"  FIELD WITHOUT DATA: {len(loose)} of {nf} fields have marks that "
+                      "carry no datum — a shimmer with nothing behind it is decoration: "
+                      + ", ".join(f"{r['id']} ({f['bound']}/{f['marks']} bound, "
+                                  f"{f['declared']} declared)" for r, f in loose[:5]))
+            elif nf:
+                print(f"  fields: all {nf} carry one mark per real item")
+            noh = [r for r in rows if r.get('horizons', 1) != 1]
+            if noh:
+                print(f"  WATERLINE: {len(noh)} pages do not have exactly one horizon: "
+                      + ", ".join(f"{r['id']} ({r['horizons']})" for r in noh[:6]))
+            else:
+                print(f"  waterline: one horizon on each of {len(rows)} pages")
             ndrawn = sum(1 for r in rows if r['drawn'])
             print(f"  figures: {ndrawn} of {len(rows)} pages are built on a drawing "
                   f"rather than a grid or a block of prose")
