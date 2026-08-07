@@ -3,6 +3,33 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 1.7.0 — 2026-08-07
+
+Two operational gaps, both found by asking why a step kept costing time.
+
+**The display face now ships with the skill.** `design-rules.md` has required
+D-DIN to be embedded since 1.2, and 1.2 itself shipped with the face declared but
+not vendored, so it rendered nothing. The rule was right and the package could not
+satisfy it: every deliverable's author had to find the font again. The two woff2
+files (43 KB together) now live in `assets/fonts/` with their OFL text, and
+`scripts/embed_font.py` prints the ready `@font-face` block or verifies the files
+with `--check`. Confirmed the vendored files produce base64 byte-identical to the
+already-shipped deck, so nothing about existing deliverables changes. CI checks
+the sizes, because a silently swapped face would alter the metrics of every
+document that embeds it. Note that `.gitignore` blocks font formats as
+deliverable output and now carries an explicit exception — the face is part of the
+design language, not a render.
+
+**Waiting on CI is now bounded and outage-aware.** During the 2026-08-06 Actions
+incident, open-ended polling consumed most of a working session and merged
+nothing: runs queued for six minutes, were cancelled, were re-run, queued again.
+`scripts/ci_wait.sh` asks the status page *before* waiting and short-circuits when
+Actions is degraded, otherwise checking three times over about four minutes and
+then stopping. The protocol behind it is recorded in `CLAUDE.md`: correctness is
+answered locally by `check_repo.py` in seconds, CI only unlocks the merge button,
+a cancelled run is a symptom rather than a verdict, and re-running into a declared
+incident adds to the load causing it.
+
 ## 1.6.0 — 2026-08-07
 
 Internal review: sales and marketing deliverables still read as AI-written. The

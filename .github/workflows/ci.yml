@@ -25,6 +25,9 @@ jobs:
       # scripts/ had no CI coverage at all until 1.6.0: a syntax error in either
       # script would have shipped silently, including into the emergency merge
       # path that runs when CI itself is unavailable.
-      - run: python3 -m py_compile scripts/check_repo.py scripts/check_prose.py
-      - run: bash -n scripts/emergency_merge.sh
+      - run: python3 -m py_compile scripts/check_repo.py scripts/check_prose.py scripts/embed_font.py
+      - run: bash -n scripts/emergency_merge.sh scripts/ci_wait.sh
+      # The display face must stay byte-identical: a silent change would alter the
+      # metrics of every deliverable that embeds it.
+      - run: python3 scripts/embed_font.py --check
       - run: python3 scripts/check_repo.py

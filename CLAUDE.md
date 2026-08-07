@@ -14,6 +14,8 @@ sync, and recording changes in the changelog.
 ```bash
 python3 scripts/check_repo.py            # repo invariants; exit 1 on any failure
 python3 scripts/check_prose.py <file>    # AI-flavor metrics on a deliverable
+python3 scripts/embed_font.py            # @font-face block with the face inlined
+bash    scripts/ci_wait.sh <PR>          # bounded wait, short-circuits on outage
 ```
 
 Standard library only, no dependencies. `.github/workflows/ci.yml` runs
@@ -36,6 +38,30 @@ point — the alternative is a rule that looks enforced and is not.
 
 Everything the checks cannot decide — above all whether a rule change was
 re-flowed into the entry points — stays with the reviewer.
+
+## When CI is slow or down
+
+`main` requires the `checks` status and enforces it for admins, so a GitHub
+Actions incident blocks merging for everyone. Do not wait it out by polling.
+
+1. **Ask the status page before waiting**, not after. One call to
+   `githubstatus.com/api/v2/components.json` answers whether waiting is worth
+   anything. Polling a capacity-constrained service also adds to the load causing
+   the outage.
+2. **Bound every wait.** `scripts/ci_wait.sh <PR>` does both of the above: it
+   short-circuits when Actions is degraded, and otherwise checks three times over
+   about four minutes and then stops. Open-ended polling turns a service problem
+   into a person problem — during the 2026-08-06 outage it consumed most of a
+   working session and merged nothing.
+3. **Separate correctness from the gate.** `check_repo.py` answers "is this
+   change good", locally and in seconds. CI only unlocks the merge button. During
+   an outage, report the local verdict and hand over the decision rather than
+   blocking on a queue nobody can drain.
+4. **A cancelled run is a symptom, not a verdict.** Re-run it once. If it is
+   cancelled again during a declared incident, stop re-running.
+5. Merging anyway is `scripts/emergency_merge.sh <PR>`, which verifies the merge
+   result locally before it unlocks anything and restores protection on every
+   exit path. It is the last resort, not the second.
 
 ## Architecture: one rule set, three entry points
 
