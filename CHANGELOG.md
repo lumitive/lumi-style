@@ -119,6 +119,20 @@ moved its table to full width with the two caveats as a band beneath.
 was being reported on the hidden one, and its ink selector had omitted the card
 and definition-list elements, so a full column read as 2 percent.
 
+
+**Fifth pass · page-height conformance, and the last thin pages.** The reader
+noticed two pages were simply longer than their neighbours in portrait. They were:
+**p18 ran 94px and p22 116px past A4**, and no existing measurement could see it,
+because fill, aspect and centerpiece scale are all measured *within* a page. That
+is now **D11**, reported per geometry and the first thing to read. The causes were
+a callout pasted into both cells of a split and orphan one-paragraph cells left
+behind by an earlier re-lay — content defects that no content metric catches.
+
+All 27 pages now render at exactly 720px at 16:9 and exactly 1123px at A4, in both
+palettes. The four-tile stat band became a grid that owns its cell and goes 2x2 in
+portrait, taking two pages from 37% fill to 100%, and the trade map lost a fixed
+620px cap it had been given to stop it overflowing a page it no longer overflows.
+
 The cover and closing are recomposed: the globe is part of the composition rather
 than absolutely-positioned decoration mostly off-page. The remaining page-by-page
 design work is open and tracked.
