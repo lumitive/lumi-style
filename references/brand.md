@@ -142,6 +142,15 @@ from the top down reads as *poured*.
 **surface and never text**, and `check_design.py` D13 enforces exactly that. On
 the dark canvas it is the accent proper at 13.90:1.
 
+**One lime event per body page, and it is a fill.** The lime may appear once in
+the body of a deck, on the number the page turns on — measured, it is comfortable
+there and the numbers say why. Its edge against the canvas is **1.21:1**, so the
+panel *glows rather than cuts*; near-black on it is **16.44:1**; and at **chroma
+102** it is right at panel size and harsh as a hairline or as small text, so it is
+never a rule, a stroke or a caption. **Once per page**: ΔE against the semantic
+forest is **94**, plainly a different colour, so two greens on one page would read
+as two meanings.
+
 **It carries no meaning.** `--acc` stays the semantic accent for data, and one
 colour one meaning is untouched. The lime is where the brand is loud: the part
 openers are full lime fields with the claim in near-black at display size, and
@@ -173,8 +182,10 @@ The reference this was studied against runs **245 elements at weight 700 and 52 
 900**, display at 254px and 120px, line-height ~0.9, and letter-spacing `normal`
 everywhere. This deck ran D-DIN 400, uppercase, `.3em` tracking — a spec sheet.
 
-- **Display** (cover, closing, part openers): `clamp(64px, 9vw, 132px)`, weight
-  **700**, leading **0.92**, tracking negative.
+- **Display** (cover, closing, part openers): `clamp(45px, 6.3vw, 92px)`, weight
+  **700**, leading **0.92**, tracking negative. It was a third larger on first
+  build and a reader pulled it back — big enough to be the event, not so big the
+  page becomes a poster with a caption.
 - **Page titles**: weight **700** at `clamp(24px, 2.7vw, 34px)` — half again the
   old size. A title is the claim, not a caption.
 - **Support lines**: 16px weight 500. A second voice, not small print.

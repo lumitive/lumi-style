@@ -498,6 +498,15 @@ A layout is verified only across the **matrix**, not at a point:
   it was satisfiable by stretching table rows while four diagrams rendered at 40%
   of their cell, and it measured the bounding box of all ink, so a small chart
   with a long caption scored as full.
+- **Collision axis.** Two text blocks may not land on each other. Every other
+  probe measures a block against the *page* — its top, its bottom, its column,
+  the footer rule — and none of them can see two blocks overlapping in the middle
+  of one. A reader found it twice before any check did, when 3.1.0's heavier
+  register outgrew grid rows that had been sized for the old one. Measure leaf
+  text against leaf text; a container legitimately encloses its children. **When
+  the type scale moves, the tracks that hold it have to move with it** —
+  `min-content` on the row, or the block overflows onto its neighbour instead of
+  lengthening its own row.
 - **Ground axis.** Measure the ground on the *rendered* page with every
   foreground element hidden, and require it under 1.40:1 against the canvas plus
   free of repeated identical marks. Reasoning about it from the declared alpha

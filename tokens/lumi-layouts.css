@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v3.1.0 (2026-08-07)
+   LUMI page layouts · v3.2.0 (2026-08-07)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -128,7 +128,9 @@
 
 /* hero-band — dominant block over a thin evidence strip.
    One number is the story, with its specs beneath. */
-.body.hero-band { grid-template-rows: auto 1fr auto; }
+/* min-content on the band row: a stat band whose labels grew must lengthen
+   its own row rather than spill onto the paragraph beneath it. */
+.body.hero-band { grid-template-rows: auto minmax(min-content, 1fr) auto; }
 
 /* band-hero — a short framing strip over a dominant block. */
 .body.band-hero { grid-template-rows: auto auto 1fr; }
