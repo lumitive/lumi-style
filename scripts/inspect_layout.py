@@ -47,8 +47,12 @@ GEOMETRIES = {
     "16x9-hd": (1920, 1080),
     "a4":     (794, 1123),
     "laptop": (1000, 550),
+    # Deliberately not a design geometry. A constraint set on one child of the
+    # page frame is exact at 1280 and wrong everywhere else, so one render of a
+    # size nobody designed for is worth more here than a third designed one.
+    "wide":   (1800, 1000),
 }
-DEFAULT_GEOMETRIES = ["16x9", "a4"]
+DEFAULT_GEOMETRIES = ["16x9", "a4", "wide"]
 
 # Measured in the page, not from CSS. Everything here runs in the browser.
 PROBE = r"""
@@ -133,10 +137,23 @@ PROBE = r"""
     // sheets and scrolls past the fold when projected, and it is invisible to
     // every fill or aspect number because those are all measured *within* it.
     const overflowPx = Math.round(sr.height - window.innerHeight);
+    // Frame alignment. The page frame's parts must share one width and one
+    // centre line, or the composition and the source line that sources it drift
+    // apart. This is invisible at the design geometry — 2.0.1 shipped a
+    // max-width on .body and none on .foot, which is exact at 1280 and opens a
+    // dead band down the right of every page on a wider window. Hence --wide.
+    let frameSkewPx = 0;
+    if (footEl && bodyEl) {
+      const f = footEl.getBoundingClientRect();
+      frameSkewPx = Math.round(Math.max(Math.abs(f.left - body.left),
+                                        Math.abs(f.right - body.right)));
+    }
     out.push({
       id: s.id,
       pageH: Math.round(sr.height),
       overflowPx,
+      frameSkewPx,
+      sideMarginSkewPx: Math.round(Math.abs((body.left - sr.left) - (sr.right - body.right))),
       overflowPct: +(100 * overflowPx / window.innerHeight).toFixed(1),
       centerScale: best ? +(100 * best.w * best.h / best.cellArea).toFixed(1) : null,
       cells,
@@ -244,10 +261,22 @@ def main(argv):
                 elif a:
                     note = f"fig {a['figure']}:1 in cell {a['cell']}:1"
                 over = f"  +{r['overflowPx']}px" if r['overflowPx'] > 1 else ""
-            print(f"  {r['id']:8} {str(r['centerpiece'] or '-'):22} "
+                # This print sat one level out of the loop until 2.0.1, so the
+                # table reported the last page 28 times over and every page-by-
+                # page reading taken from it was of one page.
+                print(f"  {r['id']:8} {str(r['centerpiece'] or '-'):22} "
                       f"{str(r['centerScale'] or '-'):>5}%  "
                       f"{str(r['emptyBandPct'])+'%':>11}  "
                       f"{' '.join(c['cls'][:4]+':'+str(c['fill'])+'%' for c in r['cells']):<34}{note}{over}")
+            skew = [r for r in rows if r.get('frameSkewPx', 0) > 1
+                    or r.get('sideMarginSkewPx', 0) > 2]
+            if skew:
+                print(f"  FRAME: {len(skew)} of {len(rows)} pages — the footer and the "
+                      f"composition are not the same width, or the page is not centred: "
+                      + ", ".join(f"{r['id']} skew {r['frameSkewPx']}px" for r in skew[:6]))
+            else:
+                print(f"  frame: footer and composition share one width and centre "
+                      f"on all {len(rows)} pages")
             tall = [r for r in rows if r['overflowPx'] > 1]
             if tall:
                 print(f"  PAGE HEIGHT: {len(tall)} of {len(rows)} pages exceed the "

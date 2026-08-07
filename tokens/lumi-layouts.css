@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v2.0.0 (2026-08-07)
+   LUMI page layouts · v2.0.1 (2026-08-07)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -13,7 +13,8 @@
 
    Two rules bind every layout here:
      · The centerpiece row is 1fr and the centerpiece grows into it, so a page
-       fills rather than leaving a band above the footer (D7, floor 82%).
+       fills rather than leaving a band above the footer. There is no fill floor;
+       2.0.0 withdrew the 82% one, which was satisfiable by stretching a table.
      · No rotated body text or tables. `diagonal-flow` gets its movement from
        stepped offsets and an angled accent rule; rotation breaks printing,
        copy and paste, and screen reading, and a tariff document cannot pay
@@ -31,10 +32,18 @@
   gap: var(--gap);
   width: 100%;
   max-width: 1180px;
+  margin-inline: auto;
   padding: 14px 0 10px;
   align-content: stretch;
   min-height: 0;            /* lets a 1fr row actually shrink and grow */
 }
+/* The measure cap belongs to the page, not to one of its three children. It was
+   set on .body alone, so on any viewport wider than the design page the footer
+   ran to the window edge while the composition stayed left-anchored — a dead
+   band down the right of all 28 pages, and the source line no longer aligned
+   with the content above it. The cap is correct; applying it to one child was
+   not. Anything that shares the page frame takes the same width and centers. */
+.page > .foot, .page > .body { max-width: 1180px; margin-inline: auto; width: 100%; }
 .body > * { min-width: 0; min-height: 0; }
 /* The lede block holds eyebrow, title and support. Only the prose takes the
    measure; constraining the block would re-break the title across two lines. */

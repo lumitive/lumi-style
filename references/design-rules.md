@@ -386,11 +386,19 @@ A layout is verified only across the **matrix**, not at a point:
      seven labels out of their boxes at once. §7's language axis already said to
      re-inspect fixed-coordinate SVG boxes after a text change; a size change is
      a text change.
-- **Fill axis (D7).** For every page, measure content height over available
-  height between the title and the footer rule, and require **≥82%** at the
-  design viewport. This cannot be a static check: the figure that failed to grow
-  had perfectly legal CSS. Report the worst pages by ratio rather than a pass or
-  fail alone, because the number tells you which layout to reconsider.
+- **Fill axis, reported and never a floor.** `inspect_layout.py` reports each
+  page's centerpiece scale against its own cell. Read it to find which layout to
+  reconsider; do not set a threshold on it. 2.0.0 withdrew the 82% floor because
+  it was satisfiable by stretching table rows while four diagrams rendered at 40%
+  of their cell, and it measured the bounding box of all ink, so a small chart
+  with a long caption scored as full.
+- **Off-geometry axis.** Render one size the document was **not** designed for —
+  a window wider than the design page is the cheap one. Constraints set on a
+  single child of the page frame are invisible at 1280×720 and open a dead band
+  at 1817px: 2.0.1 shipped `max-width` on `.body` and nothing on `.foot`, so all
+  28 pages ran the footer to the window edge past a left-anchored composition,
+  and the contact sheet could not see it because it renders only the two design
+  geometries. Check that the page frame's parts stay the same width and centre.
 - **A probe that has never failed is not a probe.** Before trusting a new check,
   reintroduce the defect it was written for and confirm it fires. Two of the
   three geometry probes above passed clean on a document that was visibly broken,
