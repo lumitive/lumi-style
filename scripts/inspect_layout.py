@@ -57,7 +57,8 @@ PROBE = r"""
   // Widen this and the numbers change: lists and spec strips were absent, so a
   // full column of ordered steps reported as 10% ink and a cover spec as 0%.
   const INK = 'table, svg, p, h1, h2, li, ol, ul, .listhead, .band, .key, .gd, .red,'
-            + ' .note, .cap, .legend, .eyebrow, .spec, .spec div, .colophon, .wordmark';
+            + ' .note, .cap, .legend, .eyebrow, .spec, .spec div, .colophon, .wordmark,'
+            + ' .card, .who, dl, dt, dd, .verdict';
   const out = [];
   for (const s of document.querySelectorAll('section.page')) {
     const sr = s.getBoundingClientRect();
@@ -100,7 +101,11 @@ PROBE = r"""
     }
     // a figure's drawn aspect vs the cell it sits in
     let aspect = null;
-    const svg = s.querySelector('.fig svg[viewBox]:not(.ic)');
+    // Pick the *visible* drawing. A page can ship a landscape and a portrait
+    // composition of the same figure, and reporting the hidden one's aspect
+    // says the opposite of the truth.
+    const svg = [...s.querySelectorAll('.fig svg[viewBox]:not(.ic)')]
+      .find(e => e.getBoundingClientRect().height > 4) || null;
     if (svg) {
       const vb = svg.viewBox.baseVal;
       const cell = svg.closest('.fill, .body > div') || bodyEl;
