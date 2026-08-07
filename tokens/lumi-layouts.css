@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v3.0.0 (2026-08-07)
+   LUMI page layouts · v3.1.0 (2026-08-07)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -311,6 +311,34 @@
     zoom: min(100vw / 1280px, 100svh / 720px);
   }
 }
+
+/* ── the ground (v3.1.0, references/brand.md) ─────────────────────────────
+   Water and light behind every page. A ground is CONTINUOUS and UNCOUNTABLE,
+   which is exactly why it may be decorative where a field may not: a field's
+   marks can be counted, so each one has to mean something; a ground has nothing
+   to count, so there is nothing to misread as evidence.
+
+   Two constraints, both measured by inspect_layout.py:
+     · it never exceeds --ground-ceiling (1.40:1) against its canvas;
+     · it never resolves into repeated discrete marks. Every line here is a
+       different length, amplitude and stroke width — the moment a ground can be
+       counted it is pretending to be a field.
+
+   Three intensities: strong on the cover and closing, mid on the part openers,
+   faint on the body pages, so the texture recedes as the evidence gets denser.
+   It is behind everything and inert to the pointer, because the one thing it
+   may never do is compete with the content. */
+.page > .ground {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  opacity: var(--ground-faint);
+}
+.page.cover > .ground, .page.closing > .ground { opacity: var(--ground-strong); }
+.page.opener > .ground { opacity: var(--ground-mid); }
+.page > .body, .page > .foot { position: relative; z-index: 1; }
+/* On the lime field the ground would read as dirt on a painted surface. */
+.page.opener > .ground { mix-blend-mode: multiply; }
 
 /* ═══ the two brand devices (v3.0.0, references/brand.md) ═══════════════════
    Both are structural. A committed surface sitting on a template grid is the

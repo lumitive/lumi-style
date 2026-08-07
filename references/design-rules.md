@@ -498,6 +498,11 @@ A layout is verified only across the **matrix**, not at a point:
   it was satisfiable by stretching table rows while four diagrams rendered at 40%
   of their cell, and it measured the bounding box of all ink, so a small chart
   with a long caption scored as full.
+- **Ground axis.** Measure the ground on the *rendered* page with every
+  foreground element hidden, and require it under 1.40:1 against the canvas plus
+  free of repeated identical marks. Reasoning about it from the declared alpha
+  does not work: the tiers were tuned analytically, measured at 1.428 and 1.549,
+  and had to come back down. The probe caught its own author.
 - **Units axis.** Once the page is a scaled stage, a device pixel is no longer
   the unit of the design. Divide every measured distance by the page's scale
   before comparing it to a threshold, or the same layout reports 3px of skew at

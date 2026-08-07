@@ -53,7 +53,8 @@ declines where others claim, and can show you the code where it declines. LUMI i
 light: you cannot see a current, you can see light on it. The visual key is
 `波光鳞鳞`, shimmer on water — **many small marks at varying intensity, arranged by
 a flow you cannot otherwise see** — which is why the signature device is a field
-of one mark per datum, and why a field with nothing behind it is forbidden.
+of one mark per datum, why a field with nothing behind it is forbidden, and why
+the water behind every page may be decorative only because it cannot be counted.
 See [`references/brand.md`](references/brand.md), which loads before everything
 else.
 

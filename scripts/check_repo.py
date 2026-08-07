@@ -48,6 +48,8 @@ PALETTE_KEY_TO_VAR = {
     "light_ramp_1": "acc-1",
     "on_light_ramp_5": "on-acc-5",
     "on_light_ramp_low": "on-acc-lo",
+    "lime": "lime",
+    "on_lime": "on-lime",
     "data_blue": "d-blue",
     "data_red": "d-red",
     "data_teal": "d-teal",

@@ -381,6 +381,33 @@ def d8_support_line(raw):
     return missing
 
 
+def d13_lime_never_light_text(css, resolved, palette):
+    """The acid green is a surface, not a member of the text ladder.
+
+    #B8FF00 measures 1.21:1 as text on the white canvas and 16.44:1 with
+    near-black reversed out of it. On light it may only ever be a fill. D1 would
+    catch it as a contrast failure, but only if the rule happens to be graded
+    against the right surface — this states the constraint directly, so it
+    cannot be lost to a surface-detection edge case the way two colours were in
+    2.2.0.
+    """
+    if palette != "light":
+        return []
+    # Scanned from the raw CSS, not from the parsed rule map: that map merges
+    # duplicate selectors and a later `.sup` in a media query silently dropped
+    # the declaration this check exists to find. A guard you cannot make fire is
+    # not a guard — this one is confirmed by putting the lime on a text rule.
+    bad = []
+    for m in re.finditer(r"([^{}]+)\{([^}]*)\}", css):
+        sel, body = m.group(1).strip(), m.group(2)
+        if not re.search(r"(^|;)\s*color\s*:\s*var\(\s*--lime\s*[,)]", body):
+            continue
+        if "dark" in sel:                       # the dark canvas may use it as text
+            continue
+        bad.append(re.sub(r"\s+", " ", sel)[:60])
+    return bad
+
+
 def d12_commercial_footer(raw, site=None):
     """Every page carries its handling terms and the origin of the document.
 
@@ -497,6 +524,7 @@ def measure(path):
         "D6_footer": d6_footer(raw),
         "D8_support_line": d8_support_line(raw),
         "D12_commercial_footer": d12_commercial_footer(raw),
+        "D13_lime_as_text": d13_lime_never_light_text(css, resolved, palette),
         "D9_layout_variety": d9_layout_variety(raw),
         "D10_label_icons": d10_label_icons(raw),
     }
@@ -526,6 +554,8 @@ def grade(r):
                  if f else None, "=0", ok6, f is None))
     rows.append(("D8_support_line", len(r["D8_support_line"]), "=0",
                  not r["D8_support_line"], False))
+    rows.append(("D13_lime_as_text", len(r["D13_lime_as_text"]), "=0",
+                 not r["D13_lime_as_text"], False))
     cf = r["D12_commercial_footer"]
     # The fifth field is "could not be measured", not "gates" — passing True here
     # would have printed the one check that matters as n/a. Gating is decided in

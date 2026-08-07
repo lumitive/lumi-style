@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · v3.0.0 (2026-08-07)
+   LUMI visual theme · v3.1.0 (2026-08-07)
    Single source of truth for palette and typography. New documents reference
    this file or copy the token blocks verbatim (note the provenance when
    copying). Version lockstep: a deliverable's version = the lumi-style
@@ -94,6 +94,32 @@
   --on-acc-5: #F0F0FA;           /* only step 5 takes the cold white */
   --on-acc-lo: #2B2E33;          /* steps 4 down to 1 take canvas ink */
 
+
+  /* ── the acid green (v3.1.0) ────────────────────────────────────────────
+     #B8FF00, taken from the reference the reader gave. It measures 1.21:1 as
+     text on this canvas — unreadable — and 16.44:1 with near-black reversed out
+     of it. So on the light canvas it is a SURFACE and never text; the guard in
+     check_design.py enforces that. On the dark canvas it is the accent proper
+     at 13.90:1. It carries no meaning either way: --acc stays the semantic
+     accent for data, and one colour one meaning is untouched. */
+  --lime:      #B8FF00;
+  --on-lime:   #0A0907;          /* 16.44 on the lime */
+
+  /* ── the ground (v3.1.0) ────────────────────────────────────────────────
+     Water and light behind the page. A ground is continuous and uncountable,
+     which is exactly why it may be decorative where a field may not: there is
+     nothing to count, so there is nothing to misread as evidence.
+
+     Two constraints, both measured. It may never exceed --ground-ceiling
+     against its canvas, and it may never resolve into repeated discrete marks.
+     Three tiers as the reader asked: strong on cover and closing, mid on the
+     part openers, faint on body pages. These are alphas, and the ceiling is
+     what they are checked against. */
+  --ground-ceiling: 1.40;
+  --ground-strong: .25;
+  --ground-mid:    .19;
+  --ground-faint:  .075;
+
   --d-blue:    #2F6DB4;          /* chart data colors (CVD-validated) */
   --d-red:     #C0392B;
   --d-teal:    #1E8E6E;
@@ -103,7 +129,26 @@
   --mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
   /* display titles: uppercase (Latin), weight 400, leading .95–1.0;
      CJK titles: weight 700 + .04em tracking — CJK has no uppercase */
-  --ls-eyebrow: .3em;            /* mono eyebrows, ALL-CAPS */
+  /* .3em was the most dated device in the deck and the reference uses no
+     tracking anywhere. Eyebrows keep a hint of it and nothing more. */
+  --ls-eyebrow: .08em;
+  /* ── the register moves (v3.1.0) ────────────────────────────────────────
+     The reference site runs 245 elements at weight 700 and 52 at 900, display
+     at 254px and 120px, line-height ~0.9, and letter-spacing `normal`
+     everywhere. This deck ran D-DIN 400, uppercase, .3em tracking — a spec
+     sheet. We ship D-DIN Regular and Bold under SIL OFL and nothing else, so
+     the register comes from weight 700, from scale, and from leading, not from
+     a face we do not have. */
+  --w-display: 700;
+  --w-title:   700;
+  --w-support: 500;
+  --lh-display: .92;
+  --ls-display: -.02em;
+  --ls-title:   -.01em;
+  --fs-display: clamp(64px, 9vw, 132px);   /* cover, closing, part openers */
+  --fs-title:   clamp(26px, 2.7vw, 36px);  /* page titles */
+  --fs-support: 17px;                      /* the second voice, not small print */
+
   --ls-title-cjk: .04em;
   --num-feature: "tnum";         /* tabular-nums always on for data */
 
@@ -122,9 +167,9 @@
      drawing. These are the sizes an entry point comes in; which pages get one,
      and whether it is a number, a sentence or a figure, is a design decision
      per page. Do not read this as "every page needs a big number". */
-  --fs-lead:    clamp(30px, 3.4vw, 46px);   /* the number that is the page */
-  --fs-lead-xl: clamp(44px, 6.4vw, 88px);   /* one number, alone, full stop */
-  --fs-say:     clamp(22px, 1.9vw, 26px);   /* the claim that is the page */
+  --fs-lead:    clamp(40px, 4.8vw, 68px);   /* the number that is the page */
+  --fs-lead-xl: clamp(56px, 8.2vw, 116px);   /* one number, alone, full stop */
+  --fs-say:     clamp(24px, 2.3vw, 32px);   /* the claim that is the page */
 }
 
 /* ── dark palette: on explicit user request only ── */
@@ -171,6 +216,13 @@ body.dark {
   --acc-1: #242624;
   --on-acc-5: #1D1D1F;
   --on-acc-lo: #F0F0FA;
+
+
+  --lime:      #B8FF00;          /* 13.90 as text on space grey */
+  --on-lime:   #0A0907;
+  --ground-strong: .23;          /* light on dark water carries further */
+  --ground-mid:    .24;
+  --ground-faint:  .095;
 
   --d-blue:    #5B8FC9;
   --d-teal:    #3FA98C;

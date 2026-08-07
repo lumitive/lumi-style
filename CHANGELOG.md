@@ -3,6 +3,71 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 3.1.0 — the ground, the acid green, and type that commits
+
+The reader asked for water and light behind every page, and pointed at
+`silviamalavasi.com` for the green and the register. I read that site with a
+headless browser rather than from its rendered text, because the markdown
+conversion returns one line of copy and nothing else.
+
+What it actually is: canvas `#0A0907`, paper `#F2EDE4`, **the green `#B8FF00`**
+across 91 text uses, plus magenta, yellow and red. Type is Inter with **245
+elements at weight 700 and 52 at weight 900** against only 57 at 400; display at
+254px and 120px, line-height ~0.9, and letter-spacing `normal` everywhere.
+
+**Two measurements shaped the release.** `#B8FF00` measures **1.21:1 as text on
+LUMI's white canvas** — unreadable — and 16.44:1 with near-black reversed out of
+it. That site is dark-canvas-first and its palette depends on it. LUMI stays
+light-first, so **the lime is a surface and never light-canvas text**, which is
+how that site uses its yellow and magenta anyway. And **we ship D-DIN Regular and
+Bold and nothing else**: Inter is not vendored, no font tooling is installed, and
+the system faces cannot be redistributed. No rule names a face the package does
+not carry — `CLAUDE.md` §5, written after 1.2.0 required a display face, shipped
+none, and rendered nothing for five releases.
+
+**The ground, and the rule that lets it exist.** `brand.md` says a field with
+nothing behind it is decoration and decoration is contention. A background
+texture *is* decoration. It resolves on one distinction, now the rule:
+
+> A field is discrete and countable; a ground is continuous and uncountable. If a
+> reader can count the marks, every mark must mean something. If there is nothing
+> to count, there is nothing to misread — so a ground may be decorative precisely
+> because it can never be mistaken for evidence.
+
+Its honesty test is therefore different in kind, and both halves are measured: it
+may never exceed **1.40:1** against its canvas, and it may never resolve into
+repeated identical marks. The contrast is measured on the **rendered** page with
+every foreground element hidden — and that mattered: the three tiers were tuned
+analytically, measured at **1.428 and 1.549**, and had to come back down. The
+probe caught its own author.
+
+The flows crowd **below the waterline** and thin out above it, so the air where
+the claim lives stays clear. That is what makes the ground structural rather than
+wallpaper, and it is also what answers "it must not overpower the content" with a
+number instead of an opinion. The wider hue range — lime, forest, teal, blue,
+gradients along each line — lives here, safely, because the ground cannot be read
+as data. The foreground stays one colour, one meaning.
+
+**The register commits.** Display to `clamp(64px, 9vw, 132px)` at weight 700 with
+0.92 leading; page titles from 22px/400 to 34px/**700**; support lines from
+14.5px to 16px/500 so the subtitle is a second voice rather than small print;
+lead numerals to 116px; figure numerals bold. `.3em` eyebrow tracking is gone —
+the most dated device in the deck, and the reference tracks nothing anywhere. The
+part openers are now full **lime fields** with the claim in near-black at display
+size, and they are the only pages in the deck that are.
+
+Three probes added, each confirmed by making it fail: the ground's rendered
+contrast ceiling, the ground-is-countable test (fired on a ground built from
+eight identical rects), and **D13**, which forbids the lime as light-canvas text.
+D13 had to be rewritten to scan the raw CSS after the first version silently
+passed the exact case it was written for — the rule map merges duplicate
+selectors and a later `.sup` in a media query dropped the declaration. A guard you
+cannot make fire is not a guard.
+
+The ground also had to be excluded from every ink measurement. It is behind
+everything and covers the page, so on first render all thirty pages reported that
+they ran past their own footer rule.
+
 ## 3.0.0 — the water thesis: LUMI gets a brand, and the skill finally says what to reach for
 
 Four rounds of review made this skill measurably more correct and no more alive.

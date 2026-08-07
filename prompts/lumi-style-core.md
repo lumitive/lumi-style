@@ -31,6 +31,22 @@ you can see light on it.
   thing to carry out of the room. On and below it is record — evidence, handling
   terms, page number. Two horizons is stripes; none is a document.
 
+- **The ground.** Continuous water and light behind every page: strongest on the
+  cover and closing, faintest on body pages, crowding below the waterline so the
+  air where the claim lives stays clear. *A ground may be decorative where a field
+  may not, because it is uncountable — nothing to count, nothing to misread. It
+  may never exceed 1.40:1 against its canvas, measured on the render, and never
+  resolve into repeated identical marks.* The wider hue range lives here; the
+  foreground stays one colour one meaning.
+
+**The acid green** `#B8FF00` is a surface, not text: 1.21:1 on white, 16.44:1 with
+near-black reversed out of it. Part openers are full lime fields with the claim in
+near-black at display size. It carries no meaning.
+
+**The register**: display `clamp(64px, 9vw, 132px)` at weight 700, leading 0.92;
+titles weight 700 at 24–34px; support 16px weight 500; no letter-spacing. Ship
+only the faces the package carries.
+
 **The light ramp**: five discrete steps of the accent for fields and surfaces
 only. It carries no meaning — one colour one meaning still governs data.
 
@@ -263,6 +279,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **3.0.0** snapshot, cut 2026-08-07. It is self-contained by
+> This file is the **3.1.0** snapshot, cut 2026-08-07. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.
