@@ -3,6 +3,26 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 2.0.1 — the measure cap belonged to the page, not to one of its children
+
+`.body` carried `max-width: 1180px` and `.foot` carried nothing. On the design
+page that is invisible, because 1180 plus the padding is the page. On any wider
+window the footer ran to the window edge while the composition stayed anchored
+left, so **all 28 pages showed a dead band down the right** and the source line no
+longer lined up with the content it sourced. A reader caught it at 1817px; the
+contact sheet never would have, because `inspect_layout.py` renders at exactly
+1280x720 and 794x1123, where the defect does not exist.
+
+The cap is right — prose should not widen to fill a monitor. Applying it to one of
+the page's three children was the defect. Anything sharing the page frame now takes
+the same width and centers, so the leftover space becomes a symmetric margin
+instead of a hole. Verified at 1280, 1817 and 1920: 28 of 28 pages align, and the
+right margin equals the left.
+
+Lesson recorded in `references/design-rules.md` §7: a probe that only ever renders
+the design geometry cannot see a defect that only appears away from it. Check one
+size the document was not designed for.
+
 ## 2.0.0 — 2026-08-07
 
 Reader review scored H1, H2 and H3 at **1**, against self-scores of 3. The anchors
