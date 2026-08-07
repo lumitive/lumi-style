@@ -49,7 +49,7 @@ maintenance rule.
 
 **Pure-white canvas (Apple space grey on request) · natural green as the single
 accent · China red for warnings only, amber for partial, brass for reference;
-one claim per screen and one focal element on it, numbers are the copy, titles
+a fixed 16:9 page and a fixed A4 sheet, one claim per screen and one focal element on it, numbers are the copy, titles
 are conclusions, and a table is for values.**
 The layout skeleton was researched from the public web design of SpaceX and Tesla
 (whitespace, spec-first copy, monochrome discipline); the palette and its

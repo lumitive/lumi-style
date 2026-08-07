@@ -140,6 +140,14 @@ A display tier sits above body copy for focal elements: `--fs-lead`
 clamp(30px,3.4vw,46px), `--fs-lead-xl` clamp(44px,6.4vw,88px) for one number
 alone, `--fs-say` clamp(22px,1.9vw,26px) for a claim.
 
+**Page box**: landscape is a fixed **1280×720** stage and print is a fixed
+**794×1123** sheet, each scaled to fit the window with `zoom` and letterboxed in a
+neutral gutter. A page is never a box that takes the window's shape: written as
+`min-height:100svh` it is 16:9 only in a 16:9 window and 4:3 in a 4:3 one, and the
+surplus lands as a dead band above the footer. Check the shape at a window shape
+you did not design for, and check content against the box as well — a fixed box
+does not grow when its content does, it spills.
+
 **Layout**: one claim per page, and **a layout chosen for the content**, not one
 template repeated. Vertical: stack, hero-band (dominant block over a thin strip),
 band-hero (its inverse), thirds-v. Horizontal: split 50/50, split-wide 38/62,
@@ -218,6 +226,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **2.1.0** snapshot, cut 2026-08-07. It is self-contained by
+> This file is the **2.2.0** snapshot, cut 2026-08-07. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

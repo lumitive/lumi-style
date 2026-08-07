@@ -177,10 +177,36 @@ def px(value):
 
 
 # ── metrics ───────────────────────────────────────────────────────────────────
+def over_bg(surface, bg):
+    """A wash is usually translucent. Composite it onto the canvas before using
+    it as a surface, or a 14%-alpha tint is graded as if it were opaque and
+    every chip on it reports 1.0:1."""
+    if surface is None:
+        return bg
+    if len(surface) > 3 and surface[3] < 1.0:
+        a = surface[3]
+        return tuple(round(surface[i] * a + bg[i] * (1 - a)) for i in range(3)) + (1.0,)
+    return surface
+
+
 def d1_contrast(css, resolved, palette):
     """Every declared text colour, against the surface its selector sits on."""
     bg = parse_color(resolved.get("bg", "#FFFFFF")) or (255, 255, 255, 1.0)
     card = parse_color(resolved.get("card-bg", resolved.get("bg", "#FFFFFF"))) or bg
+    # Painted surfaces, discovered rather than assumed: any selector that sets a
+    # background to a palette token declares a surface, and text scoped under it
+    # is graded against that surface. Found by reading the CSS, so a deck that
+    # paints a panel a new colour is measured correctly without editing this.
+    panels = {}
+    for sel, props in rules(css):
+        bgv = (props.get("background") or props.get("background-color") or "").strip()
+        m = re.fullmatch(r"var\(\s*--([\w-]+)\s*(?:,[^)]*)?\)", bgv)
+        if not m or m.group(1) in ("bg", "card-bg", "card"):
+            continue
+        for part in re.split(r"\s*,\s*", sel):
+            last = part.strip().split()[-1]
+            for cls in re.findall(r"\.([\w-]{3,})", last):
+                panels.setdefault(cls, m.group(1))
     findings = []
     for sel, props in rules(css):
         raw = props.get("color") or props.get("fill")
@@ -197,9 +223,34 @@ def d1_contrast(css, resolved, palette):
         textual = ("text" in sel or props.get("font-size") or "color" in props)
         if not textual:
             continue
-        surfaces = [("bg", bg)] if "card" not in sel else [("card-bg", card)]
-        if "card" not in sel:
-            surfaces.append(("card-bg", card))
+        # Which surface does this text actually sit on? The metric assumed two
+        # canvases, --bg and --card-bg, because that was every surface the deck
+        # had. A page painted as an accent field is a third, and the check
+        # reported its text at 1.13:1 — measuring correct, contrasting colour
+        # against a canvas it never touches. A metric that cannot see a surface
+        # reports the page it imagined, and a false alarm teaches an author to
+        # stop reading the output, which is worse than the gap.
+        surfaces = []
+        own = (props.get("background") or props.get("background-color") or "").strip()
+        mo = re.fullmatch(r"var\(\s*--([\w-]+)\s*(?:,[^)]*)?\)", own)
+        if mo:
+            # The rule paints its own surface and puts text on it. Nothing to
+            # infer: grade it against the thing it sits on. Without this, four
+            # status chips were each graded against the first wash discovered
+            # rather than their own.
+            surfaces = [(mo.group(1), over_bg(parse_color(resolved.get(mo.group(1), "")), bg))]
+        else:
+            # Longest class wins, so `.tag.no` is not answered by `.tag`.
+            for panel in sorted(panels, key=len, reverse=True):
+                # A class token, not a substring: keying on `i` once matched
+                # every selector containing the letter i and put half the deck
+                # on the wrong surface.
+                if re.search(r"\.%s(?![\w-])" % re.escape(panel), sel):
+                    surfaces = [(panels[panel],
+                                 over_bg(parse_color(resolved.get(panels[panel], "")), bg))]
+                    break
+        if not surfaces:
+            surfaces = [("card-bg", card)] if "card" in sel else [("bg", bg), ("card-bg", card)]
         floor = CONTRAST_FLOOR_LARGE if size >= LARGE_TEXT_PX else CONTRAST_FLOOR
         for surface_name, surface in surfaces:
             ratio = contrast(over(col, surface[:3]), surface[:3])
@@ -369,7 +420,16 @@ def d6_footer(raw):
     for i, body in enumerate(pages):
         foot = re.search(r'class="[^"]*\bfoot\b[^"]*"[^>]*>(.*?)</div>', body, re.S)
         text = re.sub(r"<[^>]+>", " ", foot.group(1)) if foot else ""
-        if not foot or "src" not in (foot.group(1) if foot else ""):
+        # The page is sourced, wherever the line lives. A single-figure page
+        # states its source under the figure, and repeating it in the footer is
+        # what 2.2.0 removed: eleven pages said the same thing twice and two
+        # said it word for word. What this metric is for is a page that cites
+        # nothing at all, so it asks the page, not the footer.
+        footer_src = bool(foot) and 'class="src"' in foot.group(1) and \
+            re.sub(r"<[^>]+>", "", re.search(r'class="src"[^>]*>(.*?)</span>',
+                                             foot.group(1), re.S).group(1)).strip()
+        figure_src = re.search(r'class="[^"]*\bsrcline\b', body) is not None
+        if not (footer_src or figure_src):
             missing_src.append(i)
         if not re.search(r"\b\w+\s*/\s*\d+\b", text):
             missing_total.append(i)

@@ -58,6 +58,23 @@ DEFAULT_GEOMETRIES = ["16x9", "a4", "wide"]
 PROBE = r"""
 () => {
   const CENTER = 'table, .fig, .band, .geo-flat';
+  // Where the ink actually is. An <svg> box is not its drawing: with
+  // preserveAspectRatio the art is centred inside whatever box it is given, so
+  // a grown box reports a top that is up to 185px above the first mark. Every
+  // "is it aligned" question has to be asked of the drawing, mapped out of user
+  // space through the CTM — asking the element is how six pages reported 0px of
+  // skew while the reader could see they were not level.
+  const inkBox = (e) => {
+    const r = e.getBoundingClientRect();
+    if (e.tagName.toLowerCase() !== 'svg' || !e.viewBox || !e.viewBox.baseVal.width) return r;
+    try {
+      const bb = e.getBBox(), m = e.getScreenCTM();
+      if (!m || !bb.height) return r;
+      return {top: bb.y * m.d + m.f, bottom: (bb.y + bb.height) * m.d + m.f,
+              left: bb.x * m.a + m.e, right: (bb.x + bb.width) * m.a + m.e,
+              height: bb.height * m.d, width: bb.width * m.a};
+    } catch (err) { return r; }
+  };
   // Widen this and the numbers change: lists and spec strips were absent once,
   // so a full column of ordered steps reported as 10% ink. Any new block class
   // has to be added here too — a probe is only as good as its vocabulary, and
@@ -140,7 +157,16 @@ PROBE = r"""
     // exactly one page. A section taller than the geometry prints across two
     // sheets and scrolls past the fold when projected, and it is invisible to
     // every fill or aspect number because those are all measured *within* it.
+    // Two different overflows, and 2.2.0 needs both.
+    //   · the section box against the viewport — the only one that existed, and
+    //     the only one that meant anything while the page was `min-height:100svh`;
+    //   · the *content* against the section box, which is the one that matters now
+    //     the page is a fixed 720px stage. A fixed-height box does not grow when
+    //     its content does; it just spills, and the first measure reports zero
+    //     while the page is visibly broken. Locking the geometry moved the blind
+    //     spot rather than removing it.
     const overflowPx = Math.round(sr.height - window.innerHeight);
+    const spillPx = Math.round(s.scrollHeight - s.clientHeight);
     // Frame alignment. The page frame's parts must share one width and one
     // centre line, or the composition and the source line that sources it drift
     // apart. This is invisible at the design geometry — 2.0.1 shipped a
@@ -172,7 +198,7 @@ PROBE = r"""
       for (const c of cells) {
         let t = Infinity, w = 0;
         for (const e of c.querySelectorAll(INK)) {
-          const r = e.getBoundingClientRect();
+          const r = inkBox(e);
           if (r.height < 2 || r.width < 2) continue;
           t = Math.min(t, r.top); w += r.height * r.width;
         }
@@ -257,6 +283,32 @@ PROBE = r"""
     // Digit density separates a table of values from prose poured into a grid.
     // A grid says "these cells are comparable on this axis"; prose in one says
     // only that the author had a list and reached for a table.
+    // Caption attachment. The number and name belong under the figure; when the
+    // svg box grows past its drawing they end up 95-205px below it, floating
+    // near the footer, and a reader asks why the figure's name has been
+    // separated from the figure.
+    let capGapPx = null;
+    for (const fig of s.querySelectorAll('.fig')) {
+      const sv = fig.querySelector('svg[viewBox]:not(.ic)');
+      const cap = fig.querySelector('.cap');
+      if (!sv || !cap || sv.getBoundingClientRect().height < 4) continue;
+      const gap = Math.round(cap.getBoundingClientRect().top - inkBox(sv).bottom);
+      capGapPx = capGapPx === null ? gap : Math.max(capGapPx, gap);
+    }
+
+    // One source per page. §4 rule 4 asks every figure for a source line and the
+    // footer contract asks every page for one; nobody checked the single-figure
+    // page, where they say the same thing twice and sometimes word for word.
+    const cite = (t) => new Set((t.match(/§\s?[\d.]+[a-z]?|Appendix\s+\w|findings summary/gi) || [])
+                                 .map(x => x.replace(/\s+/g, '').toLowerCase()));
+    const figSrc = s.querySelector('.cap .srcline');
+    const footSrc = s.querySelector('.foot .src');
+    let sourceEcho = 0;
+    if (figSrc && footSrc) {
+      const a = cite(figSrc.textContent || ''), b = cite(footSrc.textContent || '');
+      sourceEcho = [...a].filter(x => b.has(x)).length;
+    }
+
     const tables = [];
     for (const t of s.querySelectorAll('table')) {
       const txt = (t.innerText || '');
@@ -270,13 +322,14 @@ PROBE = r"""
       id: s.id,
       pageH: Math.round(sr.height),
       overflowPx,
+      spillPx,
       frameSkewPx,
       sideMarginSkewPx: Math.round(Math.abs((body.left - sr.left) - (sr.right - body.right))),
       layout, colCount, colTopSkewPx, colWeightRatio,
       focalPx: Math.round(focalPx), focalText, bodyPx: Math.round(bodyPx),
       focalRatio: +(focalPx / Math.max(1, bodyPx)).toFixed(2),
       figLeadPct: +(100 * figLead).toFixed(0),
-      caps, tables, drawn,
+      caps, tables, drawn, capGapPx, sourceEcho,
       overflowPct: +(100 * overflowPx / window.innerHeight).toFixed(1),
       centerScale: best ? +(100 * best.w * best.h / best.cellArea).toFixed(1) : null,
       cells,
@@ -290,6 +343,56 @@ PROBE = r"""
   return out;
 }
 """
+
+
+# Window shapes chosen because they are NOT the design geometry. A page that
+# only holds 16:9 when the window happens to be 16:9 is not a 16:9 page, and no
+# amount of rendering at 1280x720 can tell you which one you have.
+OFF_SHAPES = [(1280, 960), (1440, 900), (1600, 1200), (1366, 768), (1920, 1200)]
+
+ASPECT_PROBE = r"""
+() => {
+  const out = [];
+  for (const s of document.querySelectorAll('section.page')) {
+    const r = s.getBoundingClientRect();
+    out.push({id: s.id, w: Math.round(r.width), h: Math.round(r.height),
+              aspect: +(r.width / r.height).toFixed(3)});
+  }
+  return out;
+}
+"""
+
+
+def aspect_report(url, dark=False):
+    """Does a landscape page hold 16:9 in a window that is not 16:9?
+
+    This exists because the page-height probe could not answer it and never
+    could have. It sets the viewport to the design geometry and then measures
+    `section.height - window.innerHeight`; the page was `min-height:100svh`, so
+    that difference is zero by construction. "All 30 pages are exactly 720px"
+    meant "the page filled the window I made 720px tall" — the probe was
+    establishing the condition it verified, and a reader found 4:3 pages in a
+    4:3 window while it reported success. **A probe that builds its own answer
+    proves nothing.** So this one renders shapes nobody designed for.
+    """
+    from playwright.sync_api import sync_playwright
+    target = 16 / 9
+    findings = []
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        for w, h in OFF_SHAPES:
+            page = browser.new_page(viewport={"width": w, "height": h})
+            page.goto(url)
+            page.wait_for_timeout(300)
+            rows = page.evaluate(ASPECT_PROBE)
+            bad = [r for r in rows if abs(r["aspect"] - target) > 0.01]
+            findings.append({"window": f"{w}x{h}", "pages": len(rows),
+                             "offAspect": len(bad),
+                             "worst": (max(bad, key=lambda r: abs(r["aspect"] - target))
+                                       if bad else None)})
+            page.close()
+        browser.close()
+    return findings
 
 
 def with_playwright(url, geometry, dark, shot_dir):
@@ -340,6 +443,8 @@ def main(argv):
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--no-sheet", action="store_true", help="numbers only, no screenshots")
     ap.add_argument("--out", default=None, help="where the sheet and shots go")
+    ap.add_argument("--no-aspect", action="store_true",
+                    help="skip the off-shape aspect assertion")
     args = ap.parse_args(argv)
     geometries = args.geometry or DEFAULT_GEOMETRIES
 
@@ -443,6 +548,22 @@ def main(argv):
                       + (f" (+{len(prose_t)-10} more)" if len(prose_t) > 10 else ""))
             elif alltab:
                 print(f"  tables: all {alltab} tables carry values")
+            far = [r for r in rows if (r.get('capGapPx') or 0) > 20]
+            if far:
+                print(f"  CAPTION DETACHED: {len(far)} figures sit well above their "
+                      "number and name — "
+                      + ", ".join(f"{r['id']} {r['capGapPx']}px"
+                                  for r in sorted(far, key=lambda r: -(r['capGapPx'] or 0))[:6]))
+            else:
+                ncap2 = sum(1 for r in rows if r.get('capGapPx') is not None)
+                print(f"  caption: all {ncap2} captions sit against their drawing")
+            echo = [r for r in rows if r.get('sourceEcho', 0)]
+            if echo:
+                print(f"  SOURCE TWICE: {len(echo)} pages state the same source under "
+                      "the figure and again in the footer: "
+                      + ", ".join(r['id'] for r in echo[:8]))
+            else:
+                print(f"  source: no page states the same source twice")
             ndrawn = sum(1 for r in rows if r['drawn'])
             print(f"  figures: {ndrawn} of {len(rows)} pages are built on a drawing "
                   f"rather than a grid or a block of prose")
@@ -456,6 +577,14 @@ def main(argv):
             else:
                 print(f"  frame: footer and composition share one width and centre "
                       f"on all {len(rows)} pages")
+            spill = [r for r in rows if r.get('spillPx', 0) > 1]
+            if spill:
+                print(f"  CONTENT SPILL: {len(spill)} of {len(rows)} pages hold more "
+                      f"than their page box — "
+                      + ", ".join(f"{r['id']} +{r['spillPx']}px"
+                                  for r in sorted(spill, key=lambda r: -r['spillPx'])[:8]))
+            else:
+                print(f"  content: all {len(rows)} pages fit inside their page box")
             tall = [r for r in rows if r['overflowPx'] > 1]
             if tall:
                 print(f"  PAGE HEIGHT: {len(tall)} of {len(rows)} pages exceed the "
@@ -465,6 +594,24 @@ def main(argv):
             if shots:
                 print(f"  contact sheet: {sheet}")
                 print("  Look at it. That is the check; the numbers only say where to look.")
+
+    if not args.json and not args.no_aspect:
+        for name in args.files:
+            path = pathlib.Path(name).resolve()
+            print(f"\n{path.name} — does a landscape page hold 16:9 in a window "
+                  f"that is not 16:9?")
+            try:
+                for f in aspect_report(path.resolve().as_uri()):
+                    if f["offAspect"]:
+                        w = f["worst"]
+                        print(f"  ASPECT: window {f['window']:>10} — "
+                              f"{f['offAspect']} of {f['pages']} pages are not 16:9, "
+                              f"worst {w['id']} at {w['w']}x{w['h']} ({w['aspect']}:1)")
+                    else:
+                        print(f"  aspect: window {f['window']:>10} — "
+                              f"all {f['pages']} pages hold 16:9")
+            except Exception as exc:            # no browser, or a load failure
+                print(f"  aspect: skipped ({exc.__class__.__name__})")
 
     if args.json:
         print(json.dumps(results, indent=2))

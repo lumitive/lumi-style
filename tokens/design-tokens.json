@@ -1,5 +1,5 @@
 {
- "$schema_note": "LUMI design tokens v2.1.0 (2026-08-07). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
+ "$schema_note": "LUMI design tokens v2.2.0 (2026-08-07). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
  "palette_default": "light",
  "palette": {
   "light": {
@@ -29,7 +29,7 @@
    "data_red": "#C0392B",
    "data_teal": "#1E8E6E",
    "card_bg": "#FAFAFA",
-   "amber": "#A86407",
+   "amber": "#9C5D06",
    "amber_wash": "#FBF3E4",
    "brass": "#7A6C52",
    "brass_wash": "#F4F1EA"
@@ -55,8 +55,8 @@
    "accent_wash": "rgba(124,159,99,.14)",
    "on_accent": "#1D1D1F",
    "seal": "#C8102E",
-   "seal_text": "#E0685A",
-   "seal_wash": "rgba(224,104,90,.15)",
+   "seal_text": "#E97C6E",
+   "seal_wash": "rgba(233,124,110,.15)",
    "data_blue": "#5B8FC9",
    "data_red": "#C0392B",
    "data_teal": "#3FA98C",

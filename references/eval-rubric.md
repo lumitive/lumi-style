@@ -55,7 +55,11 @@ contact sheet for a human to look at.
 
 | Probe | Reports | What it caught |
 |---|---|---|
+| **aspect** | the page box at window shapes that are **not** the design geometry | 30 of 30 pages were 4:3 in a 4:3 window |
 | page height | pages whose rendered height differs from the geometry's | the first thing to read |
+| content spill | content against the page box, now the box is fixed | the blind spot locking the geometry created |
+| caption attachment | the gap between the drawing and its number and name | 95–205px, a reader asked why they were separated |
+| source echo | a page citing the same source under the figure and in the footer | 11 pages, 2 word for word |
 | frame | footer and composition sharing one width and centre | a dead band down 28 of 28 pages, visible only off-geometry |
 | column tops | top-edge skew between side-by-side cells | 12 of 15 pages, from a rule that had never once applied |
 | column weight | ink-area ratio between siblings | one column at 9.1:1 against its neighbour |
@@ -64,6 +68,14 @@ contact sheet for a human to look at.
 | tables | tables by digit density | 14 of 16 tables held prose, not values |
 | figures | share of pages built on a drawing | 9 of 28 |
 | centerpiece scale · aspect · empty band | what "too small" and "looks empty" mean geometrically | — |
+
+**A probe that establishes the condition it verifies proves nothing**, and this
+is the one to read first. The page-height probe set the viewport to 1280x720 and
+measured the page against `window.innerHeight` on a page that was
+`min-height:100svh` — zero by construction, on every page, in every run since it
+was written. It reported success for two releases while the deck was 4:3 in a
+4:3 window. Before trusting a probe, construct the failure; if you cannot, it is
+measuring its own setup.
 
 **A probe is only as good as its vocabulary.** Every one of these reads the DOM
 through a selector list, and a selector that does not know a block class reports

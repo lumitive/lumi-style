@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -34,10 +34,19 @@ this exact move elsewhere (click-through must never measure relevance, because
 the metric rewards what it exists to suppress); the fill floor was the same
 mistake in the design half.*
 
-**Every output serves two page geometries.** Internal and market material is
-projected and it is printed, so both are latent defaults: **16:9 landscape
-(1280×720, check 1920×1080)** for projection and PDF/PPT export, and **A4 portrait
-(794×1123)** for printing and binding. Portrait is a composition, not a reflow.
+**Every output serves two page geometries, and each is a fixed box.** Internal
+and market material is projected and it is printed, so both are latent defaults:
+**16:9 landscape (1280×720)** for projection and PDF/PPT export, and **A4 portrait
+(794×1123)** for printing and binding. Each is a page-sized stage scaled to fit
+the window and letterboxed — *not* a box that takes the window's shape. Portrait
+is a composition, not a reflow.
+
+*Provenance: until 2.2.0 the page was `min-height: 100svh`, so it was 16:9 only
+when the window happened to be, and 4:3 in a 4:3 window. A reader found it; no
+check could have, because the page-height probe set the viewport to 1280×720 and
+then measured the page against that viewport. **Verify a page's shape at a window
+shape you did not design for** — a probe that establishes the condition it
+verifies proves nothing.*
 
 ---
 

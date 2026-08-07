@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v2.1.0 (2026-08-07)
+   LUMI page layouts · v2.2.0 (2026-08-07)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -81,16 +81,27 @@
    is for; a figure narrower than its cell with even margins reads as composed. */
 .body .fill > .fig { display: flex; flex-direction: column; justify-content: flex-start;
   gap: 8px; min-height: 0; }
-/* The drawing gets the height that is left and letterboxes inside it, which is
-   what guarantees a page is exactly one page. 2.1.0 tried `flex: 0 1 auto` to
-   kill the letterbox gap and put eleven of twenty-eight pages over the page
-   edge: an SVG with a viewBox and width:100% resolves its height from the
-   aspect ratio and does not shrink out of it. The letterbox band is not a CSS
-   problem — a figure that letterboxes is drawn for the wrong proportion, and
-   the fix is to redraw it (SKILL.md rule 3). inspect_layout.py's aspect column
-   names which ones. */
-.body .fill > .fig > svg:not(.ic) { flex: 1 1 0; min-height: 0; width: 100%; }
+/* The drawing is the size of the drawing. An SVG with a viewBox and width:100%
+   resolves its own height from its aspect ratio, so `height:auto` makes the box
+   and the art the same thing; `max-height` keeps it inside the cell.
+
+   It used to be `flex: 1 1 0`, which grew the box into all leftover height and
+   let preserveAspectRatio centre the art inside it. Measured, that put the first
+   mark 79-185px below the top of its own box and pushed the caption 95-205px
+   below the drawing — which is three separate things a reader reported: columns
+   that "are not level" (they were, as boxes), a figure's number and name
+   "separated from the figure", and pages that felt empty.
+
+   2.1.0 tried exactly this fix and had to revert it, because back then the page
+   was `min-height:100svh` and leftover height grew with the window, so eleven
+   pages went over the edge. The stage is what makes it safe: 720px, always. */
+.body .fill > .fig > svg:not(.ic) {
+  flex: 0 1 auto; min-height: 0; width: 100%; height: auto; max-height: 100%;
+}
 .body .fill > .fig > .cap { flex: none; }
+/* .fig owns the spacing between drawing and caption; a margin on .cap as
+   well doubled it and pushed the number away from the figure it numbers. */
+.body .fill > .fig > .cap { margin-top: 0; }
 /* A table given the height distributes it across its own rows. Two bounds keep
    that from becoming the padding-fudge the fill rule exists to forbid: rows
    centre their content so the rhythm reads as spacing rather than as text
@@ -258,6 +269,35 @@
   .body.diagonal-flow > .steps > :nth-child(3) { margin-inline-start: 16%; }
   .body.diagonal-flow > .steps > :nth-child(4) { margin-inline-start: 24%; }
 }
+/* ── the landscape page is a slide, not a window-shaped box ──────────────
+   Until 2.2.0 `.page` was `min-height: 100svh` with no aspect lock anywhere,
+   so a page was whatever shape the reader's window was: 16:9 in a 16:9 window,
+   4:3 in a 1280x960 one, 1.6:1 at 1440x900. The surplus height landed as a dead
+   band above the footer, and a reader found it before any check did — the
+   page-height probe sets the viewport to 1280x720 and then measures
+   `section.height - innerHeight`, which on a 100svh page is zero by
+   construction. It was verifying its own setup.
+
+   The page is now a fixed 1280x720 stage scaled to fit. `zoom` rather than
+   `transform` because zoom participates in layout, so pages still stack, scroll
+   and snap; a transform would leave every page's box at 720px while drawing it
+   somewhere else. The scale takes the smaller of the two fits, so the slide is
+   always exactly 16:9 and the leftover window is a neutral gutter that never
+   holds page content.
+
+   This is also what makes a figure sizeable: leftover height inside a page is
+   now bounded and known, where before it grew with the window and the drawing
+   floated in the middle of it. */
+@media (min-aspect-ratio: 1/1) {
+  .page {
+    width: 1280px;
+    height: 720px;
+    min-height: 0;
+    margin-inline: auto;
+    zoom: min(100vw / 1280px, 100svh / 720px);
+  }
+}
+
 /* ── portrait · A4 and anything taller than it is wide ────────────────────
    Portrait is a composition, not a reflow. Collapsing every horizontal layout
    to one column is the landscape design giving up; what a tall page wants is
@@ -268,7 +308,17 @@
    which is a gutter rather than a column. Those become vertical, with the
    supporting cell reading as a band under the centerpiece rather than beside it. */
 @media (max-aspect-ratio: 1/1) {
-  .page { --page-pad: 56px; padding-top: 40px; }
+  /* A4 is a sheet, so it gets the same treatment as the slide: a fixed 794x1123
+     box scaled to fit rather than a min-height that content can push past. The
+     grid tracks then resolve against a known height instead of stretching to
+     whatever the content asked for, which is what put four pages over the sheet
+     even though their content fitted inside it. */
+  .page {
+    --page-pad: 56px; padding-top: 40px;
+    width: 794px; height: 1123px; min-height: 0;
+    margin-inline: auto;
+    zoom: min(100vw / 794px, 100svh / 1123px);
+  }
   .body { max-width: 720px; }
   .body.split, .body.split-wide, .body.split-narrow, .body.sidebar-notes {
     grid-template-columns: 1fr;
@@ -301,6 +351,10 @@
   .body.split > .notes .gd, .body.split-narrow > .notes .gd,
   .body.split > .notes li, .body.split-narrow > .notes li { font-size: 12px; line-height: 1.5; }
   .body.split > .notes .swap, .body.split-narrow > .notes .swap { padding: 9px 0; }
+  .body.split-wide > .notes table, .body.sidebar-notes > .notes table { font-size: 11.5px; }
+  .body.split-wide > .notes td, .body.split-wide > .notes th { padding: 6px 10px 6px 0; }
+  .body.split-wide > .notes .gd, .body.split-wide > .fill .gd { font-size: 11.5px; line-height: 1.5; }
+  .body.split > .fill .gd, .body.split > .fill .key { font-size: 12px; line-height: 1.5; }
   .body.split > .notes .no, .body.split > .notes .yes,
   .body.split-narrow > .notes .no, .body.split-narrow > .notes .yes { font-size: 12px; line-height: 1.45; }
   .card { padding: 14px 15px; gap: 9px; }
@@ -314,6 +368,10 @@
      and no CSS fixes that — the drawing is wrong for the page. */
   .fig .land { display: none; }
   .fig .port { display: block; }
+  /* `max-height: 100%` needs a definite parent height and does not get one in
+     the portrait flow, so the drawing's own aspect wins and eight pages ran past
+     the sheet. Portrait clamps against the page instead. */
+  .body .fill > .fig > svg:not(.ic) { max-height: 36svh; }
 }
 @media (min-aspect-ratio: 1/1) {
   .fig .port { display: none; }
