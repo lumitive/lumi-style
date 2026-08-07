@@ -3,11 +3,20 @@
  "palette_default": "light",
  "palette": {
   "light": {
-   "bg": "#FAFAF8",
+   "bg": "#FFFFFF",
    "ink": "#212621",
    "ladder_base": "rgba(43,46,51,ALPHA)",
-   "text_ladder": [0.92, 0.8, 0.72, 0.66],
-   "rule_ladder": [0.2, 0.12, 0.07],
+   "text_ladder": [
+    0.92,
+    0.8,
+    0.72,
+    0.66
+   ],
+   "rule_ladder": [
+    0.2,
+    0.12,
+    0.07
+   ],
    "accent": "#48633E",
    "accent_deep": "#48633E",
    "accent_inbox": "#9FC384",
@@ -19,43 +28,84 @@
    "data_blue": "#2F6DB4",
    "data_red": "#C0392B",
    "data_teal": "#1E8E6E",
-   "card_bg": "#FFFFFF"
+   "card_bg": "#FAFAFA",
+   "amber": "#A86407",
+   "amber_wash": "#FBF3E4",
+   "brass": "#7A6C52",
+   "brass_wash": "#F4F1EA"
   },
   "dark": {
-   "bg": "#060806",
+   "bg": "#1D1D1F",
    "ink": "#F0F0FA",
    "ladder_base": "rgba(240,240,250,ALPHA)",
-   "text_ladder": [0.88, 0.76, 0.66, 0.58],
-   "rule_ladder": [0.18, 0.11, 0.07],
+   "text_ladder": [
+    0.88,
+    0.76,
+    0.66,
+    0.58
+   ],
+   "rule_ladder": [
+    0.18,
+    0.11,
+    0.07
+   ],
    "accent": "#7C9F63",
    "accent_deep": "#48633E",
    "accent_inbox": "#48633E",
    "accent_wash": "rgba(124,159,99,.14)",
-   "on_accent": "#060806",
+   "on_accent": "#1D1D1F",
    "seal": "#C8102E",
    "seal_text": "#E0685A",
-   "seal_wash": "rgba(224,104,90,.13)",
+   "seal_wash": "rgba(224,104,90,.15)",
    "data_blue": "#5B8FC9",
    "data_red": "#C0392B",
    "data_teal": "#3FA98C",
-   "card_bg": "#0D110C",
-   "note": "applied only on explicit user request, via one body.dark override block — never a forked file"
+   "card_bg": "#2C2C2E",
+   "note": "applied only on explicit user request, via one body.dark override block — never a forked file",
+   "amber": "#E0A73E",
+   "amber_wash": "rgba(224,167,62,.15)",
+   "brass": "#C3B393",
+   "brass_wash": "rgba(195,179,147,.14)"
   },
-  "note": "one structure, two palettes. v1.8.0: the ladder split into text_ladder (--tx1..4, every step >=4.5:1 against both bg and card_bg) and rule_ladder (--ln1..3, rules/borders/fills, never text), and the two palettes stopped sharing one alpha list. on_accent is palette-dependent: cold white passes on the light accent (5.93) and fails on the lifted dark accent (2.65), so dark flips to canvas ink (6.69)."
+  "note": "one structure, two palettes. v2.0.0: the light canvas is pure white, not the warm cream the field has settled on, and the dark canvas is Apple space grey. The state palette grew by two with fixed meanings: amber = partial, in progress, awaiting an input; brass = reference, archival, out of scope but real. Before this, partial and not-built both rendered as dashed grey, so a deck could not say the one thing it most needed to say about itself. Every semantic colour clears 4.5:1 as text on its own canvas."
  },
  "contrast": {
   "floor_text": 4.5,
   "floor_large_text": 3.0,
   "large_text_px": 24,
   "measured": {
-   "light_on_bg": {"tx1": 10.22, "tx2": 6.96, "tx3": 5.42, "tx4": 4.53,
-                   "accent": 6.42, "seal_text": 5.63},
-   "light_on_card": {"tx1": 10.61, "tx2": 7.16, "tx3": 5.54, "tx4": 4.62,
-                     "accent": 6.71, "seal_text": 5.88},
-   "dark_on_bg": {"tx1": 13.66, "tx2": 10.21, "tx3": 7.82, "tx4": 6.19,
-                  "accent": 6.69, "seal_text": 6.03},
-   "dark_on_card": {"tx1": 13.07, "tx2": 9.89, "tx3": 7.66, "tx4": 6.14,
-                    "accent": 6.35, "seal_text": 5.71}
+   "light_on_bg": {
+    "tx1": 10.61,
+    "tx2": 7.16,
+    "tx3": 5.54,
+    "tx4": 4.62,
+    "accent": 6.71,
+    "seal_text": 5.88,
+    "amber": 4.68,
+    "brass": 5.13
+   },
+   "light_on_card": {
+    "tx1": 10.23,
+    "tx2": 6.97,
+    "tx3": 5.42,
+    "tx4": 4.53
+   },
+   "dark_on_bg": {
+    "tx1": 11.73,
+    "tx2": 9.05,
+    "tx3": 7.14,
+    "tx4": 5.82,
+    "accent": 5.61,
+    "seal_text": 5.05,
+    "amber": 7.83,
+    "brass": 8.17
+   },
+   "dark_on_card": {
+    "tx1": 9.89,
+    "tx2": 7.79,
+    "tx3": 6.27,
+    "tx4": 5.21
+   }
   },
   "note": "WCAG 2.1 relative-luminance ratios, recomputed by scripts/check_design.py (D1). Recompute and update this block whenever a palette value moves; the numbers are the reason the alphas are what they are."
  },

@@ -54,7 +54,10 @@ DEFAULT_GEOMETRIES = ["16x9", "a4"]
 PROBE = r"""
 () => {
   const CENTER = 'table, .fig, .band, .geo-flat';
-  const INK = 'table, svg, p, h2, .band, .key, .gd, .red, .note, .cap, .legend, .eyebrow, .spec';
+  // Widen this and the numbers change: lists and spec strips were absent, so a
+  // full column of ordered steps reported as 10% ink and a cover spec as 0%.
+  const INK = 'table, svg, p, h1, h2, li, ol, ul, .listhead, .band, .key, .gd, .red,'
+            + ' .note, .cap, .legend, .eyebrow, .spec, .spec div, .colophon, .wordmark';
   const out = [];
   for (const s of document.querySelectorAll('section.page')) {
     const sr = s.getBoundingClientRect();
@@ -65,14 +68,35 @@ PROBE = r"""
     const availW = body.width, availH = Math.max(1, foot.top - body.top);
     const area = availW * availH;
 
-    // centerpiece: the largest thing that carries the page's content
+    // Centerpiece scale is measured against the cell the centerpiece lives in,
+    // not the whole content area. Measuring against the page made every split
+    // layout look half empty when its two columns were both full.
     let best = null;
     for (const c of s.querySelectorAll(CENTER)) {
       const r = c.getBoundingClientRect();
       if (r.width < 8 || r.height < 8) continue;
-      if (!best || r.width * r.height > best.w * best.h)
-        best = {w: r.width, h: r.height, tag: c.tagName.toLowerCase(),
+      if (!best || r.width * r.height > best.w * best.h) {
+        const own = c.closest('.fill, .notes, .typeblock, .markcell, .body > div') || bodyEl;
+        const o = own.getBoundingClientRect();
+        best = {w: r.width, h: r.height, cellArea: Math.max(1, o.width * o.height),
+                tag: c.tagName.toLowerCase(),
                 cls: (c.className || '').toString().split(' ')[0]};
+      }
+    }
+    // Per-cell fill, so an empty column in a split cannot hide behind a full one.
+    const cells = [];
+    for (const cell of s.querySelectorAll('.body > div, .body > header')) {
+      const cr = cell.getBoundingClientRect();
+      if (cr.height < 4) continue;
+      let t = Infinity, b2 = -Infinity;
+      for (const e of cell.querySelectorAll(INK)) {
+        const r = e.getBoundingClientRect();
+        if (r.height < 2) continue;
+        t = Math.min(t, r.top); b2 = Math.max(b2, r.bottom);
+      }
+      const used = (b2 > t) ? (b2 - t) : 0;
+      cells.push({cls: (cell.className||'').toString().split(' ')[0] || 'cell',
+                  fill: +(100 * used / cr.height).toFixed(0)});
     }
     // a figure's drawn aspect vs the cell it sits in
     let aspect = null;
@@ -101,7 +125,8 @@ PROBE = r"""
     }
     out.push({
       id: s.id,
-      centerScale: best ? +(100 * best.w * best.h / area).toFixed(1) : null,
+      centerScale: best ? +(100 * best.w * best.h / best.cellArea).toFixed(1) : null,
+      cells,
       centerpiece: best ? `${best.tag}.${best.cls}` : null,
       aspect,
       emptyBandPx: maxRun,
@@ -195,7 +220,8 @@ def main(argv):
                 continue
             w, h = GEOMETRIES[geometry]
             print(f"\n{path.name} @ {geometry} ({w}x{h})")
-            print(f"  {'page':8} {'centerpiece':22} {'scale':>6}  {'empty band':>11}  aspect")
+            print(f"  {'page':8} {'centerpiece':22} {'of cell':>7}  {'empty band':>11}  "
+                  f"{'cell fill':<34}aspect")
             for r in rows:
                 a = r["aspect"]
                 note = ""
@@ -206,7 +232,8 @@ def main(argv):
                     note = f"fig {a['figure']}:1 in cell {a['cell']}:1"
                 print(f"  {r['id']:8} {str(r['centerpiece'] or '-'):22} "
                       f"{str(r['centerScale'] or '-'):>5}%  "
-                      f"{str(r['emptyBandPct'])+'%':>11}  {note}")
+                      f"{str(r['emptyBandPct'])+'%':>11}  "
+                      f"{' '.join(c['cls'][:4]+':'+str(c['fill'])+'%' for c in r['cells']):<34}{note}")
             if shots:
                 print(f"  contact sheet: {sheet}")
                 print("  Look at it. That is the check; the numbers only say where to look.")

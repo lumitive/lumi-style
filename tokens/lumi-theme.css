@@ -30,13 +30,14 @@
    ═══════════════════════════════════════════════════════════════════ */
 :root {
   /* ── light palette (default) ── */
-  --bg:  #FAFAF8;                /* near-white canvas */
+  --bg:  #FFFFFF;                /* pure white. Not the warm cream the field has
+                                    settled on: that reads as a template default. */
   --nw:  #212621;                /* primary ink; doubles as the inverted-highlight fill */
-  --card-bg: #FFFFFF;            /* elevated surfaces (mock-UI cards) */
+  --card-bg: #FAFAFA;            /* elevated surfaces sit just off the canvas */
 
   /* text ladder — ink #2B2E33 on the light canvas.
      Contrast against --bg / --card-bg, measured:
-     tx1 10.22/10.61 · tx2 6.96/7.16 · tx3 5.42/5.54 · tx4 4.53/4.62 */
+     tx1 10.61/10.23 · tx2 7.16/6.97 · tx3 5.54/5.42 · tx4 4.62/4.53 */
   --tx1: rgba(43,46,51,.92);     /* body, titles, table keys */
   --tx2: rgba(43,46,51,.80);     /* secondary prose, table cells */
   --tx3: rgba(43,46,51,.72);     /* eyebrows, captions, legends, table headers */
@@ -53,9 +54,16 @@
   --acc-inbox: #9FC384;          /* accent text inside an inverted (ink-filled) box */
   --acc-wash:  #EDF2EA;          /* accent surface tint (tier-1 callouts, cells) */
   --on-acc:    #F0F0FA;          /* text on an accent fill — 5.93 on #48633E */
-  --seal:      #C8102E;          /* warnings / red lines / vetoes ONLY */
-  --seal-t:    #C8102E;          /* seal as text — 5.63 on --bg, 5.88 on --card-bg */
-  --seal-wash: #F9ECEE;          /* seal surface tint */
+  --seal:      #C8102E;          /* warnings / red lines / vetoes ONLY — 5.88 on --bg */
+  --seal-t:    #C8102E;
+  --seal-wash: #F9ECEE;
+  /* v2.0.0 state palette. One colour, one meaning, same as the accent and seal.
+     Before this, "partial" and "not built" both rendered as dashed grey, so a
+     deck could not say the one thing it most needed to say about itself. */
+  --amber:     #A86407;          /* partial · in progress · awaiting an input — 4.68 */
+  --amber-wash:#FBF3E4;
+  --brass:     #7A6C52;          /* reference · archival · out of scope but real — 5.13 */
+  --brass-wash:#F4F1EA;
   --d-blue:    #2F6DB4;          /* chart data colors (CVD-validated) */
   --d-red:     #C0392B;
   --d-teal:    #1E8E6E;
@@ -79,14 +87,14 @@
 
 /* ── dark palette: on explicit user request only ── */
 body.dark {
-  --bg:  #060806;                /* near-black with a breath of green */
+  --bg:  #1D1D1F;                /* Apple space grey */
   --nw:  #F0F0FA;                /* cold white — never pure white */
-  --card-bg: #0D110C;
+  --card-bg: #2C2C2E;
 
   /* text ladder — cold white #F0F0FA on the dark canvas. Its own alphas: the
      same numbers that work on near-white are unreadable here.
      Contrast against --bg / --card-bg, measured:
-     tx1 13.66/13.07 · tx2 10.21/9.89 · tx3 7.82/7.66 · tx4 6.19/6.14 */
+     tx1 11.73/9.89 · tx2 9.05/7.79 · tx3 7.14/6.27 · tx4 5.82/5.21 */
   --tx1: rgba(240,240,250,.88);
   --tx2: rgba(240,240,250,.76);
   --tx3: rgba(240,240,250,.66);
@@ -102,9 +110,13 @@ body.dark {
   /* Text on the lifted accent fill flips to canvas ink: cold white on #7C9F63
      measures 2.65 and fails. Until 1.8.0 this token claimed to serve both
      palettes, and a white label inside an accent bar shipped unreadable. */
-  --on-acc:    #060806;          /* 6.69 on #7C9F63 */
-  --seal-t:    #E0685A;          /* lifted seal for text on black; fills keep --seal */
-  --seal-wash: rgba(224,104,90,.13);
+  --on-acc:    #1D1D1F;          /* 6.4 on #7C9F63 */
+  --seal-t:    #E0685A;          /* lifted seal for text on grey; fills keep --seal */
+  --seal-wash: rgba(224,104,90,.15);
+  --amber:     #E0A73E;          /* 7.83 on space grey */
+  --amber-wash:rgba(224,167,62,.15);
+  --brass:     #C3B393;          /* 8.17 on space grey */
+  --brass-wash:rgba(195,179,147,.14);
   --d-blue:    #5B8FC9;
   --d-teal:    #3FA98C;
 }
