@@ -60,6 +60,8 @@ contact sheet for a human to look at.
 | content spill | content against the page box, now the box is fixed | the blind spot locking the geometry created |
 | caption attachment | the gap between the drawing and its number and name | 95–205px, a reader asked why they were separated |
 | source echo | a page citing the same source under the figure and in the footer | 11 pages, 2 word for word |
+| two tables | a page carrying more than one table | one page, and its rows could never align |
+| **D12 commercial footer** | handling terms and origin on every page — **the one check that gates** | a commercial requirement, not a design judgement |
 | frame | footer and composition sharing one width and centre | a dead band down 28 of 28 pages, visible only off-geometry |
 | column tops | top-edge skew between side-by-side cells | 12 of 15 pages, from a rule that had never once applied |
 | column weight | ink-area ratio between siblings | one column at 9.1:1 against its neighbour |

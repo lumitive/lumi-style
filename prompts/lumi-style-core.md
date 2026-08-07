@@ -140,6 +140,12 @@ A display tier sits above body copy for focal elements: `--fs-lead`
 clamp(30px,3.4vw,46px), `--fs-lead-xl` clamp(44px,6.4vw,88px) for one number
 alone, `--fs-say` clamp(22px,1.9vw,26px) for a claim.
 
+**Footer, every page**: confidentiality terms and the organisation's site on the
+left, `N / total` on the right — a slide gets forwarded without its cover, so the
+terms cannot live only on page one. This is the one check that gates. **Sales and
+marketing state provenance once for the document**, on the cover and the closing,
+not under every figure; consulting and internal analysis keep per-page sourcing.
+
 **Page box**: landscape is a fixed **1280×720** stage and print is a fixed
 **794×1123** sheet, each scaled to fit the window with `zoom` and letterboxed in a
 neutral gutter. A page is never a box that takes the window's shape: written as
@@ -176,7 +182,8 @@ callout (tinted + bordered + strong left edge) per page and on no more than a
 third of a deck's pages. Footers carry a source line and `N / total`. Every figure
 in a document is built to the same level: if one has decision shapes, dashed
 not-built states and arrows, they all do, and a grid of rectangles holding
-sentences is a table, so draw the table. Icons are semantic and each holds one
+sentences is a table, so draw the table — and **one table per page**, because two
+grids side by side share no axis and their rows can never line up. Icons are semantic and each holds one
 fixed meaning (ledger=master data · radar=watch · funnel=adjudication · bell=alert
 · shield=compliance · pen=signature · gauge=measurement · slashed circle=forbidden);
 a section eyebrow carries its icon, hairline, inheriting currentColor. A cover
@@ -226,6 +233,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **2.2.0** snapshot, cut 2026-08-07. It is self-contained by
+> This file is the **2.3.0** snapshot, cut 2026-08-07. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

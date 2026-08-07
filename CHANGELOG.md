@@ -3,6 +3,55 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 2.3.0 — handling terms on every page, provenance once per document, and one table per page
+
+A reader asked for four things and two of them were defects the checks had just
+been rebuilt to catch and still missed.
+
+**Per-page source lines go, for sales and marketing.** A source under every figure
+and again in every footer is apparatus a customs manager does not need, and it was
+occupying the line a commercial document does need. Provenance moves to the cover
+and the closing, where it is read once instead of skipped thirty times. Red line 1
+is unchanged — no invented facts, every number still traces. **Genre-scoped**:
+consulting deliverables and internal analysis keep per-page sourcing, because
+there the reader is auditing the claim rather than being sold to. `D6` now asks
+the document for provenance instead of asking every footer.
+
+**Every page carries handling terms and where the document is from.** Left of the
+footer rule: the confidentiality line and the organisation's site; right: the page
+number. Pages travel alone — a slide is screenshotted out of a deck and forwarded
+without the cover. `check_design.py` gains **D12, the one design check that fails
+the run**. Everything else there reports, because a page is done when a human
+reads it as intentional and a threshold satisfiable without improving the page
+ends the looking. D12 is different in kind: not a judgement about whether a page
+is well made, but a commercial requirement on the artifact. A design metric that
+gates is a mistake; a commercial one that does not is a different mistake.
+
+**Two tables side by side is two documents on one page.** A grid claims its cells
+are comparable along the axis its header names; two grids with different columns
+and different row counts share no axis, so their rows can never align and a reader
+sees the misalignment before they can name it. That page is now one drawing — the
+deck's own thirty pages as a strip, each tick coloured by whether it is client
+safe, needs adapting, or never leaves the building — over three numbered steps.
+16 / 10 / 4. `inspect_layout.py` reports any page carrying more than one table.
+
+**The 4px that made two columns look wrong was `.lead + *`.** In a grid, the
+adjacent sibling is **the next column**, not the block below, so an unscoped rule
+put a 4px top margin on the first cell of every page whose lead spanned the row —
+six pages with one column sitting low. An adjacent-sibling selector inside a grid
+container is almost always a mistake.
+
+**And the spill probe was asking the box again.** `scrollHeight` on an
+`overflow: visible` box **does not count children that spill out of it**: it
+returned exactly zero while two pages ran 26px and 8px past their footer rule.
+That is the third probe in three releases to measure a container instead of its
+contents. It now measures the deepest ink against the footer rule.
+
+Distances are reported in **page units, not device pixels**. Once the page is a
+scaled stage a device pixel is not the unit of the design, and the same layout was
+reporting 3px of skew at one window size and 4px at another — a threshold that
+silently tightened as the window grew.
+
 ## 2.2.0 — the page becomes a page, and a probe stops verifying its own setup
 
 A reader suspected the landscape page was not 16:9, asked why the layout tool had

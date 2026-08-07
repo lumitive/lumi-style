@@ -64,6 +64,8 @@ PROBE = r"""
   // "is it aligned" question has to be asked of the drawing, mapped out of user
   // space through the CTM — asking the element is how six pages reported 0px of
   // skew while the reader could see they were not level.
+  const tagOf = (e) => ((e.className || '').toString().split(' ')[0]
+                        || e.tagName.toLowerCase());
   const inkBox = (e) => {
     const r = e.getBoundingClientRect();
     if (e.tagName.toLowerCase() !== 'svg' || !e.viewBox || !e.viewBox.baseVal.width) return r;
@@ -87,6 +89,12 @@ PROBE = r"""
   const out = [];
   for (const s of document.querySelectorAll('section.page')) {
     const sr = s.getBoundingClientRect();
+    // The page is a scaled stage, so a device pixel is no longer the unit of
+    // the design: at a 1.389 zoom a 3px misalignment measures 4px and a
+    // threshold silently tightens as the window grows. Every distance below is
+    // divided back into page units, which is what the designer laid out in.
+    const scale = s.offsetWidth ? (sr.width / s.offsetWidth) : 1;
+    const inPageUnits = (v) => Math.round(v / (scale || 1));
     const footEl = s.querySelector('.foot');
     const foot = footEl ? footEl.getBoundingClientRect() : {top: sr.bottom};
     const bodyEl = s.querySelector('.body');
@@ -166,7 +174,23 @@ PROBE = r"""
     //     while the page is visibly broken. Locking the geometry moved the blind
     //     spot rather than removing it.
     const overflowPx = Math.round(sr.height - window.innerHeight);
-    const spillPx = Math.round(s.scrollHeight - s.clientHeight);
+    // Where the deepest ink on the page actually is, against the footer rule it
+    // must stay above and against the page edge it must stay inside.
+    //
+    // The first version of this asked `s.scrollHeight - s.clientHeight`, and on
+    // an `overflow: visible` box **scrollHeight does not count children that
+    // spill out of it** — it reports the box, and the box does not know. Two
+    // pages ran 26px and 8px past the footer rule while it returned exactly
+    // zero. Same failure as the column probe before it: ask the ink.
+    let deepest = -1e9, deepestWho = '';
+    for (const e of s.querySelectorAll(INK)) {
+      const r = inkBox(e);
+      if (r.height < 2 || r.width < 2) continue;
+      if (r.bottom > deepest) { deepest = r.bottom; deepestWho = tagOf(e); }
+    }
+    const footRule = footEl ? footEl.getBoundingClientRect().top : sr.bottom;
+    const spillPx = deepest > -1e9 ? inPageUnits(deepest - footRule) : 0;
+    const pageSpillPx = deepest > -1e9 ? inPageUnits(deepest - sr.bottom) : 0;
     // Frame alignment. The page frame's parts must share one width and one
     // centre line, or the composition and the source line that sources it drift
     // apart. This is invisible at the design geometry — 2.0.1 shipped a
@@ -175,8 +199,8 @@ PROBE = r"""
     let frameSkewPx = 0;
     if (footEl && bodyEl) {
       const f = footEl.getBoundingClientRect();
-      frameSkewPx = Math.round(Math.max(Math.abs(f.left - body.left),
-                                        Math.abs(f.right - body.right)));
+      frameSkewPx = inPageUnits(Math.max(Math.abs(f.left - body.left),
+                                         Math.abs(f.right - body.right)));
     }
 
     // ── column alignment and weight ───────────────────────────────────────
@@ -218,7 +242,7 @@ PROBE = r"""
                           && (boxes[i].top < boxes[j].bottom
                            && boxes[j].top < boxes[i].bottom);
           if (!sideBySide) continue;
-          colTopSkewPx = Math.max(colTopSkewPx, Math.round(Math.abs(tops[i] - tops[j])));
+          colTopSkewPx = Math.max(colTopSkewPx, inPageUnits(Math.abs(tops[i] - tops[j])));
           const r = Math.max(weights[i], weights[j]) / Math.min(weights[i], weights[j]);
           colWeightRatio = Math.max(colWeightRatio, +r.toFixed(1));
         }
@@ -292,7 +316,7 @@ PROBE = r"""
       const sv = fig.querySelector('svg[viewBox]:not(.ic)');
       const cap = fig.querySelector('.cap');
       if (!sv || !cap || sv.getBoundingClientRect().height < 4) continue;
-      const gap = Math.round(cap.getBoundingClientRect().top - inkBox(sv).bottom);
+      const gap = inPageUnits(cap.getBoundingClientRect().top - inkBox(sv).bottom);
       capGapPx = capGapPx === null ? gap : Math.max(capGapPx, gap);
     }
 
@@ -322,7 +346,7 @@ PROBE = r"""
       id: s.id,
       pageH: Math.round(sr.height),
       overflowPx,
-      spillPx,
+      spillPx, pageSpillPx, deepestWho,
       frameSkewPx,
       sideMarginSkewPx: Math.round(Math.abs((body.left - sr.left) - (sr.right - body.right))),
       layout, colCount, colTopSkewPx, colWeightRatio,
@@ -502,7 +526,9 @@ def main(argv):
             # number that can be satisfied without making the page better ends
             # the looking rather than directing it (SKILL.md rule 4).
             multi = [r for r in rows if r.get('colCount', 0) > 1]
-            bad_top = [r for r in multi if r['colTopSkewPx'] > 8]
+            # 3px, not 8. A reader saw two tables 4px out of line and called it a
+            # bug; the threshold was hiding exactly the case it was written for.
+            bad_top = [r for r in multi if r['colTopSkewPx'] > 3]
             if bad_top:
                 print(f"  COLUMN TOPS: {len(bad_top)} of {len(multi)} multi-column pages — "
                       "side-by-side cells do not start on one line: "
@@ -540,6 +566,14 @@ def main(argv):
                 ncap = sum(len(r['caps']) for r in rows)
                 print(f"  captions: {ncap} carry prose under the figure number, none repeated")
 
+            multi_t = [r for r in rows if len(r['tables']) > 1]
+            if multi_t:
+                print(f"  TWO TABLES: {len(multi_t)} pages carry more than one table — "
+                      + ", ".join(f"{r['id']} ({len(r['tables'])})" for r in multi_t[:6])
+                      + ". A grid claims its cells are comparable on the axis its header "
+                        "names; two grids side by side claim nothing and cannot align.")
+            else:
+                print("  tables: no page carries more than one")
             prose_t = [(r, t) for r in rows for t in r['tables'] if t['digitPct'] <= 2]
             alltab = sum(len(r['tables']) for r in rows)
             if prose_t:
@@ -579,12 +613,12 @@ def main(argv):
                       f"on all {len(rows)} pages")
             spill = [r for r in rows if r.get('spillPx', 0) > 1]
             if spill:
-                print(f"  CONTENT SPILL: {len(spill)} of {len(rows)} pages hold more "
-                      f"than their page box — "
-                      + ", ".join(f"{r['id']} +{r['spillPx']}px"
+                print(f"  CONTENT SPILL: {len(spill)} of {len(rows)} pages run past the "
+                      f"footer rule — "
+                      + ", ".join(f"{r['id']} +{r['spillPx']}px ({r['deepestWho']})"
                                   for r in sorted(spill, key=lambda r: -r['spillPx'])[:8]))
             else:
-                print(f"  content: all {len(rows)} pages fit inside their page box")
+                print(f"  content: all {len(rows)} pages stay above the footer rule")
             tall = [r for r in rows if r['overflowPx'] > 1]
             if tall:
                 print(f"  PAGE HEIGHT: {len(tall)} of {len(rows)} pages exceed the "
