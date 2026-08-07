@@ -1,18 +1,23 @@
 {
- "$schema_note": "LUMI design tokens v1.7.0 (2026-08-07). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
+ "$schema_note": "LUMI design tokens v1.8.0 (2026-08-07). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
  "palette_default": "light",
  "palette": {
   "light": {
    "bg": "#FAFAF8",
    "ink": "#212621",
    "ladder_base": "rgba(43,46,51,ALPHA)",
+   "text_ladder": [0.92, 0.8, 0.72, 0.66],
+   "rule_ladder": [0.2, 0.12, 0.07],
    "accent": "#48633E",
    "accent_deep": "#48633E",
    "accent_inbox": "#9FC384",
+   "accent_wash": "#EDF2EA",
    "on_accent": "#F0F0FA",
    "seal": "#C8102E",
    "seal_text": "#C8102E",
+   "seal_wash": "#F9ECEE",
    "data_blue": "#2F6DB4",
+   "data_red": "#C0392B",
    "data_teal": "#1E8E6E",
    "card_bg": "#FFFFFF"
   },
@@ -20,35 +25,39 @@
    "bg": "#060806",
    "ink": "#F0F0FA",
    "ladder_base": "rgba(240,240,250,ALPHA)",
+   "text_ladder": [0.88, 0.76, 0.66, 0.58],
+   "rule_ladder": [0.18, 0.11, 0.07],
    "accent": "#7C9F63",
    "accent_deep": "#48633E",
    "accent_inbox": "#48633E",
-   "on_accent": "#F0F0FA",
+   "accent_wash": "rgba(124,159,99,.14)",
+   "on_accent": "#060806",
    "seal": "#C8102E",
    "seal_text": "#E0685A",
+   "seal_wash": "rgba(224,104,90,.13)",
    "data_blue": "#5B8FC9",
+   "data_red": "#C0392B",
    "data_teal": "#3FA98C",
    "card_bg": "#0D110C",
    "note": "applied only on explicit user request, via one body.dark override block — never a forked file"
   },
-  "ladder_alpha": [
-   0.85,
-   0.7,
-   0.65,
-   0.6,
-   0.5,
-   0.45,
-   0.4,
-   0.35,
-   0.3,
-   0.28,
-   0.25,
-   0.18,
-   0.15,
-   0.12,
-   0.08
-  ],
-  "note": "one structure, two palettes; semantic meaning (accent = emphasis/pass, seal = warnings only) never changes with the palette"
+  "note": "one structure, two palettes. v1.8.0: the ladder split into text_ladder (--tx1..4, every step >=4.5:1 against both bg and card_bg) and rule_ladder (--ln1..3, rules/borders/fills, never text), and the two palettes stopped sharing one alpha list. on_accent is palette-dependent: cold white passes on the light accent (5.93) and fails on the lifted dark accent (2.65), so dark flips to canvas ink (6.69)."
+ },
+ "contrast": {
+  "floor_text": 4.5,
+  "floor_large_text": 3.0,
+  "large_text_px": 24,
+  "measured": {
+   "light_on_bg": {"tx1": 10.22, "tx2": 6.96, "tx3": 5.42, "tx4": 4.53,
+                   "accent": 6.42, "seal_text": 5.63},
+   "light_on_card": {"tx1": 10.61, "tx2": 7.16, "tx3": 5.54, "tx4": 4.62,
+                     "accent": 6.71, "seal_text": 5.88},
+   "dark_on_bg": {"tx1": 13.66, "tx2": 10.21, "tx3": 7.82, "tx4": 6.19,
+                  "accent": 6.69, "seal_text": 6.03},
+   "dark_on_card": {"tx1": 13.07, "tx2": 9.89, "tx3": 7.66, "tx4": 6.14,
+                    "accent": 6.35, "seal_text": 5.71}
+  },
+  "note": "WCAG 2.1 relative-luminance ratios, recomputed by scripts/check_design.py (D1). Recompute and update this block whenever a palette value moves; the numbers are the reason the alphas are what they are."
  },
  "chart": {
   "blue": "#2F6DB4",
@@ -72,28 +81,38 @@
    "Consolas",
    "monospace"
   ],
-  "note": "v1.2+: D-DIN is the single Latin face (titles ALL-CAPS weight 400, tight leading; CJK titles: weight 700 + 0.04em tracking, no uppercase). SIL OFL (Datto 2017), Latin-only; vendor and embed it — a declared face that never ships renders nothing. tabular-nums always on for data."
+  "note": "v1.2+: D-DIN is the single Latin face (titles ALL-CAPS weight 400, tight leading; CJK titles: weight 700 + 0.04em tracking, no uppercase). SIL OFL (Datto 2017), Latin-only; vendored in assets/fonts/ and embedded by scripts/embed_font.py. tabular-nums always on for data."
  },
  "typography": {
   "letter_spacing": {
    "eyebrow_latin": "0.3em",
    "title_cjk": "0.04em"
   },
+  "size_floor_px": 11,
   "chart_scale_px": {
-   "fig_title": 11,
-   "axis": 10.5,
-   "source": 9.5
+   "fig_title": 13,
+   "axis": 11.5,
+   "source": 10.5
   },
   "display_title": {
    "transform": "uppercase (Latin only)",
    "weight": 400,
    "leading": "0.95-1.0"
-  }
+  },
+  "note": "v1.8.0 raised the chart scale and added size_floor_px. The old scale (11 / 10.5 / 9.5) contradicted design-rules.md prose (14 / 10-11 / 11); tokens win per CLAUDE.md, so deliverables shipped 9.5px source lines. size_floor_px binds every text run except chart_scale_px.source, the single documented exception."
+ },
+ "assets": {
+  "fonts": "assets/fonts/ — D-DIN.woff2, D-DIN-Bold.woff2, COPYING.txt (SIL OFL)",
+  "icons": "assets/icons/ — the eight semantic icons named in design-rules.md §5, hairline 1.25px, stroke=currentColor, 24x24",
+  "vectors": "assets/vectors/ — globe-orthographic.svg and world-flat.svg, original geometry",
+  "note": "v1.8.0. A rule may not mandate an asset the package does not ship: §5 required a semantic icon library for six versions and shipped none, so deliverables carried zero icons, and the cover rule banned imagery because there was no photo library rather than shipping vector geography that needs none."
  },
  "layout": {
   "one_claim_per_screen": true,
   "cover_and_closing": "every deck; see storyline-templates.md",
   "scroll_snap": "decks only, never long documents",
+  "tier1_callouts": "at most 1 per page, and no more than a third of a deck's pages",
+  "footer": "source line + page number as N / total",
   "verification_matrix": "language x viewport (design / print / short-laptop); footer visible at every point"
  }
 }

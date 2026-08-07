@@ -15,7 +15,7 @@ was written from thin air.
 
 | Platform | How |
 |---|---|
-| **Claude Code** | `git clone https://github.com/lumitive/lumi-style ~/.claude/skills/lumi-style`, then `/lumi-style <task>` |
+| **Claude Code** | `git clone https://github.com/lumitive/lumi-style` somewhere you keep checkouts, then `ln -s <path> ~/.claude/skills/lumi-style` and `/lumi-style <task>`. **Symlink rather than copy**: an installed copy silently stranded at 1.4.0 while the repo reached 1.7.0, and a deck was built against three versions of superseded rules. |
 | **Codex** | reads `AGENTS.md` (see `adapters/codex.md`) |
 | **Kimi** | paste `prompts/lumi-style-core.md` as the system prompt (see `adapters/kimi.md`) |
 | **DeepSeek** | same as Kimi (see `adapters/deepseek.md`) |
@@ -30,10 +30,20 @@ references/storyline-templates.md narrative skeletons: sales (value & future) ·
                                   internal analysis + shared discipline
 references/design-rules.md        design language: color semantics · dual-voice typography ·
                                   five chart iron rules · semantic icons · layout
-references/eval-rubric.md         eval rubric M1–M8 / H1–H6 + the review protocol (iteration engine)
-tokens/                           design tokens (CSS + JSON): palette · type · scale
+references/eval-rubric.md         eval rubric M1–M11 / D1–D6 / H1–H6 + the review protocol
+tokens/                           design tokens (CSS + JSON): two ladders · palette · type · scale
+assets/fonts                      D-DIN, vendored (SIL OFL) — embed, never link
+assets/icons                      the eight semantic icons, hairline, currentColor
+assets/vectors                    orthographic globe · flat trade map, generated from lat/lon
+scripts/                          check_repo · check_prose (M) · check_design (D) ·
+                                  embed_font · embed_icons · build_geography
 adapters/                         per-platform loading notes
 ```
+
+Rules and assets ship together on purpose. Twice now a rule required something the
+package did not contain — an embedded display face, then a semantic icon set — and
+both times deliverables simply went without. `CLAUDE.md` §5 states the resulting
+maintenance rule.
 
 ## The design language in one line
 

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · v1.7.0 (2026-08-07)
+   LUMI visual theme · v1.8.0 (2026-08-07)
    Single source of truth for palette and typography. New documents reference
    this file or copy the token blocks verbatim (note the provenance when
    copying). Version lockstep: a deliverable's version = the lumi-style
@@ -11,32 +11,54 @@
    Build components and inline SVG with these semantic tokens only; a literal
    color is a defect (it silently ignores the palette switch).
 
+   v1.8.0: the foreground ladder split in two, and the two palettes stopped
+   sharing one alpha list. Reader review found every eyebrow, caption, source
+   line, page number and table header in a shipped deck illegible; measured, the
+   old ladder's lower steps ran 2.91 / 1.81 / 1.32 / 1.16 on light and 4.08 /
+   1.99 / 1.36 / 1.16 on dark, and the deck had put text on all of them. The
+   token names now carry the rule: --tx* is for text and every step clears
+   4.5:1 against both --bg and --card-bg; --ln* is for rules, borders and fills
+   and may never carry text. Identical alphas cannot serve two canvases, so
+   light and dark now list their own.
+
    D-DIN: SIL OFL 1.1 (Datto 2017) — free for commercial use and embedding;
    Latin-only, CJK falls back to a Chinese face. Vendor and embed the woff2
    (~20 KB each as a data URI) — a declared face that never ships renders
    nothing. Reserved name "D-DIN" may not be used for derivatives.
+   Icons ship in assets/icons/, geography in assets/vectors/; embed them with
+   scripts/embed_icons.py rather than drawing new ones per document.
    ═══════════════════════════════════════════════════════════════════ */
 :root {
   /* ── light palette (default) ── */
   --bg:  #FAFAF8;                /* near-white canvas */
   --nw:  #212621;                /* primary ink; doubles as the inverted-highlight fill */
-  /* foreground ladder: one hue, hierarchy via alpha (ink on light canvas) */
-  --w85: rgba(43,46,51,.85); --w70: rgba(43,46,51,.70); --w65: rgba(43,46,51,.65);
-  --w60: rgba(43,46,51,.60); --w50: rgba(43,46,51,.50); --w45: rgba(43,46,51,.45);
-  --w40: rgba(43,46,51,.40); --w35: rgba(43,46,51,.35); --w30: rgba(43,46,51,.30);
-  --w28: rgba(43,46,51,.28); --w25: rgba(43,46,51,.25); --w18: rgba(43,46,51,.18);
-  --w15: rgba(43,46,51,.15); --w12: rgba(43,46,51,.12); --w08: rgba(43,46,51,.08);
+  --card-bg: #FFFFFF;            /* elevated surfaces (mock-UI cards) */
+
+  /* text ladder — ink #2B2E33 on the light canvas.
+     Contrast against --bg / --card-bg, measured:
+     tx1 10.22/10.61 · tx2 6.96/7.16 · tx3 5.42/5.54 · tx4 4.53/4.62 */
+  --tx1: rgba(43,46,51,.92);     /* body, titles, table keys */
+  --tx2: rgba(43,46,51,.80);     /* secondary prose, table cells */
+  --tx3: rgba(43,46,51,.72);     /* eyebrows, captions, legends, table headers */
+  --tx4: rgba(43,46,51,.66);     /* page numbers, source lines — the quietest TEXT */
+
+  /* non-text ladder — rules, borders, fills, chart furniture. Never text. */
+  --ln1: rgba(43,46,51,.20);     /* section rules, table borders */
+  --ln2: rgba(43,46,51,.12);     /* hairlines */
+  --ln3: rgba(43,46,51,.07);     /* tint fills, inactive chart bands */
 
   /* ── semantic colors (one color, one meaning) ── */
   --acc:       #48633E;          /* the single accent: emphasis / pass / built */
   --acc-deep:  #48633E;          /* accent-filled surfaces (headers, bars) */
   --acc-inbox: #9FC384;          /* accent text inside an inverted (ink-filled) box */
-  --on-acc:    #F0F0FA;          /* text on accent-filled surfaces (both palettes) */
+  --acc-wash:  #EDF2EA;          /* accent surface tint (tier-1 callouts, cells) */
+  --on-acc:    #F0F0FA;          /* text on an accent fill — 5.93 on #48633E */
   --seal:      #C8102E;          /* warnings / red lines / vetoes ONLY */
-  --seal-t:    #C8102E;          /* seal as text */
+  --seal-t:    #C8102E;          /* seal as text — 5.63 on --bg, 5.88 on --card-bg */
+  --seal-wash: #F9ECEE;          /* seal surface tint */
   --d-blue:    #2F6DB4;          /* chart data colors (CVD-validated) */
+  --d-red:     #C0392B;
   --d-teal:    #1E8E6E;
-  --card-bg:   #FFFFFF;          /* elevated surfaces (mock-UI cards) */
 
   /* ── typography: D-DIN takes over (v1.2+) ── */
   --din:  'D-DIN', "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", Arial, sans-serif;
@@ -46,21 +68,43 @@
   --ls-eyebrow: .3em;            /* mono eyebrows, ALL-CAPS */
   --ls-title-cjk: .04em;
   --num-feature: "tnum";         /* tabular-nums always on for data */
+
+  /* type floor (v1.8.0) — no text in a deliverable below --fs-floor at the
+     design viewport; --fs-source is the single documented exception. */
+  --fs-floor:     11px;
+  --fs-fig-title: 13px;
+  --fs-axis:      11.5px;
+  --fs-source:    10.5px;
 }
 
 /* ── dark palette: on explicit user request only ── */
 body.dark {
   --bg:  #060806;                /* near-black with a breath of green */
   --nw:  #F0F0FA;                /* cold white — never pure white */
-  --w85: rgba(240,240,250,.85); --w70: rgba(240,240,250,.70); --w65: rgba(240,240,250,.65);
-  --w60: rgba(240,240,250,.60); --w50: rgba(240,240,250,.50); --w45: rgba(240,240,250,.45);
-  --w40: rgba(240,240,250,.40); --w35: rgba(240,240,250,.35); --w30: rgba(240,240,250,.30);
-  --w28: rgba(240,240,250,.28); --w25: rgba(240,240,250,.25); --w18: rgba(240,240,250,.18);
-  --w15: rgba(240,240,250,.15); --w12: rgba(240,240,250,.12); --w08: rgba(240,240,250,.08);
+  --card-bg: #0D110C;
+
+  /* text ladder — cold white #F0F0FA on the dark canvas. Its own alphas: the
+     same numbers that work on near-white are unreadable here.
+     Contrast against --bg / --card-bg, measured:
+     tx1 13.66/13.07 · tx2 10.21/9.89 · tx3 7.82/7.66 · tx4 6.19/6.14 */
+  --tx1: rgba(240,240,250,.88);
+  --tx2: rgba(240,240,250,.76);
+  --tx3: rgba(240,240,250,.66);
+  --tx4: rgba(240,240,250,.58);
+
+  --ln1: rgba(240,240,250,.18);
+  --ln2: rgba(240,240,250,.11);
+  --ln3: rgba(240,240,250,.07);
+
   --acc:       #7C9F63;          /* lifted for contrast on near-black */
   --acc-inbox: #48633E;
+  --acc-wash:  rgba(124,159,99,.14);
+  /* Text on the lifted accent fill flips to canvas ink: cold white on #7C9F63
+     measures 2.65 and fails. Until 1.8.0 this token claimed to serve both
+     palettes, and a white label inside an accent bar shipped unreadable. */
+  --on-acc:    #060806;          /* 6.69 on #7C9F63 */
   --seal-t:    #E0685A;          /* lifted seal for text on black; fills keep --seal */
+  --seal-wash: rgba(224,104,90,.13);
   --d-blue:    #5B8FC9;
   --d-teal:    #3FA98C;
-  --card-bg:   #0D110C;
 }

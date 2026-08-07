@@ -3,6 +3,106 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 1.8.0 — 2026-08-07
+
+Reader review of a sales-enablement deck: seven defects, and measurement said
+three of them were the skill's fault rather than the deliverable's. An author
+following `design-rules.md` literally would reproduce them every time.
+
+Three failure classes sit behind the seven, and all three are now maintenance
+rules in `CLAUDE.md` §4–6.
+
+**The ladder was unreadable below its second step, and one alpha list served two
+canvases.** Measured against their own backgrounds, the lower steps ran 2.91 /
+1.81 / 1.32 / 1.16 on light and 4.08 / 1.99 / 1.36 / 1.16 on dark. The deck put
+its eyebrows, captions, source lines, page numbers, table headers and every 9px
+SVG label on those steps, which is the whole of a document's connective tissue,
+and the reader's first note was that both canvases were exhausting to read. The
+ladder is now two ladders with names that carry the rule: `--tx1..--tx4` for text,
+every step clearing 4.5:1 against both `--bg` and `--card-bg`, and `--ln1..--ln3`
+for rules, borders and fills, never text. Each palette carries its own alphas.
+`--on-acc` became palette-dependent after measuring cold white on the lifted dark
+accent at 2.65; until now one value claimed to serve both and white labels inside
+accent bars shipped unreadable. `check_repo.py` recomputes every step and refuses
+a ladder below the floor — the guard that used to enforce the shared alpha list
+now enforces legibility instead.
+
+**Two assets the rules required and the package never shipped.** §5 has demanded
+a semantic icon library since 1.2 and shipped none, so the deck contained zero
+icons; the eight icons now live in `assets/icons/` with `scripts/embed_icons.py`.
+The cover rule banned imagery because the skill had no photo library, applying the
+ban to every kind of image when photography was the actual risk; `assets/vectors/`
+now ships an orthographic globe and a flat trade map, generated from lat/lon by
+`scripts/build_geography.py`, and a cover may carry exactly one vector mark. Both
+are the defect 1.7.0 fixed for the display face, repeated one directory over.
+`.gitignore`'s blanket `*.svg` would have dropped both silently and now carries
+the exceptions.
+
+**Prescribed values with no floor.** The type scale had no minimum and its two
+copies disagreed (tokens 11 / 10.5 / 9.5 against prose 14 / 10–11 / 11, tokens
+winning, so 9.5px source lines shipped); there is now an 11px floor and the scale
+is 13 / 11.5 / 10.5. The three callout tiers had no budget and a deck put 18
+tier-one callouts on 14 of 27 pages, so the hierarchy degraded back into the flat
+page it was introduced to fix; tier one is now capped at one per page and a third
+of a deck's pages. The figure vocabulary had no consistency requirement and one
+figure carried three shape kinds, six dashed states and nine arrows while four
+others were rectangles and text; figures must now hold one level across a
+document, and a grid of rectangles containing sentences is a table. Footers carry
+`N / total`.
+
+**A ceiling read as a target, for the third time.** "Titles budget two lines"
+produced titles engineered to two lines: the author capped the container at 48ch
+and all 24 content titles broke near the middle. One line is now the goal, two the
+ceiling, and narrowing a title container to manufacture a break is banned outright.
+1.2.0 and 1.6.0 record the same shape, which is why it is now a maintenance rule.
+
+**`scripts/check_design.py` (D1–D6)** makes the design half of the skill checkable
+the way M1–M11 made the prose half: contrast, type floor, callout budget, palette
+purity, figure parity (reported, not graded — the judgement is not automatable),
+footer completeness. Run against the 1.7.0 deck it reports 32 contrast failures,
+17 sub-floor type sizes, four pages over budget on 51.9% of pages, and two footer
+gaps, which is the reader's list in numbers. `eval-rubric.md` also now requires a
+self-score to carry its reasons; a bare number gives a reviewer nothing to diverge
+from.
+
+**Second reader pass, before this release shipped.** Two more defects, and both
+say the same thing about how it was verified.
+
+*The icon set was too small to say anything.* Eight hand-drawn icons across
+twenty-five pages meant `gauge` did five jobs and the reader called the match to
+content poor. Fixed by vendoring Lucide (2007 icons, ISC, `assets/icons/lucide/`,
+searchable through its `tags.json`) and keeping LUMI's contribution where it
+belongs: the reserved bindings in `scripts/embed_icons.py` that pin one icon per
+recurring meaning. `embed_icons.py` now emits a **subset** sprite — the deck
+embeds 25 icons in 7.7 KB rather than 0.9 MB of library. Breadth and consistency
+are separate problems and a house set of eight solved neither.
+
+*A figure shipped clipped.* The evals-ladder band was extended to y=212 inside a
+viewBox 208 tall, so its bottom edge was cut and it collided with the caption.
+`check_design.py` said all-clear because it reads declared CSS and cannot see
+rendered geometry. Three browser checks are now in `design-rules.md` §7 — every
+drawn element inside its viewBox, every label inside its shape tested at the
+corners rather than the midline, and both re-run after any type-size change,
+which had moved seven labels out of their boxes at once. Two of those three
+probes passed clean on the visibly broken document before they were corrected,
+hence the rule that a probe which has never failed is not a probe.
+
+Also from this pass: a decision diamond had been used for a state, to satisfy the
+new figure-parity rule. Parity means building every figure to the same level, not
+using the same shapes regardless of meaning; the shape vocabulary still binds.
+
+Two maintenance rules in `CLAUDE.md` (§7, §8) and one scoring rule in
+`eval-rubric.md` (§3b): a validation artifact is never a source of conventions,
+metrics passing is not a verified document, and a dimension where the reader found
+a defect the author claimed to have verified cannot be self-scored above 3 in the
+round that fixes it.
+
+Deferred to a later round, recorded so it is not lost: a `check_version.py` that
+tells a user of Claude Code, Codex or Gemini that their installed copy is behind
+upstream. The immediate mitigation is to install the skill as a symlink to a git
+checkout, which makes drift structurally impossible — the copy this round was
+built against had been stranded at 1.4.0 while the repo reached 1.7.0.
+
 ## 1.7.0 — 2026-08-07
 
 Two operational gaps, both found by asking why a step kept costing time.

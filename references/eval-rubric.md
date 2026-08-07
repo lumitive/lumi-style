@@ -20,6 +20,29 @@
 | M10 | Triad rate | ≤50% | share of enumerations (lists, appositive series) containing exactly three items |
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame (e.g. "Topic: clause") |
 
+## Design metrics D1–D6 (scriptable — `scripts/check_design.py`)
+
+| id | Metric | Target | Predicate |
+|---|---|---|---|
+| D1 | Text contrast | =0 failures | every declared text color against `--bg` and `--card-bg` of its palette, ≥4.5:1 (≥3.0:1 at 24px and above) |
+| D2 | Type floor | =0 | declared font sizes below 11px (figure source lines: 10.5px) |
+| D3 | Tier-1 callout budget | ≤1 per page **and** ≤33% of pages | tinted-plus-bordered callouts per page, and the share of pages carrying one |
+| D4 | Palette purity | =0 | literal hex colors outside the `:root` / `body.dark` token block |
+| D5 | Figure parity | reported, not graded | shape-kind spread across figures, and how many are rectangles-only |
+| D6 | Footer completeness | =0 | pages missing a source line or a `N / total` page number |
+
+D1–D4 and D6 gate. **D5 is reported on purpose**: "these two figures are built to
+different levels" is a judgement, and a number that pretended otherwise would be
+worse than the reading it replaces. Read the spread, then look at the figures.
+
+Provenance: M1–M11 made the prose half of this skill checkable while the design
+half stayed a reading task, and a deck that passed every prose metric came back
+from its reader with seven defects. Four were arithmetic the whole time. Run
+`check_design.py` on the 1.7.0 deck and it reports 32 contrast failures, 17
+sub-floor type sizes, four pages over the callout budget on 51.9% of pages, and
+two footer gaps — which is the reader's list, in numbers, before they had to read
+anything.
+
 ## Human metrics H1–H6 (anchors 1–5 — **anchors must be written in the reviewer's language, not internal jargon**)
 
 - **H1 Reader value**: 5 = after each page the reader knows what they got and what
@@ -44,12 +67,22 @@
 
 1. Ship with a self-score attached (**never self-score 5 before a reader has
    scored it** — mistaking mechanical completeness for reader value is a
-   documented, once-punished failure);
+   documented, once-punished failure). **A self-score carries its reasons**: the
+   number alone tells a reader nothing they can argue with, and the reason is what
+   a divergence gets measured against in step 3. Say what the page does that earns
+   the score and what it fails to do that caps it;
 2. Readers score against the anchors with a one-line comment each; slide decks
    embed the scoring table as the final page; long documents use a standalone
    review form;
 3. **Any dimension diverging ≥2 points forces a retrospective**: name the root
    cause (what the self-score missed / which rule is absent);
+3b. **A dimension where the reader found a defect the author claimed to have
+   verified cannot be self-scored above 3 in the round that fixes it.** The
+   author already believed it was better than that and was wrong, so the next
+   number needs evidence from a reader, not from the fix. Scoring is not a
+   summary of effort spent. (Field-tested twice: H2 was self-scored 4 while four
+   of a reader's seven defects sat in H2, and H3 was self-scored 4 in the round
+   that shipped a clipped figure.)
 4. The retrospective produces one of three outcomes: a rule revision (CHANGELOG +
    version bump) / an anchor revision (anchors can be wrong too) / a recorded
    no-change with reasons;

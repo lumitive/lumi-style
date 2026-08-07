@@ -27,7 +27,16 @@ __pycache__/
 *.ttf
 *.otf
 
-# Exception: the display face is part of the design language, not a deliverable.
-# design-rules.md requires embedding it, and a version that shipped with the face
-# declared but not vendored rendered nothing (CHANGELOG 1.2.0).
+# Skill-validation output. Deliverables built to exercise the rules land in docs/
+# so they can be checked in place; they carry engagement facts and a client name,
+# which CLAUDE.md red line 4 bars from this repository. Never commit them.
+docs/
+
+# Exception: the design language's own assets are part of the skill, not renders.
+# design-rules.md requires embedding them, and a version that shipped with the
+# face declared but not vendored rendered nothing (CHANGELOG 1.2.0). The icons
+# and geography added in 1.8.0 sit behind the same blanket *.svg rule and would
+# have been dropped the same silent way.
 !assets/fonts/*.woff2
+!assets/icons/**/*.svg
+!assets/vectors/*.svg

@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "1.7.0"
+  version: "1.8.0"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -33,16 +33,23 @@ rules only as rule data for Chinese-language output.
 3. **Visuals and charts**: for HTML/slides/chart output follow
    [`references/design-rules.md`](references/design-rules.md); tokens come from
    [`tokens/lumi-theme.css`](tokens/lumi-theme.css) and
-   [`tokens/design-tokens.json`](tokens/design-tokens.json).
+   [`tokens/design-tokens.json`](tokens/design-tokens.json). **Embed the vendored
+   assets rather than improvising**: `scripts/embed_font.py` for the display face,
+   `scripts/embed_icons.py` for the eight semantic icons, `assets/vectors/` for
+   the globe and trade map. Text uses the `--tx*` ladder only; `--ln*` is rules
+   and fills. Then measure it: `python3 scripts/check_design.py <file>` (D1–D6).
 4. **Before delivery**: run the critic gate (structure before polish), then the
    **mandatory de-AI-flavor pass** — `references/writing-rules.md` §6, including
    its two-pass audit; for Chinese translated from English also §6b
    de-translationese — then the H1–H6 self-score per
    [`references/eval-rubric.md`](references/eval-rubric.md);
-   **never self-score 5 before a reader has scored it**. For English deliverables
-   measure it rather than trusting it: `python3 scripts/check_prose.py <file>`.
+   **never self-score 5 before a reader has scored it, and give the reason for
+   every score**. Measure rather than trust: `python3 scripts/check_prose.py <file>`
+   for English prose and `python3 scripts/check_design.py <file>` for any HTML.
    (The de-AI pass was advisory until 1.6.0 and nothing invoked it; three versions
-   of AI-flavored decks shipped past it.)
+   of AI-flavored decks shipped past it. The design half had no metrics at all
+   until 1.8.0, and a deck that passed every prose metric came back from its
+   reader with seven defects, four of them arithmetic.)
 5. **Version lockstep**: stamp every deliverable with the lumi-style version
    that produced it (cover meta strip + closing colophon, "built with
    lumi-style X.Y.Z") — the deliverable's own version number **is** that
