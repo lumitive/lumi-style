@@ -498,6 +498,15 @@ A layout is verified only across the **matrix**, not at a point:
   it was satisfiable by stretching table rows while four diagrams rendered at 40%
   of their cell, and it measured the bounding box of all ink, so a small chart
   with a long caption scored as full.
+- **Consistency axis.** Read the deck as a system, not as pages: for every
+  repeated role collect the computed family, weight, size, transform, tracking
+  and colour, and count the distinct renderings. More than one is a finding, and
+  every sanctioned exception is declared in the probe rather than tolerated.
+  Normalise tracking to em before comparing — it is authored in em and computes
+  to px, so two sizes can never agree otherwise, which cost one round of chasing
+  a difference that was not there. Add: one datum per geometry for where content
+  begins, one colour per chart component across pages, and a shared baseline
+  inside a stat band.
 - **Collision axis.** Nothing may land on anything. Text against text **and text
   against every drawn element** — field, figure, band, spec, geography. 3.2.0
   shipped this comparing text to text only, and a reader immediately found two

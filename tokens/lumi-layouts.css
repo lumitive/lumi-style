@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v3.3.0 (2026-08-07)
+   LUMI page layouts · v3.4.0 (2026-08-07)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -426,6 +426,11 @@
     zoom: min(100vw / 794px, 100svh / 1123px);
   }
   .body { max-width: 720px; }
+  /* The datum is per geometry. A title that sets on two lines at 1280 sets on
+     three at 794, so reserving the landscape height here would spend space the
+     sheet does not have. Portrait is a composition, not a reflow — it gets its
+     own datum, which is its own content. */
+  .body .lede { height: auto; }
   .body.split, .body.split-wide, .body.split-narrow, .body.sidebar-notes {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 3fr) minmax(0, 2fr);

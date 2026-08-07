@@ -3,6 +3,56 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 3.4.0 — one role, one rendering: a consistency system, and the probe that holds it
+
+A reader asked for a complete consistency audit of all 30 pages and for the
+confirmed style to live in the tool rather than in my head. They named four
+inconsistencies. Measuring every repeated role across every page found those four
+**and two more**, one deeper than anything reported.
+
+**The title rendered three ways** — content 34px/700, cover 57.6px/700, and the
+**closing at weight 400**: the register reached every page in 3.1.0 except the
+last one. **The callout rendered three ways**, 12 / 12.5 / 13.5px, unreported —
+residue from three rounds of per-page density fixes, each locally right and the
+accumulation exactly the inconsistency a reader can see. That produced a rule: **a
+page that no longer fits gets its content trimmed, never its type nudged.**
+
+**The deepest defect was not on the list.** Titles all began at the same y, but the
+support line began at three different heights and the first content cell at **ten,
+106px to 219px**. Content started somewhere different on almost every page, which
+is what a reader feels flipping through even when every type style matches. The
+title block now reserves a fixed height derived from the line-heights, and content
+begins at **198px on all 26 content pages**. Six support lines were trimmed to two
+lines and one glossary page went from twelve terms to ten to pay for it — content,
+not type. The datum is per geometry: portrait releases it, because portrait is a
+composition and not a reflow.
+
+**The stat band was 17px out of line.** Two causes, both mine: the lime highlight
+replaced the band cell's padding, making the headline number's box 40px where its
+neighbours were 80px; and the band centred each cell, so a label that wrapped one
+line further lifted its own number. The highlight now paints the *text*, and a
+band aligns at the top — it is a row of comparable things.
+
+**Two comparison bars, two greens.** This was a collision between two of these
+rules — *one lime event per page* met *the same component always looks the same* —
+and the component lost. Resolved as a rule: **the lime marks a number panel, never
+a chart mark.** A chart mark encodes a value a reader compares across pages. A page
+with no number panel simply has no lime.
+
+**The probe is the general form, not four checks.** `inspect_layout.py` now reads
+the deck as a system: for every repeated role it collects the computed family,
+weight, size, transform, tracking and colour and counts distinct renderings, with
+every sanctioned exception **declared in the probe** rather than tolerated. Plus
+one datum, one colour per chart component, and a shared band baseline. Tracking is
+normalised to em first — it is authored in em and computes to px, so two sizes can
+never agree otherwise, which cost a round of chasing a difference that was not
+there.
+
+Known and reported rather than fixed: at **1800x1000**, an off-design shape kept
+deliberately in the probe set, three pages still show small collisions and two
+spill by under 8 page-units. Text rewraps at that zoom. Both design geometries are
+clean.
+
 ## 3.3.0 — the working green and the event green, numbers that rank, a quieter cover
 
 Six items from a review. One needed measurement rather than taste, two were
