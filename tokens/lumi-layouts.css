@@ -179,16 +179,47 @@
   .body.diagonal-flow > .steps > :nth-child(3) { margin-inline-start: 16%; }
   .body.diagonal-flow > .steps > :nth-child(4) { margin-inline-start: 24%; }
 }
-/* Below the narrow breakpoint every horizontal layout collapses to one column:
-   a 38/62 split at 900px is two unreadable gutters. */
-@media (max-width: 1000px) {
+/* ── portrait · A4 and anything taller than it is wide ────────────────────
+   Portrait is a composition, not a reflow. Collapsing every horizontal layout
+   to one column is the landscape design giving up; what a tall page wants is
+   different proportions, tighter margins, and figures drawn for it.
+
+   Two columns still work on A4 at 682px of content, so columns-2 and quad keep
+   theirs. What does not survive is an asymmetric split: 38% of 682 is 259px,
+   which is a gutter rather than a column. Those become vertical, with the
+   supporting cell reading as a band under the centerpiece rather than beside it. */
+@media (max-aspect-ratio: 1/1) {
+  .page { --page-pad: 56px; padding-top: 40px; }
+  .body { max-width: 720px; }
+  .body.split, .body.split-wide, .body.split-narrow, .body.sidebar-notes {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 3fr) minmax(0, 2fr);
+  }
+  .body.sidebar-notes > .notes,
+  .body.split > .notes, .body.split-wide > .notes, .body.split-narrow > .notes {
+    border-left: 0; border-top: 1px solid var(--ln1);
+    padding-left: 0; padding-top: 18px;
+  }
+  .body.rail { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .body.rail > .railhead { border-right: 0; border-bottom: 1px solid var(--ln1);
+                           padding-right: 0; padding-bottom: 14px; }
+  .body.columns-3 { grid-template-columns: 1fr; grid-template-rows: auto repeat(3, 1fr); }
+  .body.columns-4 { grid-template-columns: repeat(2, 1fr); }
+  .body.cover-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
+  .duo { grid-template-columns: 1fr; gap: 16px; }
+  /* Figures are drawn twice. A 2.4:1 chain in a 0.8:1 cell fills a third of it,
+     and no CSS fixes that — the drawing is wrong for the page. */
+  .fig .land { display: none; }
+  .fig .port { display: block; }
+}
+@media (min-aspect-ratio: 1/1) {
+  .fig .port { display: none; }
+}
+
+/* A short, narrow window is neither geometry; keep it usable. */
+@media (max-width: 1000px) and (min-aspect-ratio: 1/1) {
   .body.split, .body.split-wide, .body.split-narrow,
-  .body.columns-2, .body.columns-3, .body.columns-4,
-  .body.quad, .body.sidebar-notes, .body.rail {
+  .body.columns-3, .body.columns-4, .body.quad, .body.sidebar-notes, .body.rail {
     grid-template-columns: 1fr;
   }
-  .body.rail > .railhead { border-right: 0; border-bottom: 1px solid var(--ln2);
-                           padding-right: 0; padding-bottom: 14px; }
-  .body.sidebar-notes > .notes { border-left: 0; border-top: 1px solid var(--ln2);
-                                 padding-left: 0; padding-top: 16px; }
 }

@@ -93,6 +93,32 @@ the page made every split look half empty when both its columns were full. Its i
 selector had also omitted lists and spec strips, so a full column of ordered steps
 reported as 10% ink.
 
+
+**Fourth pass · portrait, and the two thinnest pages.**
+
+*A4 portrait is now a composition.* The width breakpoint that collapsed every
+horizontal layout was the landscape design giving up; portrait now has its own
+rules keyed to aspect ratio, with tighter margins, a narrower measure, and
+asymmetric splits becoming a centerpiece over a band rather than two gutters.
+Two-column layouts keep their columns, because 682px of content carries them.
+
+*Figures are drawn twice.* A 2.39:1 chain in a 0.79:1 cell fills a third of it and
+no CSS fixes that, so the four wide diagrams gained portrait compositions: the
+same content as vertical chains. Measured, the three that had no portrait variant
+sat at 71 to 73 percent empty band; with one they sit at 1.5. Aspect now matches
+the cell in both geometries, 0.76:1 in portrait and 2.39:1 in landscape.
+
+*The two thinnest pages were recomposed, not padded.* A two-row table cannot fill
+a page and, worse, it hides that its two rows are opposites — the mutual-exclusion
+page is now two facing cards, one per product family, each carrying its 232 status,
+its country-layer status and the dimension that owns it. The filing-timeline page
+moved its table to full width with the two caveats as a band beneath.
+
+`inspect_layout.py` gained two fixes found by using it: it now measures the
+*visible* figure, because a page carrying both a landscape and a portrait drawing
+was being reported on the hidden one, and its ink selector had omitted the card
+and definition-list elements, so a full column read as 2 percent.
+
 The cover and closing are recomposed: the globe is part of the composition rather
 than absolutely-positioned decoration mostly off-page. The remaining page-by-page
 design work is open and tracked.
