@@ -13,8 +13,9 @@ through 2.3.0 this rule set ran 272 restricting lines against 12 inviting ones.
 **Load order** (all files are in this repository):
 
 0. `references/brand.md` — **read this first, and commit.** The water thesis, the
-   two structural devices (the **field**: one mark per datum, intensity from the
-   datum; the **waterline**: one horizon per page, air above and record below),
+   two structural devices (the **field**: one mark per datum; the **waterline**: one horizon per page,
+   air above and record below; the **ground**: continuous water and light behind
+   the page, which may be decorative only because it cannot be counted),
    and the accelerators — the only place in this repository that says what to
    reach for. A field with nothing behind it is decoration and is checked for.
 1. `references/writing-rules.md` — wording red lines, banned phrases, punctuation,

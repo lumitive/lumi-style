@@ -64,8 +64,17 @@ PROBE = r"""
   // "is it aligned" question has to be asked of the drawing, mapped out of user
   // space through the CTM — asking the element is how six pages reported 0px of
   // skew while the reader could see they were not level.
-  const tagOf = (e) => ((e.className || '').toString().split(' ')[0]
-                        || e.tagName.toLowerCase());
+  // SVG elements carry an SVGAnimatedString, not a string, so className.split
+  // gave "[object" as the name of everything the ground reported.
+  const tagOf = (e) => {
+    const c = (typeof e.className === 'string') ? e.className
+            : (e.getAttribute && e.getAttribute('class')) || '';
+    return c.split(' ')[0] || e.tagName.toLowerCase();
+  };
+  // The ground is not ink. It is continuous, uncountable and behind everything
+  // by construction, so counting it as content made all thirty pages report
+  // that they ran past their own footer rule.
+  const isGround = (e) => !!(e.closest && e.closest('.ground'));
   const inkBox = (e) => {
     const r = e.getBoundingClientRect();
     if (e.tagName.toLowerCase() !== 'svg' || !e.viewBox || !e.viewBox.baseVal.width) return r;
@@ -107,6 +116,7 @@ PROBE = r"""
     // layout look half empty when its two columns were both full.
     let best = null;
     for (const c of s.querySelectorAll(CENTER)) {
+      if (isGround(c)) continue;
       const r = c.getBoundingClientRect();
       if (r.width < 8 || r.height < 8) continue;
       if (!best || r.width * r.height > best.w * best.h) {
@@ -124,6 +134,7 @@ PROBE = r"""
       if (cr.height < 4) continue;
       let t = Infinity, b2 = -Infinity;
       for (const e of cell.querySelectorAll(INK)) {
+        if (isGround(e)) continue;
         const r = e.getBoundingClientRect();
         if (r.height < 2) continue;
         t = Math.min(t, r.top); b2 = Math.max(b2, r.bottom);
@@ -137,7 +148,7 @@ PROBE = r"""
     // Pick the *visible* drawing. A page can ship a landscape and a portrait
     // composition of the same figure, and reporting the hidden one's aspect
     // says the opposite of the truth.
-    const svg = [...s.querySelectorAll('.fig svg[viewBox]:not(.ic)')]
+    const svg = [...s.querySelectorAll('.fig svg[viewBox]:not(.ic):not(.ground)')]
       .find(e => e.getBoundingClientRect().height > 4) || null;
     if (svg) {
       const vb = svg.viewBox.baseVal;
@@ -153,7 +164,8 @@ PROBE = r"""
       }
     }
     // largest empty band: scan rows of the content area for ink
-    const boxes = [...s.querySelectorAll(INK)].map(e => e.getBoundingClientRect())
+    const boxes = [...s.querySelectorAll(INK)].filter(e => !isGround(e))
+      .map(e => e.getBoundingClientRect())
       .filter(r => r.height > 2 && r.width > 2);
     const STEP = 8; let run = 0, maxRun = 0, runTop = 0, bestTop = 0;
     for (let y = body.top; y < foot.top; y += STEP) {
@@ -184,6 +196,7 @@ PROBE = r"""
     // zero. Same failure as the column probe before it: ask the ink.
     let deepest = -1e9, deepestWho = '';
     for (const e of s.querySelectorAll(INK)) {
+      if (isGround(e)) continue;
       const r = inkBox(e);
       if (r.height < 2 || r.width < 2) continue;
       if (r.bottom > deepest) { deepest = r.bottom; deepestWho = tagOf(e); }
@@ -222,6 +235,7 @@ PROBE = r"""
       for (const c of cells) {
         let t = Infinity, w = 0;
         for (const e of c.querySelectorAll(INK)) {
+          if (isGround(e)) continue;
           const r = inkBox(e);
           if (r.height < 2 || r.width < 2) continue;
           t = Math.min(t, r.top); w += r.height * r.width;
@@ -350,6 +364,23 @@ PROBE = r"""
     // none and it is a document again.
     const horizons = s.querySelectorAll('.foot').length;
 
+    // A ground may be decorative only because it cannot be counted. The moment
+    // it is built from repeated identical marks it is pretending to be a field,
+    // and a reader will try to read meaning into it. Continuous paths of
+    // differing length are a ground; a run of same-sized rects is not.
+    let groundMarks = 0, groundRepeats = 0;
+    for (const g of s.querySelectorAll('.ground')) {
+      const shapes = g.querySelectorAll('rect, circle, ellipse, line, use');
+      groundMarks += shapes.length;
+      const sig = {};
+      for (const sh of shapes) {
+        const r = sh.getBoundingClientRect();
+        const k = Math.round(r.width) + 'x' + Math.round(r.height);
+        sig[k] = (sig[k] || 0) + 1;
+      }
+      groundRepeats += Object.values(sig).filter(n => n >= 4).length;
+    }
+
     const tables = [];
     for (const t of s.querySelectorAll('table')) {
       const txt = (t.innerText || '');
@@ -357,7 +388,7 @@ PROBE = r"""
       tables.push({rows: t.querySelectorAll('tr').length,
                    digitPct: +(100 * digits / Math.max(1, txt.length)).toFixed(0)});
     }
-    const drawn = [...s.querySelectorAll('svg[viewBox]:not(.ic)')]
+    const drawn = [...s.querySelectorAll('svg[viewBox]:not(.ic):not(.ground)')]
       .some(e => e.getBoundingClientRect().height > 60);
     out.push({
       id: s.id,
@@ -371,6 +402,7 @@ PROBE = r"""
       focalRatio: +(focalPx / Math.max(1, bodyPx)).toFixed(2),
       figLeadPct: +(100 * figLead).toFixed(0),
       caps, tables, drawn, capGapPx, sourceEcho, fields, horizons,
+      groundMarks, groundRepeats,
       overflowPct: +(100 * overflowPx / window.innerHeight).toFixed(1),
       centerScale: best ? +(100 * best.w * best.h / best.cellArea).toFixed(1) : null,
       cells,
@@ -460,6 +492,67 @@ def with_playwright(url, geometry, dark, shot_dir):
                 shots.append(out)
         browser.close()
     return rows, shots
+
+
+def ground_report(url, dark=False):
+    """Measure the ground as rendered, not as declared.
+
+    A ground is water and light behind the page. Two things make it dishonest:
+    being loud enough to compete with the content, and resolving into countable
+    marks so it pretends to be a field. The first is measured here by hiding
+    every foreground element, screenshotting the page, and asking what the
+    loudest ground pixel actually contrasts at against the canvas. Reasoning
+    about alpha from the CSS is how you end up with a texture that measures fine
+    and looks like graffiti — this repo has made that mistake in three different
+    forms already.
+    """
+    from playwright.sync_api import sync_playwright
+    try:
+        from PIL import Image
+    except ImportError:
+        return None
+
+    def rel_lum(px):
+        def f(v):
+            v /= 255.0
+            return v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4
+        return 0.2126 * f(px[0]) + 0.7152 * f(px[1]) + 0.0722 * f(px[2])
+
+    out = []
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page = browser.new_page(viewport={"width": 1280, "height": 720})
+        page.goto(url)
+        page.wait_for_timeout(500)
+        page.add_style_tag(content=".page > .body, .page > .foot, .rail, .tools"
+                                   "{visibility:hidden!important}"
+                                   "html{scroll-behavior:auto!important;"
+                                   "scroll-snap-type:none!important}")
+        ids = page.evaluate("() => [...document.querySelectorAll('section.page')]"
+                            ".map(s => s.id)")
+        with tempfile.TemporaryDirectory() as td:
+            for pid in ids:
+                if not page.query_selector(f"section#{pid} > .ground"):
+                    continue
+                shot = pathlib.Path(td) / f"{pid}.png"
+                page.locator(f"section#{pid}").screenshot(path=str(shot))
+                im = Image.open(shot).convert("RGB")
+                im = im.resize((im.width // 3, im.height // 3))
+                px = list(im.getdata())
+                canvas = max(set(px), key=px.count)          # the page's own canvas
+                cl = rel_lum(canvas)
+                worst, worst_px = 1.0, canvas
+                for q in set(px):
+                    ql = rel_lum(q)
+                    hi, lo = max(cl, ql), min(cl, ql)
+                    r = (hi + 0.05) / (lo + 0.05)
+                    if r > worst:
+                        worst, worst_px = r, q
+                out.append({"id": pid, "contrast": round(worst, 3),
+                            "canvas": "#%02X%02X%02X" % canvas,
+                            "loudest": "#%02X%02X%02X" % worst_px})
+        browser.close()
+    return out
 
 
 def contact_sheet(shots, out_path, cols=4):
@@ -625,6 +718,13 @@ def main(argv):
                                   f"{f['declared']} declared)" for r, f in loose[:5]))
             elif nf:
                 print(f"  fields: all {nf} carry one mark per real item")
+            countable = [r for r in rows if r.get('groundRepeats', 0)]
+            if countable:
+                print(f"  GROUND IS COUNTABLE: {len(countable)} pages draw their ground from "
+                      "repeated identical marks — that is a field pretending to be water: "
+                      + ", ".join(r['id'] for r in countable[:6]))
+            elif any(r.get('groundMarks') is not None for r in rows):
+                print(f"  ground: continuous on all {len(rows)} pages, nothing to count")
             noh = [r for r in rows if r.get('horizons', 1) != 1]
             if noh:
                 print(f"  WATERLINE: {len(noh)} pages do not have exactly one horizon: "
@@ -661,6 +761,27 @@ def main(argv):
             if shots:
                 print(f"  contact sheet: {sheet}")
                 print("  Look at it. That is the check; the numbers only say where to look.")
+
+    if not args.json:
+        GROUND_CEILING = 1.40
+        for name in args.files:
+            path = pathlib.Path(name).resolve()
+            try:
+                g = ground_report(path.as_uri())
+            except Exception:                                   # noqa: BLE001
+                g = None
+            if g:
+                loud = [r for r in g if r["contrast"] > GROUND_CEILING]
+                if loud:
+                    print(f"\n{path.name} — GROUND TOO LOUD: {len(loud)} of {len(g)} pages "
+                          f"exceed {GROUND_CEILING}:1 against their canvas — "
+                          + ", ".join(f"{r['id']} {r['contrast']}" for r in loud[:6]))
+                else:
+                    w = max(g, key=lambda r: r["contrast"])
+                    print(f"\n{path.name} — ground: all {len(g)} pages under the "
+                          f"{GROUND_CEILING}:1 ceiling, loudest {w['id']} at {w['contrast']}")
+            elif g is not None:
+                print(f"\n{path.name} — ground: no page carries one")
 
     if not args.json and not args.no_aspect:
         for name in args.files:

@@ -84,6 +84,40 @@ of things and make the pattern in them visible without arguing about it.
 > texture but do not have the data, you do not want the texture.
 > `inspect_layout.py` checks this.
 
+### The ground — and why it may be decorative when a field may not
+
+Water and light behind every page: strongest on the cover and closing, medium on
+the part openers, faintest on the body pages, so the texture recedes as the
+evidence gets denser.
+
+That is decoration, and the field rule above forbids decoration. The
+contradiction resolves on one distinction, and it is the distinction that makes
+both rules true at once:
+
+> **A field is discrete and countable. A ground is continuous and uncountable.**
+> If a reader can count the marks, every mark must mean something. If there is
+> nothing to count, there is nothing to misread — so a ground may be decorative
+> *precisely because* it can never be mistaken for evidence.
+
+The ground's honesty test is therefore different in kind from the field's, and
+both halves are measured:
+
+> **What makes a ground dishonest: being loud, or being countable.**
+> It may never exceed **1.40:1** against its canvas — measured on the *rendered*
+> page with every foreground element hidden, not reasoned about from the alpha,
+> because a texture that computes fine and looks like graffiti is the failure
+> mode. And it may never resolve into repeated identical marks: the moment a
+> ground can be counted it is a field pretending to be water, and a reader will
+> try to read meaning into it.
+
+**The ground carries the colour, and the foreground does not.** This is where a
+wider hue range lives — lime into forest into teal into blue, gradients along the
+length of each line — safely, because the ground cannot be read as data. The
+foreground stays one colour, one meaning. It is also why the flows crowd *below*
+the waterline and thin out above it: water sits under the surface, so the air
+where the claim lives stays clear. That is what makes the ground structural
+rather than wallpaper.
+
 ### The waterline
 
 Every page has one horizon where the light collects.
@@ -100,6 +134,19 @@ from the top down reads as *poured*.
 > **What makes a waterline dishonest: two of them, or none.** More than one
 > horizon and the page has no datum, it has stripes. None, and it is a document
 > again.
+
+### The acid green
+
+`--lime: #B8FF00`. It measures **1.21:1 as text on the white canvas** — unreadable
+— and **16.44:1 with near-black reversed out of it**, so on light it is a
+**surface and never text**, and `check_design.py` D13 enforces exactly that. On
+the dark canvas it is the accent proper at 13.90:1.
+
+**It carries no meaning.** `--acc` stays the semantic accent for data, and one
+colour one meaning is untouched. The lime is where the brand is loud: the part
+openers are full lime fields with the claim in near-black at display size, and
+they are the only pages in the deck that are. A quiet system that opens onto one
+of those reads as confidence.
 
 ### The light: an accent with intensity
 
@@ -118,6 +165,27 @@ meaning.** Keeping those two jobs in separate tokens is the whole architectural
 move — it is what lets the brand shimmer without the data lying.
 
 ---
+
+## 2b · The register: heavy, large, tight
+
+Weight, scale and leading are where a deck sounds young or sounds like a filing.
+The reference this was studied against runs **245 elements at weight 700 and 52 at
+900**, display at 254px and 120px, line-height ~0.9, and letter-spacing `normal`
+everywhere. This deck ran D-DIN 400, uppercase, `.3em` tracking — a spec sheet.
+
+- **Display** (cover, closing, part openers): `clamp(64px, 9vw, 132px)`, weight
+  **700**, leading **0.92**, tracking negative.
+- **Page titles**: weight **700** at `clamp(24px, 2.7vw, 34px)` — half again the
+  old size. A title is the claim, not a caption.
+- **Support lines**: 16px weight 500. A second voice, not small print.
+- **Numbers**: the lead tier runs to 116px and figure numerals are set bold.
+- **Tracking**: gone. `.3em` on eyebrows was the most dated device in the deck.
+
+**We ship D-DIN Regular and Bold under SIL OFL and nothing else.** No rule here
+names a face the package does not carry — that is `CLAUDE.md` §5, and it exists
+because 1.2.0 required an embedded display face, shipped none, and rendered
+nothing until 1.7.0. The register comes from weight, scale and leading, which are
+free.
 
 ## 3 · Accelerators — what a LUMI page should be willing to do
 

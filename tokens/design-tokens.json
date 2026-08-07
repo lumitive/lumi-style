@@ -1,5 +1,5 @@
 {
-  "$schema_note": "LUMI design tokens v3.0.0 (2026-08-07). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
+  "$schema_note": "LUMI design tokens v3.1.0 (2026-08-07). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
   "palette_default": "light",
   "palette": {
     "light": {
@@ -39,7 +39,9 @@
       "light_ramp_2": "#CFD6CD",
       "light_ramp_1": "#F2F4F1",
       "on_light_ramp_5": "#F0F0FA",
-      "on_light_ramp_low": "#2B2E33"
+      "on_light_ramp_low": "#2B2E33",
+      "lime": "#B8FF00",
+      "on_lime": "#0A0907"
     },
     "dark": {
       "bg": "#1D1D1F",
@@ -79,9 +81,11 @@
       "light_ramp_2": "#363F31",
       "light_ramp_1": "#242624",
       "on_light_ramp_5": "#1D1D1F",
-      "on_light_ramp_low": "#F0F0FA"
+      "on_light_ramp_low": "#F0F0FA",
+      "lime": "#B8FF00",
+      "on_lime": "#0A0907"
     },
-    "note": "one structure, two palettes. v2.0.0: the light canvas is pure white, not the warm cream the field has settled on, and the dark canvas is Apple space grey. The state palette grew by two with fixed meanings: amber = partial, in progress, awaiting an input; brass = reference, archival, out of scope but real. Before this, partial and not-built both rendered as dashed grey, so a deck could not say the one thing it most needed to say about itself. Every semantic colour clears 4.5:1 as text on its own canvas. v3.0.0: the light ramp. Five discrete steps from the accent toward the canvas, for fields and surfaces only — it carries no meaning. One colour one meaning still governs data. Every step carries text on both canvases; on-light-ramp-5 is the foreground for step 5 and on-light-ramp-low for steps 4 down to 1."
+    "note": "one structure, two palettes. v2.0.0: the light canvas is pure white, not the warm cream the field has settled on, and the dark canvas is Apple space grey. The state palette grew by two with fixed meanings: amber = partial, in progress, awaiting an input; brass = reference, archival, out of scope but real. Before this, partial and not-built both rendered as dashed grey, so a deck could not say the one thing it most needed to say about itself. Every semantic colour clears 4.5:1 as text on its own canvas. v3.0.0: the light ramp. Five discrete steps from the accent toward the canvas, for fields and surfaces only — it carries no meaning. One colour one meaning still governs data. Every step carries text on both canvases; on-light-ramp-5 is the foreground for step 5 and on-light-ramp-low for steps 4 down to 1. v3.1.0: --lime is a surface colour, not a member of the text ladder. On the light canvas it measures 1.21:1 as text and may only be a fill with --on-lime reversed out of it (16.44:1); on the dark canvas it is the accent at 13.90:1. It carries no meaning."
   },
   "contrast": {
     "floor_text": 4.5,
