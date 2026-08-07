@@ -374,25 +374,38 @@ PROBE = r"""
                + '.eyebrow,.cap,.srcline,.conf,.site,.tick,.vt,.vw,.vn,.no,.yes,'
                + '.who,.verdict,.wordmark,.sub,.colophon,.openpart,.openclaim,'
                + '.openrun,.ledname';
+    // ...and text against anything DRAWN. 3.2.0 shipped this comparing text to
+    // text only, and a reader then found two defects it could not see: a field
+    // sitting 22px on a paragraph, and the cover globe crossing the document
+    // attributes. Eleven pairs, all of them text against a drawing. A probe
+    // that only knows one kind of collision finds one kind of collision.
+    const DSEL = '.field,.fig,.band,.spec,.geo-flat,svg[viewBox]:not(.ic):not(.ground)';
     const leaves = [...s.querySelectorAll(TSEL)].filter(e => !e.closest('.ground')
       && (e.textContent || '').trim()
       && ![...e.children].some(c => c.matches && c.matches(TSEL)));
+    const drawnEls = [...s.querySelectorAll(DSEL)].filter(e => !e.closest('.ground'));
     let textOverlaps = 0, worstOverlap = null;
+    const clash = (A, B, na, nb) => {
+      const a = A.getBoundingClientRect(), b = B.getBoundingClientRect();
+      if (a.height < 2 || b.height < 2) return;
+      const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+      const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+      if (ox <= 2 || oy <= 2) return;
+      textOverlaps++;
+      const area = ox * oy;
+      if (!worstOverlap || area > worstOverlap.area) {
+        worstOverlap = {area, w: inPageUnits(ox), h: inPageUnits(oy), a: na, b: nb};
+      }
+    };
     for (let i = 0; i < leaves.length; i++) {
       for (let j = i + 1; j < leaves.length; j++) {
-        const A = leaves[i].getBoundingClientRect();
-        const B = leaves[j].getBoundingClientRect();
-        if (A.height < 2 || B.height < 2) continue;
-        const ox = Math.min(A.right, B.right) - Math.max(A.left, B.left);
-        const oy = Math.min(A.bottom, B.bottom) - Math.max(A.top, B.top);
-        if (ox > 2 && oy > 2) {
-          textOverlaps++;
-          const area = ox * oy;
-          if (!worstOverlap || area > worstOverlap.area) {
-            worstOverlap = {area, w: inPageUnits(ox), h: inPageUnits(oy),
-                            a: tagOf(leaves[i]), b: tagOf(leaves[j])};
-          }
-        }
+        clash(leaves[i], leaves[j], tagOf(leaves[i]), tagOf(leaves[j]));
+      }
+      for (const d of drawnEls) {
+        // Containment is not collision: a caption inside its own figure, a
+        // label inside its own band.
+        if (d.contains(leaves[i]) || leaves[i].contains(d)) continue;
+        clash(leaves[i], d, tagOf(leaves[i]), tagOf(d) || 'drawing');
       }
     }
 
@@ -753,13 +766,13 @@ def main(argv):
                 print(f"  fields: all {nf} carry one mark per real item")
             clash = [r for r in rows if r.get('textOverlaps', 0)]
             if clash:
-                print(f"  TEXT ON TEXT: {len(clash)} pages have blocks landing on each "
+                print(f"  COLLISION: {len(clash)} pages have blocks landing on each "
                       "other — " + ", ".join(
                           f"{r['id']} {r['worstOverlap']['a']}/{r['worstOverlap']['b']} "
                           f"{r['worstOverlap']['w']}x{r['worstOverlap']['h']}px"
                           for r in clash[:5]))
             else:
-                print(f"  text: nothing overlaps anything on {len(rows)} pages")
+                print(f"  collision: nothing overlaps anything on {len(rows)} pages")
             countable = [r for r in rows if r.get('groundRepeats', 0)]
             if countable:
                 print(f"  GROUND IS COUNTABLE: {len(countable)} pages draw their ground from "

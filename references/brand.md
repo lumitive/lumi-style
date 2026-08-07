@@ -142,6 +142,33 @@ from the top down reads as *poured*.
 **surface and never text**, and `check_design.py` D13 enforces exactly that. On
 the dark canvas it is the accent proper at 13.90:1.
 
+**Two greens, and the canvas forces them apart.** Counted on the content pages,
+the accent appears **84 times as a fill, 71 times as a stroke, 23 times as a wash
+and 0 times as text**. The lime cannot do the strokes: 1.21:1 on white makes a
+chart rule, a connector or a decision outline invisible, and §1 already counts a
+mark a reader must tell apart as text. It could do the fills — but 84 acid panels
+is the opposite of non-contention and destroys the thing that makes it an event.
+So:
+
+- **`--acc`, the forest, is the working green.** Everything that must read on
+  white: strokes, chart marks, small fills, emphasis. It is not a legacy colour
+  and it is not going away.
+- **`--lime` is the event green.** Large panels only.
+
+This is not an inconsistency to be tidied up later. It is two jobs, and the only
+way to collapse them into one is a dark content canvas.
+
+**Key numbers rank in three steps.** A number that is the argument is set like
+one — the display weight, not a caption with large type:
+
+| tier | how | which number |
+|---|---|---|
+| the argument | a **lime panel**, near-black numerals, 16.44:1 | the one the page turns on |
+| its support | **forest** | the number that qualifies it |
+| context | **ink** | everything else |
+
+One lime panel per page.
+
 **One lime event per body page, and it is a fill.** The lime may appear once in
 the body of a deck, on the number the page turns on — measured, it is comfortable
 there and the numbers say why. Its edge against the canvas is **1.21:1**, so the
