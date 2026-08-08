@@ -78,8 +78,12 @@ tokens/                           design tokens (CSS + JSON): two ladders · pal
 assets/fonts                      D-DIN, vendored (SIL OFL) — embed, never link
 assets/icons                      the eight semantic icons, hairline, currentColor
 assets/vectors                    orthographic globe · flat trade map, generated from lat/lon
+fixtures/                         two synthetic deliverables the checkers are tested on:
+                                  one well-formed, one with a named defect per metric
+conformance/                      fixed task suite · the tracked cross-agent scoreboard
 scripts/                          check_repo · check_prose (M) · check_design (D) ·
-                                  inspect_layout (renders and looks) ·
+                                  inspect_layout (renders and looks) · check_fixtures ·
+                                  build_entrypoints · build_fixtures · run_conformance ·
                                   embed_font · embed_icons · build_geography
 adapters/platforms.json           the platform registry: install paths · capability
                                   tiers · entry files, guarded by check_repo

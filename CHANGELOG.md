@@ -3,6 +3,50 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.360 — the documentation catches up with six releases
+
+Nothing new is built here. Five releases of machinery landed while the files that
+describe the repository went on describing the repository as it was at 0.1.351,
+and `CLAUDE.md` names that exact hazard on its own first page.
+
+**Maintenance rule 3 had become false, in the document that binds.** It said the
+version lives in "**five places** … and they are the only ones a version string
+lives." It stopped being true at 0.1.352 and stayed for six releases. The version
+now lives in three tiers and the rule says so: hand-stamped-and-checked (SKILL.md,
+CHANGELOG, three token files, `AGENTS.md`, the core prompt), generated (the plugin
+manifests, the `.well-known` index and the three pointer files, which
+`build_entrypoints.py --check` keeps current), and not-a-stamp (historical notes
+in the theme; third-party CLI versions on the scoreboard). The forcing function is
+named for each: adding a token file means adding it to the tuple in
+`check_versions`, adding an entry point means adding it to `ENTRY_STAMP`, and a
+stamp with no declared position fails rather than being skipped.
+
+**The Checks block listed one of the four new scripts** and the CI-guard summary
+listed none of the three new guards, so three of the five commands a reviewer must
+run to reproduce a release were undocumented in the file that documents the
+commands. `README.md`'s file map was unchanged from 0.1.351 and had no entry for
+`fixtures/` or `conformance/` at all, though both are tracked top-level
+directories the README already links into.
+
+**One sentence in `CLAUDE.md` was unparseable** — two edits collided in the clause
+that states where the `references/`-wins precedence rule is documented.
+
+**The registry made two claims it could not support.** Its Hermes record cited
+OpenClaw's repository as Hermes documentation — a different project — while the
+record's own waiver said no documentation could be cited; and it declared a CLI
+probe that has never been run, which satisfied the guard built to force unverified
+claims into the open, because that guard only asked whether the field was null.
+Both are now null with written waivers. The registry also carried a hand-written
+version stamp, unguarded and four releases stale; it is gone, because the registry
+is not a copy of the rules and has nothing to drift from.
+
+**The third-party version exemption was file-wide.** It was justified entirely on
+the agent CLI builds the scoreboard records, but exempted the whole file,
+including the skill's own stamp on its first line — so the one file that makes
+versioned claims about this repository was the one file where those claims went
+unchecked. It is now scoped to the table rows that carry them. Falsified: a bogus
+`lumi-style 0.9.999` in the scoreboard's prose now fails.
+
 ## 0.1.359 — the fixture suite starts proving what it claimed
 
 0.1.355 shipped two fixtures to test the check scripts, and the review found the

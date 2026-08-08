@@ -14,5 +14,3 @@ The skill reads `references/` and `tokens/` on demand — no need to attach them
 **Symlink rather than copy.** An installed copy silently stranded at 0.1.334 while the repo reached 0.1.337, and a deck was built against three versions of superseded rules. A symlink cannot go stale.
 
 **Unverified.** Hermes consumes the same SKILL.md format with name/description frontmatter, but no documentation we can cite states its discovery path. The shared ~/.agents/skills/ location is the most likely and must be confirmed on a machine with Hermes installed before this becomes a verified claim. Until then the README lists Hermes as unconfirmed rather than supported.
-
-Vendor documentation: https://github.com/openclaw/openclaw
