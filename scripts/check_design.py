@@ -505,6 +505,49 @@ def d14_placeholders(raw):
     return found
 
 
+# A path to a file, which is a build artifact reference and not a source a
+# reader can act on. Two segments and a known extension, because that is what
+# separates `resources/GLOBAL-catalog-20260730.zh.html` from `www.example.org`,
+# which D12 *requires* the footer to carry. Anything inside a URL is skipped:
+# a link is a link, and the defect is a filesystem path pasted into reader copy.
+FILE_PATH = re.compile(
+    r"(?<!/)\b[\w.㐀-鿿-]+/[\w.㐀-鿿-]+"
+    r"\.(?:html?|md|json|jsonl|csv|tsv|xlsx?|docx?|pptx?|pdf|zip|txt|xml|ya?ml|py|js)\b",
+    re.I)
+
+
+def d15_footer_path(raw):
+    """No footer may name a file. **Gates**, with D12 and D14.
+
+    Not a design judgement and not a genre question: a repository path is not a
+    reader-facing source line in any genre, and a customs manager cannot open
+    `resources/…zh.html`. `.foot .src` was removed from `tokens/` in 0.1.366
+    because the first deliverable to meet it filled every client page with a
+    build path and three processing dates. Removing the styling did not stop the
+    span — a second deliverable put one back, in Chinese, on almost every content
+    page, and D6, D12 and D14 all passed it. **That is the same lesson in two
+    documents, which is what this repository promotes to a rule.**
+
+    Deliberately not the genre fork the reporting note proposed. Per-page
+    sourcing is legitimate for consulting and internal analysis, and an English
+    one-line source there is apparatus rather than a defect; what no genre wants
+    is a path. Banning the path needs no `--genre` plumbed into this script and
+    catches the thing a reader actually saw.
+    """
+    pages = re.findall(r'<section[^>]*class="[^"]*\bpage\b[^"]*"[^>]*>(.*?)</section>',
+                       raw, re.S | re.I)
+    if not pages:
+        return None
+    found = []
+    for i, body in enumerate(pages):
+        text = re.sub(r"\s+", " ", _block_text(body, "foot"))
+        for m in FILE_PATH.finditer(text):
+            if "://" in text[max(0, m.start() - 8):m.start()]:
+                continue
+            found.append({"page": i + 1, "path": m.group(0)[:60]})
+    return {"pages": len(pages), "found": found}
+
+
 def d9_layout_variety(raw):
     """One layout on 25 consecutive pages is what this metric exists to stop."""
     used, unknown = [], []
@@ -591,6 +634,7 @@ def measure(path):
         "D8_support_line": d8_support_line(raw),
         "D12_commercial_footer": d12_commercial_footer(raw),
         "D14_placeholders": d14_placeholders(raw),
+        "D15_footer_path": d15_footer_path(raw),
         "D13_lime_as_text": d13_lime_never_light_text(css, resolved, palette),
         "D9_layout_variety": d9_layout_variety(raw),
         "D10_label_icons": d10_label_icons(raw),
@@ -634,6 +678,9 @@ def grade(r):
                  cf is None))
     rows.append(("D14_placeholders", len(r["D14_placeholders"]), "=0 (gates)",
                  not r["D14_placeholders"], False))
+    fp = r["D15_footer_path"]
+    rows.append(("D15_footer_path", len(fp["found"]) if fp else None, "=0 (gates)",
+                 bool(fp) and not fp["found"], fp is None))
     v = r["D9_layout_variety"]
     rows.append(("D9_layout_spread",
                  f"{v['distinct']} layouts, top {v['top_share']}%" if v else None,
@@ -669,7 +716,8 @@ def main(argv):
         # whether the document is finished. Both are decidable, which is what
         # separates them from every other row here.
         if any(r["verdicts"].get(m) == "FAIL"
-               for m in ("D12_commercial_footer", "D14_placeholders")):
+               for m in ("D12_commercial_footer", "D14_placeholders",
+                         "D15_footer_path")):
             gated_failure += 1
         results.append(r)
 
@@ -710,6 +758,9 @@ def main(argv):
                 print(f"        page {i + 1} footer does not say where the document is from")
         for ph in r["D14_placeholders"][:8]:
             print(f"        {ph['page']} still carries the slot {ph['text']}")
+        for fpath in (r["D15_footer_path"] or {}).get("found", [])[:6]:
+            print(f"        page {fpath['page']} footer cites the file "
+                  f"{fpath['path']} — a path is not a source a reader can open")
         v = r["D9_layout_variety"]
         if v:
             for pid, cls in v["unknown"][:6]:
@@ -723,8 +774,9 @@ def main(argv):
         print("\nnothing flagged")
     elif gated_failure:
         print(f"\n{failures} metric(s) failed, and {gated_failure} file(s) fail on "
-              f"D12 or D14 — those two block: a page missing its handling terms and "
-              f"a document still carrying a slot are not judgements about design")
+              f"D12, D14 or D15 — those three block: a page missing its handling "
+              f"terms, a document still carrying a slot, and a footer citing a file "
+              f"path are not judgements about design")
     else:
         print(f"\n{failures} thing(s) worth a look — none of this blocks; "
               f"read them, then look at the page")

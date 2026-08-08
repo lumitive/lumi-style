@@ -362,6 +362,14 @@ made, but a commercial requirement on the artifact, like a contract term. A
 design metric that gates is a mistake; a commercial one that does not is a
 different mistake.
 
+**A repository path is not a reader-facing source line.** A source line names
+something the reader can act on — a system, an extract and its date — not a file
+on the machine that built the deck. `.foot .src` was removed from `tokens/` in
+0.1.366 after the first deliverable to meet it printed a build path on every
+client page; a second put one back, in Chinese, and every gate passed it.
+**D15 gates on it now**, in every genre: consulting and internal analysis keep
+per-page sourcing, and none of the three genres wants a path.
+
 **The other is D14: no slot the author left for themselves may reach the
 reader.** `[TO FILL]`, `[TBD]`, `{{name}}`, an empty bracket pair. Also different
 in kind — it asks whether the document is *finished*, which is decidable. A real

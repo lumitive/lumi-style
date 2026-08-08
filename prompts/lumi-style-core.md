@@ -210,10 +210,13 @@ alone, `--fs-say` clamp(22px,1.9vw,26px) for a claim.
 
 **Footer, every page**: confidentiality terms and the organisation's site on the
 left, `N / total` on the right — a slide gets forwarded without its cover, so the
-terms cannot live only on page one. This gates, and so does one other thing:
+terms cannot live only on page one. This gates, and so do two other things:
 **no slot you left for yourself may reach the reader** — `[TO FILL]`, `[TBD]`,
-`{{name}}`, an empty bracket pair. A placeholder occupies exactly as much room as
-the text that should have replaced it, so no other check can see one. **Sales and
+`{{name}}`, an empty bracket pair — and **no footer may cite a file path**, because
+a source line names what a reader can act on, not a file on the build machine. A
+placeholder occupies exactly as much room as the text that should have replaced
+it, so no other check can see one. **And an English deliverable must be in
+English**: no Chinese in text a reader sees, unless it is quoted as data. **Sales and
 marketing state provenance once for the document**, on the cover and the closing,
 not under every figure; consulting and internal analysis keep per-page sourcing.
 
@@ -304,6 +307,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.372** snapshot, cut 2026-08-08. It is self-contained by
+> This file is the **0.1.373** snapshot, cut 2026-08-08. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

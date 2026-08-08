@@ -15,7 +15,8 @@
           "M8_length_cv": "ok",
           "M9_dashes": "ok",
           "M10_triad_rate": "ok",
-          "M11_title_uniformity": "ok"
+          "M11_title_uniformity": "ok",
+          "M12_visible_cjk": "ok"
         },
         "forbid_verdicts": [
           "n/a"
@@ -37,7 +38,8 @@
           "D10_label_icons": "ok",
           "D12_commercial_footer": "ok",
           "D13_lime_as_text": "ok",
-          "D14_placeholders": "ok"
+          "D14_placeholders": "ok",
+          "D15_footer_path": "ok"
         }
       }
     },
@@ -50,7 +52,8 @@
         "exit": 1,
         "verdicts": {
           "M4_banned_hits": "FAIL",
-          "M9_dashes": "FAIL"
+          "M9_dashes": "FAIL",
+          "M12_visible_cjk": "FAIL"
         },
         "contains": {
           "M4_banned_hits": [
@@ -58,6 +61,9 @@
             "seamless",
             "robust",
             "showcase"
+          ],
+          "M12_visible_cjk": [
+            "15/15"
           ]
         }
       },
@@ -77,7 +83,8 @@
           "D10_label_icons": "ok",
           "D12_commercial_footer": "FAIL",
           "D13_lime_as_text": "ok",
-          "D14_placeholders": "FAIL"
+          "D14_placeholders": "FAIL",
+          "D15_footer_path": "FAIL"
         }
       }
     }
