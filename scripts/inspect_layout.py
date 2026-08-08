@@ -881,7 +881,21 @@ CONSISTENCY_PROBE = r"""
   for (const s of document.querySelectorAll('section.page')) {
     for (const r of s.querySelectorAll('.fig svg rect')) {
       barCandidates++;
-      const bb = r.getBoundingClientRect();
+      // Page units, not device pixels. The page is a zoom-scaled stage, so an
+      // identical bar measures 46px tall at 1280 and 28px at 794 — and the
+      // window below then rejected every bar in the document at A4 while
+      // accepting them all in landscape. The candidate window is a statement
+      // about the DESIGN, so it has to be measured in the units the design was
+      // drawn in; every other distance in this probe already is.
+      // SVG user units — the units the figure was AUTHORED in. Rendered size
+      // is the wrong basis twice over: the page is zoom-scaled, and the drawing
+      // is then scaled again to its cell, so an identical bar measured 46px at
+      // 1280 and 28px at 794 and the window rejected every bar in the document
+      // at A4 while accepting them all in landscape. A candidate window is a
+      // statement about the drawing, so measure the drawing.
+      const bb = (r.width && r.width.baseVal)
+        ? {width: r.width.baseVal.value, height: r.height.baseVal.value}
+        : r.getBoundingClientRect();
       // What a measure bar looks like, as a shape. All three are FLOORS and
       // CEILINGS on the candidate window, not targets a bar should aim at:
       // at least 120px long (shorter and it is a tick, a swatch or a rule),

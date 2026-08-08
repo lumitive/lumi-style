@@ -3,6 +3,43 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.357 — the harness scored nothing, and the fixture was not a deliverable
+
+Two defects in 0.1.356 and 0.1.355, both found by using them, and both instances
+of failures this repository had already named and fixed elsewhere.
+
+**`run_conformance.py score` scored nothing.** `score_checks` and `score_recall`
+were defined and never called; `score` shared a branch with `run` and did exactly
+what `run` does, then told the operator to go and run `score`. So the harness
+whose stated purpose is *"scores every output with the same three check scripts"*
+did not score. That is the dead-constant defect removed from `check_design.py`
+five releases earlier — `TYPE_FLOOR_PX`, declared and never read — committed
+again in the release that was meant to close the loop. `score` now walks the run
+directory, finds each deliverable, runs `check_prose.py` and `check_design.py`
+against it, keyword-scores the recall task, writes `scores.json`, and exits
+non-zero on any failure. **A task that produced no artifact records `no
+deliverable`, never a pass** — an agent that answered in chat instead of writing a
+file is the most common real outcome, and it has to read as a failure to produce.
+
+**`fixtures/deck-pass.en.html` did not pass.** It cleared `check_prose.py` and
+`check_design.py` — the two CI can run — and failed `inspect_layout.py` with
+three unmeasured checks and no focal element on 14 of 16 pages. A fixture named
+`pass` that passes two of three checks is the same overclaim the checks exist to
+prevent, and it was only visible because 0.1.355 deferred the browser check to a
+local run and the local run was then actually performed. The fixture now carries
+a stat band and a display lead, exercising `.band .k`, `.band .v` and the focal
+element, and clears all three checkers at all three geometries with nothing
+unmeasured.
+
+**One genuine probe bug fell out of that.** `inspect_layout.py`'s measure-bar
+candidate window — at least 120 long, 30 to 90 thick — was applied to *rendered*
+pixels. A page is a zoom-scaled stage and a figure is scaled again into its cell,
+so an identical bar measured 46 at 1280 and 28 at 794: the component-colour audit
+accepted every bar in a document in landscape and rejected all of them at A4, for
+a reason having nothing to do with the document. The window is a statement about
+the *drawing*, so it now reads SVG user units — the units the figure was authored
+in, which are the same at every geometry.
+
 ## 0.1.356 — the conformance harness, and an honest scoreboard
 
 The last of the five releases. `scripts/run_conformance.py` runs a fixed task

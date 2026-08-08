@@ -130,6 +130,22 @@ def page(i: int, total: int, spec, broken: bool) -> str:
                         "quarter of the programme, before the rural feeders had been "\
                         "surveyed at all, which makes the comparison generous."  # M8 overlong
     lis = "".join(f"<li>{b}</li>" for b in bullets)
+    # Pages 2 and 3 carry a stat band and a display lead. Without them the
+    # fixture never exercises `.band .k`, `.band .v` or the focal element, and
+    # inspect_layout.py correctly reports those roles as NOT MEASURED — a
+    # reference implementation that skips a third of the role vocabulary is not
+    # a reference implementation.
+    band = ""
+    if i in (2, 3):
+        band = ('<div class="band">'
+                '<div><span class="k">Coverage</span><div class="v">41<span class="u">%</span></div></div>'
+                '<div><span class="k">Feeders</span><div class="v">312</div></div>'
+                '<div><span class="k">Estimate rate</span><div class="v">8.4</div></div>'
+                '</div>')
+    lead = ""
+    if i not in (2, 3):
+        lead = f'<div class="lead"><div class="v">{i * 7}</div>' \
+               f'<p class="g">Units returned per avoided visit, illustrative</p></div>' 
     return f"""
 <section class="page" id="p{i}">
   <div class="body split">
@@ -142,6 +158,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
       <p class="listhead">What the data shows</p>
       <p class="gd"{style}>{gd}</p>
       <ul>{lis}</ul>
+      {band}{lead}
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -203,6 +220,18 @@ h2 {{ font-size: var(--fs-title); font-weight: var(--w-title);
 .gd {{ border-left: 2px solid var(--ln1); padding: 2px 0 2px 15px;
        font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2); }}
 ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
+.band {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+          align-items: start; }}
+.band > div {{ display: flex; flex-direction: column; gap: 8px; }}
+.band .k {{ font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .16em;
+            text-transform: uppercase; color: var(--tx3); }}
+.band .v {{ font-size: var(--fs-band-value); font-weight: 700; line-height: .92;
+            color: var(--tx1); }}
+.band .v .u {{ font-size: .42em; color: var(--tx3); }}
+.lead {{ display: flex; flex-direction: column; gap: 10px; }}
+.lead .v {{ font-size: var(--fs-lead); line-height: .94; color: var(--tx1); }}
+.lead .g {{ font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .12em;
+            text-transform: uppercase; color: var(--tx3); }}
 .cap {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx3); }}
 .cap .n {{ font-weight: 700; font-size: var(--fs-fine); color: var(--tx2); }}
 .foot {{ display: flex; gap: 18px; align-items: baseline; font-family: var(--mono);

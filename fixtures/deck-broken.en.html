@@ -195,6 +195,18 @@ h2 { font-size: var(--fs-title); font-weight: var(--w-title);
 .gd { border-left: 2px solid var(--ln1); padding: 2px 0 2px 15px;
        font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2); }
 ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
+.band { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+          align-items: start; }
+.band > div { display: flex; flex-direction: column; gap: 8px; }
+.band .k { font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .16em;
+            text-transform: uppercase; color: var(--tx3); }
+.band .v { font-size: var(--fs-band-value); font-weight: 700; line-height: .92;
+            color: var(--tx1); }
+.band .v .u { font-size: .42em; color: var(--tx3); }
+.lead { display: flex; flex-direction: column; gap: 10px; }
+.lead .v { font-size: var(--fs-lead); line-height: .94; color: var(--tx1); }
+.lead .g { font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .12em;
+            text-transform: uppercase; color: var(--tx3); }
 .cap { font-family: var(--mono); font-size: var(--fs-source); color: var(--tx3); }
 .cap .n { font-weight: 700; font-size: var(--fs-fine); color: var(--tx2); }
 .foot { display: flex; gap: 18px; align-items: baseline; font-family: var(--mono);
@@ -219,6 +231,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>Rural feeders were surveyed last.</li><li>Access needs a scheduled outage.</li></ul>
+      <div class="band"><div><span class="k">Coverage</span><div class="v">41<span class="u">%</span></div></div><div><span class="k">Feeders</span><div class="v">312</div></div><div><span class="k">Estimate rate</span><div class="v">8.4</div></div></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -242,6 +255,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd">Leveraging a seamless framework, this callout showcases a robust and comprehensive approach.</p>
       <ul><li>Fault response has first call on crews.</li><li>Installs resume when the queue clears.</li></ul>
+      <div class="band"><div><span class="k">Coverage</span><div class="v">41<span class="u">%</span></div></div><div><span class="k">Feeders</span><div class="v">312</div></div><div><span class="k">Estimate rate</span><div class="v">8.4</div></div></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -265,6 +279,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>Signal strength tracks terrain closely.</li><li>Meter age shows no correlation.</li></ul>
+      <div class="lead"><div class="v">28</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -288,6 +303,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd" style="border-color:#ABCDEF">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>A second attempt erases the saving.</li><li>Third attempts cost more than a visit.</li></ul>
+      <div class="lead"><div class="v">35</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -311,6 +327,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>Crew availability held through June.</li><li>Signal coverage assumptions have not.</li></ul>
+      <div class="lead"><div class="v">42</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -334,6 +351,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>Travel is the largest non-productive cost.</li><li>Density compounds across a week.</li></ul>
+      <div class="lead"><div class="v">49</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -357,6 +375,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>Estimates propagate into billing.</li><li>Corrections arrive two cycles later.</li></ul>
+      <div class="lead"><div class="v">56</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -380,6 +399,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>Relay siting was never optimised.</li><li>Two candidate sites are already owned.</li></ul>
+      <div class="lead"><div class="v">63</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -403,6 +423,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>First-attempt rate rises with training.</li><li>The effect persists after six months.</li></ul>
+      <div class="lead"><div class="v">70</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -426,6 +447,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>Estimate rate leads read rate.</li><li>One cycle is enough to reschedule.</li></ul>
+      <div class="lead"><div class="v">77</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -449,6 +471,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>Commercial meters have their own programme.</li><li>Prepayment is a separate contract.</li></ul>
+      <div class="lead"><div class="v">84</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -472,6 +495,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>Extracts are dated at source.</li><li>No figure is carried between extracts.</li></ul>
+      <div class="lead"><div class="v">91</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -495,6 +519,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>Rescheduling costs one quarter.</li><li>Accepting it costs billing accuracy.</li></ul>
+      <div class="lead"><div class="v">98</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -518,6 +543,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What the data shows</p>
       <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>Relay siting needs a survey.</li><li>Crew allocation needs a decision.</li></ul>
+      <div class="lead"><div class="v">105</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
