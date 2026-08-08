@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.367.** This file restates part of `references/`; where they
+> **lumi-style 0.1.368.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -43,8 +43,10 @@ through 0.1.344 this rule set ran 272 restricting lines against 12 inviting ones
    without an ask, and the fill floor was satisfiable by stretching a table while
    four diagrams rendered at 40% of their cell.
 4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish),
-   the D-series and `inspect_layout.py` diagnostics (**judgements reported, never
-   gating** — but an unmeasurable check exits 1 and says what it could not find),
+   the D-series and `inspect_layout.py` diagnostics (**design judgements
+   reported, never gating** — but an unmeasurable check exits 1 and says what it
+   could not find, and `--deliverable` exits 1 on the seven findings that are
+   decidable rather than aesthetic),
    and H1–H6 self-scoring. Never self-score 5 before a reader has scored it, and
    always give the reason for the score, not just the number.
 
@@ -68,7 +70,10 @@ under the figure is the page's source and the footer carries the page number.
 
 **Rendered geometry decides, not declared CSS.** Run
 `python3 scripts/inspect_layout.py <file>` and look at the contact sheet it
-builds. A rule that loses on specificity is indistinguishable from no rule: one
+builds; before handing the file over, run it again with **`--deliverable`**,
+which exits non-zero on collision, content spill, page height, hidden content, an
+overspent title reserve, a role split and a lost datum. A clean run there is not
+a verified document — it means nothing measurable is broken. A rule that loses on specificity is indistinguishable from no rule: one
 had been in the layout file since 0.1.339, had never once applied, and left twelve
 of fifteen multi-column pages with their columns out of line. Worse: a probe that
 establishes the condition it verifies proves nothing — the page-height check

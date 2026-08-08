@@ -62,8 +62,23 @@ side (click-through must never measure relevance, because the metric rewards wha
 it exists to suppress); D7 was the same mistake in the design half.
 
 For anything that has to be rendered before it can be seen, use
-`scripts/inspect_layout.py`. It gates nothing either, and its real output is a
-contact sheet for a human to look at.
+`scripts/inspect_layout.py`. Its real output is a contact sheet for a human to
+look at, and none of its **design** judgements gates.
+
+**`--deliverable` is the exception, and it is a pre-delivery step, not a repo
+check.** Run against a file you are about to hand over, it exits non-zero on the
+seven things a rendered page can be wrong about decidably — **collision, content
+spill, page height, hidden content, an overspent title reserve, a role split, a
+lost datum**. Focal weight, column balance, caption distance, centerpiece scale,
+empty band and the part-opener count stay reported, because the fix for each is a
+design decision and a number satisfiable without improving the page ends the
+looking. Without the flag nothing here gates and the behaviour is unchanged, so
+the repository's own "no design judgement blocks" stays true.
+
+*Provenance: a deliverable with overlapping text, an overspent reserve and a lost
+datum was recorded `pass` by the conformance harness, because the harness scored
+prose and design and **never ran the one instrument that renders the page**. Five
+of the seven findings above fire on it. A gate nothing invokes is not a gate.*
 
 | Probe | Reports | What it caught |
 |---|---|---|
@@ -144,6 +159,12 @@ anything.
 
 ## Review protocol (the iteration engine)
 
+0. Before any of this, run the checks against the artifact:
+   `check_prose.py` (English), `check_design.py` (any HTML), and
+   **`inspect_layout.py --deliverable`**. Step 1's self-score is a claim about a
+   document, and a claim made before the instruments have run is a guess. An
+   agent that cannot execute them names the checks it owes and the operator runs
+   them — see the capability tiers in `CLAUDE.md`;
 1. Ship with a self-score attached (**never self-score 5 before a reader has
    scored it** — mistaking mechanical completeness for reader value is a
    documented, once-punished failure). **A self-score carries its reasons**: the

@@ -3,6 +3,87 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.368 — a gate nothing invokes is not a gate
+
+Three releases of finding defects the instruments could not see, and this one
+turns the instruments on. It closes the vocabulary class and makes the one tool
+that renders a page able to fail.
+
+**`check_probe_vocabulary` — the reverse-drift rule, mechanized.** A probe that
+keys on a class name is asserting a vocabulary, and this repository has shipped
+that defect three times: 0.1.349 audited ten roles against six names that
+appeared nowhere in `tokens/`; 0.1.361 shipped `.cap .srcline` and not
+`.foot .src`, so a comparison between them could never run; 0.1.366 found
+`.cover h1` and `.closing h2` audited as two of three title registers and shipped
+by nothing. The guard reads `inspect_layout.py` with `ast.parse` — never by
+importing it — and separates two kinds of selector:
+
+- **contract** (`ROLES`, `SCOPED`) claims a role renders exactly one way. A claim
+  about rendering must have a rendering behind it, so these **may not be waived**.
+  All of them resolve today, which is what 0.1.366 and 0.1.367 bought.
+- **census** (`INK`, `TSEL`, `DSEL`, `CENTER`) asks only to be counted and
+  over-reaches on purpose. Twenty-two of these ship nowhere, each now listed in
+  `PROBE_NOT_SHIPPED` with a written reason.
+
+**Shipped means a BASE rendering.** Seven of those twenty-two — `.key`, `.red`'s
+partner, `.card`, `.swap`, `.vow`, `.no`, `.yes`, `.ledname` — are styled by
+`tokens/lumi-layouts.css` **only inside the portrait media query**, which tightens
+a font-size the file never declares at 1280. The stylesheet overrides a rendering
+it does not ship. Accepting a media-query appearance as "shipped" would have let
+the guard report the vocabulary complete on the strength of a portrait override,
+so it does not. Those base renderings are a design decision and are not invented
+here (CLAUDE.md rule 2); the guard records the debt where the next reader will
+find it.
+
+**`inspect_layout.py --deliverable`.** Its design judgements still gate nothing —
+that is `SKILL.md` rule 4 and D7's withdrawal, and it stands. What gates is the
+subset that is **decidable rather than aesthetic**: collision, content spill,
+page height, hidden content, an overspent title reserve, a role split, a lost
+datum. Focal weight, column balance, caption distance, centerpiece scale, empty
+band and the new part-opener count stay reported, because the fix for each is a
+design decision and a number satisfiable without improving the page ends the
+looking. Without the flag, behaviour is unchanged. Every predicate is defined
+once and read twice — by the report and by the gate — because a gate that
+disagrees with the text printed above it is worse than no gate.
+
+**Part openers are reported, never floored.** `.page.opener` has been styled in
+`lumi-layouts.css` and named in `brand.md` while nothing required, reported or
+checked it, so a deck with six read identically to a deck with none. How many
+part divisions a document wants belongs to its storyline; a minimum here would
+grow openers to satisfy the number.
+
+**The harness had never run the instrument that renders the page.**
+`run_conformance.py` scored prose and design only. `layout` joins `SCRIPTS`, runs
+with `--deliverable`, and `T1-deck` gains it — along with `D14_placeholders`,
+`collision` and `content_hidden` in its `require` block. A task naming a scoring
+kind nothing can run now fails validation instead of raising `KeyError` halfway
+through a scoreboard and discarding every row already graded.
+
+**And `--json` was the mode whose exit code lied.** All three report functions
+*return* what they could not measure, and `main()` called them only when not
+emitting JSON — so the machine-readable mode, the one a harness consumes, counted
+zero unmeasured checks forever. Measured: a deck with three `NOT MEASURED` lines
+exited **0** under `--json` and **1** without it. The functions now always run
+and their output is swallowed instead. "A check that did not run is not a check
+that passed" cannot be true only in the mode a person is watching.
+
+**Re-scored, and the transition is the evidence.** The recorded Cursor run moves
+from `pass` to `fail (design exited 1, layout exited 1, D14_placeholders=FAIL,
+collision=FAIL)`. Five of the seven layout findings fire on it — collision,
+content spill, an overspent reserve, a role split and a lost datum — on an
+artifact this repository had already published as conformant.
+
+**One near-miss worth recording, because it nearly shipped a gate people would
+learn to ignore.** The hidden-content check first flagged **26 of 30 pages** of a
+real deliverable, every one of them the eyebrow's `<svg class="ic">`: SVG carries
+`overflow: hidden` from the UA stylesheet, and an icon is not text however close
+to the title it sits. Scoping it to text-bearing, non-SVG boxes then swung too
+far the other way — asking for an element's *own* text nodes excused the `.lede`
+container, which is exactly where the clamp that deleted three title lines sat.
+It asks for text anywhere beneath a non-SVG box. **A gating finding has to be
+falsified in both directions**: once that it fires on the defect, and once that
+it stays quiet on a clean document. The first version passed the first test.
+
 ## 0.1.367 — the overlap was a reserve overspent, and the fix hid the text
 
 The overlapping text on the Grok 4.5 deliverable turned out to be one page, one

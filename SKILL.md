@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.367"
+  version: "0.1.368"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -104,6 +104,14 @@ been removed; they now apply at step 4 instead of framing step 0.
    nothing, but it **exits 1 when a check could not be measured** and names what
    it could not find — read those lines first, because a check that did not run
    is not a check that passed.
+   **Before you hand the file over, run it again with `--deliverable`.** That
+   grades the seven things a rendered page can be wrong about decidably —
+   collision, content spill, page height, hidden content, an overspent title
+   reserve, a role split, a lost datum — and exits non-zero on any of them.
+   Focal weight, column balance, caption distance and the part-opener count stay
+   reported, because the fix for each is a design decision. A clean
+   `--deliverable` is not a verified document; it means nothing measurable is
+   broken. **Look at the sheet.**
    `python3 scripts/check_design.py <file>` reports D1–D10 and gates on exactly
    two things, neither of them a design judgement: **D12**, the handling terms and
    origin every page owes, and **D14**, any slot left for yourself — `[TO FILL]`,
