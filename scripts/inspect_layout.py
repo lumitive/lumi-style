@@ -436,8 +436,12 @@ PROBE = r"""
     // page, where they say the same thing twice and sometimes word for word.
     const cite = (t) => new Set((t.match(/§\s?[\d.]+[a-z]?|Appendix\s+\w|findings summary/gi) || [])
                                  .map(x => x.replace(/\s+/g, '').toLowerCase()));
+    // The document's colophon, not a per-page footer slot. `.foot .src` was
+    // removed in 0.1.366: it had no rule, and a deliverable filled it with a
+    // build path on every page. Provenance is stated once for the document, so
+    // that is what a figure's source line can echo.
     const figSrc = s.querySelector('.cap .srcline');
-    const footSrc = s.querySelector('.foot .src');
+    const footSrc = document.querySelector('.colophon');
     // Distinguish "compared, and they differ" from "never comparable". The
     // audit read `if (figSrc && footSrc)` and reported success on every
     // document where either was absent, which was every document, because
@@ -1181,7 +1185,7 @@ def page_report(rows, geometry, errors):
     else:
         unmeasured += 1
         print("  -- source: NOT MEASURED, no page pairs a `.cap .srcline` with a "
-              "`.foot .src`, so nothing could be compared")
+              "a document `.colophon`, so nothing could be compared")
 
     nf = sum(len(r.get("fields", [])) for r in live)
     loose = [(r, f) for r in live for f in r.get("fields", [])

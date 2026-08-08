@@ -3,6 +3,52 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.366 — the fixture was never loading the stylesheet it was testing
+
+A deliverable built in Cursor with Grok 4.5 came back with its cover and closing
+set in the wrong face, an internal build path printed in every page footer, and
+page numbers wrapped onto their own line. **`check_design.py` reported "nothing
+flagged" and `check_prose.py` reported "all metrics pass", both exit 0.**
+`inspect_layout.py` found six real problems and exited 0 too, because design
+judgements gate nothing — and `run_conformance.py` never runs it at all. Every
+instrument in this repository said the document was fine.
+
+**The fixture inlined the `:root` block and reimplemented everything else.** Its
+own `.body.split`, `.lede`, `.eyebrow`, `.sup`, `.listhead`, `.gd`, `.band`,
+`.lead`, `.cap .n`, `.foot` — every one of which ships in `lumi-layouts.css`. So
+the shipped layout stylesheet **was never loaded by anything in this
+repository**, and its gaps were invisible by construction. A fixture that
+reimplements what it is testing is testing itself. It now inlines
+`tokens/lumi-layouts.css` in full and keeps only what a document legitimately
+decides for itself.
+
+Three gaps that had been hiding behind it:
+
+**`.foot` never got `display: flex`.** `.foot .site` has carried
+`margin-right: auto` since the footer existed — a property that does nothing
+outside a flex container. The rule was inert, the spans ran inline, and the page
+number wrapped. Shipped now.
+
+**`.cover h1` and `.closing h2` appeared zero times in `tokens/`**, while the
+consistency probe has audited them as two of its three title registers since
+0.1.352. A deliverable wrote its own, without a `font-family`. The audit called it
+clean, because **one rendering is what it checks and one rendering is what it
+got** — consistency is not correctness. Both registers ship now.
+
+**`.foot .src` is removed.** It shipped in 0.1.361 with styling and no rule about
+what it was for, and the first deliverable to meet it filled every client page
+with a source path and three processing dates. `design-rules.md` already says
+sales and marketing state provenance once for the document, in the closing
+colophon; a per-page source slot contradicted the rule and existed only because a
+probe compared against it. The source-echo audit now compares a figure's source
+line against the document colophon. **Shipping an asset with no rule is the mirror
+of CLAUDE.md rule 5, and costs the same.**
+
+This is the third instance of the same class — 0.1.349 audited ten roles against
+six unshipped names, 0.1.361 shipped one half of a compared pair — and the pattern
+is now explicit: **the skill has been auditing a larger vocabulary than it ships.**
+0.1.367 mechanizes the check that stops a fourth.
+
 ## 0.1.365 — the task said what it was and nothing carried the word to the checker
 
 Cursor's twelve-page deck failed `M9_dashes` on two em-dashes in a term-and-

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.365 (2026-08-08)
+   LUMI page layouts · v0.1.366 (2026-08-08)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -64,6 +64,13 @@
    out of a deck and forwarded without the cover — so the terms cannot live only
    on page one. This is the one piece of page furniture that is not a design
    judgement, and check_design.py fails on a page missing it. */
+/* The footer is a row. `.foot .site` has carried `margin-right: auto` since the
+   footer existed, which does nothing outside a flex container — and the flex was
+   never shipped, so a deliverable built from these tokens ran its footer spans
+   inline and wrapped the page number onto its own line. The fixture defined its
+   own `.foot { display: flex }` and therefore never exposed it: it was testing
+   its own stylesheet, not this one. */
+.foot { display: flex; align-items: baseline; gap: 18px; }
 .foot .conf { color: var(--tx4); }
 .foot .site { margin-right: auto; color: var(--accent); letter-spacing: .1em; }
 .body > * { min-width: 0; min-height: 0; }
@@ -126,6 +133,17 @@ h2.t {
 }
 /* A run of lowercase inside a title (a product name, a unit) opts out. */
 h2.t .lc { text-transform: none; letter-spacing: 0; }
+/* The cover and closing titles. `inspect_layout.py` has audited these as two of
+   its three title registers since 0.1.352 and they appeared nowhere in tokens/,
+   so a deliverable wrote its own — without a font-family, which is why a real
+   one came back set in the wrong face while the consistency audit called it
+   clean. One rendering, audited, and wrong: consistency is not correctness. */
+.cover h1, .closing h2 {
+  font-family: var(--din); font-size: var(--fs-display);
+  font-weight: var(--w-display); line-height: var(--lh-display);
+  letter-spacing: var(--ls-display); text-transform: uppercase;
+  color: var(--tx1); margin: 0 0 24px;
+}
 .sup {
   font-size: var(--fs-support); font-weight: var(--w-support); line-height: 1.42;
   color: var(--tx2); max-width: var(--measure);
@@ -149,13 +167,13 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
 .cap .srcline {
   color: var(--tx4); letter-spacing: .02em;
 }
-/* The footer's source line. 0.1.359 shipped `.cap .srcline` and not this, which
-   is worse than shipping neither: `inspect_layout.py` compares the two to catch
-   a page stating its source twice, so with `.src` unshipped the comparison was
-   structurally impossible and the probe printed "no page states the same source
-   twice" about every document that will ever be measured. Half a vocabulary
-   makes a check look wired up. */
-.foot .src { color: var(--tx4); text-transform: none; letter-spacing: .02em; }
+/* `.foot .src` was shipped in 0.1.361 and is removed here. It carried styling
+   and no rule about what it was for, and a real deliverable duly filled it with
+   an internal source path and three processing dates — on every client page.
+   design-rules.md already says sales and marketing state provenance ONCE for the
+   document, in the closing colophon; a per-page source slot contradicted the
+   rule and existed only because a probe compared against it. Shipping an asset
+   with no rule is the mirror of CLAUDE.md rule 5, and costs the same. */
 .fig svg .f-acc { fill: var(--acc); }
 .fig svg .f-lime { fill: var(--lime); }
 
