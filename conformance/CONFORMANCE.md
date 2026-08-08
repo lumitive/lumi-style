@@ -1,0 +1,23 @@
+# LUMI style conformance · skill 0.1.356
+
+Run `detect-only` · darwin · 1 of 12 agents detected · n=1
+
+| agent | capability | cli | T1-deck | T2-deaify | T3-recall | verdict |
+|---|---|---|---|---|---|---|
+| Claude Code | full | 2.1.225 (Claude Code) | not run | not run | not run | **not run** |
+| Gemini CLI | full | — | — | — | — | **not installed** |
+| OpenAI Codex | full | — | — | — | — | **not installed** |
+| Cursor | full | — | — | — | — | **not installed** |
+| Google Antigravity | full | — | — | — | — | **not installed** |
+| GitHub Copilot | full | — | — | — | — | **not installed** |
+| OpenCode | full | — | — | — | — | **not installed** |
+| Pi | full | — | — | — | — | **not installed** |
+| OpenClaw | full | — | — | — | — | **not installed** |
+| Hermes | full | — | — | — | — | **not installed** |
+| Kimi | prompt | — | — | — | — | **not installed** |
+| DeepSeek | prompt | — | — | — | — | **not installed** |
+
+## What this table is not
+
+It is not a claim that any model produces good output: the checks measure mechanical conformance, and a page is done when a human reads it as intentional. Each row is one run of one CLI version on one machine on one date, not a property of the agent. Rows marked `not installed` were not exercised and are listed rather than omitted.
+

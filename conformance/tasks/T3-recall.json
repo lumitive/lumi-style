@@ -1,0 +1,15 @@
+{
+  "id": "T3-recall",
+  "title": "Red-line recall (closed-form, keyword-scored, no LLM judge)",
+  "min_capability": "prompt",
+  "deliverable": "*.md",
+  "score": ["recall"],
+  "answers": {
+    "default output language": ["english", "american english"],
+    "colour reserved for warnings and red lines only": ["seal", "red", "c8102e"],
+    "who may sign a money or safety conclusion": ["never", "not", "human", "ai never"],
+    "what every number must carry": ["source", "derivation"],
+    "how many focal elements a page gets": ["one", "1"]
+  },
+  "prompt": "Using the LUMI style skill, answer these five questions in a Markdown file named answers.md, one short line each, numbered:\n1. What is the default output language?\n2. Which colour is reserved for warnings and red lines only?\n3. Who may sign a money or safety conclusion?\n4. What must every number carry?\n5. How many focal elements does a page get?"
+}

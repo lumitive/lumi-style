@@ -411,6 +411,9 @@ ENTRY_STAMP = {
 # A version string may name something other than a release only with a reason.
 # Same contract as check_prose.py's NOT_MECHANIZED: a documented exception is a
 # reviewable state; an undocumented one is a mistake nobody noticed.
+# Files that legitimately carry version numbers belonging to other projects.
+THIRD_PARTY_VERSIONS = {"conformance/CONFORMANCE.md"}
+
 VERSION_CITATION_WAIVERS = {
     "1.0.0": "names the first release of the retired 1.x-3.x scheme, in the prose "
              "that explains why the scheme was retired",
@@ -420,7 +423,6 @@ VERSION_CITATION_WAIVERS = {
     # release it ships, which makes the dict a ratchet: a note still promising
     # something "in 0.1.354" after 0.1.354 has shipped becomes a CI failure
     # rather than stale documentation nobody re-reads.
-    "0.1.356": "planned: the cross-agent conformance harness. Remove when shipped.",
 }
 
 
@@ -674,6 +676,13 @@ def check_version_citations():
     cite = re.compile(r"(?<![\d.])(\d+\.\d+\.\d+)(?![0-9A-Za-z])")
     for path in md_files():
         name = rel(path)
+        # The conformance scoreboard records THIRD-PARTY CLI versions — "Claude
+        # Code 2.1.225" — which change on every run and name somebody else's
+        # release, not one of ours. Waiving them individually would mean editing
+        # this file every time an agent updates, which is churn that teaches
+        # people to edit waivers without reading them.
+        if name in THIRD_PARTY_VERSIONS:
+            continue
         in_fence = False
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             prose, in_fence = _strip_code(line, in_fence)

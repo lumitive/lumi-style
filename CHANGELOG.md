@@ -3,6 +3,48 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.356 — the conformance harness, and an honest scoreboard
+
+The last of the five releases. `scripts/run_conformance.py` runs a fixed task
+suite through whichever agent CLIs are installed on the operator's machine and
+scores every output with the same three check scripts, so the claim this package
+makes — *one bar, whichever model wrote it* — has something behind it.
+
+Three tasks, chosen because they are scorable without a judge:
+
+- **T1 deck** — a six-page HTML deck on an invented subject, graded by
+  `check_design.py` and `check_prose.py`. D12 and M4 must come back `ok`.
+- **T2 de-AI rewrite** — a tracked passage seeded with six banned phrases, which
+  must reach zero. Deterministic and model-portable: no taste involved.
+- **T3 red-line recall** — five closed-form questions with a keyword answer key.
+  **No LLM judge.** It tests the one cross-model property that can be scored
+  mechanically: whether the rules were loaded and retained at all.
+
+`conformance/CONFORMANCE.md` is the tracked scoreboard; `conformance/results/` is
+gitignored, because raw agent output is a render and renders live with the run.
+CI gains `run_conformance.py validate`, which parses the suite and nothing else —
+it cannot invoke an agent, and must never look as though it did.
+
+**The first run records one agent of twelve.** Claude Code is present, and the
+scoreboard names the exact CLI build;
+everything else on this machine reports `not installed — not exercised`, and two
+platforms report why they can never be probed at all (Antigravity ships as an IDE
+rather than a CLI; Kimi and DeepSeek are API chat models with no binary). That is
+the honest state, and it is printed rather than omitted — an agent nobody ran is
+not an agent that passed.
+
+What the harness cannot do is stated in its own docstring and repeated in the
+README, because the temptation to overclaim here is the whole risk. It cannot show
+a model writes well: the checks measure mechanical conformance, and a page is done
+when a human reads it as intentional. It cannot show reproducibility, because
+agent CLIs are non-deterministic and their versions drift weekly, so a recorded
+pass is one run of one version on one machine on one date and the report always
+prints its `n`. And it does not run in CI.
+
+The README's support claim is rewritten to match. It no longer says "works with"
+a list of platforms; it says what is verified every push, what is only observed
+per release, and what is not verified at all.
+
 ## 0.1.355 — the gates get tested
 
 `check_prose.py`, `check_design.py` and `inspect_layout.py` decide whether a

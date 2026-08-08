@@ -30,7 +30,8 @@ jobs:
             scripts/check_repo.py scripts/check_prose.py scripts/check_design.py \
             scripts/embed_font.py scripts/embed_icons.py scripts/build_geography.py \
             scripts/build_entrypoints.py scripts/inspect_layout.py \
-            scripts/build_fixtures.py scripts/check_fixtures.py
+            scripts/build_fixtures.py scripts/check_fixtures.py \
+            scripts/run_conformance.py
       - run: bash -n scripts/emergency_merge.sh scripts/ci_wait.sh
       # Every vendored asset must stay byte-identical: a silent change would alter
       # the metrics or the marks of every deliverable that embeds it. The icons
@@ -45,4 +46,7 @@ jobs:
       # The gates, tested. Runs after the staleness checks so a stale
       # fixture reports as stale rather than as a metric regression.
       - run: python3 scripts/check_fixtures.py
+      # Parses the suite only. It cannot invoke an agent — no keys, no
+      # network, no vendor SDKs — and must never look as though it did.
+      - run: python3 scripts/run_conformance.py validate
       - run: python3 scripts/check_repo.py
