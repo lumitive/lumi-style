@@ -411,6 +411,28 @@ def d13_lime_never_light_text(css, resolved, palette):
     return bad
 
 
+
+def _block_text(body, cls):
+    """The whole footer, with nested elements included.
+
+    This was `class="[^"]*\bfoot\b[^"]*"[^>]*>(.*?)</div>` — non-greedy to the
+    FIRST closing tag — so a footer that wraps its handling terms in a nested
+    <div> had its text truncated before the terms were reached, and D12, the one
+    design check that blocks a ship, failed for a reason having nothing to do
+    with the terms being present. The fixture that was supposed to test this
+    check was written with spans specifically to avoid the bug, which guaranteed
+    the regression suite could never surface it.
+    """
+    m = re.search(rf'<(\w+)[^>]*class="[^"]*\b{cls}\b[^"]*"[^>]*>', body)
+    if not m:
+        return ""
+    tag, i, depth = m.group(1), m.end(), 1
+    token = re.compile(rf"<(/?){tag}\b[^>]*>")
+    while depth and (found := token.search(body, i)):
+        depth += -1 if found.group(1) else 1
+        i = found.end()
+    return re.sub(r"<[^>]+>", " ", body[m.end():i])
+
 def d12_commercial_footer(raw, site=None):
     """Every page carries its handling terms and the origin of the document.
 
@@ -428,9 +450,7 @@ def d12_commercial_footer(raw, site=None):
         return None
     missing_terms, missing_site = [], []
     for i, body in enumerate(pages):
-        foot = re.search(r'class="[^"]*\bfoot\b[^"]*"[^>]*>(.*?)</div>', body, re.S)
-        text = re.sub(r"<[^>]+>", " ", foot.group(1)) if foot else ""
-        low = text.lower()
+        low = _block_text(body, "foot").lower()
         if not any(w in low for w in ("confidential", "privileged", "internal use",
                                       "do not forward", "proprietary")):
             missing_terms.append(i)
@@ -487,8 +507,7 @@ def d6_footer(raw):
         return None
     missing_src, missing_total = [], []
     for i, body in enumerate(pages):
-        foot = re.search(r'class="[^"]*\bfoot\b[^"]*"[^>]*>(.*?)</div>', body, re.S)
-        text = re.sub(r"<[^>]+>", " ", foot.group(1)) if foot else ""
+        text = _block_text(body, "foot")
         pass  # provenance is a document-level question now; see below
         if not re.search(r"\b\w+\s*/\s*\d+\b", text):
             missing_total.append(i)
@@ -499,8 +518,7 @@ def d6_footer(raw):
     # handling terms that a commercial document does need. The obligation did not
     # go away — it moved to where it is read once, on the cover and the closing.
     # So this asks the document, and D12 asks every page for its terms.
-    doc = re.search(r'class="[^"]*\bcolophon\b[^"]*"[^>]*>(.*?)</div>', raw, re.S)
-    doc_text = re.sub(r"<[^>]+>", " ", doc.group(1)).lower() if doc else ""
+    doc_text = _block_text(raw, "colophon").lower()
     if not re.search(r"source|derived from|based on|provenance", doc_text):
         missing_src = list(range(len(pages)))
     return {"pages": len(pages), "missing_source": missing_src,
