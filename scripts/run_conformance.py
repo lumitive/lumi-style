@@ -27,7 +27,13 @@ the whole risk:
     python3 scripts/run_conformance.py detect       # which agent CLIs exist here
     python3 scripts/run_conformance.py run          # invoke every detected agent
     python3 scripts/run_conformance.py score --run DIR
-    python3 scripts/run_conformance.py report --run DIR
+    python3 scripts/run_conformance.py report --run DIR [--run DIR ...]
+
+`report` takes as many run directories as the operator has, and merges them.
+Building the board from one directory blanks every agent that directory does not
+contain, which turned a recorded `fail` into `not installed` the first time a
+second agent was run — a measured result becoming an absence, in the document
+whose closing paragraph says absences are listed rather than omitted.
 """
 from __future__ import annotations
 
@@ -226,7 +232,7 @@ def score_recall(task: dict, text: str) -> dict:
 
 def render(record: dict) -> str:
     lines = [f"# LUMI style conformance · skill {record['version']}", "",
-             f"Run `{record['run_id']}` · {record['host']} · "
+             f"Runs {record['run_id']} · {record['host']} · "
              f"{record['detected']} of {record['agents']} agents detected · n={record['repeat']} per agent",
              "",
              "| agent | capability | cli | " +
@@ -258,7 +264,14 @@ def render(record: dict) -> str:
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("command", choices=["validate", "detect", "run", "score", "report"])
-    ap.add_argument("--run", default=None)
+    # Repeatable, and only `report` may take more than one. A scoreboard built
+    # from a single directory erases every agent that directory does not
+    # contain: recording the Claude Code run turned Cursor's row from a
+    # measured `fail` into `not installed`, which is the false absence this
+    # file's own closing paragraph says it exists to avoid. Later --run wins on
+    # a collision, so re-running one agent replaces its own row and nobody
+    # else's.
+    ap.add_argument("--run", action="append", default=None)
     ap.add_argument("--agent", default=None,
                     help="prepare (or report) this agent even if no CLI answers its "
                          "probe — IDEs and API models are driven by hand")
@@ -274,6 +287,16 @@ def main(argv):
         print(f"ok    {len(tasks)} tasks, {len(agents)} agents in the registry")
         return 0
 
+    # `run` and `score` act on exactly one directory. Saying so beats quietly
+    # taking the first: an operator who passes two to `score` means to score
+    # two, and scoring one of them without a word is the kind of silent
+    # narrowing this harness is otherwise careful about.
+    runs = args.run or []
+    if args.command in ("run", "score") and len(runs) > 1:
+        print(f"FAIL  {args.command} acts on one --run directory; {len(runs)} given. "
+              f"Only `report` merges runs.")
+        return 1
+
     probed = {a["id"]: detect(a) for a in agents}
     if args.command == "detect":
         for a in agents:
@@ -283,7 +306,7 @@ def main(argv):
         return 0
 
     if args.command == "run":
-        run_dir = pathlib.Path(args.run) if args.run else RESULTS / "latest"
+        run_dir = pathlib.Path(runs[0]) if runs else RESULTS / "latest"
         # Created up front. The mkdir moved inside the per-agent loop when run and
         # score split, so on the case the scoreboard itself documents — few or no
         # agents detected — `run` announced a directory it had not made and
@@ -313,10 +336,10 @@ def main(argv):
         return 0
 
     if args.command == "score":
-        if not args.run:
+        if not runs:
             print("FAIL  score needs --run DIR")
             return 1
-        run_dir = pathlib.Path(args.run)
+        run_dir = pathlib.Path(runs[0])
         if not run_dir.exists():
             print(f"FAIL  {run_dir} does not exist; run `run` first")
             return 1
@@ -413,13 +436,17 @@ def main(argv):
 
     # report
     version = (ROOT / "SKILL.md").read_text(encoding="utf-8").split('version: "')[1].split('"')[0]
+    # Merged across every --run given, in the order given, so a second agent's
+    # results ADD a row instead of blanking every row the new directory does not
+    # contain. Later wins on a collision: re-running one agent replaces its own
+    # cells and nobody else's.
     scored = {}
-    if args.run:
-        f = pathlib.Path(args.run) / "scores.json"
+    for name in runs:
+        f = pathlib.Path(name) / "scores.json"
         if not f.exists():
-            print(f"FAIL  {f} does not exist; run `score --run {args.run}` first")
+            print(f"FAIL  {f} does not exist; run `score --run {name}` first")
             return 1
-        scored = json.loads(f.read_text(encoding="utf-8"))
+        scored.update(json.loads(f.read_text(encoding="utf-8")))
     rows = []
     for a in agents:
         ok, note = probed[a["id"]]
@@ -454,7 +481,8 @@ def main(argv):
             cli = note if ok else "—"
         rows.append({"name": a["name"], "capability": a["capability"],
                      "cli": cli, "tasks": cells, "verdict": verdict})
-    record = {"version": version, "run_id": args.run or "detect-only",
+    record = {"version": version,
+              "run_id": ", ".join(f"`{r}`" for r in runs) or "detect-only",
               "host": f"{sys.platform}", "agents": len(agents),
               "detected": sum(1 for v in probed.values() if v[0]),
               "repeat": 1, "task_ids": [t["id"] for t in tasks], "rows": rows}

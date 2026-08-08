@@ -1,10 +1,10 @@
-# LUMI style conformance · skill 0.1.370
+# LUMI style conformance · skill 0.1.371
 
-Run `conformance/results/cursor-20260808` · darwin · 1 of 12 agents detected · n=1 per agent
+Runs `conformance/results/cursor-20260808`, `conformance/results/claude-code-20260808` · darwin · 1 of 12 agents detected · n=1 per agent
 
 | agent | capability | cli | T1-deck | T2-deaify | T3-recall | verdict |
 |---|---|---|---|---|---|---|
-| Claude Code | full | 2.1.226 (Claude Code) | not run | not run | not run | **not run** |
+| Claude Code | full | 2.1.226 (Claude Code) | pass | pass | pass | **pass** |
 | Gemini CLI | full | — | — | — | — | **not installed** |
 | OpenAI Codex | full | — | — | — | — | **not installed** |
 | Cursor | full | driven by hand | fail: design exited 1, layout exited 1, D14_placeholders=FAIL, collision=FAIL | pass | pass | **fail** |
