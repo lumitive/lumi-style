@@ -101,8 +101,20 @@ Three entry points load these rules, and each restates part of them:
 - `AGENTS.md` — Codex entry; summarizes the load order and the six red lines inline
 - `prompts/lumi-style-core.md` — **self-contained** single file for Kimi/DeepSeek (a strict subset of `references/`), so any substantive rule change must be re-flowed into it by hand
 
-`adapters/` holds per-platform loading notes plus the precedence rule that
-`references/` wins on conflict.
+`adapters/platforms.json` is the **platform registry** — the single source of
+install paths, capability tiers and entry files for every platform this package
+claims. `adapters/*.md` are the per-platform loading notes, one per registry
+record, plus the precedence rule that `references/` wins on conflict. The
+`platform manifest` guard requires every registry claim to have a file behind it,
+every note to be claimed by a platform, and every *unverified* claim to carry a
+written waiver naming what is unconfirmed. Adding a platform is a registry record
+and a note — never a restatement of a rule.
+
+Three capability tiers, because what matters is not the vendor but what the agent
+can do: `full` reads the bundled files and runs `scripts/`; `files` reads but
+cannot execute; `prompt` gets one pasted context and no tools. **An agent that
+cannot run the checks may not call a deliverable verified** — it names the checks
+it owes and the operator runs them.
 
 **Drift is this repo's main hazard, and the checks catch only its mechanical
 half — semantic drift between prose copies is invisible to them.** After changing

@@ -1,5 +1,5 @@
 {
-  "$schema_note": "LUMI design tokens v0.1.351 (2026-08-08). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
+  "$schema_note": "LUMI design tokens v0.1.352 (2026-08-08). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
   "palette_default": "light",
   "palette": {
     "light": {
@@ -156,7 +156,7 @@
       "eyebrow_latin": "0.3em",
       "title_cjk": "0.04em"
     },
-    "size_floor_px": 11,
+    "size_smallest_px": 11,
     "chart_scale_px": {
       "fig_title": 13,
       "axis": 11.5,
@@ -167,7 +167,7 @@
       "weight": 400,
       "leading": "0.95-1.0"
     },
-    "note": "v0.1.338 raised the chart scale and added size_floor_px. The old scale (11 / 10.5 / 9.5) contradicted design-rules.md prose (14 / 10-11 / 11); tokens win per CLAUDE.md, so deliverables shipped 9.5px source lines. size_floor_px binds every text run except chart_scale_px.source, the single documented exception."
+    "note": "v0.1.338 raised the chart scale. The old scale (11 / 10.5 / 9.5) contradicted design-rules.md prose (14 / 10-11 / 11); tokens win per CLAUDE.md, so deliverables shipped 9.5px source lines. v0.1.352: `size_floor_px` renamed to `size_smallest_px` (CSS `--fs-fine`), and the claim that it 'binds every text run' is withdrawn — it never should have survived 0.1.340, which withdrew the 11px floor as invented without an ask. THERE IS NO TYPE FLOOR. This value records the smallest size the scale actually uses; it is not a limit, and design-rules.md 1 is the authority that says so. Because CLAUDE.md makes tokens win on conflict, a floor asserted here silently overrode the prose in every deliverable built from this file for twelve releases."
   },
   "assets": {
     "fonts": "assets/fonts/ — D-DIN.woff2, D-DIN-Bold.woff2, COPYING.txt (SIL OFL)",

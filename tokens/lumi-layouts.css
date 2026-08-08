@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.351 (2026-08-08)
+   LUMI page layouts · v0.1.352 (2026-08-08)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -142,7 +142,7 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
 }
 /* The figure's number and name, under the drawing. */
 .cap .n {
-  font-weight: 700; font-size: var(--fs-floor); color: var(--tx2);
+  font-weight: 700; font-size: var(--fs-fine); color: var(--tx2);
   letter-spacing: .04em;
 }
 /* A stat band: the label is record, the value is the number. `align-items:
@@ -151,7 +151,7 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
    neighbours, which measured 17px of drift and reads as a broken row. */
 .band { align-items: start; }
 .band .k {
-  font-family: var(--mono); font-size: var(--fs-floor); letter-spacing: .16em;
+  font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .16em;
   text-transform: uppercase; color: var(--tx3);
 }
 .band .v {
@@ -322,7 +322,7 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
 /* The gloss carries the number's meaning and its source. Without it a display
    number is decoration, and red line 1 says every number carries its source. */
 .lead .g {
-  font-family: var(--mono); font-size: var(--fs-floor); line-height: 1.55;
+  font-family: var(--mono); font-size: var(--fs-fine); line-height: 1.55;
   letter-spacing: .12em; text-transform: uppercase; color: var(--tx3);
   max-width: 64ch;
 }
@@ -507,7 +507,7 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
 .field > i[data-sem="brass"] { background: var(--brass); }
 .fieldkey {
   display: flex; gap: 22px; margin-top: 10px;
-  font-family: var(--mono); font-size: var(--fs-floor);
+  font-family: var(--mono); font-size: var(--fs-fine);
   letter-spacing: .1em; color: var(--tx3);
 }
 .fieldkey span { display: flex; align-items: center; gap: 7px; }

@@ -394,10 +394,189 @@ def check_ban_list_parity():
     return errors
 
 
+PLATFORMS = ROOT / "adapters" / "platforms.json"
+
+# entry point -> the regex its version stamp must match, with {v} the version.
+# A position, not a substring: the first version of this guard asked only whether
+# the string appeared anywhere in the file, and AGENTS.md satisfied it with the
+# sentence explaining that it used to be unstamped. A file that merely mentions
+# the current version is not a file that declares it. An entry point with no
+# pattern here fails rather than being skipped.
+ENTRY_STAMP = {
+    "SKILL.md": r'^\s*version:\s*"{v}"',
+    "AGENTS.md": r"\*\*lumi-style {v}\.?\*\*",
+    "prompts/lumi-style-core.md": r"\*\*{v}\*\* snapshot",
+}
+
+# A version string may name something other than a release only with a reason.
+# Same contract as check_prose.py's NOT_MECHANIZED: a documented exception is a
+# reviewable state; an undocumented one is a mistake nobody noticed.
+VERSION_CITATION_WAIVERS = {
+    "1.0.0": "names the first release of the retired 1.x-3.x scheme, in the prose "
+             "that explains why the scheme was retired",
+    "3.4.0": "names the last release of the retired scheme, and the commit subject "
+             "git history still carries; both are quoted deliberately",
+    # Forward references to planned work. Each is deleted from this dict the
+    # release it ships, which makes the dict a ratchet: a note still promising
+    # something "in 0.1.354" after 0.1.354 has shipped becomes a CI failure
+    # rather than stale documentation nobody re-reads.
+    "0.1.353": "planned: the numeric-claim guard. Remove this waiver when it ships.",
+    "0.1.354": "planned: generated entry points and the plugin manifests. Remove "
+               "this waiver when they ship.",
+    "0.1.355": "planned: tracked fixtures and check_fixtures.py. Remove when shipped.",
+    "0.1.356": "planned: the cross-agent conformance harness. Remove when shipped.",
+}
+
+
+def _load_platforms():
+    """The platform registry, or an explanatory failure. Never a silent {}."""
+    raw = PLATFORMS.read_text(encoding="utf-8")
+    data = json.loads(raw)
+    if not isinstance(data.get("platforms"), list) or not data["platforms"]:
+        raise ValueError("platforms.json declares no platforms")
+    return data
+
+
+def check_platform_manifest():
+    """Every platform this repo claims is described, and every description resolves.
+
+    The registry is the single source of platform facts. Before it existed the
+    same facts lived in four hand-written notes and a README table, and they had
+    already disagreed: adapters/claude-code.md said `git clone` into the skills
+    directory while README.md insisted on a symlink *because a copy had stranded
+    at an old version*. Two files, one fact, opposite instructions.
+
+    Nothing here checks that a platform actually loads the skill — CI cannot
+    launch Gemini CLI. It checks that every claim we publish has a file behind it
+    and every unverified claim says so.
+    """
+    try:
+        data = _load_platforms()
+    except (OSError, ValueError) as exc:                    # noqa: BLE001
+        return [f"adapters/platforms.json: {exc}"]
+
+    errors = []
+    capabilities = data.get("capabilities", {})
+    seen_ids, claimed_notes = set(), set()
+
+    for entry in data["platforms"]:
+        pid = entry.get("id")
+        if not pid:
+            errors.append("adapters/platforms.json: a platform has no id")
+            continue
+        if pid in seen_ids:
+            errors.append(f"adapters/platforms.json: duplicate platform id {pid!r}")
+        seen_ids.add(pid)
+
+        if entry.get("capability") not in capabilities:
+            errors.append(
+                f"adapters/platforms.json: {pid} declares capability "
+                f"{entry.get('capability')!r}, which the capabilities table does not "
+                f"define; a tier that means whatever its first platform needed is "
+                f"not a tier"
+            )
+
+        for field in ("entry_file", "notes_path"):
+            target = entry.get(field)
+            if not target:
+                errors.append(f"adapters/platforms.json: {pid} has no {field}")
+            elif not (ROOT / target).exists():
+                errors.append(
+                    f"adapters/platforms.json: {pid} {field} {target!r} does not exist"
+                )
+            elif field == "notes_path":
+                claimed_notes.add(target)
+
+        # Every unverified claim carries its own reason, in the file, under review.
+        for flag, waiver, what in (
+            ("path_verified", "path_waiver", "install path"),
+            ("docs", "docs_waiver", "documentation URL"),
+            ("probe", "probe_waiver", "CLI probe"),
+        ):
+            value = entry.get(flag)
+            missing = (value is False) if flag == "path_verified" else (value is None)
+            if missing and not entry.get(waiver):
+                errors.append(
+                    f"adapters/platforms.json: {pid} has no {what} and no {waiver} "
+                    f"explaining why — an unverified claim must say so"
+                )
+
+    # No orphans: an install note nobody points at is a note nobody maintains.
+    on_disk = {rel(p) for p in (ROOT / "adapters").glob("*.md")}
+    for orphan in sorted(on_disk - claimed_notes):
+        errors.append(
+            f"{orphan}: no platform in platforms.json claims this note; add the "
+            f"platform or delete the file"
+        )
+    return errors
+
+
+def check_version_citations():
+    """Two things, both derived from CHANGELOG.md rather than from a list.
+
+    1. Every entry point named in the registry carries the current version. Until
+       0.1.352 only SKILL.md's frontmatter was checked: AGENTS.md carried no stamp
+       at all, and the core prompt's self-declared snapshot line was unverified.
+       Both had already shipped four versions of drift.
+    2. Every version cited anywhere resolves to a release. CLAUDE.md calls a
+       citation naming a version no heading defines "the drift this repo is worst
+       at catching", and there are 165 such citations across references/, tokens/,
+       scripts/ and the entry points.
+    """
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    headings = set(re.findall(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M))
+    if not headings:
+        return ["CHANGELOG.md: no '## X.Y.Z' release headings found"]
+    current = re.search(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M).group(1)
+
+    errors = []
+    try:
+        data = _load_platforms()
+    except (OSError, ValueError) as exc:                    # noqa: BLE001
+        return [f"adapters/platforms.json: {exc}"]
+
+    for target in sorted({e.get("entry_file") for e in data["platforms"] if e.get("entry_file")}):
+        path = ROOT / target
+        if not path.exists():
+            continue                                        # reported by the manifest guard
+        pattern = ENTRY_STAMP.get(target)
+        if pattern is None:
+            errors.append(
+                f"{target}: is an entry point with no stamp pattern in ENTRY_STAMP; "
+                f"declare where its version lives, or it cannot be checked"
+            )
+            continue
+        if not re.search(pattern.format(v=re.escape(current)),
+                         path.read_text(encoding="utf-8"), re.M):
+            errors.append(
+                f"{target}: carries no {current} version stamp in its declared stamp "
+                f"position; an entry point that cannot say which rules it encodes is "
+                f"one a reader cannot date"
+            )
+
+    # A version may be cited only if some release defines it.
+    cite = re.compile(r"(?<![\d.])(\d+\.\d+\.\d+)(?![0-9A-Za-z])")
+    for path in md_files():
+        name = rel(path)
+        in_fence = False
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            prose, in_fence = _strip_code(line, in_fence)
+            for found in cite.findall(prose):
+                if found in headings or found in VERSION_CITATION_WAIVERS:
+                    continue
+                errors.append(
+                    f"{name}:{lineno}: cites version {found}, which no CHANGELOG "
+                    f"heading defines and VERSION_CITATION_WAIVERS does not excuse"
+                )
+    return errors
+
+
 CHECKS = (
     ("version stamps", check_versions),
+    ("version citations", check_version_citations),
     ("english-only red line", check_english_only),
     ("markdown link targets", check_links),
+    ("platform manifest", check_platform_manifest),
     ("token palette parity", check_palette_parity),
     ("ban-list parity", check_ban_list_parity),
 )

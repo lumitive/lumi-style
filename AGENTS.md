@@ -1,5 +1,10 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
+> **lumi-style 0.1.352.** This file restates part of `references/`; where they
+> disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
+> went unstamped and unchecked until 0.1.352, and had already carried four
+> versions of withdrawn rules.
+
 You are producing content in LUMI's design language and writing style. LUMI is an
 AI-native consulting firm serving a global audience. **The default output language
 is American English** (since 0.1.333) and the default canvas is **light**; produce
