@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.373"
+  version: "0.1.374"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -85,8 +85,41 @@ been removed; they now apply at step 4 instead of framing step 0.
    de-AI-flavor pass). **Run the punctuation pass after drafting.**
 3. **Visuals and charts**: compose against `brand.md`'s two devices first — the
    **field** (one mark per datum, intensity from the datum) and the **waterline**
-   (one horizon per page: air above, record below) — then follow
-   [`references/design-rules.md`](references/design-rules.md) for craft; tokens come from
+   (one horizon per page: air above, record below). `brand.md` §3 is the only
+   place in this package that says what to *reach for*; read it before the craft
+   rules, not after.
+
+   **Then decide what to draw, and draw it.** §4's form selection is the step
+   people skip: one number is the story → a stat callout; composition or trend →
+   segmented bars or a tick band; a bridge between two numbers → a waterfall;
+   concept relations → an icon-led flow; time commitments → a milestone timeline;
+   **comparisons always use tables**. Ask what the content *is* and draw that: a
+   sequence is a flow, a duration is a timeline, a pair of alternatives is a swap,
+   a ranking is a ladder, a two-by-two is a two-by-two.
+   **A figure title states a conclusion, not a label.** "Sources feeding the
+   radar" is a label; "every narrowing step names its criterion" is what a reader
+   carries away. Every figure gets a source line, and its number and name go
+   below it.
+   **Shapes carry semantics** in a flow: parallelogram = data in or out,
+   rectangle = process, diamond = decision, stadium = terminal, dashed outline =
+   not built, one accent arrow marker throughout. A flow drawn entirely in
+   rectangles hides where the decision happens.
+   **Figure parity binds the document**: if one figure earns decision diamonds and
+   dashed not-built states, the others are built to that level or they are not
+   figures. One good figure beside five weak ones reads as a document that
+   stopped trying.
+   Two traps, in both directions: **a grid of rectangles containing sentences is a
+   table — draw the table**; and **prose poured into a grid is a layout error
+   wearing a table's clothes**. An SVG with no arrows, no decisions and no
+   encoding costs the reader more than the table would.
+
+   *Provenance: a reader compared a 3.4.0 deck against a 0.1.374 one and called the
+   newer one less professional. Measured: 24 drawn figures against 1, 410 pieces of
+   text inside SVGs against 8, 4 tables against 0, and 14 of 14 figure titles
+   stating a conclusion against 1 of 5. Every rule it broke was already in §4. The
+   skill had not lost the craft; this step had stopped pointing at it.*
+
+   **Then compose the page.** Tokens come from
    [`tokens/lumi-theme.css`](tokens/lumi-theme.css),
    [`tokens/design-tokens.json`](tokens/design-tokens.json) and
    [`tokens/lumi-layouts.css`](tokens/lumi-layouts.css). **Choose a page layout for
@@ -101,45 +134,36 @@ been removed; they now apply at step 4 instead of framing step 0.
    out of the audit rather than failing it. The four repeating **block patterns**
    ship too: the tier-1 callout `.key` / `.red`, the card `.card` + `.ledname` +
    `.verdict`, the swap `.swap .no` / `.swap .yes`, and the vow `.vow` + `.vn` +
-   `.vt` + `.vw`. Compose with them rather than styling your own; a page that
-   does not fit gets its **content** trimmed, never its type nudged, and that
-   holds per geometry — A4 tightens spacing and leaves type alone.
-   Then **look at the pages**: `python3 scripts/inspect_layout.py <file>` renders
-   them at both geometries and builds a contact sheet. Its design judgements gate
-   nothing, but it **exits 1 when a check could not be measured** and names what
-   it could not find — read those lines first, because a check that did not run
-   is not a check that passed.
-   **Before you hand the file over, run it again with `--deliverable`.** That
-   grades the seven things a rendered page can be wrong about decidably —
-   collision, content spill, page height, hidden content, an overspent title
-   reserve, a role split, a lost datum — and exits non-zero on any of them.
-   Focal weight, column balance, caption distance and the part-opener count stay
-   reported, because the fix for each is a design decision. A clean
-   `--deliverable` is not a verified document; it means nothing measurable is
-   broken. **Look at the sheet.**
-   `python3 scripts/check_design.py <file>` reports D1–D10 and gates on exactly
-   three things, none of them a design judgement: **D12**, the handling terms and
-   origin every page owes; **D14**, any slot left for yourself — `[TO FILL]`,
-   `[TBD]`, `{{…}}`; and **D15**, a file path in a footer. A placeholder occupies
-   as much room as the text that should replace it, and a repository path is not
-   a source a reader can open — nothing else in this package can see either.
-   **An English deliverable must be in English.** `check_prose.py`'s M12 fails on
-   Chinese in text a reader sees when the document declares English by its `lang`
-   attribute, its `*.en.*` filename or `--lang`; quote it in `<code>` if a name
-   genuinely has to appear in Chinese. A clean banned-phrase run is not a
-   language pass.
+   `.vt` + `.vw`. They are furniture for text, not a substitute for a figure.
+   A page that does not fit gets its **content** trimmed, never its type nudged,
+   and that holds per geometry — A4 tightens spacing and leaves type alone.
    **A title block that does not fit gets shorter text, never a clamp.** `.lede`
    reserves its height as a ceiling; `-webkit-line-clamp` or `overflow: hidden`
    there deletes lines from a client page and leaves the geometry looking clean.
-   `inspect_layout.py` reports both the overspend and the clamp.
+
 4. **Before delivery**: run the critic gate (structure before polish), then the
    **mandatory de-AI-flavor pass** — `references/writing-rules.md` §6, including
    its two-pass audit; for Chinese translated from English also §6b
    de-translationese — then the H1–H6 self-score per
    [`references/eval-rubric.md`](references/eval-rubric.md);
    **never self-score 5 before a reader has scored it, and give the reason for
-   every score**. Measure rather than trust: `python3 scripts/check_prose.py <file>`
-   for English prose and `python3 scripts/check_design.py <file>` for any HTML.
+   every score**.
+
+   **Then measure rather than trust**, and this is where the gates live, because
+   they belong after the making rather than inside it. `python3
+   scripts/inspect_layout.py <file>` renders the pages and builds a contact sheet;
+   its design judgements gate nothing but it **exits 1 when a check could not be
+   measured**, and those lines come before every green one. Run it again with
+   **`--deliverable`**, which exits non-zero on the seven findings a rendered page
+   can be wrong about decidably: collision, content spill, page height, hidden
+   content, an overspent title reserve, a role split, a lost datum.
+   `python3 scripts/check_design.py <file>` reports D1–D10 and gates on three
+   things, none of them a design judgement: **D12**, the handling terms and origin
+   every page owes; **D14**, any slot left for yourself; and **D15**, a file path
+   in a footer. `python3 scripts/check_prose.py <file>` grades the English, and
+   **M12 fails on Chinese in text a reader sees** when the document declares
+   English — a clean banned-phrase run is not a language pass.
+   **A clean run is not a verified document. Look at the sheet.**
    (The de-AI pass was advisory until 0.1.336 and nothing invoked it; three versions
    of AI-flavored decks shipped past it. The design half had no metrics at all
    until 0.1.338, and a deck that passed every prose metric came back from its

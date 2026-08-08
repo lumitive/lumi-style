@@ -3,6 +3,67 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.374 — the step called "Visuals and charts" had stopped mentioning charts
+
+A reader compared a deck built by **3.4.0** against one built by **0.1.373** and
+called the newer one less professional. They were right, and the gap is
+measurable.
+
+| | 3.4.0 (30pp) | 0.1.373 (14pp) |
+|---|---|---|
+| drawn figure SVGs | **24** | **1** |
+| `.fig` blocks holding a drawing | 14 of 14 | **1 of 5** |
+| `<text>` inside SVG | **410** | 8 |
+| tables | 4 | **0** |
+| figure titles stating a conclusion | 14 of 14 | **1 of 5** |
+
+**The skill had not lost the craft.** §4's five chart rules and its complete
+form-selection paragraph were untouched; the icon library, the vectors and the
+display face all still shipped. The better deck was made with *fewer* rules. What
+had changed is where the path of least resistance led, and three things led it:
+
+**`SKILL.md` step 3 was a gate checklist wearing the title "Visuals and charts".**
+552 words in which "figure" or "chart" appeared **once** and checker scripts
+appeared four times, running 19 forbidding verbs against 10 making ones. Its only
+concrete *compose with* instruction pointed at the four HTML block patterns added
+in 0.1.369. An agent following it literally lays out and then verifies, and never
+draws. Rewritten as **form → draw → compose**, with form selection first, the
+shape vocabulary and figure parity stated inline, and **every gate moved to step
+4**, where the other pre-delivery checks already live. It now mentions figures ten
+times and checkers none.
+
+**The only worked example in the package drew nothing.** `fixtures/deck-pass` was
+**11 of 11 rect-only** — three unlabelled rectangles per page, precisely what D5
+exists to flag as weak. Its figure now carries an axis, labelled values, a dashed
+bar for the class with no measurement, a conclusion in the caption and a source
+line. The broken fixture keeps one rect-only figure so D5 still has a subject.
+
+**Twenty-four consecutive releases of brakes.** `brand.md` set this diagnostic at
+0.1.345 — 272 restricting lines to 12 inviting, "nearly five times more braked
+than the ratio that already produced bland" — and named inverting the order as
+the biggest single quality jump on record. Measured today across `SKILL.md` and
+`references/`: **431 brakes to 26 invites**. The ratio improved only because
+accelerators were added; the absolute braking load grew **59%**, and `SKILL.md`
+itself ran 44 to 3. Step 3 now opens by sending the reader to `brand.md` §3,
+which it never reached before.
+
+**D5 gains a reported companion: how many `.fig` blocks hold a drawing.** Nothing
+in the package could tell a figure from a layout, which is why a deck of HTML
+blocks measured clean on every gate. **Reported, never a floor** — a share here
+would be satisfied by drawing badly, which is D7's withdrawn fill floor in a new
+costume.
+
+**Two findings from the same week, both the class this release is about.** `.say`
+ships as `.lead .say` and nowhere else, so a bare `.say` carried the class the
+probe audits and none of the type the token file names; a display claim rendered
+at body size on two real deliverables and their pages reported as having no entry
+point. It joins the scoped-role audit beside `.k`, `.v`, `.no` and `.yes`. And
+**`.field`, the brand's signature device, was missing from `inspect_layout.py`'s
+ink census** — measured on a real deliverable, both columns began at the same
+pixel while the probe reported 339px of skew, because it could not see the field
+and found the caption instead. The fixture has never drawn a `.field`, which is
+why nobody had looked.
+
 ## 0.1.373 — the language guard existed, and it pointed inward
 
 A Cursor run filed a retrospective on 0.1.371 after shipping three reader-visible

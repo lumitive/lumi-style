@@ -139,7 +139,39 @@ def foot(n: int, total: int, terms: str = TERMS, site: str = SITE,
 #
 # Placed on the right-hand cell so each page keeps its lede, its footer and its
 # left column, and the datum still holds across all sixteen.
+# The worked example draws. Until 0.1.374 every figure in this fixture was three
+# bare rectangles — 11 of 11 rect-only, which is precisely what D5 exists to flag
+# as weak — so the only reference implementation in the package demonstrated the
+# thing the rules call a figure that stopped trying. A reader compared a 3.4.0
+# deck against a 0.1.373 one and named the gap: 24 drawn figures against 1.
+#
+# This one carries what §4 asks a figure to carry: an axis, labelled values, a
+# conclusion in the caption, and a source line. The broken fixture keeps a
+# rect-only figure so D5 still has something to report.
 FIGURE = """<div class="fill">
+      <div class="fig"><svg viewBox="0 0 640 232" preserveAspectRatio="xMidYMid meet"
+        role="img" aria-label="Read success by feeder class, urban against rural">
+        <line x1="132" y1="18" x2="132" y2="176" class="s-line" stroke-width="1"/>
+        <text class="flbl" x="0" y="46">Urban</text>
+        <rect class="f-acc" x="132" y="26" width="380" height="34" fill="var(--acc)"/>
+        <text class="fval" x="524" y="49">96.2%</text>
+        <text class="flbl" x="0" y="104">Rural</text>
+        <rect class="f-acc" x="132" y="84" width="250" height="34" fill="var(--acc)"/>
+        <text class="fval" x="394" y="107">71.4%</text>
+        <text class="flbl" x="0" y="162">Deferred</text>
+        <rect x="132" y="142" width="170" height="34" class="f-none s-dash"
+          fill="none" stroke-width="1.3"/>
+        <text class="fnote" x="314" y="165">not surveyed this cycle</text>
+        <text class="fnote" x="132" y="206">A dashed bar is a class with no
+          measurement, never a low one</text>
+      </svg>
+      <div class="cap"><span class="n">Figure {i}</span> The gap follows terrain,
+      not meter age, so relay siting is the lever
+      <span class="srcline">Meter management system, extract of the period</span></div></div>
+    </div>"""
+
+# The rect-only figure the broken fixture keeps, so D5 has a subject.
+FIGURE_WEAK = """<div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
         role="img" aria-label="bars"><rect class="f-acc" x="0" y="0" width="380"
         height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="70" width="250"
@@ -280,7 +312,8 @@ def page(i: int, total: int, spec, broken: bool) -> str:
       <ul>{lis}</ul>
       {cell}{band}{lead}
     </div>"""
-    layout, cells = "split", argument + "\n    " + FIGURE.format(i=i)
+    fig = FIGURE_WEAK if (broken and i == 3) else FIGURE
+    layout, cells = "split", argument + "\n    " + fig.format(i=i)
     if i == 4:
         layout, cells = "sidebar-notes", argument + "\n    " + NOTES
     # A one-line `.lead.row` above each block. Two purposes: it gives these two
@@ -370,6 +403,13 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
 .band > div {{ display: flex; flex-direction: column; gap: 8px; }}
 .band .v .u {{ font-size: .42em; color: var(--tx3); }}
 .cap {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx3); }}
+.flbl {{ font-size: 12.5px; font-weight: 700; fill: var(--tx1); }}
+.fval {{ font-family: var(--din); font-size: 15px; font-weight: 700;
+         fill: var(--tx1); font-variant-numeric: tabular-nums; }}
+.fnote {{ font-size: 11px; fill: var(--tx3); }}
+.f-none {{ fill: none; }}
+.s-line {{ stroke: var(--ln1); }}
+.s-dash {{ stroke: var(--ln1); stroke-dasharray: 5 4; }}
 .colophon {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }}
 .foot {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }}
 </style></head><body>{body}</body></html>

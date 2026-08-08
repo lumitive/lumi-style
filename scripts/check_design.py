@@ -332,6 +332,24 @@ def d4_palette(raw):
 SHAPES = ("rect", "circle", "ellipse", "polygon", "polyline", "line", "path")
 
 
+def d5_drawn_share(raw):
+    """How many `.fig` blocks hold a drawing, against how many are pure markup.
+
+    **Reported, never a floor.** A share here would be satisfied by drawing
+    badly, which is D7's withdrawn fill floor in a new costume. What it is for is
+    the case a reader raised: a deck whose figures were all HTML blocks measured
+    clean on every gate and read as flat, because nothing in the package could
+    see the difference between a figure and a layout.
+    """
+    figs = re.findall(r'<div class="fig[^"]*">(.*?)(?=<div class="cap|</div>\s*</div>)',
+                      raw, re.S)
+    if not figs:
+        return None
+    drawn = sum(1 for x in figs
+                if re.search(r'<svg(?![^>]*class="(?:ground|ic)")', x))
+    return {"figures": len(figs), "drawn": drawn, "laid_out": len(figs) - drawn}
+
+
 def d5_figure_parity(raw):
     figs = []
     for m in re.finditer(r"<svg\b(?![^>]*width=\"0\")[^>]*>(.*?)</svg>", raw, re.S | re.I):
@@ -630,6 +648,7 @@ def measure(path):
         "D3_callouts": d3_callouts(raw),
         "D4_palette_literals": d4_palette(raw),
         "D5_figure_parity": d5_figure_parity(raw),
+        "D5_drawn_share": d5_drawn_share(raw),
         "D6_footer": d6_footer(raw),
         "D8_support_line": d8_support_line(raw),
         "D12_commercial_footer": d12_commercial_footer(raw),
@@ -676,6 +695,10 @@ def grade(r):
                  "=0 (gates)",
                  bool(cf) and not cf["missing_terms"] and not cf["missing_site"],
                  cf is None))
+    d = r["D5_drawn_share"]
+    rows.append(("D5_drawn_share",
+                 f"{d['drawn']}/{d['figures']} figures drawn" if d else None,
+                 "reported", True, d is None))
     rows.append(("D14_placeholders", len(r["D14_placeholders"]), "=0 (gates)",
                  not r["D14_placeholders"], False))
     fp = r["D15_footer_path"]
@@ -756,6 +779,10 @@ def main(argv):
                 print(f"        page {i + 1} footer states no handling terms")
             for i in cf["missing_site"][:6]:
                 print(f"        page {i + 1} footer does not say where the document is from")
+        d = r["D5_drawn_share"]
+        if d and d["laid_out"]:
+            print(f"        {d['laid_out']} of {d['figures']} figures are markup "
+                  f"rather than a drawing; §4 asks what the content is and to draw that")
         for ph in r["D14_placeholders"][:8]:
             print(f"        {ph['page']} still carries the slot {ph['text']}")
         for fpath in (r["D15_footer_path"] or {}).get("found", [])[:6]:
