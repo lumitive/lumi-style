@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.368"
+  version: "0.1.369"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -98,7 +98,12 @@ been removed; they now apply at step 4 instead of framing step 0.
    **Use the role vocabulary** the token file declares — `.eyebrow`, `h2.t`,
    `.sup`, `.listhead`, `.gd`, `.cap .n`, `.band .k`, `.band .v` — because that
    is the contract the consistency audit checks against; rename one and it drops
-   out of the audit rather than failing it.
+   out of the audit rather than failing it. The four repeating **block patterns**
+   ship too: the tier-1 callout `.key` / `.red`, the card `.card` + `.ledname` +
+   `.verdict`, the swap `.swap .no` / `.swap .yes`, and the vow `.vow` + `.vn` +
+   `.vt` + `.vw`. Compose with them rather than styling your own; a page that
+   does not fit gets its **content** trimmed, never its type nudged, and that
+   holds per geometry — A4 tightens spacing and leaves type alone.
    Then **look at the pages**: `python3 scripts/inspect_layout.py <file>` renders
    them at both geometries and builds a contact sheet. Its design judgements gate
    nothing, but it **exits 1 when a check could not be measured** and names what

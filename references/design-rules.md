@@ -540,7 +540,12 @@ A layout is verified only across the **matrix**, not at a point:
   horizon on each of 0 pages"; a document whose class names differed from the
   probe's lost eight of ten role checks and got shorter, greener output for it.
   The role vocabulary those checks key on now ships in `tokens/lumi-layouts.css`,
-  so the contract is inspectable rather than folkloric.*
+  so the contract is inspectable rather than folkloric.* `check_repo.py`'s
+  **probe vocabulary** guard holds the two together: a class a probe asserts as
+  a role must have a base rendering in `tokens/`, and a class it merely counts
+  must be waived in writing. That is what surfaced the four block patterns — the
+  tier-1 callout, the card, the swap, the vow — which the package audited for
+  four releases and shipped only inside a portrait media query.
 - **Collision axis.** Nothing may land on anything. Text against text **and text
   against every drawn element** — field, figure, band, spec, geography. 0.1.347
   shipped this comparing text to text only, and a reader immediately found two
@@ -577,6 +582,18 @@ A layout is verified only across the **matrix**, not at a point:
   uses on purpose, so such a check fires on every correctly-set title in the
   deck. The frame axis below compares content against the *page* box, which is
   fixed and has no leading; an element box is a different question.
+- **A geometry may tighten spacing. It may not change type.** brand.md's rule —
+  a page that no longer fits gets its content trimmed, never its type nudged —
+  binds across the two page geometries as well as across pages. Breaking it is
+  undetectable at the design viewport by construction: run the consistency audit
+  at A4 and the split appears at once, run it at 1280 and the deck is clean.
+  *Provenance: `lumi-layouts.css` wrote that sentence in its portrait block and
+  then broke it in the next twenty lines for eighteen releases — seven rules
+  setting a font-size for `.key`, `.no`, `.yes`, `.ledname`, `.card dd`, a notes
+  list and a notes table. None of those classes had a base rendering anywhere,
+  so the portrait value was the only value the package shipped and every one of
+  them rendered two ways. The same trap caught `.gd` in 0.1.350 and `.duo`, whose
+  base grid existed only in the geometry that collapses it.*
 - **A scoped role audit hides its own subject.** `.band .k` and `.band .v`
   reported "one rendering" on a deliverable whose `.k` and `.v` rendered five
   different ways each — every one of them outside a band, where `tokens/` says

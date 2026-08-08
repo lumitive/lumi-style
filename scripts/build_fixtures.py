@@ -129,6 +129,65 @@ def foot(n: int, total: int, terms: str = TERMS, site: str = SITE) -> str:
             f'<span class="site">{site}</span><span>{n:02d} / {total:02d}</span></div>')
 
 
+# The four block patterns, one page each. Until 0.1.369 the fixture used none of
+# them, so `tokens/` could ship a font-size for `.key`, `.no`, `.yes`, `.ledname`
+# and `.card dd` inside the portrait media query and nowhere else, and nothing in
+# this repository would ever render one. A reference implementation that skips a
+# quarter of the shipped vocabulary cannot tell a working rule from an absent one
+# — which is the same argument that put `lumi-layouts.css` into this file at all.
+#
+# Placed on the right-hand cell so each page keeps its lede, its footer and its
+# left column, and the datum still holds across all sixteen.
+FIGURE = """<div class="fill">
+      <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
+        role="img" aria-label="bars"><rect class="f-acc" x="0" y="0" width="380"
+        height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="70" width="250"
+        height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="140" width="170"
+        height="46" fill="var(--acc)"/></svg>
+      <div class="cap"><span class="n">Figure {i}</span> Reads by feeder class
+      <span class="srcline">Meter management system, extract of the period</span></div></div>
+    </div>"""
+
+NOTES = """<div class="notes">
+      <p class="listhead">What qualifies it</p>
+      <p class="key">A tier-1 callout marks the one aside that changes a decision.
+      The budget is one per page.</p>
+      <div class="swaps">
+        <div class="swap"><span class="no">Rural coverage is poor</span><span
+          class="arw">&#8594;</span><span class="yes">71.4% of rural reads succeed</span></div>
+        <div class="swap"><span class="no">Crews need more hours</span><span
+          class="arw">&#8594;</span><span class="yes">Clustering by feeder cuts travel</span></div>
+      </div>
+    </div>"""
+
+# Cards and vows get the page to themselves, on `stack`. Written first as a
+# second column beside the usual list-and-callout cell, they ran 44px past the
+# footer rule at 1280 and 135px at A4 — and `--deliverable` said so, on the
+# repository's own fixture, before any of it was committed. The rule for a page
+# that does not fit is that its CONTENT is trimmed, so the content is trimmed:
+# these two blocks are what their page is about, and a page about four
+# commitments does not also carry a bullet list and a display number.
+CARDS = """<div class="duo">
+      <div class="card"><p class="ledname">First-attempt reads</p>
+        <dl><dt>Measure</dt><dd>Meters returning a value without a revisit.</dd></dl>
+        <p class="verdict">Watch this before the read rate.</p></div>
+      <div class="card"><p class="ledname">Estimate rate</p>
+        <dl><dt>Measure</dt><dd>Billed reads that were inferred, not taken.</dd></dl>
+        <p class="verdict">One cycle of warning, and no more.</p></div>
+    </div>"""
+
+VOWS = """<div class="vows">
+      <div class="vow"><span class="vn">01</span><p class="vt">Date every extract</p>
+        <p class="vw">A figure without its extract date cannot be reconciled later.</p></div>
+      <div class="vow"><span class="vn">02</span><p class="vt">Name the region</p>
+        <p class="vw">Two regions differ enough that an average hides both.</p></div>
+      <div class="vow"><span class="vn">03</span><p class="vt">Count attempts</p>
+        <p class="vw">A read that took three visits did not succeed.</p></div>
+      <div class="vow"><span class="vn">04</span><p class="vt">Say what moved</p>
+        <p class="vw">A number that changed for no stated reason is not evidence.</p></div>
+    </div>"""
+
+
 def page(i: int, total: int, spec, broken: bool) -> str:
     eyebrow, title, sup, bullets = spec
     gd = ("A callout carries the aside a reader should not miss, and no more than one "
@@ -139,8 +198,14 @@ def page(i: int, total: int, spec, broken: bool) -> str:
         if i == 3:
             gd = ("Leveraging a seamless framework, this callout showcases a robust "
                   "and comprehensive approach.")            # M4 banned phrases
-        if i == 5:
-            style = ' style="border-color:#ABCDEF"'          # D4 literal colour
+        if i == 10:
+            # D4 literal colour. It sat on page 5 until 0.1.369, which then became
+            # a `stack` page carrying cards and no `.gd` at all — so the planted
+            # defect silently vanished and D4 came back `ok` on the fixture whose
+            # whole job is to make it fire. `check_fixtures.py` caught it, which
+            # is the assertion earning its place: a defect that stops being
+            # planted is indistinguishable from a check that stopped working.
+            style = ' style="border-color:#ABCDEF"'
         if i == 7:
             terms = "Prepared for circulation"               # D12: no handling terms
         if i == 6:
@@ -182,29 +247,45 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     if i not in (2, 3):
         lead = f'<div class="lead"><div class="v">{i * 7}</div>' \
                f'<p class="g">Units returned per avoided visit, illustrative</p></div>'
+    # One page each for the four block patterns; every other page keeps the
+    # figure. The tier-1 pair is exercised in both colours on DIFFERENT pages:
+    # `.key` in page 4's notes column and `.red` in page 7's, because D3 budgets
+    # tier-1 callouts at one per page and putting both on one page trips it —
+    # which the fixture should demonstrate obeying, not by luck.
+    if i == 7:
+        gd = ('<p class="red">The seal colour marks a red line, never emphasis. '
+              'A page carries at most one tier-1 callout.</p>')
+    else:
+        gd = f'<p class="gd"{style}>{gd}</p>'
+    argument = f"""<div class="fill">
+      <p class="listhead">What the data shows</p>
+      {gd}
+      <ul>{lis}</ul>
+      {cell}{band}{lead}
+    </div>"""
+    layout, cells = "split", argument + "\n    " + FIGURE.format(i=i)
+    if i == 4:
+        layout, cells = "sidebar-notes", argument + "\n    " + NOTES
+    # A one-line `.lead.row` above each block. Two purposes: it gives these two
+    # pages an entry point — without it `inspect_layout.py` reports them as the
+    # only pages in the deck with nothing above body copy — and `.lead.row` is a
+    # shipped pattern that nothing in this repository rendered until now, which
+    # is how its `flex-direction: row` lost an argument to the fill rule twice.
+    row = ('<div class="lead row"><div class="v">41<span class="u">%</span></div>'
+           '<p class="g">Metering coverage, illustrative</p></div>')
+    if i == 5:
+        layout, cells = "stack", f'<div class="fill">{row}{CARDS}</div>'
+    if i == 6:
+        layout, cells = "stack", f'<div class="fill">{row}{VOWS}</div>'
     return f"""
 <section class="page" id="p{i}">
-  <div class="body split">
+  <div class="body {layout}">
     <div class="lede">
       <p class="eyebrow">{eyebrow}</p>
       <h2 class="t">{title}</h2>
       <p class="sup">{sup}</p>
     </div>
-    <div class="fill">
-      <p class="listhead">What the data shows</p>
-      <p class="gd"{style}>{gd}</p>
-      <ul>{lis}</ul>
-      {cell}{band}{lead}
-    </div>
-    <div class="fill">
-      <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
-        role="img" aria-label="bars"><rect class="f-acc" x="0" y="0" width="380"
-        height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="70" width="250"
-        height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="140" width="170"
-        height="46" fill="var(--acc)"/></svg>
-      <div class="cap"><span class="n">Figure {i}</span> Reads by feeder class
-      <span class="srcline">Meter management system, extract of the period</span></div></div>
-    </div>
+    {cells}
   </div>
   {foot(i, total, terms)}</section>"""
 
