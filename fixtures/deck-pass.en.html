@@ -174,7 +174,7 @@
   --fs-say:     clamp(24px, 2.3vw, 32px);   /* the claim that is the page */
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.369 (2026-08-08)
+   LUMI page layouts · v0.1.370 (2026-08-08)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -485,6 +485,13 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
   padding: 11px 0; border-top: 1px solid var(--ln2);
 }
 .swaps .swap:first-child { border-top: 0; }
+/* `.tight` is a density modifier and it meant nothing at 1280: the only rule
+   that read it lived in the portrait block, so a document adding the class saw
+   no change at the design geometry and a quiet one on the sheet. A modifier that
+   applies in one geometry is the same defect as a font-size that does — 0.1.369
+   fixed seven of those and left this one, because it changes spacing rather than
+   type and the media-only guard did not exist yet. */
+.swaps.tight .swap { padding: 7px 0; }
 .swap .no, .swap .yes { font-size: var(--fs-fig-title); line-height: 1.5; margin: 0; }
 .swap .no { color: var(--tx3); }
 .swap .yes { color: var(--tx1); }
@@ -915,10 +922,15 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
   .vows { grid-template-columns: 1fr; gap: 12px; }
   /* Stacking a swap turns seven pairs into fourteen rows; two pages went nearly
      3000px over. A swap is a swap in both geometries — it just gets tighter. */
-  .swaps.tight .swap { grid-template-columns: 1fr 18px 1.15fr; padding: 7px 0; }
+  .swaps.tight .swap { grid-template-columns: 1fr 18px 1.15fr; }
   .swap { grid-template-columns: 1fr 24px 1fr; }
-  .grades { gap: 8px; }
-  .gr .gc { display: none; }
+  /* `.grades { gap: 8px }` and `.gr .gc { display: none }` were here until
+     0.1.370 and are removed rather than completed. Neither class had a base
+     rendering, `references/` never named either, and no fixture drew one — three
+     orphan declarations styling a block this package does not ship. Inventing a
+     graded-criterion design to justify them is the speculative rule-making
+     CLAUDE.md rule 2 forbids; `check_prose.py` still COUNTS a `.grades` block as
+     an enumeration, which is a census and needs no rendering behind it. */
   /* A figure column plus a full notes column is two pages of material on one
      A4 page. The notes tighten; the figure keeps its drawing.
 
@@ -943,7 +955,12 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
   .card { padding: 14px 15px; gap: 9px; }
   .lead.row { flex-direction: column; align-items: flex-start; gap: 6px; }
   .body.columns-4 { grid-template-columns: repeat(2, 1fr); }
-  .body.cover-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
+  /* `.body.cover-grid` was here until 0.1.370: a SIXTEENTH layout, declared only
+     in portrait, absent from this file's own header count, absent from §3's
+     selection table, and absent from `check_design.py`'s LAYOUTS — so a page
+     using it was graded as using no shipped layout at all. Removed rather than
+     completed, for the reason above. `check_layout_parity` now holds the token
+     file and the checker to one list, so a sixteenth cannot appear on one side. */
   .duo { grid-template-columns: 1fr; gap: 16px; }
   /* Figures are drawn twice. A 2.4:1 chain in a 0.8:1 cell fills a third of it,
      and no CSS fixes that — the drawing is wrong for the page. */
@@ -1058,7 +1075,9 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="listhead">What qualifies it</p>
       <p class="key">A tier-1 callout marks the one aside that changes a decision.
       The budget is one per page.</p>
-      <div class="swaps">
+      <!-- `tight` on purpose: the modifier had no base rule until 0.1.370,
+           so nothing in this repository ever rendered one at 1280. -->
+      <div class="swaps tight">
         <div class="swap"><span class="no">Rural coverage is poor</span><span
           class="arw">&#8594;</span><span class="yes">71.4% of rural reads succeed</span></div>
         <div class="swap"><span class="no">Crews need more hours</span><span

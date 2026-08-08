@@ -32,8 +32,10 @@ request. Its guards are the mechanical half of the invariants below: version
 stamps, version citations, the English-only red line, markdown link targets,
 stale forward promises, the platform manifest, retired values, palette parity
 between the two `tokens/` files, that every `var()` in `tokens/` resolves to a
-custom property `tokens/` defines, that every class a probe asserts has a base
-rendering in `tokens/` or a written waiver, the text ladder's contrast floor,
+custom property `tokens/` defines, that every class a checker asserts has a base
+rendering in `tokens/` or a written waiver, that nothing is styled only inside a
+media query, that the layouts `tokens/` defines are the layouts `check_design.py`
+grades, the text ladder's contrast floor,
 ban-list parity, that every generated artifact and fixture is current, that the
 checkers still produce the expected verdicts on both fixtures, and that the
 vendored assets are intact.

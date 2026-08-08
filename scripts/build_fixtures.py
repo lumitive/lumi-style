@@ -152,7 +152,9 @@ NOTES = """<div class="notes">
       <p class="listhead">What qualifies it</p>
       <p class="key">A tier-1 callout marks the one aside that changes a decision.
       The budget is one per page.</p>
-      <div class="swaps">
+      <!-- `tight` on purpose: the modifier had no base rule until 0.1.370,
+           so nothing in this repository ever rendered one at 1280. -->
+      <div class="swaps tight">
         <div class="swap"><span class="no">Rural coverage is poor</span><span
           class="arw">&#8594;</span><span class="yes">71.4% of rural reads succeed</span></div>
         <div class="swap"><span class="no">Crews need more hours</span><span

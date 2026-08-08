@@ -180,11 +180,25 @@ def extract(path):
         enums = [len(re.findall(r"<li\b", m.group(1), re.I))
                  for m in re.finditer(r"<(?:ul|ol)\b[^>]*>(.*?)</(?:ul|ol)>",
                                       raw_nostrip, re.S | re.I)]
-        for wrapper, item in (("swaps", "swap"), ("vows", "vow"), ("grades", "gr"),
-                              ("gloss", "dt"), ("duo", "gd")):
+        # (wrapper class, item, what the item IS). The third field was implicit
+        # and wrong for one pair: every item was matched as `class="…item…"`, and
+        # a glossary's items are `<dt>` ELEMENTS, so the gloss wrapper counted
+        # zero on every definition list ever written and M10 silently sampled one
+        # enumeration shape fewer than it claimed. Found by widening
+        # check_repo.py's probe-vocabulary guard to read this tuple: `.dt` came
+        # back as a class name `tokens/` does not ship, which it is not and never
+        # was. Saying which kind each item is fixes the count and lets the guard
+        # read only the class assertions.
+        for wrapper, item, kind in (("swaps", "swap", "class"),
+                                    ("vows", "vow", "class"),
+                                    ("grades", "gr", "class"),
+                                    ("gloss", "dt", "tag"),
+                                    ("duo", "gd", "class")):
+            pattern = (rf'class="[^"]*\b{item}\b' if kind == "class"
+                       else rf'<{item}\b')
             for m in re.finditer(rf'<[^>]*class="[^"]*\b{wrapper}\b[^"]*"[^>]*>(.*?)(?=<div class="(?:foot|body|listhead)|</section>)',
                                  raw_nostrip, re.S | re.I):
-                n = len(re.findall(rf'class="[^"]*\b{item}\b', m.group(1), re.I))
+                n = len(re.findall(pattern, m.group(1), re.I))
                 if n >= 2:
                     enums.append(n)
         # Block boundaries become sentence boundaries; without this a nav bar, a
