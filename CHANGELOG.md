@@ -3,6 +3,59 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.362 — the fixes had been re-enacting the defect they closed
+
+A second review of the fix releases returned a verdict worth recording plainly:
+**every one of the four contained at least one fix that re-enacted the defect
+class it was written to close.** Five rounds now. That is not bad luck.
+
+**The raise added to catch an empty description could not catch an empty
+description.** `skill_field` returned early on an inline scalar, so
+`description: ""` — the precise case the guard's own comment cites — never
+reached the emptiness test, and the manifests shipped an empty field with CI
+fully green. The test now runs on both paths.
+
+**The scoreboard read one flag and ignored the other.** 0.1.358 fixed `score`
+passing a crashed checker by reading the `unparseable` flag it had been writing
+and never reading. It went on writing the checker's **exit code** into every
+record and never reading that: `require` names two metrics of eighteen, so an
+artifact failing sixteen others scored `pass`. Same defect, same release, one
+field over. A parseable report that graded nothing now counts as unparseable too
+— a `deliverable` glob matching a directory produced exactly that and read as a
+pass.
+
+**The fixture was still shaped around the bug it was supposed to test.** 0.1.359
+fixed the footer parser and left the fixture using spans to avoid the old one, so
+the buggy regex still passed the suite — the parser fix was never tested by
+anything. The fixture footer now nests a `<div>` deliberately, and reinstating the
+old regex fails the suite, which is the only evidence that the fix is real.
+
+**The stale-promise guard, having stopped over-matching, stopped matching at
+all.** Removing the bare `from` in 0.1.361 cured the false positives on
+retrospective citation and blinded it to its founding case — the registry's own
+*"from 0.1.354 … will generate"*. An inventory of verb phrases was the wrong
+shape in both directions; it now matches any shipped version named in a
+future-tense sentence, and reads the generated entry points and manifests it
+previously could not see.
+
+**Recall scoring, fixed for one hole, opened another.** Matching by ordinal
+position marked a correct answer sheet 0/5 when the agent echoed the prompt's own
+five numbered questions above its answers — failing a recall task for a formatting
+reason unrelated to recall. It keys on the literal number now.
+
+Also closed: a run directory with nothing in it reported zero rows and exit 0;
+unknown task directories were dropped silently, so renaming a task erased every
+prior result for it; a task with an empty `score` list passed anything, and four
+other malformed shapes crashed mid-scoreboard and discarded every row already
+scored; a guard returning `None` read as a guard that found nothing; a `probe` of
+the wrong type published an installed agent as absent.
+
+*The pattern is the finding.* Five rounds of hand-written guards, each closing a
+defect and carrying a new instance of it. What has actually worked, every time, is
+mutation testing — reintroducing the defect and checking the guard notices. That
+belongs in the suite rather than in a reviewer's hands, and it is the next thing
+this repository needs.
+
 ## 0.1.361 — half a vocabulary makes a check look wired up
 
 A review of the four fix releases found the fixes had reproduced the defect class

@@ -64,7 +64,12 @@ def skill_field(name: str) -> str:
         if line.startswith(f"{name}:"):
             rest = line.split(":", 1)[1].strip()
             if rest and rest != "|":
-                return rest.strip('"')
+                # Fall through to the single emptiness test below. This returned
+                # here, so `description: ""` — the exact case the guard was
+                # written for — never reached it, and the manifests shipped an
+                # empty description with CI fully green.
+                out, capturing = [rest.strip('"')], False
+                break
             capturing = True
             continue
         if capturing:

@@ -10,6 +10,7 @@ import json
 import pathlib
 import re
 import sys
+import traceback
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -568,8 +569,9 @@ PROMISE = re.compile(
     # repository's entire documentation voice, so the guard was one sentence
     # away from failing CI while asserting the opposite of what the sentence
     # said. Every alternative here is future-tense.
-    r"(?:planned for|planned:|will (?:be )?(?:generate|ship|land)[a-z]*\s+(?:in|from)?|"
-    r"lands in|comes in|arrives in)\s+v?(\d+\.\d+\.\d+)", re.I)
+    r"v?(\d+\.\d+\.\d+)", re.I)
+FUTURE = re.compile(r"\b(will|planned|plan to|scheduled|upcoming|coming|to be|"
+                    r"TODO|forthcoming|due)\b", re.I)
 
 
 def check_stale_promises():
@@ -589,12 +591,25 @@ def check_stale_promises():
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     shipped = set(re.findall(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M))
     errors = []
-    scanned = list(md_files()) + [PLATFORMS]
+    scanned = (list(md_files()) + [PLATFORMS]
+               + [ROOT / p for p in (".cursor/rules/lumi-style.mdc",
+                                     ".well-known/skills/index.json",
+                                     ".claude-plugin/plugin.json",
+                                     ".claude-plugin/marketplace.json")])
+    scanned = [p for p in scanned if p.exists()]
     for path in scanned:
         name = rel(path)
         if name.startswith("CHANGELOG"):
             continue        # the record of what shipped, written in the past tense
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            # Inverted: any shipped version named in a FUTURE-TENSE sentence,
+            # rather than an inventory of verb phrases. The inventory both
+            # over-matched (a bare `from` fired on "carried over from 0.1.352")
+            # and under-matched — it missed "ships in", "due in", "scheduled
+            # for", "TODO(0.1.361)", and the very sentence it was written for
+            # once the bare `from` was removed.
+            if not FUTURE.search(line):
+                continue
             for version in PROMISE.findall(line):
                 if version in shipped:
                     errors.append(
@@ -669,6 +684,12 @@ def check_platform_manifest():
             # []` satisfied `is None` here while detect() read it as no probe,
             # so the two files disagreed about what "has a probe" means.
             missing = (value is not True) if flag == "path_verified" else (not value)
+            if flag == "probe" and value and not (
+                    isinstance(value, list) and all(isinstance(x, str) for x in value)):
+                errors.append(
+                    f"adapters/platforms.json: {pid} probe must be a list of strings; "
+                    f"a string is indexed character-wise and publishes an installed "
+                    f"agent as not installed")
             if missing and not entry.get(waiver):
                 errors.append(
                     f"adapters/platforms.json: {pid} has no {what} and no {waiver} "
@@ -780,7 +801,12 @@ def main():
         try:
             errors = check()
         except Exception as exc:                            # noqa: BLE001
-            errors = [f"the guard itself raised {exc.__class__.__name__}: {exc}"]
+            errors = [f"the guard itself raised {exc.__class__.__name__}: {exc}",
+                      traceback.format_exc().strip().splitlines()[-2].strip()]
+        if errors is None:
+            # A guard that returns nothing at all is not a guard that found
+            # nothing, and `if errors:` could not tell them apart.
+            errors = ["the guard returned no verdict at all"]
         if errors:
             failed += 1
             print(f"FAIL  {label}")
