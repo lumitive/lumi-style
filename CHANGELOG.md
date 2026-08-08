@@ -3,6 +3,50 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.371 — the first CLI-driven agent through the harness, and the board that erased it
+
+Five releases sharpened the instruments. This one points them at something.
+
+**Claude Code `2.1.226`, headless, through all three tasks.** Run with `claude -p`
+in a working directory **outside this repository**, deliberately: run it inside
+and the agent reads this repo's own `CLAUDE.md`, which is maintenance
+instructions for a rules package and not guidance for producing a deliverable.
+The only thing steering it was the skill.
+
+**All three pass.** T1's twelve-page deck clears every design metric including
+both gates, every prose metric its genre grades, and **all seven `--deliverable`
+findings**. T2 clears the banned-phrase requirement it declares. T3 recalls 5 of
+5. That is the first row on the scoreboard earned by a CLI rather than driven by
+hand, and it is the first evidence the package's central claim has ever had.
+
+Read as evidence, and the caveats in `run_conformance.py`'s own docstring
+govern: one run, one CLI version, one machine, one date. A green row means the
+artifact is well-formed and free of the defects we can express as arithmetic. It
+does not mean the deck is good — but the contact sheet was read, and the two
+pages where the Grok deliverable failed hardest are the two that came back
+right: the cover is set in the display register with the wordmark and the
+attribute strip, and the closing carries the H1–H6 scoring table, the colophon
+and the version stamp.
+
+**Recording it nearly erased the run before it.** `report` built the whole board
+from a single `--run` directory, so publishing Claude Code turned Cursor's row
+from a measured `fail` into `not installed` — a result that was taken reading as
+one that was never taken, in the document whose closing paragraph says absences
+are listed rather than omitted. `--run` is now repeatable and merges, later
+winning on a collision so a re-run replaces its own cells and nobody else's.
+`run` and `score` still act on one directory and say so rather than silently
+taking the first.
+
+**One observation that is not a rule change, because one run is not a
+retrospective.** The deck passes every gate and still has **three of its six
+multi-column pages out of line by up to 19px** — the column-top skew a reader
+once described as "the left and right are not level". `COLUMN TOPS` is reported
+and not gated, decided that way in 0.1.368, and this run is the first evidence
+either way. It cuts both ways: a bordered callout at the top of a column
+legitimately starts its ink lower than plain text beside it, which is exactly
+what happened on this repository's own fixture in 0.1.369. Whether the gating set
+should grow is a judgement, and it needs a second case.
+
 ## 0.1.370 — the general form of the last three releases, as two guards
 
 0.1.369 fixed seven font-sizes that existed only inside a media query. This one
