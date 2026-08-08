@@ -173,46 +173,676 @@
   --fs-lead-xl: clamp(56px, 8.2vw, 116px);   /* one number, alone, full stop */
   --fs-say:     clamp(24px, 2.3vw, 32px);   /* the claim that is the page */
 }
+/* ═══════════════════════════════════════════════════════════════════
+   LUMI page layouts · v0.1.366 (2026-08-08)
+   Fifteen page layouts as grid definitions. Copy this block into a deliverable
+   alongside lumi-theme.css; choose per page with the selection table in
+   references/design-rules.md §3. Version lockstep: layouts carry the skill
+   version, like the other two token files.
+
+   Why this file exists: a reader review found one layout used on 25 consecutive
+   pages, which is what made the deck read flat and left ~40% of every text page
+   empty. §3 had said "content distributes across the full page height" since
+   1.2 without a mechanism or a floor, so the rule was true and unbuildable —
+   the same shape of failure as an icon library that shipped no icons.
+
+   Two rules bind every layout here:
+     · The centerpiece row is 1fr and the centerpiece grows into it, so a page
+       fills rather than leaving a band above the footer. There is no fill floor;
+       0.1.340 withdrew the 82% one, which was satisfiable by stretching a table.
+     · No rotated body text or tables. `diagonal-flow` gets its movement from
+       stepped offsets and an angled accent rule; rotation breaks printing,
+       copy and paste, and screen reading, and a tariff document cannot pay
+       that for a flourish.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── the box model this file assumes (v0.1.350) ─────────────────────────
+   Every geometry below is a FIXED box — 1280x720, 794x1123 — and a page carries
+   page padding. Under the default `content-box` those two facts contradict each
+   other: the padding is added to the declared height, so a page with 46px of top
+   padding measures 792px inside a 720px stage and EVERY page of the document
+   exceeds its own geometry. That is the first thing §7 says to check, and the
+   defect is invisible in the stylesheet because the declaration says 720.
+
+   This shipped nowhere in tokens/ until 0.1.350 and lived only in a deliverable's
+   private CSS, so the fixed stage worked in the document it was developed
+   against and broke in every document built from the tokens themselves —
+   measured on a fresh one: all six pages +72px. A prescribed value carries the
+   floor below which it stops working (CLAUDE.md rule 6); this is that floor. */
 *, *::before, *::after { box-sizing: border-box; }
+
+/* ── shared frame ─────────────────────────────────────────────────────
+   .body is the content area between the eyebrow/title and the footer rule.
+   Every layout is a grid on it; --gap and --measure are the two knobs. */
+.body {
+  --gap: 26px;
+  --measure: 88ch;          /* comfortable measure; never widen to fill space */
+  flex: 1;
+  display: grid;
+  gap: var(--gap);
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding: 14px 0 10px;
+  align-content: stretch;
+  min-height: 0;            /* lets a 1fr row actually shrink and grow */
+}
+/* The measure cap belongs to the page, not to one of its three children. It was
+   set on .body alone, so on any viewport wider than the design page the footer
+   ran to the window edge while the composition stayed left-anchored — a dead
+   band down the right of all 28 pages, and the source line no longer aligned
+   with the content above it. The cap is correct; applying it to one child was
+   not. Anything that shares the page frame takes the same width and centers. */
+.page > .foot, .page > .body { max-width: 1180px; margin-inline: auto; width: 100%; }
+/* The commercial footer, on every page: handling terms and the origin of the
+   document, then the page number. Pages travel alone — a slide is screenshotted
+   out of a deck and forwarded without the cover — so the terms cannot live only
+   on page one. This is the one piece of page furniture that is not a design
+   judgement, and check_design.py fails on a page missing it. */
+/* The footer is a row. `.foot .site` has carried `margin-right: auto` since the
+   footer existed, which does nothing outside a flex container — and the flex was
+   never shipped, so a deliverable built from these tokens ran its footer spans
+   inline and wrapped the page number onto its own line. The fixture defined its
+   own `.foot { display: flex }` and therefore never exposed it: it was testing
+   its own stylesheet, not this one. */
+.foot { display: flex; align-items: baseline; gap: 18px; }
+.foot .conf { color: var(--tx4); }
+.foot .site { margin-right: auto; color: var(--accent); letter-spacing: .1em; }
+.body > * { min-width: 0; min-height: 0; }
+/* The lede block holds eyebrow, title and support, and it RESERVES ITS HEIGHT.
+   Only the prose takes the measure.
+
+   The comment here used to say the opposite — "constraining the block would
+   re-break the title across two lines" — and that argument lost in 0.1.349, to a
+   measurement: titles all began at the same y, but the first content cell began
+   at ten different heights, 106px to 219px. Content started somewhere different
+   on almost every page, which is the deepest defect a reader had reported and
+   the one nothing on the list had named. A floating lede is a datum that moves.
+
+   The reserve is a CEILING on the title block, not a target: two title lines
+   plus one support line. A title that needs three lines, or a second support
+   line, does not get a taller reserve — it gets shorter text. That direction
+   matters (CLAUDE.md rule 4): the 0.1.349 deck paid for this datum by trimming six
+   support lines to two, and the author who reads it as a target will pad instead.
+
+   0.1.349 shipped this reserve in a deliverable and not here, so every document
+   built from these tokens kept the floating lede the rule bans — and the probe
+   added in the same release correctly reported NO DATUM on it. */
+.body .lede {
+  display: flex; flex-direction: column; gap: 10px;
+  height: calc(1.4em * 1.5 + 2 * var(--fs-title) * 1.02 + 2 * var(--fs-support) * 1.42 + 20px);
+  justify-content: flex-start;
+}
+.body .lede > p { max-width: var(--measure); }
+
+/* ── the role vocabulary (v0.1.350) ─────────────────────────────────────────
+   The repeating roles of a deliverable, named. One role, one rendering — and
+   the rendering lives here, once, so that "the same thing looks the same
+   everywhere" is a property of the stylesheet rather than of an author's
+   memory.
+
+   Why this block exists: `inspect_layout.py` has audited these ten roles since
+   0.1.349, keyed on these class names, and six of them — .t .sup .eyebrow .k .n
+   .listhead — appeared NOWHERE in tokens/. They had been read out of a
+   validation deck. So a new document built from the token files SKILL.md tells
+   it to copy matched two of the ten roles, the other eight vanished from the
+   report without a word, and the focal check inverted: with no .t to exclude,
+   the title became the page's focal element and a flat page passed. Measured on
+   two documents identical but for their class names: ten role checks became
+   two, and two real defects stopped being reported.
+
+   That is CLAUDE.md rule 5 — a rule may not mandate an asset the package does
+   not ship. The probe mandated a vocabulary; here it is. Sizes come from
+   lumi-theme.css and are not repeated as literals, so the type scale stays in
+   one file. A document is free to add roles; it is not free to rename these
+   without also teaching the probe, which now says so out loud when a role
+   matches nothing. */
+.eyebrow {
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  letter-spacing: var(--ls-eyebrow); text-transform: uppercase; color: var(--tx3);
+}
+h2.t {
+  font-family: var(--din); font-size: var(--fs-title); font-weight: var(--w-title);
+  line-height: 1.02; letter-spacing: var(--ls-title); text-transform: uppercase;
+  color: var(--tx1); margin: 0;
+}
+/* A run of lowercase inside a title (a product name, a unit) opts out. */
+h2.t .lc { text-transform: none; letter-spacing: 0; }
+/* The cover and closing titles. `inspect_layout.py` has audited these as two of
+   its three title registers since 0.1.352 and they appeared nowhere in tokens/,
+   so a deliverable wrote its own — without a font-family, which is why a real
+   one came back set in the wrong face while the consistency audit called it
+   clean. One rendering, audited, and wrong: consistency is not correctness. */
+.cover h1, .closing h2 {
+  font-family: var(--din); font-size: var(--fs-display);
+  font-weight: var(--w-display); line-height: var(--lh-display);
+  letter-spacing: var(--ls-display); text-transform: uppercase;
+  color: var(--tx1); margin: 0 0 24px;
+}
+.sup {
+  font-size: var(--fs-support); font-weight: var(--w-support); line-height: 1.42;
+  color: var(--tx2); max-width: var(--measure);
+}
+.listhead {
+  font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--tx3);
+}
+/* The callout: a marked aside, one size everywhere. See the portrait block for
+   why this carries `font-size` and the portrait overrides no longer do. */
+.gd {
+  border-left: 2px solid var(--ln1); padding: 2px 0 2px 15px;
+  font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2);
+}
+/* The source line inside a caption, and the filled measure bar inside a figure.
+   Both were being asserted before they were shipped: `inspect_layout.py` keys its
+   component-colour audit on `.f-acc`, and the fixture emits both — while neither
+   existed in this file. That is exactly the reverse-drift CLAUDE.md names, and
+   0.1.349 was penalised for the same thing at six times the scale. A probe that
+   keys on a class name is asserting a vocabulary, and the vocabulary ships here. */
+.cap .srcline {
+  color: var(--tx4); letter-spacing: .02em;
+}
+/* `.foot .src` was shipped in 0.1.361 and is removed here. It carried styling
+   and no rule about what it was for, and a real deliverable duly filled it with
+   an internal source path and three processing dates — on every client page.
+   design-rules.md already says sales and marketing state provenance ONCE for the
+   document, in the closing colophon; a per-page source slot contradicted the
+   rule and existed only because a probe compared against it. Shipping an asset
+   with no rule is the mirror of CLAUDE.md rule 5, and costs the same. */
+.fig svg .f-acc { fill: var(--acc); }
+.fig svg .f-lime { fill: var(--lime); }
+
+/* The figure's number and name, under the drawing. */
+.cap .n {
+  font-weight: 700; font-size: var(--fs-fine); color: var(--tx2);
+  letter-spacing: .04em;
+}
+/* A stat band: the label is record, the value is the number. `align-items:
+   start` is the rule, not a preference — a band that centres each cell lets a
+   label which wraps to two lines lift its own number out of line with its
+   neighbours, which measured 17px of drift and reads as a broken row. */
+.band { align-items: start; }
+.band .k {
+  font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .16em;
+  text-transform: uppercase; color: var(--tx3);
+}
+.band .v {
+  font-family: var(--din); font-size: var(--fs-band-value); font-weight: 700;
+  line-height: .92; letter-spacing: -.03em; font-variant-numeric: tabular-nums;
+  color: var(--tx1);
+}
+
+/* The fill mechanism, in two halves. A grid cell stretching is not enough: the
+   cell fills and the content sits in the middle of it, which is how a page
+   measures 56% full while every cell reports 100%. So each cell is itself a
+   column that distributes, and the centerpiece inside it grows. */
+/* Grid cells distribute their own children. The exclusions matter: this rule
+   was written as a blanket `.body > div` and it overrode the row direction of
+   every spec strip and stat band, which turned the cover's five-item strip into
+   a 652px vertical stack and made the page 1301px tall inside a 720px page. */
+/* .lead joins the exclusions: it is a display block with its own direction and
+   gap, not a cell that distributes its children. Without this the rule turned
+   every `.lead.row` back into a column — .lead.row is (0,2,0) against this
+   rule's (0,6,1) — and the one-line leads silently stacked, which is what put a
+   page ten pixels over. Third time this chain has quietly won an argument. */
+.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead),
+.body > header {
+  display: flex; flex-direction: column; min-height: 0; gap: 14px;
+}
+.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead) {
+  justify-content: center;
+}
+.body .fill > table,
+.body .fill > .fig { flex: 1; }
+/* The figure starts under its legend and grows downward. Centring it inside the
+   cell instead leaves a gap above and below, which is the same empty band the
+   fill rule exists to remove, just moved inside the cell. */
+/* min-height:0 at every level of the flex chain, or the figure's intrinsic
+   height wins and the page grows past the page. The SVG keeps its aspect and
+   letterboxes inside whatever height is left, which is what preserveAspectRatio
+   is for; a figure narrower than its cell with even margins reads as composed. */
+.body .fill > .fig { display: flex; flex-direction: column; justify-content: flex-start;
+  gap: 8px; min-height: 0; }
+/* The drawing is the size of the drawing. An SVG with a viewBox and width:100%
+   resolves its own height from its aspect ratio, so `height:auto` makes the box
+   and the art the same thing; `max-height` keeps it inside the cell.
+
+   It used to be `flex: 1 1 0`, which grew the box into all leftover height and
+   let preserveAspectRatio centre the art inside it. Measured, that put the first
+   mark 79-185px below the top of its own box and pushed the caption 95-205px
+   below the drawing — which is three separate things a reader reported: columns
+   that "are not level" (they were, as boxes), a figure's number and name
+   "separated from the figure", and pages that felt empty.
+
+   0.1.342 tried exactly this fix and had to revert it, because back then the page
+   was `min-height:100svh` and leftover height grew with the window, so eleven
+   pages went over the edge. The stage is what makes it safe: 720px, always. */
+.body .fill > .fig > svg:not(.ic) {
+  flex: 0 1 auto; min-height: 0; width: 100%; height: auto; max-height: 100%;
+}
+.body .fill > .fig > .cap { flex: none; }
+/* .fig owns the spacing between drawing and caption; a margin on .cap as
+   well doubled it and pushed the number away from the figure it numbers. */
+.body .fill > .fig > .cap { margin-top: 0; }
+/* A table given the height distributes it across its own rows. Two bounds keep
+   that from becoming the padding-fudge the fill rule exists to forbid: rows
+   centre their content so the rhythm reads as spacing rather than as text
+   hugging the top of a gap, and a table with very few rows is capped, because
+   stretching three rows over a full page is a layout error wearing a disguise. */
+.body .fill > table { height: 100%; }
+.body .fill > table td,
+.body .fill > table th { vertical-align: middle; }
+.body .fill > table:has(tr:nth-child(4)) { max-height: none; }
+.body .fill > table:not(:has(tr:nth-child(4))) { height: auto; flex: 0 1 auto; }
+
+/* ── vertical family ─────────────────────────────────────────────────── */
+
+/* stack — one full-width centerpiece. Wide-and-short figures, 6+ column tables. */
+.body.stack { grid-template-rows: auto 1fr; }
+.body.stack.no-lede { grid-template-rows: 1fr; }
+
+/* hero-band — dominant block over a thin evidence strip.
+   One number is the story, with its specs beneath. */
+/* min-content on the band row: a stat band whose labels grew must lengthen
+   its own row rather than spill onto the paragraph beneath it. */
+.body.hero-band { grid-template-rows: auto minmax(min-content, 1fr) auto; }
+
+/* band-hero — a short framing strip over a dominant block. */
+.body.band-hero { grid-template-rows: auto auto 1fr; }
+
+/* thirds-v — three stacked bands of roughly equal weight, read top to bottom. */
+.body.thirds-v { grid-template-rows: auto repeat(3, 1fr); }
+
+/* ── horizontal family ───────────────────────────────────────────────── */
+
+/* split — argument one side, evidence the other. The default answer when a
+   centerpiece is tall or square and the prose is long. */
+.body.split       { grid-template-columns: 1fr 1fr;      grid-template-rows: auto 1fr; }
+.body.split-wide  { grid-template-columns: 38fr 62fr;    grid-template-rows: auto 1fr; }
+.body.split-narrow{ grid-template-columns: 62fr 38fr;    grid-template-rows: auto 1fr; }
+.body.split > .lede,
+.body.split-wide > .lede,
+.body.split-narrow > .lede { grid-column: 1 / -1; }
+.body.split > .span,
+.body.split-wide > .span,
+.body.split-narrow > .span { grid-column: 1 / -1; }
+.body.split, .body.split-wide, .body.split-narrow { column-gap: 44px; }
+/* Side-by-side cells start on one line, so the reader's eye can cross between
+   them. This repeats the fill rule's whole :not() chain on purpose: that rule
+   reaches specificity (0,6,1) because every :not() contributes its argument,
+   and the plain `.body.split > div` form written here since 0.1.339 reached only
+   (0,2,1) and lost every time. It had never once applied. Twelve of fifteen
+   multi-column pages centred their columns independently and drifted apart by
+   up to 132px, which is what "the left and right are not level" turned out to
+   be. A rule that loses silently is indistinguishable from no rule, so the
+   column-tops probe in inspect_layout.py now measures the outcome rather than
+   trusting the declaration. */
+.body.split > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.split-wide > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.split-narrow > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.columns-2 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.columns-3 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.columns-4 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.quad > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
+.body.sidebar-notes > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend)
+  { justify-content: flex-start; }
+
+/* columns — parallel items of equal weight. Two, three or four. */
+/* auto for the lede, auto for an optional lead band, 1fr for the columns.
+   A three-block page on a two-track grid put its third block in an implicit
+   row that the 1fr had already spent. */
+.body.columns-2 { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto auto 1fr; column-gap: 36px; }
+.body.columns-2:not(:has(> .lead)) { grid-template-rows: auto 1fr; }
+.body.columns-3 { grid-template-columns: repeat(3, 1fr); grid-template-rows: auto 1fr; column-gap: 30px; }
+.body.columns-4 { grid-template-columns: repeat(4, 1fr); grid-template-rows: auto 1fr; column-gap: 24px; }
+.body.columns-2 > .lede, .body.columns-3 > .lede, .body.columns-4 > .lede,
+.body.columns-2 > .span, .body.columns-3 > .span, .body.columns-4 > .span { grid-column: 1 / -1; }
+
+/* ── composite ───────────────────────────────────────────────────────── */
+
+/* rail — a narrow label column beside wide content. Part dividers, openers. */
+.body.rail { grid-template-columns: 190px 1fr; grid-template-rows: 1fr; column-gap: 40px; }
+.body.rail > .railhead {
+  display: flex; flex-direction: column; justify-content: flex-start; gap: 12px;
+  border-right: 1px solid var(--ln2); padding-right: 32px;
+}
+
+/* ── the focal element ───────────────────────────────────────────────────
+   One thing per page that the eye lands on before it starts reading. It is a
+   number when the page turns on a number, a sentence when the page turns on a
+   claim, and neither when the page's figure already dominates — that judgement
+   is the designer's and there is no floor here. `.lead` is the block; it is a
+   grid cell like any other and can sit in any layout. */
+.lead { display: flex; flex-direction: column; gap: 10px; }
+/* `var(--display, var(--sans))` until 0.1.350 — and neither token has ever
+   existed in `lumi-theme.css`, so the declaration was invalid at computed-value
+   time and the one number that IS the page silently inherited whatever the body
+   was set in. The embedded face is `--din`; a fallback chain to two undefined
+   names is the same defect as a rule mandating an asset the package does not
+   ship, just spelled in CSS. */
+.lead .v {
+  font-family: var(--din); font-size: var(--fs-lead);
+  line-height: .94; letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+  color: var(--tx1);
+}
+.lead.xl .v { font-size: var(--fs-lead-xl); }
+.lead .v .u { font-size: .42em; letter-spacing: 0; color: var(--tx3); }
+.lead .say {
+  font-size: var(--fs-say); line-height: 1.28; letter-spacing: -.01em;
+  color: var(--tx1); max-width: 46ch;
+}
+/* The gloss carries the number's meaning and its source. Without it a display
+   number is decoration, and red line 1 says every number carries its source. */
+.lead .g {
+  font-family: var(--mono); font-size: var(--fs-fine); line-height: 1.55;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--tx3);
+  max-width: 64ch;
+}
+.lead .v em { font-style: normal; color: var(--accent); }
+/* A lead that has to share a page with content already filling it sits on one
+   line rather than claiming a grid row of its own. */
+.lead.row { flex-direction: row; align-items: baseline; gap: 18px; }
+.lead.row .g { max-width: 62ch; }
+/* A lead sitting above other content *in the same cell* keeps its distance.
+   Scoped, because `.lead + *` in a grid does not mean "the block below" — it
+   means the next sibling in DOM order, which is the next **column**. Written
+   unscoped it put a 4px margin on the first cell of every page whose lead spans
+   the row, so one column of six pages sat 4px below the other and a reader
+   called it a bug. An adjacent-sibling selector inside a grid container is
+   almost always a mistake. */
+.body > .lead + * { margin-top: 0; }
+.lead + * { margin-top: 4px; }
+
+/* quad — 2x2. Four parallel items, or a matrix whose axes are named in the lede. */
+.body.quad { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto 1fr 1fr; column-gap: 36px; }
+.body.quad > .lede, .body.quad > .span { grid-column: 1 / -1; }
+
+/* sidebar-notes — content with a persistent column for caveats and red lines.
+   For pages where the qualification is as load-bearing as the claim. */
+.body.sidebar-notes { grid-template-columns: 1fr 300px; grid-template-rows: auto 1fr; column-gap: 40px; }
+.body.sidebar-notes > .lede { grid-column: 1 / -1; }
+.body.sidebar-notes > .notes {
+  border-left: 1px solid var(--ln2); padding-left: 26px;
+  display: flex; flex-direction: column; gap: 16px;
+  /* Not centred. A sidebar centred against a full-height table floats in the
+     middle of its own rule, which is what made one page's single note read as
+     a small block dropped onto the right of the page. */
+}
+
+/* full-bleed — the centerpiece runs past the content margin to the page edge.
+   Maps, globes, wide timelines. The page padding is cancelled on that row. */
+.body.full-bleed { grid-template-rows: auto 1fr; }
+.body.full-bleed.no-lede { grid-template-rows: 1fr; }
+.body.full-bleed > .bleed { margin-inline: calc(-1 * var(--page-pad, 92px)); }
+
+/* diagonal-flow — movement without rotation. Blocks step down a descending
+   axis and an angled accent rule runs behind them. Body text stays horizontal. */
+.body.diagonal-flow { grid-template-rows: auto 1fr; position: relative; }
+.body.diagonal-flow > .steps {
+  display: flex; flex-direction: column; gap: 18px; justify-content: center;
+  position: relative; z-index: 1;
+}
+.body.diagonal-flow > .steps > * { width: min(100%, 62ch); }
+.body.diagonal-flow > .steps > :nth-child(2) { margin-inline-start: 12%; }
+.body.diagonal-flow > .steps > :nth-child(3) { margin-inline-start: 24%; }
+.body.diagonal-flow > .steps > :nth-child(4) { margin-inline-start: 36%; }
+.body.diagonal-flow::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(var(--diag-angle, 22deg), transparent calc(50% - 1px),
+              var(--ln2) 50%, transparent calc(50% + 1px));
+}
+
+/* ── height-based step-down, matching lumi-theme.css ─────────────────── */
+@media (max-height: 760px) {
+  .body { --gap: 18px; }
+  .body.split, .body.split-wide, .body.split-narrow { column-gap: 32px; }
+  .body.sidebar-notes { grid-template-columns: 1fr 260px; }
+}
+@media (max-height: 600px) {
+  .body { --gap: 12px; padding: 8px 0 6px; }
+  .body.rail { grid-template-columns: 150px 1fr; column-gap: 28px; }
+  .body.sidebar-notes { grid-template-columns: 1fr 230px; column-gap: 28px; }
+  .body.diagonal-flow > .steps > :nth-child(2) { margin-inline-start: 8%; }
+  .body.diagonal-flow > .steps > :nth-child(3) { margin-inline-start: 16%; }
+  .body.diagonal-flow > .steps > :nth-child(4) { margin-inline-start: 24%; }
+}
+/* ── the landscape page is a slide, not a window-shaped box ──────────────
+   Until 0.1.343 `.page` was `min-height: 100svh` with no aspect lock anywhere,
+   so a page was whatever shape the reader's window was: 16:9 in a 16:9 window,
+   4:3 in a 1280x960 one, 1.6:1 at 1440x900. The surplus height landed as a dead
+   band above the footer, and a reader found it before any check did — the
+   page-height probe sets the viewport to 1280x720 and then measures
+   `section.height - innerHeight`, which on a 100svh page is zero by
+   construction. It was verifying its own setup.
+
+   The page is now a fixed 1280x720 stage scaled to fit. `zoom` rather than
+   `transform` because zoom participates in layout, so pages still stack, scroll
+   and snap; a transform would leave every page's box at 720px while drawing it
+   somewhere else. The scale takes the smaller of the two fits, so the slide is
+   always exactly 16:9 and the leftover window is a neutral gutter that never
+   holds page content.
+
+   This is also what makes a figure sizeable: leftover height inside a page is
+   now bounded and known, where before it grew with the window and the drawing
+   floated in the middle of it. */
+@media (min-aspect-ratio: 1/1) {
+  .page {
+    width: 1280px;
+    height: 720px;
+    min-height: 0;
+    margin-inline: auto;
+    zoom: min(100vw / 1280px, 100svh / 720px);
+  }
+}
+
+/* ── the ground (v0.1.346, references/brand.md) ─────────────────────────────
+   Water and light behind every page. A ground is CONTINUOUS and UNCOUNTABLE,
+   which is exactly why it may be decorative where a field may not: a field's
+   marks can be counted, so each one has to mean something; a ground has nothing
+   to count, so there is nothing to misread as evidence.
+
+   Two constraints, both measured by inspect_layout.py:
+     · it never exceeds --ground-ceiling (1.40:1) against its canvas;
+     · it never resolves into repeated discrete marks. Every line here is a
+       different length, amplitude and stroke width — the moment a ground can be
+       counted it is pretending to be a field.
+
+   Three intensities: strong on the cover and closing, mid on the part openers,
+   faint on the body pages, so the texture recedes as the evidence gets denser.
+   It is behind everything and inert to the pointer, because the one thing it
+   may never do is compete with the content. */
+.page > .ground {
+  position: absolute; inset: 0; z-index: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  opacity: var(--ground-faint);
+}
+.page.cover > .ground, .page.closing > .ground { opacity: var(--ground-strong); }
+.page.opener > .ground { opacity: var(--ground-mid); }
+.page > .body, .page > .foot { position: relative; z-index: 1; }
+/* On the lime field the ground would read as dirt on a painted surface. */
+.page.opener > .ground { mix-blend-mode: multiply; }
+
+/* ═══ the two brand devices (v0.1.345, references/brand.md) ═══════════════════
+   Both are structural. A committed surface sitting on a template grid is the
+   failure the brand file exists to avoid, so neither of these is a decoration
+   applied after the layout is decided — they are how the page is built.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── the waterline ────────────────────────────────────────────────────────
+   One horizon per page, where the light collects. Above it is air: the claim,
+   the title, the one thing to carry out of the room. On and below it is
+   record: the evidence, the handling terms, the page number. The footer rule
+   was already at this line and was drawn as a border closing a box; it becomes
+   the surface the page sits on. Two horizons and a page has stripes instead of
+   a datum; none and it is a document again — inspect_layout.py checks for
+   exactly one. */
+.page > .foot {
+  border-top: 0;
+  position: relative;
+  padding-top: 10px;
+}
+.page > .foot::before {
+  content: "";
+  position: absolute; inset-inline: 0; top: 0; height: 1px;
+  background: linear-gradient(90deg,
+    var(--acc-5) 0 22%, var(--ln1) 22% 62%, var(--ln2) 62% 100%);
+}
+
+/* ── the field ────────────────────────────────────────────────────────────
+   One mark per datum, intensity from the datum, order from the data's own
+   sequence. At a glance the distribution; up close, countable. This is the
+   deck's signature and it was already being drawn by accident — the thirty
+   page tier strip, the stat bands, the timeline dots.
+
+   A field with nothing behind it is decoration, and decoration is the page
+   competing for attention it has not earned. Every mark carries a
+   `data-datum`; inspect_layout.py fails a field whose marks outnumber its
+   data. If you want the texture and do not have the data, you do not want the
+   texture. */
+.field { display: flex; align-items: flex-end; gap: 3px; width: 100%; }
+.field > i {
+  display: block; flex: 1 1 0; min-width: 2px;
+  background: var(--acc-3);
+  height: 100%;
+}
+.field.tall > i { height: 62px; }
+.field > i[data-w="5"] { background: var(--acc-5); }
+.field > i[data-w="4"] { background: var(--acc-4); }
+.field > i[data-w="3"] { background: var(--acc-3); }
+.field > i[data-w="2"] { background: var(--acc-2); }
+.field > i[data-w="1"] { background: var(--acc-1); }
+/* A mark may carry a semantic colour instead of a ramp step when the datum has
+   a meaning rather than an intensity. Meaning outranks shimmer. */
+.field > i[data-sem="seal"]  { background: var(--seal); }
+.field > i[data-sem="amber"] { background: var(--amber); }
+.field > i[data-sem="brass"] { background: var(--brass); }
+.fieldkey {
+  display: flex; gap: 22px; margin-top: 10px;
+  font-family: var(--mono); font-size: var(--fs-fine);
+  letter-spacing: .1em; color: var(--tx3);
+}
+.fieldkey span { display: flex; align-items: center; gap: 7px; }
+.fieldkey i { width: 11px; height: 11px; display: block; flex: none; }
+
+/* ── portrait · A4 and anything taller than it is wide ────────────────────
+   Portrait is a composition, not a reflow. Collapsing every horizontal layout
+   to one column is the landscape design giving up; what a tall page wants is
+   different proportions, tighter margins, and figures drawn for it.
+
+   Two columns still work on A4 at 682px of content, so columns-2 and quad keep
+   theirs. What does not survive is an asymmetric split: 38% of 682 is 259px,
+   which is a gutter rather than a column. Those become vertical, with the
+   supporting cell reading as a band under the centerpiece rather than beside it. */
+@media (max-aspect-ratio: 1/1) {
+  /* A4 is a sheet, so it gets the same treatment as the slide: a fixed 794x1123
+     box scaled to fit rather than a min-height that content can push past. The
+     grid tracks then resolve against a known height instead of stretching to
+     whatever the content asked for, which is what put four pages over the sheet
+     even though their content fitted inside it. */
+  .page {
+    --page-pad: 56px; padding-top: 40px;
+    width: 794px; height: 1123px; min-height: 0;
+    margin-inline: auto;
+    zoom: min(100vw / 794px, 100svh / 1123px);
+  }
+  .body { max-width: 720px; }
+  /* The datum is per geometry. A title that sets on two lines at 1280 sets on
+     three at 794, so reserving the landscape height here would spend space the
+     sheet does not have. Portrait is a composition, not a reflow — it gets its
+     own datum, which is its own content. */
+  .body .lede { height: auto; }
+  .body.split, .body.split-wide, .body.split-narrow, .body.sidebar-notes {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 3fr) minmax(0, 2fr);
+  }
+  .body.sidebar-notes > .notes,
+  .body.split > .notes, .body.split-wide > .notes, .body.split-narrow > .notes {
+    border-left: 0; border-top: 1px solid var(--ln1);
+    padding-left: 0; padding-top: 18px;
+  }
+  .body.rail { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .body.rail > .railhead { border-right: 0; border-bottom: 1px solid var(--ln1);
+                           padding-right: 0; padding-bottom: 14px; }
+  /* Three cards read fine side by side on A4's 682px: each gets 218px, which is
+     a card and not a gutter. Stacking them made the page 292px too tall, and
+     the point of the page is that the three are compared. */
+  .body.columns-3 { grid-template-columns: repeat(3, 1fr); column-gap: 18px; }
+  /* The new block patterns get portrait proportions rather than a reflow. */
+  .vows { grid-template-columns: 1fr; gap: 12px; }
+  .vows .vow:nth-child(5) { border-top: 0; padding-top: 0; }
+  /* Stacking a swap turns seven pairs into fourteen rows; two pages went nearly
+     3000px over. A swap is a swap in both geometries — it just gets tighter. */
+  .swaps.tight .swap { grid-template-columns: 1fr 18px 1.15fr; padding: 7px 0; }
+  .swaps.tight .no, .swaps.tight .yes { font-size: 11.5px; line-height: 1.42; }
+  .swap { grid-template-columns: 1fr 24px 1fr; }
+  .grades { gap: 8px; }
+  .gr .gc { display: none; }
+  /* A figure column plus a full notes column is two pages of material on one
+     A4 page. The notes tighten; the figure keeps its drawing.
+
+     What tightens here is SPACING, never the type of a named role. Until 0.1.350
+     these rules set `.gd` to 12px beside a figure, 11.5px in a wide split and
+     12px in a fill — three renderings of one role, shipped by the token file
+     that carries the rule against them, and invisible because the consistency
+     probe only ever ran at 1280x720. Run at A4 it reports the split
+     immediately. This is 0.1.349's own rule turned on its author: a page that no
+     longer fits gets its CONTENT trimmed, never its type nudged. */
+  .body.split > .notes li, .body.split-narrow > .notes li { font-size: 12px; line-height: 1.5; }
+  .body.split > .notes .swap, .body.split-narrow > .notes .swap { padding: 9px 0; }
+  .body.split-wide > .notes table, .body.sidebar-notes > .notes table { font-size: 11.5px; }
+  .body.split-wide > .notes td, .body.split-wide > .notes th { padding: 6px 10px 6px 0; }
+  .body.split > .fill .key { font-size: 12px; line-height: 1.5; }
+  .body.split > .notes .no, .body.split > .notes .yes,
+  .body.split-narrow > .notes .no, .body.split-narrow > .notes .yes { font-size: 12px; line-height: 1.45; }
+  .card { padding: 14px 15px; gap: 9px; }
+  .ledname { font-size: 18px; }
+  .card dd { font-size: 12.5px; }
+  .lead.row { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .body.columns-4 { grid-template-columns: repeat(2, 1fr); }
+  .body.cover-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
+  .duo { grid-template-columns: 1fr; gap: 16px; }
+  /* Figures are drawn twice. A 2.4:1 chain in a 0.8:1 cell fills a third of it,
+     and no CSS fixes that — the drawing is wrong for the page. */
+  .fig .land { display: none; }
+  .fig .port { display: block; }
+  /* `max-height: 100%` needs a definite parent height and does not get one in
+     the portrait flow, so the drawing's own aspect wins and eight pages ran past
+     the sheet. Portrait clamps against the page instead. */
+  .body .fill > .fig > svg:not(.ic) { max-height: 36svh; }
+}
+@media (min-aspect-ratio: 1/1) {
+  .fig .port { display: none; }
+}
+
+/* A short, narrow window is neither geometry; keep it usable. */
+@media (max-width: 1000px) and (min-aspect-ratio: 1/1) {
+  .body.split, .body.split-wide, .body.split-narrow,
+  .body.columns-3, .body.columns-4, .body.quad, .body.sidebar-notes, .body.rail {
+    grid-template-columns: 1fr;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+/* No .foot, h1 or h2 rules here on purpose. The fixture defined its own footer
+   flex and its own title sizes, so it tested its own stylesheet rather than the
+   one this package ships — and a missing `display: flex` on `.foot` reached a
+   real deliverable unseen. What is shipped is what gets exercised. */
 body { font-family: var(--din); font-size: 15px; color: var(--tx1);
         background: var(--bg); margin: 0; }
+/* Only what a DOCUMENT legitimately decides for itself. Everything else — the
+   layouts, the role vocabulary, the footer row, the page stage — now comes from
+   tokens/lumi-layouts.css above, so the fixture exercises the shipped
+   stylesheet instead of a private copy of it. */
 .page { position: relative; display: flex; flex-direction: column;
-         padding: 46px 92px 26px; min-height: 720px; }
-.body { flex: 1; display: grid; gap: 26px; }
-.body.split { grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr; }
-.body.split > .lede { grid-column: 1 / -1; }
-.lede { display: flex; flex-direction: column; gap: 10px; }
-.eyebrow { font-family: var(--mono); font-size: 12px; font-weight: 700;
-            letter-spacing: var(--ls-eyebrow); text-transform: uppercase; color: var(--tx3); }
-h1 { font-size: var(--fs-display); font-weight: var(--w-display);
-      line-height: var(--lh-display); color: var(--tx1); margin: 0 0 24px; }
-h2 { font-size: var(--fs-title); font-weight: var(--w-title);
-      line-height: 1.02; color: var(--tx1); margin: 0; }
-.sup { font-size: var(--fs-support); font-weight: var(--w-support);
-        line-height: 1.42; color: var(--tx2); }
-.listhead { font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
-             text-transform: uppercase; color: var(--tx3); }
-.gd { border-left: 2px solid var(--ln1); padding: 2px 0 2px 15px;
-       font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2); }
+         padding: 46px 92px 26px; }
 ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
-.band { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
-          align-items: start; }
+.band { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .band > div { display: flex; flex-direction: column; gap: 8px; }
-.band .k { font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .16em;
-            text-transform: uppercase; color: var(--tx3); }
-.band .v { font-size: var(--fs-band-value); font-weight: 700; line-height: .92;
-            color: var(--tx1); }
 .band .v .u { font-size: .42em; color: var(--tx3); }
-.lead { display: flex; flex-direction: column; gap: 10px; }
-.lead .v { font-size: var(--fs-lead); line-height: .94; color: var(--tx1); }
-.lead .g { font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .12em;
-            text-transform: uppercase; color: var(--tx3); }
 .cap { font-family: var(--mono); font-size: var(--fs-source); color: var(--tx3); }
-.cap .n { font-weight: 700; font-size: var(--fs-fine); color: var(--tx2); }
-.foot { display: flex; gap: 18px; align-items: baseline; font-family: var(--mono);
-         font-size: var(--fs-source); color: var(--tx4); }
-.foot .site { margin-right: auto; color: var(--acc); }
 .colophon { font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }
+.foot { font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }
 </style></head><body>
 <section class="page cover" id="cover">
   <div class="body stack no-lede"><div class="fill">

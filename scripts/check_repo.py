@@ -421,6 +421,8 @@ ENTRY_STAMP = {
 THIRD_PARTY_VERSION_LINES = {"conformance/CONFORMANCE.md": re.compile(r"^\|")}
 
 VERSION_CITATION_WAIVERS = {
+    "0.1.367": "planned: the probe-vocabulary guard. Remove when it ships.",
+    "0.1.368": "planned: deliverable gating and layout in the harness. Remove when shipped.",
     "1.0.0": "names the first release of the retired 1.x-3.x scheme, in the prose "
              "that explains why the scheme was retired",
     "3.4.0": "names the last release of the retired scheme, and the commit subject "
