@@ -17,7 +17,7 @@ The numbers beside it answer the question a fill percentage could not:
   largest empty rect   the biggest clear rectangle on the page, which is what
                        "looks empty" means geometrically.
 
-**No judgement here gates.** Release 1.9.0 answered "the pages look empty" with
+**No judgement here gates.** Release 0.1.339 answered "the pages look empty" with
 an 82% fill floor, satisfied it by stretching table rows, and shipped four
 diagrams at 40% of their cell. A number that can be satisfied without improving
 the page ends the looking.
@@ -56,7 +56,7 @@ class Unmeasurable(Exception):
     """A check could not run. Never silently a pass — see the module docstring.
 
     Same type and same contract as `check_design.py:74`. That script has printed
-    `UNMEASURABLE` and returned non-zero since 1.9.0 while this one, sitting in
+    `UNMEASURABLE` and returned non-zero since 0.1.339 while this one, sitting in
     the same directory, expressed all five of its failure paths as silence.
     """
 
@@ -149,7 +149,7 @@ PROBE = r"""
   // own docstring calls the answer to "the chart is too small", and it was
   // computed from getBoundingClientRect() — so a `.fig` whose SVG box had grown
   // reported an inflated scale AND filled the empty-band scan with phantom ink,
-  // under-reporting the blank around it at the same time. That is the 1.9.0
+  // under-reporting the blank around it at the same time. That is the 0.1.339
   // regression the docstring exists to prevent, arrived at from the other side.
   const inkExtent = (el) => {
     const parts = [];
@@ -253,7 +253,7 @@ PROBE = r"""
     // exactly one page. A section taller than the geometry prints across two
     // sheets and scrolls past the fold when projected, and it is invisible to
     // every fill or aspect number because those are all measured *within* it.
-    // Two different overflows, and 2.2.0 needs both.
+    // Two different overflows, and 0.1.343 needs both.
     //   · the section box against the viewport — the only one that existed, and
     //     the only one that meant anything while the page was `min-height:100svh`;
     //   · the *content* against the section box, which is the one that matters now
@@ -285,7 +285,7 @@ PROBE = r"""
     const pageSpillPx = deepest > -1e9 ? inPageUnits(deepest - sr.bottom) : 0;
     // Frame alignment. The page frame's parts must share one width and one
     // centre line, or the composition and the source line that sources it drift
-    // apart. This is invisible at the design geometry — 2.0.1 shipped a
+    // apart. This is invisible at the design geometry — 0.1.341 shipped a
     // max-width on .body and none on .foot, which is exact at 1280 and opens a
     // dead band down the right of every page on a wider window. Hence --wide.
     let frameSkewPx = 0;
@@ -297,7 +297,7 @@ PROBE = r"""
 
     // ── column alignment and weight ───────────────────────────────────────
     // Side-by-side cells must start on one line and carry comparable weight, or
-    // the page reads as two unrelated documents. 2.1.0's provenance: layouts.css
+    // the page reads as two unrelated documents. 0.1.342's provenance: layouts.css
     // said `.body.split > div { justify-content: flex-start }` at specificity
     // (0,2,1) while the fill rule above it reached (0,6,1) — each :not() counts
     // its argument — so every multi-column page centred its columns
@@ -448,7 +448,7 @@ PROBE = r"""
     // A field with nothing behind it is decoration, and decoration is the page
     // competing for attention it has not earned. Every mark must map to one
     // real item: the container declares data-count, each mark declares its own
-    // data-datum, and the two have to agree. This is the one new brake 3.0.0
+    // data-datum, and the two have to agree. This is the one new brake 0.1.345
     // adds, and it is what keeps the shimmer from becoming texture.
     const fields = [];
     for (const f of s.querySelectorAll('.field')) {
@@ -464,14 +464,14 @@ PROBE = r"""
     // Text sitting on text. Every other probe here measures a block against the
     // page — its top, its bottom, its column, the footer rule — and none of them
     // can see two blocks landing on each other in the middle of a page. A reader
-    // found this before any check did, twice, when 3.1.0's heavier register grew
+    // found this before any check did, twice, when 0.1.346's heavier register grew
     // past grid rows that had been sized for the old one. Leaf text only: a
     // container legitimately encloses its children.
     const TSEL = 'p,li,dt,dd,h1,h2,td,th,.k,.v,.g,.say,.gd,.key,.note,.listhead,'
                + '.eyebrow,.cap,.srcline,.conf,.site,.tick,.vt,.vw,.vn,.no,.yes,'
                + '.who,.verdict,.wordmark,.sub,.colophon,.openpart,.openclaim,'
                + '.openrun,.ledname';
-    // ...and text against anything DRAWN. 3.2.0 shipped this comparing text to
+    // ...and text against anything DRAWN. 0.1.347 shipped this comparing text to
     // text only, and a reader then found two defects it could not see: a field
     // sitting 22px on a paragraph, and the cover globe crossing the document
     // attributes. Eleven pairs, all of them text against a drawing. A probe
@@ -798,7 +798,7 @@ CONSISTENCY_PROBE = r"""
   const ROLES = [
     // The title was ONE role ignoring size, because a cover title is legitimately
     // larger than a content title. The cost was total: 34px and 57.6px produced
-    // the same key, so the first defect 3.4.0 set out to catch — "the title
+    // the same key, so the first defect 0.1.349 set out to catch — "the title
     // rendered three ways" — was undetectable by the check written for it, and
     // only the closing's weight-400 was ever visible. Three registers, three
     // roles, size checked inside each. Never ignore the axis the defect is on.
@@ -1052,7 +1052,7 @@ def page_report(rows, geometry, errors):
         over = f"  +{r['overflowPx']}px" if r["overflowPx"] > 1 else ""
         # `centerScale or '-'` printed 0.0 and "no centerpiece found" the same way.
         cs = r["centerScale"]
-        # This print sat one level out of the loop until 2.0.1, so the table
+        # This print sat one level out of the loop until 0.1.341, so the table
         # reported the last page 28 times over and every page-by-page reading
         # taken from it was of one page.
         print(f"  {r['id']:8} {str(r['centerpiece'] or '-'):22} "

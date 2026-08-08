@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.350 (2026-08-08)
+   LUMI page layouts · v0.1.351 (2026-08-08)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -14,7 +14,7 @@
    Two rules bind every layout here:
      · The centerpiece row is 1fr and the centerpiece grows into it, so a page
        fills rather than leaving a band above the footer. There is no fill floor;
-       2.0.0 withdrew the 82% one, which was satisfiable by stretching a table.
+       0.1.340 withdrew the 82% one, which was satisfiable by stretching a table.
      · No rotated body text or tables. `diagonal-flow` gets its movement from
        stepped offsets and an angled accent rule; rotation breaks printing,
        copy and paste, and screen reading, and a tariff document cannot pay
@@ -71,7 +71,7 @@
    Only the prose takes the measure.
 
    The comment here used to say the opposite — "constraining the block would
-   re-break the title across two lines" — and that argument lost in 3.4.0, to a
+   re-break the title across two lines" — and that argument lost in 0.1.349, to a
    measurement: titles all began at the same y, but the first content cell began
    at ten different heights, 106px to 219px. Content started somewhere different
    on almost every page, which is the deepest defect a reader had reported and
@@ -80,10 +80,10 @@
    The reserve is a CEILING on the title block, not a target: two title lines
    plus one support line. A title that needs three lines, or a second support
    line, does not get a taller reserve — it gets shorter text. That direction
-   matters (CLAUDE.md rule 4): the 3.4.0 deck paid for this datum by trimming six
+   matters (CLAUDE.md rule 4): the 0.1.349 deck paid for this datum by trimming six
    support lines to two, and the author who reads it as a target will pad instead.
 
-   3.4.0 shipped this reserve in a deliverable and not here, so every document
+   0.1.349 shipped this reserve in a deliverable and not here, so every document
    built from these tokens kept the floating lede the rule bans — and the probe
    added in the same release correctly reported NO DATUM on it. */
 .body .lede {
@@ -100,7 +100,7 @@
    memory.
 
    Why this block exists: `inspect_layout.py` has audited these ten roles since
-   3.4.0, keyed on these class names, and six of them — .t .sup .eyebrow .k .n
+   0.1.349, keyed on these class names, and six of them — .t .sup .eyebrow .k .n
    .listhead — appeared NOWHERE in tokens/. They had been read out of a
    validation deck. So a new document built from the token files SKILL.md tells
    it to copy matched two of the ten roles, the other eight vanished from the
@@ -202,7 +202,7 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
    that "are not level" (they were, as boxes), a figure's number and name
    "separated from the figure", and pages that felt empty.
 
-   2.1.0 tried exactly this fix and had to revert it, because back then the page
+   0.1.342 tried exactly this fix and had to revert it, because back then the page
    was `min-height:100svh` and leftover height grew with the window, so eleven
    pages went over the edge. The stage is what makes it safe: 720px, always. */
 .body .fill > .fig > svg:not(.ic) {
@@ -258,7 +258,7 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
 /* Side-by-side cells start on one line, so the reader's eye can cross between
    them. This repeats the fill rule's whole :not() chain on purpose: that rule
    reaches specificity (0,6,1) because every :not() contributes its argument,
-   and the plain `.body.split > div` form written here since 1.9.0 reached only
+   and the plain `.body.split > div` form written here since 0.1.339 reached only
    (0,2,1) and lost every time. It had never once applied. Twelve of fifteen
    multi-column pages centred their columns independently and drifted apart by
    up to 132px, which is what "the left and right are not level" turned out to
@@ -395,7 +395,7 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
   .body.diagonal-flow > .steps > :nth-child(4) { margin-inline-start: 24%; }
 }
 /* ── the landscape page is a slide, not a window-shaped box ──────────────
-   Until 2.2.0 `.page` was `min-height: 100svh` with no aspect lock anywhere,
+   Until 0.1.343 `.page` was `min-height: 100svh` with no aspect lock anywhere,
    so a page was whatever shape the reader's window was: 16:9 in a 16:9 window,
    4:3 in a 1280x960 one, 1.6:1 at 1440x900. The surplus height landed as a dead
    band above the footer, and a reader found it before any check did — the
@@ -423,7 +423,7 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
   }
 }
 
-/* ── the ground (v3.1.0, references/brand.md) ─────────────────────────────
+/* ── the ground (v0.1.346, references/brand.md) ─────────────────────────────
    Water and light behind every page. A ground is CONTINUOUS and UNCOUNTABLE,
    which is exactly why it may be decorative where a field may not: a field's
    marks can be counted, so each one has to mean something; a ground has nothing
@@ -451,7 +451,7 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
 /* On the lime field the ground would read as dirt on a painted surface. */
 .page.opener > .ground { mix-blend-mode: multiply; }
 
-/* ═══ the two brand devices (v3.0.0, references/brand.md) ═══════════════════
+/* ═══ the two brand devices (v0.1.345, references/brand.md) ═══════════════════
    Both are structural. A committed surface sitting on a template grid is the
    failure the brand file exists to avoid, so neither of these is a decoration
    applied after the layout is decided — they are how the page is built.
@@ -574,7 +574,7 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
      12px in a fill — three renderings of one role, shipped by the token file
      that carries the rule against them, and invisible because the consistency
      probe only ever ran at 1280x720. Run at A4 it reports the split
-     immediately. This is 3.4.0's own rule turned on its author: a page that no
+     immediately. This is 0.1.349's own rule turned on its author: a page that no
      longer fits gets its CONTENT trimmed, never its type nudged. */
   .body.split > .notes li, .body.split-narrow > .notes li { font-size: 12px; line-height: 1.5; }
   .body.split > .notes .swap, .body.split-narrow > .notes .swap { padding: 9px 0; }

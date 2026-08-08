@@ -57,7 +57,7 @@ collocations 销售赋能 / 市场赋能 (sales/marketing enablement); every oth
 distinguish fixed collocations from abuse — check the collocation first.
 
 **[en-output] — hard block.** English has been the default output language since
-1.3.0 while this list stayed a five-item seed; it is now the real list. Grouped by
+0.1.333 while this list stayed a five-item seed; it is now the real list. Grouped by
 tell, because a writer who knows the *kind* of tell catches variants the list
 misses.
 
@@ -211,7 +211,7 @@ swallowed by abstraction? is the voice consistent?
 Since sales/marketing material is now authored in English and Chinese is produced
 by translating it, the Chinese deliverable carries a second risk that has already
 bitten once: **English signature constructions round-tripping back into Chinese.**
-In 1.1.0 the Chinese rule 「不是 X,是 Y」 was translated to "Not X. Y."; models
+In 0.1.329 the Chinese rule 「不是 X,是 Y」 was translated to "Not X. Y."; models
 then rendered it back into Chinese, and the pattern amplified until readers called
 the decks AI-flavored. Translationese is the Chinese equivalent of AI flavor.
 

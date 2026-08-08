@@ -1,5 +1,5 @@
 {
-  "$schema_note": "LUMI design tokens v0.1.350 (2026-08-08). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
+  "$schema_note": "LUMI design tokens v0.1.351 (2026-08-08). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
   "palette_default": "light",
   "palette": {
     "light": {
@@ -85,7 +85,7 @@
       "lime": "#B8FF00",
       "on_lime": "#0A0907"
     },
-    "note": "one structure, two palettes. v2.0.0: the light canvas is pure white, not the warm cream the field has settled on, and the dark canvas is Apple space grey. The state palette grew by two with fixed meanings: amber = partial, in progress, awaiting an input; brass = reference, archival, out of scope but real. Before this, partial and not-built both rendered as dashed grey, so a deck could not say the one thing it most needed to say about itself. Every semantic colour clears 4.5:1 as text on its own canvas. v3.0.0: the light ramp. Five discrete steps from the accent toward the canvas, for fields and surfaces only — it carries no meaning. One colour one meaning still governs data. Every step carries text on both canvases; on-light-ramp-5 is the foreground for step 5 and on-light-ramp-low for steps 4 down to 1. v3.1.0: --lime is a surface colour, not a member of the text ladder. On the light canvas it measures 1.21:1 as text and may only be a fill with --on-lime reversed out of it (16.44:1); on the dark canvas it is the accent at 13.90:1. It carries no meaning."
+    "note": "one structure, two palettes. v0.1.340: the light canvas is pure white, not the warm cream the field has settled on, and the dark canvas is Apple space grey. The state palette grew by two with fixed meanings: amber = partial, in progress, awaiting an input; brass = reference, archival, out of scope but real. Before this, partial and not-built both rendered as dashed grey, so a deck could not say the one thing it most needed to say about itself. Every semantic colour clears 4.5:1 as text on its own canvas. v0.1.345: the light ramp. Five discrete steps from the accent toward the canvas, for fields and surfaces only — it carries no meaning. One colour one meaning still governs data. Every step carries text on both canvases; on-light-ramp-5 is the foreground for step 5 and on-light-ramp-low for steps 4 down to 1. v0.1.346: --lime is a surface colour, not a member of the text ladder. On the light canvas it measures 1.21:1 as text and may only be a fill with --on-lime reversed out of it (16.44:1); on the dark canvas it is the accent at 13.90:1. It carries no meaning."
   },
   "contrast": {
     "floor_text": 4.5,
@@ -167,13 +167,13 @@
       "weight": 400,
       "leading": "0.95-1.0"
     },
-    "note": "v1.8.0 raised the chart scale and added size_floor_px. The old scale (11 / 10.5 / 9.5) contradicted design-rules.md prose (14 / 10-11 / 11); tokens win per CLAUDE.md, so deliverables shipped 9.5px source lines. size_floor_px binds every text run except chart_scale_px.source, the single documented exception."
+    "note": "v0.1.338 raised the chart scale and added size_floor_px. The old scale (11 / 10.5 / 9.5) contradicted design-rules.md prose (14 / 10-11 / 11); tokens win per CLAUDE.md, so deliverables shipped 9.5px source lines. size_floor_px binds every text run except chart_scale_px.source, the single documented exception."
   },
   "assets": {
     "fonts": "assets/fonts/ — D-DIN.woff2, D-DIN-Bold.woff2, COPYING.txt (SIL OFL)",
     "icons": "assets/icons/ — the eight semantic icons named in design-rules.md §5, hairline 1.25px, stroke=currentColor, 24x24",
     "vectors": "assets/vectors/ — globe-orthographic.svg and world-flat.svg, original geometry",
-    "note": "v1.8.0. A rule may not mandate an asset the package does not ship: §5 required a semantic icon library for six versions and shipped none, so deliverables carried zero icons, and the cover rule banned imagery because there was no photo library rather than shipping vector geography that needs none."
+    "note": "v0.1.338. A rule may not mandate an asset the package does not ship: §5 required a semantic icon library for six versions and shipped none, so deliverables carried zero icons, and the cover rule banned imagery because there was no photo library rather than shipping vector geography that needs none."
   },
   "layout": {
     "one_claim_per_screen": true,

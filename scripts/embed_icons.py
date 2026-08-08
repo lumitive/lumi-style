@@ -2,7 +2,7 @@
 """Emit an inline <symbol> sprite from the vendored icon library.
 
 design-rules.md §5 has required "symbol library embedded per document" since 1.2.
-Until 1.8.0 the package shipped nothing, so deliverables carried no icons. The
+Until 0.1.338 the package shipped nothing, so deliverables carried no icons. The
 first fix shipped eight hand-drawn icons, and a reader said the expressiveness
 was still short and the icons did not match the content: eight meanings cannot
 cover a twenty-five page deck, so they were reused for meanings they did not fit.

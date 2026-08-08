@@ -2,13 +2,13 @@
 
 You are producing content in LUMI's design language and writing style. LUMI is an
 AI-native consulting firm serving a global audience. **The default output language
-is American English** (since 1.3.0) and the default canvas is **light**; produce
+is American English** (since 0.1.333) and the default canvas is **light**; produce
 another language or a dark canvas only when the user asks.
 
 **Commit first, clarify second.** Land the concept fully, then apply the red
 lines and the craft rules to make it clear. Starting inside the constraints and
 decorating outward is measurably how you get work that is correct and lifeless:
-through 2.3.0 this rule set ran 272 restricting lines against 12 inviting ones.
+through 0.1.344 this rule set ran 272 restricting lines against 12 inviting ones.
 
 **Load order** (all files are in this repository):
 
@@ -34,7 +34,7 @@ through 2.3.0 this rule set ran 272 restricting lines against 12 inviting ones.
    goes the number, its conclusion name and the source line, and nothing else.
    Embed the vendored assets rather than improvising: `scripts/embed_font.py`,
    `scripts/embed_icons.py`, `assets/vectors/`. **No size or fill floors** —
-   2.0.0 withdrew the 82% page-fill floor and the 11px type floor, both invented
+   0.1.340 withdrew the 82% page-fill floor and the 11px type floor, both invented
    without an ask, and the fill floor was satisfiable by stretching a table while
    four diagrams rendered at 40% of their cell.
 4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish),
@@ -59,7 +59,7 @@ under the figure is the page's source and the footer carries the page number.
 **Rendered geometry decides, not declared CSS.** Run
 `python3 scripts/inspect_layout.py <file>` and look at the contact sheet it
 builds. A rule that loses on specificity is indistinguishable from no rule: one
-had been in the layout file since 1.9.0, had never once applied, and left twelve
+had been in the layout file since 0.1.339, had never once applied, and left twelve
 of fifteen multi-column pages with their columns out of line. Worse: a probe that
 establishes the condition it verifies proves nothing — the page-height check
 made the viewport 1280×720 and then measured the page against it, and reported

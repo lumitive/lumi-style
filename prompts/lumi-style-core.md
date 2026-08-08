@@ -192,7 +192,7 @@ cold white on the lifted dark accent measures 2.65 and fails.
 titles ALL-CAPS at weight 400 (CJK: weight 700 + .04em tracking, never uppercase).
 Data voice (codes/rates/dates/counters): tabular-nums with fixed-width digit boxes.
 The small end of the scale runs figure title 13 / axis 11.5 / source 10.5. **There
-is no type floor** — 2.0.0 withdrew the 11px one, invented without an ask.
+is no type floor** — 0.1.340 withdrew the 11px one, invented without an ask.
 A display tier sits above body copy for focal elements: `--fs-lead`
 clamp(30px,3.4vw,46px), `--fs-lead-xl` clamp(44px,6.4vw,88px) for one number
 alone, `--fs-say` clamp(22px,1.9vw,26px) for a claim.
@@ -219,7 +219,7 @@ full-bleed, diagonal-flow. Choose by content: one number is the story → hero-b
 2-4 parallel items → columns-N or quad; centerpiece wider than 3:1 → stack; tall or
 square centerpiece with long prose → split; long prose, small evidence →
 split-narrow; heavy caveats → sidebar-notes; a table of 6+ columns → stack, no
-exceptions. **No fill floor and no layout-share cap** — 2.0.0 withdrew both; the 82% fill
+exceptions. **No fill floor and no layout-share cap** — 0.1.340 withdrew both; the 82% fill
 floor measured the bounding box of all ink, so a small chart with a long caption
 scored as full, and it was satisfied by stretching table rows while four diagrams
 rendered at 40% of their cell. **Every page gets one focal element instead**: the
@@ -290,6 +290,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.350** snapshot, cut 2026-08-08. It is self-contained by
+> This file is the **0.1.351** snapshot, cut 2026-08-08. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

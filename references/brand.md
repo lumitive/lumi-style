@@ -265,8 +265,8 @@ everywhere. This deck ran D-DIN 400, uppercase, `.3em` tracking — a spec sheet
 
 **We ship D-DIN Regular and Bold under SIL OFL and nothing else.** No rule here
 names a face the package does not carry — that is `CLAUDE.md` §5, and it exists
-because 1.2.0 required an embedded display face, shipped none, and rendered
-nothing until 1.7.0. The register comes from weight, scale and leading, which are
+because 0.1.332 required an embedded display face, shipped none, and rendered
+nothing until 0.1.337. The register comes from weight, scale and leading, which are
 free.
 
 ## 3 · Accelerators — what a LUMI page should be willing to do
@@ -322,7 +322,7 @@ failure mode (`impeccable.style/research`, ~30 skill iterations, ~200 sampled
 concepts). Two findings drove this file:
 
 **"65% commitment is what bland looks like."** A five-to-one ratio of brakes to
-accelerators produced work that was correct and lifeless. Measured on 3.0.0's
+accelerators produced work that was correct and lifeless. Measured on 0.1.345's
 predecessor, this repo ran at **272 restricting lines against 12 inviting ones —
 23:1**, nearly five times more braked than the ratio that already produced bland.
 Every release had added brakes, because every release fixed defects a reader

@@ -57,8 +57,8 @@ PALETTE_KEY_TO_VAR = {
 }
 PALETTE_NON_COLOR = {"ladder_base", "note", "text_ladder", "rule_ladder"}
 
-# v1.8.0: the ladder is two ladders, and each palette carries its own alphas.
-# Until 1.7.0 one shared alpha list served both canvases, and this guard enforced
+# v0.1.338: the ladder is two ladders, and each palette carries its own alphas.
+# Until 0.1.337 one shared alpha list served both canvases, and this guard enforced
 # the sharing — which is how a ladder measuring 1.81:1 on light shipped as the
 # colour of every page number in a deck. Ladder name -> (json key, css prefix).
 LADDERS = {"text": ("text_ladder", "tx"), "rule": ("rule_ladder", "ln")}
@@ -249,7 +249,7 @@ def check_palette_parity():
             if not alphas:
                 errors.append(
                     f"tokens/design-tokens.json: palette.{palette_name}.{json_key} is "
-                    f"missing; each palette carries its own {ladder} ladder since 1.8.0"
+                    f"missing; each palette carries its own {ladder} ladder since 0.1.338"
                 )
                 continue
             for i, alpha in enumerate(alphas, 1):
@@ -275,7 +275,7 @@ def check_palette_parity():
 def _check_contrast_floor(tokens):
     """Every text-ladder step must clear the documented floor against both
     surfaces of its own palette. This is the guard that would have caught the
-    1.7.0 defect: the alphas were legal, they were simply unreadable."""
+    0.1.337 defect: the alphas were legal, they were simply unreadable."""
     def _lin(c):
         c /= 255
         return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4

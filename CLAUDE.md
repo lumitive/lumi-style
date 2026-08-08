@@ -108,14 +108,14 @@ Three entry points load these rules, and each restates part of them:
 half — semantic drift between prose copies is invisible to them.** After changing
 `references/`, re-read all three entry points *and* `README.md`, which
 independently restates the file map, the design language, and the iteration
-protocol. (The two stale spots this section used to name — pre-1.2.0 hexes in
+protocol. (The two stale spots this section used to name — pre-0.1.332 hexes in
 `prompts/lumi-style-core.md` and a Simplified-Chinese default in `AGENTS.md` —
-were both fixed by 3.4.0 and 1.3.0 respectively; verified at 0.1.350.)
+were both fixed by 0.1.349 and 0.1.333 respectively; verified at 0.1.350.)
 
 **Drift also runs the other way: from a check into the rules.** A probe that
 keys on class names is asserting a vocabulary, and that vocabulary has to ship in
 `tokens/` or it is a private convention borrowed from whatever document the probe
-was developed against. 3.4.0 audited ten roles against six class names that
+was developed against. 0.1.349 audited ten roles against six class names that
 existed nowhere in this repository. Prefer a check that reads the shipped tokens;
 where it cannot, make it name what it failed to find.
 
@@ -139,36 +139,41 @@ repo itself.)
    The repo carries **one version**: `metadata.version` in SKILL.md frontmatter,
    the newest CHANGELOG heading, and the version stamp in each `tokens/` file all
    read the same number and bump together, even when a revision leaves the tokens
-   untouched. That is **five places** as of 1.9.0 — SKILL.md, CHANGELOG, and the
+   untouched. That is **five places** as of 0.1.339 — SKILL.md, CHANGELOG, and the
    three `tokens/` files (`lumi-theme.css`, `design-tokens.json`,
    `lumi-layouts.css`) — and they are the only ones a version string lives. The
    `version stamps` check fails on any mismatch; adding a token file means adding
    it to the tuple in `check_versions`, which is what keeps this list honest. The historical notes inside
-   `tokens/lumi-theme.css` ("v1.3.0: light-first…") name the version that
+   `tokens/lumi-theme.css` ("v0.1.333: light-first…") name the version that
    introduced a change and are not stamps — leave them alone. Commit messages
    follow `X.Y.Z — comma-separated summary of the rule changes`.
 
-   **Numbering restarted at 0.1.350** (the entry after 3.4.0). The package is
-   pre-stable and says so: **increment the patch position** — 0.1.351, 0.1.352 —
-   for ordinary revisions, and move the minor only for a change that would break
-   a deliverable built on the previous version. Do not read the old 3.x numbers
-   as a series to resume; the next release after 0.1.350 is 0.1.351, not 3.6.0.
-   Entries below 0.1.350 in the CHANGELOG keep their original numbers on purpose:
-   the rule files, token comments and scripts cite them by name throughout
-   ("since 1.9.0", "3.1.0's register"), so those citations stay valid and the
-   history is deliberately non-monotonic at exactly one point.
+   **The scheme is 0.1.x and the whole history uses it.** The package climbed
+   1.0.0 → 3.4.0 once; 0.1.350 retired that, and 0.1.351 renumbered the 22 earlier
+   releases to **0.1.328 – 0.1.349** in their original order, along with all 165
+   citations of them across `references/`, `tokens/`, `scripts/` and the entry
+   points. **Increment the patch position** — 0.1.351, 0.1.352 — for
+   ordinary revisions; move the minor only for a change that would break a
+   deliverable built on the previous version. There is no major-version series to
+   resume: the next release after 0.1.350 is 0.1.351.
+
+   **Git history was deliberately left alone.** Commit subjects and PRs #17–26
+   still carry 1.x–3.x numbers, because rewriting them means force-pushing a
+   public branch. If you renumber again, renumber the CHANGELOG and the prose
+   citations together in one pass — a citation naming a version no heading
+   defines is the drift this repo is worst at catching.
 4. **A number in a rule states whether it is a floor, a ceiling, or a target.**
-   This repo has now shipped three regressions from the same root: 1.2.0's
+   This repo has now shipped three regressions from the same root: 0.1.332's
    "3–6 word headline" was a ceiling read as a target and deleted every evidence
-   figure from deck titles; 1.6.0's "short sentences" was a direction read as a
-   target and drove sentence variance to zero; 1.7.0's "titles budget two lines"
+   figure from deck titles; 0.1.336's "short sentences" was a direction read as a
+   target and drove sentence variance to zero; 0.1.337's "titles budget two lines"
    was a ceiling read as a target and folded every title in half. An author
    optimizes toward any number you give them, so say which way it points.
 5. **A rule may not mandate an asset the package does not ship, and a rule may not
-   ban a whole category because one member of it is unavailable.** 1.2.0 required
-   an embedded display face and shipped none, so it rendered nothing until 1.7.0.
+   ban a whole category because one member of it is unavailable.** 0.1.332 required
+   an embedded display face and shipped none, so it rendered nothing until 0.1.337.
    §5 required a semantic icon library and shipped none, so deliverables carried
-   zero icons until 1.8.0. The cover rule banned all imagery because there was no
+   zero icons until 0.1.338. The cover rule banned all imagery because there was no
    photo library, when the risk was photography alone. Ship it, or scope the ban
    to the actual risk.
 6. **A prescribed value carries the floor below which it stops working.** The
@@ -182,7 +187,7 @@ repo itself.)
    registries, not naming, not versioning, not layout. Those come from
    `references/` and `tokens/`. Reading a convention back out of a test document
    reverses the direction of authority and quietly imports another project's
-   decisions. (Field-tested: while validating 1.7.0 the author cited an
+   decisions. (Field-tested: while validating 0.1.337 the author cited an
    engagement's document registry as a source of truth about deliverables, and
    raised its staleness as an issue for this repository. It was neither.)
 8. **Ship-blocking asymmetry between the checks and the eye.** A metric that
