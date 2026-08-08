@@ -1,5 +1,5 @@
 {
-  "$schema_note": "LUMI platform registry v0.1.352 (2026-08-08). The single source of platform facts: install paths, capability tiers and entry files. scripts/check_repo.py guards it and scripts/build_entrypoints.py generates every per-platform artifact from it. Adding a platform means adding a record here and an install note, never restating a rule. Repository language: English only (red line).",
+  "$schema_note": "LUMI platform registry. The single source of platform facts: install paths, capability tiers and entry files. scripts/check_repo.py guards it and scripts/build_entrypoints.py generates every per-platform artifact from it. Adding a platform means adding a record here and an install note, never restating a rule. Repository language: English only (red line). This file carries no version stamp on purpose: it is not a copy of the rules, so it has nothing to drift from, and the stamp it used to carry was hand-written, unguarded and four releases stale.",
   "capabilities": {
     "full": {
       "means": "reads the bundled files and can execute scripts/",
@@ -232,11 +232,10 @@
       "entry_file": "SKILL.md",
       "notes_path": "adapters/hermes.md",
       "invoke": "unconfirmed",
-      "probe": [
-        "hermes",
-        "--version"
-      ],
-      "docs": "https://github.com/openclaw/openclaw"
+      "probe": null,
+      "docs": null,
+      "docs_waiver": "The URL here was OpenClaw's repository, which is a different project. Hermes has no documentation we can cite for its skill discovery, which is the same reason path_verified is false.",
+      "probe_waiver": "Never run. The probe was declared but no Hermes install has been available to confirm the binary name, and a non-null probe satisfied the guard designed to force unverified claims into the open."
     },
     {
       "id": "kimi",

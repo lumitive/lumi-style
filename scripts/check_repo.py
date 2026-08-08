@@ -412,7 +412,7 @@ ENTRY_STAMP = {
 # Same contract as check_prose.py's NOT_MECHANIZED: a documented exception is a
 # reviewable state; an undocumented one is a mistake nobody noticed.
 # Files that legitimately carry version numbers belonging to other projects.
-THIRD_PARTY_VERSIONS = {"conformance/CONFORMANCE.md"}
+THIRD_PARTY_VERSION_LINES = {"conformance/CONFORMANCE.md": re.compile(r"^\|")}
 
 VERSION_CITATION_WAIVERS = {
     "1.0.0": "names the first release of the retired 1.x-3.x scheme, in the prose "
@@ -727,11 +727,16 @@ def check_version_citations():
         # release, not one of ours. Waiving them individually would mean editing
         # this file every time an agent updates, which is churn that teaches
         # people to edit waivers without reading them.
-        if name in THIRD_PARTY_VERSIONS:
-            continue
+
         in_fence = False
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             prose, in_fence = _strip_code(line, in_fence)
+            # Scoped to the lines that carry third-party versions — the
+            # scoreboard's table rows — not the whole file. Exempting the file
+            # also exempted the skill's own version stamp on its first line.
+            skip = THIRD_PARTY_VERSION_LINES.get(name)
+            if skip and skip.search(line):
+                continue
             for found in cite.findall(prose):
                 if found in headings or found in VERSION_CITATION_WAIVERS:
                     continue

@@ -20,15 +20,21 @@ python3 scripts/embed_font.py            # @font-face block with the face inline
 python3 scripts/embed_icons.py           # <symbol> sprite of the semantic icon set
 python3 scripts/build_geography.py       # regenerate assets/vectors/ from lat/lon data
 python3 scripts/build_entrypoints.py     # regenerate every per-platform artifact; --check in CI
+python3 scripts/build_fixtures.py        # regenerate the tracked test fixtures; --check in CI
+python3 scripts/check_fixtures.py        # run the checkers against the fixtures and assert verdicts
+python3 scripts/run_conformance.py       # validate | detect | run | score | report (local, not CI)
 bash    scripts/ci_wait.sh <PR>          # bounded wait, short-circuits on outage
 ```
 
 Standard library only, no dependencies. `.github/workflows/ci.yml` runs
 `check_repo.py` plus syntax checks on every push to `main` and every pull
 request. Its guards are the mechanical half of the invariants below: version
-stamps, the English-only red line, markdown link targets, palette parity between
-the two `tokens/` files, the text ladder's contrast floor, ban-list parity, and
-that the vendored assets are intact.
+stamps, version citations, the English-only red line, markdown link targets,
+stale forward promises, the platform manifest, retired values, palette parity
+between the two `tokens/` files, the text ladder's contrast floor, ban-list
+parity, that every generated artifact and fixture is current, that the checkers
+still produce the expected verdicts on both fixtures, and that the vendored
+assets are intact.
 
 `check_prose.py`, `check_design.py` and `inspect_layout.py` all measure a
 **deliverable**, not this repo, so CI cannot run them — there are no deliverables
@@ -79,7 +85,7 @@ Actions incident blocks merging for everyone. Do not wait it out by polling.
    result locally before it unlocks anything and restores protection on every
    exit path. It is the last resort, not the second.
 
-## Architecture: one rule set, three entry points
+## Architecture: one rule set, many entry points
 
 `references/` is the single source of truth for rule prose:
 
@@ -111,7 +117,7 @@ manifests and `.well-known/skills/index.json`. Edit the registry, never the
 artifact; `--check` runs in CI. `SKILL.md`, `AGENTS.md`,
 `prompts/lumi-style-core.md` and `references/` stay hand-written, because
 assembled prose is worse prose and those are the files a reader actually reads.
-The notes also carry plus the precedence rule that `references/` wins on conflict. The
+The notes also carry the precedence rule that `references/` wins on conflict. The
 `platform manifest` guard requires every registry claim to have a file behind it,
 every note to be claimed by a platform, and every *unverified* claim to carry a
 written waiver naming what is unconfirmed. Adding a platform is a registry record
@@ -155,32 +161,32 @@ repo itself.)
    is itself editable under the protocol. A lesson is promoted to a formal rule
    once it has appeared across two documents.
 3. **A rule revision requires a `CHANGELOG.md` entry and a version bump.**
-   The repo carries **one version**: `metadata.version` in SKILL.md frontmatter,
-   the newest CHANGELOG heading, and the version stamp in each `tokens/` file all
-   read the same number and bump together, even when a revision leaves the tokens
-   untouched. That is **five places** as of 0.1.339 — SKILL.md, CHANGELOG, and the
-   three `tokens/` files (`lumi-theme.css`, `design-tokens.json`,
-   `lumi-layouts.css`) — and they are the only ones a version string lives. The
-   `version stamps` check fails on any mismatch; adding a token file means adding
-   it to the tuple in `check_versions`, which is what keeps this list honest. The historical notes inside
-   `tokens/lumi-theme.css` ("v0.1.333: light-first…") name the version that
-   introduced a change and are not stamps — leave them alone. Commit messages
-   follow `X.Y.Z — comma-separated summary of the rule changes`.
+   The repo carries **one version**, and it now lives in three tiers rather than
+   the five files this rule used to enumerate. Saying "five places… and they are
+   the only ones" stopped being true at 0.1.352 and stayed in the file for six
+   releases, which is the drift this document exists to warn about, in the
+   document itself.
 
-   **The scheme is 0.1.x and the whole history uses it.** The package climbed
-   1.0.0 → 3.4.0 once; 0.1.350 retired that, and 0.1.351 renumbered the 22 earlier
-   releases to **0.1.328 – 0.1.349** in their original order, along with all 165
-   citations of them across `references/`, `tokens/`, `scripts/` and the entry
-   points. **Increment the patch position** — 0.1.351, 0.1.352 — for
-   ordinary revisions; move the minor only for a change that would break a
-   deliverable built on the previous version. There is no major-version series to
-   resume: the next release after 0.1.350 is 0.1.351.
+   - **Hand-stamped and checked.** `metadata.version` in SKILL.md frontmatter,
+     the newest CHANGELOG heading, the stamp in each of the three `tokens/`
+     files, the blockquote in `AGENTS.md`, and the snapshot line in
+     `prompts/lumi-style-core.md`. `check_versions` compares the first five;
+     `check_version_citations` compares the entry points against `ENTRY_STAMP`,
+     which declares where each one's stamp lives. **Adding a token file means
+     adding it to the tuple in `check_versions`; adding an entry point means
+     adding it to `ENTRY_STAMP`.** Those two tables are what keep this list
+     honest, and a stamp with no declared position fails rather than being
+     skipped.
+   - **Generated and regenerated.** The plugin manifests, `.well-known` index and
+     three pointer files carry the version because `build_entrypoints.py` puts it
+     there. Never edit them; `--check` fails a stale tree in CI.
+   - **Not a stamp.** Historical notes inside `tokens/lumi-theme.css`
+     ("v0.1.333: light-first…") name the version that introduced a change —
+     leave them alone. `conformance/CONFORMANCE.md` records third-party CLI
+     versions, which belong to other projects.
 
-   **Git history was deliberately left alone.** Commit subjects and PRs #17–26
-   still carry 1.x–3.x numbers, because rewriting them means force-pushing a
-   public branch. If you renumber again, renumber the CHANGELOG and the prose
-   citations together in one pass — a citation naming a version no heading
-   defines is the drift this repo is worst at catching.
+   Commit messages follow `X.Y.Z — comma-separated summary of the rule changes`.
+
 4. **A number in a rule states whether it is a floor, a ceiling, or a target.**
    This repo has now shipped three regressions from the same root: 0.1.332's
    "3–6 word headline" was a ceiling read as a target and deleted every evidence
