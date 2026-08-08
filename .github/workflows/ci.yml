@@ -29,7 +29,8 @@ jobs:
           python3 -m py_compile \
             scripts/check_repo.py scripts/check_prose.py scripts/check_design.py \
             scripts/embed_font.py scripts/embed_icons.py scripts/build_geography.py \
-            scripts/build_entrypoints.py scripts/inspect_layout.py
+            scripts/build_entrypoints.py scripts/inspect_layout.py \
+            scripts/build_fixtures.py scripts/check_fixtures.py
       - run: bash -n scripts/emergency_merge.sh scripts/ci_wait.sh
       # Every vendored asset must stay byte-identical: a silent change would alter
       # the metrics or the marks of every deliverable that embeds it. The icons
@@ -40,4 +41,8 @@ jobs:
       # Ordering matters: a stale generated tree must report as stale rather
       # than as a mystery failure in a guard that reads it.
       - run: python3 scripts/build_entrypoints.py --check
+      - run: python3 scripts/build_fixtures.py --check
+      # The gates, tested. Runs after the staleness checks so a stale
+      # fixture reports as stale rather than as a metric regression.
+      - run: python3 scripts/check_fixtures.py
       - run: python3 scripts/check_repo.py

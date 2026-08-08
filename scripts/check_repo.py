@@ -420,7 +420,6 @@ VERSION_CITATION_WAIVERS = {
     # release it ships, which makes the dict a ratchet: a note still promising
     # something "in 0.1.354" after 0.1.354 has shipped becomes a CI failure
     # rather than stale documentation nobody re-reads.
-    "0.1.355": "planned: tracked fixtures and check_fixtures.py. Remove when shipped.",
     "0.1.356": "planned: the cross-agent conformance harness. Remove when shipped.",
 }
 
