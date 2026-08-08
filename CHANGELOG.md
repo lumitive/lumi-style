@@ -3,6 +3,57 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.372 — a recorded no-change: the column-top skew was the probe, not the page
+
+0.1.371 left one question open. Its passing deck had **three of six multi-column
+pages out of line by up to 19px** — the skew a reader once called "the left and
+right are not level" — and `COLUMN TOPS` is reported rather than gated. One run
+is not a retrospective, so nothing changed. This is the second run, and the
+retrospective it makes possible ends in **no change**, which the review protocol
+lists as one of its three outcomes and which is recorded here rather than left
+as a decision nobody wrote down.
+
+**The columns were never out of line.** Measured directly on the first deck,
+every cell box on the three flagged pages starts at exactly the same y —
+2408/2408, 3848/3848, 6008/6008. All three findings come from where the **ink**
+begins inside those identical boxes:
+
+| page | left cell | right cell | reported |
+|---|---|---|---|
+| p4 | a filled panel: fill at the box top, first glyph 24px in | SVG drawing starts 6px into its viewBox | 18px |
+| p6 | plain `.listhead` text at the box top | SVG drawing starts 17px in | 17px |
+| p9 | a bordered `.card` at the box top | SVG drawing starts 6px in | 6px |
+
+Two structural causes, both legitimate: a **painted** block whose visible edge is
+the line the eye reads while its first glyph sits inside its own padding, and an
+SVG whose drawing begins a few pixels inside its box.
+
+**And it does not recur.** A second deck, same agent, same prompt, same CLI
+version: four multi-column pages, **all level**. The check ran and found nothing,
+so this is not the absent-subject trap — the skew depends on whether a painted
+block or a drawing happens to land at the top of a column, not on whether the
+composition is correct.
+
+**So `COLUMN TOPS` stays reported.** Gated, the first deck would have failed on
+three findings a reader would call level while the second passed — a gate that
+flips on composition rather than on correctness is a gate people learn to route
+around. That is the same argument that withdrew D7 in 0.1.340, arriving from the
+other side.
+
+**The probe is not changed either, and that is the harder call.** The diagnosis
+above suggests a real refinement — when a cell's first element paints a
+background or a border, its *edge* is the alignment reference, not its first
+glyph. `inspect_layout.py`'s hard-won rule is *ask the ink, never the box*,
+written because a grown SVG box reported 0px skew on six visibly crooked pages;
+that rule is right for an unpainted box and backwards for a painted one. But this
+repository promotes a lesson to a rule **once it has appeared across two
+documents**, and this one appeared in one. A probe that has caught 132px of real
+skew is not reshaped on a single deck's false positives.
+
+Neither deck is defect-free, and the record should say so: the second carries its
+own reported finding — one of its two tables holds prose rather than values.
+Neither observation is about the rules.
+
 ## 0.1.371 — the first CLI-driven agent through the harness, and the board that erased it
 
 Five releases sharpened the instruments. This one points them at something.

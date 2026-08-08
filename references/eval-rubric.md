@@ -185,8 +185,15 @@ anything.
    that shipped a clipped figure.)
 4. The retrospective produces one of three outcomes: a rule revision (CHANGELOG +
    version bump) / an anchor revision (anchors can be wrong too) / a recorded
-   no-change with reasons;
+   no-change with reasons. **A no-change is written down like the other two**,
+   because the alternative is a decision nobody can find later and a question
+   that gets re-opened by the next person to notice the same number;
 5. The same lesson appearing across 2 documents → promoted to a formal rule.
+   **This binds a probe as hard as it binds a rule.** A finding that turns out
+   to be a false positive on one document is not grounds for reshaping the check
+   that raised it — 0.1.372 declined to change the column-top probe on exactly
+   that reasoning, having diagnosed all three of its findings on one deck and
+   watched a second deck produce none.
 
 ## Known genre distortions (never chase the score)
 
