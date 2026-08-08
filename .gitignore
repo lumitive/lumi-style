@@ -44,3 +44,6 @@ docs/
 # Conformance run artifacts: renders, not records. The scoreboard is tracked;
 # the raw agent output lives with the run.
 conformance/results/
+
+# inspect_layout contact sheets are renders, not records.
+fixtures/_layout/

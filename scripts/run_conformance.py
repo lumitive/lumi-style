@@ -54,6 +54,23 @@ def load_tasks() -> list[dict]:
                 raise ValueError(f"{t.get('id', '?')}: missing {field}")
         if t["min_capability"] not in CAP_RANK:
             raise ValueError(f"{t['id']}: unknown min_capability {t['min_capability']!r}")
+        # Everything `score` will dereference, checked here rather than as a
+        # traceback halfway through a scoreboard that then discards every row
+        # already scored.
+        if not t["score"]:
+            raise ValueError(f"{t['id']}: empty `score` list would pass anything")
+        if not t.get("deliverable"):
+            raise ValueError(f"{t['id']}: no `deliverable` glob")
+        if "recall" in t["score"]:
+            for q, keys in (t.get("answers") or {}).items():
+                for k in keys:
+                    try:
+                        re.compile(k)
+                    except re.error as exc:
+                        raise ValueError(f"{t['id']}: answer pattern {k!r} for {q!r} "
+                                         f"does not compile: {exc}") from exc
+            if not t.get("answers"):
+                raise ValueError(f"{t['id']}: scores recall with no `answers` key")
     return tasks
 
 
@@ -94,7 +111,13 @@ def score_checks(kind: str, path: pathlib.Path) -> dict:
         report = report[0]
     if not isinstance(report, dict):
         return {"exit": proc.returncode, "verdicts": {}, "unparseable": True}
-    return {"exit": proc.returncode, "verdicts": report.get("verdicts", {})}
+    verdicts = report.get("verdicts", {})
+    if not verdicts:
+        # A checker that emitted a report and graded nothing has not scored the
+        # artifact. A `deliverable` glob matching a directory produced exactly
+        # this and read as a pass.
+        return {"exit": proc.returncode, "verdicts": {}, "unparseable": True}
+    return {"exit": proc.returncode, "verdicts": verdicts}
 
 
 def score_recall(task: dict, text: str) -> dict:
@@ -102,10 +125,18 @@ def score_recall(task: dict, text: str) -> dict:
     # the whole-document version did not do: `\bone\b` for question 5 was
     # satisfied by question 3's own "no one", so a one-line reply answering
     # nothing scored 5 of 5. Answer i is matched against line i alone.
-    lines = [l.strip().lower() for l in text.splitlines() if re.match(r"\s*\d+[.)]", l)]
+    # Keyed on the literal number, and on the LAST run of them. Matching by
+    # ordinal position marked a correct sheet 0/5 when the agent echoed the
+    # prompt's own five numbered questions above its answers — failing a recall
+    # task for a formatting reason unrelated to recall.
+    numbered = {}
+    for line in text.splitlines():
+        m = re.match(r"\s*(\d+)[.)]", line)
+        if m:
+            numbered[int(m.group(1))] = line.strip().lower()
     hits = {}
-    for i, (q, keys) in enumerate(task["answers"].items()):
-        line = lines[i] if i < len(lines) else ""
+    for i, (q, keys) in enumerate(task["answers"].items(), start=1):
+        line = numbered.get(i, "")
         hits[q] = any(re.search(k, line) for k in keys)
     return {"score": sum(hits.values()), "of": len(hits),
             "missed": [q for q, ok in hits.items() if not ok]}
@@ -193,6 +224,11 @@ def main(argv):
             for task_dir in sorted(p for p in agent_dir.iterdir() if p.is_dir()):
                 task = by_id.get(task_dir.name)
                 if task is None:
+                    scores[f"{agent_dir.name}/{task_dir.name}"] = {
+                        "verdict": "unknown task",
+                        "detail": "no task of this id; a renamed task silently "
+                                  "erased every prior result for it"}
+                    unscored += 1
                     continue
                 # sorted: glob yields in filesystem order, so an agent that also
                 # left notes.md made the scored artifact depend on directory
@@ -233,6 +269,13 @@ def main(argv):
                         # never looked at, so a crashed checker scored `pass`.
                         if entry[kind].get("unparseable"):
                             failed.append(f"{kind} emitted no parseable report")
+                        elif entry[kind]["exit"] != 0:
+                            # Written into the record four times and read none.
+                            # `require` names two metrics of eighteen, so an
+                            # artifact failing sixteen others scored `pass` —
+                            # the same defect as the unread `unparseable` flag,
+                            # in the release that fixed that one.
+                            failed.append(f"{kind} exited {entry[kind]['exit']}")
                         seen.update(entry[kind]["verdicts"])
                 # `require` is checked ONCE, against the union of every checker's
                 # verdicts. Per-kind it needed `got is not None` to skip the other
@@ -255,7 +298,12 @@ def main(argv):
         for key, s in sorted(scores.items()):
             extra = f" ({', '.join(s.get('failed', []))})" if s.get("failed") else ""
             print(f"  {key:38} {s['verdict']}{extra}")
-        print(f"\n{len(scores)} scored, {unscored} produced no deliverable "
+        if not scores:
+            print(f"  NOT MEASURED: nothing under {run_dir} matched a known agent and "
+                  f"task; `run` writes that layout, and a scoreboard of zero rows is "
+                  f"not a scoreboard of passes")
+            return 1
+        print(f"\n{len(scores) - unscored} scored, {unscored} produced no deliverable "
               f"-> {run_dir / 'scores.json'}")
         return 1 if any(s["verdict"] != "pass" for s in scores.values()) else 0
 

@@ -105,9 +105,13 @@ def tokens_block() -> str:
 
 
 def foot(n: int, total: int, terms: str = TERMS, site: str = SITE) -> str:
-    # Spans, never a nested div: d12_commercial_footer captures non-greedily to
-    # the first </div>, so a div inside .foot truncates the text it reads.
-    return (f'<div class="foot"><span class="conf">{terms}</span>'
+    # A NESTED DIV, deliberately. This footer used spans to avoid a parser bug
+    # that truncated the footer at its first closing tag — which guaranteed the
+    # regression suite could never surface the bug, and is what
+    # fixtures/README.md means by "never edit a fixture to make a check pass".
+    # 0.1.359 fixed the parser and left the fixture shaped around it, so the old
+    # buggy regex still passed the suite. The nesting is the test.
+    return (f'<div class="foot"><div class="terms"><span class="conf">{terms}</span></div>'
             f'<span class="src">Meter management system</span>'
             f'<span class="site">{site}</span><span>{n:02d} / {total:02d}</span></div>')
 
