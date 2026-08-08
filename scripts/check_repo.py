@@ -422,6 +422,198 @@ def check_token_references():
     return errors
 
 
+# A class a probe names may go unshipped only with a reason. Same contract as
+# check_prose.py's NOT_MECHANIZED: a documented exception is a reviewable state,
+# an undocumented one is a defect nobody noticed.
+#
+# Every entry here is a CENSUS selector — one of INK / TSEL / DSEL / CENTER,
+# whose job is "if the document has one of these, count it as ink, as text, as
+# something drawn". Those lists deliberately over-reach, because a probe that
+# cannot see a block reports the column holding it as empty and its neighbour as
+# misaligned. They assert nothing about how the thing renders.
+#
+# The CONTRACT selectors are the other kind — ROLES and SCOPED, which claim "this
+# role renders exactly one way" — and those may not be waived at all. That
+# distinction is the whole guard: 0.1.349 audited ten roles against six names
+# that shipped nowhere, and 0.1.366 found two more, because nothing separated a
+# claim about rendering from a request to be counted.
+PROBE_NOT_SHIPPED = {
+    # Block patterns a document composes for itself. tokens/ tightens their
+    # SPACING in the portrait block and never declares a base rendering, which
+    # is its own defect and is recorded in CHANGELOG 0.1.368 — but it is a
+    # missing rule, not a missing count, and inventing seven block designs to
+    # satisfy a guard is exactly the speculative rule-making CLAUDE.md rule 2
+    # forbids.
+    "card": "portrait-only in tokens/; no base rendering ships. A census entry.",
+    "key": "portrait-only in tokens/; the tier-1 callout pair `.key`/`.red` has "
+           "no base rendering. check_design.py names both as TIER1_CLASSES.",
+    "red": "the seal-coloured half of the tier-1 callout pair; ships nowhere at all.",
+    "ledname": "portrait-only in tokens/; no base rendering ships.",
+    "swap": "portrait-only in tokens/; no base rendering ships.",
+    "vow": "portrait-only in tokens/; no base rendering ships.",
+    "no": "the losing side of a `.swap`; portrait-only in tokens/.",
+    "yes": "the winning side of a `.swap`; portrait-only in tokens/.",
+    # Composition vocabulary. `.page.opener` ships and what a document puts
+    # inside one is its own composition; TSEL lists these so opener text is
+    # counted as text, not to fix how an opener renders.
+    "openpart": "part-opener composition; `.page.opener` ships, its contents compose freely.",
+    "openclaim": "part-opener composition; see .openpart.",
+    "openrun": "part-opener composition; see .openpart.",
+    # Document-local blocks with no design claim behind them.
+    "geo-flat": "a flat-map figure a document may draw; CENTER/DSEL count it as a "
+                "centerpiece and a drawing, and say nothing about it.",
+    "note": "a marginal note inside `.notes`, which does ship; the inner element "
+            "is the document's own.",
+    "sub": "a subtitle under a cover or opener title; composition, not a role.",
+    "tag": "a small status chip; a document's own furniture.",
+    "tick": "an axis or timeline label inside a figure.",
+    "verdict": "a card's conclusion line; part of `.card`, above.",
+    "vn": "the number on a `.vow`; part of `.vow`, above.",
+    "vt": "the title of a `.vow`; part of `.vow`, above.",
+    "vw": "the body of a `.vow`; part of `.vow`, above.",
+    "who": "an attribution line; a document's own furniture.",
+    "wordmark": "the organisation's mark on a cover; an asset, not a type role.",
+}
+
+# The class-carrying lists inside scripts/inspect_layout.py, by kind. Read out of
+# the source with ast.parse and a regex and NEVER by importing it: importing to
+# inspect it is how a guard ends up running the thing it is checking.
+PROBE_CENSUS_LISTS = ("CENTER", "INK", "TSEL", "DSEL")
+
+
+def _probe_sources():
+    """The two probe strings from inspect_layout.py, or an explanatory failure."""
+    tree = ast.parse((ROOT / "scripts/inspect_layout.py").read_text(encoding="utf-8"))
+    out = {}
+    for node in tree.body:
+        if (isinstance(node, ast.Assign) and isinstance(node.value, ast.Constant)
+                and isinstance(node.value.value, str)
+                and isinstance(node.targets[0], ast.Name)):
+            out[node.targets[0].id] = node.value.value
+    for needed in ("PROBE", "CONSISTENCY_PROBE"):
+        if needed not in out:
+            raise ValueError(f"inspect_layout.py no longer defines {needed} as a "
+                             f"module-level string; this guard reads nothing")
+    return out
+
+
+def _js_const(source, name):
+    """The text of `const NAME = ...;`, concatenation and all."""
+    m = re.search(rf"\bconst {name}\s*=(.*?);", source, re.S)
+    if not m:
+        raise ValueError(f"no `const {name}` in the probe; the guard would check "
+                         f"a vocabulary that has moved or been renamed")
+    return m.group(1)
+
+
+def _classes(selector_text):
+    return set(re.findall(r"\.([A-Za-z][\w-]*)", selector_text))
+
+
+def _shipped_classes():
+    """Class names tokens/ gives a BASE rendering, media-query blocks excluded.
+
+    The distinction is load-bearing. `.key` is styled only inside
+    `@media (max-aspect-ratio: 1/1)`, where the portrait block tightens a
+    font-size the file never declares at 1280 — so the stylesheet overrides a
+    rendering it does not ship, which is the one-rendering rule broken by the
+    token file that carries it. Counting that as "shipped" would let this guard
+    report the vocabulary as complete on the strength of a portrait override.
+    """
+    base = set()
+    for path in sorted((ROOT / "tokens").glob("*.css")):
+        css = _css_without_comments(path.read_text(encoding="utf-8"))
+        out, k = [], 0
+        while k < len(css):
+            m = re.compile(r"@media[^{]*\{").search(css, k)
+            if not m:
+                out.append(css[k:])
+                break
+            out.append(css[k:m.start()])
+            depth, i = 1, m.end()
+            while depth and i < len(css):
+                depth += 1 if css[i] == "{" else -1 if css[i] == "}" else 0
+                i += 1
+            k = i
+        base |= _classes("".join(out))
+    return base
+
+
+def check_probe_vocabulary():
+    """A probe that keys on a class name is asserting a vocabulary; ship it.
+
+    This is CLAUDE.md's reverse-drift rule mechanized, and it exists because the
+    repository has now shipped the same defect three times. 0.1.349 audited ten
+    roles against six class names that appeared nowhere in `tokens/`, read out of
+    a validation deck. 0.1.361 shipped `.cap .srcline` and not `.foot .src`, so a
+    comparison between them could never run. 0.1.366 found `.cover h1` and
+    `.closing h2` audited as two of three title registers and shipped by nothing,
+    which is how a real deliverable came back set in the wrong face while the
+    consistency audit called it clean.
+
+    Two kinds of selector, two strengths:
+
+    * **contract** — `ROLES` and `SCOPED` claim a role renders exactly one way.
+      A claim about rendering must have a rendering behind it, so these may not
+      be waived.
+    * **census** — `INK`, `TSEL`, `DSEL`, `CENTER` ask only to be counted, and
+      over-reach on purpose. These may be waived in `PROBE_NOT_SHIPPED`, one
+      written reason each.
+    """
+    try:
+        probes = _probe_sources()
+        shipped = _shipped_classes()
+        roles = re.findall(r"\[\s*'[^']*'\s*,\s*'([^']+)'",
+                           _js_const(probes["CONSISTENCY_PROBE"], "ROLES"))
+        scoped = re.findall(r"\[\s*'([^']+)'\s*,\s*\[([^\]]*)\]\s*\]",
+                            _js_const(probes["CONSISTENCY_PROBE"], "SCOPED"))
+        census = {name: _js_const(probes["PROBE"], name) for name in PROBE_CENSUS_LISTS}
+    except (OSError, ValueError, SyntaxError) as exc:
+        return [f"could not read the probe vocabulary: {exc}"]
+
+    if not roles or not scoped:
+        return ["ROLES or SCOPED parsed to nothing; a guard that reads no "
+                "selectors passes every document by construction"]
+
+    contract, census_classes = set(), {}
+    for sel in roles:
+        contract |= _classes(sel)
+    for sel, scopes in scoped:
+        contract |= _classes(sel) | _classes(scopes)
+    for name, text in census.items():
+        for cls in _classes(text):
+            census_classes.setdefault(cls, []).append(name)
+
+    errors = []
+    for cls in sorted(contract - shipped):
+        errors.append(
+            f"inspect_layout.py asserts .{cls} as part of a ROLES/SCOPED contract, "
+            f"and no tokens/ file gives it a base rendering. A role that claims one "
+            f"rendering must ship one; this may not be waived"
+        )
+    for cls in sorted(contract & set(PROBE_NOT_SHIPPED)):
+        errors.append(
+            f"PROBE_NOT_SHIPPED waives .{cls}, but ROLES/SCOPED asserts it as a "
+            f"contract — waive the census use or drop the claim, not both"
+        )
+    for cls in sorted(set(census_classes) - shipped - set(PROBE_NOT_SHIPPED)):
+        errors.append(
+            f"inspect_layout.py's {'/'.join(census_classes[cls])} names .{cls}, which "
+            f"no tokens/ file gives a base rendering; add the rule or list it in "
+            f"PROBE_NOT_SHIPPED with a reason"
+        )
+    named = set(census_classes) | contract
+    for cls in sorted(PROBE_NOT_SHIPPED):
+        if cls not in named:
+            errors.append(f"PROBE_NOT_SHIPPED excuses .{cls}, which no probe names; "
+                          f"a waiver that outlives its cause is a standing permission "
+                          f"nobody re-reads")
+        elif cls in shipped:
+            errors.append(f"PROBE_NOT_SHIPPED excuses .{cls}, which tokens/ now ships; "
+                          f"delete the waiver")
+    return errors
+
+
 def _rules_ban_phrases():
     """The [en-output] phrases from writing-rules.md section 2, normalized."""
     text = (ROOT / "references/writing-rules.md").read_text(encoding="utf-8")
@@ -530,8 +722,6 @@ ENTRY_STAMP = {
 THIRD_PARTY_VERSION_LINES = {"conformance/CONFORMANCE.md": re.compile(r"^\|")}
 
 VERSION_CITATION_WAIVERS = {
-    "0.1.368": "planned: the probe-vocabulary guard, deliverable gating, and "
-               "layout in the harness. Remove when shipped.",
     "1.0.0": "names the first release of the retired 1.x-3.x scheme, in the prose "
              "that explains why the scheme was retired",
     "3.4.0": "names the last release of the retired scheme, and the commit subject "
@@ -899,6 +1089,7 @@ CHECKS = (
     ("retired values", check_retired_values),
     ("token palette parity", check_palette_parity),
     ("token references", check_token_references),
+    ("probe vocabulary", check_probe_vocabulary),
     ("ban-list parity", check_ban_list_parity),
 )
 

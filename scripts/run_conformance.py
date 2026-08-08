@@ -46,6 +46,18 @@ TASKS = ROOT / "conformance" / "tasks"
 RESULTS = ROOT / "conformance" / "results"
 CAP_RANK = {"prompt": 0, "files": 1, "full": 2}
 
+# What a task's `score` list may name, and the script behind each.
+#
+# `layout` joins in 0.1.368, and its absence was the hole under this whole
+# harness: `inspect_layout.py` is the only instrument here that renders the
+# document, and the scoreboard has never run it. A deliverable with overlapping
+# text, no part openers and a clamped title scored `pass` on prose and design and
+# was recorded as conformant, because the two checkers that ran cannot see a
+# rendered page and the one that can was never asked.
+SCRIPTS = {"prose": "check_prose.py", "design": "check_design.py",
+           "layout": "inspect_layout.py"}
+SCORE_KINDS = set(SCRIPTS) | {"recall"}
+
 
 def load_tasks() -> list[dict]:
     tasks = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(TASKS.glob("*.json"))]
@@ -60,6 +72,13 @@ def load_tasks() -> list[dict]:
         # already scored.
         if not t["score"]:
             raise ValueError(f"{t['id']}: empty `score` list would pass anything")
+        # A kind nothing knows how to run used to reach `score_checks` and raise
+        # KeyError halfway through a scoreboard, discarding every row already
+        # graded. Caught here, where the answer is "fix the task file".
+        for kind in t["score"]:
+            if kind not in SCORE_KINDS:
+                raise ValueError(f"{t['id']}: `score` names {kind!r}, which is not "
+                                 f"one of {', '.join(sorted(SCORE_KINDS))}")
         if t.get("genre") not in (None, "sales", "internal"):
             raise ValueError(f"{t['id']}: genre {t['genre']!r} is not one "
                              f"check_prose.py accepts")
@@ -149,10 +168,16 @@ def score_checks(kind: str, path: pathlib.Path, genre: str | None = None) -> dic
     analysis. The task said what it was and nothing carried the word to the
     checker.
     """
-    script = {"prose": "check_prose.py", "design": "check_design.py"}[kind]
+    script = SCRIPTS[kind]
     argv = [sys.executable, str(ROOT / "scripts" / script), str(path), "--json"]
     if kind == "prose" and genre:
         argv += ["--genre", genre]
+    if kind == "layout":
+        # `--deliverable` is the point: without it `inspect_layout.py` gates on
+        # nothing and every artifact scores the same. `--no-sheet` because the
+        # contact sheet is for a person to look at and nobody is watching a
+        # harness run; the numbers are what this reads.
+        argv += ["--deliverable", "--no-sheet"]
     proc = subprocess.run(argv, capture_output=True, text=True)
     try:
         report = json.loads(proc.stdout)
@@ -220,7 +245,13 @@ def render(record: dict) -> str:
               "`not installed` were not exercised and are listed rather than omitted. "
               "A cell reading `stale: task changed` means the recorded verdict answers "
               "a version of that task the repository no longer contains — it is not a "
-              "pass and not a failure, it is a result that has to be re-earned."]
+              "pass and not a failure, it is a result that has to be re-earned.",
+              "",
+              "**A verdict can change without the artifact changing.** The checks are "
+              "the moving part: a row re-scored after a release that taught the "
+              "checkers something new is a statement about this package's instruments "
+              "on that date, not about the model that wrote the file. A `pass` that "
+              "later reads `fail` most often means the earlier run measured less."]
     return "\n".join(lines) + "\n"
 
 

@@ -32,10 +32,11 @@ request. Its guards are the mechanical half of the invariants below: version
 stamps, version citations, the English-only red line, markdown link targets,
 stale forward promises, the platform manifest, retired values, palette parity
 between the two `tokens/` files, that every `var()` in `tokens/` resolves to a
-custom property `tokens/` defines, the text ladder's contrast floor, ban-list
-parity, that every generated artifact and fixture is current, that the checkers
-still produce the expected verdicts on both fixtures, and that the vendored
-assets are intact.
+custom property `tokens/` defines, that every class a probe asserts has a base
+rendering in `tokens/` or a written waiver, the text ladder's contrast floor,
+ban-list parity, that every generated artifact and fixture is current, that the
+checkers still produce the expected verdicts on both fixtures, and that the
+vendored assets are intact.
 
 `check_prose.py`, `check_design.py` and `inspect_layout.py` all measure a
 **deliverable** rather than this repo. Two of them do run in CI, against the
@@ -47,7 +48,12 @@ for a person to look at. **None of its design judgements gates, but it exits 1
 when a check could not be measured at all** — a document whose markup it cannot
 read, a role whose class it cannot find, an audit that crashed. That distinction
 is the point: until 0.1.350 all three of those printed the same reassuring lines as
-a clean document. `check_prose.py` is
+a clean document. **`--deliverable` gates a *document*, never this repo**: it
+exits non-zero on the seven findings that are decidable rather than aesthetic
+(collision, content spill, page height, hidden content, an overspent title
+reserve, a role split, a lost datum) and is the pre-delivery step in `SKILL.md`.
+`run_conformance.py` runs it that way. Everything else it prints stays reported,
+including the part-opener count, which is an observation and not a floor. `check_prose.py` is
 English-only and takes `--genre internal` to exempt internal analysis documents
 from the em-dash rule. `check_design.py` reads a document's own token block, so it
 grades a file against the palette that file actually declares rather than against

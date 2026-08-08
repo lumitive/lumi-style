@@ -46,10 +46,13 @@ reports `NOT MEASURED` without it rather than disappearing.
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import pathlib
 import sys
 import tempfile
+from contextlib import redirect_stdout
 
 
 class Unmeasurable(Exception):
@@ -593,6 +596,19 @@ PROBE = r"""
         ledeWorst = {over, reserve: Math.round(reserve), need: Math.round(need)};
       }
       for (const e of [lede, ...lede.querySelectorAll('*')]) {
+        // Only a box that HOLDS TEXT can hide text. `<svg>` carries
+        // `overflow: hidden` from the UA stylesheet, so the first version of
+        // this flagged the eyebrow icon on 26 of 30 pages of a real deliverable
+        // — a 26-page false alarm on a finding that gates, which is how a gate
+        // teaches people to route around it. A clamp is suspicious on any
+        // text-bearing element; a hidden overflow is ordinary on everything
+        // else, and an icon is not text however close to the title it sits.
+        if (e.ownerSVGElement || e.tagName.toLowerCase() === 'svg') continue;
+        // Text ANYWHERE beneath it, not its own text nodes. The clamp that cost
+        // a real deliverable three title lines sat on the `.lede` container,
+        // whose own child nodes are elements — asking for own text let the
+        // exact case this check was written for through.
+        if (!(e.textContent || '').trim()) continue;
         const c = getComputedStyle(e);
         const clamp = c.webkitLineClamp || c.getPropertyValue('-webkit-line-clamp');
         const why = (clamp && clamp !== 'none') ? `line-clamp: ${clamp}`
@@ -640,6 +656,13 @@ PROBE = r"""
       hasFooter: !!footEl,
       titleMissing: titleExpected && !anyTitle,
       hasGround: s.querySelectorAll('.ground').length,
+      // The part opener. `.page.opener` is styled in lumi-layouts.css and named
+      // in brand.md, and nothing has ever required, reported or checked it — so
+      // a deck with none of them looked the same in every report as a deck with
+      // six. Reported as a count and NEVER floored: how many part divisions a
+      // document wants is a structural decision belonging to its storyline, and
+      // a minimum here would grow openers to satisfy the number.
+      isOpener: s.classList.contains('opener'),
       capBlocks: s.querySelectorAll('.cap').length,
       spillPx, pageSpillPx, deepestWho,
       frameSkewPx,
@@ -1147,6 +1170,67 @@ def contact_sheet(shots, out_path, cols=4):
     return out_path
 
 
+# ── the gating predicates ─────────────────────────────────────────────────────
+# Defined once and read twice: `page_report` prints them and `--deliverable`
+# exits on them. Written as two copies they would drift, and a gate that
+# disagrees with the report printed above it is worse than no gate at all.
+#
+# What is here and what is not is the whole judgement of 0.1.368. Each of these is
+# DECIDABLE — two blocks either overlap or they do not, a page is either 720px
+# or it is not — and each is a defect a reader sees. Focal ratio, column weight,
+# caption detachment, centerpiece scale, empty band and the part-opener count
+# stay reported, because the fix for each is a design decision and a number that
+# can be satisfied without improving the page ends the looking (SKILL.md rule 4,
+# and D7's withdrawal in 0.1.340 is what it cost to learn that).
+def _colliding(live):
+    return [r for r in live if r.get("textOverlaps", 0)]
+
+
+def _spilling(live):
+    return [r for r in live if r.get("hasFooter") and r.get("spillPx", 0) > 1]
+
+
+def _too_tall(live):
+    return [r for r in live if r["overflowPx"] > 1]
+
+
+def _hiding(live):
+    return [r for r in live if r.get("ledeClamped")]
+
+
+# 4px, and the number is a rounding allowance rather than a design judgement:
+# scrollHeight is an integer and a block box is fractional, so a lede that fits
+# exactly can measure up to ~1.5px over across its three children. One title line
+# is 35px at the design geometry, so the allowance is nowhere near wide enough to
+# hide the thing this measures.
+RESERVE_ALLOWANCE_PX = 4
+
+
+def _overspent(live):
+    ledes = [r for r in live if r.get("ledeBlocks")]
+    if ledes and not ledes[0].get("reserveExpected"):
+        return []                      # portrait releases the reserve by design
+    return [r for r in ledes if r.get("ledeOverspendPx", 0) > RESERVE_ALLOWANCE_PX]
+
+
+def _role_split(role):
+    return len(role["variants"]) > 1
+
+
+def _role_splits(c):
+    return [role for role in c["roles"] if _role_split(role)]
+
+
+def _no_datum(c):
+    """True when the geometry expects one datum and the pages hold several.
+
+    Absence is not a finding here: a document with no `.lede`-and-title page
+    pairs reports NOT MEASURED above, and turning that into a gate would fail
+    every one-page artifact for having nothing to compare.
+    """
+    return bool(c.get("datumExpected") and len(c["datums"]) > 1)
+
+
 def _fmt_ids(rows, n=6, key=None):
     """Name the pages, so a designer knows where to look."""
     ordered = sorted(rows, key=key) if key else rows
@@ -1331,7 +1415,7 @@ def page_report(rows, geometry, errors):
     # collision and no overflow, so a page that deletes three of its four title
     # lines reads as clean everywhere else in this report.
     ledes = [r for r in live if r.get("ledeBlocks")]
-    hidden = [r for r in live if r.get("ledeClamped")]
+    hidden = _hiding(live)
     if hidden:
         print(f"  CONTENT HIDDEN: {len(hidden)} pages clip their own title block — "
               "text that does not render is deleted content, and the fix for an "
@@ -1339,12 +1423,7 @@ def page_report(rows, geometry, errors):
               + ", ".join(f"{r['id']} {r['ledeClamped'][0]['who']} "
                           f"({r['ledeClamped'][0]['why']})" for r in hidden[:5]))
     released = ledes and not ledes[0].get("reserveExpected")
-    # 4px, and the number is a rounding allowance rather than a design judgement:
-    # scrollHeight is an integer and a block box is fractional, so a lede that
-    # fits exactly can measure up to ~1.5px over across its three children. One
-    # title line is 35px at the design geometry, so the allowance is nowhere near
-    # wide enough to hide the thing this measures.
-    over = [] if released else [r for r in ledes if r.get("ledeOverspendPx", 0) > 4]
+    over = _overspent(live)
     if over:
         print(f"  RESERVE OVERSPENT: {len(over)} of {len(ledes)} title blocks need "
               f"more height than they reserve — the reserve is a ceiling, so this "
@@ -1365,7 +1444,7 @@ def page_report(rows, geometry, errors):
     else:
         print(f"  -- reserve: no page carries a .lede at {geometry}, nothing to weigh")
 
-    clash = [r for r in live if r.get("textOverlaps", 0)]
+    clash = _colliding(live)
     if clash:
         print(f"  COLLISION: {len(clash)} pages have blocks landing on each other — "
               + ", ".join(f"{r['id']} {r['worstOverlap']['a']}/{r['worstOverlap']['b']} "
@@ -1398,6 +1477,12 @@ def page_report(rows, geometry, errors):
         print(f"  waterline: one horizon on each of {len(live)} pages")
 
     ndrawn = sum(1 for r in live if r["drawn"])
+    openers = [r for r in live if r.get("isOpener")]
+    print(f"  part openers: {len(openers)} of {len(live)} pages"
+          + (" — " + _fmt_ids(openers) if openers
+             else ", so the deck runs as one undivided sequence")
+          + ". An observation, not a floor.")
+
     print(f"  figures: {ndrawn} of {len(live)} pages are built on a drawing "
           f"rather than a grid or a block of prose")
 
@@ -1418,7 +1503,7 @@ def page_report(rows, geometry, errors):
         unmeasured += len(unfooted)
         print(f"  FOOTER MISSING: {len(unfooted)} of {len(live)} pages carry no .foot, "
               f"so they have no footer rule to stay above: " + _fmt_ids(unfooted))
-    spill = [r for r in footed if r.get("spillPx", 0) > 1]
+    spill = _spilling(live)
     if spill:
         print(f"  CONTENT SPILL: {len(spill)} of {len(footed)} pages run past the "
               f"footer rule — "
@@ -1427,7 +1512,7 @@ def page_report(rows, geometry, errors):
     elif footed:
         print(f"  content: all {len(footed)} pages stay above the footer rule")
 
-    tall = [r for r in live if r["overflowPx"] > 1]
+    tall = _too_tall(live)
     if tall:
         print(f"  PAGE HEIGHT: {len(tall)} of {len(live)} pages exceed the {h}px page — "
               + ", ".join(f"{r['id']} +{r['overflowPx']}px" for r in tall[:8]))
@@ -1449,7 +1534,7 @@ def consistency_print(label, c):
             unmeasured += 1
             print(f"  -- {role['name']}: NOT MEASURED, no element matched "
                   f"'{role['sel']}' anywhere in the document")
-        elif len(v) > 1:
+        elif _role_split(role):
             note = f" (ignoring {', '.join(role['ignored'])})" if role["ignored"] else ""
             print(f"  ROLE SPLIT: {role['name']} renders {len(v)} different ways{note}")
             for x in v:
@@ -1489,7 +1574,7 @@ def consistency_print(label, c):
         print(f"  -- datum: released in this geometry by design (portrait is a "
               f"composition, not a reflow) — content starts at {len(d)} heights "
               f"across {c.get('datumPages', 0)} pages")
-    elif len(d) > 1:
+    elif _no_datum(c):
         worst = sorted(d.items(), key=lambda kv: -len(kv[1]))
         print(f"  NO DATUM: content starts at {len(d)} different heights — "
               + ", ".join(f"{y}px x{len(ids)}" for y, ids in worst[:6]))
@@ -1527,6 +1612,61 @@ def consistency_print(label, c):
     return unmeasured
 
 
+def deliverable_verdicts(rows, consistency):
+    """The gating findings for one file at one geometry, as {name: (verdict, detail)}.
+
+    Computed from the same rows the report prints and through the same
+    predicates, so `--deliverable` can never disagree with the text above it. A
+    finding whose subject is absent is `n/a`, never `ok`: a document with no
+    multi-column page has not passed the datum check, it has not taken it.
+    """
+    live = [r for r in rows if not r.get("unmeasurable")] if rows else []
+    out = {}
+
+    def add(name, hits, na, detail):
+        out[name] = ("n/a" if na else "FAIL" if hits else "ok",
+                     detail(hits) if hits else "")
+
+    add("collision", _colliding(live), not live,
+        lambda h: f"{len(h)} pages have blocks landing on each other: " + _fmt_ids(h))
+    footed = [r for r in live if r.get("hasFooter")]
+    add("content_spill", _spilling(live), not footed,
+        lambda h: f"{len(h)} pages run past the footer rule: " + _fmt_ids(h))
+    add("page_height", _too_tall(live), not live,
+        lambda h: f"{len(h)} pages exceed the page box: " + _fmt_ids(h))
+    add("content_hidden", _hiding(live), not live,
+        lambda h: f"{len(h)} pages clip their own title block: " + _fmt_ids(h))
+    ledes = [r for r in live if r.get("ledeBlocks")]
+    add("reserve_overspent", _overspent(live),
+        not ledes or not ledes[0].get("reserveExpected"),
+        lambda h: f"{len(h)} title blocks need more height than they reserve: "
+                  + _fmt_ids(h))
+
+    if not consistency:
+        out["role_split"] = ("n/a", "the consistency audit did not run")
+        out["datum"] = ("n/a", "the consistency audit did not run")
+        return out
+    splits = _role_splits(consistency)
+    # A role that matched nothing is NOT MEASURED and already exits 1 through the
+    # unmeasured path; counting it here too would report one defect twice under
+    # two different names.
+    graded = [r for r in consistency["roles"] if r["variants"]]
+    add("role_split", splits, not graded,
+        lambda h: ", ".join(f"{r['name']} renders {len(r['variants'])} ways" for r in h))
+    out["datum"] = (
+        "n/a" if not consistency["datums"] or not consistency.get("datumExpected")
+        else "FAIL" if _no_datum(consistency) else "ok",
+        f"content starts at {len(consistency['datums'])} different heights"
+        if _no_datum(consistency) else "")
+    return out
+
+
+def deliverable_print(label, verdicts):
+    print(f"\n{label} — graded as a deliverable")
+    for finding, (verdict, detail) in verdicts.items():
+        print(f"  {verdict:<5} {finding:<18}" + (f" {detail}" if detail else ""))
+
+
 GROUND_CEILING = 1.40          # a ceiling, not a target: quieter is always fine
 
 
@@ -1559,10 +1699,19 @@ def main(argv):
                          "inferred from a *.dark.* filename")
     ap.add_argument("--no-aspect", action="store_true",
                     help="skip the off-shape aspect assertion")
+    ap.add_argument("--deliverable", action="store_true",
+                    help="grade this file as something about to be sent: exit "
+                         "non-zero on collision, content spill, page height, "
+                         "hidden content, an overspent title reserve, a role "
+                         "split or a lost datum. Without it nothing here gates.")
     args = ap.parse_args(argv)
     geometries = args.geometry or DEFAULT_GEOMETRIES
 
     results, unmeasured = [], 0
+    # {(file, geometry): {finding: (verdict, detail)}}. Collected whether or not
+    # anything is printed, because `--json` skips every print block and the gate
+    # may not depend on which output mode the operator chose.
+    graded = {}
     for name in args.files:
         path = pathlib.Path(name).resolve()
         if not path.exists():
@@ -1592,46 +1741,59 @@ def main(argv):
 
             w, h = GEOMETRIES[geometry]
             label = f"{path.name} @ {geometry} ({w}x{h}, {'dark' if dark else 'light'})"
-            if not args.json:
+            # `--json` used to skip the three report functions outright, and each
+            # of them RETURNS the count of what it could not measure — so the
+            # machine-readable mode, the one a harness consumes, was the one
+            # whose exit code did not count a single unmeasured check. The
+            # functions now always run and their output is swallowed instead:
+            # "a check that did not run is not a check that passed" cannot be
+            # true only in the mode a person is watching.
+            quiet = (redirect_stdout(io.StringIO()) if args.json
+                     else contextlib.nullcontext())
+            with quiet:
                 print(f"\n{label}")
-            if not rows:
-                unmeasured += 1
-                if not args.json:
+                if not rows:
+                    unmeasured += 1
                     print(f"  NOT MEASURED: no section.page matched in {path.name}. "
                           f"Nothing below this line was checked — this is a report "
                           f"about zero pages, not a clean document.")
-            elif not args.json:
-                unmeasured += page_report(rows, geometry, errors)
+                else:
+                    unmeasured += page_report(rows, geometry, errors)
 
             # Both audits run per geometry now, and say which one they ran at.
             try:
                 c = consistency_report(path.as_uri(), GEOMETRIES[geometry], dark)
             except Unmeasurable as exc:
                 c, unmeasured = None, unmeasured + 1
-                if not args.json:
+                with quiet:
                     print(f"\n{label} — one role, one rendering: NOT MEASURED ({exc})")
             except Exception as exc:                       # noqa: BLE001
                 c, unmeasured = None, unmeasured + 1
-                if not args.json:
+                with quiet:
                     print(f"\n{label} — one role, one rendering: NOT MEASURED "
                           f"({exc.__class__.__name__}: {exc}). This audit did not run.")
             else:
-                if not args.json:
+                with quiet:
                     unmeasured += consistency_print(label, c)
 
             try:
                 g = ground_report(path.as_uri(), GEOMETRIES[geometry], dark)
             except Unmeasurable as exc:
                 g, unmeasured = None, unmeasured + 1
-                if not args.json:
+                with quiet:
                     print(f"  ground: NOT MEASURED ({exc})")
             except Exception as exc:                       # noqa: BLE001
                 g, unmeasured = None, unmeasured + 1
-                if not args.json:
+                with quiet:
                     print(f"  ground: NOT MEASURED ({exc.__class__.__name__}: {exc})")
             else:
-                if not args.json:
+                with quiet:
                     unmeasured += ground_print(label, g)
+
+            verdicts = deliverable_verdicts(rows, c)
+            graded[(path.name, geometry)] = verdicts
+            if args.deliverable and not args.json:
+                deliverable_print(label, verdicts)
 
             if sheet and not args.json:
                 print(f"  contact sheet: {sheet}")
@@ -1639,6 +1801,7 @@ def main(argv):
             results.append({"file": path.name, "geometry": geometry,
                             "size": GEOMETRIES[geometry], "dark": dark,
                             "pages": rows, "pageErrors": errors,
+                            "verdicts": {k: v for k, (v, _) in verdicts.items()},
                             "consistency": c, "ground": g})
 
         if args.no_aspect:
@@ -1658,7 +1821,8 @@ def main(argv):
                 print(f"\n{path.name} — aspect: NOT MEASURED "
                       f"({exc.__class__.__name__}: {exc})")
         else:
-            if not args.json:
+            with (redirect_stdout(io.StringIO()) if args.json
+                  else contextlib.nullcontext()):
                 print(f"\n{path.name} — does a landscape page hold 16:9 in a window "
                       f"that is not 16:9?")
                 for f in aspect:
@@ -1678,11 +1842,38 @@ def main(argv):
                               f"all {f['measured']} measured pages hold 16:9")
         results.append({"file": path.name, "aspect": aspect})
 
+    # One verdict per finding across every geometry: a page that collides at A4
+    # and not at 1280 collides. Reported per geometry above; folded here, because
+    # a deliverable is one artifact and it ships or it does not.
+    folded = {}
+    for verdicts in graded.values():
+        for finding, (verdict, detail) in verdicts.items():
+            was = folded.get(finding, ("n/a", ""))
+            if verdict == "FAIL" or (verdict == "ok" and was[0] == "n/a"):
+                folded[finding] = (verdict, detail)
+            folded.setdefault(finding, was)
+    failing = {k: v for k, v in folded.items() if v[0] == "FAIL"}
+
     if args.json:
-        print(json.dumps({"results": results, "unmeasured": unmeasured}, indent=2))
-    elif unmeasured:
-        print(f"\n{unmeasured} check(s) could not be measured. A check that did not "
-              f"run is not a check that passed — exit 1.")
+        print(json.dumps({"results": results, "unmeasured": unmeasured,
+                          "verdicts": {k: v for k, (v, _) in folded.items()}},
+                         indent=2))
+    else:
+        if unmeasured:
+            print(f"\n{unmeasured} check(s) could not be measured. A check that did not "
+                  f"run is not a check that passed — exit 1.")
+        if args.deliverable:
+            if failing:
+                print(f"\nNOT SHIPPABLE: {len(failing)} of {len(folded)} gating "
+                      f"findings fired — " + ", ".join(sorted(failing)))
+            else:
+                na = sorted(k for k, v in folded.items() if v[0] == "n/a")
+                print(f"\nNo gating finding fired"
+                      + (f" ({len(na)} had nothing to grade: {', '.join(na)})" if na else "")
+                      + ". That is geometry and consistency, not a verdict on the "
+                        "design — look at the contact sheet.")
+    if args.deliverable and failing:
+        return 1
     return 1 if unmeasured else 0
 
 
