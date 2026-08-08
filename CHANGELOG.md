@@ -3,6 +3,55 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.359 — the fixture suite starts proving what it claimed
+
+0.1.355 shipped two fixtures to test the check scripts, and the review found the
+suite could not do the job it was built for.
+
+**Ten of thirteen design metrics were asserted on neither fixture.** `D1_contrast`,
+`D6_footer`, `D8_support_line`, `D9_layout_spread`, `D10_label_icons`,
+`D13_lime_as_text` and four more returned `ok` on both documents and were checked
+against nothing, so any of them rewritten to `return "ok"` unconditionally would
+have passed the suite. That is the 0.1.350 defect one level up: a regression test
+built to prove the checkers fire, unable to notice a checker that stopped firing.
+`expected.json` now asserts every metric each checker emits, on both fixtures.
+
+**The one gating design check had a real parsing bug, and the fixture was written
+around it.** `d12_commercial_footer` captured the footer non-greedily to the first
+`</div>`, so a deliverable wrapping its handling terms in a nested `<div>` failed
+the only check that blocks a ship — for a reason having nothing to do with the
+terms being present. `build_fixtures.py` carried a comment explaining precisely
+this and used spans to avoid it, which guaranteed the regression suite could never
+surface it. That is the letter of `fixtures/README.md`'s own rule, written in the
+same release: **never edit a fixture to make a check pass.** The parser now
+balances the element's own tags, and D6 and the colophon check, which carried the
+identical shape, use it too.
+
+**`.srcline` and `.f-acc` were asserted before they were shipped.** The
+component-colour audit keys on `.f-acc` and both fixtures emit both classes, while
+neither existed in `tokens/`. This is the reverse-drift CLAUDE.md names and the
+defect 0.1.349 was penalised for, at smaller scale but load-bearing rather than
+incidental: they were gated by `--check` in CI. Both now ship.
+
+**Two recorded numbers were wrong, and one task was unfailable.** T2 claimed six
+banned phrases in its seeded passage; `check_prose.py` measures fourteen. T3's
+recall key used bare substrings, so `"not"` matched *note*, *cannot* and
+*nothing*, `"1"` was guaranteed by the prompt's own instruction to number the
+answers, and `"red"` matched *red line* and *required* — three of five questions
+could not be failed. Measured after the fix: an answer sheet of "I do not know /
+Not sure / Cannot say / No idea / Nothing" scores **0 of 5**, where it previously
+scored 3. A recall task an agent passes without loading anything measures nothing.
+
+Also: `glob` is now `sorted`, so an agent that leaves a second Markdown file
+alongside its answer cannot make the scored artifact depend on filesystem order.
+
+*Not fixed here, and worth naming rather than burying:* `deck-pass.en.html` still
+uses one layout on all fourteen body pages and carries none of the eight semantic
+icons — the pathology `D9` and `D10` exist to report. Both metrics are now
+asserted, so the decay is at least visible; making the reference deliverable
+actually model layout variety is a design job, not a test job, and it is
+outstanding.
+
 ## 0.1.358 — absence stops meaning assent
 
 A review of the five preceding releases mutation-tested every new guard and found

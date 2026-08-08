@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.358 (2026-08-08)
+   LUMI page layouts · v0.1.359 (2026-08-08)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -140,6 +140,18 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
   border-left: 2px solid var(--ln1); padding: 2px 0 2px 15px;
   font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2);
 }
+/* The source line inside a caption, and the filled measure bar inside a figure.
+   Both were being asserted before they were shipped: `inspect_layout.py` keys its
+   component-colour audit on `.f-acc`, and the fixture emits both — while neither
+   existed in this file. That is exactly the reverse-drift CLAUDE.md names, and
+   0.1.349 was penalised for the same thing at six times the scale. A probe that
+   keys on a class name is asserting a vocabulary, and the vocabulary ships here. */
+.cap .srcline {
+  color: var(--tx4); letter-spacing: .02em;
+}
+.fig svg .f-acc { fill: var(--acc); }
+.fig svg .f-lime { fill: var(--lime); }
+
 /* The figure's number and name, under the drawing. */
 .cap .n {
   font-weight: 700; font-size: var(--fs-fine); color: var(--tx2);

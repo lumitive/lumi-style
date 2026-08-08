@@ -34,6 +34,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -98,7 +99,8 @@ def score_checks(kind: str, path: pathlib.Path) -> dict:
 
 def score_recall(task: dict, text: str) -> dict:
     low = text.lower()
-    hits = {q: any(k in low for k in keys) for q, keys in task["answers"].items()}
+    hits = {q: any(re.search(k, low) for k in keys)
+            for q, keys in task["answers"].items()}
     return {"score": sum(hits.values()), "of": len(hits),
             "missed": [q for q, ok in hits.items() if not ok]}
 
@@ -181,8 +183,12 @@ def main(argv):
                 task = by_id.get(task_dir.name)
                 if task is None:
                     continue
-                produced = [f for f in task_dir.glob(task["deliverable"])
-                            if f.name not in ("input.md",)]
+                # sorted: glob yields in filesystem order, so an agent that also
+                # left notes.md made the scored artifact depend on directory
+                # ordering — non-reproducible for a reason unrelated to model
+                # non-determinism, which this harness is careful to bound.
+                produced = sorted(f for f in task_dir.glob(task["deliverable"])
+                                  if f.name not in ("input.md",))
                 key = f"{agent_dir.name}/{task_dir.name}"
                 if not produced:
                     # No artifact is NOT a pass. It is the most common real

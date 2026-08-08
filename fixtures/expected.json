@@ -1,34 +1,81 @@
 {
-  "$comment": "Hand-written, never generated. It asserts VERDICTS and exit codes, not values: 'M8_length_cv: ok', never 0.578. A golden file full of raw numbers rots on every cosmetic change and trains people to regenerate it unread, so a legitimate threshold change should touch one line here and show up in review as an intent change, while an accidental regression shows up as a verdict flip.",
+  "$comment": "Hand-written, never generated. It asserts VERDICTS and exit codes, not values: 'M8_length_cv: ok', never 0.578. A golden file full of raw numbers rots on every cosmetic change and trains people to regenerate it unread, so a legitimate threshold change should touch one line here and show up in review as an intent change, while an accidental regression shows up as a verdict flip. Every metric each checker emits is asserted on both fixtures, not just the ones a defect was planted for: ten of thirteen design metrics were asserted on neither, so any of them rewritten to return 'ok' unconditionally would have passed this suite.",
   "schema": 1,
   "fixtures": {
     "deck-pass.en.html": {
       "prose": {
-        "argv": ["--genre", "sales"],
+        "argv": [
+          "--genre",
+          "sales"
+        ],
         "exit": 0,
         "verdicts": {
-          "M4_banned_hits": "ok", "M8_overlong_share": "ok", "M8_length_cv": "ok",
-          "M9_dashes": "ok", "M10_triad_rate": "ok", "M11_title_uniformity": "ok"
+          "M4_banned_hits": "ok",
+          "M8_overlong_share": "ok",
+          "M8_length_cv": "ok",
+          "M9_dashes": "ok",
+          "M10_triad_rate": "ok",
+          "M11_title_uniformity": "ok"
         },
-        "forbid_verdicts": ["n/a"]
+        "forbid_verdicts": [
+          "n/a"
+        ]
       },
       "design": {
         "argv": [],
         "exit": 0,
-        "verdicts": {"D12_commercial_footer": "ok", "D4_palette_literals": "ok"}
+        "verdicts": {
+          "D1_contrast": "ok",
+          "D2_type_scale": "ok",
+          "D3_tier1_per_page": "ok",
+          "D3_tier1_page_share": "ok",
+          "D4_palette_literals": "ok",
+          "D5_figure_parity": "ok",
+          "D6_footer": "ok",
+          "D8_support_line": "ok",
+          "D9_layout_spread": "ok",
+          "D10_label_icons": "ok",
+          "D12_commercial_footer": "ok",
+          "D13_lime_as_text": "ok"
+        }
       }
     },
     "deck-broken.en.html": {
       "prose": {
-        "argv": ["--genre", "sales"],
+        "argv": [
+          "--genre",
+          "sales"
+        ],
         "exit": 1,
-        "verdicts": {"M4_banned_hits": "FAIL"},
-        "contains": {"M4_banned_hits": ["leverage (verb)", "seamless", "robust", "showcase"]}
+        "verdicts": {
+          "M4_banned_hits": "FAIL"
+        },
+        "contains": {
+          "M4_banned_hits": [
+            "leverage (verb)",
+            "seamless",
+            "robust",
+            "showcase"
+          ]
+        }
       },
       "design": {
         "argv": [],
         "exit": 1,
-        "verdicts": {"D12_commercial_footer": "FAIL", "D4_palette_literals": "FAIL"}
+        "verdicts": {
+          "D1_contrast": "ok",
+          "D2_type_scale": "ok",
+          "D3_tier1_per_page": "ok",
+          "D3_tier1_page_share": "ok",
+          "D4_palette_literals": "FAIL",
+          "D5_figure_parity": "ok",
+          "D6_footer": "ok",
+          "D8_support_line": "ok",
+          "D9_layout_spread": "ok",
+          "D10_label_icons": "ok",
+          "D12_commercial_footer": "FAIL",
+          "D13_lime_as_text": "ok"
+        }
       }
     }
   }
