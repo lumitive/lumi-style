@@ -130,11 +130,22 @@ def page(i: int, total: int, spec, broken: bool) -> str:
             style = ' style="border-color:#ABCDEF"'          # D4 literal colour
         if i == 7:
             terms = "Prepared for circulation"               # D12: no handling terms
+        if i == 6:
+            # a real prose em-dash, which M9 must still catch
+            sup = "The gap is signal &#8212; not hardware, and it follows terrain."
         if i == 9:
             sup = sup + " The gap is measured against a baseline taken in the first "\
                         "quarter of the programme, before the rural feeders had been "\
                         "surveyed at all, which makes the comparison generous."  # M8 overlong
     lis = "".join(f"<li>{b}</li>" for b in bullets)
+    # A table whose last cell is an em-dash placeholder — "no value", the
+    # standard convention. M9 bans em-dashes in PROSE and counted this, failing
+    # a deliverable that had none. Found by running the checker against real
+    # agent output; the fixtures we wrote ourselves never used a placeholder.
+    cell = ""
+    if i == 8:
+        cell = ('<table><tbody><tr><td>Rural feeders</td><td>41</td></tr>'
+                '<tr><td>Deferred</td><td>&#8212;</td></tr></tbody></table>')
     # Pages 2 and 3 carry a stat band and a display lead. Without them the
     # fixture never exercises `.band .k`, `.band .v` or the focal element, and
     # inspect_layout.py correctly reports those roles as NOT MEASURED — a
@@ -163,7 +174,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
       <p class="listhead">What the data shows</p>
       <p class="gd"{style}>{gd}</p>
       <ul>{lis}</ul>
-      {band}{lead}
+      {cell}{band}{lead}
     </div>
     <div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
