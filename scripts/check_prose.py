@@ -141,6 +141,13 @@ MIN_SENTENCES = 30      # below this, rhythm is noise
 MIN_TITLES = 8          # below this, one frame dominating means nothing
 BLOCK_END = re.compile(r"</(?:p|li|h[1-6]|td|th|div|section|figcaption|blockquote)>", re.I)
 NUMERIC_RANGE = re.compile(r"\d\s*[–—]\s*\d")
+# A cell whose entire content is a dash means "no value" — the standard
+# typographic convention in a table, not a dash in prose. M9 bans the AI-flavor
+# tell of em-dashes in sentences; it counted `<td>—</td>` and failed a
+# deliverable that had no such dash anywhere in its prose. Found by running the
+# checker against real agent output rather than against a fixture we wrote.
+EMPTY_CELL_DASH = re.compile(
+    r"<t[dh][^>]*>\s*(?:[–—]|&#8211;|&#8212;|&[mn]dash;)\s*</t[dh]>", re.I)
 
 
 class Unmeasurable(Exception):
@@ -158,6 +165,7 @@ def extract(path):
         if re.search(r"<(script|style)\b", raw, re.I) and not re.search(
                 r"</(script|style)>", raw, re.I):
             raise Unmeasurable("unclosed <script>/<style>; code would be scored as prose")
+        raw = EMPTY_CELL_DASH.sub("<td></td>", raw)
         raw_nostrip = re.sub(r"<(script|style|svg|head)\b.*?</\1>", " ", raw, flags=re.S | re.I)
         titles = [
             re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", m.group(1)))).strip()

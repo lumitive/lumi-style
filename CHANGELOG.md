@@ -3,6 +3,48 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.363 — the first agent outside Claude Code, and the checker was wrong
+
+Cursor was installed from the registry path, driven by hand through all three
+conformance tasks, and scored. **Three of three pass** — the first real reading
+this scoreboard has ever carried, and the first evidence that the claim behind
+this whole release line survives contact with a different model.
+
+| task | result |
+|---|---|
+| red-line recall | **5/5** — seal red and its hex, "AI never signs", "source or derivation", "exactly one focal element" |
+| de-AI rewrite | **pass** — 14 seeded banned phrases to 0 |
+| twelve-page deck | **pass** — every design metric clean, including D12 |
+
+**The one failure in the first run was ours.** T1 came back `M9_dashes = 1`, and
+the dash was `<td>&#8212;</td>` — an empty-cell placeholder, the standard
+typographic convention for "no value". M9 exists to catch em-dashes in *prose*, an
+AI-flavor tell; it counted a table cell and failed a deliverable that had no such
+dash in a sentence anywhere. The numeric-range exemption already in the checker
+shows the mechanism was right and the case was simply missed. Cell placeholders,
+in both literal and entity form, are now exempt.
+
+This is worth recording as a class: **we had never run these checkers against
+output we did not write.** Every fixture in this repository was authored by the
+same hand that authored the checks, so a convention we happened not to use was a
+convention the suite could not see. The fixtures now carry both cases — a
+placeholder that must not fire, and a prose em-dash that must — and removing the
+exemption fails the suite.
+
+**A task shorter than the checker's floor measures nothing.** T1 asked for six
+pages while M11 needs eight titles to grade, so it reported `n/a` every run and
+the task could never exercise the metric it was scoring against. It asks for
+twelve pages now.
+
+**`run --agent <id>`** prepares a task directory for a platform that answers no
+probe. Cursor is an IDE, Antigravity is an IDE, Kimi and DeepSeek are API models —
+four of twelve platforms can never be detected, and the harness only served the
+ones that could, so the most common case required building the directory by hand.
+
+**`report --run` now reads `scores.json`** instead of rendering "not run" into
+every cell regardless. An agent driven by hand shows its real verdicts and its CLI
+column reads `driven by hand`, which is what it is.
+
 ## 0.1.362 — the fixes had been re-enacting the defect they closed
 
 A second review of the fix releases returned a verdict worth recording plainly:

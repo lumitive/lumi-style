@@ -168,6 +168,9 @@ def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("command", choices=["validate", "detect", "run", "score", "report"])
     ap.add_argument("--run", default=None)
+    ap.add_argument("--agent", default=None,
+                    help="prepare (or report) this agent even if no CLI answers its "
+                         "probe — IDEs and API models are driven by hand")
     args = ap.parse_args(argv)
 
     try:
@@ -195,9 +198,17 @@ def main(argv):
         # agents detected — `run` announced a directory it had not made and
         # `score` then reported it missing.
         run_dir.mkdir(parents=True, exist_ok=True)
-        for a in agents:
-            if not probed[a["id"]][0]:
-                continue
+        wanted = [a for a in agents
+                  if (a["id"] == args.agent if args.agent else probed[a["id"]][0])]
+        if args.agent and not wanted:
+            print(f"FAIL  no platform with id {args.agent!r} in the registry")
+            return 1
+        if not wanted:
+            print("no agent detected and no --agent given; nothing to prepare. An IDE "
+                  "or an API model has no CLI to probe — name it with --agent and drive "
+                  "it by hand.")
+            return 1
+        for a in wanted:
             for t in tasks:
                 if CAP_RANK[a["capability"]] < CAP_RANK[t["min_capability"]]:
                     continue
@@ -309,13 +320,40 @@ def main(argv):
 
     # report
     version = (ROOT / "SKILL.md").read_text(encoding="utf-8").split('version: "')[1].split('"')[0]
+    scored = {}
+    if args.run:
+        f = pathlib.Path(args.run) / "scores.json"
+        if not f.exists():
+            print(f"FAIL  {f} does not exist; run `score --run {args.run}` first")
+            return 1
+        scored = json.loads(f.read_text(encoding="utf-8"))
     rows = []
     for a in agents:
         ok, note = probed[a["id"]]
+        # A recorded score outranks a probe: an agent driven by hand has no CLI
+        # to answer, and reporting it as "not installed" when its artifacts were
+        # just graded is the kind of false absence this scoreboard exists to
+        # avoid.
+        mine = {k.split("/", 1)[1]: v for k, v in scored.items()
+                if k.split("/", 1)[0] == a["id"]}
+        cells, verdicts = {}, []
+        for t in tasks:
+            s = mine.get(t["id"])
+            if s is None:
+                cells[t["id"]] = "—" if not ok else "not run"
+            else:
+                v = s["verdict"]
+                cells[t["id"]] = v if v == "pass" else (
+                    f"{v}: {', '.join(s.get('failed', []))}" if s.get("failed") else v)
+                verdicts.append(v)
+        if verdicts:
+            verdict = "pass" if all(v == "pass" for v in verdicts) else "fail"
+            cli = note if ok else "driven by hand"
+        else:
+            verdict = "not installed" if not ok else "not run"
+            cli = note if ok else "—"
         rows.append({"name": a["name"], "capability": a["capability"],
-                     "cli": note if ok else "—",
-                     "tasks": {t["id"]: ("—" if not ok else "not run") for t in tasks},
-                     "verdict": "not installed" if not ok else "not run"})
+                     "cli": cli, "tasks": cells, "verdict": verdict})
     record = {"version": version, "run_id": args.run or "detect-only",
               "host": f"{sys.platform}", "agents": len(agents),
               "detected": sum(1 for v in probed.values() if v[0]),

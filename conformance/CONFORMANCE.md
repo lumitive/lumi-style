@@ -1,13 +1,13 @@
-# LUMI style conformance · skill 0.1.362
+# LUMI style conformance · skill 0.1.363
 
-Run `detect-only` · darwin · 1 of 12 agents detected · n=1 per agent
+Run `conformance/results/cursor-20260808` · darwin · 1 of 12 agents detected · n=1 per agent
 
 | agent | capability | cli | T1-deck | T2-deaify | T3-recall | verdict |
 |---|---|---|---|---|---|---|
 | Claude Code | full | 2.1.225 (Claude Code) | not run | not run | not run | **not run** |
 | Gemini CLI | full | — | — | — | — | **not installed** |
 | OpenAI Codex | full | — | — | — | — | **not installed** |
-| Cursor | full | — | — | — | — | **not installed** |
+| Cursor | full | driven by hand | pass | pass | pass | **pass** |
 | Google Antigravity | full | — | — | — | — | **not installed** |
 | GitHub Copilot | full | — | — | — | — | **not installed** |
 | OpenCode | full | — | — | — | — | **not installed** |
