@@ -16,8 +16,9 @@ metric. Four of them were arithmetic:
     D10 label icons   figure nodes and row-heads carrying an icon (reported)
 
     D12 commercial footer  handling terms and origin on every page (**gates**)
+    D14 placeholders       slots the author left for themselves (**gates**)
 
-**Nothing here gates except D12.** Every other number is a diagnostic for a
+**Nothing here gates except D12 and D14.** Every other number is a diagnostic for a
 designer to read, and the exit code is 0 unless a file could not be measured at
 all. SKILL.md rule 4 is the reason: a page is done when a human reads it as
 intentional, and a metric that can be satisfied without improving the page ends
@@ -26,12 +27,14 @@ the looking instead of directing it. D7, an 82% page-fill floor, was withdrawn i
 diagrams rendered at 40% of their cell. For page geometry and centerpiece scale
 use scripts/inspect_layout.py.
 
-**D12 is different in kind, which is why it is the exception.** It is not a
-judgement about whether a page is well made; it is a commercial requirement on
-the artifact, like a contract term. Pages travel alone — a slide is screenshotted
-out of a deck and forwarded without the cover — so terms that live only on page
-one do not travel with the page. A design metric that gates is a mistake; a
-commercial one that does not is a different mistake.
+**D12 and D14 are different in kind, which is why they are the exceptions.**
+Neither is a judgement about whether a page is well made. D12 is a commercial
+requirement on the artifact, like a contract term: pages travel alone — a slide
+is screenshotted out of a deck and forwarded without the cover — so terms that
+live only on page one do not travel with the page. D14 asks whether the document
+is *finished*, which is decidable in a way that "is this page intentional" is
+not. A design metric that gates is a mistake; a commercial one that does not is a
+different mistake.
 
     python3 scripts/check_design.py deck.html [more files ...]
     python3 scripts/check_design.py --json deck.html
@@ -460,6 +463,48 @@ def d12_commercial_footer(raw, site=None):
             "missing_site": missing_site}
 
 
+# What an author leaves for themselves and then ships. Each alternative is a
+# marker vocabulary rather than "anything in brackets", because brackets are
+# ordinary prose punctuation — `[sic]`, `[2]`, `[EU]` — and a check that fails on
+# those is one people learn to ignore. Braces and angle brackets are doubled
+# because a single pair of either is markup or arithmetic, never a slot.
+PLACEHOLDER = re.compile(
+    r"\[[^\]\n]{0,60}\]|\{\{[^}\n]{0,60}\}\}|<<[^>\n]{0,60}>>", re.I)
+PLACEHOLDER_MARKERS = re.compile(
+    r"to\s*fill|to[-\s]?do\b|\btbd\b|\btba\b|fill[-\s]?in|\binsert\b|placeholder"
+    r"|\bx{2,}\b|lorem|\bname here\b|your\s+\w+\s+here|^\s*$", re.I)
+# `[...]` and `[…]` are deliberately NOT markers. Bracketed ellipsis is the
+# standard editorial mark for an elision inside a quotation, which a consulting
+# document uses legitimately, and a gate that fails on it is a gate people learn
+# to route around.
+
+
+def d14_placeholders(raw):
+    """No slot an author left for themselves may reach the reader.
+
+    **This gates, for the same reason D12 does.** It is not a judgement about
+    whether a page is well made — it is whether the document is finished, which
+    is decidable, and an unfinished document is not a deliverable at whatever
+    quality. A real deliverable shipped four `[TO FILL]` markers on its closing
+    page, immediately beside its own callout saying they must not ship. Every
+    check in this package passed it: prose because the marker is not a banned
+    phrase, design because it is not a colour or a contrast, layout because a
+    placeholder occupies exactly as much space as the text that should replace
+    it. Nothing had ever looked.
+    """
+    body = re.sub(r"<(script|style|svg)\b.*?</\1>", " ", raw, flags=re.S | re.I)
+    body = re.sub(r"<!--.*?-->", " ", body, flags=re.S)
+    found = []
+    for cls, pid, page in _pages(body) or [("", "(document)", body)]:
+        text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", page))
+        for m in PLACEHOLDER.finditer(text):
+            inner = m.group(0).strip("[]{}<>").strip()
+            if not PLACEHOLDER_MARKERS.search(inner):
+                continue
+            found.append({"page": pid, "text": m.group(0)[:40]})
+    return found
+
+
 def d9_layout_variety(raw):
     """One layout on 25 consecutive pages is what this metric exists to stop."""
     used, unknown = [], []
@@ -545,6 +590,7 @@ def measure(path):
         "D6_footer": d6_footer(raw),
         "D8_support_line": d8_support_line(raw),
         "D12_commercial_footer": d12_commercial_footer(raw),
+        "D14_placeholders": d14_placeholders(raw),
         "D13_lime_as_text": d13_lime_never_light_text(css, resolved, palette),
         "D9_layout_variety": d9_layout_variety(raw),
         "D10_label_icons": d10_label_icons(raw),
@@ -586,6 +632,8 @@ def grade(r):
                  "=0 (gates)",
                  bool(cf) and not cf["missing_terms"] and not cf["missing_site"],
                  cf is None))
+    rows.append(("D14_placeholders", len(r["D14_placeholders"]), "=0 (gates)",
+                 not r["D14_placeholders"], False))
     v = r["D9_layout_variety"]
     rows.append(("D9_layout_spread",
                  f"{v['distinct']} layouts, top {v['top_share']}%" if v else None,
@@ -616,9 +664,12 @@ def main(argv):
             continue
         r["verdicts"] = {n: v for n, _, _, v in
                          ((a, b, c, d) for a, b, c, d in grade(r))}
-        # The single gating metric. It is a commercial requirement on the
-        # artifact, not a judgement about a page — see d12_commercial_footer.
-        if r["verdicts"].get("D12_commercial_footer") == "FAIL":
+        # The two gating metrics. Neither is a judgement about whether a page is
+        # well made: D12 is a commercial requirement on the artifact and D14 asks
+        # whether the document is finished. Both are decidable, which is what
+        # separates them from every other row here.
+        if any(r["verdicts"].get(m) == "FAIL"
+               for m in ("D12_commercial_footer", "D14_placeholders")):
             gated_failure += 1
         results.append(r)
 
@@ -631,7 +682,13 @@ def main(argv):
         print(f"\n{r['file']}  ({r['palette']} palette)")
         for name, value, target, verdict in rows:
             print(f"  {verdict:<5} {name:<22} {str(value):<24} target {target}")
-            if verdict == "note":
+            # `verdict == "note"` until 0.1.367 — a value `grade()` has never
+            # produced, so `failures` was always 0 and the last line of every run
+            # read "nothing flagged". It printed that under a report carrying two
+            # FAIL rows, on a real deliverable, which is the sentence the whole
+            # 0.1.366–0.1.368 line of work exists to stop this package from
+            # saying. A summary is a claim about what is above it.
+            if verdict == "FAIL":
                 failures += 1
         for f in r["D1_contrast"][:6]:
             print(f"        contrast {f['ratio']}:1 on {f['on']} — "
@@ -651,6 +708,8 @@ def main(argv):
                 print(f"        page {i + 1} footer states no handling terms")
             for i in cf["missing_site"][:6]:
                 print(f"        page {i + 1} footer does not say where the document is from")
+        for ph in r["D14_placeholders"][:8]:
+            print(f"        {ph['page']} still carries the slot {ph['text']}")
         v = r["D9_layout_variety"]
         if v:
             for pid, cls in v["unknown"][:6]:
@@ -660,9 +719,15 @@ def main(argv):
             if v["pages"] >= LAYOUT_MIN_PAGES and v["distinct"] < LAYOUT_MIN_DISTINCT:
                 print(f"        only {v['distinct']} distinct layouts across {v['pages']} pages")
 
-    print("\nnothing flagged" if not failures
-          else f"\n{failures} thing(s) worth a look — none of this blocks; "
-               f"read them, then look at the page")
+    if not failures:
+        print("\nnothing flagged")
+    elif gated_failure:
+        print(f"\n{failures} metric(s) failed, and {gated_failure} file(s) fail on "
+              f"D12 or D14 — those two block: a page missing its handling terms and "
+              f"a document still carrying a slot are not judgements about design")
+    else:
+        print(f"\n{failures} thing(s) worth a look — none of this blocks; "
+              f"read them, then look at the page")
     if unmeasurable:
         print(f"{unmeasurable} file(s) could not be measured at all")
     return 1 if (unmeasurable or gated_failure) else 0

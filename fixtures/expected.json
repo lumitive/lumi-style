@@ -36,7 +36,8 @@
           "D9_layout_spread": "ok",
           "D10_label_icons": "ok",
           "D12_commercial_footer": "ok",
-          "D13_lime_as_text": "ok"
+          "D13_lime_as_text": "ok",
+          "D14_placeholders": "ok"
         }
       }
     },
@@ -75,7 +76,8 @@
           "D9_layout_spread": "ok",
           "D10_label_icons": "ok",
           "D12_commercial_footer": "FAIL",
-          "D13_lime_as_text": "ok"
+          "D13_lime_as_text": "ok",
+          "D14_placeholders": "FAIL"
         }
       }
     }

@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.366.** This file restates part of `references/`; where they
+> **lumi-style 0.1.367.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -50,8 +50,13 @@ through 0.1.344 this rule set ran 272 restricting lines against 12 inviting ones
 
 **Every page carries a commercial footer**: confidentiality terms and the
 organisation's site on the left, `N / total` on the right. `check_design.py`'s
-D12 is the only design check that fails the run, because it is a requirement on
-the artifact rather than a judgement about a page. **Sales and marketing state
+D12 is one of two checks there that fail the run, because it is a requirement on
+the artifact rather than a judgement about a page. The other is **D14: no slot
+you left for yourself may reach the reader** — `[TO FILL]`, `[TBD]`, `{{name}}`,
+an empty bracket pair. It asks whether the document is finished, and nothing else
+in this package can see one: a placeholder is not a banned phrase, not a colour,
+and takes up exactly as much room as the text that should have replaced it.
+**Sales and marketing state
 provenance once for the document** (cover and closing), not on every page;
 consulting and internal analysis keep per-page sourcing. **One table per page** —
 two grids side by side share no axis and can never align.
@@ -77,6 +82,13 @@ silently has nothing to compare. The probe now prints `NOT MEASURED` with the
 selector it wanted and exits 1; those lines come before every green one. Its
 design judgements still gate nothing.
 
+**A title block that does not fit gets shorter text, never a clamp.** `.lede`
+reserves its height and the reserve is a ceiling: a title needing three lines
+gets rewritten, not a taller block. `-webkit-line-clamp` or `overflow: hidden`
+there deletes lines from a client page while leaving every geometric check clean,
+because hidden text produces no spill, no collision and no overflow. The probe
+reports the overspend and the clamp separately.
+
 **Six hard red lines**: no invented facts (every number carries its source;
 illustrative values are labeled 示意); no invented Chinese coinages (use the
 standard Chinese term, or the English term directly when none exists); sales
@@ -95,7 +107,12 @@ two-pass audit; §6b de-translationese when the Chinese was translated from
 English), and only then the pre-delivery checklist in the rubric. Measure both
 halves rather than reading them: `python3 scripts/check_prose.py <file>` for
 English prose, and `python3 scripts/check_design.py <file>` for any HTML
-deliverable. D1–D4 and D6 gate; D5 is reported for you to judge.
+deliverable. **D12 and D14 gate; every other D-metric is reported for you to
+judge** — a page is done when a human reads it as intentional, and a threshold
+satisfiable without improving the page ends the looking. (This line claimed
+"D1–D4 and D6 gate" for eight releases, naming four metrics that never did and
+omitting the one that always has. A restatement nothing compares against is the
+drift this file exists to concentrate, not to escape.)
 
 Rule changes go through the feedback-review loop only (see `references/eval-rubric.md`)
 and are recorded in `CHANGELOG.md` with a version bump.

@@ -313,6 +313,115 @@ def _check_contrast_floor(tokens):
     return errors
 
 
+# A custom property may be referenced without being defined only with a reason.
+# Same contract as check_prose.py's NOT_MECHANIZED and the waiver dicts below: a
+# documented exception is a reviewable state, an undocumented one is a defect
+# nobody noticed. Empty on purpose — every knob tokens/ reaches for today either
+# ships or carries a literal fallback.
+UNDEFINED_VAR_WAIVERS = {}
+
+
+def _css_without_comments(css):
+    """Blank the comments and keep the line count. Collapsing a block comment to
+    one space shifts every line number after it — and the comments in tokens/ are
+    longer than the rules, so the first version of this pointed 40 lines above
+    the defect it had found."""
+    return re.sub(r"/\*.*?\*/", lambda m: "\n" * m.group(0).count("\n"), css, flags=re.S)
+
+
+def _var_calls(css):
+    """Every var() in `css` as (name, fallback, offset), with nesting preserved.
+
+    Written by hand rather than as one regex because the fallback may itself
+    contain a var(), and that nesting is precisely the case this guard exists
+    for: `var(--display, var(--sans))` is invalid when *neither* name resolves,
+    and a regex that stops at the first `)` cannot see the inner one.
+    """
+    out = []
+    for m in re.finditer(r"var\(", css):
+        depth, i = 1, m.end()
+        while depth and i < len(css):
+            if css[i] == "(":
+                depth += 1
+            elif css[i] == ")":
+                depth -= 1
+            i += 1
+        inner = css[m.end():i - 1]
+        name, _, fallback = inner.partition(",")
+        out.append((name.strip(), fallback.strip(), m.start()))
+    return out
+
+
+def check_token_references():
+    """Every var() in tokens/ resolves to a custom property tokens/ defines.
+
+    An undefined custom property with no fallback is not a soft default — the
+    declaration is invalid at computed-value time and the property inherits,
+    silently, whatever was above it. This repository has now shipped that defect
+    twice: `var(--display, var(--sans))` on the one number that IS the page
+    (0.1.352, both names undefined, so the fallback chain saved nothing), and
+    `var(--accent)` on the footer origin line and on the emphasis inside a
+    display number (0.1.367 — the accent has been `--acc` since the palette
+    existed). Both names were read out of a deliverable's private CSS, which is
+    the reverse drift CLAUDE.md names, spelled in custom properties instead of
+    class selectors.
+
+    A fallback is honoured, and honoured recursively: `var(--x, 22deg)` declares
+    an optional knob and is fine, `var(--x, var(--y))` is fine only if --y
+    resolves. Nothing here reads a *deliverable* — a document is free to define
+    its own names; these two files are the palette, and they may not reach for a
+    name the package does not ship.
+    """
+    files = sorted((ROOT / "tokens").glob("*.css"))
+    if not files:
+        return ["tokens/: no CSS to check; this guard would pass vacuously"]
+
+    sources = {rel(p): _css_without_comments(p.read_text(encoding="utf-8")) for p in files}
+    defined = set()
+    for css in sources.values():
+        defined.update(re.findall(r"(--[\w-]+)\s*:", css))
+
+    def resolves(name, fallback):
+        if name in defined or name in UNDEFINED_VAR_WAIVERS:
+            return True
+        if not fallback:
+            return False
+        nested = _var_calls(fallback)
+        if not nested:
+            return True                    # a literal fallback always resolves
+        return all(resolves(n, f) for n, f, _ in nested)
+
+    errors, seen = [], set()
+    for name, css in sources.items():
+        for var, fallback, offset in _var_calls(css):
+            if resolves(var, fallback):
+                continue
+            lineno = css.count("\n", 0, offset) + 1
+            if (name, var) in seen:
+                continue
+            seen.add((name, var))
+            errors.append(
+                f"{name}:{lineno}: var({var}) — no tokens/ file defines {var} and the "
+                f"reference carries no literal fallback, so the declaration is invalid "
+                f"at computed-value time and the property silently inherits"
+            )
+    # A waiver earns its place only while its cause is live: the name must be
+    # referenced AND still undefined. Written as a plain set difference this read
+    # the second half backwards and kept quiet about a waiver whose property had
+    # since been shipped — the one state where the waiver is certainly dead.
+    referenced = {v for css in sources.values() for v, _, _ in _var_calls(css)}
+    for waived in sorted(UNDEFINED_VAR_WAIVERS):
+        if waived in referenced and waived not in defined:
+            continue
+        why = ("no tokens/ file references it" if waived not in referenced
+               else "tokens/ now defines it")
+        errors.append(
+            f"UNDEFINED_VAR_WAIVERS excuses {waived}, but {why}; a waiver that "
+            f"outlives its cause is a standing permission nobody re-reads"
+        )
+    return errors
+
+
 def _rules_ban_phrases():
     """The [en-output] phrases from writing-rules.md section 2, normalized."""
     text = (ROOT / "references/writing-rules.md").read_text(encoding="utf-8")
@@ -421,8 +530,8 @@ ENTRY_STAMP = {
 THIRD_PARTY_VERSION_LINES = {"conformance/CONFORMANCE.md": re.compile(r"^\|")}
 
 VERSION_CITATION_WAIVERS = {
-    "0.1.367": "planned: the probe-vocabulary guard. Remove when it ships.",
-    "0.1.368": "planned: deliverable gating and layout in the harness. Remove when shipped.",
+    "0.1.368": "planned: the probe-vocabulary guard, deliverable gating, and "
+               "layout in the harness. Remove when shipped.",
     "1.0.0": "names the first release of the retired 1.x-3.x scheme, in the prose "
              "that explains why the scheme was retired",
     "3.4.0": "names the last release of the retired scheme, and the commit subject "
@@ -789,6 +898,7 @@ CHECKS = (
     ("platform manifest", check_platform_manifest),
     ("retired values", check_retired_values),
     ("token palette parity", check_palette_parity),
+    ("token references", check_token_references),
     ("ban-list parity", check_ban_list_parity),
 )
 

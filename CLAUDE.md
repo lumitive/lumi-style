@@ -14,7 +14,7 @@ sync, and recording changes in the changelog.
 ```bash
 python3 scripts/check_repo.py            # repo invariants; exit 1 on any failure
 python3 scripts/check_prose.py <file>    # AI-flavor metrics (M4, M8-M11) on a deliverable
-python3 scripts/check_design.py <file>   # design metrics (D1-D6) on a deliverable
+python3 scripts/check_design.py <file>   # design metrics (D1-D14) on a deliverable
 python3 scripts/inspect_layout.py <file> # render a deliverable and report what the layout does
 python3 scripts/embed_font.py            # @font-face block with the face inlined
 python3 scripts/embed_icons.py           # <symbol> sprite of the semantic icon set
@@ -31,7 +31,8 @@ Standard library only, no dependencies. `.github/workflows/ci.yml` runs
 request. Its guards are the mechanical half of the invariants below: version
 stamps, version citations, the English-only red line, markdown link targets,
 stale forward promises, the platform manifest, retired values, palette parity
-between the two `tokens/` files, the text ladder's contrast floor, ban-list
+between the two `tokens/` files, that every `var()` in `tokens/` resolves to a
+custom property `tokens/` defines, the text ladder's contrast floor, ban-list
 parity, that every generated artifact and fixture is current, that the checkers
 still produce the expected verdicts on both fixtures, and that the vendored
 assets are intact.
@@ -51,7 +52,11 @@ English-only and takes `--genre internal` to exempt internal analysis documents
 from the em-dash rule. `check_design.py` reads a document's own token block, so it
 grades a file against the palette that file actually declares rather than against
 this repo's; a deliverable that does not use the token block is reported
-`UNMEASURABLE` rather than passed.
+`UNMEASURABLE` rather than passed. Two of its metrics **gate**, and neither is a
+design judgement: **D12** (handling terms and origin on every page) is a
+commercial requirement on the artifact, and **D14** (no `[TO FILL]`, `[TBD]` or
+`{{…}}` reaching the reader) asks whether the document is finished. Both are
+decidable in the way "does this page read as intentional" is not.
 
 Its banned-phrase list is a second copy of `references/writing-rules.md` §2, so
 the **ban-list parity** guard holds the two together: every phrase §2 bans must

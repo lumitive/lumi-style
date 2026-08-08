@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.366"
+  version: "0.1.367"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -104,7 +104,15 @@ been removed; they now apply at step 4 instead of framing step 0.
    nothing, but it **exits 1 when a check could not be measured** and names what
    it could not find — read those lines first, because a check that did not run
    is not a check that passed.
-   `python3 scripts/check_design.py <file>` reports D1–D10 and gates nothing.
+   `python3 scripts/check_design.py <file>` reports D1–D10 and gates on exactly
+   two things, neither of them a design judgement: **D12**, the handling terms and
+   origin every page owes, and **D14**, any slot left for yourself — `[TO FILL]`,
+   `[TBD]`, `{{…}}`. A placeholder occupies as much room as the text that should
+   replace it, so nothing else in this package can see one.
+   **A title block that does not fit gets shorter text, never a clamp.** `.lede`
+   reserves its height as a ceiling; `-webkit-line-clamp` or `overflow: hidden`
+   there deletes lines from a client page and leaves the geometry looking clean.
+   `inspect_layout.py` reports both the overspend and the clamp.
 4. **Before delivery**: run the critic gate (structure before polish), then the
    **mandatory de-AI-flavor pass** — `references/writing-rules.md` §6, including
    its two-pass audit; for Chinese translated from English also §6b

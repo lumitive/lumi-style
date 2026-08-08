@@ -34,12 +34,24 @@
 | D9 | Layout spread | reported | which layouts a deck uses, and the share on the most common |
 | D10 | Label icon coverage | reported | icons on figure nodes and table row-heads, beyond the page eyebrow |
 | D11 | Page-height conformance | reported, and the first thing to read | pages whose rendered height differs from the geometry's, per format (`inspect_layout.py`) |
+| D14 | Unfilled placeholders | =0 — **gates** | slots the author left for themselves: `[TO FILL]`, `[TBD]`, `{{…}}`, an empty bracket pair |
 
-**None of the D-series gates.** `check_design.py` exits 0 unless a file cannot be
-measured at all; every number is a diagnostic for a designer to read. `SKILL.md`
-rule 4 is why: a page is done when a human reads it as intentional, and a metric
-that can be satisfied without improving the page ends the looking rather than
-directing it.
+**No design judgement in the D-series gates.** `check_design.py` exits 0 unless a
+file cannot be measured at all; every number is a diagnostic for a designer to
+read. `SKILL.md` rule 4 is why: a page is done when a human reads it as
+intentional, and a metric that can be satisfied without improving the page ends
+the looking rather than directing it.
+
+**Two exceptions, and neither is a design judgement.** D12 is a commercial
+requirement on the artifact and D14 asks whether the document is finished — both
+decidable, in the way "does this page read as intentional" is not. D14 exists
+because a real deliverable shipped four `[TO FILL]` markers on its closing page,
+beside its own callout saying they must not ship, and every instrument in this
+package passed it: a placeholder is not a banned phrase, not a colour, and takes
+up exactly as much room as the text that should have replaced it. Bracketed
+ellipsis (`[...]`) is deliberately not a marker — it is the standard editorial
+elision inside a quotation, and a gate that fires on legitimate prose is one
+people learn to route around.
 
 **Withdrawn in 0.1.340**, all three invented without an ask: **D7** (82% page fill),
 **D9's 40% share cap**, and the **11px type floor**. D7 is the cautionary one — it
@@ -61,7 +73,10 @@ contact sheet for a human to look at.
 | caption attachment | the gap between the drawing and its number and name | 95–205px, a reader asked why they were separated |
 | source echo | a page citing the same source under the figure and in the footer | 11 pages, 2 word for word |
 | two tables | a page carrying more than one table | one page, and its rows could never align |
-| **D12 commercial footer** | handling terms and origin on every page — **the one check that gates** | a commercial requirement, not a design judgement |
+| **D12 commercial footer** | handling terms and origin on every page — **gates** | a commercial requirement, not a design judgement |
+| title reserve | what a `.lede`'s children need against what the block reserves | a four-line title in a two-line reserve |
+| **content hidden** | a clamp or a hidden overflow inside a title block | three of four title lines and half a sentence never rendered |
+| unshipped scope | uses of `.k` / `.v` outside the `.band` / `.lead` the tokens define them in | five renderings each, invisible to a scoped role audit |
 | frame | footer and composition sharing one width and centre | a dead band down 28 of 28 pages, visible only off-geometry |
 | column tops | top-edge skew between side-by-side cells | 12 of 15 pages, from a rule that had never once applied |
 | column weight | ink-area ratio between siblings | one column at 9.1:1 against its neighbour |

@@ -517,6 +517,92 @@ PROBE = r"""
       }
     }
 
+    // ── the title reserve, and what an author does when it is overspent ───
+    //
+    // `.body .lede` RESERVES its height, and lumi-layouts.css states the rule in
+    // the direction that matters: a title needing three lines does not get a
+    // taller reserve, it gets shorter text. A real deliverable broke it — four
+    // title lines in a two-line reserve — and then answered the overflow with
+    // `-webkit-line-clamp: 2; overflow: hidden`. Three of four title lines and
+    // the tail of a support sentence stopped rendering, on a client page.
+    //
+    // Every probe above was blind to it by construction. Clamped text produces
+    // no spill (the ink is clipped), no collision (nothing lands on anything)
+    // and no page overflow (the reserve is a fixed box). So measure the two
+    // things that are actually decidable, and neither is a vocabulary:
+    //
+    //   · the reserve is OVERSPENT — what the children need exceeds what the
+    //     block reserves. Note what this deliberately is NOT: comparing
+    //     scrollHeight to clientHeight element by element. Measured on
+    //     fixtures/deck-pass.en.html, `h2.t` is a 35px box holding 42px of ink,
+    //     because --fs-title resolves to 34.56px against a line-height of 1.02.
+    //     That is the tight leading this design uses on purpose, and a check
+    //     built on it fires on every correctly-set title in the system.
+    //   · content is being HIDDEN. A clamp or a hidden overflow anywhere in a
+    //     lede is never legitimate; the answer is always shorter text.
+    //
+    // Landscape only, and asked the way the stylesheet asks it: `.body .lede`
+    // is `height: auto` under `@media (max-aspect-ratio: 1/1)`, because a title
+    // that sets on two lines at 1280 sets on three at 794 and reserving the
+    // landscape height would spend space the sheet does not have. Portrait is a
+    // composition, not a reflow — there is no reserve there to overspend, and
+    // measuring anyway reported all ten of the fixture's ledes 5px over their
+    // own auto height, which is the rounding of `scrollHeight` and nothing else.
+    // The clamp half still runs in both: hidden text is hidden in any geometry.
+    const reserveExpected = window.innerWidth >= window.innerHeight;
+    // Seeded null, not 0. Written as `let over = 0` the tightest-block numbers
+    // were only ever recorded for a block that overspends, so a healthy page
+    // reported "tightest p2 at 0px of 0px" — a reassuring line about nothing,
+    // which is the exact failure mode this file's docstring exists to name.
+    let ledeWorst = null, ledeBlocks = 0;
+    const ledeClamped = [];
+    for (const lede of s.querySelectorAll('.lede')) {
+      const lr = lede.getBoundingClientRect();
+      if (lr.height < 4) continue;
+      ledeBlocks++;
+      const ls = getComputedStyle(lede);
+      // The reserve is a CONTENT box: padding is not space the title can use.
+      const reserve = lede.clientHeight
+        - parseFloat(ls.paddingTop || 0) - parseFloat(ls.paddingBottom || 0);
+      const kids = [...lede.children];
+      let need = 0;
+      for (const kid of kids) {
+        const ks = getComputedStyle(kid);
+        if (ks.display === 'none') continue;
+        // ONE SPACE, and this is the whole subtlety of the measurement. The page
+        // is a `zoom`ed stage: `getBoundingClientRect()` comes back multiplied by
+        // the zoom, while `scrollHeight`, `clientHeight` and every computed
+        // margin come back in CSS pixels. Written as
+        // `max(scrollHeight, rect.height)` the box term was scaled and the margin
+        // term was not, so at the 1800x1000 window every healthy lede in the
+        // fixture reported 1.1px over a reserve it actually cleared by 45. Divide
+        // the rect back before comparing anything to anything.
+        //
+        // The larger of the box and its content: a flex item in a column that has
+        // run out of room is SHRUNK by default, so its box is smaller than the
+        // text inside it — which is the state being looked for, and the box alone
+        // would report it as fitting.
+        need += Math.max(kid.scrollHeight, kid.clientHeight,
+                         kid.getBoundingClientRect().height / (scale || 1))
+              + parseFloat(ks.marginTop || 0) + parseFloat(ks.marginBottom || 0);
+      }
+      const gap = parseFloat(ls.rowGap === 'normal' ? 0 : ls.rowGap) || 0;
+      need += gap * Math.max(0, kids.length - 1);
+      const over = Math.round(need - reserve);
+      if (reserveExpected && (!ledeWorst || over > ledeWorst.over)) {
+        ledeWorst = {over, reserve: Math.round(reserve), need: Math.round(need)};
+      }
+      for (const e of [lede, ...lede.querySelectorAll('*')]) {
+        const c = getComputedStyle(e);
+        const clamp = c.webkitLineClamp || c.getPropertyValue('-webkit-line-clamp');
+        const why = (clamp && clamp !== 'none') ? `line-clamp: ${clamp}`
+                  : /hidden|clip/.test(c.overflowY) ? `overflow-y: ${c.overflowY}`
+                  : /hidden|clip/.test(c.overflowX) ? `overflow-x: ${c.overflowX}`
+                  : '';
+        if (why) ledeClamped.push({who: tagOf(e), why});
+      }
+    }
+
     // A ground may be decorative only because it cannot be counted. The moment
     // it is built from repeated identical marks it is pretending to be a field,
     // and a reader will try to read meaning into it. Continuous paths of
@@ -564,6 +650,10 @@ PROBE = r"""
       figLeadPct: +(100 * figLead).toFixed(0),
       caps, tables, drawn, capGapPx, sourceEcho, sourceComparable, fields, horizons,
       textOverlaps, worstOverlap,
+      ledeBlocks, ledeClamped, reserveExpected,
+      ledeOverspendPx: ledeWorst ? ledeWorst.over : 0,
+      ledeReservePx: ledeWorst ? ledeWorst.reserve : 0,
+      ledeNeededPx: ledeWorst ? ledeWorst.need : 0,
       groundMarks, groundRepeats,
       overflowPct: +(100 * overflowPx / window.innerHeight).toFixed(1),
       centerScale: best ? +(100 * best.w * best.h / best.cellArea).toFixed(1) : null,
@@ -854,6 +944,42 @@ CONSISTENCY_PROBE = r"""
     roles.push({name, sel, variants, ignored: ignore});
   }
 
+  // The roles above are SCOPED, and a scoped role hides its own subject.
+  //
+  // `.band .k` and `.band .v` duly report "one rendering" while `.k` and `.v`
+  // outside a band render five different ways each — measured on a real
+  // deliverable. That is not the audit being wrong; it is the audit answering a
+  // narrower question than the one it appears to answer, which is worse, because
+  // the report reads like a clean bill.
+  //
+  // `tokens/lumi-layouts.css` defines `.k` under `.band` and `.v` under `.band`
+  // and `.lead`, and nowhere else. Those two scopes are genuinely different
+  // roles — a band value is --fs-band-value, a lead value is --fs-lead — so
+  // merging them would invent a split that is not one. What is reported here is
+  // the third case: a class from the shipped vocabulary used somewhere the
+  // stylesheet says nothing about, where the author necessarily invented the
+  // rendering. Count the renderings they invented.
+  const SCOPED = [
+    ['.k', ['.band']],
+    ['.v', ['.band', '.lead']],
+  ];
+  const unscoped = [];
+  for (const [sel, scopes] of SCOPED) {
+    const seen = {};
+    let total = 0;
+    for (const s of document.querySelectorAll('section.page')) {
+      for (const e of s.querySelectorAll(sel)) {
+        if (!(e.textContent || '').trim()) continue;
+        total++;
+        if (scopes.some(sc => e.closest(sc))) continue;
+        const k = key(e, []);
+        (seen[k] = seen[k] || []).push(s.id);
+      }
+    }
+    unscoped.push({sel, scopes, total,
+                   variants: Object.entries(seen).map(([k, ids]) => ({k, n: ids.length, ids}))});
+  }
+
   // One datum: content begins at the same height on every page OF A GEOMETRY.
   //
   // Landscape reserves the title block, so one height is the rule. Portrait
@@ -973,7 +1099,7 @@ CONSISTENCY_PROBE = r"""
       if (k > 1 || v > 1) bandSkew.push({page: s.id, labels: k, values: v});
     }
   }
-  return {roles, datums, datumPages, datumSkipped, datumExpected,
+  return {roles, unscoped, datums, datumPages, datumSkipped, datumExpected,
           comps, barCandidates, bandSkew, bandsExamined, bandsTooSmall,
           pages: document.querySelectorAll('section.page').length};
 }
@@ -1200,6 +1326,45 @@ def page_report(rows, geometry, errors):
     else:
         print("  -- fields: no .field on any page, the brand device is unused here")
 
+    # The title reserve. Two findings, and the second is the one that hides from
+    # every other probe on this page: clamped text produces no spill, no
+    # collision and no overflow, so a page that deletes three of its four title
+    # lines reads as clean everywhere else in this report.
+    ledes = [r for r in live if r.get("ledeBlocks")]
+    hidden = [r for r in live if r.get("ledeClamped")]
+    if hidden:
+        print(f"  CONTENT HIDDEN: {len(hidden)} pages clip their own title block — "
+              "text that does not render is deleted content, and the fix for an "
+              "overspent reserve is shorter text: "
+              + ", ".join(f"{r['id']} {r['ledeClamped'][0]['who']} "
+                          f"({r['ledeClamped'][0]['why']})" for r in hidden[:5]))
+    released = ledes and not ledes[0].get("reserveExpected")
+    # 4px, and the number is a rounding allowance rather than a design judgement:
+    # scrollHeight is an integer and a block box is fractional, so a lede that
+    # fits exactly can measure up to ~1.5px over across its three children. One
+    # title line is 35px at the design geometry, so the allowance is nowhere near
+    # wide enough to hide the thing this measures.
+    over = [] if released else [r for r in ledes if r.get("ledeOverspendPx", 0) > 4]
+    if over:
+        print(f"  RESERVE OVERSPENT: {len(over)} of {len(ledes)} title blocks need "
+              f"more height than they reserve — the reserve is a ceiling, so this "
+              f"is a request for shorter text, not a taller block: "
+              + ", ".join(f"{r['id']} needs {r['ledeNeededPx']}px of "
+                          f"{r['ledeReservePx']}px"
+                          for r in sorted(over, key=lambda r: -r["ledeOverspendPx"])[:6]))
+    elif released:
+        # Reported, never flagged — the same treatment the datum line gives the
+        # same geometry, and for the same reason.
+        print(f"  -- reserve: released in this geometry by design (portrait sets "
+              f"`.lede {{ height: auto }}`), {len(ledes)} title blocks unweighed")
+    elif ledes:
+        worst = max(ledes, key=lambda r: r["ledeOverspendPx"])
+        print(f"  reserve: all {len(ledes)} title blocks fit what they reserve, "
+              f"tightest {worst['id']} at {worst['ledeNeededPx']}px of "
+              f"{worst['ledeReservePx']}px")
+    else:
+        print(f"  -- reserve: no page carries a .lede at {geometry}, nothing to weigh")
+
     clash = [r for r in live if r.get("textOverlaps", 0)]
     if clash:
         print(f"  COLLISION: {len(clash)} pages have blocks landing on each other — "
@@ -1292,6 +1457,27 @@ def consistency_print(label, c):
                 print(f"           on: {', '.join(sorted(set(x['ids']))[:5])}")
         else:
             print(f"  ok  {role['name']}: one rendering, {v[0]['n']} uses")
+
+    # What the scoped roles above cannot see. Reported separately and never
+    # merged into the role's own verdict: `.band .v` and `.lead .v` are two
+    # renderings on purpose, and calling that a split would be a false finding
+    # sitting next to a true one.
+    for u in c.get("unscoped", []):
+        scopes = " or ".join(u["scopes"])
+        if not u["total"]:
+            print(f"  -- {u['sel']} outside {scopes}: nothing on any page uses "
+                  f"{u['sel']} at all")
+        elif not u["variants"]:
+            print(f"  ok  {u['sel']}: all {u['total']} uses sit inside {scopes}, "
+                  f"where the stylesheet defines them")
+        else:
+            n = sum(v["n"] for v in u["variants"])
+            print(f"  UNSHIPPED SCOPE: {n} of {u['total']} uses of {u['sel']} sit "
+                  f"outside {scopes} — tokens/ says nothing about them, so the "
+                  f"document invented {len(u['variants'])} rendering(s):")
+            for x in sorted(u["variants"], key=lambda v: -v["n"]):
+                print(f"      {x['n']:>3}x  {x['k']}")
+                print(f"           on: {', '.join(sorted(set(x['ids']))[:5])}")
 
     d = c["datums"]
     if not d:

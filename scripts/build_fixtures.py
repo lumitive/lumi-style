@@ -120,8 +120,12 @@ def foot(n: int, total: int, terms: str = TERMS, site: str = SITE) -> str:
     # fixtures/README.md means by "never edit a fixture to make a check pass".
     # 0.1.359 fixed the parser and left the fixture shaped around it, so the old
     # buggy regex still passed the suite. The nesting is the test.
+    # No `.src` span. It was here until 0.1.367, left behind when 0.1.366 removed
+    # `.foot .src` from the token file: a per-page provenance slot that the rules
+    # say belongs once per document in the closing colophon, kept alive in the
+    # reference implementation of those rules. A fixture is a worked example, and
+    # a worked example that uses a retired slot teaches the retired slot.
     return (f'<div class="foot"><div class="terms"><span class="conf">{terms}</span></div>'
-            f'<span class="src">Meter management system</span>'
             f'<span class="site">{site}</span><span>{n:02d} / {total:02d}</span></div>')
 
 
@@ -142,6 +146,13 @@ def page(i: int, total: int, spec, broken: bool) -> str:
         if i == 6:
             # a real prose em-dash, which M9 must still catch
             sup = "The gap is signal &#8212; not hardware, and it follows terrain."
+        if i == 11:
+            # D14: the slot an author leaves for themselves and then ships. A
+            # real deliverable carried four of these on its closing page and
+            # every check in this package passed it, because a placeholder is
+            # not a banned phrase, not a colour, and occupies exactly as much
+            # room as the text that should have replaced it.
+            sup = "Read success held at [TO FILL]% across the surveyed feeders."
         if i == 9:
             sup = sup + " The gap is measured against a baseline taken in the first "\
                         "quarter of the programme, before the rural feeders had been "\
