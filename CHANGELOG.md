@@ -3,6 +3,63 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.361 — half a vocabulary makes a check look wired up
+
+A review of the four fix releases found the fixes had reproduced the defect class
+they were fixing, for the third round running.
+
+**`.foot .src` was never shipped, so an audit reported success on every document
+that will ever be measured.** 0.1.359 added `.cap .srcline` to `tokens/` to close
+the assert-before-you-ship gap, and shipped only half the pair: the source-echo
+audit compares a figure's source line against the footer's, and `.src` existed
+nowhere — not in `tokens/`, not in `references/`, not in either fixture. So
+`footSrc` was structurally always null, the comparison never ran, and the probe
+printed *"no page states the same source twice"* unconditionally. **That is worse
+than shipping neither**, because the check now looked wired up. `.foot .src`
+ships, the fixture emits it, and the audit reports `NOT MEASURED` when there is
+no pair to compare rather than reporting success.
+
+**A task file documented behaviour its code did not have.** T3's new `scoring`
+field claimed word-boundary regexes "matched per numbered answer line". The code
+matched the whole document, so `\bone\b` for question five was satisfied by
+question three's own "no one" — and a one-line reply answering nothing scored
+**5 of 5**. Answer *i* is now matched against line *i*. The same junk reply now
+scores 0 of 5. Writing the claim into the file before the code was worse than the
+honest substrings it replaced.
+
+**The rewritten maintenance rule 3 re-enumerated, and was wrong the day it
+shipped.** It replaced "five places… and they are the only ones" — false for six
+releases — with a tier naming six generated files when there were eight. That
+tier now says "everything `build_entrypoints.py` writes" and deliberately lists
+nothing: `--check` is the forcing function and it needs no inventory. Rule 3 also
+filed `conformance/CONFORMANCE.md` under "not a stamp" while line 1 of that file
+is a first-class skill stamp, hand-bumped in the same release. It is in
+`ENTRY_STAMP` now, so a stale one fails instead of staying legal forever.
+
+**`check_stale_promises` was one sentence from a false failure.** Its pattern
+included a bare `from`, which matches "carried over from 0.1.352", "survived from
+0.1.340", "renumbered from 0.1.328" — retrospective version citation being this
+repository's entire documentation voice. It would have failed CI while asserting
+the opposite of what the sentence said. Every alternative is future-tense now.
+
+**0.1.358 silently mangled a token authority.** A `json.dump` round-trip with
+`ensure_ascii=True` and no trailing newline turned seven em-dashes in
+`tokens/design-tokens.json` into escapes and dropped the final byte. Nothing in
+that release mentioned touching the file and no guard catches encoding — palette
+parity compares values. Restored.
+
+Also: `run` announced a directory it had not created when few agents were
+detected, which is the case the scoreboard itself documents; `expected.json`
+overstated what its new coverage buys, since four D-metrics are reported rather
+than graded and both D3 tiers pass vacuously on fixtures carrying no tier-1
+callout; `CLAUDE.md` claimed in one paragraph that CI cannot run the deliverable
+checkers and in another that it runs them on the fixtures every push — CI does run
+two of the three; and a duplicated draft comment in `inspect_layout.py` is gone.
+
+*Outstanding and named:* the reference fixture reports `COLUMN WEIGHT` on 12 of 14
+pages at A4, because its two cells carry very different ink. It is a reported
+diagnostic that gates nothing, and it is a design job on the fixture.
+
 ## 0.1.360 — the documentation catches up with six releases
 
 Nothing new is built here. Five releases of machinery landed while the files that

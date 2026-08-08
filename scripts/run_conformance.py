@@ -98,9 +98,15 @@ def score_checks(kind: str, path: pathlib.Path) -> dict:
 
 
 def score_recall(task: dict, text: str) -> dict:
-    low = text.lower()
-    hits = {q: any(re.search(k, low) for k in keys)
-            for q, keys in task["answers"].items()}
+    # Per numbered answer line, which is what T3's `scoring` field says and what
+    # the whole-document version did not do: `\bone\b` for question 5 was
+    # satisfied by question 3's own "no one", so a one-line reply answering
+    # nothing scored 5 of 5. Answer i is matched against line i alone.
+    lines = [l.strip().lower() for l in text.splitlines() if re.match(r"\s*\d+[.)]", l)]
+    hits = {}
+    for i, (q, keys) in enumerate(task["answers"].items()):
+        line = lines[i] if i < len(lines) else ""
+        hits[q] = any(re.search(k, line) for k in keys)
     return {"score": sum(hits.values()), "of": len(hits),
             "missed": [q for q, ok in hits.items() if not ok]}
 
@@ -153,6 +159,11 @@ def main(argv):
 
     if args.command == "run":
         run_dir = pathlib.Path(args.run) if args.run else RESULTS / "latest"
+        # Created up front. The mkdir moved inside the per-agent loop when run and
+        # score split, so on the case the scoreboard itself documents — few or no
+        # agents detected — `run` announced a directory it had not made and
+        # `score` then reported it missing.
+        run_dir.mkdir(parents=True, exist_ok=True)
         for a in agents:
             if not probed[a["id"]][0]:
                 continue

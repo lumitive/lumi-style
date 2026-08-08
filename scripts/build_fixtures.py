@@ -108,6 +108,7 @@ def foot(n: int, total: int, terms: str = TERMS, site: str = SITE) -> str:
     # Spans, never a nested div: d12_commercial_footer captures non-greedily to
     # the first </div>, so a div inside .foot truncates the text it reads.
     return (f'<div class="foot"><span class="conf">{terms}</span>'
+            f'<span class="src">Meter management system</span>'
             f'<span class="site">{site}</span><span>{n:02d} / {total:02d}</span></div>')
 
 
@@ -140,12 +141,12 @@ def page(i: int, total: int, spec, broken: bool) -> str:
         band = ('<div class="band">'
                 '<div><span class="k">Coverage</span><div class="v">41<span class="u">%</span></div></div>'
                 '<div><span class="k">Feeders</span><div class="v">312</div></div>'
-                '<div><span class="k">Estimate rate</span><div class="v">8.4</div></div>'
+                '<div><span class="k">Estimates</span><div class="v">8.4</div></div>'
                 '</div>')
     lead = ""
     if i not in (2, 3):
         lead = f'<div class="lead"><div class="v">{i * 7}</div>' \
-               f'<p class="g">Units returned per avoided visit, illustrative</p></div>' 
+               f'<p class="g">Units returned per avoided visit, illustrative</p></div>'
     return f"""
 <section class="page" id="p{i}">
   <div class="body split">

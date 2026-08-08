@@ -438,7 +438,11 @@ PROBE = r"""
                                  .map(x => x.replace(/\s+/g, '').toLowerCase()));
     const figSrc = s.querySelector('.cap .srcline');
     const footSrc = s.querySelector('.foot .src');
-    let sourceEcho = 0;
+    // Distinguish "compared, and they differ" from "never comparable". The
+    // audit read `if (figSrc && footSrc)` and reported success on every
+    // document where either was absent, which was every document, because
+    // `.src` shipped nowhere.
+    let sourceEcho = 0, sourceComparable = !!(figSrc && footSrc);
     if (figSrc && footSrc) {
       const a = cite(figSrc.textContent || ''), b = cite(footSrc.textContent || '');
       sourceEcho = [...a].filter(x => b.has(x)).length;
@@ -554,7 +558,7 @@ PROBE = r"""
       focalPx: Math.round(focalPx), focalText, bodyPx: Math.round(bodyPx),
       focalRatio: +(focalPx / Math.max(1, bodyPx)).toFixed(2),
       figLeadPct: +(100 * figLead).toFixed(0),
-      caps, tables, drawn, capGapPx, sourceEcho, fields, horizons,
+      caps, tables, drawn, capGapPx, sourceEcho, sourceComparable, fields, horizons,
       textOverlaps, worstOverlap,
       groundMarks, groundRepeats,
       overflowPct: +(100 * overflowPx / window.innerHeight).toFixed(1),
@@ -881,12 +885,6 @@ CONSISTENCY_PROBE = r"""
   for (const s of document.querySelectorAll('section.page')) {
     for (const r of s.querySelectorAll('.fig svg rect')) {
       barCandidates++;
-      // Page units, not device pixels. The page is a zoom-scaled stage, so an
-      // identical bar measures 46px tall at 1280 and 28px at 794 — and the
-      // window below then rejected every bar in the document at A4 while
-      // accepting them all in landscape. The candidate window is a statement
-      // about the DESIGN, so it has to be measured in the units the design was
-      // drawn in; every other distance in this probe already is.
       // SVG user units — the units the figure was AUTHORED in. Rendered size
       // is the wrong basis twice over: the page is zoom-scaled, and the drawing
       // is then scaled again to its cell, so an identical bar measured 46px at
@@ -1176,8 +1174,14 @@ def page_report(rows, geometry, errors):
     if echo:
         print(f"  SOURCE TWICE: {len(echo)} pages state the same source under "
               "the figure and again in the footer: " + _fmt_ids(echo, 8))
+    elif any(r.get("sourceComparable") for r in live):
+        n = sum(1 for r in live if r.get("sourceComparable"))
+        print(f"  source: none of the {n} pages carrying both a figure source and a "
+              f"footer source states the same one twice")
     else:
-        print("  source: no page states the same source twice")
+        unmeasured += 1
+        print("  -- source: NOT MEASURED, no page pairs a `.cap .srcline` with a "
+              "`.foot .src`, so nothing could be compared")
 
     nf = sum(len(r.get("fields", [])) for r in live)
     loose = [(r, f) for r in live for f in r.get("fields", [])

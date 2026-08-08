@@ -37,8 +37,10 @@ still produce the expected verdicts on both fixtures, and that the vendored
 assets are intact.
 
 `check_prose.py`, `check_design.py` and `inspect_layout.py` all measure a
-**deliverable**, not this repo, so CI cannot run them — there are no deliverables
-here. `inspect_layout.py` needs a headless Chromium (`pip install pillow
+**deliverable** rather than this repo. Two of them do run in CI, against the
+tracked synthetic fixtures in `fixtures/` — that is the whole point of shipping
+them. `inspect_layout.py` still cannot: it needs a headless Chromium, so it is
+run locally and its verdicts are recorded in the release notes. `inspect_layout.py` needs a headless Chromium (`pip install pillow
 playwright && playwright install chromium`); its real output is a contact sheet
 for a person to look at. **None of its design judgements gates, but it exits 1
 when a check could not be measured at all** — a document whose markup it cannot
@@ -177,13 +179,16 @@ repo itself.)
      adding it to `ENTRY_STAMP`.** Those two tables are what keep this list
      honest, and a stamp with no declared position fails rather than being
      skipped.
-   - **Generated and regenerated.** The plugin manifests, `.well-known` index and
-     three pointer files carry the version because `build_entrypoints.py` puts it
-     there. Never edit them; `--check` fails a stale tree in CI.
+   - **Generated and regenerated.** Everything `build_entrypoints.py` writes.
+     Deliberately not a list: the first version of this tier named six files when
+     there were eight, which is the same enumeration failure the old "five
+     places" wording was replaced for. `--check` is the forcing function and it
+     needs no inventory.
    - **Not a stamp.** Historical notes inside `tokens/lumi-theme.css`
      ("v0.1.333: light-first…") name the version that introduced a change —
-     leave them alone. `conformance/CONFORMANCE.md` records third-party CLI
-     versions, which belong to other projects.
+     leave them alone. The CLI builds recorded in `conformance/CONFORMANCE.md`'s
+     table rows belong to other projects; that file's own first-line skill stamp
+     is a stamp, and is in `ENTRY_STAMP`.
 
    Commit messages follow `X.Y.Z — comma-separated summary of the rule changes`.
 

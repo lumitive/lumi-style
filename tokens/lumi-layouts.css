@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.360 (2026-08-08)
+   LUMI page layouts · v0.1.361 (2026-08-08)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -149,6 +149,13 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
 .cap .srcline {
   color: var(--tx4); letter-spacing: .02em;
 }
+/* The footer's source line. 0.1.359 shipped `.cap .srcline` and not this, which
+   is worse than shipping neither: `inspect_layout.py` compares the two to catch
+   a page stating its source twice, so with `.src` unshipped the comparison was
+   structurally impossible and the probe printed "no page states the same source
+   twice" about every document that will ever be measured. Half a vocabulary
+   makes a check look wired up. */
+.foot .src { color: var(--tx4); text-transform: none; letter-spacing: .02em; }
 .fig svg .f-acc { fill: var(--acc); }
 .fig svg .f-lime { fill: var(--lime); }
 
