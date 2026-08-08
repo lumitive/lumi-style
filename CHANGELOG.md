@@ -3,6 +3,54 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.370 — the general form of the last three releases, as two guards
+
+0.1.369 fixed seven font-sizes that existed only inside a media query. This one
+asks the question underneath: **why was that state reachable at all?**
+
+**`check_media_only_rules`.** No class may be styled only inside a `@media`
+block. A rule that exists in one geometry and nowhere else is a rendering the
+package half-ships — the document gets `tokens/`'s value on the sheet and
+whatever it invented at 1280 — and it is invisible by construction, because the
+consistency audit run at the design geometry finds nothing to compare. One honest
+exception, waived with its reason: the landscape/portrait figure pair, where a
+figure is drawn twice and each geometry hides one. That is what those two classes
+*are*.
+
+It found three things 0.1.369 had left:
+
+- **`.tight` meant nothing at 1280.** The only rule reading the modifier lived in
+  the portrait block, so a document adding the class saw no change at the design
+  geometry and a quiet one on the sheet. It now tightens spacing in both, and the
+  fixture uses it.
+- **`.grades` and `.gr .gc` are removed rather than completed.** Neither had a
+  base rendering, `references/` never named either, and no fixture drew one —
+  three orphan declarations styling a block this package does not ship.
+  Inventing a graded-criterion design to justify them is the speculative
+  rule-making CLAUDE.md rule 2 forbids.
+- **`.body.cover-grid` is removed.** A *sixteenth* layout, declared only in
+  portrait, missing from the token file's own "fifteen page layouts" header,
+  missing from §3's selection table, and missing from `check_design.py`'s
+  `LAYOUTS` — so D9 read a page using it as using no shipped layout at all.
+
+**`check_layout_parity`** keeps that last one from recurring: the layouts
+`tokens/` defines and the layouts `check_design.py` grades are one list, checked
+in both directions.
+
+**And the vocabulary guard was reading one caller of two.** `check_prose.py` keys
+on class names too — five `(wrapper, item)` pairs it counts as enumerations for
+M10 — and 0.1.368's guard never looked at it. Widened, it immediately named
+`.grades`, `.gr` and `.gloss` as asserted-and-unshipped. All three are **census**
+assertions in the 0.1.368 sense: they ask to be counted, not to be rendered, so
+they are waived with a reason rather than given a design. *A guard that covers
+one of two callers has a blind spot the shape of the other.*
+
+**That widening also found a live bug.** The tuple matched every item as
+`class="…item…"`, and a glossary's items are `<dt>` **elements** — so the
+`("gloss", "dt")` pair counted zero on every definition list ever written, and
+M10 silently sampled one enumeration shape fewer than it claimed. The pair now
+says which kind each item is; measured on a three-term glossary, 0 became 3.
+
 ## 0.1.369 — the portrait block stated the rule and broke it in the next twenty lines
 
 `tokens/lumi-layouts.css` carries this, above its portrait overrides:

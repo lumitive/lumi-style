@@ -582,6 +582,24 @@ A layout is verified only across the **matrix**, not at a point:
   uses on purpose, so such a check fires on every correctly-set title in the
   deck. The frame axis below compares content against the *page* box, which is
   fixed and has no leading; an element box is a different question.
+- **Nothing may be styled only inside a media query.** The general form of the
+  rule below, and the one a machine can hold: a class the stylesheet touches in
+  one geometry and nowhere else is a rendering the package half-ships, so the
+  document gets `tokens/`'s value on the sheet and whatever it invented at 1280.
+  The only honest exception is a rule whose *purpose* is to differ per geometry —
+  the landscape/portrait figure pair, where a figure is drawn twice and each
+  geometry hides one. `check_repo.py`'s **media-only rules** guard requires
+  everything else to have a base rendering or a written waiver. *It found a
+  density modifier that meant nothing at 1280, a graded-criterion block with no
+  base rendering and no documentation, and a sixteenth page layout.*
+- **The layouts the stylesheet defines and the layouts the checker grades are one
+  list.** D9 reads a page whose `.body` class is not a shipped layout as using
+  none, so a layout present in `tokens/` and absent from `check_design.py` reads
+  as an author's typo. `.body.cover-grid` was in exactly that state for eleven
+  releases — portrait-only, missing from the token file's own "fifteen page
+  layouts" header, missing from the §3 table, missing from the checker — and was
+  removed rather than completed, because shipping a sixteenth layout nobody asked
+  for is the speculative rule-making CLAUDE.md rule 2 forbids.
 - **A geometry may tighten spacing. It may not change type.** brand.md's rule —
   a page that no longer fits gets its content trimmed, never its type nudged —
   binds across the two page geometries as well as across pages. Breaking it is

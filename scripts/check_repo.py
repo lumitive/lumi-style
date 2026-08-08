@@ -449,6 +449,17 @@ PROBE_NOT_SHIPPED = {
     "openpart": "part-opener composition; `.page.opener` ships, its contents compose freely.",
     "openclaim": "part-opener composition; see .openpart.",
     "openrun": "part-opener composition; see .openpart.",
+    # Enumeration wrappers `check_prose.py` counts for M10. A census in the
+    # purest form — "if a document enumerates inside a named block, count how
+    # many items it reached for" — and the count works whatever the block looks
+    # like. `.grades`/`.gr` were also styled in the portrait block until 0.1.370
+    # and are removed there rather than completed: the assertion is a count, not
+    # a claim about rendering, and it needs nothing behind it.
+    "grades": "M10 enumeration wrapper in check_prose.py; counts items, asserts "
+              "no rendering. Its portrait-only rules were removed in 0.1.370.",
+    "gr": "the item inside a `.grades` block; see .grades.",
+    "gloss": "M10 enumeration wrapper in check_prose.py, counting `dt` items; a "
+             "definition list is `dl`/`dt`/`dd`, which do ship.",
     # Document-local blocks with no design claim behind them.
     "geo-flat": "a flat-map figure a document may draw; CENTER/DSEL count it as a "
                 "centerpiece and a drawing, and say nothing about it.",
@@ -481,6 +492,39 @@ def _probe_sources():
             raise ValueError(f"inspect_layout.py no longer defines {needed} as a "
                              f"module-level string; this guard reads nothing")
     return out
+
+
+def _prose_wrappers():
+    """The (wrapper, item) class pairs `check_prose.py` counts as enumerations.
+
+    A second checker keying on class names, and the guard read only the first one
+    until 0.1.370 — so `.grades`, `.gr` and `.gloss` were asserted by M10 and
+    shipped by nothing, entirely outside the check written to stop exactly that.
+    A guard that covers one of two callers is a guard with a blind spot the
+    shape of the other.
+
+    Only the CLASS assertions come back. The tuple's third field says whether an
+    item is a class or an element name, and an element is not a vocabulary this
+    package ships — `dt` is `dt` in every document ever written.
+
+    The tuple is a literal inside `extract()`, so this walks the function body
+    rather than the module's top level.
+    """
+    tree = ast.parse((ROOT / "scripts/check_prose.py").read_text(encoding="utf-8"))
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.For) or not isinstance(node.target, ast.Tuple):
+            continue
+        names = [n.id for n in node.target.elts if isinstance(n, ast.Name)]
+        if names != ["wrapper", "item", "kind"] or not isinstance(node.iter, ast.Tuple):
+            continue
+        out = []
+        for row in node.iter.elts:
+            wrapper, item, kind = (e.value for e in row.elts)
+            out.append((wrapper, item if kind == "class" else None))
+        if out:
+            return out
+    raise ValueError("check_prose.py no longer iterates a (wrapper, item, kind) "
+                     "tuple of class names; this half of the guard reads nothing")
 
 
 def _js_const(source, name):
@@ -542,9 +586,9 @@ def check_probe_vocabulary():
     * **contract** — `ROLES` and `SCOPED` claim a role renders exactly one way.
       A claim about rendering must have a rendering behind it, so these may not
       be waived.
-    * **census** — `INK`, `TSEL`, `DSEL`, `CENTER` ask only to be counted, and
-      over-reach on purpose. These may be waived in `PROBE_NOT_SHIPPED`, one
-      written reason each.
+    * **census** — `INK`, `TSEL`, `DSEL`, `CENTER`, and `check_prose.py`'s M10
+      enumeration wrappers, ask only to be counted and over-reach on purpose.
+      These may be waived in `PROBE_NOT_SHIPPED`, one written reason each.
     """
     try:
         probes = _probe_sources()
@@ -554,6 +598,8 @@ def check_probe_vocabulary():
         scoped = re.findall(r"\[\s*'([^']+)'\s*,\s*\[([^\]]*)\]\s*\]",
                             _js_const(probes["CONSISTENCY_PROBE"], "SCOPED"))
         census = {name: _js_const(probes["PROBE"], name) for name in PROBE_CENSUS_LISTS}
+        census["check_prose M10"] = " ".join(
+            f".{w}" + (f" .{i}" if i else "") for w, i in _prose_wrappers())
     except (OSError, ValueError, SyntaxError) as exc:
         return [f"could not read the probe vocabulary: {exc}"]
 
@@ -597,6 +643,109 @@ def check_probe_vocabulary():
         elif cls in shipped:
             errors.append(f"PROBE_NOT_SHIPPED excuses .{cls}, which tokens/ now ships; "
                           f"delete the waiver")
+    return errors
+
+
+# A class may be styled ONLY inside a media query with a reason, and there is
+# exactly one honest reason: the rule is a geometry switch whose whole purpose is
+# to differ per geometry.
+MEDIA_ONLY_WAIVERS = {
+    "land": "half of the landscape/portrait figure pair. A figure is drawn twice "
+            "and each geometry hides one; that is what these two classes ARE.",
+    "port": "the other half; see .land.",
+}
+
+
+def check_media_only_rules():
+    """No class may be styled only inside a media query.
+
+    A rule that exists in one geometry and nowhere else is a rendering the
+    package half-ships: the document gets `tokens/`'s value on the sheet and
+    whatever it invented at 1280, which is one role rendering two ways — the
+    thing `brand.md` and the role vocabulary both forbid. It is invisible by
+    construction, because the consistency audit run at the design geometry finds
+    nothing to compare.
+
+    0.1.369 found seven font-sizes in that state, plus `.duo`, whose base grid
+    existed only in the geometry that collapses it, and the fixture page using it
+    ran 12px past the footer rule. This is the general form, so there is no
+    eighth.
+    """
+    base, media = set(), set()
+    files = sorted((ROOT / "tokens").glob("*.css"))
+    if not files:
+        return ["tokens/: no CSS to check; this guard would pass vacuously"]
+    for path in files:
+        css = _css_without_comments(path.read_text(encoding="utf-8"))
+        out, k = [], 0
+        while k < len(css):
+            m = re.compile(r"@media[^{]*\{").search(css, k)
+            if not m:
+                out.append(css[k:])
+                break
+            out.append(css[k:m.start()])
+            depth, i = 1, m.end()
+            while depth and i < len(css):
+                depth += 1 if css[i] == "{" else -1 if css[i] == "}" else 0
+                i += 1
+            media |= _classes(css[m.end():i - 1])
+            k = i
+        base |= _classes("".join(out))
+
+    errors = []
+    for cls in sorted(media - base - set(MEDIA_ONLY_WAIVERS)):
+        errors.append(
+            f"tokens/: .{cls} is styled only inside a @media block and has no base "
+            f"rendering, so the package ships it in one geometry and not the other; "
+            f"give it a base rule, remove it, or waive it in MEDIA_ONLY_WAIVERS"
+        )
+    for waived in sorted(MEDIA_ONLY_WAIVERS):
+        if waived in base:
+            errors.append(f"MEDIA_ONLY_WAIVERS excuses .{waived}, which now has a base "
+                          f"rendering; delete the waiver")
+        elif waived not in media:
+            errors.append(f"MEDIA_ONLY_WAIVERS excuses .{waived}, which no tokens/ file "
+                          f"styles at all; a waiver that outlives its cause is a "
+                          f"standing permission nobody re-reads")
+    return errors
+
+
+def check_layout_parity():
+    """The layouts `tokens/` defines and the layouts `check_design.py` grades are
+    one list.
+
+    D9 reports a page whose `.body` class is not a shipped layout as using none,
+    so a layout present in the stylesheet and absent from `LAYOUTS` reads as an
+    author's typo. `.body.cover-grid` was exactly that for eleven releases —
+    declared in the portrait block, missing from this file's own "fifteen page
+    layouts" header, missing from §3's selection table, and missing from the
+    checker. Removed in 0.1.370; this keeps the two sides from parting again.
+    """
+    try:
+        css = "".join(_css_without_comments(p.read_text(encoding="utf-8"))
+                      for p in sorted((ROOT / "tokens").glob("*.css")))
+        tree = ast.parse((ROOT / "scripts/check_design.py").read_text(encoding="utf-8"))
+    except (OSError, SyntaxError) as exc:                   # noqa: BLE001
+        return [f"could not compare the layout lists: {exc}"]
+
+    graded = None
+    for node in tree.body:
+        if (isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name)
+                and node.targets[0].id == "LAYOUTS"):
+            graded = {e.value for e in node.value.elts}
+    if graded is None:
+        return ["check_design.py no longer defines LAYOUTS at module level; the "
+                "layout list cannot be compared"]
+
+    shipped = set(re.findall(r"\.body\.([\w-]+)", css)) - {"no-lede", "top"}
+    errors = []
+    for name in sorted(shipped - graded):
+        errors.append(f"tokens/ defines the layout .body.{name}, which check_design.py's "
+                      f"LAYOUTS does not grade — D9 reads a page using it as using no "
+                      f"shipped layout")
+    for name in sorted(graded - shipped):
+        errors.append(f"check_design.py grades the layout {name!r}, which no tokens/ "
+                      f"file defines; the stylesheet is the source, not the checker")
     return errors
 
 
@@ -1076,6 +1225,8 @@ CHECKS = (
     ("token palette parity", check_palette_parity),
     ("token references", check_token_references),
     ("probe vocabulary", check_probe_vocabulary),
+    ("media-only rules", check_media_only_rules),
+    ("layout parity", check_layout_parity),
     ("ban-list parity", check_ban_list_parity),
 )
 
