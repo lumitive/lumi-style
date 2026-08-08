@@ -60,6 +60,9 @@ def load_tasks() -> list[dict]:
         # already scored.
         if not t["score"]:
             raise ValueError(f"{t['id']}: empty `score` list would pass anything")
+        if t.get("genre") not in (None, "sales", "internal"):
+            raise ValueError(f"{t['id']}: genre {t['genre']!r} is not one "
+                             f"check_prose.py accepts")
         if not t.get("deliverable"):
             raise ValueError(f"{t['id']}: no `deliverable` glob")
         if "recall" in t["score"]:
@@ -88,7 +91,8 @@ def task_fingerprint(task: dict) -> str:
     documentation; rewording them must not invalidate a run.
     """
     material = {k: task.get(k) for k in
-                ("prompt", "deliverable", "score", "require", "answers", "input")}
+                ("prompt", "deliverable", "score", "require", "answers", "input",
+                 "genre")}
     return hashlib.sha256(
         json.dumps(material, sort_keys=True, ensure_ascii=False).encode()
     ).hexdigest()[:12]
@@ -108,7 +112,8 @@ def asked_fingerprint(task_dir: pathlib.Path, task: dict) -> str:
     if not f.exists():
         return "no-prompt"
     material = dict({k: task.get(k) for k in
-                     ("deliverable", "score", "require", "answers", "input")},
+                     ("deliverable", "score", "require", "answers", "input",
+                      "genre")},
                     prompt=f.read_text(encoding="utf-8"))
     return hashlib.sha256(
         json.dumps(material, sort_keys=True, ensure_ascii=False).encode()
@@ -134,10 +139,21 @@ def detect(agent: dict) -> tuple[bool, str]:
         return False, f"probe failed: {exc.__class__.__name__}"
 
 
-def score_checks(kind: str, path: pathlib.Path) -> dict:
+def score_checks(kind: str, path: pathlib.Path, genre: str | None = None) -> dict:
+    """Run one checker, honouring the task's declared genre.
+
+    `check_prose.py` has taken `--genre` since it was written, and this harness
+    never passed it — so every deliverable was graded as sales material whatever
+    it was. T1 has called itself an internal analysis deck since the day it was
+    added, and the dash ban that failed it explicitly does not bind internal
+    analysis. The task said what it was and nothing carried the word to the
+    checker.
+    """
     script = {"prose": "check_prose.py", "design": "check_design.py"}[kind]
-    proc = subprocess.run([sys.executable, str(ROOT / "scripts" / script),
-                           str(path), "--json"], capture_output=True, text=True)
+    argv = [sys.executable, str(ROOT / "scripts" / script), str(path), "--json"]
+    if kind == "prose" and genre:
+        argv += ["--genre", genre]
+    proc = subprocess.run(argv, capture_output=True, text=True)
     try:
         report = json.loads(proc.stdout)
     except json.JSONDecodeError:
@@ -320,7 +336,7 @@ def main(argv):
                             failed.append(f"recall {entry['recall']['score']}"
                                           f"/{entry['recall']['of']}")
                     else:
-                        entry[kind] = score_checks(kind, target)
+                        entry[kind] = score_checks(kind, target, task.get("genre"))
                         # A checker that could not be read has not scored this
                         # artifact. The flag was written into the record and
                         # never looked at, so a crashed checker scored `pass`.

@@ -3,6 +3,34 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.365 — the task said what it was and nothing carried the word to the checker
+
+Cursor's twelve-page deck failed `M9_dashes` on two em-dashes in a term-and-
+definition list. `references/writing-rules.md` 8 bans the dash in **sales and
+marketing** deliverables and says in the same breath that it *"does not bind
+internal analysis documents"*. T1 has called itself an internal analysis deck in
+its title since the day it was added.
+
+**The harness never passed the genre.** `check_prose.py` has taken `--genre` since
+it was written; `score_checks` built its argv without it, so every deliverable
+this scoreboard has ever graded was graded as sales material whatever it was. A
+task could declare its nature in a title and in no way that reached the checker.
+
+Genre is a field now, `score_checks` passes it, `load_tasks` rejects a genre
+`check_prose.py` does not accept, and it is part of the run fingerprint — it
+changes the verdict, so a run scored under a different genre is stale rather than
+comparable. Cursor's deck, graded as what the task says it is: **three of three
+pass**, with M11 at 58.3 against a 60 ceiling — the first time that metric has
+been exercised by any agent, because the six-page version of this task could never
+reach its eight-title floor.
+
+This is the third defect the Cursor run has found, and none of the three was
+Cursor's: an em-dash placeholder in a table cell, a task shorter than the floor of
+the metric scoring it, and now a genre that existed only in prose. **We had never
+run these checkers against output we did not write**, and every fixture in the
+repository was authored by the hand that authored the checks. Each of these was
+invisible to a suite that only ever read its own homework.
+
 ## 0.1.364 — a result is a result of a question, and the question had changed
 
 0.1.363 recorded Cursor at three of three, and in the same release changed T1 from
