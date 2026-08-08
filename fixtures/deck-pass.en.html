@@ -174,7 +174,7 @@
   --fs-say:     clamp(24px, 2.3vw, 32px);   /* the claim that is the page */
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.368 (2026-08-08)
+   LUMI page layouts · v0.1.369 (2026-08-08)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -411,6 +411,99 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
   line-height: .92; letter-spacing: -.03em; font-variant-numeric: tabular-nums;
   color: var(--tx1);
 }
+
+/* ── the block patterns (v0.1.369) ──────────────────────────────────────────
+   Four shapes a deliverable repeats — the tier-1 callout, the card, the swap,
+   the vow — and until now this file styled every one of them ONLY inside the
+   portrait media query. It tightened a font-size it had never declared, so a
+   document got 12px at A4 and whatever it invented at 1280: one role, two
+   renderings, shipped by the file that carries the rule against them. That is
+   the `.gd` defect of 0.1.350 repeated in five more places, and it was invisible
+   until 0.1.368's probe-vocabulary guard asked what `tokens/` actually ships.
+
+   **Portrait may tighten SPACING. It may not touch type.** brand.md states it —
+   a page that no longer fits gets its content trimmed, never its type nudged —
+   and the portrait block below now obeys it.
+
+   Every size here is an existing tier, chosen by what the thing is rather than
+   invented: block body text is `--fs-fig-title`, the size `.gd` has occupied
+   since 0.1.350 and the same voice; a card's name is `--fs-support`, the second
+   voice; a vow's number is `--fs-fine`, which is what fine print is. No new
+   token, because a new tier is a design decision and nothing here asked for one.
+
+   Every text role here carries `margin: 0`, for the reason 0.1.367 gave the lede
+   roles: a role is one rendering INCLUDING ITS BOX. Set on a <p> these take the
+   UA's 1em top and bottom margin and set on a <div> they take none, and the
+   blocks below own their own spacing with `gap`. Measured on the fixture's vow
+   grid before the fix: 30px between a vow's title and its body where the block
+   asks for 6. */
+
+/* The tier-1 callout, in two colours. `.key` carries the aside that changes a
+   decision; `.red` carries the one that stops it — red line 1's colour rule, so
+   `--seal` and nothing else. check_design.py D3 budgets these at one per page
+   and a third of the document, and has named both classes since it was written
+   while `tokens/` shipped neither. */
+.key, .red {
+  font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2);
+  border: 1px solid var(--ln1); border-left: 3px solid var(--acc);
+  background: var(--acc-wash); padding: 13px 17px; margin: 0;
+}
+.red { border-left-color: var(--seal); background: var(--seal-wash); }
+
+/* Two blocks side by side inside one cell. Portrait collapses it to one column
+   and had been the ONLY place it was declared, so at the design geometry `.duo`
+   was a plain block and its children stacked — 12px past the footer rule on the
+   first fixture page to use one. A container that exists only in the geometry
+   that undoes it is the same defect as a font-size that exists only there. */
+.duo { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+
+/* The card: a small bordered block with a name and a body. */
+.card {
+  display: flex; flex-direction: column; gap: 10px;
+  border: 1px solid var(--ln1); padding: 16px 18px;
+}
+.ledname {
+  font-family: var(--din); font-size: var(--fs-support); font-weight: 700;
+  line-height: 1.2; letter-spacing: var(--ls-title); color: var(--tx1); margin: 0;
+}
+.card dl { margin: 0; }
+.card dt { font-family: var(--mono); font-size: var(--fs-fine);
+           letter-spacing: .12em; text-transform: uppercase; color: var(--tx3); }
+.card dd { margin: 0 0 8px; font-size: var(--fs-fig-title); line-height: 1.5;
+           color: var(--tx2); }
+.card dd:last-child { margin-bottom: 0; }
+.verdict { font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx1);
+           margin: 0; }
+
+/* The swap: what a line says now, and what it should say instead. Scoped to
+   `.swap`, because `.no` and `.yes` are the most collidable class names in this
+   vocabulary and a bare rule would reach into any document that uses them for
+   something else. Same reasoning as `.band .k`. */
+.swaps { display: flex; flex-direction: column; }
+.swap {
+  display: grid; grid-template-columns: 1fr 34px 1fr; align-items: baseline;
+  padding: 11px 0; border-top: 1px solid var(--ln2);
+}
+.swaps .swap:first-child { border-top: 0; }
+.swap .no, .swap .yes { font-size: var(--fs-fig-title); line-height: 1.5; margin: 0; }
+.swap .no { color: var(--tx3); }
+.swap .yes { color: var(--tx1); }
+.swap .arw { font-family: var(--mono); color: var(--tx4); }
+
+/* The vow: a numbered commitment, read as a set. */
+.vows { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.vow { display: flex; flex-direction: column; gap: 6px; }
+.vn { font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .12em;
+      color: var(--acc); }
+.vt { font-size: var(--fs-fig-title); font-weight: 700; line-height: 1.35;
+      color: var(--tx1); margin: 0; }
+.vw { font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2); margin: 0; }
+
+/* The caveat column. Its type was set twice in portrait — `li` at 12px, a table
+   at 11.5px — and never in base, so the column had no voice of its own until a
+   sheet made it narrow. It is the same block voice as everything above. */
+.notes { font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2); }
+.notes > p { margin: 0; }
 
 /* The fill mechanism, in two halves. A grid cell stretching is not enough: the
    cell fills and the content sits in the middle of it, which is how a page
@@ -820,11 +913,9 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
   .body.columns-3 { grid-template-columns: repeat(3, 1fr); column-gap: 18px; }
   /* The new block patterns get portrait proportions rather than a reflow. */
   .vows { grid-template-columns: 1fr; gap: 12px; }
-  .vows .vow:nth-child(5) { border-top: 0; padding-top: 0; }
   /* Stacking a swap turns seven pairs into fourteen rows; two pages went nearly
      3000px over. A swap is a swap in both geometries — it just gets tighter. */
   .swaps.tight .swap { grid-template-columns: 1fr 18px 1.15fr; padding: 7px 0; }
-  .swaps.tight .no, .swaps.tight .yes { font-size: 11.5px; line-height: 1.42; }
   .swap { grid-template-columns: 1fr 24px 1fr; }
   .grades { gap: 8px; }
   .gr .gc { display: none; }
@@ -837,17 +928,19 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
      that carries the rule against them, and invisible because the consistency
      probe only ever ran at 1280x720. Run at A4 it reports the split
      immediately. This is 0.1.349's own rule turned on its author: a page that no
-     longer fits gets its CONTENT trimmed, never its type nudged. */
-  .body.split > .notes li, .body.split-narrow > .notes li { font-size: 12px; line-height: 1.5; }
+     longer fits gets its CONTENT trimmed, never its type nudged.
+
+     **That paragraph was true and the next twenty lines broke it**, for eighteen
+     releases. Seven rules here set a font-size: `.notes li` at 12px, a notes
+     table at 11.5px, `.key` at 12px, `.no`/`.yes` at 12px and 11.5px, `.ledname`
+     at 18px, `.card dd` at 12.5px — and not one of those classes had a base
+     rendering anywhere, so the portrait value was the ONLY value `tokens/`
+     shipped and every one of them rendered two ways across the two geometries.
+     0.1.369 gave each a base rendering above and deleted the type from here.
+     What is left tightens spacing, which is what the paragraph always said. */
   .body.split > .notes .swap, .body.split-narrow > .notes .swap { padding: 9px 0; }
-  .body.split-wide > .notes table, .body.sidebar-notes > .notes table { font-size: 11.5px; }
   .body.split-wide > .notes td, .body.split-wide > .notes th { padding: 6px 10px 6px 0; }
-  .body.split > .fill .key { font-size: 12px; line-height: 1.5; }
-  .body.split > .notes .no, .body.split > .notes .yes,
-  .body.split-narrow > .notes .no, .body.split-narrow > .notes .yes { font-size: 12px; line-height: 1.45; }
   .card { padding: 14px 15px; gap: 9px; }
-  .ledname { font-size: 18px; }
-  .card dd { font-size: 12.5px; }
   .lead.row { flex-direction: column; align-items: flex-start; gap: 6px; }
   .body.columns-4 { grid-template-columns: repeat(2, 1fr); }
   .body.cover-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
@@ -949,7 +1042,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
   </div>
   <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>03 / 16</span></div></section>
 <section class="page" id="p4">
-  <div class="body split">
+  <div class="body sidebar-notes">
     <div class="lede">
       <p class="eyebrow">Reads</p>
       <h2 class="t">Read success: 96.2% on urban feeders, 71.4% on rural</h2>
@@ -961,63 +1054,53 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <ul><li>Signal strength tracks terrain closely.</li><li>Meter age shows no correlation.</li></ul>
       <div class="lead"><div class="v">28</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>
-    <div class="fill">
-      <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
-        role="img" aria-label="bars"><rect class="f-acc" x="0" y="0" width="380"
-        height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="70" width="250"
-        height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="140" width="170"
-        height="46" fill="var(--acc)"/></svg>
-      <div class="cap"><span class="n">Figure 4</span> Reads by feeder class
-      <span class="srcline">Meter management system, extract of the period</span></div></div>
+    <div class="notes">
+      <p class="listhead">What qualifies it</p>
+      <p class="key">A tier-1 callout marks the one aside that changes a decision.
+      The budget is one per page.</p>
+      <div class="swaps">
+        <div class="swap"><span class="no">Rural coverage is poor</span><span
+          class="arw">&#8594;</span><span class="yes">71.4% of rural reads succeed</span></div>
+        <div class="swap"><span class="no">Crews need more hours</span><span
+          class="arw">&#8594;</span><span class="yes">Clustering by feeder cuts travel</span></div>
+      </div>
     </div>
   </div>
   <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>04 / 16</span></div></section>
 <section class="page" id="p5">
-  <div class="body split">
+  <div class="body stack">
     <div class="lede">
       <p class="eyebrow">Cost</p>
       <h2 class="t">Each avoided truck roll returns 38 units</h2>
       <p class="sup">The figure holds only where a read succeeds on the first attempt.</p>
     </div>
-    <div class="fill">
-      <p class="listhead">What the data shows</p>
-      <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
-      <ul><li>A second attempt erases the saving.</li><li>Third attempts cost more than a visit.</li></ul>
-      <div class="lead"><div class="v">35</div><p class="g">Units returned per avoided visit, illustrative</p></div>
-    </div>
-    <div class="fill">
-      <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
-        role="img" aria-label="bars"><rect class="f-acc" x="0" y="0" width="380"
-        height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="70" width="250"
-        height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="140" width="170"
-        height="46" fill="var(--acc)"/></svg>
-      <div class="cap"><span class="n">Figure 5</span> Reads by feeder class
-      <span class="srcline">Meter management system, extract of the period</span></div></div>
-    </div>
+    <div class="fill"><div class="lead row"><div class="v">41<span class="u">%</span></div><p class="g">Metering coverage, illustrative</p></div><div class="duo">
+      <div class="card"><p class="ledname">First-attempt reads</p>
+        <dl><dt>Measure</dt><dd>Meters returning a value without a revisit.</dd></dl>
+        <p class="verdict">Watch this before the read rate.</p></div>
+      <div class="card"><p class="ledname">Estimate rate</p>
+        <dl><dt>Measure</dt><dd>Billed reads that were inferred, not taken.</dd></dl>
+        <p class="verdict">One cycle of warning, and no more.</p></div>
+    </div></div>
   </div>
   <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>05 / 16</span></div></section>
 <section class="page" id="p6">
-  <div class="body split">
+  <div class="body stack">
     <div class="lede">
       <p class="eyebrow">Risk</p>
       <h2 class="t">Three assumptions carry the forecast</h2>
       <p class="sup">Each one is checkable, and one of them has already moved.</p>
     </div>
-    <div class="fill">
-      <p class="listhead">What the data shows</p>
-      <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
-      <ul><li>Crew availability held through June.</li><li>Signal coverage assumptions have not.</li></ul>
-      <div class="lead"><div class="v">42</div><p class="g">Units returned per avoided visit, illustrative</p></div>
-    </div>
-    <div class="fill">
-      <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
-        role="img" aria-label="bars"><rect class="f-acc" x="0" y="0" width="380"
-        height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="70" width="250"
-        height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="140" width="170"
-        height="46" fill="var(--acc)"/></svg>
-      <div class="cap"><span class="n">Figure 6</span> Reads by feeder class
-      <span class="srcline">Meter management system, extract of the period</span></div></div>
-    </div>
+    <div class="fill"><div class="lead row"><div class="v">41<span class="u">%</span></div><p class="g">Metering coverage, illustrative</p></div><div class="vows">
+      <div class="vow"><span class="vn">01</span><p class="vt">Date every extract</p>
+        <p class="vw">A figure without its extract date cannot be reconciled later.</p></div>
+      <div class="vow"><span class="vn">02</span><p class="vt">Name the region</p>
+        <p class="vw">Two regions differ enough that an average hides both.</p></div>
+      <div class="vow"><span class="vn">03</span><p class="vt">Count attempts</p>
+        <p class="vw">A read that took three visits did not succeed.</p></div>
+      <div class="vow"><span class="vn">04</span><p class="vt">Say what moved</p>
+        <p class="vw">A number that changed for no stated reason is not evidence.</p></div>
+    </div></div>
   </div>
   <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>06 / 16</span></div></section>
 <section class="page" id="p7">
@@ -1029,7 +1112,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
     </div>
     <div class="fill">
       <p class="listhead">What the data shows</p>
-      <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
+      <p class="red">The seal colour marks a red line, never emphasis. A page carries at most one tier-1 callout.</p>
       <ul><li>Travel is the largest non-productive cost.</li><li>Density compounds across a week.</li></ul>
       <div class="lead"><div class="v">49</div><p class="g">Units returned per avoided visit, illustrative</p></div>
     </div>

@@ -3,6 +3,74 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.369 — the portrait block stated the rule and broke it in the next twenty lines
+
+`tokens/lumi-layouts.css` carries this, above its portrait overrides:
+
+> What tightens here is SPACING, never the type of a named role… a page that no
+> longer fits gets its CONTENT trimmed, never its type nudged.
+
+**Seven rules immediately below it set a font-size.** `.notes li` at 12px, a notes
+table at 11.5px, `.key` at 12px, `.no`/`.yes` at 12px and 11.5px, `.ledname` at
+18px, `.card dd` at 12.5px — and **not one of those classes had a base rendering
+anywhere in `tokens/`**. The portrait value was therefore the only value the
+package shipped: every one of them rendered one way at A4 and whatever a document
+invented at 1280. One role, two renderings, from the file that carries the rule
+against them. Eighteen releases, and the same trap that caught `.gd` in 0.1.350.
+
+0.1.368's probe-vocabulary guard is what surfaced it, by asking a question nobody
+had asked: what does `tokens/` actually *ship*? Twelve waived class names turned
+out to be four repeating block patterns that this package has audited for four
+releases and never rendered.
+
+**All four now ship a base rendering**, and every size is an existing tier chosen
+by what the thing is rather than invented — block body text is `--fs-fig-title`,
+the size `.gd` has occupied since 0.1.350 and the same voice; a card's name is
+`--fs-support`; a vow's number is `--fs-fine`. No new token, because a new tier is
+a design decision and nothing asked for one.
+
+- **tier-1 callout** — `.key`, and `.red` for a red line. `check_design.py` has
+  named both as `TIER1_CLASSES` since D3 was written while `tokens/` shipped
+  neither.
+- **card** — `.card`, `.ledname`, `.verdict`, and the `dl`/`dt`/`dd` inside it.
+- **swap** — `.swap` with `.no` and `.yes`, scoped for the reason `.band .k` is:
+  those are the two most collidable class names in the vocabulary. Scoping them
+  means auditing outside the scope, so they join the unscoped-role audit.
+- **vow** — `.vow` with `.vn`, `.vt`, `.vw`.
+
+**`.duo` too**, found the same way from the other end: its base grid existed only
+inside the media query that collapses it, so at the design geometry it was a plain
+block and its children stacked — 12px past the footer rule on the first fixture
+page to use one. *A container that exists only in the geometry that undoes it is
+the same defect as a font-size that exists only there.*
+
+Every text role here carries `margin: 0`, for 0.1.367's reason: a role is one
+rendering **including its box**. Measured on the vow grid before the fix — 30px
+between a vow's title and its body where the block asks for 6.
+
+**The fixture used none of these blocks**, which is why the defect could sit
+still for eighteen releases: nothing in this repository ever rendered one. Four
+pages now do — a `sidebar-notes` page with the callout and two swaps, a `stack`
+page of cards, a `stack` page of vows, and a red-line callout on a fourth. It
+also exercises `.lead.row`, which nothing had rendered either.
+
+**Both fixture pages overran, and `--deliverable` said so before anything was
+committed** — 44px past the footer rule at 1280 and 135px at A4. The rule for a
+page that does not fit is that its *content* is trimmed, so the content was
+trimmed: a page about four commitments does not also carry a bullet list and a
+display number. That is the gate shipped in 0.1.368 doing its job on this
+repository's own work, one release later.
+
+**And moving a fixture page broke a planted defect.** Page 5 became a cards page
+with no `.gd`, so the D4 literal-colour plant vanished with it and D4 came back
+`ok` on the fixture whose job is to make it fire. `check_fixtures.py` caught it.
+*A defect that stops being planted is indistinguishable from a check that stopped
+working.*
+
+Still not shipped, and recorded rather than invented: `.grades`/`.gr`/`.gc` and
+`.body.cover-grid`, which have the same portrait-only shape but set no type — and
+`cover-grid` is a sixteenth layout absent from `check_design.py`'s `LAYOUTS`.
+
 ## 0.1.368 — a gate nothing invokes is not a gate
 
 Three releases of finding defects the instruments could not see, and this one

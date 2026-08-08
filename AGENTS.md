@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.368.** This file restates part of `references/`; where they
+> **lumi-style 0.1.369.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -82,7 +82,9 @@ success for two releases while every page was 4:3 in a 4:3 window.
 
 **And a check with nothing to examine must not report a pass.** Use the role
 vocabulary `tokens/lumi-layouts.css` declares — `.eyebrow`, `h2.t`, `.sup`,
-`.listhead`, `.gd`, `.cap .n`, `.band .k`, `.band .v` — or the consistency audit
+`.listhead`, `.gd`, `.cap .n`, `.band .k`, `.band .v`, and the four block
+patterns `.key`/`.red`, `.card`/`.ledname`/`.verdict`, `.swap .no`/`.swap .yes`,
+`.vow`/`.vn`/`.vt`/`.vw` — or the consistency audit
 silently has nothing to compare. The probe now prints `NOT MEASURED` with the
 selector it wanted and exits 1; those lines come before every green one. Its
 design judgements still gate nothing.

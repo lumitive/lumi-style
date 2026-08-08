@@ -985,6 +985,13 @@ CONSISTENCY_PROBE = r"""
   const SCOPED = [
     ['.k', ['.band']],
     ['.v', ['.band', '.lead']],
+    // Shipped scoped in 0.1.369 for the reason `.k` is: `.no` and `.yes` are the
+    // most collidable names in this vocabulary, so `tokens/` styles them only
+    // inside a `.swap` rather than reaching into any document that uses them for
+    // something else. Scoping a role means auditing what sits outside the scope,
+    // or the audit reports a clean bill about a third of the uses.
+    ['.no', ['.swap']],
+    ['.yes', ['.swap']],
   ];
   const unscoped = [];
   for (const [sel, scopes] of SCOPED) {

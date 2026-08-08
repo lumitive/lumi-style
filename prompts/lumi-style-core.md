@@ -48,8 +48,14 @@ a reader what the difference means. A page with no number panel simply has no li
 **One role, one rendering.** Every repeating role — title, support line, eyebrow,
 band value, band label, figure caption, listhead, callout, footer terms, page
 number — renders exactly one way, and a title is one way *per register* (content,
-cover, closing). A page that no longer fits gets its **content trimmed, never its
-type nudged**; nudging type per page is what produced a callout at three sizes.
+cover, closing). The same holds for the four repeating **block patterns**: the
+tier-1 callout (`.key`, and `.red` for a red line), the card (`.card` with
+`.ledname` and `.verdict`), the swap (`.swap` with `.no` and `.yes`) and the vow
+(`.vow` with `.vn`, `.vt`, `.vw`). A page that no longer fits gets its **content
+trimmed, never its type nudged**; nudging type per page is what produced a
+callout at three sizes. **That binds across geometries too** — a sheet may
+tighten spacing and may not change a size, or one role renders two ways and only
+a reader ever sees it.
 Content begins at the same height on every page of a geometry — reserve the title
 block at two lines plus one support line and do not let it float. Portrait
 releases the reserve, because portrait is a composition and not a reflow. **The
@@ -298,6 +304,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.368** snapshot, cut 2026-08-08. It is self-contained by
+> This file is the **0.1.369** snapshot, cut 2026-08-08. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

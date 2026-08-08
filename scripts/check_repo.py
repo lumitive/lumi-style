@@ -437,22 +437,12 @@ def check_token_references():
 # distinction is the whole guard: 0.1.349 audited ten roles against six names
 # that shipped nowhere, and 0.1.366 found two more, because nothing separated a
 # claim about rendering from a request to be counted.
+# Twelve entries left when 0.1.369 shipped the four block patterns this dict had
+# been excusing — `.key`, `.red`, `.card`, `.ledname`, `.verdict`, `.swap`,
+# `.no`, `.yes`, `.vow`, `.vn`, `.vt`, `.vw`. The guard named each one the moment
+# it started shipping ("tokens/ now ships it; delete the waiver"), which is the
+# half of a waiver mechanism that usually goes missing.
 PROBE_NOT_SHIPPED = {
-    # Block patterns a document composes for itself. tokens/ tightens their
-    # SPACING in the portrait block and never declares a base rendering, which
-    # is its own defect and is recorded in CHANGELOG 0.1.368 — but it is a
-    # missing rule, not a missing count, and inventing seven block designs to
-    # satisfy a guard is exactly the speculative rule-making CLAUDE.md rule 2
-    # forbids.
-    "card": "portrait-only in tokens/; no base rendering ships. A census entry.",
-    "key": "portrait-only in tokens/; the tier-1 callout pair `.key`/`.red` has "
-           "no base rendering. check_design.py names both as TIER1_CLASSES.",
-    "red": "the seal-coloured half of the tier-1 callout pair; ships nowhere at all.",
-    "ledname": "portrait-only in tokens/; no base rendering ships.",
-    "swap": "portrait-only in tokens/; no base rendering ships.",
-    "vow": "portrait-only in tokens/; no base rendering ships.",
-    "no": "the losing side of a `.swap`; portrait-only in tokens/.",
-    "yes": "the winning side of a `.swap`; portrait-only in tokens/.",
     # Composition vocabulary. `.page.opener` ships and what a document puts
     # inside one is its own composition; TSEL lists these so opener text is
     # counted as text, not to fix how an opener renders.
@@ -462,15 +452,11 @@ PROBE_NOT_SHIPPED = {
     # Document-local blocks with no design claim behind them.
     "geo-flat": "a flat-map figure a document may draw; CENTER/DSEL count it as a "
                 "centerpiece and a drawing, and say nothing about it.",
-    "note": "a marginal note inside `.notes`, which does ship; the inner element "
-            "is the document's own.",
+    "note": "a single note inside `.notes`, which does ship with a voice of its "
+            "own; the inner element is the document's.",
     "sub": "a subtitle under a cover or opener title; composition, not a role.",
     "tag": "a small status chip; a document's own furniture.",
     "tick": "an axis or timeline label inside a figure.",
-    "verdict": "a card's conclusion line; part of `.card`, above.",
-    "vn": "the number on a `.vow`; part of `.vow`, above.",
-    "vt": "the title of a `.vow`; part of `.vow`, above.",
-    "vw": "the body of a `.vow`; part of `.vow`, above.",
     "who": "an attribution line; a document's own furniture.",
     "wordmark": "the organisation's mark on a cover; an asset, not a type role.",
 }
