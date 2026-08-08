@@ -3,6 +3,45 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.353 — a withdrawn number may not be restated as though it still binds
+
+`tokens/design-tokens.json` gains a **`retired` register**: the values this rule
+set withdrew, each with the release that withdrew it and why. A withdrawn number
+has to be *stated* somewhere or no machine can tell it from a number deleted by
+accident, and this repository's documented worst drift is exactly that — the 82%
+page-fill floor and the 11px type floor were withdrawn in 0.1.340 and went on
+living in two entry points for four more versions, invisible because nothing
+compared the copies.
+
+`check_repo.py` gains **`retired values`**: every paragraph restating a retired
+number must mark it as retired. It reads the register rather than a hand-written
+list of things an entry point should not say, which is the direction of authority
+CLAUDE.md requires — a check that asserts its own expectations is a second source
+of truth.
+
+Two things the first cut got wrong, both caught before it shipped:
+
+**Line scope was the wrong unit.** This prose is hard-wrapped, so "Withdrawn in
+0.1.340 … the 11px type floor" straddles two lines, and a line-scoped check
+reported the second half as an unmarked restatement — twelve false positives on a
+clean repository. A sentence is the unit a reader reads, so it is the unit the
+marker has to be found in.
+
+**A bare number is not a rule.** `40%` names the withdrawn D9 share cap in one
+sentence and "four diagrams rendered at 40% of their cell" in another. Same
+digits, opposite claims. Each retired entry now carries `context` phrases, and a
+value counts as a restatement only alongside one of them; an entry with no context
+list fails rather than guessing. The guard also reports a waiver that no longer
+matches anything, which is how the one waiver this needed came to be deleted —
+once `context` landed, the sentence sizing an icon against an 11px caption stopped
+looking like a floor claim at all. A waiver that survives its cause is a standing
+permission nobody re-reads.
+
+What it cannot do: tell whether a rule's polarity changed while its digits stayed.
+"3-6 word headline" as a ceiling and as a target are the same characters, and
+CLAUDE.md rule 4 exists because that has cost three regressions. That stays with
+the reviewer.
+
 ## 0.1.352 — the platforms get a registry, and a withdrawn floor stops shipping
 
 First of five releases making this skill work across many agents. This one adds
