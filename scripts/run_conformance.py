@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import hashlib
 import pathlib
 import re
 import shutil
@@ -72,6 +73,46 @@ def load_tasks() -> list[dict]:
             if not t.get("answers"):
                 raise ValueError(f"{t['id']}: scores recall with no `answers` key")
     return tasks
+
+
+def task_fingerprint(task: dict) -> str:
+    """What a result is a result *of*.
+
+    A recorded verdict is only meaningful against the task that produced it, and
+    a task is edited far more often than anyone re-runs an agent: T1 went from
+    six pages to twelve, which moved M11 from ungraded to graded, and the
+    scoreboard went on showing the six-page `pass` with nothing to indicate it
+    was answering a prompt that no longer exists.
+
+    Only the fields that can change a verdict are hashed. `title` and `note` are
+    documentation; rewording them must not invalidate a run.
+    """
+    material = {k: task.get(k) for k in
+                ("prompt", "deliverable", "score", "require", "answers", "input")}
+    return hashlib.sha256(
+        json.dumps(material, sort_keys=True, ensure_ascii=False).encode()
+    ).hexdigest()[:12]
+
+
+def asked_fingerprint(task_dir: pathlib.Path, task: dict) -> str:
+    """The fingerprint of the question the agent was actually shown.
+
+    Taken from the PROMPT.txt in the run directory, not from the task at scoring
+    time. Scoring re-reads the artifact from disk, so hashing the current task
+    would stamp a fresh fingerprint onto an old answer and call it current —
+    which is exactly the failure being closed: a six-page deck reported as
+    passing a twelve-page task. If the prompt the agent saw is gone, say so
+    rather than assuming it matched.
+    """
+    f = task_dir / "PROMPT.txt"
+    if not f.exists():
+        return "no-prompt"
+    material = dict({k: task.get(k) for k in
+                     ("deliverable", "score", "require", "answers", "input")},
+                    prompt=f.read_text(encoding="utf-8"))
+    return hashlib.sha256(
+        json.dumps(material, sort_keys=True, ensure_ascii=False).encode()
+    ).hexdigest()[:12]
 
 
 def load_agents() -> list[dict]:
@@ -160,7 +201,10 @@ def render(record: dict) -> str:
               "measure mechanical conformance, and a page is done when a human reads "
               "it as intentional. Each row is one run of one CLI version on one "
               "machine on one date, not a property of the agent. Rows marked "
-              "`not installed` were not exercised and are listed rather than omitted."]
+              "`not installed` were not exercised and are listed rather than omitted. "
+              "A cell reading `stale: task changed` means the recorded verdict answers "
+              "a version of that task the repository no longer contains — it is not a "
+              "pass and not a failure, it is a result that has to be re-earned."]
     return "\n".join(lines) + "\n"
 
 
@@ -253,8 +297,9 @@ def main(argv):
                     # outcome — an agent that answered in chat instead of
                     # writing a file — and it has to read as a failure to
                     # produce, never as an absent finding.
-                    scores[key] = {"verdict": "no deliverable", "detail":
-                                   f"nothing matching {task['deliverable']}"}
+                    scores[key] = {"verdict": "no deliverable",
+                                   "task_hash": asked_fingerprint(task_dir, task),
+                                   "detail": f"nothing matching {task['deliverable']}"}
                     unscored += 1
                     continue
                 target = produced[0]
@@ -264,7 +309,8 @@ def main(argv):
                     shown = str(target.relative_to(ROOT))
                 except ValueError:
                     shown = str(target)
-                entry, failed = {"artifact": shown}, []
+                entry, failed = {"artifact": shown,
+                                 "task_hash": asked_fingerprint(task_dir, task)}, []
                 seen = {}
                 for kind in task["score"]:
                     if kind == "recall":
@@ -341,13 +387,20 @@ def main(argv):
             s = mine.get(t["id"])
             if s is None:
                 cells[t["id"]] = "—" if not ok else "not run"
+            elif s.get("task_hash") != task_fingerprint(t):
+                # The verdict stands, but not for this task. Showing it would be
+                # reporting an answer to a question no longer asked.
+                cells[t["id"]] = "stale: task changed"
+                verdicts.append("stale")
             else:
                 v = s["verdict"]
                 cells[t["id"]] = v if v == "pass" else (
                     f"{v}: {', '.join(s.get('failed', []))}" if s.get("failed") else v)
                 verdicts.append(v)
         if verdicts:
-            verdict = "pass" if all(v == "pass" for v in verdicts) else "fail"
+            verdict = ("pass" if all(v == "pass" for v in verdicts)
+                       else "stale" if any(v == "stale" for v in verdicts)
+                       and not any(v == "fail" for v in verdicts) else "fail")
             cli = note if ok else "driven by hand"
         else:
             verdict = "not installed" if not ok else "not run"

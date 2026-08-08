@@ -3,6 +3,32 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.364 — a result is a result of a question, and the question had changed
+
+0.1.363 recorded Cursor at three of three, and in the same release changed T1 from
+six pages to twelve. The scoreboard went on showing the six-page `pass` with
+nothing to indicate it was answering a prompt the repository no longer contained
+— and the change was not cosmetic, since twelve pages move M11 from ungraded to
+graded. The recorded verdict was for a strictly easier task than the one on disk.
+
+`score` now fingerprints **the prompt the agent was actually shown**, read from
+the `PROMPT.txt` in the run directory, and `report` marks a cell
+`stale: task changed` when that fingerprint no longer matches the task. A stale
+cell is neither a pass nor a failure; it is a result that has to be re-earned.
+
+Fingerprinting the *task* rather than the prompt was the obvious first cut and it
+was wrong: scoring re-reads the artifact from disk, so hashing the current task
+stamped a fresh fingerprint onto an old answer and called it current — the six-page
+deck went on reporting `pass` against the twelve-page task. The hash has to come
+from the question that was asked, not from the question being asked now.
+
+Only fields that can change a verdict are hashed: `prompt`, `deliverable`,
+`score`, `require`, `answers`, `input`. `title` and `note` are documentation, and
+rewording them must not invalidate a run — verified in all three directions.
+
+Cursor's T2 and T3 still read `pass`; those tasks are unchanged and their results
+stand. T1 reads `stale`, which is the honest state until it is re-run.
+
 ## 0.1.363 — the first agent outside Claude Code, and the checker was wrong
 
 Cursor was installed from the registry path, driven by hand through all three

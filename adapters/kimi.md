@@ -8,4 +8,4 @@ Kimi has no skill mechanism, so it takes the self-contained single-file core:
 2. paste the core prompt as the system prompt (API: the system field; web: the first message);
 3. Then issue tasks normally ("Following the rules above, write…").
 
-The core is self-contained with zero tool assumptions; on any conflict, `references/` wins. Re-copy it after a rule update — it is a snapshot, and this one is 0.1.363.
+The core is self-contained with zero tool assumptions; on any conflict, `references/` wins. Re-copy it after a rule update — it is a snapshot, and this one is 0.1.364.
