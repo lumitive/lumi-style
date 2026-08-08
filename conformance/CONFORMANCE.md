@@ -1,4 +1,4 @@
-# LUMI style conformance · skill 0.1.363
+# LUMI style conformance · skill 0.1.364
 
 Run `conformance/results/cursor-20260808` · darwin · 1 of 12 agents detected · n=1 per agent
 
@@ -7,7 +7,7 @@ Run `conformance/results/cursor-20260808` · darwin · 1 of 12 agents detected �
 | Claude Code | full | 2.1.225 (Claude Code) | not run | not run | not run | **not run** |
 | Gemini CLI | full | — | — | — | — | **not installed** |
 | OpenAI Codex | full | — | — | — | — | **not installed** |
-| Cursor | full | driven by hand | pass | pass | pass | **pass** |
+| Cursor | full | driven by hand | stale: task changed | pass | pass | **stale** |
 | Google Antigravity | full | — | — | — | — | **not installed** |
 | GitHub Copilot | full | — | — | — | — | **not installed** |
 | OpenCode | full | — | — | — | — | **not installed** |
@@ -19,5 +19,5 @@ Run `conformance/results/cursor-20260808` · darwin · 1 of 12 agents detected �
 
 ## What this table is not
 
-It is not a claim that any model produces good output: the checks measure mechanical conformance, and a page is done when a human reads it as intentional. Each row is one run of one CLI version on one machine on one date, not a property of the agent. Rows marked `not installed` were not exercised and are listed rather than omitted.
+It is not a claim that any model produces good output: the checks measure mechanical conformance, and a page is done when a human reads it as intentional. Each row is one run of one CLI version on one machine on one date, not a property of the agent. Rows marked `not installed` were not exercised and are listed rather than omitted. A cell reading `stale: task changed` means the recorded verdict answers a version of that task the repository no longer contains — it is not a pass and not a failure, it is a result that has to be re-earned.
 
