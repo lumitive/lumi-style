@@ -1,0 +1,10 @@
+{
+  "id": "T2-deaify",
+  "title": "De-AI-flavor rewrite (deterministic: 6 banned phrases must reach 0)",
+  "min_capability": "prompt",
+  "deliverable": "*.md",
+  "score": ["prose"],
+  "require": {"M4_banned_hits": "ok"},
+  "input": "Leveraging a seamless and robust framework, this groundbreaking initiative showcases our commitment to delivering comprehensive value across the evolving landscape.\n\nIt is important to note that the solution serves as a testament to what can be achieved. In order to realise this, teams must delve into the intricate tapestry of operational data.\n\nThe vibrant results underscore the pivotal role of the platform.",
+  "prompt": "Using the LUMI style skill, rewrite input.md so it carries the same meaning with none of the banned phrasing. Write the result to rewritten.md in the working directory. Keep it to roughly the same length."
+}

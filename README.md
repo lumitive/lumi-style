@@ -47,11 +47,21 @@ here. They are not listed because
 [`adapters/platforms.json`](adapters/platforms.json) records only what has been
 checked, and an unlisted platform is not one this repository claims.
 
-**What is and is not verified.** The install paths above are taken from each
-vendor's documentation and are checked mechanically for internal consistency;
-Hermes carries a written waiver naming exactly what is unconfirmed. No claim is
-yet made that any given agent *produces* conforming output — that requires
-running them, which lands in 0.1.356 along with a recorded conformance table.
+**What is and is not verified.** Every push verifies, offline and mechanically,
+that the package is well-formed: the install paths above come from each vendor's
+documentation and are checked for internal consistency, every per-platform
+artifact is generated from one registry and cannot silently drift, and the check
+scripts still produce the expected verdicts on a tracked passing fixture and a
+deliberately broken one. Hermes carries a written waiver naming exactly what is
+unconfirmed.
+
+**What that is not.** It is not a claim that any model produces good output. The
+checks measure mechanical conformance; a page is done when a human reads it as
+intentional. `python3 scripts/run_conformance.py` runs a fixed task suite through
+whichever agent CLIs are installed and records the result in
+[`conformance/CONFORMANCE.md`](conformance/CONFORMANCE.md) — including the agents
+it could not run, which are listed rather than omitted. Each row there is one run
+of one CLI version on one machine on one date, not a property of the agent.
 
 ## What's inside
 

@@ -40,3 +40,7 @@ docs/
 !assets/fonts/*.woff2
 !assets/icons/**/*.svg
 !assets/vectors/*.svg
+
+# Conformance run artifacts: renders, not records. The scoreboard is tracked;
+# the raw agent output lives with the run.
+conformance/results/
