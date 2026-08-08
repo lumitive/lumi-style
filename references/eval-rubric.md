@@ -41,7 +41,7 @@ rule 4 is why: a page is done when a human reads it as intentional, and a metric
 that can be satisfied without improving the page ends the looking rather than
 directing it.
 
-**Withdrawn in 2.0.0**, all three invented without an ask: **D7** (82% page fill),
+**Withdrawn in 0.1.340**, all three invented without an ask: **D7** (82% page fill),
 **D9's 40% share cap**, and the **11px type floor**. D7 is the cautionary one — it
 measured the bounding box of all ink, so a small chart with a long caption scored
 as full, and it was satisfied by stretching table rows while four diagrams
@@ -102,7 +102,7 @@ built to replace it.
 Provenance: M1–M11 made the prose half of this skill checkable while the design
 half stayed a reading task, and a deck that passed every prose metric came back
 from its reader with seven defects. Four were arithmetic the whole time. Run
-`check_design.py` on the 1.7.0 deck and it reports 32 contrast failures, 17
+`check_design.py` on the 0.1.337 deck and it reports 32 contrast failures, 17
 sub-floor type sizes, four pages over the callout budget on 51.9% of pages, and
 two footer gaps — which is the reader's list, in numbers, before they had to read
 anything.

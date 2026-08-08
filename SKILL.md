@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.350"
+  version: "0.1.351"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -26,7 +26,7 @@ Everything in `references/` is craft knowledge and hard-won defect history. None
 of it outranks these four. When a rule and a page disagree, the page wins and the
 rule gets revised through the review loop.
 
-*Provenance: release 1.9.0 answered a request for balanced, expressive pages by
+*Provenance: release 0.1.339 answered a request for balanced, expressive pages by
 inventing an 82% fill floor and then satisfying it — stretching tables, letting
 caption text pad the measured box, and passing four diagrams that render at 40%
 of their cell. The reader scored H1, H2 and H3 at 1. The skill already forbids
@@ -41,7 +41,7 @@ and market material is projected and it is printed, so both are latent defaults:
 the window and letterboxed — *not* a box that takes the window's shape. Portrait
 is a composition, not a reflow.
 
-*Provenance: until 2.2.0 the page was `min-height: 100svh`, so it was 16:9 only
+*Provenance: until 0.1.343 the page was `min-height: 100svh`, so it was 16:9 only
 when the window happened to be, and 4:3 in a 4:3 window. A reader found it; no
 check could have, because the page-height probe set the viewport to 1280×720 and
 then measured the page against that viewport. **Verify a page's shape at a window
@@ -66,7 +66,7 @@ rules only as rule data for Chinese-language output.
 **The order matters, and it is commit first, clarify second.** Land the concept
 fully, then apply the red lines and the craft rules to make it clear. Doing it the
 other way — starting inside the constraints and decorating outward — is
-measurably how you get work that is correct and lifeless. Through 2.3.0 this
+measurably how you get work that is correct and lifeless. Through 0.1.344 this
 skill ran 272 restricting lines against 12 inviting ones, and every release added
 more brakes because every release fixed a defect a reader had found. No brake has
 been removed; they now apply at step 4 instead of framing step 0.
@@ -113,9 +113,9 @@ been removed; they now apply at step 4 instead of framing step 0.
    **never self-score 5 before a reader has scored it, and give the reason for
    every score**. Measure rather than trust: `python3 scripts/check_prose.py <file>`
    for English prose and `python3 scripts/check_design.py <file>` for any HTML.
-   (The de-AI pass was advisory until 1.6.0 and nothing invoked it; three versions
+   (The de-AI pass was advisory until 0.1.336 and nothing invoked it; three versions
    of AI-flavored decks shipped past it. The design half had no metrics at all
-   until 1.8.0, and a deck that passed every prose metric came back from its
+   until 0.1.338, and a deck that passed every prose metric came back from its
    reader with seven defects, four of them arithmetic.)
 5. **Version lockstep**: stamp every deliverable with the lumi-style version
    that produced it — **once, in the closing colophon**, small and out of the

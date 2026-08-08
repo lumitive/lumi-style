@@ -15,7 +15,7 @@ was written from thin air.
 
 | Platform | How |
 |---|---|
-| **Claude Code** | `git clone https://github.com/lumitive/lumi-style` somewhere you keep checkouts, then `ln -s <path> ~/.claude/skills/lumi-style` and `/lumi-style <task>`. **Symlink rather than copy**: an installed copy silently stranded at 1.4.0 while the repo reached 1.7.0, and a deck was built against three versions of superseded rules. |
+| **Claude Code** | `git clone https://github.com/lumitive/lumi-style` somewhere you keep checkouts, then `ln -s <path> ~/.claude/skills/lumi-style` and `/lumi-style <task>`. **Symlink rather than copy**: an installed copy silently stranded at 0.1.334 while the repo reached 0.1.337, and a deck was built against three versions of superseded rules. |
 | **Codex** | reads `AGENTS.md` (see `adapters/codex.md`) |
 | **Kimi** | paste `prompts/lumi-style-core.md` as the system prompt (see `adapters/kimi.md`) |
 | **DeepSeek** | same as Kimi (see `adapters/deepseek.md`) |

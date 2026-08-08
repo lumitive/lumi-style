@@ -3,24 +3,46 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.351 — the history moves onto the 0.1.x scheme
+
+0.1.350 restarted the numbering but left the 22 releases behind it on the old
+1.0.0 → 3.4.0 scale, so a public repository advertised two schemes at once and its
+newest entry sorted below its oldest. They now occupy **0.1.328 – 0.1.349** in
+their original order, running contiguously into 0.1.350.
+
+**The citations moved in the same pass, which is the part that could have gone
+wrong.** This repository names versions constantly — "since 0.1.339", "0.1.346's
+register", "0.1.332's headline" — and those names are load-bearing: they are how a
+rule carries the defect that produced it. All **165** references across
+`references/`, `tokens/`, `scripts/`, the three entry points and `README.md` were
+rewritten together, and every version cited anywhere in the repository now
+resolves to a heading in this file. A citation naming a version no heading defines
+is exactly the drift the checks cannot see, so it was verified explicitly rather
+than assumed.
+
+**Git history was deliberately not touched.** Commit subjects and the merged pull
+requests still read `3.4.0 — one role, one rendering`, because rewriting 22
+commits means force-pushing a public branch: every clone breaks and PRs #17–26
+detach from their commits. The CHANGELOG is the canonical record; the git log is a
+factual account of what each release was called when it landed. The same applies
+outward — a deliverable exported before this carries a 3.x stamp that no longer
+names anything here.
+
+*No rule changed. This is bookkeeping, and it takes a version of its own because
+the convention says a revision gets an entry and a bump — including the revision
+that edits the convention.*
+
 ## 0.1.350 — a check that did not run is not a check that passed
 
-**The version scheme restarts here.** The previous entry is 3.4.0; this release
-is 0.1.350, and the number goes **down** on purpose. Nothing about the rules
-changed for it — the major-version climb had been reading as maturity the package
-has not earned, and 0.x says plainly that this is still pre-stable. From here the
-**patch position** carries ordinary releases (0.1.351, 0.1.352, …); the minor
-position moves only for a change that would break a deliverable built on the
-previous one. The history below keeps its original numbers, because every rule
-file, token comment and script in this repository cites them by name — "since
-1.9.0", "3.1.0's register", "1.2.0's headline" — and renumbering the past would
-cost the provenance those citations carry while buying nothing.
+**The version scheme changed with this release.** The package had been climbing
+into a fourth major version, which read as a maturity it has not earned; 0.x says
+plainly that
+this is still pre-stable. From here the **patch position** carries ordinary
+releases (0.1.351, 0.1.352, …), and the minor moves only for a change that would
+break a deliverable built on the previous one. *(The releases before this one were
+renumbered onto the scheme in 0.1.351, the entry above.)*
 
-*One consequence worth knowing: a deliverable stamped 3.x was produced by a
-lumi-style newer than one stamped 0.1.350, which is the one place this reads
-backwards. Version lockstep still holds going forward.*
-
-A review of 3.4.0 asked whether the layout probe establishes complete check
+A review of 0.1.349 asked whether the layout probe establishes complete check
 factors for a **new** document. It does not, and the way it failed is worse than
 a gap: every reassuring line it printed was the `else` branch of a defect test,
 so a check with nothing to examine reported the same thing as a check that found
@@ -49,11 +71,11 @@ nothing says `NOT MEASURED` with the reason and the selector it wanted.
 `inspect_layout.py` **exits 1 when anything could not be measured** — the design
 judgements still gate nothing, which is the whole distinction: reporting that a
 check did not run is not a judgement about the page. `check_design.py` has had
-this concept since 1.9.0, in the same directory, while this script expressed all
+this concept since 0.1.339, in the same directory, while this script expressed all
 five of its failure paths as silence.
 
 **Three checks were measuring the box instead of the thing in it** — the mistake
-3.4.0 was written to catch, committed by 3.4.0's own additions. The title role
+0.1.349 was written to catch, committed by 0.1.349's own additions. The title role
 ignored size, to excuse a cover legitimately larger than a content page, so 34px
 and 57.6px produced the same key and the first defect the audit was built for was
 undetectable by it; a title is now three registers, each compared on size. The
@@ -65,7 +87,7 @@ collision probe all used `getBoundingClientRect()`, so a grown SVG box inflated
 the scale *and* filled the empty-band scan with phantom ink at the same time.
 
 **The consistency and ground audits only ever ran at 1280×720.** Run at A4 — a
-required matrix point since 2.0.0 — the same probe found the callout at
+required matrix point since 0.1.340 — the same probe found the callout at
 **12 / 13 / 11.5px**, set per context by the portrait block of the token file that
 carries the rule against it, and the strong ground tier breaking its own 1.40:1
 ceiling on two independent documents. Both audits now run at every requested
@@ -99,7 +121,7 @@ Two false alarms went the other way and were fixed with the same discipline: a
 band that stacks in portrait is not 338px out of line, and a figure deliberately
 hidden by the landscape/portrait pair is not an unreadable drawing.
 
-## 3.4.0 — one role, one rendering: a consistency system, and the probe that holds it
+## 0.1.349 — one role, one rendering: a consistency system, and the probe that holds it
 
 A reader asked for a complete consistency audit of all 30 pages and for the
 confirmed style to live in the tool rather than in my head. They named four
@@ -107,7 +129,7 @@ inconsistencies. Measuring every repeated role across every page found those fou
 **and two more**, one deeper than anything reported.
 
 **The title rendered three ways** — content 34px/700, cover 57.6px/700, and the
-**closing at weight 400**: the register reached every page in 3.1.0 except the
+**closing at weight 400**: the register reached every page in 0.1.346 except the
 last one. **The callout rendered three ways**, 12 / 12.5 / 13.5px, unreported —
 residue from three rounds of per-page density fixes, each locally right and the
 accumulation exactly the inconsistency a reader can see. That produced a rule: **a
@@ -149,7 +171,7 @@ deliberately in the probe set, three pages still show small collisions and two
 spill by under 8 page-units. Text rewraps at that zoom. Both design geometries are
 clean.
 
-## 3.3.0 — the working green and the event green, numbers that rank, a quieter cover
+## 0.1.348 — the working green and the event green, numbers that rank, a quieter cover
 
 Six items from a review. One needed measurement rather than taste, two were
 defects, and both defects were invisible to the probe added one release earlier.
@@ -163,9 +185,9 @@ fills, but 84 acid panels is the opposite of non-contention and destroys the thi
 that makes it an event. So the two greens are named for the two jobs the canvas
 forces apart: **`--acc` forest is the working green** — anything that must read on
 white — and **`--lime` is the event green** — large panels only. Collapsing them
-into one would take a dark content canvas, declined in 3.1.0.
+into one would take a dark content canvas, declined in 0.1.346.
 
-**The collision probe only knew one kind of collision.** 3.2.0 added it after a
+**The collision probe only knew one kind of collision.** 0.1.347 added it after a
 reader found text on text; it compares text to text and nothing else. The same
 reader immediately found two defects it could not see, and measuring text against
 *drawn* elements found **11 pairs**: a field sitting 22px on a paragraph, and the
@@ -174,7 +196,7 @@ closing. It now compares text against every drawn element — field, figure, ban
 spec, geography — with containment excluded, because a caption inside its own
 figure is not a collision.
 
-**The catalogue field is removed from page 3.** Its label was cut in 3.2.0 to fix
+**The catalogue field is removed from page 3.** Its label was cut in 0.1.347 to fix
 a different collision, and unlabelled the 161 marks read as texture rather than as
 evidence — which is exactly what the reader called them. The stat band on that
 page already says 161. The field survives where it earns its place: the
@@ -204,9 +226,9 @@ keys on class tokens, so it began grading every focal element against the lime
 panel — five false contrast failures on the dark palette. Renamed to `.v.first`.
 **A class name is an interface.**
 
-## 3.2.0 — text on text, the display pulled back, and one lime event in the body
+## 0.1.347 — text on text, the display pulled back, and one lime event in the body
 
-A reader reviewing 3.1.0 found characters overlapping at the bottom of two pages,
+A reader reviewing 0.1.346 found characters overlapping at the bottom of two pages,
 asked for the display type 30% smaller, and asked whether the acid green could
 appear once inside the body rather than only on the part openers.
 
@@ -215,7 +237,7 @@ in `inspect_layout.py` measures a block against the *page* — its top, its bott
 its column, the footer rule — so two blocks landing on each other in the middle of
 a page is invisible to all of them. The cover's support paragraph sat 34px into
 the spec strip and the catalogue page's stat labels sat 48px into the paragraph
-below. One cause: **3.1.0's heavier register outgrew grid rows sized for the old
+below. One cause: **0.1.346's heavier register outgrew grid rows sized for the old
 one**, so a block overflowed its track onto the next instead of lengthening its
 own. `min-content` on those rows fixes it, and that is now a rule — when the type
 scale moves, the tracks that hold it move with it.
@@ -240,7 +262,7 @@ read as two meanings.
 
 Ground tiers unchanged at the reader's request.
 
-## 3.1.0 — the ground, the acid green, and type that commits
+## 0.1.346 — the ground, the acid green, and type that commits
 
 The reader asked for water and light behind every page, and pointed at
 `silviamalavasi.com` for the green and the register. I read that site with a
@@ -259,7 +281,7 @@ light-first, so **the lime is a surface and never light-canvas text**, which is
 how that site uses its yellow and magenta anyway. And **we ship D-DIN Regular and
 Bold and nothing else**: Inter is not vendored, no font tooling is installed, and
 the system faces cannot be redistributed. No rule names a face the package does
-not carry — `CLAUDE.md` §5, written after 1.2.0 required a display face, shipped
+not carry — `CLAUDE.md` §5, written after 0.1.332 required a display face, shipped
 none, and rendered nothing for five releases.
 
 **The ground, and the rule that lets it exist.** `brand.md` says a field with
@@ -305,7 +327,7 @@ The ground also had to be excluded from every ink measurement. It is behind
 everything and covers the page, so on first render all thirty pages reported that
 they ran past their own footer rule.
 
-## 3.0.0 — the water thesis: LUMI gets a brand, and the skill finally says what to reach for
+## 0.1.345 — the water thesis: LUMI gets a brand, and the skill finally says what to reach for
 
 Four rounds of review made this skill measurably more correct and no more alive.
 The reader said the same thing four times. Two measurements say why.
@@ -368,7 +390,7 @@ file and forced a whole file onto the list for one quoted line. CJK is now
 permitted inside backticks or a fenced block and nowhere else, which is exactly
 the distinction the red line always meant.
 
-## 2.3.0 — handling terms on every page, provenance once per document, and one table per page
+## 0.1.344 — handling terms on every page, provenance once per document, and one table per page
 
 A reader asked for four things and two of them were defects the checks had just
 been rebuilt to catch and still missed.
@@ -417,7 +439,7 @@ scaled stage a device pixel is not the unit of the design, and the same layout w
 reporting 3px of skew at one window size and 4px at another — a threshold that
 silently tightened as the window grew.
 
-## 2.2.0 — the page becomes a page, and a probe stops verifying its own setup
+## 0.1.343 — the page becomes a page, and a probe stops verifying its own setup
 
 A reader suspected the landscape page was not 16:9, asked why the layout tool had
 not caught it, and marked three more things on four screenshots. The suspicion was
@@ -463,7 +485,7 @@ source line and a footer one; eleven cited overlapping sections and two were
 identical word for word. The figure's line wins, and the footer keeps a source only
 when it says something the figure's cannot.
 
-**And the deck got a voice.** Asked how 2.1.0 answered "no visual impact,
+**And the deck got a voice.** Asked how 0.1.342 answered "no visual impact,
 mediocre, flat", the honest answer was that it fixed hierarchy and structure, not
 brand presence — and that nothing could be composed to a frame while there was no
 frame. With one: the two part openers are full accent fields with the claim
@@ -474,12 +496,12 @@ Three checker defects surfaced doing it. `D1` graded every colour against `--bg`
 and `--card-bg` because those were the only surfaces the deck had; it now
 discovers painted surfaces by reading the CSS, composites translucent washes onto
 the canvas first, and grades a rule that declares its own background against that
-background. That found two real defects invisible since 1.8.0: **amber measured
+background. That found two real defects invisible since 0.1.338: **amber measured
 4.68 against a canvas it never touches and 4.24 against the wash it actually sits
 on**, and the dark seal the same. Both moved. `D6` asked the footer for a source
 line; it now asks the page.
 
-## 2.1.0 — a focal element on every page, a table only for values, and probes for both
+## 0.1.342 — a focal element on every page, a table only for values, and probes for both
 
 A reader called all 28 pages flat, mediocre and without visual impact, named the
 split layouts as ugly, said far too many tables carried non-numeric information,
@@ -507,7 +529,7 @@ stayed a form.
 
 **The split layouts were ugly for one reason, and it was a specificity bug.**
 `lumi-layouts.css` had said `.body.split > div { justify-content: flex-start }`
-since 1.9.0 and it had **never once applied**: the fill rule above it reaches
+since 0.1.339 and it had **never once applied**: the fill rule above it reaches
 (0,6,1) because every `:not()` contributes its argument, against that selector's
 (0,2,1). Twelve of fifteen multi-column pages centred their columns independently
 and drifted by up to 132px. One line fixed twelve pages. The same chain has since
@@ -540,12 +562,12 @@ enumerations on a deck that enumerates constantly in named blocks and reported a
 66.7% triad rate off a sample of three.
 
 Also corrected: `AGENTS.md` and `prompts/lumi-style-core.md` still carried the
-82% fill floor and the 11px type floor, both withdrawn in 2.0.0, and the core
-prompt still described the pre-2.0.0 cream and near-black canvases, the fixed
+82% fill floor and the 11px type floor, both withdrawn in 0.1.340, and the core
+prompt still described the pre-0.1.340 cream and near-black canvases, the fixed
 legend position and the retired caption description. That is four versions of
 semantic drift in the two entry points the checks cannot read.
 
-## 2.0.1 — the measure cap belonged to the page, not to one of its children
+## 0.1.341 — the measure cap belonged to the page, not to one of its children
 
 `.body` carried `max-width: 1180px` and `.foot` carried nothing. On the design
 page that is invisible, because 1180 plus the padding is the page. On any wider
@@ -565,12 +587,12 @@ Lesson recorded in `references/design-rules.md` §7: a probe that only ever rend
 the design geometry cannot see a defect that only appears away from it. Check one
 size the document was not designed for.
 
-## 2.0.0 — 2026-08-07
+## 0.1.340 — 2026-08-07
 
 Reader review scored H1, H2 and H3 at **1**, against self-scores of 3. The anchors
 for 1 are "the page talks to itself", "a template forced onto the content" and
 "figures are decoration". All three were fair, and the root cause is one sentence:
-**1.9.0 turned qualitative design feedback into metrics and then optimised the
+**0.1.339 turned qualitative design feedback into metrics and then optimised the
 metrics instead of designing the pages.**
 
 **Principles now govern.** `SKILL.md` opens with the principal-designer role and
@@ -605,7 +627,7 @@ under the wrong captions; it screenshots the section element now.
 What the tool found immediately, and D7 had hidden: four diagrams at 4.6–5.4:1
 sitting in 2.4:1 cells and filling 44–51% of the available height, two pages with
 centerpieces at 13–15% and empty bands over a third of the page, and a blanket
-`.body > div{flex-direction:column}` rule from 1.9.0 that stacked every spec strip
+`.body > div{flex-direction:column}` rule from 0.1.339 that stacked every spec strip
 vertically — which alone made the cover 1301px tall inside a 720px page.
 
 
@@ -723,7 +745,7 @@ The cover and closing are recomposed: the globe is part of the composition rathe
 than absolutely-positioned decoration mostly off-page. The remaining page-by-page
 design work is open and tracked.
 
-## 1.9.0 — 2026-08-07
+## 0.1.339 — 2026-08-07
 
 Reader review of five annotated pages, all about layout. One measurement explains
 most of it: **the deck contained exactly one layout, used on 25 consecutive
@@ -750,7 +772,7 @@ and a page that still cannot fill has the wrong layout, which the selection tabl
 is there to fix.
 
 **A rule that had no floor was simply not followed.** §3 has required "one to
-three sentences of support" since 1.6.0, and 10 of 25 pages had none — every
+three sentences of support" since 0.1.336, and 10 of 25 pages had none — every
 figure page plus four table pages. It is now unconditional and checked by **D8**.
 Third release running that a prescribed value without a floor produced a visible
 defect, which is why `CLAUDE.md` §6 exists.
@@ -771,7 +793,7 @@ against a comfortable measure of 45 to 75, so filling the line would read worse.
 The page was unbalanced because the right half was empty, and a second column is
 what fixes that.
 
-## 1.8.0 — 2026-08-07
+## 0.1.338 — 2026-08-07
 
 Reader review of a sales-enablement deck: seven defects, and measurement said
 three of them were the skill's fault rather than the deliverable's. An author
@@ -802,7 +824,7 @@ The cover rule banned imagery because the skill had no photo library, applying t
 ban to every kind of image when photography was the actual risk; `assets/vectors/`
 now ships an orthographic globe and a flat trade map, generated from lat/lon by
 `scripts/build_geography.py`, and a cover may carry exactly one vector mark. Both
-are the defect 1.7.0 fixed for the display face, repeated one directory over.
+are the defect 0.1.337 fixed for the display face, repeated one directory over.
 `.gitignore`'s blanket `*.svg` would have dropped both silently and now carries
 the exceptions.
 
@@ -822,12 +844,12 @@ document, and a grid of rectangles containing sentences is a table. Footers carr
 produced titles engineered to two lines: the author capped the container at 48ch
 and all 24 content titles broke near the middle. One line is now the goal, two the
 ceiling, and narrowing a title container to manufacture a break is banned outright.
-1.2.0 and 1.6.0 record the same shape, which is why it is now a maintenance rule.
+0.1.332 and 0.1.336 record the same shape, which is why it is now a maintenance rule.
 
 **`scripts/check_design.py` (D1–D6)** makes the design half of the skill checkable
 the way M1–M11 made the prose half: contrast, type floor, callout budget, palette
 purity, figure parity (reported, not graded — the judgement is not automatable),
-footer completeness. Run against the 1.7.0 deck it reports 32 contrast failures,
+footer completeness. Run against the 0.1.337 deck it reports 32 contrast failures,
 17 sub-floor type sizes, four pages over budget on 51.9% of pages, and two footer
 gaps, which is the reader's list in numbers. `eval-rubric.md` also now requires a
 self-score to carry its reasons; a bare number gives a reviewer nothing to diverge
@@ -869,9 +891,9 @@ Deferred to a later round, recorded so it is not lost: a `check_version.py` that
 tells a user of Claude Code, Codex or Gemini that their installed copy is behind
 upstream. The immediate mitigation is to install the skill as a symlink to a git
 checkout, which makes drift structurally impossible — the copy this round was
-built against had been stranded at 1.4.0 while the repo reached 1.7.0.
+built against had been stranded at 0.1.334 while the repo reached 0.1.337.
 
-## 1.7.0 — 2026-08-07
+## 0.1.337 — 2026-08-07
 
 Two operational gaps, both found by asking why a step kept costing time.
 
@@ -898,7 +920,7 @@ answered locally by `check_repo.py` in seconds, CI only unlocks the merge button
 a cancelled run is a symptom rather than a verdict, and re-running into a declared
 incident adds to the load causing it.
 
-## 1.6.0 — 2026-08-07
+## 0.1.336 — 2026-08-07
 
 Internal review: sales and marketing deliverables still read as AI-written. The
 `humanizer` skill (github.com/blader/humanizer, MIT) was evaluated as a candidate
@@ -908,7 +930,7 @@ truth and no runtime dependency. See `NOTICE` for attribution and scope.
 The evaluation found three causes, and humanizer only addresses the first:
 
 1. **Coverage was lexical, not structural.** The `[en-output]` ban list was a
-   five-item seed while English had been the default output language since 1.3.0,
+   five-item seed while English had been the default output language since 0.1.333,
    and the "delete filler phrases" move shipped without a list of filler phrases.
 2. **The de-AI-flavor pass was an orphan.** It is the repo's only real
    anti-AI-flavor machinery and no workflow step, checklist, gate, or metric
@@ -931,7 +953,7 @@ Changes:
   obviously AI-generated, then fix what you named, and confirm no fact was added.
 - **New section 6b, de-translationese** — sales and marketing material is now
   authored in English with Chinese translated from it, which imports a second
-  failure mode. Precedent: 1.1.0 translated the Chinese rule "not X, but Y" into
+  failure mode. Precedent: 0.1.329 translated the Chinese rule "not X, but Y" into
   "Not X. Y.", models rendered it back into Chinese, and the round trip amplified
   until readers called the decks AI-flavored.
 - **Conflicts with LUMI house style resolved in humanizer's favor**: negation-first
@@ -989,16 +1011,16 @@ Review round on this release, recorded because the findings were real:
   27-word pseudo-sentences that inflated the rhythm metric. All fixed and each
   verified against the failing case.
 
-## 1.5.0 — 2026-08-07
+## 0.1.335 — 2026-08-07
 
-Reader review of two shipped sales decks (zh + en, V1.3.0) against their own
+Reader review of two shipped sales decks (zh + en, V0.1.333) against their own
 V4.1 predecessor: "page titles suddenly became very short and AI-flavored,
 overusing the it-is-X-not-Y contrast — this violates the PwC title principle the
 skill was founded on." Measured: title length fell from a median of ~29 CJK
 characters to ~8; display type rose 29.8pt → 37.4pt; every evidence figure
 (18×, 4,557, 194, 29,845) vanished from the title line.
 
-Root cause: 1.2.0 answered a review complaint about *visual* divergence from
+Root cause: 0.1.332 answered a review complaint about *visual* divergence from
 spacex.com by writing a *writing* rule — "a giant short headline (3–6 words)" —
 into design-rules §3, without reconciling it against the PwC title contract that
 already existed in storyline-templates. The word ceiling then collided with the
@@ -1023,7 +1045,7 @@ in ~6 CJK characters the only form that satisfies all three is a bare antithesis
   advisory", which removed the only metric that measures this exact failure; the
   regression ran three versions unmeasured.
 
-## 1.4.0 — 2026-08-06
+## 0.1.334 — 2026-08-06
 
 Reader review of the anchor document (five annotated screenshots):
 
@@ -1038,7 +1060,7 @@ Reader review of the anchor document (five annotated screenshots):
 - Version lockstep refined: a user-assigned document-edition sequence (v1.01)
   owns filename+masthead; the colophon still records the producing skill version.
 
-## 1.3.0 — 2026-08-06
+## 0.1.333 — 2026-08-06
 
 Reviewer-driven round (five inputs from deck review):
 
@@ -1046,7 +1068,7 @@ Reviewer-driven round (five inputs from deck review):
   applied only on explicit request via one `body.dark` override block. Both
   palettes share one token structure; literal colors in components or inline
   SVG are defects. Full dual-palette token set in `tokens/` (lumi-theme.css
-  rewritten to v1.3.0; design-tokens.json restructured as palette.light /
+  rewritten to v0.1.333; design-tokens.json restructured as palette.light /
   palette.dark).
 - **American English by default**: when the user does not specify a language,
   output is American English (spelling, idiom, double quotes, serial comma);
@@ -1061,7 +1083,7 @@ Reviewer-driven round (five inputs from deck review):
   statement / recap / contact placeholder slots `[TO FILL]` — inventing contact
   details is inventing a fact / colophon). Added to storyline-templates.
 
-## 1.2.0 — 2026-08-06
+## 0.1.332 — 2026-08-06
 
 Direction change, reviewer-driven: "the output diverged from spacex.com — why?"
 The 1.x fusion ("skeleton only, keep rounded type and light canvas") kept too
@@ -1079,7 +1101,7 @@ data voice) never shipped because the font was declared but not vendored.
 - Accent green lifts to a dark-canvas form (#7C9F63); red text on black uses a
   lifted form while fills keep the seal red.
 
-## 1.1.2 — 2026-08-06
+## 0.1.331 — 2026-08-06
 
 - design-rules: added three field-tested guards from a reader-reported bug round —
   two-line title budget (shorten, never shrink); icon size independent of
@@ -1091,14 +1113,14 @@ data voice) never shipped because the font was declared but not vendored.
   every matrix point; height-based media queries as the mechanism. Supersedes the
   standalone localization guard (merged in).
 
-## 1.1.1 — 2026-08-06
+## 0.1.330 — 2026-08-06
 
 - Added the localization layout guard to design-rules: translated text runs
   30–50% longer/shorter — re-inspect every fixed-width container page by page
   after any localization pass. (From the English-deck audit: seven layout defects
   found — a wrapped stat band, ragged stat labels, and three SVG text overflows.)
 
-## 1.1.0 — 2026-08-06
+## 0.1.329 — 2026-08-06
 
 - **Repository language: English only — declared a red line.** LUMI serves a
   global audience; all rule prose, entry points, adapters, tokens, and this
@@ -1112,7 +1134,7 @@ data voice) never shipped because the font was declared but not vendored.
   full-width bars must anchor inside the fill (white-on-white invisibility bug,
   caught in per-page inspection).
 
-## 1.0.0 — 2026-08-06
+## 0.1.328 — 2026-08-06
 
 Initial release. Rules distilled from six rounds of real delivery polishing and a
 first round of reader review on a consulting engagement's deliverables:

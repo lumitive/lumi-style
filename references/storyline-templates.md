@@ -60,10 +60,10 @@ sits between them.
   surely as a sentence would.
 
   *Provenance:* this rule read "No charts, no body copy — the cover is typography"
-  through 1.7.0. The ban existed because the skill had no photo library, and it
+  through 0.1.337. The ban existed because the skill had no photo library, and it
   was applied to every kind of image rather than to photography, which is what
   the risk actually was. A reader called the resulting covers unprofessional and
-  asked for vector geography. Vector geography needs no photo library, so 1.8.0
+  asked for vector geography. Vector geography needs no photo library, so 0.1.338
   ships it instead of banning it.
 - **Closing**: one closing statement that echoes the action page. A short
   imperative ("Let the numbers decide.") is one option, not the required form —

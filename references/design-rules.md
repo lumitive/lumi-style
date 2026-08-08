@@ -42,7 +42,7 @@
   most needed to say about itself. Amber and brass exist to carry state, not to
   decorate — adding a fifth colour needs a meaning that none of these four covers,
   and a contrast measurement on both canvases.*
-- **Hierarchy comes from a transparency ladder, not new grays** — and since 1.8.0
+- **Hierarchy comes from a transparency ladder, not new grays** — and since 0.1.338
   it is **two ladders**, because one of them was unreadable. The token names carry
   the rule:
   - `--tx1..--tx4` is the **text ladder**. Every step clears **4.5:1** against
@@ -59,7 +59,7 @@
   under `contrast.measured`; `check_repo.py` recomputes them and refuses a ladder
   that drops below the floor.
 
-  *Provenance:* until 1.7.0 one alpha list served both canvases and the lower
+  *Provenance:* until 0.1.337 one alpha list served both canvases and the lower
   steps ran 2.91 / 1.81 / 1.32 / 1.16 on light and 4.08 / 1.99 / 1.36 / 1.16 on
   dark. A shipped deck put its eyebrows, captions, source lines, page numbers and
   table headers on those steps, and the reader's first note was that both canvases
@@ -69,16 +69,16 @@
 - **Text on a filled surface is checked separately.** `--on-acc` is
   palette-dependent: cold white on the light accent measures 5.93, and on the
   lifted dark accent 2.65, so the dark palette flips it to canvas ink (6.69).
-  Until 1.8.0 one value claimed to serve both and white labels inside accent bars
+  Until 0.1.338 one value claimed to serve both and white labels inside accent bars
   shipped unreadable on dark.
 - Chart data colors are an independent CVD-validated triple (blue/red/teal) and
   never change with the brand palette — data distinguishability outranks branding.
 
 **A colour is verified against the surface it is printed on, not against the
 canvas.** A status chip sits on its own wash and never touches `--bg`; an accent
-field is a third surface with its own foreground. 2.2.0's amber measured 4.68
+field is a third surface with its own foreground. 0.1.343's amber measured 4.68
 against a canvas it never touches and **4.24 against the wash it actually sits
-on**, and the dark seal did the same — both had been "verified" since 1.8.0.
+on**, and the dark seal did the same — both had been "verified" since 0.1.338.
 `check_design.py` now discovers painted surfaces by reading the CSS, composites
 translucent washes onto the canvas first, and grades a rule that declares its own
 background against that background.
@@ -88,7 +88,7 @@ openers are full accent fields with the claim reversed out, and they are the onl
 pages in the deck that are. Restraint everywhere is not a voice — a deck in one
 register reads as careful rather than as anything. Text on a field takes the
 solid `--on-accent`: fading it to 72% for hierarchy drops it to 3.97:1, which is
-the 1.8.0 contrast defect returning through a colour choice. Hierarchy on a field
+the 0.1.338 contrast defect returning through a colour choice. Hierarchy on a field
 comes from size and letterspacing.
 
 ## 2 · Typography: two voices, never mixed
@@ -108,7 +108,7 @@ comes from size and letterspacing.
 - **Small type is a contrast problem before it is a size problem.** A reader
   reported both canvases exhausting to read when 9.5px labels sat on ladder steps
   measuring 1.81:1; raising the contrast fixed most of it. **There is no universal
-  size floor** — 1.8.0 set one at 11px without being asked, and a floor applied to
+  size floor** — 0.1.338 set one at 11px without being asked, and a floor applied to
   every label in every figure is the kind of blanket rule that stops a designer
   looking at the page. Set type for the page: a dense reference table and a
   three-node diagram do not want the same scale. The chart scale of figure title
@@ -133,10 +133,10 @@ comes from size and letterspacing.
   headline is inflation), **one to three sentences of support whose lengths
   visibly differ — on every content page without exception, figure pages
   included** (D8), one centerpiece, a thin footer rule with source + page number
-  — nothing else. *Provenance: this rule has stood since 1.6.0 and 10 of 25 pages
+  — nothing else. *Provenance: this rule has stood since 0.1.336 and 10 of 25 pages
   shipped without a support line — all six figure pages plus four table pages —
   because a figure felt like it spoke for itself. It does not: the reader arrives
-  at a diagram with nothing telling them what they are about to look at.* (The rule read "one sentence of support" until 1.6.0, which
+  at a diagram with nothing telling them what they are about to look at.* (The rule read "one sentence of support" until 0.1.336, which
   drove sentence-length variance across a deck to near zero; see M8.) **The headline has no word
   ceiling**: its length is set by the title contract in
   `storyline-templates.md` — topic + assertive subtitle carrying a verifiable
@@ -207,7 +207,7 @@ comes from size and letterspacing.
   the available height no matter how it is scaled, and the only fix is a different
   drawing. `scripts/inspect_layout.py` reports both, per page, and gates nothing.
 
-  *Provenance: 1.9.0 turned "the pages look empty" into an 82% fill floor and then
+  *Provenance: 0.1.339 turned "the pages look empty" into an 82% fill floor and then
   satisfied it — stretching table rows, and measuring the bounding box of all ink
   so that a small chart with a long caption scored as full. Four diagrams at 4.6
   to 5.4:1 passed while rendering at 40% of their cell. The floor is withdrawn.
@@ -396,10 +396,10 @@ one ad hoc either: with 2007 available, "nothing fits" almost always means the
 page's subject is not what you thought it was.
 
 *Provenance, two rounds.* This section required "symbol library embedded per
-document" from 1.2 to 1.7 while the package shipped nothing, so the 1.7.0 deck
-contained zero icons — the same defect 1.7.0 fixed for the display face, one
+document" from 1.2 to 1.7 while the package shipped nothing, so the 0.1.337 deck
+contained zero icons — the same defect 0.1.337 fixed for the display face, one
 directory over. **A rule may not mandate an asset the package does not ship.**
-1.8.0 then shipped eight hand-drawn icons and the reader said the expressiveness
+0.1.338 then shipped eight hand-drawn icons and the reader said the expressiveness
 was still short and the icons did not match the content: eight meanings across
 twenty-five pages meant `gauge` did five jobs. **A vocabulary too small to say the
 thing is its own defect**, and a house set of eight was the wrong shape of answer.
@@ -432,7 +432,7 @@ Field-tested layout guards (each from a real defect):
   title line eats the content area and pushes the footer below the fold. (Two
   lessons here. The original guard read "shorten the title, never shrink the
   type"; once v1.2 made display titles giant, that left cutting words as the only
-  legal move and the evidence went first. Then 1.7.0's author read "budget two
+  legal move and the evidence went first. Then 0.1.337's author read "budget two
   lines" as a target and capped every title at 48ch, so all 24 content titles
   broke near the middle and the reader asked why they were not filling the line.)
 - **Figure vocabulary ⊆ body vocabulary**: when body terminology is renamed,
@@ -494,7 +494,7 @@ A layout is verified only across the **matrix**, not at a point:
      a text change.
 - **Fill axis, reported and never a floor.** `inspect_layout.py` reports each
   page's centerpiece scale against its own cell. Read it to find which layout to
-  reconsider; do not set a threshold on it. 2.0.0 withdrew the 82% floor because
+  reconsider; do not set a threshold on it. 0.1.340 withdrew the 82% floor because
   it was satisfiable by stretching table rows while four diagrams rendered at 40%
   of their cell, and it measured the bounding box of all ink, so a small chart
   with a long caption scored as full.
@@ -534,7 +534,7 @@ A layout is verified only across the **matrix**, not at a point:
   The role vocabulary those checks key on now ships in `tokens/lumi-layouts.css`,
   so the contract is inspectable rather than folkloric.*
 - **Collision axis.** Nothing may land on anything. Text against text **and text
-  against every drawn element** — field, figure, band, spec, geography. 3.2.0
+  against every drawn element** — field, figure, band, spec, geography. 0.1.347
   shipped this comparing text to text only, and a reader immediately found two
   defects it could not see: a field sitting 22px on a paragraph, and the cover
   globe crossing the document attributes on both the cover and the closing.
@@ -544,7 +544,7 @@ A layout is verified only across the **matrix**, not at a point:
   other. Every other
   probe measures a block against the *page* — its top, its bottom, its column,
   the footer rule — and none of them can see two blocks overlapping in the middle
-  of one. A reader found it twice before any check did, when 3.1.0's heavier
+  of one. A reader found it twice before any check did, when 0.1.346's heavier
   register outgrew grid rows that had been sized for the old one. Measure leaf
   text against leaf text; a container legitimately encloses its children. **When
   the type scale moves, the tracks that hold it have to move with it** —
@@ -568,7 +568,7 @@ A layout is verified only across the **matrix**, not at a point:
 - **Column axis.** Side-by-side cells start on one line and carry comparable
   weight, or the page reads as two unrelated documents. Measure the outcome, never
   the declaration: `lumi-layouts.css` had said `.body.split > div { justify-content:
-  flex-start }` since 1.9.0 and it had **never once applied**, because the fill
+  flex-start }` since 0.1.339 and it had **never once applied**, because the fill
   rule above it reaches specificity (0,6,1) — every `:not()` contributes its
   argument — against that selector's (0,2,1). Twelve of fifteen multi-column pages
   centred their columns independently and drifted by up to 132px, which is what a
@@ -582,7 +582,7 @@ A layout is verified only across the **matrix**, not at a point:
 - **Off-geometry axis.** Render one size the document was **not** designed for —
   a window wider than the design page is the cheap one. Constraints set on a
   single child of the page frame are invisible at 1280×720 and open a dead band
-  at 1817px: 2.0.1 shipped `max-width` on `.body` and nothing on `.foot`, so all
+  at 1817px: 0.1.341 shipped `max-width` on `.body` and nothing on `.foot`, so all
   28 pages ran the footer to the window edge past a left-anchored composition,
   and the contact sheet could not see it because it renders only the two design
   geometries. Check that the page frame's parts stay the same width and centre.

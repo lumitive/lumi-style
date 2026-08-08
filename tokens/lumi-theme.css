@@ -1,17 +1,17 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · v0.1.350 (2026-08-08)
+   LUMI visual theme · v0.1.351 (2026-08-08)
    Single source of truth for palette and typography. New documents reference
    this file or copy the token blocks verbatim (note the provenance when
    copying). Version lockstep: a deliverable's version = the lumi-style
    version that produced it.
 
-   v1.3.0: light-first. The default canvas is near-white with the ink ladder;
+   v0.1.333: light-first. The default canvas is near-white with the ink ladder;
    the dark canvas is applied only on explicit user request, by adding
    class="dark" to <body> — one override block, never a forked file.
    Build components and inline SVG with these semantic tokens only; a literal
    color is a defect (it silently ignores the palette switch).
 
-   v1.8.0: the foreground ladder split in two, and the two palettes stopped
+   v0.1.338: the foreground ladder split in two, and the two palettes stopped
    sharing one alpha list. Reader review found every eyebrow, caption, source
    line, page number and table header in a shipped deck illegible; measured, the
    old ladder's lower steps ran 2.91 / 1.81 / 1.32 / 1.16 on light and 4.08 /
@@ -57,10 +57,10 @@
   --seal:      #C8102E;          /* warnings / red lines / vetoes ONLY — 5.88 on --bg */
   --seal-t:    #C8102E;
   --seal-wash: #F9ECEE;
-  /* v2.0.0 state palette. One colour, one meaning, same as the accent and seal.
+  /* v0.1.340 state palette. One colour, one meaning, same as the accent and seal.
      Before this, "partial" and "not built" both rendered as dashed grey, so a
      deck could not say the one thing it most needed to say about itself. */
-  /* 2.2.0: both moved because D1 learned to measure a token against the
+  /* 0.1.343: both moved because D1 learned to measure a token against the
      surface it is actually printed on. A status chip sits on its own wash,
      never on the canvas, and amber measured 4.24 there while passing 4.68
      against a canvas it never touches. A ladder verified against the wrong
@@ -71,7 +71,7 @@
   --brass:     #7A6C52;          /* reference · archival · out of scope but real — 5.13 */
   --brass-wash:#F4F1EA;
 
-  /* ── the light ramp (v3.0.0) ────────────────────────────────────────────
+  /* ── the light ramp (v0.1.345) ────────────────────────────────────────────
      Shimmer on water is many marks at varying intensity, not one flat value.
      Five discrete steps from the accent toward the canvas — steps, never a
      gradient, so a figure can say near/far or strong/weak in one voice instead
@@ -95,7 +95,7 @@
   --on-acc-lo: #2B2E33;          /* steps 4 down to 1 take canvas ink */
 
 
-  /* ── the acid green (v3.1.0) ────────────────────────────────────────────
+  /* ── the acid green (v0.1.346) ────────────────────────────────────────────
      #B8FF00, taken from the reference the reader gave. It measures 1.21:1 as
      text on this canvas — unreadable — and 16.44:1 with near-black reversed out
      of it. So on the light canvas it is a SURFACE and never text; the guard in
@@ -105,7 +105,7 @@
   --lime:      #B8FF00;
   --on-lime:   #0A0907;          /* 16.44 on the lime */
 
-  /* ── the ground (v3.1.0) ────────────────────────────────────────────────
+  /* ── the ground (v0.1.346) ────────────────────────────────────────────────
      Water and light behind the page. A ground is continuous and uncountable,
      which is exactly why it may be decorative where a field may not: there is
      nothing to count, so there is nothing to misread as evidence.
@@ -146,7 +146,7 @@
   /* .3em was the most dated device in the deck and the reference uses no
      tracking anywhere. Eyebrows keep a hint of it and nothing more. */
   --ls-eyebrow: .08em;
-  /* ── the register moves (v3.1.0) ────────────────────────────────────────
+  /* ── the register moves (v0.1.346) ────────────────────────────────────────
      The reference site runs 245 elements at weight 700 and 52 at 900, display
      at 254px and 120px, line-height ~0.9, and letter-spacing `normal`
      everywhere. This deck ran D-DIN 400, uppercase, .3em tracking — a spec
@@ -166,15 +166,15 @@
   --ls-title-cjk: .04em;
   --num-feature: "tnum";         /* tabular-nums always on for data */
 
-  /* small end of the type scale (v1.8.0). These are the sizes the deliverable
-     actually uses down there, not a floor — 2.0.0 withdrew the 11px floor,
+  /* small end of the type scale (v0.1.338). These are the sizes the deliverable
+     actually uses down there, not a floor — 0.1.340 withdrew the 11px floor,
      which had been invented without an ask. check_design.py reports D2. */
   --fs-floor:     11px;
   --fs-fig-title: 13px;
   --fs-axis:      11.5px;
   --fs-source:    10.5px;
 
-  /* display tier (v2.1.0). The jump is the point: a page whose largest element
+  /* display tier (v0.1.342). The jump is the point: a page whose largest element
      is body copy gives the eye nowhere to enter, so it gets read top-left as a
      document rather than looked at. A reader called 28 pages flat and the
      measurement agreed — 17 of them had nothing above 15px and no dominant
@@ -214,7 +214,7 @@ body.dark {
   --acc-inbox: #48633E;
   --acc-wash:  rgba(124,159,99,.14);
   /* Text on the lifted accent fill flips to canvas ink: cold white on #7C9F63
-     measures 2.65 and fails. Until 1.8.0 this token claimed to serve both
+     measures 2.65 and fails. Until 0.1.338 this token claimed to serve both
      palettes, and a white label inside an accent bar shipped unreadable. */
   --on-acc:    #1D1D1F;          /* 6.4 on #7C9F63 */
   --seal-t:    #E97C6E;          /* lifted seal for text on grey; fills keep --seal.

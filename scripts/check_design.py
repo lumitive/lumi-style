@@ -22,7 +22,7 @@ designer to read, and the exit code is 0 unless a file could not be measured at
 all. SKILL.md rule 4 is the reason: a page is done when a human reads it as
 intentional, and a metric that can be satisfied without improving the page ends
 the looking instead of directing it. D7, an 82% page-fill floor, was withdrawn in
-2.0.0 for exactly that — it was satisfied by stretching table rows while four
+0.1.340 for exactly that — it was satisfied by stretching table rows while four
 diagrams rendered at 40% of their cell. For page geometry and centerpiece scale
 use scripts/inspect_layout.py.
 
@@ -274,7 +274,7 @@ def d1_contrast(css, resolved, palette):
 
 
 def d2_type_scale(css):
-    """Report the small end of the type scale. There is no floor: 2.0.0 withdrew
+    """Report the small end of the type scale. There is no floor: 0.1.340 withdrew
     the 11px one as a universal size invented without an ask. Small type is a
     problem when it is also low contrast (D1) or when the page cannot carry it —
     both are judgements about a page, not a threshold."""
@@ -370,7 +370,7 @@ def d8_support_line(raw):
         if "cover" in cls or "closing" in cls:
             continue
         # A .lead block does exactly what a support line does — say what the
-        # page is about, under the title — and 2.1.0 made it the answer on the
+        # page is about, under the title — and 0.1.342 made it the answer on the
         # pages whose point is one number or one claim. A statement page that
         # carries only a claim needs nothing else under it.
         if re.search(r'<p class="(?:sup|lede)\b', body):
@@ -389,7 +389,7 @@ def d13_lime_never_light_text(css, resolved, palette):
     catch it as a contrast failure, but only if the rule happens to be graded
     against the right surface — this states the constraint directly, so it
     cannot be lost to a surface-detection edge case the way two colours were in
-    2.2.0.
+    0.1.343.
     """
     if palette != "light":
         return []
@@ -489,7 +489,7 @@ def d6_footer(raw):
         pass  # provenance is a document-level question now; see below
         if not re.search(r"\b\w+\s*/\s*\d+\b", text):
             missing_total.append(i)
-    # Provenance is stated once for the document, not on every page. 2.3.0
+    # Provenance is stated once for the document, not on every page. 0.1.344
     # retired the per-page source line for sales and marketing material at a
     # reader's request: a source under every figure and again in every footer is
     # apparatus a customs manager does not need, and it was crowding out the

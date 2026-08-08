@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: '3.12'
       # Standard library only — no dependency step, nothing to pin or update.
-      # scripts/ had no CI coverage at all until 1.6.0: a syntax error in either
+      # scripts/ had no CI coverage at all until 0.1.336: a syntax error in either
       # script would have shipped silently, including into the emergency merge
       # path that runs when CI itself is unavailable.
       - run: |
@@ -32,7 +32,7 @@ jobs:
       - run: bash -n scripts/emergency_merge.sh scripts/ci_wait.sh
       # Every vendored asset must stay byte-identical: a silent change would alter
       # the metrics or the marks of every deliverable that embeds it. The icons
-      # and geography arrived in 1.8.0 under the same reasoning as the face.
+      # and geography arrived in 0.1.338 under the same reasoning as the face.
       - run: python3 scripts/embed_font.py --check
       - run: python3 scripts/embed_icons.py --check
       - run: python3 scripts/build_geography.py --check
