@@ -15,7 +15,9 @@ the whole risk:
   adding platforms does not change it.
 * It cannot show reproducibility. Agent CLIs are non-deterministic and their
   versions drift weekly. A recorded pass is one run, of one CLI version, on one
-  machine, on one date. The report always prints its `n`.
+  machine, on one date. The report prints n=1 because nothing here repeats
+  a run; a --repeat flag existed briefly and only printed the number the
+  operator typed, which in an evidence document is the worst possible field.
 * It cannot say anything about a platform the operator has not installed. That
   state is `not installed — not exercised`, and it is printed rather than omitted.
 * **It does not run in CI.** No API keys, no network, no vendor SDKs. CI proves
@@ -79,11 +81,19 @@ def score_checks(kind: str, path: pathlib.Path) -> dict:
                            str(path), "--json"], capture_output=True, text=True)
     try:
         report = json.loads(proc.stdout)
-        if isinstance(report, list) and report:
-            report = report[0]
-        return {"exit": proc.returncode, "verdicts": report.get("verdicts", {})}
     except json.JSONDecodeError:
         return {"exit": proc.returncode, "verdicts": {}, "unparseable": True}
+    # An empty list is valid JSON and survived the `isinstance(report, list) and
+    # report` guard as `[]`, which then hit `[].get` and crashed the run. A
+    # checker that graded nothing has not scored the artifact; say so rather
+    # than raising into the operator's face halfway through a scoreboard.
+    if isinstance(report, list):
+        if not report:
+            return {"exit": proc.returncode, "verdicts": {}, "unparseable": True}
+        report = report[0]
+    if not isinstance(report, dict):
+        return {"exit": proc.returncode, "verdicts": {}, "unparseable": True}
+    return {"exit": proc.returncode, "verdicts": report.get("verdicts", {})}
 
 
 def score_recall(task: dict, text: str) -> dict:
@@ -96,7 +106,7 @@ def score_recall(task: dict, text: str) -> dict:
 def render(record: dict) -> str:
     lines = [f"# LUMI style conformance · skill {record['version']}", "",
              f"Run `{record['run_id']}` · {record['host']} · "
-             f"{record['detected']} of {record['agents']} agents detected · n={record['repeat']}",
+             f"{record['detected']} of {record['agents']} agents detected · n={record['repeat']} per agent",
              "",
              "| agent | capability | cli | " +
              " | ".join(t for t in record["task_ids"]) + " | verdict |",
@@ -119,7 +129,6 @@ def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("command", choices=["validate", "detect", "run", "score", "report"])
     ap.add_argument("--run", default=None)
-    ap.add_argument("--repeat", type=int, default=1)
     args = ap.parse_args(argv)
 
     try:
@@ -192,6 +201,7 @@ def main(argv):
                 except ValueError:
                     shown = str(target)
                 entry, failed = {"artifact": shown}, []
+                seen = {}
                 for kind in task["score"]:
                     if kind == "recall":
                         entry["recall"] = score_recall(
@@ -201,10 +211,25 @@ def main(argv):
                                           f"/{entry['recall']['of']}")
                     else:
                         entry[kind] = score_checks(kind, target)
-                        for metric, want in (task.get("require") or {}).items():
-                            got = entry[kind]["verdicts"].get(metric)
-                            if got is not None and got != want:
-                                failed.append(f"{metric}={got}")
+                        # A checker that could not be read has not scored this
+                        # artifact. The flag was written into the record and
+                        # never looked at, so a crashed checker scored `pass`.
+                        if entry[kind].get("unparseable"):
+                            failed.append(f"{kind} emitted no parseable report")
+                        seen.update(entry[kind]["verdicts"])
+                # `require` is checked ONCE, against the union of every checker's
+                # verdicts. Per-kind it needed `got is not None` to skip the other
+                # checker's metrics, and that clause also swallowed the case this
+                # harness most needs to catch: a required metric that reported
+                # nothing at all. check_design returns UNMEASURABLE for a document
+                # using none of LUMI's tokens, so an agent emitting exactly that
+                # scored green on the scoreboard.
+                for metric, want in (task.get("require") or {}).items():
+                    got = seen.get(metric)
+                    if got is None:
+                        failed.append(f"{metric} never reported")
+                    elif got != want:
+                        failed.append(f"{metric}={got}")
                 entry["verdict"] = "pass" if not failed else "fail"
                 entry["failed"] = failed
                 scores[key] = entry
@@ -229,7 +254,7 @@ def main(argv):
     record = {"version": version, "run_id": args.run or "detect-only",
               "host": f"{sys.platform}", "agents": len(agents),
               "detected": sum(1 for v in probed.values() if v[0]),
-              "repeat": args.repeat, "task_ids": [t["id"] for t in tasks], "rows": rows}
+              "repeat": 1, "task_ids": [t["id"] for t in tasks], "rows": rows}
     print(render(record))
     return 0
 

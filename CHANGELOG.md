@@ -3,6 +3,61 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.358 — absence stops meaning assent
+
+A review of the five preceding releases mutation-tested every new guard and found
+the same defect in all four new scripts and three of the guards: **the code read
+absence as agreement.** A missing frontmatter field, an empty section, an omitted
+flag, an unemitted verdict, an unparseable report, an empty spec — each was
+treated as "fine" rather than "unknown". That is the defect 0.1.350 removed from
+`inspect_layout.py`, reproduced inside the machinery built to prevent it.
+
+**`--check` certified garbage.** `skill_field()` returned `""` for a field it
+could not find, so renaming `description:` in `SKILL.md` rendered three manifests
+with an empty description and `build_entrypoints.py --check` called them current —
+with the same sentence it uses for correct output. The structural point is worth
+keeping: `--check` compares the tree against what the generator produces *now*, so
+it can catch a stale tree and can never catch a generator whose extraction failed.
+Extraction now raises. So does `red_lines()` on an empty section, which had let
+all three pointer files ship a heading promising six non-negotiable rules with
+nothing beneath it, every guard green.
+
+**The conformance scoreboard passed a crashed checker.** `require` was checked
+per-checker, which forced an `is not None` clause to skip the other checker's
+metrics — and that clause also swallowed a required metric that reported nothing
+at all. A document using none of LUMI's tokens returns `UNMEASURABLE`, so an agent
+emitting exactly that scored green. `require` is now checked once against the
+union of every checker's verdicts, a metric that never reported is a failure, and
+the `unparseable` flag that was written into the record and never read is now a
+failure too. An empty JSON list also crashed the scorer mid-scoreboard.
+
+**Deleting one optional field stripped a published warning.** `path_verified` was
+only checked for an explicit `false`, so removing it turned an install path the
+repository admits is a guess into an apparently-verified instruction, in the
+generated note. It now requires an explicit `true`. `docs: ""` and `probe: []`
+satisfied `is None` and no longer do — `probe: []` was worse than cosmetic,
+because `detect()` read it as no probe while the manifest guard called the record
+complete, so the two files disagreed about what "has a probe" means.
+
+**A ratchet that was never a ratchet.** A comment claimed that a note promising
+work "in 0.1.354" became a CI failure once 0.1.354 shipped. It did not: the
+citation guard fails only when *no* heading defines a version, so shipping made
+the promise more legal, and it globbed `*.md`, so the registry's own two stale
+promises were never read at all. `check_stale_promises` is the check that comment
+described, and it scans the registry JSON as well. The registry's promises are
+gone.
+
+Smaller, same class: a guard that raised took every guard after it with it and the
+output never said so, which left five `ok` lines and a traceback; the fixture
+suite reported `ok` on an empty spec; `contains` searched the whole serialized
+report, so its metric key asserted nothing and keying it to a name no checker
+emits still passed — in the one assertion whose stated job is that a check failing
+for the wrong reason has not passed. And `--repeat` is removed rather than fixed:
+nothing looped, so it printed back the number the operator typed, which in a
+document whose purpose is evidence is the worst possible field.
+
+Every fix above was falsified by reintroducing the defect.
+
 ## 0.1.357 — the harness scored nothing, and the fixture was not a deliverable
 
 Two defects in 0.1.356 and 0.1.355, both found by using them, and both instances

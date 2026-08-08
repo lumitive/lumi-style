@@ -1,5 +1,5 @@
 {
-  "$schema_note": "LUMI design tokens v0.1.357 (2026-08-08). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
+  "$schema_note": "LUMI design tokens v0.1.358 (2026-08-08). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
   "palette_default": "light",
   "palette": {
     "light": {
@@ -70,7 +70,7 @@
       "data_red": "#C0392B",
       "data_teal": "#3FA98C",
       "card_bg": "#2C2C2E",
-      "note": "applied only on explicit user request, via one body.dark override block — never a forked file",
+      "note": "applied only on explicit user request, via one body.dark override block \u2014 never a forked file",
       "amber": "#E0A73E",
       "amber_wash": "rgba(224,167,62,.15)",
       "brass": "#C3B393",
@@ -85,7 +85,7 @@
       "lime": "#B8FF00",
       "on_lime": "#0A0907"
     },
-    "note": "one structure, two palettes. v0.1.340: the light canvas is pure white, not the warm cream the field has settled on, and the dark canvas is Apple space grey. The state palette grew by two with fixed meanings: amber = partial, in progress, awaiting an input; brass = reference, archival, out of scope but real. Before this, partial and not-built both rendered as dashed grey, so a deck could not say the one thing it most needed to say about itself. Every semantic colour clears 4.5:1 as text on its own canvas. v0.1.345: the light ramp. Five discrete steps from the accent toward the canvas, for fields and surfaces only — it carries no meaning. One colour one meaning still governs data. Every step carries text on both canvases; on-light-ramp-5 is the foreground for step 5 and on-light-ramp-low for steps 4 down to 1. v0.1.346: --lime is a surface colour, not a member of the text ladder. On the light canvas it measures 1.21:1 as text and may only be a fill with --on-lime reversed out of it (16.44:1); on the dark canvas it is the accent at 13.90:1. It carries no meaning."
+    "note": "one structure, two palettes. v0.1.340: the light canvas is pure white, not the warm cream the field has settled on, and the dark canvas is Apple space grey. The state palette grew by two with fixed meanings: amber = partial, in progress, awaiting an input; brass = reference, archival, out of scope but real. Before this, partial and not-built both rendered as dashed grey, so a deck could not say the one thing it most needed to say about itself. Every semantic colour clears 4.5:1 as text on its own canvas. v0.1.345: the light ramp. Five discrete steps from the accent toward the canvas, for fields and surfaces only \u2014 it carries no meaning. One colour one meaning still governs data. Every step carries text on both canvases; on-light-ramp-5 is the foreground for step 5 and on-light-ramp-low for steps 4 down to 1. v0.1.346: --lime is a surface colour, not a member of the text ladder. On the light canvas it measures 1.21:1 as text and may only be a fill with --on-lime reversed out of it (16.44:1); on the dark canvas it is the accent at 13.90:1. It carries no meaning."
   },
   "contrast": {
     "floor_text": 4.5,
@@ -167,7 +167,7 @@
       "weight": 400,
       "leading": "0.95-1.0"
     },
-    "note": "v0.1.338 raised the chart scale. The old scale (11 / 10.5 / 9.5) contradicted design-rules.md prose (14 / 10-11 / 11); tokens win per CLAUDE.md, so deliverables shipped 9.5px source lines. v0.1.352: `size_floor_px` renamed to `size_smallest_px` (CSS `--fs-fine`), and the claim that it 'binds every text run' is withdrawn — it never should have survived 0.1.340, which withdrew the 11px floor as invented without an ask. THERE IS NO TYPE FLOOR. This value records the smallest size the scale actually uses; it is not a limit, and design-rules.md 1 is the authority that says so. Because CLAUDE.md makes tokens win on conflict, a floor asserted here silently overrode the prose in every deliverable built from this file for twelve releases."
+    "note": "v0.1.338 raised the chart scale. The old scale (11 / 10.5 / 9.5) contradicted design-rules.md prose (14 / 10-11 / 11); tokens win per CLAUDE.md, so deliverables shipped 9.5px source lines. v0.1.352: `size_floor_px` renamed to `size_smallest_px` (CSS `--fs-fine`), and the claim that it 'binds every text run' is withdrawn \u2014 it never should have survived 0.1.340, which withdrew the 11px floor as invented without an ask. THERE IS NO TYPE FLOOR. This value records the smallest size the scale actually uses; it is not a limit, and design-rules.md 1 is the authority that says so. Because CLAUDE.md makes tokens win on conflict, a floor asserted here silently overrode the prose in every deliverable built from this file for twelve releases."
   },
   "retired": [
     {
@@ -202,12 +202,12 @@
       ]
     }
   ],
-  "retired_note": "v0.1.353. A withdrawn number is a fact the authority has to state, or no check can tell 'withdrawn' from 'deleted by accident' — and a withdrawn floor that survives in a prose copy is this repository's documented worst drift: the 82% fill floor and the 11px type floor both outlived their withdrawal by four versions in two entry points nobody was checking. scripts/check_repo.py reads this register and requires every restatement of these values to carry a withdrawal marker in the same sentence. Each entry carries a `context` list because a bare number is not a rule: '40%' names the withdrawn D9 share cap in one sentence and 'four diagrams rendered at 40% of their cell' in another, and those are opposite claims written with the same digits. A value counts as a restatement only when the paragraph also carries one of its context phrases.",
+  "retired_note": "v0.1.353. A withdrawn number is a fact the authority has to state, or no check can tell 'withdrawn' from 'deleted by accident' \u2014 and a withdrawn floor that survives in a prose copy is this repository's documented worst drift: the 82% fill floor and the 11px type floor both outlived their withdrawal by four versions in two entry points nobody was checking. scripts/check_repo.py reads this register and requires every restatement of these values to carry a withdrawal marker in the same sentence. Each entry carries a `context` list because a bare number is not a rule: '40%' names the withdrawn D9 share cap in one sentence and 'four diagrams rendered at 40% of their cell' in another, and those are opposite claims written with the same digits. A value counts as a restatement only when the paragraph also carries one of its context phrases.",
   "assets": {
-    "fonts": "assets/fonts/ — D-DIN.woff2, D-DIN-Bold.woff2, COPYING.txt (SIL OFL)",
-    "icons": "assets/icons/ — the eight semantic icons named in design-rules.md §5, hairline 1.25px, stroke=currentColor, 24x24",
-    "vectors": "assets/vectors/ — globe-orthographic.svg and world-flat.svg, original geometry",
-    "note": "v0.1.338. A rule may not mandate an asset the package does not ship: §5 required a semantic icon library for six versions and shipped none, so deliverables carried zero icons, and the cover rule banned imagery because there was no photo library rather than shipping vector geography that needs none."
+    "fonts": "assets/fonts/ \u2014 D-DIN.woff2, D-DIN-Bold.woff2, COPYING.txt (SIL OFL)",
+    "icons": "assets/icons/ \u2014 the eight semantic icons named in design-rules.md \u00a75, hairline 1.25px, stroke=currentColor, 24x24",
+    "vectors": "assets/vectors/ \u2014 globe-orthographic.svg and world-flat.svg, original geometry",
+    "note": "v0.1.338. A rule may not mandate an asset the package does not ship: \u00a75 required a semantic icon library for six versions and shipped none, so deliverables carried zero icons, and the cover rule banned imagery because there was no photo library rather than shipping vector geography that needs none."
   },
   "layout": {
     "one_claim_per_screen": true,

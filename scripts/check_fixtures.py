@@ -41,6 +41,14 @@ def verdicts_of(report) -> dict:
 def main() -> int:
     spec = json.loads((FIXTURES / "expected.json").read_text(encoding="utf-8"))
     errors = []
+    # A suite with nothing to run is not a suite that passed. This printed
+    # "ok 0 fixtures, 0 check runs" and exited 0 on an empty spec, which is the
+    # inspect_layout defect of 0.1.350 one level up.
+    if len(spec.get("fixtures", {})) < 2:
+        errors.append(f"expected.json declares {len(spec.get('fixtures', {}))} "
+                      f"fixtures; the suite needs at least the passing one and the "
+                      f"broken one, or it cannot tell a working check from an "
+                      f"unconditional ok")
 
     for fixture, checks in spec["fixtures"].items():
         path = FIXTURES / fixture
@@ -55,6 +63,10 @@ def main() -> int:
             if report is None:
                 errors.append(f"{label}: emitted no parseable --json report")
                 continue
+            # Unwrap once. `verdicts_of` unwrapped a copy, so `report` stayed a
+            # list and the detail lookup below crashed on it.
+            if isinstance(report, list) and report:
+                report = report[0]
             actual = verdicts_of(report)
             for metric, want in expect.get("verdicts", {}).items():
                 got = actual.get(metric)
@@ -68,7 +80,22 @@ def main() -> int:
                             f"{label}: {metric} came back {forbidden!r} — the fixture "
                             f"has decayed below the floor that metric needs to grade")
             for metric, needles in expect.get("contains", {}).items():
-                blob = json.dumps(report)
+                # Scoped to the metric's own detail. This searched the whole
+                # serialized report, so the metric key was decorative: keying it
+                # to a name no checker emits still passed, in the one assertion
+                # whose stated job is "a check that fails for the wrong reason is
+                # not a check that passed".
+                # check_prose reports detail under the metric's PREFIX —
+                # M4_banned_hits is detailed in M4_detail — so the key is
+                # derived, not assumed.
+                key = f"{metric.split('_')[0]}_detail"
+                detail = report.get(key)
+                if detail is None:
+                    errors.append(
+                        f"{label}: contains names {metric!r}, but the report has no "
+                        f"{key!r}; the assertion would search nothing")
+                    continue
+                blob = json.dumps(detail)
                 for needle in needles:
                     if needle not in blob:
                         errors.append(
