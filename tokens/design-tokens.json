@@ -1,5 +1,5 @@
 {
-  "$schema_note": "LUMI design tokens v0.1.352 (2026-08-08). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
+  "$schema_note": "LUMI design tokens v0.1.353 (2026-08-08). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
   "palette_default": "light",
   "palette": {
     "light": {
@@ -169,6 +169,40 @@
     },
     "note": "v0.1.338 raised the chart scale. The old scale (11 / 10.5 / 9.5) contradicted design-rules.md prose (14 / 10-11 / 11); tokens win per CLAUDE.md, so deliverables shipped 9.5px source lines. v0.1.352: `size_floor_px` renamed to `size_smallest_px` (CSS `--fs-fine`), and the claim that it 'binds every text run' is withdrawn — it never should have survived 0.1.340, which withdrew the 11px floor as invented without an ask. THERE IS NO TYPE FLOOR. This value records the smallest size the scale actually uses; it is not a limit, and design-rules.md 1 is the authority that says so. Because CLAUDE.md makes tokens win on conflict, a floor asserted here silently overrode the prose in every deliverable built from this file for twelve releases."
   },
+  "retired": [
+    {
+      "value": "82%",
+      "name": "D7 page-fill floor",
+      "withdrawn_in": "0.1.340",
+      "note": "measured the bounding box of all ink, so a small chart with a long caption scored as full, and it was satisfiable by stretching table rows while four diagrams rendered at 40% of their cell",
+      "context": [
+        "fill floor",
+        "page fill"
+      ]
+    },
+    {
+      "value": "40%",
+      "name": "D9 layout-share cap",
+      "withdrawn_in": "0.1.340",
+      "note": "invented without an ask",
+      "context": [
+        "share cap",
+        "layout share",
+        "share of a deck"
+      ]
+    },
+    {
+      "value": "11px",
+      "name": "universal type floor",
+      "withdrawn_in": "0.1.340",
+      "note": "invented without an ask; the value survives as size_smallest_px, which records the smallest size in use and binds nothing",
+      "context": [
+        "type floor",
+        "size floor"
+      ]
+    }
+  ],
+  "retired_note": "v0.1.353. A withdrawn number is a fact the authority has to state, or no check can tell 'withdrawn' from 'deleted by accident' — and a withdrawn floor that survives in a prose copy is this repository's documented worst drift: the 82% fill floor and the 11px type floor both outlived their withdrawal by four versions in two entry points nobody was checking. scripts/check_repo.py reads this register and requires every restatement of these values to carry a withdrawal marker in the same sentence. Each entry carries a `context` list because a bare number is not a rule: '40%' names the withdrawn D9 share cap in one sentence and 'four diagrams rendered at 40% of their cell' in another, and those are opposite claims written with the same digits. A value counts as a restatement only when the paragraph also carries one of its context phrases.",
   "assets": {
     "fonts": "assets/fonts/ — D-DIN.woff2, D-DIN-Bold.woff2, COPYING.txt (SIL OFL)",
     "icons": "assets/icons/ — the eight semantic icons named in design-rules.md §5, hairline 1.25px, stroke=currentColor, 24x24",

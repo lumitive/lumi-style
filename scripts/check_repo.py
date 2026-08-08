@@ -420,7 +420,6 @@ VERSION_CITATION_WAIVERS = {
     # release it ships, which makes the dict a ratchet: a note still promising
     # something "in 0.1.354" after 0.1.354 has shipped becomes a CI failure
     # rather than stale documentation nobody re-reads.
-    "0.1.353": "planned: the numeric-claim guard. Remove this waiver when it ships.",
     "0.1.354": "planned: generated entry points and the plugin manifests. Remove "
                "this waiver when they ship.",
     "0.1.355": "planned: tracked fixtures and check_fixtures.py. Remove when shipped.",
@@ -435,6 +434,126 @@ def _load_platforms():
     if not isinstance(data.get("platforms"), list) or not data["platforms"]:
         raise ValueError("platforms.json declares no platforms")
     return data
+
+
+# A retired value may appear without a withdrawal marker only with a reason.
+# (relative path, retired value, distinctive fragment of the sentence) -> why.
+# Empty on purpose, and the guard reports a waiver nothing matches so it stays
+# that way. The first cut needed one — a sentence sizing an icon against an 11px
+# caption — but once each retired value carried `context` phrases, the icon
+# sentence stopped looking like a floor claim at all. A waiver that survives its
+# cause is a standing permission nobody re-reads.
+RETIRED_VALUE_WAIVERS = {}
+
+# The words this repository actually uses when it retires something, harvested
+# rather than invented: a retirement written in a phrasing not listed here is a
+# retirement the guard cannot see, and the guard says so instead of passing.
+WITHDRAWAL_MARKERS = (
+    "withdrew", "withdrawn", "retired", "no longer", "there is no", "no fill floor",
+    "no size floor", "no type floor", "without an ask", "never a floor", "not a floor",
+    "no layout-share cap",
+    # A provenance paragraph saying the rule was *invented* is plainly not
+    # asserting it; "invented without an ask" is this repository's own phrase for
+    # a rule that should never have existed.
+    "invent",
+)
+
+
+def check_retired_values():
+    """A number the rules withdrew may not be restated as though it still binds.
+
+    This is the repository's documented worst drift, and it shipped: the 82% page
+    fill floor and the 11px type floor were withdrawn in 0.1.340 and went on
+    living in AGENTS.md and prompts/lumi-style-core.md for four more versions,
+    invisible because nothing compared the copies. The register in
+    tokens/design-tokens.json is the authority for what was withdrawn — a
+    withdrawn number has to be *stated* somewhere or no machine can tell it from
+    a number deleted by accident.
+
+    Every sentence restating a retired value must mark it as retired. What the
+    guard cannot do is tell whether a rule's polarity changed while its digits
+    stayed: "3-6 word headline" as a ceiling and as a target are the same
+    characters, and CLAUDE.md rule 4 exists because that has cost three
+    regressions. That stays with the reviewer.
+    """
+    try:
+        tokens = json.loads((ROOT / "tokens/design-tokens.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:                    # noqa: BLE001
+        return [f"tokens/design-tokens.json: {exc}"]
+
+    retired = {r["value"]: r for r in tokens.get("retired", [])}
+    if not retired:
+        return ["tokens/design-tokens.json: the `retired` register is empty; if "
+                "nothing has been withdrawn, say so rather than omitting it"]
+
+    errors, used_waivers = [], set()
+    for path in md_files():
+        name = rel(path)
+        if name.startswith("CHANGELOG"):
+            continue          # the changelog is the record OF withdrawals, not a restatement
+        # Paragraph-scoped, not line-scoped. This prose is hard-wrapped, so
+        # "Withdrawn in 0.1.340 … the 11px type floor" routinely straddles two
+        # lines and a line-scoped check reported the second half as an unmarked
+        # restatement. A sentence is the unit a reader reads; it is the unit the
+        # marker has to be found in.
+        in_fence, para, start = False, [], 1
+        paragraphs = []
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            prose, in_fence = _strip_code(line, in_fence)
+            if prose.strip():
+                if not para:
+                    start = lineno
+                para.append(prose)
+            elif para:
+                paragraphs.append((start, " ".join(para)))
+                para = []
+        if para:
+            paragraphs.append((start, " ".join(para)))
+
+        for lineno, prose in paragraphs:
+            low = prose.lower()
+            for value, record in retired.items():
+                if value not in prose:
+                    continue
+                # A bare number is not a rule. "40%" names the withdrawn D9 share
+                # cap in one sentence and "four diagrams rendered at 40% of their
+                # cell" in another — opposite claims, identical digits. The value
+                # counts as a restatement only alongside one of its context
+                # phrases; without a context list it cannot be told apart from
+                # arithmetic and the register says so.
+                context = record.get("context")
+                if not context:
+                    errors.append(
+                        f"tokens/design-tokens.json: retired value {value!r} has no "
+                        f"`context` phrases, so it cannot be distinguished from any "
+                        f"other use of the same digits"
+                    )
+                    continue
+                if not any(phrase.lower() in low for phrase in context):
+                    continue
+                if any(marker in low for marker in WITHDRAWAL_MARKERS):
+                    continue
+                waiver = next(
+                    (k for k in RETIRED_VALUE_WAIVERS
+                     if k[0] == name and k[1] == value and k[2].lower() in low),
+                    None,
+                )
+                if waiver:
+                    used_waivers.add(waiver)
+                    continue
+                errors.append(
+                    f"{name}:{lineno}: states {value} — the {record['name']}, "
+                    f"withdrawn in {record['withdrawn_in']} — without marking it "
+                    f"withdrawn, and RETIRED_VALUE_WAIVERS does not excuse it"
+                )
+
+    for stale_waiver in sorted(set(RETIRED_VALUE_WAIVERS) - used_waivers):
+        errors.append(
+            f"RETIRED_VALUE_WAIVERS excuses {stale_waiver[1]} in {stale_waiver[0]} "
+            f"({stale_waiver[2]!r}), but nothing there matches any more — delete the "
+            f"waiver rather than leaving a permission nobody uses"
+        )
+    return errors
 
 
 def check_platform_manifest():
@@ -577,6 +696,7 @@ CHECKS = (
     ("english-only red line", check_english_only),
     ("markdown link targets", check_links),
     ("platform manifest", check_platform_manifest),
+    ("retired values", check_retired_values),
     ("token palette parity", check_palette_parity),
     ("ban-list parity", check_ban_list_parity),
 )
