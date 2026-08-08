@@ -3,6 +3,97 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.367 — the overlap was a reserve overspent, and the fix hid the text
+
+The overlapping text on the Grok 4.5 deliverable turned out to be one page, one
+rule, and one wrong answer to it. Its closing page was authored as a **body**
+page, so it inherited the title reserve meant for content pages; its title ran to
+four lines in a two-line reserve; and `lumi-layouts.css` states the rule in the
+direction that matters — *a title needing three lines does not get a taller
+reserve, it gets shorter text.* The agent added `-webkit-line-clamp: 2;
+overflow: hidden`.
+
+**Three of four title lines and the tail of a support sentence never render.**
+Deleted content on a client page, and **every geometric probe in this package
+passed it**: clamped text produces no spill, no collision and no page overflow.
+The rule was right and the agent broke it — but the skill gave it no way to find
+out.
+
+Two signals, both measured on the rendered page and neither keyed to a class
+name:
+
+- **the reserve is overspent** — what a `.lede`'s children need against what the
+  block reserves;
+- **content is being hidden** — a clamp or a hidden overflow inside one, which is
+  never legitimate there.
+
+A deep diagnosis had proposed comparing `scrollHeight` to `clientHeight` element
+by element. **Verified before acting, and it is wrong**: `h2.t` is a 35px box
+holding 42px of ink, because `--fs-title` resolves to 34.56px against a
+line-height of 1.02. That is the tight leading this design uses on purpose, and
+such a check fires on every correctly-set title in the system.
+
+**Then the probe found the defect in the package that ships it.** Run on this
+repository's own fixture it reported ten of fourteen title blocks over their
+reserve, by 31px each. `.body .lede` declares `gap: 10px` and `justify-content:
+flex-start` — the `+ 20px` in the reserve formula is two of those gaps — and
+neither had applied for four releases, because `.body > div:not(…)` reaches
+(0,7,1) against this rule's (0,2,0). The named roles also carried the UA's `<p>`
+margins: `<p class="eyebrow">` and `<p class="sup">` added 58px the formula never
+knew about, a third of the block. **A role is one rendering including its box.**
+Both fixed; `.eyebrow`, `.sup`, `.listhead` and `.gd` now ship `margin: 0`, and
+the column-top skew on the fixture went from 12px to zero as a side effect.
+
+Adding `:not(.lede)` to that fill rule then broke the multi-column rule that
+depends on carrying one more class than it — column skew jumped from 12px to
+107px inside one edit, and the probe caught that too. **Fifth time this chain has
+quietly decided an argument.** Both chains now carry the exclusion.
+
+**`--accent` was referenced by `tokens/lumi-layouts.css` and defined in neither
+token file.** The semantic accent has been `--acc` since the palette existed, so
+the footer origin line and the emphasis inside a display number inherited
+whatever colour sat above them. Same shape as the `var(--display, var(--sans))`
+defect fixed in 0.1.352, and a name read out of a deliverable's private CSS.
+`check_repo.py` gains **`check_token_references`**: every `var()` in `tokens/`
+must resolve, recursively through its fallbacks, or be waived with a reason.
+That is half of what 0.1.366 promised for this release — the custom-property
+half. The class-selector half, `check_probe_vocabulary`, moves to 0.1.368
+because the overlap diagnosis took priority.
+
+**A scoped role audit hides its own subject.** `.band .k` and `.band .v` report
+"one rendering" on a document whose `.k` and `.v` render five ways each, every
+one of them outside a band, where `tokens/` says nothing and the author
+necessarily invented the rendering. The scoping is not the error — a band value
+and a lead value are two roles on purpose — reporting only the scoped uses is.
+Uses outside the shipped scope are now counted and named.
+
+**D14: no slot the author left for themselves may reach the reader.** The
+deliverable shipped four `[TO FILL]` markers on its closing page, beside its own
+callout saying they must not ship. It **gates**, for D12's reason: it is not a
+judgement about whether a page is well made, it asks whether the document is
+finished, and that is decidable. Nothing else could see one — a placeholder is
+not a banned phrase, not a colour, and occupies exactly as much room as the text
+that should have replaced it. Bracketed ellipsis is deliberately not a marker.
+
+**And `check_design.py`'s own summary was a lie by construction.** It counted
+rows whose verdict was `"note"` — a value `grade()` has never produced — so the
+counter was always zero and the last line of every run read **"nothing flagged"**,
+including under a report carrying two FAIL rows. That is the exact sentence
+quoted at the top of the 0.1.366 entry as evidence that every instrument in this
+repository passed a broken document. The instrument was not wrong about the
+metrics; it was wrong about itself. A summary is a claim about what is above it.
+
+The fixtures carry both halves: the broken deck now plants a `[TO FILL]`, and the
+footer drops the `.src` span that 0.1.366 removed from the token file and left
+behind in the reference implementation of its own rules.
+
+**Verified on the real deliverable**, at each stage: `check_design.py` moves from
+`nothing flagged`, exit 0, to `D14_placeholders FAIL` on three named slots, exit
+1. Both fixtures were re-run at all three geometries with no new `NOT MEASURED`
+and no verdict change except the intended ones — the column-top skew closing to
+zero and the collision on the broken deck's overlong support line disappearing,
+both consequences of the margins the roles now own.
+
 ## 0.1.366 — the fixture was never loading the stylesheet it was testing
 
 A deliverable built in Cursor with Grok 4.5 came back with its cover and closing

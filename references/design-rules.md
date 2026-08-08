@@ -354,13 +354,21 @@ the footer rule: the confidentiality line, then the organisation's site. Right:
 forwarded without the cover — so terms that live only on page one do not travel
 with the page.
 
-**This is the one design check that fails the run** (`check_design.py` D12).
+**This is one of the two checks in `check_design.py` that fail the run** (D12).
 Everything else there reports, because a page is done when a human reads it as
 intentional and a threshold satisfiable without improving the page ends the
 looking. This is different in kind: not a judgement about whether a page is well
 made, but a commercial requirement on the artifact, like a contract term. A
 design metric that gates is a mistake; a commercial one that does not is a
 different mistake.
+
+**The other is D14: no slot the author left for themselves may reach the
+reader.** `[TO FILL]`, `[TBD]`, `{{name}}`, an empty bracket pair. Also different
+in kind — it asks whether the document is *finished*, which is decidable. A real
+deliverable shipped four of these on its closing page, immediately beside its own
+callout saying they must not ship, and nothing in this package noticed: a
+placeholder is not a banned phrase, not a colour, and occupies exactly as much
+room as the text that should have replaced it.
 
 ## 5 · Icons: semantic, never decorative
 
@@ -550,6 +558,31 @@ A layout is verified only across the **matrix**, not at a point:
   the type scale moves, the tracks that hold it have to move with it** —
   `min-content` on the row, or the block overflows onto its neighbour instead of
   lengthening its own row.
+- **Reserve axis, and the thing every other probe on this list is blind to.**
+  `.body .lede` reserves its height, and the reserve is a **ceiling**: a title
+  needing three lines does not get a taller block, it gets shorter text. A real
+  deliverable broke that rule — a closing page authored as a body page, four
+  title lines in a two-line reserve — and then answered the overflow with
+  `-webkit-line-clamp: 2; overflow: hidden`. Three of four title lines and the
+  tail of a support sentence stopped rendering. **Hiding an overflow deletes
+  content, and deleted content is invisible to geometry:** clamped text produces
+  no spill, no collision and no page overflow, so every probe above passed the
+  page. Measure both halves — what the children need against what the block
+  reserves, and whether anything inside a lede is clipping. A clamp in a title
+  block is never legitimate.
+- **Do not turn that into a per-element `scrollHeight` vs `clientHeight` check.**
+  It was the obvious generalisation and it is wrong: `h2.t` measures a 35px box
+  holding 42px of ink at the design geometry, because `--fs-title` resolves to
+  34.56px against a `line-height` of 1.02. That is the tight leading this system
+  uses on purpose, so such a check fires on every correctly-set title in the
+  deck. The frame axis below compares content against the *page* box, which is
+  fixed and has no leading; an element box is a different question.
+- **A scoped role audit hides its own subject.** `.band .k` and `.band .v`
+  reported "one rendering" on a deliverable whose `.k` and `.v` rendered five
+  different ways each — every one of them outside a band, where `tokens/` says
+  nothing and the author necessarily invented the rendering. The scoping is not
+  the error (a band value and a lead value are two roles on purpose); reporting
+  only the scoped uses is. Count what sits outside the shipped scope too.
 - **Ground axis.** Measure the ground on the *rendered* page with every
   foreground element hidden, and require it under 1.40:1 against the canvas plus
   free of repeated identical marks. Reasoning about it from the declared alpha

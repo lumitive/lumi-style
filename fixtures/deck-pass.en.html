@@ -174,7 +174,7 @@
   --fs-say:     clamp(24px, 2.3vw, 32px);   /* the claim that is the page */
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.366 (2026-08-08)
+   LUMI page layouts · v0.1.367 (2026-08-08)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -247,7 +247,16 @@
    its own stylesheet, not this one. */
 .foot { display: flex; align-items: baseline; gap: 18px; }
 .foot .conf { color: var(--tx4); }
-.foot .site { margin-right: auto; color: var(--accent); letter-spacing: .1em; }
+/* `var(--accent)` until 0.1.367, here and on `.lead .v em` — and `--accent` is
+   defined in NEITHER token file; the semantic accent has been `--acc` since the
+   palette existed. An undefined custom property with no fallback is invalid at
+   computed-value time, so the origin line inherited whatever colour was above it
+   and the emphasis inside a display number did too. Identical in shape to the
+   `var(--display, var(--sans))` bug fixed in 0.1.352: a name read out of a
+   deliverable's private CSS rather than out of the palette this file ships
+   beside. `check_token_references` in check_repo.py now fails on any var() in
+   tokens/ that cannot resolve, which is what stops the third one. */
+.foot .site { margin-right: auto; color: var(--acc); letter-spacing: .1em; }
 .body > * { min-width: 0; min-height: 0; }
 /* The lede block holds eyebrow, title and support, and it RESERVES ITS HEIGHT.
    Only the prose takes the measure.
@@ -267,7 +276,28 @@
 
    0.1.349 shipped this reserve in a deliverable and not here, so every document
    built from these tokens kept the floating lede the rule bans — and the probe
-   added in the same release correctly reported NO DATUM on it. */
+   added in the same release correctly reported NO DATUM on it.
+
+   **Overspending the reserve is not fixed by hiding the overflow.** A real
+   deliverable authored its closing as a body page, gave it a four-line title in
+   a two-line reserve, and answered the overflow with `-webkit-line-clamp: 2;
+   overflow: hidden` on the block. Three of the four title lines and the tail of
+   the support sentence stopped rendering — deleted content on a client page,
+   and every geometric probe in this package still passed it, because clamped
+   text produces no spill, no collision and no overflow to measure. The rule
+   above was right and the author had no way to find out they had broken it, so
+   0.1.367 measures both halves: what the children of a lede actually need
+   against what it reserves, and whether anything inside one is clipping. A
+   clamp here is never legitimate; the answer is always shorter text. */
+/* The `+ 20px` in the height below is TWO GAPS of the 10px this block sets, and
+   for four releases neither applied: `.body > div:not(...)` reaches (0,6,1) and
+   set the lede to `gap: 14px` and `justify-content: center` over this rule's
+   (0,2,0). That chain has now quietly won four arguments — against `.lead.row`,
+   against `.sidebar-notes > .notes`, against `.body.split > div`, and here — so
+   `.lede` joins the exclusions rather than being written louder. Found by the
+   reserve probe added in 0.1.367, on this repository's own fixture: the block
+   reserves 170px and its children needed 201px, which is the defect the probe
+   was written for, in the package that ships the probe. */
 .body .lede {
   display: flex; flex-direction: column; gap: 10px;
   height: calc(1.4em * 1.5 + 2 * var(--fs-title) * 1.02 + 2 * var(--fs-support) * 1.42 + 20px);
@@ -297,9 +327,19 @@
    one file. A document is free to add roles; it is not free to rename these
    without also teaching the probe, which now says so out loud when a role
    matches nothing. */
+/* Every role here carries `margin: 0`, and that is not tidiness. A role is one
+   rendering including its BOX: `.eyebrow` set on a <p> takes the UA's 1em top
+   and bottom margin and the same eyebrow set on a <div> takes none, so the
+   identical class occupied 38px on one page and 14px on the next. It cost the
+   title reserve directly — the reserve budgets 20px of gaps for three children
+   and the UA margins on `<p class="eyebrow">` and `<p class="sup">` added 58px
+   the formula never knew about, which is 34% of the block. Blocks that own their
+   own spacing (`.body`, `.lede`, the fill rule) cannot own it while the UA is
+   also contributing. */
 .eyebrow {
   font-family: var(--mono); font-size: 12px; font-weight: 700;
   letter-spacing: var(--ls-eyebrow); text-transform: uppercase; color: var(--tx3);
+  margin: 0;
 }
 h2.t {
   font-family: var(--din); font-size: var(--fs-title); font-weight: var(--w-title);
@@ -321,17 +361,17 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
 }
 .sup {
   font-size: var(--fs-support); font-weight: var(--w-support); line-height: 1.42;
-  color: var(--tx2); max-width: var(--measure);
+  color: var(--tx2); max-width: var(--measure); margin: 0;
 }
 .listhead {
   font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
-  text-transform: uppercase; color: var(--tx3);
+  text-transform: uppercase; color: var(--tx3); margin: 0;
 }
 /* The callout: a marked aside, one size everywhere. See the portrait block for
    why this carries `font-size` and the portrait overrides no longer do. */
 .gd {
   border-left: 2px solid var(--ln1); padding: 2px 0 2px 15px;
-  font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2);
+  font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2); margin: 0;
 }
 /* The source line inside a caption, and the filled measure bar inside a figure.
    Both were being asserted before they were shipped: `inspect_layout.py` keys its
@@ -385,11 +425,13 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
    every `.lead.row` back into a column — .lead.row is (0,2,0) against this
    rule's (0,6,1) — and the one-line leads silently stacked, which is what put a
    page ten pixels over. Third time this chain has quietly won an argument. */
-.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead),
+/* `.lede` joins them for the same reason: it is the reserve, it declares its own
+   gap and its own flex-start, and this rule was overriding both. */
+.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead):not(.lede),
 .body > header {
   display: flex; flex-direction: column; min-height: 0; gap: 14px;
 }
-.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead) {
+.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead):not(.lede) {
   justify-content: center;
 }
 .body .fill > table,
@@ -477,14 +519,22 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
    be. A rule that loses silently is indistinguishable from no rule, so the
    column-tops probe in inspect_layout.py now measures the outcome rather than
    trusting the declaration. */
-.body.split > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
-.body.split-wide > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
-.body.split-narrow > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
-.body.columns-2 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
-.body.columns-3 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
-.body.columns-4 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
-.body.quad > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend),
-.body.sidebar-notes > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend)
+/* `:not(.lede)` is repeated here for a reason that has nothing to do with the
+   lede: these selectors carry ONE MORE class than the fill rule they have to
+   beat, and that margin is the whole mechanism. The fill rule gained
+   `:not(.lede)` in 0.1.367 and reached (0,8,1) against this chain's (0,7,1) — so
+   for the length of one edit every multi-column page went back to centring its
+   columns independently, and the probe measured the skew jump from 12px to
+   107px on the repository's own fixture. Fifth time this chain has decided an
+   argument. **Adding a `:not()` to the fill rule means adding it here.** */
+.body.split > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
+.body.split-wide > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
+.body.split-narrow > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
+.body.columns-2 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
+.body.columns-3 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
+.body.columns-4 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
+.body.quad > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
+.body.sidebar-notes > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede)
   { justify-content: flex-start; }
 
 /* columns — parallel items of equal weight. Two, three or four. */
@@ -538,7 +588,7 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
   letter-spacing: .12em; text-transform: uppercase; color: var(--tx3);
   max-width: 64ch;
 }
-.lead .v em { font-style: normal; color: var(--accent); }
+.lead .v em { font-style: normal; color: var(--acc); }
 /* A lead that has to share a page with content already filling it sits on one
    line rather than claiming a grid row of its own. */
 .lead.row { flex-direction: row; align-items: baseline; gap: 18px; }
@@ -849,7 +899,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
     <h1>Metering programme review</h1>
     <p class="sup">A synthetic deliverable. Every figure here is invented.</p>
   </div></div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>01 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 16</span></div></section>
 <section class="page" id="p2">
   <div class="body split">
     <div class="lede">
@@ -873,7 +923,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>02 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>02 / 16</span></div></section>
 <section class="page" id="p3">
   <div class="body split">
     <div class="lede">
@@ -897,7 +947,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>03 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>03 / 16</span></div></section>
 <section class="page" id="p4">
   <div class="body split">
     <div class="lede">
@@ -921,7 +971,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>04 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>04 / 16</span></div></section>
 <section class="page" id="p5">
   <div class="body split">
     <div class="lede">
@@ -945,7 +995,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>05 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>05 / 16</span></div></section>
 <section class="page" id="p6">
   <div class="body split">
     <div class="lede">
@@ -969,7 +1019,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>06 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>06 / 16</span></div></section>
 <section class="page" id="p7">
   <div class="body split">
     <div class="lede">
@@ -993,7 +1043,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>07 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>07 / 16</span></div></section>
 <section class="page" id="p8">
   <div class="body split">
     <div class="lede">
@@ -1017,7 +1067,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>08 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>08 / 16</span></div></section>
 <section class="page" id="p9">
   <div class="body split">
     <div class="lede">
@@ -1041,7 +1091,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>09 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>09 / 16</span></div></section>
 <section class="page" id="p10">
   <div class="body split">
     <div class="lede">
@@ -1065,7 +1115,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>10 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>10 / 16</span></div></section>
 <section class="page" id="p11">
   <div class="body split">
     <div class="lede">
@@ -1089,7 +1139,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>11 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>11 / 16</span></div></section>
 <section class="page" id="p12">
   <div class="body split">
     <div class="lede">
@@ -1113,7 +1163,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>12 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>12 / 16</span></div></section>
 <section class="page" id="p13">
   <div class="body split">
     <div class="lede">
@@ -1137,7 +1187,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>13 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>13 / 16</span></div></section>
 <section class="page" id="p14">
   <div class="body split">
     <div class="lede">
@@ -1161,7 +1211,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>14 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>14 / 16</span></div></section>
 <section class="page" id="p15">
   <div class="body split">
     <div class="lede">
@@ -1185,11 +1235,11 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
   </div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>15 / 16</span></div></section>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>15 / 16</span></div></section>
 <section class="page closing" id="closing">
   <div class="body stack no-lede"><div class="fill">
     <h2>What to settle this month</h2>
     <p class="sup">Relay siting first, then crew allocation.</p>
     <p class="colophon">Source: meter management system. Prepared by the analysis team.</p>
   </div></div>
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="src">Meter management system</span><span class="site">www.example.org</span><span>16 / 16</span></div></section></body></html>
+  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>16 / 16</span></div></section></body></html>

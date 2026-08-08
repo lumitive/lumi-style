@@ -52,7 +52,12 @@ cover, closing). A page that no longer fits gets its **content trimmed, never it
 type nudged**; nudging type per page is what produced a callout at three sizes.
 Content begins at the same height on every page of a geometry — reserve the title
 block at two lines plus one support line and do not let it float. Portrait
-releases the reserve, because portrait is a composition and not a reflow.
+releases the reserve, because portrait is a composition and not a reflow. **The
+reserve is a ceiling, and a title that overruns it gets shorter text — never a
+clamp.** `-webkit-line-clamp` or `overflow: hidden` on a title block deletes
+lines from a client page and leaves every geometric check clean, because hidden
+text produces no spill, no collision and no overflow. Nothing that does not
+render is fixed.
 
 **The register**: display `clamp(64px, 9vw, 132px)` at weight 700, leading 0.92;
 titles weight 700 at 24–34px; support 16px weight 500; no letter-spacing. Ship
@@ -199,7 +204,10 @@ alone, `--fs-say` clamp(22px,1.9vw,26px) for a claim.
 
 **Footer, every page**: confidentiality terms and the organisation's site on the
 left, `N / total` on the right — a slide gets forwarded without its cover, so the
-terms cannot live only on page one. This is the one check that gates. **Sales and
+terms cannot live only on page one. This gates, and so does one other thing:
+**no slot you left for yourself may reach the reader** — `[TO FILL]`, `[TBD]`,
+`{{name}}`, an empty bracket pair. A placeholder occupies exactly as much room as
+the text that should have replaced it, so no other check can see one. **Sales and
 marketing state provenance once for the document**, on the cover and the closing,
 not under every figure; consulting and internal analysis keep per-page sourcing.
 
@@ -290,6 +298,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.366** snapshot, cut 2026-08-08. It is self-contained by
+> This file is the **0.1.367** snapshot, cut 2026-08-08. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.
