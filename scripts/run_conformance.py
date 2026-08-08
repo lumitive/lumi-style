@@ -140,12 +140,10 @@ def main(argv):
         print(f"\n{sum(1 for v in probed.values() if v[0])} of {len(agents)} available here")
         return 0
 
-    if args.command in ("run", "score"):
+    if args.command == "run":
         run_dir = pathlib.Path(args.run) if args.run else RESULTS / "latest"
-        run_dir.mkdir(parents=True, exist_ok=True)
         for a in agents:
-            ok, _ = probed[a["id"]]
-            if not ok:
+            if not probed[a["id"]][0]:
                 continue
             for t in tasks:
                 if CAP_RANK[a["capability"]] < CAP_RANK[t["min_capability"]]:
@@ -156,8 +154,68 @@ def main(argv):
                 if "input" in t:
                     (wd / "input.md").write_text(t["input"], encoding="utf-8")
         print(f"prepared {run_dir}; invoke each agent against its PROMPT.txt, then "
-              f"re-run with `score --run {run_dir}`")
+              f"`score --run {run_dir}`")
         return 0
+
+    if args.command == "score":
+        if not args.run:
+            print("FAIL  score needs --run DIR")
+            return 1
+        run_dir = pathlib.Path(args.run)
+        if not run_dir.exists():
+            print(f"FAIL  {run_dir} does not exist; run `run` first")
+            return 1
+        by_id = {t["id"]: t for t in tasks}
+        scores, unscored = {}, 0
+        for agent_dir in sorted(p for p in run_dir.iterdir() if p.is_dir()):
+            for task_dir in sorted(p for p in agent_dir.iterdir() if p.is_dir()):
+                task = by_id.get(task_dir.name)
+                if task is None:
+                    continue
+                produced = [f for f in task_dir.glob(task["deliverable"])
+                            if f.name not in ("input.md",)]
+                key = f"{agent_dir.name}/{task_dir.name}"
+                if not produced:
+                    # No artifact is NOT a pass. It is the most common real
+                    # outcome — an agent that answered in chat instead of
+                    # writing a file — and it has to read as a failure to
+                    # produce, never as an absent finding.
+                    scores[key] = {"verdict": "no deliverable", "detail":
+                                   f"nothing matching {task['deliverable']}"}
+                    unscored += 1
+                    continue
+                target = produced[0]
+                # The run directory is wherever the operator put it, which is
+                # usually outside this repository; relative_to() raises there.
+                try:
+                    shown = str(target.relative_to(ROOT))
+                except ValueError:
+                    shown = str(target)
+                entry, failed = {"artifact": shown}, []
+                for kind in task["score"]:
+                    if kind == "recall":
+                        entry["recall"] = score_recall(
+                            task, target.read_text(encoding="utf-8", errors="replace"))
+                        if entry["recall"]["missed"]:
+                            failed.append(f"recall {entry['recall']['score']}"
+                                          f"/{entry['recall']['of']}")
+                    else:
+                        entry[kind] = score_checks(kind, target)
+                        for metric, want in (task.get("require") or {}).items():
+                            got = entry[kind]["verdicts"].get(metric)
+                            if got is not None and got != want:
+                                failed.append(f"{metric}={got}")
+                entry["verdict"] = "pass" if not failed else "fail"
+                entry["failed"] = failed
+                scores[key] = entry
+        (run_dir / "scores.json").write_text(
+            json.dumps(scores, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        for key, s in sorted(scores.items()):
+            extra = f" ({', '.join(s.get('failed', []))})" if s.get("failed") else ""
+            print(f"  {key:38} {s['verdict']}{extra}")
+        print(f"\n{len(scores)} scored, {unscored} produced no deliverable "
+              f"-> {run_dir / 'scores.json'}")
+        return 1 if any(s["verdict"] != "pass" for s in scores.values()) else 0
 
     # report
     version = (ROOT / "SKILL.md").read_text(encoding="utf-8").split('version: "')[1].split('"')[0]
