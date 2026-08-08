@@ -193,12 +193,30 @@ by importance; the footer inverts on a lime opener) and every one of them is
 **declared in the probe**, because "that one is on purpose" living in someone's
 head is how a deck ends up with a callout at three sizes.
 
+**The roles have names, and the names ship.** `tokens/lumi-layouts.css` defines
+each of them — `.eyebrow`, `h2.t`, `.sup`, `.listhead`, `.gd`, `.cap .n`,
+`.band .k`, `.band .v` — and that block is the contract the probe checks against.
+A document may add roles freely; renaming one of these silently removes it from
+the audit. *Provenance: six of the ten class names lived only in a deliverable,
+so a document built from the tokens matched two of ten roles and lost the other
+eight without a word. The probe now names any role it could not find, and a
+title is checked in three registers — content, cover, closing — rather than one
+role with size ignored, because ignoring the size axis made the very defect this
+rule was written for undetectable.*
+
 **One datum.** The content area begins at the same height on every page of a
 geometry. Reserve the title block, do not let it float: titles all started at the
 same y here while the first content cell started at **ten different heights**, and
 that is what a reader feels flipping through even when every type style matches.
-The datum is per geometry — portrait sets its own, because portrait is a
+The datum is per geometry — portrait releases the reserve, because portrait is a
 composition and not a reflow.
+
+The reserve is a **ceiling on the title block, not a target**: two title lines
+plus one support line, and a page needing more gets shorter text rather than a
+taller reserve. Say it that way round or an author pads to fill it — the deck
+that introduced this datum paid for it by trimming six support lines to two.
+`tokens/lumi-layouts.css` ships the reserve on `.body .lede`; a rule that
+mandates a mechanism the package does not ship is one nobody can follow.
 
 **A page that no longer fits gets its content trimmed, never its type nudged.**
 Nudging type per page is what produced three callout sizes over three releases,

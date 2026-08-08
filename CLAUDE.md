@@ -15,6 +15,7 @@ sync, and recording changes in the changelog.
 python3 scripts/check_repo.py            # repo invariants; exit 1 on any failure
 python3 scripts/check_prose.py <file>    # AI-flavor metrics (M4, M8-M11) on a deliverable
 python3 scripts/check_design.py <file>   # design metrics (D1-D6) on a deliverable
+python3 scripts/inspect_layout.py <file> # render a deliverable and report what the layout does
 python3 scripts/embed_font.py            # @font-face block with the face inlined
 python3 scripts/embed_icons.py           # <symbol> sprite of the semantic icon set
 python3 scripts/build_geography.py       # regenerate assets/vectors/ from lat/lon data
@@ -28,8 +29,15 @@ stamps, the English-only red line, markdown link targets, palette parity between
 the two `tokens/` files, the text ladder's contrast floor, ban-list parity, and
 that the vendored assets are intact.
 
-`check_prose.py` and `check_design.py` both measure a **deliverable**, not this
-repo, so CI cannot run them — there are no deliverables here. `check_prose.py` is
+`check_prose.py`, `check_design.py` and `inspect_layout.py` all measure a
+**deliverable**, not this repo, so CI cannot run them — there are no deliverables
+here. `inspect_layout.py` needs a headless Chromium (`pip install pillow
+playwright && playwright install chromium`); its real output is a contact sheet
+for a person to look at. **None of its design judgements gates, but it exits 1
+when a check could not be measured at all** — a document whose markup it cannot
+read, a role whose class it cannot find, an audit that crashed. That distinction
+is the point: until 0.1.350 all three of those printed the same reassuring lines as
+a clean document. `check_prose.py` is
 English-only and takes `--genre internal` to exempt internal analysis documents
 from the em-dash rule. `check_design.py` reads a document's own token block, so it
 grades a file against the palette that file actually declares rather than against
@@ -74,6 +82,7 @@ Actions incident blocks merging for everyone. Do not wait it out by polling.
 
 `references/` is the single source of truth for rule prose:
 
+- `references/brand.md` — the water thesis, the two brand devices (waterline, field), the ground, the acid green, the consistency rules; loaded first by SKILL.md and AGENTS.md
 - `references/writing-rules.md` — output-language default, terminology red lines, banned phrases, punctuation, number discipline, the LUMI voice
 - `references/storyline-templates.md` — narrative skeletons per scenario (sales / consulting / internal analysis), cover & closing templates, the pre-delivery critic gate
 - `references/design-rules.md` — color semantics, typography, chart rules, semantic icons, layout guards, verification matrix
@@ -99,10 +108,16 @@ Three entry points load these rules, and each restates part of them:
 half — semantic drift between prose copies is invisible to them.** After changing
 `references/`, re-read all three entry points *and* `README.md`, which
 independently restates the file map, the design language, and the iteration
-protocol. Two known-stale spots to fix when you touch their subject matter:
-`prompts/lumi-style-core.md:74-77` still carries pre-1.2.0 canvas hexes and the
-retired rounded Latin voice, and `AGENTS.md:4-5` still calls the primary output
-Simplified Chinese, which the 1.3.0 American-English default superseded.
+protocol. (The two stale spots this section used to name — pre-1.2.0 hexes in
+`prompts/lumi-style-core.md` and a Simplified-Chinese default in `AGENTS.md` —
+were both fixed by 3.4.0 and 1.3.0 respectively; verified at 0.1.350.)
+
+**Drift also runs the other way: from a check into the rules.** A probe that
+keys on class names is asserting a vocabulary, and that vocabulary has to ship in
+`tokens/` or it is a private convention borrowed from whatever document the probe
+was developed against. 3.4.0 audited ten roles against six class names that
+existed nowhere in this repository. Prefer a check that reads the shipped tokens;
+where it cannot, make it name what it failed to find.
 
 ## Maintenance conventions
 
@@ -132,6 +147,16 @@ repo itself.)
    `tokens/lumi-theme.css` ("v1.3.0: light-first…") name the version that
    introduced a change and are not stamps — leave them alone. Commit messages
    follow `X.Y.Z — comma-separated summary of the rule changes`.
+
+   **Numbering restarted at 0.1.350** (the entry after 3.4.0). The package is
+   pre-stable and says so: **increment the patch position** — 0.1.351, 0.1.352 —
+   for ordinary revisions, and move the minor only for a change that would break
+   a deliverable built on the previous version. Do not read the old 3.x numbers
+   as a series to resume; the next release after 0.1.350 is 0.1.351, not 3.6.0.
+   Entries below 0.1.350 in the CHANGELOG keep their original numbers on purpose:
+   the rule files, token comments and scripts cite them by name throughout
+   ("since 1.9.0", "3.1.0's register"), so those citations stay valid and the
+   history is deliberately non-monotonic at exactly one point.
 4. **A number in a rule states whether it is a floor, a ceiling, or a target.**
    This repo has now shipped three regressions from the same root: 1.2.0's
    "3–6 word headline" was a ceiling read as a target and deleted every evidence

@@ -70,6 +70,10 @@ contact sheet for a human to look at.
 | tables | tables by digit density | 14 of 16 tables held prose, not values |
 | figures | share of pages built on a drawing | 9 of 28 |
 | centerpiece scale · aspect · empty band | what "too small" and "looks empty" mean geometrically | — |
+| **one role, one rendering** | distinct computed renderings per repeated role, per geometry | a callout at 12 / 12.5 / 13.5px, and the same callout at three sizes again in portrait only |
+| one datum | where content begins, across the pages of a geometry | ten different heights while every title started level |
+| component colour · band baseline | one colour per chart component; type sharing its edges inside a band | two comparison bars in two greens |
+| **NOT MEASURED** | any check whose subject is absent — the only thing here that sets a non-zero exit | eleven affirmative lines about a document with zero pages |
 
 **A probe that establishes the condition it verifies proves nothing**, and this
 is the one to read first. The page-height probe set the viewport to 1280x720 and
@@ -78,6 +82,14 @@ measured the page against `window.innerHeight` on a page that was
 was written. It reported success for two releases while the deck was 4:3 in a
 4:3 window. Before trusting a probe, construct the failure; if you cannot, it is
 measuring its own setup.
+
+**Its twin: a probe whose subject is missing must not report a pass.** Every
+reassuring line above was written as the `else` branch of a defect test, so it
+also fired when nothing had been examined — "one horizon on each of 0 pages",
+"all 0 pages hold 16:9". Absence of vocabulary is not absence of defects, and
+the failure is worse than a false negative because it arrives phrased as
+success. Construct the *empty* case as well as the failing one: run the probe on
+a document it cannot read and check that it says so.
 
 **A probe is only as good as its vocabulary.** Every one of these reads the DOM
 through a selector list, and a selector that does not know a block class reports

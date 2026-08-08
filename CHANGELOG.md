@@ -3,6 +3,102 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.350 — a check that did not run is not a check that passed
+
+**The version scheme restarts here.** The previous entry is 3.4.0; this release
+is 0.1.350, and the number goes **down** on purpose. Nothing about the rules
+changed for it — the major-version climb had been reading as maturity the package
+has not earned, and 0.x says plainly that this is still pre-stable. From here the
+**patch position** carries ordinary releases (0.1.351, 0.1.352, …); the minor
+position moves only for a change that would break a deliverable built on the
+previous one. The history below keeps its original numbers, because every rule
+file, token comment and script in this repository cites them by name — "since
+1.9.0", "3.1.0's register", "1.2.0's headline" — and renumbering the past would
+cost the provenance those citations carry while buying nothing.
+
+*One consequence worth knowing: a deliverable stamped 3.x was produced by a
+lumi-style newer than one stamped 0.1.350, which is the one place this reads
+backwards. Version lockstep still holds going forward.*
+
+A review of 3.4.0 asked whether the layout probe establishes complete check
+factors for a **new** document. It does not, and the way it failed is worse than
+a gap: every reassuring line it printed was the `else` branch of a defect test,
+so a check with nothing to examine reported the same thing as a check that found
+nothing wrong.
+
+**A document with no recognisable pages passed.** Run on an HTML file with no
+`section.page`, the probe printed eleven affirmative lines — "one horizon on each
+of **0 pages**", "all 0 pages hold 16:9" — and exited 0. Hidden pages passed too:
+a zero-size page has `overflow` of −720 (not > 1), zero frame skew, one horizon
+because `.foot` is still in the DOM, and an aspect of `0/0`, which no `>`
+threshold is ever true for. Three `display:none` pages were credited as three
+passing pages on every line.
+
+**Coverage was a property of class names, not of the design system.** Measured on
+two documents identical apart from their class names: ten role checks became two.
+Six of the ten selectors — `.t .sup .eyebrow .k .n .listhead` — appeared nowhere
+in `tokens/`; they had been read out of a deliverable. A document built from the
+token files the skill tells an author to copy therefore matched two roles, lost
+the other eight **without printing a word**, and the focal check *inverted*: with
+no `.t` to exclude, the title became the page's focal element and a flat page
+passed. Renaming a class made the report shorter and greener.
+
+The fix is in both halves. The role vocabulary now ships in
+`tokens/lumi-layouts.css` as a declared contract, and every check that finds
+nothing says `NOT MEASURED` with the reason and the selector it wanted.
+`inspect_layout.py` **exits 1 when anything could not be measured** — the design
+judgements still gate nothing, which is the whole distinction: reporting that a
+check did not run is not a judgement about the page. `check_design.py` has had
+this concept since 1.9.0, in the same directory, while this script expressed all
+five of its failure paths as silence.
+
+**Three checks were measuring the box instead of the thing in it** — the mistake
+3.4.0 was written to catch, committed by 3.4.0's own additions. The title role
+ignored size, to excuse a cover legitimately larger than a content page, so 34px
+and 57.6px produced the same key and the first defect the audit was built for was
+undetectable by it; a title is now three registers, each compared on size. The
+band-baseline check compared element boxes, and a value written the shipped way —
+`41<span class="u">%</span>` — sits in a box 25px deeper than one without a unit
+while the digits stay on one baseline, so it flagged bands whose numbers were
+exactly aligned. Centerpiece scale, cell fill, the empty-band scan and the
+collision probe all used `getBoundingClientRect()`, so a grown SVG box inflated
+the scale *and* filled the empty-band scan with phantom ink at the same time.
+
+**The consistency and ground audits only ever ran at 1280×720.** Run at A4 — a
+required matrix point since 2.0.0 — the same probe found the callout at
+**12 / 13 / 11.5px**, set per context by the portrait block of the token file that
+carries the rule against it, and the strong ground tier breaking its own 1.40:1
+ceiling on two independent documents. Both audits now run at every requested
+geometry and say which one they ran at; `--ground-strong` drops .25 → .20, which
+measures 1.369 where .21 measured 1.396 and left no room for a document's own
+ground drawing.
+
+**Two rules mandated mechanisms the package does not ship**, the failure mode
+`CLAUDE.md` §5 exists for and now the fourth and fifth instances. The title-block
+reserve that holds the content datum shipped in a deliverable and not in
+`tokens/`, so every document built from the tokens kept the floating lede the
+rule bans. And `box-sizing: border-box` shipped nowhere, while the layouts file
+declares fixed 1280×720 and 794×1123 stages that are arithmetic nonsense without
+it — measured on a fresh document, **all six pages +72px**, page-height
+conformance being the first thing §7 says to check. `.lead .v` also asked for
+`var(--display, var(--sans))`, and neither token has ever existed, so the one
+number that *is* the page silently inherited the body face.
+
+Smaller, all found by using the thing: a missing Pillow deleted the ground audit
+rather than reporting it; a crashed consistency probe printed nothing at all and
+`--json` omitted three audits entirely; two files in one run overwrote each
+other's contact sheet, which the docstring calls the real output; the `ImportError`
+message advised `--no-sheet`, which does not help because the import happens
+either way; `contact_sheet` documented a `sips`/`montage` shell-out that was never
+written, and `subprocess` was imported for it; nothing waited on `document.fonts`
+or listened for the document's own errors, so a report could be measured against
+fallback metrics and printed as fact; and `--dark` was read only to name output
+files while nothing switched the palette.
+
+Two false alarms went the other way and were fixed with the same discipline: a
+band that stacks in portrait is not 338px out of line, and a figure deliberately
+hidden by the landscape/portrait pair is not an unreadable drawing.
+
 ## 3.4.0 — one role, one rendering: a consistency system, and the probe that holds it
 
 A reader asked for a complete consistency audit of all 30 pages and for the

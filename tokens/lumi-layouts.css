@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v3.4.0 (2026-08-07)
+   LUMI page layouts · v0.1.350 (2026-08-08)
    Fifteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -20,6 +20,21 @@
        copy and paste, and screen reading, and a tariff document cannot pay
        that for a flourish.
    ═══════════════════════════════════════════════════════════════════ */
+
+/* ── the box model this file assumes (v0.1.350) ─────────────────────────
+   Every geometry below is a FIXED box — 1280x720, 794x1123 — and a page carries
+   page padding. Under the default `content-box` those two facts contradict each
+   other: the padding is added to the declared height, so a page with 46px of top
+   padding measures 792px inside a 720px stage and EVERY page of the document
+   exceeds its own geometry. That is the first thing §7 says to check, and the
+   defect is invisible in the stylesheet because the declaration says 720.
+
+   This shipped nowhere in tokens/ until 0.1.350 and lived only in a deliverable's
+   private CSS, so the fixed stage worked in the document it was developed
+   against and broke in every document built from the tokens themselves —
+   measured on a fresh one: all six pages +72px. A prescribed value carries the
+   floor below which it stops working (CLAUDE.md rule 6); this is that floor. */
+*, *::before, *::after { box-sizing: border-box; }
 
 /* ── shared frame ─────────────────────────────────────────────────────
    .body is the content area between the eyebrow/title and the footer rule.
@@ -52,10 +67,98 @@
 .foot .conf { color: var(--tx4); }
 .foot .site { margin-right: auto; color: var(--accent); letter-spacing: .1em; }
 .body > * { min-width: 0; min-height: 0; }
-/* The lede block holds eyebrow, title and support. Only the prose takes the
-   measure; constraining the block would re-break the title across two lines. */
-.body .lede { display: flex; flex-direction: column; gap: 10px; }
+/* The lede block holds eyebrow, title and support, and it RESERVES ITS HEIGHT.
+   Only the prose takes the measure.
+
+   The comment here used to say the opposite — "constraining the block would
+   re-break the title across two lines" — and that argument lost in 3.4.0, to a
+   measurement: titles all began at the same y, but the first content cell began
+   at ten different heights, 106px to 219px. Content started somewhere different
+   on almost every page, which is the deepest defect a reader had reported and
+   the one nothing on the list had named. A floating lede is a datum that moves.
+
+   The reserve is a CEILING on the title block, not a target: two title lines
+   plus one support line. A title that needs three lines, or a second support
+   line, does not get a taller reserve — it gets shorter text. That direction
+   matters (CLAUDE.md rule 4): the 3.4.0 deck paid for this datum by trimming six
+   support lines to two, and the author who reads it as a target will pad instead.
+
+   3.4.0 shipped this reserve in a deliverable and not here, so every document
+   built from these tokens kept the floating lede the rule bans — and the probe
+   added in the same release correctly reported NO DATUM on it. */
+.body .lede {
+  display: flex; flex-direction: column; gap: 10px;
+  height: calc(1.4em * 1.5 + 2 * var(--fs-title) * 1.02 + 2 * var(--fs-support) * 1.42 + 20px);
+  justify-content: flex-start;
+}
 .body .lede > p { max-width: var(--measure); }
+
+/* ── the role vocabulary (v0.1.350) ─────────────────────────────────────────
+   The repeating roles of a deliverable, named. One role, one rendering — and
+   the rendering lives here, once, so that "the same thing looks the same
+   everywhere" is a property of the stylesheet rather than of an author's
+   memory.
+
+   Why this block exists: `inspect_layout.py` has audited these ten roles since
+   3.4.0, keyed on these class names, and six of them — .t .sup .eyebrow .k .n
+   .listhead — appeared NOWHERE in tokens/. They had been read out of a
+   validation deck. So a new document built from the token files SKILL.md tells
+   it to copy matched two of the ten roles, the other eight vanished from the
+   report without a word, and the focal check inverted: with no .t to exclude,
+   the title became the page's focal element and a flat page passed. Measured on
+   two documents identical but for their class names: ten role checks became
+   two, and two real defects stopped being reported.
+
+   That is CLAUDE.md rule 5 — a rule may not mandate an asset the package does
+   not ship. The probe mandated a vocabulary; here it is. Sizes come from
+   lumi-theme.css and are not repeated as literals, so the type scale stays in
+   one file. A document is free to add roles; it is not free to rename these
+   without also teaching the probe, which now says so out loud when a role
+   matches nothing. */
+.eyebrow {
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  letter-spacing: var(--ls-eyebrow); text-transform: uppercase; color: var(--tx3);
+}
+h2.t {
+  font-family: var(--din); font-size: var(--fs-title); font-weight: var(--w-title);
+  line-height: 1.02; letter-spacing: var(--ls-title); text-transform: uppercase;
+  color: var(--tx1); margin: 0;
+}
+/* A run of lowercase inside a title (a product name, a unit) opts out. */
+h2.t .lc { text-transform: none; letter-spacing: 0; }
+.sup {
+  font-size: var(--fs-support); font-weight: var(--w-support); line-height: 1.42;
+  color: var(--tx2); max-width: var(--measure);
+}
+.listhead {
+  font-family: var(--mono); font-size: 11.5px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--tx3);
+}
+/* The callout: a marked aside, one size everywhere. See the portrait block for
+   why this carries `font-size` and the portrait overrides no longer do. */
+.gd {
+  border-left: 2px solid var(--ln1); padding: 2px 0 2px 15px;
+  font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2);
+}
+/* The figure's number and name, under the drawing. */
+.cap .n {
+  font-weight: 700; font-size: var(--fs-floor); color: var(--tx2);
+  letter-spacing: .04em;
+}
+/* A stat band: the label is record, the value is the number. `align-items:
+   start` is the rule, not a preference — a band that centres each cell lets a
+   label which wraps to two lines lift its own number out of line with its
+   neighbours, which measured 17px of drift and reads as a broken row. */
+.band { align-items: start; }
+.band .k {
+  font-family: var(--mono); font-size: var(--fs-floor); letter-spacing: .16em;
+  text-transform: uppercase; color: var(--tx3);
+}
+.band .v {
+  font-family: var(--din); font-size: var(--fs-band-value); font-weight: 700;
+  line-height: .92; letter-spacing: -.03em; font-variant-numeric: tabular-nums;
+  color: var(--tx1);
+}
 
 /* The fill mechanism, in two halves. A grid cell stretching is not enough: the
    cell fills and the content sits in the middle of it, which is how a page
@@ -199,8 +302,14 @@
    is the designer's and there is no floor here. `.lead` is the block; it is a
    grid cell like any other and can sit in any layout. */
 .lead { display: flex; flex-direction: column; gap: 10px; }
+/* `var(--display, var(--sans))` until 0.1.350 — and neither token has ever
+   existed in `lumi-theme.css`, so the declaration was invalid at computed-value
+   time and the one number that IS the page silently inherited whatever the body
+   was set in. The embedded face is `--din`; a fallback chain to two undefined
+   names is the same defect as a rule mandating an asset the package does not
+   ship, just spelled in CSS. */
 .lead .v {
-  font-family: var(--display, var(--sans)); font-size: var(--fs-lead);
+  font-family: var(--din); font-size: var(--fs-lead);
   line-height: .94; letter-spacing: -.02em; font-variant-numeric: tabular-nums;
   color: var(--tx1);
 }
@@ -458,14 +567,20 @@
   .grades { gap: 8px; }
   .gr .gc { display: none; }
   /* A figure column plus a full notes column is two pages of material on one
-     A4 page. The notes tighten; the figure keeps its drawing. */
-  .body.split > .notes .gd, .body.split-narrow > .notes .gd,
+     A4 page. The notes tighten; the figure keeps its drawing.
+
+     What tightens here is SPACING, never the type of a named role. Until 0.1.350
+     these rules set `.gd` to 12px beside a figure, 11.5px in a wide split and
+     12px in a fill — three renderings of one role, shipped by the token file
+     that carries the rule against them, and invisible because the consistency
+     probe only ever ran at 1280x720. Run at A4 it reports the split
+     immediately. This is 3.4.0's own rule turned on its author: a page that no
+     longer fits gets its CONTENT trimmed, never its type nudged. */
   .body.split > .notes li, .body.split-narrow > .notes li { font-size: 12px; line-height: 1.5; }
   .body.split > .notes .swap, .body.split-narrow > .notes .swap { padding: 9px 0; }
   .body.split-wide > .notes table, .body.sidebar-notes > .notes table { font-size: 11.5px; }
   .body.split-wide > .notes td, .body.split-wide > .notes th { padding: 6px 10px 6px 0; }
-  .body.split-wide > .notes .gd, .body.split-wide > .fill .gd { font-size: 11.5px; line-height: 1.5; }
-  .body.split > .fill .gd, .body.split > .fill .key { font-size: 12px; line-height: 1.5; }
+  .body.split > .fill .key { font-size: 12px; line-height: 1.5; }
   .body.split > .notes .no, .body.split > .notes .yes,
   .body.split-narrow > .notes .no, .body.split-narrow > .notes .yes { font-size: 12px; line-height: 1.45; }
   .card { padding: 14px 15px; gap: 9px; }

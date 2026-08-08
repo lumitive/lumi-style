@@ -36,14 +36,16 @@ assets/fonts                      D-DIN, vendored (SIL OFL) — embed, never lin
 assets/icons                      the eight semantic icons, hairline, currentColor
 assets/vectors                    orthographic globe · flat trade map, generated from lat/lon
 scripts/                          check_repo · check_prose (M) · check_design (D) ·
+                                  inspect_layout (renders and looks) ·
                                   embed_font · embed_icons · build_geography
 adapters/                         per-platform loading notes
 ```
 
-Rules and assets ship together on purpose. Twice now a rule required something the
-package did not contain — an embedded display face, then a semantic icon set — and
-both times deliverables simply went without. `CLAUDE.md` §5 states the resulting
-maintenance rule.
+Rules and assets ship together on purpose. Four times now a rule has required
+something the package did not contain — an embedded display face, a semantic icon
+set, the reserve that holds the content datum, and the class names its own
+consistency probe checks for — and every time deliverables simply went without.
+`CLAUDE.md` §5 states the resulting maintenance rule.
 
 ## The brand in one line
 

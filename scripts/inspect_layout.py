@@ -17,27 +17,55 @@ The numbers beside it answer the question a fill percentage could not:
   largest empty rect   the biggest clear rectangle on the page, which is what
                        "looks empty" means geometrically.
 
-**Nothing here gates.** Exit code is 0 unless the page could not be rendered.
-Release 1.9.0 answered "the pages look empty" with an 82% fill floor, satisfied
-it by stretching table rows, and shipped four diagrams at 40% of their cell. A
-number that can be satisfied without improving the page ends the looking.
+**No judgement here gates.** Release 1.9.0 answered "the pages look empty" with
+an 82% fill floor, satisfied it by stretching table rows, and shipped four
+diagrams at 40% of their cell. A number that can be satisfied without improving
+the page ends the looking.
+
+**A check that did not run is not a check that passed.** Every summary below is
+written `if <defects>: LOUD else: reassuring`, and until 0.1.350 the reassuring
+branch also fired when the probe had matched nothing at all: a document with no
+`section.page` reported "one horizon on each of 0 pages" and exit 0, and a
+document whose class vocabulary differed from the probe's lost eight of ten role
+checks without printing a word. Absence of vocabulary is not absence of defects.
+So this file now carries the concept its sibling `check_design.py` already had —
+`Unmeasurable`, printed as `NOT MEASURED (<reason>)` — and **exit code is 1 when
+anything could not be measured**. That is not a gate on the design; it is the
+difference between a probe that says nothing and a probe that says everything is
+fine. The judgements themselves still gate nothing.
 
     python3 scripts/inspect_layout.py docs/deck.html
     python3 scripts/inspect_layout.py docs/deck.html --geometry a4
+    python3 scripts/inspect_layout.py docs/deck.html --dark
     python3 scripts/inspect_layout.py docs/deck.html --json
 
-Needs a headless Chrome. Uses Playwright if importable, otherwise falls back to
-`chrome --headless --screenshot`; with neither it still prints the geometry
-report from the DOM via the fallback and says the sheet was skipped.
+Needs Playwright with Chromium (`pip install pillow playwright && playwright
+install chromium`). Pillow is needed only for the ground contrast audit, which
+reports `NOT MEASURED` without it rather than disappearing.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import pathlib
-import subprocess
 import sys
 import tempfile
+
+
+class Unmeasurable(Exception):
+    """A check could not run. Never silently a pass — see the module docstring.
+
+    Same type and same contract as `check_design.py:74`. That script has printed
+    `UNMEASURABLE` and returned non-zero since 1.9.0 while this one, sitting in
+    the same directory, expressed all five of its failure paths as silence.
+    """
+
+
+# Two things every render waits for. Fixed sleeps alone are what let a report be
+# measured against fallback font metrics and printed as fact: this package
+# embeds a display face (`scripts/embed_font.py`), and every number in the report
+# is a distance between glyphs that have not necessarily arrived yet.
+SETTLE_MS = 350
 
 # The two page geometries every LUMI deliverable serves (SKILL.md, and
 # design-rules.md §7). Landscape is primary; portrait is a composition, not a
@@ -75,16 +103,37 @@ PROBE = r"""
   // by construction, so counting it as content made all thirty pages report
   // that they ran past their own footer rule.
   const isGround = (e) => !!(e.closest && e.closest('.ground'));
+  // Every fallback path below returns the element box — which the comment above
+  // identifies as the value that reported 0px of skew on six visibly crooked
+  // pages. Returning it silently means the fix reverts to the bug for exactly
+  // the elements the fix was written for, and prints the reverted number as
+  // fact. `getBBox()` throws on an unrendered SVG and `getScreenCTM()` returns
+  // null for one, and unrendered SVGs are a *shipped pattern* here — a page
+  // carries a landscape and a portrait composition of the same figure and hides
+  // one. So count the fallbacks and let the page report that its ink numbers
+  // are element boxes.
+  let inkFail = 0;
   const inkBox = (e) => {
     const r = e.getBoundingClientRect();
     if (e.tagName.toLowerCase() !== 'svg' || !e.viewBox || !e.viewBox.baseVal.width) return r;
+    // A deliberately hidden drawing is not an unreadable one. A page ships a
+    // landscape and a portrait composition of the same figure and hides one by
+    // design; counting those as unmeasured reported 61 "failures" on a healthy
+    // deck, which is the same false alarm this release exists to remove, only
+    // pointed the other way. Only a drawing that HAS a box and still cannot
+    // report where its ink is counts.
+    const visible = r.width > 2 && r.height > 2;
     try {
       const bb = e.getBBox(), m = e.getScreenCTM();
-      if (!m || !bb.height) return r;
+      if (!m || !bb.height) { if (visible) inkFail++; return r; }
+      // The mapping below is a scale-and-translate. A rotated or skewed CTM has
+      // non-zero b/c and cannot be reduced to one top/left pair, so it would
+      // return a confidently wrong box with no exception at all.
+      if (Math.abs(m.b) > 1e-6 || Math.abs(m.c) > 1e-6) { if (visible) inkFail++; return r; }
       return {top: bb.y * m.d + m.f, bottom: (bb.y + bb.height) * m.d + m.f,
               left: bb.x * m.a + m.e, right: (bb.x + bb.width) * m.a + m.e,
               height: bb.height * m.d, width: bb.width * m.a};
-    } catch (err) { return r; }
+    } catch (err) { if (visible) inkFail++; return r; }
   };
   // Widen this and the numbers change: lists and spec strips were absent once,
   // so a full column of ordered steps reported as 10% ink. Any new block class
@@ -95,9 +144,36 @@ PROBE = r"""
             + ' .note, .cap, .legend, .eyebrow, .spec, .spec div, .colophon, .wordmark,'
             + ' .card, .who, dl, dt, dd, .verdict, .say, .g, .swap, .vow, .vt, .vw,'
             + ' .ledname, .lead, .tag';
+  // The ink extent of a block: the union of its own drawing boxes, not the box
+  // the browser gives the block. Centerpiece scale is the number this file's
+  // own docstring calls the answer to "the chart is too small", and it was
+  // computed from getBoundingClientRect() — so a `.fig` whose SVG box had grown
+  // reported an inflated scale AND filled the empty-band scan with phantom ink,
+  // under-reporting the blank around it at the same time. That is the 1.9.0
+  // regression the docstring exists to prevent, arrived at from the other side.
+  const inkExtent = (el) => {
+    const parts = [];
+    if (el.matches && el.matches(INK)) parts.push(inkBox(el));
+    for (const e of el.querySelectorAll(INK)) { if (!isGround(e)) parts.push(inkBox(e)); }
+    const live = parts.filter(r => r.height > 2 && r.width > 2);
+    if (!live.length) return el.getBoundingClientRect();
+    const top = Math.min(...live.map(r => r.top)), bottom = Math.max(...live.map(r => r.bottom));
+    const left = Math.min(...live.map(r => r.left)), right = Math.max(...live.map(r => r.right));
+    return {top, bottom, left, right, width: right - left, height: bottom - top};
+  };
   const out = [];
   for (const s of document.querySelectorAll('section.page')) {
     const sr = s.getBoundingClientRect();
+    const inkFailAtStart = inkFail;
+    // A page with no box cannot be measured, and every geometric check credits
+    // it: overflow is -720 (not > 1), frame skew is 0, the horizon count is 1
+    // because .foot is still in the DOM, and width/height is NaN — which no
+    // `> threshold` test is ever true for. Three hidden pages reported as three
+    // passing pages on every line of the report.
+    if (sr.width < 4 || sr.height < 4) {
+      out.push({id: s.id, unmeasurable: 'page has no box (display:none, zero-size or collapsed parent)'});
+      continue;
+    }
     // The page is a scaled stage, so a device pixel is no longer the unit of
     // the design: at a 1.389 zoom a 3px misalignment measures 4px and a
     // threshold silently tightens as the window grows. Every distance below is
@@ -117,7 +193,7 @@ PROBE = r"""
     let best = null;
     for (const c of s.querySelectorAll(CENTER)) {
       if (isGround(c)) continue;
-      const r = c.getBoundingClientRect();
+      const r = inkExtent(c);
       if (r.width < 8 || r.height < 8) continue;
       if (!best || r.width * r.height > best.w * best.h) {
         const own = c.closest('.fill, .notes, .typeblock, .markcell, .body > div') || bodyEl;
@@ -135,7 +211,7 @@ PROBE = r"""
       let t = Infinity, b2 = -Infinity;
       for (const e of cell.querySelectorAll(INK)) {
         if (isGround(e)) continue;
-        const r = e.getBoundingClientRect();
+        const r = inkBox(e);
         if (r.height < 2) continue;
         t = Math.min(t, r.top); b2 = Math.max(b2, r.bottom);
       }
@@ -165,7 +241,7 @@ PROBE = r"""
     }
     // largest empty band: scan rows of the content area for ink
     const boxes = [...s.querySelectorAll(INK)].filter(e => !isGround(e))
-      .map(e => e.getBoundingClientRect())
+      .map(e => inkBox(e))
       .filter(r => r.height > 2 && r.width > 2);
     const STEP = 8; let run = 0, maxRun = 0, runTop = 0, bestTop = 0;
     for (let y = body.top; y < foot.top; y += STEP) {
@@ -201,6 +277,9 @@ PROBE = r"""
       if (r.height < 2 || r.width < 2) continue;
       if (r.bottom > deepest) { deepest = r.bottom; deepestWho = tagOf(e); }
     }
+    // With no .foot there is no footer rule, and falling back to the page edge
+    // let the report say "all N pages stay above the footer rule" about pages
+    // that have none — contradicting the waterline count two lines below it.
     const footRule = footEl ? footEl.getBoundingClientRect().top : sr.bottom;
     const spillPx = deepest > -1e9 ? inPageUnits(deepest - footRule) : 0;
     const pageSpillPx = deepest > -1e9 ? inPageUnits(deepest - sr.bottom) : 0;
@@ -271,11 +350,29 @@ PROBE = r"""
     // ratio, never a floor — the answer for some pages is a dominant figure, and
     // a type threshold would push a number onto a page that does not want one.
     let focalPx = 0, focalText = '', bodyPx = parseFloat(getComputedStyle(document.body).fontSize) || 15;
+    // The page title is excluded, or it masks every flat page beneath it. This
+    // used to test `e.closest('h2.t')` inline, which made the verdict a function
+    // of one class name: on a document that titles its pages any other way the
+    // title became the focal element and the check *inverted* — the same flat
+    // page reported "no focal element" with the class and "has a focal element"
+    // without it. Resolve the title once, and say so when it cannot be found,
+    // because then the focal number below is not the one this check means.
+    //
+    // Only the CONTENT title is excluded. A cover or closing whose title *is*
+    // the composition should count it as its focal element — excluding those too
+    // reported the cover and the closing of a healthy deck as pages with nothing
+    // to enter on, which is the check answering a question nobody asked.
+    const titleEl = s.querySelector('h2.t');
+    const anyTitle = titleEl || s.querySelector('.cover h1, .closing h2, h1, h2');
+    // A title is only *expected* where the frame reserves room for one. `.lede`
+    // is the block that holds eyebrow, title and support, and it ships in
+    // lumi-layouts.css — so this asks the layout, not a class vocabulary. A
+    // cover, a part opener and a closing compose freely and carry no lede;
+    // demanding a heading of them flagged two healthy openers whose composition
+    // is their title.
+    const titleExpected = !!(bodyEl && bodyEl.querySelector(':scope > .lede'));
     for (const e of s.querySelectorAll('*')) {
-      // The page title is excluded, or it masks every flat page beneath it. A
-      // cover or closing whose h2 *is* the composition carries no .t class,
-      // so exclude the title specifically rather than the tag.
-      if (e.closest('h2.t') || e.closest('.foot')) continue;
+      if ((titleEl && titleEl.contains(e)) || e.closest('.foot')) continue;
       // Own text, not descendants'. Testing e.children.length instead skipped
       // every display number that carried a unit in a <span> — which was all of
       // them — and reported four newly-composed pages as having no focal
@@ -386,7 +483,10 @@ PROBE = r"""
     const drawnEls = [...s.querySelectorAll(DSEL)].filter(e => !e.closest('.ground'));
     let textOverlaps = 0, worstOverlap = null;
     const clash = (A, B, na, nb) => {
-      const a = A.getBoundingClientRect(), b = B.getBoundingClientRect();
+      // Ink, not boxes. A grown SVG box overlaps its neighbour while the drawing
+      // inside it does not, and reporting that is how a probe teaches an author
+      // to ignore it.
+      const a = inkBox(A), b = inkBox(B);
       if (a.height < 2 || b.height < 2) return;
       const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
       const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
@@ -439,6 +539,14 @@ PROBE = r"""
       id: s.id,
       pageH: Math.round(sr.height),
       overflowPx,
+      // How many SVGs on this page could not report their drawing box. Any
+      // page with a non-zero count has spill, column-skew and caption-gap
+      // numbers measured against element boxes, which is the pre-fix behaviour.
+      inkUnavailable: inkFail - inkFailAtStart,
+      hasFooter: !!footEl,
+      titleMissing: titleExpected && !anyTitle,
+      hasGround: s.querySelectorAll('.ground').length,
+      capBlocks: s.querySelectorAll('.cap').length,
       spillPx, pageSpillPx, deepestWho,
       frameSkewPx,
       sideMarginSkewPx: Math.round(Math.abs((body.left - sr.left) - (sr.right - body.right))),
@@ -474,12 +582,56 @@ ASPECT_PROBE = r"""
   const out = [];
   for (const s of document.querySelectorAll('section.page')) {
     const r = s.getBoundingClientRect();
+    // A zero-size page gives 0/0 = NaN, and `Math.abs(NaN - target) > 0.01` is
+    // false — so every hidden page landed in the *passing* set and the report
+    // said "all 30 pages hold 16:9" about pages with no box at all.
+    if (!(r.width > 4) || !(r.height > 4)) {
+      out.push({id: s.id, w: Math.round(r.width), h: Math.round(r.height),
+                aspect: null, unmeasurable: true});
+      continue;
+    }
     out.push({id: s.id, w: Math.round(r.width), h: Math.round(r.height),
-              aspect: +(r.width / r.height).toFixed(3)});
+              aspect: +(r.width / r.height).toFixed(3), unmeasurable: false});
   }
   return out;
 }
 """
+
+
+def open_page(browser, url, viewport, dark=False):
+    """One way in, for every probe in this file.
+
+    Three things were previously done four different ways, or not at all:
+
+    · **Fonts.** Four unexplained sleeps (350/300/500/600ms) and no wait on
+      `document.fonts.ready`. This package embeds a display face, and every
+      number in the report is a distance between glyphs — measured against
+      fallback metrics if the face has not applied, and printed as fact.
+    · **The document's own errors.** No `pageerror` listener anywhere, so a
+      deliverable whose inline script threw mid-build was measured
+      half-constructed and reported normally.
+    · **The dark palette.** `dark` was threaded through three functions and read
+      only to name output files; nothing ever switched the palette, so the
+      docstring's "two palettes" was unimplemented and a file not literally
+      named `*.dark.*` produced sheets labelled `-light-` whatever it rendered.
+      `lumi-theme.css` applies dark with `class="dark"` on <body>, so do that.
+
+    Returns (page, errors). The caller decides what an error means.
+    """
+    page = browser.new_page(viewport={"width": viewport[0], "height": viewport[1]})
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    page.goto(url, wait_until="load")
+    if dark:
+        page.evaluate("() => document.body.classList.add('dark')")
+    try:
+        page.wait_for_function("() => document.fonts && document.fonts.status === 'loaded'",
+                               timeout=5000)
+    except Exception:                                   # noqa: BLE001
+        errors.append("webfonts did not finish loading in 5s; type metrics below "
+                      "may be a fallback face")
+    page.wait_for_timeout(SETTLE_MS)
+    return page, errors
 
 
 def aspect_report(url, dark=False):
@@ -500,13 +652,18 @@ def aspect_report(url, dark=False):
     with sync_playwright() as pw:
         browser = pw.chromium.launch()
         for w, h in OFF_SHAPES:
-            page = browser.new_page(viewport={"width": w, "height": h})
-            page.goto(url)
-            page.wait_for_timeout(300)
+            page, errors = open_page(browser, url, (w, h), dark)
             rows = page.evaluate(ASPECT_PROBE)
-            bad = [r for r in rows if abs(r["aspect"] - target) > 0.01]
+            if not rows:
+                raise Unmeasurable("no section.page matched, so no page's aspect "
+                                   "could be read")
+            live = [r for r in rows if not r["unmeasurable"]]
+            blind = [r for r in rows if r["unmeasurable"]]
+            bad = [r for r in live if abs(r["aspect"] - target) > 0.01]
             findings.append({"window": f"{w}x{h}", "pages": len(rows),
-                             "offAspect": len(bad),
+                             "measured": len(live), "unmeasurable": len(blind),
+                             "unmeasurableIds": [r["id"] for r in blind],
+                             "offAspect": len(bad), "errors": errors,
                              "worst": (max(bad, key=lambda r: abs(r["aspect"] - target))
                                        if bad else None)})
             page.close()
@@ -514,15 +671,12 @@ def aspect_report(url, dark=False):
     return findings
 
 
-def with_playwright(url, geometry, dark, shot_dir):
+def with_playwright(url, geometry, dark, shot_dir, stem):
     from playwright.sync_api import sync_playwright
-    w, h = GEOMETRIES[geometry]
     rows, shots = None, []
     with sync_playwright() as pw:
         browser = pw.chromium.launch()
-        page = browser.new_page(viewport={"width": w, "height": h})
-        page.goto(url)
-        page.wait_for_timeout(350)
+        page, errors = open_page(browser, url, GEOMETRIES[geometry], dark)
         rows = page.evaluate(PROBE)
         if shot_dir:
             # Screenshot the section element, not the viewport. The first version
@@ -533,14 +687,25 @@ def with_playwright(url, geometry, dark, shot_dir):
             page.add_style_tag(content="html{scroll-behavior:auto!important;"
                                        "scroll-snap-type:none!important}")
             for r in rows:
-                out = shot_dir / f"{geometry}-{'dark' if dark else 'light'}-{r['id']}.png"
+                # A page with no box cannot be screenshotted, and asking would
+                # raise rather than report.
+                if r.get("unmeasurable"):
+                    continue
+                # The stem, or two files in one run destroy each other's sheet:
+                # the names carried geometry and palette but not the source, and
+                # `out_dir` defaults to the file's own parent, so
+                # `inspect_layout.py a.html b.html` overwrote every shared page
+                # id and replaced A's sheet with B's — while printing the same
+                # path under both headings. The docstring calls the sheet the
+                # real output of this script.
+                out = shot_dir / f"{stem}-{geometry}-{'dark' if dark else 'light'}-{r['id']}.png"
                 page.locator(f"section#{r['id']}").screenshot(path=str(out))
                 shots.append(out)
         browser.close()
-    return rows, shots
+    return rows, shots, errors
 
 
-def ground_report(url, dark=False):
+def ground_report(url, viewport=(1280, 720), dark=False):
     """Measure the ground as rendered, not as declared.
 
     A ground is water and light behind the page. Two things make it dishonest:
@@ -555,8 +720,13 @@ def ground_report(url, dark=False):
     from playwright.sync_api import sync_playwright
     try:
         from PIL import Image
-    except ImportError:
-        return None
+    except ImportError as exc:
+        # Returning None put "Pillow is not installed" and "this deck is clean"
+        # into the same output: nothing. The ground is the brand thesis of the
+        # 3.x line and GROUND_CEILING is the only thing between water and
+        # graffiti, so the one audit that needs a third-party library was also
+        # the one whose absence was invisible.
+        raise Unmeasurable("ground contrast needs Pillow — pip install pillow") from exc
 
     def rel_lum(px):
         def f(v):
@@ -567,15 +737,17 @@ def ground_report(url, dark=False):
     out = []
     with sync_playwright() as pw:
         browser = pw.chromium.launch()
-        page = browser.new_page(viewport={"width": 1280, "height": 720})
-        page.goto(url)
-        page.wait_for_timeout(500)
+        page, _errors = open_page(browser, url, viewport, dark)
         page.add_style_tag(content=".page > .body, .page > .foot, .rail, .tools"
                                    "{visibility:hidden!important}"
                                    "html{scroll-behavior:auto!important;"
                                    "scroll-snap-type:none!important}")
         ids = page.evaluate("() => [...document.querySelectorAll('section.page')]"
+                            ".filter(s => s.getBoundingClientRect().height > 4)"
                             ".map(s => s.id)")
+        if not ids:
+            browser.close()
+            raise Unmeasurable("no section.page with a box, so no ground to measure")
         with tempfile.TemporaryDirectory() as td:
             for pid in ids:
                 if not page.query_selector(f"section#{pid} > .ground"):
@@ -584,7 +756,9 @@ def ground_report(url, dark=False):
                 page.locator(f"section#{pid}").screenshot(path=str(shot))
                 im = Image.open(shot).convert("RGB")
                 im = im.resize((im.width // 3, im.height // 3))
-                px = list(im.getdata())
+                # getdata() is deprecated in Pillow 14; get_flattened_data is its
+                # replacement and does not exist before it.
+                px = list(getattr(im, "get_flattened_data", im.getdata)())
                 canvas = max(set(px), key=px.count)          # the page's own canvas
                 cl = rel_lum(canvas)
                 worst, worst_px = 1.0, canvas
@@ -613,8 +787,24 @@ CONSISTENCY_PROBE = r"""
   // "that one is on purpose" living in someone's head is exactly how a deck ends
   // up with a callout at three sizes. If a new exception is needed it gets
   // written down, and the write-down is the review.
+  //
+  // These selectors are a CONTRACT, not a description of one deck. Until 0.1.350
+  // six of them — .t .sup .eyebrow .k .n .listhead — appeared nowhere in
+  // `tokens/`, so they were read out of a validation artifact; a new document
+  // built from the token files it is told to copy matched two of ten roles and
+  // the other eight vanished from the report without a word. The classes now
+  // ship in `tokens/lumi-layouts.css` under "the role vocabulary", and a role
+  // that matches nothing is reported below rather than dropped.
   const ROLES = [
-    ['title',         'h1, h2.t, .cover h1, .closing h2', ['size']],
+    // The title was ONE role ignoring size, because a cover title is legitimately
+    // larger than a content title. The cost was total: 34px and 57.6px produced
+    // the same key, so the first defect 3.4.0 set out to catch — "the title
+    // rendered three ways" — was undetectable by the check written for it, and
+    // only the closing's weight-400 was ever visible. Three registers, three
+    // roles, size checked inside each. Never ignore the axis the defect is on.
+    ['content title', 'h2.t',            []],
+    ['cover title',   '.cover h1',       []],
+    ['closing title', '.closing h2',     []],
     ['support',       '.sup',            []],
     ['eyebrow',       '.eyebrow',        []],
     ['band value',    '.band .v',        ['color']],   // three importance tiers
@@ -637,7 +827,6 @@ CONSISTENCY_PROBE = r"""
                    Math.round(parseFloat(c.fontSize) * 10) / 10 + 'px',
                    c.textTransform, ls];
     if (!ignore.includes('color')) parts.push(c.color);
-    if (ignore.includes('size')) parts[2] = '(size varies by role)';
     return parts.join(' | ');
   };
   const roles = [];
@@ -651,15 +840,34 @@ CONSISTENCY_PROBE = r"""
       }
     }
     const variants = Object.entries(seen).map(([k, ids]) => ({k, n: ids.length, ids}));
-    if (variants.length) roles.push({name, variants, ignored: ignore});
+    // Pushed even when empty. `if (variants.length)` dropped the role from the
+    // array entirely, so renaming a class made this report SHORTER AND GREENER
+    // — a drift detector that stops running, silently, the moment drift happens.
+    roles.push({name, sel, variants, ignored: ignore});
   }
 
-  // One datum: content begins at the same height on every page.
+  // One datum: content begins at the same height on every page OF A GEOMETRY.
+  //
+  // Landscape reserves the title block, so one height is the rule. Portrait
+  // releases it — `lumi-layouts.css` sets `.body .lede { height: auto }` under
+  // `max-aspect-ratio: 1/1`, because a title that sets on two lines at 1280
+  // sets on three at 794 and reserving the landscape height would spend space
+  // the sheet does not have. Portrait is a composition, not a reflow. Asking
+  // the same aspect the stylesheet asks, so the probe and the CSS cannot
+  // disagree about which geometry is which.
+  const datumExpected = window.innerWidth >= window.innerHeight;
   const datums = {};
+  let datumPages = 0, datumSkipped = 0;
   for (const s of document.querySelectorAll('section.page')) {
-    const b = s.querySelector('.body'); if (!b) continue;
+    if (s.getBoundingClientRect().height < 4) continue;
+    const b = s.querySelector('.body'); if (!b) { datumSkipped++; continue; }
     const cell = [...b.children].find(x => !x.classList.contains('lede'));
-    if (!cell || !s.querySelector('h2.t')) continue;   // covers compose freely
+    // A cover composes freely and has no datum to hold. Identified by the title
+    // role, so a document that titles its pages another way is *counted as
+    // skipped* rather than quietly leaving the audit with nothing to report.
+    if (!cell) { datumSkipped++; continue; }
+    if (!s.querySelector('h2.t')) { datumSkipped++; continue; }
+    datumPages++;
     const sc = s.getBoundingClientRect().width / (s.offsetWidth || 1);
     const y = Math.round((cell.getBoundingClientRect().top
                           - b.getBoundingClientRect().top) / (sc || 1));
@@ -669,9 +877,18 @@ CONSISTENCY_PROBE = r"""
   // The same component may not change colour between pages: a bar that is one
   // green here and another there asks a reader what the difference means.
   const comps = {};
+  let barCandidates = 0;
   for (const s of document.querySelectorAll('section.page')) {
     for (const r of s.querySelectorAll('.fig svg rect')) {
+      barCandidates++;
       const bb = r.getBoundingClientRect();
+      // What a measure bar looks like, as a shape. All three are FLOORS and
+      // CEILINGS on the candidate window, not targets a bar should aim at:
+      // at least 120px long (shorter and it is a tick, a swatch or a rule),
+      // between 30px and 90px thick (thinner is a rule, thicker is a panel).
+      // A deck whose bars sit outside this window matches nothing here — which
+      // is why the count above is reported rather than the window silently
+      // yielding an empty result that reads as agreement.
       if (bb.width < 120 || bb.height < 30 || bb.height > 90) continue;
       // The filled measure bar specifically — the rect whose length IS the
       // number. Washes, card fills and callout panels are furniture and are
@@ -686,40 +903,98 @@ CONSISTENCY_PROBE = r"""
 
   // Values and labels inside one band share their edges.
   const bandSkew = [];
+  // Only defects were pushed, and an empty array was read as success — so
+  // "values and labels share their edges" was printed about a document with no
+  // band in it at all. Count what was actually looked at.
+  let bandsExamined = 0, bandsTooSmall = 0;
   for (const s of document.querySelectorAll('section.page')) {
+    // Where the TYPE sits, not where its box ends. A value written the shipped
+    // way — `41<span class="u">%</span>` — has a box 25px deeper than a value
+    // with no unit, because the extra inline box grows the line box while the
+    // digits stay on the same baseline. Measured on a fresh deliverable: three
+    // values whose glyphs occupied an identical 1093..1154, reported as 25px
+    // out of line. The band check was reading the element box, which is the one
+    // mistake this whole release is about, committed by a check added to catch
+    // it. Compare the first text fragment of each.
+    const textRect = (el) => {
+      const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      let n;
+      while ((n = w.nextNode())) {
+        if (!n.textContent.trim()) continue;
+        const r = document.createRange(); r.selectNodeContents(n);
+        const rects = r.getClientRects();
+        if (rects.length) return rects[0];
+      }
+      return el.getBoundingClientRect();
+    };
     for (const band of s.querySelectorAll('.band')) {
-      const ks = [...band.querySelectorAll('.k')].map(x => x.getBoundingClientRect().top);
-      const vs = [...band.querySelectorAll('.v')].map(x => x.getBoundingClientRect().bottom);
-      if (ks.length < 2) continue;
+      const kb = [...band.querySelectorAll('.k')].map(textRect);
+      const vb = [...band.querySelectorAll('.v')].map(textRect);
+      if (kb.length < 2) { bandsTooSmall++; continue; }
+      // Only cells that actually sit side by side can be out of line — the same
+      // reasoning the column probe already applies. In portrait a four-across
+      // band becomes a vertical list by design, and comparing a stacked label's
+      // top to the one above it reported 338px of "skew" that is the
+      // composition doing exactly what the stylesheet asks.
+      // Labels align on their top edge, values on their bottom: a value is set
+      // large and sits on a baseline, so its top moves with its own size.
+      const sideBySide = (bs, edge) => {
+        let worst = 0, any = false;
+        for (let i = 0; i < bs.length; i++)
+          for (let j = i + 1; j < bs.length; j++) {
+            if (!(bs[i].top < bs[j].bottom && bs[j].top < bs[i].bottom)) continue;
+            any = true;
+            worst = Math.max(worst, Math.abs(bs[i][edge] - bs[j][edge]));
+          }
+        return {any, worst};
+      };
+      const kr = sideBySide(kb, 'top'), vr = sideBySide(vb, 'bottom');
+      if (!kr.any) { bandsTooSmall++; continue; }   // fully stacked: not a row
+      bandsExamined++;
       const sc = s.getBoundingClientRect().width / (s.offsetWidth || 1);
-      const k = Math.round((Math.max(...ks) - Math.min(...ks)) / (sc || 1));
-      const v = Math.round((Math.max(...vs) - Math.min(...vs)) / (sc || 1));
+      const k = Math.round(kr.worst / (sc || 1));
+      const v = Math.round(vr.worst / (sc || 1));
       if (k > 1 || v > 1) bandSkew.push({page: s.id, labels: k, values: v});
     }
   }
-  return {roles, datums, comps, bandSkew};
+  return {roles, datums, datumPages, datumSkipped, datumExpected,
+          comps, barCandidates, bandSkew, bandsExamined, bandsTooSmall,
+          pages: document.querySelectorAll('section.page').length};
 }
 """
 
 
-def consistency_report(url):
+def consistency_report(url, viewport=(1280, 720), dark=False):
     """Read the deck as a system rather than as pages. Returns the raw findings;
-    main() decides what to print. Nothing here gates."""
+    main() decides what to print. No judgement here gates.
+
+    The viewport is a parameter because it was a constant, and the constant was
+    landscape. §7 makes A4 a required matrix point, `main()` runs the page probe
+    at every requested geometry, and this audit ran once at 1280x720 whatever was
+    asked for — then printed its verdicts under the filename with no viewport
+    beside them, so an author running `--geometry a4` read landscape results as
+    portrait ones. Run at A4, the probe finds the callout at three sizes on a
+    deck that is clean in landscape, because the portrait block in
+    `lumi-layouts.css` set it per context.
+    """
     from playwright.sync_api import sync_playwright
     with sync_playwright() as pw:
         browser = pw.chromium.launch()
-        page = browser.new_page(viewport={"width": 1280, "height": 720})
-        page.goto(url)
-        page.wait_for_timeout(600)
+        page, errors = open_page(browser, url, viewport, dark)
         out = page.evaluate(CONSISTENCY_PROBE)
         browser.close()
+    if not out or not out.get("pages"):
+        raise Unmeasurable("no section.page matched, so no role could be compared")
+    out["errors"] = errors
     return out
 
 
 def contact_sheet(shots, out_path, cols=4):
-    """Stitch the page shots into one image. Pure stdlib is not enough for PNG
-    compositing, so this shells out to `sips`/`montage` when present and
-    otherwise writes an HTML sheet, which prints and shares just as well."""
+    """Lay the page shots out as one sheet. Pure stdlib is not enough for PNG
+    compositing, so this writes an HTML sheet, which prints and shares just as
+    well. (It claimed to shell out to `sips`/`montage` "when present" until
+    0.1.350. It never did, and `subprocess` was imported for the call that was
+    never written.)"""
     html = ["<style>body{margin:0;background:#111;display:grid;"
             f"grid-template-columns:repeat({cols},1fr);gap:10px;padding:10px}}"
             "figure{margin:0}img{width:100%;display:block;border:1px solid #333}"
@@ -730,300 +1005,477 @@ def contact_sheet(shots, out_path, cols=4):
     return out_path
 
 
+def _fmt_ids(rows, n=6, key=None):
+    """Name the pages, so a designer knows where to look."""
+    ordered = sorted(rows, key=key) if key else rows
+    out = ", ".join(r["id"] for r in ordered[:n])
+    return out + (f" (+{len(rows) - n} more)" if len(rows) > n else "")
+
+
+def page_report(rows, geometry, errors):
+    """Print the per-geometry table and every page-level judgement.
+
+    Returns the number of things that could not be measured. Every block here
+    reports and returns; none is a threshold a page must clear, because the fix
+    for each is a design decision and a number that can be satisfied without
+    making the page better ends the looking rather than directing it
+    (SKILL.md rule 4). What *is* new in 0.1.350 is the other half: a block whose
+    subject does not exist says so instead of congratulating the document.
+    """
+    unmeasured = 0
+    w, h = GEOMETRIES[geometry]
+    for e in errors:
+        unmeasured += 1
+        print(f"  PAGE ERROR: {e}")
+    live = [r for r in rows if not r.get("unmeasurable")]
+    blind = [r for r in rows if r.get("unmeasurable")]
+    if blind:
+        unmeasured += len(blind)
+        print(f"  NOT MEASURED: {len(blind)} of {len(rows)} pages have no box — "
+              + ", ".join(f"{r['id']} ({r['unmeasurable']})" for r in blind[:4])
+              + ". Nothing below counts them.")
+    if not live:
+        print(f"  NOT MEASURED: no page at {geometry} had a box to measure. "
+              f"Every judgement below was skipped.")
+        return unmeasured + 1
+
+    print(f"  {'page':8} {'centerpiece':22} {'of cell':>7}  {'empty band':>11}  "
+          f"{'cell fill':<34}aspect")
+    for r in live:
+        a = r["aspect"]
+        note = ""
+        if a and a["ratio"] > 1.5:
+            note = (f"fig {a['figure']}:1 in cell {a['cell']}:1 — "
+                    f"fills {a['fillsCellHeight']}% of cell height")
+        elif a:
+            note = f"fig {a['figure']}:1 in cell {a['cell']}:1"
+        over = f"  +{r['overflowPx']}px" if r["overflowPx"] > 1 else ""
+        # `centerScale or '-'` printed 0.0 and "no centerpiece found" the same way.
+        cs = r["centerScale"]
+        # This print sat one level out of the loop until 2.0.1, so the table
+        # reported the last page 28 times over and every page-by-page reading
+        # taken from it was of one page.
+        print(f"  {r['id']:8} {str(r['centerpiece'] or '-'):22} "
+              f"{('-' if cs is None else str(cs)):>5}%  "
+              f"{str(r['emptyBandPct'])+'%':>11}  "
+              f"{' '.join(c['cls'][:4]+':'+str(c['fill'])+'%' for c in r['cells']):<34}{note}{over}")
+
+    # Ink that could not be read. Every number below fed by inkBox — spill,
+    # column skew, caption gap — is an element box on these pages, which is the
+    # value this file's own comments call the bug.
+    noink = [r for r in live if r.get("inkUnavailable")]
+    if noink:
+        unmeasured += len(noink)
+        n = sum(r["inkUnavailable"] for r in noink)
+        print(f"  INK NOT MEASURED: {n} drawings on {len(noink)} pages could not report "
+              f"their own box (unrendered, rotated or skewed SVG) — spill, column "
+              f"skew and caption gap on those pages are element boxes, not ink: "
+              + _fmt_ids(noink))
+
+    notitle = [r for r in live if r.get("titleMissing")]
+    if notitle:
+        unmeasured += len(notitle)
+        print(f"  TITLE NOT IDENTIFIED: {len(notitle)} of {len(live)} pages reserve a "
+              f".lede but carry no h2.t / h1 / h2 in it — the focal ratio on those "
+              f"pages includes whatever titles them: " + _fmt_ids(notitle))
+
+    multi = [r for r in live if r.get("colCount", 0) > 1]
+    # 3px, not 8. A reader saw two tables 4px out of line and called it a bug;
+    # the threshold was hiding exactly the case it was written for.
+    bad_top = [r for r in multi if r["colTopSkewPx"] > 3]
+    if bad_top:
+        print(f"  COLUMN TOPS: {len(bad_top)} of {len(multi)} multi-column pages — "
+              "side-by-side cells do not start on one line: "
+              + ", ".join(f"{r['id']} {r['colTopSkewPx']}px"
+                          for r in sorted(bad_top, key=lambda r: -r["colTopSkewPx"])[:6]))
+    elif multi:
+        print(f"  column tops: all {len(multi)} multi-column pages start on one line")
+    else:
+        print(f"  -- column tops: no multi-column page at {geometry}, nothing to compare")
+
+    heavy = sorted((r for r in multi if r["colWeightRatio"] > 3),
+                   key=lambda r: -r["colWeightRatio"])
+    if heavy:
+        print(f"  COLUMN WEIGHT: {len(heavy)} of {len(multi)} pages carry one column "
+              "far heavier than its neighbour: "
+              + ", ".join(f"{r['id']} {r['colWeightRatio']}:1" for r in heavy[:6]))
+    elif multi:
+        print(f"  column weight: no page exceeds 3:1 across {len(multi)} multi-column pages")
+
+    flat = [r for r in live if r["focalRatio"] < 1.35 and r["figLeadPct"] < 45]
+    if flat:
+        print(f"  FOCAL: {len(flat)} of {len(live)} pages have no element larger than "
+              f"body copy and no dominant figure — nothing for the eye to enter on: "
+              + _fmt_ids(flat, 10))
+    else:
+        print(f"  focal: every one of {len(live)} pages has a focal element")
+
+    ncap = sum(len(r["caps"]) for r in live)
+    capbad = [(r, c) for r in live for c in r["caps"] if c["duplicated"] or c["words"] > 45]
+    if capbad:
+        print(f"  CAPTIONS: {len(capbad)} figure captions carry prose: "
+              + ", ".join(f"{r['id']} {c['words']}w"
+                          + (f", {c['duplicated']} sentence(s) repeated on the page"
+                             if c["duplicated"] else "")
+                          for r, c in capbad[:5]))
+    elif ncap:
+        print(f"  captions: {ncap} carry prose under the figure number, none repeated")
+    else:
+        # Precisely what was looked for, or this line contradicts the caption-gap
+        # line below it: this block reads `.cap .d`, that one counts `.cap`.
+        nblocks = sum(r.get("capBlocks", 0) for r in live)
+        print(f"  -- caption prose: none of {nblocks} .cap blocks carries a .d "
+              f"description, nothing to read for prose")
+
+    multi_t = [r for r in live if len(r["tables"]) > 1]
+    alltab = sum(len(r["tables"]) for r in live)
+    if multi_t:
+        print(f"  TWO TABLES: {len(multi_t)} pages carry more than one table — "
+              + ", ".join(f"{r['id']} ({len(r['tables'])})" for r in multi_t[:6])
+              + ". A grid claims its cells are comparable on the axis its header "
+                "names; two grids side by side claim nothing and cannot align.")
+    elif alltab:
+        print("  tables: no page carries more than one")
+    else:
+        print("  -- tables: no table in this document, nothing to census")
+    prose_t = [(r, t) for r in live for t in r["tables"] if t["digitPct"] <= 2]
+    if prose_t:
+        print(f"  TABLES: {len(prose_t)} of {alltab} tables hold prose, not values "
+              f"(digit density <=2%): "
+              + _fmt_ids([r for r, _ in prose_t], 10))
+    elif alltab:
+        print(f"  tables: all {alltab} tables carry values")
+
+    ncap2 = sum(1 for r in live if r.get("capGapPx") is not None)
+    far = [r for r in live if (r.get("capGapPx") or 0) > 20]
+    if far:
+        print(f"  CAPTION DETACHED: {len(far)} figures sit well above their number "
+              "and name — "
+              + ", ".join(f"{r['id']} {r['capGapPx']}px"
+                          for r in sorted(far, key=lambda r: -(r["capGapPx"] or 0))[:6]))
+    elif ncap2:
+        print(f"  caption: all {ncap2} captions sit against their drawing")
+    else:
+        print("  -- caption: no figure pairs a drawing with a caption, nothing to measure")
+
+    echo = [r for r in live if r.get("sourceEcho", 0)]
+    if echo:
+        print(f"  SOURCE TWICE: {len(echo)} pages state the same source under "
+              "the figure and again in the footer: " + _fmt_ids(echo, 8))
+    else:
+        print("  source: no page states the same source twice")
+
+    nf = sum(len(r.get("fields", [])) for r in live)
+    loose = [(r, f) for r in live for f in r.get("fields", [])
+             if f["bound"] != f["marks"] or f["declared"] != f["marks"]]
+    if loose:
+        print(f"  FIELD WITHOUT DATA: {len(loose)} of {nf} fields have marks that "
+              "carry no datum — a shimmer with nothing behind it is decoration: "
+              + ", ".join(f"{r['id']} ({f['bound']}/{f['marks']} bound, "
+                          f"{f['declared']} declared)" for r, f in loose[:5]))
+    elif nf:
+        print(f"  fields: all {nf} carry one mark per real item")
+    else:
+        print("  -- fields: no .field on any page, the brand device is unused here")
+
+    clash = [r for r in live if r.get("textOverlaps", 0)]
+    if clash:
+        print(f"  COLLISION: {len(clash)} pages have blocks landing on each other — "
+              + ", ".join(f"{r['id']} {r['worstOverlap']['a']}/{r['worstOverlap']['b']} "
+                          f"{r['worstOverlap']['w']}x{r['worstOverlap']['h']}px"
+                          for r in clash[:5]))
+    else:
+        print(f"  collision: nothing overlaps anything on {len(live)} pages")
+
+    countable = [r for r in live if r.get("groundRepeats", 0)]
+    # Whether a page HAS a ground, not whether its ground is built from the
+    # countable shapes. A ground drawn in <path> has zero of those by
+    # construction, so keying off the shape count said "no page draws one"
+    # about thirty pages that do — and contradicted the contrast audit below.
+    ngrounds = sum(1 for r in live if r.get("hasGround"))
+    if countable:
+        print(f"  GROUND IS COUNTABLE: {len(countable)} pages draw their ground from "
+              "repeated identical marks — that is a field pretending to be water: "
+              + _fmt_ids(countable))
+    elif ngrounds:
+        print(f"  ground: continuous on all {ngrounds} pages that carry one, "
+              f"nothing to count")
+    else:
+        print("  -- ground: no page draws one, nothing to count")
+
+    noh = [r for r in live if r.get("horizons", 1) != 1]
+    if noh:
+        print(f"  WATERLINE: {len(noh)} pages do not have exactly one horizon: "
+              + ", ".join(f"{r['id']} ({r['horizons']})" for r in noh[:6]))
+    else:
+        print(f"  waterline: one horizon on each of {len(live)} pages")
+
+    ndrawn = sum(1 for r in live if r["drawn"])
+    print(f"  figures: {ndrawn} of {len(live)} pages are built on a drawing "
+          f"rather than a grid or a block of prose")
+
+    skew = [r for r in live if r.get("frameSkewPx", 0) > 1 or r.get("sideMarginSkewPx", 0) > 2]
+    if skew:
+        print(f"  FRAME: {len(skew)} of {len(live)} pages — the footer and the "
+              f"composition are not the same width, or the page is not centred: "
+              + ", ".join(f"{r['id']} skew {r['frameSkewPx']}px" for r in skew[:6]))
+    else:
+        print(f"  frame: footer and composition share one width and centre "
+              f"on all {len(live)} pages")
+
+    # Only pages that HAVE a footer rule can stay above one. Falling back to the
+    # page edge let this line contradict the waterline count directly above it.
+    footed = [r for r in live if r.get("hasFooter")]
+    unfooted = [r for r in live if not r.get("hasFooter")]
+    if unfooted:
+        unmeasured += len(unfooted)
+        print(f"  FOOTER MISSING: {len(unfooted)} of {len(live)} pages carry no .foot, "
+              f"so they have no footer rule to stay above: " + _fmt_ids(unfooted))
+    spill = [r for r in footed if r.get("spillPx", 0) > 1]
+    if spill:
+        print(f"  CONTENT SPILL: {len(spill)} of {len(footed)} pages run past the "
+              f"footer rule — "
+              + ", ".join(f"{r['id']} +{r['spillPx']}px ({r['deepestWho']})"
+                          for r in sorted(spill, key=lambda r: -r["spillPx"])[:8]))
+    elif footed:
+        print(f"  content: all {len(footed)} pages stay above the footer rule")
+
+    tall = [r for r in live if r["overflowPx"] > 1]
+    if tall:
+        print(f"  PAGE HEIGHT: {len(tall)} of {len(live)} pages exceed the {h}px page — "
+              + ", ".join(f"{r['id']} +{r['overflowPx']}px" for r in tall[:8]))
+    else:
+        print(f"  page height: all {len(live)} pages are exactly {h}px")
+    return unmeasured
+
+
+def consistency_print(label, c):
+    """Print the role audit. Returns how much of it could not be run."""
+    unmeasured = 0
+    print(f"\n{label} — one role, one rendering")
+    for e in c.get("errors", []):
+        unmeasured += 1
+        print(f"  PAGE ERROR: {e}")
+    for role in c["roles"]:
+        v = sorted(role["variants"], key=lambda x: -x["n"])
+        if not v:
+            unmeasured += 1
+            print(f"  -- {role['name']}: NOT MEASURED, no element matched "
+                  f"'{role['sel']}' anywhere in the document")
+        elif len(v) > 1:
+            note = f" (ignoring {', '.join(role['ignored'])})" if role["ignored"] else ""
+            print(f"  ROLE SPLIT: {role['name']} renders {len(v)} different ways{note}")
+            for x in v:
+                print(f"      {x['n']:>3}x  {x['k']}")
+                print(f"           on: {', '.join(sorted(set(x['ids']))[:5])}")
+        else:
+            print(f"  ok  {role['name']}: one rendering, {v[0]['n']} uses")
+
+    d = c["datums"]
+    if not d:
+        unmeasured += 1
+        print(f"  -- datum: NOT MEASURED, no page paired a .body cell with an h2.t "
+              f"title ({c.get('datumSkipped', 0)} pages skipped)")
+    elif not c.get("datumExpected"):
+        # Reported, never flagged. Portrait releases the reserve by design.
+        print(f"  -- datum: released in this geometry by design (portrait is a "
+              f"composition, not a reflow) — content starts at {len(d)} heights "
+              f"across {c.get('datumPages', 0)} pages")
+    elif len(d) > 1:
+        worst = sorted(d.items(), key=lambda kv: -len(kv[1]))
+        print(f"  NO DATUM: content starts at {len(d)} different heights — "
+              + ", ".join(f"{y}px x{len(ids)}" for y, ids in worst[:6]))
+    else:
+        y = list(d)[0]
+        print(f"  ok  datum: content starts at {y}px on all "
+              f"{len(list(d.values())[0])} pages that hold one")
+
+    if not c["comps"]:
+        unmeasured += 1
+        print(f"  -- component colour: NOT MEASURED, none of {c.get('barCandidates', 0)} "
+              f"rects in a .fig is a filled measure bar (>=120px long, 30-90px thick, "
+              f"class f-acc or f-lime)")
+    for comp, uses in c["comps"].items():
+        fills = {}
+        for u in uses:
+            fills.setdefault(u["fill"], []).append(u["page"])
+        if len(fills) > 1:
+            print(f"  COMPONENT COLOUR: the {comp} is drawn in {len(fills)} colours — "
+                  + "; ".join(f"{f} on {', '.join(sorted(set(p)))}" for f, p in fills.items()))
+        else:
+            print(f"  ok  {comp}: one colour across {len(uses)} uses")
+
+    if not c.get("bandsExamined"):
+        unmeasured += 1
+        print(f"  -- band baseline: NOT MEASURED, no .band with two or more labels "
+              f"({c.get('bandsTooSmall', 0)} too small to compare)")
+    elif c["bandSkew"]:
+        print("  BAND BASELINE: " + ", ".join(
+            f"{b['page']} labels {b['labels']}px / values {b['values']}px apart"
+            for b in c["bandSkew"][:5]))
+    else:
+        print(f"  ok  band baseline: values and labels share their edges "
+              f"across {c['bandsExamined']} bands")
+    return unmeasured
+
+
+GROUND_CEILING = 1.40          # a ceiling, not a target: quieter is always fine
+
+
+def ground_print(label, g):
+    if not g:
+        print(f"  ground: no page carries one")
+        return 0
+    loud = [r for r in g if r["contrast"] > GROUND_CEILING]
+    if loud:
+        print(f"  GROUND TOO LOUD: {len(loud)} of {len(g)} pages exceed "
+              f"{GROUND_CEILING}:1 against their canvas — "
+              + ", ".join(f"{r['id']} {r['contrast']}" for r in loud[:6]))
+    else:
+        w = max(g, key=lambda r: r["contrast"])
+        print(f"  ground: all {len(g)} pages under the {GROUND_CEILING}:1 ceiling, "
+              f"loudest {w['id']} at {w['contrast']}")
+    return 0
+
+
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("files", nargs="+")
     ap.add_argument("--geometry", action="append", choices=list(GEOMETRIES),
-                    help="repeatable; defaults to 16x9 and a4")
+                    help="repeatable; defaults to 16x9, a4 and wide")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--no-sheet", action="store_true", help="numbers only, no screenshots")
     ap.add_argument("--out", default=None, help="where the sheet and shots go")
+    ap.add_argument("--dark", action="store_true",
+                    help="render the dark palette (class=\"dark\" on <body>); "
+                         "inferred from a *.dark.* filename")
     ap.add_argument("--no-aspect", action="store_true",
                     help="skip the off-shape aspect assertion")
     args = ap.parse_args(argv)
     geometries = args.geometry or DEFAULT_GEOMETRIES
 
-    results = []
+    results, unmeasured = [], 0
     for name in args.files:
         path = pathlib.Path(name).resolve()
         if not path.exists():
             print(f"missing: {name}")
             return 1
         out_dir = pathlib.Path(args.out) if args.out else path.parent / "_layout"
-        dark = ".dark." in path.name
+        dark = args.dark or ".dark." in path.name
         for geometry in geometries:
             shot_dir = None
             if not args.no_sheet:
                 out_dir.mkdir(parents=True, exist_ok=True)
                 shot_dir = out_dir
             try:
-                rows, shots = with_playwright(path.as_uri(), geometry, dark, shot_dir)
+                rows, shots, errors = with_playwright(path.as_uri(), geometry, dark,
+                                                      shot_dir, path.stem)
             except ImportError:
-                print("playwright is not importable; run with --no-sheet or install it")
+                # `--no-sheet` was the advice here and it does not help: it only
+                # nulls shot_dir, and with_playwright imports playwright either way.
+                print("playwright is not importable — "
+                      "pip install playwright && playwright install chromium")
                 return 1
             except Exception as exc:                       # noqa: BLE001
                 print(f"could not render {path.name} at {geometry}: {exc}")
                 return 1
-            if shots:
-                sheet = contact_sheet(shots, out_dir / f"sheet-{geometry}-"
-                                      f"{'dark' if dark else 'light'}.html")
-            results.append({"file": path.name, "geometry": geometry,
-                            "size": GEOMETRIES[geometry], "pages": rows})
-            if args.json:
-                continue
+            sheet = contact_sheet(shots, out_dir / f"{path.stem}-sheet-{geometry}-"
+                                  f"{'dark' if dark else 'light'}.html") if shots else None
+
             w, h = GEOMETRIES[geometry]
-            print(f"\n{path.name} @ {geometry} ({w}x{h})")
-            print(f"  {'page':8} {'centerpiece':22} {'of cell':>7}  {'empty band':>11}  "
-                  f"{'cell fill':<34}aspect")
-            for r in rows:
-                a = r["aspect"]
-                note = ""
-                if a and a["ratio"] > 1.5:
-                    note = (f"fig {a['figure']}:1 in cell {a['cell']}:1 — "
-                            f"fills {a['fillsCellHeight']}% of cell height")
-                elif a:
-                    note = f"fig {a['figure']}:1 in cell {a['cell']}:1"
-                over = f"  +{r['overflowPx']}px" if r['overflowPx'] > 1 else ""
-                # This print sat one level out of the loop until 2.0.1, so the
-                # table reported the last page 28 times over and every page-by-
-                # page reading taken from it was of one page.
-                print(f"  {r['id']:8} {str(r['centerpiece'] or '-'):22} "
-                      f"{str(r['centerScale'] or '-'):>5}%  "
-                      f"{str(r['emptyBandPct'])+'%':>11}  "
-                      f"{' '.join(c['cls'][:4]+':'+str(c['fill'])+'%' for c in r['cells']):<34}{note}{over}")
-            # Every block below reports and returns. The counts name pages so a
-            # designer knows where to look; none of them is a threshold a page
-            # must clear, because the fix for each is a design decision and a
-            # number that can be satisfied without making the page better ends
-            # the looking rather than directing it (SKILL.md rule 4).
-            multi = [r for r in rows if r.get('colCount', 0) > 1]
-            # 3px, not 8. A reader saw two tables 4px out of line and called it a
-            # bug; the threshold was hiding exactly the case it was written for.
-            bad_top = [r for r in multi if r['colTopSkewPx'] > 3]
-            if bad_top:
-                print(f"  COLUMN TOPS: {len(bad_top)} of {len(multi)} multi-column pages — "
-                      "side-by-side cells do not start on one line: "
-                      + ", ".join(f"{r['id']} {r['colTopSkewPx']}px"
-                                  for r in sorted(bad_top, key=lambda r: -r['colTopSkewPx'])[:6]))
-            elif multi:
-                print(f"  column tops: all {len(multi)} multi-column pages start on one line")
-            heavy = sorted((r for r in multi if r['colWeightRatio'] > 3),
-                           key=lambda r: -r['colWeightRatio'])
-            if heavy:
-                print(f"  COLUMN WEIGHT: {len(heavy)} of {len(multi)} pages carry one column "
-                      "far heavier than its neighbour: "
-                      + ", ".join(f"{r['id']} {r['colWeightRatio']}:1" for r in heavy[:6]))
-            elif multi:
-                print(f"  column weight: no page exceeds 3:1 across {len(multi)} multi-column pages")
+            label = f"{path.name} @ {geometry} ({w}x{h}, {'dark' if dark else 'light'})"
+            if not args.json:
+                print(f"\n{label}")
+            if not rows:
+                unmeasured += 1
+                if not args.json:
+                    print(f"  NOT MEASURED: no section.page matched in {path.name}. "
+                          f"Nothing below this line was checked — this is a report "
+                          f"about zero pages, not a clean document.")
+            elif not args.json:
+                unmeasured += page_report(rows, geometry, errors)
 
-            flat = [r for r in rows if r['focalRatio'] < 1.35 and r['figLeadPct'] < 45]
-            if flat:
-                print(f"  FOCAL: {len(flat)} of {len(rows)} pages have no element larger than "
-                      f"body copy and no dominant figure — nothing for the eye to enter on: "
-                      + ", ".join(r['id'] for r in flat[:10])
-                      + (f" (+{len(flat)-10} more)" if len(flat) > 10 else ""))
+            # Both audits run per geometry now, and say which one they ran at.
+            try:
+                c = consistency_report(path.as_uri(), GEOMETRIES[geometry], dark)
+            except Unmeasurable as exc:
+                c, unmeasured = None, unmeasured + 1
+                if not args.json:
+                    print(f"\n{label} — one role, one rendering: NOT MEASURED ({exc})")
+            except Exception as exc:                       # noqa: BLE001
+                c, unmeasured = None, unmeasured + 1
+                if not args.json:
+                    print(f"\n{label} — one role, one rendering: NOT MEASURED "
+                          f"({exc.__class__.__name__}: {exc}). This audit did not run.")
             else:
-                print(f"  focal: every one of {len(rows)} pages has a focal element")
+                if not args.json:
+                    unmeasured += consistency_print(label, c)
 
-            capbad = [(r, c) for r in rows for c in r['caps']
-                      if c['duplicated'] or c['words'] > 45]
-            if capbad:
-                print(f"  CAPTIONS: {len(capbad)} figure captions carry prose: "
-                      + ", ".join(f"{r['id']} {c['words']}w"
-                                  + (f", {c['duplicated']} sentence(s) repeated on the page"
-                                     if c['duplicated'] else "")
-                                  for r, c in capbad[:5]))
+            try:
+                g = ground_report(path.as_uri(), GEOMETRIES[geometry], dark)
+            except Unmeasurable as exc:
+                g, unmeasured = None, unmeasured + 1
+                if not args.json:
+                    print(f"  ground: NOT MEASURED ({exc})")
+            except Exception as exc:                       # noqa: BLE001
+                g, unmeasured = None, unmeasured + 1
+                if not args.json:
+                    print(f"  ground: NOT MEASURED ({exc.__class__.__name__}: {exc})")
             else:
-                ncap = sum(len(r['caps']) for r in rows)
-                print(f"  captions: {ncap} carry prose under the figure number, none repeated")
+                if not args.json:
+                    unmeasured += ground_print(label, g)
 
-            multi_t = [r for r in rows if len(r['tables']) > 1]
-            if multi_t:
-                print(f"  TWO TABLES: {len(multi_t)} pages carry more than one table — "
-                      + ", ".join(f"{r['id']} ({len(r['tables'])})" for r in multi_t[:6])
-                      + ". A grid claims its cells are comparable on the axis its header "
-                        "names; two grids side by side claim nothing and cannot align.")
-            else:
-                print("  tables: no page carries more than one")
-            prose_t = [(r, t) for r in rows for t in r['tables'] if t['digitPct'] <= 2]
-            alltab = sum(len(r['tables']) for r in rows)
-            if prose_t:
-                print(f"  TABLES: {len(prose_t)} of {alltab} tables hold prose, not values "
-                      f"(digit density <=2%): " + ", ".join(f"{r['id']}" for r, _ in prose_t[:10])
-                      + (f" (+{len(prose_t)-10} more)" if len(prose_t) > 10 else ""))
-            elif alltab:
-                print(f"  tables: all {alltab} tables carry values")
-            far = [r for r in rows if (r.get('capGapPx') or 0) > 20]
-            if far:
-                print(f"  CAPTION DETACHED: {len(far)} figures sit well above their "
-                      "number and name — "
-                      + ", ".join(f"{r['id']} {r['capGapPx']}px"
-                                  for r in sorted(far, key=lambda r: -(r['capGapPx'] or 0))[:6]))
-            else:
-                ncap2 = sum(1 for r in rows if r.get('capGapPx') is not None)
-                print(f"  caption: all {ncap2} captions sit against their drawing")
-            echo = [r for r in rows if r.get('sourceEcho', 0)]
-            if echo:
-                print(f"  SOURCE TWICE: {len(echo)} pages state the same source under "
-                      "the figure and again in the footer: "
-                      + ", ".join(r['id'] for r in echo[:8]))
-            else:
-                print(f"  source: no page states the same source twice")
-            loose = [(r, f) for r in rows for f in r.get('fields', [])
-                     if f['bound'] != f['marks'] or f['declared'] != f['marks']]
-            nf = sum(len(r.get('fields', [])) for r in rows)
-            if loose:
-                print(f"  FIELD WITHOUT DATA: {len(loose)} of {nf} fields have marks that "
-                      "carry no datum — a shimmer with nothing behind it is decoration: "
-                      + ", ".join(f"{r['id']} ({f['bound']}/{f['marks']} bound, "
-                                  f"{f['declared']} declared)" for r, f in loose[:5]))
-            elif nf:
-                print(f"  fields: all {nf} carry one mark per real item")
-            clash = [r for r in rows if r.get('textOverlaps', 0)]
-            if clash:
-                print(f"  COLLISION: {len(clash)} pages have blocks landing on each "
-                      "other — " + ", ".join(
-                          f"{r['id']} {r['worstOverlap']['a']}/{r['worstOverlap']['b']} "
-                          f"{r['worstOverlap']['w']}x{r['worstOverlap']['h']}px"
-                          for r in clash[:5]))
-            else:
-                print(f"  collision: nothing overlaps anything on {len(rows)} pages")
-            countable = [r for r in rows if r.get('groundRepeats', 0)]
-            if countable:
-                print(f"  GROUND IS COUNTABLE: {len(countable)} pages draw their ground from "
-                      "repeated identical marks — that is a field pretending to be water: "
-                      + ", ".join(r['id'] for r in countable[:6]))
-            elif any(r.get('groundMarks') is not None for r in rows):
-                print(f"  ground: continuous on all {len(rows)} pages, nothing to count")
-            noh = [r for r in rows if r.get('horizons', 1) != 1]
-            if noh:
-                print(f"  WATERLINE: {len(noh)} pages do not have exactly one horizon: "
-                      + ", ".join(f"{r['id']} ({r['horizons']})" for r in noh[:6]))
-            else:
-                print(f"  waterline: one horizon on each of {len(rows)} pages")
-            ndrawn = sum(1 for r in rows if r['drawn'])
-            print(f"  figures: {ndrawn} of {len(rows)} pages are built on a drawing "
-                  f"rather than a grid or a block of prose")
-
-            skew = [r for r in rows if r.get('frameSkewPx', 0) > 1
-                    or r.get('sideMarginSkewPx', 0) > 2]
-            if skew:
-                print(f"  FRAME: {len(skew)} of {len(rows)} pages — the footer and the "
-                      f"composition are not the same width, or the page is not centred: "
-                      + ", ".join(f"{r['id']} skew {r['frameSkewPx']}px" for r in skew[:6]))
-            else:
-                print(f"  frame: footer and composition share one width and centre "
-                      f"on all {len(rows)} pages")
-            spill = [r for r in rows if r.get('spillPx', 0) > 1]
-            if spill:
-                print(f"  CONTENT SPILL: {len(spill)} of {len(rows)} pages run past the "
-                      f"footer rule — "
-                      + ", ".join(f"{r['id']} +{r['spillPx']}px ({r['deepestWho']})"
-                                  for r in sorted(spill, key=lambda r: -r['spillPx'])[:8]))
-            else:
-                print(f"  content: all {len(rows)} pages stay above the footer rule")
-            tall = [r for r in rows if r['overflowPx'] > 1]
-            if tall:
-                print(f"  PAGE HEIGHT: {len(tall)} of {len(rows)} pages exceed the "
-                      f"{h}px page — " + ", ".join(f"{r['id']} +{r['overflowPx']}px" for r in tall[:8]))
-            else:
-                print(f"  page height: all {len(rows)} pages are exactly {h}px")
-            if shots:
+            if sheet and not args.json:
                 print(f"  contact sheet: {sheet}")
                 print("  Look at it. That is the check; the numbers only say where to look.")
+            results.append({"file": path.name, "geometry": geometry,
+                            "size": GEOMETRIES[geometry], "dark": dark,
+                            "pages": rows, "pageErrors": errors,
+                            "consistency": c, "ground": g})
 
-    if not args.json:
-        for name in args.files:
-            path = pathlib.Path(name).resolve()
-            try:
-                c = consistency_report(path.as_uri())
-            except Exception:                                   # noqa: BLE001
-                c = None
-            if not c:
-                continue
-            print(f"\n{path.name} — one role, one rendering")
-            for role in c["roles"]:
-                v = sorted(role["variants"], key=lambda x: -x["n"])
-                if len(v) > 1:
-                    note = (f" (ignoring {', '.join(role['ignored'])})"
-                            if role["ignored"] else "")
-                    print(f"  ROLE SPLIT: {role['name']} renders {len(v)} "
-                          f"different ways{note}")
-                    for x in v:
-                        who = ", ".join(sorted(set(x["ids"]))[:5])
-                        print(f"      {x['n']:>3}x  {x['k']}")
-                        print(f"           on: {who}")
-                else:
-                    print(f"  ok  {role['name']}: one rendering, {v[0]['n']} uses")
-            d = c["datums"]
-            if len(d) > 1:
-                worst = sorted(d.items(), key=lambda kv: -len(kv[1]))
-                print(f"  NO DATUM: content starts at {len(d)} different heights — "
-                      + ", ".join(f"{y}px x{len(ids)}" for y, ids in worst[:6]))
-            elif d:
-                y = list(d)[0]
-                print(f"  ok  datum: content starts at {y}px on all "
-                      f"{len(list(d.values())[0])} pages")
-            for comp, uses in (c["comps"] or {}).items():
-                fills = {}
-                for u in uses:
-                    fills.setdefault(u["fill"], []).append(u["page"])
-                if len(fills) > 1:
-                    print(f"  COMPONENT COLOUR: the {comp} is drawn in "
-                          f"{len(fills)} colours — "
-                          + "; ".join(f"{f} on {', '.join(sorted(set(p)))}"
-                                      for f, p in fills.items()))
-                else:
-                    print(f"  ok  {comp}: one colour across {len(uses)} uses")
-            if c["bandSkew"]:
-                print("  BAND BASELINE: " + ", ".join(
-                    f"{b['page']} labels {b['labels']}px / values {b['values']}px apart"
-                    for b in c["bandSkew"][:5]))
-            else:
-                print("  ok  band baseline: values and labels share their edges")
-
-    if not args.json:
-        GROUND_CEILING = 1.40
-        for name in args.files:
-            path = pathlib.Path(name).resolve()
-            try:
-                g = ground_report(path.as_uri())
-            except Exception:                                   # noqa: BLE001
-                g = None
-            if g:
-                loud = [r for r in g if r["contrast"] > GROUND_CEILING]
-                if loud:
-                    print(f"\n{path.name} — GROUND TOO LOUD: {len(loud)} of {len(g)} pages "
-                          f"exceed {GROUND_CEILING}:1 against their canvas — "
-                          + ", ".join(f"{r['id']} {r['contrast']}" for r in loud[:6]))
-                else:
-                    w = max(g, key=lambda r: r["contrast"])
-                    print(f"\n{path.name} — ground: all {len(g)} pages under the "
-                          f"{GROUND_CEILING}:1 ceiling, loudest {w['id']} at {w['contrast']}")
-            elif g is not None:
-                print(f"\n{path.name} — ground: no page carries one")
-
-    if not args.json and not args.no_aspect:
-        for name in args.files:
-            path = pathlib.Path(name).resolve()
-            print(f"\n{path.name} — does a landscape page hold 16:9 in a window "
-                  f"that is not 16:9?")
-            try:
-                for f in aspect_report(path.resolve().as_uri()):
+        if args.no_aspect:
+            continue
+        # Off-shape by definition, so it is per file and not per geometry.
+        try:
+            aspect = aspect_report(path.as_uri(), dark)
+        except Unmeasurable as exc:
+            unmeasured += 1
+            aspect = None
+            if not args.json:
+                print(f"\n{path.name} — aspect: NOT MEASURED ({exc})")
+        except Exception as exc:                # no browser, or a load failure
+            unmeasured += 1
+            aspect = None
+            if not args.json:
+                print(f"\n{path.name} — aspect: NOT MEASURED "
+                      f"({exc.__class__.__name__}: {exc})")
+        else:
+            if not args.json:
+                print(f"\n{path.name} — does a landscape page hold 16:9 in a window "
+                      f"that is not 16:9?")
+                for f in aspect:
+                    if f["unmeasurable"]:
+                        unmeasured += 1
+                        print(f"  ASPECT NOT MEASURED: window {f['window']:>10} — "
+                              f"{f['unmeasurable']} of {f['pages']} pages have no box: "
+                              + ", ".join(f["unmeasurableIds"][:4]))
                     if f["offAspect"]:
-                        w = f["worst"]
+                        wf = f["worst"]
                         print(f"  ASPECT: window {f['window']:>10} — "
-                              f"{f['offAspect']} of {f['pages']} pages are not 16:9, "
-                              f"worst {w['id']} at {w['w']}x{w['h']} ({w['aspect']}:1)")
-                    else:
+                              f"{f['offAspect']} of {f['measured']} measured pages are "
+                              f"not 16:9, worst {wf['id']} at {wf['w']}x{wf['h']} "
+                              f"({wf['aspect']}:1)")
+                    elif f["measured"]:
                         print(f"  aspect: window {f['window']:>10} — "
-                              f"all {f['pages']} pages hold 16:9")
-            except Exception as exc:            # no browser, or a load failure
-                print(f"  aspect: skipped ({exc.__class__.__name__})")
+                              f"all {f['measured']} measured pages hold 16:9")
+        results.append({"file": path.name, "aspect": aspect})
 
     if args.json:
-        print(json.dumps(results, indent=2))
-    return 0
+        print(json.dumps({"results": results, "unmeasured": unmeasured}, indent=2))
+    elif unmeasured:
+        print(f"\n{unmeasured} check(s) could not be measured. A check that did not "
+              f"run is not a check that passed — exit 1.")
+    return 1 if unmeasured else 0
 
 
 if __name__ == "__main__":
