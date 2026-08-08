@@ -19,6 +19,7 @@ python3 scripts/inspect_layout.py <file> # render a deliverable and report what 
 python3 scripts/embed_font.py            # @font-face block with the face inlined
 python3 scripts/embed_icons.py           # <symbol> sprite of the semantic icon set
 python3 scripts/build_geography.py       # regenerate assets/vectors/ from lat/lon data
+python3 scripts/build_entrypoints.py     # regenerate every per-platform artifact; --check in CI
 bash    scripts/ci_wait.sh <PR>          # bounded wait, short-circuits on outage
 ```
 
@@ -103,8 +104,14 @@ Three entry points load these rules, and each restates part of them:
 
 `adapters/platforms.json` is the **platform registry** — the single source of
 install paths, capability tiers and entry files for every platform this package
-claims. `adapters/*.md` are the per-platform loading notes, one per registry
-record, plus the precedence rule that `references/` wins on conflict. The
+claims. `adapters/*.md` are the per-platform loading notes, one per registry record and
+**generated** by `scripts/build_entrypoints.py` — as are `GEMINI.md`,
+`.github/copilot-instructions.md`, `.cursor/rules/lumi-style.mdc`, the plugin
+manifests and `.well-known/skills/index.json`. Edit the registry, never the
+artifact; `--check` runs in CI. `SKILL.md`, `AGENTS.md`,
+`prompts/lumi-style-core.md` and `references/` stay hand-written, because
+assembled prose is worse prose and those are the files a reader actually reads.
+The notes also carry plus the precedence rule that `references/` wins on conflict. The
 `platform manifest` guard requires every registry claim to have a file behind it,
 every note to be claimed by a platform, and every *unverified* claim to carry a
 written waiver naming what is unconfirmed. Adding a platform is a registry record
