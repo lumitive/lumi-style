@@ -507,6 +507,32 @@ A layout is verified only across the **matrix**, not at a point:
   a difference that was not there. Add: one datum per geometry for where content
   begins, one colour per chart component across pages, and a shared baseline
   inside a stat band.
+
+  **Never ignore the axis a defect sits on.** A title is checked as three
+  registers — content, cover, closing — each compared on size. Collapsing them
+  into one role that ignored size, to excuse a cover legitimately larger than a
+  content page, made a title at 34px and one at 57.6px produce the same key, so
+  the first defect the consistency audit was built to catch could not be seen by
+  it. Split the role; do not blind the comparison.
+
+  **Run it at every geometry, and measure the type rather than its box.** This
+  audit hard-coded a 1280×720 viewport for a release, so a callout set to three
+  different sizes by the portrait block went unreported while landscape read
+  clean. And a stat-band value written the shipped way — `41<span class="u">%
+  </span>` — sits in a box 25px deeper than one without a unit while the digits
+  stay on the same baseline, so comparing element boxes flagged bands whose
+  numbers were exactly aligned.
+
+- **Coverage axis: a check that did not run is not a check that passed.** Every
+  probe below reports `NOT MEASURED` with a reason when its subject is absent,
+  and `inspect_layout.py` exits non-zero if anything could not be measured. That
+  is not a gate on the design — the judgements still gate nothing — it is the
+  difference between silence and approval. *Provenance: a document with no
+  `section.page` at all drew eleven affirmative lines and exit 0, including "one
+  horizon on each of 0 pages"; a document whose class names differed from the
+  probe's lost eight of ten role checks and got shorter, greener output for it.
+  The role vocabulary those checks key on now ships in `tokens/lumi-layouts.css`,
+  so the contract is inspectable rather than folkloric.*
 - **Collision axis.** Nothing may land on anything. Text against text **and text
   against every drawn element** — field, figure, band, spec, geography. 3.2.0
   shipped this comparing text to text only, and a reader immediately found two

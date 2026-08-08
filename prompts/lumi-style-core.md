@@ -41,7 +41,18 @@ you can see light on it.
 
 **The acid green** `#B8FF00` is a surface, not text: 1.21:1 on white, 16.44:1 with
 near-black reversed out of it. Part openers are full lime fields with the claim in
-near-black at display size. It carries no meaning.
+near-black at display size. It carries no meaning. **Once per page, and it marks a
+number panel — never a chart mark**: a bar that is lime here and forest there asks
+a reader what the difference means. A page with no number panel simply has no lime.
+
+**One role, one rendering.** Every repeating role — title, support line, eyebrow,
+band value, band label, figure caption, listhead, callout, footer terms, page
+number — renders exactly one way, and a title is one way *per register* (content,
+cover, closing). A page that no longer fits gets its **content trimmed, never its
+type nudged**; nudging type per page is what produced a callout at three sizes.
+Content begins at the same height on every page of a geometry — reserve the title
+block at two lines plus one support line and do not let it float. Portrait
+releases the reserve, because portrait is a composition and not a reflow.
 
 **The register**: display `clamp(64px, 9vw, 132px)` at weight 700, leading 0.92;
 titles weight 700 at 24–34px; support 16px weight 500; no letter-spacing. Ship
@@ -279,6 +290,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **3.4.0** snapshot, cut 2026-08-07. It is self-contained by
+> This file is the **0.1.350** snapshot, cut 2026-08-08. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

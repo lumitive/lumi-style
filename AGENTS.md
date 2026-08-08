@@ -38,7 +38,8 @@ through 2.3.0 this rule set ran 272 restricting lines against 12 inviting ones.
    without an ask, and the fill floor was satisfiable by stretching a table while
    four diagrams rendered at 40% of their cell.
 4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish),
-   the D-series and `inspect_layout.py` diagnostics (**reported, never gating**),
+   the D-series and `inspect_layout.py` diagnostics (**judgements reported, never
+   gating** — but an unmeasurable check exits 1 and says what it could not find),
    and H1–H6 self-scoring. Never self-score 5 before a reader has scored it, and
    always give the reason for the score, not just the number.
 
@@ -63,6 +64,13 @@ of fifteen multi-column pages with their columns out of line. Worse: a probe tha
 establishes the condition it verifies proves nothing — the page-height check
 made the viewport 1280×720 and then measured the page against it, and reported
 success for two releases while every page was 4:3 in a 4:3 window.
+
+**And a check with nothing to examine must not report a pass.** Use the role
+vocabulary `tokens/lumi-layouts.css` declares — `.eyebrow`, `h2.t`, `.sup`,
+`.listhead`, `.gd`, `.cap .n`, `.band .k`, `.band .v` — or the consistency audit
+silently has nothing to compare. The probe now prints `NOT MEASURED` with the
+selector it wanted and exits 1; those lines come before every green one. Its
+design judgements still gate nothing.
 
 **Six hard red lines**: no invented facts (every number carries its source;
 illustrative values are labeled 示意); no invented Chinese coinages (use the

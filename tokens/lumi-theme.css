@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · v3.4.0 (2026-08-07)
+   LUMI visual theme · v0.1.350 (2026-08-08)
    Single source of truth for palette and typography. New documents reference
    this file or copy the token blocks verbatim (note the provenance when
    copying). Version lockstep: a deliverable's version = the lumi-style
@@ -116,8 +116,22 @@
      part openers, faint on body pages. These are alphas, and the ceiling is
      what they are checked against. */
   --ground-ceiling: 1.40;
-  --ground-strong: .25;
-  --ground-mid:    .19;
+  /* v0.1.350: .25 → .20. The ceiling had only ever been checked in landscape,
+     because the contrast audit hard-coded a 1280x720 viewport while claiming to
+     describe the document. Run at A4 the strong tier broke its own ceiling on
+     two independent documents — 1.42 and 1.485 — since the ground stretches with
+     `preserveAspectRatio="none"` and its strokes thicken relative to a page that
+     is 794 wide instead of 1280. .21 measured 1.396, which is 0.004 of headroom
+     on a number that moves with whatever ground a document draws; .20 measures
+     1.369 and leaves room for one. These are CEILINGS on loudness, so quieter is
+     always allowed and the tier may be lowered further per document. */
+  --ground-strong: .20;
+  /* .19 → .15 with it. These are three TIERS, and the point of three is that the
+     texture recedes as the evidence gets denser; strong at .20 beside mid at .19
+     is two tiers wearing three names. Held at the ratio the tiers were designed
+     with (mid ≈ 0.76 of strong), so lowering the ceiling-bound tier does not
+     quietly flatten the ramp beneath it. */
+  --ground-mid:    .15;
   --ground-faint:  .075;
 
   --d-blue:    #2F6DB4;          /* chart data colors (CVD-validated) */
@@ -167,6 +181,11 @@
      drawing. These are the sizes an entry point comes in; which pages get one,
      and whether it is a number, a sentence or a figure, is a design decision
      per page. Do not read this as "every page needs a big number". */
+  /* the stat band's number. Below the lead tier: a band carries three or four
+     of these side by side, so it is a value in a row and not the page's one
+     entry point. (v0.1.350 — the band had no token and every deliverable picked
+     its own, which is the shape of drift this release exists to close.) */
+  --fs-band-value: clamp(30px, 3.4vw, 46px);
   --fs-lead:    clamp(40px, 4.8vw, 68px);   /* the number that is the page */
   --fs-lead-xl: clamp(56px, 8.2vw, 116px);   /* one number, alone, full stop */
   --fs-say:     clamp(24px, 2.3vw, 32px);   /* the claim that is the page */
@@ -220,7 +239,7 @@ body.dark {
 
   --lime:      #B8FF00;          /* 13.90 as text on space grey */
   --on-lime:   #0A0907;
-  --ground-strong: .23;          /* light on dark water carries further */
+  --ground-strong: .20;          /* light on dark water carries further */
   --ground-mid:    .24;
   --ground-faint:  .095;
 
