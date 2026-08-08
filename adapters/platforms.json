@@ -1,5 +1,5 @@
 {
-  "$schema_note": "LUMI platform registry v0.1.352 (2026-08-08). The single source of platform facts: install paths, capability tiers and entry files. scripts/check_repo.py guards it; from 0.1.354 scripts/build_entrypoints.py will generate the per-platform artifacts from it. Adding a platform means adding a record here and an install note, never restating a rule. Repository language: English only (red line).",
+  "$schema_note": "LUMI platform registry v0.1.352 (2026-08-08). The single source of platform facts: install paths, capability tiers and entry files. scripts/check_repo.py guards it and scripts/build_entrypoints.py generates every per-platform artifact from it. Adding a platform means adding a record here and an install note, never restating a rule. Repository language: English only (red line).",
   "capabilities": {
     "full": {
       "means": "reads the bundled files and can execute scripts/",
@@ -31,7 +31,7 @@
     }
   },
   "shared_path_note": "~/.agents/skills/ is the convergent cross-agent location: Gemini CLI, GitHub Copilot, OpenCode, OpenClaw and Pi all read it, and Gemini CLI gives it precedence over its own ~/.gemini/skills/. Installing there once serves five platforms. Google Antigravity's workspace path is .agent/skills/ — singular 'agent' — and is NOT the same convention; do not conflate them.",
-  "entry_note": "Every platform below reads SKILL.md, which is the Agent Skills standard artifact, except Codex which reads AGENTS.md by its own convention and the two prompt-tier platforms which take prompts/lumi-style-core.md. Optional per-platform pointer files (GEMINI.md, .github/copilot-instructions.md, .cursor/rules/lumi-style.mdc) are planned for 0.1.354; they are conveniences, not requirements, because the skill path already works.",
+  "entry_note": "Every platform below reads SKILL.md, which is the Agent Skills standard artifact, except Codex which reads AGENTS.md by its own convention and the two prompt-tier platforms which take prompts/lumi-style-core.md. Per-platform pointer files (GEMINI.md, .github/copilot-instructions.md, .cursor/rules/lumi-style.mdc) are generated conveniences, not requirements: the skill path already works without them.",
   "platforms": [
     {
       "id": "claude-code",

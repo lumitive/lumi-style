@@ -419,10 +419,12 @@ VERSION_CITATION_WAIVERS = {
              "that explains why the scheme was retired",
     "3.4.0": "names the last release of the retired scheme, and the commit subject "
              "git history still carries; both are quoted deliberately",
-    # Forward references to planned work. Each is deleted from this dict the
-    # release it ships, which makes the dict a ratchet: a note still promising
-    # something "in 0.1.354" after 0.1.354 has shipped becomes a CI failure
-    # rather than stale documentation nobody re-reads.
+    # Forward references to planned work, deleted the release they ship. The
+    # comment here used to claim this made a stale promise a CI failure. It did
+    # not: this guard fails a citation only when NO heading defines it, so
+    # shipping made a promise MORE legal, and it scanned *.md only, so the
+    # registry's own promises were never read at all. check_stale_promises()
+    # below is the check that claim described.
 }
 
 
@@ -555,6 +557,43 @@ def check_retired_values():
     return errors
 
 
+PROMISE = re.compile(
+    r"(?:planned for|planned:|will (?:be )?(?:generate|ship|land)[a-z]*\s+(?:in|from)?|"
+    r"from|lands in|comes in)\s+v?(\d+\.\d+\.\d+)", re.I)
+
+
+def check_stale_promises():
+    """A promise of future work may not name a release that already shipped.
+
+    This is the check `VERSION_CITATION_WAIVERS` used to claim to be and was not.
+    A note reading "planned for 0.1.354" is correct until 0.1.354 ships and
+    misleading forever after, and the citation guard cannot see it — once the
+    heading exists the citation is legal, so the promise gets *more* valid the
+    moment it goes stale.
+
+    Registry JSON is scanned too. `adapters/platforms.json` is declared the
+    single source of platform facts and promised two releases of work that had
+    already landed, entirely unread by any guard, because every text scan in
+    this file globs `*.md`.
+    """
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    shipped = set(re.findall(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M))
+    errors = []
+    scanned = list(md_files()) + [PLATFORMS]
+    for path in scanned:
+        name = rel(path)
+        if name.startswith("CHANGELOG"):
+            continue        # the record of what shipped, written in the past tense
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            for version in PROMISE.findall(line):
+                if version in shipped:
+                    errors.append(
+                        f"{name}:{lineno}: promises work in {version}, which has "
+                        f"already shipped; the promise is now a false statement "
+                        f"about the present")
+    return errors
+
+
 def check_platform_manifest():
     """Every platform this repo claims is described, and every description resolves.
 
@@ -612,7 +651,14 @@ def check_platform_manifest():
             ("probe", "probe_waiver", "CLI probe"),
         ):
             value = entry.get(flag)
-            missing = (value is False) if flag == "path_verified" else (value is None)
+            # Explicit true, or it is unverified. This read absence as
+            # verification, so deleting one optional field silently stripped the
+            # published "Unverified" warning from an install note and turned a
+            # path the repository admits is a guess into an apparently-checked
+            # instruction. Empty string and empty list are absence too: `probe:
+            # []` satisfied `is None` here while detect() read it as no probe,
+            # so the two files disagreed about what "has a probe" means.
+            missing = (value is not True) if flag == "path_verified" else (not value)
             if missing and not entry.get(waiver):
                 errors.append(
                     f"adapters/platforms.json: {pid} has no {what} and no {waiver} "
@@ -701,6 +747,7 @@ CHECKS = (
     ("version citations", check_version_citations),
     ("english-only red line", check_english_only),
     ("markdown link targets", check_links),
+    ("stale promises", check_stale_promises),
     ("platform manifest", check_platform_manifest),
     ("retired values", check_retired_values),
     ("token palette parity", check_palette_parity),
@@ -711,7 +758,14 @@ CHECKS = (
 def main():
     failed = 0
     for label, check in CHECKS:
-        errors = check()
+        # A guard that raises used to take every guard after it with it, and the
+        # output said nothing: five ok lines then a traceback, with no way to
+        # tell "three checks did not run" from "the run ended". A crash is that
+        # check's failure, not the suite's abort.
+        try:
+            errors = check()
+        except Exception as exc:                            # noqa: BLE001
+            errors = [f"the guard itself raised {exc.__class__.__name__}: {exc}"]
         if errors:
             failed += 1
             print(f"FAIL  {label}")

@@ -3,7 +3,13 @@
   "title": "Six-page internal analysis deck, 16:9 HTML",
   "min_capability": "files",
   "deliverable": "*.html",
-  "score": ["design", "prose"],
-  "require": {"D12_commercial_footer": "ok", "M4_banned_hits": "ok"},
+  "score": [
+    "design",
+    "prose"
+  ],
+  "require": {
+    "D12_commercial_footer": "ok",
+    "M4_banned_hits": "ok"
+  },
   "prompt": "Using the LUMI style skill, produce a six-page 16:9 HTML deck reviewing a fictional regional recycling programme. Invent every figure and label it as illustrative. Use www.example.org as the document origin. Write the file to deck.en.html in the working directory. Do not ask clarifying questions; make reasonable assumptions and state them on the closing page."
 }

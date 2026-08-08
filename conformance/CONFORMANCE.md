@@ -1,6 +1,6 @@
-# LUMI style conformance · skill 0.1.357
+# LUMI style conformance · skill 0.1.358
 
-Run `detect-only` · darwin · 1 of 12 agents detected · n=1
+Run `detect-only` · darwin · 1 of 12 agents detected · n=1 per agent
 
 | agent | capability | cli | T1-deck | T2-deaify | T3-recall | verdict |
 |---|---|---|---|---|---|---|

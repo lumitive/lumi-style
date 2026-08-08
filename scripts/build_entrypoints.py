@@ -71,7 +71,19 @@ def skill_field(name: str) -> str:
             if line and not line.startswith(" "):
                 break
             out.append(line.strip())
-    return " ".join(x for x in out if x).strip()
+    value = " ".join(x for x in out if x).strip()
+    if not value:
+        # Absence is not emptiness. This returned "" for a field it could not
+        # find, so renaming `description:` in SKILL.md rendered three manifests
+        # with `"description": ""` and `--check` then certified them as current
+        # with the same sentence it uses for correct output. `--check` compares
+        # the tree against what the generator produces NOW, so it can catch a
+        # stale tree and can never catch a generator whose extraction failed.
+        # The extraction has to fail loudly instead.
+        raise ValueError(
+            f"SKILL.md frontmatter has no non-empty {name!r}; the generated "
+            f"manifests would ship an empty field and --check would call it current")
+    return value
 
 
 def red_lines() -> str:
@@ -84,7 +96,15 @@ def red_lines() -> str:
     lines = text.splitlines()
     start = next(i for i, l in enumerate(lines) if l.startswith("## Six non-negotiable"))
     end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
-    return "\n".join(lines[start + 1:end]).strip()
+    block = "\n".join(lines[start + 1:end]).strip()
+    if not block:
+        # The missing-heading case raised; the EMPTY-section case returned "",
+        # so all three pointer files shipped a heading promising six
+        # non-negotiable rules with nothing beneath it, every guard green.
+        raise ValueError(
+            "SKILL.md's red-lines section is empty; the pointer files would each "
+            "carry the heading and none of the rules")
+    return block
 
 
 # ── renderers ────────────────────────────────────────────────────────────────
@@ -124,7 +144,7 @@ def render_note(p: dict, version: str) -> str:
     for extra in p.get("extra", []):
         body += ["", extra]
 
-    if not p.get("path_verified", True):
+    if p.get("path_verified") is not True:
         body += ["", f"**Unverified.** {p.get('path_waiver', '')}"]
     if p.get("docs"):
         body += ["", f"Vendor documentation: {p['docs']}"]
