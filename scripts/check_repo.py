@@ -406,6 +406,11 @@ ENTRY_STAMP = {
     "SKILL.md": r'^\s*version:\s*"{v}"',
     "AGENTS.md": r"\*\*lumi-style {v}\.?\*\*",
     "prompts/lumi-style-core.md": r"\*\*{v}\*\* snapshot",
+    # The scoreboard carries a first-class skill stamp on line 1. Scoping the
+    # third-party exemption to its table rows re-enabled the *citation* check
+    # there, which by construction cannot see staleness — a stale stamp names a
+    # real release and stays legal forever. This is the check that sees it.
+    "conformance/CONFORMANCE.md": r"skill {v}",
 }
 
 # A version string may name something other than a release only with a reason.
@@ -558,8 +563,13 @@ def check_retired_values():
 
 
 PROMISE = re.compile(
+    # No bare `from`. It matched "carried over from 0.1.352", "survived from
+    # 0.1.340", "renumbered from 0.1.328" — retrospective citation is this
+    # repository's entire documentation voice, so the guard was one sentence
+    # away from failing CI while asserting the opposite of what the sentence
+    # said. Every alternative here is future-tense.
     r"(?:planned for|planned:|will (?:be )?(?:generate|ship|land)[a-z]*\s+(?:in|from)?|"
-    r"from|lands in|comes in)\s+v?(\d+\.\d+\.\d+)", re.I)
+    r"lands in|comes in|arrives in)\s+v?(\d+\.\d+\.\d+)", re.I)
 
 
 def check_stale_promises():
