@@ -143,10 +143,14 @@ PROBE = r"""
   // has to be added here too — a probe is only as good as its vocabulary, and
   // one that cannot see .say or .vow reports a column as empty and its
   // neighbour as misaligned.
+  // `.field` is in this list because it is INK. The brand's signature device
+  // was absent until 0.1.374, so a page built on one reported its column as
+  // starting 339px late and its cell as nearly empty — measured on a real
+  // deliverable where both columns began at the same pixel.
   const INK = 'table, svg, p, h1, h2, li, ol, ul, .listhead, .band, .key, .gd, .red,'
             + ' .note, .cap, .legend, .eyebrow, .spec, .spec div, .colophon, .wordmark,'
             + ' .card, .who, dl, dt, dd, .verdict, .say, .g, .swap, .vow, .vt, .vw,'
-            + ' .ledname, .lead, .tag';
+            + ' .ledname, .lead, .tag, .field';
   // The ink extent of a block: the union of its own drawing boxes, not the box
   // the browser gives the block. Centerpiece scale is the number this file's
   // own docstring calls the answer to "the chart is too small", and it was
@@ -1037,6 +1041,11 @@ CONSISTENCY_PROBE = r"""
     // or the audit reports a clean bill about a third of the uses.
     ['.no', ['.swap']],
     ['.yes', ['.swap']],
+    // `.say` ships as `.lead .say` and nowhere else, so a bare `.say` carries the
+    // class this probe audits and none of the type the token file names. Found
+    // twice in one week on real deliverables, where a display claim rendered at
+    // body size and the page reported as having no entry point.
+    ['.say', ['.lead']],
   ];
   const unscoped = [];
   for (const [sel, scopes] of SCOPED) {

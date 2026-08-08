@@ -39,7 +39,8 @@
           "D12_commercial_footer": "ok",
           "D13_lime_as_text": "ok",
           "D14_placeholders": "ok",
-          "D15_footer_path": "ok"
+          "D15_footer_path": "ok",
+          "D5_drawn_share": "ok"
         }
       }
     },
@@ -84,7 +85,8 @@
           "D12_commercial_footer": "FAIL",
           "D13_lime_as_text": "ok",
           "D14_placeholders": "FAIL",
-          "D15_footer_path": "FAIL"
+          "D15_footer_path": "FAIL",
+          "D5_drawn_share": "ok"
         }
       }
     }
