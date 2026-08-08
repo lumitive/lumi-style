@@ -475,7 +475,12 @@ PROBE_NOT_SHIPPED = {
 # The class-carrying lists inside scripts/inspect_layout.py, by kind. Read out of
 # the source with ast.parse and a regex and NEVER by importing it: importing to
 # inspect it is how a guard ends up running the thing it is checking.
-PROBE_CENSUS_LISTS = ("CENTER", "INK", "TSEL", "DSEL")
+# `TSEL` became `TEXT_SEL` in 0.1.373 when the collision scan and the new
+# opener-inset scan both needed it. The rename left this tuple pointing at a
+# constant that had become an alias holding no selectors, and the guard duly
+# reported five waivers as orphans — which is the rename being caught, one
+# release after the guard was written to catch exactly it.
+PROBE_CENSUS_LISTS = ("CENTER", "INK", "TEXT_SEL", "DSEL")
 
 
 def _probe_sources():
@@ -598,6 +603,14 @@ def check_probe_vocabulary():
         scoped = re.findall(r"\[\s*'([^']+)'\s*,\s*\[([^\]]*)\]\s*\]",
                             _js_const(probes["CONSISTENCY_PROBE"], "SCOPED"))
         census = {name: _js_const(probes["PROBE"], name) for name in PROBE_CENSUS_LISTS}
+        # A list that parses to no class selectors reads as a list that asserts
+        # nothing, and every waiver behind it then looks like an orphan. Say the
+        # list went empty instead, which is the actual fault.
+        for name, text in census.items():
+            if not _classes(text):
+                raise ValueError(f"`const {name}` in the probe holds no class "
+                                 f"selectors; the guard would check an empty "
+                                 f"vocabulary and report every waiver as stale")
         census["check_prose M10"] = " ".join(
             f".{w}" + (f" .{i}" if i else "") for w, i in _prose_wrappers())
     except (OSError, ValueError, SyntaxError) as exc:

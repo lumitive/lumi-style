@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.372"
+  version: "0.1.373"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -118,10 +118,16 @@ been removed; they now apply at step 4 instead of framing step 0.
    `--deliverable` is not a verified document; it means nothing measurable is
    broken. **Look at the sheet.**
    `python3 scripts/check_design.py <file>` reports D1–D10 and gates on exactly
-   two things, neither of them a design judgement: **D12**, the handling terms and
-   origin every page owes, and **D14**, any slot left for yourself — `[TO FILL]`,
-   `[TBD]`, `{{…}}`. A placeholder occupies as much room as the text that should
-   replace it, so nothing else in this package can see one.
+   three things, none of them a design judgement: **D12**, the handling terms and
+   origin every page owes; **D14**, any slot left for yourself — `[TO FILL]`,
+   `[TBD]`, `{{…}}`; and **D15**, a file path in a footer. A placeholder occupies
+   as much room as the text that should replace it, and a repository path is not
+   a source a reader can open — nothing else in this package can see either.
+   **An English deliverable must be in English.** `check_prose.py`'s M12 fails on
+   Chinese in text a reader sees when the document declares English by its `lang`
+   attribute, its `*.en.*` filename or `--lang`; quote it in `<code>` if a name
+   genuinely has to appear in Chinese. A clean banned-phrase run is not a
+   language pass.
    **A title block that does not fit gets shorter text, never a clamp.** `.lede`
    reserves its height as a ceiling; `-webkit-line-clamp` or `overflow: hidden`
    there deletes lines from a client page and leaves the geometry looking clean.

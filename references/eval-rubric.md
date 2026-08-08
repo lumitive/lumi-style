@@ -19,6 +19,7 @@
 | M9 | Em dashes in en sales/marketing | =0 | em/en dash characters outside code, data, and internal analysis documents |
 | M10 | Triad rate | ≤50% | share of enumerations (lists, appositive series) containing exactly three items |
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame (e.g. "Topic: clause") |
+| M12 | Visible CJK in an English deliverable | =0 — **gates** | Chinese in text a reader sees, when the document declares English by `lang`, filename or `--lang`. Quoted as data (`<code>`, `<pre>`, backticks) is exempt |
 
 ## Design diagnostics D1–D10 (`scripts/check_design.py` — reported, never gating)
 
@@ -35,6 +36,7 @@
 | D10 | Label icon coverage | reported | icons on figure nodes and table row-heads, beyond the page eyebrow |
 | D11 | Page-height conformance | reported, and the first thing to read | pages whose rendered height differs from the geometry's, per format (`inspect_layout.py`) |
 | D14 | Unfilled placeholders | =0 — **gates** | slots the author left for themselves: `[TO FILL]`, `[TBD]`, `{{…}}`, an empty bracket pair |
+| D15 | File path in a footer | =0 — **gates** | a repository path pasted into reader copy: two segments and a file extension. The site D12 requires, and any URL, are not paths |
 
 **No design judgement in the D-series gates.** `check_design.py` exits 0 unless a
 file cannot be measured at all; every number is a diagnostic for a designer to
@@ -42,9 +44,15 @@ read. `SKILL.md` rule 4 is why: a page is done when a human reads it as
 intentional, and a metric that can be satisfied without improving the page ends
 the looking rather than directing it.
 
-**Two exceptions, and neither is a design judgement.** D12 is a commercial
-requirement on the artifact and D14 asks whether the document is finished — both
-decidable, in the way "does this page read as intentional" is not. D14 exists
+**Three exceptions, and none is a design judgement.** D12 is a commercial
+requirement on the artifact, D14 asks whether the document is finished, and D15
+asks whether the footer cites something a reader can open — all decidable, in the
+way "does this page read as intentional" is not. **D15 is the second instance of
+one defect:** `.foot .src` was removed from `tokens/` in 0.1.366 after the first
+deliverable to meet it filled every client page with a build path, and a second
+put one back — in Chinese, on almost every content page — while D6, D12 and D14
+all passed it. Per-page sourcing stays legitimate for consulting and internal
+analysis; what no genre wants is a path. D14 exists
 because a real deliverable shipped four `[TO FILL]` markers on its closing page,
 beside its own callout saying they must not ship, and every instrument in this
 package passed it: a placeholder is not a banned phrase, not a colour, and takes
@@ -161,7 +169,10 @@ anything.
 
 0. Before any of this, run the checks against the artifact:
    `check_prose.py` (English), `check_design.py` (any HTML), and
-   **`inspect_layout.py --deliverable`**. Step 1's self-score is a claim about a
+   **`inspect_layout.py --deliverable`**. **A clean dash-and-banned-phrase run is
+   not a language pass** — M12 is the metric that answers whether an English
+   deliverable is in English, and it is `n/a` unless the document says which
+   language it claims. Step 1's self-score is a claim about a
    document, and a claim made before the instruments have run is a guess. An
    agent that cannot execute them names the checks it owes and the operator runs
    them — see the capability tiers in `CLAUDE.md`;

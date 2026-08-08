@@ -3,6 +3,84 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.373 — the language guard existed, and it pointed inward
+
+A Cursor run filed a retrospective on 0.1.371 after shipping three reader-visible
+defects while `check_design`, `check_prose --genre sales` and `inspect_layout
+--deliverable` all exited 0. It is a good note: it declares itself a retrospective
+input rather than a patch, refuses to invent subjective floors, proposes
+report-first for its weakest case, and lists what not to do. Two of its three
+cases land here as gates; the third lands as a report.
+
+**M12 — an English deliverable must be in English. Gates.** This is the sharp
+one, and sharper than the note framed it. `references/writing-rules.md` §0 has set
+the output language since 0.1.333, and `check_repo.py:check_english_only` has
+enforced the identical red line **on this repository's own prose** for as long —
+CJK legal only inside backticks, as quoted data. So the package has a working
+language guard, pointed inward, and had never once measured the same rule on a
+deliverable. A file named `*.en.html`, carrying `lang="en"`, shipped
+`已回收 15/15 题` in a page lede and passed every metric in this package.
+
+The exemption is the repository's own: CJK quoted as **data** — `<code>`, `<pre>`,
+backticks, fences — is fine, and nothing else is. No allowlist file, because a
+name that must appear in Chinese is quoted, and quoting it is a decision a reader
+can see rather than a line in a config nobody reads. The language is read from
+`--lang`, then the document's `lang` attribute, then the `*.en.*` filename
+convention; when none of the three answers, M12 is `n/a` **and says so** rather
+than assuming English.
+
+**D15 — no footer may cite a file path. Gates.** A deliverable poured
+`resources/…目录-20260730.zh.html` into the footer of almost every content page,
+and D6, D12 and D14 all passed it. **This is the second instance of one defect:**
+`.foot .src` was removed from `tokens/` in 0.1.366 after the first deliverable to
+meet it printed a build path on every client page. Removing the styling did not
+stop the span. Two documents is what this repository promotes to a rule.
+
+Deliberately **not** the genre fork the note proposed. Per-page sourcing is
+legitimate for consulting and internal analysis, and an English one-line source
+there is apparatus rather than a defect a reader sees; what no genre wants is a
+path. Banning the path needs no `--genre` plumbed into `check_design.py` and
+catches the thing the reader actually saw. The site D12 *requires* and any URL are
+not paths, and the check says so by construction: two segments and a file
+extension.
+
+**OPENER INSET — reported, not gated.** An opener set its claim hard against the
+page edge while the footer stayed inset, so one page read as two left margins.
+`frameSkewPx` compares `.foot` to `.body` and cannot see it — proved, not assumed:
+on a fixture with the defect inside the body, the new probe reports 92px while
+`frame` reports all seventeen pages sharing one width and centre.
+
+Measured **without a vocabulary**. The note proposed keying on `.openframe`, a
+class that ships in no token file — keying a probe on an unshipped name is the
+reverse drift `check_probe_vocabulary` exists to stop, and it would see nothing on
+a document that names the block anything else. Text ink on an opener may not sit
+outside the footer's own edges; `.bleed` is excluded, because running past the
+content margin is what that shipped class is for. Report-first is the note's own
+recommendation and 0.1.372's rule: one deliverable is one case.
+
+**And the fixture had never rendered a part opener.** `.page.opener` has been
+styled since 0.1.345, named in `brand.md`, and counted since 0.1.368 — while no
+fixture carried one, so the count was always zero and the new probe would have had
+nothing to measure. The same trap as the block patterns in 0.1.369. Adding one
+immediately broke two probes that were treating an opener as a content page:
+
+- the **datum** counted it, reporting "content starts at 2 different heights" on a
+  deck whose fourteen content pages all start at 202px — a true measurement of the
+  wrong set. An opener holds no datum for the reason a cover does not: it is a
+  composition, and D8 has exempted it from the support-line rule on those grounds
+  since that metric was written;
+- the **focal** check excluded its title, reporting a page whose title *is* the
+  composition as having no entry point. The exclusion now applies only where the
+  frame reserves a title block, which asks the layout rather than naming the three
+  page kinds.
+
+Both were found by making the fixture exercise a pattern the package ships.
+
+Two things in the note that do not land: `scripts/verify_gates.py` does not exist —
+mutation testing here is done by hand, once per guard, when the guard is added —
+and `M5` (zh punctuation) remains in the rubric with no implementation, which is
+the same class of gap and is not this release.
+
 ## 0.1.372 — a recorded no-change: the column-top skew was the probe, not the page
 
 0.1.371 left one question open. Its passing deck had **three of six multi-column

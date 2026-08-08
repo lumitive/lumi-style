@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.372.** This file restates part of `references/`; where they
+> **lumi-style 0.1.373.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -53,9 +53,13 @@ through 0.1.344 this rule set ran 272 restricting lines against 12 inviting ones
 **Every page carries a commercial footer**: confidentiality terms and the
 organisation's site on the left, `N / total` on the right. `check_design.py`'s
 D12 is one of two checks there that fail the run, because it is a requirement on
-the artifact rather than a judgement about a page. The other is **D14: no slot
-you left for yourself may reach the reader** — `[TO FILL]`, `[TBD]`, `{{name}}`,
-an empty bracket pair. It asks whether the document is finished, and nothing else
+the artifact rather than a judgement about a page. Two others join it: **D14, no slot you left for
+yourself may reach the reader** — `[TO FILL]`, `[TBD]`, `{{name}}`, an empty
+bracket pair — and **D15, no footer may cite a file path**, because a source line
+names something a reader can act on and not a file on the machine that built the
+deck. **And an English deliverable must be in English**: `check_prose.py`'s M12
+fails on Chinese in reader-visible text when the document declares English, with
+`<code>` the exemption for a name that must appear in Chinese. It asks whether the document is finished, and nothing else
 in this package can see one: a placeholder is not a banned phrase, not a colour,
 and takes up exactly as much room as the text that should have replaced it.
 **Sales and marketing state

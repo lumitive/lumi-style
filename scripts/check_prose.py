@@ -150,6 +150,69 @@ EMPTY_CELL_DASH = re.compile(
     r"<t[dh][^>]*>\s*(?:[–—]|&#8211;|&#8212;|&[mn]dash;)\s*</t[dh]>", re.I)
 
 
+# A RUN of CJK, not a character. Per-character matching reported one four-glyph
+# phrase as four findings with four overlapping snippets, which reads as four
+# defects and is one. A run may be broken by spaces, ASCII digits and the
+# punctuation that travels with Chinese, so `已回收 15/15 题` counts once: it is
+# one piece of text in the wrong language.
+_CJK_CHAR = "[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]"
+CJK = re.compile(_CJK_CHAR + r"(?:[\s\d/%\-\u3001\uff0c\u3002\uff1a\uff1b\u00b7]*" + _CJK_CHAR + r")*")
+# Where a deliverable may legitimately hold CJK while claiming English: quoted as
+# DATA. Exactly the exemption `check_repo.py:check_english_only` gives this
+# repository's own prose — backticks and fenced blocks in markdown, <code> and
+# <pre> in HTML — and it is the same rule, applied outward instead of inward.
+# No allowlist file: a name that must appear in Chinese is quoted, and quoting it
+# is a decision a reader can see rather than a line in a config nobody reads.
+CODE_HTML = re.compile(r"<(code|pre|script|style|svg|head)\b.*?</\1>", re.S | re.I)
+LANG_ATTR = re.compile(r"<html[^>]*\blang\s*=\s*[\"']([\w-]+)", re.I)
+
+
+def declared_language(path, raw, override=None):
+    """What language the document says it is, and how it said so.
+
+    Three channels, in order of how explicitly the document commits: the
+    operator's flag, the `lang` attribute the file itself declares, then the
+    `*.en.*` naming convention. Returns (code, where) or (None, reason) — never
+    a guess, because a language check that assumes English would fail every
+    Chinese deliverable in the package's own default second language.
+    """
+    if override:
+        return override, "--lang"
+    m = LANG_ATTR.search(raw)
+    if m:
+        return m.group(1).split("-")[0].lower(), "the document's lang attribute"
+    parts = path.name.lower().split(".")
+    for tag in parts[1:-1]:
+        if tag in ("en", "zh", "zh_cn", "zh-cn"):
+            return tag.split("_")[0].split("-")[0], "the filename"
+    return None, ("no lang attribute, no language tag in the filename, and no "
+                  "--lang given")
+
+
+def visible_cjk(raw, suffix):
+    """CJK in text a reader sees, with quoted data removed.
+
+    M12 exists because `references/writing-rules.md` §0 has set the output
+    language since 0.1.333 and nothing has ever measured it. A deliverable named
+    `*.en.html`, carrying `lang="en"`, shipped `已回收 15/15 题` in a page lede
+    and passed every metric in this package — while `check_repo.py` was enforcing
+    the identical red line on the repository's own prose. The guard existed and
+    pointed inward.
+    """
+    if suffix in {".html", ".htm"}:
+        text = CODE_HTML.sub(" ", raw)
+        text = re.sub(r"<!--.*?-->", " ", text, flags=re.S)
+        text = html.unescape(re.sub(r"<[^>]+>", " ", text))
+    else:
+        text = re.sub(r"```.*?```", " ", raw, flags=re.S)
+        text = re.sub(r"`[^`\n]*`", " ", text)
+    hits = []
+    for m in CJK.finditer(text):
+        start = max(0, m.start() - 24)
+        hits.append(re.sub(r"\s+", " ", text[start:m.start() + 24]).strip())
+    return hits
+
+
 class Unmeasurable(Exception):
     """The file yielded nothing to measure. Never silently a pass."""
 
@@ -237,7 +300,10 @@ def sentences(text):
     return out
 
 
-def measure(path, genre):
+def measure(path, genre, lang=None):
+    raw = path.read_text(encoding="utf-8", errors="replace")
+    language, where = declared_language(path, raw, lang)
+    cjk = visible_cjk(raw, path.suffix.lower()) if language == "en" else None
     body, titles, enums = extract(path)
     lengths = sentences(body)
     if not lengths:
@@ -276,6 +342,9 @@ def measure(path, genre):
     return {
         "file": str(path),
         "genre": genre,
+        "language": language, "language_from": where,
+        "M12_visible_cjk": None if cjk is None else len(cjk),
+        "M12_detail": cjk or [],
         "sentences": len(lengths),
         "titles": len(titles),
         "enumerations": len(enums),
@@ -293,6 +362,10 @@ def grade(r):
     """[(metric, value, target, verdict)] — verdict is ok / FAIL / n/a."""
     thin_rhythm = r["sentences"] < MIN_SENTENCES
     rows = [
+        # M12 first: a document in the wrong language is not a document whose
+        # sentence rhythm is worth discussing.
+        ("M12_visible_cjk", r["M12_visible_cjk"], "=0 (gates)",
+         not r["M12_visible_cjk"], r["M12_visible_cjk"] is None),
         ("M4_banned_hits", r["M4_banned_hits"], "=0", r["M4_banned_hits"] == 0, False),
         ("M8_overlong_share", r["M8_overlong_share"], "<=8%",
          r["M8_overlong_share"] <= 8.0, thin_rhythm),
@@ -313,6 +386,10 @@ def main(argv):
     ap.add_argument("files", nargs="+")
     ap.add_argument("--genre", choices=["sales", "internal"], default="sales",
                     help="internal analysis documents are exempt from the M9 dash ban")
+    ap.add_argument("--lang", default=None,
+                    help="the language the deliverable claims. Overrides the "
+                         "document's own lang attribute and the *.en.* filename "
+                         "convention; M12 is n/a when none of the three answers.")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
 
@@ -322,7 +399,7 @@ def main(argv):
         try:
             if not path.is_file():
                 raise Unmeasurable("not a readable file")
-            r = measure(path, args.genre)
+            r = measure(path, args.genre, args.lang)
         except (Unmeasurable, OSError) as exc:
             failed += 1
             print(f"FAIL  {path}: unmeasurable — {exc}", file=sys.stderr)
@@ -341,13 +418,23 @@ def main(argv):
         for name_, value, target, verdict in rows:
             note = ""
             if verdict == "n/a":
+                # Each n/a states ITS OWN reason. One `else` served every metric,
+                # so M12 came back "too little data: 160 sentences" on a document
+                # it had skipped for declaring Chinese — a true verdict under a
+                # false explanation, which is the reassuring-line failure this
+                # package keeps finding in its own output.
                 note = ("  (exempt for internal documents)" if name_ == "M9_dashes"
+                        else f"  (this document declares "
+                             f"{r['language'] or 'no language'}, per "
+                             f"{r['language_from']})" if name_ == "M12_visible_cjk"
                         else f"  (too little data: {r['sentences']} sentences, "
                              f"{r['titles']} titles)")
             print(f"  {verdict:<4}  {name_:<22} {str(value):<8} target {target}{note}")
         if r["M4_detail"]:
             worst = sorted(r["M4_detail"], key=lambda kv: -kv[1])[:8]
             print("        banned: " + ", ".join(f"{p}x{n}" for p, n in worst))
+        for snippet in r["M12_detail"][:6]:
+            print(f"        CJK in reader text: …{snippet}…")
 
     if args.json:
         print(json.dumps(reports, indent=2))

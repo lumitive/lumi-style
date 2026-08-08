@@ -164,6 +164,14 @@ PROBE = r"""
     const left = Math.min(...live.map(r => r.left)), right = Math.max(...live.map(r => r.right));
     return {top, bottom, left, right, width: right - left, height: bottom - top};
   };
+  // Leaf text, named once. Two probes need it — the collision scan and the
+  // opener-inset scan — and the opener block sits earlier in source order, so
+  // the constant is hoisted rather than copied. A vocabulary written in two
+  // places is a vocabulary that drifts in one of them.
+  const TEXT_SEL = 'p,li,dt,dd,h1,h2,td,th,.k,.v,.g,.say,.gd,.key,.note,.listhead,'
+             + '.eyebrow,.cap,.srcline,.conf,.site,.tick,.vt,.vw,.vn,.no,.yes,'
+             + '.who,.verdict,.wordmark,.sub,.colophon,.openpart,.openclaim,'
+             + '.openrun,.ledname';
   const out = [];
   for (const s of document.querySelectorAll('section.page')) {
     const sr = s.getBoundingClientRect();
@@ -374,8 +382,13 @@ PROBE = r"""
     // demanding a heading of them flagged two healthy openers whose composition
     // is their title.
     const titleExpected = !!(bodyEl && bodyEl.querySelector(':scope > .lede'));
+    // The content title is excluded only where the frame RESERVES one. On a page
+    // that composes freely — a cover, a closing, a part opener — the title is
+    // the thing the eye lands on, and excluding it reported those pages as
+    // having no entry point at all. `titleExpected` already asks the layout
+    // rather than a class vocabulary, so reuse it rather than naming the three.
     for (const e of s.querySelectorAll('*')) {
-      if ((titleEl && titleEl.contains(e)) || e.closest('.foot')) continue;
+      if ((titleExpected && titleEl && titleEl.contains(e)) || e.closest('.foot')) continue;
       // Own text, not descendants'. Testing e.children.length instead skipped
       // every display number that carried a unit in a <span> — which was all of
       // them — and reported four newly-composed pages as having no focal
@@ -478,10 +491,7 @@ PROBE = r"""
     // found this before any check did, twice, when 0.1.346's heavier register grew
     // past grid rows that had been sized for the old one. Leaf text only: a
     // container legitimately encloses its children.
-    const TSEL = 'p,li,dt,dd,h1,h2,td,th,.k,.v,.g,.say,.gd,.key,.note,.listhead,'
-               + '.eyebrow,.cap,.srcline,.conf,.site,.tick,.vt,.vw,.vn,.no,.yes,'
-               + '.who,.verdict,.wordmark,.sub,.colophon,.openpart,.openclaim,'
-               + '.openrun,.ledname';
+    const TSEL = TEXT_SEL;
     // ...and text against anything DRAWN. 0.1.347 shipped this comparing text to
     // text only, and a reader then found two defects it could not see: a field
     // sitting 22px on a paragraph, and the cover globe crossing the document
@@ -517,6 +527,40 @@ PROBE = r"""
         // label inside its own band.
         if (d.contains(leaves[i]) || leaves[i].contains(d)) continue;
         clash(leaves[i], d, tagOf(leaves[i]), tagOf(d) || 'drawing');
+      }
+    }
+
+    // ── the part opener against the page frame ────────────────────────────
+    //
+    // A reported deliverable set its opener claim hard against the page edge
+    // while the footer stayed inset by the page padding, so the two read as
+    // different left margins on the same page. `frameSkewPx` above compares
+    // `.foot` to `.body` and cannot see it: an opener composes freely and its
+    // copy need not live in a `.body` at all.
+    //
+    // Measured without a vocabulary. The reporting note proposed keying on
+    // `.openframe`, which ships in no token file — keying a probe on an
+    // unshipped name is the reverse drift `check_probe_vocabulary` exists to
+    // stop, and it would report nothing on a document that names the block
+    // anything else. So: TEXT ink on an opener may not sit outside the
+    // footer's own left and right edges. `.bleed` is excluded because running
+    // past the content margin is exactly what that shipped class is for.
+    //
+    // REPORTED, never gated. One deliverable is one case, and 0.1.372 declined
+    // to reshape a probe on the strength of one.
+    let openerOutsidePx = 0, openerSide = '';
+    if (s.classList.contains('opener') && footEl) {
+      const f = footEl.getBoundingClientRect();
+      for (const e of s.querySelectorAll(TEXT_SEL)) {
+        if (e.closest('.ground') || e.closest('.bleed')) continue;
+        if (!(e.textContent || '').trim()) continue;
+        if ([...e.children].some(c => c.matches && c.matches(TEXT_SEL))) continue;
+        const r = e.getBoundingClientRect();
+        if (r.height < 2 || r.width < 2) continue;
+        const left = inPageUnits(f.left - r.left);
+        const right = inPageUnits(r.right - f.right);
+        if (left > openerOutsidePx) { openerOutsidePx = left; openerSide = 'left'; }
+        if (right > openerOutsidePx) { openerOutsidePx = right; openerSide = 'right'; }
       }
     }
 
@@ -674,6 +718,7 @@ PROBE = r"""
       caps, tables, drawn, capGapPx, sourceEcho, sourceComparable, fields, horizons,
       textOverlaps, worstOverlap,
       ledeBlocks, ledeClamped, reserveExpected,
+      openerOutsidePx, openerSide,
       ledeOverspendPx: ledeWorst ? ledeWorst.over : 0,
       ledeReservePx: ledeWorst ? ledeWorst.reserve : 0,
       ledeNeededPx: ledeWorst ? ledeWorst.need : 0,
@@ -1031,6 +1076,13 @@ CONSISTENCY_PROBE = r"""
     // skipped* rather than quietly leaving the audit with nothing to report.
     if (!cell) { datumSkipped++; continue; }
     if (!s.querySelector('h2.t')) { datumSkipped++; continue; }
+    // A part opener holds no datum, for the reason a cover does not: it is a
+    // COMPOSITION, not a content page. It carries no `.lede`, reserves no title
+    // block, and `check_design.py`'s D8 has exempted it from the support-line
+    // rule on the same grounds since that metric was written. Counting it
+    // reported "content starts at 2 different heights" on a deck whose fourteen
+    // content pages all start at 202px — a true measurement of the wrong set.
+    if (s.classList.contains('opener')) { datumSkipped++; continue; }
     datumPages++;
     const sc = s.getBoundingClientRect().width / (s.offsetWidth || 1);
     const y = Math.round((cell.getBoundingClientRect().top
@@ -1485,6 +1537,21 @@ def page_report(rows, geometry, errors):
 
     ndrawn = sum(1 for r in live if r["drawn"])
     openers = [r for r in live if r.get("isOpener")]
+    # 2px, a rounding allowance rather than a design judgement — the invariant is
+    # that an opener's copy shares the footer's inset, and either it does or it
+    # does not. Reported, never gated: one deliverable is one case.
+    outside = [r for r in openers if r.get("openerOutsidePx", 0) > 2]
+    if outside:
+        print(f"  OPENER INSET: {len(outside)} of {len(openers)} part openers set "
+              f"their copy outside the footer's own margin — the page then reads "
+              f"as two different left edges: "
+              + ", ".join(f"{r['id']} {r['openerOutsidePx']}px {r['openerSide']}"
+                          for r in sorted(outside,
+                                          key=lambda r: -r["openerOutsidePx"])[:6]))
+    elif openers:
+        print(f"  opener inset: all {len(openers)} part openers keep their copy "
+              f"inside the footer's margin")
+
     print(f"  part openers: {len(openers)} of {len(live)} pages"
           + (" — " + _fmt_ids(openers) if openers
              else ", so the deck runs as one undivided sequence")

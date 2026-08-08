@@ -113,7 +113,8 @@ def shipped_css() -> str:
             + (ROOT / "tokens/lumi-layouts.css").read_text(encoding="utf-8"))
 
 
-def foot(n: int, total: int, terms: str = TERMS, site: str = SITE) -> str:
+def foot(n: int, total: int, terms: str = TERMS, site: str = SITE,
+         src: str = "") -> str:
     # A NESTED DIV, deliberately. This footer used spans to avoid a parser bug
     # that truncated the footer at its first closing tag — which guaranteed the
     # regression suite could never surface the bug, and is what
@@ -126,7 +127,7 @@ def foot(n: int, total: int, terms: str = TERMS, site: str = SITE) -> str:
     # reference implementation of those rules. A fixture is a worked example, and
     # a worked example that uses a retired slot teaches the retired slot.
     return (f'<div class="foot"><div class="terms"><span class="conf">{terms}</span></div>'
-            f'<span class="site">{site}</span><span>{n:02d} / {total:02d}</span></div>')
+            f'{src}<span class="site">{site}</span><span>{n:02d} / {total:02d}</span></div>')
 
 
 # The four block patterns, one page each. Until 0.1.369 the fixture used none of
@@ -196,6 +197,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
           "of them belongs on a page.")
     style = ""
     terms = TERMS
+    src = ""
     if broken:
         if i == 3:
             gd = ("Leveraging a seamless framework, this callout showcases a robust "
@@ -213,6 +215,19 @@ def page(i: int, total: int, spec, broken: bool) -> str:
         if i == 6:
             # a real prose em-dash, which M9 must still catch
             sup = "The gap is signal &#8212; not hardware, and it follows terrain."
+        if i == 12:
+            # M12: visible CJK in a document that declares English. The Chinese
+            # here is rule DATA — the defect under test — exactly as banned
+            # phrases and punctuation examples are elsewhere in this package.
+            # A real deliverable named `*.en.html`, carrying `lang="en"`, shipped
+            # a badge like this in a page lede and passed every metric.
+            sup = "\u5df2\u56de\u6536 15/15 \u9898. Coverage held across the surveyed feeders."
+        if i == 13:
+            # D15: a repository path poured into the footer as a "source". The
+            # second document to do this; 0.1.366 removed `.foot .src` from
+            # tokens/ after the first.
+            src = ('<span class="src">resources/'
+                   '\u60c5\u62a5\u6e90\u76ee\u5f55-20260730.zh.html</span>')
         if i == 11:
             # D14: the slot an author leaves for themselves and then ships. A
             # real deliverable carried four of these on its closing page and
@@ -289,11 +304,11 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     </div>
     {cells}
   </div>
-  {foot(i, total, terms)}</section>"""
+  {foot(i, total, terms, src=src)}</section>"""
 
 
 def build(broken: bool) -> str:
-    total = len(PAGES) + 2
+    total = len(PAGES) + 3   # cover, part opener, closing
     cover = f"""
 <section class="page cover" id="cover">
   <div class="body stack no-lede"><div class="fill">
@@ -309,7 +324,27 @@ def build(broken: bool) -> str:
     <p class="colophon">Source: meter management system. Prepared by the analysis team.</p>
   </div></div>
   {foot(total, total)}</section>"""
-    body = cover + "".join(page(i + 2, total, s, broken) for i, s in enumerate(PAGES)) + closing
+
+    # A part opener, because nothing in this repository has ever rendered one.
+    # `.page.opener` has been styled in lumi-layouts.css and named in brand.md
+    # since 0.1.345, its ground takes the mid intensity, 0.1.368 started counting
+    # them — and no fixture carried one, so the count was always zero and the
+    # 0.1.373 inset probe would have had nothing to measure. The same trap as the
+    # block patterns in 0.1.369: a rule nothing exercises is a rule nothing tests.
+    opener = f"""
+<section class="page opener" id="open1">
+  <div class="body rail">
+    <div class="railhead"><p class="eyebrow">Part two</p></div>
+    <div class="fill"><h2 class="t">Where the reads actually fail</h2>
+    <p class="sup">Four pages on signal, terrain and the relay siting decision.</p></div>
+  </div>
+  {foot(9, total)}</section>"""
+    body = (cover + "".join(page(i + 2, total, s, broken)
+                            for i, s in enumerate(PAGES[:7]))
+            + opener
+            + "".join(page(i + 9, total, s, broken)
+                      for i, s in enumerate(PAGES[7:]))
+            + closing)
     label = "broken" if broken else "pass"
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
