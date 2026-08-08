@@ -3,6 +3,51 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.354 — the per-platform artifacts become generated, and the package gets a front door
+
+Twelve platforms, each wanting an install note; three wanting a pointer file at a
+path their own convention dictates; two wanting a plugin manifest. Hand-written,
+that is fifteen more copies of facts this repository already holds — and it has
+shipped the consequence twice already: `adapters/claude-code.md` told people to
+`git clone` into the skills directory while `README.md` insisted on a symlink
+*because a copy had stranded at an old version*, and `AGENTS.md` carried a
+withdrawn fill floor for four releases.
+
+**`scripts/build_entrypoints.py` renders all eighteen of them** from
+`adapters/platforms.json` and `SKILL.md`, with the `--check` mode this repository
+already uses for `embed_font.py`, `embed_icons.py` and `build_geography.py`, and
+the same failure sentence, so a stale tree reports as stale rather than as a
+mystery. It runs in CI before `check_repo.py`, because a stale artifact must be
+named as stale rather than surfacing as a puzzling guard failure.
+
+Generated: the twelve `adapters/*.md`; `GEMINI.md`,
+`.github/copilot-instructions.md` and `.cursor/rules/lumi-style.mdc`;
+`.claude-plugin/plugin.json` and `marketplace.json`; and
+`.well-known/skills/index.json`. The six red lines are **lifted from `SKILL.md`**
+rather than paraphrased, because a pointer file that restates them is a seventh
+copy waiting to drift.
+
+**Deliberately not generated:** `SKILL.md`, `AGENTS.md`,
+`prompts/lumi-style-core.md`, `references/`. Assembled prose is worse prose, and
+the entry points a reader is most likely to actually read should be the ones a
+person composed. The generator covers the artifacts whose content is *packaging* —
+paths, invocations, manifests — where there is no judgement to lose. That is a
+narrower claim than the plan for this release made, and the narrower claim is the
+true one.
+
+**The first cut of the pointer files was broken and the guards caught it.** All
+three wrote `[SKILL.md](SKILL.md)`, which resolves to `.github/SKILL.md` from a
+file in `.github/`. Links are now computed from each artifact's own depth. A
+generator that emits the same mistake into every file has made the breakage
+uniform rather than impossible; the markdown-link guard is what noticed.
+
+CI also gains `inspect_layout.py` in its `py_compile` list, which it has never
+been in — the largest script in `scripts/` had no syntax coverage at all.
+
+Still to come: tested fixtures (0.1.355), and the cross-agent conformance harness
+(0.1.356). No claim of cross-agent verification is made yet, because none has been
+performed.
+
 ## 0.1.353 — a withdrawn number may not be restated as though it still binds
 
 `tokens/design-tokens.json` gains a **`retired` register**: the values this rule
