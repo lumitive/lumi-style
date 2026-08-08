@@ -48,8 +48,11 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
-TYPE_FLOOR_PX = 11.0
-SOURCE_FLOOR_PX = 10.5      # the single documented exception: figure source lines
+# TYPE_FLOOR_PX / SOURCE_FLOOR_PX lived here until 0.1.352, defined and never
+# read — dead since 0.1.340 withdrew the type floor they encoded. A constant that
+# names a withdrawn rule is a trap: the next person to need a type threshold
+# finds one already declared and wires it up, restoring a rule nobody re-argued.
+# D2 reports the small end of the scale and grades nothing.
 CONTRAST_FLOOR = 4.5
 CONTRAST_FLOOR_LARGE = 3.0
 LARGE_TEXT_PX = 24.0

@@ -3,6 +3,63 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.352 — the platforms get a registry, and a withdrawn floor stops shipping
+
+First of five releases making this skill work across many agents. This one adds
+no platform support by itself; it makes the current state *checkable* before it
+changes, which is the only order in which adding twelve platforms is safe.
+
+**A floor withdrawn twelve releases ago was still shipping.** `design-rules.md` 1
+and `eval-rubric.md` both record that 0.1.340 withdrew the 11px type floor as
+invented without an ask. `tokens/design-tokens.json` went on declaring
+`size_floor_px: 11` under a note asserting it *"binds every text run except
+chart_scale_px.source"*, and `lumi-theme.css` went on calling the same value
+`--fs-floor`. CLAUDE.md makes the tokens win on conflict, so the authority
+mandated a floor the rules had retired, and every deliverable built from the
+token block inherited it. The value stays — it is the smallest size the scale
+uses — under the name it deserves: `--fs-fine`, `size_smallest_px`, with the
+binding claim withdrawn. `check_design.py` also carried `TYPE_FLOOR_PX` and
+`SOURCE_FLOOR_PX`, defined and never read since 0.1.340; a constant naming a
+withdrawn rule is a trap, because the next person needing a threshold finds one
+already declared and wires it up.
+
+**`adapters/platforms.json` — one place platform facts live.** Twelve platforms,
+each with its install paths, capability tier, entry file and install note. The
+facts had been spread across four hand-written notes and a README table, and they
+had already disagreed: `adapters/claude-code.md` said `git clone` into the skills
+directory while `README.md` insisted on a symlink *because a copy had stranded at
+0.1.334 while the repo reached 0.1.337*. Two files, one fact, opposite
+instructions.
+
+Three capability tiers, because the axis that matters is not which vendor an
+agent comes from but what it can do: `full` reads the bundled files and runs the
+scripts, `files` reads but cannot execute, `prompt` gets one pasted context and
+no tools. What verification means differs per tier, and an agent that cannot run
+the checks may not call a deliverable verified.
+
+**Most of these platforms already worked; nobody had said so.** `~/.agents/skills/`
+turns out to be a convergent location — Gemini CLI, GitHub Copilot, OpenCode,
+OpenClaw and Pi all read it, and Gemini CLI gives it precedence over its own
+directory — so one install serves five. Google Antigravity's workspace path is
+`.agent/skills/`, singular, and is deliberately recorded as *not* the same
+convention. Eight install notes join the four that existed.
+
+**Two guards.** `platform manifest` requires every registry claim to have a file
+behind it, every install note to be claimed by a platform, and every unverified
+claim to carry its own written reason — Hermes ships with `path_verified: false`
+and a waiver naming exactly what is unconfirmed, rather than an invented path.
+`version citations` closes a gap this repo has had since it had entry points:
+only `SKILL.md`'s frontmatter version was ever checked, so `AGENTS.md` carried no
+stamp at all and the core prompt's self-declared snapshot line was unverified —
+the two files that had already shipped four versions of drift. It also requires
+every version cited anywhere to name a release some heading defines, which is the
+drift CLAUDE.md calls this repo's worst.
+
+Still to come: the numeric-claim guard (0.1.353), generated entry points and the
+plugin manifests (0.1.354), tested fixtures (0.1.355), and the cross-agent
+conformance harness (0.1.356). No claim of cross-agent verification is made here,
+because none has been performed.
+
 ## 0.1.351 — the history moves onto the 0.1.x scheme
 
 0.1.350 restarted the numbering but left the 22 releases behind it on the old

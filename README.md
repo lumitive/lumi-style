@@ -1,7 +1,8 @@
 # lumi-style
 
 **LUMI's design language and writing style, packaged as a continuously-iterating,
-cross-platform skill.** Works with Claude Code, Codex, Kimi, and DeepSeek.
+cross-platform skill.** Built on the [Agent Skills](https://agentskills.io)
+standard, so it loads on any agent that implements it.
 
 Every rule traces to a real delivery iteration or a reader review — nothing here
 was written from thin air.
@@ -13,12 +14,44 @@ was written from thin air.
 
 ## Install & use
 
-| Platform | How |
-|---|---|
-| **Claude Code** | `git clone https://github.com/lumitive/lumi-style` somewhere you keep checkouts, then `ln -s <path> ~/.claude/skills/lumi-style` and `/lumi-style <task>`. **Symlink rather than copy**: an installed copy silently stranded at 0.1.334 while the repo reached 0.1.337, and a deck was built against three versions of superseded rules. |
-| **Codex** | reads `AGENTS.md` (see `adapters/codex.md`) |
-| **Kimi** | paste `prompts/lumi-style-core.md` as the system prompt (see `adapters/kimi.md`) |
-| **DeepSeek** | same as Kimi (see `adapters/deepseek.md`) |
+Clone once, then symlink into whichever agents you use. **Symlink rather than
+copy**: an installed copy silently stranded at 0.1.334 while the repo reached
+0.1.337, and a deck was built against three versions of superseded rules.
+
+```bash
+git clone https://github.com/lumitive/lumi-style ~/src/lumi-style
+ln -s ~/src/lumi-style ~/.agents/skills/lumi-style
+```
+
+**That one path covers five agents.** `~/.agents/skills/` is the convergent
+cross-agent location — Gemini CLI, GitHub Copilot, OpenCode, OpenClaw and Pi all
+read it, and Gemini CLI gives it precedence over its own directory.
+
+| Platform | Install path | Notes |
+|---|---|---|
+| **Claude Code** | `~/.claude/skills/lumi-style` | [`adapters/claude-code.md`](adapters/claude-code.md) |
+| **Gemini CLI** | `~/.agents/skills/` or `~/.gemini/skills/` | [`adapters/gemini-cli.md`](adapters/gemini-cli.md) |
+| **OpenAI Codex** | `~/.codex/skills/lumi-style` | also reads `AGENTS.md` — [`adapters/codex.md`](adapters/codex.md) |
+| **Cursor** | `~/.cursor/skills/lumi-style` | [`adapters/cursor.md`](adapters/cursor.md) |
+| **Google Antigravity** | `~/.gemini/antigravity/skills/` | workspace path is `.agent/skills/`, singular — [`adapters/antigravity.md`](adapters/antigravity.md) |
+| **GitHub Copilot** | `~/.agents/skills/` or `.github/skills/` | separate mechanism from `copilot-instructions.md` — [`adapters/github-copilot.md`](adapters/github-copilot.md) |
+| **OpenCode** | `~/.config/opencode/skills/` | [`adapters/opencode.md`](adapters/opencode.md) |
+| **Pi** | `~/.agents/skills/` or `~/.pi/agent/skills/` | [`adapters/pi.md`](adapters/pi.md) |
+| **OpenClaw** | `~/.agents/skills/lumi-style` | [`adapters/openclaw.md`](adapters/openclaw.md) |
+| **Hermes** | `~/.agents/skills/` — **unconfirmed** | [`adapters/hermes.md`](adapters/hermes.md) |
+| **Kimi / DeepSeek** | paste `prompts/lumi-style-core.md` | no skill mechanism — [`adapters/kimi.md`](adapters/kimi.md) |
+
+Any other agent implementing the standard — Kiro, Trae, Roo Code, Goose, Amp,
+Factory, Mistral Vibe, VS Code — loads it from `~/.agents/skills/` with no work
+here. They are not listed because
+[`adapters/platforms.json`](adapters/platforms.json) records only what has been
+checked, and an unlisted platform is not one this repository claims.
+
+**What is and is not verified.** The install paths above are taken from each
+vendor's documentation and are checked mechanically for internal consistency;
+Hermes carries a written waiver naming exactly what is unconfirmed. No claim is
+yet made that any given agent *produces* conforming output — that requires
+running them, which lands in 0.1.356 along with a recorded conformance table.
 
 ## What's inside
 
@@ -38,7 +71,9 @@ assets/vectors                    orthographic globe · flat trade map, generate
 scripts/                          check_repo · check_prose (M) · check_design (D) ·
                                   inspect_layout (renders and looks) ·
                                   embed_font · embed_icons · build_geography
-adapters/                         per-platform loading notes
+adapters/platforms.json           the platform registry: install paths · capability
+                                  tiers · entry files, guarded by check_repo
+adapters/*.md                     per-platform loading notes
 ```
 
 Rules and assets ship together on purpose. Four times now a rule has required
