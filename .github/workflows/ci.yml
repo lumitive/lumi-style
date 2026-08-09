@@ -29,6 +29,7 @@ jobs:
           python3 -m py_compile \
             scripts/check_repo.py scripts/check_prose.py scripts/check_design.py \
             scripts/embed_font.py scripts/embed_icons.py scripts/build_geography.py \
+            scripts/geo_projection.py \
             scripts/build_entrypoints.py scripts/inspect_layout.py \
             scripts/build_fixtures.py scripts/check_fixtures.py \
             scripts/run_conformance.py scripts/export_pdf.py \

@@ -29,9 +29,10 @@ Standard library only.
 from __future__ import annotations
 
 import argparse
-import math
 import pathlib
 import sys
+
+import geo_projection as gp
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets" / "vectors"
@@ -119,109 +120,46 @@ R = 150.0
 STEP_DEG = 1.5                  # edge densification before projection
 
 
+# ── projection ────────────────────────────────────────────────────────────────
+# The maths lives in geo_projection.py, because three other callers need it:
+# build_worldmap.py, globe_svg.py, and the JavaScript port in assets/globe/.
+# It moved out of this file unchanged — --check below is what proves that — and
+# these wrappers supply this file's fixed R, centre and densification step so no
+# call site here had to change.
 def _densify(ring):
-    out = []
-    for i in range(len(ring) - 1):
-        (x0, y0), (x1, y1) = ring[i], ring[i + 1]
-        n = max(1, int(max(abs(x1 - x0), abs(y1 - y0)) / STEP_DEG))
-        for k in range(n):
-            out.append((x0 + (x1 - x0) * k / n, y0 + (y1 - y0) * k / n))
-    out.append(ring[-1])
-    return out
+    return gp.densify(ring, STEP_DEG)
 
 
-# ── orthographic ──────────────────────────────────────────────────────────────
 def _great_circle(a, b, n=96):
-    """Sample the shortest path over the sphere between two (lon, lat) points.
-    A straight line in projected space would cut through the planet; the route a
-    shipment actually takes is the great circle."""
-    def vec(p):
-        lo, la = math.radians(p[0]), math.radians(p[1])
-        return (math.cos(la) * math.cos(lo), math.cos(la) * math.sin(lo), math.sin(la))
-    va, vb = vec(a), vec(b)
-    dot = max(-1.0, min(1.0, sum(va[i] * vb[i] for i in range(3))))
-    omega = math.acos(dot)
-    out = []
-    for k in range(n + 1):
-        t = k / n
-        if omega < 1e-9:
-            v = va
-        else:
-            s0, s1 = math.sin((1 - t) * omega) / math.sin(omega), math.sin(t * omega) / math.sin(omega)
-            v = tuple(s0 * va[i] + s1 * vb[i] for i in range(3))
-        out.append((math.degrees(math.atan2(v[1], v[0])),
-                    math.degrees(math.asin(max(-1.0, min(1.0, v[2]))))))
-    return out
+    return gp.great_circle(a, b, n)
 
 
 def _cos_c(lon, lat, lon0, lat0):
-    lam, phi, p0 = math.radians(lon - lon0), math.radians(lat), math.radians(lat0)
-    return math.sin(p0) * math.sin(phi) + math.cos(p0) * math.cos(phi) * math.cos(lam)
+    return gp.cos_c(lon, lat, lon0, lat0)
 
 
 def _project(lon, lat, lon0, lat0):
-    lam, phi, p0 = math.radians(lon - lon0), math.radians(lat), math.radians(lat0)
-    x = R * math.cos(phi) * math.sin(lam)
-    y = R * (math.cos(p0) * math.sin(phi) - math.sin(p0) * math.cos(phi) * math.cos(lam))
-    return (R + x, R - y)
+    return gp.project(lon, lat, lon0, lat0, R, R, R)
 
 
 def _ortho(lon, lat, lon0, lat0):
-    return _project(lon, lat, lon0, lat0) if _cos_c(lon, lat, lon0, lat0) >= 0 else None
+    return gp.ortho(lon, lat, lon0, lat0, R, R, R)
 
 
 def _crossing(inside, outside, lon0, lat0):
-    """Bisect to the exact point where an edge leaves the visible hemisphere.
-    Without this, a run ends up to one sample short of the limb, and an arc drawn
-    from an interior point is not the horizon: SVG rescales it and the fill
-    balloons across the sphere. That was the first render's failure."""
-    a, b = inside, outside
-    for _ in range(40):
-        m = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
-        if _cos_c(m[0], m[1], lon0, lat0) >= 0:
-            a = m
-        else:
-            b = m
-    return _project(a[0], a[1], lon0, lat0)
+    return gp.crossing(inside, outside, lon0, lat0, R, R, R)
 
 
 def _visible_runs(points, lon0, lat0, exact=True):
-    """Split a densified ring into runs of visible points, each run beginning and
-    ending exactly on the limb when it was clipped."""
-    runs, cur = [], []
-    prev = None
-    for pt in points:
-        vis = _cos_c(pt[0], pt[1], lon0, lat0) >= 0
-        if vis:
-            if prev is not None and not prev[1] and exact:
-                cur.append(_crossing(pt, prev[0], lon0, lat0))
-            cur.append(_project(pt[0], pt[1], lon0, lat0))
-        else:
-            if prev is not None and prev[1]:
-                if exact:
-                    cur.append(_crossing(prev[0], pt, lon0, lat0))
-                if len(cur) > 1:
-                    runs.append(cur)
-                cur = []
-        prev = (pt, vis)
-    if len(cur) > 1:
-        runs.append(cur)
-    return runs
+    return gp.visible_runs(points, lon0, lat0, R, R, R, exact=exact)
 
 
 def _on_limb(p):
-    return abs(math.hypot(p[0] - R, p[1] - R) - R) < 0.5
+    return gp.on_limb(p, R, R, R)
 
 
 def _limb_walk(a, b):
-    """Return the points of the shorter limb arc from a to b, as a polyline.
-    A polyline cannot pick the wrong sweep flag, which an SVG arc can."""
-    a0 = math.atan2(a[1] - R, a[0] - R)
-    a1 = math.atan2(b[1] - R, b[0] - R)
-    d = (a1 - a0 + math.pi) % (2 * math.pi) - math.pi   # shorter direction, signed
-    n = max(2, int(abs(d) / math.radians(2)))
-    return [(R + R * math.cos(a0 + d * k / n), R + R * math.sin(a0 + d * k / n))
-            for k in range(1, n + 1)]
+    return gp.limb_walk(a, b, R, R, R)
 
 
 def _path(runs, close_on_limb):
