@@ -3,6 +3,115 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.385 — deliverables leave the package's own directory, and the sheet's figure ceiling stops contradicting the figure rule
+
+**A deliverable lands in the reader's workspace, not wherever the input happened
+to sit.** The default had been the input file's own directory since the export
+axis was written, which is fine for one person working on one document and wrong
+for everything else: several agents working at once, several people sharing a
+machine, and — the case that found it — an input that lives inside the package,
+which put finished client documents in the skill's own install tree. The default
+is now one named place under the user's own documents folder, the same place on
+every platform this package claims, and **the agent asks before creating it**.
+Two things deliberately do not change: an export still lands beside the document
+it was made from, because a deliverable's HTML and PDF belong together, and a
+directory the user names still wins. A shared folder does put one new obligation
+on a filename — it now carries its own identity, name and version, because two
+documents that share a stem no longer merely sit side by side.
+
+**The portrait figure ceiling and the figure-aspect rule had been contradicting
+each other.** §4 says a full-width A4 cell is about 0.85:1 and asks for a drawing
+built to that shape. The sheet's own `max-height` capped a figure at 52svh, which
+in a 682px column means no drawing under about 1.17:1 can render at all without
+being clamped short and pillarboxed. So the rule asked for a proportion the
+tokens forbade, and the best page in the first handbook designed for the sheet
+sat exactly on the cap. The ceiling now clears the cells it has to hold. It is
+still a ceiling and not a target, and the page box remains the real bound —
+`--deliverable` fails a page that exceeds it. *Measured by redrawing every figure
+of that handbook to the shape §4 asks for: twenty-one drawings that had run 1.18
+to 2.80:1 in cells of 0.78 to 1.10, filling 43 to 82 percent of their cell and
+leaving empty bands of 12 to 35 percent, now sit within a few points of their
+cell and fill 80 to 98 percent of it, with bands of 2 to 9. The redraw is the
+thing §4 already prescribed; what had been missing was permission to land it.*
+The redraw also confirmed the rule's own wording about how: a figure that is
+already a vertical stack does not get taller boxes, it gets **another line of
+real content per row** — a criterion, a consequence, a worked example. Stretching
+the chrome would have hit the same number and taught the reader nothing.
+
+**An unknown genre is now unmeasured rather than quietly graded as sales.** The
+share probe read `data-genre` with a pattern that accepts any word and checked it
+against nothing, so a misspelling scored a training handbook against the sales
+target and said nothing. It now grades only a genre the package declares and
+reports the rest as not measured. `internal` gained the entry it had been falling
+through, and the help text for `--deliverable` caught up with the ninth gate that
+shipped in 0.1.384.
+
+## 0.1.384 — the caption found its figure, the table stopped stretching, and the sheet was asked to carry more than the slide
+
+One review of the first handbook designed for the sheet, four findings. Three
+were mechanical and one is a rule the package did not have.
+
+**A caption centres on its figure.** §4 had said the caption aligns with the
+drawing's left edge so the eye returns to where the figure began — a reasonable
+rule that nothing measured, and that the shipped CSS had never implemented. The
+caption aligned with the *cell's* left edge, which is the same edge only while
+the figure's box is unclamped; the moment `max-height` bites, the drawing is
+pillarboxed to the middle of its box and the caption stays behind at the margin.
+The rule now says the caption block centres on the drawing, and a probe reports
+the offset between the rendered caption's centre and the figure's ink, so the
+next divergence is visible rather than inferred. One boundary comes with it: a
+drawing whose ink is not centred inside its own viewBox cannot be aligned by
+CSS at all, and gets redrawn.
+
+**A table keeps the row height its content asks for.** A table in a centerpiece
+cell was given the cell's height and distributed it across its own rows, capped
+only for tables of three rows or fewer — a threshold that appears in no
+retrospective and was never argued. Stretching table rows is the package's own
+canonical example of satisfying a measurement without improving a page: it is
+why the 82 percent fill floor was withdrawn in 0.1.340. It should not have
+survived as a mechanism after being named as a defect. Tables now sit at their
+natural height and the cell's slack stays in the cell, which is an honest empty
+band rather than a disguised one.
+
+**A cell holding a grid aligns to the top, and a drawing that leaves its own
+viewBox is now a gate.** Two findings the table change surfaced. With the stretch
+gone, a centred table put 280px of nothing between the support line and the header
+row — read as a missing section on a page, and as a missing question on a scoring
+form the reader writes on — so a cell holding a table starts under the title and
+lets its slack collect at the bottom, where it is room to write. And measuring
+figures for the caption rule turned up three drawings whose text ran past the
+right edge of their own viewBox: a root `svg` clips there, so those sentences were
+never rendered at all, with no overflow, no collision and no spill for any other
+probe to see. That is the defect CLAUDE.md rule 8 names as the reason a person has
+to look at the render, and it is decidable, so it does not need one — it is the
+ninth `--deliverable` gate.
+
+**The stat band ships its own rendering.** `.band` carried a cross-axis rule and
+no `display` at all, so every document that used one re-invented the box —
+the orphan-role failure this package has now recorded four times. The base is
+column auto-flow, because a band carries as many tiles as its page has data and
+a fixed column count breaks the first page that disagrees.
+
+**A page on the sheet carries more than a page on the slide.** New rule, and the
+first per-geometry statement in this package about *content* rather than
+composition: an A4 portrait content page carries a second content block beside
+its centerpiece — what to notice in the figure, the steps, the caution, the
+worked example — and at least one highlighted key point. It is a floor on the
+page's blocks and deliberately not on the support line, which stays at one to
+three sentences; a page that cannot hold both becomes two pages, because the
+sheet is fixed and type is never nudged to make room. *Provenance: the first
+handbook designed for the sheet gave nine of twenty-one content pages a second
+block and left the other twelve running a 24 to 33 percent empty band under the
+figure. Its reader asked why the printed page said less than the projected one.
+The layout rules had all been applied; none of them was about how much a page
+should say.*
+
+Also: the vertical layout family now states which of its rows absorbs the slack,
+because the one whose flexible track sits in the *middle* had been picked for a
+figure-led page and put the whole sheet's leftover height between the band and
+the drawing. And two files still counted the design metrics as D1–D16 after D17
+shipped.
+
 ## 0.1.383 — three things the sheet taught, once a document was actually designed for it
 
 **The visual share is graded at the geometry the document declares.** It asked

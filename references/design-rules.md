@@ -206,6 +206,19 @@ comes from size and letterspacing.
   | a part divider or section opener | `full-bleed` (the lime field) or `rail` |
   | a table of 6 or more columns | `stack`, no exceptions |
 
+  **Every layout has one row that absorbs the page's leftover height, and the
+  content that belongs in it is the centerpiece.** In `stack`, `band-hero`,
+  `split` and its variants that row is the last one, which is why a lede-then-
+  figure page composes on either geometry. In `hero-band` it is the **middle**
+  row — that is the layout's whole point, "one number, and it is the story" —
+  and in `thirds-v` the slack divides evenly across three. Pick by asking which
+  block should grow: put a thin evidence strip in a flexible row and the sheet's
+  entire leftover height opens up between it and whatever sits beneath.
+  *Provenance: a figure-led page on the A4 sheet was built on `hero-band` with
+  the stat band in the flexible row. Nothing was broken and every rule was
+  followed; the drawing simply sat in a rigid row with a hand's width of nothing
+  above it, and a reader read the gap as a spacing bug.*
+
   **This table is a reference, not a lookup.** It says what has worked, not what
   to apply. Which layout a page uses is a judgement about that page's content, its
   emphasis, and where it sits in the story — and a page that wants something not
@@ -255,6 +268,26 @@ comes from size and letterspacing.
   third for training**, where a learner needs the words beside the drawing. The
   document declares its genre (`<body data-genre="training">`) and the checks
   grade against that number.
+
+- **A page on the sheet carries more than a page on the slide** (owner directive,
+  2026-08-09). A slide is narrated and an A4 page is read alone, so a portrait
+  content page carries a **second content block beside its centerpiece** — what
+  to notice in the figure, the steps, the caution, the worked example — and **at
+  least one marked key point**. Marked means the *standard* tier, the aside with
+  the plain left rule; it does **not** raise the tier-one budget three bullets up,
+  which stays at one per page and a third of the document. A page whose every
+  emphasis is tier one has no emphasis. That is a **floor on the page's blocks**, and
+  deliberately not on the support line: §3's one to three sentences under the
+  title is unchanged, because the fix for a thin page is another block, never a
+  longer paragraph in the reserve. The sheet is a fixed box and type is never
+  nudged to make room, so the escape when both will not fit is the only one there
+  has ever been — **the page becomes two pages**. *Provenance: the first handbook
+  designed for the sheet gave nine of twenty-one content pages a second block and
+  left the other twelve running a 24 to 33 percent empty band under the figure.
+  Its reader asked why the printed page said less than the projected one. Every
+  layout rule had been applied; none of them was about how much a page says.*
+  `inspect_layout.py` reports portrait content pages carrying a centerpiece and
+  nothing else.
 
 - **An apparatus page is exempt, and it says so** (owner decision, 0.1.381).
   Some pages are reference the reader returns to rather than a claim the deck
@@ -351,9 +384,22 @@ size, a page away from that argument, and it grows: the two longest ran 72 and
 be the opposite column restated, two of four sentences word for word on one and
 the entire ordered list on the other. A reader sees the duplication before they
 can say what is wrong with it, which is why one asked what those blocks were doing
-there. The caption aligns with the drawing's left edge rather than centring, so
-the eye returns to where the figure began. `inspect_layout.py` reports caption
-word count and any sentence that already appears elsewhere on the page.
+there. `inspect_layout.py` reports caption word count and any sentence that
+already appears elsewhere on the page.
+
+**The caption block centres on its figure** — the number, the name and the
+source line together, in both geometries. *Provenance: this rule said the
+opposite for eleven releases ("the caption aligns with the drawing's left edge,
+so the eye returns to where the figure began"), nothing measured it, and the
+shipped CSS had never implemented it. The caption aligned with the CELL's left
+edge, which is the drawing's edge only while the figure's box is unclamped; the
+moment a height ceiling bites, the drawing is pillarboxed to the middle of its
+box and the caption stays behind at the margin. A reader saw the gap and asked
+for centring, which is also the alignment that survives the clamp.* One boundary
+comes with it, because CSS centres the figure's **box**: a drawing whose ink sits
+off-centre inside its own viewBox cannot be aligned by any rule here and gets
+redrawn. `inspect_layout.py` reports the offset between the rendered caption's
+centre and the figure's ink.
 
 7c. **Sales and marketing material states its provenance once for the document,
 not on every page.** The cover and the closing carry it; the pages carry the
@@ -396,6 +442,18 @@ digit density at or below 2% — including a literal 2×2 truth table laid out a
 four rows, and three pages whose "table" was a tempting sentence beside a safer
 one. `inspect_layout.py` reports the census.* Genuinely tabular things stay
 tables: a scoring form is a form.
+
+8b. **A table's row height comes from its content, never from the space left
+over.** A table does not grow into its cell the way a figure does, and a cell
+holding one is expected to have slack; the slack splits above and below the grid
+and is a page asking to be given something else to say — a second block, a
+callout, a figure — never taller rows. *Provenance: a centerpiece table was
+handed its cell's height and spread it across its own rows, capped only below
+four rows by a threshold no retrospective had argued. A reader called the
+stretched rows a bug, and the record already agreed: stretching table rows is
+this package's own example of satisfying a measurement without improving a page,
+and is why 0.1.340 withdrew the 82% fill floor. It survived four releases as a
+mechanism after being named as a defect.*
 
 Flow-diagram shape vocabulary (shapes carry semantics, never decoration):
 **parallelogram** = data input/output · **rectangle** = process ·
@@ -603,8 +661,35 @@ A layout is verified only across the **matrix**, not at a point:
   export multiplier only and never changes the CSS stage, because every
   `clamp()` in `tokens/` is written against the stage; the HTML edition needs
   no scale at all — the zoom stage adapts to the reader's window and pixel
-  density natively. Output lands beside the input file unless a directory is
-  named.
+  density natively.
+
+- **Output axis: a deliverable lands in the reader's workspace, not wherever the
+  input happened to sit** (owner directive, 2026-08-09). **The default is
+  `Documents/LUMI-Style/` under the user's home directory** — the same one place
+  on macOS, Windows and Linux — and a directory the user names still wins. **The
+  agent asks before creating it**; a package that silently makes folders in
+  someone's home is one nobody installs twice. *Provenance: the default was the
+  input file's own directory, which is right for one person on one document and
+  wrong for every other case — several agents working at once, several people on
+  one machine, and the case that found it: an input living inside the package,
+  which put finished client documents in the skill's own install tree.*
+
+  Two things this rule does **not** say, because both have been "fixed" by
+  someone reading only the first sentence. **An export lands beside the document
+  it was made from** — `export_pdf.py` writes the PDF next to its HTML and
+  `inspect_layout.py` writes its contact sheet into a `_layout/` beside it, so a
+  deliverable's files stay together; that is a different question from where a
+  *new* document goes. And because the default is now one shared folder rather
+  than one folder per project, **a deliverable's filename carries its own
+  identity** — the document's name and the version that produced it. Two files
+  that share a stem there do not sit politely side by side: `export_pdf.py`
+  refuses the second export rather than overwrite the first.
+
+  `scripts/output_dir.py` resolves the path for an agent that can run it —
+  Windows redirects and localizes the Documents folder, so `~/Documents` is a
+  guess there rather than an answer. It is a convenience, never the authority:
+  the rule above is a literal path a `prompt`-tier model can write down unaided,
+  and the script must agree with it.
 - **Viewport axis**: also check a short laptop window (e.g. 1000×550). Slides use
   `min-height:100svh`, so an overflowing page pushes its footer below the fold
   silently. **The footer rule and page number must be visible on every page at

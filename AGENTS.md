@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.383.** This file restates part of `references/`; where they
+> **lumi-style 0.1.385.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -21,8 +21,10 @@ first-principles question is what this reader does differently after reading. Wh
 required input is missing or two requirements conflict, batch every question
 into one round before generating; otherwise state your assumptions in the
 delivery note and proceed — one clear prompt should normally produce a finished
-document. Write outputs to the input file's directory unless the user names
-another. Run independent pages in parallel where your platform allows, and when
+document. Write a finished document to `Documents/LUMI-Style/` under the user's
+home directory unless the user names another, and **ask before creating that
+folder**; an export lands beside the document it was made from, and because the
+folder is shared, a filename carries the document's own name and version. Run independent pages in parallel where your platform allows, and when
 expected generation time passes ten minutes, say so before starting. Before
 delivery, the **red-team pass** rides the critic gate: read the draft as its
 most skeptical reader, and treat over-design as a finding, not a virtue.
@@ -55,7 +57,13 @@ most skeptical reader, and treat over-design as a finding, not a virtue.
    half for sales, marketing and consulting, about a third for training** — the
    checks report both, and neither is a floor. A reference page (glossary,
    scoring, boundaries) is exempt and declares it with `data-role="apparatus"`,
-   up to about one content page in five. A figure's name holds one line. **A table is for values**: prose in a
+   up to about one content page in five. **A page on the sheet carries more than
+   a page on the slide**: a portrait content page adds a second content block
+   beside its centerpiece — what to notice, the steps, the caution, the worked
+   example — and one marked key point at the standard tier, which does not raise
+   the tier-one callout budget. A floor on the page's blocks, never on
+   the support line, and a page that cannot hold both becomes two pages.
+   A figure's name holds one line. **A table is for values**: prose in a
    grid is a layout error, so draw what the content actually is. Under a figure
    goes the number, its conclusion name and the source line, and nothing else.
    Embed the vendored assets rather than improvising: `scripts/embed_font.py`,
@@ -66,7 +74,7 @@ most skeptical reader, and treat over-design as a finding, not a virtue.
 4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish),
    the D-series and `inspect_layout.py` diagnostics (**design judgements
    reported, never gating** — but an unmeasurable check exits 1 and says what it
-   could not find, and `--deliverable` exits 1 on the eight findings that are
+   could not find, and `--deliverable` exits 1 on the nine findings that are
    decidable rather than aesthetic),
    and H1–H6 self-scoring. Never self-score 5 before a reader has scored it, and
    always give the reason for the score, not just the number.

@@ -31,7 +31,8 @@ jobs:
             scripts/embed_font.py scripts/embed_icons.py scripts/build_geography.py \
             scripts/build_entrypoints.py scripts/inspect_layout.py \
             scripts/build_fixtures.py scripts/check_fixtures.py \
-            scripts/run_conformance.py scripts/export_pdf.py
+            scripts/run_conformance.py scripts/export_pdf.py \
+            scripts/output_dir.py
       - run: bash -n scripts/emergency_merge.sh scripts/ci_wait.sh
       # Every vendored asset must stay byte-identical: a silent change would alter
       # the metrics or the marks of every deliverable that embeds it. The icons

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.383 (2026-08-09)
+   LUMI page layouts · v0.1.385 (2026-08-09)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -15,6 +15,9 @@
      · The centerpiece row is 1fr and the centerpiece grows into it, so a page
        fills rather than leaving a band above the footer. There is no fill floor;
        0.1.340 withdrew the 82% one, which was satisfiable by stretching a table.
+       A table is not a centerpiece and does not grow (0.1.384): it keeps the row
+       height its content asks for, and a page left with slack gets another block
+       to say something in, which is the fix the withdrawn floor was avoiding.
      · No rotated body text or tables. `diagonal-flow` gets its movement from
        stepped offsets and an angled accent rule; rotation breaks printing,
        copy and paste, and screen reading, and a tariff document cannot pay
@@ -296,8 +299,24 @@ svg .dash { stroke-dasharray: 4 3; }
 /* A stat band: the label is record, the value is the number. `align-items:
    start` is the rule, not a preference — a band that centres each cell lets a
    label which wraps to two lines lift its own number out of line with its
-   neighbours, which measured 17px of drift and reads as a broken row. */
-.band { align-items: start; }
+   neighbours, which measured 17px of drift and reads as a broken row.
+
+   The box ships here too (0.1.384). Until then `.band` carried this one
+   cross-axis line and NO `display` anywhere in tokens/, while the `.body > div`
+   chain excludes it precisely because a band owns its own direction — so every
+   document that used one re-invented the box, and a document that forgot got a
+   vertical stack of tiles where a row belonged. Fourth recorded instance of a
+   role whose rendering was documented and not shipped.
+
+   Auto-flow, not a fixed column count: a band carries as many tiles as its page
+   has data, and the first page to disagree with a hardcoded `repeat(3, 1fr)` is
+   a four-tile band folding onto a second row. A page wanting a different split
+   overrides `grid-auto-columns`. */
+.band {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  gap: 20px; align-items: start;
+}
+.band > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .band .k {
   font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .16em;
   text-transform: uppercase; color: var(--tx3);
@@ -486,7 +505,6 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
 .body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field) {
   justify-content: center;
 }
-.body .fill > table,
 .body .fill > .fig { flex: 1; }
 /* The figure starts under its legend and grows downward. Centring it inside the
    cell instead leaves a gap above and below, which is the same empty band the
@@ -517,17 +535,47 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
 .body .fill > .fig > .cap { flex: none; }
 /* .fig owns the spacing between drawing and caption; a margin on .cap as
    well doubled it and pushed the number away from the figure it numbers. */
-.body .fill > .fig > .cap { margin-top: 0; }
-/* A table given the height distributes it across its own rows. Two bounds keep
-   that from becoming the padding-fudge the fill rule exists to forbid: rows
-   centre their content so the rhythm reads as spacing rather than as text
-   hugging the top of a gap, and a table with very few rows is capped, because
-   stretching three rows over a full page is a layout error wearing a disguise. */
-.body .fill > table { height: 100%; }
-.body .fill > table td,
-.body .fill > table th { vertical-align: middle; }
-.body .fill > table:has(tr:nth-child(4)) { max-height: none; }
-.body .fill > table:not(:has(tr:nth-child(4))) { height: auto; flex: 0 1 auto; }
+/* The caption block centres under the drawing (0.1.384). Both the svg box and
+   the caption stretch to the cell's width, so the caption used to start at the
+   CELL's left edge — the same edge as the drawing only while the box is
+   unclamped. The moment `max-height` bites, preserveAspectRatio pillarboxes the
+   art to the middle of its box and the caption stays behind at the margin, which
+   is the misalignment §4 rule 7b used to describe as the fix. Centring puts the
+   caption on the same axis as the art in both cases. It centres on the BOX,
+   which is what CSS can see: a drawing whose ink is off-centre inside its own
+   viewBox is a drawing to redraw, and inspect_layout.py reports the offset. */
+.body .fill > .fig > .cap { margin-top: 0; text-align: center; }
+/* A TABLE IS NOT A CENTERPIECE, so it does not grow into the cell. It used to:
+   `flex: 1` plus `height: 100%` handed the table the cell's leftover height,
+   which CSS table layout then spread across the rows, with `vertical-align:
+   middle` to make the surplus read as leading rather than as text hugging a gap,
+   capped only for tables of three rows or fewer. A reader called the result a
+   bug and was right twice over — the rows of one grid no longer matched the rows
+   of another on the next page, and stretching table rows is this package's own
+   canonical example of satisfying a measurement without improving a page (it is
+   why 0.1.340 withdrew the 82% fill floor).
+
+   A table now sits at the height its content asks for, which means A TABLE PAGE
+   HAS SLACK AND THE SLACK STAYS IN THE CELL. That is deliberate: the cell
+   centres its children, so the band splits above and below the grid instead of
+   collecting under it, and an honest empty band is a page that asks to be given
+   something to say — the answer §4 wants is a second block, never taller rows. */
+.body .fill > table { flex: 0 1 auto; }
+/* A cell holding a grid reads top-down, like the title above it, so its first
+   row sits under the title and the slack collects at the bottom. Cells centre by
+   default and that is right for a drawing, which balances; measured on a sheet,
+   a centred table put 280px of nothing between the support line and the header
+   row, and on a scoring form the reader is asked to write on, a void above the
+   first row reads as a missing section while the same space below reads as room
+   to write.
+
+   The selector repeats the whole exclusion chain on purpose. The base chain is
+   (0,15,1) and the portrait one below is (0,16,2); a plain
+   `.body .fill:has(> table)` is (0,3,0) and would lose to both silently, which
+   is the failure this file has recorded ten times. `.page` in front takes this
+   to (0,17,2), so it wins in both geometries without depending on source order. */
+.page .body > div.fill:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field):has(> table)
+  { justify-content: flex-start; }
 
 /* ── vertical family ─────────────────────────────────────────────────── */
 
@@ -578,7 +626,8 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    for the length of one edit every multi-column page went back to centring its
    columns independently, and the probe measured the skew jump from 12px to
    107px on the repository's own fixture. Fifth time this chain has decided an
-   argument. **Adding a `:not()` to the fill rule means adding it here.** */
+   argument. **Adding a `:not()` to the fill rule means adding it here — and in
+   the two portrait blocks and the table rule below, which is four sites now.** */
 .body.split > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field),
 .body.split-wide > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field),
 .body.split-narrow > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field),
@@ -1104,12 +1153,19 @@ body[data-geometry="portrait"] .duo { grid-template-columns: 1fr; gap: 16px; }
    and no CSS fixes that — the drawing is wrong for the page. */
 body[data-geometry="portrait"] .fig .land { display: none; }
 body[data-geometry="portrait"] .fig .port { display: block; }
-/* `max-height: 100%` needs a definite parent height and does not get one in
-   the portrait flow, so the drawing's own aspect wins and eight pages ran past
-   the sheet. Portrait clamps against the page instead. */
-body[data-geometry="portrait"] .body .fill > .fig > svg:not(.ic) { max-height: 52svh; }   /* 36svh until
-    0.1.380, where a wide drawing in a 682px column rendered 188px tall and
-    left the bottom half of the sheet empty. A ceiling, not a target. */
+/* The sheet's own figure ceiling lived here from 0.1.380 to 0.1.385 — 36svh,
+   then 52svh — on the reading that `max-height: 100%` could not resolve in the
+   portrait flow. WITHDRAWN, because it had become the thing stopping §4 from
+   working: 52svh is 584px, the figure column is 682px, so no drawing under about
+   1.17:1 could render at all without being clamped short and pillarboxed — while
+   §4 asks for about 0.85:1 in a full-width A4 cell. The rule asked for a
+   proportion this file forbade, and the best page of the first handbook designed
+   for the sheet sat exactly on the cap. Re-measured at 0.1.385: the flex chain
+   (`flex: 0 1 auto` + `min-height: 0` inside a definite-height column) already
+   bounds the drawing to the room its cell has, and the base `max-height: 100%`
+   above resolves and holds as the belt — a 1:1 and a 0.82:1 drawing both render
+   at full column width with no page exceeding the sheet. The page box stays the
+   real bound and `--deliverable` fails a page that passes it. */
 body:not([data-geometry="portrait"]) .fig .port { display: none; }
 
 /* The short-narrow collapse was removed in 0.1.380. It predates the zoom

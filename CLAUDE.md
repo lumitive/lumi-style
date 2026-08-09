@@ -17,6 +17,7 @@ python3 scripts/check_prose.py <file>    # AI-flavor metrics (M4, M8-M11) on a d
 python3 scripts/check_design.py <file>   # design metrics (D1-D17) on a deliverable
 python3 scripts/inspect_layout.py <file> # render a deliverable and report what the layout does
 python3 scripts/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
+python3 scripts/output_dir.py            # where a deliverable belongs; --create needs the user's say-so
 python3 scripts/embed_font.py            # @font-face block with the face inlined
 python3 scripts/embed_icons.py           # <symbol> sprite of the semantic icon set
 python3 scripts/build_geography.py       # regenerate assets/vectors/ from lat/lon data
@@ -37,7 +38,8 @@ custom property `tokens/` defines, that every class a checker asserts has a base
 rendering in `tokens/` or a written waiver, that nothing is styled only inside a
 media query, that the layouts `tokens/` defines are the layouts `check_design.py`
 grades, the text ladder's contrast floor,
-ban-list parity, that every generated artifact and fixture is current, that the
+ban-list parity, that every statement of the output-directory default names the
+same literal directory, that every generated artifact and fixture is current, that the
 checkers still produce the expected verdicts on both fixtures, and that the
 vendored assets are intact.
 
@@ -52,9 +54,10 @@ when a check could not be measured at all** — a document whose markup it canno
 read, a role whose class it cannot find, an audit that crashed. That distinction
 is the point: until 0.1.350 all three of those printed the same reassuring lines as
 a clean document. **`--deliverable` gates a *document*, never this repo**: it
-exits non-zero on the eight findings that are decidable rather than aesthetic
-(collision, content spill, page height, hidden content, a wrapped footer, an
-overspent title reserve, a role split, a lost datum) and is the pre-delivery step in `SKILL.md`.
+exits non-zero on the nine findings that are decidable rather than aesthetic
+(collision, content spill, page height, hidden content, a wrapped footer, a
+drawing clipped by its own viewBox, an overspent title reserve, a role split, a
+lost datum) and is the pre-delivery step in `SKILL.md`.
 `run_conformance.py` runs it that way. Everything else it prints stays reported,
 including the part-opener count, which is an observation and not a floor. `check_prose.py` is
 English-only and takes `--genre {sales,internal,training}`; internal analysis
@@ -110,7 +113,7 @@ Actions incident blocks merging for everyone. Do not wait it out by polling.
 - `references/writing-rules.md` — output-language default, terminology red lines, banned phrases, punctuation, number discipline, the LUMI voice
 - `references/storyline-templates.md` — narrative skeletons per scenario (sales / consulting / internal analysis / training), cover & closing templates, the pre-delivery critic gate
 - `references/design-rules.md` — color semantics, typography, chart rules, semantic icons, layout guards, verification matrix
-- `references/eval-rubric.md` — M1–M12 / D1–D16 / H1–H6 scoring rubric and the review protocol (the iteration engine)
+- `references/eval-rubric.md` — M1–M12 / D1–D17 / H1–H6 scoring rubric and the review protocol (the iteration engine)
 
 `tokens/lumi-theme.css` and `tokens/design-tokens.json` are the authority for
 palette and type values. Their palette values mirror each other exactly and must

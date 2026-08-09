@@ -27,9 +27,14 @@ __pycache__/
 *.ttf
 *.otf
 
-# Skill-validation output. Deliverables built to exercise the rules land in docs/
-# so they can be checked in place; they carry engagement facts and a client name,
-# which CLAUDE.md red line 4 bars from this repository. Never commit them.
+# Skill-validation output. Deliverables built to exercise the rules used to land
+# in docs/ so they could be checked in place; they carry engagement facts and a
+# client name, which CLAUDE.md red line 9 bars from this repository. As of
+# 0.1.385 they land in the user's own Documents/LUMI-Style/ like every other
+# deliverable, so red line 9 is held by the directory structure rather than by
+# this file. The entry stays as a net: a rule enforced only by .gitignore is one
+# `git add -f` away from being broken, and the directory is the one place a
+# validation run has historically reached for.
 docs/
 
 # Exception: the design language's own assets are part of the skill, not renders.

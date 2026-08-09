@@ -73,7 +73,7 @@ references/storyline-templates.md narrative skeletons: sales (value & future) ·
                                   internal analysis · training + shared discipline
 references/design-rules.md        design language: color semantics · dual-voice typography ·
                                   five chart iron rules · semantic icons · layout
-references/eval-rubric.md         eval rubric M1–M12 / D1–D16 / H1–H6 + the review protocol
+references/eval-rubric.md         eval rubric M1–M12 / D1–D17 / H1–H6 + the review protocol
 tokens/                           design tokens (CSS + JSON): two ladders · palette · type · scale
 assets/fonts                      D-DIN, vendored (SIL OFL) — embed, never link
 assets/icons                      vendored Lucide library (ISC) + the reserved bindings, currentColor
@@ -83,6 +83,7 @@ fixtures/                         two synthetic deliverables the checkers are te
 conformance/                      fixed task suite · the tracked cross-agent scoreboard
 scripts/                          check_repo · check_prose (M) · check_design (D) ·
                                   inspect_layout (renders and looks) · export_pdf (PDF/4K) ·
+                                  output_dir (where a deliverable belongs) ·
                                   check_fixtures · build_entrypoints · build_fixtures ·
                                   run_conformance · embed_font · embed_icons · build_geography
 adapters/platforms.json           the platform registry: install paths · capability

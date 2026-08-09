@@ -238,7 +238,8 @@ FIGURE_WEAK = """<div class="fill">
         role="img" aria-label="bars"><rect class="f-acc" x="0" y="0" width="380"
         height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="70" width="250"
         height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="140" width="170"
-        height="46" fill="var(--acc)"/></svg>
+        height="46" fill="var(--acc)"/><text class="sm" x="400" y="30">a label that runs
+        past the right edge of its own viewBox</text></svg>
       <div class="cap"><span class="n">Figure {i}</span> Reads by feeder class
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>"""
@@ -548,8 +549,6 @@ body {{ font-family: var(--din); font-size: 15px; color: var(--tx1);
    here until 0.1.380, where it was found overriding the A4 margin and wrapping
    the footer of a real deliverable on every page. */
 ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
-.band {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }}
-.band > div {{ display: flex; flex-direction: column; gap: 8px; }}
 .band .v .u {{ font-size: .42em; color: var(--tx3); }}
 .cap {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx3); }}
 .flbl {{ font-size: 12.5px; font-weight: 700; fill: var(--tx1); }}
