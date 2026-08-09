@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.377 (2026-08-09)
+   LUMI page layouts · v0.1.378 (2026-08-09)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -224,10 +224,32 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
    document, in the closing colophon; a per-page source slot contradicted the
    rule and existed only because a probe compared against it. Shipping an asset
    with no rule is the mirror of CLAUDE.md rule 5, and costs the same. */
+/* Type inside a drawing. viewBox units, so it scales with the figure; a page
+   whose argument is a number says the number at the size of the argument. */
+svg text { font-family: var(--din); fill: var(--tx2); }
+svg .lbl { font-size: 11px; }
+svg .sm { font-size: 11.5px; fill: var(--tx3); }
+svg .lbl-lg { font-size: 13.5px; fill: var(--tx1); }
+svg .sm-lg { font-size: 12.5px; fill: var(--tx2); }
+svg .big { font-size: 15px; font-variant-numeric: tabular-nums; }
+svg .cap-w { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; fill: var(--tx3); }
+svg .huge { font-weight: 700; font-size: 54px; font-variant-numeric: tabular-nums;
+            fill: var(--tx1); letter-spacing: -.02em; }
+svg .mid  { font-weight: 700; font-size: 30px; font-variant-numeric: tabular-nums;
+            fill: var(--tx1); letter-spacing: -.01em; }
 /* The full figure-paint vocabulary (0.1.375). Every fill and stroke inside a
    drawing goes through one of these, so no literal colour ever reaches an
    element and the palette switch reaches every figure. Scoped to svg: these
-   paint drawings, not page furniture. */
+   paint drawings, not page furniture.
+
+   PAINT COMES AFTER TYPE, DELIBERATELY (0.1.378). Every selector on this page
+   is svg + one class, (0,1,1), so source order decides — and four of the six
+   type classes above also declare a fill. Shipped the other way round,
+   `class="sm f-acc"` rendered in the ladder grey and `class="cap-w f-seal"`
+   never turned red, while the palette guard saw nothing because no literal
+   colour was involved. An explicit per-class win-back list covered `huge` and
+   `mid` and missed the rest; ordering the whole paint set after the whole type
+   set is the version that cannot develop that gap. */
 svg .f-card { fill: var(--card-bg); }   svg .f-ink { fill: var(--tx1); }
 svg .f-t2 { fill: var(--tx2); }         svg .f-mut { fill: var(--tx3); }
 svg .f-fade { fill: var(--tx4); }       svg .f-wash { fill: var(--ln3); }
@@ -244,24 +266,6 @@ svg .s-mut { stroke: var(--tx4); }      svg .s-seal { stroke: var(--seal-t); }
 svg .s-ink { stroke: var(--tx2); }      svg .s-blue { stroke: var(--d-blue); }
 svg .s-amber { stroke: var(--amber); }  svg .s-brass { stroke: var(--brass); }
 svg .dash { stroke-dasharray: 4 3; }
-/* Type inside a drawing. viewBox units, so it scales with the figure; a page
-   whose argument is a number says the number at the size of the argument. */
-svg text { font-family: var(--din); fill: var(--tx2); }
-svg .lbl { font-size: 11px; }
-svg .sm { font-size: 11.5px; fill: var(--tx3); }
-svg .lbl-lg { font-size: 13.5px; fill: var(--tx1); }
-svg .sm-lg { font-size: 12.5px; fill: var(--tx2); }
-svg .big { font-size: 15px; font-variant-numeric: tabular-nums; }
-svg .cap-w { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; fill: var(--tx3); }
-svg .huge { font-weight: 700; font-size: 54px; font-variant-numeric: tabular-nums;
-            fill: var(--tx1); letter-spacing: -.02em; }
-svg .mid  { font-weight: 700; font-size: 30px; font-variant-numeric: tabular-nums;
-            fill: var(--tx1); letter-spacing: -.01em; }
-/* Element-qualified type out-specifies the bare paint classes, so the paint
-   wins back explicitly rather than by luck of source order. */
-svg .huge.f-on, svg .mid.f-on { fill: var(--on-acc); }
-svg .huge.f-acc, svg .mid.f-acc { fill: var(--acc); }
-svg .huge.f-fade, svg .mid.f-fade { fill: var(--tx4); }
 
 /* The figure's number and name, under the drawing. */
 .cap .n {
@@ -444,11 +448,18 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    page ten pixels over. Third time this chain has quietly won an argument. */
 /* `.lede` joins them for the same reason: it is the reserve, it declares its own
    gap and its own flex-start, and this rule was overriding both. */
-.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead):not(.lede),
+/* The cover-grid and opener children joined the exclusions in 0.1.378. They
+   shipped in 0.1.375 as bare `.body.cover-grid > .typeblock` (0,3,0) rules and
+   this chain (0,13,1) silently beat every one of them — the typeblock's gap: 0,
+   the attrs column's 3px, the openframe's 26px all computed 14px, which is the
+   sixth through ninth time this chain has quietly won an argument. The mirror
+   of the rule below: A NEW `.body > div` CHILD JOINS THIS CHAIN, or its own
+   declarations are dead on arrival. */
+.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe),
 .body > header {
   display: flex; flex-direction: column; min-height: 0; gap: 14px;
 }
-.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead):not(.lede) {
+.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe) {
   justify-content: center;
 }
 .body .fill > table,
@@ -544,14 +555,14 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    columns independently, and the probe measured the skew jump from 12px to
    107px on the repository's own fixture. Fifth time this chain has decided an
    argument. **Adding a `:not()` to the fill rule means adding it here.** */
-.body.split > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
-.body.split-wide > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
-.body.split-narrow > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
-.body.columns-2 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
-.body.columns-3 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
-.body.columns-4 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
-.body.quad > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede),
-.body.sidebar-notes > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede)
+.body.split > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe),
+.body.split-wide > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe),
+.body.split-narrow > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe),
+.body.columns-2 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe),
+.body.columns-3 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe),
+.body.columns-4 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe),
+.body.quad > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe),
+.body.sidebar-notes > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe)
   { justify-content: flex-start; }
 
 /* columns — parallel items of equal weight. Two, three or four. */
@@ -701,8 +712,12 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
 /* Cover and closing furniture. */
 .wordmark { font-weight: 700; letter-spacing: .36em; font-size: 15px;
             color: var(--tx1); margin: 0; }
-.cover .sub { margin-top: 22px; font-size: var(--fs-support); color: var(--tx2);
-              max-width: 62ch; }
+/* Cover and closing are the same kind of page, so the subtitle renders the
+   same way on both — scoped to `.cover` alone until 0.1.378, which half-shipped
+   the role: the closing's `.sub` fell through to generic paragraph styling
+   while the waiver that would have said so had been deleted. */
+.cover .sub, .closing .sub { margin-top: 22px; font-size: var(--fs-support);
+              color: var(--tx2); max-width: 62ch; }
 .spec { display: flex; gap: 0; margin-top: 44px; border-top: 1px solid var(--ln1);
         border-bottom: 1px solid var(--ln1); flex-wrap: wrap; }
 .spec div { padding: 13px 26px 12px; border-left: 1px solid var(--ln2); }

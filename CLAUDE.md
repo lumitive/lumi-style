@@ -14,7 +14,7 @@ sync, and recording changes in the changelog.
 ```bash
 python3 scripts/check_repo.py            # repo invariants; exit 1 on any failure
 python3 scripts/check_prose.py <file>    # AI-flavor metrics (M4, M8-M11) on a deliverable
-python3 scripts/check_design.py <file>   # design metrics (D1-D14) on a deliverable
+python3 scripts/check_design.py <file>   # design metrics (D1-D16) on a deliverable
 python3 scripts/inspect_layout.py <file> # render a deliverable and report what the layout does
 python3 scripts/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
 python3 scripts/embed_font.py            # @font-face block with the face inlined
@@ -57,8 +57,8 @@ exits non-zero on the seven findings that are decidable rather than aesthetic
 reserve, a role split, a lost datum) and is the pre-delivery step in `SKILL.md`.
 `run_conformance.py` runs it that way. Everything else it prints stays reported,
 including the part-opener count, which is an observation and not a floor. `check_prose.py` is
-English-only and takes `--genre internal` to exempt internal analysis documents
-from the em-dash rule. `check_design.py` reads a document's own token block, so it
+English-only and takes `--genre {sales,internal,training}`; internal analysis
+is exempt from the em-dash rule and training binds like sales. `check_design.py` reads a document's own token block, so it
 grades a file against the palette that file actually declares rather than against
 this repo's; a deliverable that does not use the token block is reported
 `UNMEASURABLE` rather than passed. Three of its metrics **gate**, and none is a
@@ -108,9 +108,9 @@ Actions incident blocks merging for everyone. Do not wait it out by polling.
 
 - `references/brand.md` — the water thesis, the two brand devices (waterline, field), the ground, the acid green, the consistency rules; loaded first by SKILL.md and AGENTS.md
 - `references/writing-rules.md` — output-language default, terminology red lines, banned phrases, punctuation, number discipline, the LUMI voice
-- `references/storyline-templates.md` — narrative skeletons per scenario (sales / consulting / internal analysis), cover & closing templates, the pre-delivery critic gate
+- `references/storyline-templates.md` — narrative skeletons per scenario (sales / consulting / internal analysis / training), cover & closing templates, the pre-delivery critic gate
 - `references/design-rules.md` — color semantics, typography, chart rules, semantic icons, layout guards, verification matrix
-- `references/eval-rubric.md` — M1–M8 / H1–H6 scoring rubric and the review protocol (the iteration engine)
+- `references/eval-rubric.md` — M1–M12 / D1–D16 / H1–H6 scoring rubric and the review protocol (the iteration engine)
 
 `tokens/lumi-theme.css` and `tokens/design-tokens.json` are the authority for
 palette and type values. Their palette values mirror each other exactly and must

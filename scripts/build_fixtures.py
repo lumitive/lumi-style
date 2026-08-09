@@ -108,6 +108,40 @@ PAGES = [
 SPRITE = sprite([p[0] for p in PAGES] + ["shield"])
 
 
+def ground_defs() -> str:
+    """The ripple ground, defined once and instantiated per page with <use>.
+
+    brand.md's contract, exercised at last: sixteen lines, no two sharing a
+    width, amplitude, wavelength or phase (a ground that can be counted is a
+    field pretending to be water), crowding below the waterline with one line
+    of air above it, colours from the ramp and the chart hues via tokens only,
+    drawn with `slice` so the A4 sheet crops instead of stretching. Every
+    number here is a fixed table — a fixture must be byte-stable.
+    """
+    import math
+    lines = []
+    for i in range(16):
+        y0 = 260 if i == 0 else 300 + 26 * i + (i * i * 7) % 60
+        amp = 8 + (i * 5.3) % 40
+        wavelength = 210 + (i * 37) % 240
+        width = 0.6 + (i % 8) * 0.20
+        opacity = min(0.9, 0.22 + i * 0.045)
+        colour = ("--acc-5", "--acc-4", "--d-teal", "--d-blue")[i % 4]
+        pts = " ".join(f"{x} {y0 + amp * math.sin(x / wavelength + i * 1.7):.1f}"
+                       for x in range(0, 1281, 40))
+        lines.append(f'<polyline points="{pts}" fill="none" '
+                     f'stroke="var({colour})" stroke-width="{width:.2f}" '
+                     f'stroke-opacity="{opacity:.2f}"/>')
+    return ('<svg width="0" height="0" style="position:absolute" aria-hidden="true">'
+            '<defs><g id="g-ground">' + "".join(lines) + "</g></defs></svg>")
+
+
+GROUND_DEFS = ground_defs()
+GROUND = ('<svg class="ground" viewBox="0 0 1280 720" '
+          'preserveAspectRatio="xMidYMid slice" aria-hidden="true" '
+          'focusable="false"><use href="#g-ground"/></svg>')
+
+
 def shipped_css() -> str:
     """The palette AND the layout stylesheet, both lifted from tokens/.
 
@@ -299,14 +333,37 @@ def page(i: int, total: int, spec, broken: bool) -> str:
                         "quarter of the programme, before the rural feeders had been "\
                         "surveyed at all, which makes the comparison generous."  # M8 overlong
     lis = "".join(f"<li>{b}</li>" for b in bullets)
+    # Page 12 carries the graded ladder and page 17 the glossary, so the two
+    # block patterns promoted in 0.1.375 are exercised by the suite instead of
+    # merely shipped; check_prose counts both as enumerations (M10).
+    listblock = f"<ul>{lis}</ul>"
+    if i == 12:
+        listblock = (
+            '<div class="grades">'
+            '<div class="gr g4"><i></i><p class="gn">Estimate rate, weekly</p>'
+            '<p class="gq">leads the read rate by a cycle</p></div>'
+            '<div class="gr g3"><i></i><p class="gn">Read rate</p></div>'
+            '<div class="gr g2"><i></i><p class="gn">Backlog count</p></div>'
+            '<div class="gr g1"><i></i><p class="gn">Crew hours</p>'
+            '<p class="gc">recorded, but not predictive</p></div></div>')
+    if i == 17:
+        listblock += (
+            '<dl class="gloss"><dt>Estimate rate</dt>'
+            '<dd>Billed reads inferred rather than taken.</dd>'
+            '<dt>First-attempt read</dt>'
+            '<dd>A value returned without a revisit.</dd></dl>')
     # A table whose last cell is an em-dash placeholder — "no value", the
     # standard convention. M9 bans em-dashes in PROSE and counted this, failing
     # a deliverable that had none. Found by running the checker against real
     # agent output; the fixtures we wrote ourselves never used a placeholder.
     cell = ""
     if i == 9:
-        cell = ('<table><tbody><tr><td>Rural feeders</td><td>41</td></tr>'
-                '<tr><td>Deferred</td><td>&#8212;</td></tr></tbody></table>')
+        cell = ('<table><tbody>'
+                '<tr><td>Rural feeders</td><td>41</td>'
+                '<td><span class="tag built">surveyed</span></td></tr>'
+                '<tr><td>Deferred</td><td>&#8212;</td>'
+                '<td><span class="tag part">awaiting outage</span></td></tr>'
+                '</tbody></table>')
     # Pages 3 and 4 carry a stat band and a display lead. Without them the
     # fixture never exercises `.band .k`, `.band .v` or the focal element, and
     # inspect_layout.py correctly reports those roles as NOT MEASURED — a
@@ -319,6 +376,15 @@ def page(i: int, total: int, spec, broken: bool) -> str:
                 '<div><span class="k">Feeders</span><div class="v">312</div></div>'
                 '<div><span class="k">Estimates</span><div class="v">8.4</div></div>'
                 '</div>')
+    # The field, exercised at last: brand.md names it the deck's signature and
+    # inspect_layout audits it, yet no fixture had ever drawn one — a mark per
+    # datum, each carrying its data-datum, intensity from the datum.
+    field = ""
+    if i == 4:
+        marks = "".join(f'<i data-w="{(k * 3) % 5 + 1}" data-datum="F{k + 1:02d}"></i>'
+                        for k in range(12))
+        field = ('<p class="listhead">Feeder signal strength</p>'
+                 f'<div class="field tall" data-count="12">{marks}</div>')
     lead = ""
     if i not in (3, 4):
         lead = f'<div class="lead"><div class="v">{i * 7}</div>' \
@@ -330,7 +396,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
         lead = ""
     # One page each for the four block patterns; every other page keeps the
     # figure. The tier-1 pair is exercised in both colours on DIFFERENT pages:
-    # `.key` in page 4's notes column and `.red` in page 7's, because D3 budgets
+    # `.key` in page 5's notes column and `.red` in page 8's, because D3 budgets
     # tier-1 callouts at one per page and putting both on one page trips it —
     # which the fixture should demonstrate obeying, not by luck.
     if i == 8:
@@ -341,8 +407,8 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     argument = f"""<div class="fill">
       <p class="listhead">What the data shows</p>
       {gd}
-      <ul>{lis}</ul>
-      {cell}{band}{lead}
+      {listblock}
+      {cell}{band}{field}{lead}
     </div>"""
     fig = FIGURE_WEAK if (broken and i == 4) else FIGURE
     layout, cells = "split", argument + "\n    " + fig.format(i=i)
@@ -363,6 +429,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
         layout, cells = "stack", f'<div class="fill">{row}{VOWS}</div>'
     return f"""
 <section class="page" id="p{i}">
+  {GROUND}
   <div class="body {layout}">
     <div class="lede">
       <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#i-{icon}"/></svg>Part {part} &#183; {eyebrow}</p>
@@ -382,6 +449,7 @@ def opener(part: str, number: int, total: int, claim: str, run: str) -> str:
     # test; the composition classes shipped in 0.1.375 and are exercised here.
     return f"""
 <section class="page opener" id="open{part}">
+  {GROUND}
   <div class="body full-bleed no-lede">
     <div class="bleed openframe">
       <div class="openpart">Part {part}</div>
@@ -399,6 +467,7 @@ def build(broken: bool) -> str:
     # repeats the cover's geography rather than introducing a new claim).
     cover = f"""
 <section class="page cover" id="cover">
+  {GROUND}
   <div class="body cover-grid">
     <div class="typeblock">
       <p class="wordmark">LUMI</p>
@@ -416,6 +485,7 @@ def build(broken: bool) -> str:
   {foot(1, total)}</section>"""
     closing = f"""
 <section class="page closing" id="closing">
+  {GROUND}
   <div class="body cover-grid">
     <div class="typeblock">
       <p class="wordmark">LUMI</p>
@@ -477,7 +547,7 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
 .s-dash {{ stroke: var(--ln1); stroke-dasharray: 5 4; }}
 .colophon {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }}
 .foot {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }}
-</style></head><body>{SPRITE}{body}</body></html>
+</style></head><body>{SPRITE}{GROUND_DEFS}{body}</body></html>
 """
 
 

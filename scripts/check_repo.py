@@ -462,7 +462,10 @@ PROBE_NOT_SHIPPED = {
 # constant that had become an alias holding no selectors, and the guard duly
 # reported five waivers as orphans — which is the rename being caught, one
 # release after the guard was written to catch exactly it.
-PROBE_CENSUS_LISTS = ("CENTER", "INK", "TEXT_SEL", "DSEL")
+# `VIS` joined in 0.1.378: it is the sole carrier of the visual-share target,
+# and outside this tuple a rename in tokens/ would drop the measured share
+# toward zero with CI green — the exact failure this guard exists to stop.
+PROBE_CENSUS_LISTS = ("CENTER", "INK", "TEXT_SEL", "DSEL", "VIS")
 
 
 def _probe_sources():
@@ -1161,7 +1164,14 @@ def check_version_citations():
     except (OSError, ValueError) as exc:                    # noqa: BLE001
         return [f"adapters/platforms.json: {exc}"]
 
-    for target in sorted({e.get("entry_file") for e in data["platforms"] if e.get("entry_file")}):
+    # The union, not the registry alone. ENTRY_STAMP's conformance entry matched
+    # no platform's entry_file, so the pattern was dead code for six releases
+    # while the scoreboard's stamp sat at 0.1.371 — and the comment on that
+    # entry claimed to be "the check that sees it". A declared stamp position
+    # is a promise to check it, wherever the file is registered.
+    targets = {e.get("entry_file") for e in data["platforms"] if e.get("entry_file")}
+    targets |= set(ENTRY_STAMP)
+    for target in sorted(targets):
         path = ROOT / target
         if not path.exists():
             continue                                        # reported by the manifest guard

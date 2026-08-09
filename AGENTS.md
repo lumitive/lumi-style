@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.377.** This file restates part of `references/`; where they
+> **lumi-style 0.1.378.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -16,7 +16,8 @@ decorating outward is measurably how you get work that is correct and lifeless:
 through 0.1.344 this rule set ran 272 restricting lines against 12 inviting ones.
 
 **Study the input first; questions come once or not at all.** Read everything
-the user supplied and work from the reader's side of the deliverable. When a
+the user supplied and work from the reader's side of the deliverable — the
+first-principles question is what this reader does differently after reading. When a
 required input is missing or two requirements conflict, batch every question
 into one round before generating; otherwise state your assumptions in the
 delivery note and proceed — one clear prompt should normally produce a finished
@@ -89,7 +90,11 @@ two grids side by side share no axis and can never align.
 each scaled to fit the window and letterboxed — never a box that takes the
 window's shape. Which geometry leads follows the genre: sales, marketing and
 consulting design 16:9 first, training designs A4 portrait first, and the other
-geometry is still composed and verified. State the source once per page: on a single-figure page the line
+geometry is still composed and verified. **Exports render at the stage**
+(`scripts/export_pdf.py`): PDF is vector, one page per `.page`; rasters take a
+device-pixel multiplier — **default 3 (4K from the landscape stage), floor 2
+(2K), refused below** — and the scale never changes the CSS stage, whose zoom
+adapts to the reader's window and pixel density natively. State the source once per page: on a single-figure page the line
 under the figure is the page's source and the footer carries the page number.
 
 **Rendered geometry decides, not declared CSS.** Run

@@ -99,10 +99,14 @@ def export(path: pathlib.Path, geometry: str, scale: float, png: bool,
 def main(argv):
     ap = argparse.ArgumentParser(add_help=True, description=__doc__.split("\n")[0])
     ap.add_argument("files", nargs="+")
-    ap.add_argument("--geometry", choices=sorted(STAGES), default="landscape",
-                    help="which fixed stage to render; the genre picks the "
-                         "primary (design-rules §7): training leads portrait, "
-                         "everything else leads landscape")
+    ap.add_argument("--geometry", choices=sorted(STAGES), default=None,
+                    help="which fixed stage to render; defaults to the genre's "
+                         "primary (design-rules §7)")
+    ap.add_argument("--genre", choices=["sales", "consulting", "internal", "training"],
+                    default="sales",
+                    help="picks the default geometry: training leads portrait "
+                         "(printed, annotated, bound), everything else leads "
+                         "landscape. --geometry overrides.")
     ap.add_argument("--png", action="store_true",
                     help="page rasters instead of a PDF")
     ap.add_argument("--scale", type=float, default=SCALE_DEFAULT,
@@ -113,11 +117,16 @@ def main(argv):
                     help="output directory; default is the input file's own")
     args = ap.parse_args(argv)
 
-    if args.scale < SCALE_FLOOR:
-        # The floor executed in code, not advised in prose: a 1x export looks
-        # fine on the machine that made it and soft on every dense display.
+    # The floor executed in code, not advised in prose: a 1x export looks
+    # fine on the machine that made it and soft on every dense display. It
+    # binds rasters only — a PDF is vector and has no scale to be under.
+    if args.png and args.scale < SCALE_FLOOR:
         ap.error(f"--scale {args.scale:g} is below the floor of {SCALE_FLOOR:g} "
                  f"(2x the stage, 2K); the default is {SCALE_DEFAULT:g} (4K)")
+
+    # The genre's primary geometry is the edition handed over by default
+    # (design-rules §7); an explicit --geometry always wins.
+    geometry = args.geometry or ("portrait" if args.genre == "training" else "landscape")
 
     rc = 0
     for name in args.files:
@@ -126,7 +135,7 @@ def main(argv):
             print(f"FAIL  {name}: no such file")
             rc = 1
             continue
-        rc = max(rc, export(path, args.geometry, args.scale, args.png,
+        rc = max(rc, export(path, geometry, args.scale, args.png,
                             pathlib.Path(args.out) if args.out else None))
     return rc
 

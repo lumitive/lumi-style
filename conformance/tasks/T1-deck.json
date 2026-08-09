@@ -11,6 +11,7 @@
   "require": {
     "D12_commercial_footer": "ok",
     "D14_placeholders": "ok",
+    "D15_footer_path": "ok",
     "M4_banned_hits": "ok",
     "collision": "ok",
     "content_hidden": "ok"

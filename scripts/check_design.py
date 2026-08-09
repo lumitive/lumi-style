@@ -411,11 +411,13 @@ def d16_visual_presence(raw):
         return None
     prose_only, content = [], 0
     for cls, pid, body in pages:
+        # Substring on the SECTION class list, whose values are single words
+        # (page/cover/opener/closing) — same idiom as d8. The block test below
+        # is different: `.body` classes like `band-hero` would collide, so it
+        # matches a whole class token.
         if "cover" in cls or "closing" in cls or "opener" in cls:
             continue
         content += 1
-        # A whole class token, not a substring: `band-hero` on a `.body` is a
-        # layout name, not a stat band.
         if any(re.search(rf'class="(?:[^"]*\s)?{b}(?:\s[^"]*)?"', body)
                for b in VISUAL_BLOCKS):
             continue
@@ -636,7 +638,11 @@ def d10_label_icons(raw):
     """Reported, not graded. Labelled figure nodes and table row-head groups
     should carry a semantic icon; whether a given label is a heading is a
     judgement, so this counts rather than gates."""
-    eyebrow = len(re.findall(r'<div class="eyebrow">\s*<svg class="ic"', raw))
+    # Element-agnostic on purpose: the fixtures author the eyebrow as <p>, the
+    # reference deck as <div>, and the contract is about the class, not the
+    # tag. Keyed to <div> alone this counted 0 on a deck with an icon in all
+    # 14 eyebrows and silently reclassified them as figure icons.
+    eyebrow = len(re.findall(r'<\w+ class="eyebrow[^"]*">\s*<svg class="ic', raw))
     in_fig = len(re.findall(r'<use href="#i-[\w-]+"/>\s*</svg>\s*(?:<text|</g>)', raw))
     svg_icons = len(re.findall(r'<svg[^>]*class="[^"]*\bic\b[^"]*"', raw))
     return {"eyebrow_icons": eyebrow, "icon_instances": svg_icons,
@@ -694,9 +700,9 @@ def measure(path):
         "D13_lime_as_text": d13_lime_never_light_text(css, resolved, palette),
         "D9_layout_variety": d9_layout_variety(raw),
         "D10_label_icons": d10_label_icons(raw),
-        "D16_visual_presence": d16_visual_presence(raw),
+        "D16_visual_presence": (d16 := d16_visual_presence(raw)),
         # The contains hook in check_fixtures.py reads <PREFIX>_detail.
-        "D16_detail": (d16_visual_presence(raw) or {}).get("prose_only"),
+        "D16_detail": (d16 or {}).get("prose_only"),
     }
 
 

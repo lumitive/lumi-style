@@ -85,7 +85,9 @@ def load_tasks() -> list[dict]:
             if kind not in SCORE_KINDS:
                 raise ValueError(f"{t['id']}: `score` names {kind!r}, which is not "
                                  f"one of {', '.join(sorted(SCORE_KINDS))}")
-        if t.get("genre") not in (None, "sales", "internal"):
+        # Kept in step with check_prose.py's --genre choices by hand; 0.1.376
+        # added `training` there and this tuple rejected it for one release.
+        if t.get("genre") not in (None, "sales", "internal", "training"):
             raise ValueError(f"{t['id']}: genre {t['genre']!r} is not one "
                              f"check_prose.py accepts")
         if not t.get("deliverable"):

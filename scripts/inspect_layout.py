@@ -1624,10 +1624,21 @@ def page_report(rows, geometry, errors):
     # content page's area carries something drawn or figured. A target and a
     # review trigger, never a gate; pages under it are listed so a human looks
     # at them, and check_design.py's D16 asks the presence half statically.
+    # The target is graded in LANDSCAPE geometries only: the portrait tokens
+    # cap a figure at 36svh by design, which puts ~40% at the practical ceiling
+    # for a split page — measured on the package's own fixture, where every
+    # page sat "under target" at A4 while healthy. A target no page can meet
+    # is a line reviewers learn to skip, so the sheet reports shares without
+    # grading them.
     content = [r for r in live
                if not (r.get("isOpener") or r.get("isCover") or r.get("isClosing"))]
+    portrait = geometry in ("a4",)
     low = [r for r in content if r.get("visualPct", 0) < 50]
-    if content and low:
+    if content and portrait:
+        w = min(content, key=lambda r: r.get("visualPct", 0))
+        print(f"  visual share: reported only at A4 (figures cap at 36svh there); "
+              f"lowest {w['id']} at {w.get('visualPct', 0)}%")
+    elif content and low:
         print(f"  visual share: {len(low)} of {len(content)} content pages sit under "
               f"the 50% target — "
               + ", ".join(f"{r['id']} {r.get('visualPct', 0)}%" for r in
@@ -1826,7 +1837,12 @@ GROUND_CEILING = 1.40          # a ceiling, not a target: quieter is always fine
 
 def ground_print(label, g):
     if not g:
-        print(f"  ground: no page carries one")
+        # A visible finding, not a shrug: brand.md asks for the ground behind
+        # every page, and until 0.1.378 a deck with none read the same here as
+        # a deck that had been checked. Reported, never gated — a document
+        # outside the brand may be quiet on purpose, and a reviewer decides.
+        print(f"  GROUND MISSING: no page draws one — brand.md asks for water "
+              f"and light behind every page, dense to sparse by page class")
         return 0
     loud = [r for r in g if r["contrast"] > GROUND_CEILING]
     if loud:

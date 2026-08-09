@@ -4,7 +4,7 @@
 > drives rule iteration. This is the skill's continuous-improvement engine.
 > (Repository language: English only — red line.)
 
-## Machine metrics M1–M8 (scriptable; spot-check manually when no script)
+## Machine metrics M1–M12 (scriptable; spot-check manually when no script)
 
 | id | Metric | Target | Predicate |
 |---|---|---|---|
@@ -29,13 +29,14 @@
 | D2 | Type scale | reported | the small end of the declared type scale. **No floor** — see the withdrawal note |
 | D3 | Tier-1 callout spread | reported | tinted-plus-bordered callouts per page, and the share of pages carrying one |
 | D4 | Palette purity | reported | literal hex colors outside the token block, which break the palette switch |
-| D5 | Figure parity | reported | shape-kind spread across figures, and how many are rectangles-only |
+| D5 | Figure parity and drawn share | reported | shape-kind spread across figures, how many are rectangles-only, and how many `.fig` blocks hold a drawing at all |
 | D6 | Footer completeness | reported | pages missing a source line or a `N / total` page number |
 | D8 | Support line present | reported | content pages with no support sentence under the title |
 | D9 | Layout spread | reported | which layouts a deck uses, and the share on the most common |
 | D10 | Label icon coverage | reported | icons on figure nodes and table row-heads, beyond the page eyebrow |
 | D11 | Page-height conformance | reported, and the first thing to read | pages whose rendered height differs from the geometry's, per format (`inspect_layout.py`) |
 | D12 | Commercial footer | =0 — **gates** | handling terms and the origin site on every page; pages travel alone |
+| D13 | Lime as light text | =0, reported | the acid green may never be light-on-light text; a surface, not a ladder step |
 | D14 | Unfilled placeholders | =0 — **gates** | slots the author left for themselves: `[TO FILL]`, `[TBD]`, `{{…}}`, an empty bracket pair |
 | D15 | File path in a footer | =0 — **gates** | a repository path pasted into reader copy: two segments and a file extension. The site D12 requires, and any URL, are not paths |
 | D16 | Visual presence and share | reported | content pages carrying no visual block (static half, `check_design.py`); rendered visual area against the ~50%-of-page target (`inspect_layout.py`) |

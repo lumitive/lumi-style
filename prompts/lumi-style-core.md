@@ -13,8 +13,8 @@ client's language (Simplified Chinese rules are marked [zh]). Rules are ordered 
 priority; on conflict, the lower number wins.
 
 **Working practice.** Study everything the user supplied before designing, and
-work from the reader's side: what does this reader do differently after
-reading? **Questions come once or not at all** — when a required input is
+work from the reader's side — the first-principles question: what does this
+reader do differently after reading? **Questions come once or not at all** — when a required input is
 missing or two requirements conflict, batch every question into one round
 before generating; otherwise state your assumptions in the delivery note and
 proceed, because one clear prompt should normally produce a finished document.
@@ -61,7 +61,7 @@ a reader what the difference means. A page with no number panel simply has no li
 **One role, one rendering.** Every repeating role — title, support line, eyebrow,
 band value, band label, figure caption, listhead, callout, footer terms, page
 number — renders exactly one way, and a title is one way *per register* (content,
-cover, closing). The same holds for the four repeating **block patterns**: the
+cover, closing). The same holds for the repeating **block patterns**: the
 tier-1 callout (`.key`, and `.red` for a red line), the card (`.card` with
 `.ledname` and `.verdict`), the swap (`.swap` with `.no` and `.yes`) and the vow
 (`.vow` with `.vn`, `.vt`, `.vw`), the status chip (`.tag`), the graded ladder
@@ -255,7 +255,11 @@ neutral gutter. A page is never a box that takes the window's shape: written as
 `min-height:100svh` it is 16:9 only in a 16:9 window and 4:3 in a 4:3 one, and the
 surplus lands as a dead band above the footer. Check the shape at a window shape
 you did not design for, and check content against the box as well — a fixed box
-does not grow when its content does, it spills.
+does not grow when its content does, it spills. When the deliverable is exported
+rather than opened as HTML, render at the stage geometry: PDF as vector pages,
+rasters at **3× the stage by default (4K from 1280×720) and never below 2× (2K)**
+— the scale is an export multiplier only, never a change to the stage, whose
+zoom adapts to the reader's window and pixel density natively.
 
 **Layout**: one claim per page, and **a layout chosen for the content**, not one
 template repeated. Vertical: stack, hero-band (dominant block over a thin strip),
@@ -345,6 +349,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.377** snapshot, cut 2026-08-09. It is self-contained by
+> This file is the **0.1.378** snapshot, cut 2026-08-09. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

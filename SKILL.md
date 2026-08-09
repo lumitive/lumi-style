@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.377"
+  version: "0.1.378"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -82,9 +82,9 @@ been removed; they now apply at step 4 instead of framing step 0.
    only file that says what to reach for. Decide what the deliverable *is* before
    you decide what it may not do.
 1. **Study the input, then pick the scenario.** Read everything the user
-   supplied before designing anything, and work from the reader's side: what
-   does this reader need to do differently after reading, and which of the
-   supplied facts earn a page for that. **Questions come once or not at all**:
+   supplied before designing anything, and work from the reader's side — the
+   first-principles question: what does this reader need to do differently
+   after reading, and which of the supplied facts earn a page for that. **Questions come once or not at all**:
    when a required input is missing or two requirements conflict, batch every
    question into a single round before generation begins; otherwise state the
    assumptions in the delivery note and proceed — one clear prompt should
@@ -183,8 +183,9 @@ been removed; they now apply at step 4 instead of framing step 0.
    content, an overspent title reserve, a role split, a lost datum.
    `python3 scripts/check_design.py <file>` reports D1–D16 and gates on three
    things, none of them a design judgement: **D12**, the handling terms and origin
-   every page owes; **D14**, any slot left for yourself; and **D15**, a file path
-   in a footer. `python3 scripts/check_prose.py <file>` grades the English, and
+   every page owes (the terms open with the seal-red `shield` handling marker —
+   the rendering ships in `tokens/`, the gate is the terms); **D14**, any slot
+   left for yourself; and **D15**, a file path in a footer. `python3 scripts/check_prose.py <file>` grades the English, and
    **M12 fails on Chinese in text a reader sees** when the document declares
    English — a clean banned-phrase run is not a language pass.
    **A clean run is not a verified document. Look at the sheet.**
@@ -224,7 +225,7 @@ been removed; they now apply at step 4 instead of framing step 0.
 
 ## Cross-platform
 
-Four entry points load one rule set (single source in `references/`, with
+Three entry points load one rule set (single source in `references/`, with
 `brand.md` first in every load order):
 Claude Code uses this file; Codex reads `AGENTS.md`; Kimi / DeepSeek use
 `prompts/lumi-style-core.md` (self-contained single file). Per-platform loading
