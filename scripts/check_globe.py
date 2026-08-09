@@ -39,6 +39,9 @@ import geo_projection as gp   # noqa: E402
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 GOLDEN = ROOT / "fixtures" / "globe-golden.json"
 JS = ROOT / "assets" / "globe" / "projection.js"
+JS_DATA = ROOT / "assets" / "globe" / "worlddata.js"
+TOPOLOGY = ROOT / "assets" / "vectors" / "world-110m.json"
+REGIONS = ROOT / "assets" / "vectors" / "regions.json"
 
 TOLERANCE = 1e-9      # agreement between the port and the authority
 ROUND_TRIP = 1e-6     # degrees, invert(project(p)) back to p
@@ -286,6 +289,178 @@ def check_port(golden):
     return errors
 
 
+def _python_arc(flat, quantum):
+    n = len(flat) // 2
+    x, y = flat[0], flat[1]
+    out = [(x / quantum, y / quantum)]
+    for i in range(1, n):
+        x += flat[i * 2]
+        y += flat[i * 2 + 1]
+        out.append((x / quantum, y / quantum))
+    return out
+
+
+def _python_rings(topo):
+    """-> {code: (total ring points, total |signed area|)} the way the generator
+    means them to assemble."""
+    q = topo["quantum"]
+    arcs = [_python_arc(a, q) for a in topo["arcs"]]
+    out = {}
+    for country in topo["countries"]:
+        points, area = 0, 0.0
+        for refs in country["rings"]:
+            ring = []
+            for idx in refs:
+                arc = arcs[idx if idx >= 0 else ~idx]
+                seq = arc if idx >= 0 else arc[::-1]
+                ring.extend(seq[1:] if ring else seq)
+            if len(ring) > 3:
+                if abs(ring[0][0] - ring[-1][0]) > 1e-12 or abs(ring[0][1] - ring[-1][1]) > 1e-12:
+                    ring.append(ring[0])
+                points += len(ring)
+                area += abs(sum(ring[i][0] * ring[i + 1][1] - ring[i + 1][0] * ring[i][1]
+                                for i in range(len(ring) - 1)) / 2.0)
+        out[country["a"]] = (points, area)
+    return out
+
+
+def check_decoder():
+    """The topology decoder, in the browser, against the Python that wrote it.
+
+    Two things a JS-side assertion alone could not catch, so both sides are
+    compared: the decoded point count against the arc lengths in the file, and
+    the ring geometry against what build_worldmap intended. A decoder that
+    dropped every junction point would still produce closed rings.
+    """
+    for path in (JS_DATA, TOPOLOGY, REGIONS):
+        if not path.exists():
+            return [f"{path.relative_to(ROOT)} is missing"]
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return ["Playwright is not installed, so the decoder was NOT verified."]
+
+    topo = json.loads(TOPOLOGY.read_text(encoding="utf-8"))
+    expect_points = sum(len(a) // 2 for a in topo["arcs"])
+    q = topo["quantum"]
+    # Ground truth for the two things a point count and a bounding box cannot
+    # see, because both are order-insensitive: whether junction duplicates were
+    # dropped, and whether backward arc references were actually reversed. A
+    # ring assembled without reversing holds exactly the same points in a
+    # scrambled order, so its bbox is identical and only its area is not.
+    expect_rings = _python_rings(topo)
+
+    script = """
+    (payload) => {
+      const d = self.__data.decode(payload.topo, payload.regions);
+      const points = d.arcs.reduce((n, a) => n + a.length, 0);
+      const closed = {};
+      for (const code of ['USA', 'CHN', 'DEU', 'RUS']) {
+        const rings = self.__data.ringsOf(code, d);
+        closed[code] = rings.length > 0 && rings.every(
+          r => r.length > 3
+            && Math.abs(r[0][0] - r[r.length - 1][0]) < 1e-9
+            && Math.abs(r[0][1] - r[r.length - 1][1]) < 1e-9);
+      }
+      let outOfRange = 0;
+      for (const a of d.arcs) {
+        for (const [lon, lat] of a) {
+          if (lon < -180.001 || lon > 180.001 || lat < -90.001 || lat > 90.001) {
+            outOfRange += 1;
+          }
+        }
+      }
+      const de = self.__data.ringsOf('DEU', d)[0];
+      const shape = {};
+      for (const code of payload.codes) {
+        let pts = 0;
+        let area = 0;
+        for (const r of self.__data.ringsOf(code, d)) {
+          pts += r.length;
+          let a = 0;
+          for (let i = 0; i < r.length - 1; i += 1) {
+            a += r[i][0] * r[i + 1][1] - r[i + 1][0] * r[i][1];
+          }
+          area += Math.abs(a / 2);
+        }
+        shape[code] = [pts, area];
+      }
+      return {
+        points, closed, outOfRange, shape,
+        countries: d.countries.size,
+        regionOfDEU: d.regionOf.get('DEU'),
+        regionOfUSA: d.regionOf.get('USA'),
+        unmapped: [...d.countries.keys()].filter(c => !d.regionOf.has(c)),
+        bboxEurope: d.bboxOf.get('europe'),
+        deuBbox: [Math.min(...de.map(p => p[0])), Math.min(...de.map(p => p[1])),
+                  Math.max(...de.map(p => p[0])), Math.max(...de.map(p => p[1]))],
+      };
+    }
+    """
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page = browser.new_page()
+        page.goto("about:blank")
+        page.add_script_tag(content=JS_DATA.read_text(encoding="utf-8")
+                            .replace("export function", "function")
+                            + "\nself.__data = { decode, ringsOf };")
+        r = page.evaluate(script, {"topo": topo,
+                                   "regions": json.loads(
+                                       REGIONS.read_text(encoding="utf-8")),
+                                   "codes": sorted(expect_rings)})
+        browser.close()
+
+    errors = []
+    if r["points"] != expect_points:
+        errors.append(f"decoded {r['points']} points, the file holds "
+                      f"{expect_points}")
+    for code, ok in r["closed"].items():
+        if not ok:
+            errors.append(f"ringsOf({code}) did not return closed rings")
+    if r["outOfRange"]:
+        errors.append(f"{r['outOfRange']} decoded coordinates fall outside "
+                      f"(-180..180, -90..90); the delta decode or the quantum "
+                      f"({q}) is wrong")
+    if r["countries"] != len(topo["countries"]):
+        errors.append(f"decoded {r['countries']} countries, the file holds "
+                      f"{len(topo['countries'])}")
+    if r["unmapped"]:
+        errors.append(f"no region for {r['unmapped'][:6]}")
+    if r["regionOfDEU"] != "europe" or r["regionOfUSA"] != "north-america":
+        errors.append(f"region index is wrong: DEU={r['regionOfDEU']}, "
+                      f"USA={r['regionOfUSA']}")
+    # Germany is roughly 5.9..15.0 E, 47.3..55.1 N. A decoder that swapped the
+    # axes or lost the sign lands nowhere near it, and a bbox test says so in
+    # one number where a screenshot would take a person.
+    w, s_, e, n = r["deuBbox"]
+    if not (5.0 < w < 7.0 and 46.5 < s_ < 48.0 and 14.0 < e < 16.0 and 54.0 < n < 56.0):
+        errors.append(f"Germany decodes to bbox {r['deuBbox']}, which is not "
+                      f"where Germany is")
+    if not r["bboxEurope"]:
+        errors.append("no bounding box for the europe region")
+
+    bad_count, bad_area = [], []
+    for code, (pts, area) in sorted(expect_rings.items()):
+        got = r["shape"].get(code)
+        if not got:
+            bad_count.append(f"{code}: no rings")
+            continue
+        if got[0] != pts:
+            bad_count.append(f"{code}: {got[0]} ring points, expected {pts}")
+        if area > 0 and abs(got[1] - area) > max(1e-6, area * 1e-9):
+            bad_area.append(f"{code}: ring area {got[1]:.6f}, expected "
+                            f"{area:.6f}")
+    if bad_count:
+        errors.append(f"ring point counts differ for {len(bad_count)} "
+                      f"countries — junction duplicates kept, or arcs dropped: "
+                      f"{bad_count[0]}")
+    if bad_area:
+        errors.append(f"ring areas differ for {len(bad_area)} countries — a "
+                      f"backward arc reference was not reversed, which leaves "
+                      f"the same points in a scrambled order: {bad_area[0]}")
+    return errors
+
+
 CHECKS = (
     ("round trip", check_round_trip, True),
     ("poles are points", check_poles, True),
@@ -334,9 +509,17 @@ def main(argv):
         else:
             print(f"ok    js port agrees with the python authority on "
                   f"{len(golden['samples'])} samples")
+        errors = check_decoder()
+        if errors:
+            failed += 1
+            print("FAIL  js topology decoder")
+            for e in errors[:8]:
+                print(f"        {e}")
+        else:
+            print("ok    js topology decoder")
 
     if failed:
-        print(f"\n{failed} of {len(CHECKS) + (0 if args.python_only else 1)} "
+        print(f"\n{failed} of {len(CHECKS) + (0 if args.python_only else 2)} "
               f"globe checks failed")
     return 1 if failed else 0
 
