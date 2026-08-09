@@ -3,6 +3,43 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.382 — the window stopped deciding the design, and the declaration reader stopped reading its own documentation
+
+Producing the first document actually designed for the sheet put the 0.1.380
+portrait work under load, and it found four defects in an hour. Every one of
+them was invisible until a portrait deliverable existed.
+
+**The type scaled with the reader's window while the page did not.** The
+display tiers were `clamp(min, Nvw, max)`, written before the page became a
+fixed box. With a `zoom`-scaled stage, `vw` resolves against the window and the
+box does not move, so one document set its titles at one size on a laptop and
+another on a wide monitor. Measured on the handbook: the cover's display type
+nearly doubled between the sheet and an 1800px window, and its ascenders
+landed on the wordmark. The tiers are now **fixed per stage** — the values the
+old clamps resolved to at each design geometry, so nothing moved at the
+geometry each was drawn for — with the portrait block carrying the sheet's own
+set. `zoom` stays viewport-relative, because scaling the whole stage to the
+window is the one thing that should follow it.
+
+**The reserve and the datum asked the window which geometry it was.** Both read
+`window.innerWidth >= window.innerHeight`, so a portrait handbook opened wide
+was told its released reserve was overspent and its released datum was lost.
+They now read the document's declaration, which is the thing that decides
+composition since 0.1.380.
+
+**The declaration reader read the stylesheet's own documentation.** 0.1.379
+matched `data-geometry` in the CSS *selectors*; 0.1.381 anchored on the `<body>`
+tag and then matched the worked example inside a token file's *comment*, which
+graded a portrait handbook as landscape. Both readers now strip style blocks and
+comments before looking, because what is left is markup. Second instance of one
+defect, and this note is here so there is no third.
+
+**The cover typeblock shipped a zero gap under leading of .92.** Display glyphs
+stand taller than their line box, so the title's ascenders reached the wordmark
+above them: a 3px overlap on the cover and the closing, which the collision
+check catches and a reader sees as a smudge. The typeblock now carries a 12px
+gap, and the workaround a deliverable had added locally is deleted.
+
 ## 0.1.381 — the apparatus exemption, declared rather than inferred; and a scope the audit did not know
 
 Two owner decisions from the 0.1.380 review, both closing a gap that had already
