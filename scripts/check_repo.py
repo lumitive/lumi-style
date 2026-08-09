@@ -1257,8 +1257,59 @@ def check_version_citations():
     return errors
 
 
+# Where a deliverable goes, declared once per entry point. The rule lives in
+# references/design-rules.md §7 and the other three restate it; scripts/output_dir.py
+# resolves it in code. That is five copies of one string, and a default that
+# lives only in prose is exactly the drift that produced the defect this guard
+# was written for — the package wrote finished client documents into its own
+# install tree for four releases while every check stayed green.
+#
+# Adding an entry point, or moving the rule, means adding it here. A file that
+# does not carry the literal fails rather than being skipped.
+OUTPUT_DEFAULT = "Documents/LUMI-Style"
+OUTPUT_DEFAULT_SITES = (
+    "references/design-rules.md",     # the source of truth
+    "SKILL.md",
+    "AGENTS.md",
+    "prompts/lumi-style-core.md",     # the prompt tier: no tools, so the literal is all it has
+    "scripts/output_dir.py",          # the resolver must agree with the prose
+)
+
+
+def check_output_default():
+    """Every statement of the output default names the same literal directory."""
+    errors = []
+    for name in OUTPUT_DEFAULT_SITES:
+        path = ROOT / name
+        if not path.is_file():
+            errors.append(f"{name}: declared in OUTPUT_DEFAULT_SITES and missing")
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        # output_dir.py builds the path from two constants rather than writing it
+        # out, so the literal is assembled the same way the script does.
+        if name == "scripts/output_dir.py":
+            found = re.search(r'^DOCUMENTS\s*=\s*"([^"]+)"', text, re.M)
+            folder = re.search(r'^FOLDER\s*=\s*"([^"]+)"', text, re.M)
+            if not found or not folder:
+                errors.append(f"{name}: DOCUMENTS and FOLDER are the resolver's "
+                              f"half of this contract and one of them is gone")
+                continue
+            built = f"{found.group(1)}/{folder.group(1)}"
+            if built != OUTPUT_DEFAULT:
+                errors.append(f"{name}: resolves to {built!r}, the rules say "
+                              f"{OUTPUT_DEFAULT!r}")
+            continue
+        if OUTPUT_DEFAULT not in text:
+            errors.append(f"{name}: states the output default without naming "
+                          f"{OUTPUT_DEFAULT!r} — an entry point that describes a "
+                          f"different directory sends deliverables somewhere the "
+                          f"others do not")
+    return errors
+
+
 CHECKS = (
     ("version stamps", check_versions),
+    ("output default", check_output_default),
     ("version citations", check_version_citations),
     ("english-only red line", check_english_only),
     ("markdown link targets", check_links),

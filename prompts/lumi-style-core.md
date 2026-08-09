@@ -18,7 +18,11 @@ reader do differently after reading? **Questions come once or not at all** — w
 missing or two requirements conflict, batch every question into one round
 before generating; otherwise state your assumptions in the delivery note and
 proceed, because one clear prompt should normally produce a finished document.
-Write outputs beside the input file unless the user names a directory. Work
+Write a finished document to **`Documents/LUMI-Style/`** under the user's home
+directory unless the user names a directory, and **ask before creating that
+folder** — never write into the package's own install tree. An export lands
+beside the document it was made from. The folder is shared, so a filename
+carries the document's own name and version. Work
 pages in parallel where your platform allows, and when expected generation time
 passes ten minutes, say so before starting.
 
@@ -197,7 +201,10 @@ of a page. **Below the figure: "Figure N · Name", then the source line, and
 nothing else.** Explanation belongs in the page's own column at reading size;
 under the figure it sits at caption size a page away from its argument, and it
 grows and then repeats — two captions reached 72 and 124 words and both turned out
-to be the opposite column restated. Align the caption to the drawing's left edge.
+to be the opposite column restated. **The caption block centres on its figure**,
+number, name and source line together, in both geometries; it centres on the
+figure's box, so a drawing whose ink sits off-centre inside its own viewBox gets
+redrawn rather than realigned.
 
 Shapes carry meaning: parallelogram = input/output, rectangle = process,
 diamond = decision, stadium = terminal, dashed outline = not built. Icons are
@@ -267,7 +274,11 @@ rasters at **3× the stage by default (4K from 1280×720) and never below 2× (2
 zoom adapts to the reader's window and pixel density natively.
 
 **Layout**: one claim per page, and **a layout chosen for the content**, not one
-template repeated. Vertical: stack, hero-band (dominant block over a thin strip),
+template repeated. **Every layout has one row that absorbs the page's leftover
+height, and the block that belongs in it is the centerpiece** — the last row in
+stack, band-hero and the split family, the MIDDLE row in hero-band, evenly split
+in thirds-v. Put a thin strip in the flexible row and the leftover height opens
+up under it. Vertical: stack, hero-band (dominant block over a thin strip),
 band-hero (its inverse), thirds-v. Horizontal: split 50/50, split-wide 38/62,
 split-narrow 62/38, columns-2/3/4. Composite: rail, quad, sidebar-notes,
 full-bleed, diagonal-flow, and cover-grid (the cover and the closing, set the
@@ -308,7 +319,14 @@ pattern), and the target share of its area follows the genre — **about half fo
 sales and marketing, about a third for training** — reported, never a floor.
 A reference page (glossary, scoring, boundaries) is exempt and says so with
 `data-role="apparatus"`, up to about one content page in five; declared, never
-inferred. A figure's name holds one line at the document's geometry. A cover
+inferred. **A page on the sheet carries more than a page on the slide**: a
+portrait content page adds a second content block beside its centerpiece — what
+to notice, the steps, the caution, the worked example — and one marked key point
+at the standard tier (the plain left rule), which does not raise the tier-one
+callout budget. That is a floor on the page's BLOCKS and never on the support line, which
+stays at one to three sentences; a page that cannot hold both becomes two pages,
+because the sheet is fixed and type is never nudged to make room.
+A figure's name holds one line at the document's geometry. A cover
 carries typography plus exactly one vector mark, no photography and no body copy,
 and if that mark is geography then a region drawn is a region claimed.
 
@@ -358,6 +376,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.383** snapshot, cut 2026-08-09. It is self-contained by
+> This file is the **0.1.385** snapshot, cut 2026-08-09. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

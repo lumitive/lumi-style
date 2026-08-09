@@ -88,9 +88,9 @@ look at, and none of its **design** judgements gates.
 
 **`--deliverable` is the exception, and it is a pre-delivery step, not a repo
 check.** Run against a file you are about to hand over, it exits non-zero on the
-eight things a rendered page can be wrong about decidably — **collision, content
-spill, page height, hidden content, a wrapped footer, an overspent title reserve,
-a role split, a lost datum**. Focal weight, column balance, caption distance, centerpiece scale,
+nine things a rendered page can be wrong about decidably — **collision, content
+spill, page height, hidden content, a wrapped footer, a drawing clipped by its own
+viewBox, an overspent title reserve, a role split, a lost datum**. Focal weight, column balance, caption distance, centerpiece scale,
 empty band and the part-opener count stay reported, because the fix for each is a
 design decision and a number satisfiable without improving the page ends the
 looking. Without the flag nothing here gates and the behaviour is unchanged, so
@@ -99,7 +99,7 @@ the repository's own "no design judgement blocks" stays true.
 *Provenance: a deliverable with overlapping text, an overspent reserve and a lost
 datum was recorded `pass` by the conformance harness, because the harness scored
 prose and design and **never ran the one instrument that renders the page**. Five
-of the eight findings above fire on it. A gate nothing invokes is not a gate.*
+of the findings above fire on it. A gate nothing invokes is not a gate.*
 
 | Probe | Reports | What it caught |
 |---|---|---|
@@ -107,6 +107,8 @@ of the eight findings above fire on it. A gate nothing invokes is not a gate.*
 | page height | pages whose rendered height differs from the geometry's | the first thing to read |
 | content spill | content against the page box, now the box is fixed | the blind spot locking the geometry created |
 | caption attachment | the gap between the drawing and its number and name | 95–205px, a reader asked why they were separated |
+| caption axis | the caption's centre against the drawing's ink centre, as a share of the drawing's width | a rule that had said "align left" for eleven releases while the CSS aligned to the cell |
+| **figure clipped** | ink drawn outside a figure's own viewBox — **gates** | a sentence 221 units past the right edge on a handbook page, invisible with no overflow, no collision and no spill to catch it |
 | source echo | a page citing the same source under the figure and in the footer | 11 pages, 2 word for word |
 | two tables | a page carrying more than one table | one page, and its rows could never align |
 | **D12 commercial footer** | handling terms and origin on every page — **gates** | a commercial requirement, not a design judgement |

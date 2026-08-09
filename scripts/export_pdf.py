@@ -18,8 +18,11 @@ every clamp() in tokens/ is written against the stage; the HTML edition needs no
 scale at all — the zoom stage adapts to the reader's window and pixel density
 natively.
 
-Output lands next to the input file unless --out names a directory, matching the
-skill's output-directory default.
+Output lands next to the input file unless --out names a directory. That is NOT
+the skill's output-directory default and is not meant to be: since 0.1.385 a new
+document is written to `Documents/LUMI-Style/`, while an export belongs beside
+the document it was made from, so a deliverable's HTML and PDF travel together.
+Do not "fix" this to resolve the default — design-rules.md §7 says both halves.
 
 Dependency posture matches inspect_layout.py: optional local tool, never in CI
 beyond a syntax check. `pip install playwright && playwright install chromium`.

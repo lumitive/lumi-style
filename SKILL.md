@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.383"
+  version: "0.1.385"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -69,8 +69,12 @@ a score-and-review loop (rule revisions go through CHANGELOG).
 **Defaults**: output language is **American English** unless the user specifies
 another; the canvas is **light** unless the user asks for dark
 (see `references/writing-rules.md` §0 and `references/design-rules.md` §1);
-**output files land in the input file's own directory** unless the user names
-another, and exports follow the export axis in `references/design-rules.md` §7
+**a finished document lands in `Documents/LUMI-Style/` under the user's home
+directory** unless the user names another — the same place on macOS, Windows and
+Linux, and **ask before creating it**. An *export* still lands beside the
+document it was made from, so a deliverable's HTML and PDF stay together; that
+folder is shared, so **a filename carries the document's own name and version**.
+Exports otherwise follow the export axis in `references/design-rules.md` §7
 (PDF at the stage; rasters default 4K, floor 2K).
 
 **Repository language: English only (red line).** Chinese strings appear in the
@@ -169,7 +173,14 @@ been removed; they now apply at step 4 instead of framing step 0.
    never a floor). **A reference page is exempt and declares it**:
    `data-role="apparatus"` on the glossary, the scoring page, the boundaries
    page — declared, never inferred, and a ceiling of about one content page in
-   five. **A figure's name holds one line** at the document's geometry; a name
+   five. **A page on the sheet carries more than a page on the slide**: a slide
+   is narrated and an A4 page is read alone, so a portrait content page adds a
+   **second content block** beside its centerpiece — what to notice in the
+   figure, the steps, the caution, the worked example — and **one marked key
+   point** at the standard tier, which does not raise the tier-one callout
+   budget. That is a floor on the page's *blocks*, never on the support
+   line, and a page that cannot hold both becomes two pages.
+   **A figure's name holds one line** at the document's geometry; a name
    that overruns gets shortened, never set smaller.
    A page that does not fit gets its **content** trimmed, never its type nudged,
    and that holds per geometry — A4 tightens spacing and leaves type alone.
@@ -192,10 +203,10 @@ been removed; they now apply at step 4 instead of framing step 0.
    scripts/inspect_layout.py <file>` renders the pages and builds a contact sheet;
    its design judgements gate nothing but it **exits 1 when a check could not be
    measured**, and those lines come before every green one. Run it again with
-   **`--deliverable`**, which exits non-zero on the eight findings a rendered page
+   **`--deliverable`**, which exits non-zero on the nine findings a rendered page
    can be wrong about decidably: collision, content spill, page height, hidden
-   content, a wrapped footer, an overspent title reserve, a role split, a lost
-   datum.
+   content, a wrapped footer, a drawing clipped by its own viewBox, an overspent
+   title reserve, a role split, a lost datum.
    `python3 scripts/check_design.py <file>` reports D1–D17 and gates on three
    things, none of them a design judgement: **D12**, the handling terms and origin
    every page owes (the terms open with the seal-red `shield` handling marker —

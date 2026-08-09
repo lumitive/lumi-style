@@ -34,10 +34,10 @@ anything could not be measured**. That is not a gate on the design; it is the
 difference between a probe that says nothing and a probe that says everything is
 fine. The judgements themselves still gate nothing.
 
-    python3 scripts/inspect_layout.py docs/deck.html
-    python3 scripts/inspect_layout.py docs/deck.html --geometry a4
-    python3 scripts/inspect_layout.py docs/deck.html --dark
-    python3 scripts/inspect_layout.py docs/deck.html --json
+    python3 scripts/inspect_layout.py ~/Documents/LUMI-Style/deck.html
+    python3 scripts/inspect_layout.py ~/Documents/LUMI-Style/deck.html --geometry a4
+    python3 scripts/inspect_layout.py ~/Documents/LUMI-Style/deck.html --dark
+    python3 scripts/inspect_layout.py ~/Documents/LUMI-Style/deck.html --json
 
 Needs Playwright with Chromium (`pip install pillow playwright && playwright
 install chromium`). Pillow is needed only for the ground contrast audit, which
@@ -412,11 +412,13 @@ PROBE = r"""
       if (px > focalPx) { focalPx = px; focalText = (e.textContent || '').trim().slice(0, 24); }
     }
     // A *drawing* that owns most of its cell is a focal element in its own
-    // right. A table is not, however much of the cell it fills: `.fill > table`
-    // is given `height:100%`, so every prose table on the deck reports 100% of
-    // its cell and would have counted as a focal element here. That is D7's
-    // exact failure — measuring the box instead of the thing in it — and it
-    // reached this probe before the probe was a day old.
+    // right. A table is not, however much of the cell it fills. Until 0.1.384
+    // `.fill > table` was given `height:100%`, so every prose table on the deck
+    // reported 100% of its cell and would have counted as a focal element here:
+    // D7's exact failure — measuring the box instead of the thing in it — and it
+    // reached this probe before the probe was a day old. Tables no longer
+    // stretch, so the box lies less; the exclusion stays, because a full grid of
+    // values is still not the thing an eye lands on before it starts reading.
     const centerIsDrawing = best && (best.tag === 'svg' || best.cls === 'fig');
     const figLead = (best && centerIsDrawing) ? (best.w * best.h / best.cellArea) : 0;
 
@@ -449,6 +451,34 @@ PROBE = r"""
         visualPct = Math.min(100, Math.round(100 * visPx / denom));
     }
 
+    // ── what the page says, beside what it shows (§4, 0.1.384) ────────────
+    // A slide is narrated and a sheet is read alone, so a portrait content page
+    // owes a second content block beside its centerpiece and one highlighted key
+    // point. Both counted OUTSIDE the title reserve, because the support line is
+    // a different budget and §3 caps it at three sentences — a rule that grew
+    // the lede to satisfy this one would be the two rules fighting.
+    // Outermost only, or a list inside a callout counts twice.
+    let saidBlocks = null, keyPoints = null;
+    if (bodyEl) {
+      const SAID = 'p, ul, ol, dl, .listhead, .key, .red, .note, .ask, .card,'
+                 + ' .swap, .vow, .gd, .grades';
+      const lede = bodyEl.querySelector(':scope > .lede');
+      saidBlocks = 0;
+      for (const e of bodyEl.querySelectorAll(SAID)) {
+        if (lede && lede.contains(e)) continue;
+        if (e.closest('.cap, .legend, .geolegend, .spec, .colophon')) continue;
+        if (e.parentElement && e.parentElement.closest(SAID)) continue;
+        if (e.getBoundingClientRect().height < 4) continue;
+        saidBlocks++;
+      }
+      // Any marked aside, tier-1 or standard. NOT tier-1 only: §4 budgets
+      // `.key`/`.red` at one page in three, so a probe asking every page for one
+      // would ask an author to break the rule three lines above the one it
+      // enforces. The standard tier is `.gd`, and it is the one that scales.
+      keyPoints = [...bodyEl.querySelectorAll('.gd, .key, .red')]
+        .filter(e => !(lede && lede.contains(e))).length;
+    }
+
     // ── caption budget ────────────────────────────────────────────────────
     // Under a figure belongs the number, the name and the source. Prose there is
     // body copy in a caption's clothes: it sits at caption size, far from the
@@ -476,13 +506,59 @@ PROBE = r"""
     // svg box grows past its drawing they end up 95-205px below it, floating
     // near the footer, and a reader asks why the figure's name has been
     // separated from the figure.
-    let capGapPx = null;
+    // Ink outside the viewBox is ink the reader never sees: a root <svg> clips
+    // at its viewBox, so a label drawn past the right edge is simply gone, with
+    // no overflow, no collision and no spill for any other probe to catch. This
+    // is the defect CLAUDE.md rule 8 names as the reason a person has to look at
+    // the render — and it is decidable, so it does not need one. Measured per
+    // drawing in USER UNITS, and reported as a share of the viewBox so a 660-wide
+    // and a 300-wide drawing are comparable.
+    const clipped = [];
+    for (const sv of s.querySelectorAll('.fig svg[viewBox]:not(.ic)')) {
+      const vb = sv.viewBox.baseVal;
+      if (!vb || !vb.width || !vb.height) continue;
+      let worst = 0;
+      for (const e of sv.querySelectorAll('*')) {
+        let bb; try { bb = e.getBBox(); } catch (err) { continue; }
+        if (!bb.width && !bb.height) continue;
+        worst = Math.max(worst,
+          (bb.x + bb.width) - (vb.x + vb.width), vb.x - bb.x,
+          (bb.y + bb.height) - (vb.y + vb.height), vb.y - bb.y);
+      }
+      // Half a unit of rounding is not a clipped label.
+      if (worst > 0.5)
+        clipped.push({over: +worst.toFixed(0),
+                      pct: +(100 * worst / Math.max(vb.width, vb.height)).toFixed(1)});
+    }
+
+    // Caption centring (§4 rule 7b, 0.1.384). The horizontal companion to the
+    // gap above: the caption block centres on its figure, and the two come apart
+    // when the drawing's ink is not centred inside its own viewBox — which no
+    // stylesheet can fix, so this reports a REDRAW and not a CSS defect.
+    //
+    // Measured on the rendered TEXT, via a Range over the caption's contents,
+    // never on `cap.getBoundingClientRect()`. The caption element is stretched to
+    // the cell, so its box centre is the cell centre whether or not the rule
+    // shipped — a thermometer reading its own water, which §7 forbids.
+    let capGapPx = null, capOffPct = null;
     for (const fig of s.querySelectorAll('.fig')) {
       const sv = fig.querySelector('svg[viewBox]:not(.ic)');
       const cap = fig.querySelector('.cap');
       if (!sv || !cap || sv.getBoundingClientRect().height < 4) continue;
-      const gap = inPageUnits(cap.getBoundingClientRect().top - inkBox(sv).bottom);
+      const ink = inkBox(sv);
+      const gap = inPageUnits(cap.getBoundingClientRect().top - ink.bottom);
       capGapPx = capGapPx === null ? gap : Math.max(capGapPx, gap);
+      const rng = document.createRange();
+      rng.selectNodeContents(cap);
+      const rects = [...rng.getClientRects()].filter(r => r.width > 1 && r.height > 1);
+      if (!rects.length || !(ink.right > ink.left)) continue;
+      const l = Math.min(...rects.map(r => r.left)), r2 = Math.max(...rects.map(r => r.right));
+      // As a SHARE of the drawing's width, not in pixels: the same 30px is
+      // invisible under a full-width figure and obvious under a figure in a
+      // two-column cell, so pixels are the wrong unit for this one.
+      const off = 100 * Math.abs((l + r2) / 2 - (ink.left + ink.right) / 2)
+                      / (ink.right - ink.left);
+      capOffPct = capOffPct === null ? +off.toFixed(1) : Math.max(capOffPct, +off.toFixed(1));
     }
 
     // One source per page. §4 rule 4 asks every figure for a source line and the
@@ -778,11 +854,11 @@ PROBE = r"""
       spillPx, pageSpillPx, deepestWho,
       frameSkewPx,
       sideMarginSkewPx: Math.round(Math.abs((body.left - sr.left) - (sr.right - body.right))),
-      layout, colCount, colTopSkewPx, colWeightRatio, visualPct,
+      layout, colCount, colTopSkewPx, colWeightRatio, visualPct, saidBlocks, keyPoints,
       focalPx: Math.round(focalPx), focalText, bodyPx: Math.round(bodyPx),
       focalRatio: +(focalPx / Math.max(1, bodyPx)).toFixed(2),
       figLeadPct: +(100 * figLead).toFixed(0),
-      caps, tables, drawn, capGapPx, sourceEcho, sourceComparable, fields, horizons,
+      caps, tables, drawn, capGapPx, capOffPct, clipped, sourceEcho, sourceComparable, fields, horizons,
       textOverlaps, worstOverlap,
       ledeBlocks, ledeClamped, reserveExpected,
       openerOutsidePx, openerSide,
@@ -1357,6 +1433,15 @@ def _hiding(live):
 # hide the thing this measures.
 RESERVE_ALLOWANCE_PX = 4
 
+# How far a caption's centre may sit off its drawing's ink centre, as a share of
+# the drawing's own width. A CEILING, not a target — a drawing whose ink is
+# perfectly centred reports 0 and that is the ordinary case. Ten percent is where
+# the eye starts reading the caption as belonging to the cell rather than to the
+# figure. Measured on the two tracked fixtures rather than chosen: the
+# deliberately weak figure reports 34.2 and every well-composed one reports 6.1
+# or less, so the threshold separates them with room on both sides.
+CAP_OFF_AXIS_PCT = 10
+
 
 def _overspent(live):
     ledes = [r for r in live if r.get("ledeBlocks")]
@@ -1540,6 +1625,39 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
     else:
         print("  -- caption: no figure pairs a drawing with a caption, nothing to measure")
 
+    # The horizontal half. A caption centres on its figure's BOX, so an offset
+    # here means the drawing's ink is off-centre inside its own viewBox: a
+    # redraw, not a stylesheet fix. Reported and never gated for that reason —
+    # `--deliverable` cannot ask an author to redraw on the way out the door.
+    ncap3 = sum(1 for r in live if r.get("capOffPct") is not None)
+    off = [r for r in live if (r.get("capOffPct") or 0) > CAP_OFF_AXIS_PCT]
+    if off:
+        print(f"  CAPTION OFF-CENTRE: {len(off)} "
+              f"figure{'s' if len(off) != 1 else ''} carr"
+              f"{'y' if len(off) != 1 else 'ies'} the caption off the drawing's axis "
+              f"by more than a tenth of its width — the ink sits off-centre inside "
+              f"its own viewBox, so this is a redraw: "
+              + ", ".join(f"{r['id']} {r['capOffPct']}%"
+                          for r in sorted(off, key=lambda r: -(r["capOffPct"] or 0))[:6]))
+    elif ncap3:
+        worst = max(r["capOffPct"] for r in live if r.get("capOffPct") is not None)
+        print(f"  caption: all {ncap3} captions centre on their drawing "
+              f"(worst {worst}% of the drawing's width)")
+    else:
+        print("  -- caption axis: nothing to measure")
+
+    clip = [r for r in live if r.get("clipped")]
+    if clip:
+        n = sum(len(r["clipped"]) for r in clip)
+        worst = max((c for r in clip for c in r["clipped"]), key=lambda c: c["pct"])
+        print(f"  FIGURE CLIPPED: {n} drawing{'s' if n != 1 else ''} on "
+              f"{len(clip)} page{'s' if len(clip) != 1 else ''} draw outside their "
+              f"own viewBox, so a root svg clips it away and the reader never sees "
+              f"it (worst {worst['over']} user units, {worst['pct']}% of the "
+              f"drawing): " + _fmt_ids(clip, 8))
+    elif any(r.get("drawn") for r in live):
+        print("  ok  figures: every drawing stays inside its own viewBox")
+
     echo = [r for r in live if r.get("sourceEcho", 0)]
     if echo:
         print(f"  SOURCE TWICE: {len(echo)} pages state the same source under "
@@ -1676,12 +1794,14 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
     # content page's area carries something drawn or figured. A target and a
     # review trigger, never a gate; pages under it are listed so a human looks
     # at them, and check_design.py's D16 asks the presence half statically.
-    # The target is graded in LANDSCAPE geometries only: the portrait tokens
-    # cap a figure at 36svh by design, which puts ~40% at the practical ceiling
-    # for a split page — measured on the package's own fixture, where every
-    # page sat "under target" at A4 while healthy. A target no page can meet
-    # is a line reviewers learn to skip, so the sheet reports shares without
-    # grading them.
+    # Graded at the geometry the document DECLARES, and reported at every other.
+    # The reason it is not graded off-design: the portrait tokens capped a figure
+    # at 36svh and then 52svh, which put ~40% at the practical ceiling for a
+    # split page — measured on the package's own fixture, where every page sat
+    # "under target" at A4 while healthy. A target no page can meet is a line
+    # reviewers learn to skip. That ceiling is withdrawn in 0.1.385, so the
+    # sheet's shares are now reachable; the off-design report stays reported
+    # because a composition graded at a shape nobody designed it for is noise.
     content = [r for r in live
                if not (r.get("isOpener") or r.get("isCover") or r.get("isClosing")
                        or r.get("isApparatus"))
@@ -1707,9 +1827,19 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
     # blocks; a training page carries about a third, because a learner needs
     # the words beside the drawing. Both are targets and review triggers, never
     # floors.
+    unknown_genre = genre is not None and genre not in VISUAL_SHARE_TARGET
     target = VISUAL_SHARE_TARGET.get(genre or "sales", 50)
     low = [r for r in content if r["visualPct"] < target]
-    if content and off_design:
+    if content and unknown_genre:
+        # Loud, because the whole point of this change is that it used to be
+        # silent: a typo in the declaration graded a training handbook against
+        # the sales target and printed a confident green line about it.
+        unmeasured += 1
+        print(f"  -- visual share: NOT MEASURED, the document declares "
+              f"data-genre=\"{genre}\" and this package knows "
+              + ", ".join(sorted(VISUAL_SHARE_TARGET))
+              + " — fix the declaration rather than trusting a default")
+    elif content and off_design:
         w = min(content, key=lambda r: r["visualPct"])
         print(f"  visual share: reported only, since this is not the geometry "
               f"the document declares; lowest {w['id']} at {w['visualPct']}%")
@@ -1722,6 +1852,27 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
     elif content:
         print(f"  visual share: all {len(content)} content pages carry visual blocks "
               f"at or above the {target}% {genre or 'sales'} target")
+
+    # Sheet density (§4, owner directive 2026-08-09). Reported on the geometry the
+    # rule is about and nowhere else — a slide is narrated, so a landscape page
+    # carrying only its centerpiece is not a finding. Reported, never gated: what
+    # a page ought to say is a judgement, and `--deliverable` decides only the
+    # things a rendered page can be wrong about mechanically.
+    if designed == "portrait" and content:
+        thin = [r for r in content if (r.get("saidBlocks") or 0) < 1]
+        unlit = [r for r in content if (r.get("keyPoints") or 0) < 1]
+        if thin:
+            print(f"  SHEET DENSITY: {len(thin)} of {len(content)} portrait content "
+                  f"pages carry a centerpiece and no second content block — "
+                  + _fmt_ids(thin, 8)
+                  + ". The sheet is read alone; §4 asks for what to notice, the "
+                    "steps, the caution or the worked example beside the drawing.")
+        else:
+            print(f"  sheet density: all {len(content)} portrait content pages carry "
+                  f"a second content block beside the centerpiece")
+        if unlit:
+            print(f"  sheet density: {len(unlit)} of {len(content)} portrait content "
+                  f"pages carry no highlighted key point — " + _fmt_ids(unlit, 8))
 
     print(f"  figures: {ndrawn} of {len(live)} pages are built on a drawing "
           f"rather than a grid or a block of prose")
@@ -1895,6 +2046,10 @@ def deliverable_verdicts(rows, consistency):
         lambda h: f"{len(h)} pages clip their own title block: " + _fmt_ids(h))
     add("footer_wrap", _footer_wrapped(live), not footed,
         lambda h: f"{len(h)} footers wrap to a second line: " + _fmt_ids(h))
+    drawn = [r for r in live if r.get("drawn")]
+    add("figure_clipped", [r for r in live if r.get("clipped")], not drawn,
+        lambda h: f"{len(h)} pages draw outside a figure's own viewBox, which "
+                  f"clips it away unseen: " + _fmt_ids(h))
     ledes = [r for r in live if r.get("ledeBlocks")]
     add("reserve_overspent", _overspent(live),
         not ledes or not ledes[0].get("reserveExpected"),
@@ -1926,7 +2081,17 @@ def deliverable_print(label, verdicts):
         print(f"  {verdict:<5} {finding:<18}" + (f" {detail}" if detail else ""))
 
 
-VISUAL_SHARE_TARGET = {"sales": 50, "marketing": 50, "consulting": 50, "training": 30}
+# The share target per genre. `internal` joined in 0.1.385: it had been absent,
+# so an internal-analysis deck fell through the dict's default and was graded
+# against the sales number without anything saying so. The value is the same 50 —
+# what changed is that it is now a declared decision rather than a fallback.
+#
+# EVERY genre this package declares needs an entry here, and a genre that is not
+# in this table is reported as not measured rather than graded as sales. A
+# document declares its genre in markup, and markup has typos: `data-genre="traning"`
+# used to score a training handbook against the 50% target in silence.
+VISUAL_SHARE_TARGET = {"sales": 50, "marketing": 50, "consulting": 50,
+                       "internal": 50, "training": 30}
 
 GROUND_CEILING = 1.40          # a ceiling, not a target: quieter is always fine
 
@@ -1979,9 +2144,9 @@ def main(argv):
     ap.add_argument("--deliverable", action="store_true",
                     help="grade this file as something about to be sent: exit "
                          "non-zero on collision, content spill, page height, "
-                         "hidden content, a wrapped footer, an overspent title "
-                         "reserve, a role split or a lost datum. Without it "
-                         "nothing here gates.")
+                         "hidden content, a wrapped footer, a drawing clipped "
+                         "by its own viewBox, an overspent title reserve, a role "
+                         "split or a lost datum. Without it nothing here gates.")
     args = ap.parse_args(argv)
 
     def declared(path):
