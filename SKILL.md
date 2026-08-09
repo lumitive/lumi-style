@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.379"
+  version: "0.1.380"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -34,15 +34,24 @@ this exact move elsewhere (click-through must never measure relevance, because
 the metric rewards what it exists to suppress); the fill floor was the same
 mistake in the design half.*
 
-**Every output serves two page geometries, and each is a fixed box.** Internal
-and market material is projected and it is printed, so both are latent defaults:
-**16:9 landscape (1280×720)** for projection and PDF/PPT export, and **A4 portrait
-(794×1123)** for printing and binding. **Which one leads follows the genre**:
-sales, marketing and consulting design 16:9 first; **training material designs
-A4 portrait first**, because it is printed, annotated and bound — the other
-geometry is still composed and verified as the second edition. Each is a
-page-sized stage scaled to fit the window and letterboxed — *not* a box that
-takes the window's shape. Portrait is a composition, not a reflow.
+**A deliverable is designed for ONE page geometry, and it declares which.**
+Two fixed boxes exist — **16:9 landscape (1280×720)** for projection and PDF
+export, **A4 portrait (794×1123)** for printing and binding — and a document
+picks one, says so with `<body data-geometry="landscape">` or `"portrait"`, and
+is composed for it. The genre gives the default: sales, marketing and
+consulting lead 16:9; training leads A4 portrait. **When the request does not
+settle the genre or the format, ask before generating** — it is the one
+question worth a round trip, because the answer changes every page. A second
+geometry is a second *composition*, in its own file, with its own layouts and
+its own figures; it is never the same file viewed sideways. Each stage is
+scaled to fit the window and letterboxed — *not* a box that takes the window's
+shape. Portrait is a composition, not a reflow.
+
+*Provenance: a 31-page landscape deck exported at A4 came back with dead
+half-pages, figures starved to 188px in a 682px column, and a footer wrapped to
+two lines on all 31 pages — a composition nobody had designed, produced
+automatically by a window-shape media query. `export_pdf.py` now refuses a
+geometry the document does not declare.*
 
 *Provenance: until 0.1.343 the page was `min-height: 100svh`, so it was 16:9 only
 when the window happened to be, and 4:3 in a 4:3 window. A reader found it; no
@@ -154,9 +163,11 @@ been removed; they now apply at step 4 instead of framing step 0.
    `.card` + `.ledname` + `.verdict`, the swap `.swap .no` / `.swap .yes`, the
    vow `.vow` + `.vn` + `.vt` + `.vw`, the status chip `.tag`, the graded ladder
    `.grades`, and the glossary `dl.gloss`. They are furniture for text, not a
-   substitute for a figure — **about half of a content page's area goes to
-   visual blocks (a target the checks report, never a floor), and every content
-   page carries at least one**.
+   substitute for a figure — **every content page carries at least one visual
+   block, and the target share of its area follows the genre: about half for
+   sales, marketing and consulting, about a third for training** (reported,
+   never a floor). **A figure's name holds one line** at the document's
+   geometry; a name that overruns gets shortened, never set smaller.
    A page that does not fit gets its **content** trimmed, never its type nudged,
    and that holds per geometry — A4 tightens spacing and leaves type alone.
    **A title block that does not fit gets shorter text, never a clamp.** `.lede`
@@ -178,10 +189,11 @@ been removed; they now apply at step 4 instead of framing step 0.
    scripts/inspect_layout.py <file>` renders the pages and builds a contact sheet;
    its design judgements gate nothing but it **exits 1 when a check could not be
    measured**, and those lines come before every green one. Run it again with
-   **`--deliverable`**, which exits non-zero on the seven findings a rendered page
+   **`--deliverable`**, which exits non-zero on the eight findings a rendered page
    can be wrong about decidably: collision, content spill, page height, hidden
-   content, an overspent title reserve, a role split, a lost datum.
-   `python3 scripts/check_design.py <file>` reports D1–D16 and gates on three
+   content, a wrapped footer, an overspent title reserve, a role split, a lost
+   datum.
+   `python3 scripts/check_design.py <file>` reports D1–D17 and gates on three
    things, none of them a design judgement: **D12**, the handling terms and origin
    every page owes (the terms open with the seal-red `shield` handling marker —
    the rendering ships in `tokens/`, the gate is the terms); **D14**, any slot

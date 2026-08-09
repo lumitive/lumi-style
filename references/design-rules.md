@@ -239,8 +239,12 @@ comes from size and letterspacing.
 - **A drawing outargues a paragraph, and its share of the page is watched**
   (owner directive 2026-08-09). Every content page carries at least one visual
   block — a drawn figure, a stat band, a display lead, or one of the comparison
-  patterns — and about **half the content area** given to visual blocks is the
-  **target**. `check_design.py` D16 reports the pages that carry none, and
+  patterns — and the **target** share of the content area given to visual blocks
+  follows the genre (owner directive, 0.1.380): **about half for sales,
+  marketing and consulting**, where the page argues visually, and **about a
+  third for training**, where a learner needs the words beside the drawing. The
+  document declares its genre (`<body data-genre="training">`) and the checks
+  grade against that number. `check_design.py` D16 reports the pages that carry none, and
   `inspect_layout.py` reports each page's rendered share against the target;
   both are review triggers, never floors, because the withdrawn 82% fill floor
   is the standing record of what a floor here does. The reconciliation with §4
@@ -295,7 +299,13 @@ takes a line of its own at the top of a page where it reads as a heading.
 *Provenance: "top right, above the plot" was applied to every figure regardless of
 shape, at a size that competed with the figure title.*
 
-7. **Figure number and name go below the figure. This does not change.** A reader
+7. **Figure number and name go below the figure. This does not change.** **The
+name holds one line at the document's geometry** — a wrapped caption stops
+reading as a label and starts reading as prose under the drawing. That is a
+**ceiling on the name, not a target**, and it is set by the CELL the figure
+sits in rather than by the page: about 100 characters for a full-width figure
+on the 16:9 stage, about 60 in a two-column split or on the A4 sheet. A name
+that overruns gets shortened, never set smaller. `inspect_layout.py` counts wrapped captions. A reader
 looks at the picture and then asks what it is; putting the name above answers a
 question they have not formed yet, and putting it beside breaks the pairing when
 the column stacks. *Provenance: two split-layout pages moved the caption into the
@@ -530,13 +540,24 @@ A layout is verified only across the **matrix**, not at a point:
     export.
   - **A4 portrait, 794×1123** — printing and binding.
 
-  **Which one is primary follows the genre** (owner directive 2026-08-09): sales,
-  marketing and consulting material is projected first, so 16:9 leads and A4 is
-  the print edition; **training material is printed, annotated and bound, so A4
-  portrait leads** and 16:9 is the projection edition. Primary decides which
-  geometry the deliverable is designed against first and which edition is handed
-  over by default — it never removes the other matrix point, which is still
-  composed and verified.
+  **A deliverable is designed for ONE of them, and it says which** (owner
+  directive, 0.1.380). `<body data-geometry="landscape">` or `"portrait"`, and
+  the tokens hang the stage off that declaration rather than off the reader's
+  window. The genre picks the default — sales, marketing and consulting are
+  projected, so 16:9; training is printed, annotated and bound, so A4 portrait —
+  **and when the request does not settle the genre or the format, ask before
+  generating.** That is the one question worth a round trip, because the answer
+  changes every page.
+
+  **Both editions of one file is not a thing this package produces.** A second
+  geometry is a second *composition*: different layouts, figures drawn for the
+  new proportions, its own title lengths. Serving both from one file gives the
+  unnamed one an automatic collapse nobody designed. *Provenance: a 31-page
+  landscape deck exported at A4 produced dead half-pages, figures starved to
+  188px in a 682px column, and a footer wrapped to two lines on every page —
+  none of it visible at the geometry it was designed for. `export_pdf.py` now
+  refuses a geometry the document does not declare, and `inspect_layout.py`
+  grades the declared one.*
 
   **Portrait is a composition, not a reflow.** A two-column split at 794px wide
   gives two 370px gutters, so a page that is a split in landscape usually wants a

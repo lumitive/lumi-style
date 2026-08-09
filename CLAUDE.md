@@ -14,7 +14,7 @@ sync, and recording changes in the changelog.
 ```bash
 python3 scripts/check_repo.py            # repo invariants; exit 1 on any failure
 python3 scripts/check_prose.py <file>    # AI-flavor metrics (M4, M8-M11) on a deliverable
-python3 scripts/check_design.py <file>   # design metrics (D1-D16) on a deliverable
+python3 scripts/check_design.py <file>   # design metrics (D1-D17) on a deliverable
 python3 scripts/inspect_layout.py <file> # render a deliverable and report what the layout does
 python3 scripts/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
 python3 scripts/embed_font.py            # @font-face block with the face inlined
@@ -52,9 +52,9 @@ when a check could not be measured at all** — a document whose markup it canno
 read, a role whose class it cannot find, an audit that crashed. That distinction
 is the point: until 0.1.350 all three of those printed the same reassuring lines as
 a clean document. **`--deliverable` gates a *document*, never this repo**: it
-exits non-zero on the seven findings that are decidable rather than aesthetic
-(collision, content spill, page height, hidden content, an overspent title
-reserve, a role split, a lost datum) and is the pre-delivery step in `SKILL.md`.
+exits non-zero on the eight findings that are decidable rather than aesthetic
+(collision, content spill, page height, hidden content, a wrapped footer, an
+overspent title reserve, a role split, a lost datum) and is the pre-delivery step in `SKILL.md`.
 `run_conformance.py` runs it that way. Everything else it prints stays reported,
 including the part-opener count, which is an observation and not a floor. `check_prose.py` is
 English-only and takes `--genre {sales,internal,training}`; internal analysis

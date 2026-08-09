@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import argparse
 import pathlib
+import re
 import sys
 
 # The genre vocabulary is imported from its one home, never copied. This tool
@@ -143,6 +144,11 @@ def export(path: pathlib.Path, geometry: str, scale: float, png: bool,
                     print(f"WARN  {target.name} paginated to ~{pdf_pages} PDF "
                           f"pages against {len(sections)} sections — check the "
                           f"document's @media print break rules")
+                blends = raw.count(b"/BM") - raw.count(b"/BM /Normal")
+                if blends > 0:
+                    print(f"WARN  {target.name} carries {blends} blend-mode entries; "
+                          f"one blended element makes the reader composite a whole "
+                          f"page, measured at 10x render time on a 31-page deck")
                 print(f"ok    {len(sections)} pages -> {target} "
                       f"(vector; the stage is the page size)")
         finally:
@@ -178,8 +184,21 @@ def main(argv):
         ap.error(f"--scale {args.scale:g} is below the floor of {SCALE_FLOOR:g} "
                  f"(2x the stage, 2K); the default is {SCALE_DEFAULT:g} (4K)")
 
-    # The genre's primary geometry is the edition handed over by default
-    # (design-rules §7); an explicit --geometry always wins.
+    # The document's own declaration decides, because a deliverable is designed
+    # for ONE geometry (design-rules §7). Exporting a landscape deck at A4 is
+    # how a portrait PDF came back with dead half-pages, starved figures and a
+    # wrapped footer on all 31 pages: nothing was broken, the composition had
+    # simply never been designed. So a contradiction is a refusal, not a warning.
+    def declared_geometry(path):
+        try:
+            head = path.read_text(encoding="utf-8", errors="replace")[:400000]
+        except OSError:
+            return None
+        # On the <body> TAG: `data-geometry` also appears in the stylesheet's
+        # own selectors, which come first in the file.
+        m = re.search(r'<body\b[^>]*\bdata-geometry=["\'](\w+)["\']', head)
+        return m.group(1) if m else None
+
     geometry = args.geometry or ("portrait" if args.genre == "training" else "landscape")
 
     rc, seen = 0, set()
@@ -192,6 +211,16 @@ def main(argv):
         # One bad file must not abort the batch: a zero-size section or a
         # mid-render browser death FAILs this file and the loop continues,
         # which is the contract the per-file rc already promised.
+        decl = declared_geometry(path)
+        if decl and decl != geometry:
+            if args.geometry:
+                print(f"FAIL  {name}: declares data-geometry=\"{decl}\" and you asked "
+                      f"for {geometry}. A deliverable is designed for one geometry; "
+                      f"exporting the other renders a composition nobody designed. "
+                      f"Build a {geometry} edition, or export {decl}.")
+                rc = 1
+                continue
+            geometry = decl        # no flag given: follow the document
         try:
             rc = max(rc, export(path, geometry, args.scale, args.png,
                                 pathlib.Path(args.out) if args.out else None, seen))

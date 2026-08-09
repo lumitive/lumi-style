@@ -94,7 +94,12 @@ allowed — and the tier follows from the page class alone. A document defines
 its ripple drawing once and instantiates it per page (a `<defs>`/`<use>` pair
 or one repeated block); it draws it with `preserveAspectRatio="xMidYMid
 slice"`, which crops at the A4 sheet instead of stretching, so the marks keep
-their drawn weight in both geometries. A cropped ground still concentrates its
+their drawn weight in both geometries. **It never carries a blend mode.** On the
+lime opener the ground must darken the field rather than tint it, and that is a
+colour — the strokes take the field's own foreground — not a compositing mode.
+*Measured: `mix-blend-mode: multiply` on five opener pages took an exported
+31-page PDF from 448ms to 4515ms, because one blended element makes the reader
+composite the whole page. The look was identical either way.* A cropped ground still concentrates its
 densest band on a narrower page, so the strong tier steps down on the sheet —
 the token file carries both values, each measured against the ceiling in its
 own geometry.

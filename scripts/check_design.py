@@ -15,6 +15,7 @@ metric. Four of them were arithmetic:
     D9  layout spread  which layouts a deck uses (reported)
     D10 label icons   figure nodes and row-heads carrying an icon (reported)
     D16 visual presence  content pages carrying no visual block (reported)
+    D17 export weight    blend modes, filters and vector nodes (reported)
 
     D12 commercial footer  handling terms and origin on every page (**gates**)
     D14 placeholders       slots the author left for themselves (**gates**)
@@ -425,6 +426,28 @@ def d16_visual_presence(raw):
     return {"content_pages": content, "prose_only": prose_only}
 
 
+def d17_export_weight(raw, css):
+    """What this document will cost the reader when it is exported.
+
+    Reported, never gating: a heavy page is not a wrong page. But the cost is
+    invisible on screen and brutal in a PDF, and it is decidable from the CSS.
+
+    *Provenance: a 31-page deck exported to a 513 KB PDF that took 4515ms to
+    render — ten times its content's worth — because five opener pages carried
+    `mix-blend-mode: multiply` on the ground. One blended element forces the
+    reader to composite the whole page. Removing the mode alone brought it to
+    448ms; the node count and the group opacity together changed nothing
+    measurable.*
+    """
+    blends = re.findall(r"mix-blend-mode\s*:\s*([\w-]+)", css)
+    filters = re.findall(r"(?<!-)\bfilter\s*:\s*(?!none)([^;}]+)", css)
+    shadows = len(re.findall(r"box-shadow\s*:\s*(?!none)", css))
+    nodes = sum(len(m.split()) for m in re.findall(r'points="([^"]+)"', raw))
+    nodes += raw.count("<path ")
+    return {"blend_modes": [b for b in blends if b != "normal"],
+            "filters": len(filters), "shadows": shadows, "vector_nodes": nodes}
+
+
 def d8_support_line(raw):
     """Every content page carries a support line under the title. Figure pages
     are not exempt: a diagram with nothing introducing it drops the reader in."""
@@ -706,6 +729,7 @@ def measure(path):
         "D9_layout_variety": d9_layout_variety(raw),
         "D10_label_icons": (d10 := d10_label_icons(raw)),
         "D16_visual_presence": (d16 := d16_visual_presence(raw)),
+        "D17_export_weight": d17_export_weight(raw, css),
         # The contains hook in check_fixtures.py reads <PREFIX>_detail. D16's
         # is the WHOLE dict, not just the prose-only list, so the pass fixture
         # can assert '"prose_only": []' — a regression that flags every
@@ -768,6 +792,10 @@ def grade(r):
     rows.append(("D10_label_icons",
                  f"{i['eyebrow_icons']} eyebrow, {i['figure_or_row_icons']} in figures"
                  if i else None, "reported", True, i is None))
+    ew = r["D17_export_weight"]
+    rows.append(("D17_export_weight",
+                 f"{len(ew['blend_modes'])} blend modes, {ew['vector_nodes']} nodes",
+                 "reported", True, False))
     vp = r["D16_visual_presence"]
     rows.append(("D16_visual_presence",
                  f"{len(vp['prose_only'])} of {vp['content_pages']} content pages "
@@ -826,6 +854,10 @@ def main(argv):
             print(f"        contrast {f['ratio']}:1 on {f['on']} — "
                   f"{f['selector']} uses --{f['token']}"
                   + (f" at {f['font_size_px']}px" if f["font_size_px"] else ""))
+        if r["D17_export_weight"]["blend_modes"]:
+            print(f"        blend modes make the export composite whole pages: "
+                  f"{', '.join(sorted(set(r['D17_export_weight']['blend_modes'])))} "
+                  f"— measured 10x on a 31-page deck")
         for line in r["D2_type_scale"]["smallest"]:
             print(f"        {line}")
         for h in r["D4_palette_literals"][:6]:

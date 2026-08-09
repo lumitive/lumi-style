@@ -3,6 +3,69 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.380 — one document, one geometry; and the blend mode that cost ten times the render
+
+A reader opened the A4 edition of a landscape sales deck and found five defects.
+All five were real, four of them had one root cause, and the fifth was measured
+rather than guessed.
+
+**A deliverable is designed for one geometry, and it says which.** The two
+stages were window-shape media queries, so a landscape deck in a tall window —
+or exported at A4 — silently became a portrait composition nobody had designed:
+dead half-pages, a figure starved to 188px in a 682px column, and a footer
+wrapped on all 31 pages. None of it was visible at the geometry the deck was
+built for. The stage now hangs off `<body data-geometry="landscape">` or
+`"portrait"`, the portrait composition applies because the document *says* it is
+portrait rather than because a window happened to be tall, `inspect_layout.py`
+grades the declared geometry, and `export_pdf.py` **refuses** the other one. The
+genre still picks the default — sales, marketing and consulting lead landscape,
+training leads portrait — and **when a request settles neither the genre nor the
+format, the skill asks before generating.** That is the one question worth a
+round trip, because the answer changes every page. A second geometry is a second
+*composition*, in its own file.
+
+**The footer wrapped because the page frame shipped nowhere.** `.page` had no
+rule in `tokens/`: every document invented its own `position`, `display` and
+padding, and a document writing `padding: 44px 92px` overrode the sheet's 56px
+margin, leaving the footer 610px where it had 682. The fix is not a smaller
+font, it is shipping the frame — the same defect as the missing
+`.foot { display: flex }` of 0.1.366, and the footer's own type now ships too
+(`--fs-foot`), because "footer terms" has been an audited role since 0.1.350
+while every deck declared its own size. **A wrapped footer is the eighth gating
+finding**: it is furniture overflowing its frame, which is decidable.
+
+**Two portrait rules were reserving space the content did not have.** The
+collapsed split used `minmax(0,3fr) minmax(0,2fr)`, so a short first cell left a
+dead band measured at a third of a sheet; the cells now hug their content and
+the centerpiece absorbs the slack. The portrait figure cap rose from 36svh to
+52svh, where a wide drawing had been rendering at a quarter of the page. The
+short-narrow and short-height media queries were removed outright: they predate
+the zoom stage, and a small window now shows a smaller page rather than a
+narrower one, so collapsing its columns answered a problem the stage had already
+solved.
+
+**A figure's name holds one line.** 14 of 17 captions wrapped at A4 and 7 of 17
+at 1280, because nothing bounded the name. It is a ceiling, not a target — about
+100 characters on the slide, about 60 on the sheet — and a name that overruns
+gets shortened, never set smaller. `inspect_layout.py` counts wrapped captions.
+
+**The visual-share target follows the genre** (owner directive): about half the
+content area for sales, marketing and consulting, where the page argues
+visually; about a third for training, where a learner needs the words beside the
+drawing. The document declares its genre and the checks grade against that
+number. Both remain review triggers, never floors.
+
+**And the PDF: `mix-blend-mode: multiply` cost an order of magnitude.** A 513 KB
+31-page export took 4515ms to render; removing the blend on five opener pages
+alone brought it to 448ms. One blended element forces the reader to composite the
+whole page. Baking the ground's alpha per tier and cutting its node count by 44%
+changed the file size and nothing else measurable, so the fix is the mode, not
+the geometry: on the lime field the ground darkens the field, which is a colour —
+its strokes take the field's own foreground — and the look is identical.
+`check_design.py` gains **D17, export weight**, reporting blend modes, filters
+and vector nodes, and `export_pdf.py` warns when a PDF it just wrote carries a
+blend mode.
+
 ## 0.1.379 — the four-agent review of 0.1.375–0.1.378, closed
 
 The owner ran a four-way review over the whole unpushed line — general
