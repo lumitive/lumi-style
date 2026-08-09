@@ -244,6 +244,21 @@ FIGURE_WEAK = """<div class="fill">
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>"""
 
+# A viewBox with three numbers instead of four: legal as an attribute,
+# meaningless as a value, and discarded by the browser — so the drawing lays out
+# against a box nobody chose. Found in a real deliverable at 0.1.386, where a
+# six-row figure rendered three rows while every check stayed green, because the
+# clipping probe read the unparsed box as "nothing to measure" and skipped it.
+FIGURE_BADBOX = """<div class="fill">
+      <div class="fig"><svg viewBox="0 640 300" preserveAspectRatio="xMidYMid meet"
+        role="img" aria-label="steps"><rect class="f-acc" x="20" y="20" width="600"
+        height="60" rx="4"/><rect class="f-accw" x="20" y="110" width="600"
+        height="60" rx="4"/><rect class="f-accw" x="20" y="200" width="600"
+        height="60" rx="4"/></svg>
+      <div class="cap"><span class="n">Figure {i}</span> Three tiers of feeder loss
+      <span class="srcline">Meter management system, extract of the period</span></div></div>
+    </div>"""
+
 NOTES = """<div class="notes">
       <p class="listhead">What qualifies it</p>
       <p class="key">A tier-1 callout marks the one aside that changes a decision.
@@ -422,7 +437,11 @@ def page(i: int, total: int, spec, broken: bool) -> str:
       {listblock}
       {cell}{band}{field}{lead}
     </div>"""
-    fig = FIGURE_WEAK if (broken and i == 4) else FIGURE
+    fig = FIGURE
+    if broken and i == 4:
+        fig = FIGURE_WEAK
+    elif broken and i == 8:
+        fig = FIGURE_BADBOX
     layout, cells = "split", argument + "\n    " + fig.format(i=i)
     if broken and i == 16:
         layout, cells = "stack", argument

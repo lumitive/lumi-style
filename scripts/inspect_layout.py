@@ -514,9 +514,18 @@ PROBE = r"""
     // drawing in USER UNITS, and reported as a share of the viewBox so a 660-wide
     // and a 300-wide drawing are comparable.
     const clipped = [];
+    const badBox = [];
     for (const sv of s.querySelectorAll('.fig svg[viewBox]:not(.ic)')) {
       const vb = sv.viewBox.baseVal;
-      if (!vb || !vb.width || !vb.height) continue;
+      // A viewBox that does not parse is not "nothing to check": the browser
+      // discards it and lays the drawing out against a box nobody chose, which
+      // is how a six-row figure rendered three rows and this probe skipped it.
+      // Caught by writing `viewBox="7 560 416"` — three numbers, silently legal
+      // as an attribute and meaningless as a value.
+      if (!vb || !vb.width || !vb.height) {
+        badBox.push((sv.getAttribute('viewBox') || '').slice(0, 24));
+        continue;
+      }
       let worst = 0;
       for (const e of sv.querySelectorAll('*')) {
         let bb; try { bb = e.getBBox(); } catch (err) { continue; }
@@ -858,7 +867,7 @@ PROBE = r"""
       focalPx: Math.round(focalPx), focalText, bodyPx: Math.round(bodyPx),
       focalRatio: +(focalPx / Math.max(1, bodyPx)).toFixed(2),
       figLeadPct: +(100 * figLead).toFixed(0),
-      caps, tables, drawn, capGapPx, capOffPct, clipped, sourceEcho, sourceComparable, fields, horizons,
+      caps, tables, drawn, capGapPx, capOffPct, clipped, badBox, sourceEcho, sourceComparable, fields, horizons,
       textOverlaps, worstOverlap,
       ledeBlocks, ledeClamped, reserveExpected,
       openerOutsidePx, openerSide,
@@ -1646,6 +1655,15 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
     else:
         print("  -- caption axis: nothing to measure")
 
+    bad = [r for r in live if r.get("badBox")]
+    if bad:
+        n = sum(len(r["badBox"]) for r in bad)
+        print(f"  FIGURE VIEWBOX UNREADABLE: {n} drawing{'s' if n != 1 else ''} on "
+              f"{len(bad)} page{'s' if len(bad) != 1 else ''} carr"
+              f"{'y' if n != 1 else 'ies'} a viewBox the browser cannot parse, so "
+              f"the drawing is laid out against a box nobody chose "
+              f"(first: {bad[0]['badBox'][0]!r}): " + _fmt_ids(bad, 8))
+
     clip = [r for r in live if r.get("clipped")]
     if clip:
         n = sum(len(r["clipped"]) for r in clip)
@@ -2047,6 +2065,9 @@ def deliverable_verdicts(rows, consistency):
     add("footer_wrap", _footer_wrapped(live), not footed,
         lambda h: f"{len(h)} footers wrap to a second line: " + _fmt_ids(h))
     drawn = [r for r in live if r.get("drawn")]
+    add("figure_viewbox", [r for r in live if r.get("badBox")], not drawn,
+        lambda h: f"{len(h)} pages carry a drawing whose viewBox does not parse: "
+                  + _fmt_ids(h))
     add("figure_clipped", [r for r in live if r.get("clipped")], not drawn,
         lambda h: f"{len(h)} pages draw outside a figure's own viewBox, which "
                   f"clips it away unseen: " + _fmt_ids(h))

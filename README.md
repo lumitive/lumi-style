@@ -89,8 +89,8 @@ scripts/                          check_repo · check_prose (M) · check_design 
 adapters/platforms.json           the platform registry: install paths · capability
                                   tiers · entry files, guarded by check_repo
 adapters/*.md                     per-platform loading notes
-Pipeline/                         the ideas backlog: problems with their evidence,
-                                  ranked — proposals, never rules
+Pipeline/                         the ideas backlog as a deck: problems with their
+                                  evidence, ranked — proposals, never rules
 ```
 
 Rules and assets ship together on purpose. Four times now a rule has required

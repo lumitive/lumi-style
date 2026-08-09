@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.385.** This file restates part of `references/`; where they
+> **lumi-style 0.1.386.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -74,7 +74,7 @@ most skeptical reader, and treat over-design as a finding, not a virtue.
 4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish),
    the D-series and `inspect_layout.py` diagnostics (**design judgements
    reported, never gating** — but an unmeasurable check exits 1 and says what it
-   could not find, and `--deliverable` exits 1 on the nine findings that are
+   could not find, and `--deliverable` exits 1 on the ten findings that are
    decidable rather than aesthetic),
    and H1–H6 self-scoring. Never self-score 5 before a reader has scored it, and
    always give the reason for the score, not just the number.

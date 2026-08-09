@@ -52,3 +52,7 @@ conformance/results/
 
 # inspect_layout contact sheets are renders, not records.
 fixtures/_layout/
+
+# inspect_layout contact sheets are renders, not records — the same reason
+# fixtures/_layout is ignored.
+Pipeline/_layout/
