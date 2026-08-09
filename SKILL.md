@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.385"
+  version: "0.1.386"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -203,10 +203,10 @@ been removed; they now apply at step 4 instead of framing step 0.
    scripts/inspect_layout.py <file>` renders the pages and builds a contact sheet;
    its design judgements gate nothing but it **exits 1 when a check could not be
    measured**, and those lines come before every green one. Run it again with
-   **`--deliverable`**, which exits non-zero on the nine findings a rendered page
+   **`--deliverable`**, which exits non-zero on the ten findings a rendered page
    can be wrong about decidably: collision, content spill, page height, hidden
-   content, a wrapped footer, a drawing clipped by its own viewBox, an overspent
-   title reserve, a role split, a lost datum.
+   content, a wrapped footer, a viewBox that does not parse, a drawing clipped by
+   its own viewBox, an overspent title reserve, a role split, a lost datum.
    `python3 scripts/check_design.py <file>` reports D1–D17 and gates on three
    things, none of them a design judgement: **D12**, the handling terms and origin
    every page owes (the terms open with the seal-red `shield` handling marker —

@@ -67,8 +67,21 @@ LADDERS = {"text": ("text_ladder", "tx"), "rule": ("rule_ladder", "ln")}
 VERSION = re.compile(r"\b(\d+\.\d+\.\d+)\b")
 
 
+# Prose this repository publishes, whatever it is written in. Markdown was the
+# only answer until 0.1.386, when a rule document was converted to HTML and
+# silently left the english-only and stale-promise guards behind — a conversion
+# that reduces coverage is a conversion that should have said so.
+PROSE_GLOBS = ("*.md", "Pipeline/*.html")
+
+
 def md_files():
-    return sorted(p for p in ROOT.rglob("*.md") if ".git" not in p.parts)
+    seen = {}
+    for pattern in PROSE_GLOBS:
+        for p in ROOT.rglob(pattern) if "/" not in pattern else ROOT.glob(pattern):
+            if ".git" in p.parts:
+                continue
+            seen[p] = None
+    return sorted(seen)
 
 
 def rel(path):

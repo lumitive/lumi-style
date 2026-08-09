@@ -3,6 +3,23 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.386 — a viewBox that does not parse is a defect, not an absence of one
+
+**A drawing whose viewBox the browser cannot read now fails the run.** Three
+numbers instead of four is legal as an attribute and meaningless as a value: the
+browser discards it and lays the drawing out against a box nobody chose. Found
+while building an internal document, where a six-row figure rendered three rows
+and left half a page empty — with every check green, because the clipping probe
+added one release earlier read the unparsed box as *nothing to measure* and
+skipped it silently. That is the same shape as the defect it was written to
+catch, one level up: the probe could not tell a drawing it had checked from a
+drawing it had given up on. Tenth `--deliverable` gate, with a planted case in
+the broken fixture so it has failed once before anyone trusts it.
+
+The lesson generalises past this probe and is worth stating: **a check that
+skips is not a check that passed.** Every `continue` in a probe is a claim that
+the thing skipped was not a subject, and that claim needs to be true.
+
 ## 0.1.385 — deliverables leave the package's own directory, and the sheet's figure ceiling stops contradicting the figure rule
 
 **A deliverable lands in the reader's workspace, not wherever the input happened
