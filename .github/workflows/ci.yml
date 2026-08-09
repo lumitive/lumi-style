@@ -30,7 +30,7 @@ jobs:
             scripts/check_repo.py scripts/check_prose.py scripts/check_design.py \
             scripts/embed_font.py scripts/embed_icons.py scripts/build_geography.py \
             scripts/geo_projection.py scripts/build_worldmap.py \
-            scripts/build_region_palette.py \
+            scripts/build_region_palette.py scripts/check_globe.py \
             scripts/build_entrypoints.py scripts/inspect_layout.py \
             scripts/build_fixtures.py scripts/check_fixtures.py \
             scripts/run_conformance.py scripts/export_pdf.py \
@@ -44,6 +44,10 @@ jobs:
       - run: python3 scripts/build_geography.py --check
       - run: python3 scripts/build_worldmap.py --check
       - run: python3 scripts/build_region_palette.py --check
+      # The maths properties only. The JS port needs a browser, so like
+      # check_prose/check_design/inspect_layout its full run is an
+      # operator step; --python-only is the half a runner can do.
+      - run: python3 scripts/check_globe.py --python-only
       # Ordering matters: a stale generated tree must report as stale rather
       # than as a mystery failure in a guard that reads it.
       - run: python3 scripts/build_entrypoints.py --check

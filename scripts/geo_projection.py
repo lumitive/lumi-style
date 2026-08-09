@@ -164,17 +164,29 @@ def unrolled(lon, lat, lon0, lat0, t, R, cx, cy):
 def invert(x, y, lon0, lat0, t, R, cx, cy):
     """Screen back to (lon, lat), or None outside the figure.
 
-    Analytic at both ends. Between them the forward map has no closed-form
-    inverse, so this seeds from the t=1 solution and takes Newton steps on the
-    2x2 Jacobian estimated by finite differences. Six steps converge to well
-    under the 1e-9 the round-trip assertion in check_globe.py demands; the
-    assertion is what makes that claim checkable rather than asserted.
+    Analytic at both ends, where the map is injective. Between them it is NOT:
+    a point on the front of the sphere and one on the back can land on the same
+    pixel, so there is no single right answer and this returns the one nearest
+    the viewer — what a reader pointing at that pixel means. Multi-start Newton
+    on a finite-difference Jacobian, keeping the converged root with the largest
+    cos_c.
+
+    So invert(project(p)) == p holds at t=0 and t=1 and for anything front-most,
+    and mid-unroll an occluded point correctly comes back as its occluder.
+    check_globe.py asserts the screen-space round trip, which is the property
+    that holds everywhere, and the exact one only where the map is injective.
     """
     u, v = (x - cx) / R, (cy - y) / R
     if t <= 0.0:
         rho = math.hypot(u, v)
-        if rho > 1.0:
+        # A point exactly ON the limb computes rho = 1 plus or minus an ulp, and
+        # a bare `rho > 1` rejects half of those. The limb is a legitimate place
+        # to be — it is where the horizon is — so the guard has slack and rho is
+        # then clamped for the asin. The JS port had this cliff on the other side
+        # of the ulp from the Python, which is how it was found.
+        if rho > 1.0 + 1e-9:
             return None
+        rho = min(rho, 1.0)
         c = math.asin(max(-1.0, min(1.0, rho)))
         if rho < 1e-12:
             return (lon0, lat0)
@@ -191,13 +203,58 @@ def invert(x, y, lon0, lat0, t, R, cx, cy):
         lon = lon0 + u * 180.0
         return (((lon + 180.0) % 360.0) - 180.0, v * 180.0)
 
-    lon, lat = lon0 + u * 180.0, v * 180.0
-    for _ in range(6):
-        fx, fy, _ = unrolled(lon, lat, lon0, lat0, t, R, cx, cy)
+    # Mid-unroll the forward map is NOT injective, and no implementation fixes
+    # that: the plane term is monotone in longitude while the sphere term is
+    # not, so two distinct visible points share a pixel. What a reader is
+    # pointing at is the one nearest the viewer, so that is what comes back —
+    # the largest cos_c among the converged roots. A single Newton start
+    # returned whichever branch it happened to be nearer, which for a
+    # seam-adjacent point was often neither.
+    best = None
+    for seed_lon, seed_lat in _seeds(u, v, lon0, lat0, t):
+        root = _newton(x, y, seed_lon, seed_lat, lon0, lat0, t, R, cx, cy)
+        if root is None:
+            continue
+        lon_r, lat_r, residual, depth = root
+        key = (-depth, residual)
+        if best is None or key < best[0]:
+            best = (key, (lon_r, lat_r))
+    if best is None:
+        return None
+    lon_r, lat_r = best[1]
+    return (((lon_r + 180.0) % 360.0) - 180.0, lat_r)
+
+
+def _seeds(u, v, lon0, lat0, t):
+    """Newton starts: the flat-map guess, the sphere guess when the point is on
+    the disc, and four spread around the circle so a seam-adjacent point still
+    has a start on the correct side."""
+    out = [(lon0 + u * 180.0, max(-90.0, min(90.0, v * 180.0)))]
+    rho = math.hypot(u, v)
+    if rho <= 1.0:
+        c = math.asin(max(-1.0, min(1.0, rho)))
+        if rho > 1e-12:
+            p0 = math.radians(lat0)
+            lat_s = math.degrees(math.asin(math.cos(c) * math.sin(p0)
+                                           + v * math.sin(c) * math.cos(p0) / rho))
+            lon_s = lon0 + math.degrees(math.atan2(
+                u * math.sin(c),
+                rho * math.cos(c) * math.cos(p0) - v * math.sin(c) * math.sin(p0)))
+            out.append((lon_s, lat_s))
+    for k in range(4):
+        out.append((lon0 + 90.0 * k, max(-90.0, min(90.0, v * 180.0))))
+    return out
+
+
+def _newton(x, y, lon, lat, lon0, lat0, t, R, cx, cy):
+    """-> (lon, lat, residual, depth) or None if it did not converge.
+    `depth` is cos_c: larger is nearer the viewer."""
+    for _ in range(24):
+        fx, fy, _vis = unrolled(lon, lat, lon0, lat0, t, R, cx, cy)
         ex, ey = fx - x, fy - y
-        if abs(ex) < 1e-12 and abs(ey) < 1e-12:
+        if abs(ex) < 1e-11 and abs(ey) < 1e-11:
             break
-        h = 1e-5
+        h = 1e-6
         ax, ay, _ = unrolled(lon + h, lat, lon0, lat0, t, R, cx, cy)
         bx, by, _ = unrolled(lon, lat + h, lon0, lat0, t, R, cx, cy)
         j11, j21 = (ax - fx) / h, (ay - fy) / h
@@ -209,9 +266,10 @@ def invert(x, y, lon0, lat0, t, R, cx, cy):
         lat -= (ey * j11 - ex * j21) / det
         lat = max(-90.0, min(90.0, lat))
     fx, fy, vis = unrolled(lon, lat, lon0, lat0, t, R, cx, cy)
-    if math.hypot(fx - x, fy - y) > 1e-6 or not vis:
+    residual = math.hypot(fx - x, fy - y)
+    if residual > 1e-6 or not vis:
         return None
-    return (((lon + 180.0) % 360.0) - 180.0, lat)
+    return (lon, lat, residual, cos_c(lon, lat, lon0, lat0))
 
 
 def split_at_seam(ring, lon0):
