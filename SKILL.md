@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.386"
+  version: "0.1.387"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -156,7 +156,15 @@ been removed; they now apply at step 4 instead of framing step 0.
    a page that wants something not in it should get it. **Embed the vendored
    assets rather than improvising**: `scripts/embed_font.py` for the display face,
    `scripts/embed_icons.py` for the icon library, `assets/vectors/` for the globe
-   and trade map. Text uses the `--tx*` ladder only; `--ln*` is rules and fills.
+   and trade map. **For a world figure that states data, generate it rather than
+   drawing it**: `python3 scripts/globe_svg.py --form regions --t 1` emits the
+   trade-region map and `--form field` the rotating globe; `--form both` emits
+   both layers when the document switches between them at runtime. Colour comes
+   from `tokens/region-palette.css`, and **every coloured region needs a label or
+   a legend row** — D18 checks for it, because hue groups regions at a glance and
+   only text identifies them. Never place the generated 110m map and the coarse
+   `globe-orthographic.svg` mark in one view; they disagree about where a
+   coastline is (design-rules §1d). Text uses the `--tx*` ladder only; `--ln*` is rules and fills.
    **Use the role vocabulary** the token file declares — `.eyebrow`, `h2.t`,
    `.sup`, `.listhead`, `.gd`, `.cap .n`, `.band .k`, `.band .v` — because that
    is the contract the consistency audit checks against; rename one and it drops

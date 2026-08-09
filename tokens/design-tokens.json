@@ -1,5 +1,5 @@
 {
-  "$schema_note": "LUMI design tokens v0.1.386 (2026-08-09). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
+  "$schema_note": "LUMI design tokens v0.1.387 (2026-08-10). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
   "palette_default": "light",
   "palette": {
     "light": {
@@ -216,5 +216,32 @@
     "tier1_callouts": "at most 1 per page, and no more than a third of a deck's pages",
     "footer": "source line + page number as N / total",
     "verification_matrix": "language x viewport (design / print / short-laptop); footer visible at every point"
+  },
+  "region": {
+    "generated_by": "scripts/build_region_palette.py -> tokens/region-palette.css",
+    "space": "oklch, converted to sRGB hex on emit",
+    "L_light": 0.7,
+    "L_dark": 0.52,
+    "chroma_fraction": 0.65,
+    "stroke_L_offset": 0.2,
+    "proximity_km": 1500,
+    "delta_e_floor": 20.0,
+    "label_contrast_floor": 4.5,
+    "stroke_contrast_floor": 3.0,
+    "measured": {
+      "light": {
+        "adjacent_delta_e": 23.0,
+        "all_pairs_delta_e": 12.0,
+        "label_contrast": 5.24,
+        "stroke_contrast": 5.78
+      },
+      "dark": {
+        "adjacent_delta_e": 20.8,
+        "all_pairs_delta_e": 10.8,
+        "label_contrast": 4.69,
+        "stroke_contrast": 6.24
+      }
+    },
+    "note": "v0.1.387. Hue encodes region IDENTITY here and carries no data meaning, the standing light_ramp already has; one colour one meaning still governs data. Owner directive, and two proposals were rejected on the way: an 8-hue ceiling (the map layer needs more regions) and a delta-E floor of 20 over ALL pairs, which is unsatisfiable at every N — the best achievable is 18.1 at N=8 and 6.8 at N=20. The floor binds adjacent pairs only. A four-band construction was built and then withdrawn: it satisfied the adjacent floor while putting three of eleven regions inside one narrow window, so Europe and Southeast Asia measured 5.0 apart and rendered as one colour. Even spacing with a max-separation assignment gives 12.0 over all pairs and needs no constraint on the registry. Values are hex, never oklch(): parse_color in check_design.py cannot read that form and D1 would skip every region hue in silence."
   }
 }

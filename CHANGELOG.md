@@ -3,6 +3,72 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.387 — the globe: region hue by owner directive, labels carry identity, and the mark kept apart from the map
+
+**A world figure that states data has to be generated from data.** Two reference
+sites were reverse-engineered before anything was written. Both run the same
+engine; their methods are opposite. One generates its geometry at runtime from
+GeoJSON, the other loads a model authored in a 3D tool. A figure carrying a
+number must be the first kind, because changing the number has to change the
+picture without reopening a modelling tool. Neither library fits a
+self-contained deliverable — half a megabyte compressed — so the geometry, the
+projection and the renderer are this package's own, in the standard library and
+in vanilla modules.
+
+**Hue encodes region identity, which is the single exception to one colour one
+meaning.** An owner directive, and it is safe only because these hues are
+declared to carry no data meaning, exactly as `light_ramp` already is. Two
+proposals were made and rejected on the way, and both are recorded because the
+numbers are the reason:
+
+* an 8-hue ceiling. Rejected: the map layer needs more regions than that.
+* a ΔE00 floor of 20 over *all* pairs. Unsatisfiable at every N — the best
+  achievable is 18.1 at N=8 and 6.8 at N=20. The floor now binds adjacent pairs
+  only, and the label rule covers the rest.
+
+A four-band construction was built, measured clean, and then withdrawn on
+looking at it: it satisfied the adjacent floor while putting three of eleven
+regions inside one narrow window, so Europe and Southeast Asia measured ΔE00 5.0
+apart and rendered as one colour on the same map. Even spacing with a
+max-separation assignment gives 12.0 over all pairs, 23.0/20.8 between adjacent
+ones, and needs no constraint on the registry at all. **Adjacency counts regions
+within 1500 km as well as regions that share a border**, because an ocean strait
+is not a visual separation — Europe and North America face each other across 300
+km at Greenland and the first version gave them the same hue.
+
+**Every coloured region carries a label or a legend entry, whatever the hue
+count.** At the theoretical maximum separation of 90 degrees, deuteranopia
+collapses two adjacent regions to ΔE00 9.6 and protanopia to 8.5, and a real map
+runs at 60 or less. Hue separates neighbours at a glance; text carries identity.
+D18 checks for the text and never counts hues, because a threshold is exactly
+what the measurement does not support.
+
+**A canvas is invisible to every gate this package owns.** `d5_drawn_share`
+counts a figure as drawn only if it holds an `<svg>`, `d5_figure_parity` and
+`d17_export_weight` read markup, and `inspect_layout` cannot see inside one. So
+the deliverable renderer emits SVG and the runtime mutates that markup rather
+than replacing it: the file on disk is a complete no-JavaScript fallback, the
+gates can still read the figure, and a screen reader's tree does not churn under
+animation. The canvas back end exists for pages where no gate applies.
+
+**Two geographies now ship and they disagree about where a coastline is.** The
+hand-written two-degree coastlines are a *mark*; Natural Earth 110m is a *map*.
+A document may use either and must never place both in one view. Re-deriving the
+coarse set would change the shipped cover mark byte for byte, so it is deferred
+with its own retrospective.
+
+Six defects were found only by putting the thing on screen, and none of them was
+visible to any metric: a renderer that wiped the hover class sixty times a
+second, a drag with the longitude sign backwards, an unroll that never arrived
+because it eased asymptotically, a viewBox that stayed square while the map went
+2:1, clipped rings closed with a chord instead of along the limb, and a form
+switch into an empty map because the runtime cannot create markup it was not
+given. CLAUDE.md 8 governs, and it earned its place again.
+
+Export weight: a page carrying the globe will dominate D17's vector-node count.
+That is reported and never gating, and it is expected rather than a regression —
+a world at country resolution is about 7,000 path commands.
+
 ## 0.1.386 — a viewBox that does not parse is a defect, not an absence of one
 
 **A drawing whose viewBox the browser cannot read now fails the run.** Three

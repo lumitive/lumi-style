@@ -21,6 +21,10 @@ python3 scripts/output_dir.py            # where a deliverable belongs; --create
 python3 scripts/embed_font.py            # @font-face block with the face inlined
 python3 scripts/embed_icons.py           # <symbol> sprite of the semantic icon set
 python3 scripts/build_geography.py       # regenerate assets/vectors/ from lat/lon data
+python3 scripts/build_worldmap.py        # shared-arc world topology + the golden grid
+python3 scripts/build_region_palette.py  # region hues; --selftest asserts four floors
+python3 scripts/globe_svg.py             # one static SVG frame of the globe
+python3 scripts/check_globe.py           # globe maths + the JS port (needs Playwright)
 python3 scripts/build_entrypoints.py     # regenerate every per-platform artifact; --check in CI
 python3 scripts/build_fixtures.py        # regenerate the tracked test fixtures; --check in CI
 python3 scripts/check_fixtures.py        # run the checkers against the fixtures and assert verdicts
@@ -42,6 +46,13 @@ ban-list parity, that every statement of the output-directory default names the
 same literal directory, that every generated artifact and fixture is current, that the
 checkers still produce the expected verdicts on both fixtures, and that the
 vendored assets are intact.
+
+`check_globe.py` is the fifth thing CI cannot run in full: its maths half is
+`--python-only` and runs in CI, and the half that checks
+`assets/globe/projection.js` against the Python authority needs a headless
+Chromium. **This repository contains no JavaScript toolchain** — no
+package.json, no runner — so a golden grid of 1300 projection samples is
+what holds the port to the Python, and it is the only thing that does.
 
 `check_prose.py`, `check_design.py` and `inspect_layout.py` all measure a
 **deliverable** rather than this repo. Two of them do run in CI, against the
