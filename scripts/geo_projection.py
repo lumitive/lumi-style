@@ -272,7 +272,35 @@ def _newton(x, y, lon, lat, lon0, lat0, t, R, cx, cy):
     return (lon, lat, residual, cos_c(lon, lat, lon0, lat0))
 
 
-def split_at_seam(ring, lon0):
+def seam_crossing(a, b, lon0):
+    """The exact (lon, lat) where the edge a->b crosses the antimeridian.
+
+    split_at_seam used to cut between the two samples and leave each part ending
+    a fraction short of the edge. Those two ends then sat on OPPOSITE sides of
+    the map, and closing the part with a straight line drew a chord clean across
+    it — the line through Russia in the 0.1.387 demo deck.
+    """
+    ra = ((a[0] - lon0 + 180.0) % 360.0) - 180.0
+    rb = ((b[0] - lon0 + 180.0) % 360.0) - 180.0
+    # Walk b's relative longitude the short way from a's, so the interpolation
+    # parameter is taken across the seam rather than across the whole world.
+    rb_unwrapped = rb + (360.0 if rb < ra else -360.0)
+    edge = 180.0 if rb_unwrapped > ra else -180.0
+    span = rb_unwrapped - ra
+    f = 0.0 if span == 0 else (edge - ra) / span
+    f = max(0.0, min(1.0, f))
+    lat = a[1] + (b[1] - a[1]) * f
+    # Nudged a hair INSIDE each side. Exactly lon0+180 wraps to -180, so both
+    # points would land on the same edge of the map and the segment between them
+    # would run the full width — which is the band across northern Russia in the
+    # first 0.1.387 demo. A millionth of a degree is 10cm on the ground and half
+    # a thousandth of a pixel at any size this figure is drawn.
+    inset = 1e-6
+    return (lon0 + edge - inset * (1 if edge > 0 else -1), lat), \
+           (lon0 - edge + inset * (1 if edge > 0 else -1), lat)
+
+
+def split_at_seam(ring, lon0, exact=True):
     """Split a (lon, lat) ring where it crosses the moving antimeridian.
 
     Longitude is relative to lon0, so the seam turns with the globe. A ring that
@@ -283,13 +311,43 @@ def split_at_seam(ring, lon0):
     def rel(lon):
         return ((lon - lon0 + 180.0) % 360.0) - 180.0
 
+    # A vertex sitting EXACTLY on the seam has no side, and wrap180 sends it to
+    # the left edge whichever side it belongs to. Natural Earth carries such
+    # vertices — Russia's arctic coast has several at exactly 180 — and the one
+    # next to a neighbour at 177.99 drew a line the full width of the map. Give
+    # each of them the side its predecessor is on, before anything else looks at
+    # them.
+    if exact and len(ring) > 1:
+        fixed = []
+        prev_rel = None
+        for lon, lat in ring:
+            r = rel(lon)
+            if abs(abs(r) - 180.0) < 1e-9 and prev_rel is not None:
+                side = 1.0 if prev_rel >= 0 else -1.0
+                lon = lon0 + side * (180.0 - 1e-6)
+                r = side * (180.0 - 1e-6)
+            fixed.append((lon, lat))
+            prev_rel = r
+        ring = fixed
+
     parts, cur = [], []
     for i, (lon, lat) in enumerate(ring):
         if i and abs(rel(lon) - rel(ring[i - 1][0])) > 180.0:
+            if exact:
+                out_pt, in_pt = seam_crossing(ring[i - 1], (lon, lat), lon0)
+                cur.append(out_pt)
             if len(cur) > 1:
                 parts.append(cur)
-            cur = []
+            cur = [in_pt] if exact else []
         cur.append((lon, lat))
     if len(cur) > 1:
         parts.append(cur)
+    # A closed ring's last piece and its first piece are contiguous, and joining
+    # them looks right until a ring wraps the world: Antarctica crosses the seam
+    # once, so the join hands back a single piece whose two ends are on opposite
+    # edges and whose close runs the full width. With the crossings inserted
+    # exactly, each piece already ends on the edge it left by, and a plain close
+    # follows that edge. So they are left apart — the visible seam between two
+    # halves of one country is one pixel of edge, and the alternative is a line
+    # across the map.
     return parts

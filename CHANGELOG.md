@@ -57,17 +57,34 @@ A document may use either and must never place both in one view. Re-deriving the
 coarse set would change the shipped cover mark byte for byte, so it is deferred
 with its own retrospective.
 
-Six defects were found only by putting the thing on screen, and none of them was
-visible to any metric: a renderer that wiped the hover class sixty times a
+Nine defects were found only by putting the thing on screen, and none of them
+was visible to any metric when it was found: a renderer that wiped the hover class sixty times a
 second, a drag with the longitude sign backwards, an unroll that never arrived
 because it eased asymptotically, a viewBox that stayed square while the map went
 2:1, clipped rings closed with a chord instead of along the limb, and a form
 switch into an empty map because the runtime cannot create markup it was not
-given. CLAUDE.md 8 governs, and it earned its place again.
+given. And three separate causes of a line drawn across the whole flat map: the
+two inserted seam crossings landing on the same edge because lon0+180 wraps to
+-180; source vertices sitting exactly on the antimeridian, which has no side, next
+to a neighbour at 177.99; and a last-piece/first-piece join that is right for an
+ordinary ring and wrong for one that wraps the world. Fifteen such segments
+became one. CLAUDE.md 8 governs, and it earned its place again.
 
-Export weight: a page carrying the globe will dominate D17's vector-node count.
-That is reported and never gating, and it is expected rather than a regression —
-a world at country resolution is about 7,000 path commands.
+**One defect is open and recorded rather than tolerated quietly.** A subpath in
+the oceania region still starts on one edge of the flat map and continues to the
+other, drawing a hairline across the equator at t=1 and nowhere else. No oceania
+ring spans the seam, so the cause is not the seam split and is not yet known.
+`check_globe.py` measures the class of defect and carries this one instance as a
+named exception, so a second one fails the check and fixing this one also fails
+it until the record is removed. Reproduce with
+`scripts/globe_svg.py --form regions --t 1`.
+
+Export weight, corrected against a measurement rather than a guess: a globe page
+does **not** move D17 much. D17 counts polygon points and `<path` ELEMENTS, and
+the globe is about a dozen elements carrying very long `d` strings — a demo deck
+with two globe figures reported 14 nodes. The weight is real and it is in bytes,
+not in that metric: a static globe frame is 45 KB and a flat region map 68 KB,
+integer coordinates included. Say the file size; D17 will not say it for you.
 
 ## 0.1.386 — a viewBox that does not parse is a defect, not an absence of one
 

@@ -112,6 +112,23 @@ function boundaryWalk(a, b, boundary) {
   return out;
 }
 
+/**
+ * Close a piece whose two ends sit on OPPOSITE edges, around the pole.
+ * Only a world-wrapping ring does this — Antarctica crosses the seam once.
+ * Mirrors _pole_close in scripts/globe_svg.py.
+ */
+function poleClose(a, b, view) {
+  const left = view.cx - view.R;
+  const right = view.cx + view.R;
+  const eps = view.R * 0.02;
+  const on = (p, e) => Math.abs(p[0] - e) < eps;
+  if (!((on(a, left) || on(a, right)) && (on(b, left) || on(b, right)))) return [];
+  if ((on(a, left) && on(b, left)) || (on(a, right) && on(b, right))) return [];
+  const half = view.R * (1 - view.t / 2);
+  const edgeY = (a[1] + b[1]) / 2 > view.cy ? view.cy + half : view.cy - half;
+  return [[a[0], edgeY], [b[0], edgeY]];
+}
+
 /** Project one lat/lon ring into screen-space runs, cut at the seam and the limb. */
 function projectRing(ring, view, boundary) {
   const runs = [];
@@ -143,9 +160,11 @@ function projectRing(ring, view, boundary) {
   });
 }
 
-function pathData(runs, close) {
+function pathData(runs, close, view) {
   let d = '';
-  for (const pts of runs) {
+  for (const raw of runs) {
+    const pts = (close && view && raw.length > 2)
+      ? raw.concat(poleClose(raw[raw.length - 1], raw[0], view)) : raw;
     d += `M${pts[0][0].toFixed(0)} ${pts[0][1].toFixed(0)}`;
     for (let i = 1; i < pts.length; i += 1) {
       d += `L${pts[i][0].toFixed(0)} ${pts[i][1].toFixed(0)}`;
@@ -220,7 +239,7 @@ export function createSvgRenderer(svg, data) {
       for (const ring of regionRings.get(id) || []) {
         const r = projectRing(ring, view, boundary);
         for (const run of r) runs.push(run);
-        d += `${pathData(r, true)} `;
+        d += `${pathData(r, true, view)} `;
       }
       el.setAttribute('d', d.trim());
       // Only the STATE class, and only via classList. Rewriting the whole

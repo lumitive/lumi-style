@@ -237,6 +237,64 @@ def check_static_svg():
     return errors
 
 
+# A segment running the full width of the flat map is a ring that was cut at the
+# antimeridian and rejoined across everything. Three causes were found and fixed
+# in 0.1.387 — inserted crossing points landing on the same edge, source vertices
+# sitting exactly on the seam with no side, and a last-piece/first-piece join that
+# was wrong for a world-wrapping ring — taking the count from 15 to 1.
+#
+# ONE REMAINS, and it is recorded rather than tolerated silently: a subpath in the
+# oceania region starts on the left edge and its next point is on the right. No
+# oceania ring spans the seam, so the cause is not the seam split and is not yet
+# known. It draws a hairline across the equator at t=1 and nowhere else.
+# Reproduce: scripts/globe_svg.py --form regions --t 1.
+KNOWN_FULL_WIDTH = {"oceania": 1}
+
+
+def check_seam_segments():
+    """No region draws a line across the whole flat map, except where recorded.
+
+    A segment along a pole edge is not this defect: closing a world-wrapping ring
+    like Antarctica along the bottom edge is what a map does. Only segments away
+    from an edge count.
+    """
+    import globe_svg
+
+    R = globe_svg.DEFAULT_R
+    view = (0.0, 0.0, 1.0, R, R, R)
+    svg = globe_svg.render(view, form="regions")
+    half = R * (1 - view[2] / 2)
+    top, bottom = view[5] - half, view[5] + half
+    found = {}
+    for m in re.finditer(r'data-region="([\w-]+)"[^>]*d="([^"]*)"', svg):
+        pts = [(c.group(1), int(c.group(2)), int(c.group(3)))
+               for c in re.finditer(r"([ML])(-?\d+) (-?\d+)", m.group(2))]
+        for i in range(1, len(pts)):
+            # Only L draws. An M is a move to the start of the next subpath, and
+            # counting the gap before it reported five defects where there was
+            # one — a detector that cannot read the path grammar it is scanning.
+            if pts[i][0] != "L":
+                continue
+            if abs(pts[i][1] - pts[i - 1][1]) < 1.2 * R:
+                continue
+            y = (pts[i][2] + pts[i - 1][2]) / 2
+            if abs(y - top) < R * 0.03 or abs(y - bottom) < R * 0.03:
+                continue
+            found[m.group(1)] = found.get(m.group(1), 0) + 1
+    errors = []
+    for rid, n in sorted(found.items()):
+        allowed = KNOWN_FULL_WIDTH.get(rid, 0)
+        if n > allowed:
+            errors.append(f"{rid}: {n} full-width segments away from a pole edge, "
+                          f"{allowed} recorded as known")
+    for rid, allowed in sorted(KNOWN_FULL_WIDTH.items()):
+        if found.get(rid, 0) < allowed:
+            errors.append(f"{rid}: {found.get(rid, 0)} full-width segments but "
+                          f"{allowed} recorded — fixed? remove it from "
+                          f"KNOWN_FULL_WIDTH so the next one is caught")
+    return errors
+
+
 def check_viewbox_extent(golden):
     """Every projected sample sits inside the extent the static renderer would
     compute. inspect_layout --deliverable gates on a drawing clipped by its own
@@ -530,6 +588,7 @@ CHECKS = (
     ("seam splitting", check_seam, False),
     ("viewbox extent", check_viewbox_extent, True),
     ("static svg fits its viewbox", check_static_svg, False),
+    ("no line across the flat map", check_seam_segments, False),
 )
 
 

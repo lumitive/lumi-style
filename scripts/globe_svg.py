@@ -110,11 +110,34 @@ def _project_ring(ring, view):
     return runs
 
 
-def _d(runs, close):
+def _pole_close(a, b, view):
+    """Close a piece whose two ends sit on OPPOSITE edges, around the pole.
+
+    Only a ring that wraps the world does this — Antarctica crosses the seam
+    once, so it comes back as a piece running edge to edge — and the way a map
+    draws it is along the pole edge, not straight across. Every other piece
+    leaves and re-enters by the same edge and closes along it with no help.
+    """
+    lon0, lat0, t, R, cx, cy = view
+    left, right, eps = cx - R, cx + R, R * 0.02
+    on = lambda p, e: abs(p[0] - e) < eps          # noqa: E731
+    if not ((on(a, left) or on(a, right)) and (on(b, left) or on(b, right))):
+        return []
+    if (on(a, left) and on(b, left)) or (on(a, right) and on(b, right)):
+        return []
+    half = R * (1 - t / 2)
+    edge_y = cy + half if (a[1] + b[1]) / 2 > cy else cy - half
+    return [(a[0], edge_y), (b[0], edge_y)]
+
+
+def _d(runs, close, view=None):
     out = []
     for pts in runs:
-        out.append(f"M{pts[0][0]:.0f} {pts[0][1]:.0f}"
-                   + "".join(f"L{x:.0f} {y:.0f}" for x, y in pts[1:])
+        seq = list(pts)
+        if close and view is not None:
+            seq += _pole_close(seq[-1], seq[0], view)
+        out.append(f"M{seq[0][0]:.0f} {seq[0][1]:.0f}"
+                   + "".join(f"L{x:.0f} {y:.0f}" for x, y in seq[1:])
                    + ("Z" if close else ""))
     return " ".join(out)
 
@@ -184,7 +207,7 @@ def render(view, form="field", marks=None, states=None):
                 country = next((c for c in topo["countries"] if c["a"] == code), None)
                 if country:
                     for ring in _rings_of(country, arcs):
-                        d.append(_d(_project_ring(ring, view), True))
+                        d.append(_d(_project_ring(ring, view), True, view))
             # Emitted even when nothing of it is visible in THIS frame, with an
             # empty d. The runtime mutates markup and never creates it, so a
             # region skipped here can never be drawn when it rotates into view —
@@ -197,7 +220,7 @@ def render(view, form="field", marks=None, states=None):
         d = []
         for country in topo["countries"]:
             for ring in _rings_of(country, arcs):
-                d.append(_d(_project_ring(ring, view), True))
+                d.append(_d(_project_ring(ring, view), True, view))
         d = " ".join(x for x in d if x)
         body.append(f'<path class="gl-land" d="{d}"/>')
 
@@ -245,6 +268,11 @@ def main(argv):
     ap.add_argument("--lat0", type=float, default=0.0)
     ap.add_argument("--t", type=float, default=0.0)
     ap.add_argument("--r", type=float, default=DEFAULT_R)
+    ap.add_argument("--states", metavar="JSON", default=None,
+                    help='region states, e.g. \'{"europe":"live"}\'. Without '
+                         "this every region renders as zero, which is the honest "
+                         "default and is also why a coverage map generated "
+                         "without it says nothing.")
     ap.add_argument("--form", choices=("field", "regions", "both"),
                     default="field",
                     help="both emits the land layer and the region layer; the "
@@ -252,7 +280,8 @@ def main(argv):
                          "can switch between them")
     args = ap.parse_args(argv)
     view = (args.lon0, args.lat0, args.t, args.r, args.r, args.r)
-    print(render(view, form=args.form))
+    states = json.loads(args.states) if args.states else None
+    print(render(view, form=args.form, states=states))
     return 0
 
 

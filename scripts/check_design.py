@@ -145,15 +145,31 @@ def css_of(raw):
 
 def token_blocks(css):
     """The :root and body.dark declaration blocks: the only place a literal
-    colour is allowed to appear."""
-    out = {}
+    colour is allowed to appear.
+
+    Blocks with the same selector ACCUMULATE, which is what CSS does and what
+    this used to get wrong: it kept the last one and dropped the rest. A document
+    that appends a second `:root` — the shipped `tokens/region-palette.css` is
+    one — lost its whole token block to that second one, and the file reported
+    UNMEASURABLE for having no --bg. Found by building a deliverable with the
+    globe in it (0.1.387).
+    """
+    return {k: "\n".join(v) for k, v in token_block_bodies(css).items()}
+
+
+def token_block_bodies(css):
+    """The same blocks, kept SEPARATE, because d4_palette strips them from the
+    raw document by verbatim string match and a joined body matches nothing.
+    Joining them there is what made every token colour report as a stray literal.
+    """
+    out = {"light": [], "dark": []}
     for sel, body in BLOCK_RE.findall(css):
         s = sel.strip()
         if s == ":root":
-            out["light"] = body
+            out["light"].append(body)
         elif re.fullmatch(r"body\.dark|:root\[data-theme=[\"']dark[\"']\]", s):
-            out["dark"] = body
-    return out
+            out["dark"].append(body)
+    return {k: v for k, v in out.items() if v}
 
 
 def resolve(css, palette):
@@ -319,8 +335,10 @@ def d3_callouts(raw):
 
 def d4_palette(raw):
     stripped = re.sub(r"/\*.*?\*/", " ", raw, flags=re.S)
-    for body in token_blocks(css_of(raw)).values():
-        stripped = stripped.replace(re.sub(r"/\*.*?\*/", " ", body, flags=re.S), " ")
+    for bodies in token_block_bodies(css_of(raw)).values():
+        for body in bodies:
+            stripped = stripped.replace(
+                re.sub(r"/\*.*?\*/", " ", body, flags=re.S), " ")
     stripped = re.sub(r"src:\s*url\(data:[^)]*\)", " ", stripped)
     stripped = re.sub(r"<!--.*?-->", " ", stripped, flags=re.S)
     # Numeric HTML entities are not colours. `&#183;` is a middot and the deck

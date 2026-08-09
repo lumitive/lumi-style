@@ -158,17 +158,63 @@ export function invert(x, y, view) {
  * crosses it draws a horizontal streak across the whole map as t rises — the
  * two ends of the world joined by a straight line. Splitting is not optional.
  */
+function seamCrossing(a, b, lon0) {
+  const ra = wrap180(a[0] - lon0);
+  const rb = wrap180(b[0] - lon0);
+  const rbU = rb + (rb < ra ? 360 : -360);
+  const edge = rbU > ra ? 180 : -180;
+  const span = rbU - ra;
+  let f = span === 0 ? 0 : (edge - ra) / span;
+  f = Math.max(0, Math.min(1, f));
+  const lat = a[1] + (b[1] - a[1]) * f;
+  // Nudged a hair inside each side: exactly lon0+180 wraps to -180, so both
+  // points would land on the same edge and the segment between them would run
+  // the full width of the map.
+  const inset = 1e-6 * (edge > 0 ? 1 : -1);
+  return [[lon0 + edge - inset, lat], [lon0 - edge + inset, lat]];
+}
+
 export function splitAtSeam(ring, lon0) {
   const rel = (lon) => wrap180(lon - lon0);
+  // A vertex sitting EXACTLY on the seam has no side, and wrap180 sends it to
+  // the left edge whichever side it belongs to. Natural Earth carries such
+  // vertices, and one next to a neighbour at 177.99 drew a line the full width
+  // of the map. Give each the side its predecessor is on, first.
+  let ring2 = ring;
+  if (ring.length > 1) {
+    ring2 = [];
+    let prevRel = null;
+    for (const [lon, lat] of ring) {
+      let r = rel(lon);
+      let lo = lon;
+      if (Math.abs(Math.abs(r) - 180) < 1e-9 && prevRel !== null) {
+        const side = prevRel >= 0 ? 1 : -1;
+        lo = lon0 + side * (180 - 1e-6);
+        r = side * (180 - 1e-6);
+      }
+      ring2.push([lo, lat]);
+      prevRel = r;
+    }
+  }
   const parts = [];
   let cur = [];
-  for (let i = 0; i < ring.length; i += 1) {
-    if (i && Math.abs(rel(ring[i][0]) - rel(ring[i - 1][0])) > 180) {
+  for (let i = 0; i < ring2.length; i += 1) {
+    if (i && Math.abs(rel(ring2[i][0]) - rel(ring2[i - 1][0])) > 180) {
+      // The exact crossing, on both sides. Cutting between samples leaves each
+      // half ending short of the edge, and the two ends then sit on opposite
+      // sides of the map: closing that half draws a chord across everything.
+      const [outPt, inPt] = seamCrossing(ring2[i - 1], ring2[i], lon0);
+      cur.push(outPt);
       if (cur.length > 1) parts.push(cur);
-      cur = [];
+      cur = [inPt];
     }
-    cur.push(ring[i]);
+    cur.push(ring2[i]);
   }
   if (cur.length > 1) parts.push(cur);
+  // Deliberately NOT joining the last piece to the first. They are contiguous,
+  // but a ring that wraps the world — Antarctica crosses the seam once — then
+  // comes back as one piece with its ends on opposite edges, and closing that
+  // runs a line across the map. With crossings inserted exactly, each piece
+  // already ends on the edge it left by.
   return parts;
 }
