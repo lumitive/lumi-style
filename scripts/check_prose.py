@@ -139,6 +139,14 @@ NOT_MECHANIZED = {
 OVERLONG_WORDS = 32
 MIN_SENTENCES = 30      # below this, rhythm is noise
 MIN_TITLES = 8          # below this, one frame dominating means nothing
+
+# The genre vocabulary, in one place. run_conformance.py and export_pdf.py
+# import this tuple rather than hand-copying it: a hand-copy in the
+# conformance harness rejected `training` for two releases after 0.1.376
+# created it, and only a person writing a training task would have noticed.
+# (`consulting` deliberately has no flag — the recorded no-change in 0.1.378:
+# it inherits the sales dash ban and has produced no defect case.)
+GENRES = ("sales", "internal", "training")
 BLOCK_END = re.compile(r"</(?:p|li|h[1-6]|td|th|div|section|figcaption|blockquote)>", re.I)
 NUMERIC_RANGE = re.compile(r"\d\s*[–—]\s*\d")
 # A cell whose entire content is a dash means "no value" — the standard
@@ -384,7 +392,7 @@ def grade(r):
 def main(argv):
     ap = argparse.ArgumentParser(add_help=True, description=__doc__.split("\n")[0])
     ap.add_argument("files", nargs="+")
-    ap.add_argument("--genre", choices=["sales", "internal", "training"], default="sales",
+    ap.add_argument("--genre", choices=list(GENRES), default="sales",
                     help="internal analysis documents are exempt from the M9 dash "
                          "ban; training binds like sales — its readers quote it")
     ap.add_argument("--lang", default=None,

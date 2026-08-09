@@ -49,8 +49,12 @@ SITE = "www.example.org"
 # The producing-skill version, for the colophon the cover rule requires. Read
 # from SKILL.md so it cannot drift; the fixtures already regenerate every
 # release because the embedded token block carries the version stamp.
-VERSION = re.search(r'^\s*version:\s*"([^"]+)"',
-                    (ROOT / "SKILL.md").read_text(encoding="utf-8"), re.M).group(1)
+_version_m = re.search(r'^\s*version:\s*"([^"]+)"',
+                       (ROOT / "SKILL.md").read_text(encoding="utf-8"), re.M)
+if _version_m is None:
+    raise SystemExit("SKILL.md frontmatter carries no version stamp; "
+                     "the fixtures cannot state what produced them")
+VERSION = _version_m.group(1)
 
 # The cover/closing mark, inlined verbatim from the generated asset.
 GLOBE = (ROOT / "assets/vectors/globe-orthographic.svg").read_text(encoding="utf-8").strip()
@@ -124,7 +128,7 @@ def ground_defs() -> str:
         y0 = 260 if i == 0 else 300 + 26 * i + (i * i * 7) % 60
         amp = 8 + (i * 5.3) % 40
         wavelength = 210 + (i * 37) % 240
-        width = 0.6 + (i % 8) * 0.20
+        width = 0.6 + i * 0.09
         opacity = min(0.9, 0.22 + i * 0.045)
         colour = ("--acc-5", "--acc-4", "--d-teal", "--d-blue")[i % 4]
         pts = " ".join(f"{x} {y0 + amp * math.sin(x / wavelength + i * 1.7):.1f}"

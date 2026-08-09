@@ -90,7 +90,9 @@ A deck's content arc is broken into named parts, and **every part boundary gets
 an opener page**: the lime field carrying the part label, one claim at display
 scale saying where the reader is, and one run line saying what the next pages
 argue — the `.openpart` / `.openclaim` / `.openrun` composition in
-`tokens/lumi-layouts.css`. Nothing else sits on it: no figure, no map, no icon.
+`tokens/lumi-layouts.css`. Nothing else sits in its content area: no figure,
+no map, no icon (the footer keeps its handling marker, inverted with the
+field).
 The ground runs at its medium tier, and the vector mark stays on the cover and
 closing, where the page is the mark's to hold.
 

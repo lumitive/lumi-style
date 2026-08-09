@@ -638,15 +638,20 @@ def d10_label_icons(raw):
     """Reported, not graded. Labelled figure nodes and table row-head groups
     should carry a semantic icon; whether a given label is a heading is a
     judgement, so this counts rather than gates."""
-    # Element-agnostic on purpose: the fixtures author the eyebrow as <p>, the
-    # reference deck as <div>, and the contract is about the class, not the
-    # tag. Keyed to <div> alone this counted 0 on a deck with an icon in all
-    # 14 eyebrows and silently reclassified them as figure icons.
-    eyebrow = len(re.findall(r'<\w+ class="eyebrow[^"]*">\s*<svg class="ic', raw))
-    in_fig = len(re.findall(r'<use href="#i-[\w-]+"/>\s*</svg>\s*(?:<text|</g>)', raw))
+    # Element- and attribute-order-agnostic, and per page: the eyebrow may be
+    # any element (<p> in the fixtures, <div> in the reference deck), `class`
+    # need not be the first attribute on either element, and `ic` matches as a
+    # whole class token. The same regression shipped here twice in two forms —
+    # keyed to <div>, then to attribute position — each counting 0 on a deck
+    # with an icon in every eyebrow and silently reclassifying them as figure
+    # icons. The per-page list feeds D10_detail so the fixtures can pin it.
+    pat = re.compile(r'<\w+[^>]*class="[^"]*\beyebrow\b[^"]*"[^>]*>\s*'
+                     r'<svg[^>]*class="[^"]*\bic\b')
+    with_icon = [pid for cls, pid, body in _pages(raw) if pat.search(body)]
     svg_icons = len(re.findall(r'<svg[^>]*class="[^"]*\bic\b[^"]*"', raw))
-    return {"eyebrow_icons": eyebrow, "icon_instances": svg_icons,
-            "figure_or_row_icons": max(0, svg_icons - eyebrow)}
+    return {"eyebrow_icons": len(with_icon), "icon_instances": svg_icons,
+            "figure_or_row_icons": max(0, svg_icons - len(with_icon)),
+            "eyebrow_pages": with_icon}
 
 
 def d6_footer(raw):
@@ -699,10 +704,15 @@ def measure(path):
         "D15_footer_path": d15_footer_path(raw),
         "D13_lime_as_text": d13_lime_never_light_text(css, resolved, palette),
         "D9_layout_variety": d9_layout_variety(raw),
-        "D10_label_icons": d10_label_icons(raw),
+        "D10_label_icons": (d10 := d10_label_icons(raw)),
         "D16_visual_presence": (d16 := d16_visual_presence(raw)),
-        # The contains hook in check_fixtures.py reads <PREFIX>_detail.
-        "D16_detail": (d16 or {}).get("prose_only"),
+        # The contains hook in check_fixtures.py reads <PREFIX>_detail. D16's
+        # is the WHOLE dict, not just the prose-only list, so the pass fixture
+        # can assert '"prose_only": []' — a regression that flags every
+        # healthy page would otherwise stay green, since reported verdicts
+        # pass unconditionally.
+        "D16_detail": d16,
+        "D10_detail": d10["eyebrow_pages"],
     }
 
 

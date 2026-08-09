@@ -37,6 +37,11 @@ import argparse
 import pathlib
 import sys
 
+# The genre vocabulary is imported from its one home, never copied. This tool
+# additionally knows `consulting`, which has no check_prose flag (a recorded
+# no-change) but does have a primary geometry: 16:9, like sales.
+from check_prose import GENRES  # noqa: E402
+
 # One stage per geometry, the same fixed boxes the tokens declare.
 STAGES = {"landscape": (1280, 720), "portrait": (794, 1123)}
 SCALE_FLOOR = 2.0    # 2x the stage: 2K on the landscape stage. A floor, not a target.
@@ -49,7 +54,7 @@ PAGE_SELECTOR = "section.page"
 
 
 def export(path: pathlib.Path, geometry: str, scale: float, png: bool,
-           out_dir: pathlib.Path | None) -> int:
+           out_dir: pathlib.Path | None, seen: set) -> int:
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
@@ -62,37 +67,86 @@ def export(path: pathlib.Path, geometry: str, scale: float, png: bool,
     out_dir.mkdir(parents=True, exist_ok=True)
     stem = path.stem
 
+    # Two files with one stem exporting into one directory silently clobber
+    # each other while the tool prints ok twice — a genuine loss with no
+    # re-run to blame it on, so it fails instead.
+    key = (out_dir.resolve(), stem, geometry)
+    if key in seen:
+        print(f"FAIL  {path}: another input already exported as "
+              f"{stem}-{geometry}* into {out_dir}; name an --out per file")
+        return 1
+    seen.add(key)
+
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": w, "height": h},
-                                device_scale_factor=scale if png else 1)
-        page.goto(path.resolve().as_uri())
-        page.wait_for_timeout(300)
-        sections = page.query_selector_all(PAGE_SELECTOR)
-        if not sections:
-            print(f"FAIL  {path}: no {PAGE_SELECTOR!r} sections; nothing to export")
-            browser.close()
-            return 1
+        try:
+            page = browser.new_page(viewport={"width": w, "height": h},
+                                    device_scale_factor=scale if png else 1)
+            # The settle discipline inspect_layout.py was rewritten for
+            # (see open_page there): this tool DELIVERS the artifact, so a
+            # half-built page is worse here than there. A page whose own
+            # script throws is a failed export, not a quiet one; and with
+            # `font-display: swap` on the embedded face, capturing before
+            # document.fonts settles is guaranteed to ship fallback metrics.
+            page_errors = []
+            page.on("pageerror", lambda e: page_errors.append(str(e)))
+            page.goto(path.resolve().as_uri(), wait_until="load")
+            try:
+                page.wait_for_function(
+                    "() => document.fonts && document.fonts.status === 'loaded'",
+                    timeout=5000)
+            except Exception:
+                print(f"FAIL  {path}: webfonts did not finish loading in 5s; "
+                      f"the export would ship a fallback face")
+                return 1
+            if page_errors:
+                print(f"FAIL  {path}: the document's own script threw during "
+                      f"build — {page_errors[0][:120]}")
+                return 1
+            sections = page.query_selector_all(PAGE_SELECTOR)
+            if not sections:
+                print(f"FAIL  {path}: no {PAGE_SELECTOR!r} sections; nothing to export")
+                return 1
 
-        written = []
-        if png:
-            digits = max(2, len(str(len(sections))))
-            for i, s in enumerate(sections, 1):
-                s.scroll_into_view_if_needed()
-                target = out_dir / f"{stem}-{geometry}-p{i:0{digits}d}.png"
-                s.screenshot(path=str(target))
-                written.append(target)
-            print(f"ok    {len(written)} pages at {scale:g}x "
-                  f"({int(w * scale)}x{int(h * scale)} px) -> {out_dir}")
-        else:
-            target = out_dir / f"{stem}-{geometry}.pdf"
-            page.pdf(path=str(target), width=f"{w}px", height=f"{h}px",
-                     print_background=True, prefer_css_page_size=False,
-                     margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
-            written.append(target)
-            print(f"ok    {len(sections)} pages -> {target} "
-                  f"(vector; the stage is the page size)")
-        browser.close()
+            if png:
+                digits = max(2, len(str(len(sections))))
+                for i, s in enumerate(sections, 1):
+                    s.scroll_into_view_if_needed()
+                    target = out_dir / f"{stem}-{geometry}-p{i:0{digits}d}.png"
+                    s.screenshot(path=str(target))
+                # A deck that shrank since the last export leaves higher-numbered
+                # pages from the old edition beside the fresh ones; a directory
+                # shipped wholesale then ships dead pages. Say so.
+                stale = [q for q in sorted(out_dir.glob(f"{stem}-{geometry}-p*.png"))
+                         if q.stem[len(f"{stem}-{geometry}-p"):].isdigit()
+                         and int(q.stem[len(f"{stem}-{geometry}-p"):]) > len(sections)]
+                if stale:
+                    print(f"WARN  {len(stale)} stale page files from an earlier, "
+                          f"longer export remain: {stale[0].name} … — delete them "
+                          f"before shipping the directory")
+                print(f"ok    {len(sections)} pages at {scale:g}x "
+                      f"({int(w * scale)}x{int(h * scale)} px) -> {out_dir}")
+            else:
+                target = out_dir / f"{stem}-{geometry}.pdf"
+                page.pdf(path=str(target), width=f"{w}px", height=f"{h}px",
+                         print_background=True, prefer_css_page_size=False,
+                         margin={"top": "0", "bottom": "0", "left": "0", "right": "0"})
+                # page.pdf paginates by the document's own @media print rules,
+                # not by this tool's section count; a deck missing its print
+                # break rules splits mid-section. Reconcile the two counts.
+                raw = pathlib.Path(target).read_bytes()
+                # "/Type /Pages" (the tree node) contains "/Type /Page", so
+                # subtract it; a compressed PDF with neither literal skips the
+                # reconciliation rather than warning falsely.
+                pdf_pages = raw.count(b"/Type /Page") - raw.count(b"/Type /Pages")
+                if pdf_pages and pdf_pages != len(sections):
+                    print(f"WARN  {target.name} paginated to ~{pdf_pages} PDF "
+                          f"pages against {len(sections)} sections — check the "
+                          f"document's @media print break rules")
+                print(f"ok    {len(sections)} pages -> {target} "
+                      f"(vector; the stage is the page size)")
+        finally:
+            browser.close()
     return 0
 
 
@@ -102,7 +156,7 @@ def main(argv):
     ap.add_argument("--geometry", choices=sorted(STAGES), default=None,
                     help="which fixed stage to render; defaults to the genre's "
                          "primary (design-rules §7)")
-    ap.add_argument("--genre", choices=["sales", "consulting", "internal", "training"],
+    ap.add_argument("--genre", choices=[*GENRES, "consulting"],
                     default="sales",
                     help="picks the default geometry: training leads portrait "
                          "(printed, annotated, bound), everything else leads "
@@ -128,15 +182,22 @@ def main(argv):
     # (design-rules §7); an explicit --geometry always wins.
     geometry = args.geometry or ("portrait" if args.genre == "training" else "landscape")
 
-    rc = 0
+    rc, seen = 0, set()
     for name in args.files:
         path = pathlib.Path(name)
         if not path.exists():
             print(f"FAIL  {name}: no such file")
             rc = 1
             continue
-        rc = max(rc, export(path, geometry, args.scale, args.png,
-                            pathlib.Path(args.out) if args.out else None))
+        # One bad file must not abort the batch: a zero-size section or a
+        # mid-render browser death FAILs this file and the loop continues,
+        # which is the contract the per-file rc already promised.
+        try:
+            rc = max(rc, export(path, geometry, args.scale, args.png,
+                                pathlib.Path(args.out) if args.out else None, seen))
+        except Exception as exc:                             # noqa: BLE001
+            print(f"FAIL  {name}: {type(exc).__name__}: {str(exc)[:160]}")
+            rc = 1
     return rc
 
 

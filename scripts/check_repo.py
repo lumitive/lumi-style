@@ -517,6 +517,24 @@ def _prose_wrappers():
                      "tuple of class names; this half of the guard reads nothing")
 
 
+def _design_visual_blocks():
+    """The VISUAL_BLOCKS tuple out of check_design.py, by ast.
+
+    The visual vocabulary has TWO carriers: the probe's `VIS` (the rendered
+    share) and check_design.py's `VISUAL_BLOCKS` (the static presence half of
+    D16). 0.1.378 put the first under this guard and missed the second — "a
+    guard that covers one of two callers is a guard with a blind spot the
+    shape of the other", with the caller count corrected upward once again.
+    """
+    tree = ast.parse((ROOT / "scripts/check_design.py").read_text(encoding="utf-8"))
+    for node in tree.body:
+        if (isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name)
+                and node.targets[0].id == "VISUAL_BLOCKS"):
+            return {e.value for e in node.value.elts}
+    raise ValueError("check_design.py no longer defines VISUAL_BLOCKS at module "
+                     "level; the static half of the visual vocabulary reads nothing")
+
+
 def _js_const(source, name):
     """The text of `const NAME = ...;`, concatenation and all."""
     m = re.search(rf"\bconst {name}\s*=(.*?);", source, re.S)
@@ -598,6 +616,7 @@ def check_probe_vocabulary():
                                  f"vocabulary and report every waiver as stale")
         census["check_prose M10"] = " ".join(
             f".{w}" + (f" .{i}" if i else "") for w, i in _prose_wrappers())
+        visual_static = _design_visual_blocks()
     except (OSError, ValueError, SyntaxError) as exc:
         return [f"could not read the probe vocabulary: {exc}"]
 
@@ -641,6 +660,18 @@ def check_probe_vocabulary():
         elif cls in shipped:
             errors.append(f"PROBE_NOT_SHIPPED excuses .{cls}, which tokens/ now ships; "
                           f"delete the waiver")
+    # D16's two halves must agree on what "visual" means: the probe's VIS
+    # measures the rendered share, check_design's VISUAL_BLOCKS the static
+    # presence, and a block added to one list only splits the metric silently
+    # — a page carrying the new pattern gets listed prose-only while its share
+    # reads healthy, or the reverse.
+    vis_probe = _classes(census.get("VIS", ""))
+    if vis_probe != visual_static:
+        errors.append(
+            f"the visual vocabulary has diverged: inspect_layout.py VIS = "
+            f"{sorted(vis_probe)}, check_design.py VISUAL_BLOCKS = "
+            f"{sorted(visual_static)} — one metric, two carriers, and D16's "
+            f"halves now disagree about what is visual")
     return errors
 
 
@@ -1169,12 +1200,19 @@ def check_version_citations():
     # while the scoreboard's stamp sat at 0.1.371 — and the comment on that
     # entry claimed to be "the check that sees it". A declared stamp position
     # is a promise to check it, wherever the file is registered.
-    targets = {e.get("entry_file") for e in data["platforms"] if e.get("entry_file")}
-    targets |= set(ENTRY_STAMP)
-    for target in sorted(targets):
+    registry_targets = {e.get("entry_file") for e in data["platforms"] if e.get("entry_file")}
+    for target in sorted(registry_targets | set(ENTRY_STAMP)):
         path = ROOT / target
         if not path.exists():
-            continue                                        # reported by the manifest guard
+            # A registry target's absence is the manifest guard's finding. A
+            # file declared ONLY here matches nothing the manifest knows, so
+            # skipping it would re-open the dead-pattern hole one level up:
+            # rename the scoreboard and its stamp guard evaporates, green.
+            if target not in registry_targets:
+                errors.append(
+                    f"{target}: named in ENTRY_STAMP but the file does not exist; "
+                    f"a stamp position pointing at nothing checks nothing")
+            continue
         pattern = ENTRY_STAMP.get(target)
         if pattern is None:
             errors.append(
