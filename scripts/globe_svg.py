@@ -146,6 +146,9 @@ def extent(view):
 def render(view, form="field", marks=None, states=None):
     """-> the <svg> element as a string.
 
+    `form` is field, regions, or both. Both emits the two layers together, which
+    is what a document needs if it will switch between them at runtime.
+
     `states` maps region id -> live | partial | zero | out. A region absent from
     it renders as zero, which is the honest default: no data is not coverage.
     """
@@ -169,7 +172,11 @@ def render(view, form="field", marks=None, states=None):
     if grat:
         body.append(f'<path class="gl-graticule" d="{grat}"/>')
 
-    if form == "regions":
+    # A document that offers both forms needs BOTH layers in the file: the
+    # runtime mutates markup and never creates it, so a region path that is not
+    # here has nowhere to be drawn. Discovered by switching form on a frame
+    # generated as "field" and getting a correctly unrolled, entirely empty map.
+    if form in ("regions", "both"):
         for region in reg["regions"]:
             state = states.get(region["id"], "zero")
             d = []
@@ -178,13 +185,15 @@ def render(view, form="field", marks=None, states=None):
                 if country:
                     for ring in _rings_of(country, arcs):
                         d.append(_d(_project_ring(ring, view), True))
+            # Emitted even when nothing of it is visible in THIS frame, with an
+            # empty d. The runtime mutates markup and never creates it, so a
+            # region skipped here can never be drawn when it rotates into view —
+            # the same trap the mark layer fell into one commit earlier.
             d = " ".join(x for x in d if x)
-            if not d:
-                continue
             body.append(f'<path class="rg rg-{region["id"]} is-{state}" '
                         f'data-region="{region["id"]}" role="img" '
                         f'aria-label="{region["n"]}, {state}" d="{d}"/>')
-    else:
+    if form in ("field", "both"):
         d = []
         for country in topo["countries"]:
             for ring in _rings_of(country, arcs):
@@ -192,25 +201,34 @@ def render(view, form="field", marks=None, states=None):
         d = " ".join(x for x in d if x)
         body.append(f'<path class="gl-land" d="{d}"/>')
 
-    for mark in (marks or []):
-        p = gp.unrolled(mark["lon"], mark["lat"], lon0, lat0, t, R, cx, cy)
-        if p[2]:
-            w = mark.get("weight", 1.0)
-            body.append(f'<circle class="gl-mark" cx="{p[0]:.0f}" cy="{p[1]:.0f}" '
-                        f'r="{R * (0.009 + 0.015 * w):.1f}"/>')
+    # Every mark and node is in the DOM whether or not this frame shows it, with
+    # its lat/lon on the element and visibility as an attribute. The runtime
+    # mutates markup and never creates it, so a mark that rotates into view has
+    # to already have somewhere to land; and a reader with JavaScript off still
+    # gets exactly the frame that was generated, because `hidden` is honoured.
+    for i, mark in enumerate(marks or []):
+        px, py, vis = gp.unrolled(mark["lon"], mark["lat"], lon0, lat0, t, R, cx, cy)
+        w = mark.get("weight", 1.0)
+        body.append(f'<circle class="gl-mark" data-lon="{mark["lon"]:g}" '
+                    f'data-lat="{mark["lat"]:g}" data-w="{w:g}" '
+                    f'cx="{px:.0f}" cy="{py:.0f}" '
+                    f'r="{R * (0.009 + 0.015 * w):.1f}"'
+                    f'{"" if vis else " hidden"}/>')
 
     for node in reg.get("nodes", []):
-        p = gp.unrolled(node["lon"], node["lat"], lon0, lat0, t, R, cx, cy)
-        if p[2]:
-            body.append(f'<circle class="gl-node" data-node="{node["id"]}" '
-                        f'cx="{p[0]:.0f}" cy="{p[1]:.0f}" r="{R * 0.017:.1f}">'
-                        f'<title>{node["n"]}</title></circle>')
+        px, py, vis = gp.unrolled(node["lon"], node["lat"], lon0, lat0, t, R, cx, cy)
+        body.append(f'<circle class="gl-node" data-node="{node["id"]}" '
+                    f'data-lon="{node["lon"]:g}" data-lat="{node["lat"]:g}" '
+                    f'cx="{px:.0f}" cy="{py:.0f}" r="{R * 0.017:.1f}"'
+                    f'{"" if vis else " hidden"}>'
+                    f'<title>{node["n"]}</title></circle>')
 
     x0, y0, x1, y1 = extent(view)
     pad = PAD * (R / DEFAULT_R)
     vb = (x0 - pad, y0 - pad, (x1 - x0) + 2 * pad, (y1 - y0) + 2 * pad)
-    label = ("LUMI globe, trade regions" if form == "regions"
-             else "LUMI globe, coverage field")
+    label = {"regions": "LUMI globe, trade regions",
+             "field": "LUMI globe, coverage field",
+             "both": "LUMI globe, coverage field and trade regions"}[form]
     head = (f'<svg xmlns="http://www.w3.org/2000/svg" class="gl" '
             f'viewBox="{vb[0]:.1f} {vb[1]:.1f} {vb[2]:.1f} {vb[3]:.1f}" '
             f'role="img" aria-label="{label}" data-t="{t:g}" '
@@ -227,7 +245,11 @@ def main(argv):
     ap.add_argument("--lat0", type=float, default=0.0)
     ap.add_argument("--t", type=float, default=0.0)
     ap.add_argument("--r", type=float, default=DEFAULT_R)
-    ap.add_argument("--form", choices=("field", "regions"), default="field")
+    ap.add_argument("--form", choices=("field", "regions", "both"),
+                    default="field",
+                    help="both emits the land layer and the region layer; the "
+                         "host stylesheet shows one at a time and the runtime "
+                         "can switch between them")
     args = ap.parse_args(argv)
     view = (args.lon0, args.lat0, args.t, args.r, args.r, args.r)
     print(render(view, form=args.form))

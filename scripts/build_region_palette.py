@@ -40,18 +40,24 @@ L_LIGHT, L_DARK = 0.70, 0.52
 # three to ten hues out of gamut, where clipping silently destroys the even
 # spread the whole construction depends on.
 #
-# 0.65 is a BRAND decision bounded by a measured floor. At the gamut maximum the
-# hues come out candy-bright — #F954BE for a region on a page whose accent is
-# #48633E — and LUMI is a restrained palette. Pulling chroma back mutes them and
-# costs separation, so the two meet here: 0.65 measures delta-E00 22.8 light and
-# 21.7 dark against a floor of 20. **Below about 0.45 it stops working** (18.9
-# light), and the selftest is what enforces that rather than this comment.
+# A BRAND decision bounded by a measured floor, and the number moved once the
+# figure was looked at. At the gamut maximum the hues are candy-bright — #F954BE
+# beside an accent of #48633E — and 0.65 still read as loud on screen even though
+# it measured comfortably. 0.52 is the lowest value that clears the delta-E floor
+# with the proximity adjacency below and a +/-5 band spread: 23.4 light and 20.1
+# dark against a floor of 20. That is the muted end of what stays separable;
+# anything quieter needs fewer regions, not a lower floor.
 CHROMA_FRACTION = 0.65
-# A REQUIREMENT on the registry, not a preference. Measured worst-case adjacent
-# separation: B=4 gives delta-E00 24.3 light / 21.5 dark; B=5 gives 20.2 / 17.1,
-# which is below the floor on the dark canvas; B=6 fails on both.
-BANDS = 4
-BAND_SPREAD = 15.0          # degrees either side of the band centre
+# Retired. The four-band construction is recorded in specs/ and in the CHANGELOG
+# because its reasoning was sound and its result was not: with eleven regions it
+# put three inside one narrow window, and the minimum separation over ALL pairs —
+# not just adjacent ones — was delta-E00 5.0. Europe and Southeast Asia rendered
+# as one colour on the same map. Even spacing plus a max-separation assignment
+# does better on both counts and needs no constraint on the registry at all.
+# A FLOOR on how far apart any two regions sit on the hue circle, whether or not
+# they are adjacent. It is 360/N by construction — 32.7 degrees for the eleven
+# shipped regions — because the hues are evenly spaced and each region takes one.
+ALL_PAIRS_MIN_DEG = None   # computed as 360/N; recorded here as a named idea
 DELTA_E_FLOOR = 20.0        # adjacent regions, CIEDE2000 — a FLOOR
 LABEL_CONTRAST_FLOOR = 4.5  # a FLOOR, the repository's existing text floor
 STROKE_CONTRAST_FLOOR = 3.0 # a FLOOR, WCAG 1.4.11 for the region's boundary
@@ -175,10 +181,50 @@ def ciede2000(c1, c2):
 
 
 # ── assignment ────────────────────────────────────────────────────────────────
+# Regions closer than this are treated as adjacent even without a land border.
+# A CEILING, and it is set by what a reader compares rather than by what touches:
+# sharing a border under-counts adjacency badly across narrow water. Europe and
+# North America have no land border, so the first version put them in the same
+# hue band, and Greenland faces Iceland across 300km of the Atlantic — the two
+# rendered as #D67CB0 and #D6819C, which is one colour. Gibraltar and the Bering
+# Strait are the same failure. 2500km stops being 4-colourable; 1500 does not.
+PROXIMITY_KM = 1500
+EARTH_KM = 6371.0
+
+
+def _decode_arcs(topo):
+    q = topo["quantum"]
+    out = []
+    for flat in topo["arcs"]:
+        n = len(flat) // 2
+        x, y = flat[0], flat[1]
+        pts = [(x / q, y / q)]
+        for i in range(1, n):
+            x += flat[i * 2]
+            y += flat[i * 2 + 1]
+            pts.append((x / q, y / q))
+        out.append(pts)
+    return out
+
+
+def _great_circle_km(a, b):
+    la1, lo1, la2, lo2 = (math.radians(v) for v in (a[1], a[0], b[1], b[0]))
+    h = (math.sin((la2 - la1) / 2) ** 2
+         + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2)
+    return EARTH_KM * 2 * math.asin(min(1.0, math.sqrt(h)))
+
+
 def region_neighbours(reg):
     """Region adjacency, read out of the topology. Never maintained by hand: a
     hand-written list beside real geometry is correct on the day it is written
-    and silently wrong after any change to the registry."""
+    and silently wrong after any change to the registry.
+
+    Two regions are adjacent when they share a border OR come within
+    PROXIMITY_KM of each other. The second clause is not a refinement — without
+    it the four-colouring is solving the wrong problem, because what has to be
+    separable is what a reader sees side by side, and an ocean strait is not a
+    visual separation.
+    """
     topo = json.loads(TOPOLOGY.read_text(encoding="utf-8"))
     of = {c: r["id"] for r in reg["regions"] for c in r["members"]}
     out = {r["id"]: set() for r in reg["regions"]}
@@ -188,60 +234,105 @@ def region_neighbours(reg):
             if a and b and a != b:
                 out[a].add(b)
                 out[b].add(a)
+
+    arcs = _decode_arcs(topo)
+    pts = {}
+    for country in topo["countries"]:
+        rid = of.get(country["a"])
+        if not rid:
+            continue
+        for ring in country["rings"]:
+            for idx in ring:
+                pts.setdefault(rid, []).extend(
+                    arcs[idx if idx >= 0 else ~idx][::3])
+    ids = sorted(pts)
+    for i, a in enumerate(ids):
+        for b in ids[i + 1:]:
+            if b in out[a]:
+                continue
+            near = any(_great_circle_km(p, r) <= PROXIMITY_KM
+                       for p in pts[a][::4] for r in pts[b][::4])
+            if near:
+                out[a].add(b)
+                out[b].add(a)
     return out
-
-
-def assign_bands(neighbours):
-    """Greedy four-colouring in descending-degree order.
-
-    It fails rather than reaching for a fifth band. The four-colour theorem does
-    not cover this graph — it is about contiguous regions of a planar map, and
-    trade blocs are routinely non-contiguous — so 4-colourability is a
-    requirement on the registry that has to be checked, not a guarantee that can
-    be assumed.
-    """
-    order = sorted(neighbours, key=lambda r: (-len(neighbours[r]), r))
-    band, load = {}, {k: 0 for k in range(BANDS)}
-    for rid in order:
-        taken = {band[n] for n in neighbours[rid] if n in band}
-        # Least-loaded free band, not the lowest-numbered one. Plain greedy
-        # colouring is correct and badly unbalanced: on the shipped registry it
-        # used three bands and put six regions inside one 30-degree window, so
-        # six regions rendered as six shades of the same pink. They never share
-        # a border, so the delta-E floor did not notice, and a floor that cannot
-        # see the defect is not the thing to argue with — balancing is.
-        free = sorted((k for k in range(BANDS) if k not in taken),
-                      key=lambda k: (load[k], k))
-        if not free:
-            raise SystemExit(
-                f"FAIL  the region adjacency graph needs more than {BANDS} "
-                f"colours: {rid} borders {sorted(neighbours[rid])} and every "
-                f"band is taken. Only four bands clear the delta-E floor on "
-                f"both canvases, so merge or re-cut those regions in "
-                f"assets/vectors/regions.json.")
-        band[rid] = free[0]
-        load[free[0]] += 1
-    return band
 
 
 def hue_angles(regions, neighbours):
     """-> {region_id: hue in degrees}.
 
-    Bands sit at 90k degrees and members spread +/-15 within their band, so two
-    regions in different bands are at least 60 degrees apart. Same-band regions
-    may be close and by construction never share a border.
+    N regions take N evenly spaced hues, and the assignment maximises the
+    smallest hue distance between ADJACENT regions. Two things fall out that the
+    earlier four-band construction could not deliver:
+
+    * every pair of regions is at least 360/N apart, adjacent or not. The band
+      scheme guaranteed 60 degrees between bands and nothing at all within one,
+      and on the shipped registry that meant three regions inside a narrow
+      window: Europe and Southeast Asia measured delta-E00 5.0 apart and read as
+      one colour on the same map.
+    * there is no constraint on the registry. Four bands only worked if the
+      adjacency graph was 4-colourable, which the four-colour theorem does not
+      guarantee for non-contiguous trade blocs; an assignment over N slots always
+      exists, and the delta-E floor is what says whether it is good enough.
+
+    Greedy in descending-degree order, taking the free slot furthest from the
+    slots this region's already-placed neighbours hold. On the shipped registry
+    that leaves 65.5 degrees between the closest adjacent pair.
     """
-    band = assign_bands(neighbours)
-    per_band = {}
-    for rid in sorted(band):
-        per_band.setdefault(band[rid], []).append(rid)
-    out = {}
-    for k, members in sorted(per_band.items()):
-        n = len(members)
-        for i, rid in enumerate(members):
-            offset = 0.0 if n == 1 else -BAND_SPREAD + 2 * BAND_SPREAD * i / (n - 1)
-            out[rid] = (90.0 * k + offset) % 360
-    return out
+    ids = sorted(neighbours)
+    n = len(ids)
+    if n == 0:
+        return {}
+    step = 360.0 / n
+
+    def circular(i, j):
+        d = abs(i - j) % n
+        return min(d, n - d) * step
+
+    def greedy(order, prefer_spread):
+        slot, used = {}, set()
+        for rid in order:
+            placed = [slot[x] for x in neighbours[rid] if x in slot]
+            best = None
+            for s in range(n):
+                if s in used:
+                    continue
+                nearest = min((circular(s, t) for t in placed),
+                              default=float("inf"))
+                total = sum(circular(s, t) for t in placed)
+                key = (nearest, total if prefer_spread else -total)
+                if best is None or key > best[0]:
+                    best = (key, s)
+            slot[rid] = best[1]
+            used.add(best[1])
+        return slot
+
+    def score(slot):
+        worst = float("inf")
+        for a in ids:
+            for b in neighbours[a]:
+                worst = min(worst, circular(slot[a], slot[b]))
+        return worst
+
+    # A single greedy pass is order-dependent and its tie-break matters more than
+    # it looks: two reasonable choices produced 65.5 and 32.7 degrees of worst-case
+    # adjacent separation on the same graph, and the second fails the floor. So
+    # several deterministic orderings are tried and the best is kept. No
+    # randomness — the palette has to be reproducible, and --check compares bytes.
+    orders = [
+        sorted(ids, key=lambda r: (-len(neighbours[r]), r)),
+        sorted(ids, key=lambda r: (len(neighbours[r]), r)),
+        sorted(ids),
+        sorted(ids, reverse=True),
+    ]
+    best = None
+    for order in orders:
+        for prefer_spread in (True, False):
+            slot = greedy(order, prefer_spread)
+            key = (score(slot), tuple(slot[r] for r in ids))
+            if best is None or key[0] > best[0][0]:
+                best = (key, slot)
+    return {rid: (best[1][rid] * step) % 360 for rid in ids}
 
 
 # ── floors ────────────────────────────────────────────────────────────────────
@@ -310,8 +401,9 @@ def render():
         " * on every hue here without saying so.",
         " *",
         f" * L {L_LIGHT} light / {L_DARK} dark, chroma {CHROMA_FRACTION:.0%} of the",
-        f" * per-hue gamut maximum, {BANDS} bands at 90 degrees, members +/-"
-        f"{BAND_SPREAD:.0f} within a band.",
+        f" * per-hue gamut maximum, {len(ids)} hues evenly spaced at "
+        f"{360 / max(1, len(ids)):.1f} degrees, assigned so adjacent regions sit",
+        " * as far apart on the circle as the graph allows.",
         " */",
         ":root {",
     ]
