@@ -303,8 +303,10 @@ a section eyebrow carries its icon, hairline, inheriting currentColor, and reads
 uniform, never counted as a title. **Every content page carries at least one
 visual block** (a drawn figure, a stat band, a display lead, or a comparison
 pattern), and the target share of its area follows the genre — **about half for
-sales and marketing, about a third for training** — reported, never a floor. A
-figure's name holds one line at the document's geometry. A cover
+sales and marketing, about a third for training** — reported, never a floor.
+A reference page (glossary, scoring, boundaries) is exempt and says so with
+`data-role="apparatus"`, up to about one content page in five; declared, never
+inferred. A figure's name holds one line at the document's geometry. A cover
 carries typography plus exactly one vector mark, no photography and no body copy,
 and if that mark is geography then a region drawn is a region claimed.
 
@@ -354,6 +356,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.380** snapshot, cut 2026-08-09. It is self-contained by
+> This file is the **0.1.381** snapshot, cut 2026-08-09. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

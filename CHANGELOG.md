@@ -3,6 +3,38 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.381 — the apparatus exemption, declared rather than inferred; and a scope the audit did not know
+
+Two owner decisions from the 0.1.380 review, both closing a gap that had already
+made a real deliverable work around a check instead of satisfying it.
+
+**A reference page is exempt from the visual-share target, and it says so.** A
+glossary, a scoring page, a boundaries page and a how-to-use-this-deck page are
+reference the reader returns to rather than claims the deck advances; asking
+them to carry a figure produces decoration, which is what every rule in §4
+exists to prevent. They now carry `data-role="apparatus"` and drop out of both
+halves of D16.
+
+**Declared, never inferred** — that is the whole design. An inferred exemption
+is the escape hatch that empties the metric; a declared one is auditable, and
+the pages that claimed it are named in the report. The test is the claim: a
+content page advances one and owes its visual block, an apparatus page carries
+none and owes nothing. A page that merely failed to earn a figure is not
+apparatus. The share carries **a ceiling of about one content page in five**,
+because past that a deck has stopped arguing and become a handbook — reported,
+never gated, like the rest of D16. Both fixtures exercise it in opposite
+directions: the passing one holds a prose-only page that declares itself and
+must not be listed, the broken one keeps an undeclared prose-only page that
+must.
+
+**`.tag` joins `.no`'s shipped scopes in the consistency audit.** `tokens/` has
+shipped `.tag.no` — the refused status chip — since 0.1.375, while the audit
+knew only `.swap .no`, so a document using the chip was reported as inventing a
+rendering it had not. A scoped audit that does not know every scope the
+stylesheet declares manufactures the split it exists to find. The evidence that
+this mattered: the 0.1.379 deliverable worked around the finding by choosing a
+different chip, which is a check shaping a document rather than measuring it.
+
 ## 0.1.380 — one document, one geometry; and the blend mode that cost ten times the render
 
 A reader opened the A4 edition of a landscape sales deck and found five defects.

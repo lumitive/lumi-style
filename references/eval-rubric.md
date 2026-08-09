@@ -39,7 +39,7 @@
 | D13 | Lime as light text | =0, reported | the acid green may never be light-on-light text; a surface, not a ladder step |
 | D14 | Unfilled placeholders | =0 — **gates** | slots the author left for themselves: `[TO FILL]`, `[TBD]`, `{{…}}`, an empty bracket pair |
 | D15 | File path in a footer | =0 — **gates** | a repository path pasted into reader copy: two segments and a file extension. The site D12 requires, and any URL, are not paths |
-| D16 | Visual presence and share | reported | content pages carrying no visual block (static half, `check_design.py`); rendered visual area against the genre's target — ~50% sales/marketing/consulting, ~30% training (`inspect_layout.py`) |
+| D16 | Visual presence and share | reported | content pages carrying no visual block (static half, `check_design.py`); rendered visual area against the genre's target — ~50% sales/marketing/consulting, ~30% training (`inspect_layout.py`). Pages declaring `data-role="apparatus"` are exempt, up to a ceiling of one content page in five |
 | D17 | Export weight | reported | blend modes, filters and vector nodes: what the document will cost a reader who opens the PDF |
 
 **No design judgement in the D-series gates.** `check_design.py` exits 0 unless a

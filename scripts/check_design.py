@@ -410,6 +410,17 @@ def d16_visual_presence(raw):
     pages = _pages(raw)
     if not pages:
         return None
+    # An apparatus page is DECLARED, never inferred: `data-role="apparatus"` on
+    # the section. A glossary, a scoring table, a boundaries list and a how-to
+    # page are reference the reader returns to rather than a claim the deck
+    # advances, and asking them to carry a figure produces decoration. The
+    # declaration is what keeps this from becoming the escape hatch that empties
+    # the metric — it is auditable, it is counted, and the pages that claimed it
+    # are named in the report.
+    apparatus = set(re.findall(
+        r'<section[^>]*id="([^"]*)"[^>]*data-role="apparatus"', raw))
+    apparatus |= set(re.findall(
+        r'<section[^>]*data-role="apparatus"[^>]*id="([^"]*)"', raw))
     prose_only, content = [], 0
     for cls, pid, body in pages:
         # Substring on the SECTION class list, whose values are single words
@@ -418,12 +429,19 @@ def d16_visual_presence(raw):
         # matches a whole class token.
         if "cover" in cls or "closing" in cls or "opener" in cls:
             continue
+        if pid in apparatus:
+            continue
         content += 1
         if any(re.search(rf'class="(?:[^"]*\s)?{b}(?:\s[^"]*)?"', body)
                for b in VISUAL_BLOCKS):
             continue
         prose_only.append(pid)
-    return {"content_pages": content, "prose_only": prose_only}
+    # A ceiling, not a target: a deck is an argument and reference pages support
+    # it, so past about one content page in five the deck has become a handbook.
+    # Reported, like everything else here.
+    share = round(100.0 * len(apparatus) / max(1, content + len(apparatus)), 1)
+    return {"content_pages": content, "prose_only": prose_only,
+            "apparatus": sorted(apparatus), "apparatus_share": share}
 
 
 def d17_export_weight(raw, css):
@@ -799,7 +817,8 @@ def grade(r):
     vp = r["D16_visual_presence"]
     rows.append(("D16_visual_presence",
                  f"{len(vp['prose_only'])} of {vp['content_pages']} content pages "
-                 f"prose-only" if vp else None,
+                 f"prose-only, {len(vp['apparatus'])} apparatus "
+                 f"({vp['apparatus_share']}%)" if vp else None,
                  "reported", True, vp is None))
     return [(n, v, t, "n/a" if skip else ("ok" if good else "FAIL"))
             for n, v, t, good, skip in rows]
