@@ -128,3 +128,110 @@ def limb_walk(a, b, R, cx, cy):
     n = max(2, int(abs(d) / math.radians(2)))
     return [(cx + R * math.cos(a0 + d * k / n), cy + R * math.sin(a0 + d * k / n))
             for k in range(1, n + 1)]
+
+
+# ── the unroll ────────────────────────────────────────────────────────────────
+def unrolled(lon, lat, lon0, lat0, t, R, cx, cy):
+    """Position on the sphere-to-plane interpolation, then orthographic.
+
+    t=0 is the globe and t=1 an equirectangular map, and every value between is
+    a real geometry rather than a crossfade. Crossfading two projections has no
+    coherent state at t=0.5 and breaks limb clipping halfway through; flattening
+    the sphere itself has one code path and no such state.
+
+    The plane spans 2R by R, so the flat map is exactly as wide as the globe and
+    the 2:1 equirectangular aspect holds. Longitude is taken relative to lon0 and
+    wrapped, so the seam moves with the view — see split_at_seam.
+
+    Visibility interpolates with t: back-face culling at t=0, nothing culled at
+    t=1, and the threshold moves between so no polygon pops.
+
+    Returns (x, y, visible).
+    """
+    lam = math.radians(lon - lon0)
+    phi, phi0 = math.radians(lat), math.radians(lat0)
+    cphi, sphi = math.cos(phi), math.sin(phi)
+    xs = cphi * math.sin(lam)
+    ys = math.cos(phi0) * sphi - math.sin(phi0) * cphi * math.cos(lam)
+    zs = math.sin(phi0) * sphi + math.cos(phi0) * cphi * math.cos(lam)
+    lon_rel = ((lon - lon0 + 180.0) % 360.0) - 180.0
+    xp, yp = lon_rel / 180.0, (lat / 90.0) * 0.5
+    x = xs + (xp - xs) * t
+    y = ys + (yp - ys) * t
+    return (cx + R * x, cy - R * y, zs >= -t)
+
+
+def invert(x, y, lon0, lat0, t, R, cx, cy):
+    """Screen back to (lon, lat), or None outside the figure.
+
+    Analytic at both ends. Between them the forward map has no closed-form
+    inverse, so this seeds from the t=1 solution and takes Newton steps on the
+    2x2 Jacobian estimated by finite differences. Six steps converge to well
+    under the 1e-9 the round-trip assertion in check_globe.py demands; the
+    assertion is what makes that claim checkable rather than asserted.
+    """
+    u, v = (x - cx) / R, (cy - y) / R
+    if t <= 0.0:
+        rho = math.hypot(u, v)
+        if rho > 1.0:
+            return None
+        c = math.asin(max(-1.0, min(1.0, rho)))
+        if rho < 1e-12:
+            return (lon0, lat0)
+        p0 = math.radians(lat0)
+        lat = math.degrees(math.asin(math.cos(c) * math.sin(p0)
+                                     + v * math.sin(c) * math.cos(p0) / rho))
+        lon = lon0 + math.degrees(math.atan2(
+            u * math.sin(c),
+            rho * math.cos(c) * math.cos(p0) - v * math.sin(c) * math.sin(p0)))
+        return (((lon + 180.0) % 360.0) - 180.0, lat)
+    if t >= 1.0:
+        if abs(u) > 1.0 or abs(v) > 0.5:
+            return None
+        lon = lon0 + u * 180.0
+        return (((lon + 180.0) % 360.0) - 180.0, v * 180.0)
+
+    lon, lat = lon0 + u * 180.0, v * 180.0
+    for _ in range(6):
+        fx, fy, _ = unrolled(lon, lat, lon0, lat0, t, R, cx, cy)
+        ex, ey = fx - x, fy - y
+        if abs(ex) < 1e-12 and abs(ey) < 1e-12:
+            break
+        h = 1e-5
+        ax, ay, _ = unrolled(lon + h, lat, lon0, lat0, t, R, cx, cy)
+        bx, by, _ = unrolled(lon, lat + h, lon0, lat0, t, R, cx, cy)
+        j11, j21 = (ax - fx) / h, (ay - fy) / h
+        j12, j22 = (bx - fx) / h, (by - fy) / h
+        det = j11 * j22 - j12 * j21
+        if abs(det) < 1e-14:
+            return None
+        lon -= (ex * j22 - ey * j12) / det
+        lat -= (ey * j11 - ex * j21) / det
+        lat = max(-90.0, min(90.0, lat))
+    fx, fy, vis = unrolled(lon, lat, lon0, lat0, t, R, cx, cy)
+    if math.hypot(fx - x, fy - y) > 1e-6 or not vis:
+        return None
+    return (((lon + 180.0) % 360.0) - 180.0, lat)
+
+
+def split_at_seam(ring, lon0):
+    """Split a (lon, lat) ring where it crosses the moving antimeridian.
+
+    Longitude is relative to lon0, so the seam turns with the globe. A ring that
+    crosses it draws a horizontal streak across the whole map as t rises — the
+    two ends of the world joined by a straight line. Splitting is not optional
+    and it is not a review note.
+    """
+    def rel(lon):
+        return ((lon - lon0 + 180.0) % 360.0) - 180.0
+
+    parts, cur = [], []
+    for i, (lon, lat) in enumerate(ring):
+        if i and abs(rel(lon) - rel(ring[i - 1][0])) > 180.0:
+            if len(cur) > 1:
+                parts.append(cur)
+            cur = []
+        cur.append((lon, lat))
+    if len(cur) > 1:
+        parts.append(cur)
+    return parts
