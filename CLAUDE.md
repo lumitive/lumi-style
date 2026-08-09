@@ -149,8 +149,9 @@ cannot execute; `prompt` gets one pasted context and no tools. **An agent that
 cannot run the checks may not call a deliverable verified** — it names the checks
 it owes and the operator runs them.
 
-`specs/` holds design specs for changes to **this package** — one file per
-change, `YYYY-MM-DD-<topic>-design.md`. It exists because `docs/` is gitignored
+`specs/` holds design records for changes to **this package** — per change, a
+`YYYY-MM-DD-<topic>-design.md` and, once the design is settled, a
+`YYYY-MM-DD-<topic>-plan.md` that decomposes it into commits. It exists because `docs/` is gitignored
 on purpose (it is where validation runs write, and a deliverable committed there
 would breach the no-engagement-facts red line), so a design record had nowhere
 to live and was being lost between sessions. A spec is a record of what was
