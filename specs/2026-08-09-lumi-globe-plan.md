@@ -402,9 +402,12 @@ def _rdp(pts, eps_q):
 def _cut_into_arcs(rings):
     """rings: list of (owner, [quantised points]). Returns (arcs, ring_refs).
 
-    A point belonging to more than two distinct rings is a junction. Arcs run
-    between junctions, so a border between two countries becomes exactly one
-    arc, stored once and referenced by both.
+    A point is a junction when the set of rings it belongs to DIFFERS from that
+    of the point before or after it. The naive rule — "shared by more than one
+    ring" — is wrong and was caught in review: every interior point of a shared
+    border is shared by two rings, so it would cut a single border into one arc
+    per point. What actually ends an arc is the place where the sharing changes,
+    which is exactly where a third country arrives or the coast begins.
     """
     from collections import defaultdict
     owners = defaultdict(set)
@@ -413,8 +416,10 @@ def _cut_into_arcs(rings):
             owners[p].add(owner)
     arcs, index, refs = [], {}, []
     for owner, pts in rings:
-        cuts = [0] + [i for i in range(1, len(pts) - 1)
-                      if len(owners[pts[i]]) > 1] + [len(pts) - 1]
+        cuts = [0, len(pts) - 1]
+        for i in range(1, len(pts) - 1):
+            if owners[pts[i]] != owners[pts[i - 1]] or owners[pts[i]] != owners[pts[i + 1]]:
+                cuts.append(i)
         cuts = sorted(set(cuts))
         ref = []
         for a, b in zip(cuts, cuts[1:]):
@@ -495,7 +500,9 @@ for c in t["countries"]:
             assert 0 <= (i if i >= 0 else ~i) < len(t["arcs"]), (c["a"], i)
 size = pathlib.Path("assets/vectors/world-110m.json").stat().st_size
 print(f"ok {len(codes)} countries, {len(t['arcs'])} arcs, {size//1024} KB")
-assert size < 110 * 1024, f"{size} exceeds the 110 KB ceiling"
+# The 110 KB ceiling is on the TOTAL added to a deliverable, checked in Task 8.
+# Topology alone must leave room for regions.json and the modules, so 80 KB here.
+assert size < 80 * 1024, f"{size} leaves no room under the 110 KB total ceiling"
 PY
 python3 scripts/build_worldmap.py --check
 ```
@@ -568,8 +575,8 @@ def check_region_coverage():
     return errors
 ```
 
-Register it in the checks table this file already builds, with the label
-`region coverage`.
+Register it by adding `("region coverage", check_region_coverage),` to the
+`CHECKS` tuple at `scripts/check_repo.py:1334`, after `("token references", ...)`.
 
 - [ ] **Step 2: Run it and watch it fail**
 
@@ -632,7 +639,8 @@ git commit -m "region registry with a coverage guard: every country in exactly o
 - Produces `oklch_to_srgb(L, C, h) -> (r, g, b) in 0..1`,
   `max_chroma(L, h) -> float`, `ciede2000(lab1, lab2) -> float`,
   `assign_bands(neighbours) -> {region_id: band}`,
-  `palette(regions, neighbours, L) -> {region_id: "#rrggbb"}`
+  `hue_angles(regions, neighbours) -> {region_id: degrees}`,
+  `hue_hex(L, degrees) -> "#rrggbb"`, `stroke_hex(L, degrees) -> "#rrggbb"`
 
 - [ ] **Step 1: Write the failing self-test**
 
@@ -691,13 +699,14 @@ def selftest():
     neigh = region_neighbours(reg)
     for L, ink, bg, name in ((L_LIGHT, INK_LIGHT, BG_LIGHT, "light"),
                              (L_DARK, INK_DARK, BG_DARK, "dark")):
-        hues = palette(reg["regions"], neigh, L)
+        hues_hue = hue_angles(reg["regions"], neigh)   # region_id -> hue degrees
+        hues = {rid: hue_hex(L, h) for rid, h in hues_hue.items()}
         for rid, hexcol in hues.items():
             c = contrast(hexcol, ink)
             if c < LABEL_CONTRAST_FLOOR:
                 errors.append(f"{name}: label on {rid} is {c:.2f}:1, "
                               f"floor {LABEL_CONTRAST_FLOOR}")
-            s = contrast(stroke_of(rid, L, reg["regions"], neigh), bg)
+            s = contrast(stroke_hex(L, hues_hue[rid]), bg)
             if s < STROKE_CONTRAST_FLOOR:
                 errors.append(f"{name}: stroke of {rid} is {s:.2f}:1 on the "
                               f"canvas, floor {STROKE_CONTRAST_FLOOR}")
@@ -797,7 +806,7 @@ def assign_bands(neighbours):
     return band
 
 
-def palette(regions, neighbours, L):
+def hue_angles(regions, neighbours):
     band = assign_bands(neighbours)
     per_band = {}
     for rid in sorted(band):
@@ -807,12 +816,16 @@ def palette(regions, neighbours, L):
         n = len(members)
         for i, rid in enumerate(members):
             offset = 0.0 if n == 1 else -BAND_SPREAD + 2 * BAND_SPREAD * i / (n - 1)
-            out[rid] = hue_hex(L, (90.0 * k + offset) % 360)
+            out[rid] = (90.0 * k + offset) % 360
     return out
 ```
 
-Add `stroke_of` (same hue at `L ∓ STROKE_L_OFFSET`), `lab_of`, `ciede2000` and
-`contrast`. Copy `contrast` and the sRGB→Lab helper from `check_design.py:88-102`
+Split `palette` into `hue_angles(regions, neighbours) -> {region_id: degrees}`
+and `hue_hex(L, degrees)`, so the hue is available on its own. The self-test
+needs the angle, not the hex, and a `stroke_of` that recomputed the palette
+internally would be a second source of truth for the assignment. Then add
+`stroke_hex(L, hue)` — the same hue at `L ∓ STROKE_L_OFFSET` — plus `lab_of`,
+`ciede2000` and `contrast`. Copy `contrast` and the sRGB→Lab helper from `check_design.py:88-102`
 rather than writing a second version with a different rounding.
 
 - [ ] **Step 4: Run the self-test and the emit**
@@ -863,7 +876,7 @@ The static generator only ever needed `t = 0`. Add the flattening, exactly as
 the spec's §4 states it, including the antimeridian cut:
 
 ```python
-def unrolled(lon, lat, lon0, lat0, t, R):
+def unrolled(lon, lat, lon0, lat0, t, R, cx, cy):
     """Position on the sphere-to-plane interpolation, then orthographic.
 
     t=0 is the globe, t=1 an equirectangular map, and every value between is a
@@ -882,7 +895,25 @@ def unrolled(lon, lat, lon0, lat0, t, R):
     xp, yp = lon_rel / 180.0, (lat / 90.0) * 0.5
     x = xs + (xp - xs) * t
     y = ys + (yp - ys) * t
-    return (R + R * x, R - R * y, zs >= -t)
+    return (cx + R * x, cy - R * y, zs >= -t)
+```
+
+`cx` and `cy` are explicit parameters, not `R` twice. The JS port takes them
+separately and the golden fixture is compared across both, so a hidden
+`cx = cy = R` here guarantees a mismatch the check would report as a port bug.
+
+Add `invert` in the same commit — `check_globe.py` asserts
+`invert(project(p)) == p` on the Python side too, and there is nothing to assert
+against without it:
+
+```python
+def invert(x, y, lon0, lat0, t, R, cx, cy):
+    """Screen back to (lon, lat), or None outside the figure.
+
+    Analytic at the two ends; two Newton steps between them, which is enough
+    because the interpolation is monotone in both coordinates and the
+    round-trip assertion in check_globe.py is what proves the tolerance.
+    """
 ```
 
 - [ ] **Step 2: Emit the fixture from `build_worldmap.py`**
@@ -893,21 +924,26 @@ every 15° of latitude, across four views — and have `main` write and `--check
 both files. A fixed grid, never a random one: the fixture must be reproducible.
 
 ```python
-GOLDEN_VIEWS = [(0.0, 0.0, 0.0, 150.0), (-170.0, 20.0, 0.0, 150.0),
-                (45.0, -10.0, 0.5, 150.0), (0.0, 0.0, 1.0, 150.0)]
+# (lon0, lat0, t, R, cx, cy). cx and cy are deliberately NOT equal to R in two
+# of the views: the JS port takes them as separate parameters, and a fixture
+# that only ever exercises cx == cy == R cannot catch a port that dropped them.
+GOLDEN_VIEWS = [(0.0, 0.0, 0.0, 150.0, 150.0, 150.0),
+                (-170.0, 20.0, 0.0, 150.0, 200.0, 180.0),
+                (45.0, -10.0, 0.5, 150.0, 150.0, 150.0),
+                (0.0, 0.0, 1.0, 120.0, 300.0, 90.0)]
 
 
 def build_golden():
     import geo_projection as gp
     samples = []
-    for vi, (lon0, lat0, t, R) in enumerate(GOLDEN_VIEWS):
+    for vi, (lon0, lat0, t, R, cx, cy) in enumerate(GOLDEN_VIEWS):
         for lon in range(-180, 181, 15):
             for lat in range(-90, 91, 15):
-                x, y, vis = gp.unrolled(lon, lat, lon0, lat0, t, R)
+                x, y, vis = gp.unrolled(lon, lat, lon0, lat0, t, R, cx, cy)
                 samples.append([vi, lon, lat, round(x, 9), round(y, 9), bool(vis)])
     return {"schema": 1,
-            "views": [{"lon0": a, "lat0": b, "t": c, "R": d}
-                      for a, b, c, d in GOLDEN_VIEWS],
+            "views": [{"lon0": a, "lat0": b, "t": c, "R": d, "cx": e, "cy": f}
+                      for a, b, c, d, e, f in GOLDEN_VIEWS],
             "samples": samples}
 ```
 
@@ -1315,8 +1351,22 @@ def d18_region_labels(raw):
     return {"regions": len(set(ids)), "unlabelled": unlabelled}
 ```
 
-Grade it in `grade()` beside the other reported metrics: `FAIL` when
-`unlabelled` is non-empty. In `build_fixtures.py`, add a small region figure to
+Register it in two places, both of which the fixture assertion depends on: add
+`"D18_region_labels": d18_region_labels(raw),` to the dict returned by
+`measure()` (`scripts/check_design.py:724`), and a row to `grade()`:
+
+```python
+    d18 = r["D18_region_labels"]
+    rows.append(("D18_region_labels",
+                 len(d18["unlabelled"]) if d18 else None, "=0",
+                 not (d18 and d18["unlabelled"]), d18 is None))
+    if d18:
+        rows.append(("D18_detail", d18["unlabelled"], "reported", True, False))
+```
+
+The `_detail` row is what lets `deck-broken` assert *which* region was left
+unlabelled, the way `D16_detail` and `D10_detail` already do — a metric that only
+reports a count cannot tell a real catch from an off-by-one. In `build_fixtures.py`, add a small region figure to
 both decks — every region labelled in `deck-pass`, one region deliberately
 unlabelled in `deck-broken`.
 
@@ -1421,7 +1471,8 @@ Expected: every line ok, `check_repo.py` all checks passing.
 
 ```bash
 git add -A
-git commit -m "0.1.X — the LUMI globe: region hue by owner directive, labels carry identity, mark and map kept apart"
+V="$(python3 -c "import re,pathlib;print(re.search(r'^##\s+(\d+\.\d+\.\d+)',pathlib.Path('CHANGELOG.md').read_text(),re.M).group(1))")"
+git commit -m "$V — the LUMI globe: region hue by owner directive, labels carry identity, mark and map kept apart"
 ```
 
 ---
