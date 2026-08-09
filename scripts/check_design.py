@@ -466,6 +466,30 @@ def d17_export_weight(raw, css):
             "filters": len(filters), "shadows": shadows, "vector_nodes": nodes}
 
 
+def d18_region_labels(raw):
+    """Every coloured region in a globe figure carries a label or a legend entry.
+
+    Hue encodes region IDENTITY in that figure, by owner directive, and this is
+    what makes that safe. Measured at the theoretical maximum hue separation of
+    90 degrees, deuteranopia collapses two adjacent regions to delta-E00 9.6 and
+    protanopia to 8.5 — and a real map runs at 60 or less. Hue separates
+    neighbours at a glance; text is what carries identity.
+
+    So this checks for the TEXT and never counts hues. Counting them would make
+    the rule conditional on a number the measurement does not support, and would
+    pass a two-region map whose two regions are unlabelled.
+
+    A region is anchored by `data-region-label="<id>"` on any element, or by a
+    legend row carrying `data-legend="<id>"`.
+    """
+    ids = set(re.findall(r'class="[^"]*\brg-([\w-]+)', raw))
+    if not ids:
+        return None
+    labelled = set(re.findall(r'data-region-label="([\w-]+)"', raw))
+    labelled |= set(re.findall(r'data-legend="([\w-]+)"', raw))
+    return {"regions": len(ids), "unlabelled": sorted(ids - labelled)}
+
+
 def d8_support_line(raw):
     """Every content page carries a support line under the title. Figure pages
     are not exempt: a diagram with nothing introducing it drops the reader in."""
@@ -748,6 +772,7 @@ def measure(path):
         "D10_label_icons": (d10 := d10_label_icons(raw)),
         "D16_visual_presence": (d16 := d16_visual_presence(raw)),
         "D17_export_weight": d17_export_weight(raw, css),
+        "D18_region_labels": (d18 := d18_region_labels(raw)),
         # The contains hook in check_fixtures.py reads <PREFIX>_detail. D16's
         # is the WHOLE dict, not just the prose-only list, so the pass fixture
         # can assert '"prose_only": []' — a regression that flags every
@@ -755,6 +780,10 @@ def measure(path):
         # pass unconditionally.
         "D16_detail": d16,
         "D10_detail": d10["eyebrow_pages"],
+        # The contains hook in check_fixtures.py reads <PREFIX>_detail. Naming
+        # the regions is what lets the broken fixture assert WHICH one was left
+        # unlabelled; a count alone cannot tell a real catch from an off-by-one.
+        "D18_detail": (d18 or {}).get("unlabelled"),
     }
 
 
@@ -762,6 +791,10 @@ def grade(r):
     rows = []
     rows.append(("D1_contrast", len(r["D1_contrast"]), "=0",
                  not r["D1_contrast"], False))
+    d18 = r["D18_region_labels"]
+    rows.append(("D18_region_labels",
+                 len(d18["unlabelled"]) if d18 else None, "=0",
+                 not (d18 and d18["unlabelled"]), d18 is None))
     rows.append(("D2_type_scale",
                  f"smallest {r['D2_type_scale']['smallest_px']}px", "reported", True, False))
     c = r["D3_callouts"]
