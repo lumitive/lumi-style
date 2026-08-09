@@ -3,6 +3,30 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.383 — three things the sheet taught, once a document was actually designed for it
+
+**The visual share is graded at the geometry the document declares.** It asked
+"is this render A4", which was right while portrait was always a second edition
+and wrong the moment a handbook declared the sheet as its own stage: the
+training target was reported and never applied on the only geometry that
+mattered. It now grades the declared one and reports elsewhere.
+
+**Stacked cells centre on the sheet.** Side-by-side cells top-align so a reader
+can cross between them; on the sheet those same cells are stacked rows, where
+there is nothing to cross and the rule only pushed every page's slack to the
+bottom edge. Measured on the handbook: the boundaries page carried a 37 percent
+empty band and the glossary 49, which centring took to 20 and 26.
+
+**A figure is drawn for the geometry it will sit in**, and §4 now says what the
+cells actually are: about 2.5:1 full width on the slide and 0.85:1 on the sheet,
+1.3:1 and 1.0:1 in two columns. A 1.5:1 drawing in a 0.85:1 cell fills a little
+over half its height however it is scaled. *Provenance: the first handbook
+designed for the sheet drew its figures at 1.4:1 to 2.2:1 and ran a 24 to 39
+percent empty band against 5 to 27 on a landscape deck built the same week.
+Redrawing one figure's four gates from a row into a two-by-two took it from 47
+to 76 percent of its cell, which is the fix the rule now names: portrait figures
+stack what landscape figures place side by side.*
+
 ## 0.1.382 — the window stopped deciding the design, and the declaration reader stopped reading its own documentation
 
 Producing the first document actually designed for the sheet put the 0.1.380
