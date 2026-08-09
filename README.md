@@ -70,10 +70,10 @@ SKILL.md / AGENTS.md / prompts/   three entry points, one rule set (single sourc
 references/writing-rules.md       writing style: terminology red lines · banned phrases ·
                                   punctuation · number discipline · the LUMI voice
 references/storyline-templates.md narrative skeletons: sales (value & future) · consulting ·
-                                  internal analysis + shared discipline
+                                  internal analysis · training + shared discipline
 references/design-rules.md        design language: color semantics · dual-voice typography ·
                                   five chart iron rules · semantic icons · layout
-references/eval-rubric.md         eval rubric M1–M11 / D1–D6 / H1–H6 + the review protocol
+references/eval-rubric.md         eval rubric M1–M12 / D1–D16 / H1–H6 + the review protocol
 tokens/                           design tokens (CSS + JSON): two ladders · palette · type · scale
 assets/fonts                      D-DIN, vendored (SIL OFL) — embed, never link
 assets/icons                      vendored Lucide library (ISC) + the reserved bindings, currentColor
@@ -113,8 +113,12 @@ else.
 
 **Pure-white canvas (Apple space grey on request) · natural green as the single
 accent · China red for warnings only, amber for partial, brass for reference;
-a fixed 16:9 page and a fixed A4 sheet, handling terms on every page, one claim per screen and one focal element on it, numbers are the copy, titles
-are conclusions, and a table is for values.**
+a fixed 16:9 page and a fixed A4 sheet (the genre picks which leads — training
+leads with A4), handling terms behind a seal shield on every page, a cover and
+closing sharing one vector mark, a lime opener at every part boundary, one claim
+per screen and one focal element on it, visual blocks carrying about half of
+every content page, numbers are the copy, titles are conclusions, and a table is
+for values.**
 The layout skeleton was researched from the public web design of SpaceX and Tesla
 (whitespace, spec-first copy, monochrome discipline); the palette and its
 semantics are LUMI's own — one color, one meaning, enforced more strictly than

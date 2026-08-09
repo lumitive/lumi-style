@@ -174,11 +174,12 @@ LUMI's own seed survives as group 8.
 
 **Structural moves** (these catch what a banned-word list cannot)
 
-8. **[en-output] No em dashes or en dashes in sales/marketing deliverables.** Use
-   a period, comma, colon, or parentheses. The dash is the single most recognized
-   tell in English AI prose, and it is usually hiding a sentence that wants to be
-   two. (This does not bind internal analysis documents or this repository's own
-   rule prose.)
+8. **[en-output] No em dashes or en dashes in sales/marketing or training
+   deliverables.** Use a period, comma, colon, or parentheses. The dash is the
+   single most recognized tell in English AI prose, and it is usually hiding a
+   sentence that wants to be two. Training material binds because its readers
+   quote it onward. (This does not bind internal analysis documents or this
+   repository's own rule prose.)
 9. **Break the rule of three.** Do not force ideas into triplets. When a list has
    exactly three items in every instance across a document, rewrite some as pairs
    or as integrated prose.

@@ -1,6 +1,6 @@
 # LUMI Storyline Templates
 
-> Three proven narrative skeletons for three output scenarios, plus the shared
+> Four narrative skeletons for four output scenarios, plus the shared
 > discipline. (Repository language: English only — red line.)
 
 ## Template 1 · Sales / marketing material: Value & Future
@@ -69,7 +69,11 @@ sits between them.
   imperative ("Let the numbers decide.") is one option, not the required form —
   a punchy four-word command is a recognized AI-deck ending, and it is weaker than
   naming the concrete next step and who owns it · a one-sentence recap of the ask · contact
-  slots in spec-band form. **Contact details are placeholder slots by design**
+  slots in spec-band form · **and the same single vector mark as the cover**,
+  under the same truth test — a cover and a closing are the same kind of page,
+  set the same way (`cover-grid` in `tokens/lumi-layouts.css`), and the closing
+  restates where the document stood, so its mark repeats the cover's geography
+  rather than introducing a new claim. **Contact details are placeholder slots by design**
   (`[TO FILL]`) unless the user supplies real ones — inventing an email address
   is inventing a fact. State on the page that a bracketed version must not ship.
   End with the colophon (owner · date · "built with lumi-style X.Y.Z" · the
@@ -79,6 +83,24 @@ sits between them.
   sequence instead (e.g. v1.01), the filename and masthead carry the document
   edition and the colophon still records "built with lumi-style X.Y.Z" — the
   producing-skill version is never lost either way.
+
+## Part openers (every deck scenario)
+
+A deck's content arc is broken into named parts, and **every part boundary gets
+an opener page**: the lime field carrying the part label, one claim at display
+scale saying where the reader is, and one run line saying what the next pages
+argue — the `.openpart` / `.openclaim` / `.openrun` composition in
+`tokens/lumi-layouts.css`. Nothing else sits on it: no figure, no map, no icon.
+The ground runs at its medium tier, and the vector mark stays on the cover and
+closing, where the page is the mark's to hold.
+
+**Pacing: about five content pages between openers is a target, not a floor and
+not a gate.** `inspect_layout.py` reports the opener count and the longest run
+of content pages between openers; a run that stretches far past the target is a
+prompt to ask whether the argument has an unmarked seam, and the author answers
+it — in the page structure or in the delivery note — never a checker. Read as a
+quota, the same number would force openers where the argument has no seam and
+manufacture the uniformity the parallel-structure rule exists to suppress.
 
 ## Template 2 · Consulting / client documents: PwC frame, McKinsey punch
 
@@ -99,6 +121,27 @@ sits between them.
 - Three claim classes labeled explicitly: measured (with sample size and source) /
   build-time assertion (re-runnable) / inference (labeled as such);
 - "What is not built" is a single consolidated section, never scattered.
+
+## Template 4 · Training materials
+
+For enabling a team to *do* something — sell, operate, adjudicate — rather than
+to decide something. (Added at the owner's directive, 2026-08-09, from a
+training deck reviewed as the reference.)
+
+- **Arc**: what the learner will be able to do and why it matters → the concept,
+  one page per idea → the worked example (a real dialogue, a real screen, a real
+  document — concrete beats mechanism) → the practice or self-check → the
+  reference pages a learner returns to (glossary as `dl.gloss`, the swap list,
+  the graded ladder);
+- **The swap is this genre's workhorse**: the sentence a person reaches for
+  against the one that survives the room;
+- **Sourcing follows the consulting rule**: a claim a trainee will repeat to a
+  customer carries its source;
+- **Checks run with `--genre training`**; the em-dash rule binds as it does for
+  sales, because training material is quoted onward by its readers;
+- **Geometry**: A4 portrait is the primary geometry — a training document is
+  printed, annotated and bound (`design-rules.md` §7). The 16:9 composition is
+  still built and verified as the projection edition.
 
 ## Shared discipline
 

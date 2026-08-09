@@ -288,6 +288,10 @@ PROBE = r"""
     let deepest = -1e9, deepestWho = '';
     for (const e of s.querySelectorAll(INK)) {
       if (isGround(e)) continue;
+      // The footer's own furniture lives below the rule by design — the
+      // handling marker (0.1.375) is an svg the INK census matches, and
+      // counting it reported every page as spilling past its own footer.
+      if (e.closest('.foot')) continue;
       const r = inkBox(e);
       if (r.height < 2 || r.width < 2) continue;
       if (r.bottom > deepest) { deepest = r.bottom; deepestWho = tagOf(e); }
@@ -414,6 +418,32 @@ PROBE = r"""
     // reached this probe before the probe was a day old.
     const centerIsDrawing = best && (best.tag === 'svg' || best.cls === 'fig');
     const figLead = (best && centerIsDrawing) ? (best.w * best.h / best.cellArea) : 0;
+
+    // ── visual share (owner directive 2026-08-09) ─────────────────────────
+    // How much of the content area the page's visual blocks occupy: figures,
+    // stat bands, display leads and the comparison patterns. Tables and prose
+    // are deliberately not counted — a table is for values. Reported against a
+    // target of about half the page, never gated: the withdrawn 82% fill floor
+    // is the standing lesson that a satisfiable number ends the looking.
+    let visualPct = 0;
+    if (bodyEl) {
+      const VIS = '.fig, .band, .lead, .swaps, .vows, .duo, .grades, .field';
+      let visPx = 0;
+      for (const e of s.querySelectorAll(VIS)) {
+        if (e.parentElement && e.parentElement.closest(VIS)) continue;  // count outermost only
+        const r = e.getBoundingClientRect();
+        visPx += r.width * r.height;
+      }
+      // Against the area below the title block: the lede reserve is apparatus
+      // shared by every page, and counting it in the denominator would report
+      // a page whose whole working area is one drawing as barely half visual.
+      const br = bodyEl.getBoundingClientRect();
+      const lede = bodyEl.querySelector(':scope > .lede');
+      const ledePx = lede ? lede.getBoundingClientRect().height * br.width : 0;
+      const denom = br.width * br.height - ledePx;
+      if (denom > 0)
+        visualPct = Math.min(100, Math.round(100 * visPx / denom));
+    }
 
     // ── caption budget ────────────────────────────────────────────────────
     // Under a figure belongs the number, the name and the source. Prose there is
@@ -711,11 +741,13 @@ PROBE = r"""
       // document wants is a structural decision belonging to its storyline, and
       // a minimum here would grow openers to satisfy the number.
       isOpener: s.classList.contains('opener'),
+      isCover: s.classList.contains('cover'),
+      isClosing: s.classList.contains('closing'),
       capBlocks: s.querySelectorAll('.cap').length,
       spillPx, pageSpillPx, deepestWho,
       frameSkewPx,
       sideMarginSkewPx: Math.round(Math.abs((body.left - sr.left) - (sr.right - body.right))),
-      layout, colCount, colTopSkewPx, colWeightRatio,
+      layout, colCount, colTopSkewPx, colWeightRatio, visualPct,
       focalPx: Math.round(focalPx), focalText, bodyPx: Math.round(bodyPx),
       focalRatio: +(focalPx / Math.max(1, bodyPx)).toFixed(2),
       figLeadPct: +(100 * figLead).toFixed(0),
@@ -1032,8 +1064,12 @@ CONSISTENCY_PROBE = r"""
   // stylesheet says nothing about, where the author necessarily invented the
   // rendering. Count the renderings they invented.
   const SCOPED = [
-    ['.k', ['.band']],
-    ['.v', ['.band', '.lead']],
+    // `.attrs` and `.spec` joined the shipped scopes in 0.1.375, when the
+    // cover-grid furniture promoted the mono key/value rows the cover and
+    // closing carry. Same rule as `.band` vs `.lead`: distinct scopes are
+    // distinct roles, and only a use outside every shipped scope is invented.
+    ['.k', ['.band', '.attrs', '.spec']],
+    ['.v', ['.band', '.lead', '.attrs', '.spec']],
     // Shipped scoped in 0.1.369 for the reason `.k` is: `.no` and `.yes` are the
     // most collidable names in this vocabulary, so `tokens/` styles them only
     // inside a `.swap` rather than reaching into any document that uses them for
@@ -1565,6 +1601,41 @@ def page_report(rows, geometry, errors):
           + (" — " + _fmt_ids(openers) if openers
              else ", so the deck runs as one undivided sequence")
           + ". An observation, not a floor.")
+    # The pacing target (storyline-templates.md): about five content pages
+    # between openers. Reported so a long run prompts the author to look for an
+    # unmarked seam; a target read as a quota would force openers where the
+    # argument has no seam, so this never gates.
+    if openers:
+        runs, run = [], 0
+        opener_ids = {r["id"] for r in openers}
+        for r in live:
+            if r["id"] in opener_ids or r.get("isCover") or r.get("isClosing"):
+                runs.append(run); run = 0
+            else:
+                run += 1
+        runs.append(run)
+        longest = max(runs)
+        print(f"  opener pacing: longest run between openers is {longest} content "
+              f"page{'s' if longest != 1 else ''} against a target of about five. "
+              f"A target, not a floor — a long run is a prompt to look for an "
+              f"unmarked seam, answered by the author.")
+
+    # The visual-share target (owner directive 2026-08-09): about half of a
+    # content page's area carries something drawn or figured. A target and a
+    # review trigger, never a gate; pages under it are listed so a human looks
+    # at them, and check_design.py's D16 asks the presence half statically.
+    content = [r for r in live
+               if not (r.get("isOpener") or r.get("isCover") or r.get("isClosing"))]
+    low = [r for r in content if r.get("visualPct", 0) < 50]
+    if content and low:
+        print(f"  visual share: {len(low)} of {len(content)} content pages sit under "
+              f"the 50% target — "
+              + ", ".join(f"{r['id']} {r.get('visualPct', 0)}%" for r in
+                          sorted(low, key=lambda r: r.get('visualPct', 0))[:8])
+              + ". A target and a review trigger, never a floor.")
+    elif content:
+        print(f"  visual share: all {len(content)} content pages carry visual blocks "
+              f"at or above the 50% target")
 
     print(f"  figures: {ndrawn} of {len(live)} pages are built on a drawing "
           f"rather than a grid or a block of prose")

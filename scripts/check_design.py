@@ -14,11 +14,13 @@ metric. Four of them were arithmetic:
     D8  support line  every content page has one under its title
     D9  layout spread  which layouts a deck uses (reported)
     D10 label icons   figure nodes and row-heads carrying an icon (reported)
+    D16 visual presence  content pages carrying no visual block (reported)
 
     D12 commercial footer  handling terms and origin on every page (**gates**)
     D14 placeholders       slots the author left for themselves (**gates**)
+    D15 footer path        no repository path reaches a footer (**gates**)
 
-**Nothing here gates except D12 and D14.** Every other number is a diagnostic for a
+**Nothing here gates except D12, D14 and D15.** Every other number is a diagnostic for a
 designer to read, and the exit code is 0 unless a file could not be measured at
 all. SKILL.md rule 4 is the reason: a page is done when a human reads it as
 intentional, and a metric that can be satisfied without improving the page ends
@@ -386,6 +388,41 @@ def _pages(raw):
         raw, re.S | re.I)
 
 
+# The blocks the visual-share directive counts as "visual": a figure, a stat
+# band, a display lead, and the purpose-built comparison patterns. Tables are
+# deliberately absent — a table is for values (§4), and the directive that
+# created this metric asked for figures over tables.
+VISUAL_BLOCKS = ("fig", "band", "lead", "swaps", "vows", "duo", "grades", "field")
+
+
+def d16_visual_presence(raw):
+    """Content pages that carry no visual block at all. Reported, never gating.
+
+    The static half of the owner's visual-share directive (2026-08-09): the
+    decidable question is whether a page carries anything visual, and the pages
+    that answer no are listed for a human to look at. The 50% *area* target is
+    rendered geometry, so it lives in inspect_layout.py — measuring area from
+    declared CSS is how the withdrawn 82% fill floor lied. A floor here would
+    be satisfied by pasting a small block on every page, which is the same
+    failure with a different number, so this reports and a reviewer decides.
+    """
+    pages = _pages(raw)
+    if not pages:
+        return None
+    prose_only, content = [], 0
+    for cls, pid, body in pages:
+        if "cover" in cls or "closing" in cls or "opener" in cls:
+            continue
+        content += 1
+        # A whole class token, not a substring: `band-hero` on a `.body` is a
+        # layout name, not a stat band.
+        if any(re.search(rf'class="(?:[^"]*\s)?{b}(?:\s[^"]*)?"', body)
+               for b in VISUAL_BLOCKS):
+            continue
+        prose_only.append(pid)
+    return {"content_pages": content, "prose_only": prose_only}
+
+
 def d8_support_line(raw):
     """Every content page carries a support line under the title. Figure pages
     are not exempt: a diagram with nothing introducing it drops the reader in."""
@@ -657,6 +694,9 @@ def measure(path):
         "D13_lime_as_text": d13_lime_never_light_text(css, resolved, palette),
         "D9_layout_variety": d9_layout_variety(raw),
         "D10_label_icons": d10_label_icons(raw),
+        "D16_visual_presence": d16_visual_presence(raw),
+        # The contains hook in check_fixtures.py reads <PREFIX>_detail.
+        "D16_detail": (d16_visual_presence(raw) or {}).get("prose_only"),
     }
 
 
@@ -712,6 +752,11 @@ def grade(r):
     rows.append(("D10_label_icons",
                  f"{i['eyebrow_icons']} eyebrow, {i['figure_or_row_icons']} in figures"
                  if i else None, "reported", True, i is None))
+    vp = r["D16_visual_presence"]
+    rows.append(("D16_visual_presence",
+                 f"{len(vp['prose_only'])} of {vp['content_pages']} content pages "
+                 f"prose-only" if vp else None,
+                 "reported", True, vp is None))
     return [(n, v, t, "n/a" if skip else ("ok" if good else "FAIL"))
             for n, v, t, good, skip in rows]
 

@@ -37,55 +37,75 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "fixtures"
 STALE = "is stale or missing; re-run without --check"
 
+# The icon sprite comes from the vendored library via embed_icons.sprite(), so
+# the fixture exercises the same path a deliverable uses and cannot drift from
+# the library it claims to demonstrate.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from embed_icons import sprite  # noqa: E402
+
 TERMS = "Confidential &#183; internal use &#183; do not forward"
 SITE = "www.example.org"
 
+# The producing-skill version, for the colophon the cover rule requires. Read
+# from SKILL.md so it cannot drift; the fixtures already regenerate every
+# release because the embedded token block carries the version stamp.
+VERSION = re.search(r'^\s*version:\s*"([^"]+)"',
+                    (ROOT / "SKILL.md").read_text(encoding="utf-8"), re.M).group(1)
+
+# The cover/closing mark, inlined verbatim from the generated asset.
+GLOBE = (ROOT / "assets/vectors/globe-orthographic.svg").read_text(encoding="utf-8").strip()
+
 # Titles deliberately spread across five frames. M11 fails a deck whose titles
 # all take one shape, and a fixture that trips it by accident teaches nothing.
+# Each page carries its subject icon (design-rules §3's eyebrow contract), one
+# icon one meaning across the deck.
 PAGES = [
-    ("Coverage", "Metering coverage reached 41% of the estate",
+    ("radar", "Coverage", "Metering coverage reached 41% of the estate",
      "Two regions carry most of the shortfall, and both are rural.",
      ["Rural feeders were surveyed last.", "Access needs a scheduled outage."]),
-    ("Backlog", "Why the install backlog stopped shrinking",
+    ("layers", "Backlog", "Why the install backlog stopped shrinking",
      "Crew hours moved to fault response in the second quarter.",
      ["Fault response has first call on crews.", "Installs resume when the queue clears."]),
-    ("Reads", "Read success: 96.2% on urban feeders, 71.4% on rural",
+    ("gauge", "Reads", "Read success: 96.2% on urban feeders, 71.4% on rural",
      "The gap is signal, not hardware, and it follows terrain rather than meter age.",
      ["Signal strength tracks terrain closely.", "Meter age shows no correlation."]),
-    ("Cost", "Each avoided truck roll returns 38 units",
+    ("scale", "Cost", "Each avoided truck roll returns 38 units",
      "The figure holds only where a read succeeds on the first attempt.",
      ["A second attempt erases the saving.", "Third attempts cost more than a visit."]),
-    ("Risk", "Three assumptions carry the forecast",
+    ("bell", "Risk", "Three assumptions carry the forecast",
      "Each one is checkable, and one of them has already moved.",
      ["Crew availability held through June.", "Signal coverage assumptions have not."]),
-    ("Sequence", "Install density beats install count",
+    ("route", "Sequence", "Install density beats install count",
      "Clustering work by feeder cuts travel more than raising the daily target.",
      ["Travel is the largest non-productive cost.", "Density compounds across a week."]),
-    ("Quality", "What a failed read actually costs",
+    ("target", "Quality", "What a failed read actually costs",
      "A failed read is not a missing number; it is an estimate that later has to be corrected.",
      ["Estimates propagate into billing.", "Corrections arrive two cycles later."]),
-    ("Signal", "Can the rural gap close without new hardware?",
+    ("git-branch", "Signal", "Can the rural gap close without new hardware?",
      "Relay siting explains more of the variance than any equipment choice does.",
      ["Relay siting was never optimised.", "Two candidate sites are already owned."]),
-    ("Crews", "Crew training pays back inside one quarter",
+    ("list-checks", "Crews", "Crew training pays back inside one quarter",
      "Trained crews complete more first-attempt reads, which is where the return sits.",
      ["First-attempt rate rises with training.", "The effect persists after six months."]),
-    ("Data", "The estimate rate is the number to watch",
+    ("book-open", "Data", "The estimate rate is the number to watch",
      "It moves before the read rate does, so it gives roughly a cycle of warning.",
      ["Estimate rate leads read rate.", "One cycle is enough to reschedule."]),
-    ("Scope", "What this analysis does not cover",
+    ("ban", "Scope", "What this analysis does not cover",
      "Commercial meters, prepayment customers, and anything outside the two named regions.",
      ["Commercial meters have their own programme.", "Prepayment is a separate contract."]),
-    ("Evidence", "Every figure here traces to the meter management system",
+    ("funnel", "Evidence", "Every figure here traces to the meter management system",
      "Extracts are dated, and the extract date is on each figure.",
      ["Extracts are dated at source.", "No figure is carried between extracts."]),
-    ("Decision", "Reschedule the rural phase, or accept the estimate rate",
+    ("split", "Decision", "Reschedule the rural phase, or accept the estimate rate",
      "Those are the two options; a third that changes neither has not been found.",
      ["Rescheduling costs one quarter.", "Accepting it costs billing accuracy."]),
-    ("Next", "Three things to settle before the next cycle",
+    ("calendar", "Next", "Three things to settle before the next cycle",
      "Relay siting, crew allocation, and whether the estimate rate becomes a reported metric.",
      ["Relay siting needs a survey.", "Crew allocation needs a decision."]),
 ]
+
+# The eyebrow sprite plus the footer's handling marker.
+SPRITE = sprite([p[0] for p in PAGES] + ["shield"])
 
 
 def shipped_css() -> str:
@@ -126,7 +146,11 @@ def foot(n: int, total: int, terms: str = TERMS, site: str = SITE,
     # say belongs once per document in the closing colophon, kept alive in the
     # reference implementation of those rules. A fixture is a worked example, and
     # a worked example that uses a retired slot teaches the retired slot.
-    return (f'<div class="foot"><div class="terms"><span class="conf">{terms}</span></div>'
+    # The handling marker: the seal-red shield ahead of the terms (design-rules
+    # §4b), which inverts with the opener's lime field via `.foot .conf .ic`.
+    return (f'<div class="foot"><div class="terms"><span class="conf">'
+            f'<svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>'
+            f'{terms}</span></div>'
             f'{src}<span class="site">{site}</span><span>{n:02d} / {total:02d}</span></div>')
 
 
@@ -149,20 +173,20 @@ def foot(n: int, total: int, terms: str = TERMS, site: str = SITE,
 # conclusion in the caption, and a source line. The broken fixture keeps a
 # rect-only figure so D5 still has something to report.
 FIGURE = """<div class="fill">
-      <div class="fig"><svg viewBox="0 0 640 232" preserveAspectRatio="xMidYMid meet"
+      <div class="fig"><svg viewBox="0 0 640 420" preserveAspectRatio="xMidYMid meet"
         role="img" aria-label="Read success by feeder class, urban against rural">
-        <line x1="132" y1="18" x2="132" y2="176" class="s-line" stroke-width="1"/>
-        <text class="flbl" x="0" y="46">Urban</text>
-        <rect class="f-acc" x="132" y="26" width="380" height="34" fill="var(--acc)"/>
-        <text class="fval" x="524" y="49">96.2%</text>
-        <text class="flbl" x="0" y="104">Rural</text>
-        <rect class="f-acc" x="132" y="84" width="250" height="34" fill="var(--acc)"/>
-        <text class="fval" x="394" y="107">71.4%</text>
-        <text class="flbl" x="0" y="162">Deferred</text>
-        <rect x="132" y="142" width="170" height="34" class="f-none s-dash"
+        <line x1="132" y1="24" x2="132" y2="332" class="s-line" stroke-width="1"/>
+        <text class="flbl" x="0" y="76">Urban</text>
+        <rect class="f-acc" x="132" y="40" width="380" height="64" fill="var(--acc)"/>
+        <text class="fval" x="524" y="79">96.2%</text>
+        <text class="flbl" x="0" y="180">Rural</text>
+        <rect class="f-acc" x="132" y="144" width="250" height="64" fill="var(--acc)"/>
+        <text class="fval" x="394" y="183">71.4%</text>
+        <text class="flbl" x="0" y="284">Deferred</text>
+        <rect x="132" y="248" width="170" height="64" class="f-none s-dash"
           fill="none" stroke-width="1.3"/>
-        <text class="fnote" x="314" y="165">not surveyed this cycle</text>
-        <text class="fnote" x="132" y="206">A dashed bar is a class with no
+        <text class="fnote" x="314" y="287">not surveyed this cycle</text>
+        <text class="fnote" x="132" y="372">A dashed bar is a class with no
           measurement, never a low one</text>
       </svg>
       <div class="cap"><span class="n">Figure {i}</span> The gap follows terrain,
@@ -224,17 +248,20 @@ VOWS = """<div class="vows">
 
 
 def page(i: int, total: int, spec, broken: bool) -> str:
-    eyebrow, title, sup, bullets = spec
+    icon, eyebrow, title, sup, bullets = spec
+    # The eyebrow contract (design-rules §3): subject icon, then
+    # `PART <letter> · <label>`. Pages 3-9 sit under Part A, 11-17 under Part B.
+    part = "A" if i <= 9 else "B"
     gd = ("A callout carries the aside a reader should not miss, and no more than one "
           "of them belongs on a page.")
     style = ""
     terms = TERMS
     src = ""
     if broken:
-        if i == 3:
+        if i == 4:
             gd = ("Leveraging a seamless framework, this callout showcases a robust "
                   "and comprehensive approach.")            # M4 banned phrases
-        if i == 10:
+        if i == 12:
             # D4 literal colour. It sat on page 5 until 0.1.369, which then became
             # a `stack` page carrying cards and no `.gd` at all — so the planted
             # defect silently vanished and D4 came back `ok` on the fixture whose
@@ -242,32 +269,32 @@ def page(i: int, total: int, spec, broken: bool) -> str:
             # is the assertion earning its place: a defect that stops being
             # planted is indistinguishable from a check that stopped working.
             style = ' style="border-color:#ABCDEF"'
-        if i == 7:
+        if i == 8:
             terms = "Prepared for circulation"               # D12: no handling terms
-        if i == 6:
+        if i == 7:
             # a real prose em-dash, which M9 must still catch
             sup = "The gap is signal &#8212; not hardware, and it follows terrain."
-        if i == 12:
+        if i == 14:
             # M12: visible CJK in a document that declares English. The Chinese
             # here is rule DATA — the defect under test — exactly as banned
             # phrases and punctuation examples are elsewhere in this package.
             # A real deliverable named `*.en.html`, carrying `lang="en"`, shipped
             # a badge like this in a page lede and passed every metric.
             sup = "\u5df2\u56de\u6536 15/15 \u9898. Coverage held across the surveyed feeders."
-        if i == 13:
+        if i == 15:
             # D15: a repository path poured into the footer as a "source". The
             # second document to do this; 0.1.366 removed `.foot .src` from
             # tokens/ after the first.
             src = ('<span class="src">resources/'
                    '\u60c5\u62a5\u6e90\u76ee\u5f55-20260730.zh.html</span>')
-        if i == 11:
+        if i == 13:
             # D14: the slot an author leaves for themselves and then ships. A
             # real deliverable carried four of these on its closing page and
             # every check in this package passed it, because a placeholder is
             # not a banned phrase, not a colour, and occupies exactly as much
             # room as the text that should have replaced it.
             sup = "Read success held at [TO FILL]% across the surveyed feeders."
-        if i == 9:
+        if i == 11:
             sup = sup + " The gap is measured against a baseline taken in the first "\
                         "quarter of the programme, before the rural feeders had been "\
                         "surveyed at all, which makes the comparison generous."  # M8 overlong
@@ -277,31 +304,36 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     # a deliverable that had none. Found by running the checker against real
     # agent output; the fixtures we wrote ourselves never used a placeholder.
     cell = ""
-    if i == 8:
+    if i == 9:
         cell = ('<table><tbody><tr><td>Rural feeders</td><td>41</td></tr>'
                 '<tr><td>Deferred</td><td>&#8212;</td></tr></tbody></table>')
-    # Pages 2 and 3 carry a stat band and a display lead. Without them the
+    # Pages 3 and 4 carry a stat band and a display lead. Without them the
     # fixture never exercises `.band .k`, `.band .v` or the focal element, and
     # inspect_layout.py correctly reports those roles as NOT MEASURED — a
     # reference implementation that skips a third of the role vocabulary is not
     # a reference implementation.
     band = ""
-    if i in (2, 3):
+    if i in (3, 4):
         band = ('<div class="band">'
                 '<div><span class="k">Coverage</span><div class="v">41<span class="u">%</span></div></div>'
                 '<div><span class="k">Feeders</span><div class="v">312</div></div>'
                 '<div><span class="k">Estimates</span><div class="v">8.4</div></div>'
                 '</div>')
     lead = ""
-    if i not in (2, 3):
+    if i not in (3, 4):
         lead = f'<div class="lead"><div class="v">{i * 7}</div>' \
                f'<p class="g">Units returned per avoided visit, illustrative</p></div>'
+    if broken and i == 16:
+        # D16: a page with no visual block at all — no figure, no band, no
+        # lead, no comparison pattern; prose, a list and a callout. The static
+        # half of the visual-share directive reports it as prose-only.
+        lead = ""
     # One page each for the four block patterns; every other page keeps the
     # figure. The tier-1 pair is exercised in both colours on DIFFERENT pages:
     # `.key` in page 4's notes column and `.red` in page 7's, because D3 budgets
     # tier-1 callouts at one per page and putting both on one page trips it —
     # which the fixture should demonstrate obeying, not by luck.
-    if i == 7:
+    if i == 8:
         gd = ('<p class="red">The seal colour marks a red line, never emphasis. '
               'A page carries at most one tier-1 callout.</p>')
     else:
@@ -312,9 +344,11 @@ def page(i: int, total: int, spec, broken: bool) -> str:
       <ul>{lis}</ul>
       {cell}{band}{lead}
     </div>"""
-    fig = FIGURE_WEAK if (broken and i == 3) else FIGURE
+    fig = FIGURE_WEAK if (broken and i == 4) else FIGURE
     layout, cells = "split", argument + "\n    " + fig.format(i=i)
-    if i == 4:
+    if broken and i == 16:
+        layout, cells = "stack", argument
+    if i == 5:
         layout, cells = "sidebar-notes", argument + "\n    " + NOTES
     # A one-line `.lead.row` above each block. Two purposes: it gives these two
     # pages an entry point — without it `inspect_layout.py` reports them as the
@@ -323,15 +357,15 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     # is how its `flex-direction: row` lost an argument to the fill rule twice.
     row = ('<div class="lead row"><div class="v">41<span class="u">%</span></div>'
            '<p class="g">Metering coverage, illustrative</p></div>')
-    if i == 5:
-        layout, cells = "stack", f'<div class="fill">{row}{CARDS}</div>'
     if i == 6:
+        layout, cells = "stack", f'<div class="fill">{row}{CARDS}</div>'
+    if i == 7:
         layout, cells = "stack", f'<div class="fill">{row}{VOWS}</div>'
     return f"""
 <section class="page" id="p{i}">
   <div class="body {layout}">
     <div class="lede">
-      <p class="eyebrow">{eyebrow}</p>
+      <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#i-{icon}"/></svg>Part {part} &#183; {eyebrow}</p>
       <h2 class="t">{title}</h2>
       <p class="sup">{sup}</p>
     </div>
@@ -340,42 +374,73 @@ def page(i: int, total: int, spec, broken: bool) -> str:
   {foot(i, total, terms, src=src)}</section>"""
 
 
+def opener(part: str, number: int, total: int, claim: str, run: str) -> str:
+    # The part opener, in the shipped composition: the lime field carrying
+    # `.openpart` / `.openclaim` / `.openrun` and nothing else
+    # (storyline-templates.md). `.page.opener` was styled since 0.1.345 and no
+    # fixture rendered one until 0.1.369's lesson made the worked example the
+    # test; the composition classes shipped in 0.1.375 and are exercised here.
+    return f"""
+<section class="page opener" id="open{part}">
+  <div class="body full-bleed no-lede">
+    <div class="bleed openframe">
+      <div class="openpart">Part {part}</div>
+      <div class="openclaim">{claim}</div>
+      <div class="openrun">{run}</div>
+    </div>
+  </div>
+  {foot(number, total)}</section>"""
+
+
 def build(broken: bool) -> str:
-    total = len(PAGES) + 3   # cover, part opener, closing
+    total = len(PAGES) + 4   # cover, two part openers, closing
+    # Cover and closing are the same kind of page, set the same way: cover-grid,
+    # with the orthographic globe as the one vector mark on each (the closing
+    # repeats the cover's geography rather than introducing a new claim).
     cover = f"""
 <section class="page cover" id="cover">
-  <div class="body stack no-lede"><div class="fill">
-    <h1>Metering programme review</h1>
-    <p class="sup">A synthetic deliverable. Every figure here is invented.</p>
-  </div></div>
+  <div class="body cover-grid">
+    <div class="typeblock">
+      <p class="wordmark">LUMI</p>
+      <h1>Metering programme review</h1>
+      <p class="sub">A synthetic deliverable. Every figure here is invented.</p>
+    </div>
+    <div class="markcell">{GLOBE}</div>
+    <div class="attrs">
+      <div><span class="k">Audience</span><span class="v">Checker regression suite</span></div>
+      <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
+      <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
+    </div>
+    <p class="colophon">Built with lumi-style {VERSION} &#183; source: meter management system.</p>
+  </div>
   {foot(1, total)}</section>"""
     closing = f"""
 <section class="page closing" id="closing">
-  <div class="body stack no-lede"><div class="fill">
-    <h2>What to settle this month</h2>
-    <p class="sup">Relay siting first, then crew allocation.</p>
-    <p class="colophon">Source: meter management system. Prepared by the analysis team.</p>
-  </div></div>
+  <div class="body cover-grid">
+    <div class="typeblock">
+      <p class="wordmark">LUMI</p>
+      <h2>What to settle this month</h2>
+      <p class="sub">Relay siting first, then crew allocation.</p>
+    </div>
+    <div class="markcell">{GLOBE}</div>
+    <div class="attrs">
+      <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
+      <div><span class="k">Source</span><span class="v">Meter management system</span></div>
+    </div>
+    <div class="closenote"><p class="colophon">Built with lumi-style {VERSION}.
+    Source: meter management system; every number here is invented, and a
+    bracketed slot must not ship.</p></div>
+  </div>
   {foot(total, total)}</section>"""
 
-    # A part opener, because nothing in this repository has ever rendered one.
-    # `.page.opener` has been styled in lumi-layouts.css and named in brand.md
-    # since 0.1.345, its ground takes the mid intensity, 0.1.368 started counting
-    # them — and no fixture carried one, so the count was always zero and the
-    # 0.1.373 inset probe would have had nothing to measure. The same trap as the
-    # block patterns in 0.1.369: a rule nothing exercises is a rule nothing tests.
-    opener = f"""
-<section class="page opener" id="open1">
-  <div class="body rail">
-    <div class="railhead"><p class="eyebrow">Part two</p></div>
-    <div class="fill"><h2 class="t">Where the reads actually fail</h2>
-    <p class="sup">Four pages on signal, terrain and the relay siting decision.</p></div>
-  </div>
-  {foot(9, total)}</section>"""
-    body = (cover + "".join(page(i + 2, total, s, broken)
-                            for i, s in enumerate(PAGES[:7]))
-            + opener
-            + "".join(page(i + 9, total, s, broken)
+    body = (cover
+            + opener("A", 2, total, "What the estate measures today",
+                     "Seven pages: coverage, the backlog, and what a read is worth.")
+            + "".join(page(i + 3, total, s, broken)
+                      for i, s in enumerate(PAGES[:7]))
+            + opener("B", 10, total, "Where the reads actually fail",
+                     "Seven pages on signal, terrain and the relay siting decision.")
+            + "".join(page(i + 11, total, s, broken)
                       for i, s in enumerate(PAGES[7:]))
             + closing)
     label = "broken" if broken else "pass"
@@ -412,7 +477,7 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
 .s-dash {{ stroke: var(--ln1); stroke-dasharray: 5 4; }}
 .colophon {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }}
 .foot {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }}
-</style></head><body>{body}</body></html>
+</style></head><body>{SPRITE}{body}</body></html>
 """
 
 

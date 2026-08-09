@@ -21,7 +21,7 @@
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame (e.g. "Topic: clause") |
 | M12 | Visible CJK in an English deliverable | =0 — **gates** | Chinese in text a reader sees, when the document declares English by `lang`, filename or `--lang`. Quoted as data (`<code>`, `<pre>`, backticks) is exempt |
 
-## Design diagnostics D1–D10 (`scripts/check_design.py` — reported, never gating)
+## Design diagnostics D1–D16 (`scripts/check_design.py` — reported, never gating, three named exceptions)
 
 | id | Metric | Target | Predicate |
 |---|---|---|---|
@@ -35,8 +35,10 @@
 | D9 | Layout spread | reported | which layouts a deck uses, and the share on the most common |
 | D10 | Label icon coverage | reported | icons on figure nodes and table row-heads, beyond the page eyebrow |
 | D11 | Page-height conformance | reported, and the first thing to read | pages whose rendered height differs from the geometry's, per format (`inspect_layout.py`) |
+| D12 | Commercial footer | =0 — **gates** | handling terms and the origin site on every page; pages travel alone |
 | D14 | Unfilled placeholders | =0 — **gates** | slots the author left for themselves: `[TO FILL]`, `[TBD]`, `{{…}}`, an empty bracket pair |
 | D15 | File path in a footer | =0 — **gates** | a repository path pasted into reader copy: two segments and a file extension. The site D12 requires, and any URL, are not paths |
+| D16 | Visual presence and share | reported | content pages carrying no visual block (static half, `check_design.py`); rendered visual area against the ~50%-of-page target (`inspect_layout.py`) |
 
 **No design judgement in the D-series gates.** `check_design.py` exits 0 unless a
 file cannot be measured at all; every number is a diagnostic for a designer to
@@ -60,6 +62,15 @@ up exactly as much room as the text that should have replaced it. Bracketed
 ellipsis (`[...]`) is deliberately not a marker — it is the standard editorial
 elision inside a quotation, and a gate that fires on legitimate prose is one
 people learn to route around.
+
+**D16 is a review trigger, not a floor** (owner directive, 2026-08-09). A content
+page with no visual block, or a rendered visual share under the 50% target, goes
+back to a human to look at: the fix is a redrawn centerpiece, or a deliberate
+decision that the page earns its prose, recorded in the delivery note. Both
+numbers exist to start the looking, not end it — the withdrawn D7 below is what
+happens when a number like this is allowed to end it, and D16 counts classified
+blocks rather than ink area precisely so it cannot be satisfied by stretching
+anything.
 
 **Withdrawn in 0.1.340**, all three invented without an ask: **D7** (82% page fill),
 **D9's 40% share cap**, and the **11px type floor**. D7 is the cautionary one — it
