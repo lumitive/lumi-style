@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · v0.1.374 (2026-08-08)
+   LUMI visual theme · v0.1.375 (2026-08-09)
    Single source of truth for palette and typography. New documents reference
    this file or copy the token blocks verbatim (note the provenance when
    copying). Version lockstep: a deliverable's version = the lumi-style
@@ -116,22 +116,25 @@
      part openers, faint on body pages. These are alphas, and the ceiling is
      what they are checked against. */
   --ground-ceiling: 1.40;
-  /* v0.1.350: .25 → .20. The ceiling had only ever been checked in landscape,
-     because the contrast audit hard-coded a 1280x720 viewport while claiming to
-     describe the document. Run at A4 the strong tier broke its own ceiling on
-     two independent documents — 1.42 and 1.485 — since the ground stretches with
-     `preserveAspectRatio="none"` and its strokes thicken relative to a page that
-     is 794 wide instead of 1280. .21 measured 1.396, which is 0.004 of headroom
-     on a number that moves with whatever ground a document draws; .20 measures
-     1.369 and leaves room for one. These are CEILINGS on loudness, so quieter is
-     always allowed and the tier may be lowered further per document. */
-  --ground-strong: .20;
-  /* .19 → .15 with it. These are three TIERS, and the point of three is that the
-     texture recedes as the evidence gets denser; strong at .20 beside mid at .19
-     is two tiers wearing three names. Held at the ratio the tiers were designed
-     with (mid ≈ 0.76 of strong), so lowering the ceiling-bound tier does not
-     quietly flatten the ramp beneath it. */
-  --ground-mid:    .15;
+  /* v0.1.350 lowered .25 → .20: at A4 the strong tier broke its own ceiling on
+     two documents — 1.42 and 1.485 — because their grounds stretched with
+     `preserveAspectRatio="none"`, thickening every stroke on a page 794 wide
+     instead of 1280. v0.1.375 restores .25 at the owner's ask for the dense
+     cover, on two measured legs. First, a ground is drawn with
+     `preserveAspectRatio="xMidYMid slice"`, which crops at the sheet instead
+     of stretching — that narrows the A4 breach but does not close it (the
+     reference deck at .25: 1.344 at 1280x720, 1.413/1.423 at 794x1123).
+     Second, the sheet takes its own strong tier: the media block at the end of
+     this file steps .25 down to .23 at portrait, which measures 1.38 on the
+     same deck. The ceiling is unchanged, measured on the rendered page in both
+     geometries; the tiers stay CEILINGS on loudness, so quieter is always
+     allowed. */
+  --ground-strong: .25;
+  /* The three TIERS recede as the evidence gets denser — dense on the cover
+     and closing, medium on the part openers, sparse on body pages. Held at the
+     ratio the tiers were designed with (mid ≈ 0.76 of strong), so moving the
+     ceiling-bound tier does not quietly flatten the ramp beneath it. */
+  --ground-mid:    .19;
   --ground-faint:  .075;
 
   --d-blue:    #2F6DB4;          /* chart data colors (CVD-validated) */
@@ -253,4 +256,15 @@ body.dark {
 
   --d-blue:    #5B8FC9;
   --d-teal:    #3FA98C;
+}
+
+/* ── the ground's geometry step-down (v0.1.375) ──────────────────────────────
+   The ceiling binds per geometry: a ground cropped with `slice` still shows
+   its densest band on a narrower page, so the light strong tier at .25 clears
+   1.40 in landscape (measured 1.344) and breaks it on the sheet (1.413/1.423).
+   Portrait takes .23, measured 1.38 on the same deck. `:root` only — the dark
+   palette's own quieter values already clear the ceiling and body.dark's
+   element-level definitions outrank this either way. */
+@media (max-aspect-ratio: 1/1) {
+  :root { --ground-strong: .23; }
 }

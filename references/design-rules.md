@@ -42,6 +42,14 @@
   most needed to say about itself. Amber and brass exist to carry state, not to
   decorate — adding a fifth colour needs a meaning that none of these four covers,
   and a contrast measurement on both canvases.*
+
+  *One recorded extension (0.1.375, at the owner's ask): the footer's handling
+  marker — the `shield` icon ahead of the confidentiality line, shipped in
+  `tokens/lumi-layouts.css` — renders in `--seal`. The handling terms are a
+  standing warning to the reader (do not forward), so this is the warning
+  meaning applied on every page, not a fifth meaning; the seal still never
+  decorates, and on the lime opener the marker inverts with the rest of the
+  footer.*
 - **Hierarchy comes from a transparency ladder, not new grays** — and since 0.1.338
   it is **two ladders**, because one of them was unreadable. The token names carry
   the rule:
@@ -159,11 +167,12 @@ comes from size and letterspacing.
   and two stat-band pages carried any display tier at all. A page with no entry
   point gets read top-left like a document instead of looked at. The fix is per
   page: half of those pages got a number, the rest got a redrawn figure.*
-- **A part opener earns its page.** One line at display scale saying where the
-  reader is and what the next run of pages argues, and nothing else. A navigation
-  rail cannot do this at a glance, and the quiet page is what makes the dense
-  ones read as dense on purpose.
-- **A page has a layout, chosen for its content.** Fifteen ship in
+- **A part opener earns its page.** The part label, one claim at display scale
+  saying where the reader is, and one run line saying what the next pages argue —
+  the `.openpart` / `.openclaim` / `.openrun` set on the lime field — and nothing
+  else: no figure, no map, no icon. A navigation rail cannot do this at a glance,
+  and the quiet page is what makes the dense ones read as dense on purpose.
+- **A page has a layout, chosen for its content.** Sixteen ship in
   `tokens/lumi-layouts.css` as `.body.<name>`; pick with the table below. This is
   the same discipline as §4's chart form-selection: the point is not that many
   layouts exist, it is that the content decides which one.
@@ -171,6 +180,7 @@ comes from size and letterspacing.
   | The content is | Layout |
   |---|---|
   | one number, and it is the story | `hero-band` |
+  | a cover or a closing page | `cover-grid` |
   | a short frame, then a dominant block | `band-hero` |
   | 2 / 3 / 4 parallel items of equal weight | `columns-2` / `columns-3` / `columns-4` |
   | four parallel items, or a matrix with named axes | `quad` |
@@ -181,7 +191,7 @@ comes from size and letterspacing.
   | a claim whose qualifications are as load-bearing as itself | `sidebar-notes` |
   | a three-stage sequence read downward | `thirds-v` |
   | a progression where direction carries meaning | `diagonal-flow` |
-  | a part divider or section opener | `rail` |
+  | a part divider or section opener | `full-bleed` (the lime field) or `rail` |
   | a table of 6 or more columns | `stack`, no exceptions |
 
   **This table is a reference, not a lookup.** It says what has worked, not what
@@ -354,7 +364,8 @@ the footer rule: the confidentiality line, then the organisation's site. Right:
 forwarded without the cover — so terms that live only on page one do not travel
 with the page.
 
-**This is one of the two checks in `check_design.py` that fail the run** (D12).
+**This is one of the three checks in `check_design.py` that fail the run** (D12,
+with D14 and D15 below).
 Everything else there reports, because a page is done when a human reads it as
 intentional and a threshold satisfiable without improving the page ends the
 looking. This is different in kind: not a judgement about whether a page is well
@@ -607,7 +618,9 @@ A layout is verified only across the **matrix**, not at a point:
   releases — portrait-only, missing from the token file's own "fifteen page
   layouts" header, missing from the §3 table, missing from the checker — and was
   removed rather than completed, because shipping a sixteenth layout nobody asked
-  for is the speculative rule-making CLAUDE.md rule 2 forbids.
+  for is the speculative rule-making CLAUDE.md rule 2 forbids. When the owner's
+  cover standard did ask for it, 0.1.375 reinstated it completed: base rendering,
+  portrait variant, header count, §3 row and checker entry moved together.
 - **A geometry may tighten spacing. It may not change type.** brand.md's rule —
   a page that no longer fits gets its content trimmed, never its type nudged —
   binds across the two page geometries as well as across pages. Breaking it is

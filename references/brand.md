@@ -86,9 +86,18 @@ of things and make the pattern in them visible without arguing about it.
 
 ### The ground — and why it may be decorative when a field may not
 
-Water and light behind every page: strongest on the cover and closing, medium on
-the part openers, faintest on the body pages, so the texture recedes as the
-evidence gets denser.
+Water and light behind every page: **dense** on the cover and closing
+(`--ground-strong`), **medium** on the part openers (`--ground-mid`), **sparse**
+on the body pages (`--ground-faint`), so the texture recedes as the evidence
+gets denser. The three values are ceilings on loudness — quieter is always
+allowed — and the tier follows from the page class alone. A document defines
+its ripple drawing once and instantiates it per page (a `<defs>`/`<use>` pair
+or one repeated block); it draws it with `preserveAspectRatio="xMidYMid
+slice"`, which crops at the A4 sheet instead of stretching, so the marks keep
+their drawn weight in both geometries. A cropped ground still concentrates its
+densest band on a narrower page, so the strong tier steps down on the sheet —
+the token file carries both values, each measured against the ceiling in its
+own geometry.
 
 That is decoration, and the field rule above forbids decoration. The
 contradiction resolves on one distinction, and it is the distinction that makes

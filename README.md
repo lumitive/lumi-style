@@ -76,7 +76,7 @@ references/design-rules.md        design language: color semantics · dual-voice
 references/eval-rubric.md         eval rubric M1–M11 / D1–D6 / H1–H6 + the review protocol
 tokens/                           design tokens (CSS + JSON): two ladders · palette · type · scale
 assets/fonts                      D-DIN, vendored (SIL OFL) — embed, never link
-assets/icons                      the eight semantic icons, hairline, currentColor
+assets/icons                      vendored Lucide library (ISC) + the reserved bindings, currentColor
 assets/vectors                    orthographic globe · flat trade map, generated from lat/lon
 fixtures/                         two synthetic deliverables the checkers are tested on:
                                   one well-formed, one with a named defect per metric
