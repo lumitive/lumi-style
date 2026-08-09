@@ -352,7 +352,7 @@ def measure(path, genre, lang=None):
         "M4_detail": hits,
         "M8_overlong_share": round(overlong, 1),
         "M8_length_cv": round(cv, 3),
-        "M9_dashes": dashes if genre == "sales" else None,
+        "M9_dashes": dashes if genre in ("sales", "training") else None,
         "M10_triad_rate": None if triad_rate is None else round(triad_rate, 1),
         "M11_title_uniformity": None if uniformity is None else round(uniformity, 1),
     }
@@ -384,8 +384,9 @@ def grade(r):
 def main(argv):
     ap = argparse.ArgumentParser(add_help=True, description=__doc__.split("\n")[0])
     ap.add_argument("files", nargs="+")
-    ap.add_argument("--genre", choices=["sales", "internal"], default="sales",
-                    help="internal analysis documents are exempt from the M9 dash ban")
+    ap.add_argument("--genre", choices=["sales", "internal", "training"], default="sales",
+                    help="internal analysis documents are exempt from the M9 dash "
+                         "ban; training binds like sales — its readers quote it")
     ap.add_argument("--lang", default=None,
                     help="the language the deliverable claims. Overrides the "
                          "document's own lang attribute and the *.en.* filename "

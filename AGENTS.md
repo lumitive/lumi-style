@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.375.** This file restates part of `references/`; where they
+> **lumi-style 0.1.376.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -27,14 +27,20 @@ through 0.1.344 this rule set ran 272 restricting lines against 12 inviting ones
    number discipline, LUMI voice, de-AI-flavor checklist. Non-negotiable.
 2. `references/storyline-templates.md` — pick the narrative skeleton by scenario
    (sales = value & future; consulting = PwC frame with assertive subtitles;
-   internal analysis). Do this before writing.
+   internal analysis; training = enabling a team to do something). Do this before
+   writing. A deck opens with a cover and ends with a closing page, each carrying
+   the same single vector mark, and **every part boundary gets a lime opener
+   page** — about five content pages between openers is a pacing target, reported
+   and never gated.
 3. `references/design-rules.md` + `tokens/` — visual rules and design tokens for
    any HTML/slides/chart output. Text uses the `--tx1..--tx4` ladder only;
    `--ln1..--ln3` is for rules, borders and fills and never carries text. Choose
-   a page layout for the content (15 ship in `tokens/lumi-layouts.css`; §3's table
+   a page layout for the content (16 ship in `tokens/lumi-layouts.css`; §3's table
    is a reference, not a lookup). **Give every page one focal element** — a
    display number, a claim at display size, or a figure composed to dominate;
-   which one is a decision for that page. **A table is for values**: prose in a
+   which one is a decision for that page. **Every content page carries at least
+   one visual block, and about half its area going to them is the target** — the
+   checks report both, and neither is a floor. **A table is for values**: prose in a
    grid is a layout error, so draw what the content actually is. Under a figure
    goes the number, its conclusion name and the source line, and nothing else.
    Embed the vendored assets rather than improvising: `scripts/embed_font.py`,
@@ -50,10 +56,11 @@ through 0.1.344 this rule set ran 272 restricting lines against 12 inviting ones
    and H1–H6 self-scoring. Never self-score 5 before a reader has scored it, and
    always give the reason for the score, not just the number.
 
-**Every page carries a commercial footer**: confidentiality terms and the
-organisation's site on the left, `N / total` on the right. `check_design.py`'s
-D12 is one of two checks there that fail the run, because it is a requirement on
-the artifact rather than a judgement about a page. Two others join it: **D14, no slot you left for
+**Every page carries a commercial footer**: the seal-red `shield` handling
+marker, the confidentiality terms and the organisation's site on the left,
+`N / total` on the right (the marker inverts on the lime opener).
+`check_design.py`'s D12 is one of three checks there that fail the run, because
+it is a requirement on the artifact rather than a judgement about a page. Two others join it: **D14, no slot you left for
 yourself may reach the reader** — `[TO FILL]`, `[TBD]`, `{{name}}`, an empty
 bracket pair — and **D15, no footer may cite a file path**, because a source line
 names something a reader can act on and not a file on the machine that built the
@@ -69,7 +76,9 @@ two grids side by side share no axis and can never align.
 
 **A page is a fixed box.** Landscape is a 1280×720 stage, A4 a 794×1123 sheet,
 each scaled to fit the window and letterboxed — never a box that takes the
-window's shape. State the source once per page: on a single-figure page the line
+window's shape. Which geometry leads follows the genre: sales, marketing and
+consulting design 16:9 first, training designs A4 portrait first, and the other
+geometry is still composed and verified. State the source once per page: on a single-figure page the line
 under the figure is the page's source and the footer carries the page number.
 
 **Rendered geometry decides, not declared CSS.** Run
@@ -86,10 +95,12 @@ success for two releases while every page was 4:3 in a 4:3 window.
 
 **And a check with nothing to examine must not report a pass.** Use the role
 vocabulary `tokens/lumi-layouts.css` declares — `.eyebrow`, `h2.t`, `.sup`,
-`.listhead`, `.gd`, `.cap .n`, `.band .k`, `.band .v`, and the four block
+`.listhead`, `.gd`, `.cap .n`, `.band .k`, `.band .v`, and the block
 patterns `.key`/`.red`, `.card`/`.ledname`/`.verdict`, `.swap .no`/`.swap .yes`,
-`.vow`/`.vn`/`.vt`/`.vw` — or the consistency audit
-silently has nothing to compare. The probe now prints `NOT MEASURED` with the
+`.vow`/`.vn`/`.vt`/`.vw`, `.tag`, `.grades`, `dl.gloss` — or the consistency
+audit silently has nothing to compare. **The eyebrow follows its contract**: the
+page's subject icon, then `PART <letter> · <this page's own label>` — apparatus,
+deliberately uniform, never counted as a title. The probe now prints `NOT MEASURED` with the
 selector it wanted and exits 1; those lines come before every green one. Its
 design judgements still gate nothing.
 
@@ -118,7 +129,7 @@ two-pass audit; §6b de-translationese when the Chinese was translated from
 English), and only then the pre-delivery checklist in the rubric. Measure both
 halves rather than reading them: `python3 scripts/check_prose.py <file>` for
 English prose, and `python3 scripts/check_design.py <file>` for any HTML
-deliverable. **D12 and D14 gate; every other D-metric is reported for you to
+deliverable. **D12, D14 and D15 gate; every other D-metric is reported for you to
 judge** — a page is done when a human reads it as intentional, and a threshold
 satisfiable without improving the page ends the looking. (This line claimed
 "D1–D4 and D6 gate" for eight releases, naming four metrics that never did and

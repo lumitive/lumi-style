@@ -54,7 +54,8 @@ number — renders exactly one way, and a title is one way *per register* (conte
 cover, closing). The same holds for the four repeating **block patterns**: the
 tier-1 callout (`.key`, and `.red` for a red line), the card (`.card` with
 `.ledname` and `.verdict`), the swap (`.swap` with `.no` and `.yes`) and the vow
-(`.vow` with `.vn`, `.vt`, `.vw`). A page that no longer fits gets its **content
+(`.vow` with `.vn`, `.vt`, `.vw`), the status chip (`.tag`), the graded ladder
+(`.grades`) and the glossary (`dl.gloss`). A page that no longer fits gets its **content
 trimmed, never its type nudged**; nudging type per page is what produced a
 callout at three sizes. **That binds across geometries too** — a sheet may
 tighten spacing and may not change a size, or one role renders two ways and only
@@ -145,6 +146,18 @@ Say "uncertain" plainly.
 - **Consulting/client docs**: opening = scope/method/findings + the one client
   decision; key sections carry scope lines; a single closing build-status
   declaration wins over conflicting text.
+- **Training material**: what the learner will be able to do → one concept per
+  page → the worked example (a real dialogue, a real screen) → practice or
+  self-check → the reference pages a learner returns to (glossary, swap list,
+  graded ladder). Sourcing follows the consulting rule; the dash ban binds as in
+  sales, because training is quoted onward. **A4 portrait is its primary
+  geometry** — printed, annotated, bound; 16:9 is the projection edition. For
+  every other genre 16:9 leads and A4 is the print edition; both are always
+  composed and verified.
+- **Deck frame**: a cover opens and a closing ends every deck, set the same way,
+  each carrying the **same single vector mark** (geography claims only what the
+  document truly covers). **Every part boundary gets a lime opener page**; about
+  five content pages between openers is a pacing target, never a quota.
 - **Universal — the title contract**: every title names its **subject** and carries
   a **verifiable fact** (figure, date, named mechanism). "Topic: assertive
   subtitle" is the reference form, not the required one — a document where every
@@ -267,7 +280,12 @@ sentences is a table, so draw the table — and **one table per page**, because 
 grids side by side share no axis and their rows can never line up. Icons are semantic and each holds one
 fixed meaning (ledger=master data · radar=watch · funnel=adjudication · bell=alert
 · shield=compliance · pen=signature · gauge=measurement · slashed circle=forbidden);
-a section eyebrow carries its icon, hairline, inheriting currentColor. A cover
+a section eyebrow carries its icon, hairline, inheriting currentColor, and reads
+`<icon> PART <letter> · <this page's own label>` — apparatus, deliberately
+uniform, never counted as a title. **Every content page carries at least one
+visual block** (a drawn figure, a stat band, a display lead, or a comparison
+pattern), and about **half the content area** given to them is a target to
+report against, never a floor. A cover
 carries typography plus exactly one vector mark, no photography and no body copy,
 and if that mark is geography then a region drawn is a region claimed.
 
@@ -314,6 +332,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.375** snapshot, cut 2026-08-09. It is self-contained by
+> This file is the **0.1.376** snapshot, cut 2026-08-09. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

@@ -3,6 +3,66 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.376 — the page anatomy becomes a contract, and training becomes a genre
+
+The second of three releases carrying the owner's consolidated directive
+(2026-08-09). 0.1.375 shipped the vocabulary; this one writes the rules that
+vocabulary serves, and none of the new numbers gates — each one states its
+direction (rule 4) and the two that could have been floors are review triggers
+instead, because the withdrawn 82% fill floor is what happens otherwise.
+
+**The deck frame is standardized.** The closing now carries the same single
+vector mark as the cover, under the same truth test — a cover and a closing are
+the same kind of page, and the closing restates rather than claims anew
+(storyline-templates). **Every part boundary gets a lime opener page**, in the
+composition the tokens ship; **about five content pages between openers is a
+pacing target**, reported by `inspect_layout.py` as the longest run between
+openers, never a floor — a target read as a quota would force openers where the
+argument has no seam. The opener count line itself stays an observation.
+
+**The eyebrow becomes a contract** (design-rules §3): the page's subject icon,
+then `PART <letter> · <this page's own label>`. Deliberately uniform and exempt
+from the parallel-structure caution — the eyebrow is apparatus, like the page
+number — while titles stay governed by the title contract and M11, which counts
+h1/h2 only and never the eyebrow.
+
+**D16, visual presence and share, reported.** The directive's strongest ask —
+"more than half of every page should be figure" — is precisely the shape of the
+withdrawn fill floor, so it lands as two reported halves instead of one gate:
+`check_design.py` D16 lists content pages carrying no visual block at all
+(figures, stat bands, display leads and the comparison patterns count; tables
+deliberately do not), and `inspect_layout.py` reports each page's rendered
+visual area against a 50%-of-content-area **target**. Both are review triggers
+for a human; neither can be satisfied by stretching anything, because they
+count classified blocks rather than ink. The broken fixture plants a
+prose-only page and `check_fixtures.py` asserts the detail names it.
+
+**Training is the fourth genre** (storyline-templates Template 4): for enabling
+a team to do something rather than decide something — concept pages, worked
+examples, the swap as its workhorse, reference pages a learner returns to.
+`check_prose.py --genre training` binds the em-dash rule as sales does, because
+training is quoted onward. **And the primary geometry now follows the genre**
+(design-rules §7): sales, marketing and consulting design 16:9 first; training
+designs A4 portrait first, since it is printed, annotated and bound. The
+two-geometry matrix is unchanged — the non-primary geometry is still composed
+and verified as the second edition.
+
+**The handling marker becomes a rule** (design-rules §4b): the seal shield
+ahead of the terms is the standard rendering on every page. D12 is unchanged —
+it gates on the terms, and a page whose terms arrive without the icon has a
+style defect, not a compliance one.
+
+**The fixtures now exemplify all of it**: cover and closing on `cover-grid`
+with the globe as their shared mark, two lime openers in the shipped
+composition, contract-form eyebrows with real Lucide icons via
+`embed_icons.sprite()`, the shield in every footer, and a colophon that reads
+its version from SKILL.md so it can never drift. The old fixture numbered two
+pages `09` and skipped `16`; the rebuilt one numbers 1-18 cleanly.
+
+Stale counts fixed in passing: `check_design.py`'s own docstring said two
+metrics gate; eval-rubric's D-table now includes D12 and D16 and its heading no
+longer stops at D10; README's rubric line said D1–D6.
+
 ## 0.1.375 — the vocabulary the reference deck used now ships, and the dense cover returns
 
 The owner reviewed the recent output trajectory, named the 3.4.0-built deck from

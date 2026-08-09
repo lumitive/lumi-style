@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.375"
+  version: "0.1.376"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -37,9 +37,12 @@ mistake in the design half.*
 **Every output serves two page geometries, and each is a fixed box.** Internal
 and market material is projected and it is printed, so both are latent defaults:
 **16:9 landscape (1280×720)** for projection and PDF/PPT export, and **A4 portrait
-(794×1123)** for printing and binding. Each is a page-sized stage scaled to fit
-the window and letterboxed — *not* a box that takes the window's shape. Portrait
-is a composition, not a reflow.
+(794×1123)** for printing and binding. **Which one leads follows the genre**:
+sales, marketing and consulting design 16:9 first; **training material designs
+A4 portrait first**, because it is printed, annotated and bound — the other
+geometry is still composed and verified as the second edition. Each is a
+page-sized stage scaled to fit the window and letterboxed — *not* a box that
+takes the window's shape. Portrait is a composition, not a reflow.
 
 *Provenance: until 0.1.343 the page was `min-height: 100svh`, so it was 16:9 only
 when the window happened to be, and 4:3 in a 4:3 window. A reader found it; no
@@ -76,7 +79,7 @@ been removed; they now apply at step 4 instead of framing step 0.
    only file that says what to reach for. Decide what the deliverable *is* before
    you decide what it may not do.
 1. **Pick the scenario**: sales/marketing · consulting/client document · internal
-   analysis — three different narrative skeletons. Read
+   analysis · training material — four different narrative skeletons. Read
    [`references/storyline-templates.md`](references/storyline-templates.md) and
    choose before writing.
 2. **Write and review** under
@@ -131,10 +134,16 @@ been removed; they now apply at step 4 instead of framing step 0.
    **Use the role vocabulary** the token file declares — `.eyebrow`, `h2.t`,
    `.sup`, `.listhead`, `.gd`, `.cap .n`, `.band .k`, `.band .v` — because that
    is the contract the consistency audit checks against; rename one and it drops
-   out of the audit rather than failing it. The four repeating **block patterns**
-   ship too: the tier-1 callout `.key` / `.red`, the card `.card` + `.ledname` +
-   `.verdict`, the swap `.swap .no` / `.swap .yes`, and the vow `.vow` + `.vn` +
-   `.vt` + `.vw`. They are furniture for text, not a substitute for a figure.
+   out of the audit rather than failing it. **The eyebrow follows its contract**:
+   the page's subject icon, then `PART <letter> · <this page's own label>` —
+   apparatus, deliberately uniform, and never counted as a title. The repeating
+   **block patterns** ship too: the tier-1 callout `.key` / `.red`, the card
+   `.card` + `.ledname` + `.verdict`, the swap `.swap .no` / `.swap .yes`, the
+   vow `.vow` + `.vn` + `.vt` + `.vw`, the status chip `.tag`, the graded ladder
+   `.grades`, and the glossary `dl.gloss`. They are furniture for text, not a
+   substitute for a figure — **about half of a content page's area goes to
+   visual blocks (a target the checks report, never a floor), and every content
+   page carries at least one**.
    A page that does not fit gets its **content** trimmed, never its type nudged,
    and that holds per geometry — A4 tightens spacing and leaves type alone.
    **A title block that does not fit gets shorter text, never a clamp.** `.lede`
@@ -157,7 +166,7 @@ been removed; they now apply at step 4 instead of framing step 0.
    **`--deliverable`**, which exits non-zero on the seven findings a rendered page
    can be wrong about decidably: collision, content spill, page height, hidden
    content, an overspent title reserve, a role split, a lost datum.
-   `python3 scripts/check_design.py <file>` reports D1–D10 and gates on three
+   `python3 scripts/check_design.py <file>` reports D1–D16 and gates on three
    things, none of them a design judgement: **D12**, the handling terms and origin
    every page owes; **D14**, any slot left for yourself; and **D15**, a file path
    in a footer. `python3 scripts/check_prose.py <file>` grades the English, and
@@ -175,7 +184,9 @@ been removed; they now apply at step 4 instead of framing step 0.
    opening page are apparatus for the author, not information for the reader.
    The stamp still has to exist and still has to match — `check_repo.py` fails on
    a mismatch — it just does not open the document — the deliverable's own version number **is** that
-   version. Decks open with a cover and end with a closing page
+   version. Decks open with a cover and end with a closing page, each carrying
+   the single vector mark, and every part boundary gets a lime opener page —
+   about five content pages between openers is the pacing target
    (see `references/storyline-templates.md`).
 6. **Review loop**: decks embed the scoring table as the final page; on receiving
    reviews, any dimension diverging ≥2 forces a retrospective that produces a rule

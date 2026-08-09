@@ -40,7 +40,8 @@
           "D13_lime_as_text": "ok",
           "D14_placeholders": "ok",
           "D15_footer_path": "ok",
-          "D5_drawn_share": "ok"
+          "D5_drawn_share": "ok",
+          "D16_visual_presence": "ok"
         }
       }
     },
@@ -86,7 +87,13 @@
           "D13_lime_as_text": "ok",
           "D14_placeholders": "FAIL",
           "D15_footer_path": "FAIL",
-          "D5_drawn_share": "ok"
+          "D5_drawn_share": "ok",
+          "D16_visual_presence": "ok"
+        },
+        "contains": {
+          "D16_visual_presence": [
+            "p16"
+          ]
         }
       }
     }

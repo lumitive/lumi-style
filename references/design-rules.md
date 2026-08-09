@@ -136,6 +136,17 @@ comes from size and letterspacing.
 
 ## 3 · Layout: one claim per screen
 
+- **The eyebrow names the part and the page's subject, and it opens with the
+  subject's icon.** On every content page the guide line reads `<icon> PART
+  <letter> · <what this page is about>` — the icon is §5's subject icon in the
+  flex slot `tokens/` ships, the part letter matches the opener the page sits
+  under, and the label is that page's own phrase, not a repeated section name.
+  Uniformity here is deliberate and exempt from the parallel-structure caution:
+  the eyebrow is apparatus, like the page number — a reader orients by its
+  sameness. Titles stay governed by the title contract and M11; the eyebrow is
+  not a title and the checkers do not count it as one. (Owner directive
+  2026-08-09, from the reference deck, where the pattern held on all 26 content
+  pages.)
 - Each screen/page carries exactly one claim: a conclusion-style headline (an
   accent word in green is available, not required — mechanical emphasis on every
   headline is inflation), **one to three sentences of support whose lengths
@@ -223,6 +234,20 @@ comes from size and letterspacing.
   to 5.4:1 passed while rendering at 40% of their cell. The floor is withdrawn.
   A number that can be satisfied without improving the page is worse than no
   number, because it ends the looking.*
+
+- **A drawing outargues a paragraph, and its share of the page is watched**
+  (owner directive 2026-08-09). Every content page carries at least one visual
+  block — a drawn figure, a stat band, a display lead, or one of the comparison
+  patterns — and about **half the content area** given to visual blocks is the
+  **target**. `check_design.py` D16 reports the pages that carry none, and
+  `inspect_layout.py` reports each page's rendered share against the target;
+  both are review triggers, never floors, because the withdrawn 82% fill floor
+  is the standing record of what a floor here does. The reconciliation with §4
+  stands in both directions: comparisons still take tables, a table is still for
+  values and never for what a chart says better, and a table page still wants
+  its visual weight from a figure or a band beside it. Vary the figure form page
+  to page as §4's form selection directs — from the content, never for variety's
+  own sake.
 
 - Generous whitespace is part of the design; content distributes across the full
   page height (never crowds the top half);
@@ -364,6 +389,15 @@ the footer rule: the confidentiality line, then the organisation's site. Right:
 forwarded without the cover — so terms that live only on page one do not travel
 with the page.
 
+**The terms open with the handling marker**: the `shield` reserved icon, in
+`--seal`, in the flex slot `tokens/lumi-layouts.css` ships ahead of `.foot
+.conf` (owner directive 2026-08-09). The seal may mark it because the handling
+line is a standing warning to the reader — §1's ledger records the extension —
+and on the lime opener the marker inverts with the rest of the footer. The
+marker is the standard rendering, not part of the gate: D12 gates on the terms
+being present, and a page whose terms arrive without the icon has a style
+defect, not a compliance one.
+
 **This is one of the three checks in `check_design.py` that fail the run** (D12,
 with D14 and D15 below).
 Everything else there reports, because a page is done when a human reads it as
@@ -414,7 +448,8 @@ exactly one thing** — an icon reused for a second meaning is worse than no ico
 because the reader learns a vocabulary that then lies to them.
 
 **Where they go**: the section eyebrow on a content page carries the icon that
-names that page's subject. **So does every labelled node inside a figure and
+names that page's subject, ahead of the `PART <letter> · <subject>` label the
+§3 eyebrow contract sets. **So does every labelled node inside a figure and
 every table row-head group** — a named box in a diagram is a sub-heading, and it
 carries the same weight of meaning as the eyebrow above it. Minimum **14px
 effective size** at the design viewport, which for an SVG node means checking the
@@ -490,8 +525,16 @@ A layout is verified only across the **matrix**, not at a point:
 - **Page-geometry axis.** Every deliverable serves two output formats, so both are
   matrix points, not options:
   - **16:9 landscape, 1280×720**, checked at 1920×1080 — projection, PDF and PPT
-    export. This is the primary geometry.
+    export.
   - **A4 portrait, 794×1123** — printing and binding.
+
+  **Which one is primary follows the genre** (owner directive 2026-08-09): sales,
+  marketing and consulting material is projected first, so 16:9 leads and A4 is
+  the print edition; **training material is printed, annotated and bound, so A4
+  portrait leads** and 16:9 is the projection edition. Primary decides which
+  geometry the deliverable is designed against first and which edition is handed
+  over by default — it never removes the other matrix point, which is still
+  composed and verified.
 
   **Portrait is a composition, not a reflow.** A two-column split at 794px wide
   gives two 370px gutters, so a page that is a split in landscape usually wants a
