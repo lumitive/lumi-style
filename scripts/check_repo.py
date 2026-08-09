@@ -1331,6 +1331,44 @@ def check_output_default():
     return errors
 
 
+
+def check_region_coverage():
+    """Every country in the topology belongs to exactly one region.
+
+    A country that reaches the renderer with no region is a hole in the map, and
+    a silent one: it draws in the default fill and reads as deliberate. The
+    registry is data and the topology is data, so this is decidable, so it is
+    checked rather than remembered. The same guard catches the opposite mistake,
+    a country claimed by two regions, which would make the four-colouring
+    ambiguous rather than merely wrong.
+    """
+    topo_path = ROOT / "assets" / "vectors" / "world-110m.json"
+    reg_path = ROOT / "assets" / "vectors" / "regions.json"
+    for path in (topo_path, reg_path):
+        if not path.exists():
+            return [f"{rel(path)} is missing; run scripts/build_worldmap.py"]
+    topo = json.loads(topo_path.read_text(encoding="utf-8"))
+    reg = json.loads(reg_path.read_text(encoding="utf-8"))
+    countries = {c["a"] for c in topo["countries"]}
+    seen, errors = {}, []
+    for region in reg["regions"]:
+        for code in region["members"]:
+            if code in seen:
+                errors.append(f"regions.json: {code} is claimed by both "
+                              f"{seen[code]} and {region['id']}")
+            seen[code] = region["id"]
+            if code not in countries:
+                errors.append(f"regions.json: {region['id']} names {code}, "
+                              f"which is not in the topology")
+    for code in sorted(countries - set(seen)):
+        errors.append(f"regions.json: {code} belongs to no region")
+    for node in reg.get("nodes", []):
+        if node["region"] not in {r["id"] for r in reg["regions"]}:
+            errors.append(f"regions.json: node {node['id']} names region "
+                          f"{node['region']}, which does not exist")
+    return errors
+
+
 CHECKS = (
     ("version stamps", check_versions),
     ("output default", check_output_default),
@@ -1342,6 +1380,7 @@ CHECKS = (
     ("retired values", check_retired_values),
     ("token palette parity", check_palette_parity),
     ("token references", check_token_references),
+    ("region coverage", check_region_coverage),
     ("probe vocabulary", check_probe_vocabulary),
     ("media-only rules", check_media_only_rules),
     ("layout parity", check_layout_parity),
