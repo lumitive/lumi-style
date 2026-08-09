@@ -31,6 +31,7 @@ import argparse
 import json
 import math
 import pathlib
+import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -52,6 +53,13 @@ ROUND_TRIP = 1e-6     # degrees, invert(project(p)) back to p
 # bound, and the bound is stated rather than the check quietly widened for all.
 LIMB_BAND = 1e-3
 ROUND_TRIP_LIMB = 1e-4
+# A FLOOR on how much of its own viewBox a static frame's ink occupies. This is
+# not the withdrawn page-fill floor in a new costume: it measures one generated
+# figure against the box that same generator chose, where the only way to score
+# low is to have reserved space for nothing. Correct output measures about 96%;
+# a viewBox fixed at 2R square scores 50% at t=1, which renders a 2:1 map at
+# half the height its cell allows.
+FRAME_FILL_FLOOR = 0.80
 
 
 def _views(golden):
@@ -172,6 +180,60 @@ def check_seam():
     inner = [(10.0, 10.0), (20.0, 10.0), (20.0, 20.0), (10.0, 20.0)]
     if len(gp.split_at_seam(inner, 0.0)) != 1:
         errors.append("a ring far from the seam was split")
+    return errors
+
+
+def check_static_svg():
+    """Every coordinate globe_svg emits sits inside the viewBox it emits.
+
+    inspect_layout --deliverable gates on a drawing clipped by its own viewBox,
+    and that gate exists because check_design once reported all-clear on a
+    figure whose band was cut off by exactly this. The globe's limb sits ON the
+    edge, so it is the likeliest thing in this package to trip it.
+
+    Checked at both ends and the middle, in both forms, because the extent is
+    computed per t and a viewBox correct at t=0 says nothing about t=1.
+    """
+    import globe_svg
+
+    errors = []
+    for form in ("field", "regions"):
+        for t in (0.0, 0.5, 1.0):
+            R = globe_svg.DEFAULT_R
+            svg = globe_svg.render((0.0, 0.0, t, R, R, R), form=form)
+            m = re.search(r'viewBox="([-\d.]+) ([-\d.]+) ([-\d.]+) ([-\d.]+)"', svg)
+            if not m:
+                errors.append(f"{form} t={t}: no viewBox emitted")
+                continue
+            vx, vy, vw, vh = (float(g) for g in m.groups())
+            xs, ys = [], []
+            for d in re.findall(r'\sd="([^"]+)"', svg):
+                for xy in re.findall(r"[ML](-?[\d.]+) (-?[\d.]+)", d):
+                    xs.append(float(xy[0]))
+                    ys.append(float(xy[1]))
+            for c in re.finditer(r'<circle[^>]*cx="(-?[\d.]+)"[^>]*cy="(-?[\d.]+)"'
+                                 r'[^>]*r="([\d.]+)"', svg):
+                cxx, cyy, rr = (float(g) for g in c.groups())
+                xs += [cxx - rr, cxx + rr]
+                ys += [cyy - rr, cyy + rr]
+            if not xs:
+                errors.append(f"{form} t={t}: the frame drew nothing")
+                continue
+            if min(xs) < vx or max(xs) > vx + vw or min(ys) < vy or max(ys) > vy + vh:
+                errors.append(
+                    f"{form} t={t}: ink spans x {min(xs):.1f}..{max(xs):.1f}, "
+                    f"y {min(ys):.1f}..{max(ys):.1f} but the viewBox is "
+                    f"{vx:.1f} {vy:.1f} {vw:.1f} {vh:.1f} — clipped")
+            # Not the smallest margin: one tight side hides three loose ones,
+            # and a square viewBox around a 2:1 flat map passes that test while
+            # rendering at half the height its cell allows. Area is what
+            # inspect_layout calls aspect mismatch, and it is the real defect.
+            fill = ((max(xs) - min(xs)) * (max(ys) - min(ys))) / (vw * vh)
+            if fill < FRAME_FILL_FLOOR:
+                errors.append(
+                    f"{form} t={t}: the ink fills {fill:.0%} of its viewBox "
+                    f"(floor {FRAME_FILL_FLOOR:.0%}); the box reserves space "
+                    f"nothing draws in, so the figure renders small in its cell")
     return errors
 
 
@@ -467,6 +529,7 @@ CHECKS = (
     ("limb culling", check_culling, True),
     ("seam splitting", check_seam, False),
     ("viewbox extent", check_viewbox_extent, True),
+    ("static svg fits its viewbox", check_static_svg, False),
 )
 
 
