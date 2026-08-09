@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.374 (2026-08-08)
-   Fifteen page layouts as grid definitions. Copy this block into a deliverable
+   LUMI page layouts · v0.1.375 (2026-08-09)
+   Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
    version, like the other two token files.
@@ -71,7 +71,13 @@
    own `.foot { display: flex }` and therefore never exposed it: it was testing
    its own stylesheet, not this one. */
 .foot { display: flex; align-items: baseline; gap: 18px; }
-.foot .conf { color: var(--tx4); }
+/* The handling marker (0.1.375): a seal-red shield ahead of the handling
+   terms, at the owner's ask. The seal is the warning colour and the handling
+   line is a standing warning to the reader — do not forward — so the marker
+   takes it; the semantic ledger in design-rules.md §1 records the extension.
+   The icon is the `shield` reserved binding from scripts/embed_icons.py. */
+.foot .conf { color: var(--tx4); display: inline-flex; align-items: center; gap: 6px; }
+.foot .conf .ic { width: 12px; height: 12px; color: var(--seal-t); }
 /* `var(--accent)` until 0.1.367, here and on `.lead .v em` — and `--accent` is
    defined in NEITHER token file; the semantic accent has been `--acc` since the
    palette existed. An undefined custom property with no fallback is invalid at
@@ -161,11 +167,15 @@
    the formula never knew about, which is 34% of the block. Blocks that own their
    own spacing (`.body`, `.lede`, the fill rule) cannot own it while the UA is
    also contributing. */
+/* The eyebrow is a flex row so its subject icon sits in the line, never nudged
+   with vertical-align — an icon in a flex container needs no per-use fixup. */
 .eyebrow {
   font-family: var(--mono); font-size: 12px; font-weight: 700;
   letter-spacing: var(--ls-eyebrow); text-transform: uppercase; color: var(--tx3);
-  margin: 0;
+  margin: 0; display: flex; align-items: center; gap: 9px;
 }
+/* The inline icon, one size, accent by default; a container re-colours it. */
+svg.ic { width: 16px; height: 16px; flex: none; color: var(--acc); }
 h2.t {
   font-family: var(--din); font-size: var(--fs-title); font-weight: var(--w-title);
   line-height: 1.02; letter-spacing: var(--ls-title); text-transform: uppercase;
@@ -214,8 +224,44 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
    document, in the closing colophon; a per-page source slot contradicted the
    rule and existed only because a probe compared against it. Shipping an asset
    with no rule is the mirror of CLAUDE.md rule 5, and costs the same. */
-.fig svg .f-acc { fill: var(--acc); }
-.fig svg .f-lime { fill: var(--lime); }
+/* The full figure-paint vocabulary (0.1.375). Every fill and stroke inside a
+   drawing goes through one of these, so no literal colour ever reaches an
+   element and the palette switch reaches every figure. Scoped to svg: these
+   paint drawings, not page furniture. */
+svg .f-card { fill: var(--card-bg); }   svg .f-ink { fill: var(--tx1); }
+svg .f-t2 { fill: var(--tx2); }         svg .f-mut { fill: var(--tx3); }
+svg .f-fade { fill: var(--tx4); }       svg .f-wash { fill: var(--ln3); }
+svg .f-acc { fill: var(--acc); }        svg .f-accw { fill: var(--acc-wash); }
+svg .f-seal { fill: var(--seal-t); }    svg .f-sealw { fill: var(--seal-wash); }
+svg .f-amber { fill: var(--amber); }    svg .f-amberw { fill: var(--amber-wash); }
+svg .f-brass { fill: var(--brass); }    svg .f-brassw { fill: var(--brass-wash); }
+svg .f-blue { fill: var(--d-blue); }    svg .f-red { fill: var(--d-red); }
+svg .f-teal { fill: var(--d-teal); }    svg .f-on { fill: var(--on-acc); }
+svg .f-none { fill: none; }
+svg .f-lime { fill: var(--lime); }      svg .f-on-lime { fill: var(--on-lime); }
+svg .s-line { stroke: var(--ln1); }     svg .s-acc { stroke: var(--acc); }
+svg .s-mut { stroke: var(--tx4); }      svg .s-seal { stroke: var(--seal-t); }
+svg .s-ink { stroke: var(--tx2); }      svg .s-blue { stroke: var(--d-blue); }
+svg .s-amber { stroke: var(--amber); }  svg .s-brass { stroke: var(--brass); }
+svg .dash { stroke-dasharray: 4 3; }
+/* Type inside a drawing. viewBox units, so it scales with the figure; a page
+   whose argument is a number says the number at the size of the argument. */
+svg text { font-family: var(--din); fill: var(--tx2); }
+svg .lbl { font-size: 11px; }
+svg .sm { font-size: 11.5px; fill: var(--tx3); }
+svg .lbl-lg { font-size: 13.5px; fill: var(--tx1); }
+svg .sm-lg { font-size: 12.5px; fill: var(--tx2); }
+svg .big { font-size: 15px; font-variant-numeric: tabular-nums; }
+svg .cap-w { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; fill: var(--tx3); }
+svg .huge { font-weight: 700; font-size: 54px; font-variant-numeric: tabular-nums;
+            fill: var(--tx1); letter-spacing: -.02em; }
+svg .mid  { font-weight: 700; font-size: 30px; font-variant-numeric: tabular-nums;
+            fill: var(--tx1); letter-spacing: -.01em; }
+/* Element-qualified type out-specifies the bare paint classes, so the paint
+   wins back explicitly rather than by luck of source order. */
+svg .huge.f-on, svg .mid.f-on { fill: var(--on-acc); }
+svg .huge.f-acc, svg .mid.f-acc { fill: var(--acc); }
+svg .huge.f-fade, svg .mid.f-fade { fill: var(--tx4); }
 
 /* The figure's number and name, under the drawing. */
 .cap .n {
@@ -336,6 +382,52 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
    sheet made it narrow. It is the same block voice as everything above. */
 .notes { font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2); }
 .notes > p { margin: 0; }
+
+/* The status chip: a small mono tag whose colour is its state — built/pass on
+   the accent wash, refused on the seal wash, partial on amber, reference on
+   brass. One colour one meaning, at chip size. Scoped variants, because `.no`
+   also lives inside `.swap`. */
+.tag { font-family: var(--mono); font-size: 11.5px; letter-spacing: .1em;
+  text-transform: uppercase; padding: 2px 6px; border-radius: 2px;
+  white-space: nowrap; display: inline-block; }
+.tag.built { background: var(--acc-wash); color: var(--acc); }
+.tag.no { background: var(--seal-wash); color: var(--seal-t); }
+.tag.part { background: var(--amber-wash); color: var(--amber); }
+.tag.ref { background: var(--brass-wash); color: var(--brass); }
+
+/* A legend is a key, not a finding: caption weight, narrative case, and it
+   follows its figure rather than a rule. */
+.legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 11.5px;
+  color: var(--tx3); margin-bottom: 6px; }
+.legend.right { justify-content: flex-end; }
+.legend.under { margin: 6px 0 0; }
+.legend span { display: flex; align-items: center; gap: 5px; }
+.legend i { width: 11px; height: 3px; border-radius: 2px; display: block; }
+
+/* The graded ladder: rows in a strength order the bar and the descending
+   colour say before the words do — a table would render every grade at the
+   same weight, which is the one thing a grade is not. Removed in 0.1.370 as an
+   orphan with only portrait styling; the base rendering now ships, promoted
+   from the deck the owner named as the reference. */
+.grades { display: flex; flex-direction: column; gap: 8px; }
+.gr { display: grid; grid-template-columns: 22px 1fr; gap: 0 12px; align-items: start; }
+.gr i { display: block; height: 100%; min-height: 28px;
+        border-left: 3px solid var(--ln1); position: relative; }
+.gr.g4 i { border-left-color: var(--acc); }
+.gr.g3 i { border-left-color: var(--acc); opacity: .72; }
+.gr.g2 i { border-left-color: var(--tx4); opacity: .8; }
+.gr.g1 i { border-left-color: var(--ln1); }
+.gr .gn { font-size: var(--fs-fig-title); color: var(--tx1); line-height: 1.25; margin: 0; }
+.gr .gc { grid-column: 2; font-size: var(--fs-fine); line-height: 1.4;
+          color: var(--tx4); margin-top: 2px; }
+.gr .gq { grid-column: 2; font-size: 12px; line-height: 1.4;
+          color: var(--acc); margin-top: 3px; }
+.gr.g1 .gq, .gr.g2 .gq { color: var(--tx3); }
+
+/* The glossary is a definition list, because that is what a glossary is. */
+dl.gloss { margin: 0; display: flex; flex-direction: column; gap: 9px; }
+dl.gloss dt { font-size: var(--fs-fig-title); color: var(--tx1); font-weight: 700; }
+dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height: 1.45; }
 
 /* The fill mechanism, in two halves. A grid cell stretching is not enough: the
    cell fills and the content sits in the middle of it, which is how a page
@@ -567,6 +659,121 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
               var(--ln2) 50%, transparent calc(50% + 1px));
 }
 
+/* ── cover-grid — the sixteenth layout (0.1.375) ─────────────────────────────
+   The cover and the closing, which are the same kind of page and are set the
+   same way. Removed in 0.1.370 as a portrait-only orphan — absent from this
+   file's header count, from §3's table and from check_design.py — and
+   reinstated here COMPLETED when the cover standard asked for it: base
+   rendering, portrait variant, checker entry and selection-table row shipped
+   together.
+
+   Four cells: the typeblock (wordmark and display title), the mark cell (the
+   one vector on the page), the attrs column, and a full-width row for the spec
+   strip or, on a closing, the closenote and colophon. */
+.body.cover-grid { grid-template-columns: 1.02fr .98fr; grid-auto-rows: min-content;
+  grid-template-rows: 1fr auto auto; column-gap: 56px; row-gap: 10px; align-items: center; }
+.body.cover-grid > .typeblock { display: flex; flex-direction: column;
+  justify-content: center; gap: 0; }
+/* The mark takes the full height of its cell and bleeds off the page edge —
+   height-led, so it grows without clipping the route across its top, which is
+   the one part of the mark that carries meaning. */
+.body.cover-grid > .markcell { display: flex; align-items: center; min-height: 0;
+  margin-right: calc(-1 * var(--page-pad, 92px)); overflow: visible;
+  justify-content: flex-end; }
+.body.cover-grid > .markcell svg { height: 100%; width: auto; max-height: none;
+  max-width: none; transform: translateX(6%); }
+/* Document attributes: needed, not prominent — one narrow mono column in the
+   clear lower-left, out of the composition's way. */
+.body.cover-grid > .attrs { grid-column: 1; align-self: end; display: flex;
+  flex-direction: column; gap: 3px; max-width: 46ch;
+  font-family: var(--mono); font-size: var(--fs-fine); color: var(--tx4); }
+.body.cover-grid > .attrs > div { display: flex; gap: 10px; }
+.body.cover-grid > .attrs .k { min-width: 15ch; flex: none; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--tx4); }
+.body.cover-grid > .attrs .v { color: var(--tx3); }
+.body.cover-grid > .spec, .body.cover-grid > .colophon { grid-column: 1 / -1; }
+.body.cover-grid > .closenote { grid-column: 1 / -1; display: flex;
+  flex-direction: column; gap: 12px; }
+/* The mark is deliberately cropped by the page edge, so the page clips it;
+   without this the cover adds ~200px of horizontal scroll. */
+.cover, .closing { overflow: hidden; }
+
+/* Cover and closing furniture. */
+.wordmark { font-weight: 700; letter-spacing: .36em; font-size: 15px;
+            color: var(--tx1); margin: 0; }
+.cover .sub { margin-top: 22px; font-size: var(--fs-support); color: var(--tx2);
+              max-width: 62ch; }
+.spec { display: flex; gap: 0; margin-top: 44px; border-top: 1px solid var(--ln1);
+        border-bottom: 1px solid var(--ln1); flex-wrap: wrap; }
+.spec div { padding: 13px 26px 12px; border-left: 1px solid var(--ln2); }
+.spec div:first-child { border-left: 0; padding-left: 0; }
+.spec .k { font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .2em;
+           text-transform: uppercase; color: var(--tx4); }
+.spec .v { font-size: var(--fs-fig-title); margin-top: 5px; color: var(--tx2);
+           font-variant-numeric: tabular-nums; }
+.colophon { margin-top: 26px; font-family: var(--mono); font-size: var(--fs-fine);
+            letter-spacing: .1em; color: var(--tx4); }
+
+/* ── geography (assets/vectors/, generated by scripts/build_geography.py) ────
+   A region drawn is a region claimed, so the marker states its coverage:
+   accent = live, dashed ring = a market with zero rows behind it, muted = out
+   of scope. Painted from the ladders only. */
+.geo-sphere { fill: none; stroke: var(--ln2); stroke-width: .8; }
+.geo-halo { fill: none; stroke: var(--ln3); stroke-width: 1.2; }
+.geo-graticule { fill: none; stroke: var(--ln2); stroke-width: .5; }
+.geo-land { fill: var(--ln1); stroke: none; }
+.geo-route { fill: none; stroke: var(--acc); stroke-width: 1.3; stroke-dasharray: 3 2.5; }
+circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
+.geo-mark.geo-zero circle { fill: none; stroke: var(--tx3); stroke-width: 1.6;
+                            stroke-dasharray: 3 2.2; }
+.geo-mark.geo-out circle { fill: var(--tx4); }
+/* On the cover and closing the mark is the page, so it reads slightly heavier
+   than it does inside a body figure. */
+.cover .geo-route, .closing .geo-route { stroke-width: 1.6; }
+.cover circle.geo-live, .closing circle.geo-live { r: 4.6; }
+/* The flat map is 2:1; at full content width it would push the footer under
+   the fold, so it sizes to its cell like any other drawing. */
+.fig svg.geo-flat { width: 100%; max-height: 100%; margin: 0 auto; }
+.geolegend { display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--mono);
+  font-size: var(--fs-fine); letter-spacing: .1em; text-transform: uppercase;
+  color: var(--tx3); margin-bottom: 8px; }
+.geolegend span { display: flex; align-items: center; gap: 6px; }
+.geolegend i { width: 9px; height: 9px; border-radius: 50%; display: block;
+               background: var(--acc); }
+.geolegend i.zero { background: none; border: 1.6px dashed var(--tx3); }
+.geolegend i.out { background: var(--tx4); }
+
+/* ── the part opener (0.1.375) ───────────────────────────────────────────────
+   An opener is an accent field: the lime at page scale, carrying the part
+   label, one claim at display scale, and one run line saying what the next
+   pages argue. Restraint everywhere is not a voice — full-bleed fields give a
+   deck a beat, and they cost nothing in ink because each carries one sentence.
+   The world map does not appear here; the mark belongs to the cover and the
+   closing (references/storyline-templates.md). */
+.page.opener { background: var(--lime); }
+.page.opener .openframe { display: flex; flex-direction: column;
+  justify-content: center; gap: 26px; height: 100%;
+  padding: 0 var(--page-pad, 92px); }
+/* No opacity fades on this field: hierarchy comes from size and spacing, never
+   from fading --on-lime, which walks the contrast back under its floor. */
+.page.opener .openpart { font-family: var(--mono); font-size: 13px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--on-lime);
+  font-weight: 700; margin: 0; }
+.page.opener .openclaim { font-family: var(--din); font-size: var(--fs-display);
+  font-weight: var(--w-display); line-height: var(--lh-display);
+  letter-spacing: var(--ls-display); color: var(--on-lime); max-width: 18ch;
+  margin: 0; }
+.page.opener .openrun { font-size: var(--fs-support); line-height: 1.55;
+  color: var(--on-lime); font-weight: var(--w-support); max-width: 62ch;
+  border-top: 2px solid color-mix(in srgb, var(--on-lime) 28%, transparent);
+  padding-top: 18px; margin: 0; }
+/* The page frame inverts with the field, or the footer reads as another
+   page's. The handling marker inverts with it — a seal mark on lime would be
+   the one thing on the page the field does not govern. */
+.page.opener .foot::before { background: color-mix(in srgb, var(--on-lime) 30%, transparent); }
+.page.opener .foot, .page.opener .foot span { color: var(--on-lime); }
+.page.opener .foot .conf .ic { color: var(--on-lime); }
+
 /* ── height-based step-down, matching lumi-theme.css ─────────────────── */
 @media (max-height: 760px) {
   .body { --gap: 18px; }
@@ -749,13 +956,11 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
      3000px over. A swap is a swap in both geometries — it just gets tighter. */
   .swaps.tight .swap { grid-template-columns: 1fr 18px 1.15fr; }
   .swap { grid-template-columns: 1fr 24px 1fr; }
-  /* `.grades { gap: 8px }` and `.gr .gc { display: none }` were here until
-     0.1.370 and are removed rather than completed. Neither class had a base
-     rendering, `references/` never named either, and no fixture drew one — three
-     orphan declarations styling a block this package does not ship. Inventing a
-     graded-criterion design to justify them is the speculative rule-making
-     CLAUDE.md rule 2 forbids; `check_prose.py` still COUNTS a `.grades` block as
-     an enumeration, which is a census and needs no rendering behind it. */
+  /* `.grades` was portrait-only here until 0.1.370, was removed as an orphan,
+     and its base rendering shipped in 0.1.375 when the owner named a deck
+     using it as the reference — the documented case rule 2 asks for. Portrait
+     keeps the base spacing; the exemplar hid `.gc` on the sheet, but trimming
+     content per geometry is the author's decision, never the stylesheet's. */
   /* A figure column plus a full notes column is two pages of material on one
      A4 page. The notes tighten; the figure keeps its drawing.
 
@@ -780,12 +985,13 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
   .card { padding: 14px 15px; gap: 9px; }
   .lead.row { flex-direction: column; align-items: flex-start; gap: 6px; }
   .body.columns-4 { grid-template-columns: repeat(2, 1fr); }
-  /* `.body.cover-grid` was here until 0.1.370: a SIXTEENTH layout, declared only
-     in portrait, absent from this file's own header count, absent from §3's
-     selection table, and absent from `check_design.py`'s LAYOUTS — so a page
-     using it was graded as using no shipped layout at all. Removed rather than
-     completed, for the reason above. `check_layout_parity` now holds the token
-     file and the checker to one list, so a sixteenth cannot appear on one side. */
+  /* `.body.cover-grid` was here until 0.1.370 as a portrait-only orphan and
+     was removed rather than completed. 0.1.375 reinstates it completed — base
+     rendering, header count, §3 table and `check_design.py`'s LAYOUTS moved
+     together, which is what `check_layout_parity` exists to force. On the
+     sheet the cover stacks: type, mark, attributes, then the full-width row. */
+  .body.cover-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
+  .page.opener .openframe { gap: 18px; }
   .duo { grid-template-columns: 1fr; gap: 16px; }
   /* Figures are drawn twice. A 2.4:1 chain in a 0.8:1 cell fills a third of it,
      and no CSS fixes that — the drawing is wrong for the page. */

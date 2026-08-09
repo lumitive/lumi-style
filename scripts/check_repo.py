@@ -443,33 +443,15 @@ def check_token_references():
 # it started shipping ("tokens/ now ships it; delete the waiver"), which is the
 # half of a waiver mechanism that usually goes missing.
 PROBE_NOT_SHIPPED = {
-    # Composition vocabulary. `.page.opener` ships and what a document puts
-    # inside one is its own composition; TSEL lists these so opener text is
-    # counted as text, not to fix how an opener renders.
-    "openpart": "part-opener composition; `.page.opener` ships, its contents compose freely.",
-    "openclaim": "part-opener composition; see .openpart.",
-    "openrun": "part-opener composition; see .openpart.",
-    # Enumeration wrappers `check_prose.py` counts for M10. A census in the
-    # purest form — "if a document enumerates inside a named block, count how
-    # many items it reached for" — and the count works whatever the block looks
-    # like. `.grades`/`.gr` were also styled in the portrait block until 0.1.370
-    # and are removed there rather than completed: the assertion is a count, not
-    # a claim about rendering, and it needs nothing behind it.
-    "grades": "M10 enumeration wrapper in check_prose.py; counts items, asserts "
-              "no rendering. Its portrait-only rules were removed in 0.1.370.",
-    "gr": "the item inside a `.grades` block; see .grades.",
-    "gloss": "M10 enumeration wrapper in check_prose.py, counting `dt` items; a "
-             "definition list is `dl`/`dt`/`dd`, which do ship.",
-    # Document-local blocks with no design claim behind them.
-    "geo-flat": "a flat-map figure a document may draw; CENTER/DSEL count it as a "
-                "centerpiece and a drawing, and say nothing about it.",
+    # Ten more entries left when 0.1.375 promoted the cover, opener, geography
+    # and ladder vocabulary out of the reference deck and into tokens/ —
+    # `.openpart`, `.openclaim`, `.openrun`, `.grades`, `.gr`, `.gloss`,
+    # `.geo-flat`, `.sub`, `.tag`, `.wordmark`. The guard named each one the
+    # moment it started shipping, same as the 0.1.369 batch.
     "note": "a single note inside `.notes`, which does ship with a voice of its "
             "own; the inner element is the document's.",
-    "sub": "a subtitle under a cover or opener title; composition, not a role.",
-    "tag": "a small status chip; a document's own furniture.",
     "tick": "an axis or timeline label inside a figure.",
     "who": "an attribution line; a document's own furniture.",
-    "wordmark": "the organisation's mark on a cover; an asset, not a type role.",
 }
 
 # The class-carrying lists inside scripts/inspect_layout.py, by kind. Read out of

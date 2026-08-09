@@ -31,9 +31,12 @@ you can see light on it.
   thing to carry out of the room. On and below it is record — evidence, handling
   terms, page number. Two horizons is stripes; none is a document.
 
-- **The ground.** Continuous water and light behind every page: strongest on the
-  cover and closing, faintest on body pages, crowding below the waterline so the
-  air where the claim lives stays clear. *A ground may be decorative where a field
+- **The ground.** Continuous water and light behind every page: dense on the
+  cover and closing, medium on the part openers, sparse on body pages, crowding
+  below the waterline so the air where the claim lives stays clear. Define the
+  ripple drawing once and instantiate it per page, with
+  `preserveAspectRatio="xMidYMid slice"` so it crops at the A4 sheet instead of
+  stretching. *A ground may be decorative where a field
   may not, because it is uncountable — nothing to count, nothing to misread. It
   may never exceed 1.40:1 against its canvas, measured on the render, and never
   resolve into repeated identical marks.* The wider hue range lives here; the
@@ -205,12 +208,15 @@ Data voice (codes/rates/dates/counters): tabular-nums with fixed-width digit box
 The small end of the scale runs figure title 13 / axis 11.5 / source 10.5. **There
 is no type floor** — 0.1.340 withdrew the 11px one, invented without an ask.
 A display tier sits above body copy for focal elements: `--fs-lead`
-clamp(30px,3.4vw,46px), `--fs-lead-xl` clamp(44px,6.4vw,88px) for one number
-alone, `--fs-say` clamp(22px,1.9vw,26px) for a claim.
+clamp(40px,4.8vw,68px), `--fs-lead-xl` clamp(56px,8.2vw,116px) for one number
+alone, `--fs-say` clamp(24px,2.3vw,32px) for a claim; the stat band's value
+runs `--fs-band-value` clamp(30px,3.4vw,46px).
 
 **Footer, every page**: confidentiality terms and the organisation's site on the
 left, `N / total` on the right — a slide gets forwarded without its cover, so the
-terms cannot live only on page one. This gates, and so do two other things:
+terms cannot live only on page one. A seal-red `shield` icon sits ahead of the
+terms: the handling line is a standing warning to the reader, so it takes the
+warning colour (it inverts with the opener's lime field). This gates, and so do two other things:
 **no slot you left for yourself may reach the reader** — `[TO FILL]`, `[TBD]`,
 `{{name}}`, an empty bracket pair — and **no footer may cite a file path**, because
 a source line names what a reader can act on, not a file on the build machine. A
@@ -245,8 +251,9 @@ a claim at display size, or a figure composed to dominate its cell. Which of the
 three is a decision for that page, and a page whose figure carries it needs no
 number. **Side-by-side cells start on one line** and carry comparable weight, and
 that is checked on the render rather than trusted from the CSS. A part opener —
-one line at display scale saying where the reader is and what the next run of
-pages argues — earns its page. Body prose stays at an 88ch measure — when a page
+the part label, one claim at display scale saying where the reader is, and one
+run line saying what the next pages argue, on the lime field with nothing else —
+earns its page. Body prose stays at an 88ch measure — when a page
 looks half empty the fix is a second column, never a longer line. **Diagonal
 layouts are implied only**: stepped offsets and angled accent rules, never rotated
 body text or tables. Every content page carries one to three sentences of support
@@ -307,6 +314,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.374** snapshot, cut 2026-08-08. It is self-contained by
+> This file is the **0.1.375** snapshot, cut 2026-08-09. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

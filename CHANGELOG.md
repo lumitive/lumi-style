@@ -3,6 +3,78 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.375 — the vocabulary the reference deck used now ships, and the dense cover returns
+
+The owner reviewed the recent output trajectory, named the 3.4.0-built deck from
+0.1.374's comparison as the reference for how a deliverable should look, and
+issued a consolidated directive (2026-08-09). That directive is the documented
+case behind this release and the two that follow it: this one ships the
+*vocabulary* the reference deck composed with, so that the rules landing next
+never mandate a rendering the package does not ship (rule 5).
+
+**Promoted into `tokens/lumi-layouts.css`, generalized and renamed to the
+canonical tokens** (the deck's private `--accent`/`--card`/`--seal-text` are
+`--acc`/`--card-bg`/`--seal-t` here — a validation artifact is never the
+reference for conventions, rule 7; its *design patterns*, owner-designated, are
+the facts being imported):
+
+- **`cover-grid`, the sixteenth layout** — the cover/closing grid with its
+  `typeblock` / `markcell` / `attrs` / `closenote` cells, plus the `wordmark`,
+  `spec`, `sub` and `colophon` furniture. 0.1.370 removed it as a portrait-only
+  orphan rather than completing it, explicitly because nobody had asked for a
+  sixteenth layout. Somebody has now, so it returns *completed*: base rendering,
+  portrait variant, header count, §3 selection row and `check_design.py`'s
+  `LAYOUTS` in one change, which is the state `check_layout_parity` forces.
+- **The part-opener composition** — `openframe` / `openpart` / `openclaim` /
+  `openrun` on the lime field, with the inverted footer. §3's opener bullet now
+  describes the three-line composition instead of "one line and nothing else".
+- **The geography paint** — `geo-*` classes for the two `assets/vectors/` marks,
+  with the cover/closing emphasis weights, plus `geolegend`. The coverage rule
+  is unchanged: a region drawn is a region claimed.
+- **The figure paint and figure type vocabulary** — the full `f-*`/`s-*` fill
+  and stroke set and the `svg` type tiers (`lbl`/`sm`/`cap-w`/`huge`/`mid`),
+  replacing the two-class `f-acc`/`f-lime` stub, so no literal colour ever
+  reaches a drawing.
+- **Block furniture** — the `tag` status chips, the `legend`, the glossary
+  `dl.gloss`, and the `grades`/`gr` graded ladder. The ladder was removed in
+  0.1.370 as speculative; the owner-named reference uses it on a live page,
+  which is the documented case rule 2 requires, so its base rendering ships.
+- The `.eyebrow` becomes a flex row and `svg.ic` ships, so the subject icon the
+  rules already require has a rendering that needs no per-use nudging.
+- **The handling marker** — a seal-red `shield` (the existing reserved binding)
+  ahead of `.foot .conf`, at the owner's ask, inverting with the opener field.
+  §1's ledger records the extension: the handling line is a standing warning to
+  the reader, which is why the warning colour may mark it.
+
+`PROBE_NOT_SHIPPED` shrinks from thirteen waivers to three — `openpart`,
+`openclaim`, `openrun`, `grades`, `gr`, `gloss`, `geo-flat`, `sub`, `tag` and
+`wordmark` all ship now, and the guard names a satisfied waiver the moment its
+class lands, so the deletions ride the same change.
+
+**The ground's strong tier returns to .25 (light, landscape), mid to .19.**
+This reverses 0.1.350, which lowered the tier to .20 after the strong ground
+broke its 1.40:1 ceiling at A4 on two documents. The owner asked for the dense
+cover back, and the reversal was measured before it shipped, on the reference
+deck's own ground: at .25 it renders 1.344 against the canvas at 1280x720 —
+under the ceiling, because it is drawn with `preserveAspectRatio="xMidYMid
+slice"` rather than the `"none"` stretching that caused the 0.1.350 breach —
+and 1.413/1.423 at 794x1123, because a cropped ground still concentrates its
+densest band on a narrower page. So the sheet takes its own value: portrait
+steps the strong tier down to .23, which measures 1.38 on the same deck.
+brand.md now names the tier strategy in the owner's terms (dense / medium /
+sparse), states that a document defines its ripple drawing once and
+instantiates it per page, and requires `slice`. The ceiling itself is
+unchanged, measured on the rendered page in both geometries — the tiers stay
+ceilings on loudness, and quieter is always allowed.
+
+Ridden along, four drift fixes found while auditing: CLAUDE.md and
+design-rules §4b said two `check_design.py` metrics gate when D12/D14/D15 are
+three; README still credited "the eight semantic icons" from before the Lucide
+library landed; and `prompts/lumi-style-core.md` quoted display-tier clamps
+that match no token — its `--fs-lead` carried the stat band's numbers — so the
+core prompt now restates the four tiers as `tokens/lumi-theme.css` defines
+them.
+
 ## 0.1.374 — the step called "Visuals and charts" had stopped mentioning charts
 
 A reader compared a deck built by **3.4.0** against one built by **0.1.373** and

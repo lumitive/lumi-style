@@ -70,7 +70,7 @@ LAYOUT_MIN_PAGES = 15
 LAYOUTS = {
     "stack", "hero-band", "band-hero", "thirds-v",
     "split", "split-wide", "split-narrow", "columns-2", "columns-3", "columns-4",
-    "rail", "quad", "sidebar-notes", "full-bleed", "diagonal-flow",
+    "rail", "quad", "sidebar-notes", "full-bleed", "diagonal-flow", "cover-grid",
 }
 
 # Class names the house style uses for a tier-1 callout (tinted + border + edge).

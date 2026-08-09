@@ -60,10 +60,11 @@ English-only and takes `--genre internal` to exempt internal analysis documents
 from the em-dash rule. `check_design.py` reads a document's own token block, so it
 grades a file against the palette that file actually declares rather than against
 this repo's; a deliverable that does not use the token block is reported
-`UNMEASURABLE` rather than passed. Two of its metrics **gate**, and neither is a
+`UNMEASURABLE` rather than passed. Three of its metrics **gate**, and none is a
 design judgement: **D12** (handling terms and origin on every page) is a
-commercial requirement on the artifact, and **D14** (no `[TO FILL]`, `[TBD]` or
-`{{…}}` reaching the reader) asks whether the document is finished. Both are
+commercial requirement on the artifact, **D14** (no `[TO FILL]`, `[TBD]` or
+`{{…}}` reaching the reader) asks whether the document is finished, and **D15**
+(no repository path in a footer) is D12's mirror. All three are
 decidable in the way "does this page read as intentional" is not.
 
 Its banned-phrase list is a second copy of `references/writing-rules.md` §2, so
