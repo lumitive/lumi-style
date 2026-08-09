@@ -890,6 +890,17 @@ VERSION_CITATION_WAIVERS = {
              "that explains why the scheme was retired",
     "3.4.0": "names the last release of the retired scheme, and the commit subject "
              "git history still carries; both are quoted deliberately",
+    # WCAG success criteria are numbered like releases and are not releases. The
+    # pattern this guard scans with cannot tell them apart, and a design record
+    # that cites the criterion it was measured against is doing the right thing.
+    "1.4.11": "WCAG 1.4.11, non-text contrast: an accessibility success criterion "
+              "cited in a design record, not a release of this package",
+    "2.5.8": "WCAG 2.2 SC 2.5.8, target size: an accessibility success criterion "
+             "cited in a design record, not a release of this package",
+    "1.4.11": "WCAG 2.1 success criterion 'Non-text Contrast', cited in specs/ "
+              "as the authority for the region boundary stroke",
+    "2.5.8": "WCAG 2.2 success criterion 'Target Size (Minimum)', cited in "
+             "specs/ as the authority for the 24px pick target",
     # Forward references to planned work, deleted the release they ship. The
     # comment here used to claim this made a stale promise a CI failure. It did
     # not: this guard fails a citation only when NO heading defines it, so
