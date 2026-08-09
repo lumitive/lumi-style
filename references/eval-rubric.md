@@ -187,6 +187,11 @@ anything.
    document, and a claim made before the instruments have run is a guess. An
    agent that cannot execute them names the checks it owes and the operator runs
    them — see the capability tiers in `CLAUDE.md`;
+0b. **The red-team pass** (storyline-templates, shared discipline): before
+   self-scoring, read the draft as its most skeptical reader — overstated
+   claims, the first number they would check, pages designed past their
+   content. A self-score written before the red team has read the document is
+   the builder grading the builder;
 1. Ship with a self-score attached (**never self-score 5 before a reader has
    scored it** — mistaking mechanical completeness for reader value is a
    documented, once-punished failure). **A self-score carries its reasons**: the

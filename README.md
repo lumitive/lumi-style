@@ -82,9 +82,9 @@ fixtures/                         two synthetic deliverables the checkers are te
                                   one well-formed, one with a named defect per metric
 conformance/                      fixed task suite · the tracked cross-agent scoreboard
 scripts/                          check_repo · check_prose (M) · check_design (D) ·
-                                  inspect_layout (renders and looks) · check_fixtures ·
-                                  build_entrypoints · build_fixtures · run_conformance ·
-                                  embed_font · embed_icons · build_geography
+                                  inspect_layout (renders and looks) · export_pdf (PDF/4K) ·
+                                  check_fixtures · build_entrypoints · build_fixtures ·
+                                  run_conformance · embed_font · embed_icons · build_geography
 adapters/platforms.json           the platform registry: install paths · capability
                                   tiers · entry files, guarded by check_repo
 adapters/*.md                     per-platform loading notes

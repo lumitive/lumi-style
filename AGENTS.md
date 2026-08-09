@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.376.** This file restates part of `references/`; where they
+> **lumi-style 0.1.377.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -14,6 +14,17 @@ another language or a dark canvas only when the user asks.
 lines and the craft rules to make it clear. Starting inside the constraints and
 decorating outward is measurably how you get work that is correct and lifeless:
 through 0.1.344 this rule set ran 272 restricting lines against 12 inviting ones.
+
+**Study the input first; questions come once or not at all.** Read everything
+the user supplied and work from the reader's side of the deliverable. When a
+required input is missing or two requirements conflict, batch every question
+into one round before generating; otherwise state your assumptions in the
+delivery note and proceed — one clear prompt should normally produce a finished
+document. Write outputs to the input file's directory unless the user names
+another. Run independent pages in parallel where your platform allows, and when
+expected generation time passes ten minutes, say so before starting. Before
+delivery, the **red-team pass** rides the critic gate: read the draft as its
+most skeptical reader, and treat over-design as a finding, not a virtue.
 
 **Load order** (all files are in this repository):
 

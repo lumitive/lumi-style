@@ -16,6 +16,7 @@ python3 scripts/check_repo.py            # repo invariants; exit 1 on any failur
 python3 scripts/check_prose.py <file>    # AI-flavor metrics (M4, M8-M11) on a deliverable
 python3 scripts/check_design.py <file>   # design metrics (D1-D14) on a deliverable
 python3 scripts/inspect_layout.py <file> # render a deliverable and report what the layout does
+python3 scripts/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
 python3 scripts/embed_font.py            # @font-face block with the face inlined
 python3 scripts/embed_icons.py           # <symbol> sprite of the semantic icon set
 python3 scripts/build_geography.py       # regenerate assets/vectors/ from lat/lon data
