@@ -192,8 +192,8 @@ training deck reviewed as the reference.)
   don't ship as-is) / Red (the argument collapsed) → Top 3 fixes (what's wrong +
   how to fix) → name one strength that must be protected.
 - **The red-team pass rides the critic gate** (owner directive 2026-08-09): the
-  half of you that built the document argued for it, so before delivery the
-  other half reads it as its most skeptical reader — which claim is overstated,
+  half of you that built the document — the blue team — argued for it, so before
+  delivery the other half reads it as its most skeptical reader — which claim is overstated,
   which number would they check first, which page is designed past what its
   content needs. **Over-design is a finding here, not a virtue**: a device the
   content did not ask for fails this pass the same way an unsupported claim

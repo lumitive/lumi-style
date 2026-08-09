@@ -3,6 +3,97 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.378 — what the two audits found in the three releases before it
+
+The owner asked for the 0.1.375–0.1.377 line to be audited before trusting it.
+Two independent passes ran: an adversarial audit of the eleven directives
+against the shipped state, and a rendered review that read computed styles in a
+headless browser. CI was green through both, which is the finding behind every
+finding: each defect below sat in the space the green run does not cover. This
+release closes them.
+
+**Rendered defects in the promoted vocabulary.**
+
+- The `svg .f-*` paint classes lost to the `svg` type classes by source order —
+  every selector is (0,1,1), four of six type classes also declare a fill, and
+  the explicit win-back list covered `huge`/`mid` only. `class="sm f-acc"`
+  rendered ladder-grey; `class="cap-w f-seal"` never turned red; the palette
+  guard saw nothing because no literal colour was involved. The paint set now
+  sits after the type set, which is the ordering that cannot develop the gap.
+  Inherited faithfully from the reference deck, where it is also present.
+- The cover-grid and opener children shipped as (0,3,0) rules under the fill
+  rule's (0,13,1) `:not()` chain — the typeblock's `gap: 0`, the attrs column's
+  3px and the openframe's 26px all computed 14px, the sixth through ninth time
+  that chain has quietly won an argument. The five new children join both
+  chains, and the chain's comment now states the mirror rule: a new
+  `.body > div` child joins it or its declarations are dead on arrival.
+- `.sub` was half-shipped: promoted out of the waiver list with a rendering
+  scoped to `.cover` alone, so the closing's subtitle fell through to generic
+  paragraph styling. Cover and closing are the same kind of page; the rule now
+  says so.
+- The dark ground ramp was inverted — mid at .24 against strong's .20, a part
+  opener denser than the cover — surviving from before the tiers were held to
+  a ratio, and left in place when 0.1.375 restated that ratio one palette up.
+  Dark mid takes .15 (the same ≈0.76 ratio the light tiers hold); dark strong
+  is unchanged.
+
+**Metrics that could not see their own subject.**
+
+- D10 keyed the eyebrow count to `<div class="eyebrow">`, so the fixtures'
+  `<p>` eyebrows counted zero and were silently reclassified as figure icons.
+  The selector is element-agnostic now and counts 14 where it counted 0.
+- The `VIS` list — the sole carrier of the visual-share target — was outside
+  `PROBE_CENSUS_LISTS`, so a rename in `tokens/` would have dropped the share
+  toward zero with CI green. It joins the guard.
+- A deck with no ground read the same as a deck that had been checked
+  ("ground: no page carries one", neutral). It now reports GROUND MISSING,
+  still never gating: a document outside the brand may be quiet on purpose.
+- The 50% visual-share target was ungradeable at A4 — the portrait tokens cap
+  a figure at 36svh, and every page of the package's own fixture sat "under
+  target" there while healthy. The sheet now reports shares without grading
+  them; the target binds in landscape, where it is reachable.
+- `check_version_citations` iterated the platform registry's entry files only,
+  so ENTRY_STAMP's conformance entry was dead code and the scoreboard's stamp
+  sat at 0.1.371 for six releases while the entry's own comment claimed to be
+  the check that sees it. The guard now walks the union, and the stamp is
+  current.
+
+**The harness catches up with the genre model.** `run_conformance.py` rejected
+`training`, the genre 0.1.376 created — the four-genre model had reached the
+rules, the checker and all three entry points and stopped at the cross-agent
+harness. It accepts it now; T1 also gains the `D15_footer_path` requirement,
+which is a gate of equal standing with D12/D14 and was missing from the task's
+require list. `export_pdf.py` gains `--genre`: its help text stated the
+primary-geometry rule while its default violated it, so a training deck
+exported with defaults shipped the projection edition. The raster floor now
+binds rasters only — a PDF is vector and has no scale to be under.
+
+**The fixtures exercise what they advertise.** Both now draw the ground —
+sixteen deterministic lines, defined once and instantiated per page with
+`<use>`, no two sharing a width, amplitude, wavelength or phase, measured
+under the 1.40:1 ceiling in all three geometries (1.251 / 1.354 / 1.312 at
+the loudest) — plus a `.field` with one mark per datum and its `data-count`,
+the graded ladder on one page, the glossary on another, and status chips in
+the page-9 table. Until now the suite shipped the brand's signature devices
+and rendered neither.
+
+**Prose drift found while auditing, fixed:** the 4K/2K export rule reached
+only one of three entry points (now in `AGENTS.md` and the core prompt); the
+shield marker was missing from SKILL.md alone of the four restatements; "first
+principles" and "the blue team" are now written where their substance already
+was; CLAUDE.md's checks list, genre note, scenario list and rubric line;
+eval-rubric's M1–M8 heading over a table running to M12, and its D-table's
+missing D13 and drawn-share rows; brand.md crediting D13 with enforcement when
+only D12/D14/D15 gate; SKILL.md counting four entry points while naming three;
+the core prompt counting four block patterns while listing seven.
+
+**Recorded no-changes, so the next audit does not reopen them:** the pass
+fixture keeps its 7-page opener runs — the pacing target stays a review
+trigger, and the reference deck itself runs longer parts; and `check_prose.py`
+still has no `consulting` genre flag — consulting inherits the sales dash ban
+by default, which has produced no defect case yet and gets no speculative
+flag without one.
+
 ## 0.1.377 — the export path ships with its floor in code, and the workflow learns to ask once
 
 The last of three releases carrying the owner's consolidated directive
