@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · v0.1.381 (2026-08-09)
+   LUMI visual theme · v0.1.382 (2026-08-09)
    Single source of truth for palette and typography. New documents reference
    this file or copy the token blocks verbatim (note the provenance when
    copying). Version lockstep: a deliverable's version = the lumi-style
@@ -162,8 +162,18 @@
   --lh-display: .92;
   --ls-display: -.02em;
   --ls-title:   -.01em;
-  --fs-display: clamp(45px, 6.3vw, 92px);   /* cover, closing, part openers */
-  --fs-title:   clamp(26px, 2.7vw, 36px);  /* page titles */
+  /* ── the display tiers are FIXED, per stage (v0.1.382) ────────────────────
+     These were `clamp(min, Nvw, max)` from before the page became a fixed box.
+     With a `zoom`-scaled stage, `vw` resolves against the reader's WINDOW while
+     the box does not move, so the same document set its titles at one size on a
+     laptop and another on a wide monitor: one design, as many renderings as
+     there are screens. Measured on a portrait handbook, the cover's display
+     type nearly doubled between the sheet and a 1800px window and collided with
+     the mark. The values below are what the old clamps resolved to at each
+     design stage, so nothing moved at the geometry each was drawn for; the
+     portrait block overrides them for the 794px sheet. */
+  --fs-display: 80px;                      /* cover, closing, part openers */
+  --fs-title:   34px;                      /* page titles */
   --fs-support: 17px;                      /* the second voice, not small print */
 
   --ls-title-cjk: .04em;
@@ -199,10 +209,10 @@
      of these side by side, so it is a value in a row and not the page's one
      entry point. (v0.1.350 — the band had no token and every deliverable picked
      its own, which is the shape of drift this release exists to close.) */
-  --fs-band-value: clamp(30px, 3.4vw, 46px);
-  --fs-lead:    clamp(40px, 4.8vw, 68px);   /* the number that is the page */
-  --fs-lead-xl: clamp(56px, 8.2vw, 116px);   /* one number, alone, full stop */
-  --fs-say:     clamp(24px, 2.3vw, 32px);   /* the claim that is the page */
+  --fs-band-value: 43px;
+  --fs-lead:    61px;                       /* the number that is the page */
+  --fs-lead-xl: 105px;                      /* one number, alone, full stop */
+  --fs-say:     29px;                       /* the claim that is the page */
 }
 
 /* ── dark palette: on explicit user request only ── */

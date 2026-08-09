@@ -634,7 +634,13 @@ PROBE = r"""
     // measuring anyway reported all ten of the fixture's ledes 5px over their
     // own auto height, which is the rounding of `scrollHeight` and nothing else.
     // The clamp half still runs in both: hidden text is hidden in any geometry.
-    const reserveExpected = window.innerWidth >= window.innerHeight;
+    // Released by the document's declared geometry, never by the window's
+    // shape. A portrait handbook opened in a wide window is still portrait —
+    // reading the window here reported a released reserve as an overspent one
+    // the moment the reader resized, which is the window deciding the design.
+    const reserveExpected = document.body.dataset.geometry
+      ? document.body.dataset.geometry !== 'portrait'
+      : window.innerWidth >= window.innerHeight;
     // Seeded null, not 0. Written as `let over = 0` the tightest-block numbers
     // were only ever recorded for a block that overspends, so a healthy page
     // reported "tightest p2 at 0px of 0px" — a reassuring line about nothing,
@@ -1148,7 +1154,10 @@ CONSISTENCY_PROBE = r"""
   // the sheet does not have. Portrait is a composition, not a reflow. Asking
   // the same aspect the stylesheet asks, so the probe and the CSS cannot
   // disagree about which geometry is which.
-  const datumExpected = window.innerWidth >= window.innerHeight;
+  // Same rule as the reserve above: the declaration decides, not the window.
+  const datumExpected = document.body.dataset.geometry
+    ? document.body.dataset.geometry !== 'portrait'
+    : window.innerWidth >= window.innerHeight;
   const datums = {};
   let datumPages = 0, datumSkipped = 0;
   for (const s of document.querySelectorAll('section.page')) {
@@ -1385,7 +1394,7 @@ def _fmt_ids(rows, n=6, key=None):
     return out + (f" (+{len(rows) - n} more)" if len(rows) > n else "")
 
 
-def page_report(rows, geometry, errors, genre=None):
+def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
     """Print the per-geometry table and every page-level judgement.
 
     Returns the number of things that could not be measured. Every block here
@@ -1687,7 +1696,12 @@ def page_report(rows, geometry, errors, genre=None):
     # A hand-list, knowingly: "a4" is the only portrait geometry today. A new
     # portrait geometry added to GEOMETRIES without joining this tuple would be
     # graded against a landscape target it structurally cannot meet.
-    portrait = geometry in ("a4",)
+    # Grade the share at the geometry the document was DESIGNED for, and only
+    # report it elsewhere. Before 0.1.382 this asked "is this render A4", which
+    # was right while portrait was always a second edition and wrong the moment
+    # a document declared portrait as its own stage.
+    designed = (declared_geometry or "landscape")
+    off_design = (geometry == "a4") != (designed == "portrait")
     # The target follows the GENRE (owner directive, 0.1.380): a sales or
     # marketing page argues visually and carries about half its area in visual
     # blocks; a training page carries about a third, because a learner needs
@@ -1695,10 +1709,10 @@ def page_report(rows, geometry, errors, genre=None):
     # floors.
     target = VISUAL_SHARE_TARGET.get(genre or "sales", 50)
     low = [r for r in content if r["visualPct"] < target]
-    if content and portrait:
+    if content and off_design:
         w = min(content, key=lambda r: r["visualPct"])
-        print(f"  visual share: reported only at A4 (figures cap at 36svh there); "
-              f"lowest {w['id']} at {w['visualPct']}%")
+        print(f"  visual share: reported only, since this is not the geometry "
+              f"the document declares; lowest {w['id']} at {w['visualPct']}%")
     elif content and low:
         print(f"  visual share: {len(low)} of {len(content)} content pages sit under "
               f"the {target}% {genre or 'sales'} target — "
@@ -1983,9 +1997,14 @@ def main(argv):
             head = path.read_text(encoding="utf-8", errors="replace")[:400000]
         except OSError:
             return None, None
-        # On the <body> TAG. `data-geometry` also appears in the stylesheet's
-        # own selectors, which come first in the file — matching those graded a
-        # landscape deck as portrait, which is the defect this reads to prevent.
+        # Read the real <body> tag, and nothing that merely looks like one. The
+        # embedded stylesheet carries both the selectors (`body[data-geometry=
+        # "portrait"]`) and, in its own comments, a worked example of the tag —
+        # so the first two versions of this read a landscape deck as portrait
+        # and then a portrait handbook as landscape, each time out of tokens/'s
+        # own documentation. Strip style blocks and comments first; what is
+        # left is markup.
+        head = re.sub(r"<style\b.*?</style>|<!--.*?-->", " ", head, flags=re.S | re.I)
         g = re.search(r'<body\b[^>]*\bdata-geometry=["\'](\w+)["\']', head)
         n = re.search(r'<body\b[^>]*\bdata-genre=["\'](\w+)["\']', head)
         return (g.group(1) if g else None), (n.group(1) if n else None)
@@ -2054,7 +2073,7 @@ def main(argv):
                           f"Nothing below this line was checked — this is a report "
                           f"about zero pages, not a clean document.")
                 else:
-                    unmeasured += page_report(rows, geometry, errors, decl_genre)
+                    unmeasured += page_report(rows, geometry, errors, decl_genre, decl_geo)
 
             # Both audits run per geometry now, and say which one they ran at.
             try:

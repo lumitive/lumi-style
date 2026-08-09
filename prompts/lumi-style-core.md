@@ -79,8 +79,10 @@ lines from a client page and leaves every geometric check clean, because hidden
 text produces no spill, no collision and no overflow. Nothing that does not
 render is fixed.
 
-**The register**: display `clamp(64px, 9vw, 132px)` at weight 700, leading 0.92;
-titles weight 700 at 24–34px; support 16px weight 500; no letter-spacing. Ship
+**The register**: display 80px on the slide and 50px on the sheet at weight 700,
+leading 0.92; titles weight 700 at 34px and 26px; support 17px weight 500; no
+letter-spacing. The sizes are fixed per stage, never viewport-relative: the page
+is a fixed box, so type that follows the window makes one design render as many. Ship
 only the faces the package carries.
 
 **The light ramp**: five discrete steps of the accent for fields and surfaces
@@ -231,9 +233,9 @@ Data voice (codes/rates/dates/counters): tabular-nums with fixed-width digit box
 The small end of the scale runs figure title 13 / axis 11.5 / source 10.5. **There
 is no type floor** — 0.1.340 withdrew the 11px one, invented without an ask.
 A display tier sits above body copy for focal elements: `--fs-lead`
-clamp(40px,4.8vw,68px), `--fs-lead-xl` clamp(56px,8.2vw,116px) for one number
-alone, `--fs-say` clamp(24px,2.3vw,32px) for a claim; the stat band's value
-runs `--fs-band-value` clamp(30px,3.4vw,46px).
+61px on the slide and 40px on the sheet, `--fs-lead-xl` 105px and 65px for one
+number alone, `--fs-say` 29px and 24px for a claim; the stat band's value runs
+`--fs-band-value` 43px and 30px.
 
 **Footer, every page**: confidentiality terms and the organisation's site on the
 left, `N / total` on the right — a slide gets forwarded without its cover, so the
@@ -356,6 +358,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.381** snapshot, cut 2026-08-09. It is self-contained by
+> This file is the **0.1.382** snapshot, cut 2026-08-09. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

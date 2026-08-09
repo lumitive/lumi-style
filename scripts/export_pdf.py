@@ -194,8 +194,11 @@ def main(argv):
             head = path.read_text(encoding="utf-8", errors="replace")[:400000]
         except OSError:
             return None
-        # On the <body> TAG: `data-geometry` also appears in the stylesheet's
-        # own selectors, which come first in the file.
+        # The real <body> tag, not the stylesheet's selectors and not the
+        # worked example inside its comments. Strip style blocks and comments
+        # first; what is left is markup. (inspect_layout.py reads it the same
+        # way, and both got this wrong twice before stripping.)
+        head = re.sub(r"<style\b.*?</style>|<!--.*?-->", " ", head, flags=re.S | re.I)
         m = re.search(r'<body\b[^>]*\bdata-geometry=["\'](\w+)["\']', head)
         return m.group(1) if m else None
 
