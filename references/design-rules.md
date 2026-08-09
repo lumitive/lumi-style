@@ -244,7 +244,29 @@ comes from size and letterspacing.
   marketing and consulting**, where the page argues visually, and **about a
   third for training**, where a learner needs the words beside the drawing. The
   document declares its genre (`<body data-genre="training">`) and the checks
-  grade against that number. `check_design.py` D16 reports the pages that carry none, and
+  grade against that number.
+
+- **An apparatus page is exempt, and it says so** (owner decision, 0.1.381).
+  Some pages are reference the reader returns to rather than a claim the deck
+  advances: the glossary, the scoring or feedback page, the boundaries page of
+  what will not be claimed, the how-to-use-this-deck page, a contents index.
+  Asking those to carry a figure produces decoration, which is the thing every
+  rule in this file exists to prevent. They carry `data-role="apparatus"` on the
+  section and drop out of the share target and out of D16's prose-only list.
+
+  **Declared, never inferred.** A page is apparatus because the author says so
+  in the markup, not because a checker guessed from its contents — an inferred
+  exemption is the escape hatch that empties the metric, and a declared one is
+  auditable. The test is the claim: **a content page advances a claim and needs
+  its visual block; an apparatus page carries no claim, only reference.** A page
+  that simply failed to earn a figure is not apparatus, and calling it that is
+  the move this paragraph exists to make visible.
+
+  **A ceiling, not a target: about one content page in five.** Past that the
+  deck has stopped arguing and become a handbook. `check_design.py` reports the
+  count and the share, `inspect_layout.py` names the pages that claimed it, and
+  neither gates — a reviewer reads the list and decides whether each page earned
+  the word. `check_design.py` D16 reports the pages that carry none, and
   `inspect_layout.py` reports each page's rendered share against the target;
   both are review triggers, never floors, because the withdrawn 82% fill floor
   is the standing record of what a floor here does. The reconciliation with §4

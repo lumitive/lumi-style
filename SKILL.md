@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.380"
+  version: "0.1.381"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -166,8 +166,11 @@ been removed; they now apply at step 4 instead of framing step 0.
    substitute for a figure — **every content page carries at least one visual
    block, and the target share of its area follows the genre: about half for
    sales, marketing and consulting, about a third for training** (reported,
-   never a floor). **A figure's name holds one line** at the document's
-   geometry; a name that overruns gets shortened, never set smaller.
+   never a floor). **A reference page is exempt and declares it**:
+   `data-role="apparatus"` on the glossary, the scoring page, the boundaries
+   page — declared, never inferred, and a ceiling of about one content page in
+   five. **A figure's name holds one line** at the document's geometry; a name
+   that overruns gets shortened, never set smaller.
    A page that does not fit gets its **content** trimmed, never its type nudged,
    and that holds per geometry — A4 tightens spacing and leaves type alone.
    **A title block that does not fit gets shorter text, never a clamp.** `.lede`

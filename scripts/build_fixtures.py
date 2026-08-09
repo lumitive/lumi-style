@@ -398,6 +398,13 @@ def page(i: int, total: int, spec, broken: bool) -> str:
         # lead, no comparison pattern; prose, a list and a callout. The static
         # half of the visual-share directive reports it as prose-only.
         lead = ""
+    if i == 17:
+        # The apparatus exemption, exercised in both directions (0.1.381): this
+        # page is prose-only AND declares itself reference, so it must NOT be
+        # listed — while the broken fixture's undeclared p16 still is. A rule
+        # that exempts something needs a fixture where the exemption is the
+        # only thing standing between a clean report and a finding.
+        lead = ""
     # One page each for the four block patterns; every other page keeps the
     # figure. The tier-1 pair is exercised in both colours on DIFFERENT pages:
     # `.key` in page 5's notes column and `.red` in page 8's, because D3 budgets
@@ -418,6 +425,8 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     layout, cells = "split", argument + "\n    " + fig.format(i=i)
     if broken and i == 16:
         layout, cells = "stack", argument
+    if i == 17:
+        layout, cells = "stack", argument
     if i == 5:
         layout, cells = "sidebar-notes", argument + "\n    " + NOTES
     # A one-line `.lead.row` above each block. Two purposes: it gives these two
@@ -431,8 +440,9 @@ def page(i: int, total: int, spec, broken: bool) -> str:
         layout, cells = "stack", f'<div class="fill">{row}{CARDS}</div>'
     if i == 7:
         layout, cells = "stack", f'<div class="fill">{row}{VOWS}</div>'
+    role = ' data-role="apparatus"' if i == 17 else ""
     return f"""
-<section class="page" id="p{i}">
+<section class="page" id="p{i}"{role}>
   {GROUND}
   <div class="body {layout}">
     <div class="lede">

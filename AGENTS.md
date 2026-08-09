@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.380.** This file restates part of `references/`; where they
+> **lumi-style 0.1.381.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -53,7 +53,9 @@ most skeptical reader, and treat over-design as a finding, not a virtue.
    which one is a decision for that page. **Every content page carries at least
    one visual block, and the target share of its area follows the genre — about
    half for sales, marketing and consulting, about a third for training** — the
-   checks report both, and neither is a floor. A figure's name holds one line. **A table is for values**: prose in a
+   checks report both, and neither is a floor. A reference page (glossary,
+   scoring, boundaries) is exempt and declares it with `data-role="apparatus"`,
+   up to about one content page in five. A figure's name holds one line. **A table is for values**: prose in a
    grid is a layout error, so draw what the content actually is. Under a figure
    goes the number, its conclusion name and the source line, and nothing else.
    Embed the vendored assets rather than improvising: `scripts/embed_font.py`,

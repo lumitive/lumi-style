@@ -761,6 +761,11 @@ PROBE = r"""
       // document wants is a structural decision belonging to its storyline, and
       // a minimum here would grow openers to satisfy the number.
       isOpener: s.classList.contains('opener'),
+      // Declared apparatus: a reference page (glossary, scoring table,
+      // boundaries list, how-to) is exempt from the visual-share target,
+      // because asking reference material to carry a figure produces
+      // decoration. Declared, never inferred, and counted below.
+      isApparatus: s.dataset.role === 'apparatus',
       isCover: s.classList.contains('cover'),
       isClosing: s.classList.contains('closing'),
       capBlocks: s.querySelectorAll('.cap').length,
@@ -1103,7 +1108,13 @@ CONSISTENCY_PROBE = r"""
     // inside a `.swap` rather than reaching into any document that uses them for
     // something else. Scoping a role means auditing what sits outside the scope,
     // or the audit reports a clean bill about a third of the uses.
-    ['.no', ['.swap']],
+    // `.tag` joins in 0.1.381: `tokens/` ships `.tag.no` (the refused status
+    // chip) as well as `.swap .no`, so a document using the chip was reported
+    // as inventing a rendering it had not. A scoped audit must know every
+    // scope the stylesheet declares, or it manufactures the split it exists
+    // to find — and the deliverable that hit this worked around it by
+    // choosing a different chip, which is worse than the finding.
+    ['.no', ['.swap', '.tag']],
     ['.yes', ['.swap']],
     // `.say` ships as `.lead .say` and nowhere else, so a bare `.say` carries the
     // class this probe audits and none of the type the token file names. Found
@@ -1663,8 +1674,16 @@ def page_report(rows, geometry, errors, genre=None):
     # is a line reviewers learn to skip, so the sheet reports shares without
     # grading them.
     content = [r for r in live
-               if not (r.get("isOpener") or r.get("isCover") or r.get("isClosing"))
+               if not (r.get("isOpener") or r.get("isCover") or r.get("isClosing")
+                       or r.get("isApparatus"))
                and r.get("visualPct") is not None]
+    apparatus = [r for r in live if r.get("isApparatus")]
+    if apparatus:
+        share = round(100.0 * len(apparatus) / max(1, len(apparatus) + len(content)), 1)
+        over = " — past the one-in-five ceiling" if share > 20.0 else ""
+        print(f"  apparatus: {len(apparatus)} pages declared reference rather "
+              f"than argument ({share}% of content pages{over}), exempt from the "
+              f"share target: " + ", ".join(r["id"] for r in apparatus[:8]))
     # A hand-list, knowingly: "a4" is the only portrait geometry today. A new
     # portrait geometry added to GEOMETRIES without joining this tuple would be
     # graded against a landscape target it structurally cannot meet.
