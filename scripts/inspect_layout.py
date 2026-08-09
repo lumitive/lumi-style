@@ -50,6 +50,7 @@ import contextlib
 import io
 import json
 import pathlib
+import re
 import sys
 import tempfile
 from contextlib import redirect_stdout
@@ -735,6 +736,22 @@ PROBE = r"""
       // numbers measured against element boxes, which is the pre-fix behaviour.
       inkUnavailable: inkFail - inkFailAtStart,
       hasFooter: !!footEl,
+      // The footer is one line by contract: three spans on a row. A second
+      // line is furniture overflowing its own frame, and it shipped on all 31
+      // pages of a real deliverable because the document's `.page` padding
+      // overrode the sheet's margin. Measured on the SPANS, not the row, since
+      // the row carries the waterline's padding.
+      footWrapped: !!footEl && [...footEl.children].some(e => {
+        const lh = parseFloat(getComputedStyle(e).lineHeight) || 14;
+        return e.getBoundingClientRect().height > lh * 1.6;
+      }),
+      // A figure's number and name are one line too: wrapped, the caption stops
+      // reading as a label and starts reading as prose under the drawing.
+      capWrapped: [...s.querySelectorAll('.cap .n')].filter(e => {
+        const lh = parseFloat(getComputedStyle(e).lineHeight) || 14;
+        return e.getBoundingClientRect().height > lh * 1.6;
+      }).length,
+      capCount: s.querySelectorAll('.cap .n').length,
       titleMissing: titleExpected && !anyTitle,
       hasGround: s.querySelectorAll('.ground').length,
       // The part opener. `.page.opener` is styled in lumi-layouts.css and named
@@ -1332,6 +1349,10 @@ def _role_split(role):
     return len(role["variants"]) > 1
 
 
+def _footer_wrapped(live):
+    return [r for r in live if r.get("hasFooter") and r.get("footWrapped")]
+
+
 def _role_splits(c):
     return [role for role in c["roles"] if _role_split(role)]
 
@@ -1353,7 +1374,7 @@ def _fmt_ids(rows, n=6, key=None):
     return out + (f" (+{len(rows) - n} more)" if len(rows) > n else "")
 
 
-def page_report(rows, geometry, errors):
+def page_report(rows, geometry, errors, genre=None):
     """Print the per-geometry table and every page-level judgement.
 
     Returns the number of things that could not be measured. Every block here
@@ -1648,23 +1669,46 @@ def page_report(rows, geometry, errors):
     # portrait geometry added to GEOMETRIES without joining this tuple would be
     # graded against a landscape target it structurally cannot meet.
     portrait = geometry in ("a4",)
-    low = [r for r in content if r["visualPct"] < 50]
+    # The target follows the GENRE (owner directive, 0.1.380): a sales or
+    # marketing page argues visually and carries about half its area in visual
+    # blocks; a training page carries about a third, because a learner needs
+    # the words beside the drawing. Both are targets and review triggers, never
+    # floors.
+    target = VISUAL_SHARE_TARGET.get(genre or "sales", 50)
+    low = [r for r in content if r["visualPct"] < target]
     if content and portrait:
         w = min(content, key=lambda r: r["visualPct"])
         print(f"  visual share: reported only at A4 (figures cap at 36svh there); "
               f"lowest {w['id']} at {w['visualPct']}%")
     elif content and low:
         print(f"  visual share: {len(low)} of {len(content)} content pages sit under "
-              f"the 50% target — "
+              f"the {target}% {genre or 'sales'} target — "
               + ", ".join(f"{r['id']} {r.get('visualPct', 0)}%" for r in
                           sorted(low, key=lambda r: r.get('visualPct', 0))[:8])
               + ". A target and a review trigger, never a floor.")
     elif content:
         print(f"  visual share: all {len(content)} content pages carry visual blocks "
-              f"at or above the 50% target")
+              f"at or above the {target}% {genre or 'sales'} target")
 
     print(f"  figures: {ndrawn} of {len(live)} pages are built on a drawing "
           f"rather than a grid or a block of prose")
+
+    fw = _footer_wrapped(live)
+    if fw:
+        print(f"  FOOTER WRAP: {len(fw)} of {len(live)} footers run to a second "
+              f"line — the handling row is one line by contract: " + _fmt_ids(fw))
+    elif [r for r in live if r.get("hasFooter")]:
+        print(f"  footer: one line on all "
+              f"{len([r for r in live if r.get('hasFooter')])} pages that carry one")
+    capw = sum(r.get("capWrapped", 0) for r in live)
+    capn = sum(r.get("capCount", 0) for r in live)
+    if capw:
+        print(f"  CAPTION WRAP: {capw} of {capn} figure captions run to a second "
+              f"line — shorten the name (design-rules.md \u00a74 states the ceiling "
+              f"per geometry): "
+              + ", ".join(r["id"] for r in live if r.get("capWrapped")))
+    elif capn:
+        print(f"  captions: all {capn} figure names hold one line")
 
     skew = [r for r in live if r.get("frameSkewPx", 0) > 1 or r.get("sideMarginSkewPx", 0) > 2]
     if skew:
@@ -1816,6 +1860,8 @@ def deliverable_verdicts(rows, consistency):
         lambda h: f"{len(h)} pages exceed the page box: " + _fmt_ids(h))
     add("content_hidden", _hiding(live), not live,
         lambda h: f"{len(h)} pages clip their own title block: " + _fmt_ids(h))
+    add("footer_wrap", _footer_wrapped(live), not footed,
+        lambda h: f"{len(h)} footers wrap to a second line: " + _fmt_ids(h))
     ledes = [r for r in live if r.get("ledeBlocks")]
     add("reserve_overspent", _overspent(live),
         not ledes or not ledes[0].get("reserveExpected"),
@@ -1846,6 +1892,8 @@ def deliverable_print(label, verdicts):
     for finding, (verdict, detail) in verdicts.items():
         print(f"  {verdict:<5} {finding:<18}" + (f" {detail}" if detail else ""))
 
+
+VISUAL_SHARE_TARGET = {"sales": 50, "marketing": 50, "consulting": 50, "training": 30}
 
 GROUND_CEILING = 1.40          # a ceiling, not a target: quieter is always fine
 
@@ -1898,9 +1946,31 @@ def main(argv):
     ap.add_argument("--deliverable", action="store_true",
                     help="grade this file as something about to be sent: exit "
                          "non-zero on collision, content spill, page height, "
-                         "hidden content, an overspent title reserve, a role "
-                         "split or a lost datum. Without it nothing here gates.")
+                         "hidden content, a wrapped footer, an overspent title "
+                         "reserve, a role split or a lost datum. Without it "
+                         "nothing here gates.")
     args = ap.parse_args(argv)
+
+    def declared(path):
+        """The document's own geometry and genre, or (None, None).
+
+        A deliverable is designed for ONE geometry and says so
+        (`<body data-geometry="landscape">`). Rendering a landscape deck at A4
+        and grading the result reports defects of a composition nobody designed
+        — which is how a portrait PDF of a landscape deck came back with dead
+        half-pages and a wrapped footer on every page.
+        """
+        try:
+            head = path.read_text(encoding="utf-8", errors="replace")[:400000]
+        except OSError:
+            return None, None
+        # On the <body> TAG. `data-geometry` also appears in the stylesheet's
+        # own selectors, which come first in the file — matching those graded a
+        # landscape deck as portrait, which is the defect this reads to prevent.
+        g = re.search(r'<body\b[^>]*\bdata-geometry=["\'](\w+)["\']', head)
+        n = re.search(r'<body\b[^>]*\bdata-genre=["\'](\w+)["\']', head)
+        return (g.group(1) if g else None), (n.group(1) if n else None)
+
     geometries = args.geometry or DEFAULT_GEOMETRIES
 
     results, unmeasured = [], 0
@@ -1913,9 +1983,20 @@ def main(argv):
         if not path.exists():
             print(f"missing: {name}")
             return 1
+        decl_geo, decl_genre = declared(path)
+        file_geometries = geometries
+        if not args.geometry and decl_geo:
+            # The declared stage, plus one off-shape window to prove the stage
+            # holds regardless of the reader's window.
+            file_geometries = (["a4", "wide"] if decl_geo == "portrait"
+                               else ["16x9", "wide"])
+        elif not args.geometry and not decl_geo:
+            print(f"  note: {path.name} declares no data-geometry, so all of "
+                  f"{', '.join(geometries)} are graded. A deliverable is designed "
+                  f"for one geometry and should say which.")
         out_dir = pathlib.Path(args.out) if args.out else path.parent / "_layout"
         dark = args.dark or ".dark." in path.name
-        for geometry in geometries:
+        for geometry in file_geometries:
             shot_dir = None
             if not args.no_sheet:
                 out_dir.mkdir(parents=True, exist_ok=True)
@@ -1954,7 +2035,7 @@ def main(argv):
                           f"Nothing below this line was checked — this is a report "
                           f"about zero pages, not a clean document.")
                 else:
-                    unmeasured += page_report(rows, geometry, errors)
+                    unmeasured += page_report(rows, geometry, errors, decl_genre)
 
             # Both audits run per geometry now, and say which one they ran at.
             try:

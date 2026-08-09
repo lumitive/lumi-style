@@ -21,7 +21,7 @@
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame (e.g. "Topic: clause") |
 | M12 | Visible CJK in an English deliverable | =0 — **gates** | Chinese in text a reader sees, when the document declares English by `lang`, filename or `--lang`. Quoted as data (`<code>`, `<pre>`, backticks) is exempt |
 
-## Design diagnostics D1–D16 (`scripts/check_design.py` — reported, never gating, three named exceptions)
+## Design diagnostics D1–D17 (`scripts/check_design.py` — reported, never gating, three named exceptions)
 
 | id | Metric | Target | Predicate |
 |---|---|---|---|
@@ -39,7 +39,8 @@
 | D13 | Lime as light text | =0, reported | the acid green may never be light-on-light text; a surface, not a ladder step |
 | D14 | Unfilled placeholders | =0 — **gates** | slots the author left for themselves: `[TO FILL]`, `[TBD]`, `{{…}}`, an empty bracket pair |
 | D15 | File path in a footer | =0 — **gates** | a repository path pasted into reader copy: two segments and a file extension. The site D12 requires, and any URL, are not paths |
-| D16 | Visual presence and share | reported | content pages carrying no visual block (static half, `check_design.py`); rendered visual area against the ~50%-of-page target (`inspect_layout.py`) |
+| D16 | Visual presence and share | reported | content pages carrying no visual block (static half, `check_design.py`); rendered visual area against the genre's target — ~50% sales/marketing/consulting, ~30% training (`inspect_layout.py`) |
+| D17 | Export weight | reported | blend modes, filters and vector nodes: what the document will cost a reader who opens the PDF |
 
 **No design judgement in the D-series gates.** `check_design.py` exits 0 unless a
 file cannot be measured at all; every number is a diagnostic for a designer to
@@ -65,7 +66,7 @@ elision inside a quotation, and a gate that fires on legitimate prose is one
 people learn to route around.
 
 **D16 is a review trigger, not a floor** (owner directive, 2026-08-09). A content
-page with no visual block, or a rendered visual share under the 50% target, goes
+page with no visual block, or a rendered visual share under its genre's target, goes
 back to a human to look at: the fix is a redrawn centerpiece, or a deliberate
 decision that the page earns its prose, recorded in the delivery note. Both
 numbers exist to start the looking, not end it — the withdrawn D7 below is what
@@ -87,9 +88,9 @@ look at, and none of its **design** judgements gates.
 
 **`--deliverable` is the exception, and it is a pre-delivery step, not a repo
 check.** Run against a file you are about to hand over, it exits non-zero on the
-seven things a rendered page can be wrong about decidably — **collision, content
-spill, page height, hidden content, an overspent title reserve, a role split, a
-lost datum**. Focal weight, column balance, caption distance, centerpiece scale,
+eight things a rendered page can be wrong about decidably — **collision, content
+spill, page height, hidden content, a wrapped footer, an overspent title reserve,
+a role split, a lost datum**. Focal weight, column balance, caption distance, centerpiece scale,
 empty band and the part-opener count stay reported, because the fix for each is a
 design decision and a number satisfiable without improving the page ends the
 looking. Without the flag nothing here gates and the behaviour is unchanged, so
@@ -98,7 +99,7 @@ the repository's own "no design judgement blocks" stays true.
 *Provenance: a deliverable with overlapping text, an overspent reserve and a lost
 datum was recorded `pass` by the conformance harness, because the harness scored
 prose and design and **never ran the one instrument that renders the page**. Five
-of the seven findings above fire on it. A gate nothing invokes is not a gate.*
+of the eight findings above fire on it. A gate nothing invokes is not a gate.*
 
 | Probe | Reports | What it caught |
 |---|---|---|

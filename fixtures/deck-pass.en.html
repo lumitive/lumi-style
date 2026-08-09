@@ -155,6 +155,9 @@
      and CLAUDE.md rule 4 exists because a number read the wrong way round has
      produced three regressions here. This is fine print: eyebrows, captions,
      band labels, listheads. It is the smallest size in use, not a limit. */
+  /* the footer's own size. A role with no shipped rendering is a role every
+     document re-invents (0.1.380). */
+  --fs-foot:      11px;
   --fs-fine:      11px;
   --fs-fig-title: 13px;
   --fs-axis:      11.5px;
@@ -177,7 +180,7 @@
   --fs-say:     clamp(24px, 2.3vw, 32px);   /* the claim that is the page */
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.379 (2026-08-09)
+   LUMI page layouts · v0.1.380 (2026-08-09)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -214,6 +217,22 @@
    floor below which it stops working (CLAUDE.md rule 6); this is that floor. */
 *, *::before, *::after { box-sizing: border-box; }
 
+/* ── the page frame (0.1.380) ────────────────────────────────────────────────
+   `.page` itself shipped nowhere: every document invented `position`, `display`
+   and above all its own `padding`, and a document that writes `padding: 44px
+   92px` overrides the sheet's own 56px margin — so on A4 the frame stayed at
+   the slide's margins, the content column lost 72px, and the footer wrapped to
+   two lines on all 31 pages of a real deliverable. The same shape as the
+   missing `.foot { display: flex }` of 0.1.366: furniture the rules describe
+   and the tokens do not ship is furniture every document re-derives. */
+.page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  --page-pad: 92px;
+  padding: 44px var(--page-pad) 22px;
+}
+
 /* ── shared frame ─────────────────────────────────────────────────────
    .body is the content area between the eyebrow/title and the footer rule.
    Every layout is a grid on it; --gap and --measure are the two knobs. */
@@ -248,7 +267,12 @@
    inline and wrapped the page number onto its own line. The fixture defined its
    own `.foot { display: flex }` and therefore never exposed it: it was testing
    its own stylesheet, not this one. */
-.foot { display: flex; align-items: baseline; gap: 18px; }
+/* The footer's TYPE ships here too. `inspect_layout.py` has audited "footer
+   terms" as a role since 0.1.350 while every document declared its own size —
+   one role, as many renderings as there are decks. */
+.foot { display: flex; align-items: baseline; gap: 18px;
+        font-family: var(--mono); font-size: var(--fs-foot);
+        letter-spacing: .13em; text-transform: uppercase; color: var(--tx4); }
 /* The handling marker (0.1.375): a seal-red shield ahead of the handling
    terms, at the owner's ask. The seal is the warning colour and the handling
    line is a standing warning to the reader — do not forward — so the marker
@@ -970,20 +994,11 @@ circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
 .page.opener .foot, .page.opener .foot span { color: var(--on-lime); }
 .page.opener .foot .conf .ic { color: var(--on-lime); }
 
-/* ── height-based step-down, matching lumi-theme.css ─────────────────── */
-@media (max-height: 760px) {
-  .body { --gap: 18px; }
-  .body.split, .body.split-wide, .body.split-narrow { column-gap: 32px; }
-  .body.sidebar-notes { grid-template-columns: 1fr 260px; }
-}
-@media (max-height: 600px) {
-  .body { --gap: 12px; padding: 8px 0 6px; }
-  .body.rail { grid-template-columns: 150px 1fr; column-gap: 28px; }
-  .body.sidebar-notes { grid-template-columns: 1fr 230px; column-gap: 28px; }
-  .body.diagonal-flow > .steps > :nth-child(2) { margin-inline-start: 8%; }
-  .body.diagonal-flow > .steps > :nth-child(3) { margin-inline-start: 16%; }
-  .body.diagonal-flow > .steps > :nth-child(4) { margin-inline-start: 24%; }
-}
+/* The height-based step-downs were removed in 0.1.380, for the reason the
+   short-narrow collapse was: the page is a fixed box scaled to the window, so a
+   short window shows a smaller page, not a shorter one. Tightening its gaps
+   made the composition differ between window sizes — one design, two
+   renderings, decided by how tall the reader's window happened to be. */
 /* ── the landscape page is a slide, not a window-shaped box ──────────────
    Until 0.1.343 `.page` was `min-height: 100svh` with no aspect lock anywhere,
    so a page was whatever shape the reader's window was: 16:9 in a 16:9 window,
@@ -1003,14 +1018,20 @@ circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
    This is also what makes a figure sizeable: leftover height inside a page is
    now bounded and known, where before it grew with the window and the drawing
    floated in the middle of it. */
-@media (min-aspect-ratio: 1/1) {
-  .page {
+/* The stage follows the document's DECLARATION, never the reader's window.
+   `<body data-geometry="landscape">` or `"portrait"`; landscape is the default
+   when nothing is declared. Until 0.1.380 the two stages were window-shape
+   media queries, so a landscape deck opened in a tall window silently became a
+   portrait composition it was never designed as — which is exactly what a
+   portrait PDF export of a landscape deck produced: dead half-pages, starved
+   figures and a wrapped footer, none of it visible at the design geometry.
+   A deliverable is designed for ONE geometry (design-rules.md §7). */
+body:not([data-geometry="portrait"]) .page {
     width: 1280px;
     height: 720px;
     min-height: 0;
     margin-inline: auto;
     zoom: min(100vw / 1280px, 100svh / 720px);
-  }
 }
 
 /* ── the ground (v0.1.346, references/brand.md) ─────────────────────────────
@@ -1038,8 +1059,18 @@ circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
 .page.cover > .ground, .page.closing > .ground { opacity: var(--ground-strong); }
 .page.opener > .ground { opacity: var(--ground-mid); }
 .page > .body, .page > .foot { position: relative; z-index: 1; }
-/* On the lime field the ground would read as dirt on a painted surface. */
-.page.opener > .ground { mix-blend-mode: multiply; }
+/* On the lime field a ground in the ramp's hues reads as dirt on a painted
+   surface. `mix-blend-mode: multiply` fixed that in 0.1.375 and cost an order
+   of magnitude at export: measured on a 31-page deck, the blend on five opener
+   pages took the exported PDF from 448ms to 4515ms to render, because one
+   blended element forces the reader to composite the whole page. The fix is a
+   colour, not a mode — on the field the ground darkens the field, so its
+   strokes take the field's own foreground. A presentation attribute loses to
+   any stylesheet rule, so a document's `stroke="var(--acc-5)"` yields here
+   without !important. */
+.page.opener > .ground polyline,
+.page.opener > .ground path,
+.page.opener > .ground line { stroke: var(--on-lime); }
 
 /* ═══ the two brand devices (v0.1.345, references/brand.md) ═══════════════════
    Both are structural. A committed surface sitting on a template grid is the
@@ -1112,110 +1143,129 @@ circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
    theirs. What does not survive is an asymmetric split: 38% of 682 is 259px,
    which is a gutter rather than a column. Those become vertical, with the
    supporting cell reading as a band under the centerpiece rather than beside it. */
-@media (max-aspect-ratio: 1/1) {
-  /* A4 is a sheet, so it gets the same treatment as the slide: a fixed 794x1123
-     box scaled to fit rather than a min-height that content can push past. The
-     grid tracks then resolve against a known height instead of stretching to
-     whatever the content asked for, which is what put four pages over the sheet
-     even though their content fitted inside it. */
-  .page {
-    --page-pad: 56px; padding-top: 40px;
-    width: 794px; height: 1123px; min-height: 0;
-    margin-inline: auto;
-    zoom: min(100vw / 794px, 100svh / 1123px);
-  }
-  .body { max-width: 720px; }
-  /* The datum is per geometry. A title that sets on two lines at 1280 sets on
-     three at 794, so reserving the landscape height here would spend space the
-     sheet does not have. Portrait is a composition, not a reflow — it gets its
-     own datum, which is its own content. */
-  .body .lede { height: auto; }
-  .body.split, .body.split-wide, .body.split-narrow, .body.sidebar-notes {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 3fr) minmax(0, 2fr);
-  }
-  .body.sidebar-notes > .notes,
-  .body.split > .notes, .body.split-wide > .notes, .body.split-narrow > .notes {
-    border-left: 0; border-top: 1px solid var(--ln1);
-    padding-left: 0; padding-top: 18px;
-  }
-  .body.rail { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-  .body.rail > .railhead { border-right: 0; border-bottom: 1px solid var(--ln1);
-                           padding-right: 0; padding-bottom: 14px; }
-  /* Three cards read fine side by side on A4's 682px: each gets 218px, which is
-     a card and not a gutter. Stacking them made the page 292px too tall, and
-     the point of the page is that the three are compared. */
-  .body.columns-3 { grid-template-columns: repeat(3, 1fr); column-gap: 18px; }
-  /* The new block patterns get portrait proportions rather than a reflow. */
-  .vows { grid-template-columns: 1fr; gap: 12px; }
-  /* Stacking a swap turns seven pairs into fourteen rows; two pages went nearly
-     3000px over. A swap is a swap in both geometries — it just gets tighter. */
-  .swaps.tight .swap { grid-template-columns: 1fr 18px 1.15fr; }
-  .swap { grid-template-columns: 1fr 24px 1fr; }
-  /* `.grades` was portrait-only here until 0.1.370, was removed as an orphan,
-     and its base rendering shipped in 0.1.375 when the owner named a deck
-     using it as the reference — the documented case rule 2 asks for. Portrait
-     keeps the base spacing; the exemplar hid `.gc` on the sheet, but trimming
-     content per geometry is the author's decision, never the stylesheet's. */
-  /* A figure column plus a full notes column is two pages of material on one
-     A4 page. The notes tighten; the figure keeps its drawing.
-
-     What tightens here is SPACING, never the type of a named role. Until 0.1.350
-     these rules set `.gd` to 12px beside a figure, 11.5px in a wide split and
-     12px in a fill — three renderings of one role, shipped by the token file
-     that carries the rule against them, and invisible because the consistency
-     probe only ever ran at 1280x720. Run at A4 it reports the split
-     immediately. This is 0.1.349's own rule turned on its author: a page that no
-     longer fits gets its CONTENT trimmed, never its type nudged.
-
-     **That paragraph was true and the next twenty lines broke it**, for eighteen
-     releases. Seven rules here set a font-size: `.notes li` at 12px, a notes
-     table at 11.5px, `.key` at 12px, `.no`/`.yes` at 12px and 11.5px, `.ledname`
-     at 18px, `.card dd` at 12.5px — and not one of those classes had a base
-     rendering anywhere, so the portrait value was the ONLY value `tokens/`
-     shipped and every one of them rendered two ways across the two geometries.
-     0.1.369 gave each a base rendering above and deleted the type from here.
-     What is left tightens spacing, which is what the paragraph always said. */
-  .body.split > .notes .swap, .body.split-narrow > .notes .swap { padding: 9px 0; }
-  .body.split-wide > .notes td, .body.split-wide > .notes th { padding: 6px 10px 6px 0; }
-  .card { padding: 14px 15px; gap: 9px; }
-  .lead.row { flex-direction: column; align-items: flex-start; gap: 6px; }
-  .body.columns-4 { grid-template-columns: repeat(2, 1fr); }
-  /* `.body.cover-grid` was here until 0.1.370 as a portrait-only orphan and
-     was removed rather than completed. 0.1.375 reinstates it completed — base
-     rendering, header count, §3 table and `check_design.py`'s LAYOUTS moved
-     together, which is what `check_layout_parity` exists to force. On the
-     sheet the cover stacks: type, mark, attributes, then the full-width row. */
-  .body.cover-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
-  /* On the sheet the mark is a band in the stack, not a right-edge bleed: the
-     bleed composition is the landscape design, and at 794px it lands the globe
-     on the attrs column below it (measured: a 2px overlap on the fixture's own
-     cover, which is how this rule got here). */
-  .body.cover-grid > .markcell { margin-right: 0; justify-content: center; }
-  .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 34svh;
-                                     transform: none; }
-  .page.opener .openframe { gap: 18px; }
-  .duo { grid-template-columns: 1fr; gap: 16px; }
-  /* Figures are drawn twice. A 2.4:1 chain in a 0.8:1 cell fills a third of it,
-     and no CSS fixes that — the drawing is wrong for the page. */
-  .fig .land { display: none; }
-  .fig .port { display: block; }
-  /* `max-height: 100%` needs a definite parent height and does not get one in
-     the portrait flow, so the drawing's own aspect wins and eight pages ran past
-     the sheet. Portrait clamps against the page instead. */
-  .body .fill > .fig > svg:not(.ic) { max-height: 36svh; }
+/* ── portrait · the A4 composition (0.1.380: declared, not window-shaped) ────
+   Portrait is a composition, not a reflow. It applies because the document
+   SAYS it is a portrait document, so it holds at any window and a landscape
+   document can never fall into it. Collapsing every horizontal layout at a
+   width breakpoint is not a portrait design; it is the landscape design
+   giving up, and until 0.1.380 that is what a tall window produced. */
+/* A4 is a sheet, so it gets the same treatment as the slide: a fixed 794x1123
+   box scaled to fit rather than a min-height that content can push past. The
+   grid tracks then resolve against a known height instead of stretching to
+   whatever the content asked for, which is what put four pages over the sheet
+   even though their content fitted inside it. */
+body[data-geometry="portrait"] .page {
+  --page-pad: 56px; padding-top: 40px;
+  width: 794px; height: 1123px; min-height: 0;
+  margin-inline: auto;
+  zoom: min(100vw / 794px, 100svh / 1123px);
 }
-@media (min-aspect-ratio: 1/1) {
-  .fig .port { display: none; }
-}
+body[data-geometry="portrait"] .body { max-width: 720px; }
+/* The datum is per geometry. A title that sets on two lines at 1280 sets on
+   three at 794, so reserving the landscape height here would spend space the
+   sheet does not have. Portrait is a composition, not a reflow — it gets its
+   own datum, which is its own content. */
+body[data-geometry="portrait"] .body .lede { height: auto; }
+body[data-geometry="portrait"] .body.split,
 
-/* A short, narrow window is neither geometry; keep it usable. */
-@media (max-width: 1000px) and (min-aspect-ratio: 1/1) {
-  .body.split, .body.split-wide, .body.split-narrow,
-  .body.columns-3, .body.columns-4, .body.quad, .body.sidebar-notes, .body.rail {
-    grid-template-columns: 1fr;
-  }
+body[data-geometry="portrait"] .body.split-wide,
+
+body[data-geometry="portrait"] .body.split-narrow,
+
+body[data-geometry="portrait"] .body.sidebar-notes {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto 1fr;   /* not 3fr/2fr: fixed shares
+    reserve height the content does not have, and a short first cell then
+    leaves a dead band mid-page — measured at a third of an A4 sheet. The
+    cells hug their content and the centerpiece absorbs the slack. */
 }
+body[data-geometry="portrait"] .body.sidebar-notes > .notes,
+
+body[data-geometry="portrait"] .body.split > .notes,
+
+body[data-geometry="portrait"] .body.split-wide > .notes,
+
+body[data-geometry="portrait"] .body.split-narrow > .notes {
+  border-left: 0; border-top: 1px solid var(--ln1);
+  padding-left: 0; padding-top: 18px;
+}
+body[data-geometry="portrait"] .body.rail { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+body[data-geometry="portrait"] .body.rail > .railhead { border-right: 0; border-bottom: 1px solid var(--ln1);
+                         padding-right: 0; padding-bottom: 14px; }
+/* Three cards read fine side by side on A4's 682px: each gets 218px, which is
+   a card and not a gutter. Stacking them made the page 292px too tall, and
+   the point of the page is that the three are compared. */
+body[data-geometry="portrait"] .body.columns-3 { grid-template-columns: repeat(3, 1fr); column-gap: 18px; }
+/* The new block patterns get portrait proportions rather than a reflow. */
+body[data-geometry="portrait"] .vows { grid-template-columns: 1fr; gap: 12px; }
+/* Stacking a swap turns seven pairs into fourteen rows; two pages went nearly
+   3000px over. A swap is a swap in both geometries — it just gets tighter. */
+body[data-geometry="portrait"] .swaps.tight .swap { grid-template-columns: 1fr 18px 1.15fr; }
+body[data-geometry="portrait"] .swap { grid-template-columns: 1fr 24px 1fr; }
+/* `.grades` was portrait-only here until 0.1.370, was removed as an orphan,
+   and its base rendering shipped in 0.1.375 when the owner named a deck
+   using it as the reference — the documented case rule 2 asks for. Portrait
+   keeps the base spacing; the exemplar hid `.gc` on the sheet, but trimming
+   content per geometry is the author's decision, never the stylesheet's. */
+/* A figure column plus a full notes column is two pages of material on one
+   A4 page. The notes tighten; the figure keeps its drawing.
+
+   What tightens here is SPACING, never the type of a named role. Until 0.1.350
+   these rules set `.gd` to 12px beside a figure, 11.5px in a wide split and
+   12px in a fill — three renderings of one role, shipped by the token file
+   that carries the rule against them, and invisible because the consistency
+   probe only ever ran at 1280x720. Run at A4 it reports the split
+   immediately. This is 0.1.349's own rule turned on its author: a page that no
+   longer fits gets its CONTENT trimmed, never its type nudged.
+
+   **That paragraph was true and the next twenty lines broke it**, for eighteen
+   releases. Seven rules here set a font-size: `.notes li` at 12px, a notes
+   table at 11.5px, `.key` at 12px, `.no`/`.yes` at 12px and 11.5px, `.ledname`
+   at 18px, `.card dd` at 12.5px — and not one of those classes had a base
+   rendering anywhere, so the portrait value was the ONLY value `tokens/`
+   shipped and every one of them rendered two ways across the two geometries.
+   0.1.369 gave each a base rendering above and deleted the type from here.
+   What is left tightens spacing, which is what the paragraph always said. */
+body[data-geometry="portrait"] .body.split > .notes .swap,
+
+body[data-geometry="portrait"] .body.split-narrow > .notes .swap { padding: 9px 0; }
+body[data-geometry="portrait"] .body.split-wide > .notes td,
+
+body[data-geometry="portrait"] .body.split-wide > .notes th { padding: 6px 10px 6px 0; }
+body[data-geometry="portrait"] .card { padding: 14px 15px; gap: 9px; }
+body[data-geometry="portrait"] .lead.row { flex-direction: column; align-items: flex-start; gap: 6px; }
+body[data-geometry="portrait"] .body.columns-4 { grid-template-columns: repeat(2, 1fr); }
+/* `.body.cover-grid` was here until 0.1.370 as a portrait-only orphan and
+   was removed rather than completed. 0.1.375 reinstates it completed — base
+   rendering, header count, §3 table and `check_design.py`'s LAYOUTS moved
+   together, which is what `check_layout_parity` exists to force. On the
+   sheet the cover stacks: type, mark, attributes, then the full-width row. */
+body[data-geometry="portrait"] .body.cover-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
+/* On the sheet the mark is a band in the stack, not a right-edge bleed: the
+   bleed composition is the landscape design, and at 794px it lands the globe
+   on the attrs column below it (measured: a 2px overlap on the fixture's own
+   cover, which is how this rule got here). */
+body[data-geometry="portrait"] .body.cover-grid > .markcell { margin-right: 0; justify-content: center; }
+body[data-geometry="portrait"] .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 34svh;
+                                   transform: none; }
+body[data-geometry="portrait"] .page.opener .openframe { gap: 18px; }
+body[data-geometry="portrait"] .duo { grid-template-columns: 1fr; gap: 16px; }
+/* Figures are drawn twice. A 2.4:1 chain in a 0.8:1 cell fills a third of it,
+   and no CSS fixes that — the drawing is wrong for the page. */
+body[data-geometry="portrait"] .fig .land { display: none; }
+body[data-geometry="portrait"] .fig .port { display: block; }
+/* `max-height: 100%` needs a definite parent height and does not get one in
+   the portrait flow, so the drawing's own aspect wins and eight pages ran past
+   the sheet. Portrait clamps against the page instead. */
+body[data-geometry="portrait"] .body .fill > .fig > svg:not(.ic) { max-height: 52svh; }   /* 36svh until
+    0.1.380, where a wide drawing in a 682px column rendered 188px tall and
+    left the bottom half of the sheet empty. A ceiling, not a target. */
+body:not([data-geometry="portrait"]) .fig .port { display: none; }
+
+/* The short-narrow collapse was removed in 0.1.380. It predates the zoom
+   stage: a page is a fixed box scaled to the window, so a 900px window shows a
+   smaller slide, not a narrower one, and collapsing its columns answered a
+   problem the stage had already solved. */
 
 *, *::before, *::after { box-sizing: border-box; }
 /* No .foot, h1 or h2 rules here on purpose. The fixture defined its own footer
@@ -1225,11 +1275,11 @@ circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
 body { font-family: var(--din); font-size: 15px; color: var(--tx1);
         background: var(--bg); margin: 0; }
 /* Only what a DOCUMENT legitimately decides for itself. Everything else — the
-   layouts, the role vocabulary, the footer row, the page stage — now comes from
-   tokens/lumi-layouts.css above, so the fixture exercises the shipped
-   stylesheet instead of a private copy of it. */
-.page { position: relative; display: flex; flex-direction: column;
-         padding: 46px 92px 26px; }
+   layouts, the role vocabulary, the footer row, the page frame and its stage —
+   now comes from tokens/lumi-layouts.css above, so the fixture exercises the
+   shipped stylesheet instead of a private copy of it. The `.page` padding lived
+   here until 0.1.380, where it was found overriding the A4 margin and wrapping
+   the footer of a real deliverable on every page. */
 ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
 .band { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .band > div { display: flex; flex-direction: column; gap: 8px; }
@@ -1243,8 +1293,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
 .s-line { stroke: var(--ln1); }
 .s-dash { stroke: var(--ln1); stroke-dasharray: 5 4; }
 .colophon { font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }
-.foot { font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }
-</style></head><body><svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><symbol id="i-radar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34" /><path d="M4 6h.01" /><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35" /><path d="M16.24 7.76A6 6 0 1 0 8.23 16.67" /><path d="M12 18h.01" /><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67" /><circle cx="12" cy="12" r="2" /><path d="m13.41 10.59 5.66-5.66" /></symbol><symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" /><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" /><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" /></symbol><symbol id="i-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4" /><path d="M3.34 19a10 10 0 1 1 17.32 0" /></symbol><symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></symbol><symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0" /><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" /></symbol><symbol id="i-route" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3" /><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" /><circle cx="18" cy="5" r="3" /></symbol><symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></symbol><symbol id="i-git-branch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6a9 9 0 0 0-9 9V3" /><circle cx="18" cy="6" r="3" /><circle cx="6" cy="18" r="3" /></symbol><symbol id="i-list-checks" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h8" /><path d="M13 12h8" /><path d="M13 19h8" /><path d="m3 17 2 2 4-4" /><path d="m3 7 2 2 4-4" /></symbol><symbol id="i-book-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v16" /><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /></symbol><symbol id="i-ban" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><path d="M4.929 4.929 19.07 19.071" /></symbol><symbol id="i-funnel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z" /></symbol><symbol id="i-split" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5" /><path d="M8 3H3v5" /><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3" /><path d="m15 9 6-6" /></symbol><symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /></symbol><symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></symbol></defs></svg><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><g id="g-ground"><polyline points="0 260.0 40 261.5 80 263.0 120 264.3 160 265.5 200 266.5 240 267.3 280 267.8 320 268.0 360 267.9 400 267.6 440 266.9 480 266.0 520 264.9 560 263.7 600 262.2 640 260.8 680 259.2 720 257.7 760 256.3 800 255.0 840 253.9 880 253.1 920 252.4 960 252.1 1000 252.0 1040 252.2 1080 252.7 1120 253.5 1160 254.5 1200 255.7 1240 257.0 1280 258.5" fill="none" stroke="var(--acc-5)" stroke-width="0.60" stroke-opacity="0.22"/><polyline points="0 346.2 40 345.7 80 345.0 120 343.9 160 342.5 200 340.9 240 339.0 280 337.0 320 334.9 360 332.8 400 330.6 440 328.6 480 326.6 520 324.8 560 323.2 600 321.9 640 320.9 680 320.1 720 319.8 760 319.7 800 320.0 840 320.7 880 321.7 920 322.9 960 324.5 1000 326.2 1040 328.2 1080 330.2 1120 332.4 1160 334.5 1200 336.6 1240 338.6 1280 340.5" fill="none" stroke="var(--acc-4)" stroke-width="0.69" stroke-opacity="0.27"/><polyline points="0 375.2 40 372.8 80 370.4 120 368.3 160 366.4 200 364.7 240 363.4 280 362.4 320 361.7 360 361.4 400 361.5 440 361.9 480 362.7 520 363.8 560 365.3 600 367.0 640 369.0 680 371.3 720 373.7 760 376.2 800 378.8 840 381.4 880 384.0 920 386.5 960 388.9 1000 391.1 1040 393.1 1080 394.8 1120 396.2 1160 397.3 1200 398.1 1240 398.5 1280 398.6" fill="none" stroke="var(--d-teal)" stroke-width="0.78" stroke-opacity="0.31"/><polyline points="0 358.9 40 360.2 80 361.8 120 363.7 160 365.9 200 368.3 240 370.9 280 373.7 320 376.6 360 379.5 400 382.5 440 385.5 480 388.3 520 391.1 560 393.7 600 396.1 640 398.3 680 400.2 720 401.8 760 403.1 800 404.1 840 404.7 880 404.9 920 404.8 960 404.2 1000 403.4 1040 402.1 1080 400.6 1120 398.7 1160 396.6 1200 394.2 1240 391.6 1280 388.9" fill="none" stroke="var(--d-blue)" stroke-width="0.87" stroke-opacity="0.35"/><polyline points="0 470.4 40 473.2 80 475.7 120 478.0 160 480.0 200 481.7 240 483.1 280 484.1 320 484.8 360 485.2 400 485.1 440 484.8 480 484.0 520 482.9 560 481.5 600 479.7 640 477.7 680 475.4 720 472.8 760 470.0 800 467.1 840 464.0 880 460.8 920 457.6 960 454.3 1000 451.1 1040 447.9 1080 444.8 1120 441.9 1160 439.1 1200 436.6 1240 434.3 1280 432.2" fill="none" stroke="var(--acc-5)" stroke-width="0.96" stroke-opacity="0.40"/><polyline points="0 512.5 40 510.3 80 507.8 120 505.1 160 502.1 200 499.0 240 495.8 280 492.4 320 488.9 360 485.5 400 482.0 440 478.5 480 475.1 520 471.8 560 468.7 600 465.7 640 462.9 680 460.3 720 458.0 760 456.0 800 454.2 840 452.8 880 451.7 920 451.0 960 450.6 1000 450.5 1040 450.8 1080 451.5 1120 452.5 1160 453.8 1200 455.5 1240 457.4 1280 459.6" fill="none" stroke="var(--acc-4)" stroke-width="1.05" stroke-opacity="0.44"/><polyline points="0 440.1 40 437.6 80 435.4 120 433.4 160 431.7 200 430.4 240 429.3 280 428.6 320 428.3 360 428.2 400 428.5 440 429.2 480 430.2 520 431.5 560 433.1 600 435.0 640 437.2 680 439.7 720 442.4 760 445.3 800 448.4 840 451.7 880 455.1 920 458.7 960 462.3 1000 465.9 1040 469.6 1080 473.3 1120 476.9 1160 480.5 1200 483.9 1240 487.2 1280 490.4" fill="none" stroke="var(--d-teal)" stroke-width="1.14" stroke-opacity="0.49"/><polyline points="0 497.1 40 503.7 80 510.9 120 518.6 160 526.5 200 534.3 240 541.8 280 548.8 320 555.1 360 560.5 400 564.8 440 567.9 480 569.7 520 570.1 560 569.1 600 566.8 640 563.3 680 558.5 720 552.8 760 546.2 800 539.0 840 531.3 880 523.4 920 515.6 960 508.1 1000 501.1 1040 494.8 1080 489.4 1120 485.2 1160 482.1 1200 480.3 1240 479.9 1280 480.9" fill="none" stroke="var(--d-blue)" stroke-width="1.23" stroke-opacity="0.54"/><polyline points="0 544.9 40 545.6 80 546.1 120 546.4 160 546.4 200 546.2 240 545.7 280 545.0 320 544.2 360 543.1 400 541.9 440 540.6 480 539.1 520 537.6 560 536.0 600 534.5 640 532.9 680 531.5 720 530.1 760 528.9 800 527.9 840 527.0 880 526.3 920 525.9 960 525.6 1000 525.6 1040 525.9 1080 526.3 1120 527.0 1160 527.9 1200 529.0 1240 530.2 1280 531.6" fill="none" stroke="var(--acc-5)" stroke-width="1.32" stroke-opacity="0.58"/><polyline points="0 567.2 40 565.3 80 563.3 120 561.2 160 559.1 200 557.1 240 555.1 280 553.3 320 551.5 360 550.0 400 548.6 440 547.4 480 546.5 520 545.8 560 545.4 600 545.3 640 545.4 680 545.8 720 546.5 760 547.4 800 548.6 840 550.0 880 551.6 920 553.3 960 555.2 1000 557.1 1040 559.2 1080 561.2 1120 563.3 1160 565.3 1200 567.3 1240 569.1 1280 570.8" fill="none" stroke="var(--acc-4)" stroke-width="1.41" stroke-opacity="0.62"/><polyline points="0 579.8 40 579.3 80 579.0 120 579.1 160 579.4 200 580.0 240 580.9 280 582.0 320 583.4 360 585.1 400 586.9 440 588.9 480 591.1 520 593.4 560 595.8 600 598.2 640 600.7 680 603.1 720 605.6 760 607.9 800 610.1 840 612.2 880 614.1 920 615.9 960 617.4 1000 618.6 1040 619.6 1080 620.4 1120 620.8 1160 621.0 1200 620.9 1240 620.5 1280 619.8" fill="none" stroke="var(--d-teal)" stroke-width="1.50" stroke-opacity="0.67"/><polyline points="0 589.1 40 591.9 80 594.6 120 597.4 160 600.1 200 602.8 240 605.3 280 607.7 320 609.9 360 612.0 400 613.8 440 615.4 480 616.7 520 617.8 560 618.6 600 619.1 640 619.3 680 619.2 720 618.8 760 618.2 800 617.2 840 616.0 880 614.5 920 612.8 960 610.8 1000 608.7 1040 606.4 1080 603.9 1120 601.3 1160 598.6 1200 595.8 1240 593.1 1280 590.3" fill="none" stroke="var(--d-blue)" stroke-width="1.59" stroke-opacity="0.71"/><polyline points="0 691.6 40 691.5 80 691.1 120 690.5 160 689.5 200 688.3 240 686.8 280 685.0 320 683.1 360 680.9 400 678.5 440 675.9 480 673.2 520 670.4 560 667.5 600 664.5 640 661.4 680 658.4 720 655.3 760 652.3 800 649.4 840 646.6 880 643.9 920 641.4 960 639.0 1000 636.8 1040 634.8 1080 633.1 1120 631.6 1160 630.4 1200 629.5 1240 628.8 1280 628.5" fill="none" stroke="var(--acc-5)" stroke-width="1.68" stroke-opacity="0.76"/><polyline points="0 677.0 40 670.2 80 663.7 120 657.9 160 652.9 200 648.9 240 646.0 280 644.4 320 644.2 360 645.2 400 647.5 440 651.0 480 655.6 520 661.1 560 667.4 600 674.1 640 681.0 680 688.0 720 694.7 760 700.9 800 706.4 840 711.0 880 714.5 920 716.8 960 717.8 1000 717.6 1040 716.0 1080 713.1 1120 709.1 1160 704.1 1200 698.3 1240 691.8 1280 685.0" fill="none" stroke="var(--acc-4)" stroke-width="1.77" stroke-opacity="0.80"/><polyline points="0 675.0 40 677.1 80 680.3 120 684.3 160 689.2 200 694.8 240 700.9 280 707.5 320 714.2 360 721.0 400 727.7 440 734.0 480 739.9 520 745.2 560 749.7 600 753.3 640 756.0 680 757.7 720 758.2 760 757.7 800 756.0 840 753.4 880 749.7 920 745.2 960 739.9 1000 734.1 1040 727.7 1080 721.0 1120 714.2 1160 707.5 1200 701.0 1240 694.8 1280 689.2" fill="none" stroke="var(--d-teal)" stroke-width="1.86" stroke-opacity="0.85"/><polyline points="0 722.1 40 728.1 80 733.7 120 738.7 160 743.0 200 746.6 240 749.4 280 751.3 320 752.3 360 752.4 400 751.6 440 749.8 480 747.1 520 743.6 560 739.4 600 734.5 640 729.0 680 723.0 720 716.7 760 710.1 800 703.4 840 696.8 880 690.4 920 684.2 960 678.4 1000 673.2 1040 668.5 1080 664.6 1120 661.5 1160 659.3 1200 657.9 1240 657.5 1280 658.0" fill="none" stroke="var(--d-blue)" stroke-width="1.95" stroke-opacity="0.89"/></g></defs></svg>
+</style></head><body data-geometry="landscape" data-genre="sales"><svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><symbol id="i-radar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34" /><path d="M4 6h.01" /><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35" /><path d="M16.24 7.76A6 6 0 1 0 8.23 16.67" /><path d="M12 18h.01" /><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67" /><circle cx="12" cy="12" r="2" /><path d="m13.41 10.59 5.66-5.66" /></symbol><symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" /><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12" /><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17" /></symbol><symbol id="i-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4" /><path d="M3.34 19a10 10 0 1 1 17.32 0" /></symbol><symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18" /><path d="m19 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" /><path d="m5 8 3 8a5 5 0 0 1-6 0zV7" /><path d="M7 21h10" /></symbol><symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0" /><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" /></symbol><symbol id="i-route" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="3" /><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" /><circle cx="18" cy="5" r="3" /></symbol><symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></symbol><symbol id="i-git-branch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6a9 9 0 0 0-9 9V3" /><circle cx="18" cy="6" r="3" /><circle cx="6" cy="18" r="3" /></symbol><symbol id="i-list-checks" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h8" /><path d="M13 12h8" /><path d="M13 19h8" /><path d="m3 17 2 2 4-4" /><path d="m3 7 2 2 4-4" /></symbol><symbol id="i-book-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v16" /><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /></symbol><symbol id="i-ban" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><path d="M4.929 4.929 19.07 19.071" /></symbol><symbol id="i-funnel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M10 20a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341L21.74 4.67A1 1 0 0 0 21 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14z" /></symbol><symbol id="i-split" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5" /><path d="M8 3H3v5" /><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3" /><path d="m15 9 6-6" /></symbol><symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v3" /><path d="M16 2v3" /><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /></symbol><symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /></symbol></defs></svg><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><g id="g-ground"><polyline points="0 260.0 40 261.5 80 263.0 120 264.3 160 265.5 200 266.5 240 267.3 280 267.8 320 268.0 360 267.9 400 267.6 440 266.9 480 266.0 520 264.9 560 263.7 600 262.2 640 260.8 680 259.2 720 257.7 760 256.3 800 255.0 840 253.9 880 253.1 920 252.4 960 252.1 1000 252.0 1040 252.2 1080 252.7 1120 253.5 1160 254.5 1200 255.7 1240 257.0 1280 258.5" fill="none" stroke="var(--acc-5)" stroke-width="0.60" stroke-opacity="0.22"/><polyline points="0 346.2 40 345.7 80 345.0 120 343.9 160 342.5 200 340.9 240 339.0 280 337.0 320 334.9 360 332.8 400 330.6 440 328.6 480 326.6 520 324.8 560 323.2 600 321.9 640 320.9 680 320.1 720 319.8 760 319.7 800 320.0 840 320.7 880 321.7 920 322.9 960 324.5 1000 326.2 1040 328.2 1080 330.2 1120 332.4 1160 334.5 1200 336.6 1240 338.6 1280 340.5" fill="none" stroke="var(--acc-4)" stroke-width="0.69" stroke-opacity="0.27"/><polyline points="0 375.2 40 372.8 80 370.4 120 368.3 160 366.4 200 364.7 240 363.4 280 362.4 320 361.7 360 361.4 400 361.5 440 361.9 480 362.7 520 363.8 560 365.3 600 367.0 640 369.0 680 371.3 720 373.7 760 376.2 800 378.8 840 381.4 880 384.0 920 386.5 960 388.9 1000 391.1 1040 393.1 1080 394.8 1120 396.2 1160 397.3 1200 398.1 1240 398.5 1280 398.6" fill="none" stroke="var(--d-teal)" stroke-width="0.78" stroke-opacity="0.31"/><polyline points="0 358.9 40 360.2 80 361.8 120 363.7 160 365.9 200 368.3 240 370.9 280 373.7 320 376.6 360 379.5 400 382.5 440 385.5 480 388.3 520 391.1 560 393.7 600 396.1 640 398.3 680 400.2 720 401.8 760 403.1 800 404.1 840 404.7 880 404.9 920 404.8 960 404.2 1000 403.4 1040 402.1 1080 400.6 1120 398.7 1160 396.6 1200 394.2 1240 391.6 1280 388.9" fill="none" stroke="var(--d-blue)" stroke-width="0.87" stroke-opacity="0.35"/><polyline points="0 470.4 40 473.2 80 475.7 120 478.0 160 480.0 200 481.7 240 483.1 280 484.1 320 484.8 360 485.2 400 485.1 440 484.8 480 484.0 520 482.9 560 481.5 600 479.7 640 477.7 680 475.4 720 472.8 760 470.0 800 467.1 840 464.0 880 460.8 920 457.6 960 454.3 1000 451.1 1040 447.9 1080 444.8 1120 441.9 1160 439.1 1200 436.6 1240 434.3 1280 432.2" fill="none" stroke="var(--acc-5)" stroke-width="0.96" stroke-opacity="0.40"/><polyline points="0 512.5 40 510.3 80 507.8 120 505.1 160 502.1 200 499.0 240 495.8 280 492.4 320 488.9 360 485.5 400 482.0 440 478.5 480 475.1 520 471.8 560 468.7 600 465.7 640 462.9 680 460.3 720 458.0 760 456.0 800 454.2 840 452.8 880 451.7 920 451.0 960 450.6 1000 450.5 1040 450.8 1080 451.5 1120 452.5 1160 453.8 1200 455.5 1240 457.4 1280 459.6" fill="none" stroke="var(--acc-4)" stroke-width="1.05" stroke-opacity="0.44"/><polyline points="0 440.1 40 437.6 80 435.4 120 433.4 160 431.7 200 430.4 240 429.3 280 428.6 320 428.3 360 428.2 400 428.5 440 429.2 480 430.2 520 431.5 560 433.1 600 435.0 640 437.2 680 439.7 720 442.4 760 445.3 800 448.4 840 451.7 880 455.1 920 458.7 960 462.3 1000 465.9 1040 469.6 1080 473.3 1120 476.9 1160 480.5 1200 483.9 1240 487.2 1280 490.4" fill="none" stroke="var(--d-teal)" stroke-width="1.14" stroke-opacity="0.49"/><polyline points="0 497.1 40 503.7 80 510.9 120 518.6 160 526.5 200 534.3 240 541.8 280 548.8 320 555.1 360 560.5 400 564.8 440 567.9 480 569.7 520 570.1 560 569.1 600 566.8 640 563.3 680 558.5 720 552.8 760 546.2 800 539.0 840 531.3 880 523.4 920 515.6 960 508.1 1000 501.1 1040 494.8 1080 489.4 1120 485.2 1160 482.1 1200 480.3 1240 479.9 1280 480.9" fill="none" stroke="var(--d-blue)" stroke-width="1.23" stroke-opacity="0.54"/><polyline points="0 544.9 40 545.6 80 546.1 120 546.4 160 546.4 200 546.2 240 545.7 280 545.0 320 544.2 360 543.1 400 541.9 440 540.6 480 539.1 520 537.6 560 536.0 600 534.5 640 532.9 680 531.5 720 530.1 760 528.9 800 527.9 840 527.0 880 526.3 920 525.9 960 525.6 1000 525.6 1040 525.9 1080 526.3 1120 527.0 1160 527.9 1200 529.0 1240 530.2 1280 531.6" fill="none" stroke="var(--acc-5)" stroke-width="1.32" stroke-opacity="0.58"/><polyline points="0 567.2 40 565.3 80 563.3 120 561.2 160 559.1 200 557.1 240 555.1 280 553.3 320 551.5 360 550.0 400 548.6 440 547.4 480 546.5 520 545.8 560 545.4 600 545.3 640 545.4 680 545.8 720 546.5 760 547.4 800 548.6 840 550.0 880 551.6 920 553.3 960 555.2 1000 557.1 1040 559.2 1080 561.2 1120 563.3 1160 565.3 1200 567.3 1240 569.1 1280 570.8" fill="none" stroke="var(--acc-4)" stroke-width="1.41" stroke-opacity="0.62"/><polyline points="0 579.8 40 579.3 80 579.0 120 579.1 160 579.4 200 580.0 240 580.9 280 582.0 320 583.4 360 585.1 400 586.9 440 588.9 480 591.1 520 593.4 560 595.8 600 598.2 640 600.7 680 603.1 720 605.6 760 607.9 800 610.1 840 612.2 880 614.1 920 615.9 960 617.4 1000 618.6 1040 619.6 1080 620.4 1120 620.8 1160 621.0 1200 620.9 1240 620.5 1280 619.8" fill="none" stroke="var(--d-teal)" stroke-width="1.50" stroke-opacity="0.67"/><polyline points="0 589.1 40 591.9 80 594.6 120 597.4 160 600.1 200 602.8 240 605.3 280 607.7 320 609.9 360 612.0 400 613.8 440 615.4 480 616.7 520 617.8 560 618.6 600 619.1 640 619.3 680 619.2 720 618.8 760 618.2 800 617.2 840 616.0 880 614.5 920 612.8 960 610.8 1000 608.7 1040 606.4 1080 603.9 1120 601.3 1160 598.6 1200 595.8 1240 593.1 1280 590.3" fill="none" stroke="var(--d-blue)" stroke-width="1.59" stroke-opacity="0.71"/><polyline points="0 691.6 40 691.5 80 691.1 120 690.5 160 689.5 200 688.3 240 686.8 280 685.0 320 683.1 360 680.9 400 678.5 440 675.9 480 673.2 520 670.4 560 667.5 600 664.5 640 661.4 680 658.4 720 655.3 760 652.3 800 649.4 840 646.6 880 643.9 920 641.4 960 639.0 1000 636.8 1040 634.8 1080 633.1 1120 631.6 1160 630.4 1200 629.5 1240 628.8 1280 628.5" fill="none" stroke="var(--acc-5)" stroke-width="1.68" stroke-opacity="0.76"/><polyline points="0 677.0 40 670.2 80 663.7 120 657.9 160 652.9 200 648.9 240 646.0 280 644.4 320 644.2 360 645.2 400 647.5 440 651.0 480 655.6 520 661.1 560 667.4 600 674.1 640 681.0 680 688.0 720 694.7 760 700.9 800 706.4 840 711.0 880 714.5 920 716.8 960 717.8 1000 717.6 1040 716.0 1080 713.1 1120 709.1 1160 704.1 1200 698.3 1240 691.8 1280 685.0" fill="none" stroke="var(--acc-4)" stroke-width="1.77" stroke-opacity="0.80"/><polyline points="0 675.0 40 677.1 80 680.3 120 684.3 160 689.2 200 694.8 240 700.9 280 707.5 320 714.2 360 721.0 400 727.7 440 734.0 480 739.9 520 745.2 560 749.7 600 753.3 640 756.0 680 757.7 720 758.2 760 757.7 800 756.0 840 753.4 880 749.7 920 745.2 960 739.9 1000 734.1 1040 727.7 1080 721.0 1120 714.2 1160 707.5 1200 701.0 1240 694.8 1280 689.2" fill="none" stroke="var(--d-teal)" stroke-width="1.86" stroke-opacity="0.85"/><polyline points="0 722.1 40 728.1 80 733.7 120 738.7 160 743.0 200 746.6 240 749.4 280 751.3 320 752.3 360 752.4 400 751.6 440 749.8 480 747.1 520 743.6 560 739.4 600 734.5 640 729.0 680 723.0 720 716.7 760 710.1 800 703.4 840 696.8 880 690.4 920 684.2 960 678.4 1000 673.2 1040 668.5 1080 664.6 1120 661.5 1160 659.3 1200 657.9 1240 657.5 1280 658.0" fill="none" stroke="var(--d-blue)" stroke-width="1.95" stroke-opacity="0.89"/></g></defs></svg>
 <section class="page cover" id="cover">
   <svg class="ground" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><use href="#g-ground"/></svg>
   <div class="body cover-grid">
@@ -1279,7 +1328,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
       <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
     </div>
-    <p class="colophon">Built with lumi-style 0.1.379 &#183; source: meter management system.</p>
+    <p class="colophon">Built with lumi-style 0.1.380 &#183; source: meter management system.</p>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 18</span></div></section>
 <section class="page opener" id="openA">
@@ -1809,7 +1858,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>
     </div>
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.379.
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.380.
     Source: meter management system; every number here is invented, and a
     bracketed slot must not ship.</p></div>
   </div>

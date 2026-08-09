@@ -249,9 +249,12 @@ English**: no Chinese in text a reader sees, unless it is quoted as data. **Sale
 marketing state provenance once for the document**, on the cover and the closing,
 not under every figure; consulting and internal analysis keep per-page sourcing.
 
-**Page box**: landscape is a fixed **1280×720** stage and print is a fixed
-**794×1123** sheet, each scaled to fit the window with `zoom` and letterboxed in a
-neutral gutter. A page is never a box that takes the window's shape: written as
+**Page box**: a deliverable is designed for **one** geometry and declares it —
+`<body data-geometry="landscape">` for the fixed **1280×720** stage or
+`"portrait"` for the fixed **794×1123** sheet, each scaled to fit the window with
+`zoom` and letterboxed in a neutral gutter. Sales and marketing lead landscape,
+training leads portrait, and **when the request settles neither, ask before
+generating**. A second geometry is a second composition in its own file. A page is never a box that takes the window's shape: written as
 `min-height:100svh` it is 16:9 only in a 16:9 window and 4:3 in a 4:3 one, and the
 surplus lands as a dead band above the footer. Check the shape at a window shape
 you did not design for, and check content against the box as well — a fixed box
@@ -299,8 +302,9 @@ a section eyebrow carries its icon, hairline, inheriting currentColor, and reads
 `<icon> PART <letter> · <this page's own label>` — apparatus, deliberately
 uniform, never counted as a title. **Every content page carries at least one
 visual block** (a drawn figure, a stat band, a display lead, or a comparison
-pattern), and about **half the content area** given to them is a target to
-report against, never a floor. A cover
+pattern), and the target share of its area follows the genre — **about half for
+sales and marketing, about a third for training** — reported, never a floor. A
+figure's name holds one line at the document's geometry. A cover
 carries typography plus exactly one vector mark, no photography and no body copy,
 and if that mark is geography then a region drawn is a region claimed.
 
@@ -350,6 +354,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.379** snapshot, cut 2026-08-09. It is self-contained by
+> This file is the **0.1.380** snapshot, cut 2026-08-09. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

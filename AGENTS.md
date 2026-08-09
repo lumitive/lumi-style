@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.379.** This file restates part of `references/`; where they
+> **lumi-style 0.1.380.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -51,8 +51,9 @@ most skeptical reader, and treat over-design as a finding, not a virtue.
    is a reference, not a lookup). **Give every page one focal element** — a
    display number, a claim at display size, or a figure composed to dominate;
    which one is a decision for that page. **Every content page carries at least
-   one visual block, and about half its area going to them is the target** — the
-   checks report both, and neither is a floor. **A table is for values**: prose in a
+   one visual block, and the target share of its area follows the genre — about
+   half for sales, marketing and consulting, about a third for training** — the
+   checks report both, and neither is a floor. A figure's name holds one line. **A table is for values**: prose in a
    grid is a layout error, so draw what the content actually is. Under a figure
    goes the number, its conclusion name and the source line, and nothing else.
    Embed the vendored assets rather than improvising: `scripts/embed_font.py`,
@@ -63,7 +64,7 @@ most skeptical reader, and treat over-design as a finding, not a virtue.
 4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish),
    the D-series and `inspect_layout.py` diagnostics (**design judgements
    reported, never gating** — but an unmeasurable check exits 1 and says what it
-   could not find, and `--deliverable` exits 1 on the seven findings that are
+   could not find, and `--deliverable` exits 1 on the eight findings that are
    decidable rather than aesthetic),
    and H1–H6 self-scoring. Never self-score 5 before a reader has scored it, and
    always give the reason for the score, not just the number.
@@ -88,9 +89,11 @@ two grids side by side share no axis and can never align.
 
 **A page is a fixed box.** Landscape is a 1280×720 stage, A4 a 794×1123 sheet,
 each scaled to fit the window and letterboxed — never a box that takes the
-window's shape. Which geometry leads follows the genre: sales, marketing and
-consulting design 16:9 first, training designs A4 portrait first, and the other
-geometry is still composed and verified. **Exports render at the stage**
+window's shape. **A deliverable is designed for ONE geometry and declares it**
+(`<body data-geometry="landscape">`): sales, marketing and consulting lead 16:9,
+training leads A4 portrait, and **when the request settles neither the genre nor
+the format, ask before generating.** A second geometry is a second composition
+in its own file, never the same file viewed sideways. **Exports render at the stage**
 (`scripts/export_pdf.py`): PDF is vector, one page per `.page`; rasters take a
 device-pixel multiplier — **default 3 (4K from the landscape stage), floor 2
 (2K), refused below** — and the scale never changes the CSS stage, whose zoom
@@ -100,8 +103,8 @@ under the figure is the page's source and the footer carries the page number.
 **Rendered geometry decides, not declared CSS.** Run
 `python3 scripts/inspect_layout.py <file>` and look at the contact sheet it
 builds; before handing the file over, run it again with **`--deliverable`**,
-which exits non-zero on collision, content spill, page height, hidden content, an
-overspent title reserve, a role split and a lost datum. A clean run there is not
+which exits non-zero on collision, content spill, page height, hidden content, a
+wrapped footer, an overspent title reserve, a role split and a lost datum. A clean run there is not
 a verified document — it means nothing measurable is broken. A rule that loses on specificity is indistinguishable from no rule: one
 had been in the layout file since 0.1.339, had never once applied, and left twelve
 of fifteen multi-column pages with their columns out of line. Worse: a probe that

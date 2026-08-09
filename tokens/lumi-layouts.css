@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.379 (2026-08-09)
+   LUMI page layouts · v0.1.380 (2026-08-09)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -36,6 +36,22 @@
    floor below which it stops working (CLAUDE.md rule 6); this is that floor. */
 *, *::before, *::after { box-sizing: border-box; }
 
+/* ── the page frame (0.1.380) ────────────────────────────────────────────────
+   `.page` itself shipped nowhere: every document invented `position`, `display`
+   and above all its own `padding`, and a document that writes `padding: 44px
+   92px` overrides the sheet's own 56px margin — so on A4 the frame stayed at
+   the slide's margins, the content column lost 72px, and the footer wrapped to
+   two lines on all 31 pages of a real deliverable. The same shape as the
+   missing `.foot { display: flex }` of 0.1.366: furniture the rules describe
+   and the tokens do not ship is furniture every document re-derives. */
+.page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  --page-pad: 92px;
+  padding: 44px var(--page-pad) 22px;
+}
+
 /* ── shared frame ─────────────────────────────────────────────────────
    .body is the content area between the eyebrow/title and the footer rule.
    Every layout is a grid on it; --gap and --measure are the two knobs. */
@@ -70,7 +86,12 @@
    inline and wrapped the page number onto its own line. The fixture defined its
    own `.foot { display: flex }` and therefore never exposed it: it was testing
    its own stylesheet, not this one. */
-.foot { display: flex; align-items: baseline; gap: 18px; }
+/* The footer's TYPE ships here too. `inspect_layout.py` has audited "footer
+   terms" as a role since 0.1.350 while every document declared its own size —
+   one role, as many renderings as there are decks. */
+.foot { display: flex; align-items: baseline; gap: 18px;
+        font-family: var(--mono); font-size: var(--fs-foot);
+        letter-spacing: .13em; text-transform: uppercase; color: var(--tx4); }
 /* The handling marker (0.1.375): a seal-red shield ahead of the handling
    terms, at the owner's ask. The seal is the warning colour and the handling
    line is a standing warning to the reader — do not forward — so the marker
@@ -792,20 +813,11 @@ circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
 .page.opener .foot, .page.opener .foot span { color: var(--on-lime); }
 .page.opener .foot .conf .ic { color: var(--on-lime); }
 
-/* ── height-based step-down, matching lumi-theme.css ─────────────────── */
-@media (max-height: 760px) {
-  .body { --gap: 18px; }
-  .body.split, .body.split-wide, .body.split-narrow { column-gap: 32px; }
-  .body.sidebar-notes { grid-template-columns: 1fr 260px; }
-}
-@media (max-height: 600px) {
-  .body { --gap: 12px; padding: 8px 0 6px; }
-  .body.rail { grid-template-columns: 150px 1fr; column-gap: 28px; }
-  .body.sidebar-notes { grid-template-columns: 1fr 230px; column-gap: 28px; }
-  .body.diagonal-flow > .steps > :nth-child(2) { margin-inline-start: 8%; }
-  .body.diagonal-flow > .steps > :nth-child(3) { margin-inline-start: 16%; }
-  .body.diagonal-flow > .steps > :nth-child(4) { margin-inline-start: 24%; }
-}
+/* The height-based step-downs were removed in 0.1.380, for the reason the
+   short-narrow collapse was: the page is a fixed box scaled to the window, so a
+   short window shows a smaller page, not a shorter one. Tightening its gaps
+   made the composition differ between window sizes — one design, two
+   renderings, decided by how tall the reader's window happened to be. */
 /* ── the landscape page is a slide, not a window-shaped box ──────────────
    Until 0.1.343 `.page` was `min-height: 100svh` with no aspect lock anywhere,
    so a page was whatever shape the reader's window was: 16:9 in a 16:9 window,
@@ -825,14 +837,20 @@ circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
    This is also what makes a figure sizeable: leftover height inside a page is
    now bounded and known, where before it grew with the window and the drawing
    floated in the middle of it. */
-@media (min-aspect-ratio: 1/1) {
-  .page {
+/* The stage follows the document's DECLARATION, never the reader's window.
+   `<body data-geometry="landscape">` or `"portrait"`; landscape is the default
+   when nothing is declared. Until 0.1.380 the two stages were window-shape
+   media queries, so a landscape deck opened in a tall window silently became a
+   portrait composition it was never designed as — which is exactly what a
+   portrait PDF export of a landscape deck produced: dead half-pages, starved
+   figures and a wrapped footer, none of it visible at the design geometry.
+   A deliverable is designed for ONE geometry (design-rules.md §7). */
+body:not([data-geometry="portrait"]) .page {
     width: 1280px;
     height: 720px;
     min-height: 0;
     margin-inline: auto;
     zoom: min(100vw / 1280px, 100svh / 720px);
-  }
 }
 
 /* ── the ground (v0.1.346, references/brand.md) ─────────────────────────────
@@ -860,8 +878,18 @@ circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
 .page.cover > .ground, .page.closing > .ground { opacity: var(--ground-strong); }
 .page.opener > .ground { opacity: var(--ground-mid); }
 .page > .body, .page > .foot { position: relative; z-index: 1; }
-/* On the lime field the ground would read as dirt on a painted surface. */
-.page.opener > .ground { mix-blend-mode: multiply; }
+/* On the lime field a ground in the ramp's hues reads as dirt on a painted
+   surface. `mix-blend-mode: multiply` fixed that in 0.1.375 and cost an order
+   of magnitude at export: measured on a 31-page deck, the blend on five opener
+   pages took the exported PDF from 448ms to 4515ms to render, because one
+   blended element forces the reader to composite the whole page. The fix is a
+   colour, not a mode — on the field the ground darkens the field, so its
+   strokes take the field's own foreground. A presentation attribute loses to
+   any stylesheet rule, so a document's `stroke="var(--acc-5)"` yields here
+   without !important. */
+.page.opener > .ground polyline,
+.page.opener > .ground path,
+.page.opener > .ground line { stroke: var(--on-lime); }
 
 /* ═══ the two brand devices (v0.1.345, references/brand.md) ═══════════════════
    Both are structural. A committed surface sitting on a template grid is the
@@ -934,107 +962,126 @@ circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
    theirs. What does not survive is an asymmetric split: 38% of 682 is 259px,
    which is a gutter rather than a column. Those become vertical, with the
    supporting cell reading as a band under the centerpiece rather than beside it. */
-@media (max-aspect-ratio: 1/1) {
-  /* A4 is a sheet, so it gets the same treatment as the slide: a fixed 794x1123
-     box scaled to fit rather than a min-height that content can push past. The
-     grid tracks then resolve against a known height instead of stretching to
-     whatever the content asked for, which is what put four pages over the sheet
-     even though their content fitted inside it. */
-  .page {
-    --page-pad: 56px; padding-top: 40px;
-    width: 794px; height: 1123px; min-height: 0;
-    margin-inline: auto;
-    zoom: min(100vw / 794px, 100svh / 1123px);
-  }
-  .body { max-width: 720px; }
-  /* The datum is per geometry. A title that sets on two lines at 1280 sets on
-     three at 794, so reserving the landscape height here would spend space the
-     sheet does not have. Portrait is a composition, not a reflow — it gets its
-     own datum, which is its own content. */
-  .body .lede { height: auto; }
-  .body.split, .body.split-wide, .body.split-narrow, .body.sidebar-notes {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 3fr) minmax(0, 2fr);
-  }
-  .body.sidebar-notes > .notes,
-  .body.split > .notes, .body.split-wide > .notes, .body.split-narrow > .notes {
-    border-left: 0; border-top: 1px solid var(--ln1);
-    padding-left: 0; padding-top: 18px;
-  }
-  .body.rail { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-  .body.rail > .railhead { border-right: 0; border-bottom: 1px solid var(--ln1);
-                           padding-right: 0; padding-bottom: 14px; }
-  /* Three cards read fine side by side on A4's 682px: each gets 218px, which is
-     a card and not a gutter. Stacking them made the page 292px too tall, and
-     the point of the page is that the three are compared. */
-  .body.columns-3 { grid-template-columns: repeat(3, 1fr); column-gap: 18px; }
-  /* The new block patterns get portrait proportions rather than a reflow. */
-  .vows { grid-template-columns: 1fr; gap: 12px; }
-  /* Stacking a swap turns seven pairs into fourteen rows; two pages went nearly
-     3000px over. A swap is a swap in both geometries — it just gets tighter. */
-  .swaps.tight .swap { grid-template-columns: 1fr 18px 1.15fr; }
-  .swap { grid-template-columns: 1fr 24px 1fr; }
-  /* `.grades` was portrait-only here until 0.1.370, was removed as an orphan,
-     and its base rendering shipped in 0.1.375 when the owner named a deck
-     using it as the reference — the documented case rule 2 asks for. Portrait
-     keeps the base spacing; the exemplar hid `.gc` on the sheet, but trimming
-     content per geometry is the author's decision, never the stylesheet's. */
-  /* A figure column plus a full notes column is two pages of material on one
-     A4 page. The notes tighten; the figure keeps its drawing.
-
-     What tightens here is SPACING, never the type of a named role. Until 0.1.350
-     these rules set `.gd` to 12px beside a figure, 11.5px in a wide split and
-     12px in a fill — three renderings of one role, shipped by the token file
-     that carries the rule against them, and invisible because the consistency
-     probe only ever ran at 1280x720. Run at A4 it reports the split
-     immediately. This is 0.1.349's own rule turned on its author: a page that no
-     longer fits gets its CONTENT trimmed, never its type nudged.
-
-     **That paragraph was true and the next twenty lines broke it**, for eighteen
-     releases. Seven rules here set a font-size: `.notes li` at 12px, a notes
-     table at 11.5px, `.key` at 12px, `.no`/`.yes` at 12px and 11.5px, `.ledname`
-     at 18px, `.card dd` at 12.5px — and not one of those classes had a base
-     rendering anywhere, so the portrait value was the ONLY value `tokens/`
-     shipped and every one of them rendered two ways across the two geometries.
-     0.1.369 gave each a base rendering above and deleted the type from here.
-     What is left tightens spacing, which is what the paragraph always said. */
-  .body.split > .notes .swap, .body.split-narrow > .notes .swap { padding: 9px 0; }
-  .body.split-wide > .notes td, .body.split-wide > .notes th { padding: 6px 10px 6px 0; }
-  .card { padding: 14px 15px; gap: 9px; }
-  .lead.row { flex-direction: column; align-items: flex-start; gap: 6px; }
-  .body.columns-4 { grid-template-columns: repeat(2, 1fr); }
-  /* `.body.cover-grid` was here until 0.1.370 as a portrait-only orphan and
-     was removed rather than completed. 0.1.375 reinstates it completed — base
-     rendering, header count, §3 table and `check_design.py`'s LAYOUTS moved
-     together, which is what `check_layout_parity` exists to force. On the
-     sheet the cover stacks: type, mark, attributes, then the full-width row. */
-  .body.cover-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
-  /* On the sheet the mark is a band in the stack, not a right-edge bleed: the
-     bleed composition is the landscape design, and at 794px it lands the globe
-     on the attrs column below it (measured: a 2px overlap on the fixture's own
-     cover, which is how this rule got here). */
-  .body.cover-grid > .markcell { margin-right: 0; justify-content: center; }
-  .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 34svh;
-                                     transform: none; }
-  .page.opener .openframe { gap: 18px; }
-  .duo { grid-template-columns: 1fr; gap: 16px; }
-  /* Figures are drawn twice. A 2.4:1 chain in a 0.8:1 cell fills a third of it,
-     and no CSS fixes that — the drawing is wrong for the page. */
-  .fig .land { display: none; }
-  .fig .port { display: block; }
-  /* `max-height: 100%` needs a definite parent height and does not get one in
-     the portrait flow, so the drawing's own aspect wins and eight pages ran past
-     the sheet. Portrait clamps against the page instead. */
-  .body .fill > .fig > svg:not(.ic) { max-height: 36svh; }
+/* ── portrait · the A4 composition (0.1.380: declared, not window-shaped) ────
+   Portrait is a composition, not a reflow. It applies because the document
+   SAYS it is a portrait document, so it holds at any window and a landscape
+   document can never fall into it. Collapsing every horizontal layout at a
+   width breakpoint is not a portrait design; it is the landscape design
+   giving up, and until 0.1.380 that is what a tall window produced. */
+/* A4 is a sheet, so it gets the same treatment as the slide: a fixed 794x1123
+   box scaled to fit rather than a min-height that content can push past. The
+   grid tracks then resolve against a known height instead of stretching to
+   whatever the content asked for, which is what put four pages over the sheet
+   even though their content fitted inside it. */
+body[data-geometry="portrait"] .page {
+  --page-pad: 56px; padding-top: 40px;
+  width: 794px; height: 1123px; min-height: 0;
+  margin-inline: auto;
+  zoom: min(100vw / 794px, 100svh / 1123px);
 }
-@media (min-aspect-ratio: 1/1) {
-  .fig .port { display: none; }
-}
+body[data-geometry="portrait"] .body { max-width: 720px; }
+/* The datum is per geometry. A title that sets on two lines at 1280 sets on
+   three at 794, so reserving the landscape height here would spend space the
+   sheet does not have. Portrait is a composition, not a reflow — it gets its
+   own datum, which is its own content. */
+body[data-geometry="portrait"] .body .lede { height: auto; }
+body[data-geometry="portrait"] .body.split,
 
-/* A short, narrow window is neither geometry; keep it usable. */
-@media (max-width: 1000px) and (min-aspect-ratio: 1/1) {
-  .body.split, .body.split-wide, .body.split-narrow,
-  .body.columns-3, .body.columns-4, .body.quad, .body.sidebar-notes, .body.rail {
-    grid-template-columns: 1fr;
-  }
+body[data-geometry="portrait"] .body.split-wide,
+
+body[data-geometry="portrait"] .body.split-narrow,
+
+body[data-geometry="portrait"] .body.sidebar-notes {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto 1fr;   /* not 3fr/2fr: fixed shares
+    reserve height the content does not have, and a short first cell then
+    leaves a dead band mid-page — measured at a third of an A4 sheet. The
+    cells hug their content and the centerpiece absorbs the slack. */
 }
+body[data-geometry="portrait"] .body.sidebar-notes > .notes,
+
+body[data-geometry="portrait"] .body.split > .notes,
+
+body[data-geometry="portrait"] .body.split-wide > .notes,
+
+body[data-geometry="portrait"] .body.split-narrow > .notes {
+  border-left: 0; border-top: 1px solid var(--ln1);
+  padding-left: 0; padding-top: 18px;
+}
+body[data-geometry="portrait"] .body.rail { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+body[data-geometry="portrait"] .body.rail > .railhead { border-right: 0; border-bottom: 1px solid var(--ln1);
+                         padding-right: 0; padding-bottom: 14px; }
+/* Three cards read fine side by side on A4's 682px: each gets 218px, which is
+   a card and not a gutter. Stacking them made the page 292px too tall, and
+   the point of the page is that the three are compared. */
+body[data-geometry="portrait"] .body.columns-3 { grid-template-columns: repeat(3, 1fr); column-gap: 18px; }
+/* The new block patterns get portrait proportions rather than a reflow. */
+body[data-geometry="portrait"] .vows { grid-template-columns: 1fr; gap: 12px; }
+/* Stacking a swap turns seven pairs into fourteen rows; two pages went nearly
+   3000px over. A swap is a swap in both geometries — it just gets tighter. */
+body[data-geometry="portrait"] .swaps.tight .swap { grid-template-columns: 1fr 18px 1.15fr; }
+body[data-geometry="portrait"] .swap { grid-template-columns: 1fr 24px 1fr; }
+/* `.grades` was portrait-only here until 0.1.370, was removed as an orphan,
+   and its base rendering shipped in 0.1.375 when the owner named a deck
+   using it as the reference — the documented case rule 2 asks for. Portrait
+   keeps the base spacing; the exemplar hid `.gc` on the sheet, but trimming
+   content per geometry is the author's decision, never the stylesheet's. */
+/* A figure column plus a full notes column is two pages of material on one
+   A4 page. The notes tighten; the figure keeps its drawing.
+
+   What tightens here is SPACING, never the type of a named role. Until 0.1.350
+   these rules set `.gd` to 12px beside a figure, 11.5px in a wide split and
+   12px in a fill — three renderings of one role, shipped by the token file
+   that carries the rule against them, and invisible because the consistency
+   probe only ever ran at 1280x720. Run at A4 it reports the split
+   immediately. This is 0.1.349's own rule turned on its author: a page that no
+   longer fits gets its CONTENT trimmed, never its type nudged.
+
+   **That paragraph was true and the next twenty lines broke it**, for eighteen
+   releases. Seven rules here set a font-size: `.notes li` at 12px, a notes
+   table at 11.5px, `.key` at 12px, `.no`/`.yes` at 12px and 11.5px, `.ledname`
+   at 18px, `.card dd` at 12.5px — and not one of those classes had a base
+   rendering anywhere, so the portrait value was the ONLY value `tokens/`
+   shipped and every one of them rendered two ways across the two geometries.
+   0.1.369 gave each a base rendering above and deleted the type from here.
+   What is left tightens spacing, which is what the paragraph always said. */
+body[data-geometry="portrait"] .body.split > .notes .swap,
+
+body[data-geometry="portrait"] .body.split-narrow > .notes .swap { padding: 9px 0; }
+body[data-geometry="portrait"] .body.split-wide > .notes td,
+
+body[data-geometry="portrait"] .body.split-wide > .notes th { padding: 6px 10px 6px 0; }
+body[data-geometry="portrait"] .card { padding: 14px 15px; gap: 9px; }
+body[data-geometry="portrait"] .lead.row { flex-direction: column; align-items: flex-start; gap: 6px; }
+body[data-geometry="portrait"] .body.columns-4 { grid-template-columns: repeat(2, 1fr); }
+/* `.body.cover-grid` was here until 0.1.370 as a portrait-only orphan and
+   was removed rather than completed. 0.1.375 reinstates it completed — base
+   rendering, header count, §3 table and `check_design.py`'s LAYOUTS moved
+   together, which is what `check_layout_parity` exists to force. On the
+   sheet the cover stacks: type, mark, attributes, then the full-width row. */
+body[data-geometry="portrait"] .body.cover-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
+/* On the sheet the mark is a band in the stack, not a right-edge bleed: the
+   bleed composition is the landscape design, and at 794px it lands the globe
+   on the attrs column below it (measured: a 2px overlap on the fixture's own
+   cover, which is how this rule got here). */
+body[data-geometry="portrait"] .body.cover-grid > .markcell { margin-right: 0; justify-content: center; }
+body[data-geometry="portrait"] .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 34svh;
+                                   transform: none; }
+body[data-geometry="portrait"] .page.opener .openframe { gap: 18px; }
+body[data-geometry="portrait"] .duo { grid-template-columns: 1fr; gap: 16px; }
+/* Figures are drawn twice. A 2.4:1 chain in a 0.8:1 cell fills a third of it,
+   and no CSS fixes that — the drawing is wrong for the page. */
+body[data-geometry="portrait"] .fig .land { display: none; }
+body[data-geometry="portrait"] .fig .port { display: block; }
+/* `max-height: 100%` needs a definite parent height and does not get one in
+   the portrait flow, so the drawing's own aspect wins and eight pages ran past
+   the sheet. Portrait clamps against the page instead. */
+body[data-geometry="portrait"] .body .fill > .fig > svg:not(.ic) { max-height: 52svh; }   /* 36svh until
+    0.1.380, where a wide drawing in a 682px column rendered 188px tall and
+    left the bottom half of the sheet empty. A ceiling, not a target. */
+body:not([data-geometry="portrait"]) .fig .port { display: none; }
+
+/* The short-narrow collapse was removed in 0.1.380. It predates the zoom
+   stage: a page is a fixed box scaled to the window, so a 900px window shows a
+   smaller slide, not a narrower one, and collapsing its columns answered a
+   problem the stage had already solved. */

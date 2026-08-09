@@ -678,11 +678,11 @@ def check_probe_vocabulary():
 # A class may be styled ONLY inside a media query with a reason, and there is
 # exactly one honest reason: the rule is a geometry switch whose whole purpose is
 # to differ per geometry.
-MEDIA_ONLY_WAIVERS = {
-    "land": "half of the landscape/portrait figure pair. A figure is drawn twice "
-            "and each geometry hides one; that is what these two classes ARE.",
-    "port": "the other half; see .land.",
-}
+# Empty since 0.1.380, when the geometry stopped being a window-shape media
+# query and became the document's own declaration: `.land` and `.port` are now
+# base rules under `body[data-geometry=...]`, so the pair that needed the only
+# honest waiver no longer needs one.
+MEDIA_ONLY_WAIVERS = {}
 
 
 def check_media_only_rules():

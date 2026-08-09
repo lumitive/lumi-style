@@ -532,11 +532,11 @@ def build(broken: bool) -> str:
 body {{ font-family: var(--din); font-size: 15px; color: var(--tx1);
         background: var(--bg); margin: 0; }}
 /* Only what a DOCUMENT legitimately decides for itself. Everything else — the
-   layouts, the role vocabulary, the footer row, the page stage — now comes from
-   tokens/lumi-layouts.css above, so the fixture exercises the shipped
-   stylesheet instead of a private copy of it. */
-.page {{ position: relative; display: flex; flex-direction: column;
-         padding: 46px 92px 26px; }}
+   layouts, the role vocabulary, the footer row, the page frame and its stage —
+   now comes from tokens/lumi-layouts.css above, so the fixture exercises the
+   shipped stylesheet instead of a private copy of it. The `.page` padding lived
+   here until 0.1.380, where it was found overriding the A4 margin and wrapping
+   the footer of a real deliverable on every page. */
 ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
 .band {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }}
 .band > div {{ display: flex; flex-direction: column; gap: 8px; }}
@@ -550,8 +550,7 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
 .s-line {{ stroke: var(--ln1); }}
 .s-dash {{ stroke: var(--ln1); stroke-dasharray: 5 4; }}
 .colophon {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }}
-.foot {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }}
-</style></head><body>{SPRITE}{GROUND_DEFS}{body}</body></html>
+</style></head><body data-geometry="landscape" data-genre="sales">{SPRITE}{GROUND_DEFS}{body}</body></html>
 """
 
 
