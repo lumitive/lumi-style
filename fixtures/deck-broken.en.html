@@ -190,7 +190,7 @@
   --fs-say:     29px;                       /* the claim that is the page */
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.382 (2026-08-09)
+   LUMI page layouts · v0.1.383 (2026-08-09)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -1175,6 +1175,22 @@ body[data-geometry="portrait"] .page {
   zoom: min(100vw / 794px, 100svh / 1123px);
 }
 body[data-geometry="portrait"] .body { max-width: 720px; }
+/* Top-aligning side-by-side cells is what keeps a reader's eye able to cross
+   between them. On the sheet those same cells are STACKED rows, so there is no
+   crossing to preserve and the rule only pushes every page's slack to the
+   bottom edge: measured at 30 to 48 percent of an A4 sheet standing empty
+   below the figure. Stacked cells centre in their row instead, which is what
+   "content distributes across the full page height" asks for. */
+body[data-geometry="portrait"] .body.split > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field),
+body[data-geometry="portrait"] .body.split-wide > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field),
+body[data-geometry="portrait"] .body.split-narrow > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field),
+body[data-geometry="portrait"] .body.columns-2 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field),
+body[data-geometry="portrait"] .body.columns-3 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field),
+body[data-geometry="portrait"] .body.columns-4 > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field),
+body[data-geometry="portrait"] .body.quad > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field),
+body[data-geometry="portrait"] .body.sidebar-notes > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field)
+  { justify-content: center; }
+
 /* The sheet is 794 wide against the slide's 1280, so the display tiers take
    their own values here: what the old viewport-relative clamps resolved to at
    this stage, now fixed so the window cannot move them (v0.1.382). */
@@ -1353,7 +1369,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
       <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
     </div>
-    <p class="colophon">Built with lumi-style 0.1.382 &#183; source: meter management system.</p>
+    <p class="colophon">Built with lumi-style 0.1.383 &#183; source: meter management system.</p>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 18</span></div></section>
 <section class="page opener" id="openA">
@@ -1829,7 +1845,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>
     </div>
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.382.
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.383.
     Source: meter management system; every number here is invented, and a
     bracketed slot must not ship.</p></div>
   </div>

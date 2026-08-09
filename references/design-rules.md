@@ -229,6 +229,16 @@ comes from size and letterspacing.
   the available height no matter how it is scaled, and the only fix is a different
   drawing. `scripts/inspect_layout.py` reports both, per page, and gates nothing.
 
+  **A figure is drawn for the geometry it will sit in.** The cell decides: a
+  full-width cell is about **2.5:1 on the 16:9 stage and about 0.85:1 on the A4
+  sheet**, and a two-column cell is about 1.3:1 and 1.0:1. A 1.5:1 drawing in a
+  0.85:1 cell fills a little over half its height however it is scaled, and no
+  CSS fixes that. *Measured on the first handbook actually designed for the
+  sheet: its figures were drawn at 1.4:1 to 2.2:1, and its content pages ran a
+  24 to 39 percent empty band against 5 to 27 percent on a landscape deck built
+  the same week. Portrait figures stack what landscape figures place side by
+  side; that is the redraw, not a scale factor.*
+
   *Provenance: 0.1.339 turned "the pages look empty" into an 82% fill floor and then
   satisfied it — stretching table rows, and measuring the bounding box of all ink
   so that a small chart with a long caption scored as full. Four diagrams at 4.6
