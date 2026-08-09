@@ -46,6 +46,10 @@ import shutil
 import subprocess
 import sys
 
+# The scripts are peers in one directory; the genre vocabulary lives in
+# check_prose.py and is imported, never copied (see GENRES there).
+from check_prose import GENRES  # noqa: E402
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REGISTRY = ROOT / "adapters" / "platforms.json"
 TASKS = ROOT / "conformance" / "tasks"
@@ -85,9 +89,10 @@ def load_tasks() -> list[dict]:
             if kind not in SCORE_KINDS:
                 raise ValueError(f"{t['id']}: `score` names {kind!r}, which is not "
                                  f"one of {', '.join(sorted(SCORE_KINDS))}")
-        # Kept in step with check_prose.py's --genre choices by hand; 0.1.376
-        # added `training` there and this tuple rejected it for one release.
-        if t.get("genre") not in (None, "sales", "internal", "training"):
+        # Imported, not hand-copied: the hand-copy that used to sit here
+        # rejected `training` for two releases after 0.1.376 added it to
+        # check_prose.py, and nothing could notice until a task used it.
+        if t.get("genre") not in (None, *GENRES):
             raise ValueError(f"{t['id']}: genre {t['genre']!r} is not one "
                              f"check_prose.py accepts")
         if not t.get("deliverable"):

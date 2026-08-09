@@ -45,7 +45,8 @@
 
   *One recorded extension (0.1.375, at the owner's ask): the footer's handling
   marker — the `shield` icon ahead of the confidentiality line, shipped in
-  `tokens/lumi-layouts.css` — renders in `--seal`. The handling terms are a
+  `tokens/lumi-layouts.css` — renders in `--seal-t`, the seal that stays
+  text-safe on both canvases. The handling terms are a
   standing warning to the reader (do not forward), so this is the warning
   meaning applied on every page, not a fifth meaning; the seal still never
   decorates, and on the lime opener the marker inverts with the rest of the
@@ -390,8 +391,9 @@ forwarded without the cover — so terms that live only on page one do not trave
 with the page.
 
 **The terms open with the handling marker**: the `shield` reserved icon, in
-`--seal`, in the flex slot `tokens/lumi-layouts.css` ships ahead of `.foot
-.conf` (owner directive 2026-08-09). The seal may mark it because the handling
+`--seal-t` (the seal's text-safe form, which lifts on the dark canvas), inside
+the `.foot .conf` flex slot `tokens/lumi-layouts.css` ships, ahead of the
+terms (owner directive 2026-08-09). The seal may mark it because the handling
 line is a standing warning to the reader — §1's ledger records the extension —
 and on the lime opener the marker inverts with the rest of the footer. The
 marker is the standard rendering, not part of the gate: D12 gates on the terms
@@ -413,7 +415,7 @@ on the machine that built the deck. `.foot .src` was removed from `tokens/` in
 0.1.366 after the first deliverable to meet it printed a build path on every
 client page; a second put one back, in Chinese, and every gate passed it.
 **D15 gates on it now**, in every genre: consulting and internal analysis keep
-per-page sourcing, and none of the three genres wants a path.
+per-page sourcing, and none of the four genres wants a path.
 
 **The other is D14: no slot the author left for themselves may reach the
 reader.** `[TO FILL]`, `[TBD]`, `{{name}}`, an empty bracket pair. Also different

@@ -265,7 +265,8 @@ zoom adapts to the reader's window and pixel density natively.
 template repeated. Vertical: stack, hero-band (dominant block over a thin strip),
 band-hero (its inverse), thirds-v. Horizontal: split 50/50, split-wide 38/62,
 split-narrow 62/38, columns-2/3/4. Composite: rail, quad, sidebar-notes,
-full-bleed, diagonal-flow. Choose by content: one number is the story → hero-band;
+full-bleed, diagonal-flow, and cover-grid (the cover and the closing, set the
+same way: typeblock, mark cell, attrs column, full-width row). Choose by content: one number is the story → hero-band;
 2-4 parallel items → columns-N or quad; centerpiece wider than 3:1 → stack; tall or
 square centerpiece with long prose → split; long prose, small evidence →
 split-narrow; heavy caveats → sidebar-notes; a table of 6+ columns → stack, no
@@ -349,6 +350,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.378** snapshot, cut 2026-08-09. It is self-contained by
+> This file is the **0.1.379** snapshot, cut 2026-08-09. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

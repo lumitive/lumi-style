@@ -425,7 +425,10 @@ PROBE = r"""
     // are deliberately not counted — a table is for values. Reported against a
     // target of about half the page, never gated: the withdrawn 82% fill floor
     // is the standing lesson that a satisfiable number ends the looking.
-    let visualPct = 0;
+    // null, not 0: a page with no body or a lede taller than its body has no
+    // share to report, and printing it as "0%" under the target would report
+    // an absence of measurement as a (bad) measurement.
+    let visualPct = null;
     if (bodyEl) {
       const VIS = '.fig, .band, .lead, .swaps, .vows, .duo, .grades, .field';
       let visPx = 0;
@@ -950,9 +953,17 @@ def ground_report(url, viewport=(1280, 720), dark=False):
         if not ids:
             browser.close()
             raise Unmeasurable("no section.page with a box, so no ground to measure")
+        nested = []
         with tempfile.TemporaryDirectory() as td:
             for pid in ids:
                 if not page.query_selector(f"section#{pid} > .ground"):
+                    # A ground wrapped a div deep breaks the token contract —
+                    # `.page > .ground` is what the opacity tiers select — and
+                    # skipping it silently let this audit say "no page draws
+                    # one" about a page that visibly does, in the same report
+                    # where the page probe counted it at any depth.
+                    if page.query_selector(f"section#{pid} .ground"):
+                        nested.append(pid)
                     continue
                 shot = pathlib.Path(td) / f"{pid}.png"
                 page.locator(f"section#{pid}").screenshot(path=str(shot))
@@ -974,7 +985,7 @@ def ground_report(url, viewport=(1280, 720), dark=False):
                             "canvas": "#%02X%02X%02X" % canvas,
                             "loudest": "#%02X%02X%02X" % worst_px})
         browser.close()
-    return out
+    return {"pages": out, "nested": nested}
 
 
 CONSISTENCY_PROBE = r"""
@@ -1631,13 +1642,17 @@ def page_report(rows, geometry, errors):
     # is a line reviewers learn to skip, so the sheet reports shares without
     # grading them.
     content = [r for r in live
-               if not (r.get("isOpener") or r.get("isCover") or r.get("isClosing"))]
+               if not (r.get("isOpener") or r.get("isCover") or r.get("isClosing"))
+               and r.get("visualPct") is not None]
+    # A hand-list, knowingly: "a4" is the only portrait geometry today. A new
+    # portrait geometry added to GEOMETRIES without joining this tuple would be
+    # graded against a landscape target it structurally cannot meet.
     portrait = geometry in ("a4",)
-    low = [r for r in content if r.get("visualPct", 0) < 50]
+    low = [r for r in content if r["visualPct"] < 50]
     if content and portrait:
-        w = min(content, key=lambda r: r.get("visualPct", 0))
+        w = min(content, key=lambda r: r["visualPct"])
         print(f"  visual share: reported only at A4 (figures cap at 36svh there); "
-              f"lowest {w['id']} at {w.get('visualPct', 0)}%")
+              f"lowest {w['id']} at {w['visualPct']}%")
     elif content and low:
         print(f"  visual share: {len(low)} of {len(content)} content pages sit under "
               f"the 50% target — "
@@ -1836,7 +1851,18 @@ GROUND_CEILING = 1.40          # a ceiling, not a target: quieter is always fine
 
 
 def ground_print(label, g):
-    if not g:
+    pages, nested = g["pages"], g["nested"]
+    # A ground the audit cannot isolate is a finding, not a skip: it exists at
+    # the wrong depth for the `.page > .ground` opacity tiers, and calling the
+    # page groundless would contradict the any-depth count printed above.
+    if nested:
+        print(f"  GROUND UNMEASURED: {len(nested)} page(s) wrap the ground "
+              f"inside another element — the tiers select `.page > .ground`, "
+              f"so the contrast audit cannot isolate it: "
+              + ", ".join(nested[:6]))
+    if not pages:
+        if nested:
+            return len(nested)
         # A visible finding, not a shrug: brand.md asks for the ground behind
         # every page, and until 0.1.378 a deck with none read the same here as
         # a deck that had been checked. Reported, never gated — a document
@@ -1844,16 +1870,16 @@ def ground_print(label, g):
         print(f"  GROUND MISSING: no page draws one — brand.md asks for water "
               f"and light behind every page, dense to sparse by page class")
         return 0
-    loud = [r for r in g if r["contrast"] > GROUND_CEILING]
+    loud = [r for r in pages if r["contrast"] > GROUND_CEILING]
     if loud:
-        print(f"  GROUND TOO LOUD: {len(loud)} of {len(g)} pages exceed "
+        print(f"  GROUND TOO LOUD: {len(loud)} of {len(pages)} pages exceed "
               f"{GROUND_CEILING}:1 against their canvas — "
               + ", ".join(f"{r['id']} {r['contrast']}" for r in loud[:6]))
     else:
-        w = max(g, key=lambda r: r["contrast"])
-        print(f"  ground: all {len(g)} pages under the {GROUND_CEILING}:1 ceiling, "
+        w = max(pages, key=lambda r: r["contrast"])
+        print(f"  ground: all {len(pages)} pages under the {GROUND_CEILING}:1 ceiling, "
               f"loudest {w['id']} at {w['contrast']}")
-    return 0
+    return len(nested)
 
 
 def main(argv):

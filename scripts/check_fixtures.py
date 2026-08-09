@@ -56,7 +56,11 @@ def main() -> int:
             errors.append(f"{fixture}: missing; run scripts/build_fixtures.py")
             continue
         for kind, expect in checks.items():
-            code, report = run(SCRIPTS[kind], expect.get("argv", []), path)
+            # "prose@training" runs check_prose a second time under another
+            # genre; the suffix only names the run. Without this, M9's
+            # training binding had no asserted run anywhere and a revert of
+            # the genre pair passed CI.
+            code, report = run(SCRIPTS[kind.split("@")[0]], expect.get("argv", []), path)
             label = f"{fixture} [{kind}]"
             if code != expect["exit"]:
                 errors.append(f"{label}: exit {code}, expected {expect['exit']}")
@@ -103,11 +107,24 @@ def main() -> int:
                             f"{needle!r}; a check that fails for the wrong reason is "
                             f"not a check that passed")
 
+    # The export floor, executed rather than trusted: --scale below 2 must be
+    # refused, and the refusal happens before any browser work (the check sits
+    # ahead of the playwright import), so this runs in CI with no Chromium.
+    proc = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "export_pdf.py"),
+         str(FIXTURES / "deck-pass.en.html"), "--png", "--scale", "1"],
+        capture_output=True, text=True)
+    if proc.returncode != 2 or "floor" not in proc.stderr:
+        errors.append(
+            f"export_pdf.py did not refuse --scale 1 by naming the floor "
+            f"(exit {proc.returncode}); the 2K floor is prose again")
+
     for err in errors:
         print(f"FAIL  {err}")
     if not errors:
         n = sum(len(v) for v in (c for c in spec["fixtures"].values()))
-        print(f"ok    {len(spec['fixtures'])} fixtures, {n} check runs, all verdicts as expected")
+        print(f"ok    {len(spec['fixtures'])} fixtures, {n} check runs plus the "
+              f"export floor, all verdicts as expected")
     return 1 if errors else 0
 
 

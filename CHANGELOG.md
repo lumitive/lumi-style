@@ -3,6 +3,79 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.379 — the four-agent review of 0.1.375–0.1.378, closed
+
+The owner ran a four-way review over the whole unpushed line — general
+quality, comment accuracy, test coverage, silent failures — before trusting
+it. Two findings arrived from two reviewers independently, which is what put
+them first.
+
+**The export tool now settles before it captures.** `export_pdf.py` had
+reintroduced the pattern `inspect_layout.py` was rewritten to kill: a bare
+300ms sleep, no wait on `document.fonts.ready`, no `pageerror` listener — and
+with `font-display: swap` on the embedded face, a capture racing the font is
+*guaranteed* to ship fallback metrics under an `ok` line. Worse here than
+there: the inspector mis-measures, the exporter mis-delivers. It now waits on
+the fonts (5s, explicit FAIL on timeout), fails the file whose own script
+threw, refuses a second input whose stem would clobber the first's output,
+warns when stale higher-numbered pages from a longer earlier export survive
+beside fresh ones, reconciles the PDF's own page count against the section
+count, and one bad file no longer aborts the batch (per-file FAIL, browser
+closed in `finally`).
+
+**Guards that guarded one of two carriers now guard both.** The 0.1.378
+ENTRY_STAMP union fix had reopened its own hole one level up: a stamp file
+declared only in ENTRY_STAMP — exactly the scoreboard — could be renamed away
+and skipped under a comment crediting the manifest guard, which never covered
+it. A missing non-registry stamp file now fails by name, and the negative path
+was exercised before shipping. The visual vocabulary's second carrier —
+`check_design.py`'s `VISUAL_BLOCKS`, which 0.1.378's own rationale overlooked
+while calling the probe's `VIS` "the sole carrier" — is now read by the
+probe-vocabulary guard and held set-equal to `VIS`; "a guard that covers one
+of two callers is a guard with a blind spot the shape of the other" now has
+its caller count right. The genre vocabulary lives once, in
+`check_prose.py`'s `GENRES`, imported by `run_conformance.py` and
+`export_pdf.py` instead of hand-copied thrice; `export_pdf.py` also gains
+`--genre`, so a training deck exported with defaults now ships its primary A4
+edition rather than the projection one its help text used to promise and its
+default used to violate.
+
+**The proven regressions are pinned.** D10's eyebrow count — which shipped a
+zero-count twice, keyed first to `<div>` and then to attribute order — is now
+element- and order-agnostic, matches `ic` as a whole class token, and emits a
+per-page `D10_detail` that the pass fixture asserts (`contains: p3`); revert
+either form of the regression and CI fails. `D16_detail` carries the whole
+dict so the pass fixture can assert `"prose_only": []`, closing the
+false-positive direction reported verdicts cannot see. `check_fixtures.py`
+learns suffixed runs (`prose@training`, `prose@internal`) so M9's training
+binding and internal exemption each have an asserted run, and it smoke-tests
+the export floor — `--scale 1` must exit 2 naming the floor, checked in CI
+with no browser since the check sits ahead of the playwright import.
+
+**Absence is no longer reported as measurement.** `visualPct` is null, not
+0%, on a page with no body or a lede taller than it, and the share lines skip
+what was never measured; a ground wrapped inside another element — which the
+page census counts and the contrast audit cannot isolate — now reports GROUND
+UNMEASURED and counts as unmeasured instead of letting the same report say
+"continuous on all pages" and "no page draws one" about one document. The
+`.grades` and `.field` blocks join the fill-rule exclusion chains before the
+chain wins a tenth argument: both declare their own direction and gap, and
+only fixture accident had them nested where the chain could not reach them.
+
+**Facts corrected where reviewers caught the prose lying**: six of the eight
+svg type classes declare fills, not four of six (comment and changelog both);
+the ground generator now draws sixteen genuinely distinct widths, making its
+"no two sharing a width" docstring true instead of half-true; the conformance
+tuple rejected `training` for two releases, not one; D15's scope sentence
+counts four genres; the handling marker's token is `--seal-t` (text-safe on
+both canvases), not `--seal`, in both places the prose said otherwise; the
+marker sits *inside* `.foot .conf`, not ahead of it; the opener's "nothing
+else" scopes to its content area, since its footer legitimately keeps the
+inverted marker; the self-contained core prompt finally lists `cover-grid`,
+the layout its own frame rule requires; and the fill-chain tally names its
+fourth victim (the closenote's 12px) so the "sixth through ninth" arithmetic
+can be reconstructed.
+
 ## 0.1.378 — what the two audits found in the three releases before it
 
 The owner asked for the 0.1.375–0.1.377 line to be audited before trusting it.
@@ -15,7 +88,7 @@ release closes them.
 **Rendered defects in the promoted vocabulary.**
 
 - The `svg .f-*` paint classes lost to the `svg` type classes by source order —
-  every selector is (0,1,1), four of six type classes also declare a fill, and
+  every selector is (0,1,1), six of the eight type classes also declare a fill, and
   the explicit win-back list covered `huge`/`mid` only. `class="sm f-acc"`
   rendered ladder-grey; `class="cap-w f-seal"` never turned red; the palette
   guard saw nothing because no literal colour was involved. The paint set now
