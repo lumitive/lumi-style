@@ -100,6 +100,56 @@ solid `--on-accent`: fading it to 72% for hierarchy drops it to 3.97:1, which is
 the 0.1.338 contrast defect returning through a colour choice. Hierarchy on a field
 comes from size and letterspacing.
 
+### 1c · Region hue: the one place colour encodes identity
+
+**In the globe's region form, hue encodes which region a shape is, and nothing
+else.** This is an owner directive and it is the single exception to *one colour
+one meaning*. It is safe only because these hues are declared to carry no data
+meaning — the standing `light_ramp` already has. Semantic colour is untouched:
+`--acc`, `--seal`, `--amber`, `--brass` and the chart triple still mean what
+they mean, and a region hue never appears outside a region shape.
+
+The hues are generated, never picked: `scripts/build_region_palette.py` spaces
+them evenly around the OKLCH circle and assigns them so adjacent regions sit as
+far apart as the graph allows. Two regions count as adjacent when they share a
+border **or come within 1500 km**, because an ocean strait is not a visual
+separation — Europe and North America have no land border and face each other
+across 300 km at Greenland.
+
+Four numbers, and each states which way it points:
+
+| | |
+|---|---|
+| Adjacent regions, CIEDE2000 | **≥ 20 — a floor** |
+| Label text on a region fill | **≥ 4.5 : 1 — a floor** |
+| Region boundary stroke against the canvas | **≥ 3 : 1 — a floor** |
+| Chroma, as a fraction of the per-hue sRGB gamut maximum | **0.65 — the lowest value that clears the first floor** |
+
+The generator asserts all four on both canvases and fails naming the pair it
+could not separate. A quieter palette is reached by having fewer regions, never
+by lowering the floor.
+
+**Every coloured region carries a label or a legend entry.** Unconditionally,
+whatever the hue count. At the theoretical maximum separation of 90 degrees,
+deuteranopia collapses two adjacent regions to ΔE00 9.6 and protanopia to 8.5,
+and a real map runs at 60 or less. Hue separates neighbours at a glance; text
+carries identity. `check_design.py` D18 checks for the text and never counts hues.
+
+### 1d · The mark and the map
+
+Two geographies ship, and they disagree about where a coastline is.
+
+* `assets/vectors/globe-orthographic.svg` and `world-flat.svg` are a **mark** —
+  a two-degree stylisation with no islands under about 500 km, for a cover.
+* `assets/vectors/world-110m.json` is a **map** — Natural Earth 110m, 177
+  countries, the geometry the globe component draws.
+
+**A document may use either and must never place both in one view.** Re-deriving
+the coarse set from 110m would change the shipped cover mark byte for byte, so it
+has not been done; until it is, this rule is what keeps the disagreement out of
+the reader's eye.
+
+
 ## 2 · Typography: two voices, never mixed
 
 - **Primary face — D-DIN takes over** (v1.2): D-DIN is the single Latin face

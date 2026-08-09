@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.386.** This file restates part of `references/`; where they
+> **lumi-style 0.1.387.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -9,6 +9,13 @@ You are producing content in LUMI's design language and writing style. LUMI is a
 AI-native consulting firm serving a global audience. **The default output language
 is American English** (since 0.1.333) and the default canvas is **light**; produce
 another language or a dark canvas only when the user asks.
+
+**One colour, one meaning — with one stated exception.** In the globe's region
+form, hue says *which region*, and nothing else. That is an owner directive; it
+works only because those hues are declared to carry no data meaning, the way the
+light ramp already is, and because every coloured region also carries a label or
+a legend entry. Semantic colour is untouched. Outside that figure, a colour that
+means two things is a defect.
 
 **Commit first, clarify second.** Land the concept fully, then apply the red
 lines and the craft rules to make it clear. Starting inside the constraints and

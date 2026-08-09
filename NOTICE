@@ -58,3 +58,19 @@ from it applies to Chinese output, which is governed instead by the
 de-translationese pass in references/writing-rules.md section 6b. The skill itself
 is not vendored, installed, or invoked; only its rules were adapted, so this
 repository remains a single source of truth with no runtime dependency.
+
+Natural Earth — https://www.naturalearthdata.com/
+Public domain. The project asks for credit and does not require it.
+
+Vendored as assets/vectors/upstream/ne_110m_admin_0_countries.geojson, the 110m
+admin-0 country set, unmodified. The LUMI globe needs country-level boundaries,
+which the hand-written coastlines in scripts/build_geography.py cannot express:
+those are a two-degree stylisation for a cover mark and cannot say "these 27
+countries are one region". The file is vendored rather than fetched so that
+scripts/build_worldmap.py never touches the network and its --check is
+reproducible offline. Regenerate assets/vectors/world-110m.json by running that
+script.
+
+At this scale the upstream set has no Singapore, Hong Kong, Bahrain or Malta;
+the source merges them away, this repository does not drop them. They ship as
+points in assets/vectors/regions.json instead, which is what a port is anyway.

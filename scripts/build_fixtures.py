@@ -232,6 +232,44 @@ FIGURE = """<div class="fill">
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>"""
 
+# A region figure, for D18. Deliberately small: the real globe is 68 KB of path
+# data and the metric reads class names and label anchors, not geometry, so
+# embedding the world here would be sixty-eight kilobytes of fixture proving
+# nothing the four shapes below do not.
+#
+# The pass fixture labels every coloured region. The broken one omits the legend
+# row for southeast-asia and nothing else — hue alone is left to say which
+# region that is, which is exactly what D18 exists to catch.
+REGION_FIGURE = """<div class="fill">
+      <div class="fig"><svg viewBox="0 0 640 300" preserveAspectRatio="xMidYMid meet"
+        role="img" aria-label="Coverage by trade region">
+        <path class="rg rg-north-america is-live" d="M20 40h150v90H20Z"/>
+        <path class="rg rg-europe is-live" d="M200 30h130v70H200Z"/>
+        <path class="rg rg-southeast-asia is-live" d="M360 60h120v80H360Z"/>
+        <path class="rg rg-africa is-zero" d="M240 140h110v120H240Z"/>
+        <text class="flbl" x="20" y="290">Filled regions carry a source; a washed
+          one carries none</text>
+      </svg>
+      <ul class="legend">{rows}</ul>
+      <div class="cap"><span class="n">Figure {i}</span> Coverage follows the
+      regions with a licensed counterparty, not the largest markets
+      <span class="srcline">Illustrative, www.example.org</span></div></div>
+    </div>"""
+
+REGION_ROWS = {
+    "north-america": "North America 60",
+    "europe": "Europe 63",
+    "southeast-asia": "Southeast Asia 35",
+    "africa": "Africa, no source",
+}
+
+
+def region_rows(skip=()):
+    return "".join(
+        f'<li data-legend="{rid}"><span class="k rg-{rid}"></span>{label}</li>'
+        for rid, label in REGION_ROWS.items() if rid not in skip)
+
+
 # The rect-only figure the broken fixture keeps, so D5 has a subject.
 FIGURE_WEAK = """<div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
@@ -438,6 +476,9 @@ def page(i: int, total: int, spec, broken: bool) -> str:
       {cell}{band}{field}{lead}
     </div>"""
     fig = FIGURE
+    if i == 9:
+        fig = REGION_FIGURE.replace(
+            "{rows}", region_rows(skip=("southeast-asia",) if broken else ()))
     if broken and i == 4:
         fig = FIGURE_WEAK
     elif broken and i == 8:

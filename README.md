@@ -78,6 +78,9 @@ tokens/                           design tokens (CSS + JSON): two ladders · pal
 assets/fonts                      D-DIN, vendored (SIL OFL) — embed, never link
 assets/icons                      vendored Lucide library (ISC) + the reserved bindings, currentColor
 assets/vectors                    orthographic globe · flat trade map, generated from lat/lon
+assets/vectors/world-110m.json    Natural Earth 110m as a shared-arc topology (public domain)
+assets/vectors/regions.json       trade-region registry, node point layer, bilingual names
+assets/globe                      the globe component: one projection, SVG and canvas back ends
 fixtures/                         two synthetic deliverables the checkers are tested on:
                                   one well-formed, one with a named defect per metric
 conformance/                      fixed task suite · the tracked cross-agent scoreboard

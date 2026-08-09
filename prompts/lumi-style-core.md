@@ -92,6 +92,16 @@ only the faces the package carries.
 **The light ramp**: five discrete steps of the accent for fields and surfaces
 only. It carries no meaning — one colour one meaning still governs data.
 
+**Region hue**: the one figure where colour encodes identity. On a trade-region
+map, each region takes its own hue and the hue says only which region it is.
+Owner directive, and safe for the same reason the ramp is: it is declared to
+carry no data meaning, so `--acc`, `--seal`, `--amber`, `--brass` and the chart
+triple keep theirs. **Every coloured region must also carry a label or a legend
+entry** — at the widest hue separation there is, red-green colour blindness
+still collapses two regions to about a tenth of the distance a reader with full
+colour vision sees, so hue groups at a glance and text is what identifies. Never
+name a region by its colour in prose.
+
 **Be willing to**: give one number the whole page; run a figure to the paper's
 edge; make a part opener a full surface of colour with one sentence reversed out;
 compose asymmetrically; draw the set when something is countable; let a quiet page
@@ -376,6 +386,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.386** snapshot, cut 2026-08-09. It is self-contained by
+> This file is the **0.1.387** snapshot, cut 2026-08-10. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.
