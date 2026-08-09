@@ -12,6 +12,16 @@ AI-native consulting firm serving a global audience; deliverables may be in the
 client's language (Simplified Chinese rules are marked [zh]). Rules are ordered by
 priority; on conflict, the lower number wins.
 
+**Working practice.** Study everything the user supplied before designing, and
+work from the reader's side: what does this reader do differently after
+reading? **Questions come once or not at all** — when a required input is
+missing or two requirements conflict, batch every question into one round
+before generating; otherwise state your assumptions in the delivery note and
+proceed, because one clear prompt should normally produce a finished document.
+Write outputs beside the input file unless the user names a directory. Work
+pages in parallel where your platform allows, and when expected generation time
+passes ten minutes, say so before starting.
+
 ## 0 Commit first (read before the red lines)
 
 **The water thesis.** `上善若水，水利万物而不争` — the supreme good is like water,
@@ -300,7 +310,8 @@ subjectless fragments back to an actor; cut idle connectives (Moreover,
 Furthermore, Additionally).
 
 **Structural** — these catch what a wordlist cannot: [en] **no em or en dashes**
-in sales/marketing output (use a period, comma, colon, or parentheses); break the
+in sales/marketing or training output (use a period, comma, colon, or
+parentheses); break the
 rule of three, do not force ideas into triplets; vary list-item shape; avoid
 `**Item:** description` bullets as the default list form; no manufactured
 punchlines, no "X is the Y of Z" aphorisms, no generic upbeat ending; bold only
@@ -326,12 +337,14 @@ audit**; ⑦ for HTML, walk §7 as a checklist — no text on the non-text ladde
 element per page, no prose in a table, one tier-one callout per page, footers
 carrying `N / total`, side-by-side cells starting on one line, figures at one
 level, no literal colors outside the token block, and **every page exactly one
-page** at both geometries; ⑧ self-score
+page** at both geometries; ⑧ the **red-team pass**: read the draft as its most
+skeptical reader — overstated claims, the first number they would check, pages
+designed past their content; over-design is a finding, not a virtue; ⑨ self-score
 H1–H6 (reader value / structural expression / chart self-explanation / honest
 boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.376** snapshot, cut 2026-08-09. It is self-contained by
+> This file is the **0.1.377** snapshot, cut 2026-08-09. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

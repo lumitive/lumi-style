@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.376"
+  version: "0.1.377"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -59,7 +59,10 @@ a score-and-review loop (rule revisions go through CHANGELOG).
 
 **Defaults**: output language is **American English** unless the user specifies
 another; the canvas is **light** unless the user asks for dark
-(see `references/writing-rules.md` §0 and `references/design-rules.md` §1).
+(see `references/writing-rules.md` §0 and `references/design-rules.md` §1);
+**output files land in the input file's own directory** unless the user names
+another, and exports follow the export axis in `references/design-rules.md` §7
+(PDF at the stage; rasters default 4K, floor 2K).
 
 **Repository language: English only (red line).** Chinese strings appear in the
 rules only as rule data for Chinese-language output.
@@ -78,10 +81,20 @@ been removed; they now apply at step 4 instead of framing step 0.
    what LUMI is, the field and the waterline, and the accelerators. This is the
    only file that says what to reach for. Decide what the deliverable *is* before
    you decide what it may not do.
-1. **Pick the scenario**: sales/marketing · consulting/client document · internal
+1. **Study the input, then pick the scenario.** Read everything the user
+   supplied before designing anything, and work from the reader's side: what
+   does this reader need to do differently after reading, and which of the
+   supplied facts earn a page for that. **Questions come once or not at all**:
+   when a required input is missing or two requirements conflict, batch every
+   question into a single round before generation begins; otherwise state the
+   assumptions in the delivery note and proceed — one clear prompt should
+   normally produce a finished document without a follow-up interview. Then
+   pick the scenario: sales/marketing · consulting/client document · internal
    analysis · training material — four different narrative skeletons. Read
    [`references/storyline-templates.md`](references/storyline-templates.md) and
-   choose before writing.
+   choose before writing. **Work in parallel where the platform allows** —
+   pages are independent once the storyline is fixed — and when the expected
+   end-to-end generation time passes ten minutes, say so before starting.
 2. **Write and review** under
    [`references/writing-rules.md`](references/writing-rules.md) (terminology red
    lines / banned phrases / punctuation / number discipline / the LUMI voice /
@@ -150,7 +163,9 @@ been removed; they now apply at step 4 instead of framing step 0.
    reserves its height as a ceiling; `-webkit-line-clamp` or `overflow: hidden`
    there deletes lines from a client page and leaves the geometry looking clean.
 
-4. **Before delivery**: run the critic gate (structure before polish), then the
+4. **Before delivery**: run the critic gate (structure before polish) and its
+   red-team pass — read the draft as its most skeptical reader, and treat
+   over-design as a finding, not a virtue — then the
    **mandatory de-AI-flavor pass** — `references/writing-rules.md` §6, including
    its two-pass audit; for Chinese translated from English also §6b
    de-translationese — then the H1–H6 self-score per

@@ -3,6 +3,44 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.377 — the export path ships with its floor in code, and the workflow learns to ask once
+
+The last of three releases carrying the owner's consolidated directive
+(2026-08-09). The rules that name tools now have the tools (rule 5), and the
+workflow gains the interaction discipline the directive asked for.
+
+**`scripts/export_pdf.py` ships.** §7 has named "PDF export" as a destination
+since the geometry axis existed, with no exporter behind it — the exact gap
+rule 5 exists to close. The tool renders at the fixed stages and nowhere else:
+PDF as one vector page per `.page` (no resolution to pick), and page rasters
+at a device-pixel multiplier on the stage — **default 3, which is 4K from the
+landscape stage; floor 2 (2K), refused in code** rather than advised in prose,
+because a 1x export looks fine on the machine that made it and soft on every
+dense display. The scale never touches the CSS stage: every `clamp()` in
+`tokens/` is written against the stage, and the HTML edition adapts to the
+reader's window and pixel density natively, which is where "auto-adjusting
+resolution" honestly lives. Output lands beside the input file, matching the
+new output-directory default. Same dependency posture as `inspect_layout.py`:
+local, Playwright, py_compile only in CI.
+
+**The workflow learns the interaction rules.** The directive asked for two
+things that pull against each other — interrogate the input deeply, and let
+one clear prompt produce a finished document — and the arbitration is now
+written down: study everything supplied first, work from the reader's side,
+and **ask once or not at all** — a missing required input or a genuine
+conflict batches every question into one round before generation; anything
+less than that becomes a stated assumption in the delivery note. Outputs land
+in the input file's directory unless the user names another. Pages compose in
+parallel where the platform allows, and a generation expected to pass ten
+minutes is announced before it starts. **The red-team pass rides the critic
+gate**: the half that built the document argued for it, so the other half
+reads it as its most skeptical reader before the self-score — and over-design
+is a finding there, not a virtue, which is the directive's own guard against
+this skill answering "more expressive" with "more decorated".
+
+All of it re-flowed by hand into `AGENTS.md` and `prompts/lumi-style-core.md`,
+where the checklist grows its red-team item and the dash rule names training.
+
 ## 0.1.376 — the page anatomy becomes a contract, and training becomes a genre
 
 The second of three releases carrying the owner's consolidated directive

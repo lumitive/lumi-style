@@ -540,6 +540,16 @@ A layout is verified only across the **matrix**, not at a point:
   gives two 370px gutters, so a page that is a split in landscape usually wants a
   different structure in portrait. Collapsing every horizontal layout at a width
   breakpoint is not a portrait design; it is the landscape design giving up.
+- **Export axis** (owner directive 2026-08-09). `scripts/export_pdf.py` renders
+  a deliverable at the stage geometry: **PDF** as one vector page per `.page`
+  (no resolution to pick), and **page rasters** at `--scale` device pixels per
+  CSS pixel — **default 3, which is 4K from the landscape stage (3840×2160);
+  floor 2 (2K), and the script refuses a smaller scale**. The scale is an
+  export multiplier only and never changes the CSS stage, because every
+  `clamp()` in `tokens/` is written against the stage; the HTML edition needs
+  no scale at all — the zoom stage adapts to the reader's window and pixel
+  density natively. Output lands beside the input file unless a directory is
+  named.
 - **Viewport axis**: also check a short laptop window (e.g. 1000×550). Slides use
   `min-height:100svh`, so an overflowing page pushes its footer below the fold
   silently. **The footer rule and page number must be visible on every page at

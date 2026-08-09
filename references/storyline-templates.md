@@ -145,7 +145,7 @@ training deck reviewed as the reference.)
 
 ## Shared discipline
 
-- **Title contract** (all three scenarios, decks included): every page/section
+- **Title contract** (all four scenarios, decks included): every page/section
   title names its **subject** and carries at least one **verifiable fact** — a
   figure, a date, a named mechanism. Length follows the fact; **there is no word
   ceiling**, only the two-line budget in `design-rules.md`.
@@ -191,3 +191,11 @@ training deck reviewed as the reference.)
   (structure / rigor / so-what / completeness) → Green (ship) / Yellow (fixable —
   don't ship as-is) / Red (the argument collapsed) → Top 3 fixes (what's wrong +
   how to fix) → name one strength that must be protected.
+- **The red-team pass rides the critic gate** (owner directive 2026-08-09): the
+  half of you that built the document argued for it, so before delivery the
+  other half reads it as its most skeptical reader — which claim is overstated,
+  which number would they check first, which page is designed past what its
+  content needs. **Over-design is a finding here, not a virtue**: a device the
+  content did not ask for fails this pass the same way an unsupported claim
+  does. Each hit is fixed or defended in the delivery note; the document ships
+  only after both halves have had it.
