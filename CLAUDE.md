@@ -149,6 +149,16 @@ cannot execute; `prompt` gets one pasted context and no tools. **An agent that
 cannot run the checks may not call a deliverable verified** — it names the checks
 it owes and the operator runs them.
 
+`specs/` holds design specs for changes to **this package** — one file per
+change, `YYYY-MM-DD-<topic>-design.md`. It exists because `docs/` is gitignored
+on purpose (it is where validation runs write, and a deliverable committed there
+would breach the no-engagement-facts red line), so a design record had nowhere
+to live and was being lost between sessions. A spec is a record of what was
+decided and why, written before the work; it is **not** a source of rules. Rule
+prose stays in `references/`, values stay in `tokens/`, and the shipped rationale
+stays in `CHANGELOG.md`. A spec that has been implemented stays as history and is
+never cited as authority.
+
 **Drift is this repo's main hazard, and the checks catch only its mechanical
 half — semantic drift between prose copies is invisible to them.** After changing
 `references/`, re-read all three entry points *and* `README.md`, which
