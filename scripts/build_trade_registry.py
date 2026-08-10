@@ -87,6 +87,21 @@ BLOCS = [
 ]
 
 
+# The members nothing in the package can name. The topology names every country
+# it draws and regions.json names the three point nodes; these five are AfCFTA
+# island states that are neither. A consumer building a panel from this registry
+# could name 50 of AfCFTA's 55 — which is the 0.1.398 count defect one layer
+# down, a list quietly shorter than the number above it. Names only, in the two
+# languages the topology carries, because there is no geometry to give them.
+UNDRAWN_NAMES = {
+    "COM": ("Comoros", "科摩罗"),
+    "CPV": ("Cabo Verde", "佛得角"),
+    "MUS": ("Mauritius", "毛里求斯"),
+    "STP": ("Sao Tome and Principe", "圣多美和普林西比"),
+    "SYC": ("Seychelles", "塞舌尔"),
+}
+
+
 def build():
     topo = json.loads(TOPOLOGY.read_text(encoding="utf-8"))
     drawable = {c["a"] for c in topo["countries"]}
@@ -117,6 +132,14 @@ def build():
             "count": len(codes),
         })
 
+    nameable = drawable | {n["id"] for n in geo.get("nodes", [])}
+    unnameable = {c for _b, c in undrawable} - nameable
+    if unnameable != set(UNDRAWN_NAMES):
+        raise SystemExit(
+            f"FAIL  UNDRAWN_NAMES must be exactly the members this package "
+            f"cannot name. Missing: {sorted(unnameable - set(UNDRAWN_NAMES))}; "
+            f"stale: {sorted(set(UNDRAWN_NAMES) - unnameable)}")
+
     noded = {n["id"] for n in geo.get("nodes", [])
              if claimed.get(n["id"])} & {c for _b, c in undrawable}
     return {
@@ -145,6 +168,9 @@ def build():
             "smallest bloc wins; membership sizes are distinct so the rule is "
             "total and the output does not depend on declaration order"),
         "regions": regions,
+        # Every member this package cannot otherwise name. Keyed by ADM0_A3,
+        # [English, Chinese] to match the topology's own n/z fields.
+        "names": {c: list(v) for c, v in sorted(UNDRAWN_NAMES.items())},
         # The point layer, taken from the geographic registry so the two agree
         # about where a city-state is, with each node's bloc re-pointed.
         "nodes": [

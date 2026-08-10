@@ -1048,6 +1048,20 @@ def check_trade_layers():
                           f"bloc has {r['count']} members — a count taken from the "
                           f"shapes that happened to draw, not from the bloc")
 
+    # Every member is nameable from the package alone. A panel is the intended
+    # consumer of `full`, and a panel that can name 50 of 55 prints a list
+    # shorter than the count above it — the same defect one layer down.
+    topo = json.loads((ROOT / "assets/vectors/world-110m.json").read_text("utf-8"))
+    nameable = ({c["a"] for c in topo["countries"]}
+                | {n["id"] for n in reg.get("nodes", [])}
+                | set(reg.get("names", {})))
+    for r in reg["regions"]:
+        lost = sorted(set(r["full"]) - nameable)
+        if lost:
+            errors.append(f"{r['id']}: nothing in the package names "
+                          f"{', '.join(lost)}, so a panel built from this "
+                          f"registry lists fewer members than the count claims")
+
     overlaid = set(re.findall(r'data-overlay="([a-z]+)"', svg))
     expected = {r["id"] for r in reg["regions"]
                 if sorted(r["full"]) != sorted(r["members"])}
@@ -1060,6 +1074,44 @@ def check_trade_layers():
             errors.append(f"{rid}: its overlay renders in the static frame; "
                           f"overlays are what a click reveals, and all of them at "
                           f"once is every border on the map drawn twice")
+    return errors
+
+
+def check_field_has_no_strangers():
+    """A globe stating a field draws no point that is not in the field.
+
+    The registry's four city-states are a PLACE layer: they exist because no
+    shape can be filled for Singapore or Malta, and on the flat map that is
+    their whole job. On a globe carrying marks they are a second point
+    vocabulary at nearly the same radius, and the first delivered globe demo
+    drew Singapore twice — once as a datum of weight 9, once as a place — with
+    no way for a reader to tell which circle was the number.
+
+    So: scenery may name places, a field must ask for them. Asserted in all
+    three directions, because the interesting one is the default.
+    """
+    import globe_svg
+
+    R = globe_svg.DEFAULT_R
+    view = (103.8, 10.0, 0.0, R, R, R)
+    marks = [{"lon": 103.82, "lat": 1.35, "weight": 9, "id": "sin"}]
+    errors = []
+    if 'class="gl-node"' in globe_svg.render(view, marks=marks):
+        errors.append("a globe with a field drew the registry's place layer "
+                      "unasked; a reader cannot tell a datum from a city")
+    if 'class="gl-node"' not in globe_svg.render(view):
+        errors.append("a globe with no field drew no places either — scenery "
+                      "that names nothing is scenery that says nothing")
+    if 'class="gl-node"' not in globe_svg.render(view, marks=marks, nodes=True):
+        errors.append("--nodes did not restore the place layer over a field")
+
+    # MARK_R_MIN is NOT asserted here. It rose in this release, but the
+    # justification that first suggested itself — a pointer target — is false:
+    # pick.js hits on a fixed 12 CSS px radius (WCAG 2.5.8) whatever the mark
+    # is drawn at, so hover never depended on the drawn size. What the floor
+    # actually governs is whether the smallest datum is legible, and that is a
+    # judgement for the eye, not a number for a gate. Recorded so the next
+    # reader does not add the check that looked obvious.
     return errors
 
 
@@ -1205,8 +1257,16 @@ def check_terminator_area():
         ring's longitude representation jumps and nothing tells the
         interpolator.
 
-    Before the fixes the worst error over these views was 13.5% and the lens
-    was plainly visible; after, 0.08%.
+      * the antipode was computed by a two-branch expression whose western
+        branch returned the sun's own longitude, so for every subsolar point in
+        the western hemisphere the cap was drawn around the SUN and the figure
+        shaded its daylight. Found by looking at a demo page showing Singapore
+        midnight fully lit; invisible to this check, which held the sun at one
+        eastern longitude and varied only the view centre.
+
+    Before the first two fixes the worst error was 13.5%; the third was 87
+    percentage points on a single frame. The lesson is in the case list below:
+    a geometry with two inputs has to be swept along both.
     """
     try:
         from playwright.sync_api import sync_playwright
@@ -1215,11 +1275,23 @@ def check_terminator_area():
     import geo_frame
     import globe_svg
 
-    sun = geo_frame.solar_position(
-        datetime.datetime.fromisoformat(globe_svg.DEFAULT_SUN_UTC))
-    views = [(120.3, 23.45), (90.0, 10.0), (60.0, 0.0), (30.0, -10.0),
-             (0.0, -20.0), (-59.7, -23.45), (180.0, 0.0), (-120.0, 40.0),
-             (45.0, -60.0)]
+    # TWO axes, and the check used to sweep one. The view centre moved across
+    # nine positions while the sun stayed at a single eastern longitude, so the
+    # antipode expression's western branch — which returned the sun's own
+    # longitude, shading the daylight — was never once evaluated. Half of every
+    # day was inverted and this check reported 0.08%. Hours now sweep a full
+    # rotation, which is where a subsolar longitude goes negative.
+    cases = []
+    for lon0, lat0 in [(120.3, 23.45), (90.0, 10.0), (60.0, 0.0), (30.0, -10.0),
+                       (0.0, -20.0), (-59.7, -23.45), (180.0, 0.0),
+                       (-120.0, 40.0), (45.0, -60.0)]:
+        cases.append((lon0, lat0, globe_svg.DEFAULT_SUN_UTC))
+    for hour in range(0, 24, 3):
+        cases.append((103.8, 10.0, f"2026-06-21T{hour:02d}:00:00"))
+    # And a date either side of the solstice, so the declination's sign is
+    # exercised too rather than pinned at its June extreme.
+    for when in ("2026-12-21T04:00:00", "2026-03-20T22:00:00"):
+        cases.append((103.8, 10.0, when))
     R = globe_svg.DEFAULT_R
     # The plate and the land take one colour, night another, so the disc is
     # what either painted and the ratio needs no assumption about the viewBox.
@@ -1229,7 +1301,8 @@ def check_terminator_area():
     errors = []
     with sync_playwright() as pw:
         browser = pw.chromium.launch()
-        for lon0, lat0 in views:
+        for lon0, lat0, when in cases:
+            sun = geo_frame.solar_position(datetime.datetime.fromisoformat(when))
             svg = globe_svg.render((lon0, lat0, 0.0, R, R, R), night=sun)
             page = browser.new_page(viewport={"width": 500, "height": 500})
             page.set_content(f"<!doctype html><meta charset=utf-8>"
@@ -1239,7 +1312,8 @@ def check_terminator_area():
             page.close()
             night, disc = _count_night(shot)
             if not disc:
-                errors.append(f"lon0={lon0:g} lat0={lat0:g}: nothing drew")
+                errors.append(f"lon0={lon0:g} lat0={lat0:g} at {when}: "
+                              f"nothing drew")
                 continue
             d = math.degrees(math.acos(max(-1.0, min(1.0,
                 gp.cos_c(sun[0], sun[1], lon0, lat0)))))
@@ -1247,7 +1321,8 @@ def check_terminator_area():
             have = night / disc
             if abs(have - want) > TERMINATOR_AREA_TOLERANCE:
                 errors.append(
-                    f"lon0={lon0:g} lat0={lat0:g}: the sun is {d:.1f} degrees "
+                    f"lon0={lon0:g} lat0={lat0:g} at {when} (subsolar "
+                    f"{sun[0]:.1f}): the sun is {d:.1f} degrees "
                     f"from the view centre, so night should cover {want:.1%} of "
                     f"the disc and it covers {have:.1%} — off by {have - want:+.1%}")
         browser.close()
@@ -1289,6 +1364,7 @@ CHECKS = (
     ("no line across the flat map", check_seam_segments, False, "shared", False),
     ("the spherical clip holds its invariants", check_clip_invariants, False, "shared", False),
     ("the globe frame holds its contract", check_globe_frame, False, "globe", False),
+    ("a field draws no strangers", check_field_has_no_strangers, False, "globe", False),
     ("a far-side mark renders nothing", check_far_side_hidden, False, "globe", True),
     ("the night side covers what geometry says", check_terminator_area, False, "globe", True),
     ("the region map frame holds its contract", check_regionmap_frame, False, "map", False),

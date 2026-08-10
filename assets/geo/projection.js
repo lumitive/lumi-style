@@ -323,7 +323,7 @@ const CAP_EPS = 1e-9;
  * Mirrors clip_to_cap in scripts/geo_projection.py, and the golden grid in
  * scripts/check_globe.py is what holds the two together.
  */
-export function clipToCap(ring, view, stepDeg) {
+export function clipToCap(ring, view, stepDeg, forwardIn) {
   if (view.t >= 1) return [ring.slice()];
   const c = Math.acos(Math.max(-1, Math.min(1, -view.t)));
   let dense = ring.length > 1 ? densify(ring, stepDeg) : ring.slice();
@@ -381,7 +381,12 @@ export function clipToCap(ring, view, stepDeg) {
   }
   if (!runs.length) return [];
 
-  const forward = signedArea(ring) > 0;
+  // `forward` overrides the handedness for a ring built by capPoint, whose
+  // interior is on the right by construction. signedArea cannot read a ring
+  // within a hair of a hemisphere — the terminator is exactly that — so the
+  // Python authority takes the same override. Mirrors clip_to_cap in
+  // scripts/geo_projection.py.
+  const forward = forwardIn === undefined ? signedArea(ring) > 0 : forwardIn;
   const step = CAP_STEP_DEG * D2R;
   const ends = runs.map((r) => [azimuth(r[0][0], r[0][1], view),
     azimuth(r[r.length - 1][0], r[r.length - 1][1], view), r]);

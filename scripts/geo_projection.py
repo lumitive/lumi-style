@@ -216,7 +216,7 @@ CAP_STEP_DEG = 1.5              # azimuth resolution of a closure arc
 CAP_EPS = 1e-9
 
 
-def clip_to_cap(ring, lon0, lat0, t, step_deg):
+def clip_to_cap(ring, lon0, lat0, t, step_deg, forward=None):
     """Intersect a (lon, lat) ring with the visible cap. -> list of closed rings.
 
     THE CLIP HAPPENS ON THE SPHERE, before projection, and that is the point.
@@ -297,7 +297,16 @@ def clip_to_cap(ring, lon0, lat0, t, step_deg):
     if not runs:
         return []
 
-    forward = signed_area(ring) > 0
+    # `forward` is the ring's handedness, and a caller that KNOWS it must be
+    # able to say so. signed_area's own docstring says it is meaningless within
+    # a hair of a hemisphere, and the day/night terminator is exactly a
+    # hemisphere: its sign there tracks which pole the cap happens to enclose,
+    # so every subsolar point south of the equator classified the ring backwards
+    # and the figure shaded its daylight. Rings built by cap_point traverse with
+    # the interior on the right by construction and pass forward=True; a country
+    # ring, far below the ceiling, still asks.
+    if forward is None:
+        forward = signed_area(ring) > 0
     step = math.radians(CAP_STEP_DEG)
     ends = [(azimuth(r[0][0], r[0][1], lon0, lat0),
              azimuth(r[-1][0], r[-1][1], lon0, lat0), r) for r in runs]
