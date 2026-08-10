@@ -10,6 +10,14 @@
  * parse_color in check_design.py cannot read that form and would skip D1
  * on every hue here without saying so.
  *
+ * SHIPS THE BINDINGS TOO, since 0.1.391. The variables alone were a
+ * palette nobody could use: globe_svg.py emits class='rg rg-europe' and
+ * nothing joined the class to the variable, so any document that did not
+ * hand-write ~90 rules drew every region in the UA default — black — and
+ * every check passed, because none reads rendered colour. The reference
+ * fixture carried the join privately; a package asset should not need a
+ * private companion to render (maintenance convention 5).
+ *
  * L 0.7 light / 0.52 dark, chroma 65% of the
  * per-hue gamut maximum, 11 hues evenly spaced at 32.7 degrees, assigned so adjacent regions sit
  * as far apart on the circle as the graph allows.
@@ -48,6 +56,10 @@
   --rg-southeast-asia: #DE68DF;
   --rg-southeast-asia-stroke: #8E3D8F;
   --rg-southeast-asia-wash: #F8E4F7;
+  --gl-plate: var(--ln3);
+  --gl-graticule: var(--ln2);
+  --gl-land: var(--acc-2);
+  --gl-land-edge: var(--ln1);
 }
 
 body.dark {
@@ -84,4 +96,57 @@ body.dark {
   --rg-southeast-asia: #964197;
   --rg-southeast-asia-stroke: #E174E1;
   --rg-southeast-asia-wash: #451945;
+}
+
+/* The join between the classes the emitters write and the variables
+ * above. globe_svg.py / the runtime emit these classes; without these
+ * rules the classes bind to nothing.
+ *
+ * Two of the state colours are SEMANTIC in a file whose header says hue
+ * carries identity only — deliberately: is-out and is-partial are not
+ * region identity, they are the standing status vocabulary (--brass =
+ * reference / out of scope, --amber = partial), and painting them from
+ * the region hue would claim a measurement the hue does not make.
+ * is-live is the UNMARKED state: the plain region fill IS live, and an
+ * explicit .is-live rule would just restate the binding above it.
+ */
+.gl-plate { fill: var(--gl-plate); }
+.gl-graticule { fill: none; stroke: var(--gl-graticule); }
+.gl-land { fill: var(--gl-land); stroke: var(--gl-land-edge); stroke-width: 1; }
+.gl-mark { fill: var(--acc); }
+.gl-node { fill: var(--bg); stroke: var(--tx2); stroke-width: 1.5; }
+.rg { stroke-width: 1; }
+.rg-africa { fill: var(--rg-africa); stroke: var(--rg-africa-stroke); }
+.rg-africa.is-zero { fill: var(--rg-africa-wash); }
+.rg-antarctic { fill: var(--rg-antarctic); stroke: var(--rg-antarctic-stroke); }
+.rg-antarctic.is-zero { fill: var(--rg-antarctic-wash); }
+.rg-central-asia { fill: var(--rg-central-asia); stroke: var(--rg-central-asia-stroke); }
+.rg-central-asia.is-zero { fill: var(--rg-central-asia-wash); }
+.rg-europe { fill: var(--rg-europe); stroke: var(--rg-europe-stroke); }
+.rg-europe.is-zero { fill: var(--rg-europe-wash); }
+.rg-latin-america { fill: var(--rg-latin-america); stroke: var(--rg-latin-america-stroke); }
+.rg-latin-america.is-zero { fill: var(--rg-latin-america-wash); }
+.rg-middle-east { fill: var(--rg-middle-east); stroke: var(--rg-middle-east-stroke); }
+.rg-middle-east.is-zero { fill: var(--rg-middle-east-wash); }
+.rg-north-america { fill: var(--rg-north-america); stroke: var(--rg-north-america-stroke); }
+.rg-north-america.is-zero { fill: var(--rg-north-america-wash); }
+.rg-northeast-asia { fill: var(--rg-northeast-asia); stroke: var(--rg-northeast-asia-stroke); }
+.rg-northeast-asia.is-zero { fill: var(--rg-northeast-asia-wash); }
+.rg-oceania { fill: var(--rg-oceania); stroke: var(--rg-oceania-stroke); }
+.rg-oceania.is-zero { fill: var(--rg-oceania-wash); }
+.rg-south-asia { fill: var(--rg-south-asia); stroke: var(--rg-south-asia-stroke); }
+.rg-south-asia.is-zero { fill: var(--rg-south-asia-wash); }
+.rg-southeast-asia { fill: var(--rg-southeast-asia); stroke: var(--rg-southeast-asia-stroke); }
+.rg-southeast-asia.is-zero { fill: var(--rg-southeast-asia-wash); }
+.rg.is-out { fill: var(--brass); }
+.rg.is-partial { stroke: var(--amber); stroke-width: 2; }
+/* Hover and keyboard focus. The runtime has toggled is-hover since the
+ * globe shipped and no stylesheet anywhere defined it, so hovering
+ * worked and showed nothing; and the first delivered demo set
+ * outline:none on a tabindex='0' element with no :focus-visible to
+ * replace it. Both affordances ship here so no document re-decides
+ * them. Not inside any media query, per the media-only-rules guard. */
+.rg.is-hover { stroke-width: 2.5; }
+svg.gl:focus-visible, svg.regionmap:focus-visible {
+  outline: 2px solid var(--acc); outline-offset: 2px;
 }
