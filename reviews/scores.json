@@ -1,0 +1,61 @@
+{
+ "$comment": "The iteration engine's memory. references/eval-rubric.md defines six human dimensions and a protocol where a divergence of two forces a retrospective, and until 0.1.390 not one score was stored: every number in the record was a sentence inside a release note, so no dimension could be read over time and the loop had no way to show whether it was working. THE SCHEMA HAS NO FREE-TEXT FIELD, deliberately. A scores file is exactly the shape that breaks red line 9 — a 'notes' column is where a client name arrives — so the guard is not optional and there is nowhere for prose to go. Reasons belong in CHANGELOG.md, which is already written under that red line. A null score means not scored in that round, never zero.",
+ "schema": 1,
+ "dimensions": [
+  "H1",
+  "H2",
+  "H3",
+  "H4",
+  "H5",
+  "H6"
+ ],
+ "outcomes": [
+  "rule-revision",
+  "anchor-revision",
+  "no-change"
+ ],
+ "reviews": [
+  {
+   "release": "0.1.328",
+   "genre": "sales",
+   "self": {
+    "H1": null,
+    "H2": null,
+    "H3": null,
+    "H4": null,
+    "H5": null,
+    "H6": null
+   },
+   "reader": {
+    "H1": 1,
+    "H2": 1,
+    "H3": null,
+    "H4": null,
+    "H5": 2,
+    "H6": null
+   },
+   "outcome": "rule-revision"
+  },
+  {
+   "release": "0.1.340",
+   "genre": "sales",
+   "self": {
+    "H1": 3,
+    "H2": 3,
+    "H3": 3,
+    "H4": null,
+    "H5": null,
+    "H6": null
+   },
+   "reader": {
+    "H1": 1,
+    "H2": 1,
+    "H3": 1,
+    "H4": null,
+    "H5": 3,
+    "H6": null
+   },
+   "outcome": "rule-revision"
+  }
+ ]
+}
