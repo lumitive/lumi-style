@@ -1,0 +1,15 @@
+{
+  "component": "LUMI-Globe-Field",
+  "owner": "LUMIVATE",
+  "locked_at": "0.1.405",
+  "why": "0.1.405: LUMIVATE marks published; the axis line came out and non-bloc land became outline at the owner's request",
+  "files": {
+    "assets/brand/lumivate/globe-mark-small.svg": "bb1feb74c57ca8b50a777331419a80793872fb19ca3a97af9ecd4f2eb3edf912",
+    "assets/brand/lumivate/globe-mark.svg": "7029e8d14bcac26bbcc521d9354e90d7e2bc586446296ac8ea0b81f9b95162a5",
+    "assets/geo/projection.js": "5f440b8329957a9dd1448f96adf98ac9efcc5f3e7a108ad5d864f267989812f4",
+    "assets/globe/globe.js": "be9cb075df9bc390e842e0e4676c3941e67993f4abbcc4424e9bb48c02d26d82",
+    "assets/globe/render-svg.js": "3fa3ea1225a3d852843832e635de6f1abc4721bd6e0114bce97d4f1cb4c0b151",
+    "scripts/build_brand.py": "139ae67e88645021ee5b1e2b704e35510dbff345dbd7f9c9bbecb369071c7190",
+    "scripts/globe_svg.py": "f646c2dd4bd8100832c59dc3fba67d0224718b6253cf5ec1476ecfd2e90d8330"
+  }
+}

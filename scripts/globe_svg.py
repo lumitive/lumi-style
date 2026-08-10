@@ -243,34 +243,15 @@ def render(view, marks=None, night=None, nodes=False,
                     f'{"" if vis else " display=\"none\""}>'
                     f'<title>{html.escape(node["n"])}</title></circle>')
 
-    # THE AXIS, AND SOMETHING TO SEE IT AGAINST.
-    #
-    # The tilt has been applied since 0.1.397 and correctly: the pole sits
-    # 23.44 degrees off vertical, 389 units right of centre at R=1000. Nobody
-    # could see it. A sphere is rotationally symmetric, so rotating the whole
-    # drawing gives the eye no reference — the graticule turns with the
-    # geography and the result reads as a globe viewed from somewhere else.
-    #
-    # A desk globe reads as tilted because you see the spindle against the
-    # stand. So: the rotation axis, drawn through both poles and out past the
-    # limb, and a vertical reference through the centre. The angle between them
-    # IS the obliquity, and now it is a thing on the page rather than a claim
-    # in a caption.
-    #
-    # The reference line is emitted OUTSIDE the earth group by the caller —
-    # a vertical that tilted with everything else would be no reference at all.
-    npx, npy, _nv = gp.unrolled(0.0, 90.0, lon0, lat0, t, R, cx, cy)
-    spx, spy, _sv = gp.unrolled(0.0, -90.0, lon0, lat0, t, R, cx, cy)
-    # Inside the frame's own padding. A longer spindle reads better and is
-    # cut off by the viewBox, which fits the globe — and a drawing clipped
-    # by its own viewBox is a gating finding, correctly.
-    over = 0.026 * R
-    axis_len = math.hypot(npx - spx, npy - spy)
-    if axis_len > 1e-6:
-        ux, uy = (npx - spx) / axis_len, (npy - spy) / axis_len
-        body.append(f'<line class="gl-axis" '
-                    f'x1="{_r(spx - ux * over)}" y1="{_r(spy - uy * over)}" '
-                    f'x2="{_r(npx + ux * over)}" y2="{_r(npy + uy * over)}"/>')
+    # NO AXIS LINE. It was added in 0.1.404 to make the tilt legible and the
+    # owner removed it one release later, correctly: this figure already
+    # carries a graticule, an equator, two tropics, a terminator edge, eight
+    # bloc borders and thirteen lanes, and a fourteenth line through the middle
+    # of all that does not read as an axis — it reads as one more line. The
+    # tilt is legible in the graticule for a reader who is looking for it, and
+    # the sup text says 23.44 for one who is not. Recorded rather than deleted
+    # silently: the reasoning that added it was sound and the answer was still
+    # no, and the next person to notice the tilt is subtle should know that.
 
     # TRADE LANES, on the sphere. A great circle is the shortest path across a
     # sphere, so the drawing and the claim are one object — and because a lane
@@ -293,8 +274,13 @@ def render(view, marks=None, night=None, nodes=False,
         route = [a] + [tuple(v) for v in link.get("via", [])] + [b]
         w, o = link_weight_attrs(link.get("w", 0.5))
         d = _d(_project_ring(great_circle_route(route), _scaled(view, LINK_R)), False)
-        if not d:
-            continue
+        # EMITTED EVEN WHEN IT DRAWS NOTHING. The runtime mutates markup and
+        # never creates it — the rule marks obey — so a lane whose whole length
+        # is on the far side in THIS frame still needs somewhere to land when
+        # the globe turns. Skipping it here meant a Los Angeles to Sydney lane
+        # was absent from the document for good if the first frame happened not
+        # to face the Pacific, which is the drifting-dots defect wearing a
+        # different hat: the frame is a starting state, not a filter.
         body.append(f'<path class="gl-link" data-link="{html.escape(str(link.get("id", "")))}" '
                     f'data-route="{";".join(f"{x:g},{y:g}" for x, y in route)}" '
                     f'data-w="{float(link.get("w", 0.5)):.2f}" '
@@ -420,14 +406,8 @@ def render(view, marks=None, night=None, nodes=False,
     # transform's own origin, a rotation maps that disc onto itself, and the
     # flattening only shrinks it. The box that held the untilted frame holds
     # this one.
-    # The vertical the tilt is measured FROM, drawn outside the earth group so
-    # it does not tilt with it. Dashed, quiet, and the only thing on this figure
-    # that is not on the sphere.
-    ref = (f'<line class="gl-axis-ref" x1="{_r(cx)}" y1="{_r(cy - R * 1.026)}" '
-           f'x2="{_r(cx)}" y2="{_r(cy + R * 1.026)}"/>')
-
     g_open = f'<g class="gl-earth" transform="{earth_transform(cx, cy)}">'
-    return "\n".join([head, note, ref, g_open, *body, "</g>", "</svg>"])
+    return "\n".join([head, note, g_open, *body, "</g>", "</svg>"])
 
 
 def _load_marks(arg):
