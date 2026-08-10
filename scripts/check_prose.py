@@ -9,8 +9,19 @@ machine-checkable half against a real file.
     python3 scripts/check_prose.py --genre internal report.md   # skips M9
     python3 scripts/check_prose.py --json deck.en.html
 
-English deliverables only: the segmentation here does not apply to Chinese, which
-is governed by the de-translationese pass in writing-rules.md section 6b.
+Both output languages, since 0.1.390. English gets the full set; a document that
+declares `zh` gets the banned-phrase list and the punctuation pass (M4zh, M5) and
+n/a for the rest. Sentence rhythm stays out — the segmentation here does not
+transfer to Chinese — and the de-translationese pass in writing-rules.md section
+6b is recorded as NOT mechanized rather than approximated, because it is
+judgement about register.
+
+    python3 scripts/check_prose.py report.zh.html        # the Chinese path
+    python3 scripts/check_prose.py --lang zh report.html # when the file does not say
+
+A Chinese document used to come back UNMEASURABLE, which was the real reason
+this file was English-only: the word splitter needs spaces, so every Chinese
+deliverable yielded zero sentences and tripped the empty-prose guard.
 
 Extraction is regex-based and best-effort. It is deliberately loud about what it
 could NOT measure: a file that yields no prose is reported unmeasurable and fails,
@@ -136,6 +147,36 @@ NOT_MECHANIZED = {
                                            "whether a number was available",
 }
 
+# ── the Chinese half ──────────────────────────────────────────────────────────
+# This package's rules cover Chinese output across four sections and, until
+# 0.1.390, its machinery covered none of it: the only Chinese string CI touched
+# was the negative case that makes M12 fail. For a team that writes Chinese, an
+# asymmetry that complete is structural rather than incidental.
+#
+# BANNED_ZH mirrors writing-rules.md section 2's [zh-output] rule data, and
+# check_repo.py's `zh ban-list parity` guard holds the two together under the
+# same discipline as the English list — which is the point of doing this first:
+# it closes the drift channel before there is new code to drift.
+BANNED_ZH = [
+    (r"值得注意的是", "值得注意的是"),
+    (r"值得一提的是", "值得一提的是"),
+    (r"不可否认", "不可否认"),
+    (r"综上所述", "综上所述"),
+    (r"让我们一起", "让我们一起"),
+    (r"总而言之", "总而言之"),
+    (r"众所周知", "众所周知"),
+    # QUALIFIED. 赋能 is legitimate in two fixed industry collocations and an AI
+    # tell everywhere else, so the collocation is tested FIRST — section 2 states
+    # that lesson explicitly ("ban predicates must distinguish fixed
+    # collocations from abuse"), and a bare 赋能 ban would flag 销售赋能.
+    (r"(?<!销售)(?<!市场)赋能", "赋能 outside 销售赋能 / 市场赋能"),
+]
+
+# Half-width punctuation that must be full-width in Chinese body text (M5).
+# The exemptions are section 3's, not invented here: half-width stays inside
+# code, URLs, emails, version strings, filenames, and pure English runs.
+ZH_PUNCT = {",": "，", ":": "：", ";": "；", "?": "？", "!": "！"}
+
 OVERLONG_WORDS = 32
 MIN_SENTENCES = 30      # below this, rhythm is noise
 MIN_TITLES = 8          # below this, one frame dominating means nothing
@@ -233,6 +274,26 @@ CJK = re.compile(_CJK_CHAR + r"(?:[\s\d/%\-\u3001\uff0c\u3002\uff1a\uff1b\u00b7]
 # is a decision a reader can see rather than a line in a config nobody reads.
 CODE_HTML = re.compile(r"<(code|pre|script|style|svg|head)\b.*?</\1>", re.S | re.I)
 LANG_ATTR = re.compile(r"<html[^>]*\blang\s*=\s*[\"']([\w-]+)", re.I)
+
+
+def zh_punctuation(text):
+    """-> [(what, context)] half-width punctuation adjacent to CJK.
+
+    Section 3's rule, and its exemptions are section 3's too. A mark counts only
+    when a CJK character sits on one side of it: `--json` in an English run, a
+    version string and a URL all keep half-width marks and none of them is
+    adjacent to a Han character. That single test does the work of the whole
+    exemption list without needing to detect code, and it is why this is
+    mechanizable when the de-translationese pass is not.
+    """
+    hits = []
+    for mark, full in ZH_PUNCT.items():
+        for m in re.finditer(rf"{_CJK_CHAR}\s*{re.escape(mark)}|{re.escape(mark)}\s*{_CJK_CHAR}",
+                             text):
+            start = max(0, m.start() - 12)
+            hits.append((f"{mark} should be {full}",
+                         text[start:m.end() + 12].strip()))
+    return hits
 
 
 def declared_language(path, raw, override=None):
@@ -401,7 +462,13 @@ def measure(path, genre, lang=None):
     cjk = visible_cjk(raw, path.suffix.lower()) if language == "en" else None
     body, titles, enums, windows = extract(path)
     lengths = sentences(body)
-    if not lengths:
+    # A Chinese document has no spaces, so the English word splitter returns
+    # nothing and every Chinese deliverable came back UNMEASURABLE — which is
+    # the real reason this file was English-only, underneath the docstring that
+    # said so. Rhythm still does not transfer and M8 stays n/a for Chinese, but
+    # "I cannot measure your sentence lengths" is not "I cannot measure your
+    # document": the ban list and the punctuation pass do not need sentences.
+    if not lengths and not re.search(_CJK_CHAR, body):
         raise Unmeasurable("no prose extracted (0 sentences)")
 
     hits = []
@@ -410,9 +477,22 @@ def measure(path, genre, lang=None):
         if n:
             hits.append((label, n))
 
-    mean = statistics.fmean(lengths)
+    # The Chinese half runs only on a document that says it is Chinese. Both
+    # halves are measured against the same body text; nothing here changes what
+    # an English deliverable is graded on.
+    is_zh = language == "zh"
+    zh_hits, zh_punct = [], []
+    if is_zh:
+        for pattern, label in BANNED_ZH:
+            n = len(re.findall(pattern, body, re.M))
+            if n:
+                zh_hits.append((label, n))
+        zh_punct = zh_punctuation(body)
+
+    mean = statistics.fmean(lengths) if lengths else 0.0
     cv = statistics.pstdev(lengths) / mean if len(lengths) > 1 and mean else 0.0
-    overlong = 100.0 * sum(1 for n in lengths if n > OVERLONG_WORDS) / len(lengths)
+    overlong = (100.0 * sum(1 for n in lengths if n > OVERLONG_WORDS) / len(lengths)
+                if lengths else 0.0)
 
     # An en dash between digits is a numeric range, which is data, not prose
     # punctuation -- writing-rules.md exempts it.
@@ -468,6 +548,10 @@ def measure(path, genre, lang=None):
         "enumerations": len(enums),
         "M4_banned_hits": sum(n for _, n in hits),
         "M4_detail": hits,
+        "M4zh_banned_hits": sum(n for _, n in zh_hits) if is_zh else None,
+        "M4zh_detail": zh_hits,
+        "M5_zh_punctuation": len(zh_punct) if is_zh else None,
+        "M5_detail": zh_punct[:12],
         "figures": figures,
         "M1_assertive_titles": None if m1_rate is None else round(m1_rate, 1),
         "M1_detail": m1_missing,
@@ -492,6 +576,13 @@ def grade(r):
         ("M12_visible_cjk", r["M12_visible_cjk"], "=0 (gates)",
          not r["M12_visible_cjk"], r["M12_visible_cjk"] is None),
         ("M4_banned_hits", r["M4_banned_hits"], "=0", r["M4_banned_hits"] == 0, False),
+        # The Chinese pair. n/a on any document that is not Chinese — not "ok",
+        # because a metric that passes on a document it never looked at is the
+        # reassuring line this package keeps removing.
+        ("M4zh_banned_hits", r["M4zh_banned_hits"], "=0",
+         (r["M4zh_banned_hits"] or 0) == 0, r["M4zh_banned_hits"] is None),
+        ("M5_zh_punctuation", r["M5_zh_punctuation"], "=0",
+         (r["M5_zh_punctuation"] or 0) == 0, r["M5_zh_punctuation"] is None),
         ("M8_overlong_share", r["M8_overlong_share"], "<=8%",
          r["M8_overlong_share"] <= 8.0, thin_rhythm),
         ("M8_length_cv", r["M8_length_cv"], ">=0.35", r["M8_length_cv"] >= 0.35, thin_rhythm),

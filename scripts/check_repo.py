@@ -873,6 +873,63 @@ def check_ban_list_parity():
     return errors
 
 
+def check_zh_ban_list_parity():
+    """The [zh-output] list is rule data too, and it had no machine counterpart.
+
+    Phase 1 of the Chinese item, and it is first because it is a GUARD rather
+    than a feature: the English ban list has been held to the rules since
+    0.1.377 while the Chinese list could drift with nothing noticing. Closing
+    the drift channel costs least and is the only part of that work that does
+    not wait on a font licence.
+    """
+    try:
+        text = (ROOT / "references/writing-rules.md").read_text(encoding="utf-8")
+        section = re.search(r"^## 2 [^\n]*\n(.*?)(?=^## )", text, re.S | re.M)
+        if not section:
+            raise ValueError("could not locate section 2 in writing-rules.md")
+        listing = re.search(r"\*\*\[zh-output\]\*\*\s*rule data:(.*?)\.\s*\n",
+                            section.group(1), re.S)
+        if not listing:
+            raise ValueError("could not locate the [zh-output] rule data in section 2")
+        rules = {p.strip() for p in listing.group(1).split("·") if p.strip()}
+        # The qualified ban is stated as prose rather than in the list, so it is
+        # named here explicitly. Its label in the script carries the collocations
+        # it excepts, which is the part a reader of either file needs.
+        qualified = re.search(r"^Qualified ban \(rule data\): (\S+) is allowed",
+                              section.group(1), re.M)
+        if not qualified:
+            raise ValueError("could not locate the qualified ban in section 2")
+        rules.add(qualified.group(1))
+
+        src = (ROOT / "scripts/check_prose.py").read_text(encoding="utf-8")
+        tree = ast.parse(src)
+        script = None
+        for node in ast.walk(tree):
+            if (isinstance(node, ast.Assign)
+                    and any(getattr(t, "id", None) == "BANNED_ZH"
+                            for t in node.targets)):
+                script = {lbl for _pat, lbl in ast.literal_eval(node.value)}
+        if script is None:
+            raise ValueError("check_prose.py declares no BANNED_ZH")
+    except (OSError, ValueError, SyntaxError) as exc:
+        return [f"could not compare the zh ban lists: {exc}"]
+
+    # A label may carry its exception ("赋能 outside 销售赋能 / 市场赋能"), so a
+    # rule phrase is covered when a label STARTS with it. Substring anywhere
+    # would let 赋能 stand in for a phrase that merely contains it.
+    errors = []
+    for phrase in sorted(rules):
+        if not any(lbl.startswith(phrase) for lbl in script):
+            errors.append(f"writing-rules.md section 2 [zh-output] bans {phrase!r}, "
+                          f"which check_prose.py's BANNED_ZH does not match")
+    for label in sorted(script):
+        if not any(label.startswith(phrase) for phrase in rules):
+            errors.append(f"check_prose.py bans {label!r}, which writing-rules.md "
+                          f"section 2 [zh-output] does not list — the rules are the "
+                          f"source, not the script")
+    return errors
+
+
 def check_source_marker_parity():
     """check_prose.py's SOURCE_MARKERS is a second copy of the rules; hold them.
 
@@ -1430,6 +1487,7 @@ CHECKS = (
     ("media-only rules", check_media_only_rules),
     ("layout parity", check_layout_parity),
     ("ban-list parity", check_ban_list_parity),
+    ("zh ban-list parity", check_zh_ban_list_parity),
     ("source-marker parity", check_source_marker_parity),
 )
 
