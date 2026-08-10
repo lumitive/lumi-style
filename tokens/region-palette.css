@@ -156,12 +156,26 @@ body.dark {
 .rg-southeast-asia { fill: var(--rg-southeast-asia); stroke: var(--rg-southeast-asia-stroke); }
 .rg-southeast-asia.is-zero { fill: var(--rg-southeast-asia-wash); }
 .rg.is-out { fill: var(--brass); }
+/* A bloc's FULL membership, outlined when a reader selects it. No
+ * fill: the countries underneath keep their own bloc's colour, which
+ * is the point — the outline says 'these too' without claiming they
+ * stopped belonging where they were. */
+.rg-full { pointer-events: none; }
+.rg-outline { fill: none; stroke: var(--nw); stroke-width: 4; stroke-linejoin: round; }
+.rg.is-selected { stroke: var(--nw); stroke-width: 3; }
 .rg.is-partial { stroke: var(--amber); stroke-width: 2; }
 /* Region labels, set in the ink the contrast floor is computed against:
  * selftest() asserts every fill carries INK_LIGHT / INK_DARK at 4.5:1 or
  * better, and --nw is those two values. A label in any other colour is
  * outside the floor's guarantee. */
 .rg-label { fill: var(--nw); font-family: var(--din); font-weight: 600; text-anchor: middle; pointer-events: none; }
+/* The two tspans a label can carry. Both have existed as CLASSES since
+ * labels shipped and neither had a rule, so a value and a membership
+ * count set identically to the bloc name beside them — the same
+ * class-with-no-rendering defect the 0.1.396 audit found on the
+ * globe's hover state, one file away. */
+.rg-label-n { font-weight: 700; font-variant-numeric: tabular-nums; }
+.rg-label-v { font-weight: 400; fill: var(--tx2); font-variant-numeric: tabular-nums; }
 /* No font-size here: the emitter sets it as an attribute scaled to the
  * frame's R, because a fixed pixel size inside a 2R-unit viewBox
  * renders at whatever the layout divides it to — 13px became ~7 at a

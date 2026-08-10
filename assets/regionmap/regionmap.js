@@ -49,6 +49,7 @@ export function createRegionMap(container, options = {}) {
   }
 
   const names = new Map(registry.regions.map((r) => [r.id, r.n]));
+  const counts = new Map(registry.regions.map((r) => [r.id, r.count]));
   const paths = new Map();
   for (const el of svg.querySelectorAll('[data-region]')) {
     paths.set(el.getAttribute('data-region'), el);
@@ -57,6 +58,14 @@ export function createRegionMap(container, options = {}) {
   for (const el of svg.querySelectorAll('[data-region-label]')) {
     labelEls.set(el.getAttribute('data-region-label'), el);
   }
+  // The full-membership outlines, one per bloc that overlaps another. Present
+  // only when the registry carries overlapping membership, so a map of
+  // disjoint regions has none and nothing below does any work.
+  const overlays = new Map();
+  for (const el of svg.querySelectorAll('[data-overlay]')) {
+    overlays.set(el.getAttribute('data-overlay'), el);
+  }
+  let selected = null;
 
   // Initial state comes FROM THE MARKUP, host data only overrides it. The
   // frame bakes states in (`is-live`, an aria value), and a host that embeds
@@ -137,7 +146,12 @@ export function createRegionMap(container, options = {}) {
     btn.dataset.region = region.id;
     btn.addEventListener('focus', () => setHover(region.id));
     btn.addEventListener('blur', () => setHover(null));
-    btn.addEventListener('click', () => emit('regionselect', { region: region.id }));
+    btn.addEventListener('click', () => {
+      const now = setSelected(region.id);
+      emit('regionselect', {
+        region: region.id, selected: now === region.id, count: counts.get(region.id),
+      });
+    });
     li.appendChild(btn);
     a11y.appendChild(li);
     buttons.set(region.id, btn);
@@ -148,6 +162,20 @@ export function createRegionMap(container, options = {}) {
     }
   }
   container.appendChild(a11y);
+
+  // Selecting a bloc shows its WHOLE membership, including the countries whose
+  // base fill belongs to another bloc. Without this a map of overlapping blocs
+  // can state ASEAN and RCEP but never CPTPP, because no country is filled
+  // CPTPP that is not also in a smaller bloc.
+  function setSelected(id) {
+    selected = selected === id ? null : id;
+    for (const [oid, el] of overlays) {
+      if (oid === selected) el.removeAttribute('display');
+      else el.setAttribute('display', 'none');
+    }
+    for (const [rid, el] of paths) el.classList.toggle('is-selected', rid === selected);
+    return selected;
+  }
 
   function setHover(id) {
     if (id === hovered) return;
@@ -167,7 +195,16 @@ export function createRegionMap(container, options = {}) {
   const onLeave = () => setHover(null);
   const onClick = (ev) => {
     const id = regionOf(ev);
-    if (id) emit('regionselect', { region: id });
+    if (!id) return;
+    // The detail carries what a host needs to open a panel without going back
+    // to the registry: the id, whether this click selected or cleared, and the
+    // membership count the label is already showing.
+    const now = setSelected(id);
+    emit('regionselect', {
+      region: id,
+      selected: now === id,
+      count: counts.get(id),
+    });
   };
   if (interactive) {
     svg.addEventListener('pointerover', onOver);
@@ -181,6 +218,8 @@ export function createRegionMap(container, options = {}) {
 
   return {
     get state() { return state; },
+    get selected() { return selected; },
+    select(id) { return setSelected(id); },
     setData(next) {
       state.regions = (next && next.regions) || {};
       apply();

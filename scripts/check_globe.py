@@ -993,6 +993,76 @@ def check_regionmap_frame():
 
 
 
+def check_trade_layers():
+    """The two-layer map states the bloc, not the drawing decision.
+
+    A map of OVERLAPPING regions cannot fill by membership: Canada is in USMCA
+    and in CPTPP, and a fill picks one. So the trade registry carries two lists
+    and the frame draws both — `members`, the derived disjoint partition, as
+    fill; `full`, the real membership, as a stroke-only overlay hidden until a
+    reader selects the bloc. Four things have to hold or the map lies:
+
+    1. the base partition is DISJOINT — no country fills twice, or one of the
+       two fills is invisible under the other and the map has a hidden claim;
+    2. every base member is a real member (`members` subset of `full`);
+    3. the label counts `full`. This is the one a reader can be wrong about:
+       eight members across these blocs have no shape at 110m — Malta,
+       Singapore, Bahrain, five African island states — so a count taken from
+       what got drawn says 26 for the EU. The count is a fact about the bloc;
+    4. no overlay renders before it is asked for. The static frame is what
+       prints with JavaScript off, and every bloc outlined at once is noise.
+    """
+    import regionmap_svg
+
+    reg_path = ROOT / "assets" / "vectors" / "regions-trade.json"
+    reg = json.loads(reg_path.read_text(encoding="utf-8"))
+    errors = []
+
+    owner = {}
+    for r in reg["regions"]:
+        for code in r["members"]:
+            if code in owner:
+                errors.append(f"{code} fills for both {owner[code]} and {r['id']}; "
+                              f"the base layer must be a partition — one country, "
+                              f"one fill, or the map has a claim it cannot show")
+            owner[code] = r["id"]
+        extra = sorted(set(r["members"]) - set(r["full"]))
+        if extra:
+            errors.append(f"{r['id']}: {', '.join(extra)} fills the map and is not "
+                          f"in the bloc's membership")
+        if r["count"] != len(r["full"]):
+            errors.append(f"{r['id']}: count says {r['count']}, membership has "
+                          f"{len(r['full'])}")
+
+    svg = regionmap_svg.render(lon0=150.0, regions_path=str(reg_path))
+    for r in reg["regions"]:
+        m = re.search(rf'data-region-label="{r["id"]}"[^>]*>(.*?)</text>', svg, re.S)
+        if not m:
+            errors.append(f"{r['id']}: drawn and unlabelled")
+            continue
+        printed = re.search(r'class="rg-label-n">(\d+)<', m.group(1))
+        if not printed:
+            errors.append(f"{r['id']}: the label prints no membership count")
+        elif int(printed.group(1)) != r["count"]:
+            errors.append(f"{r['id']}: the label says {printed.group(1)} and the "
+                          f"bloc has {r['count']} members — a count taken from the "
+                          f"shapes that happened to draw, not from the bloc")
+
+    overlaid = set(re.findall(r'data-overlay="([a-z]+)"', svg))
+    expected = {r["id"] for r in reg["regions"]
+                if sorted(r["full"]) != sorted(r["members"])}
+    for rid in sorted(expected - overlaid):
+        errors.append(f"{rid}: its membership differs from its fill and it has no "
+                      f"overlay, so no reader can ever see the difference")
+    for el in re.findall(r'<path class="rg-outline[^>]*>', svg):
+        if 'display="none"' not in el:
+            rid = re.search(r'data-overlay="([a-z]+)"', el).group(1)
+            errors.append(f"{rid}: its overlay renders in the static frame; "
+                          f"overlays are what a click reveals, and all of them at "
+                          f"once is every border on the map drawn twice")
+    return errors
+
+
 def check_globe_frame():
     """The globe frame's own contract, measured in Python.
 
@@ -1222,6 +1292,7 @@ CHECKS = (
     ("a far-side mark renders nothing", check_far_side_hidden, False, "globe", True),
     ("the night side covers what geometry says", check_terminator_area, False, "globe", True),
     ("the region map frame holds its contract", check_regionmap_frame, False, "map", False),
+    ("the trade map states the bloc, not the drawing", check_trade_layers, False, "map", False),
 )
 
 

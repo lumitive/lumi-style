@@ -258,3 +258,47 @@ rather than built, because in each case the shipped choice is the better one:
 - **No deliverable consumes a component event.** §7 hands tooltips and panels to
   the host document and nothing has ever exercised that. The trade-bloc map is
   where it gets built.
+
+## 9 · The bloc map (0.1.398)
+
+The split's second half was always the weaker half: a flat map that colours
+eleven geographic regions is a picture, not an instrument. The trade blocs are
+what turned it into one, and they arrived with a problem the geographic registry
+never had — **the regions overlap**.
+
+That is not a data-cleanliness issue to be normalised away. Canada really is in
+USMCA and in CPTPP; ASEAN's ten really do sit inside RCEP's fifteen. A choropleth
+fills each shape once, so any single-layer map of these blocs is a map that
+cannot state its own subject. Three ways out were considered:
+
+1. **Translucent stacked fills.** Rejected: two washes over one country produce a
+   colour that is in neither palette, and every contrast floor
+   `build_region_palette.py` asserts is a floor on a colour that would no longer
+   be on the map.
+2. **One map per bloc, small-multiple.** Rejected: eight frames of the same world
+   is eight times the ink to answer "who else is in this one".
+3. **Base partition plus click-to-highlight overlay.** Chosen by the owner and
+   shipped.
+
+The base partition is derived, not typed, under **smallest containing bloc
+wins** — the most specific true statement about a country, and total here
+because the eight membership sizes are distinct. The rule lives in the
+registry's own `$comment`, so a reader who asks why Japan is coloured CPTPP and
+not RCEP has the answer in the file rather than in this spec.
+
+**What the count taught.** The first version of the label counted the shapes it
+had filled. It said 26 for the EU. Malta is below the 110m geometry's
+resolution, along with Singapore, Bahrain and five African island states — so a
+count read off the drawing is a claim about the drawing. It is now a graded
+invariant with the mutation to prove it, and the wording of the failure is the
+lesson: *a count taken from the shapes that happened to draw, not from the bloc*.
+
+**What the eye caught that the checks did not**, again, and the fourth time in
+this sequence: label tspans with classes and no rules, a label half outside the
+viewBox at the frame edge, and two anchors sitting under their own point nodes.
+None of the three is visible to a script that reads markup. All three were
+visible in one screenshot.
+
+**Still open.** The three findings recorded in §8 are unchanged — the canvas back
+end is unreachable from any deliverable, the 30fps floor and 4ms canvas ceiling
+are unmeasured, and the clip's run-to-run linking bijection is unasserted.

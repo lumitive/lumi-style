@@ -37,6 +37,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import geo_projection as gp   # noqa: E402
 from geo_frame import (       # noqa: E402
     REGIONS, TOPOLOGY, GRATICULE, PAD, DEFAULT_R,
+    OBLIQUITY_DEG,
     _load, _rings_of, _project_ring, _project_area, _d, _r, extent,
 )
 
@@ -88,24 +89,31 @@ def render(lon0=0.0, R=DEFAULT_R, states=None, labels="en", regions_path=None):
     states = _norm_states(states)
     view = (lon0, 0.0, 1.0, R, R, R)
 
+    def paths_for(codes):
+        """-> (path data, screen runs) for a set of country codes."""
+        d, runs = [], []
+        for code in codes:
+            country = next((c for c in topo["countries"] if c["a"] == code), None)
+            if not country:
+                continue
+            for ring in _rings_of(country, arcs):
+                r_ = _project_area(ring, view)
+                runs += r_
+                d.append(_d(r_, True, view))
+        return " ".join(x for x in d if x), runs
+
     body = []
     region_runs = {}
     for region in reg["regions"]:
         entry = states.get(region["id"])
         state = entry["state"] if entry else "zero"
-        d, runs = [], []
-        for code in region["members"]:
-            country = next((c for c in topo["countries"] if c["a"] == code), None)
-            if country:
-                for ring in _rings_of(country, arcs):
-                    r_ = _project_area(ring, view)
-                    runs += r_
-                    d.append(_d(r_, True, view))
+        d, runs = paths_for(region["members"])
         region_runs[region["id"]] = runs
-        d = " ".join(x for x in d if x)
+        count = region.get("count")
+        label = region["n"] if count is None else f'{region["n"]}, {count} members'
         body.append(f'<path class="rg rg-{region["id"]} is-{state}" '
                     f'data-region="{region["id"]}" role="img" '
-                    f'aria-label="{html.escape(_aria(region["n"], entry))}" d="{d}"/>')
+                    f'aria-label="{html.escape(_aria(label, entry))}" d="{d}"/>')
 
     # The viewBox fits the INK, not the world. For the shipped registry the two
     # are the same box; for a scoped registry — Asia alone, say — a world-wide
@@ -136,14 +144,54 @@ def render(lon0=0.0, R=DEFAULT_R, states=None, labels="en", regions_path=None):
     if grat:
         body.insert(0, f'<path class="gl-graticule" d="{grat}"/>')
 
+    # The three named latitudes, above the graticule and below the fills, and
+    # clipped to the same ink box for the same reason. They are named lines and
+    # not just heavier graticule: the tropics are where the sun stands overhead
+    # at a solstice, which is the same 23.44 the globe tilts by. A map and a
+    # globe of one world should agree about them.
+    for cls, lat in (("gl-equator", 0.0),
+                     ("gl-tropic", OBLIQUITY_DEG), ("gl-tropic", -OBLIQUITY_DEG)):
+        d = _d(_clip_runs(_project_ring(
+            [(lo, lat) for lo in range(-180, 181, 3)], view), x0, y0, x1, y1), False)
+        if d:
+            body.insert(1, f'<path class="{cls}" d="{d}"/>')
+
+    # The FULL membership of each bloc, stroke-only and hidden until a reader
+    # asks for it. The base fill above has to pick one bloc per country, so a
+    # map of overlapping blocs can never show CPTPP by fill alone — Canada is
+    # coloured USMCA and Japan RCEP-or-CPTPP by the partition rule, whichever
+    # way it fell. This layer is how the overlap becomes visible without
+    # stacking translucent fills and losing every contrast floor the palette
+    # clears. Emitted only when a registry actually carries overlapping
+    # membership, so the geographic registry pays nothing for it.
+    overlays = [r for r in reg["regions"]
+                if r.get("full") and sorted(r["full"]) != sorted(r["members"])]
+    if overlays:
+        body.append('<g class="rg-full">')
+        for region in overlays:
+            d, _runs = paths_for(region["full"])
+            body.append(f'<path class="rg-outline rg-outline-{region["id"]}" '
+                        f'data-overlay="{region["id"]}" d="{d}" '
+                        f'display="none" aria-hidden="true"/>')
+        body.append("</g>")
+
     if labels != "none":
         for region in reg["regions"]:
             lon, lat = region["anchor"]
             x, y, _vis = gp.unrolled(lon, lat, lon0, 0.0, 1.0, R, R, R)
             text = region["z"] if labels == "zh" else region["n"]
+            if labels != "zh" and region.get("abbr"):
+                text = region["abbr"]      # "CPTPP" reads better on a map than its full name
             entry = states.get(region["id"])
+            # The count is the bloc's MEMBERSHIP, not the number of shapes
+            # filled beneath the label: Malta and Singapore are members that
+            # this geometry cannot draw, and a count that dropped them would be
+            # a different, smaller claim than the one the reader is owed.
+            count = region.get("count")
             value = ("" if not entry or entry["value"] is None
                      else f' <tspan class="rg-label-v">{entry["value"]}</tspan>')
+            if count is not None:
+                value = f' <tspan class="rg-label-n">{count}</tspan>' + value
             # font-size as an ATTRIBUTE, scaled to the INK BOX, not to R. The
             # tokens rule carries family and weight only (a fixed CSS pixel
             # size inside this viewBox renders at whatever the layout divides
@@ -151,8 +199,19 @@ def render(lon0=0.0, R=DEFAULT_R, states=None, labels="en", regions_path=None):
             # third the world's width, so an R-scaled label tripled relative
             # to its own frame — found by the first scoped demo page, where
             # "Central Asia" was set wider than Kazakhstan.
+            # CLAMPED inside the frame. The label is text-anchor:middle on an
+            # anchor chosen for the bloc's shape, and a bloc whose shape touches
+            # the frame edge — Mercosur at 150E — hangs half its name outside
+            # the viewBox, where it is simply not drawn. Width is estimated
+            # rather than measured (no font metrics here), at 0.58em per
+            # character for the DIN-ish face at 600: an over-estimate keeps the
+            # text in, and the cost of over-estimating is a label a few units
+            # further from its anchor than it needed to be.
+            fs = vw * 0.0145
+            half = 0.58 * fs * len(f"{text} {count if count is not None else ''}") / 2
+            x = min(max(x, vb[0] + half), vb[0] + vb[2] - half)
             body.append(f'<text class="rg-label" data-region-label="{region["id"]}" '
-                        f'x="{_r(x)}" y="{_r(y)}" font-size="{vw * 0.0145:.0f}">'
+                        f'x="{_r(x)}" y="{_r(y)}" font-size="{fs:.0f}">'
                         f'{html.escape(text)}{value}</text>')
 
     for node in reg.get("nodes", []):
