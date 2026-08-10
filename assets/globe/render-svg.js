@@ -245,7 +245,7 @@ export function createSvgRenderer(svg, data) {
       el.setAttribute('cy', r0(p.y));
       if (p.visible) el.removeAttribute('hidden');
       else el.setAttribute('hidden', '');
-      if (p.visible) out.marks.push({ x: p.x, y: p.y, el });
+      if (p.visible) out.marks.push({ x: p.x, y: p.y, el, id: el.dataset.mark });
     }
     for (const el of nodeEls) {
       const lon = Number(el.dataset.lon);

@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Emit one static SVG frame of the LUMI globe.
+"""Emit one static SVG frame of the LUMI globe — a field of marks on a sphere.
+
+The globe half of the component split
+(specs/2026-08-10-globe-map-split-design.md): a rotating orthographic globe
+whose subject is a FIELD of marks, one per datum, intensity from the datum.
+The flat region map is its own component now — scripts/regionmap_svg.py — and
+this emitter no longer takes a `--form`: it emits the field frame, always at
+the spherical geometry (the t the old one-figure design animated is pinned to 0
+here; the shared projection core keeps the parameter and its checks).
 
 This is the deliverable's renderer. A canvas is invisible to every gate this
 package owns — d5_drawn_share counts a figure as drawn only if it holds an
@@ -7,24 +15,31 @@ package owns — d5_drawn_share counts a figure as drawn only if it holds an
 cannot see inside a canvas — so what ships in a document is SVG, and the
 JavaScript runtime mutates this markup rather than replacing it.
 
-    python3 scripts/globe_svg.py                       # the globe, form 1
-    python3 scripts/globe_svg.py --t 1 --form regions  # the flat region map
-    python3 scripts/globe_svg.py --lon0 -170 --lat0 20 --r 150
+    python3 scripts/globe_svg.py                                  # empty field
+    python3 scripts/globe_svg.py --marks '[{"lon":103.8,"lat":1.35,"weight":3,"label":"Singapore"}]'
+    python3 scripts/globe_svg.py --marks @marks.json --lon0 -170 --lat0 20
 
-No literal colour appears here. Every shape carries a class and the host
-document paints it from tokens, per design-rules.md section 1 — the same rule
-build_geography.py states, for the same reason.
+The mark contract: `[{lon, lat, weight, label?, id?}]`, weight >= 0. Radius
+scales with the SQUARE ROOT of weight — area encodes quantity; a linear radius
+inflates big values quadratically — normalised over the set so the largest mark
+is readable and the smallest survives. The radius rule lives here and in the
+canvas renderer, parity-held, not in tokens: CSS cannot size a canvas mark, and
+a knob that binds one back end is a divergence wearing a token's clothes.
 
-The viewBox is computed from the projected extent at the requested t, never a
-fixed square. inspect_layout --deliverable gates on a drawing clipped by its own
-viewBox, and the globe's limb sits exactly on that edge; that defect is how the
-gate came to exist.
+No literal colour appears here. Every shape carries a class and
+`tokens/region-palette.css` ships the bindings, per design-rules.md section 1.
+
+The viewBox is computed from the projected extent, never a fixed square.
+inspect_layout --deliverable gates on a drawing clipped by its own viewBox, and
+the globe's limb sits exactly on that edge; that defect is how the gate came to
+exist.
 
 Standard library only.
 """
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import math
 import pathlib
@@ -38,19 +53,30 @@ from geo_frame import (   # noqa: E402,F401  (re-exported: render() and callers 
     _r, _guard, _d, extent,
 )
 
-def render(view, form="field", marks=None, states=None):
-    """-> the <svg> element as a string.
+# The mark radius, as fractions of R. MIN is a floor (a datum must survive being
+# small), MAX a ceiling (a mark is a point, not a region), and between them the
+# square root of the normalised weight — area encodes quantity.
+MARK_R_MIN = 0.008
+MARK_R_MAX = 0.028
 
-    `form` is field, regions, or both. Both emits the two layers together, which
-    is what a document needs if it will switch between them at runtime.
 
-    `states` maps region id -> live | partial | zero | out. A region absent from
-    it renders as zero, which is the honest default: no data is not coverage.
+def mark_radius(weight, wmax, R):
+    """Shared with render-canvas.js by value, held together by the parity check."""
+    w = max(0.0, float(weight))
+    u = math.sqrt(w / wmax) if wmax > 0 else 0.0
+    return R * (MARK_R_MIN + (MARK_R_MAX - MARK_R_MIN) * u)
+
+
+def render(view, marks=None):
+    """-> the <svg class="gl"> element as a string.
+
+    `view` is (lon0, lat0, t, R, cx, cy). t stays in the signature because the
+    shared suite sweeps it — the winding guard from 0.1.389 outlives the pinned
+    product — but the PRODUCT frame is t=0 and main() does not expose it.
     """
     topo, reg, arcs = _load()
     lon0, lat0, t, R, cx, cy = view
-    states = states or {}
-    region_of = {c: r["id"] for r in reg["regions"] for c in r["members"]}
+    marks = marks or []
 
     body = []
     # the ground the sphere sits on
@@ -67,48 +93,32 @@ def render(view, form="field", marks=None, states=None):
     if grat:
         body.append(f'<path class="gl-graticule" d="{grat}"/>')
 
-    # A document that offers both forms needs BOTH layers in the file: the
-    # runtime mutates markup and never creates it, so a region path that is not
-    # here has nowhere to be drawn. Discovered by switching form on a frame
-    # generated as "field" and getting a correctly unrolled, entirely empty map.
-    if form in ("regions", "both"):
-        for region in reg["regions"]:
-            state = states.get(region["id"], "zero")
-            d = []
-            for code in region["members"]:
-                country = next((c for c in topo["countries"] if c["a"] == code), None)
-                if country:
-                    for ring in _rings_of(country, arcs):
-                        d.append(_d(_project_area(ring, view), True, view))
-            # Emitted even when nothing of it is visible in THIS frame, with an
-            # empty d. The runtime mutates markup and never creates it, so a
-            # region skipped here can never be drawn when it rotates into view —
-            # the same trap the mark layer fell into one commit earlier.
-            d = " ".join(x for x in d if x)
-            body.append(f'<path class="rg rg-{region["id"]} is-{state}" '
-                        f'data-region="{region["id"]}" role="img" '
-                        f'aria-label="{region["n"]}, {state}" d="{d}"/>')
-    if form in ("field", "both"):
-        d = []
-        for country in topo["countries"]:
-            for ring in _rings_of(country, arcs):
-                d.append(_d(_project_area(ring, view), True, view))
-        d = " ".join(x for x in d if x)
-        body.append(f'<path class="gl-land" d="{d}"/>')
+    d = []
+    for country in topo["countries"]:
+        for ring in _rings_of(country, arcs):
+            d.append(_d(_project_area(ring, view), True, view))
+    d = " ".join(x for x in d if x)
+    body.append(f'<path class="gl-land" d="{d}"/>')
 
     # Every mark and node is in the DOM whether or not this frame shows it, with
     # its lat/lon on the element and visibility as an attribute. The runtime
     # mutates markup and never creates it, so a mark that rotates into view has
     # to already have somewhere to land; and a reader with JavaScript off still
     # gets exactly the frame that was generated, because `hidden` is honoured.
-    for i, mark in enumerate(marks or []):
+    wmax = max((float(m.get("weight", 1.0)) for m in marks), default=1.0)
+    for mark in marks:
         px, py, vis = gp.unrolled(mark["lon"], mark["lat"], lon0, lat0, t, R, cx, cy)
-        w = mark.get("weight", 1.0)
-        body.append(f'<circle class="gl-mark" data-lon="{mark["lon"]:g}" '
-                    f'data-lat="{mark["lat"]:g}" data-w="{w:g}" '
-                    f'cx="{_r(px)}" cy="{_r(py)}" '
-                    f'r="{R * (0.009 + 0.015 * w):.1f}"'
-                    f'{"" if vis else " hidden"}/>')
+        w = float(mark.get("weight", 1.0))
+        label = mark.get("label", "")
+        extra = (f' data-mark="{html.escape(str(mark["id"]))}"' if "id" in mark else "")
+        title = f"<title>{html.escape(label)}, {w:g}</title>" if label else ""
+        attrs = (f'class="gl-mark"{extra} data-lon="{mark["lon"]:g}" '
+                 f'data-lat="{mark["lat"]:g}" data-w="{w:g}" '
+                 f'cx="{_r(px)}" cy="{_r(py)}" '
+                 f'r="{mark_radius(w, wmax, R):.1f}"'
+                 f'{"" if vis else " hidden"}')
+        body.append(f"<circle {attrs}>{title}</circle>" if title
+                    else f"<circle {attrs}/>")
 
     for node in reg.get("nodes", []):
         px, py, vis = gp.unrolled(node["lon"], node["lat"], lon0, lat0, t, R, cx, cy)
@@ -116,17 +126,14 @@ def render(view, form="field", marks=None, states=None):
                     f'data-lon="{node["lon"]:g}" data-lat="{node["lat"]:g}" '
                     f'cx="{_r(px)}" cy="{_r(py)}" r="{R * 0.017:.1f}"'
                     f'{"" if vis else " hidden"}>'
-                    f'<title>{node["n"]}</title></circle>')
+                    f'<title>{html.escape(node["n"])}</title></circle>')
 
     x0, y0, x1, y1 = extent(view)
     pad = PAD * (R / DEFAULT_R)
     vb = (x0 - pad, y0 - pad, (x1 - x0) + 2 * pad, (y1 - y0) + 2 * pad)
-    label = {"regions": "LUMI globe, trade regions",
-             "field": "LUMI globe, coverage field",
-             "both": "LUMI globe, coverage field and trade regions"}[form]
     head = (f'<svg xmlns="http://www.w3.org/2000/svg" class="gl" '
             f'viewBox="{vb[0]:.1f} {vb[1]:.1f} {vb[2]:.1f} {vb[3]:.1f}" '
-            f'role="img" aria-label="{label}" data-t="{t:g}" '
+            f'role="img" aria-label="LUMI globe, field of marks" data-t="{t:g}" '
             f'data-lon0="{lon0:g}" data-lat0="{lat0:g}" data-r="{R:g}" '
             f'data-cx="{cx:g}" data-cy="{cy:g}">')
     note = ("<!-- generated by scripts/globe_svg.py; the runtime in "
@@ -134,26 +141,32 @@ def render(view, form="field", marks=None, states=None):
     return "\n".join([head, note, *body, "</svg>"])
 
 
+def _load_marks(arg):
+    """Inline JSON, or @path to a file of it."""
+    if arg is None:
+        return None
+    text = (pathlib.Path(arg[1:]).read_text(encoding="utf-8")
+            if arg.startswith("@") else arg)
+    marks = json.loads(text)
+    if not isinstance(marks, list):
+        raise SystemExit("FAIL  --marks must be a JSON list of "
+                         '{"lon", "lat", "weight", "label"?, "id"?}')
+    return marks
+
+
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--lon0", type=float, default=0.0)
     ap.add_argument("--lat0", type=float, default=0.0)
-    ap.add_argument("--t", type=float, default=0.0)
     ap.add_argument("--r", type=float, default=DEFAULT_R)
-    ap.add_argument("--states", metavar="JSON", default=None,
-                    help='region states, e.g. \'{"europe":"live"}\'. Without '
-                         "this every region renders as zero, which is the honest "
-                         "default and is also why a coverage map generated "
-                         "without it says nothing.")
-    ap.add_argument("--form", choices=("field", "regions", "both"),
-                    default="field",
-                    help="both emits the land layer and the region layer; the "
-                         "host stylesheet shows one at a time and the runtime "
-                         "can switch between them")
+    ap.add_argument("--marks", metavar="JSON|@FILE", default=None,
+                    help="the field's data: a JSON list of "
+                         '{"lon","lat","weight","label"?,"id"?}. Without it the '
+                         "globe is scenery, and scenery should say so rather "
+                         "than pretend to state data.")
     args = ap.parse_args(argv)
-    view = (args.lon0, args.lat0, args.t, args.r, args.r, args.r)
-    states = json.loads(args.states) if args.states else None
-    print(render(view, form=args.form, states=states))
+    view = (args.lon0, args.lat0, 0.0, args.r, args.r, args.r)
+    print(render(view, marks=_load_marks(args.marks)))
     return 0
 
 
