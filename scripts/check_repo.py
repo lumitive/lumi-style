@@ -9,6 +9,7 @@ import ast
 import json
 import pathlib
 import re
+import subprocess
 import sys
 import traceback
 
@@ -873,6 +874,24 @@ def check_ban_list_parity():
     return errors
 
 
+def check_review_scores():
+    """The human half of the loop has a memory now; keep it valid and clean.
+
+    Delegated to scripts/review_scores.py so the schema lives in one place.
+    The reason this runs in CI at all is red line 9: a score store is exactly
+    the shape that carries a client name into the repository, and the defence is
+    that the schema has no field to put one in. A guard that is not run is a
+    comment.
+    """
+    proc = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "review_scores.py"), "--check"],
+        capture_output=True, text=True)
+    if proc.returncode == 0:
+        return []
+    return [line[6:] for line in proc.stdout.splitlines()
+            if line.startswith("FAIL  ")] or [proc.stdout.strip() or "unknown failure"]
+
+
 def check_zh_ban_list_parity():
     """The [zh-output] list is rule data too, and it had no machine counterpart.
 
@@ -1488,6 +1507,7 @@ CHECKS = (
     ("layout parity", check_layout_parity),
     ("ban-list parity", check_ban_list_parity),
     ("zh ban-list parity", check_zh_ban_list_parity),
+    ("review scores", check_review_scores),
     ("source-marker parity", check_source_marker_parity),
 )
 

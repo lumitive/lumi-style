@@ -242,7 +242,14 @@ anything.
    that shipped a clipped figure.)
 4. The retrospective produces one of three outcomes: a rule revision (CHANGELOG +
    version bump) / an anchor revision (anchors can be wrong too) / a recorded
-   no-change with reasons. **A no-change is written down like the other two**,
+   no-change with reasons. **Record the round in `reviews/scores.json`** — release,
+   genre, six self-scores, six reader scores, outcome — and read the series back
+   with `python3 scripts/review_scores.py`. Until 0.1.390 this loop had no memory:
+   every score lived as a sentence in a release note, so no dimension could be read
+   over time and nobody could say whether the loop was working. The store carries
+   **no free-text field**, which is not an omission — a scores file is the shape
+   that walks a client name into this repository, and reasons belong in
+   `CHANGELOG.md`, which is already written under that red line. **A no-change is written down like the other two**,
    because the alternative is a decision nobody can find later and a question
    that gets re-opened by the next person to notice the same number;
 5. The same lesson appearing across 2 documents → promoted to a formal rule.
