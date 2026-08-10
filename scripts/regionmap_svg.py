@@ -120,6 +120,7 @@ def render(lon0=0.0, R=DEFAULT_R, states=None, labels="en", regions_path=None):
         x0, y0, x1, y1 = min(xs), min(ys), max(xs), max(ys)
     pad = PAD * (R / DEFAULT_R)
     vb = (x0 - pad, y0 - pad, (x1 - x0) + 2 * pad, (y1 - y0) + 2 * pad)
+    vw = vb[2]                     # the ruler labels and nodes scale against
 
     # The graticule is emitted last and CLIPPED to the ink box: a scoped map
     # must not carry world-spanning lines outside its own viewBox — the
@@ -143,11 +144,15 @@ def render(lon0=0.0, R=DEFAULT_R, states=None, labels="en", regions_path=None):
             entry = states.get(region["id"])
             value = ("" if not entry or entry["value"] is None
                      else f' <tspan class="rg-label-v">{entry["value"]}</tspan>')
-            # font-size as an ATTRIBUTE, scaled to R. The tokens rule carries
-            # family and weight only: a fixed CSS pixel size inside this
-            # viewBox renders at whatever the layout divides it to.
+            # font-size as an ATTRIBUTE, scaled to the INK BOX, not to R. The
+            # tokens rule carries family and weight only (a fixed CSS pixel
+            # size inside this viewBox renders at whatever the layout divides
+            # it to), and R is the wrong ruler: a scoped Asia map fits a box a
+            # third the world's width, so an R-scaled label tripled relative
+            # to its own frame — found by the first scoped demo page, where
+            # "Central Asia" was set wider than Kazakhstan.
             body.append(f'<text class="rg-label" data-region-label="{region["id"]}" '
-                        f'x="{_r(x)}" y="{_r(y)}" font-size="{R * 0.030:.0f}">'
+                        f'x="{_r(x)}" y="{_r(y)}" font-size="{vw * 0.0145:.0f}">'
                         f'{html.escape(text)}{value}</text>')
 
     for node in reg.get("nodes", []):
@@ -155,7 +160,7 @@ def render(lon0=0.0, R=DEFAULT_R, states=None, labels="en", regions_path=None):
         if xs and not (x0 <= px <= x1 and y0 <= py <= y1):
             continue
         body.append(f'<circle class="gl-node" data-node="{node["id"]}" '
-                    f'cx="{_r(px)}" cy="{_r(py)}" r="{R * 0.014:.1f}">'
+                    f'cx="{_r(px)}" cy="{_r(py)}" r="{vw * 0.0068:.1f}">'
                     f'<title>{html.escape(node["n"])}</title></circle>')
 
     head = (f'<svg xmlns="http://www.w3.org/2000/svg" class="regionmap" '
