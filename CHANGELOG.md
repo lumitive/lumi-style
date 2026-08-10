@@ -3,6 +3,43 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.395 — the registry stops being a singleton
+
+Release 5 of 5 for the component split, and the one that delivers the owner's
+"different regions and colours, different scenarios" in full.
+
+**`build_region_palette.py --regions <path> --out <path> --prefix <cls>`.** A
+custom registry gets the same six floors the shipped one gets — the floors are
+the contract, not the registry — and a scoped palette: variables and class
+joins under the instance's ancestor class, no second copy of the global chrome.
+Two maps with different registries coexist on one page, each resolving its own
+hues. `--out` is mandatory with `--regions`, because a custom palette must
+never overwrite the tokens file the default registry's documents include; and
+after writing, the floors are asserted against the registry that was just
+written, not the shipped one — asserting the default's floors there would
+bless a custom registry that clears nothing.
+
+**Validation before colour.** No double-claimed member (the hue assignment
+would be ambiguous), no member missing from the topology (a silent no-draw),
+no node naming an absent region. Full topology coverage is OPT-IN
+(`--require-full-coverage`): a scoped map — Asia alone — legitimately covers
+less than the world, which is why `check_repo`'s coverage guard keeps
+guarding the shipped singleton and only that.
+
+**A scoped map fits its regions.** The first cut rendered Asia as a sliver
+inside a world-wide viewBox — an ocean of empty graticule on either side,
+exactly the reserved-space-nothing-draws-in defect the frame-fill floor
+exists to catch. The map's viewBox now fits the ink; the graticule is emitted
+last and clipped to it; nodes outside it are skipped. For the shipped
+registry the ink box and the world are the same box, minus the empty polar
+band above the northernmost coastline, which is an improvement nobody will
+mourn.
+
+`--regions` rides through `regionmap_svg.py`, `embed_regionmap.py` and
+`geo_frame._load`, with the topology staying shipped throughout: regions group
+countries, they do not redraw them. The globe stays on the default registry —
+its subject is marks, not groupings.
+
 ## 0.1.394 — the globe becomes the field it always claimed to be, and the unroll retires
 
 Release 4 of 5 for the component split. The globe is now one thing: a rotating
