@@ -51,7 +51,7 @@ vendored assets are intact.
 
 `check_globe.py` is the fifth thing CI cannot run in full: its maths half is
 `--python-only` and runs in CI, and the half that checks
-`assets/globe/projection.js` against the Python authority needs a headless
+`assets/geo/projection.js` against the Python authority needs a headless
 Chromium. **This repository contains no JavaScript toolchain** — no
 package.json, no runner — so a golden grid of 1300 projection samples is
 what holds the port to the Python, and it is the only thing that does.

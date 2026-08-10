@@ -3,6 +3,22 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.392 — the shared geometry core gets its own directory, and nothing else moves
+
+Release 2 of 5 for the component split. `assets/geo/` now holds the one library
+both components stand on — `projection.js`, `worlddata.js`, `pick.js` — and
+`assets/globe/` keeps what is the globe's own. `scripts/geo_frame.py` is the
+Python side of the same cut: the frame assembly both static emitters will share
+(load, ring decode, the clip-split-project order 0.1.389 established, the pole
+close, the guard, the rounding rule, the extent), extracted from `globe_svg.py`
+unchanged.
+
+The whole release is a re-layout, and the proof is the point: the emitted SVG
+is byte-identical across three reference views (both forms, three values of t),
+the 1300-sample golden grid is untouched, and the full browser suite — port
+parity and renderer parity included — runs green on the moved tree. A re-layout
+that cannot demonstrate byte-identity is a rewrite wearing its clothes.
+
 ## 0.1.391 — the split is decided, the palette becomes usable, and Chinese type gets its honest answer
 
 **The one-figure-two-forms decision is reversed** (owner directive, 2026-08-10 —

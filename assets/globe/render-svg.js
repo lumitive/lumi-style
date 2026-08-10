@@ -11,8 +11,8 @@
 
 import {
   project, splitAtSeam, densify, clipToCap,
-} from './projection.js';
-import { ringsOf, ringsOfRegion } from './worlddata.js';
+} from '../geo/projection.js';
+import { ringsOf, ringsOfRegion } from '../geo/worlddata.js';
 
 const STEP_DEG = 2;
 // Matches PAD in scripts/globe_svg.py, in the same user units.

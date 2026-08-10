@@ -8,8 +8,8 @@
 // the cursor under the cursor, which is the only behaviour that reads as
 // picking the object up.
 
-import { invert } from './projection.js';
-import { toUserSpace } from './pick.js';
+import { invert } from '../geo/projection.js';
+import { toUserSpace } from '../geo/pick.js';
 
 const D2R = Math.PI / 180;
 const R2D = 180 / Math.PI;

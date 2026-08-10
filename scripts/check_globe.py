@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify the globe maths, and that the JavaScript port agrees with it.
 
-assets/globe/projection.js is a hand port of scripts/geo_projection.py. Nothing
+assets/geo/projection.js is a hand port of scripts/geo_projection.py. Nothing
 in this repository can compile JavaScript — there is no package.json, and CI runs
 py_compile over the Python and bash -n over two shell scripts — so the port is
 held to the Python authority by a golden grid instead of by a type checker.
@@ -39,8 +39,8 @@ import geo_projection as gp   # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 GOLDEN = ROOT / "fixtures" / "globe-golden.json"
-JS = ROOT / "assets" / "globe" / "projection.js"
-JS_DATA = ROOT / "assets" / "globe" / "worlddata.js"
+JS = ROOT / "assets" / "geo" / "projection.js"
+JS_DATA = ROOT / "assets" / "geo" / "worlddata.js"
 JS_RENDER = ROOT / "assets" / "globe" / "render-svg.js"
 TOPOLOGY = ROOT / "assets" / "vectors" / "world-110m.json"
 REGIONS = ROOT / "assets" / "vectors" / "regions.json"
@@ -422,9 +422,9 @@ def check_renderer_parity():
     import embed_globe
 
     seen, bundle = {}, []
-    for name in ("projection.js", "worlddata.js", "render-svg.js"):
+    for name in ("geo/projection.js", "geo/worlddata.js", "globe/render-svg.js"):
         src = embed_globe.strip_module_syntax(
-            (ROOT / "assets" / "globe" / name).read_text(encoding="utf-8"))
+            (ROOT / "assets" / name).read_text(encoding="utf-8"))
         src, bad = embed_globe.dedupe_top_consts(name, src, seen)
         if bad:
             return bad

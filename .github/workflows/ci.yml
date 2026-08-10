@@ -31,7 +31,7 @@ jobs:
             scripts/embed_font.py scripts/embed_icons.py scripts/build_geography.py \
             scripts/geo_projection.py scripts/build_worldmap.py \
             scripts/build_region_palette.py scripts/check_globe.py \
-            scripts/globe_svg.py scripts/embed_globe.py \
+            scripts/globe_svg.py scripts/geo_frame.py scripts/embed_globe.py \
             scripts/build_entrypoints.py scripts/inspect_layout.py \
             scripts/build_fixtures.py scripts/check_fixtures.py \
             scripts/run_conformance.py scripts/export_pdf.py \

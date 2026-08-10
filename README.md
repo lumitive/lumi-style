@@ -80,9 +80,11 @@ assets/icons                      vendored Lucide library (ISC) + the reserved b
 assets/vectors                    orthographic globe · flat trade map, generated from lat/lon
 assets/vectors/world-110m.json    Natural Earth 110m as a shared-arc topology (public domain)
 assets/vectors/regions.json       trade-region registry, node point layer, bilingual names
-assets/globe                      the globe component: one projection, SVG and canvas back ends
-fixtures/                         two synthetic deliverables the checkers are tested on:
-                                  one well-formed, one with a named defect per metric
+assets/geo                        the shared geometry core: projection, topology decode, hit test
+assets/globe                      the globe component: SVG and canvas back ends over the core
+fixtures/                         synthetic deliverables the checkers are tested on — a
+                                  well-formed one, one with a named defect per page, one
+                                  that exists only to fail, and a Chinese prose pair
 conformance/                      fixed task suite · the tracked cross-agent scoreboard
 scripts/                          check_repo · check_prose (M) · check_design (D) ·
                                   inspect_layout (renders and looks) · export_pdf (PDF/4K) ·
