@@ -150,7 +150,14 @@ def render_note(p: dict, version: str) -> str:
         body += ["", extra]
 
     if p.get("path_verified") is not True:
-        body += ["", f"**Unverified.** {p.get('path_waiver', '')}"]
+        body += ["", f"**Unverified install path.** {p.get('path_waiver', '')}"]
+    # The tier decides whether this agent may call a deliverable verified, so an
+    # unexercised tier claim is published rather than kept in the registry. The
+    # install path has been published this way since it had a waiver; the tier
+    # had no verification field at all until 0.1.390.
+    if p.get("capability_verified") is not True:
+        body += ["", f"**Capability tier not exercised.** This note claims the "
+                     f"`{p.get('capability')}` tier. {p.get('capability_waiver', '')}"]
     if p.get("docs"):
         body += ["", f"Vendor documentation: {p['docs']}"]
     return "\n".join(body).rstrip() + "\n"

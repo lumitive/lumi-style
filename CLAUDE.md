@@ -29,6 +29,7 @@ python3 scripts/embed_globe.py           # the globe runtime as one inline <scri
 python3 scripts/build_entrypoints.py     # regenerate every per-platform artifact; --check in CI
 python3 scripts/build_fixtures.py        # regenerate the tracked test fixtures; --check in CI
 python3 scripts/check_fixtures.py        # run the checkers against the fixtures and assert verdicts
+python3 scripts/review_scores.py         # the six human dimensions over time; --check validates
 python3 scripts/run_conformance.py       # validate | detect | run | score | report (local, not CI)
 bash    scripts/ci_wait.sh <PR>          # bounded wait, short-circuits on outage
 ```

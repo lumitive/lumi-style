@@ -17,4 +17,6 @@ The skill reads `references/` and `tokens/` on demand — no need to attach them
 
 Project-level equivalents are `.opencode/skills/`, `.agents/skills/` and `.claude/skills/`, searched upward from the working directory to the git worktree root.
 
+**Capability tier not exercised.** This note claims the `full` tier. Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed.
+
 Vendor documentation: https://opencode.ai/docs/skills/

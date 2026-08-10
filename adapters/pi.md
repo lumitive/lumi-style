@@ -16,4 +16,6 @@ The skill reads `references/` and `tokens/` on demand — no need to attach them
 
 Pi discovers a directory containing `SKILL.md`; the skill name comes from the `name` frontmatter field. Project installs go in `.agents/skills/` and are honoured after project trust is granted.
 
+**Capability tier not exercised.** This note claims the `full` tier. Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed.
+
 Vendor documentation: https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/skills.md

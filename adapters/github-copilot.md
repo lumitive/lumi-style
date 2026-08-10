@@ -19,4 +19,6 @@ Agent skills are a **different mechanism** from `.github/copilot-instructions.md
 
 Works in the Copilot CLI, the cloud agent, code review, and agent mode in VS Code and JetBrains IDEs.
 
+**Capability tier not exercised.** This note claims the `full` tier. Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed.
+
 Vendor documentation: https://docs.github.com/en/copilot/concepts/agents/about-agent-skills

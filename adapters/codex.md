@@ -15,4 +15,6 @@ The skill reads `references/` and `tokens/` on demand — no need to attach them
 
 Codex also reads `AGENTS.md` from the project root by convention, so a checkout in the working tree is picked up without any install.
 
+**Capability tier not exercised.** This note claims the `full` tier. Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed.
+
 Vendor documentation: https://developers.openai.com/codex/skills/

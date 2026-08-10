@@ -1,273 +1,297 @@
 {
-  "$schema_note": "LUMI platform registry. The single source of platform facts: install paths, capability tiers and entry files. scripts/check_repo.py guards it and scripts/build_entrypoints.py generates every per-platform artifact from it. Adding a platform means adding a record here and an install note, never restating a rule. Repository language: English only (red line). This file carries no version stamp on purpose: it is not a copy of the rules, so it has nothing to drift from, and the stamp it used to carry was hand-written, unguarded and four releases stale.",
-  "capabilities": {
-    "full": {
-      "means": "reads the bundled files and can execute scripts/",
-      "ships": [
-        "SKILL.md",
-        "references/",
-        "tokens/",
-        "assets/",
-        "scripts/"
-      ],
-      "verification": "the agent runs check_prose.py, check_design.py and inspect_layout.py itself"
-    },
-    "files": {
-      "means": "reads the bundled files, cannot execute anything",
-      "ships": [
-        "SKILL.md",
-        "references/",
-        "tokens/",
-        "assets/"
-      ],
-      "verification": "the agent names the checks it owes and the operator runs them; the agent may not call a deliverable verified"
-    },
-    "prompt": {
-      "means": "one pasted prompt, no file access and no tools",
-      "ships": [
-        "prompts/lumi-style-core.md"
-      ],
-      "verification": "none available in session; the pre-delivery checklist is inlined in the prompt and the operator runs the scripts afterwards"
-    }
+ "$schema_note": "LUMI platform registry. The single source of platform facts: install paths, capability tiers and entry files. scripts/check_repo.py guards it and scripts/build_entrypoints.py generates every per-platform artifact from it. Adding a platform means adding a record here and an install note, never restating a rule. Repository language: English only (red line). This file carries no version stamp on purpose: it is not a copy of the rules, so it has nothing to drift from, and the stamp it used to carry was hand-written, unguarded and four releases stale.",
+ "capabilities": {
+  "full": {
+   "means": "reads the bundled files and can execute scripts/",
+   "ships": [
+    "SKILL.md",
+    "references/",
+    "tokens/",
+    "assets/",
+    "scripts/"
+   ],
+   "verification": "the agent runs check_prose.py, check_design.py and inspect_layout.py itself"
   },
-  "shared_path_note": "~/.agents/skills/ is the convergent cross-agent location: Gemini CLI, GitHub Copilot, OpenCode, OpenClaw and Pi all read it, and Gemini CLI gives it precedence over its own ~/.gemini/skills/. Installing there once serves five platforms. Google Antigravity's workspace path is .agent/skills/ — singular 'agent' — and is NOT the same convention; do not conflate them.",
-  "entry_note": "Every platform below reads SKILL.md, which is the Agent Skills standard artifact, except Codex which reads AGENTS.md by its own convention and the two prompt-tier platforms which take prompts/lumi-style-core.md. Per-platform pointer files (GEMINI.md, .github/copilot-instructions.md, .cursor/rules/lumi-style.mdc) are generated conveniences, not requirements: the skill path already works without them.",
-  "platforms": [
-    {
-      "id": "claude-code",
-      "name": "Claude Code",
-      "capability": "full",
-      "skill_paths": [
-        "~/.claude/skills/lumi-style"
-      ],
-      "path_verified": true,
-      "entry_file": "SKILL.md",
-      "notes_path": "adapters/claude-code.md",
-      "invoke": "/lumi-style <task>, or say \"in LUMI style…\"",
-      "probe": [
-        "claude",
-        "--version"
-      ],
-      "docs": "https://code.claude.com/docs/en/skills"
-    },
-    {
-      "id": "gemini-cli",
-      "name": "Gemini CLI",
-      "capability": "full",
-      "skill_paths": [
-        "~/.agents/skills/lumi-style",
-        "~/.gemini/skills/lumi-style"
-      ],
-      "path_verified": true,
-      "entry_file": "SKILL.md",
-      "notes_path": "adapters/gemini-cli.md",
-      "invoke": "say \"in LUMI style…\"; Gemini calls activate_skill and asks you to confirm the directory",
-      "probe": [
-        "gemini",
-        "--version"
-      ],
-      "docs": "https://geminicli.com/docs/cli/skills/",
-      "extra": [
-        "`~/.agents/skills/` is the shared cross-agent location and **takes precedence** over Gemini's own directory, so prefer it — one install there also serves GitHub Copilot, OpenCode, OpenClaw and Pi.",
-        "Gemini calls `activate_skill` and asks you to confirm the directory it is about to read; approve it once per session."
-      ]
-    },
-    {
-      "id": "codex",
-      "name": "OpenAI Codex",
-      "capability": "full",
-      "skill_paths": [
-        "~/.codex/skills/lumi-style"
-      ],
-      "path_verified": true,
-      "entry_file": "AGENTS.md",
-      "notes_path": "adapters/codex.md",
-      "invoke": "Codex reads AGENTS.md from the project root by convention; the skill path is read directly",
-      "probe": [
-        "codex",
-        "--version"
-      ],
-      "docs": "https://developers.openai.com/codex/skills/",
-      "extra": [
-        "Codex also reads `AGENTS.md` from the project root by convention, so a checkout in the working tree is picked up without any install."
-      ]
-    },
-    {
-      "id": "cursor",
-      "name": "Cursor",
-      "capability": "full",
-      "skill_paths": [
-        "~/.cursor/skills/lumi-style"
-      ],
-      "path_verified": true,
-      "entry_file": "SKILL.md",
-      "notes_path": "adapters/cursor.md",
-      "invoke": "say \"in LUMI style…\"",
-      "probe": [
-        "cursor-agent",
-        "--version"
-      ],
-      "docs": "https://cursor.com/docs/context/skills",
-      "extra": [
-        "A `.cursor/rules/lumi-style.mdc` pointer file ships for projects that want the rules loaded workspace-wide rather than on demand. It is a convenience — the skill path already works."
-      ]
-    },
-    {
-      "id": "antigravity",
-      "name": "Google Antigravity",
-      "capability": "full",
-      "skill_paths": [
-        "~/.gemini/antigravity/skills/lumi-style",
-        ".agent/skills/lumi-style"
-      ],
-      "path_verified": true,
-      "entry_file": "SKILL.md",
-      "notes_path": "adapters/antigravity.md",
-      "invoke": "restart the agent session after copying so Antigravity re-detects the skill",
-      "probe": null,
-      "probe_waiver": "Antigravity ships as an IDE, not a CLI on PATH. The conformance harness cannot invoke it headlessly and will record it as not exercised.",
-      "docs": "https://antigravity.google/docs/skills",
-      "extra": [
-        "The workspace path is `.agent/skills/` — **singular `agent`** — and is deliberately not the shared `.agents/skills/` convention every other platform here uses. Do not conflate them.",
-        "**Restart the agent session after installing** so Antigravity re-detects the skill."
-      ]
-    },
-    {
-      "id": "github-copilot",
-      "name": "GitHub Copilot",
-      "capability": "full",
-      "skill_paths": [
-        "~/.agents/skills/lumi-style",
-        "~/.copilot/skills/lumi-style",
-        ".github/skills/lumi-style"
-      ],
-      "path_verified": true,
-      "entry_file": "SKILL.md",
-      "notes_path": "adapters/github-copilot.md",
-      "invoke": "works in the Copilot CLI, the cloud agent, code review, and agent mode in VS Code and JetBrains",
-      "probe": [
-        "copilot",
-        "--version"
-      ],
-      "docs": "https://docs.github.com/en/copilot/concepts/agents/about-agent-skills",
-      "extra": [
-        "Agent skills are a **different mechanism** from `.github/copilot-instructions.md`; you do not need the latter. A generated pointer file ships at that path anyway, for repositories that are checked out rather than installed.",
-        "Works in the Copilot CLI, the cloud agent, code review, and agent mode in VS Code and JetBrains IDEs."
-      ]
-    },
-    {
-      "id": "opencode",
-      "name": "OpenCode",
-      "capability": "full",
-      "skill_paths": [
-        "~/.config/opencode/skills/lumi-style",
-        "~/.agents/skills/lumi-style",
-        "~/.claude/skills/lumi-style"
-      ],
-      "path_verified": true,
-      "entry_file": "SKILL.md",
-      "notes_path": "adapters/opencode.md",
-      "invoke": "say \"in LUMI style…\"",
-      "probe": [
-        "opencode",
-        "--version"
-      ],
-      "docs": "https://opencode.ai/docs/skills/",
-      "extra": [
-        "Project-level equivalents are `.opencode/skills/`, `.agents/skills/` and `.claude/skills/`, searched upward from the working directory to the git worktree root."
-      ]
-    },
-    {
-      "id": "pi",
-      "name": "Pi",
-      "capability": "full",
-      "skill_paths": [
-        "~/.agents/skills/lumi-style",
-        "~/.pi/agent/skills/lumi-style"
-      ],
-      "path_verified": true,
-      "entry_file": "SKILL.md",
-      "notes_path": "adapters/pi.md",
-      "invoke": "/skill:lumi-style <task>",
-      "probe": [
-        "pi",
-        "--version"
-      ],
-      "docs": "https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/skills.md",
-      "extra": [
-        "Pi discovers a directory containing `SKILL.md`; the skill name comes from the `name` frontmatter field. Project installs go in `.agents/skills/` and are honoured after project trust is granted."
-      ]
-    },
-    {
-      "id": "openclaw",
-      "name": "OpenClaw",
-      "capability": "full",
-      "skill_paths": [
-        "~/.agents/skills/lumi-style",
-        "<workspace>/skills/lumi-style"
-      ],
-      "path_verified": true,
-      "entry_file": "SKILL.md",
-      "notes_path": "adapters/openclaw.md",
-      "invoke": "the slash command comes from the name frontmatter field: /lumi-style",
-      "probe": [
-        "openclaw",
-        "--version"
-      ],
-      "docs": "https://docs.openclaw.ai/tools/skills",
-      "extra": [
-        "OpenClaw finds `SKILL.md` anywhere under a configured root, up to six levels deep.",
-        "Symlinked targets need explicit trust via `skills.load.allowSymlinkTargets` in `openclaw.json`; if the skill does not appear, check that first."
-      ]
-    },
-    {
-      "id": "hermes",
-      "name": "Hermes",
-      "capability": "full",
-      "skill_paths": [
-        "~/.agents/skills/lumi-style"
-      ],
-      "path_verified": false,
-      "path_waiver": "Hermes consumes the same SKILL.md format with name/description frontmatter, but no documentation we can cite states its discovery path. The shared ~/.agents/skills/ location is the most likely and must be confirmed on a machine with Hermes installed before this becomes a verified claim. Until then the README lists Hermes as unconfirmed rather than supported.",
-      "entry_file": "SKILL.md",
-      "notes_path": "adapters/hermes.md",
-      "invoke": "unconfirmed",
-      "probe": null,
-      "docs": null,
-      "docs_waiver": "The URL here was OpenClaw's repository, which is a different project. Hermes has no documentation we can cite for its skill discovery, which is the same reason path_verified is false.",
-      "probe_waiver": "Never run. The probe was declared but no Hermes install has been available to confirm the binary name, and a non-null probe satisfied the guard designed to force unverified claims into the open."
-    },
-    {
-      "id": "kimi",
-      "name": "Kimi",
-      "capability": "prompt",
-      "skill_paths": [],
-      "path_verified": true,
-      "entry_file": "prompts/lumi-style-core.md",
-      "notes_path": "adapters/kimi.md",
-      "invoke": "paste the core prompt as the system prompt (API: the system field; web: the first message)",
-      "probe": null,
-      "probe_waiver": "A chat model behind an API, not a CLI. The harness cannot invoke it without credentials and will record it as not exercised.",
-      "docs": null,
-      "docs_waiver": "No vendor documentation to cite: the prompt tier is a property of how the model is used, not a feature the vendor documents."
-    },
-    {
-      "id": "deepseek",
-      "name": "DeepSeek",
-      "capability": "prompt",
-      "skill_paths": [],
-      "path_verified": true,
-      "entry_file": "prompts/lumi-style-core.md",
-      "notes_path": "adapters/deepseek.md",
-      "invoke": "put the core prompt in messages[0] (role=system); re-inject at the start of each long session",
-      "probe": null,
-      "probe_waiver": "Same as Kimi: an API chat model with no CLI to probe.",
-      "docs": null,
-      "docs_waiver": "Same as Kimi.",
-      "extra": [
-        "For long tasks, re-inject at the start of each new session so the rules are not pushed out of context."
-      ]
-    }
-  ],
-  "unlisted_note": "Every other agent implementing the Agent Skills standard loads this skill from the shared ~/.agents/skills/ path with no per-platform work here: Kiro, Trae, Roo Code, Goose, Amp, Factory, Mistral Vibe, VS Code, Junie, Letta, Windsurf and others. They are not listed because this registry records only what has been checked, and an unlisted platform is not a platform we claim."
+  "files": {
+   "means": "reads the bundled files, cannot execute anything",
+   "ships": [
+    "SKILL.md",
+    "references/",
+    "tokens/",
+    "assets/"
+   ],
+   "verification": "the agent names the checks it owes and the operator runs them; the agent may not call a deliverable verified",
+   "population_note": "NO PLATFORM SITS HERE, and the tier is kept anyway. It is not aspirational: it describes a real shape — an agent that receives the rules, the tokens and the assets and cannot execute a script — and it is the shape of an IDE assistant reading an instructions file. What 0.1.390 found is that the tier is empty for a different reason than it looked: `capability` was the ONE registry claim with no verification field, so ten records asserted `full` and nothing had ever confirmed it for any of them. Every record now carries capability_verified, and only claude-code is true. Some of the ten may prove to be `files` in some of their modes — a chat pane that reads a rules file but cannot run a terminal is exactly this tier — and the way to populate it is to exercise one and record the result, never to reclassify one from a reading of its documentation."
+  },
+  "prompt": {
+   "means": "one pasted prompt, no file access and no tools",
+   "ships": [
+    "prompts/lumi-style-core.md"
+   ],
+   "verification": "none available in session; the pre-delivery checklist is inlined in the prompt and the operator runs the scripts afterwards"
+  }
+ },
+ "shared_path_note": "~/.agents/skills/ is the convergent cross-agent location: Gemini CLI, GitHub Copilot, OpenCode, OpenClaw and Pi all read it, and Gemini CLI gives it precedence over its own ~/.gemini/skills/. Installing there once serves five platforms. Google Antigravity's workspace path is .agent/skills/ — singular 'agent' — and is NOT the same convention; do not conflate them.",
+ "entry_note": "Every platform below reads SKILL.md, which is the Agent Skills standard artifact, except Codex which reads AGENTS.md by its own convention and the two prompt-tier platforms which take prompts/lumi-style-core.md. Per-platform pointer files (GEMINI.md, .github/copilot-instructions.md, .cursor/rules/lumi-style.mdc) are generated conveniences, not requirements: the skill path already works without them.",
+ "platforms": [
+  {
+   "id": "claude-code",
+   "name": "Claude Code",
+   "capability": "full",
+   "skill_paths": [
+    "~/.claude/skills/lumi-style"
+   ],
+   "path_verified": true,
+   "entry_file": "SKILL.md",
+   "notes_path": "adapters/claude-code.md",
+   "invoke": "/lumi-style <task>, or say \"in LUMI style…\"",
+   "probe": [
+    "claude",
+    "--version"
+   ],
+   "docs": "https://code.claude.com/docs/en/skills",
+   "capability_verified": true
+  },
+  {
+   "id": "gemini-cli",
+   "name": "Gemini CLI",
+   "capability": "full",
+   "skill_paths": [
+    "~/.agents/skills/lumi-style",
+    "~/.gemini/skills/lumi-style"
+   ],
+   "path_verified": true,
+   "entry_file": "SKILL.md",
+   "notes_path": "adapters/gemini-cli.md",
+   "invoke": "say \"in LUMI style…\"; Gemini calls activate_skill and asks you to confirm the directory",
+   "probe": [
+    "gemini",
+    "--version"
+   ],
+   "docs": "https://geminicli.com/docs/cli/skills/",
+   "extra": [
+    "`~/.agents/skills/` is the shared cross-agent location and **takes precedence** over Gemini's own directory, so prefer it — one install there also serves GitHub Copilot, OpenCode, OpenClaw and Pi.",
+    "Gemini calls `activate_skill` and asks you to confirm the directory it is about to read; approve it once per session."
+   ],
+   "capability_verified": false,
+   "capability_waiver": "Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed."
+  },
+  {
+   "id": "codex",
+   "name": "OpenAI Codex",
+   "capability": "full",
+   "skill_paths": [
+    "~/.codex/skills/lumi-style"
+   ],
+   "path_verified": true,
+   "entry_file": "AGENTS.md",
+   "notes_path": "adapters/codex.md",
+   "invoke": "Codex reads AGENTS.md from the project root by convention; the skill path is read directly",
+   "probe": [
+    "codex",
+    "--version"
+   ],
+   "docs": "https://developers.openai.com/codex/skills/",
+   "extra": [
+    "Codex also reads `AGENTS.md` from the project root by convention, so a checkout in the working tree is picked up without any install."
+   ],
+   "capability_verified": false,
+   "capability_waiver": "Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed."
+  },
+  {
+   "id": "cursor",
+   "name": "Cursor",
+   "capability": "full",
+   "skill_paths": [
+    "~/.cursor/skills/lumi-style"
+   ],
+   "path_verified": true,
+   "entry_file": "SKILL.md",
+   "notes_path": "adapters/cursor.md",
+   "invoke": "say \"in LUMI style…\"",
+   "probe": [
+    "cursor-agent",
+    "--version"
+   ],
+   "docs": "https://cursor.com/docs/context/skills",
+   "extra": [
+    "A `.cursor/rules/lumi-style.mdc` pointer file ships for projects that want the rules loaded workspace-wide rather than on demand. It is a convenience — the skill path already works."
+   ],
+   "capability_verified": false,
+   "capability_waiver": "Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed."
+  },
+  {
+   "id": "antigravity",
+   "name": "Google Antigravity",
+   "capability": "full",
+   "skill_paths": [
+    "~/.gemini/antigravity/skills/lumi-style",
+    ".agent/skills/lumi-style"
+   ],
+   "path_verified": true,
+   "entry_file": "SKILL.md",
+   "notes_path": "adapters/antigravity.md",
+   "invoke": "restart the agent session after copying so Antigravity re-detects the skill",
+   "probe": null,
+   "probe_waiver": "Antigravity ships as an IDE, not a CLI on PATH. The conformance harness cannot invoke it headlessly and will record it as not exercised.",
+   "docs": "https://antigravity.google/docs/skills",
+   "extra": [
+    "The workspace path is `.agent/skills/` — **singular `agent`** — and is deliberately not the shared `.agents/skills/` convention every other platform here uses. Do not conflate them.",
+    "**Restart the agent session after installing** so Antigravity re-detects the skill."
+   ],
+   "capability_verified": false,
+   "capability_waiver": "Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed."
+  },
+  {
+   "id": "github-copilot",
+   "name": "GitHub Copilot",
+   "capability": "full",
+   "skill_paths": [
+    "~/.agents/skills/lumi-style",
+    "~/.copilot/skills/lumi-style",
+    ".github/skills/lumi-style"
+   ],
+   "path_verified": true,
+   "entry_file": "SKILL.md",
+   "notes_path": "adapters/github-copilot.md",
+   "invoke": "works in the Copilot CLI, the cloud agent, code review, and agent mode in VS Code and JetBrains",
+   "probe": [
+    "copilot",
+    "--version"
+   ],
+   "docs": "https://docs.github.com/en/copilot/concepts/agents/about-agent-skills",
+   "extra": [
+    "Agent skills are a **different mechanism** from `.github/copilot-instructions.md`; you do not need the latter. A generated pointer file ships at that path anyway, for repositories that are checked out rather than installed.",
+    "Works in the Copilot CLI, the cloud agent, code review, and agent mode in VS Code and JetBrains IDEs."
+   ],
+   "capability_verified": false,
+   "capability_waiver": "Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed."
+  },
+  {
+   "id": "opencode",
+   "name": "OpenCode",
+   "capability": "full",
+   "skill_paths": [
+    "~/.config/opencode/skills/lumi-style",
+    "~/.agents/skills/lumi-style",
+    "~/.claude/skills/lumi-style"
+   ],
+   "path_verified": true,
+   "entry_file": "SKILL.md",
+   "notes_path": "adapters/opencode.md",
+   "invoke": "say \"in LUMI style…\"",
+   "probe": [
+    "opencode",
+    "--version"
+   ],
+   "docs": "https://opencode.ai/docs/skills/",
+   "extra": [
+    "Project-level equivalents are `.opencode/skills/`, `.agents/skills/` and `.claude/skills/`, searched upward from the working directory to the git worktree root."
+   ],
+   "capability_verified": false,
+   "capability_waiver": "Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed."
+  },
+  {
+   "id": "pi",
+   "name": "Pi",
+   "capability": "full",
+   "skill_paths": [
+    "~/.agents/skills/lumi-style",
+    "~/.pi/agent/skills/lumi-style"
+   ],
+   "path_verified": true,
+   "entry_file": "SKILL.md",
+   "notes_path": "adapters/pi.md",
+   "invoke": "/skill:lumi-style <task>",
+   "probe": [
+    "pi",
+    "--version"
+   ],
+   "docs": "https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/skills.md",
+   "extra": [
+    "Pi discovers a directory containing `SKILL.md`; the skill name comes from the `name` frontmatter field. Project installs go in `.agents/skills/` and are honoured after project trust is granted."
+   ],
+   "capability_verified": false,
+   "capability_waiver": "Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed."
+  },
+  {
+   "id": "openclaw",
+   "name": "OpenClaw",
+   "capability": "full",
+   "skill_paths": [
+    "~/.agents/skills/lumi-style",
+    "<workspace>/skills/lumi-style"
+   ],
+   "path_verified": true,
+   "entry_file": "SKILL.md",
+   "notes_path": "adapters/openclaw.md",
+   "invoke": "the slash command comes from the name frontmatter field: /lumi-style",
+   "probe": [
+    "openclaw",
+    "--version"
+   ],
+   "docs": "https://docs.openclaw.ai/tools/skills",
+   "extra": [
+    "OpenClaw finds `SKILL.md` anywhere under a configured root, up to six levels deep.",
+    "Symlinked targets need explicit trust via `skills.load.allowSymlinkTargets` in `openclaw.json`; if the skill does not appear, check that first."
+   ],
+   "capability_verified": false,
+   "capability_waiver": "Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed."
+  },
+  {
+   "id": "hermes",
+   "name": "Hermes",
+   "capability": "full",
+   "skill_paths": [
+    "~/.agents/skills/lumi-style"
+   ],
+   "path_verified": false,
+   "path_waiver": "Hermes consumes the same SKILL.md format with name/description frontmatter, but no documentation we can cite states its discovery path. The shared ~/.agents/skills/ location is the most likely and must be confirmed on a machine with Hermes installed before this becomes a verified claim. Until then the README lists Hermes as unconfirmed rather than supported.",
+   "entry_file": "SKILL.md",
+   "notes_path": "adapters/hermes.md",
+   "invoke": "unconfirmed",
+   "probe": null,
+   "docs": null,
+   "docs_waiver": "The URL here was OpenClaw's repository, which is a different project. Hermes has no documentation we can cite for its skill discovery, which is the same reason path_verified is false.",
+   "probe_waiver": "Never run. The probe was declared but no Hermes install has been available to confirm the binary name, and a non-null probe satisfied the guard designed to force unverified claims into the open.",
+   "capability_verified": false,
+   "capability_waiver": "Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed."
+  },
+  {
+   "id": "kimi",
+   "name": "Kimi",
+   "capability": "prompt",
+   "skill_paths": [],
+   "path_verified": true,
+   "entry_file": "prompts/lumi-style-core.md",
+   "notes_path": "adapters/kimi.md",
+   "invoke": "paste the core prompt as the system prompt (API: the system field; web: the first message)",
+   "probe": null,
+   "probe_waiver": "A chat model behind an API, not a CLI. The harness cannot invoke it without credentials and will record it as not exercised.",
+   "docs": null,
+   "docs_waiver": "No vendor documentation to cite: the prompt tier is a property of how the model is used, not a feature the vendor documents.",
+   "capability_verified": false,
+   "capability_waiver": "Not exercised. A prompt-tier claim is that the model gets one pasted file and no tools, which is a claim about what it is NOT given and cannot be confirmed by running anything. It is confirmed by how the package is delivered, not by the agent's behaviour."
+  },
+  {
+   "id": "deepseek",
+   "name": "DeepSeek",
+   "capability": "prompt",
+   "skill_paths": [],
+   "path_verified": true,
+   "entry_file": "prompts/lumi-style-core.md",
+   "notes_path": "adapters/deepseek.md",
+   "invoke": "put the core prompt in messages[0] (role=system); re-inject at the start of each long session",
+   "probe": null,
+   "probe_waiver": "Same as Kimi: an API chat model with no CLI to probe.",
+   "docs": null,
+   "docs_waiver": "Same as Kimi.",
+   "extra": [
+    "For long tasks, re-inject at the start of each new session so the rules are not pushed out of context."
+   ],
+   "capability_verified": false,
+   "capability_waiver": "Not exercised. A prompt-tier claim is that the model gets one pasted file and no tools, which is a claim about what it is NOT given and cannot be confirmed by running anything. It is confirmed by how the package is delivered, not by the agent's behaviour."
+  }
+ ],
+ "unlisted_note": "Every other agent implementing the Agent Skills standard loads this skill from the shared ~/.agents/skills/ path with no per-platform work here: Kiro, Trae, Roo Code, Goose, Amp, Factory, Mistral Vibe, VS Code, Junie, Letta, Windsurf and others. They are not listed because this registry records only what has been checked, and an unlisted platform is not a platform we claim."
 }

@@ -11,3 +11,5 @@ DeepSeek has no skill mechanism, so it takes the self-contained single-file core
 The core is self-contained with zero tool assumptions; on any conflict, `references/` wins. Re-copy it after a rule update — it is a snapshot, and this one is 0.1.389.
 
 For long tasks, re-inject at the start of each new session so the rules are not pushed out of context.
+
+**Capability tier not exercised.** This note claims the `prompt` tier. Not exercised. A prompt-tier claim is that the model gets one pasted file and no tools, which is a claim about what it is NOT given and cannot be confirmed by running anything. It is confirmed by how the package is delivered, not by the agent's behaviour.

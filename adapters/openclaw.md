@@ -18,4 +18,6 @@ OpenClaw finds `SKILL.md` anywhere under a configured root, up to six levels dee
 
 Symlinked targets need explicit trust via `skills.load.allowSymlinkTargets` in `openclaw.json`; if the skill does not appear, check that first.
 
+**Capability tier not exercised.** This note claims the `full` tier. Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed.
+
 Vendor documentation: https://docs.openclaw.ai/tools/skills
