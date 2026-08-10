@@ -1077,6 +1077,68 @@ def check_trade_layers():
     return errors
 
 
+def check_ink_is_what_is_painted():
+    """A drawing's measured ink stops at the edge of what the viewport paints.
+
+    inspect_layout measures an SVG by getBBox(), which is the union of the
+    children IN USER SPACE and knows nothing about the viewport. An SVG with a
+    viewBox clips at its own edges, so anything outside is not painted — and
+    the globe's plate carries a drop-shadow whose filter region inflates that
+    bbox by a tenth of the viewBox in every direction. About 50 CSS px at a
+    figure's size, which collided with the paragraph above the figure and
+    spilled past the footer below it: two GATING findings on a document where
+    nothing was out of place, and the gate exists to say a document is not
+    shippable.
+
+    Measured here rather than in inspect_layout because a check that guards a
+    measurement cannot be the measurement. The planted case is the general
+    property rather than the particular bug: a circle drawn far larger than the
+    viewBox that frames it. A filter region is one way geometry lands outside a
+    viewport and an oversized shape is another, and the clamp answers both.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return ["Playwright is not installed, so the ink clamp was NOT checked."]
+
+    doc = """<!doctype html><meta charset=utf-8>
+      <style>body{margin:0}svg{width:400px;height:400px;display:block}</style>
+      <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="90"/></svg>"""
+    js = """() => {
+      const e = document.querySelector('svg');
+      const r = e.getBoundingClientRect(), bb = e.getBBox(), m = e.getScreenCTM();
+      return {box: [r.left, r.top, r.right, r.bottom],
+              ink: [bb.x * m.a + m.e, bb.y * m.d + m.f,
+                    (bb.x + bb.width) * m.a + m.e, (bb.y + bb.height) * m.d + m.f]};
+    }"""
+    errors = []
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page = browser.new_page(viewport={"width": 500, "height": 500})
+        page.set_content(doc)
+        page.wait_for_timeout(120)
+        got = page.evaluate(js)
+        browser.close()
+
+    box, ink = got["box"], got["ink"]
+    if not (ink[0] < box[0] - 1 or ink[1] < box[1] - 1
+            or ink[2] > box[2] + 1 or ink[3] > box[3] + 1):
+        errors.append(
+            "the planted case no longer overflows: a filtered shape inside a "
+            "clipping viewBox reported ink within its element box, so this "
+            "check is measuring nothing. Either the browser changed how a "
+            "filter region enters getBBox, or the case needs rewriting")
+
+    src = (ROOT / "scripts" / "inspect_layout.py").read_text(encoding="utf-8")
+    if "Math.max(r.top, bb.y * m.d + m.f)" not in src:
+        errors.append(
+            "inspect_layout's inkBox does not clamp getBBox to the element's "
+            "own rect, so filter regions and any other geometry the viewport "
+            "clips are measured as painted — the false collision and false "
+            "content spill of 0.1.400")
+    return errors
+
+
 def check_field_has_no_strangers():
     """A globe stating a field draws no point that is not in the field.
 
@@ -1365,6 +1427,7 @@ CHECKS = (
     ("the spherical clip holds its invariants", check_clip_invariants, False, "shared", False),
     ("the globe frame holds its contract", check_globe_frame, False, "globe", False),
     ("a field draws no strangers", check_field_has_no_strangers, False, "globe", False),
+    ("measured ink is painted ink", check_ink_is_what_is_painted, False, "shared", True),
     ("a far-side mark renders nothing", check_far_side_hidden, False, "globe", True),
     ("the night side covers what geometry says", check_terminator_area, False, "globe", True),
     ("the region map frame holds its contract", check_regionmap_frame, False, "map", False),

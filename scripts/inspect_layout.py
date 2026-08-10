@@ -146,9 +146,27 @@ PROBE = r"""
       // non-zero b/c and cannot be reduced to one top/left pair, so it would
       // return a confidently wrong box with no exception at all.
       if (Math.abs(m.b) > 1e-6 || Math.abs(m.c) > 1e-6) { if (visible) inkFail++; return r; }
-      return {top: bb.y * m.d + m.f, bottom: (bb.y + bb.height) * m.d + m.f,
-              left: bb.x * m.a + m.e, right: (bb.x + bb.width) * m.a + m.e,
-              height: bb.height * m.d, width: bb.width * m.a};
+      // CLAMPED TO THE ELEMENT'S OWN BOX. getBBox() is the union of the
+      // children in user space and knows nothing about the viewport: an SVG
+      // with a viewBox clips at its edges, so geometry outside the box is not
+      // painted and must not be measured. The globe's plate carries a
+      // drop-shadow, whose filter region inflates the bbox by a tenth of the
+      // viewBox in every direction — about 50 CSS px at a figure's size — and
+      // that phantom band collided with the paragraph above the figure and
+      // spilled past the footer below it. Two GATING findings, on a document
+      // where nothing was out of place. An intersection is the honest answer
+      // and it costs a correct figure nothing, because its ink is inside its
+      // box already.
+      const box = {
+        top: Math.max(r.top, bb.y * m.d + m.f),
+        bottom: Math.min(r.bottom, (bb.y + bb.height) * m.d + m.f),
+        left: Math.max(r.left, bb.x * m.a + m.e),
+        right: Math.min(r.right, (bb.x + bb.width) * m.a + m.e),
+      };
+      if (box.bottom <= box.top || box.right <= box.left) return r;
+      box.height = box.bottom - box.top;
+      box.width = box.right - box.left;
+      return box;
     } catch (err) { if (visible) inkFail++; return r; }
   };
   // Widen this and the numbers change: lists and spec strips were absent once,
