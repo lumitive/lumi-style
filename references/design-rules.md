@@ -129,6 +129,17 @@ The generator asserts all four on both canvases and fails naming the pair it
 could not separate. A quieter palette is reached by having fewer regions, never
 by lowering the floor.
 
+**`tokens/region-palette.css` ships the bindings, not only the values** (since
+0.1.391). One include gives a document the `--rg-*` variables, the `.rg-<id>`
+fill and stroke rules, the state classes, `.is-hover` and `:focus-visible`, and
+the `.gl-*` figure chrome. A document paints a region map by including that file
+and nothing else. It took until 0.1.390's contact sheets to see why this
+matters: the variables shipped for three releases with no rule joining them to
+the classes the generator emits, so the reference fixture's own region figure
+rendered four solid black rectangles while every metric passed — no check in
+this package reads rendered colour, and a palette nobody can apply is not a
+palette.
+
 **Every coloured region carries a label or a legend entry.** Unconditionally,
 whatever the hue count. At the theoretical maximum separation of 90 degrees,
 deuteranopia collapses two adjacent regions to ΔE00 9.6 and protanopia to 8.5,
@@ -164,6 +175,19 @@ the reader's eye.
   A linked font falls back the moment a deliverable is opened offline, emailed,
   or printed elsewhere; a declared-but-unvendored one renders nothing at all,
   which is what shipped in 1.2.
+- **The embed rule is scoped to the Latin faces, and Chinese uses the default
+  stack** (owner decision, 2026-08-10). No CJK face is vendored and none will
+  be: a Chinese face of comparable quality is one to two orders of magnitude
+  larger than the Latin pair, and embedding one in every deliverable is a cost
+  the owner has declined. Chinese deliverables therefore render through the
+  fallback the default stack already names — PingFang SC, Hiragino Sans GB,
+  Noto Sans SC — which means **CJK glyph rendering depends on the reader's
+  machine**. State it rather than hide it: on macOS and iOS that is PingFang,
+  on most Linux and Android it is Noto Sans SC, and on a machine with none of
+  the three the system serif takes over. This is the honest answer the
+  maintenance rules require — the alternative was a rule ("embed the face,
+  never link it") that could not be kept for half the documents this package
+  exists to produce.
 - **Small type is a contrast problem before it is a size problem.** A reader
   reported both canvases exhausting to read when 9.5px labels sat on ladder steps
   measuring 1.81:1; raising the contrast fixed most of it. **There is no universal

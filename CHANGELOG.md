@@ -3,6 +3,46 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.391 — the split is decided, the palette becomes usable, and Chinese type gets its honest answer
+
+**The one-figure-two-forms decision is reversed** (owner directive, 2026-08-10 —
+the documented case is the audit of the first delivered demo, recorded in
+`specs/2026-08-10-globe-map-split-design.md`). The globe and the region map
+become two components, separately designed, developed and verified, each
+configurable per instance. The audit found the coupling was where every defect
+lived: one of the two forms never had a data path at all (`hostData.marks`
+documented, read by nothing), `setForm` toggled classes no stylesheet defines,
+the canvas back end branched on a state the runtime never set, and the unroll —
+the feature the coupling exists to serve — was unreachable, because nothing in
+the package emits a control and the first real deliverable authored none. The
+split lands over four further releases; this one ships the spec and the two
+decisions that are independently useful today.
+
+**`tokens/region-palette.css` ships the bindings, not only the values.** The
+variables shipped for three releases with no rule joining them to the classes
+the emitters write, so any document that did not hand-copy ~90 rules drew every
+region in the UA default — black — and every metric passed, because no check
+reads rendered colour. The generator now emits, beside the hues: the `.rg-<id>`
+fill and stroke bindings, the state classes (`.is-out` and `.is-partial` take
+the standing status colours deliberately — they are status, not identity),
+`.is-hover` (toggled by the runtime since the globe shipped, defined by nothing,
+so hovering worked and showed nothing), `:focus-visible` (the first demo shipped
+`outline:none` on a `tabindex="0"` element), and the `--gl-*`/`.gl-*` figure
+chrome the canvas back end has read since it was written and no host ever
+defined. The fixture's private copy of the join is deleted — a reference
+implementation should not need a private companion to render. `.is-live` is the
+unmarked state, and the file says so rather than shipping a rule that restates
+the binding above it.
+
+**Chinese deliverables use the default stack** (owner decision). No CJK face is
+vendored and none will be: a comparable-quality face is one to two orders of
+magnitude larger than the Latin pair. The embed rule is scoped to the faces the
+package ships, and the design rules now state the fallback chain and its cost —
+CJK rendering depends on the reader's machine — instead of keeping a sentence
+that could not be kept for half the documents this package exists to produce.
+This also unblocks the rendered Chinese fixture that item 2 filed under a
+licence question; building it is its own change.
+
 ## 0.1.390 — the backlog, and the instruments that could not fail
 
 The seven items in the tracked ideas backlog, in the order it set. What they had
