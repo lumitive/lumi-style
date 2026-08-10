@@ -400,6 +400,14 @@ def render():
         " * parse_color in check_design.py cannot read that form and would skip D1",
         " * on every hue here without saying so.",
         " *",
+        " * SHIPS THE BINDINGS TOO, since 0.1.391. The variables alone were a",
+        " * palette nobody could use: globe_svg.py emits class='rg rg-europe' and",
+        " * nothing joined the class to the variable, so any document that did not",
+        " * hand-write ~90 rules drew every region in the UA default — black — and",
+        " * every check passed, because none reads rendered colour. The reference",
+        " * fixture carried the join privately; a package asset should not need a",
+        " * private companion to render (maintenance convention 5).",
+        " *",
         f" * L {L_LIGHT} light / {L_DARK} dark, chroma {CHROMA_FRACTION:.0%} of the",
         f" * per-hue gamut maximum, {len(ids)} hues evenly spaced at "
         f"{360 / max(1, len(ids)):.1f} degrees, assigned so adjacent regions sit",
@@ -412,6 +420,18 @@ def render():
         lines.append(f"  --rg-{rid}: {hue_hex(L_LIGHT, h)};")
         lines.append(f"  --rg-{rid}-stroke: {stroke_hex(L_LIGHT, h, False)};")
         lines.append(f"  --rg-{rid}-wash: {hue_hex(0.94, h)};")
+    # The globe chrome variables, beside the region hues. render-canvas.js has
+    # read these four via getPropertyValue since it was written, falling back to
+    # 'transparent' — so the canvas back end painted nothing, silently, on every
+    # host that did not define them, which was every host. They live here rather
+    # than in lumi-theme.css because that file's palette is mirrored value-for-
+    # value in design-tokens.json under the palette-parity guard; these are
+    # figure chrome, they indirect to theme tokens, and the guard has no
+    # business learning them.
+    lines.append("  --gl-plate: var(--ln3);")
+    lines.append("  --gl-graticule: var(--ln2);")
+    lines.append("  --gl-land: var(--acc-2);")
+    lines.append("  --gl-land-edge: var(--ln1);")
     lines.append("}")
     lines.append("")
     lines.append("body.dark {")
@@ -420,7 +440,49 @@ def render():
         lines.append(f"  --rg-{rid}: {hue_hex(L_DARK, h)};")
         lines.append(f"  --rg-{rid}-stroke: {stroke_hex(L_DARK, h, True)};")
         lines.append(f"  --rg-{rid}-wash: {hue_hex(0.30, h)};")
+    # The chrome indirects to theme tokens, and those redefine under body.dark,
+    # so the dark chrome needs no separate values — restated here so a reader
+    # of the dark block does not go looking for the missing four.
     lines.append("}")
+    lines.append("")
+    lines += [
+        "/* The join between the classes the emitters write and the variables",
+        " * above. globe_svg.py / the runtime emit these classes; without these",
+        " * rules the classes bind to nothing.",
+        " *",
+        " * Two of the state colours are SEMANTIC in a file whose header says hue",
+        " * carries identity only — deliberately: is-out and is-partial are not",
+        " * region identity, they are the standing status vocabulary (--brass =",
+        " * reference / out of scope, --amber = partial), and painting them from",
+        " * the region hue would claim a measurement the hue does not make.",
+        " * is-live is the UNMARKED state: the plain region fill IS live, and an",
+        " * explicit .is-live rule would just restate the binding above it.",
+        " */",
+        ".gl-plate { fill: var(--gl-plate); }",
+        ".gl-graticule { fill: none; stroke: var(--gl-graticule); }",
+        ".gl-land { fill: var(--gl-land); stroke: var(--gl-land-edge); stroke-width: 1; }",
+        ".gl-mark { fill: var(--acc); }",
+        ".gl-node { fill: var(--bg); stroke: var(--tx2); stroke-width: 1.5; }",
+        ".rg { stroke-width: 1; }",
+    ]
+    for rid in ids:
+        lines.append(f".rg-{rid} {{ fill: var(--rg-{rid}); "
+                     f"stroke: var(--rg-{rid}-stroke); }}")
+        lines.append(f".rg-{rid}.is-zero {{ fill: var(--rg-{rid}-wash); }}")
+    lines += [
+        ".rg.is-out { fill: var(--brass); }",
+        ".rg.is-partial { stroke: var(--amber); stroke-width: 2; }",
+        "/* Hover and keyboard focus. The runtime has toggled is-hover since the",
+        " * globe shipped and no stylesheet anywhere defined it, so hovering",
+        " * worked and showed nothing; and the first delivered demo set",
+        " * outline:none on a tabindex='0' element with no :focus-visible to",
+        " * replace it. Both affordances ship here so no document re-decides",
+        " * them. Not inside any media query, per the media-only-rules guard. */",
+        ".rg.is-hover { stroke-width: 2.5; }",
+        "svg.gl:focus-visible, svg.regionmap:focus-visible {",
+        "  outline: 2px solid var(--acc); outline-offset: 2px;",
+        "}",
+    ]
     return "\n".join(lines) + "\n"
 
 
