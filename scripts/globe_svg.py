@@ -243,6 +243,35 @@ def render(view, marks=None, night=None, nodes=False,
                     f'{"" if vis else " display=\"none\""}>'
                     f'<title>{html.escape(node["n"])}</title></circle>')
 
+    # THE AXIS, AND SOMETHING TO SEE IT AGAINST.
+    #
+    # The tilt has been applied since 0.1.397 and correctly: the pole sits
+    # 23.44 degrees off vertical, 389 units right of centre at R=1000. Nobody
+    # could see it. A sphere is rotationally symmetric, so rotating the whole
+    # drawing gives the eye no reference — the graticule turns with the
+    # geography and the result reads as a globe viewed from somewhere else.
+    #
+    # A desk globe reads as tilted because you see the spindle against the
+    # stand. So: the rotation axis, drawn through both poles and out past the
+    # limb, and a vertical reference through the centre. The angle between them
+    # IS the obliquity, and now it is a thing on the page rather than a claim
+    # in a caption.
+    #
+    # The reference line is emitted OUTSIDE the earth group by the caller —
+    # a vertical that tilted with everything else would be no reference at all.
+    npx, npy, _nv = gp.unrolled(0.0, 90.0, lon0, lat0, t, R, cx, cy)
+    spx, spy, _sv = gp.unrolled(0.0, -90.0, lon0, lat0, t, R, cx, cy)
+    # Inside the frame's own padding. A longer spindle reads better and is
+    # cut off by the viewBox, which fits the globe — and a drawing clipped
+    # by its own viewBox is a gating finding, correctly.
+    over = 0.026 * R
+    axis_len = math.hypot(npx - spx, npy - spy)
+    if axis_len > 1e-6:
+        ux, uy = (npx - spx) / axis_len, (npy - spy) / axis_len
+        body.append(f'<line class="gl-axis" '
+                    f'x1="{_r(spx - ux * over)}" y1="{_r(spy - uy * over)}" '
+                    f'x2="{_r(npx + ux * over)}" y2="{_r(npy + uy * over)}"/>')
+
     # TRADE LANES, on the sphere. A great circle is the shortest path across a
     # sphere, so the drawing and the claim are one object — and because a lane
     # is just a ring, _project_ring gives it limb clipping, seam splitting and
@@ -391,8 +420,14 @@ def render(view, marks=None, night=None, nodes=False,
     # transform's own origin, a rotation maps that disc onto itself, and the
     # flattening only shrinks it. The box that held the untilted frame holds
     # this one.
+    # The vertical the tilt is measured FROM, drawn outside the earth group so
+    # it does not tilt with it. Dashed, quiet, and the only thing on this figure
+    # that is not on the sphere.
+    ref = (f'<line class="gl-axis-ref" x1="{_r(cx)}" y1="{_r(cy - R * 1.026)}" '
+           f'x2="{_r(cx)}" y2="{_r(cy + R * 1.026)}"/>')
+
     g_open = f'<g class="gl-earth" transform="{earth_transform(cx, cy)}">'
-    return "\n".join([head, note, g_open, *body, "</g>", "</svg>"])
+    return "\n".join([head, note, ref, g_open, *body, "</g>", "</svg>"])
 
 
 def _load_marks(arg):

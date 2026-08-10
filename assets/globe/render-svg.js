@@ -177,6 +177,9 @@ export function createSvgRenderer(svg, data) {
   const blocEls = [...svg.querySelectorAll('.gl-rg')];
   const blocLabelEls = [...svg.querySelectorAll('.gl-rg-label')];
   const cityDots = [...svg.querySelectorAll('.gl-city-dot')];
+  // The rotation axis. Redrawn because dragging changes lat0 and the poles
+  // move with it; the vertical reference outside the group never moves.
+  const axisEl = svg.querySelector('.gl-axis');
   // Trade lanes and the signals riding them. Lanes sit ON the sphere, so they
   // turn with the geography and are redrawn every frame like the coastline.
   const linkEls = [...svg.querySelectorAll('.gl-link')];
@@ -493,6 +496,20 @@ export function createSvgRenderer(svg, data) {
       let d = '';
       for (const ring of blocRings.get(el)) d += `${pathData(projectArea(ring, view), true, view)} `;
       el.setAttribute('d', d.trim());
+    }
+    if (axisEl) {
+      const np = project(0, 90, view);
+      const sp = project(0, -90, view);
+      const len = Math.hypot(np.x - sp.x, np.y - sp.y);
+      if (len > 1e-6) {
+        const over = 0.026 * view.R;   // inside the frame's padding
+        const ux = (np.x - sp.x) / len;
+        const uy = (np.y - sp.y) / len;
+        axisEl.setAttribute('x1', r0(sp.x - ux * over));
+        axisEl.setAttribute('y1', r0(sp.y - uy * over));
+        axisEl.setAttribute('x2', r0(np.x + ux * over));
+        axisEl.setAttribute('y2', r0(np.y + uy * over));
+      }
     }
     if (linkEls.length) {
       drawLinks(view);

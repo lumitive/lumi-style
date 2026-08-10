@@ -1403,8 +1403,56 @@ def check_trade_lanes():
                           "waypoint is drawn twice and any dash pattern stalls")
             break
 
-    # Clipped at the limb like every other ring.
+    # NO LANE DRAWS LONGER THAN ITS OWN ARC, and this is the assertion that
+    # matters. It took two wrong ones to reach.
+    #
+    # The first measured each lane's drawn WIDTH against the disc. That can
+    # never fail: every path is clipped to the visible cap, so its extent is
+    # bounded by the disc by construction. It reported "no ring" about a figure
+    # full of them.
+    #
+    # The second — continuity of the ring the emitter builds, above — is real,
+    # but it guards the ring only where it is constructed. split_at_seam
+    # re-expresses longitudes relative to lon0 AFTERWARDS, and returned a part
+    # spanning 376 degrees for seventeen degrees of route.
+    #
+    # A lane's projected length cannot exceed R times its angular length. A
+    # lane sweeping the world exceeds it several times over, whatever caused
+    # the sweep and wherever in the pipeline it happened.
     R = globe_svg.DEFAULT_R
+    for ri, route in enumerate((
+            [(121.47, 31.23), (103.82, 1.35)],
+            [(-118.24, 33.74), (151.21, -33.87)],
+            [(121.47, 31.23), (120.90, 20.50), (100.50, 2.50), (43.40, 12.60),
+             (32.55, 29.95), (-5.60, 35.95), (4.48, 51.92)],
+            [(4.48, 51.92), (-79.55, 8.95), (-118.24, 33.74)])):
+        pts = great_circle_route(route)
+        bound = R * sum(
+            math.acos(max(-1.0, min(1.0, gp.cos_c(p[0], p[1], q[0], q[1]))))
+            for p, q in zip(pts, pts[1:]))
+        for lon0 in range(-180, 180, 15):
+            lk = {"id": f"r{ri}", "a": list(route[0]), "b": list(route[-1]),
+                  "via": [list(v) for v in route[1:-1]], "w": 0.8}
+            frame = render_lanes((float(lon0), 12.0, 0.0, R, R, R), [lk])
+            if frame is None:
+                break
+            got = re.search(r'<path class="gl-link"[^>]*d="([^"]*)"', frame)
+            if not got or not got.group(1).strip():
+                continue
+            drawn = 0.0
+            for run in got.group(1).split("M")[1:]:
+                pp = [tuple(float(v) for v in q.split())
+                      for q in run.split("L") if q.strip()]
+                drawn += sum(math.dist(x, y) for x, y in zip(pp, pp[1:]))
+            if bound > 0 and drawn > bound * 1.15:
+                errors.append(
+                    f"lane {ri} at lon0={lon0} draws {drawn:.0f} units against "
+                    f"an arc of {bound:.0f} — {drawn / bound:.1f} times its own "
+                    f"length, so part of it is sweeping the globe instead of "
+                    f"following the route")
+                break
+
+    # Clipped at the limb like every other ring.
     link = {"id": "x", "a": [4.48, 51.92], "b": [9.99, 53.55], "w": 1.0}
     far = render_lanes((-170.0, -40.0, 0.0, R, R, R), [link])
     m = re.search(r'<path class="gl-link"[^>]*d="([^"]*)"', far) if far else None
