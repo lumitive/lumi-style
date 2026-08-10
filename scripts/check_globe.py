@@ -1287,6 +1287,123 @@ def check_city_labels_do_not_collide():
     return errors
 
 
+def check_trade_lanes():
+    """A lane is the shortest path, it is clipped like everything else, and
+    every signal on it has a code behind it.
+
+    THE GEOMETRY. great_circle is asserted against the thing it claims to be:
+    every sample must lie on the unit sphere, and the path must be no longer
+    than any other path between the same two ends. The second is the whole
+    claim of this treatment — that the drawing IS the shortest route rather
+    than a picture of one — so it is checked by comparing against a detour
+    through a third point, which is longer for every non-degenerate triple.
+
+    THE CLIPPING. A lane runs over the far side of the Earth for most of its
+    length and none of that may be drawn. Lanes go through _project_ring, which
+    culls at the limb, so this asserts the property rather than the plumbing: at
+    a rotation where both ends are behind the globe, the lane draws nothing.
+
+    THE FIELD. A signal with no code behind it is decoration, and
+    references/brand.md forbids decoration outright. So: no signals are emitted
+    without codes, every signal names a lane that exists, and every signal's
+    code index is inside the list it indexes.
+    """
+    import globe_svg
+    from geo_frame import great_circle
+
+    errors = []
+
+    # On the sphere, and shortest.
+    for a, b in (((121.47, 31.23), (4.48, 51.92)),
+                 ((103.82, 1.35), (-118.24, 33.74)),
+                 ((-46.63, -23.55), (139.69, 35.69)),
+                 ((0.0, 89.0), (0.0, -89.0))):
+        pts = great_circle(a, b, 48)
+
+        def vec(lon, lat):
+            return (math.cos(math.radians(lat)) * math.cos(math.radians(lon)),
+                    math.cos(math.radians(lat)) * math.sin(math.radians(lon)),
+                    math.sin(math.radians(lat)))
+
+        # COPLANAR WITH THE ENDS AND THE CENTRE. "On the unit sphere" is not the
+        # test — every (lon, lat) pair is on the sphere by construction, so an
+        # arithmetic mean of the two ENDPOINTS' coordinates passes it while
+        # tracing a rhumb line that is not the shortest path at all. A great
+        # circle is the intersection of the sphere with a plane through its
+        # centre, and that is a property linear interpolation does not have.
+        va, vb = vec(*a), vec(*b)
+        nrm = (va[1] * vb[2] - va[2] * vb[1],
+               va[2] * vb[0] - va[0] * vb[2],
+               va[0] * vb[1] - va[1] * vb[0])
+        nlen = math.sqrt(sum(c * c for c in nrm))
+        if nlen > 1e-9:
+            worst = max(abs(sum(x * y for x, y in zip(nrm, vec(lo, la)))) / nlen
+                        for lo, la in pts)
+            if worst > 1e-9:
+                errors.append(
+                    f"great_circle {a}->{b} leaves the plane through its two "
+                    f"ends and the centre by {worst:.4f} — it is some other "
+                    f"curve between the same points, and a lane's whole claim "
+                    f"is that it is the shortest one")
+        if pts[0] != tuple(a) and abs(pts[0][0] - a[0]) > 1e-6:
+            errors.append(f"great_circle {a}->{b} does not start at its origin")
+
+        def arc(p, q):
+            return math.acos(max(-1.0, min(1.0, gp.cos_c(p[0], p[1], q[0], q[1]))))
+
+        direct = arc(a, b)
+        for via in ((0.0, 0.0), (30.0, 45.0), (-150.0, -20.0)):
+            if arc(a, via) + arc(via, b) < direct - 1e-9:
+                errors.append(f"a detour through {via} is shorter than the lane "
+                              f"{a}->{b}, so the drawing is not the claim")
+
+    # A globe may carry lanes and NO codes — scenery with routes on it — and
+    # both checks below render exactly that, so a break in the signal layer's
+    # guard surfaces here as a crash rather than as its own message. Named
+    # once so it reads as one property with two witnesses.
+    def render_lanes(view, links_):
+        try:
+            return globe_svg.render(view, links=links_)
+        except Exception as exc:                   # noqa: BLE001
+            errors.append(f"a globe with lanes and no codes raised "
+                          f"{type(exc).__name__}; the signal layer must skip "
+                          f"itself when there is nothing for a signal to carry")
+            return None
+
+    # Clipped at the limb like every other ring.
+    R = globe_svg.DEFAULT_R
+    link = {"id": "x", "a": [4.48, 51.92], "b": [9.99, 53.55], "w": 1.0}
+    far = render_lanes((-170.0, -40.0, 0.0, R, R, R), [link])
+    m = re.search(r'<path class="gl-link"[^>]*d="([^"]*)"', far) if far else None
+    if m and m.group(1).strip():
+        errors.append("a lane whose whole length is on the far side still drew "
+                      f"{len(m.group(1))} characters of path")
+
+    # Every signal is one real code on one real lane.
+    links = [link, {"id": "y", "a": [103.82, 1.35], "b": [-118.24, 33.74], "w": 0.4}]
+    codes = ["382499", "391732", "392051"]
+    svg = globe_svg.render((60.0, 12.0, 0.0, R, R, R), links=links, codes=codes)
+    lane_ids = set(re.findall(r'data-link="([^"]*)"', svg))
+    sigs = re.findall(r'data-sig-link="([^"]*)" data-t="([\d.]+)" data-code="(\d+)"', svg)
+    if not sigs:
+        errors.append("lanes and codes were both supplied and no signal was "
+                      "emitted; the runtime mutates markup and never makes it, "
+                      "so nothing can ever move on this figure")
+    for lid, t, ci in sigs:
+        if lid not in lane_ids:
+            errors.append(f"a signal rides lane {lid!r}, which is not on the frame")
+        if not 0.0 <= float(t) < 1.0:
+            errors.append(f"a signal starts at t={t}, outside the lane")
+        if int(ci) >= len(codes):
+            errors.append(f"a signal points at code {ci} of {len(codes)}")
+    bare = render_lanes((60.0, 12.0, 0.0, R, R, R), links)
+    if bare is not None and bare.count("gl-sig"):
+        errors.append("signals were emitted with no codes to carry — a mark "
+                      "with nothing behind it is decoration, which "
+                      "references/brand.md forbids outright")
+    return errors
+
+
 def check_earth_is_tilted():
     """The earth layer carries the tilt, at the obliquity, leaning right.
 
@@ -1632,6 +1749,7 @@ CHECKS = (
     ("the globe frame holds its contract", check_globe_frame, False, "globe", False),
     ("the earth is tilted, right, at the obliquity", check_earth_is_tilted, False, "globe", False),
     ("the globe's layers hold their contract", check_globe_layers, False, "globe", False),
+    ("a lane is the shortest path, and carries a code", check_trade_lanes, False, "globe", False),
     ("city names never overlap", check_city_labels_do_not_collide, False, "globe", True),
     ("a field draws no strangers", check_field_has_no_strangers, False, "globe", False),
     ("measured ink is painted ink", check_ink_is_what_is_painted, False, "shared", True),

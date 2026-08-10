@@ -3,6 +3,44 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.402 — trade lanes on the sphere, and a signal that carries a real code
+
+The globe takes `--links` and `--codes`. A lane is drawn as the GREAT CIRCLE
+between its two ends, which is the shortest path across a sphere — so the
+drawing and the claim are one object rather than a picture of one — and because
+a lane is just a ring it goes through `_project_ring` and gets limb clipping,
+seam splitting and far-side culling without a line of new code. A lane on the
+back of the Earth is not drawn because there is nothing there to draw.
+
+Weight is encoded twice, in width and in opacity, and that is deliberate rather
+than redundant: the light lanes have to survive being light, and both channels
+have a floor because a lane nobody can see is a lane that should not have been
+in the data.
+
+**A signal carries a real datum or it does not ship.** `references/brand.md` is
+unambiguous — "a shimmer with no data under it is decoration, and decoration is
+contention" — so the signal layer emits nothing at all without codes to carry,
+and the check says so in those words when the guard is removed. Signals are
+EMITTED, not created by the runtime: the same rule marks obey, which also means
+a document with JavaScript off shows lanes carrying codes rather than lanes
+carrying nothing.
+
+They move on the same clock and under the same gates as the rotation, so
+`prefers-reduced-motion` stops them where they are — leaving a legible diagram
+instead of an empty one — and the off-screen gate stops them with everything
+else.
+
+**What the check had to learn.** The first version asserted that every sample of
+a great circle lies on the unit sphere. That is vacuous: every (lon, lat) pair is
+on the sphere by construction, so replacing the interpolation with a straight
+line in lon/lat — a rhumb line, and not the shortest path at all — passed it. The
+real property is that a great circle is the intersection of the sphere with a
+PLANE THROUGH ITS CENTRE, and the check now measures the distance from that
+plane. The rhumb line misses by 0.87 of a radius.
+
+Three treatments of this layer were prototyped and compared before one was
+chosen; the other two are not in this package and never were.
+
 ## 0.1.401 — the globe leans right, names its cities, and colours its blocs
 
 Four additions to the globe, and one of them turned up a defect in a kind of

@@ -129,8 +129,20 @@ export async function createGlobe(container, options = {}) {
     container.dispatchEvent(new CustomEvent(name, { detail, bubbles: true }));
   }
 
+  // The code list the signals cycle through. It rides on the figure, like the
+  // states a region map reads, so a host supplies data without this module
+  // gaining a fetch.
+  const codes = (() => {
+    const src = container.dataset.globeCodes;
+    if (!src) return [];
+    try {
+      const el = src.startsWith('#') ? document.querySelector(src) : null;
+      return JSON.parse(el ? el.textContent : src);
+    } catch (err) { return []; }
+  })();
+
   function paint() {
-    frame = renderer.draw(view, {});
+    frame = renderer.draw(view, { codes });
   }
 
   // ── the accessibility layer ────────────────────────────────────────────────
@@ -232,6 +244,16 @@ export async function createGlobe(container, options = {}) {
       && !svg.classList.contains('is-dragging');
     if (spin) {
       view.lon0 = (view.lon0 + (AUTOROTATE_DEG_PER_SEC * dt) / 1000) % 360;
+    }
+    // Signals move on the same clock and under the same gates as the rotation.
+    // They are not a second animation with its own rules: prefers-reduced-motion
+    // stops them where they are, which leaves a legible diagram of lanes
+    // carrying codes rather than an empty one, and the off-screen gate stops
+    // them along with everything else.
+    const moving = renderer.hasSignals && !reduced && !pinned;
+    if (moving) {
+      renderer.advanceSignals(dt / 1000, codes);
+      dirty = true;
     }
     if (spin || dirty) {
       dirty = false;

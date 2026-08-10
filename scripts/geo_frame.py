@@ -196,6 +196,61 @@ CITY_PAD_EM = 0.35
 LABEL_LIMB_COS = 0.25
 
 
+# A trade lane is drawn just clear of the land so it does not fight the coast
+# it runs over. 1.004 is four units at R=1000 — under a pixel of separation at
+# any size this figure is drawn, and enough that the stroke reads as ON the
+# sphere rather than IN it.
+LINK_R = 1.004
+
+
+def great_circle(a, b, n=64):
+    """The shortest path between two places on the sphere, as (lon, lat).
+
+    Spherical linear interpolation between the two unit vectors. This is the
+    honest shape for a trade lane and it is why a Shanghai-to-Rotterdam link
+    crosses Siberia rather than the Suez: the drawing states the geometry, and
+    where a hull actually goes instead is a fact about canals and ice, not
+    about distance.
+
+    Returned as a plain ring so it goes through _project_ring like a graticule
+    line — which is what gives it limb clipping, seam splitting and far-side
+    culling without a line of new code.
+    """
+    def unit(lon, lat):
+        p, q = math.radians(lon), math.radians(lat)
+        return (math.cos(q) * math.cos(p), math.cos(q) * math.sin(p), math.sin(q))
+
+    p, q = unit(*a), unit(*b)
+    dot = max(-1.0, min(1.0, sum(x * y for x, y in zip(p, q))))
+    w = math.acos(dot)
+    if w < 1e-9:
+        return [tuple(a)]
+    out = []
+    for i in range(n + 1):
+        t = i / n
+        s1, s2 = math.sin((1 - t) * w) / math.sin(w), math.sin(t * w) / math.sin(w)
+        v = tuple(s1 * x + s2 * y for x, y in zip(p, q))
+        m = math.sqrt(sum(c * c for c in v))
+        v = tuple(c / m for c in v)
+        out.append((math.degrees(math.atan2(v[1], v[0])),
+                    math.degrees(math.asin(max(-1.0, min(1.0, v[2]))))))
+    return out
+
+
+def link_weight_attrs(w):
+    """-> (stroke width in R-units, opacity) for a lane of weight `w` in [0,1].
+
+    Weight is encoded TWICE, in width and in opacity, and that is deliberate
+    rather than redundant: the light lanes have to survive being light, and a
+    quantity carried on two channels reads at a glance where one channel makes
+    the tail of the distribution vanish. Both have a floor — a 0.2 lane is
+    still a lane, and a lane nobody can see is a lane that should not have been
+    in the data.
+    """
+    w = max(0.0, min(1.0, float(w)))
+    return (0.0009 + 0.0034 * w, 0.30 + 0.55 * w)
+
+
 def tilt_to_screen(x, y, cx, cy, tilt_deg=OBLIQUITY_DEG):
     """A point in the earth group's space, as the reader actually sees it.
 
