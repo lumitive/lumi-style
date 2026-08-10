@@ -69,7 +69,8 @@
     "SVN",
     "SWE"
    ],
-   "count": 27
+   "count": 27,
+   "pop_m": 450
   },
   {
    "id": "usmca",
@@ -90,7 +91,8 @@
     "MEX",
     "USA"
    ],
-   "count": 3
+   "count": 3,
+   "pop_m": 510
   },
   {
    "id": "rcep",
@@ -122,7 +124,8 @@
     "THA",
     "VNM"
    ],
-   "count": 15
+   "count": 15,
+   "pop_m": 2300
   },
   {
    "id": "cptpp",
@@ -155,7 +158,8 @@
     "SGP",
     "VNM"
    ],
-   "count": 12
+   "count": 12,
+   "pop_m": 590
   },
   {
    "id": "asean",
@@ -189,7 +193,8 @@
     "THA",
     "VNM"
    ],
-   "count": 10
+   "count": 10,
+   "pop_m": 690
   },
   {
    "id": "mercosur",
@@ -212,7 +217,8 @@
     "PRY",
     "URY"
    ],
-   "count": 4
+   "count": 4,
+   "pop_m": 310
   },
   {
    "id": "gcc",
@@ -238,7 +244,8 @@
     "QAT",
     "SAU"
    ],
-   "count": 6
+   "count": 6,
+   "pop_m": 60
   },
   {
    "id": "afcfta",
@@ -358,7 +365,8 @@
     "ZMB",
     "ZWE"
    ],
-   "count": 55
+   "count": 55,
+   "pop_m": 1450
   }
  ],
  "names": {

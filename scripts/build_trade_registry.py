@@ -87,6 +87,27 @@ BLOCS = [
 ]
 
 
+# Population, in millions, of each bloc's FULL membership. UN World Population
+# Prospects 2024 revision, mid-2024 estimates, summed over the members listed
+# above and rounded to the ten million — because this number is a LABEL, and a
+# label that read 449.2 would be claiming a precision that summing 27 national
+# estimates does not have.
+#
+# ASEAN's entry is 690, not the 530 million the brief quotes. That figure comes
+# with the sentence that dates it — "经过10年的构建，原东盟6国于2002年正式启动
+# 自由贸易区" — and ASEAN's ten have grown by about 160 million since. Both
+# numbers are right about their own year; a label drawn today has to be right
+# about this one, and a 2002 population under a 2024 map is the kind of quiet
+# staleness nothing downstream can catch.
+#
+# It lives here, beside the membership it is a property of, for the same reason
+# `count` does: a consumer that has the members should not have to go somewhere
+# else to say how many people they are.
+POPULATION_M = {
+    "eu": 450, "usmca": 510, "rcep": 2300, "cptpp": 590, "asean": 690,
+    "mercosur": 310, "gcc": 60, "afcfta": 1450,
+}
+
 # The members nothing in the package can name. The topology names every country
 # it draws and regions.json names the three point nodes; these five are AfCFTA
 # island states that are neither. A consumer building a panel from this registry
@@ -130,7 +151,14 @@ def build():
             "members": sorted(c for c in base[bid] if c in drawable),
             "full": codes,
             "count": len(codes),
+            "pop_m": POPULATION_M[bid],
         })
+
+    missing_pop = sorted({b[0] for b in blocs} - set(POPULATION_M))
+    if missing_pop:
+        raise SystemExit(f"FAIL  POPULATION_M has no entry for "
+                         f"{', '.join(missing_pop)}; a bloc that ships without "
+                         f"one puts an empty field on every label")
 
     nameable = drawable | {n["id"] for n in geo.get("nodes", [])}
     unnameable = {c for _b, c in undrawable} - nameable
@@ -199,7 +227,8 @@ def main(argv):
     print(f"wrote {OUT.relative_to(ROOT)}  ({len(built):,} bytes)")
     for r in data["regions"]:
         print(f"  {r['abbr']:9} {r['count']:>3} members, "
-              f"{len(r['members']):>3} fill the base partition")
+              f"{len(r['members']):>3} fill the base partition, "
+              f"{r['pop_m'] / 1000:.2f}B people")
     return 0
 
 
