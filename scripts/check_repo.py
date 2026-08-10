@@ -1284,6 +1284,11 @@ def check_platform_manifest():
             ("path_verified", "path_waiver", "install path"),
             ("docs", "docs_waiver", "documentation URL"),
             ("probe", "probe_waiver", "CLI probe"),
+            # The tier was the ONE claim here with no verification field, and it
+            # is the claim that decides whether an agent may call a deliverable
+            # verified. Ten records asserted `full` — "the agent runs the
+            # checkers itself" — and nothing had ever watched one do it.
+            ("capability_verified", "capability_waiver", "capability tier"),
         ):
             value = entry.get(flag)
             # Explicit true, or it is unverified. This read absence as
@@ -1293,7 +1298,9 @@ def check_platform_manifest():
             # instruction. Empty string and empty list are absence too: `probe:
             # []` satisfied `is None` here while detect() read it as no probe,
             # so the two files disagreed about what "has a probe" means.
-            missing = (value is not True) if flag == "path_verified" else (not value)
+            missing = (value is not True
+                       if flag in ("path_verified", "capability_verified")
+                       else (not value))
             if flag == "probe" and value and not (
                     isinstance(value, list) and all(isinstance(x, str) for x in value)):
                 errors.append(
