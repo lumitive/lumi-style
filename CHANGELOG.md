@@ -3,6 +3,61 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.397 — the globe becomes an Earth, and two lenses of daylight inside the night
+
+The globe carries an axial tilt, the tropics, the equator and a day/night
+terminator. **The tilt and the flattening are one SVG group transform, not a
+change to the projection** — and that is a decision, not a shortcut. Touching
+`unrolled()` would invalidate the 1300-sample golden grid that holds the
+JavaScript port to the Python authority, and what it would buy is sub-pixel:
+WGS84 flattening is 1/298, so at R=1000 the two axes differ by 3.4 units in a
+2000-unit frame, and the geodetic-versus-geocentric latitude difference peaks
+at 0.19 degrees. **The flattening is invisible and the owner was told so.** What
+makes the figure read as a sphere is the tilt, a graticule at 15 degrees
+instead of 30, and the two tropics — which sit at exactly the obliquity the
+tilt uses, so one constant serves all three.
+
+**The terminator is the same shape the clip already speaks**: night is a
+spherical cap about the antisolar point, so it goes through `_project_area`
+like any country and comes back cut at the limb. The sun is fixed in screen
+space (owner decision) — the Earth turns under it — which has a consequence
+worth stating: the night polygon's projected shape is then INVARIANT under
+rotation, so the runtime never redraws it and needs no solar maths at all.
+
+**And it drew two lenses of daylight inside the night side.** Both were
+well-formed polygons, both invisible to every markup reader, and both found by
+measuring rendered pixels against closed form — a great circle whose pole sits
+at angular distance d from the view centre cuts the disc into a night part of
+exactly (1 − cos d)/2:
+
+- The terminator ring is a **hemisphere**, the one radius at which
+  `signed_area`'s branch flips — 0.1.389 measured it and wrote it down — and
+  facing the antisolar point the ring lay exactly ON the limb, leaving the clip
+  to decide the winding of a curve coincident with the boundary it was being
+  clipped against. It is drawn 0.05 degrees inside now: 5.5 km on the ground,
+  an order of magnitude finer than the quarter-degree the solar position itself
+  is good to. The terminator is drawn inside its own error bar and the
+  degenerate case stops existing.
+- `cap_point` returns **unwrapped longitudes**, so the ring stepped through a
+  355-degree discontinuity once per circuit and `densify` interpolated straight
+  through it, sweeping the whole world into a second lens. This is the third
+  time `densify` has been handed a ring whose longitude representation jumps
+  with nothing to tell it so.
+
+Worst error over nine views: **13.5% before, 0.08% after**, and the new check
+asserts it against the closed form by counting pixels with a ceiling of 0.5%.
+
+**The named circles rotate.** `.gl-equator` and `.gl-tropic` were emitted and
+then left out of the runtime's redraw, which would have pinned them to the
+frame they were generated in while the world turned underneath.
+
+**Read against a reference.** brila.ai's globe was opened in a browser and
+measured: three.js over WebGL2, `cursor: grab`, and a drop-shadow under the
+sphere. Three of its four ideas cost nothing here — a denser graticule, a
+shadow so the globe floats instead of sitting printed on the page, and the grab
+cursor, since this component's arcball has worked since it shipped and nothing
+ever said so.
+
 ## 0.1.396 — the dots that drifted, and the audit that did not find them
 
 **A reader found it; no check could have.** Dots drifted across the rotating

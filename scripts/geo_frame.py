@@ -43,6 +43,115 @@ PAD = 40.0            # viewBox padding in user units, over the widest stroke
 # resolves one unit as 0.24px, and 0.64px even at full stage width.
 DEFAULT_R = 1000.0
 
+# ── the Earth ─────────────────────────────────────────────────────────────────
+# The obliquity of the ecliptic: the angle between the rotation axis and the
+# normal to the orbital plane. It is why the tropics sit where they do and why
+# the terminator is not a meridian, so one constant serves the tilt, the two
+# tropic rings and the solar declination.
+OBLIQUITY_DEG = 23.4392811
+
+# WGS84 flattening. HONESTLY SUB-PIXEL: at R=1000 the polar radius is 996.65,
+# so the two axes differ by 3.4 units in a 2000-unit frame — under a pixel at
+# any size this figure is drawn. It is applied as a display transform rather
+# than inside the projection, and that is not a shortcut: changing `unrolled`
+# would invalidate the 1300-sample golden grid that holds the JavaScript port
+# to the Python authority, and the geodetic-vs-geocentric latitude difference
+# this introduces peaks at 0.19 degrees — well inside the rounding this
+# renderer already does. What makes the figure read as a sphere is the tilt,
+# the graticule and the tropics, not the flattening.
+FLATTENING = 1.0 / 298.257223563
+
+
+def earth_transform(cx, cy, tilt_deg=OBLIQUITY_DEG):
+    """The tilt-and-flatten transform, as one SVG transform string.
+
+    Order matters and is physical: flatten along the ROTATION AXIS first, then
+    tilt the axis. Written right-to-left the way SVG applies them.
+    """
+    return (f"translate({cx:g} {cy:g}) rotate({-tilt_deg:g}) "
+            f"scale(1 {1 - FLATTENING:.9f}) translate({-cx:g} {-cy:g})")
+
+
+def solar_position(when):
+    """-> (subsolar_lon, subsolar_lat) in degrees for a UTC datetime.
+
+    The standard low-precision almanac: declination from the day of the year
+    and the equation of time from the same series. Good to roughly a quarter of
+    a degree, which at this figure's scale is a third of a pixel — the shape of
+    the terminator is what a reader takes from it, not the minute.
+    """
+    day = when.timetuple().tm_yday
+    frac = 2 * math.pi / 365.24 * (day - 1 + (when.hour - 12) / 24)
+    decl = (0.006918
+            - 0.399912 * math.cos(frac) + 0.070257 * math.sin(frac)
+            - 0.006758 * math.cos(2 * frac) + 0.000907 * math.sin(2 * frac)
+            - 0.002697 * math.cos(3 * frac) + 0.001480 * math.sin(3 * frac))
+    eqtime = 229.18 * (0.000075
+                       + 0.001868 * math.cos(frac) - 0.032077 * math.sin(frac)
+                       - 0.014615 * math.cos(2 * frac)
+                       - 0.040849 * math.sin(2 * frac))
+    utc_minutes = when.hour * 60 + when.minute + when.second / 60
+    lon = -((utc_minutes + eqtime) / 4 - 180)
+    return (((lon + 180) % 360) - 180, math.degrees(decl))
+
+
+# The terminator is drawn this far INSIDE the true 90-degree cap. It is not a
+# fudge: the ring is otherwise a hemisphere exactly, which is the one radius at
+# which signed_area's branch flips (0.1.389 measured it: 89 degrees scores
+# +6.17, 91 scores -6.17) and at which the ring can land exactly ON the limb —
+# where the clip has to decide the winding of a curve that coincides with the
+# boundary it is being clipped against. Facing the antisolar point it got that
+# wrong and left a lens of daylight in the middle of the night side.
+#
+# 0.05 degrees is 5.5 km on the ground, an order of magnitude finer than the
+# quarter-degree the solar position itself is good to. The terminator is drawn
+# inside its own error bar, and the degenerate case stops existing.
+TERMINATOR_INSET_DEG = 0.05
+
+
+def night_ring(sun_lon, sun_lat, step_deg=2.0):
+    """The terminator, as a closed (lon, lat) ring around the ANTISOLAR point.
+
+    The night side is a spherical cap about the antipode of the sun — the same
+    shape the clip already speaks, so this ring goes through _project_area like
+    any country and comes back clipped to whatever the frame shows.
+    """
+    alon = ((sun_lon + 180) % 360) - 180 if sun_lon < 0 else sun_lon - 180
+    alat = -sun_lat
+    c = math.radians(90.0 - TERMINATOR_INSET_DEG)
+    ring = [gp.cap_point(math.radians(a), c, alon, alat)
+            for a in [i * step_deg for i in range(int(360 / step_deg))]]
+
+    # UNWRAP the longitudes. cap_point returns lon0 + atan2(...), so the
+    # sequence steps through a discontinuity of nearly 360 degrees once per
+    # circuit — two adjacent points on the same meridian written 355 degrees
+    # apart. densify() interpolates linearly in longitude and cannot know that,
+    # so it filled the gap with 178 points sweeping the whole world, and the
+    # clip closed the resulting tangle into a LENS of daylight sitting inside
+    # the night side. Visible in every view where the terminator crossed that
+    # index; invisible to every check, because a lens is a well-formed polygon.
+    #
+    # The same failure densify has had twice before, both times where a ring's
+    # longitude representation jumps and nothing told the interpolator. A
+    # continuously-unwrapped sequence is what the clip wants anyway: cos_c is
+    # periodic in longitude and split_at_seam re-wraps afterwards.
+    out = [ring[0]]
+    for lon, lat in ring[1:]:
+        prev = out[-1][0]
+        while lon - prev > 180:
+            lon -= 360
+        while prev - lon > 180:
+            lon += 360
+        out.append((lon, lat))
+    # Close it: the first point again, written near the last one.
+    close = out[0][0]
+    while close - out[-1][0] > 180:
+        close -= 360
+    while out[-1][0] - close > 180:
+        close += 360
+    out.append((close, out[0][1]))
+    return out
+
 
 def _load(regions_path=None):
     """`regions_path` is the per-instance hook: a custom registry rides in

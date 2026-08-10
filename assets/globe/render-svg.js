@@ -176,17 +176,35 @@ export function createSvgRenderer(svg, data) {
   const landRings = land
     ? [...data.countries.keys()].flatMap((c) => ringsOf(c, data))
     : [];
+  // 15 degrees, mirroring GLOBE_GRATICULE in scripts/globe_svg.py. The
+  // graticule is the cue that makes a flat disc read as a sphere, and the
+  // first cut's 30 degrees was too sparse to do that work once the geography
+  // went quiet. The equator is skipped here because it is a NAMED line below.
   const graticuleRings = [];
-  for (let lon = -180; lon <= 180; lon += 30) {
+  for (let lon = -180; lon <= 180; lon += 15) {
     const r = [];
     for (let lat = -90; lat <= 90; lat += 3) r.push([lon, lat]);
     graticuleRings.push(r);
   }
-  for (let lat = -90; lat <= 90; lat += 30) {
+  for (let lat = -90; lat <= 90; lat += 15) {
+    if (lat === 0) continue;
     const r = [];
     for (let lon = -180; lon <= 180; lon += 3) r.push([lon, lat]);
     graticuleRings.push(r);
   }
+  // The named circles. They rotate with the geography like anything else, and
+  // leaving them out of the redraw would pin them to the frame they were
+  // generated in while the world turned underneath.
+  const equator = svg.querySelector('.gl-equator');
+  const tropics = svg.querySelector('.gl-tropic');
+  const OBLIQUITY = 23.4392811;
+  const ringAt = (lat) => {
+    const r = [];
+    for (let lon = -180; lon <= 180; lon += 3) r.push([lon, lat]);
+    return r;
+  };
+  const equatorRing = ringAt(0);
+  const tropicRings = [ringAt(OBLIQUITY), ringAt(-OBLIQUITY)];
 
   function draw(view, state = {}) {
     const out = { marks: [], nodes: [], view };
@@ -205,6 +223,19 @@ export function createSvgRenderer(svg, data) {
       for (const ring of graticuleRings) d += `${pathData(projectRing(ring, view), false)} `;
       graticule.setAttribute('d', d.trim());
     }
+    if (equator) {
+      equator.setAttribute('d', pathData(projectRing(equatorRing, view), false));
+    }
+    if (tropics) {
+      let d = '';
+      for (const ring of tropicRings) d += `${pathData(projectRing(ring, view), false)} `;
+      tropics.setAttribute('d', d.trim());
+    }
+    // .gl-night is deliberately NOT redrawn. The sun is fixed in screen space
+    // — the Earth turns under it — so the subsolar longitude advances with
+    // lon0 and the night polygon's projected shape is invariant. The frame the
+    // emitter produced stays correct for every rotation, which is why this
+    // runtime needs no solar maths and no second clip.
     if (land) {
       let d = '';
       for (const ring of landRings) d += `${pathData(projectArea(ring, view), true, view)} `;
