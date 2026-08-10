@@ -522,6 +522,33 @@ def render(reg=None, prefix=None):
         " * fill: the countries underneath keep their own bloc's colour, which",
         " * is the point — the outline says 'these too' without claiming they",
         " * stopped belonging where they were. */",
+        "/* The globe's own layers. A city is a NAME on the sphere and a bloc",
+        " * label is an identifier over a fill, so both are set in the utility",
+        " * face at a weight that survives being drawn over land — and both",
+        " * carry a halo, because a label on a globe has no white box to sit",
+        " * in the way a map label does. paint-order puts the stroke behind",
+        " * the glyph so the halo never eats the letterform. */",
+        ".gl-city, .gl-rg-label { font-family: var(--din); "
+        "paint-order: stroke fill; stroke: var(--bg); stroke-width: 3.5; "
+        "stroke-linejoin: round; pointer-events: none; }",
+        ".gl-city { fill: var(--tx2); font-weight: 500; }",
+        ".gl-city-dot { fill: var(--tx3); }",
+        ".gl-rg-label { fill: var(--nw); font-weight: 700; text-anchor: middle; "
+        "letter-spacing: .02em; }",
+        ".gl-rg-n { font-variant-numeric: tabular-nums; }",
+        "/* The people count recedes: the reader is identifying a bloc, and the",
+        " * magnitude is context for the identification rather than the point",
+        " * of it. Same relationship .rg-label-v has to .rg-label. */",
+        ".gl-rg-p { fill: var(--tx2); font-weight: 400; "
+        "font-variant-numeric: tabular-nums; }",
+        "/* A BLOC ON THE GLOBE IS QUIETER THAN THE SAME BLOC ON A MAP. The flat",
+        " * map is a choropleth and the fill IS the subject; the globe is a",
+        " * field of marks and the fill is where they sit. At full strength the",
+        " * eight hues buried the marks — Australia read hotter than the datum",
+        " * on top of it — so the globe takes the same hue at reduced strength",
+        " * and keeps one palette across both figures rather than minting a",
+        " * second set of colours that would have to be kept in step. */",
+        ".gl-rg { fill-opacity: .42; stroke-opacity: .55; }",
         ".rg-full { pointer-events: none; }",
         ".rg-outline { fill: none; stroke: var(--nw); stroke-width: 4; "
         "stroke-linejoin: round; }",

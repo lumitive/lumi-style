@@ -3,6 +3,61 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.401 — the globe leans right, names its cities, and colours its blocs
+
+Four additions to the globe, and one of them turned up a defect in a kind of
+reasoning rather than in a line.
+
+**The pole leans right.** `rotate(-tilt)` carried it left; SVG rotates clockwise
+on a positive angle. Which way it leans is a free choice — obliquity is an angle
+between an axis and a normal and has no handedness a viewer can see — and it had
+shipped leaning one way since 0.1.397 **with nothing asserting it at all**. The
+tilt now has a check: the group exists, the angle is the obliquity rather than
+the 23.5 everyone quotes, and the sign leans right. Both mistakes fail it.
+
+**Blocs on the sphere.** With `--regions`, the land is routed into one path per
+region instead of one path for the world — the same total clipping work, because
+a ring is clipped once either way and only the bucket changes. The paths carry
+the SHIPPED `rg rg-<id>` classes, so one palette serves the globe and the flat
+map and the two cannot disagree about what colour a bloc is. Without `--regions`
+nothing changes: a field of marks should not silently gain political fills.
+
+At full strength the eight hues buried the data — Australia read hotter than the
+mark on top of it — so `.gl-rg` takes the same hue at 42% and the marks stay the
+only saturated thing on the figure.
+
+**Cities, named.** A `--cities` layer that carries visible text, which marks
+never have. Text on a sphere needs three things a circle does not: the far-side
+rule applied to dot and name together, a side flip so a label near the right limb
+runs inward rather than off the edge, and collision culling. Labels are placed
+outward from the view centre and one that would land on another is DROPPED, never
+nudged — dropping is what keeps the static frame and the live frame agreeing.
+
+**Bloc labels** carry abbreviation, membership and population magnitude —
+`AFTA 10 · 0.69B` — and are hidden well before the limb, where the geography
+under them is a sliver. Population is a new registry field beside `count`, since
+a consumer holding the members should not go elsewhere to say how many people
+they are. ASEAN's entry is 690M, not the 530M the founding-era text quotes; both
+are right about their own year and a label drawn today has to be right about
+this one.
+
+**Two lessons, both about checks that agree with themselves.**
+
+The label placement first compared boxes computed from the same constants it was
+verifying. Setting the padding to zero left it green while three European names
+rendered as one blot. Overlap is now measured in a browser off the RENDERED
+glyphs, and it caught the real defect immediately: the estimate 0.55 em/char was
+the MEAN of the shipped face, not an over-estimate of it, and real names run 0.48
+to 0.62.
+
+Then the deeper one. Placement was being decided in the earth group's own space
+while the labels render TILTED — positions rotate, label boxes stay axis-aligned
+to the screen, and at the obliquity a point 700 units above centre moves 280
+sideways. The crowded corner of the frame is not the crowded corner of the
+picture. Placement now converts to screen space first, and the dot-to-name gap is
+stated on screen and converted back, because a plain offset in group space came
+out at 23 degrees.
+
 ## 0.1.400 — the gate measured ink the viewport never painted
 
 `inspect_layout.py --deliverable` called a correct document NOT SHIPPABLE on two

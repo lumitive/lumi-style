@@ -1139,6 +1139,210 @@ def check_ink_is_what_is_painted():
     return errors
 
 
+def check_globe_layers():
+    """The bloc fills partition the land and the city labels never overlap.
+
+    Two layers arrived together and each can fail silently in a way markup
+    looks fine through.
+
+    THE FILLS. Routing the land through a registry means every country ring is
+    clipped once and lands in one bucket. If a country reached two buckets the
+    upper fill would simply cover the lower one and the map would carry a claim
+    no reader could see; if it reached none it would vanish from a figure that
+    still drew its neighbours. So: every drawable member fills under its bloc,
+    no code is claimed twice, and the leftover path is non-empty.
+
+    THE LABELS. A name on a sphere collides where the projection crowds, and
+    two labels that overlap render as one unreadable word. The placement pass
+    drops rather than nudges precisely so this is decidable: no two PLACED
+    boxes may intersect, at any rotation. Swept over eight rotations, because
+    the crowding is different at every one — which is the lesson 0.1.399 cost.
+    """
+    import globe_svg
+    from geo_frame import LABEL_LIMB_COS, place_city_labels
+
+    reg_path = ROOT / "assets" / "vectors" / "regions-trade.json"
+    reg = json.loads(reg_path.read_text(encoding="utf-8"))
+    cities = [
+        {"lon": 103.82, "lat": 1.35, "n": "Singapore"},
+        {"lon": 114.17, "lat": 22.32, "n": "Hong Kong"},
+        {"lon": 114.06, "lat": 22.54, "n": "Shenzhen"},
+        {"lon": 4.48, "lat": 51.92, "n": "Rotterdam"},
+        {"lon": 9.99, "lat": 53.55, "n": "Hamburg"},
+        {"lon": 2.35, "lat": 48.86, "n": "Paris"},
+        {"lon": -0.13, "lat": 51.51, "n": "London"},
+        {"lon": -74.01, "lat": 40.71, "n": "New York"},
+    ]
+    R = globe_svg.DEFAULT_R
+    errors = []
+
+    svg = globe_svg.render((103.8, 12.0, 0.0, R, R, R),
+                           regions_path=str(reg_path), cities=cities)
+    claimed = {}
+    for m in re.finditer(r'data-bloc="([a-z]+)" data-members="([^"]*)"', svg):
+        for code in m.group(2).split():
+            if code in claimed:
+                errors.append(f"{code} fills under both {claimed[code]} and "
+                              f"{m.group(1)}; one of the two is painted over "
+                              f"and the figure carries a claim nobody can see")
+            claimed[code] = m.group(1)
+    for r in reg["regions"]:
+        missing = sorted(set(r["members"]) - set(claimed))
+        if missing:
+            errors.append(f"{r['id']}: {', '.join(missing)} is a drawable "
+                          f"member and reached no path")
+    rest = re.search(r'<path class="gl-land" d="([^"]*)"', svg)
+    if not rest or len(rest.group(1)) < 100:
+        errors.append("routing the land through the registry emptied gl-land; "
+                      "the countries in no bloc stopped being drawn")
+
+    # The far-side rule is decidable here; the OVERLAP rule is not. An
+    # arithmetic check would rebuild the boxes from the same constants the
+    # placer used and read its own arithmetic back — setting the padding to
+    # zero left such a check green while labels visibly merged. Overlap is
+    # measured in a browser, in check_city_labels_do_not_collide below, off
+    # the glyphs themselves.
+    for lon0 in range(0, 360, 45):
+        pts = []
+        for city in cities:
+            px, py, vis = gp.unrolled(city["lon"], city["lat"], float(lon0),
+                                      12.0, 0.0, R, R, R)
+            pts.append((city["n"], px, py, vis))
+        for name, _x, _y, _a, drawn in place_city_labels(pts, R, R, R, R * 0.026):
+            src = next(c for c in cities if c["n"] == name)
+            if drawn and gp.cos_c(src["lon"], src["lat"], float(lon0), 12.0) < 0:
+                errors.append(f"lon0={lon0}: {name} is on the far side and its "
+                              f"label is drawn")
+
+    if 'rotate(-23.4393' not in svg:
+        errors.append("no label carries the counter-rotation, so every name on "
+                      "this globe is set at the obliquity and the reader tips "
+                      "their head to read it")
+    if LABEL_LIMB_COS <= 0:
+        errors.append("LABEL_LIMB_COS is not positive, so a bloc label is only "
+                      "hidden once it has left the disc entirely")
+    return errors
+
+
+def check_city_labels_do_not_collide():
+    """No two drawn city names overlap, measured off the rendered glyphs.
+
+    The companion to check_globe_layers, and separate from it on purpose: the
+    placement pass decides overlap from an ESTIMATED text width, so a check
+    that estimates the same way proves only that the code agrees with itself.
+    Setting the padding constant to zero left exactly such a check green while
+    "Paris" and "Hamburg" rendered as one word. This one asks the browser for
+    each label's own box.
+
+    Swept over eight rotations because the crowding is different at every one.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return ["Playwright is not installed, so label collision was NOT checked."]
+    import globe_svg
+
+    cities = [
+        {"lon": 4.48, "lat": 51.92, "n": "Rotterdam"},
+        {"lon": 9.99, "lat": 53.55, "n": "Hamburg"},
+        {"lon": 2.35, "lat": 48.86, "n": "Paris"},
+        {"lon": -0.13, "lat": 51.51, "n": "London"},
+        {"lon": 4.40, "lat": 51.22, "n": "Antwerp"},
+        {"lon": 103.82, "lat": 1.35, "n": "Singapore"},
+        {"lon": 114.17, "lat": 22.32, "n": "Hong Kong"},
+        {"lon": 114.06, "lat": 22.54, "n": "Shenzhen"},
+    ]
+    R = globe_svg.DEFAULT_R
+    css = ("body{margin:0}svg{width:900px;height:900px;display:block}"
+           ".gl-city{font-family:sans-serif;font-weight:500}")
+    js = """() => {
+      const out = [];
+      for (const el of document.querySelectorAll('.gl-city')) {
+        if (el.getAttribute('display') === 'none') continue;
+        const b = el.getBoundingClientRect();
+        if (b.width < 1) continue;
+        out.push([el.dataset.cityLabel, b.left, b.top, b.right, b.bottom]);
+      }
+      return out;
+    }"""
+    errors = []
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page = browser.new_page(viewport={"width": 950, "height": 950})
+        for lon0 in range(0, 360, 45):
+            svg = globe_svg.render((float(lon0), 12.0, 0.0, R, R, R), cities=cities)
+            page.set_content(f"<!doctype html><meta charset=utf-8>"
+                             f"<style>{css}</style>{svg}")
+            page.wait_for_timeout(90)
+            boxes = page.evaluate(js)
+            for i, a in enumerate(boxes):
+                for b in boxes[i + 1:]:
+                    if a[1] < b[3] and b[1] < a[3] and a[2] < b[4] and b[2] < a[4]:
+                        ov_w = min(a[3], b[3]) - max(a[1], b[1])
+                        errors.append(
+                            f"lon0={lon0}: {a[0]} and {b[0]} are both drawn and "
+                            f"their rendered glyphs overlap by {ov_w:.0f}px — "
+                            f"they read as one word")
+        browser.close()
+    return errors
+
+
+def check_earth_is_tilted():
+    """The earth layer carries the tilt, at the obliquity, leaning right.
+
+    Unasserted from 0.1.397, when the tilt shipped, until the owner asked for
+    the other lean and nothing failed either way. Three things are worth
+    holding and one is not:
+
+      * the group EXISTS and wraps the drawing — without it there is no tilt at
+        all and the figure silently reverts to a flat disc;
+      * the angle is the obliquity, not a number someone liked the look of.
+        The tropics are drawn at OBLIQUITY_DEG and the terminator is computed
+        from it, so a tilt that disagrees puts the axis at odds with the two
+        circles that exist to show where it points;
+      * the sign carries the pole to the RIGHT, which is the owner's call and
+        the kind of thing that gets flipped back by accident.
+
+    What is NOT asserted is the flattening: at 1/298 it is 3.4 units in a
+    2000-unit frame and no rendering test can see it. It is in the transform
+    because it is true, not because it shows.
+    """
+    import globe_svg
+    from geo_frame import OBLIQUITY_DEG, earth_transform
+
+    errors = []
+    svg = globe_svg.render((0.0, 0.0, 0.0, globe_svg.DEFAULT_R,
+                            globe_svg.DEFAULT_R, globe_svg.DEFAULT_R))
+    m = re.search(r'<g class="gl-earth" transform="([^"]+)"', svg)
+    if not m:
+        return ["the frame has no gl-earth group, so the drawing is untilted "
+                "and the tropics describe an axis that is not there"]
+    rot = re.search(r"rotate\(([-\d.]+)\)", m.group(1))
+    if not rot:
+        errors.append(f"gl-earth carries no rotate(): {m.group(1)}")
+        return errors
+    angle = float(rot.group(1))
+    # 1e-3, not 1e-6: the transform is written with %g, which keeps six
+    # significant digits, so 23.4392811 reaches the markup as 23.4393. That
+    # rounding is 1.9e-5 degrees. The tolerance still catches the mistake worth
+    # catching — a tilt written as the 23.5 everyone quotes, which misses by
+    # 0.061 and puts the axis at odds with tropics drawn from the real value.
+    if abs(abs(angle) - OBLIQUITY_DEG) > 1e-3:
+        errors.append(f"the earth is tilted {abs(angle):.4f} degrees and the "
+                      f"obliquity is {OBLIQUITY_DEG} — the tropics and the "
+                      f"terminator are drawn from the obliquity, so this axis "
+                      f"disagrees with the circles that show where it points")
+    if angle < 0:
+        errors.append(f"rotate({angle:g}) leans the north pole LEFT; SVG "
+                      f"rotates clockwise on a positive angle and this figure "
+                      f"leans right")
+    # And the string the check reads is the one the emitter writes.
+    if earth_transform(1000.0, 1000.0) not in svg:
+        errors.append("the frame's transform is not the one earth_transform "
+                      "builds, so this check is reading a coincidence")
+    return errors
+
+
 def check_field_has_no_strangers():
     """A globe stating a field draws no point that is not in the field.
 
@@ -1426,6 +1630,9 @@ CHECKS = (
     ("no line across the flat map", check_seam_segments, False, "shared", False),
     ("the spherical clip holds its invariants", check_clip_invariants, False, "shared", False),
     ("the globe frame holds its contract", check_globe_frame, False, "globe", False),
+    ("the earth is tilted, right, at the obliquity", check_earth_is_tilted, False, "globe", False),
+    ("the globe's layers hold their contract", check_globe_layers, False, "globe", False),
+    ("city names never overlap", check_city_labels_do_not_collide, False, "globe", True),
     ("a field draws no strangers", check_field_has_no_strangers, False, "globe", False),
     ("measured ink is painted ink", check_ink_is_what_is_painted, False, "shared", True),
     ("a far-side mark renders nothing", check_far_side_hidden, False, "globe", True),

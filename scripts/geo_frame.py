@@ -67,8 +67,15 @@ def earth_transform(cx, cy, tilt_deg=OBLIQUITY_DEG):
 
     Order matters and is physical: flatten along the ROTATION AXIS first, then
     tilt the axis. Written right-to-left the way SVG applies them.
+
+    THE POLE LEANS RIGHT. SVG's rotate() is positive clockwise, so a positive
+    angle carries the north pole to the reader's right. Which way it leans is a
+    free choice — the obliquity is an angle between an axis and a normal and
+    has no handedness a viewer can see — and it shipped leaning left from
+    0.1.397 until the owner asked for the other one. Nothing downstream cares:
+    pick.js reads this group's own CTM rather than assuming a sign.
     """
-    return (f"translate({cx:g} {cy:g}) rotate({-tilt_deg:g}) "
+    return (f"translate({cx:g} {cy:g}) rotate({tilt_deg:g}) "
             f"scale(1 {1 - FLATTENING:.9f}) translate({-cx:g} {-cy:g})")
 
 
@@ -158,6 +165,117 @@ def night_ring(sun_lon, sun_lat, step_deg=2.0):
     while out[-1][0] - close > 180:
         close += 360
     out.append((close, out[0][1]))
+    return out
+
+
+# A city label's box, as multiples of the font size. No font metrics are
+# available here, so the width is estimated per character — and the estimate
+# has to be an OVER-estimate, because being too wide drops a label that would
+# have fitted and being too narrow draws two labels through each other.
+#
+# 0.55 was the MEAN, which is not the same thing and is the wrong statistic:
+# measured against the shipped D-DIN, real names run 0.48 em/char ("Paris") to
+# 0.62 ("Hamburg"), so half of them were under-estimated and "Paris",
+# "Hamburg" and "Antwerp" rendered on top of each other over northern Europe.
+# 0.66 is above the measured maximum with headroom. What holds it there is
+# check_city_labels_do_not_collide, which measures the RENDERED glyphs rather
+# than recomputing this arithmetic and agreeing with itself.
+CITY_EM_W = 0.66
+CITY_EM_H = 1.15
+CITY_GAP = 0.9                  # dot-to-text gap, in font sizes
+# Boxes are padded before they are compared. Without it two labels that merely
+# ABUT both pass the overlap test and render as one word — "ParisHamburg" over
+# northern Europe, where the projection squeezes the two together. Touching is
+# not colliding to a rectangle test and is very much colliding to a reader.
+CITY_PAD_EM = 0.35
+
+
+# A label anchored nearer the limb than this points at geography compressed to
+# a sliver, and its own text runs off the disc. cos_c is the cosine of the
+# angular distance from the view centre, so 0.25 is about 75 degrees out.
+LABEL_LIMB_COS = 0.25
+
+
+def tilt_to_screen(x, y, cx, cy, tilt_deg=OBLIQUITY_DEG):
+    """A point in the earth group's space, as the reader actually sees it.
+
+    Everything on this globe is drawn inside `.gl-earth`, which rotates. Label
+    placement is a question about SCREEN geometry — does this word land on that
+    word, does this name run off the right edge — and asking it in group space
+    gets a different answer, because rotating the scene moves the points while
+    the label boxes stay axis-aligned to the screen.
+
+    That is not a subtle discrepancy. At the obliquity a point 700 units above
+    the centre moves about 280 units sideways, so the crowded corner of the
+    frame is not the crowded corner of the picture, and five European labels
+    that cleared each other by arithmetic rendered as a single blot.
+    """
+    a = math.radians(tilt_deg)
+    dx, dy = x - cx, y - cy
+    return (cx + dx * math.cos(a) - dy * math.sin(a),
+            cy + dx * math.sin(a) + dy * math.cos(a))
+
+
+def screen_to_tilt(dx, dy, tilt_deg=OBLIQUITY_DEG):
+    """A screen-space OFFSET, expressed in the earth group's space.
+
+    The counter-rotation on each label makes its glyphs run horizontally on
+    screen, so the gap between a dot and its name has to be horizontal on
+    screen too — and a plain +x offset in group space comes out at 23 degrees.
+    """
+    a = math.radians(-tilt_deg)
+    return (dx * math.cos(a) - dy * math.sin(a),
+            dx * math.sin(a) + dy * math.cos(a))
+
+
+def place_city_labels(points, R, cx, cy, size, reserved=()):
+    """Decide which city labels are drawn, and on which side of their dot.
+
+    `points` is [(name, x, y, visible)] in SCREEN space — pass them through
+    tilt_to_screen first, or this compares boxes the reader never sees. Returns a list of
+    (name, x, y, anchor, drawn) in the SAME ORDER, so a caller can pair it back
+    to its input.
+
+    Two rules, and both exist because a sphere is not a map:
+
+    1. SIDE. Orthographic crowds everything toward the limb, so a label set to
+       the right of a dot on the right half of the disc runs straight off the
+       edge. Labels on the right half are set to the LEFT of their dot and vice
+       versa, which turns the crowded direction into the empty one.
+
+    2. COLLISION. Near the limb, points that are far apart on the sphere land
+       within a few units of each other on the screen. Labels are placed in
+       order of distance from the view CENTRE — the least foreshortened first,
+       which is also the most readable — and one whose box overlaps a box
+       already placed is dropped rather than shrunk or nudged. Dropping is what
+       keeps this deterministic: the static frame and the live frame run the
+       same comparison in the same order and agree, which a nudge would not.
+    """
+    order = sorted(
+        (i for i, p in enumerate(points) if p[3]),
+        key=lambda i: (points[i][1] - cx) ** 2 + (points[i][2] - cy) ** 2)
+    out = [(p[0], p[1], p[2], "start", False) for p in points]
+    # `reserved` is boxes already spoken for by another layer — the bloc labels,
+    # which are anchored to their own geography and cannot move. Seeding them
+    # here is what stops "EU 27 · 0.45B" and "Hamburg" from being drawn through
+    # each other: one collision pass, two layers, and the layer that cannot
+    # move goes in first.
+    placed = list(reserved)
+    for i in order:
+        name, x, y, _vis = points[i]
+        w = CITY_EM_W * size * len(name)
+        h = CITY_EM_H * size
+        gap = CITY_GAP * size
+        right_half = x >= cx
+        anchor = "end" if right_half else "start"
+        x0 = (x - gap - w) if right_half else (x + gap)
+        pad = CITY_PAD_EM * size
+        box = (x0 - pad, y - h / 2, x0 + w + pad, y + h / 2)
+        if any(box[0] < q[2] and q[0] < box[2]
+               and box[1] < q[3] and q[1] < box[3] for q in placed):
+            continue
+        placed.append(box)
+        out[i] = (name, x, y, anchor, True)
     return out
 
 

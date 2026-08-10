@@ -50,7 +50,10 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import geo_projection as gp   # noqa: E402
 from geo_frame import (   # noqa: E402,F401  (re-exported: render() and callers use them)
     ROOT, TOPOLOGY, REGIONS, STEP_DEG, GRATICULE, PAD, DEFAULT_R,
-    OBLIQUITY_DEG, FLATTENING, earth_transform, solar_position, night_ring,
+    OBLIQUITY_DEG, FLATTENING, CITY_GAP, CITY_EM_W, CITY_EM_H,
+    LABEL_LIMB_COS, tilt_to_screen, screen_to_tilt,
+    earth_transform, solar_position,
+    night_ring, place_city_labels,
     _load, _rings_of, _project_ring, _project_area, _pole_close,
     _r, _guard, _d, extent,
 )
@@ -81,16 +84,32 @@ def mark_radius(weight, wmax, R):
     return R * (MARK_R_MIN + (MARK_R_MAX - MARK_R_MIN) * u)
 
 
-def render(view, marks=None, night=None, nodes=False):
+def _upright(x, y):
+    """Cancel the earth group's tilt for one element, about its own anchor.
+
+    Every layer here lives inside `.gl-earth`, which is what makes the
+    geography lean. Text has to lean back: a name set at 23 degrees is a name
+    the reader tips their head for, and a figure that asks that of a label has
+    stopped being a figure. The flattening is not cancelled — 3.4 units in 2000
+    is nothing to a glyph, and undoing it would need a second transform to say
+    so.
+    """
+    return f"rotate({-OBLIQUITY_DEG:g} {x:.1f} {y:.1f})"
+
+
+def render(view, marks=None, night=None, nodes=False,
+           regions_path=None, cities=None):
     """-> the <svg class="gl"> element as a string.
 
     `view` is (lon0, lat0, t, R, cx, cy). t stays in the signature because the
     shared suite sweeps it — the winding guard from 0.1.389 outlives the pinned
     product — but the PRODUCT frame is t=0 and main() does not expose it.
     """
-    topo, reg, arcs = _load()
+    topo, reg, arcs = _load(regions_path)
     lon0, lat0, t, R, cx, cy = view
     marks = marks or []
+    cities = cities or []
+    blocs = reg["regions"] if regions_path else []
 
     body = []
     # the ground the sphere sits on
@@ -123,11 +142,34 @@ def render(view, marks=None, night=None, nodes=False):
     if trop:
         body.append(f'<path class="gl-tropic" d="{trop}"/>')
 
-    d = []
+    # THE LAND, ROUTED. Without a registry every country goes into one path and
+    # this is what it always was. With one, each country goes into its bloc's
+    # path instead and the remainder keeps `gl-land` — the SAME total clipping
+    # work, because a ring is clipped exactly once either way and only the
+    # bucket it lands in changes. Membership is the registry's `members`, which
+    # is already the disjoint base partition, so no country can be filled twice.
+    #
+    # The membership rides ON the element as data-members. The runtime redraws
+    # these paths every frame and has no registry of its own; putting the codes
+    # in the markup is how the flat map's per-instance registry idea reaches a
+    # globe without shipping a second copy of anything.
+    owner = {code: b["id"] for b in blocs for code in b["members"]}
+    buckets = {b["id"]: [] for b in blocs}
+    rest = []
     for country in topo["countries"]:
+        target = buckets.get(owner.get(country["a"]), rest)
         for ring in _rings_of(country, arcs):
-            d.append(_d(_project_area(ring, view), True, view))
-    d = " ".join(x for x in d if x)
+            target.append(_d(_project_area(ring, view), True, view))
+    for b in blocs:
+        d = " ".join(x for x in buckets[b["id"]] if x)
+        # `rg rg-<id>` is the SHIPPED region vocabulary, the same two classes
+        # the flat map fills with, so one palette serves both figures and a
+        # registry that coexists on a page cannot disagree with itself about
+        # what colour a bloc is. `gl-rg` is the globe's own hook and carries
+        # only what differs on a sphere.
+        body.append(f'<path class="rg rg-{b["id"]} gl-rg" data-bloc="{b["id"]}" '
+                    f'data-members="{" ".join(b["members"])}" d="{d}"/>')
+    d = " ".join(x for x in rest if x)
     body.append(f'<path class="gl-land" d="{d}"/>')
 
     # Night: the cap of the sphere the sun is not on. It goes through the same
@@ -187,6 +229,76 @@ def render(view, marks=None, night=None, nodes=False):
                     f'{"" if vis else " display=\"none\""}>'
                     f'<title>{html.escape(node["n"])}</title></circle>')
 
+    # Named places. A city is not a mark: a mark's size is its datum and its
+    # name lives in a title, while a city IS its name — so this layer carries
+    # visible text, and text on a sphere collides in a way circles do not.
+    #
+    # THE DOT AND THE LABEL ARE HIDDEN SEPARATELY. A dot goes when its point
+    # turns to the far side; a label goes when it would land on another label,
+    # which happens near the limb where the projection crowds everything
+    # together. A dot with no name still says a place is there, and that is
+    # more honest than moving the name somewhere it does not point.
+    # BLOC LABELS ARE PLACED FIRST and city labels give way to them. A bloc
+    # label is anchored to a region and names the fill under it; a city label
+    # names a dot and can be dropped without the dot losing meaning. So the one
+    # that cannot move is drawn first and the one that can works around it.
+    bsize = R * 0.030
+    blabels = []
+    for b in blocs:
+        lon, lat = b["anchor"]
+        px, py, vis = gp.unrolled(lon, lat, lon0, lat0, t, R, cx, cy)
+        # Hidden well before the limb, not at it. A label whose anchor is 80
+        # degrees out sits on geography squeezed to a sliver and trails its own
+        # text off the edge of the disc, which is what AfCFTA did at every
+        # rotation that put Africa near the left edge.
+        sx, sy = tilt_to_screen(px, py, cx, cy)
+        near = gp.cos_c(lon, lat, lon0, lat0) >= LABEL_LIMB_COS
+        text = f'{b["abbr"]} {b["count"]} \u00b7 {b["pop_m"] / 1000:.2f}B'
+        w = CITY_EM_W * bsize * len(text)
+        h = CITY_EM_H * bsize
+        blabels.append((b, px, py, vis and near,
+                        (sx - w / 2, sy - h / 2, sx + w / 2, sy + h / 2)))
+
+    csize = R * 0.026
+    cpts = []
+    for city in cities:
+        px, py, vis = gp.unrolled(city["lon"], city["lat"], lon0, lat0, t, R, cx, cy)
+        sx, sy = tilt_to_screen(px, py, cx, cy)
+        cpts.append((city.get("n") or city.get("label", ""), px, py, vis, sx, sy))
+
+    for city, (name, px, py, vis, _sx, _sy), lab in zip(
+            cities, cpts, place_city_labels(
+                [(n, sx, sy, v) for n, _x, _y, v, sx, sy in cpts],
+                R, cx, cy, csize,
+                reserved=[box for _b, _x, _y, shown, box in blabels if shown])):
+        anchor, drawn = lab[3], lab[4]
+        # The gap is horizontal ON SCREEN, so it is stated on screen and
+        # converted — a plain +x here would run off at the obliquity.
+        offx, offy = screen_to_tilt(
+            (-1 if anchor == "end" else 1) * CITY_GAP * csize, 0.0)
+        body.append(f'<circle class="gl-city-dot" data-city="{html.escape(name)}" '
+                    f'data-lon="{city["lon"]:g}" data-lat="{city["lat"]:g}" '
+                    f'cx="{_r(px)}" cy="{_r(py)}" r="{R * 0.0055:.1f}"'
+                    f'{"" if vis else " display=\"none\""}>'
+                    f'<title>{html.escape(name)}</title></circle>')
+        body.append(f'<text class="gl-city" data-city-label="{html.escape(name)}" '
+                    f'x="{_r(px + offx)}" y="{_r(py + offy + csize * 0.34)}" '
+                    f'transform="{_upright(px + offx, py + offy)}" '
+                    f'text-anchor="{anchor}" font-size="{csize:.0f}"'
+                    f'{"" if (vis and drawn) else " display=\"none\""}>'
+                    f'{html.escape(name)}</text>')
+
+    for b, px, py, shown, _box in blabels:
+        pop = f'{b["pop_m"] / 1000:.2f}B'
+        body.append(f'<text class="gl-rg-label" data-bloc-label="{b["id"]}" '
+                    f'data-lon="{b["anchor"][0]:g}" data-lat="{b["anchor"][1]:g}" '
+                    f'x="{_r(px)}" y="{_r(py)}" font-size="{bsize:.0f}" '
+                    f'transform="{_upright(px, py)}"'
+                    f'{"" if shown else " display=\"none\""}>'
+                    f'{html.escape(b["abbr"])} '
+                    f'<tspan class="gl-rg-n">{b["count"]}</tspan>'
+                    f'<tspan class="gl-rg-p"> \u00b7 {pop}</tspan></text>')
+
     x0, y0, x1, y1 = extent(view)
     pad = PAD * (R / DEFAULT_R)
     vb = (x0 - pad, y0 - pad, (x1 - x0) + 2 * pad, (y1 - y0) + 2 * pad)
@@ -242,6 +354,16 @@ def main(argv):
                          "a field. Without a field they are drawn anyway — "
                          "scenery may name places; a field must not silently "
                          "gain points that are not its data.")
+    ap.add_argument("--regions", metavar="PATH", default=None,
+                    help="a region registry. With one, the land is routed into "
+                         "one path per region instead of a single path, and "
+                         "the region's palette fills it. Without one the globe "
+                         "is geography, which is the shipped default: a field "
+                         "of marks should not silently gain political fills.")
+    ap.add_argument("--cities", metavar="JSON|@FILE", default=None,
+                    help='named places: [{"lon","lat","n"}]. Unlike a mark, a '
+                         'city carries its NAME on the figure, so this layer '
+                         'culls its own labels where they would collide.')
     ap.add_argument("--no-night", action="store_true",
                     help="omit the terminator; the globe is then uniformly lit")
     ap.add_argument("--marks", metavar="JSON|@FILE", default=None,
@@ -254,7 +376,8 @@ def main(argv):
     night = None if args.no_night else solar_position(
         datetime.datetime.fromisoformat(args.time))
     print(render(view, marks=_load_marks(args.marks), night=night,
-                 nodes=args.nodes))
+                 nodes=args.nodes, regions_path=args.regions,
+                 cities=_load_marks(args.cities)))
     return 0
 
 
