@@ -31,6 +31,7 @@ jobs:
             scripts/embed_font.py scripts/embed_icons.py scripts/build_geography.py \
             scripts/geo_projection.py scripts/build_worldmap.py \
             scripts/build_region_palette.py scripts/build_trade_registry.py \
+            scripts/build_brand.py scripts/lock.py \
             scripts/check_globe.py \
             scripts/globe_svg.py scripts/geo_frame.py scripts/embed_globe.py \
             scripts/regionmap_svg.py scripts/embed_regionmap.py \
@@ -46,6 +47,7 @@ jobs:
       - run: python3 scripts/embed_icons.py --check
       - run: python3 scripts/build_geography.py --check
       - run: python3 scripts/build_worldmap.py --check
+      - run: python3 scripts/build_brand.py --check
       - run: python3 scripts/build_trade_registry.py --check
       - run: python3 scripts/build_region_palette.py --check
       # The maths properties only. The JS port needs a browser, so like

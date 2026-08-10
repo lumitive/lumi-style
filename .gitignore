@@ -45,6 +45,10 @@ docs/
 !assets/fonts/*.woff2
 !assets/icons/**/*.svg
 !assets/vectors/*.svg
+# LUMIVATE's brand marks. Generated, locked, and shipped — the blanket
+# *.svg above is there to keep stray artwork out, not the package's own
+# generated vectors, and this is the fourth directory to need saying so.
+!assets/brand/**/*.svg
 
 # Conformance run artifacts: renders, not records. The scoreboard is tracked;
 # the raw agent output lives with the run.

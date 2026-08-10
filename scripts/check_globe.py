@@ -33,6 +33,7 @@ import json
 import math
 import pathlib
 import re
+import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -1483,6 +1484,22 @@ def check_trade_lanes():
                       "with nothing behind it is decoration, which "
                       "references/brand.md forbids outright")
     return errors
+
+
+# check_lanes_after_rotation lived here and was REMOVED the same hour it was
+# written. It booted the runtime, let the globe autorotate, and measured each
+# lane's drawn length against its arc — and reverting the repair it was meant
+# to guard left it green. The routes it chose never reached a rotation where
+# splitAtSeam bit, so it asserted nothing while reading like a guarantee, which
+# is the exact failure this file has now recorded three times: a check that
+# cannot fail is worse than no check, because it is also a claim.
+#
+# What DID verify the runtime repair was measuring the shipped demo over thirty
+# samples of real rotation: worst drawn-to-arc ratio 0.99 against a 1.15 ceiling.
+# That is a measurement, not a gate, and it is recorded in the release notes as
+# one. The gap is real and named: assets/globe/ and the Python emitter are a
+# hand-maintained port, the golden grid holds the projection maths between them,
+# and nothing yet holds the ring-clipping pipeline on the JavaScript side.
 
 
 def check_earth_is_tilted():

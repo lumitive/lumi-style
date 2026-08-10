@@ -71,9 +71,32 @@ function poleClose(a, b, view) {
  * Project an OPEN line such as a graticule into screen-space runs.
  * No closure and no cap closing: a line that leaves the figure simply stops.
  */
+// Make a sequence continuous in longitude. Any representation that wraps at
+// +-180 puts a 360-degree step between neighbours, and densify reads that step
+// as a journey — it fills the gap by sweeping the world and the line closes
+// into a ring around the globe. Mirrors _unwrap_lons in scripts/geo_frame.py.
+function unwrapLons(points) {
+  if (points.length < 2) return points.slice();
+  const out = [points[0].slice()];
+  for (let i = 1; i < points.length; i += 1) {
+    let lon = points[i][0];
+    while (lon - out[out.length - 1][0] > 180) lon -= 360;
+    while (out[out.length - 1][0] - lon > 180) lon += 360;
+    out.push([lon, points[i][1]]);
+  }
+  return out;
+}
+
 function projectRing(ring, view) {
   const runs = [];
-  for (const part of splitAtSeam(ring, view.lon0)) {
+  for (const raw of splitAtSeam(ring, view.lon0)) {
+    // splitAtSeam re-expresses longitudes relative to lon0 and can return a
+    // part straddling that rewrap — 376 degrees of span for seventeen degrees
+    // of route. THIS IS WHERE THE RINGS CAME FROM WHILE THE GLOBE TURNED: the
+    // Python emitter was repaired in 0.1.404 and this, the code that actually
+    // draws every frame after the first, was not. A static screenshot of the
+    // first frame looked correct and every rotation after it did not.
+    const part = unwrapLons(raw);
     const dense = part.length > 1 ? densify(part, STEP_DEG) : part;
     let cur = [];
     for (const [lon, lat] of dense) {
@@ -177,9 +200,6 @@ export function createSvgRenderer(svg, data) {
   const blocEls = [...svg.querySelectorAll('.gl-rg')];
   const blocLabelEls = [...svg.querySelectorAll('.gl-rg-label')];
   const cityDots = [...svg.querySelectorAll('.gl-city-dot')];
-  // The rotation axis. Redrawn because dragging changes lat0 and the poles
-  // move with it; the vertical reference outside the group never moves.
-  const axisEl = svg.querySelector('.gl-axis');
   // Trade lanes and the signals riding them. Lanes sit ON the sphere, so they
   // turn with the geography and are redrawn every frame like the coastline.
   const linkEls = [...svg.querySelectorAll('.gl-link')];
@@ -496,20 +516,6 @@ export function createSvgRenderer(svg, data) {
       let d = '';
       for (const ring of blocRings.get(el)) d += `${pathData(projectArea(ring, view), true, view)} `;
       el.setAttribute('d', d.trim());
-    }
-    if (axisEl) {
-      const np = project(0, 90, view);
-      const sp = project(0, -90, view);
-      const len = Math.hypot(np.x - sp.x, np.y - sp.y);
-      if (len > 1e-6) {
-        const over = 0.026 * view.R;   // inside the frame's padding
-        const ux = (np.x - sp.x) / len;
-        const uy = (np.y - sp.y) / len;
-        axisEl.setAttribute('x1', r0(sp.x - ux * over));
-        axisEl.setAttribute('y1', r0(sp.y - uy * over));
-        axisEl.setAttribute('x2', r0(np.x + ux * over));
-        axisEl.setAttribute('y2', r0(np.y + uy * over));
-      }
     }
     if (linkEls.length) {
       drawLinks(view);

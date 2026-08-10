@@ -1497,6 +1497,23 @@ def check_region_coverage():
     return errors
 
 
+def check_brand_lock():
+    """Every locked file still hashes to what the lock records.
+
+    assets/brand/LOCKED.json names LUMIVATE's published marks and the component
+    that draws them. This guard is what gives the lock teeth: without a gate,
+    "locked" is a word in a README.
+
+    It does not prevent an edit — nothing in a git repository can — it prevents
+    an edit from arriving SILENTLY. Changing a published company mark becomes a
+    deliberate act with a reason attached, recorded in the same commit, which
+    is the only thing a lock in source control can honestly promise.
+    """
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import lock as brand_lock
+    return brand_lock.verify()
+
+
 CHECKS = (
     ("version stamps", check_versions),
     ("output default", check_output_default),
@@ -1516,6 +1533,7 @@ CHECKS = (
     ("zh ban-list parity", check_zh_ban_list_parity),
     ("review scores", check_review_scores),
     ("source-marker parity", check_source_marker_parity),
+    ("brand lock", check_brand_lock),
 )
 
 

@@ -190,7 +190,7 @@
   --fs-say:     29px;                       /* the claim that is the page */
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.404 (2026-08-10)
+   LUMI page layouts · v0.1.405 (2026-08-10)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -1548,19 +1548,21 @@ body.dark {
  * and keeps one palette across both figures rather than minting a
  * second set of colours that would have to be kept in step. */
 .gl-rg { fill-opacity: .42; stroke-opacity: .55; }
+/* A COUNTRY IN NO BLOC IS AN OUTLINE, NOT A FILL. On a figure whose
+ * subject is trade blocs, filling the rest of the world says the rest
+ * of the world is a category — and it is not one, it is the absence
+ * of the eight. An outline still draws every coast, so the reader can
+ * see where the blocs stop, without a ninth colour claiming to mean
+ * something. This is `.gl-land` only: on a globe with no registry
+ * there are no blocs, nothing is absent, and the land is the
+ * subject. */
+.gl-land:not(:only-of-type) { fill: none; stroke: var(--ln1); stroke-width: 1.2; }
 /* TRADE LANES. One hue for every lane, because a lane is a lane:
  * weight is a quantity and it is carried by width and opacity, which
  * are quantities too. Hue is identity here and is not free to mean a
  * second thing. The accent is the same one a mark uses, because a
  * lane and a datum are both the figure's subject and the geography
  * behind them is not. */
-/* THE AXIS AND ITS REFERENCE. The obliquity has been in the
- * transform since 0.1.397 and invisible for as long, because a sphere
- * is rotationally symmetric and a rotated drawing of one has nothing
- * to be rotated against. These two lines are that something: the
- * spindle and the stand. */
-.gl-axis { stroke: var(--tx3); stroke-width: 2; stroke-linecap: round; }
-.gl-axis-ref { stroke: var(--ln1); stroke-width: 1.5; stroke-dasharray: 5 7; }
 .gl-link { fill: none; stroke: var(--acc); stroke-linecap: round; }
 .gl-hub { fill: var(--acc); stroke: var(--bg); stroke-width: 2; }
 /* A signal is one code in transit: the dot is where, the text is
@@ -1670,7 +1672,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
       <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
     </div>
-    <p class="colophon">Built with lumi-style 0.1.404 &#183; source: meter management system.</p>
+    <p class="colophon">Built with lumi-style 0.1.405 &#183; source: meter management system.</p>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 18</span></div></section>
 <section class="page opener" id="openA">
@@ -2129,7 +2131,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>
     </div>
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.404.
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.405.
     Source: meter management system; every number here is invented, and a
     bracketed slot must not ship.</p></div>
   </div>
