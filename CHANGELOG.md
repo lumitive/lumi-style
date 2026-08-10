@@ -3,6 +3,104 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.390 — the backlog, and the instruments that could not fail
+
+The seven items in the tracked ideas backlog, in the order it set. What they had
+in common turned out to be sharper than the backlog knew: **five of the seven
+were not missing features but missing verification**, and three of them were
+guards that had been written, documented, and never wired.
+
+**Item 3 · A suite that could not tell a working checker from `return "ok"`.**
+Thirteen of eighteen design verdicts and four of seven prose verdicts read `ok`
+on BOTH fixtures. Ten of them could not be given a failing case in
+`deck-broken` without destroying it as a worked example — four are document-WIDE
+prose properties (every sentence the same length, every title the same shape)
+that cannot be confined to one labelled page — so `deck-degenerate` is a third
+fixture whose only job is to fail. Coverage is now **computed**: the checkers
+emit their targets, and `check_fixtures.py` refuses a graded verdict no fixture
+fails. 30 of 30 today, against 8 of 18 before.
+
+Three defects in the checkers, all found by using them. `KNOWN_FLAT_CLOSURES`
+documented a two-way lock whose second half **was never implemented** — the
+pairs seen were collected into a variable nothing read. The flat-segment probe's
+loop sat OUTSIDE the per-path loop and examined one path per frame of twelve. And
+`inspect_layout --json` printed a note to **stdout ahead of the JSON**, so any
+deliverable that declares no `data-geometry` emitted a stream no parser could
+read — which the conformance harness had been recording as "layout emitted no
+parseable report", a defect in the deliverable rather than in us.
+
+**Item 5 · Two viewports the rules name and nothing ran.** `laptop` and
+`16x9-hd` were absent from the default list, and widening that list would still
+not have reached a deliverable: the declared-geometry branch narrowed to two
+geometries, which is where they were actually being lost. Running them found
+`footer_wrap` firing on all 18 pages of the PASSING fixture at 1920×1080 — the
+probe compared a rect in **device space** against `parseFloat(lineHeight) || 14`,
+and `line-height: normal` does not parse, so a good footer measured 22.5 against
+a threshold of 22.4. It counts line boxes now, and `deck-degenerate` carries a
+real two-line footer so the fix is proven to still fire.
+
+**Item 1 · M6, M2, M1 — the three metrics standing behind a fact red line.**
+Half the rubric's prose metrics had no code and three of the six stood behind
+"every number carries its source", so a deliverable could break all three and
+pass every check shipped. The window each one measures in is now stated in
+`writing-rules.md` §4 rule 6 — the page for an ordinary figure, the block for a
+range, because a range must trace to a SINGLE source — and a new `source-marker
+parity` guard holds the script's vocabulary to the rules'. The window was
+settled by measurement, not preference: a block window scores a correctly built
+deck at 0%. **M1 reports and never gates.** Its predicate is a proxy for a
+judgement, and a proxy that gates is one authors write toward; the first cut
+scored a well-formed deck at 18.8% because it read only digits, which is exactly
+the line a reviewer learns to skip.
+
+**Item 2 · The Chinese half had rules across four sections and machinery for
+none of them.** Phase 1, the parity guard, went first because it is a guard
+rather than a feature: it closes the drift channel before there is new code to
+drift. Phase 2 gives Chinese documents the banned-phrase list and the
+punctuation pass. A Chinese document used to come back UNMEASURABLE, and that
+was the real reason this checker was English-only underneath the docstring
+saying so — the word splitter needs spaces. Phase 3 was filed as blocked on a
+font licence because a fixture has to render; that is true of the RENDERED half
+only, and `check_prose.py` renders nothing, so a Chinese prose fixture pair
+ships now and the licence question is unchanged for anything a browser must
+open. M3, M7 and the de-translationese pass are recorded as **not mechanized**
+with reasons: the first two need a per-document term registry this package does
+not ship, and inventing one would be a rule nobody wrote.
+
+**Item 4 · The half that iterates had no memory.** Six dimensions, a protocol
+where a divergence of two forces a retrospective, and not one stored score —
+every number lived as a sentence in a release note. `reviews/scores.json` and
+`scripts/review_scores.py` store and print the series, backfilled from the two
+rounds the changelog records as prose. The schema has **no free-text field**,
+which is the engagement-fact defence rather than an omission, so an unknown key
+is an error. The protocol's own rule against self-scoring 5 before a reader has
+is enforced in the tooling, because a number series invites optimising it.
+
+**Item 6 · The capability tier was the one registry claim nothing verified.**
+Install path, docs URL and CLI probe each carry a verification field and a waiver
+when unverified. `capability` had none — and it is the claim that decides whether
+an agent may call a deliverable *verified*. Running every probe on this machine:
+one of twelve is installed. So `capability_verified` is true for `claude-code`
+alone, eleven waivers name what is unconfirmed, and each is **published in the
+install note** rather than kept in the registry. The `files` tier stays, marked
+unpopulated: it describes a real shape, and the way to fill it is to exercise an
+agent, never to reclassify one from reading its documentation.
+
+**Item 7 · A board reporting one sample as though that were the method.** An
+unreferenced results directory sat on disk — a second Claude Code run nobody had
+scored, which is the repeat the board most needed. `scored.update()` made a
+repeat OVERWRITE its predecessor, so "n=1 per agent" was a property of that one
+line and not of the harness. Repeats accumulate now and a cell carries its
+spread: `2 runs, all fail` is a different claim from `2 runs UNSTABLE`. And
+absence has two kinds — six rows are a machine away, four can never answer a CLI
+probe at all, and printing them identically made ten pieces of pending work out
+of six.
+
+Two things the backlog proposed and this release did not do, both recorded rather
+than dropped: a Chinese fixture anything must RENDER still waits on a font
+licence, and one mutation of the spherical clip — a run linking to its own entry
+instead of the next run's — produces a result too small to trip the area
+invariant and nothing catches it.
+
 ## 0.1.389 — winding carried through the clip, and the two defects the eye found after the checks went green
 
 **The clip moved to the sphere, which is the whole change.** 0.1.388 recorded
