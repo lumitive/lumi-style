@@ -44,9 +44,13 @@ PAD = 40.0            # viewBox padding in user units, over the widest stroke
 DEFAULT_R = 1000.0
 
 
-def _load():
+def _load(regions_path=None):
+    """`regions_path` is the per-instance hook: a custom registry rides in
+    while the topology stays the shipped one — regions group countries, they
+    do not redraw them."""
     topo = json.loads(TOPOLOGY.read_text(encoding="utf-8"))
-    reg = json.loads(REGIONS.read_text(encoding="utf-8"))
+    reg = json.loads(pathlib.Path(regions_path).read_text(encoding="utf-8")
+                     if regions_path else REGIONS.read_text(encoding="utf-8"))
     q = topo["quantum"]
     arcs = []
     for flat in topo["arcs"]:

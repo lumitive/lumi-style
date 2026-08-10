@@ -37,12 +37,13 @@ RUNTIME = ROOT / "assets" / "regionmap" / "regionmap.js"
 REGIONS = ROOT / "assets" / "vectors" / "regions.json"
 
 
-def build(states=None):
+def build(states=None, regions_path=None):
     src = RUNTIME.read_text(encoding="utf-8")
     src, conflicts = dedupe_top_consts("regionmap.js", strip_module_syntax(src), {})
     if conflicts:
         raise SystemExit("FAIL  " + "\n      ".join(conflicts))
-    reg = json.loads(REGIONS.read_text(encoding="utf-8"))
+    reg = json.loads(pathlib.Path(regions_path).read_text(encoding="utf-8")
+                     if regions_path else REGIONS.read_text(encoding="utf-8"))
 
     host = {"regions": {}}
     for rid, v in (states or {}).items():
@@ -120,12 +121,16 @@ def check():
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--states", metavar="JSON", default=None)
+    ap.add_argument("--regions", metavar="PATH", default=None,
+                    help="inline this registry instead of the shipped one; "
+                         "pair it with the frame regionmap_svg.py --regions "
+                         "emitted, or names and states will disagree")
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args(argv)
     if args.check:
         return check()
     states = json.loads(args.states) if args.states else None
-    print(build(states=states))
+    print(build(states=states, regions_path=args.regions))
     return 0
 
 

@@ -65,35 +65,75 @@ def _aria(name, entry):
     return f"{name}, {entry['state'] if entry else 'zero'}"
 
 
-def render(lon0=0.0, R=DEFAULT_R, states=None, labels="en"):
+def _clip_runs(runs, x0, y0, x1, y1):
+    """Keep only the pieces of each polyline inside the box."""
+    out = []
+    for run in runs:
+        cur = []
+        for x, y in run:
+            if x0 <= x <= x1 and y0 <= y <= y1:
+                cur.append((x, y))
+            else:
+                if len(cur) > 1:
+                    out.append(cur)
+                cur = []
+        if len(cur) > 1:
+            out.append(cur)
+    return out
+
+
+def render(lon0=0.0, R=DEFAULT_R, states=None, labels="en", regions_path=None):
     """-> the <svg class="regionmap"> element as a string."""
-    topo, reg, arcs = _load()
+    topo, reg, arcs = _load(regions_path)
     states = _norm_states(states)
     view = (lon0, 0.0, 1.0, R, R, R)
 
     body = []
-    grat = []
-    for lon in range(-180, 181, GRATICULE):
-        grat.append(_d(_project_ring([(lon, la) for la in range(-90, 91, 3)], view), False))
-    for lat in range(-90, 91, GRATICULE):
-        grat.append(_d(_project_ring([(lo, lat) for lo in range(-180, 181, 3)], view), False))
-    grat = " ".join(g for g in grat if g)
-    if grat:
-        body.append(f'<path class="gl-graticule" d="{grat}"/>')
-
+    region_runs = {}
     for region in reg["regions"]:
         entry = states.get(region["id"])
         state = entry["state"] if entry else "zero"
-        d = []
+        d, runs = [], []
         for code in region["members"]:
             country = next((c for c in topo["countries"] if c["a"] == code), None)
             if country:
                 for ring in _rings_of(country, arcs):
-                    d.append(_d(_project_area(ring, view), True, view))
+                    r_ = _project_area(ring, view)
+                    runs += r_
+                    d.append(_d(r_, True, view))
+        region_runs[region["id"]] = runs
         d = " ".join(x for x in d if x)
         body.append(f'<path class="rg rg-{region["id"]} is-{state}" '
                     f'data-region="{region["id"]}" role="img" '
                     f'aria-label="{html.escape(_aria(region["n"], entry))}" d="{d}"/>')
+
+    # The viewBox fits the INK, not the world. For the shipped registry the two
+    # are the same box; for a scoped registry — Asia alone, say — a world-wide
+    # frame renders the subject as a sliver with an ocean of empty graticule on
+    # either side, which is exactly the reserved-space-nothing-draws-in defect
+    # the frame-fill floor exists to catch.
+    xs = [pt[0] for runs in region_runs.values() for run in runs for pt in run]
+    ys = [pt[1] for runs in region_runs.values() for run in runs for pt in run]
+    if not xs:
+        x0, y0, x1, y1 = extent(view)
+    else:
+        x0, y0, x1, y1 = min(xs), min(ys), max(xs), max(ys)
+    pad = PAD * (R / DEFAULT_R)
+    vb = (x0 - pad, y0 - pad, (x1 - x0) + 2 * pad, (y1 - y0) + 2 * pad)
+
+    # The graticule is emitted last and CLIPPED to the ink box: a scoped map
+    # must not carry world-spanning lines outside its own viewBox — the
+    # fits-in-viewBox check reads that as clipped ink, and it is.
+    grat = []
+    for lon in range(-180, 181, GRATICULE):
+        grat.append(_d(_clip_runs(_project_ring(
+            [(lon, la) for la in range(-90, 91, 3)], view), x0, y0, x1, y1), False))
+    for lat in range(-90, 91, GRATICULE):
+        grat.append(_d(_clip_runs(_project_ring(
+            [(lo, lat) for lo in range(-180, 181, 3)], view), x0, y0, x1, y1), False))
+    grat = " ".join(g for g in grat if g)
+    if grat:
+        body.insert(0, f'<path class="gl-graticule" d="{grat}"/>')
 
     if labels != "none":
         for region in reg["regions"]:
@@ -112,13 +152,12 @@ def render(lon0=0.0, R=DEFAULT_R, states=None, labels="en"):
 
     for node in reg.get("nodes", []):
         px, py, _vis = gp.unrolled(node["lon"], node["lat"], lon0, 0.0, 1.0, R, R, R)
+        if xs and not (x0 <= px <= x1 and y0 <= py <= y1):
+            continue
         body.append(f'<circle class="gl-node" data-node="{node["id"]}" '
                     f'cx="{_r(px)}" cy="{_r(py)}" r="{R * 0.014:.1f}">'
                     f'<title>{html.escape(node["n"])}</title></circle>')
 
-    x0, y0, x1, y1 = extent(view)
-    pad = PAD * (R / DEFAULT_R)
-    vb = (x0 - pad, y0 - pad, (x1 - x0) + 2 * pad, (y1 - y0) + 2 * pad)
     head = (f'<svg xmlns="http://www.w3.org/2000/svg" class="regionmap" '
             f'viewBox="{vb[0]:.1f} {vb[1]:.1f} {vb[2]:.1f} {vb[3]:.1f}" '
             f'role="img" aria-label="LUMI region map" '
@@ -142,9 +181,15 @@ def main(argv):
     ap.add_argument("--labels", choices=("en", "zh", "none"), default="en",
                     help="label language, from the registry's n / z fields; "
                          "none only when the host draws its own legend")
+    ap.add_argument("--regions", metavar="PATH", default=None,
+                    help="a custom registry (validated by "
+                         "build_region_palette.py --regions, which also emits "
+                         "its scoped palette). The topology stays shipped: "
+                         "regions group countries, they do not redraw them.")
     args = ap.parse_args(argv)
     states = json.loads(args.states) if args.states else None
-    print(render(lon0=args.lon0, R=args.r, states=states, labels=args.labels))
+    print(render(lon0=args.lon0, R=args.r, states=states, labels=args.labels,
+                 regions_path=args.regions))
     return 0
 
 
