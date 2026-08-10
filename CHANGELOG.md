@@ -95,11 +95,30 @@ absence has two kinds — six rows are a machine away, four can never answer a C
 probe at all, and printing them identically made ten pieces of pending work out
 of six.
 
-Two things the backlog proposed and this release did not do, both recorded rather
-than dropped: a Chinese fixture anything must RENDER still waits on a font
-licence, and one mutation of the spherical clip — a run linking to its own entry
-instead of the next run's — produces a result too small to trip the area
-invariant and nothing catches it.
+**And an eighth thing, found by looking at the sheet.** With the geometry matrix
+widened, the contact sheet showed figure 9 of the PASSING fixture as four solid
+black rectangles — at every geometry, for as long as that figure has existed.
+`globe_svg.py` emits `class="rg rg-europe is-live"`, `region-palette.css` ships
+`--rg-europe` and its stroke and wash, and **nothing in `tokens/` joins the
+two**, so every region fell back to the UA default. `D18_region_labels`,
+`D5_drawn_share` and `D5_figure_parity` all passed, because no check in this
+package reads rendered colour. Convention 8, again, and the third release
+running that it found something the instruments could not.
+
+The fixture paints its regions now, generated from the palette so a new region
+cannot leave a black shape. **Whether `tokens/` should ship that binding itself
+is left open**: `design-rules.md` §1 puts painting on the document, but a
+document currently has to write eleven regions by hand to draw a region map, and
+that is the shape of a rule mandating an asset the package does not ship. It is
+a design decision, so it is recorded here rather than taken.
+
+Three things the backlog proposed and this release did not do, all recorded
+rather than dropped: a Chinese fixture anything must RENDER still waits on a
+font licence; one mutation of the spherical clip — a run linking to its own
+entry instead of the next run's — produces a result too small to trip the area
+invariant and nothing catches it; and `M1`'s proxy scores a well-formed deck at
+43.8%, which is information about the proxy as much as the deck and is why it
+reports rather than gates.
 
 ## 0.1.389 — winding carried through the clip, and the two defects the eye found after the checks went green
 
