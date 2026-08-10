@@ -192,19 +192,24 @@ def check_static_svg():
     figure whose band was cut off by exactly this. The globe's limb sits ON the
     edge, so it is the likeliest thing in this package to trip it.
 
-    Checked at both ends and the middle, in both forms, because the extent is
-    computed per t and a viewBox correct at t=0 says nothing about t=1.
+    Checked at both ends and the middle. The PRODUCTS pin t — the globe to 0,
+    the map to 1 — but the shared geometry keeps the parameter, and this sweep
+    is part of what holds 0.1.389's winding work: the land layer runs the same
+    clip path every ring in the topology runs, at every t.
     """
     import globe_svg
+    import regionmap_svg
 
     errors = []
-    for form in ("field", "regions"):
-        for t in (0.0, 0.5, 1.0):
-            R = globe_svg.DEFAULT_R
-            svg = globe_svg.render((0.0, 0.0, t, R, R, R), form=form)
+    R = globe_svg.DEFAULT_R
+    frames = [(f"field t={t}", globe_svg.render((0.0, 0.0, t, R, R, R)))
+              for t in (0.0, 0.5, 1.0)]
+    frames.append(("regionmap", regionmap_svg.render()))
+    if True:
+        for name, svg in frames:
             m = re.search(r'viewBox="([-\d.]+) ([-\d.]+) ([-\d.]+) ([-\d.]+)"', svg)
             if not m:
-                errors.append(f"{form} t={t}: no viewBox emitted")
+                errors.append(f"{name}: no viewBox emitted")
                 continue
             vx, vy, vw, vh = (float(g) for g in m.groups())
             xs, ys = [], []
@@ -218,11 +223,11 @@ def check_static_svg():
                 xs += [cxx - rr, cxx + rr]
                 ys += [cyy - rr, cyy + rr]
             if not xs:
-                errors.append(f"{form} t={t}: the frame drew nothing")
+                errors.append(f"{name}: the frame drew nothing")
                 continue
             if min(xs) < vx or max(xs) > vx + vw or min(ys) < vy or max(ys) > vy + vh:
                 errors.append(
-                    f"{form} t={t}: ink spans x {min(xs):.1f}..{max(xs):.1f}, "
+                    f"{name}: ink spans x {min(xs):.1f}..{max(xs):.1f}, "
                     f"y {min(ys):.1f}..{max(ys):.1f} but the viewBox is "
                     f"{vx:.1f} {vy:.1f} {vw:.1f} {vh:.1f} — clipped")
             # Not the smallest margin: one tight side hides three loose ones,
@@ -232,7 +237,7 @@ def check_static_svg():
             fill = ((max(xs) - min(xs)) * (max(ys) - min(ys))) / (vw * vh)
             if fill < FRAME_FILL_FLOOR:
                 errors.append(
-                    f"{form} t={t}: the ink fills {fill:.0%} of its viewBox "
+                    f"{name}: the ink fills {fill:.0%} of its viewBox "
                     f"(floor {FRAME_FILL_FLOOR:.0%}); the box reserves space "
                     f"nothing draws in, so the figure renders small in its cell")
     return errors
@@ -270,13 +275,20 @@ def check_seam_segments():
     defect this release fixes.
     """
     import globe_svg
+    import regionmap_svg
 
     R = globe_svg.DEFAULT_R
     errors = []
-    for form in ("field", "regions"):
-        for t in (0.0, 0.25, 0.5, 0.75, 0.9, 1.0):
+    # The field frame sweeps t: its land layer runs every ring in the topology
+    # through the shared clip, which is a superset of what the region layer ran
+    # — the same rings grouped differently — so the land sweep IS the 0.1.389
+    # winding guard. The map frame adds the region grouping at its own t=1.
+    frames = [(f"field t={t}", t, globe_svg.render((0.0, 0.0, t, R, R, R)))
+              for t in (0.0, 0.25, 0.5, 0.75, 0.9, 1.0)]
+    frames.append(("regionmap", 1.0, regionmap_svg.render()))
+    for name, t, svg in frames:
+        if True:
             view = (0.0, 0.0, t, R, R, R)
-            svg = globe_svg.render(view, form=form)
             half = R * (1 - t / 2)
             top, bottom = view[5] - half, view[5] + half
             on_pole_edge = lambda y: (abs(y - top) < R * 0.03      # noqa: E731
@@ -292,7 +304,7 @@ def check_seam_segments():
                         continue
                     if on_pole_edge((pts[i][2] + pts[i - 1][2]) / 2):
                         continue
-                    errors.append(f"{form} t={t}: a segment runs from "
+                    errors.append(f"{name}: a segment runs from "
                                   f"{pts[i - 1][1:]} to {pts[i][1:]}")
                     break
                 # A long PERFECTLY HORIZONTAL segment away from a pole edge is
@@ -315,7 +327,7 @@ def check_seam_segments():
                     if on_pole_edge(pts[i][2]):
                         continue
                     errors.append(
-                        f"{form} t={t}: a flat segment "
+                        f"{name}: a flat segment "
                         f"{abs(pts[i][1] - pts[i - 1][1])} units wide at "
                         f"y={pts[i][2]} — a parallel projects as a curve, so "
                         f"this is a closure that cut straight across instead of "
@@ -402,18 +414,31 @@ def check_renderer_parity():
     import globe_svg
 
     R = globe_svg.DEFAULT_R
+    # FIELD parity, since the split: the land path and the mark positions. The
+    # land layer runs every ring in the topology through the shared clip, which
+    # is a superset of the region grouping the old check compared — and the
+    # regions moved to a component whose runtime never touches geometry, so
+    # there is nothing on that side left to diverge. The canvas gap this check
+    # could never see (a form branch keyed on state nobody set) was deleted
+    # with the branch.
+    #
     # Keys are passed explicitly rather than built on each side. JavaScript
     # renders 0.0 as "0", so a key composed independently in both languages did
-    # not match and every region reported as "drew nothing" — a parity check
+    # not match and every path reported as "drew nothing" — a parity check
     # failing on its own bookkeeping.
+    MARKS = [{"lon": 103.8, "lat": 1.35, "weight": 3, "id": "sg"},
+             {"lon": -122.4, "lat": 37.8, "weight": 9, "id": "sf"},
+             {"lon": 13.4, "lat": 52.5, "weight": 1, "id": "ber"}]
     cases = [(0.0, 0.0), (0.5, 0.0), (1.0, 0.0), (0.0, -20.0)]
     keyed = [{"key": f"t{t}_lon{lon0}", "t": t, "lon0": lon0} for t, lon0 in cases]
     want = {}
     for t, lon0 in cases:
-        svg = globe_svg.render((lon0, 0.0, t, R, R, R), form="regions")
-        want[f"t{t}_lon{lon0}"] = {
-            m.group(1): _norm_path(m.group(2))
-            for m in re.finditer(r'data-region="([\w-]+)"[^>]*d="([^"]*)"', svg)}
+        svg = globe_svg.render((lon0, 0.0, t, R, R, R), marks=MARKS)
+        land = re.search(r'class="gl-land" d="([^"]*)"', svg)
+        marks = {m.group(1): (m.group(2), m.group(3)) for m in re.finditer(
+            r'data-mark="(\w+)"[^>]*cx="(-?\d+)" cy="(-?\d+)"', svg)}
+        want[f"t{t}_lon{lon0}"] = {"land": _norm_path(land.group(1) if land else ""),
+                                   "marks": marks}
 
     # Concatenation is embed_globe's job and it already knows the two traps —
     # unresolved imports and duplicate top-level consts. Doing it again here by
@@ -451,11 +476,19 @@ def check_renderer_parity():
           for (const c of payload.cases) {
             const svg = document.createElementNS(
               'http://www.w3.org/2000/svg', 'svg');
-            for (const r of data.regions) {
-              const p = document.createElementNS(
-                'http://www.w3.org/2000/svg', 'path');
-              p.setAttribute('data-region', r.id);
-              svg.appendChild(p);
+            const land = document.createElementNS(
+              'http://www.w3.org/2000/svg', 'path');
+            land.setAttribute('class', 'gl-land');
+            svg.appendChild(land);
+            for (const m of payload.marks) {
+              const cEl = document.createElementNS(
+                'http://www.w3.org/2000/svg', 'circle');
+              cEl.setAttribute('class', 'gl-mark');
+              cEl.dataset.mark = m.id;
+              cEl.dataset.lon = String(m.lon);
+              cEl.dataset.lat = String(m.lat);
+              cEl.dataset.w = String(m.weight);
+              svg.appendChild(cEl);
             }
             document.getElementById('h').appendChild(svg);
             try {
@@ -463,32 +496,43 @@ def check_renderer_parity():
               rend.draw({lon0: c.lon0, lat0: 0, t: c.t, R: payload.R,
                          cx: payload.R, cy: payload.R, zoom: 1}, {});
             } catch (e) { return {__error: String(e && e.stack || e)}; }
-            const per = {};
-            for (const p of svg.querySelectorAll('[data-region]')) {
-              per[p.getAttribute('data-region')] =
-                (p.getAttribute('d') || '').replace(/\s*([MLZ])\s*/g, '$1').trim();
+            const marks = {};
+            for (const el of svg.querySelectorAll('.gl-mark')) {
+              marks[el.dataset.mark] =
+                [el.getAttribute('cx'), el.getAttribute('cy')];
             }
-            out[c.key] = per;
+            out[c.key] = {
+              land: (land.getAttribute('d') || '')
+                .replace(/\s*([MLZ])\s*/g, '$1').trim(),
+              marks,
+            };
             svg.remove();
           }
           return out;
-        }""", {"topo": topo, "reg": reg, "R": R, "cases": keyed})
+        }""", {"topo": topo, "reg": reg, "R": R, "cases": keyed,
+               "marks": MARKS})
         browser.close()
 
     if got.get("__error"):
         return [f"the JS renderer threw: {got['__error'][:300]}"]
     errors, seen_div = [], set()
     for key, expect in want.items():
-        for rid, n in sorted(expect.items()):
-            m = got.get(key, {}).get(rid)
-            if m is None:
-                errors.append(f"{key} {rid}: the JS renderer drew nothing")
-            else:
-                why = _path_diff(n, m)
-                if why and (key, rid) in KNOWN_RENDERER_DIVERGENCE:
-                    seen_div.add((key, rid))
-                elif why:
-                    errors.append(f"{key} {rid}: {why}")
+        m = got.get(key, {}).get("land")
+        if not m:
+            errors.append(f"{key} land: the JS renderer drew nothing")
+        else:
+            why = _path_diff(expect["land"], m)
+            if why and (key, "land") in KNOWN_RENDERER_DIVERGENCE:
+                seen_div.add((key, "land"))
+            elif why:
+                errors.append(f"{key} land: {why}")
+        for mid, (px, py) in sorted(expect["marks"].items()):
+            js = got.get(key, {}).get("marks", {}).get(mid)
+            if js is None:
+                errors.append(f"{key} mark {mid}: the JS renderer placed nothing")
+            elif abs(int(js[0]) - int(px)) > 1 or abs(int(js[1]) - int(py)) > 1:
+                errors.append(f"{key} mark {mid}: Python at ({px}, {py}), "
+                              f"JS at ({js[0]}, {js[1]})")
     for key in sorted(KNOWN_RENDERER_DIVERGENCE - seen_div):
         errors.append(f"{key[0]} {key[1]}: recorded as a known divergence but "
                       f"the renderers agree — fixed? remove it from "
@@ -941,16 +985,21 @@ def check_regionmap_frame():
 
 
 
+# (label, fn, needs_golden, suite). The suites follow the component split:
+# `shared` is the projection core and the t-sweeps that guard 0.1.389's winding
+# work — they outlive the products' pinned t — `globe` and `map` are each
+# component's own contract. Default runs everything; CI's --python-only line is
+# unchanged.
 CHECKS = (
-    ("round trip", check_round_trip, True),
-    ("poles are points", check_poles, True),
-    ("limb culling", check_culling, True),
-    ("seam splitting", check_seam, False),
-    ("viewbox extent", check_viewbox_extent, True),
-    ("static svg fits its viewbox", check_static_svg, False),
-    ("no line across the flat map", check_seam_segments, False),
-    ("the spherical clip holds its invariants", check_clip_invariants, False),
-    ("the region map frame holds its contract", check_regionmap_frame, False),
+    ("round trip", check_round_trip, True, "shared"),
+    ("poles are points", check_poles, True, "shared"),
+    ("limb culling", check_culling, True, "shared"),
+    ("seam splitting", check_seam, False, "shared"),
+    ("viewbox extent", check_viewbox_extent, True, "shared"),
+    ("static svg fits its viewbox", check_static_svg, False, "shared"),
+    ("no line across the flat map", check_seam_segments, False, "shared"),
+    ("the spherical clip holds its invariants", check_clip_invariants, False, "shared"),
+    ("the region map frame holds its contract", check_regionmap_frame, False, "map"),
 )
 
 
@@ -958,6 +1007,10 @@ def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--python-only", action="store_true",
                     help="skip the browser half; the port is then UNVERIFIED")
+    ap.add_argument("--suite", choices=("shared", "globe", "map", "all"),
+                    default="all",
+                    help="which component's checks to run; shared is the "
+                         "projection core both stand on")
     args = ap.parse_args(argv)
 
     if not GOLDEN.exists():
@@ -967,7 +1020,9 @@ def main(argv):
     golden = json.loads(GOLDEN.read_text(encoding="utf-8"))
 
     failed = 0
-    for label, fn, needs_golden in CHECKS:
+    for label, fn, needs_golden, suite in CHECKS:
+        if args.suite != "all" and suite != args.suite:
+            continue
         try:
             errors = fn(golden) if needs_golden else fn()
         except Exception as exc:                       # noqa: BLE001
@@ -983,6 +1038,10 @@ def main(argv):
     if args.python_only:
         print(f"note  the JS port was NOT verified (--python-only); "
               f"{len(golden['samples'])} golden samples are waiting for it")
+    elif args.suite == "map":
+        # The map runtime never touches geometry, so there is no browser half
+        # for it: nothing it does can disagree with the Python emitter.
+        pass
     else:
         errors = check_port(golden)
         if errors:

@@ -13,11 +13,24 @@
 import {
   project, splitAtSeam, densify, clipToCap,
 } from '../geo/projection.js';
-import { ringsOf, ringsOfRegion } from '../geo/worlddata.js';
+import { ringsOf } from '../geo/worlddata.js';
 
 const STEP_DEG = 2;
 
 export function createCanvasRenderer(container, data, options = {}) {
+  // The field's data. The SVG back end reads marks from the markup the emitter
+  // baked; a canvas has no markup, so they arrive as data. Radius matches
+  // scripts/globe_svg.py's mark_radius exactly — sqrt of the normalised
+  // weight between the same two fractions of R — and the field renderer
+  // parity check is what holds the two together.
+  const MARK_R_MIN = 0.008;
+  const MARK_R_MAX = 0.028;
+  const marks = options.marks || [];
+  const wmax = marks.reduce((m, x) => Math.max(m, Number(x.weight) || 0), 0);
+  const markR = (w) => {
+    const u = wmax > 0 ? Math.sqrt(Math.max(0, Number(w) || 0) / wmax) : 0;
+    return MARK_R_MIN + (MARK_R_MAX - MARK_R_MIN) * u;
+  };
   const svg = container.querySelector('svg.gl');
   let canvas = container.querySelector('canvas.gl-canvas');
   if (!canvas) {
@@ -40,8 +53,6 @@ export function createCanvasRenderer(container, data, options = {}) {
   // into these buffers rather than allocating: a full world is about 15,000
   // points and a fresh pair of arrays per frame is what makes a canvas globe
   // stutter every few seconds under the collector rather than steadily.
-  const regionRings = new Map();
-  for (const r of data.regions) regionRings.set(r.id, ringsOfRegion(r.id, data));
   const landRings = [...data.countries.keys()].flatMap((c) => ringsOf(c, data));
   const graticule = [];
   for (let lon = -180; lon <= 180; lon += 30) {
@@ -74,21 +85,12 @@ export function createCanvasRenderer(container, data, options = {}) {
   function readPalette() {
     const cs = getComputedStyle(styleHost);
     palette = new Map();
-    for (const r of data.regions) {
-      palette.set(r.id, {
-        fill: cs.getPropertyValue(`--rg-${r.id}`).trim() || 'transparent',
-        stroke: cs.getPropertyValue(`--rg-${r.id}-stroke`).trim() || 'transparent',
-        wash: cs.getPropertyValue(`--rg-${r.id}-wash`).trim() || 'transparent',
-      });
-    }
     palette.set('__base', {
       plate: cs.getPropertyValue('--gl-plate').trim() || 'transparent',
       graticule: cs.getPropertyValue('--gl-graticule').trim() || 'transparent',
       land: cs.getPropertyValue('--gl-land').trim() || 'transparent',
       landEdge: cs.getPropertyValue('--gl-land-edge').trim() || 'transparent',
       mark: cs.getPropertyValue('--acc').trim() || 'transparent',
-      out: cs.getPropertyValue('--brass').trim() || 'transparent',
-      partial: cs.getPropertyValue('--amber').trim() || 'transparent',
     });
   }
   readPalette();
@@ -179,54 +181,32 @@ export function createCanvasRenderer(container, data, options = {}) {
     for (const ring of graticule) strokeOrFill(ring, view, scale, ox, oy, false);
     ctx.stroke();
 
-    const showRegions = state.form === 'regions' || view.t > 0.5;
-    if (showRegions) {
-      for (const r of data.regions) {
-        const entry = (state.regions && state.regions[r.id]) || {};
-        const s = entry.state || 'zero';
-        const tone = palette.get(r.id);
-        ctx.beginPath();
-        for (const ring of regionRings.get(r.id) || []) {
-          strokeOrFill(ring, view, scale, ox, oy, true);
-        }
-        ctx.fillStyle = s === 'out' ? base.out
-          : (s === 'zero' ? tone.wash : tone.fill);
-        ctx.fill('evenodd');
-        ctx.strokeStyle = s === 'partial' ? base.partial : tone.stroke;
-        ctx.setLineDash(s === 'zero' ? [6 * dpr, 4 * dpr] : []);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
-    } else {
-      ctx.beginPath();
-      for (const ring of landRings) strokeOrFill(ring, view, scale, ox, oy, true);
-      ctx.fillStyle = base.land;
-      ctx.fill('evenodd');
-      ctx.strokeStyle = base.landEdge;
-      ctx.stroke();
-    }
+    // Land, always. The regions branch that used to sit here read a
+    // `state.form` the public component never set, so it actually keyed on
+    // `view.t > 0.5` — dead divergent code the parity suite could not see,
+    // because the canvas was never in the parity bundle. Regions belong to the
+    // region map component now, which is SVG-only; this back end draws the
+    // field.
+    ctx.beginPath();
+    for (const ring of landRings) strokeOrFill(ring, view, scale, ox, oy, true);
+    ctx.fillStyle = base.land;
+    ctx.fill('evenodd');
+    ctx.strokeStyle = base.landEdge;
+    ctx.stroke();
 
     // The frame object is the same shape the SVG renderer returns, so pick.js
     // works against either without knowing which drew.
     const out = { regions: new Map(), marks: [], nodes: [], view, backend: 'canvas' };
-    for (const r of data.regions) {
-      const runs = [];
-      for (const ring of regionRings.get(r.id) || []) {
-        for (const part of splitAtSeam(ring, view.lon0)) {
-          if (part.length < 2) continue;
-          const pts = denseOf(part);
-          let cur = [];
-          for (const [lon, lat] of pts) {
-            const p = project(lon, lat, view);
-            if (p.visible) cur.push([p.x, p.y]);
-            else { if (cur.length > 1) runs.push(cur); cur = []; }
-          }
-          if (cur.length > 1) runs.push(cur);
-        }
-      }
-      out.regions.set(r.id, runs);
-    }
     ctx.fillStyle = base.mark;
+    for (const m of marks) {
+      const p = project(m.lon, m.lat, view);
+      if (!p.visible) continue;
+      ctx.beginPath();
+      ctx.arc((p.x - ox) * scale, (p.y - oy) * scale,
+        markR(m.weight) * view.R * scale, 0, Math.PI * 2);
+      ctx.fill();
+      out.marks.push({ x: p.x, y: p.y, id: m.id });
+    }
     for (const node of data.nodes) {
       const p = project(node.lon, node.lat, view);
       if (!p.visible) continue;

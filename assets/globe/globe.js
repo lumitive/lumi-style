@@ -1,34 +1,31 @@
-// The public component.
-//
-// Owns the state machine (form, unroll t, auto-rotation), the frame loop, the
-// accessibility layer, and the failure behaviour. It selects a back end but
-// contains no drawing of its own.
+// The globe component: a rotating field of marks on a sphere
+// (specs/2026-08-10-globe-map-split-design.md).
 //
 //   import { createGlobe } from './globe.js';
-//   const g = await createGlobe(container, { hostData });
-//   g.setForm('regions');           // unrolls to the flat map
-//   container.addEventListener('regionselect', e => …);
+//   const g = await createGlobe(container, { topology, registry });
+//   container.addEventListener('markselect', e => …);
 //
-// Host data, and nothing about it is invented here:
-//   { regions: { <id>: { value, state } },
-//     marks:   [ { lon, lat, weight } ],
-//     nodes:   [ { id, value, state } ] }
-// state is live | partial | zero | out. A region absent from the object renders
-// as zero, because no data is not coverage.
+// The flat region map is its own component (assets/regionmap/). This one owns
+// the frame loop, rotation, the mark field and its accessibility surface. The
+// geometry the old one-figure design animated between sphere and plane is
+// pinned to the sphere here: t=0, always. The shared projection core keeps the
+// t parameter — the winding checks from 0.1.389 sweep it — but no product
+// exposes it, and setForm / unroll / setT are gone rather than deprecated: a
+// half-retired flag is a standing stale promise.
+//
+// The mark contract, and nothing about it is invented here:
+//   marks: [{ lon, lat, weight, label?, id? }]      weight >= 0
+// In the SVG back end the marks are BAKED into the frame by globe_svg.py
+// (this runtime mutates markup and never creates it); the option exists for
+// the canvas back end, which draws from data. When both are present the markup
+// is the truth, because it is what a reader without JavaScript already saw.
 
 import { decode } from '../geo/worlddata.js';
 import { createSvgRenderer } from './render-svg.js';
-import { pickRegion, pickMark, toUserSpace, MARK_RADIUS_CSS_PX } from '../geo/pick.js';
+import { pickMark, toUserSpace, MARK_RADIUS_CSS_PX } from '../geo/pick.js';
 import { attachControls } from './controls.js';
 
 const AUTOROTATE_DEG_PER_SEC = 6;
-// The unroll is a FIXED duration, not an exponential ease toward the target.
-// An asymptote never arrives: at a 450ms time constant and a 0.001 threshold the
-// figure was still visibly settling three seconds after the switch, which reads
-// as the page being slow and makes anything measured during it wrong. 700ms with
-// a symmetric ease arrives, and arrives exactly.
-const UNROLL_MS = 700;
-const easeInOut = (u) => (u < 0.5 ? 4 * u * u * u : 1 - ((-2 * u + 2) ** 3) / 2);
 // A FLOOR on the SVG back end at the 1280x720 stage. Below it the watchdog pins
 // the static frame rather than animating badly: a figure that stutters reads as
 // broken, where a still one reads as a figure.
@@ -40,18 +37,15 @@ function reducedMotion() {
     && matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-/** Read the region tokens off the document once, and again when the theme flips. */
-function readTokens(el, ids) {
-  const cs = getComputedStyle(el);
-  const out = new Map();
-  for (const id of ids) {
-    out.set(id, {
-      fill: cs.getPropertyValue(`--rg-${id}`).trim(),
-      stroke: cs.getPropertyValue(`--rg-${id}-stroke`).trim(),
-      wash: cs.getPropertyValue(`--rg-${id}-wash`).trim(),
-    });
-  }
-  return out;
+/** The marks as data, read back from the markup the emitter baked. */
+function marksFromMarkup(svg) {
+  return [...svg.querySelectorAll('.gl-mark')].map((el) => ({
+    lon: Number(el.dataset.lon),
+    lat: Number(el.dataset.lat),
+    weight: Number(el.dataset.w || 1),
+    id: el.dataset.mark || undefined,
+    label: (el.querySelector('title') || {}).textContent || undefined,
+  }));
 }
 
 export async function createGlobe(container, options = {}) {
@@ -60,8 +54,7 @@ export async function createGlobe(container, options = {}) {
     regionsUrl = null,
     topology = null,
     registry = null,
-    hostData = {},
-    form = 'field',
+    marks = null,
     autorotate = true,
     backend = 'svg',
   } = options;
@@ -87,19 +80,13 @@ export async function createGlobe(container, options = {}) {
   }
 
   const data = decode(topo, reg);
-  const known = new Set(data.regionMembers.keys());
-  for (const id of Object.keys(hostData.regions || {})) {
-    if (!known.has(id)) {
-      console.warn(`[lumi-globe] host data names region "${id}", which is not in `
-                   + 'the registry; it is ignored for rendering');
-    }
-  }
+  const markData = marks || marksFromMarkup(svg);
 
   let renderer;
   if (backend === 'canvas') {
     try {
       const mod = await import('./render-canvas.js');
-      renderer = mod.createCanvasRenderer(container, data);
+      renderer = mod.createCanvasRenderer(container, data, { marks: markData });
     } catch (err) {
       console.warn('[lumi-globe] the canvas back end is unavailable; '
                    + 'falling back to SVG', err);
@@ -112,88 +99,73 @@ export async function createGlobe(container, options = {}) {
   const view = {
     lon0: Number(svg.dataset.lon0 || 0),
     lat0: Number(svg.dataset.lat0 || 0),
-    // t is GEOMETRY and form is which layer is painted. Binding them together
-    // was wrong and it showed: a document asking for regions got a flat map it
-    // did not ask for, and could not have a rotating globe with its trade
-    // regions coloured — which is the figure this component exists for.
-    t: Number(svg.dataset.t || 0),
+    // Pinned. The globe is a sphere; the flat geometry belongs to the region
+    // map component. The dataset value is ignored on purpose: a frame generated
+    // by the retired one-figure emitter at some intermediate t must not make
+    // this component animate a geometry it no longer owns.
+    t: 0,
     R: Number(svg.dataset.r || 1000),
     cx: Number(svg.dataset.cx || 1000),
     cy: Number(svg.dataset.cy || 1000),
     zoom: 1,
   };
-  let currentForm = form;
-  svg.classList.add(form === 'regions' ? 'form-regions' : 'form-field');
-  let targetT = view.t;
-  let unroll = null;   // {from, to, start} while a form change is in flight
   let frame = null;
-  let hovered = null;
-  let hoveredNode = null;
+  let hoveredPoint = null;   // a mark id or a node id
   let raf = null;
   let slowFrames = 0;
   let pinned = false;
-  let tokens = readTokens(svg, known);
-
-  const state = { regions: hostData.regions || {} };
 
   function emit(name, detail) {
     container.dispatchEvent(new CustomEvent(name, { detail, bubbles: true }));
   }
 
   function paint() {
-    frame = renderer.draw(view, state);
+    frame = renderer.draw(view, {});
   }
 
   // ── the accessibility layer ────────────────────────────────────────────────
-  // A canvas is empty to a screen reader and an SVG path is nearly so, and the
-  // two back ends must be equivalent. So one real button per region, visually
-  // hidden, carrying the name and the value, driving the same state machine the
-  // pointer drives.
+  // The field's data, spoken: one visually-hidden entry per mark, name and
+  // weight. Marks are not interactive targets the way the map's regions are —
+  // a datum is read, not operated — so entries, not buttons. The registry's
+  // NODES are targets (a place a reader selects), so they keep buttons. The
+  // region-button list this component used to build lives in the region map
+  // now; a field figure announced eleven regions it was not showing.
   const a11y = document.createElement('ul');
   a11y.className = 'gl-a11y';
-  a11y.setAttribute('aria-label', 'Regions in this figure');
-  // Hidden by the component, not by the host. This layer exists because a
-  // screen reader cannot read a path; a host that has not been told to hide it
-  // gets eleven bulleted buttons under the figure, which is what the first
-  // deliverable showed. A visually-hidden element carries its own hiding.
+  a11y.setAttribute('aria-label', 'Marks in this figure');
   a11y.style.cssText = 'position:absolute;width:1px;height:1px;margin:-1px;'
     + 'padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);'
     + 'white-space:nowrap;border:0;';
-  for (const region of data.regions) {
+  for (const m of markData) {
+    const li = document.createElement('li');
+    li.textContent = m.label
+      ? (m.label.includes(',') ? m.label : `${m.label}, ${m.weight}`)
+      : `mark at ${m.lat}, ${m.lon}: ${m.weight}`;
+    a11y.appendChild(li);
+  }
+  for (const node of reg.nodes || []) {
     const li = document.createElement('li');
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.dataset.region = region.id;
-    const entry = state.regions[region.id];
-    btn.textContent = entry && entry.value !== undefined
-      ? `${region.n}: ${entry.value}`
-      : `${region.n}: no data`;
-    btn.addEventListener('focus', () => setHover(region.id));
-    btn.addEventListener('blur', () => setHover(null));
-    btn.addEventListener('click', () => emit('regionselect', { region: region.id }));
+    btn.dataset.node = node.id;
+    btn.textContent = node.n;
+    btn.addEventListener('focus', () => setPointHover(node.id));
+    btn.addEventListener('blur', () => setPointHover(null));
+    btn.addEventListener('click', () => emit('nodeselect', { node: node.id }));
     li.appendChild(btn);
     a11y.appendChild(li);
   }
   container.appendChild(a11y);
 
-  function setHover(id) {
-    if (id === hovered) return;
-    if (hovered) emit('regionleave', { region: hovered });
-    hovered = id;
-    for (const el of svg.querySelectorAll('[data-region]')) {
-      el.classList.toggle('is-hover', el.getAttribute('data-region') === id);
+  function setPointHover(id) {
+    if (id === hoveredPoint) return;
+    if (hoveredPoint) emit('pointleave', { point: hoveredPoint });
+    hoveredPoint = id;
+    for (const el of svg.querySelectorAll('.gl-node, .gl-mark[data-mark]')) {
+      el.classList.toggle('is-hover',
+        (el.dataset.node || el.dataset.mark) === id);
     }
-    if (id) emit('regionenter', { region: id });
-  }
-
-  function setNodeHover(id) {
-    if (id === hoveredNode) return;
-    if (hoveredNode) emit('nodeleave', { node: hoveredNode });
-    hoveredNode = id;
-    for (const el of svg.querySelectorAll('.gl-node')) {
-      el.classList.toggle('is-hover', el.dataset.node === id);
-    }
-    if (id) emit('nodeenter', { node: id });
+    if (id) emit('pointenter', { point: id });
   }
 
   // ── pointer ────────────────────────────────────────────────────────────────
@@ -201,24 +173,15 @@ export async function createGlobe(container, options = {}) {
     if (!frame || svg.classList.contains('is-dragging')) return;
     const u = toUserSpace(svg, ev.clientX, ev.clientY);
     if (!u) return;
-    // A node wins over the region beneath it, because it is the smaller and more
-    // specific target and the reader aimed at it. It must SAY so, though: an
-    // earlier version merely cleared the region highlight, so hovering within
-    // 12px of Bahrain looked like hovering over nothing at all.
-    const mark = pickMark(u.x, u.y, frame, MARK_RADIUS_CSS_PX / u.scale);
-    setNodeHover(mark && mark.id ? mark.id : null);
-    setHover(mark ? null : pickRegion(u.x, u.y, frame));
+    const hit = pickMark(u.x, u.y, frame, MARK_RADIUS_CSS_PX / u.scale);
+    setPointHover(hit && hit.id ? hit.id : null);
   }
   function onClick(ev) {
     if (!frame) return;
     const u = toUserSpace(svg, ev.clientX, ev.clientY);
     if (!u) return;
-    const mark = pickMark(u.x, u.y, frame, MARK_RADIUS_CSS_PX / u.scale);
-    if (mark && mark.id) emit('nodeselect', { node: mark.id });
-    else {
-      const id = pickRegion(u.x, u.y, frame);
-      if (id) emit('regionselect', { region: id });
-    }
+    const hit = pickMark(u.x, u.y, frame, MARK_RADIUS_CSS_PX / u.scale);
+    if (hit && hit.id) emit('nodeselect', { node: hit.id });
   }
   svg.addEventListener('pointermove', onPointerMove);
   svg.addEventListener('click', onClick);
@@ -226,7 +189,7 @@ export async function createGlobe(container, options = {}) {
 
   const controls = attachControls(svg, {
     getView: () => view,
-    setView: (v) => { Object.assign(view, v); paint(); },
+    setView: (v) => { Object.assign(view, v, { t: 0 }); paint(); },
     reducedMotion: reduced,
   });
 
@@ -235,28 +198,9 @@ export async function createGlobe(container, options = {}) {
   function tick(now) {
     const dt = Math.min(100, now - last);
     last = now;
-    let moved = false;
-
-    if (unroll) {
-      const u = Math.min(1, (now - unroll.start) / UNROLL_MS);
-      view.t = unroll.from + (unroll.to - unroll.from) * easeInOut(u);
-      if (u >= 1) {
-        view.t = unroll.to;
-        unroll = null;
-        emit('unrollend', { t: view.t, form: currentForm });
-      }
-      moved = true;
-    }
-    // Rotate whenever it is still a globe. Not "whenever the form is field":
-    // a globe stops turning because it has been flattened, not because of what
-    // is painted on it.
     if (autorotate && !reduced && !controls.flinging
-        && !svg.classList.contains('is-dragging') && view.t < 1) {
+        && !svg.classList.contains('is-dragging')) {
       view.lon0 += (AUTOROTATE_DEG_PER_SEC * dt) / 1000;
-      moved = true;
-    }
-
-    if (moved) {
       const t0 = performance.now();
       paint();
       const cost = performance.now() - t0;
@@ -295,11 +239,6 @@ export async function createGlobe(container, options = {}) {
   const onVisibility = () => (document.hidden ? stop() : start());
   document.addEventListener('visibilitychange', onVisibility);
 
-  const themeQuery = typeof matchMedia === 'function'
-    ? matchMedia('(prefers-color-scheme: dark)') : null;
-  const onTheme = () => { tokens = readTokens(svg, known); paint(); };
-  themeQuery?.addEventListener?.('change', onTheme);
-
   paint();
 
   return {
@@ -307,48 +246,12 @@ export async function createGlobe(container, options = {}) {
     // The projected runs of the last frame. A host doing its own hit
     // testing needs them, and so does anything verifying this component.
     get frame() { return frame; },
-    get tokens() { return tokens; },
-    // Which layer is painted. It does NOT move t; use setT or unroll for that.
-    setForm(next) {
-      if (next === currentForm) return;
-      currentForm = next;
-      svg.classList.toggle('form-regions', next === 'regions');
-      svg.classList.toggle('form-field', next !== 'regions');
-      emit('formchange', { form: next });
-      paint();
-      start();
-    },
-    // Flatten to the map, or roll back up. The unroll is geometry alone.
-    unroll(toFlat = true) {
-      targetT = toFlat ? 1 : 0;
-      if (reduced) {
-        // No unroll under reduced motion: the form change cuts.
-        view.t = targetT;
-        unroll = null;
-        paint();
-      } else {
-        unroll = { from: view.t, to: targetT, start: performance.now() };
-      }
-      emit('unrollstart', { to: targetT });
-      start();
-    },
-    setT(value) {
-      targetT = Math.max(0, Math.min(1, value));
-      view.t = targetT;
-      unroll = null;
-      paint();
-    },
-    get settled() { return unroll === null; },
-    setData(next) {
-      state.regions = next.regions || {};
-      paint();
-    },
+    get marks() { return markData.slice(); },
     destroy() {
       stop();
       controls.destroy();
       io?.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
-      themeQuery?.removeEventListener?.('change', onTheme);
       svg.removeEventListener('pointermove', onPointerMove);
       svg.removeEventListener('click', onClick);
       a11y.remove();

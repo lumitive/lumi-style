@@ -13,39 +13,11 @@
 //
 // invert() is still what the arcball needs, and controls.js uses it there.
 
-/** Even-odd crossing test on one screen-space polyline treated as closed. */
-function inRun(x, y, run) {
-  let inside = false;
-  for (let i = 0, j = run.length - 1; i < run.length; j = i, i += 1) {
-    const [xi, yi] = run[i];
-    const [xj, yj] = run[j];
-    if ((yi > y) !== (yj > y)
-        && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
-
-/**
- * Which region is under (x, y) in the SVG's own user units.
- *
- * A country's outer ring and its holes both arrive as runs of the same region,
- * so crossings are counted across all of them and the parity answers the
- * question — a point inside a hole lands outside the region, which is right.
- *
- * @param frame the object createSvgRenderer.draw() returned
- */
-export function pickRegion(x, y, frame) {
-  for (const [id, runs] of frame.regions) {
-    let inside = false;
-    for (const run of runs) {
-      if (run.length > 2 && inRun(x, y, run)) inside = !inside;
-    }
-    if (inside) return id;
-  }
-  return null;
-}
+// pickRegion and its even-odd crossing test lived here until 0.1.394.
+// The region map does its hit testing with the browser's own pointer
+// events on real path elements — a flat map needs no inverse projection —
+// and the globe's targets are points, so the polygon test had no caller
+// left and 30 lines of dead code in every deliverable is not a keepsake.
 
 // A FLOOR, in the SVG's user units after scaling: 12 CSS px of radius, so a
 // 24 px target, which is WCAG 2.2 SC 2.5.8. Passed in rather than assumed,

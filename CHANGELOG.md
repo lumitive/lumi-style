@@ -3,6 +3,48 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.394 — the globe becomes the field it always claimed to be, and the unroll retires
+
+Release 4 of 5 for the component split. The globe is now one thing: a rotating
+sphere carrying a field of marks. `setForm`, `unroll`, `setT`, `--form`, the
+`form-*` class toggles and the `formchange`/`unrollstart`/`unrollend` events are
+deleted rather than deprecated — a half-retired flag is a standing stale
+promise — and `t` is pinned to 0 in the component while the shared projection
+core keeps the parameter and every check that sweeps it.
+
+**The field finally has a data path.** It never did: `hostData.marks` was
+documented and read by nothing, the emitter's `marks=` parameter had no CLI
+flag, and the one delivered demo showed a "field" with zero marks. The
+contract is `[{lon, lat, weight, label?, id?}]`; radius scales with the square
+root of the normalised weight — area encodes quantity — between a floor and a
+ceiling as fractions of R. The radius rule lives in the two renderers and is
+parity-held, not in tokens: CSS cannot size a canvas mark, and a knob that
+binds one back end is a divergence wearing a token's clothes.
+
+**The canvas back end draws the field and only the field.** Its regions branch
+read a `state.form` the public component never set, so it actually keyed on
+`view.t > 0.5` — dead divergent code the parity suite could not see, because
+the canvas was never in the parity bundle. Deleted with the form. It draws
+marks now, from data, with the emitter's exact radius rule.
+
+**Renderer parity moved to the field, and covers more than it did.** The old
+check compared the eleven region paths; the land path it compares now runs
+every ring in the topology through the shared clip — a superset of the same
+rings grouped differently — plus the three sample marks' positions. The region
+side has nothing left to diverge: its runtime never touches geometry.
+
+**The a11y layer speaks the figure it decorates.** One visually-hidden entry
+per mark (name and weight — a datum is read, not operated), one button per
+registry node (a place is selected). The region buttons left for the map
+component in 0.1.393; the field figure that announced eleven regions it was
+not showing is gone. `pickRegion` and its even-odd crossing test retired from
+`pick.js` with no caller left — 30 lines of dead code in every deliverable is
+not a keepsake.
+
+`check_globe.py` gains `--suite shared|globe|map`. The t∈(0,1) sweeps sit in
+`shared`, because they are the 0.1.389 winding guard and outlive the pinned
+products; CI's `--python-only` invocation is unchanged.
+
 ## 0.1.393 — the region map becomes its own instrument
 
 Release 3 of 5 for the component split. `assets/regionmap/` and its emitter

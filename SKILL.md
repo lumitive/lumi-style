@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.393"
+  version: "0.1.394"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -161,8 +161,9 @@ been removed; they now apply at step 4 instead of framing step 0.
    map with its labels already placed (`--labels zh` for Chinese, `--states`
    for the data), and `python3 scripts/globe_svg.py` the rotating globe.
    These are two components, not two forms of one
-   (`specs/2026-08-10-globe-map-split-design.md`); the globe's legacy
-   `--form regions|both` flags are retired in the release after the map landed.
+   (`specs/2026-08-10-globe-map-split-design.md`): the map is flat, labelled
+   and state-driven; the globe rotates and carries `--marks`, its data as a
+   JSON list of `{lon, lat, weight, label}`.
    Colour comes from `tokens/region-palette.css`, which ships the class
    bindings too — include it and the figure paints. **Every coloured region
    needs a label or a legend row** — D18 checks for it, because hue groups
