@@ -218,3 +218,206 @@ export function splitAtSeam(ring, lon0) {
   // already ends on the edge it left by.
   return parts;
 }
+
+/**
+ * Densify an edge so it curves under projection instead of cutting the sphere.
+ * Mirrors densify in scripts/geo_projection.py. It lives here rather than in a
+ * renderer because clipToCap below needs it and both back ends need that.
+ */
+export function densify(ring, stepDeg) {
+  const out = [];
+  for (let i = 0; i < ring.length - 1; i += 1) {
+    const [x0, y0] = ring[i];
+    const [x1, y1] = ring[i + 1];
+    const n = Math.max(1, Math.floor(
+      Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) / stepDeg));
+    for (let k = 0; k < n; k += 1) {
+      out.push([x0 + ((x1 - x0) * k) / n, y0 + ((y1 - y0) * k) / n]);
+    }
+  }
+  out.push(ring[ring.length - 1]);
+  return out;
+}
+
+/**
+ * Chamberlain-Duquette signed spherical area of a [lon, lat] ring, in
+ * steradians. The SIGN is the ring's handedness and is what callers want.
+ *
+ * Positive means the interior lies to the RIGHT of the traversal seen from
+ * outside the sphere, which is the convention this package's topology carries:
+ * of the 278 rings in the world topology, 277 are positive and the one negative
+ * ring is South Africa's second — the hole that is Lesotho.
+ *
+ * ONLY MEANINGFUL WELL BELOW A HEMISPHERE: the branch wraps past one, so a cap
+ * of 91 degrees scores negative where one of 89 scores positive. Country rings
+ * are far below it; the visible cap is far above it for every t > 0, which is
+ * why clipToCap takes the cap's handedness from its azimuth parameterisation
+ * instead. Mirrors signed_area in scripts/geo_projection.py.
+ */
+export function signedArea(ring) {
+  const r = (ring[0][0] === ring[ring.length - 1][0]
+    && ring[0][1] === ring[ring.length - 1][1]) ? ring : ring.concat([ring[0]]);
+  let s = 0;
+  for (let i = 0; i < r.length - 1; i += 1) {
+    const [lo1, la1] = r[i];
+    const [lo2, la2] = r[i + 1];
+    s += ((((lo2 - lo1 + 180) % 360) + 360) % 360 - 180) * D2R
+      * (2 + Math.sin(la1 * D2R) + Math.sin(la2 * D2R));
+  }
+  return s / 2;
+}
+
+/** Initial bearing from the projection centre to a point, in [0, 2pi). */
+export function azimuth(lon, lat, view) {
+  const lam = (lon - view.lon0) * D2R;
+  const phi = lat * D2R;
+  const p0 = view.lat0 * D2R;
+  const a = Math.atan2(
+    Math.sin(lam) * Math.cos(phi),
+    Math.cos(p0) * Math.sin(phi) - Math.sin(p0) * Math.cos(phi) * Math.cos(lam));
+  return ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+}
+
+/**
+ * The point at angular distance c and bearing az from the centre.
+ *
+ * Azimuth increasing runs N-E-S-W, so it traverses the cap with the interior on
+ * the RIGHT seen from outside — the same handedness signedArea calls positive.
+ * That correspondence is the whole direction rule.
+ */
+export function capPoint(az, c, view) {
+  const p0 = view.lat0 * D2R;
+  const lat = Math.asin(Math.max(-1, Math.min(1,
+    Math.sin(p0) * Math.cos(c) + Math.cos(p0) * Math.sin(c) * Math.cos(az))));
+  const lon = view.lon0 + Math.atan2(
+    Math.sin(az) * Math.sin(c) * Math.cos(p0),
+    Math.cos(c) - Math.sin(p0) * Math.sin(lat)) * R2D;
+  return [lon, lat * R2D];
+}
+
+const CAP_STEP_DEG = 1.5;
+
+// A point this close to the cap is ON it, and a point on the boundary is not
+// INSIDE it. Natural Earth closes Antarctica along the lat = -90 edge of its
+// rectangular source map, so 181 of its 433 densified points are a pole
+// artifact rather than coastline; at t=0, where the cap passes exactly through
+// both poles, every one of them evaluates to cos_c = +-6.1e-17. Counted as
+// interior they form a phantom run and the fill walks the entire limb.
+// Mirrors CAP_EPS in scripts/geo_projection.py.
+const CAP_EPS = 1e-9;
+
+/**
+ * Intersect a [lon, lat] ring with the visible cap. -> array of closed rings.
+ *
+ * THE CLIP HAPPENS ON THE SPHERE, before projection, and that is the point.
+ * Clipping in screen space means closing along a projected cap, and a projected
+ * cap is not a closed curve: project wraps longitude into (-180, 180] before
+ * mixing in the plane term, so a sampled cap jumps the full width of the seam
+ * twice at every t > 0. Every flat closure recorded in 0.1.388 was one of those
+ * jumps. On the sphere the cap is a circle in azimuth with no seam in it at
+ * all. Splitting at the seam then happens afterwards, to a ring that is already
+ * correctly closed.
+ *
+ * Runs are LINKED rather than each closed on itself, so a country the cap cuts
+ * into two visible pieces comes back as one polygon when that is what it is.
+ * Mirrors clip_to_cap in scripts/geo_projection.py, and the golden grid in
+ * scripts/check_globe.py is what holds the two together.
+ */
+export function clipToCap(ring, view, stepDeg) {
+  if (view.t >= 1) return [ring.slice()];
+  const c = Math.acos(Math.max(-1, Math.min(1, -view.t)));
+  let dense = ring.length > 1 ? densify(ring, stepDeg) : ring.slice();
+  if (dense.length < 3) return [];
+
+  const vis = (p) => cosC(p[0], p[1], view) > -view.t + CAP_EPS;
+  const cross = (inside, outside) => {
+    let a = inside;
+    let b = outside;
+    for (let i = 0; i < 40; i += 1) {
+      const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      if (vis(m)) a = m; else b = m;
+    }
+    return capPoint(azimuth(a[0], a[1], view), c, view);
+  };
+
+  // Rotate so the walk BEGINS AT A RUN's first vertex — a visible vertex whose
+  // predecessor is hidden — not merely at a visible one. Starting inside a run
+  // splits it across the seam of the traversal, and the tail then has no exit
+  // crossing of its own; dropped as degenerate, it takes an entry crossing with
+  // it and the closure is linked to an INTERIOR point, walking to an azimuth
+  // that is not on the cap. Mirrors clip_to_cap in geo_projection.py.
+  if (dense[0][0] === dense[dense.length - 1][0]
+    && dense[0][1] === dense[dense.length - 1][1]) dense = dense.slice(0, -1);
+  const n = dense.length;
+  const seen = dense.map(vis);
+  if (seen.every(Boolean)) return [ring.slice()];
+  if (!seen.some(Boolean)) return [];
+  let first = 0;
+  for (let i = 0; i < n; i += 1) {
+    if (seen[i] && !seen[(i + n - 1) % n]) { first = i; break; }
+  }
+  const order = [];
+  for (let k = 0; k < n; k += 1) order.push(dense[(first + k) % n]);
+
+  // prev starts on the hidden vertex before the rotation point, so the first
+  // run gets its entry crossing like any other. The last vertex walked is that
+  // same hidden one, so the loop closes every run and none is left over.
+  const runs = [];
+  let cur = [];
+  let prev = [dense[(first + n - 1) % n], false];
+  for (const pt of order) {
+    const v = vis(pt);
+    if (v) {
+      if (!prev[1]) cur.push(cross(pt, prev[0]));
+      cur.push(pt);
+    } else {
+      if (prev[1]) {
+        cur.push(cross(prev[0], pt));
+        if (cur.length > 2) runs.push(cur);
+        cur = [];
+      }
+    }
+    prev = [pt, v];
+  }
+  if (!runs.length) return [];
+
+  const forward = signedArea(ring) > 0;
+  const step = CAP_STEP_DEG * D2R;
+  const ends = runs.map((r) => [azimuth(r[0][0], r[0][1], view),
+    azimuth(r[r.length - 1][0], r[r.length - 1][1], view), r]);
+
+  const out = [];
+  const used = new Set();
+  for (let start = 0; start < ends.length; start += 1) {
+    if (used.has(start)) continue;
+    let seq = [];
+    let k = start;
+    while (!used.has(k)) {
+      used.add(k);
+      const exitAz = ends[k][1];
+      seq = seq.concat(ends[k][2]);
+      let best = k;
+      let bestd = null;
+      for (let j = 0; j < ends.length; j += 1) {
+        const raw = forward ? ends[j][0] - exitAz : exitAz - ends[j][0];
+        let d = ((raw % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        // An entry sitting ON this run's exit is a JOIN when it belongs to
+        // another run and a FULL WRAP when it is this run's own. Antarctica's
+        // source ring carries an artificial break at lon 180, so at a
+        // Pacific-centred view its coastline arrives as two runs meeting
+        // exactly there; reading that zero as a wrap painted the whole disc.
+        if (d <= 1e-12 && j === k) d = 2 * Math.PI;
+        if (bestd === null || d < bestd) { bestd = d; best = j; }
+      }
+      const span = bestd;
+      const steps = Math.max(1, Math.ceil(span / step));
+      for (let s = 1; s < steps; s += 1) {
+        const az = exitAz + ((span * s) / steps) * (forward ? 1 : -1);
+        seq.push(capPoint(((az % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI), c, view));
+      }
+      k = best;
+    }
+    if (seq.length > 2) out.push(seq.concat([seq[0]]));
+  }
+  return out;
+}

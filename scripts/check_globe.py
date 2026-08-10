@@ -250,43 +250,37 @@ def check_static_svg():
 # projection spans half the figure — which runs after every closure, because a
 # closure can introduce the thing it guards against. This check is what proves
 # the guard is not quietly hiding a fifth cause: it looks at every state.
-# Closures that cut straight across instead of following the boundary. Three
-# remain and they are recorded, not tolerated silently, because the diagnosis is
-# known and the fix is not small:
-#
-#   The limb walk picks the arc that is shorter BY INDEX. The correct arc is the
-#   one that keeps the polygon's interior on the correct side, which is a winding
-#   question, not a distance one. When they differ the fill spills across the cap
-#   — visible as a band over the Arctic on a globe centred near the Atlantic, and
-#   as these flat segments near the poles at intermediate t. Fixing it properly
-#   means carrying winding through the clip, which is the standard spherical
-#   polygon-clipping problem and its own change.
-#
-# Recorded per (form, t) so a fourth fails this check, and so does fixing one of
-# these three without removing its line.
-KNOWN_FLAT_CLOSURES = {
-    ("field", 0.25), ("field", 0.5), ("regions", 0.5),
-}
-
-
 def check_seam_segments():
     """No figure draws a line across itself, in any form at any t.
 
-    A segment along a pole edge at t=1 is not this defect: closing a
-    world-wrapping ring like Antarctica along the bottom edge is what a map
-    does. Only segments away from an edge count.
+    A segment along a POLE EDGE is not this defect: a pole is a point on the
+    sphere and a segment on the unrolled map, at y = cy -+ R(1 - t/2), so
+    closing a world-wrapping ring like Antarctica along it is what a map does.
+    That edge is real at every t > 0 and not only at t=1 — see _pole_close.
+    Only segments away from an edge count.
+
+    Nothing is recorded here any more. Until 0.1.389 three (form, t) pairs were
+    carried as known flat closures, and the comment over them claimed a two-way
+    lock: a fourth would fail, and so would fixing one without removing its
+    line. **The second half was never implemented** — the set of pairs actually
+    seen was collected into `seen_flat` and then never compared against
+    anything, so all three could have silently healed and nothing would have
+    said so. A lock that only turns one way is the failure mode item 3 of the
+    backlog exists to find, and it was sitting in the check that found the
+    defect this release fixes.
     """
     import globe_svg
 
     R = globe_svg.DEFAULT_R
     errors = []
-    seen_flat = set()
     for form in ("field", "regions"):
         for t in (0.0, 0.25, 0.5, 0.75, 0.9, 1.0):
             view = (0.0, 0.0, t, R, R, R)
             svg = globe_svg.render(view, form=form)
             half = R * (1 - t / 2)
             top, bottom = view[5] - half, view[5] + half
+            on_pole_edge = lambda y: (abs(y - top) < R * 0.03      # noqa: E731
+                                      or abs(y - bottom) < R * 0.03)
             for m in re.finditer(r'class="(?:gl-land|rg [^"]*)"[^>]*d="([^"]*)"', svg):
                 pts = [(c.group(1), int(c.group(2)), int(c.group(3)))
                        for c in re.finditer(r"([ML])(-?\d+) (-?\d+)", m.group(1))]
@@ -296,34 +290,37 @@ def check_seam_segments():
                     if (abs(pts[i][1] - pts[i - 1][1]) < 1.2 * R
                             and abs(pts[i][2] - pts[i - 1][2]) < 1.2 * R):
                         continue
-                    y = (pts[i][2] + pts[i - 1][2]) / 2
-                    if t >= 1.0 and (abs(y - top) < R * 0.03
-                                     or abs(y - bottom) < R * 0.03):
+                    if on_pole_edge((pts[i][2] + pts[i - 1][2]) / 2):
                         continue
                     errors.append(f"{form} t={t}: a segment runs from "
                                   f"{pts[i - 1][1:]} to {pts[i][1:]}")
                     break
-            # A long PERFECTLY HORIZONTAL segment is never real geography here:
-            # after projection a parallel is a curve, so a run of constant y is
-            # a closure that took a straight line instead of following the
-            # boundary. This is what the bands across the globe are made of, and
-            # nothing else in this package could see them — they are filled
-            # areas, not the full-width jumps the test above looks for.
-            for i in range(1, len(pts)):
-                if pts[i][0] != "L" or pts[i][2] != pts[i - 1][2]:
-                    continue
-                if abs(pts[i][1] - pts[i - 1][1]) < 0.25 * R:
-                    continue
-                if (form, t) in KNOWN_FLAT_CLOSURES:
-                    seen_flat.add((form, t))
-                else:
+                # A long PERFECTLY HORIZONTAL segment away from a pole edge is
+                # never real geography here: after projection a parallel is a
+                # curve, so a run of constant y is a closure that took a
+                # straight line instead of following the boundary. This is what
+                # the bands across the globe were made of, and nothing else in
+                # this package could see them — they are filled areas, not the
+                # full-width jumps the test above looks for.
+                #
+                # This loop used to sit OUTSIDE the enclosing one, so it read
+                # whatever `pts` the last path had left behind and examined ONE
+                # path per frame — of 12 for the region layer. Every flat
+                # closure it did report was found in that one path by luck.
+                for i in range(1, len(pts)):
+                    if pts[i][0] != "L" or pts[i][2] != pts[i - 1][2]:
+                        continue
+                    if abs(pts[i][1] - pts[i - 1][1]) < 0.25 * R:
+                        continue
+                    if on_pole_edge(pts[i][2]):
+                        continue
                     errors.append(
                         f"{form} t={t}: a flat segment "
                         f"{abs(pts[i][1] - pts[i - 1][1])} units wide at "
                         f"y={pts[i][2]} — a parallel projects as a curve, so "
                         f"this is a closure that cut straight across instead of "
                         f"following the boundary")
-                break
+                    break
     return errors
 
 
@@ -337,14 +334,19 @@ def _norm_path(d):
     return re.sub(r"\s*([MLZ])\s*", r"\1", d).strip()
 
 
-# One divergence remains between the renderers and it is recorded rather than
-# hidden: at t=0.5 the oceania region closes one subpath in Python where the JS
-# renderer continues it. One command in about 250, at one intermediate t, and it
-# comes from the same winding question as KNOWN_FLAT_CLOSURES above — the two
-# implementations pick different arcs when the index-shorter one is ambiguous.
-# Recorded per (key, region) so a second divergence fails, and so does fixing
-# this one without removing its line.
-KNOWN_RENDERER_DIVERGENCE = {("t0.5_lon0.0", "oceania")}
+# EMPTY, AND IT STAYS EMPTY. Two renderers that disagree anywhere are not one
+# renderer with two back ends, which is what this package's globe design claims
+# they are. 0.1.388 carried one entry here — at t=0.5 the oceania region closed
+# a subpath in Python where the JS renderer continued it — because both sides
+# picked their closing arc by index distance and the index-shorter arc was
+# ambiguous there. 0.1.389 removed the cause rather than the symptom: the clip
+# now happens on the sphere in the ring's own winding, which is the same
+# decision in both implementations because it does not depend on sampling.
+#
+# The set is kept rather than deleted because it is also the lock: an entry that
+# stops reproducing fails this check, so a recorded defect cannot heal in
+# silence. That half was the half KNOWN_FLAT_CLOSURES never implemented.
+KNOWN_RENDERER_DIVERGENCE = set()
 
 
 def _commands(d):
@@ -439,7 +441,11 @@ def check_renderer_parity():
         page.set_content("<div id=h></div>")
         page.add_script_tag(content=modules + "\n" + render_src
                             + "\nself.__r = { decode, createSvgRenderer };")
-        got = page.evaluate("""(payload) => {
+        # Raw: the JavaScript below carries a regex with \s in it, which Python
+        # reads as an invalid escape and has warned about since 3.12. It is a
+        # warning today and a SyntaxError later, printed on every run of this
+        # check in the meantime.
+        got = page.evaluate(r"""(payload) => {
           const data = self.__r.decode(payload.topo, payload.reg);
           const out = {};
           for (const c of payload.cases) {
@@ -776,6 +782,106 @@ def check_decoder():
     return errors
 
 
+def check_clip_invariants():
+    """Five properties of the spherical clip, each with a way to fail.
+
+    These exist because the clip had none. Every globe check before 0.1.389
+    measured emitted MARKUP, so a closure that was wrong but well-formed — which
+    is every closure this release fixes — read as clean. A path is not a proof
+    that the polygon behind it is the right polygon.
+
+    Written against the real topology rather than a synthetic ring, because the
+    cases that broke were Antarctica, Russia and Oceania: rings that wrap the
+    world, contain a pole, or leave and re-enter the cap more than once.
+    """
+    import globe_svg
+
+    topo, _reg, arcs = globe_svg._load()
+    rings = []
+    for code in ("ATA", "RUS", "AUS", "ZAF", "BRA", "CAN", "IDN", "NZL"):
+        country = next((c for c in topo["countries"] if c["a"] == code), None)
+        if country is None:
+            return [f"{code} is not in the topology; this check names its own "
+                    f"fixtures and one of them has gone"]
+        for ring in globe_svg._rings_of(country, arcs):
+            rings.append((code, ring))
+
+    errors = []
+    for lon0, lat0 in ((0.0, 0.0), (-170.0, 0.0), (-170.0, 20.0),
+                       (17.0, 40.0), (100.0, -30.0)):
+        for t in (0.0, 0.25, 0.5, 0.75, 0.9):
+            c = math.acos(max(-1.0, min(1.0, -t)))
+            for code, ring in rings:
+                out = gp.clip_to_cap(ring, lon0, lat0, t, 2.0)
+                inside = [gp.cos_c(lo, la, lon0, lat0) >= -t for lo, la in ring]
+                where = f"{code} lon0={lon0} t={t}"
+
+                # 1 and 2. The clip is the identity on a ring the cap contains
+                # and empty on one it excludes. Both were true by accident
+                # before; neither was ever asserted.
+                if all(inside) and out != [list(ring)]:
+                    errors.append(f"{where}: wholly visible, and the clip did "
+                                  f"not return it unchanged")
+                if not any(inside) and out:
+                    errors.append(f"{where}: wholly hidden, and the clip "
+                                  f"returned {len(out)} ring(s)")
+                for k, r in enumerate(out):
+                    # 3. Closed, or it is not a polygon.
+                    if r[0] != r[-1]:
+                        errors.append(f"{where} ring {k}: not closed")
+                    # 4. Every point visible. A closure that leaves the cap is
+                    # the fill spilling across it, which is the reported defect.
+                    worst = min(gp.cos_c(lo, la, lon0, lat0) for lo, la in r)
+                    if worst < -t - 1e-6:
+                        errors.append(
+                            f"{where} ring {k}: a point sits at cos_c={worst:.6f}, "
+                            f"outside the cap at -t={-t:.3f} — the closure left "
+                            f"the visible region")
+                    # 5. Winding survives the clip. If it does not, the arc was
+                    # walked the wrong way, which is the whole defect.
+                    #
+                    # Read a failure here carefully before believing it: per
+                    # signed_area's own docstring the measure is only valid well
+                    # below a hemisphere, and a clipped ring that closes the long
+                    # way round a cap larger than one can legitimately exceed it.
+                    # No ring in this topology does at any t tested here. If one
+                    # ever fails, establish which side is wrong before changing
+                    # either — weakening this check to make it pass would remove
+                    # the only assertion that the direction rule is applied.
+                    if gp.signed_area(ring) > 0 and gp.signed_area(r) <= 0:
+                        errors.append(f"{where} ring {k}: an outer ring came "
+                                      f"back wound as a hole")
+                # 7. A CLIP CAN ONLY REMOVE AREA. This is the check that would
+                # have caught the defect the eye found and the six above did
+                # not: a closure that walks the whole cap instead of the arc it
+                # needs returns a closed path whose every point lies on or
+                # inside the cap and whose winding is intact, so it satisfies
+                # all of them — and paints Antarctica over the entire disc.
+                # Convention 8 in CLAUDE.md, demonstrated on the check that
+                # exists to enforce it.
+                area_in = abs(gp.signed_area(ring))
+                area_out = sum(abs(gp.signed_area(r)) for r in out)
+                if area_out > area_in + 1e-9:
+                    errors.append(
+                        f"{where}: the clip returned {area_out:.4f} sr from an "
+                        f"input of {area_in:.4f} sr — a clip removes area, so a "
+                        f"closure walked further round the cap than it should")
+
+                # 6. A ring the cap actually cut comes back with points ON the
+                # cap — that is what closing along it means. Without this, a
+                # clip that silently dropped its closure and returned only the
+                # interior runs would satisfy every check above.
+                if out and any(inside) and not all(inside):
+                    on_cap = sum(
+                        1 for r in out for lo, la in r
+                        if abs(gp.cos_c(lo, la, lon0, lat0) + t) < 1e-9)
+                    if on_cap < 2:
+                        errors.append(
+                            f"{where}: the cap cut this ring and {on_cap} point(s) "
+                            f"of the result lie on the cap — the closure is missing")
+    return errors
+
+
 CHECKS = (
     ("round trip", check_round_trip, True),
     ("poles are points", check_poles, True),
@@ -784,6 +890,7 @@ CHECKS = (
     ("viewbox extent", check_viewbox_extent, True),
     ("static svg fits its viewbox", check_static_svg, False),
     ("no line across the flat map", check_seam_segments, False),
+    ("the spherical clip holds its invariants", check_clip_invariants, False),
 )
 
 

@@ -3,6 +3,95 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.389 — winding carried through the clip, and the two defects the eye found after the checks went green
+
+**The clip moved to the sphere, which is the whole change.** 0.1.388 recorded
+three flat closures and one renderer divergence under one diagnosis: the limb
+walk picks the arc that is shorter BY INDEX, and the correct arc is the one that
+keeps the polygon's interior on the correct side. That diagnosis was right and
+incomplete, and implementing only what it names makes the figure worse — a
+prototype of exactly that took the flat closures from one per frame to **114**.
+
+The half that was missing: **the projected cap is not a closed curve.** The
+renderers sampled the cap in azimuth and projected each sample, and `unrolled`
+wraps longitude into `(-180, 180]` before mixing in the plane term, so the
+sampled boundary jumps the full width of the seam twice at every `t > 0` — 511
+units at `t=0.25`, 1004 at `t=0.5`, against `R=1000`. Every flat closure
+recorded in 0.1.388 was one of those jumps. The index-shortest rule was not
+merely wrong; it was **accidentally suppressing a second defect** by rarely
+walking far enough to meet one.
+
+So the clip happens before projection now, on the sphere, where the cap is a
+circle in azimuth with no seam in it. `clip_to_cap` closes a ring along that
+circle in the ring's own winding and **links its runs to each other** rather
+than closing each on itself. The direction is derived, not chosen: the topology
+carries real winding — of 278 rings, 277 score positive by signed spherical area
+and the one negative is South Africa's second, the hole that is Lesotho — and
+azimuth increasing traverses the cap with the same handedness, so a positive
+ring walks forward and a hole walks back. It depends on no sampling, which is
+why both renderers now make the same decision and the recorded divergence is
+gone.
+
+**That measure must never be applied to the cap itself.** Its branch wraps at a
+hemisphere: a cap of 91 degrees scores negative where one of 89 scores positive.
+The visible cap is larger than a hemisphere for every `t > 0`, so deriving its
+handedness from its own area would have inverted the walk across the entire
+animated range. Written down in the function, because it is invisible until `t`
+leaves zero.
+
+`_pole_close` was restricted to `t=1` and measured against `x = cx ± R`. Both
+were symptoms of an unmodelled boundary: at `lon_rel = ±180` the sphere term
+vanishes at every latitude, so **the seam is a pair of vertical lines at
+`x = cx ± tR`**, and a pole is a point on the sphere and a segment at
+`y = cy ∓ R(1 - t/2)`. Both are exact, both are real at every `t > 0`.
+
+**Two defects survived every check and were found by looking.** The checks went
+green, the recorded entries were removed, and the contact sheet showed
+Antarctica painted over the entire disc at `t=0`. Natural Earth closes it along
+the `lat = -90` edge of its rectangular source map, so 181 of its 433 densified
+points are a pole artifact; where the cap passes through the poles they evaluate
+to `±6.1e-17` and read as interior. A point ON the boundary is not INSIDE it.
+Then the same figure at a Pacific-centred view filled again, for an unrelated
+reason: two runs meeting exactly at that artificial break, and a guard that read
+a zero-length arc as a full wrap. Both produce a closed path whose every point
+lies on or inside the cap with its winding intact — **which is to say both
+satisfied all six invariants written that morning.** Convention 8 is not a
+suggestion.
+
+The seventh invariant is the one that would have caught them: **a clip can only
+remove area.** A closure that walks the whole cap returns 6.2965 sr from a
+0.2985 sr input. Every invariant here was mutation-tested — the fix reverted,
+the check confirmed to fail — because a metric with no failing case is the
+defect this release found in its own checker.
+
+**Three defects in the checker, all found while using it.** `KNOWN_FLAT_CLOSURES`
+claimed a two-way lock — a fourth fails, and so does fixing one without removing
+its line — and **the second half was never implemented**: the set of pairs seen
+was collected and never compared against anything, so all three could have
+healed in silence. The flat-segment probe's loop sat OUTSIDE the per-path loop,
+so it read whatever the last path left behind and examined one path per frame,
+of twelve for the region layer. And the JS land layer was drawn without its
+`view`, so no closure and no guard ran on it at all.
+
+`geo_projection.limb_walk` took the same shorter arc and now takes the winding.
+`build_geography.py`'s eight hand-authored rings have accidental winding —
+`australia` and `maritime-se-asia` score negative with no hole to justify it —
+so the globe normalises them; both come back geometrically identical, which
+confirms the static assets were never affected. The canvas back end closed a
+clipped fill with a bare `closePath`, a chord straight across the sphere, while
+the SVG side walked a boundary; it shares the clip now. Its densify cache was
+keyed on arrays `splitAtSeam` allocates fresh every frame, so it never once hit
+and grew unboundedly at 60 frames a second — removed rather than repaired.
+
+Recorded and not fixed: the projection **folds** at intermediate `t`. The visible
+set admits a strip of the far side that maps back over the front, so at `t=0.5`
+content is drawn out to radius 90.1 while the curve everything is clipped against
+sits at 76.6–79.3. `invert` has always documented this from the inverse side; the
+forward consequence had not been written down. Moving the threshold to the fold
+crease changes `unrolled`'s visibility flag, which regenerates the 1300-sample
+golden grid — the only thing holding the JS port to the Python — so it is its own
+change. `specs/2026-08-10-winding-clip-design.md` carries the measurements.
+
 ## 0.1.388 — the runtime reaches the deliverable, and the closures that only a filled figure shows
 
 **0.1.387 shipped a component no deliverable could run.** Seven ES modules,

@@ -84,135 +84,76 @@ def _rings_of(country, arcs):
     return out
 
 
-def _limb_point(a, b, view):
-    """Bisect to where the edge a->b crosses the visibility boundary.
-
-    build_geography.py has done this since it was written, and its comment says
-    why: "a run ends up to one sample short of the limb, and an arc drawn from
-    an interior point is not the horizon". This generator was cutting between
-    samples instead, so a run could end 35 units inside the boundary at a two
-    degree step — past the tolerance the limb walk matches on, so the walk was
-    refused and the subpath closed with a chord. Those chords are the bands
-    across the globe in the first live deliverable. The same failure, twice.
-    """
-    lon0, lat0, t, R, cx, cy = view
-    inside, outside = a, b
-    for _ in range(30):
-        mid = ((inside[0] + outside[0]) / 2, (inside[1] + outside[1]) / 2)
-        if gp.unrolled(mid[0], mid[1], lon0, lat0, t, R, cx, cy)[2]:
-            inside = mid
-        else:
-            outside = mid
-    x, y, _v = gp.unrolled(inside[0], inside[1], lon0, lat0, t, R, cx, cy)
-    return (x, y)
-
-
 def _project_ring(ring, view):
-    """-> list of screen-space runs. Splits at the seam, clips at the boundary.
+    """-> list of screen-space runs, for an OPEN line such as a graticule.
 
-    Two separate cuts, and both are needed. The seam cut keeps a ring that
-    crosses the moving antimeridian from drawing a streak across the map as t
-    rises. The visibility cut is the limb, and it lands EXACTLY on it.
+    No closure and no cap clipping beyond dropping what is not visible: a
+    meridian is a line, and a line that leaves the figure simply stops.
     """
     lon0, lat0, t, R, cx, cy = view
     runs = []
     for part in gp.split_at_seam(ring, lon0):
         dense = gp.densify(part, STEP_DEG) if len(part) > 1 else part
-        cur, prev = [], None
+        cur = []
         for lon, lat in dense:
             x, y, vis = gp.unrolled(lon, lat, lon0, lat0, t, R, cx, cy)
             if vis:
-                if prev is not None and not prev[1]:
-                    cur.append(_limb_point((lon, lat), prev[0], view))
                 cur.append((x, y))
             else:
-                if prev is not None and prev[1]:
-                    cur.append(_limb_point(prev[0], (lon, lat), view))
                 if len(cur) > 1:
                     runs.append(cur)
                 cur = []
-            prev = ((lon, lat), vis)
         if len(cur) > 1:
             runs.append(cur)
     return runs
 
 
-BOUNDARY_SAMPLES = 240
+def _project_area(ring, view):
+    """-> list of screen-space runs for a FILLED ring, already closed.
 
+    Three steps in this order, and the order is the fix that 0.1.389 is.
 
-def _boundary(view):
-    """The visibility boundary in screen space, as a closed polyline.
-
-    A ring cut by the horizon has to be closed along the horizon, not with a
-    chord between its two ends. build_geography.py has always walked the limb
-    for this; the static globe generator did not, and Antarctica at t=0 closed
-    across the bottom of the sphere. The boundary is where cos_c = -t: the
-    horizon at t=0, and gone by t=1.
+    1. Clip to the visible cap ON THE SPHERE (gp.clip_to_cap), closing along the
+       cap in the ring's own winding. Doing this in screen space means closing
+       along a projected cap, and a projected cap is not a closed curve — it
+       jumps the width of the seam twice at every t > 0.
+    2. Split the closed result at the seam, which is what keeps a ring that
+       crosses the moving antimeridian from drawing a streak across the map.
+    3. Project, and close each piece along the map's own cut edges.
     """
     lon0, lat0, t, R, cx, cy = view
-    if t >= 1.0:
-        return None
-    c = math.acos(max(-1.0, min(1.0, -t)))
-    p0 = math.radians(lat0)
-    out = []
-    for i in range(BOUNDARY_SAMPLES):
-        az = 2 * math.pi * i / BOUNDARY_SAMPLES
-        lat = math.asin(math.sin(p0) * math.cos(c)
-                        + math.cos(p0) * math.sin(c) * math.cos(az))
-        lon = lon0 + math.degrees(math.atan2(
-            math.sin(az) * math.sin(c) * math.cos(p0),
-            math.cos(c) - math.sin(p0) * math.sin(lat)))
-        x, y, _ = gp.unrolled(lon, math.degrees(lat), lon0, lat0, t, R, cx, cy)
-        out.append((x, y))
-    return out
-
-
-def _nearest(pt, boundary):
-    best, bd = 0, float("inf")
-    for i, b in enumerate(boundary):
-        d = (b[0] - pt[0]) ** 2 + (b[1] - pt[1]) ** 2
-        if d < bd:
-            bd, best = d, i
-    return best, bd
-
-
-def _boundary_walk(a, b, boundary, R):
-    """The shorter way round the boundary FROM a TO b, or nothing if either end
-    is not on it.
-
-    Direction matters and getting it backwards is not subtle in the output: the
-    first inserted point then sits beside b rather than beside a, so the segment
-    out of a crosses the whole figure — which is what it did, on both the globe
-    and the flat map, until this was read again.
-    """
-    ia, da = _nearest(a, boundary)
-    ib, db = _nearest(b, boundary)
-    tol = (R * 0.03) ** 2
-    if da > tol or db > tol:
-        return []
-    n = len(boundary)
-    fwd = (ib - ia + n) % n
-    if fwd <= n - fwd:
-        return [boundary[(ia + k) % n] for k in range(1, fwd + 1)]
-    return [boundary[(ia - k + n) % n] for k in range(1, n - fwd + 1)]
+    runs = []
+    for closed in gp.clip_to_cap(ring, lon0, lat0, t, STEP_DEG):
+        for part in gp.split_at_seam(closed, lon0):
+            pts = [gp.unrolled(lo, la, lon0, lat0, t, R, cx, cy)[:2]
+                   for lo, la in part]
+            if len(pts) > 1:
+                runs.append(pts)
+    return runs
 
 
 def _pole_close(a, b, view):
-    """Close a piece whose two ends sit on OPPOSITE edges of the FLAT map.
+    """Close a piece whose two ends sit on OPPOSITE sides of the seam.
 
     Only a ring that wraps the world does this — Antarctica crosses the seam
     once, so it comes back as a piece running edge to edge — and the way a map
-    draws it is along the pole edge, not straight across.
+    draws it is around the pole, not straight across.
 
-    t=1 only. At t<1 the figure is bounded by the horizon, not by a rectangle,
-    and this fired there too: it drew a line across the bottom of the sphere and
-    closed a box back to the equator, which is the frame visible under the globe
-    in the first 0.1.387 demo.
+    Both edges are exact rather than fitted. At lon_rel = +-180 the sphere term
+    cos(phi) sin(lam) vanishes at every latitude, so THE SEAM IS A PAIR OF
+    VERTICAL LINES at x = cx +- tR. A pole is a point on the sphere and a
+    SEGMENT on the unrolled map, at y = cy -+ R(1 - t/2), spanning those two
+    verticals. Both collapse at t=0 and both are the whole boundary at t=1.
+
+    Until 0.1.389 this was restricted to t=1 and measured against x = cx +- R,
+    the seam's position at t=1 only. That restriction was a symptom: at
+    intermediate t it matched pieces against an edge that was nowhere near them,
+    and drew a box under the globe.
     """
     lon0, lat0, t, R, cx, cy = view
-    if t < 1.0:
+    if t <= 0.0:
         return []
-    left, right, eps = cx - R, cx + R, R * 0.02
+    left, right, eps = cx - t * R, cx + t * R, max(R * 0.002, t * R * 0.02)
     on = lambda p, e: abs(p[0] - e) < eps          # noqa: E731
     if not ((on(a, left) or on(a, right)) and (on(b, left) or on(b, right))):
         return []
@@ -259,17 +200,15 @@ def _guard(runs, R):
     return out
 
 
-def _d(runs, close, view=None, boundary=None):
+def _d(runs, close, view=None):
     closed = []
     for pts in runs:
         seq = list(pts)
-        # Runs of fewer than three points are left alone. Closing one along the
-        # boundary produces a degenerate sliver, and the JS renderer already
-        # skipped them — a divergence the parity check found and neither
-        # renderer's own output would have shown.
+        # Runs of fewer than three points are left alone. Closing one produces a
+        # degenerate sliver, and the JS renderer already skipped them — a
+        # divergence the parity check found and neither renderer's own output
+        # would have shown.
         if close and view is not None and len(seq) > 2:
-            if boundary:
-                seq += _boundary_walk(seq[-1], seq[0], boundary, view[3])
             seq += _pole_close(seq[-1], seq[0], view)
         closed.append(seq)
     # The guard runs LAST, after every closure, because a closure can introduce
@@ -321,7 +260,6 @@ def render(view, form="field", marks=None, states=None):
     states = states or {}
     region_of = {c: r["id"] for r in reg["regions"] for c in r["members"]}
 
-    boundary = _boundary(view)
     body = []
     # the ground the sphere sits on
     if t < 1.0:
@@ -349,7 +287,7 @@ def render(view, form="field", marks=None, states=None):
                 country = next((c for c in topo["countries"] if c["a"] == code), None)
                 if country:
                     for ring in _rings_of(country, arcs):
-                        d.append(_d(_project_ring(ring, view), True, view, boundary))
+                        d.append(_d(_project_area(ring, view), True, view))
             # Emitted even when nothing of it is visible in THIS frame, with an
             # empty d. The runtime mutates markup and never creates it, so a
             # region skipped here can never be drawn when it rotates into view —
@@ -362,7 +300,7 @@ def render(view, form="field", marks=None, states=None):
         d = []
         for country in topo["countries"]:
             for ring in _rings_of(country, arcs):
-                d.append(_d(_project_ring(ring, view), True, view, boundary))
+                d.append(_d(_project_area(ring, view), True, view))
         d = " ".join(x for x in d if x)
         body.append(f'<path class="gl-land" d="{d}"/>')
 

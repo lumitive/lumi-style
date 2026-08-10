@@ -119,15 +119,227 @@ def on_limb(p, R, cx, cy):
     return abs(math.hypot(p[0] - cx, p[1] - cy) - R) < 0.5
 
 
-def limb_walk(a, b, R, cx, cy):
-    """Return the points of the shorter limb arc from a to b, as a polyline.
-    A polyline cannot pick the wrong sweep flag, which an SVG arc can."""
+def limb_walk(a, b, R, cx, cy, forward=True):
+    """Return the points of the limb arc from a to b, as a polyline.
+
+    A polyline cannot pick the wrong sweep flag, which an SVG arc can.
+
+    `forward` is the winding, not a preference. Until 0.1.389 this took the
+    arc that was shorter, which is a distance question, and the arc that closes
+    a clipped ring is the one that keeps the ring's interior on the correct
+    side — a winding question. The two agree for most rings and disagree exactly
+    where the fill then spills across the cap. Screen y runs downward, so an
+    increasing atan2 angle here is the same traversal as increasing azimuth on
+    the sphere: see signed_area for which way that is.
+    """
     a0 = math.atan2(a[1] - cy, a[0] - cx)
     a1 = math.atan2(b[1] - cy, b[0] - cx)
-    d = (a1 - a0 + math.pi) % (2 * math.pi) - math.pi   # shorter direction, signed
+    d = (a1 - a0) % (2 * math.pi)
+    if not forward:
+        d -= 2 * math.pi
     n = max(2, int(abs(d) / math.radians(2)))
     return [(cx + R * math.cos(a0 + d * k / n), cy + R * math.sin(a0 + d * k / n))
             for k in range(1, n + 1)]
+
+
+# ── winding ───────────────────────────────────────────────────────────────────
+def signed_area(ring):
+    """Chamberlain-Duquette signed spherical area of a (lon, lat) ring, in
+    steradians. The SIGN is the ring's handedness and is what callers want.
+
+    Positive means the interior lies to the RIGHT of the traversal seen from
+    outside the sphere, which is the convention this package's topology carries:
+    over all 278 rings in assets/vectors/world-110m.json, 277 are positive and
+    the one negative ring is South Africa's second, the six-point hole that is
+    Lesotho. So the sign distinguishes an outer ring from a hole, and that is
+    exactly what the clip needs to decide which way to close.
+
+    ONLY MEANINGFUL WELL BELOW A HEMISPHERE. The value is the area of the region
+    on one side, and past a hemisphere the branch wraps: a cap of radius 91
+    degrees scores -6.1732 where one of 89 degrees scores +6.1732. Every country
+    ring is far below that ceiling (the largest, Russia, is 0.41 sr against
+    12.57 for the sphere) and the visible cap is far above it for every t > 0,
+    which is why clip_to_cap takes the cap's handedness from its azimuth
+    parameterisation instead of from this function.
+    """
+    r = ring if ring[0] == ring[-1] else list(ring) + [ring[0]]
+    s = 0.0
+    for (lo1, la1), (lo2, la2) in zip(r, r[1:]):
+        s += (math.radians(((lo2 - lo1 + 180.0) % 360.0) - 180.0)
+              * (2 + math.sin(math.radians(la1)) + math.sin(math.radians(la2))))
+    return s / 2
+
+
+def azimuth(lon, lat, lon0, lat0):
+    """Initial bearing from the projection centre to a point, in [0, 2pi).
+
+    The inverse of cap_point, and the parameter the cap boundary is walked in.
+    """
+    lam = math.radians(lon - lon0)
+    phi, p0 = math.radians(lat), math.radians(lat0)
+    return math.atan2(
+        math.sin(lam) * math.cos(phi),
+        math.cos(p0) * math.sin(phi) - math.sin(p0) * math.cos(phi) * math.cos(lam)
+    ) % (2 * math.pi)
+
+
+def cap_point(az, c, lon0, lat0):
+    """-> (lon, lat) at angular distance c and bearing az from the centre.
+
+    Azimuth increasing runs N-E-S-W, so it traverses the cap with the interior
+    on the RIGHT seen from outside — the same handedness signed_area calls
+    positive. That correspondence is the whole direction rule: a ring with
+    positive area closes along the cap in increasing azimuth, a hole in
+    decreasing.
+    """
+    p0 = math.radians(lat0)
+    lat = math.asin(max(-1.0, min(1.0, math.sin(p0) * math.cos(c)
+                                  + math.cos(p0) * math.sin(c) * math.cos(az))))
+    lon = lon0 + math.degrees(math.atan2(
+        math.sin(az) * math.sin(c) * math.cos(p0),
+        math.cos(c) - math.sin(p0) * math.sin(lat)))
+    return (lon, math.degrees(lat))
+
+
+CAP_STEP_DEG = 1.5              # azimuth resolution of a closure arc
+
+# A point this close to the cap is ON it, and a point on the boundary is not
+# INSIDE it. The distinction is not pedantry: Natural Earth closes Antarctica
+# along the lat = -90 edge of its rectangular source map, so 181 of its 433
+# densified points are a pole artifact rather than coastline, and at t=0 — where
+# the cap passes exactly through both poles — every one of them evaluates to
+# cos_c = +-6.1e-17. Counted as interior they form a second phantom run whose
+# ends carry the pole's own azimuth, the closure links to it, and the fill walks
+# the entire limb: Antarctica painted over the whole disc. Counted as boundary
+# they contribute no area, the crossing logic puts an exact point on the cap
+# where one belongs, and the wedge closes over 40 degrees of arc as it should.
+CAP_EPS = 1e-9
+
+
+def clip_to_cap(ring, lon0, lat0, t, step_deg):
+    """Intersect a (lon, lat) ring with the visible cap. -> list of closed rings.
+
+    THE CLIP HAPPENS ON THE SPHERE, before projection, and that is the point.
+    Clipping in screen space means closing along a projected boundary, and the
+    projected boundary is not a closed curve: unrolled wraps longitude into
+    (-180, 180] before mixing in the plane term, so a sampled cap jumps the full
+    width of the seam twice at every t > 0 — 511 units at t=0.25 and 1004 at
+    t=0.5, against R=1000. Every flat closure this package recorded in 0.1.388
+    is one of those jumps. On the sphere the cap is a circle in azimuth with no
+    seam in it at all, so the closure cannot cross a discontinuity that is not
+    there. Splitting at the seam then happens afterwards, to a ring that is
+    already correctly closed.
+
+    The visible set is cos_c >= -t: the hemisphere at t=0, everything at t=1.
+    Runs are LINKED rather than each closed on itself, so a country the cap cuts
+    into two visible pieces comes back as one polygon when that is what it is.
+    """
+    if t >= 1.0:
+        return [list(ring)]
+    c = math.acos(max(-1.0, min(1.0, -t)))
+    dense = densify(ring, step_deg) if len(ring) > 1 else list(ring)
+    if len(dense) < 3:
+        return []
+
+    def vis(p):
+        return cos_c(p[0], p[1], lon0, lat0) > -t + CAP_EPS
+
+    def cross(inside, outside):
+        """The crossing, snapped exactly onto the cap so the closure meets it."""
+        a, b = inside, outside
+        for _ in range(40):
+            m = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+            if vis(m):
+                a = m
+            else:
+                b = m
+        return cap_point(azimuth(a[0], a[1], lon0, lat0), c, lon0, lat0)
+
+    # Rotate so the walk BEGINS AT A RUN's first vertex — a visible vertex whose
+    # predecessor is hidden — not merely at a visible one. Starting anywhere
+    # inside a run splits that run across the seam of the traversal, and the
+    # tail then has no exit crossing of its own: for a ring whose hidden stretch
+    # sits just before the start, the tail is [entry, start] and gets dropped as
+    # degenerate, taking the entry crossing with it. What is left is linked to
+    # an INTERIOR point, so the closure walks to an azimuth that is not on the
+    # cap and cuts across the figure. Found by asserting that a ring the cap cut
+    # comes back with points on the cap; nothing else could see it.
+    if dense[0] == dense[-1]:
+        dense = dense[:-1]
+    n = len(dense)
+    seen = [vis(p) for p in dense]
+    if all(seen):
+        return [list(ring)]
+    if not any(seen):
+        return []
+    first = next(i for i in range(n) if seen[i] and not seen[i - 1])
+    order = [dense[(first + k) % n] for k in range(n)]
+
+    # prev starts on the hidden vertex before the rotation point, so the first
+    # run gets its entry crossing like any other.
+    runs, cur = [], []
+    prev = (dense[first - 1], False)
+    for pt in order:
+        v = vis(pt)
+        if v:
+            if not prev[1]:
+                cur.append(cross(pt, prev[0]))
+            cur.append(pt)
+        else:
+            if prev[1]:
+                cur.append(cross(prev[0], pt))
+                if len(cur) > 2:
+                    runs.append(cur)
+                cur = []
+        prev = (pt, v)
+    # The last vertex walked is the one before the rotation point and is hidden,
+    # so every run has been closed by the loop. Nothing is left over.
+    if not runs:
+        return []
+
+    forward = signed_area(ring) > 0
+    step = math.radians(CAP_STEP_DEG)
+    ends = [(azimuth(r[0][0], r[0][1], lon0, lat0),
+             azimuth(r[-1][0], r[-1][1], lon0, lat0), r) for r in runs]
+
+    out, used = [], set()
+    for start in range(len(ends)):
+        if start in used:
+            continue
+        seq, k = [], start
+        while k not in used:
+            used.add(k)
+            _entry, exit_az, run = ends[k]
+            seq += run
+            # From this run's exit, the next entry met walking in the ring's own
+            # direction. With one run that is its own entry, the long way round
+            # when the ring wraps the cap — which is the case the index-shortest
+            # rule got wrong.
+            best, bestd = k, None
+            for j, (e2, _x, _r) in enumerate(ends):
+                d = (e2 - exit_az) % (2 * math.pi) if forward else \
+                    (exit_az - e2) % (2 * math.pi)
+                # An entry sitting ON this run's exit is a JOIN when it belongs
+                # to another run and a FULL WRAP when it is this run's own. Both
+                # occur: Antarctica's source ring carries an artificial break at
+                # lon 180, so at a Pacific-centred view its visible coastline
+                # arrives as two runs meeting exactly at that point. Reading
+                # that zero as a wrap drew a 360 degree arc and painted the
+                # whole disc — with every check green, because the result is a
+                # closed path of points that all lie on the cap.
+                if d <= 1e-12 and j == k:
+                    d = 2 * math.pi
+                if bestd is None or d < bestd:
+                    bestd, best = d, j
+            steps = max(1, int(math.ceil(bestd / step)))
+            span = bestd
+            for s in range(1, steps):
+                az = exit_az + (span * s / steps) * (1 if forward else -1)
+                seq.append(cap_point(az % (2 * math.pi), c, lon0, lat0))
+            k = best
+        if len(seq) > 2:
+            out.append(seq + [seq[0]])
+    return out
 
 
 # ── the unroll ────────────────────────────────────────────────────────────────
