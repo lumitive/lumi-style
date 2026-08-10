@@ -3,6 +3,63 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.388 — the runtime reaches the deliverable, and the closures that only a filled figure shows
+
+**0.1.387 shipped a component no deliverable could run.** Seven ES modules,
+verified over HTTP in a harness, and a demo deck carrying a static frame and no
+JavaScript at all. A deliverable is opened over `file://`, where the browser
+refuses ES modules as cross-origin, so `<script type="module" src=...>` there
+does not merely break self-containment — it does not run. There was no inlining
+path and the gap was not visible from inside the repository, because everything
+here is checked against markup.
+
+`scripts/embed_globe.py` closes it: the modules concatenated in dependency
+order, the geometry as JSON, one call, no fetch and no module graph. Its
+`--check` refuses to emit a block containing an unresolved import, a surviving
+export, a dynamic import or a fetch, and refuses a duplicate top-level
+declaration — `projection.js` and `controls.js` both declare `D2R`, correct as
+modules and a SyntaxError once concatenated, which in a deliverable shows as a
+still figure and one line in a console the reader never opens.
+
+**Form and t were bound together and should not have been.** `setForm('regions')`
+forced the flat map, so a document could not have the figure this component
+exists for: a turning globe with its trade regions coloured. `form` now selects
+which layer is painted and `t` the geometry, and rotation depends on `t < 1`
+rather than on which layer is showing.
+
+**The accessibility layer relied on the host to hide it.** A deliverable that had
+not been told to style `.gl-a11y` got eleven bulleted buttons under the figure.
+A visually-hidden element carries its own hiding.
+
+**Closures that cut straight across instead of following the boundary.** Fixed:
+the pole-edge close fired on the globe, where the boundary is a disc and not a
+rectangle; the limb walk ran from the wrong end, so its first point sat beside
+the start of the run instead of beside the end; runs were cut between samples
+rather than exactly on the boundary, so the walk could not match them — the same
+failure `build_geography.py` recorded when it was written; and the two renderers
+rounded coordinates by different rules, Python half-to-even and JavaScript
+half-away-from-zero.
+
+**Two defects remain, both recorded and both measured.** The limb walk picks the
+arc that is shorter BY INDEX, and the correct arc is the one that keeps the
+polygon's interior on the correct side — a winding question, not a distance one.
+Where they differ the fill spills across the polar cap. `check_globe.py` carries
+the three flat closures and the one renderer divergence this produces as named
+exceptions, so a fourth fails and so does fixing one without removing its line.
+Carrying winding through the clip is the standard spherical polygon-clipping
+problem and it is its own change.
+
+**A new check, because nothing here could see a filled defect.** Every gate in
+this package reads markup, and a band across a globe is a correctly-formed path.
+`check_globe.py` now looks for long perfectly horizontal segments: after
+projection a parallel is a curve, so a run of constant y is a closure that took
+a straight line. It is also what found the three that remain.
+
+`check_design.py`'s `token_blocks` kept the last `:root` block and dropped the
+rest, so any document appending `tokens/region-palette.css` lost its whole token
+block and reported UNMEASURABLE. Blocks accumulate now, the way CSS does, and
+`d4_palette` reads them separately because it strips them by verbatim match.
+
 ## 0.1.387 — the globe: region hue by owner directive, labels carry identity, and the mark kept apart from the map
 
 **A world figure that states data has to be generated from data.** Two reference

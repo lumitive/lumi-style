@@ -118,6 +118,11 @@ function boundaryWalk(a, b, boundary) {
  * Mirrors _pole_close in scripts/globe_svg.py.
  */
 function poleClose(a, b, view) {
+  // t=1 only. At t<1 the figure is bounded by the horizon, not by a rectangle,
+  // and this fired there too — a band across the bottom of the globe. The
+  // Python side had the guard and this did not, which is exactly the kind of
+  // divergence the renderer-parity check below now refuses to allow.
+  if (view.t < 1) return [];
   const left = view.cx - view.R;
   const right = view.cx + view.R;
   const eps = view.R * 0.02;
@@ -129,20 +134,40 @@ function poleClose(a, b, view) {
   return [[a[0], edgeY], [b[0], edgeY]];
 }
 
+/**
+ * Bisect to where the edge a->b crosses the visibility boundary.
+ * Mirrors _limb_point in scripts/globe_svg.py — a run that stops short of the
+ * boundary cannot be closed along it, and closes with a chord instead.
+ */
+function limbPoint(a, b, view) {
+  let inside = a;
+  let outside = b;
+  for (let i = 0; i < 30; i += 1) {
+    const mid = [(inside[0] + outside[0]) / 2, (inside[1] + outside[1]) / 2];
+    if (project(mid[0], mid[1], view).visible) inside = mid; else outside = mid;
+  }
+  const p = project(inside[0], inside[1], view);
+  return [p.x, p.y];
+}
+
 /** Project one lat/lon ring into screen-space runs, cut at the seam and the limb. */
 function projectRing(ring, view, boundary) {
   const runs = [];
   for (const part of splitAtSeam(ring, view.lon0)) {
     const dense = part.length > 1 ? densify(part, STEP_DEG) : part;
     let cur = [];
+    let prev = null;
     for (const [lon, lat] of dense) {
       const p = project(lon, lat, view);
       if (p.visible) {
+        if (prev && !prev[1]) cur.push(limbPoint([lon, lat], prev[0], view));
         cur.push([p.x, p.y]);
       } else {
+        if (prev && prev[1]) cur.push(limbPoint(prev[0], [lon, lat], view));
         if (cur.length > 1) runs.push(cur);
         cur = [];
       }
+      prev = [[lon, lat], p.visible];
     }
     if (cur.length > 1) runs.push(cur);
   }
@@ -160,14 +185,45 @@ function projectRing(ring, view, boundary) {
   });
 }
 
+/**
+ * Split any run wherever consecutive points are more than R apart.
+ *
+ * An invariant, not a patch over one bug: in this projection no real polygon
+ * edge spans half the figure, so a pair that does means a cut that did not
+ * take. Mirrors _guard in scripts/globe_svg.py.
+ */
+function guard(runs, R) {
+  const out = [];
+  for (const run of runs) {
+    let cur = [run[0]];
+    for (let i = 1; i < run.length; i += 1) {
+      if (Math.hypot(run[i][0] - run[i - 1][0], run[i][1] - run[i - 1][1]) > R) {
+        if (cur.length > 1) out.push(cur);
+        cur = [];
+      }
+      cur.push(run[i]);
+    }
+    if (cur.length > 1) out.push(cur);
+  }
+  return out;
+}
+
+/** Round half away from zero. Mirrors _r in scripts/globe_svg.py; the two
+ *  renderers must produce the same integer for the same coordinate. */
+function r0(v) {
+  return (v >= 0 ? 1 : -1) * Math.floor(Math.abs(v) + 0.5);
+}
+
 function pathData(runs, close, view) {
   let d = '';
-  for (const raw of runs) {
-    const pts = (close && view && raw.length > 2)
-      ? raw.concat(poleClose(raw[raw.length - 1], raw[0], view)) : raw;
-    d += `M${pts[0][0].toFixed(0)} ${pts[0][1].toFixed(0)}`;
+  const closedRuns = runs.map((raw) => ((close && view && raw.length > 2)
+    ? raw.concat(poleClose(raw[raw.length - 1], raw[0], view)) : raw));
+  // The guard runs LAST, after every closure: a closure can introduce the very
+  // thing it guards against.
+  for (const pts of (view ? guard(closedRuns, view.R) : closedRuns)) {
+    d += `M${r0(pts[0][0])} ${r0(pts[0][1])}`;
     for (let i = 1; i < pts.length; i += 1) {
-      d += `L${pts[i][0].toFixed(0)} ${pts[i][1].toFixed(0)}`;
+      d += `L${r0(pts[i][0])} ${r0(pts[i][1])}`;
     }
     if (close) d += 'Z';
   }
@@ -218,9 +274,9 @@ export function createSvgRenderer(svg, data) {
       `${vb[0].toFixed(1)} ${vb[1].toFixed(1)} ${vb[2].toFixed(1)} ${vb[3].toFixed(1)}`);
 
     if (plate) {
-      plate.setAttribute('cx', view.cx.toFixed(0));
-      plate.setAttribute('cy', view.cy.toFixed(0));
-      plate.setAttribute('r', view.R.toFixed(0));
+      plate.setAttribute('cx', r0(view.cx));
+      plate.setAttribute('cy', r0(view.cy));
+      plate.setAttribute('r', r0(view.R));
       plate.setAttribute('opacity', (1 - view.t).toFixed(3));
     }
     if (graticule) {
@@ -258,8 +314,8 @@ export function createSvgRenderer(svg, data) {
       const lon = Number(el.dataset.lon);
       const lat = Number(el.dataset.lat);
       const p = project(lon, lat, view);
-      el.setAttribute('cx', p.x.toFixed(0));
-      el.setAttribute('cy', p.y.toFixed(0));
+      el.setAttribute('cx', r0(p.x));
+      el.setAttribute('cy', r0(p.y));
       if (p.visible) el.removeAttribute('hidden');
       else el.setAttribute('hidden', '');
       if (p.visible) out.marks.push({ x: p.x, y: p.y, el });
@@ -268,8 +324,8 @@ export function createSvgRenderer(svg, data) {
       const lon = Number(el.dataset.lon);
       const lat = Number(el.dataset.lat);
       const p = project(lon, lat, view);
-      el.setAttribute('cx', p.x.toFixed(0));
-      el.setAttribute('cy', p.y.toFixed(0));
+      el.setAttribute('cx', r0(p.x));
+      el.setAttribute('cy', r0(p.y));
       if (p.visible) el.removeAttribute('hidden');
       else el.setAttribute('hidden', '');
       if (p.visible) out.nodes.push({ x: p.x, y: p.y, el, id: el.dataset.node });

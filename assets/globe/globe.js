@@ -112,13 +112,18 @@ export async function createGlobe(container, options = {}) {
   const view = {
     lon0: Number(svg.dataset.lon0 || 0),
     lat0: Number(svg.dataset.lat0 || 0),
-    t: form === 'regions' ? 1 : Number(svg.dataset.t || 0),
+    // t is GEOMETRY and form is which layer is painted. Binding them together
+    // was wrong and it showed: a document asking for regions got a flat map it
+    // did not ask for, and could not have a rotating globe with its trade
+    // regions coloured — which is the figure this component exists for.
+    t: Number(svg.dataset.t || 0),
     R: Number(svg.dataset.r || 1000),
     cx: Number(svg.dataset.cx || 1000),
     cy: Number(svg.dataset.cy || 1000),
     zoom: 1,
   };
   let currentForm = form;
+  svg.classList.add(form === 'regions' ? 'form-regions' : 'form-field');
   let targetT = view.t;
   let unroll = null;   // {from, to, start} while a form change is in flight
   let frame = null;
@@ -147,6 +152,13 @@ export async function createGlobe(container, options = {}) {
   const a11y = document.createElement('ul');
   a11y.className = 'gl-a11y';
   a11y.setAttribute('aria-label', 'Regions in this figure');
+  // Hidden by the component, not by the host. This layer exists because a
+  // screen reader cannot read a path; a host that has not been told to hide it
+  // gets eleven bulleted buttons under the figure, which is what the first
+  // deliverable showed. A visually-hidden element carries its own hiding.
+  a11y.style.cssText = 'position:absolute;width:1px;height:1px;margin:-1px;'
+    + 'padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);'
+    + 'white-space:nowrap;border:0;';
   for (const region of data.regions) {
     const li = document.createElement('li');
     const btn = document.createElement('button');
@@ -235,8 +247,11 @@ export async function createGlobe(container, options = {}) {
       }
       moved = true;
     }
+    // Rotate whenever it is still a globe. Not "whenever the form is field":
+    // a globe stops turning because it has been flattened, not because of what
+    // is painted on it.
     if (autorotate && !reduced && !controls.flinging
-        && !svg.classList.contains('is-dragging') && currentForm === 'field') {
+        && !svg.classList.contains('is-dragging') && view.t < 1) {
       view.lon0 += (AUTOROTATE_DEG_PER_SEC * dt) / 1000;
       moved = true;
     }
@@ -293,10 +308,19 @@ export async function createGlobe(container, options = {}) {
     // testing needs them, and so does anything verifying this component.
     get frame() { return frame; },
     get tokens() { return tokens; },
+    // Which layer is painted. It does NOT move t; use setT or unroll for that.
     setForm(next) {
       if (next === currentForm) return;
       currentForm = next;
-      targetT = next === 'regions' ? 1 : 0;
+      svg.classList.toggle('form-regions', next === 'regions');
+      svg.classList.toggle('form-field', next !== 'regions');
+      emit('formchange', { form: next });
+      paint();
+      start();
+    },
+    // Flatten to the map, or roll back up. The unroll is geometry alone.
+    unroll(toFlat = true) {
+      targetT = toFlat ? 1 : 0;
       if (reduced) {
         // No unroll under reduced motion: the form change cuts.
         view.t = targetT;
@@ -305,7 +329,7 @@ export async function createGlobe(container, options = {}) {
       } else {
         unroll = { from: view.t, to: targetT, start: performance.now() };
       }
-      emit('formchange', { form: next });
+      emit('unrollstart', { to: targetT });
       start();
     },
     setT(value) {
