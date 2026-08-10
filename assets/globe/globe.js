@@ -3,7 +3,12 @@
 //
 //   import { createGlobe } from './globe.js';
 //   const g = await createGlobe(container, { topology, registry });
-//   container.addEventListener('markselect', e => …);
+//   container.addEventListener('markselect', e => …);   // a datum
+//   container.addEventListener('nodeselect', e => …);   // a place
+//
+// Events: markenter / markleave / markselect for the field's data, and
+// nodeenter / nodeleave / nodeselect for the registry's places. Plus `pinned`
+// when the watchdog gives up on the frame budget.
 //
 // The flat region map is its own component (assets/regionmap/). This one owns
 // the frame loop, rotation, the mark field and its accessibility surface. The
@@ -109,11 +114,16 @@ export async function createGlobe(container, options = {}) {
     cy: Number(svg.dataset.cy || 1000),
     zoom: 1,
   };
+  const nodeIds = new Set((reg.nodes || []).map((n) => n.id));
   let frame = null;
   let hoveredPoint = null;   // a mark id or a node id
   let raf = null;
   let slowFrames = 0;
   let pinned = false;
+  // Set by anything that changes what a frame should show. The watchdog used
+  // to count only inside the autorotate branch, so a dragged or a
+  // reduced-motion globe could miss the budget forever without ever pinning.
+  let dirty = false;
 
   function emit(name, detail) {
     container.dispatchEvent(new CustomEvent(name, { detail, bubbles: true }));
@@ -157,15 +167,25 @@ export async function createGlobe(container, options = {}) {
   }
   container.appendChild(a11y);
 
+  // A mark and a node are different things and say so. `pointenter`/
+  // `pointleave` were a vocabulary no spec named, invented when the two were
+  // merged; a datum and a place are not interchangeable to a host that wants
+  // to open a panel about one of them.
+  function kindOf(id) {
+    return nodeIds.has(id) ? 'node' : 'mark';
+  }
   function setPointHover(id) {
     if (id === hoveredPoint) return;
-    if (hoveredPoint) emit('pointleave', { point: hoveredPoint });
+    if (hoveredPoint) {
+      emit(`${kindOf(hoveredPoint)}leave`,
+        { [kindOf(hoveredPoint)]: hoveredPoint });
+    }
     hoveredPoint = id;
     for (const el of svg.querySelectorAll('.gl-node, .gl-mark[data-mark]')) {
       el.classList.toggle('is-hover',
         (el.dataset.node || el.dataset.mark) === id);
     }
-    if (id) emit('pointenter', { point: id });
+    if (id) emit(`${kindOf(id)}enter`, { [kindOf(id)]: id });
   }
 
   // ── pointer ────────────────────────────────────────────────────────────────
@@ -181,7 +201,10 @@ export async function createGlobe(container, options = {}) {
     const u = toUserSpace(svg, ev.clientX, ev.clientY);
     if (!u) return;
     const hit = pickMark(u.x, u.y, frame, MARK_RADIUS_CSS_PX / u.scale);
-    if (hit && hit.id) emit('nodeselect', { node: hit.id });
+    // markselect for a datum, nodeselect for a place. The file header has
+    // advertised markselect since the split and it was emitted nowhere: every
+    // mark click announced itself as a node.
+    if (hit && hit.id) emit(`${kindOf(hit.id)}select`, { [kindOf(hit.id)]: hit.id });
   }
   svg.addEventListener('pointermove', onPointerMove);
   svg.addEventListener('click', onClick);
@@ -189,7 +212,11 @@ export async function createGlobe(container, options = {}) {
 
   const controls = attachControls(svg, {
     getView: () => view,
-    setView: (v) => { Object.assign(view, v, { t: 0 }); paint(); },
+    setView: (v) => {
+      Object.assign(view, v, { t: 0 });
+      view.lon0 %= 360;
+      dirty = true;
+    },
     reducedMotion: reduced,
   });
 
@@ -198,9 +225,16 @@ export async function createGlobe(container, options = {}) {
   function tick(now) {
     const dt = Math.min(100, now - last);
     last = now;
-    if (autorotate && !reduced && !controls.flinging
-        && !svg.classList.contains('is-dragging')) {
-      view.lon0 += (AUTOROTATE_DEG_PER_SEC * dt) / 1000;
+    // lon0 WRAPS. It accumulated without bound, so a globe left running for an
+    // hour reached five figures of degrees and spent its precision on a number
+    // whose only meaningful part is the remainder.
+    const spin = autorotate && !reduced && !controls.flinging
+      && !svg.classList.contains('is-dragging');
+    if (spin) {
+      view.lon0 = (view.lon0 + (AUTOROTATE_DEG_PER_SEC * dt) / 1000) % 360;
+    }
+    if (spin || dirty) {
+      dirty = false;
       const t0 = performance.now();
       paint();
       const cost = performance.now() - t0;
@@ -230,14 +264,36 @@ export async function createGlobe(container, options = {}) {
     raf = null;
   }
 
+  // Both gates, and the resume respects BOTH. `onVisibility` used to call
+  // start() unconditionally, so a globe scrolled out of view resumed animating
+  // the moment the reader came back to the tab.
+  let onScreen = true;
   const io = typeof IntersectionObserver === 'function'
-    ? new IntersectionObserver((es) => (es[0].isIntersecting ? start() : stop()),
-      { threshold: 0 })
+    ? new IntersectionObserver((es) => {
+      onScreen = es[0].isIntersecting;
+      if (onScreen && !document.hidden) start(); else stop();
+    }, { threshold: 0 })
     : null;
   if (io) io.observe(container); else start();
 
-  const onVisibility = () => (document.hidden ? stop() : start());
+  const onVisibility = () => {
+    if (document.hidden || !onScreen) stop(); else start();
+  };
   document.addEventListener('visibilitychange', onVisibility);
+
+  // The theme re-read, restored. The SVG back end paints from CSS classes and
+  // does not care, but render-canvas.js snapshots the palette once at
+  // construction — 0.1.394 deleted this listener with the form machinery and
+  // left a canvas globe holding the light palette after a theme flip, with a
+  // readPalette() that had no caller.
+  const themeQuery = typeof matchMedia === 'function'
+    ? matchMedia('(prefers-color-scheme: dark)') : null;
+  const onTheme = () => {
+    if (renderer.readPalette) renderer.readPalette();
+    dirty = true;
+    start();
+  };
+  themeQuery?.addEventListener?.('change', onTheme);
 
   paint();
 
@@ -252,6 +308,7 @@ export async function createGlobe(container, options = {}) {
       controls.destroy();
       io?.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
+      themeQuery?.removeEventListener?.('change', onTheme);
       svg.removeEventListener('pointermove', onPointerMove);
       svg.removeEventListener('click', onClick);
       a11y.remove();

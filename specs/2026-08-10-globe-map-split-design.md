@@ -168,3 +168,93 @@ The two constraints that must not be violated: **(3) and (4) do not merge** —
 otherwise a commit exists in which the repository can draw no region map; and
 **nothing regenerates the golden grid** — it is form-agnostic by construction,
 and it is the only thing holding the JavaScript port to the Python authority.
+
+---
+
+## 8 · Audit against the shipped tree, and what it corrected (0.1.396)
+
+The owner asked for a full audit of the delivery against these specs. It was
+run over all three records against 0.1.395 and produced one bug report, a list
+of unkept promises, and a list of phantom options. This section records the
+findings and the decisions, so the next reader of these specs is reading
+something true.
+
+### The bug the audit did not find — a reader did
+
+**`hidden` does not hide an SVG shape.** The emitter wrote ` hidden` on every
+far-side mark and node and the runtime toggled it per frame. In a browser a
+`<circle hidden>` computes `display: inline` and keeps its full bounding box,
+so every point on the BACK of the sphere kept drawing — at its orthographic
+position, which for a far-side point lands INSIDE the visible disc. Twelve dots
+slid across the geography on every frame of a shipped deliverable.
+
+Nothing here could see it, and the reason is the fifth instance of one pattern:
+**every gate in this package reads markup, and `hidden` reads correct in
+markup.** The comment at `globe_svg.py:107` even asserted "`hidden` is
+honoured". Fixed by `display="none"`, a real SVG presentation attribute that
+needs no stylesheet, so the JS-off frame hides them too. The new check
+(`check_far_side_hidden`) measures `getBoundingClientRect().width` in a browser
+and refuses to believe an attribute.
+
+### Promises this release kept that the audit found unkept
+
+- **`--suite globe` contained zero checks.** The suite flag shipped in 0.1.394
+  and its contents did not; §5's "field frame sanity, marks markup, field
+  renderer parity" was a promise with no code behind it. Two checks now fill it.
+- **`.is-hover` regressed onto the globe.** §2 defect 2 was closed for regions
+  in 0.1.391 and reopened by 0.1.394, which toggled the class on marks and
+  nodes against no rule at all. `tokens/` ships both now.
+- **The globe's event vocabulary was wrong.** A mark click announced itself as
+  `nodeselect`; `globe.js`'s own header advertised a `markselect` that was
+  emitted nowhere; hover used a `pointenter`/`pointleave` pair no spec names.
+  Now `markenter/markleave/markselect` for data and `nodeenter/nodeleave/
+  nodeselect` for places.
+- **The theme re-read was deleted with the form machinery.** `render-canvas.js`
+  snapshots the palette at construction and its `readPalette()` had no caller,
+  so a canvas globe held the light palette through a theme flip.
+- **The watchdog could not fire** outside the autorotate branch, and
+  `visibilitychange` resumed a globe that was scrolled out of view.
+- **`lon0` accumulated without bound**, spending precision on a number whose
+  only meaningful part is the remainder.
+
+### Dead weight removed
+
+The globe's region layer (`render-svg.js`), `ringsOfRegion`, and the per-region
+bounding-box index — the last of which walked every arc of every member on
+every boot of every deliverable to build a Map whose only consumer, the
+hit-test prefilter, died with `pickRegion` in 0.1.394.
+
+### Phantom options — the spec was wrong, not the code
+
+These appear in §4 above and were never implemented. They are corrected here
+rather than built, because in each case the shipped choice is the better one:
+
+- **`class="mk"`** — marks ship as `gl-mark`, consistent with `gl-node`,
+  `gl-land` and the rest of the figure's vocabulary.
+- **`--gl-mark-r-min/-max` tokens** — the radius rule lives in the two
+  renderers and is parity-held. CSS cannot size a canvas mark, so a token
+  binding one back end would be a divergence wearing a token's clothes.
+- **`data-globe-marks="#json-id"`** — marks reach the runtime by being baked
+  into the frame, which is the same path that makes the JS-off document
+  correct. A second path would let the two disagree.
+- **`createRegionMap({topology, labels, classPrefix})`** — `topology` is not
+  needed by a runtime that touches no geometry; `labels` is an emit-time
+  decision because the text is baked into the frame; `classPrefix` is the
+  palette generator's `--prefix`, and belongs to the CSS, not the runtime.
+- **`createGlobe({interactive})`** — implemented for the map, where a static
+  figure is a real use; the globe's whole subject is a rotating field, and a
+  non-interactive one is a still image, which `globe_svg.py` already emits.
+- **Host-supplied node `value`/`state`** (2026-08-09 §7) — nodes are places
+  from the registry, not data. A datum is a mark.
+
+### Recorded and still open
+
+- **The canvas back end is unreachable from any deliverable** — `embed_globe.py`
+  turns its dynamic import into a rejected promise, by design, since a
+  deliverable must be SVG. It is verified against the SVG renderer by the
+  parity check but no shipped artifact runs it.
+- **The 30 fps floor and the 4 ms canvas ceiling are unmeasured.** The watchdog
+  enforces the first at runtime; neither is asserted by a check.
+- **No deliverable consumes a component event.** §7 hands tooltips and panels to
+  the host document and nothing has ever exercised that. The trade-bloc map is
+  where it gets built.

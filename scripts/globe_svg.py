@@ -103,8 +103,18 @@ def render(view, marks=None):
     # Every mark and node is in the DOM whether or not this frame shows it, with
     # its lat/lon on the element and visibility as an attribute. The runtime
     # mutates markup and never creates it, so a mark that rotates into view has
-    # to already have somewhere to land; and a reader with JavaScript off still
-    # gets exactly the frame that was generated, because `hidden` is honoured.
+    # to already have somewhere to land.
+    #
+    # display="none", NOT the `hidden` attribute. `hidden` is an HTML attribute
+    # and the UA stylesheet rule that acts on it does not reach an SVG shape: a
+    # <circle hidden> computes display:inline and keeps its full bounding box.
+    # So every far-side mark and node was still being drawn, at its orthographic
+    # position — which for a point on the BACK of the sphere lands inside the
+    # visible disc — and slid across the geography as the globe turned. That is
+    # the drifting dots the owner reported, and nothing in this package could
+    # see it: every gate reads markup, and `hidden` reads correct in markup.
+    # display is a real SVG presentation attribute and needs no stylesheet, so
+    # the JS-off frame hides them too.
     wmax = max((float(m.get("weight", 1.0)) for m in marks), default=1.0)
     for mark in marks:
         px, py, vis = gp.unrolled(mark["lon"], mark["lat"], lon0, lat0, t, R, cx, cy)
@@ -116,7 +126,7 @@ def render(view, marks=None):
                  f'data-lat="{mark["lat"]:g}" data-w="{w:g}" '
                  f'cx="{_r(px)}" cy="{_r(py)}" '
                  f'r="{mark_radius(w, wmax, R):.1f}"'
-                 f'{"" if vis else " hidden"}')
+                 f'{"" if vis else " display=\"none\""}')
         body.append(f"<circle {attrs}>{title}</circle>" if title
                     else f"<circle {attrs}/>")
 
@@ -125,7 +135,7 @@ def render(view, marks=None):
         body.append(f'<circle class="gl-node" data-node="{node["id"]}" '
                     f'data-lon="{node["lon"]:g}" data-lat="{node["lat"]:g}" '
                     f'cx="{_r(px)}" cy="{_r(py)}" r="{R * 0.017:.1f}"'
-                    f'{"" if vis else " hidden"}>'
+                    f'{"" if vis else " display=\"none\""}>'
                     f'<title>{html.escape(node["n"])}</title></circle>')
 
     x0, y0, x1, y1 = extent(view)

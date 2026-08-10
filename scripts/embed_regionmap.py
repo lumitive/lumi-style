@@ -63,21 +63,33 @@ def build(states=None, regions_path=None):
   var HOSTDATA = {json.dumps(host, separators=(',', ':'), ensure_ascii=False)};
 {src.strip()}
 
-  function statesFor(el) {{
-    var sel = el.dataset.regionmapStates;
-    if (!sel) return HOSTDATA;
+  function jsonFrom(sel) {{
+    if (!sel) return null;
     var node = document.querySelector(sel);
-    if (!node) return HOSTDATA;
-    try {{ return {{ regions: JSON.parse(node.textContent).regions
-                            || JSON.parse(node.textContent) }}; }}
-    catch (e) {{ return HOSTDATA; }}
+    if (!node) return null;
+    try {{ return JSON.parse(node.textContent); }} catch (e) {{ return null; }}
+  }}
+
+  function statesFor(el) {{
+    var d = jsonFrom(el.dataset.regionmapStates);
+    if (!d) return HOSTDATA;
+    return {{ regions: d.regions || d }};
+  }}
+
+  // A per-element REGISTRY, because one block can carry several maps and they
+  // need not be the same map. A scoped instance booted from the shared
+  // registry builds a hidden button per region in THAT registry — so an
+  // Asia-only figure announced eleven regions while drawing four, which is the
+  // defect the split closed for the globe and reopened here.
+  function registryFor(el) {{
+    return jsonFrom(el.dataset.regionmapRegistry) || REGISTRY;
   }}
 
   function boot() {{
     var figures = document.querySelectorAll('[data-regionmap]');
     for (var i = 0; i < figures.length; i += 1) {{
       createRegionMap(figures[i], {{
-        registry: REGISTRY,
+        registry: registryFor(figures[i]),
         hostData: statesFor(figures[i]),
         interactive: figures[i].dataset.regionmap !== 'static',
       }});

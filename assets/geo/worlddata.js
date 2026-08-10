@@ -36,8 +36,7 @@ function decodeArc(flat, quantum) {
 }
 
 /**
- * -> {arcs, countries, neighbours, regionOf, regionMembers, bboxOf, nodes,
- *     regions}
+ * -> {arcs, countries, neighbours, regionOf, regionMembers, nodes, regions}
  *
  * `regions` is the registry's own order, which is the order a legend prints in.
  */
@@ -55,36 +54,11 @@ export function decode(topology, registry) {
     for (const code of r.members) regionOf.set(code, r.id);
   }
 
-  // One bounding box per region, in degrees, for the hit-test prefilter. A
-  // region whose members straddle the antimeridian gets a box that spans the
-  // world in longitude; that is correct for a prefilter, whose only job is to
-  // never exclude a candidate it should have kept.
-  const bboxOf = new Map();
-  for (const [id, members] of regionMembers) {
-    let w = 180;
-    let s = 90;
-    let e = -180;
-    let n = -90;
-    let straddles = false;
-    for (const code of members) {
-      const country = countries.get(code);
-      if (!country) continue;
-      for (const ring of country.rings) {
-        for (const idx of ring) {
-          const arc = arcs[idx >= 0 ? idx : ~idx];
-          for (const [lon, lat] of arc) {
-            if (lon < w) w = lon;
-            if (lon > e) e = lon;
-            if (lat < s) s = lat;
-            if (lat > n) n = lat;
-            if (lon < -175 || lon > 175) straddles = true;
-          }
-        }
-      }
-    }
-    if (e < w) { w = -180; e = 180; }
-    bboxOf.set(id, straddles && e - w > 350 ? [-180, s, 180, n] : [w, s, e, n]);
-  }
+  // The per-region bounding-box index lived here until 0.1.396. It fed the
+  // hit-test prefilter, and that prefilter died with pickRegion when the map
+  // took its hit testing to the browser's own pointer events — so this walked
+  // every arc of every member on EVERY boot of every deliverable to build a
+  // Map nothing read.
 
   return {
     quantum,
@@ -94,7 +68,6 @@ export function decode(topology, registry) {
     regions: registry.regions,
     regionOf,
     regionMembers,
-    bboxOf,
     nodes: registry.nodes || [],
   };
 }
@@ -129,10 +102,7 @@ export function ringsOf(code, data) {
 }
 
 /** Every ring of every country in a region, in registry member order. */
-export function ringsOfRegion(regionId, data) {
-  const out = [];
-  for (const code of data.regionMembers.get(regionId) || []) {
-    for (const ring of ringsOf(code, data)) out.push(ring);
-  }
-  return out;
-}
+// ringsOfRegion was exported here until 0.1.396. Its only caller was the
+// globe's region layer, and globe_svg.py stopped emitting regions when the
+// split gave them their own component; the map runtime touches no geometry.
+

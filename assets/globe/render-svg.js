@@ -12,7 +12,7 @@
 import {
   project, splitAtSeam, densify, clipToCap,
 } from '../geo/projection.js';
-import { ringsOf, ringsOfRegion } from '../geo/worlddata.js';
+import { ringsOf } from '../geo/worlddata.js';
 
 const STEP_DEG = 2;
 // Matches PAD in scripts/globe_svg.py, in the same user units.
@@ -169,16 +169,10 @@ export function createSvgRenderer(svg, data) {
   const plate = svg.querySelector('.gl-plate');
   const graticule = svg.querySelector('.gl-graticule');
   const land = svg.querySelector('.gl-land');
-  const regionPaths = new Map();
-  for (const el of svg.querySelectorAll('[data-region]')) {
-    regionPaths.set(el.getAttribute('data-region'), el);
-  }
   const markEls = [...svg.querySelectorAll('.gl-mark')];
   const nodeEls = [...svg.querySelectorAll('.gl-node')];
 
   // lat/lon geometry is resolved once. Only the projection runs per frame.
-  const regionRings = new Map();
-  for (const id of regionPaths.keys()) regionRings.set(id, ringsOfRegion(id, data));
   const landRings = land
     ? [...data.countries.keys()].flatMap((c) => ringsOf(c, data))
     : [];
@@ -195,7 +189,7 @@ export function createSvgRenderer(svg, data) {
   }
 
   function draw(view, state = {}) {
-    const out = { regions: new Map(), marks: [], nodes: [], view };
+    const out = { marks: [], nodes: [], view };
     const vb = viewBoxFor(view);
     svg.setAttribute('viewBox',
       `${vb[0].toFixed(1)} ${vb[1].toFixed(1)} ${vb[2].toFixed(1)} ${vb[3].toFixed(1)}`);
@@ -216,35 +210,23 @@ export function createSvgRenderer(svg, data) {
       for (const ring of landRings) d += `${pathData(projectArea(ring, view), true, view)} `;
       land.setAttribute('d', d.trim());
     }
-    for (const [id, el] of regionPaths) {
-      const runs = [];
-      let d = '';
-      for (const ring of regionRings.get(id) || []) {
-        const r = projectArea(ring, view);
-        for (const run of r) runs.push(run);
-        d += `${pathData(r, true, view)} `;
-      }
-      el.setAttribute('d', d.trim());
-      // Only the STATE class, and only via classList. Rewriting the whole
-      // class attribute here silently wiped is-hover on every frame: the hit
-      // test was returning the right region the whole time and the highlight
-      // was being erased 60 times a second, which looked exactly like a broken
-      // hit test. The renderer owns state; it does not own the element.
-      const s = (state.regions && state.regions[id] && state.regions[id].state) || 'zero';
-      for (const c of [...el.classList]) {
-        if (c.startsWith('is-') && c !== 'is-hover') el.classList.remove(c);
-      }
-      el.classList.add('rg', `rg-${id}`, `is-${s}`);
-      out.regions.set(id, runs);
-    }
+    // The region-drawing block lived here until 0.1.396. globe_svg.py has not
+    // emitted a single [data-region] element since the split gave regions
+    // their own component, so it selected nothing, projected nothing, and
+    // shipped inline in every globe deliverable — along with ringsOfRegion and
+    // the bbox index it fed.
     for (const el of markEls) {
       const lon = Number(el.dataset.lon);
       const lat = Number(el.dataset.lat);
       const p = project(lon, lat, view);
       el.setAttribute('cx', r0(p.x));
       el.setAttribute('cy', r0(p.y));
-      if (p.visible) el.removeAttribute('hidden');
-      else el.setAttribute('hidden', '');
+      // display, not `hidden`. The HTML `hidden` attribute does not hide an
+      // SVG shape — a <circle hidden> computes display:inline and keeps its
+      // box — so every far-side point stayed drawn and drifted across the
+      // globe. Mirrors globe_svg.py.
+      if (p.visible) el.removeAttribute('display');
+      else el.setAttribute('display', 'none');
       if (p.visible) out.marks.push({ x: p.x, y: p.y, el, id: el.dataset.mark });
     }
     for (const el of nodeEls) {
@@ -253,8 +235,8 @@ export function createSvgRenderer(svg, data) {
       const p = project(lon, lat, view);
       el.setAttribute('cx', r0(p.x));
       el.setAttribute('cy', r0(p.y));
-      if (p.visible) el.removeAttribute('hidden');
-      else el.setAttribute('hidden', '');
+      if (p.visible) el.removeAttribute('display');
+      else el.setAttribute('display', 'none');
       if (p.visible) out.nodes.push({ x: p.x, y: p.y, el, id: el.dataset.node });
     }
     return out;
