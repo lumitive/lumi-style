@@ -882,6 +882,65 @@ def check_clip_invariants():
     return errors
 
 
+
+
+def check_regionmap_frame():
+    """The map component's frame holds its own contract.
+
+    Four properties, each of which the first delivered demo lacked somewhere:
+    the ink fits the declared viewBox; every drawn region carries a label AT its
+    anchor (the registry fields nothing read until regionmap_svg.py); every
+    class the frame emits has a binding in tokens/region-palette.css, so no
+    document can get a black map by including the frame and the tokens; and the
+    aria vocabulary is name-with-VALUE where a value exists, name-with-state
+    only where none does.
+    """
+    import regionmap_svg
+
+    errors = []
+    states = {"europe": {"state": "live", "value": 63}, "north-america": "partial"}
+    for lon0 in (0.0, 150.0):
+        svg = regionmap_svg.render(lon0=lon0, states=states)
+        where = f"lon0={lon0:g}"
+        m = re.search(r'viewBox="([-\d.]+) ([-\d.]+) ([-\d.]+) ([-\d.]+)"', svg)
+        if not m:
+            errors.append(f"{where}: no viewBox emitted")
+            continue
+        vx, vy, vw, vh = (float(g) for g in m.groups())
+        xs, ys = [], []
+        for d in re.findall(r'\sd="([^"]+)"', svg):
+            for xy in re.findall(r"[ML](-?[\d.]+) (-?[\d.]+)", d):
+                xs.append(float(xy[0]))
+                ys.append(float(xy[1]))
+        if min(xs) < vx or max(xs) > vx + vw or min(ys) < vy or max(ys) > vy + vh:
+            errors.append(f"{where}: ink outside the declared viewBox")
+
+        drawn = {m2.group(1) for m2 in
+                 re.finditer(r'class="rg rg-([a-z-]+)[^"]*"[^>]*d="[^"]*[ML]', svg)}
+        labelled = set(re.findall(r'data-region-label="([a-z-]+)"', svg))
+        for rid in sorted(drawn - labelled):
+            errors.append(f"{where}: region {rid} is drawn and carries no label — "
+                          f"hue separates neighbours at a glance; text carries "
+                          f"identity (design-rules section 1c)")
+
+        css = (ROOT / "tokens" / "region-palette.css").read_text(encoding="utf-8")
+        for rid in sorted(drawn):
+            if f".rg-{rid} " not in css:
+                errors.append(f"{where}: the frame emits rg-{rid} and "
+                              f"tokens/region-palette.css binds no fill to it — "
+                              f"that region renders in the UA default")
+
+        if 'aria-label="Europe, 63"' not in svg:
+            errors.append(f"{where}: a region with a value does not speak it — "
+                          f"expected aria-label=\'Europe, 63\'")
+        if 'aria-label="North America, partial"' not in svg:
+            errors.append(f"{where}: a region with only a state does not fall "
+                          f"back to it")
+    return errors
+
+
+
+
 CHECKS = (
     ("round trip", check_round_trip, True),
     ("poles are points", check_poles, True),
@@ -891,6 +950,7 @@ CHECKS = (
     ("static svg fits its viewbox", check_static_svg, False),
     ("no line across the flat map", check_seam_segments, False),
     ("the spherical clip holds its invariants", check_clip_invariants, False),
+    ("the region map frame holds its contract", check_regionmap_frame, False),
 )
 
 

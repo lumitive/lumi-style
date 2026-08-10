@@ -472,6 +472,17 @@ def render():
     lines += [
         ".rg.is-out { fill: var(--brass); }",
         ".rg.is-partial { stroke: var(--amber); stroke-width: 2; }",
+        "/* Region labels, set in the ink the contrast floor is computed against:",
+        " * selftest() asserts every fill carries INK_LIGHT / INK_DARK at 4.5:1 or",
+        " * better, and --nw is those two values. A label in any other colour is",
+        " * outside the floor's guarantee. */",
+        ".rg-label { fill: var(--nw); font-family: var(--din); "
+        "font-weight: 600; text-anchor: middle; pointer-events: none; }",
+        "/* No font-size here: the emitter sets it as an attribute scaled to the",
+        " * frame's R, because a fixed pixel size inside a 2R-unit viewBox",
+        " * renders at whatever the layout divides it to — 13px became ~7 at a",
+        " * typical figure width. CSS would override the attribute, so CSS",
+        " * stays silent about size. */",
         "/* Hover and keyboard focus. The runtime has toggled is-hover since the",
         " * globe shipped and no stylesheet anywhere defined it, so hovering",
         " * worked and showed nothing; and the first delivered demo set",

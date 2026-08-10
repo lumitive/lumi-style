@@ -3,6 +3,52 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.393 — the region map becomes its own instrument
+
+Release 3 of 5 for the component split. `assets/regionmap/` and its emitter
+`scripts/regionmap_svg.py` are new code beside the untouched globe — the
+sequencing constraint from the spec, so no commit exists in which the
+repository can draw no region map.
+
+**The map runtime touches no geometry, and everything follows from that.** A
+flat map does not rotate, unroll or animate, so the frame the emitter bakes is
+complete and what remains for a runtime is state: classes, values, labels,
+hover, focus, the accessibility layer. Creation is synchronous; hit testing is
+the browser's own pointer events on real path elements rather than an inverse
+projection; and the embed block inlines the registry and NOT the 68 KB world
+topology the globe must carry to re-project every frame — 11 KB against the
+globe's 122. The planned render-map.js does not exist because there is nothing
+for it to render; one module is what the design turned out to need.
+
+**The registry's `anchor` and `z` are finally read.** Declared since the
+registry existed, consumed by nothing: the emitter now places each region's
+label at its anchor, in English from `n` or Chinese from `z` (set in the
+default stack per 0.1.391's type decision), with the value beside it when the
+data carries one. Each label carries `data-region-label`, the vocabulary D18
+counts, so a document using this frame satisfies the label rule without
+hand-authoring a legend. Label size is an attribute scaled to the frame's R —
+a fixed CSS pixel size inside a 2000-unit viewBox rendered at seven effective
+pixels, which is why the tokens rule now carries family and weight only.
+
+**Two of the audit's defects die here by design.** The aria vocabulary is name
+with VALUE ("Europe, 63") where a value exists — the globe's frame said
+"Europe, live" while the page showed the number — and the renderer keeps it
+current on setData, where the old one wrote it once and let it lie. The
+one-button-per-region accessibility layer lives in this component and will
+leave the globe in the next release, ending the field figure that announced
+eleven regions it was not showing.
+
+**A trap found by the component's own first test page.** The runtime applied
+its host data unconditionally, so embedding without data "corrected" a frame
+with baked states to all-zero within minutes of the module existing. Initial
+state now comes from the markup — the classes and aria values the emitter
+wrote — and host data overrides it. No data given is not data.
+
+`check_globe.py` gains the map frame's contract: ink inside the declared
+viewBox, every drawn region labelled, every emitted class bound in
+`tokens/region-palette.css` (a black map is now a checked failure, not a
+surprise), and the aria vocabulary — each mutation-tested.
+
 ## 0.1.392 — the shared geometry core gets its own directory, and nothing else moves
 
 Release 2 of 5 for the component split. `assets/geo/` now holds the one library
