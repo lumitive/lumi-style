@@ -1,5 +1,5 @@
 {
- "$comment": "Hand-written, never generated. It asserts VERDICTS and exit codes, not values: 'M8_length_cv: ok', never 0.578. A golden file full of raw numbers rots on every cosmetic change and trains people to regenerate it unread, so a legitimate threshold change should touch one line here and show up in review as an intent change, while an accidental regression shows up as a verdict flip. Every metric each checker emits is asserted on both fixtures, not just the ones a defect was planted for: ten of thirteen design metrics were asserted on neither, so a checker rewritten to return 'ok' unconditionally would have passed. Coverage is now complete but not equally strong: six D-metrics are reported rather than graded and pass a literal True, and both D3 tiers pass vacuously because neither fixture carries a tier-1 callout. Asserting them catches a metric that disappears, not one that softens.",
+ "$comment": "Hand-written, never generated. It asserts VERDICTS and exit codes, not values: 'M8_length_cv: ok', never 0.578. A golden file full of raw numbers rots on every cosmetic change and trains people to regenerate it unread, so a legitimate threshold change should touch one line here and show up in review as an intent change, while an accidental regression shows up as a verdict flip. THREE fixtures: deck-pass is a well-formed deliverable, deck-broken carries one named defect per page and is readable as a worked example, and deck-degenerate exists only to fail. The third was added in 0.1.390 because ten metrics could not be given a failing case without destroying the second: four are document-WIDE prose properties (every sentence the same length, every title the same shape) that cannot be confined to one labelled page, and six more design defects would have stopped deck-broken teaching anything. Before it, thirteen of eighteen design verdicts and four of seven prose verdicts read ok on BOTH fixtures, so a checker rewritten to `return \"ok\"` would have passed the suite whose stated purpose is to catch that. check_fixtures.py now computes this rather than trusting it: every graded verdict must have a fixture that fails it, and the run prints the count. Seven design metrics are REPORTED rather than graded and cannot fail by construction \u2014 they are counted separately, never excused silently, and two of them are exercised through n/a on the degenerate deck, which has no figures to measure.",
  "schema": 1,
  "fixtures": {
   "deck-pass.en.html": {
@@ -10,13 +10,16 @@
     ],
     "exit": 0,
     "verdicts": {
+     "M12_visible_cjk": "ok",
      "M4_banned_hits": "ok",
      "M8_overlong_share": "ok",
      "M8_length_cv": "ok",
      "M9_dashes": "ok",
+     "M6_unsourced_ranges": "ok",
+     "M2_number_sourcing": "ok",
+     "M1_assertive_titles": "ok",
      "M10_triad_rate": "ok",
-     "M11_title_uniformity": "ok",
-     "M12_visible_cjk": "ok"
+     "M11_title_uniformity": "ok"
     },
     "forbid_verdicts": [
      "n/a"
@@ -53,6 +56,25 @@
       "\"prose_only\": []"
      ]
     }
+   },
+   "layout": {
+    "argv": [
+     "--deliverable",
+     "--no-sheet"
+    ],
+    "exit": 0,
+    "verdicts": {
+     "collision": "ok",
+     "content_spill": "ok",
+     "page_height": "ok",
+     "content_hidden": "ok",
+     "footer_wrap": "ok",
+     "figure_viewbox": "ok",
+     "figure_clipped": "ok",
+     "reserve_overspent": "ok",
+     "role_split": "ok",
+     "datum": "ok"
+    }
    }
   },
   "deck-broken.en.html": {
@@ -63,9 +85,16 @@
     ],
     "exit": 1,
     "verdicts": {
+     "M12_visible_cjk": "FAIL",
      "M4_banned_hits": "FAIL",
+     "M8_overlong_share": "ok",
+     "M8_length_cv": "ok",
      "M9_dashes": "FAIL",
-     "M12_visible_cjk": "FAIL"
+     "M6_unsourced_ranges": "ok",
+     "M2_number_sourcing": "ok",
+     "M1_assertive_titles": "ok",
+     "M10_triad_rate": "ok",
+     "M11_title_uniformity": "ok"
     },
     "contains": {
      "M4_banned_hits": [
@@ -118,7 +147,16 @@
     ],
     "exit": 1,
     "verdicts": {
-     "M9_dashes": "FAIL"
+     "M12_visible_cjk": "FAIL",
+     "M4_banned_hits": "FAIL",
+     "M8_overlong_share": "ok",
+     "M8_length_cv": "ok",
+     "M9_dashes": "FAIL",
+     "M6_unsourced_ranges": "ok",
+     "M2_number_sourcing": "ok",
+     "M1_assertive_titles": "ok",
+     "M10_triad_rate": "ok",
+     "M11_title_uniformity": "ok"
     }
    },
    "prose@internal": {
@@ -128,7 +166,99 @@
     ],
     "exit": 1,
     "verdicts": {
-     "M9_dashes": "n/a"
+     "M12_visible_cjk": "FAIL",
+     "M4_banned_hits": "FAIL",
+     "M8_overlong_share": "ok",
+     "M8_length_cv": "ok",
+     "M9_dashes": "n/a",
+     "M6_unsourced_ranges": "ok",
+     "M2_number_sourcing": "ok",
+     "M1_assertive_titles": "ok",
+     "M10_triad_rate": "ok",
+     "M11_title_uniformity": "ok"
+    }
+   },
+   "layout": {
+    "argv": [
+     "--deliverable",
+     "--no-sheet"
+    ],
+    "exit": 1,
+    "verdicts": {
+     "collision": "ok",
+     "content_spill": "ok",
+     "page_height": "ok",
+     "content_hidden": "ok",
+     "footer_wrap": "ok",
+     "figure_viewbox": "FAIL",
+     "figure_clipped": "FAIL",
+     "reserve_overspent": "ok",
+     "role_split": "ok",
+     "datum": "ok"
+    }
+   }
+  },
+  "deck-degenerate.en.html": {
+   "prose": {
+    "argv": [
+     "--genre",
+     "sales"
+    ],
+    "exit": 1,
+    "verdicts": {
+     "M12_visible_cjk": "ok",
+     "M4_banned_hits": "ok",
+     "M8_overlong_share": "FAIL",
+     "M8_length_cv": "FAIL",
+     "M9_dashes": "ok",
+     "M6_unsourced_ranges": "FAIL",
+     "M2_number_sourcing": "FAIL",
+     "M1_assertive_titles": "ok",
+     "M10_triad_rate": "FAIL",
+     "M11_title_uniformity": "FAIL"
+    }
+   },
+   "design": {
+    "argv": [],
+    "exit": 0,
+    "verdicts": {
+     "D1_contrast": "FAIL",
+     "D18_region_labels": "n/a",
+     "D2_type_scale": "ok",
+     "D3_tier1_per_page": "FAIL",
+     "D3_tier1_page_share": "FAIL",
+     "D4_palette_literals": "ok",
+     "D5_figure_parity": "n/a",
+     "D6_footer": "FAIL",
+     "D8_support_line": "FAIL",
+     "D13_lime_as_text": "FAIL",
+     "D12_commercial_footer": "ok",
+     "D5_drawn_share": "n/a",
+     "D14_placeholders": "ok",
+     "D15_footer_path": "ok",
+     "D9_layout_spread": "ok",
+     "D10_label_icons": "ok",
+     "D17_export_weight": "ok",
+     "D16_visual_presence": "ok"
+    }
+   },
+   "layout": {
+    "argv": [
+     "--deliverable",
+     "--no-sheet"
+    ],
+    "exit": 1,
+    "verdicts": {
+     "collision": "FAIL",
+     "content_spill": "FAIL",
+     "page_height": "FAIL",
+     "content_hidden": "FAIL",
+     "footer_wrap": "FAIL",
+     "figure_viewbox": "n/a",
+     "figure_clipped": "n/a",
+     "reserve_overspent": "FAIL",
+     "role_split": "FAIL",
+     "datum": "n/a"
     }
    }
   }

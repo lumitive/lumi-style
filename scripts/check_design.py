@@ -891,8 +891,13 @@ def main(argv):
             if not args.json:
                 print(f"\n{name}\n  UNMEASURABLE  {exc}")
             continue
-        r["verdicts"] = {n: v for n, _, _, v in
-                         ((a, b, c, d) for a, b, c, d in grade(r))}
+        _rows = grade(r)
+        r["verdicts"] = {n: v for n, _, _, v in _rows}
+        # The TARGET string, so a caller can tell a metric that could have
+        # failed from one whose target is literally "reported" and therefore
+        # cannot. check_fixtures.py needs exactly that to say which verdicts it
+        # asserted and which it could not.
+        r["targets"] = {n: t for n, _, t, _ in _rows}
         # The two gating metrics. Neither is a judgement about whether a page is
         # well made: D12 is a commercial requirement on the artifact and D14 asks
         # whether the document is finished. Both are decidable, which is what

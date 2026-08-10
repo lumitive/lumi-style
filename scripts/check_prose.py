@@ -140,6 +140,66 @@ OVERLONG_WORDS = 32
 MIN_SENTENCES = 30      # below this, rhythm is noise
 MIN_TITLES = 8          # below this, one frame dominating means nothing
 
+# ── M1, M2, M6 ────────────────────────────────────────────────────────────────
+# The rubric called M1-M11 "scriptable" for six versions while no script existed.
+# These three were the remainder, and they are the three that stand behind a FACT
+# red line rather than a style rule — M2 and M6 behind "every number carries its
+# source", M1 behind the title contract's demand that a title carry a verifiable
+# fact. A deliverable could break all three and pass every check this package
+# shipped.
+#
+# SOURCE_MARKERS is a second copy of writing-rules.md section 4 rule 6, and
+# check_repo.py's `source-marker parity` guard holds the two together exactly as
+# `ban-list parity` holds section 2. The rules are the source: a marker here that
+# the rules do not list fails CI, and so does the reverse.
+SOURCE_MARKERS = [
+    "source", "derived from", "based on", "as of", "per", "n=", "extract",
+    "illustrative", "mock", "proposal value", "uncalibrated",
+]
+SOURCE_RE = re.compile(
+    "|".join(r"\bn\s*=\s*\d" if m == "n=" else rf"\b{re.escape(m)}\b"
+             for m in SOURCE_MARKERS), re.I)
+
+# A percentage or a currency amount. Deliberately NOT every number: a page
+# number, a figure number and a count of regions are not claims that need a
+# source, and a metric that flags them is one reviewers learn to skip.
+FIGURE_RE = re.compile(
+    r"\d[\d,.]*\s*%|\d[\d,.]*\s*percent\b|[$€£¥]\s?\d[\d,.]*"
+    r"|\b\d[\d,.]*\s*(?:USD|EUR|GBP|CNY|RMB)\b", re.I)
+
+M2_TARGET = 90.0        # percent of figures whose page carries a marker
+M1_TARGET = 70.0        # percent of titles naming a subject and a fact
+MIN_FIGURES = 4         # below this, a sourcing rate is one number's opinion
+
+
+def _has_fact(title):
+    """M1's proxy: a numeral, a named entity, or a dated term.
+
+    M1 has no decidable predicate — "names a subject and carries a verifiable
+    fact" is a judgement — so this is a PROXY and M1 is REPORTED, never gated.
+    That is not timidity. A metric that gates gets satisfied, and the cheapest
+    way to satisfy a regex is to write titles the regex likes: 0.1.339's page
+    fill floor was met by stretching table rows rather than improving pages and
+    was withdrawn one release later. A reported number cannot be satisfied, so
+    this prints the titles it doubts and a reader overrules it.
+    """
+    if re.search(r"\d", title):
+        return True
+    # A NUMERAL includes a spelled-out one. "Three assumptions carry the
+    # forecast" states a checkable count, and a proxy reading only digits misses
+    # it — which is how the first cut scored a well-formed deck at 18.8% and
+    # would have taught a reviewer to skip the line.
+    if re.search(r"\b(?:one|two|three|four|five|six|seven|eight|nine|ten|"
+                 r"eleven|twelve|half|double|triple)\b", title, re.I):
+        return True
+    # A DATED TERM: a fiscal period, or a named span of time.
+    if re.search(r"\b(?:Q[1-4]|H[12]|FY\d{2,4}|quarter|month|week|year|cycle|"
+                 r"day|today|monthly|weekly|annual)\b", title, re.I):
+        return True
+    # A NAMED ENTITY: a capitalised word that is not the first. The first word
+    # is capitalised by orthography and says nothing.
+    return bool(re.search(r"\s[A-Z][A-Za-z0-9-]{2,}", title))
+
 # The genre vocabulary, in one place. run_conformance.py and export_pdf.py
 # import this tuple rather than hand-copying it: a hand-copy in the
 # conformance harness rejected `training` for two releases after 0.1.376
@@ -225,8 +285,29 @@ class Unmeasurable(Exception):
     """The file yielded nothing to measure. Never silently a pass."""
 
 
+def _pages_and_blocks(raw_nostrip):
+    """-> [(page_text, [block_text])], the two windows section 4 rule 6 defines.
+
+    A page is `<section class="page">`; a document with no page structure has
+    one page, which is the document. Blocks come from the same BLOCK_END
+    boundaries the sentence splitter uses, so "its block" means the same thing
+    to a reader of the rules and to this file.
+    """
+    pages = re.findall(
+        r'<section[^>]*class="[^"]*\bpage\b[^"]*"[^>]*>(.*?)</section>',
+        raw_nostrip, re.S | re.I) or [raw_nostrip]
+    out = []
+    for page in pages:
+        text = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", page)))
+        chunks = html.unescape(re.sub(r"<[^>]+>", " ", BLOCK_END.sub(".\n", page)))
+        blocks = [re.sub(r"\s+", " ", b).strip()
+                  for b in chunks.split("\n") if b.strip()]
+        out.append((text, blocks))
+    return out
+
+
 def extract(path):
-    """Return (body_text, [titles], [enumeration_sizes])."""
+    """Return (body_text, [titles], [enumeration_sizes], [(page, [blocks])])."""
     try:
         raw = path.read_text(encoding="utf-8")
     except UnicodeDecodeError as exc:
@@ -276,13 +357,19 @@ def extract(path):
         # heading and six list items merge into one 27-word "sentence".
         body = BLOCK_END.sub(".\n", raw_nostrip)
         body = html.unescape(re.sub(r"<[^>]+>", " ", body))
+        windows = _pages_and_blocks(raw_nostrip)
     else:
         titles = [m.group(2).strip() for m in re.finditer(r"^(#{1,2})\s+(.*)$", raw, re.M)]
         enums = [len(list(g)) for g in _markdown_lists(raw)]
         body = re.sub(r"^#{1,6}\s+", "", raw, flags=re.M)
+        # No page structure, so the document is the page and a paragraph is the
+        # block — exactly what section 4 rule 6 says for a plain report.
+        windows = [(re.sub(r"\s+", " ", body),
+                    [re.sub(r"\s+", " ", b).strip()
+                     for b in re.split(r"\n\s*\n", body) if b.strip()])]
 
     body = re.sub(r"[ \t]+", " ", body)
-    return body, [t for t in titles if t], enums
+    return body, [t for t in titles if t], enums, windows
 
 
 def _markdown_lists(raw):
@@ -312,7 +399,7 @@ def measure(path, genre, lang=None):
     raw = path.read_text(encoding="utf-8", errors="replace")
     language, where = declared_language(path, raw, lang)
     cjk = visible_cjk(raw, path.suffix.lower()) if language == "en" else None
-    body, titles, enums = extract(path)
+    body, titles, enums, windows = extract(path)
     lengths = sentences(body)
     if not lengths:
         raise Unmeasurable("no prose extracted (0 sentences)")
@@ -347,6 +434,29 @@ def measure(path, genre, lang=None):
     uniformity = (100.0 * max(frames.count(f) for f in set(frames)) / len(frames)
                   if frames else None)
 
+    # M2 and M6. The windows are section 4 rule 6's: the PAGE for an ordinary
+    # figure, the BLOCK for a range. Both record what they missed, because a
+    # rate with no list of misses tells an author a number and not a place.
+    figures = sourced = 0
+    m2_missing, m6_missing = [], []
+    for page_text, blocks in windows:
+        page_sourced = bool(SOURCE_RE.search(page_text))
+        for block in blocks:
+            found = FIGURE_RE.findall(block)
+            figures += len(found)
+            if page_sourced:
+                sourced += len(found)
+            elif found:
+                m2_missing.append(block[:90])
+            block_sourced = bool(SOURCE_RE.search(block))
+            if not block_sourced:
+                m6_missing.extend(block[:90] for _ in NUMERIC_RANGE.findall(block))
+    m2_rate = 100.0 * sourced / figures if figures else None
+
+    m1_missing = [t for t in titles if not _has_fact(t)]
+    m1_rate = (100.0 * (len(titles) - len(m1_missing)) / len(titles)
+               if titles else None)
+
     return {
         "file": str(path),
         "genre": genre,
@@ -358,6 +468,13 @@ def measure(path, genre, lang=None):
         "enumerations": len(enums),
         "M4_banned_hits": sum(n for _, n in hits),
         "M4_detail": hits,
+        "figures": figures,
+        "M1_assertive_titles": None if m1_rate is None else round(m1_rate, 1),
+        "M1_detail": m1_missing,
+        "M2_number_sourcing": None if m2_rate is None else round(m2_rate, 1),
+        "M2_detail": m2_missing,
+        "M6_unsourced_ranges": len(m6_missing),
+        "M6_detail": m6_missing,
         "M8_overlong_share": round(overlong, 1),
         "M8_length_cv": round(cv, 3),
         "M9_dashes": dashes if genre in ("sales", "training") else None,
@@ -379,6 +496,21 @@ def grade(r):
          r["M8_overlong_share"] <= 8.0, thin_rhythm),
         ("M8_length_cv", r["M8_length_cv"], ">=0.35", r["M8_length_cv"] >= 0.35, thin_rhythm),
         ("M9_dashes", r["M9_dashes"], "=0", r["M9_dashes"] == 0, r["M9_dashes"] is None),
+        # M6 first of the three: the most decidable predicate. A range figure
+        # must trace to ONE source or it may not appear (writing-rules section 4
+        # rule 1), so its window is its own block and its target is zero.
+        ("M6_unsourced_ranges", r["M6_unsourced_ranges"], "=0",
+         r["M6_unsourced_ranges"] == 0, False),
+        # M2 gates. The window is the page, and a document with too few figures
+        # to rate reads n/a rather than a perfect score on nothing.
+        ("M2_number_sourcing", r["M2_number_sourcing"], f">={M2_TARGET:g}%",
+         (r["M2_number_sourcing"] or 0) >= M2_TARGET,
+         r["M2_number_sourcing"] is None or r["figures"] < MIN_FIGURES),
+        # M1 REPORTS and never gates. See _has_fact: the predicate is a proxy for
+        # a judgement, and a proxy that gates is a proxy authors write toward.
+        ("M1_assertive_titles", r["M1_assertive_titles"],
+         f">={M1_TARGET:g}% (reported)", True,
+         r["M1_assertive_titles"] is None or r["titles"] < MIN_TITLES),
         ("M10_triad_rate", r["M10_triad_rate"], "<=50%",
          (r["M10_triad_rate"] or 0) <= 50.0, r["M10_triad_rate"] is None),
         ("M11_title_uniformity", r["M11_title_uniformity"], "<=60%",
@@ -417,6 +549,10 @@ def main(argv):
 
         rows = grade(r)
         r["verdicts"] = {n: v for n, _, _, v in rows}
+        # The TARGET string, so a caller can tell a metric that could have
+        # failed from one that is reported and cannot. check_fixtures.py needs
+        # exactly that to say which verdicts it asserted and which it could not.
+        r["targets"] = {n: t for n, _, t, _ in rows}
         failed += sum(1 for _, _, _, v in rows if v == "FAIL")
         reports.append(r)
         if args.json:
