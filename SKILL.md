@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.392"
+  version: "0.1.393"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -157,12 +157,17 @@ been removed; they now apply at step 4 instead of framing step 0.
    assets rather than improvising**: `scripts/embed_font.py` for the display face,
    `scripts/embed_icons.py` for the icon library, `assets/vectors/` for the globe
    and trade map. **For a world figure that states data, generate it rather than
-   drawing it**: `python3 scripts/globe_svg.py --form regions --t 1` emits the
-   trade-region map and `--form field` the rotating globe; `--form both` emits
-   both layers when the document switches between them at runtime. Colour comes
-   from `tokens/region-palette.css`, and **every coloured region needs a label or
-   a legend row** — D18 checks for it, because hue groups regions at a glance and
-   only text identifies them. Never place the generated 110m map and the coarse
+   drawing it**: `python3 scripts/regionmap_svg.py` emits the flat trade-region
+   map with its labels already placed (`--labels zh` for Chinese, `--states`
+   for the data), and `python3 scripts/globe_svg.py` the rotating globe.
+   These are two components, not two forms of one
+   (`specs/2026-08-10-globe-map-split-design.md`); the globe's legacy
+   `--form regions|both` flags are retired in the release after the map landed.
+   Colour comes from `tokens/region-palette.css`, which ships the class
+   bindings too — include it and the figure paints. **Every coloured region
+   needs a label or a legend row** — D18 checks for it, because hue groups
+   regions at a glance and only text identifies them; the map emits its own
+   labels, so this is only work when you suppress them with `--labels none`. Never place the generated 110m map and the coarse
    `globe-orthographic.svg` mark in one view; they disagree about where a
    coastline is (design-rules §1d). Text uses the `--tx*` ladder only; `--ln*` is rules and fills.
    **Use the role vocabulary** the token file declares — `.eyebrow`, `h2.t`,

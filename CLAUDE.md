@@ -24,6 +24,8 @@ python3 scripts/build_geography.py       # regenerate assets/vectors/ from lat/l
 python3 scripts/build_worldmap.py        # shared-arc world topology + the golden grid
 python3 scripts/build_region_palette.py  # region hues; --selftest asserts four floors
 python3 scripts/globe_svg.py             # one static SVG frame of the globe
+python3 scripts/regionmap_svg.py         # the flat region map, labels from the registry
+python3 scripts/embed_regionmap.py       # the map runtime as one inline <script>
 python3 scripts/check_globe.py           # globe maths + the JS port (needs Playwright)
 python3 scripts/embed_globe.py           # the globe runtime as one inline <script>
 python3 scripts/build_entrypoints.py     # regenerate every per-platform artifact; --check in CI
