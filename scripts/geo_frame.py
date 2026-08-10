@@ -116,7 +116,15 @@ def night_ring(sun_lon, sun_lat, step_deg=2.0):
     shape the clip already speaks, so this ring goes through _project_area like
     any country and comes back clipped to whatever the frame shows.
     """
-    alon = ((sun_lon + 180) % 360) - 180 if sun_lon < 0 else sun_lon - 180
+    # The ANTIPODE, normalised to [-180, 180). Written for a while as a
+    # conditional that subtracted 180 when the sun was east and reduced mod 360
+    # when it was west — and the western branch returned the sun's OWN
+    # longitude, so for every subsolar point in the western hemisphere the cap
+    # was drawn around the sun and the figure shaded the daylight. Half of
+    # every day was inverted, and check_terminator_area could not see it
+    # because it held the sun at one eastern longitude and varied only the view
+    # centre: a two-axis geometry checked along one axis.
+    alon = ((sun_lon + 360.0) % 360.0) - 180.0
     alat = -sun_lat
     c = math.radians(90.0 - TERMINATOR_INSET_DEG)
     ring = [gp.cap_point(math.radians(a), c, alon, alat)
@@ -213,13 +221,15 @@ def _project_ring(ring, view):
     return runs
 
 
-def _project_area(ring, view):
+def _project_area(ring, view, forward=None):
     """-> list of screen-space runs for a FILLED ring, already closed.
 
     Three steps in this order, and the order is the fix that 0.1.389 is.
 
     1. Clip to the visible cap ON THE SPHERE (gp.clip_to_cap), closing along the
-       cap in the ring's own winding. Doing this in screen space means closing
+       cap in the ring's own winding — `forward` overrides how that winding
+       is determined, for a ring whose handedness is known by construction and
+       whose radius is too near a hemisphere for signed_area to read. Doing this in screen space means closing
        along a projected cap, and a projected cap is not a closed curve — it
        jumps the width of the seam twice at every t > 0.
     2. Split the closed result at the seam, which is what keeps a ring that
@@ -228,7 +238,7 @@ def _project_area(ring, view):
     """
     lon0, lat0, t, R, cx, cy = view
     runs = []
-    for closed in gp.clip_to_cap(ring, lon0, lat0, t, STEP_DEG):
+    for closed in gp.clip_to_cap(ring, lon0, lat0, t, STEP_DEG, forward):
         for part in gp.split_at_seam(closed, lon0):
             pts = [gp.unrolled(lo, la, lon0, lat0, t, R, cx, cy)[:2]
                    for lo, la in part]

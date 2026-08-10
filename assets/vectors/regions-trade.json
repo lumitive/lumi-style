@@ -361,6 +361,28 @@
    "count": 55
   }
  ],
+ "names": {
+  "COM": [
+   "Comoros",
+   "科摩罗"
+  ],
+  "CPV": [
+   "Cabo Verde",
+   "佛得角"
+  ],
+  "MUS": [
+   "Mauritius",
+   "毛里求斯"
+  ],
+  "STP": [
+   "Sao Tome and Principe",
+   "圣多美和普林西比"
+  ],
+  "SYC": [
+   "Seychelles",
+   "塞舌尔"
+  ]
+ },
  "nodes": [
   {
    "id": "SGP",

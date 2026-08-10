@@ -70,8 +70,8 @@ DEFAULT_SUN_UTC = "2026-06-21T04:00:00"
 # The mark radius, as fractions of R. MIN is a floor (a datum must survive being
 # small), MAX a ceiling (a mark is a point, not a region), and between them the
 # square root of the normalised weight — area encodes quantity.
-MARK_R_MIN = 0.008
-MARK_R_MAX = 0.028
+MARK_R_MIN = 0.011
+MARK_R_MAX = 0.030
 
 
 def mark_radius(weight, wmax, R):
@@ -81,7 +81,7 @@ def mark_radius(weight, wmax, R):
     return R * (MARK_R_MIN + (MARK_R_MAX - MARK_R_MIN) * u)
 
 
-def render(view, marks=None, night=None):
+def render(view, marks=None, night=None, nodes=False):
     """-> the <svg class="gl"> element as a string.
 
     `view` is (lon0, lat0, t, R, cx, cy). t stays in the signature because the
@@ -136,7 +136,8 @@ def render(view, marks=None, night=None):
     # region, and a mark must stay readable in the dark.
     if night is not None:
         nd = " ".join(x for x in
-                      [_d(_project_area(night_ring(*night), view), True, view)] if x)
+                      [_d(_project_area(night_ring(*night), view, forward=True),
+                          True, view)] if x)
         if nd:
             body.append(f'<path class="gl-night" d="{nd}" '
                         f'data-sun-lon="{night[0]:.3f}" data-sun-lat="{night[1]:.3f}"/>')
@@ -171,7 +172,14 @@ def render(view, marks=None, night=None):
         body.append(f"<circle {attrs}>{title}</circle>" if title
                     else f"<circle {attrs}/>")
 
-    for node in reg.get("nodes", []):
+    # THE PLACE LAYER IS OPT-IN ONCE THERE IS A FIELD. regions.json carries
+    # four city-states as points because no shape can be filled for them, and
+    # on the flat map that is their whole reason to exist. On a globe whose
+    # subject is a mark field they are a second point vocabulary at nearly the
+    # same size — the first globe demo drew Singapore twice, once as a datum
+    # of weight 9 and once as a place, and no reader could tell which circle
+    # was the number. Scenery keeps them; a field has to ask.
+    for node in (reg.get("nodes", []) if (nodes or not marks) else []):
         px, py, vis = gp.unrolled(node["lon"], node["lat"], lon0, lat0, t, R, cx, cy)
         body.append(f'<circle class="gl-node" data-node="{node["id"]}" '
                     f'data-lon="{node["lon"]:g}" data-lat="{node["lat"]:g}" '
@@ -228,6 +236,12 @@ def main(argv):
                          f"default, not 'now': a frame that changes every time "
                          f"it is generated cannot be byte-compared, and every "
                          f"generated artifact here is.")
+    ap.add_argument("--nodes", action="store_true",
+                    help="draw the registry's place layer (the city-states no "
+                         "shape can be filled for) even when the globe carries "
+                         "a field. Without a field they are drawn anyway — "
+                         "scenery may name places; a field must not silently "
+                         "gain points that are not its data.")
     ap.add_argument("--no-night", action="store_true",
                     help="omit the terminator; the globe is then uniformly lit")
     ap.add_argument("--marks", metavar="JSON|@FILE", default=None,
@@ -239,7 +253,8 @@ def main(argv):
     view = (args.lon0, args.lat0, 0.0, args.r, args.r, args.r)
     night = None if args.no_night else solar_position(
         datetime.datetime.fromisoformat(args.time))
-    print(render(view, marks=_load_marks(args.marks), night=night))
+    print(render(view, marks=_load_marks(args.marks), night=night,
+                 nodes=args.nodes))
     return 0
 
 
