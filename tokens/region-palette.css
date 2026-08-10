@@ -157,6 +157,12 @@ body.dark {
  * replace it. Both affordances ship here so no document re-decides
  * them. Not inside any media query, per the media-only-rules guard. */
 .rg.is-hover { stroke-width: 2.5; }
+/* The globe's points need their own hover rule. 0.1.393 shipped the
+ * region one and the globe kept toggling is-hover on marks and nodes
+ * against no CSS at all — the same defect, moved rather than closed.
+ * A mark grows; a node takes the accent so it reads as selected. */
+.gl-mark.is-hover { stroke: var(--nw); stroke-width: 3; }
+.gl-node.is-hover { fill: var(--acc); stroke: var(--nw); }
 svg.gl:focus-visible, svg.regionmap:focus-visible {
   outline: 2px solid var(--acc); outline-offset: 2px;
 }

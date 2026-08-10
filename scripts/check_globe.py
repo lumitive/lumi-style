@@ -756,7 +756,6 @@ def check_decoder():
         regionOfDEU: d.regionOf.get('DEU'),
         regionOfUSA: d.regionOf.get('USA'),
         unmapped: [...d.countries.keys()].filter(c => !d.regionOf.has(c)),
-        bboxEurope: d.bboxOf.get('europe'),
         deuBbox: [Math.min(...de.map(p => p[0])), Math.min(...de.map(p => p[1])),
                   Math.max(...de.map(p => p[0])), Math.max(...de.map(p => p[1]))],
       };
@@ -801,8 +800,10 @@ def check_decoder():
     if not (5.0 < w < 7.0 and 46.5 < s_ < 48.0 and 14.0 < e < 16.0 and 54.0 < n < 56.0):
         errors.append(f"Germany decodes to bbox {r['deuBbox']}, which is not "
                       f"where Germany is")
-    if not r["bboxEurope"]:
-        errors.append("no bounding box for the europe region")
+    # The region bbox assertion lived here until 0.1.396, when decode() stopped
+    # building that index: its consumer was the hit-test prefilter, which died
+    # with pickRegion. The registry index the decoder still owes is asserted
+    # above, at regionOfDEU / regionOfUSA.
 
     bad_count, bad_area = [], []
     for code, (pts, area) in sorted(expect_rings.items()):
@@ -985,6 +986,126 @@ def check_regionmap_frame():
 
 
 
+
+def check_globe_frame():
+    """The globe frame's own contract, measured in Python.
+
+    Companion to check_far_side_hidden below, which needs a browser. Here:
+    the mark radius rule is monotone and bounded, every mark carries the data
+    the runtime re-projects from, and a far-side point is marked non-rendering
+    at all.
+    """
+    import globe_svg
+
+    R = globe_svg.DEFAULT_R
+    marks = [{"lon": 103.8, "lat": 1.35, "weight": 9, "id": "sin", "label": "Singapore"},
+             {"lon": -122.4, "lat": 37.8, "weight": 1, "id": "sf", "label": "SF"},
+             {"lon": 13.4, "lat": 52.5, "weight": 0, "id": "ber", "label": "Berlin"}]
+    errors = []
+    for lon0 in (0.0, 103.8, -122.4):
+        svg = globe_svg.render((lon0, 0.0, 0.0, R, R, R), marks=marks)
+        where = f"lon0={lon0:g}"
+        for m in marks:
+            found = re.search(rf'data-mark="{m["id"]}"[^>]*>|data-mark="{m["id"]}"[^>]*/>', svg)
+            if not found:
+                errors.append(f"{where}: mark {m['id']} is not in the frame — the "
+                              f"runtime mutates markup and never creates it, so a "
+                              f"mark absent here can never rotate into view")
+                continue
+            el = found.group(0)
+            for attr in ("data-lon", "data-lat", "data-w"):
+                if attr not in el:
+                    errors.append(f"{where}: mark {m['id']} carries no {attr}; "
+                                  f"the runtime re-projects from these")
+            far = gp.cos_c(m["lon"], m["lat"], lon0, 0.0) < 0
+            if far and 'display="none"' not in el:
+                errors.append(
+                    f"{where}: mark {m['id']} is on the far side and is not "
+                    f"marked display=\"none\" — it will be drawn inside the "
+                    f"visible disc")
+            if not far and 'display="none"' in el:
+                errors.append(f"{where}: mark {m['id']} is visible and hidden")
+        # The radius rule: monotone in weight, and inside its stated bounds.
+        rs = [globe_svg.mark_radius(w, 9, R) for w in (0, 1, 4, 9)]
+        if rs != sorted(rs):
+            errors.append(f"the mark radius is not monotone in weight: {rs}")
+        if rs[0] < R * globe_svg.MARK_R_MIN - 1e-9 or rs[-1] > R * globe_svg.MARK_R_MAX + 1e-9:
+            errors.append(f"the mark radius leaves its bounds: {rs[0]:.2f}..{rs[-1]:.2f} "
+                          f"against {R * globe_svg.MARK_R_MIN:.2f}..{R * globe_svg.MARK_R_MAX:.2f}")
+    return errors
+
+
+def check_far_side_hidden():
+    """A far-side mark RENDERS NOTHING — measured in a browser, not read.
+
+    This is the check whose absence let the drifting-dots defect ship. The
+    frame said `hidden`, every gate in this package reads markup, and `hidden`
+    reads correct in markup — but the HTML `hidden` attribute does not hide an
+    SVG shape. A <circle hidden> computes display:inline and keeps its full
+    box, so every point on the BACK of the sphere kept drawing at its
+    orthographic position, which for a far-side point lands INSIDE the visible
+    disc. Twelve dots slid across the geography on every frame of a shipped
+    deliverable.
+
+    So this one measures getBoundingClientRect().width and refuses to believe
+    an attribute. Both the STATIC frame and the frame after the runtime has
+    re-projected it, because the two write that attribute independently.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return ["Playwright is not installed, so far-side hiding was NOT checked."]
+    import globe_svg
+    import embed_globe
+
+    R = globe_svg.DEFAULT_R
+    marks = [{"lon": 103.8, "lat": 1.35, "weight": 5, "id": "sin"},
+             {"lon": -122.4, "lat": 37.8, "weight": 5, "id": "sf"},
+             {"lon": 13.4, "lat": 52.5, "weight": 5, "id": "ber"},
+             {"lon": -46.6, "lat": -23.5, "weight": 5, "id": "sao"}]
+    lon0 = 60.0
+    svg = globe_svg.render((lon0, 0.0, 0.0, R, R, R), marks=marks)
+    far = {m["id"] for m in marks if gp.cos_c(m["lon"], m["lat"], lon0, 0.0) < 0}
+    if not far:
+        return ["the fixture put no mark on the far side; the check would pass "
+                "on nothing"]
+
+    runtime = embed_globe.build()
+    page_html = ("<!doctype html><meta charset=utf-8><body>"
+                 f'<div id="f" data-globe>{svg}</div>{runtime}</body>')
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page = browser.new_page()
+        page.set_content(page_html)
+        page.wait_for_timeout(300)
+        boxes = page.evaluate("""() => {
+          const out = {};
+          for (const el of document.querySelectorAll('.gl-mark, .gl-node')) {
+            const k = el.dataset.mark || el.dataset.node;
+            const r = el.getBoundingClientRect();
+            out[k] = [Math.round(r.width), Math.round(r.height)];
+          }
+          return out;
+        }""")
+        browser.close()
+
+    errors = []
+    for mid in sorted(far):
+        box = boxes.get(mid)
+        if box is None:
+            errors.append(f"mark {mid} is missing from the rendered page")
+        elif box[0] > 0 or box[1] > 0:
+            errors.append(
+                f"mark {mid} is on the FAR SIDE and still renders "
+                f"{box[0]}x{box[1]}px — it is drawn inside the visible disc and "
+                f"drifts across the geography as the globe turns")
+    near = [m["id"] for m in marks if m["id"] not in far]
+    for mid in near:
+        box = boxes.get(mid)
+        if not box or box[0] == 0:
+            errors.append(f"mark {mid} is on the near side and renders nothing")
+    return errors
+
 # (label, fn, needs_golden, suite). The suites follow the component split:
 # `shared` is the projection core and the t-sweeps that guard 0.1.389's winding
 # work — they outlive the products' pinned t — `globe` and `map` are each
@@ -999,6 +1120,8 @@ CHECKS = (
     ("static svg fits its viewbox", check_static_svg, False, "shared"),
     ("no line across the flat map", check_seam_segments, False, "shared"),
     ("the spherical clip holds its invariants", check_clip_invariants, False, "shared"),
+    ("the globe frame holds its contract", check_globe_frame, False, "globe"),
+    ("a far-side mark renders nothing", check_far_side_hidden, False, "globe"),
     ("the region map frame holds its contract", check_regionmap_frame, False, "map"),
 )
 

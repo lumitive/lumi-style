@@ -190,7 +190,7 @@
   --fs-say:     29px;                       /* the claim that is the page */
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.395 (2026-08-10)
+   LUMI page layouts · v0.1.396 (2026-08-10)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -1522,6 +1522,12 @@ body.dark {
  * replace it. Both affordances ship here so no document re-decides
  * them. Not inside any media query, per the media-only-rules guard. */
 .rg.is-hover { stroke-width: 2.5; }
+/* The globe's points need their own hover rule. 0.1.393 shipped the
+ * region one and the globe kept toggling is-hover on marks and nodes
+ * against no CSS at all — the same defect, moved rather than closed.
+ * A mark grows; a node takes the accent so it reads as selected. */
+.gl-mark.is-hover { stroke: var(--nw); stroke-width: 3; }
+.gl-node.is-hover { fill: var(--acc); stroke: var(--nw); }
 svg.gl:focus-visible, svg.regionmap:focus-visible {
   outline: 2px solid var(--acc); outline-offset: 2px;
 }
@@ -1585,7 +1591,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
       <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
     </div>
-    <p class="colophon">Built with lumi-style 0.1.395 &#183; source: meter management system.</p>
+    <p class="colophon">Built with lumi-style 0.1.396 &#183; source: meter management system.</p>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 18</span></div></section>
 <section class="page opener" id="openA">
@@ -2044,7 +2050,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>
     </div>
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.395.
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.396.
     Source: meter management system; every number here is invented, and a
     bracketed slot must not ship.</p></div>
   </div>

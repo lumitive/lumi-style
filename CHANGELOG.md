@@ -3,6 +3,68 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.396 — the dots that drifted, and the audit that did not find them
+
+**A reader found it; no check could have.** Dots drifted across the rotating
+globe in the delivered demo. The cause: **the HTML `hidden` attribute does not
+hide an SVG shape.** A `<circle hidden>` computes `display: inline` and keeps
+its full bounding box, so every mark and node on the BACK of the sphere kept
+drawing — at its orthographic position, which for a far-side point lands INSIDE
+the visible disc. Measured on the shipped demo: twelve points moving every
+frame, two of them `hidden` throughout while travelling straight across the
+visible face.
+
+This is the fifth time one pattern has produced a defect here, and it is worth
+naming plainly: **every gate in this package reads markup, and `hidden` reads
+correct in markup.** The comment at `globe_svg.py:107` asserted "`hidden` is
+honoured" — a sentence that was never true. The fix is `display="none"`, a real
+SVG presentation attribute that needs no stylesheet, so the JavaScript-off
+frame hides them too. The new check measures `getBoundingClientRect().width` in
+a browser and refuses to believe an attribute; reverted, it reports a far-side
+mark "still renders 34x34px".
+
+**The audit the owner asked for, against all three specs.** It found the split
+shipped well and left six promises unkept, each now closed:
+
+- **`--suite globe` contained zero checks.** The flag shipped in 0.1.394 and its
+  contents did not, so the split spec's headline verification promise — field
+  frame sanity and renderer parity — had no code behind it.
+- **`.is-hover` regressed onto the globe.** Closed for regions in 0.1.391,
+  reopened in 0.1.394: the runtime toggled the class on marks and nodes against
+  no rule at all. Globe hover worked and showed nothing — the same defect,
+  moved rather than eliminated.
+- **The event vocabulary was wrong.** A mark click announced itself as
+  `nodeselect`, the runtime's own header advertised a `markselect` emitted
+  nowhere, and hover used a pair no spec names. A datum and a place are not
+  interchangeable to a host that wants to open a panel about one of them.
+- **The theme re-read was deleted with the form machinery**, leaving a canvas
+  globe holding the light palette through a theme flip and a `readPalette()`
+  with no caller.
+- **The watchdog could not fire** outside the autorotate branch, so a dragged or
+  reduced-motion globe could miss the frame budget forever without pinning; and
+  `visibilitychange` resumed a globe that was scrolled out of view.
+- **`lon0` accumulated without bound.** An hour of rotation reached five figures
+  of degrees, spending precision on a number whose only meaningful part is the
+  remainder.
+
+**Dead weight removed from every globe deliverable**: the region layer
+`globe_svg.py` has not emitted since the split, `ringsOfRegion`, and the
+per-region bounding-box index — which walked every arc of every member on every
+boot to build a Map whose only consumer, the hit-test prefilter, died with
+`pickRegion`.
+
+**A scoped map announced regions it was not drawing.** `embed_regionmap.py`
+boots every figure from one registry, so an Asia-only map built a hidden button
+per region of the *shipped* eleven — the same defect the split closed for the
+globe. Registries are per-element now, which also exercises the per-element
+states path that had shipped untested.
+
+**Six phantom options are corrected in the spec rather than built**
+(`class="mk"`, `--gl-mark-r-min/-max`, `data-globe-marks`, three
+`createRegionMap` options, host-supplied node values): in each case the shipped
+choice is the better one and the spec was simply wrong. `specs/2026-08-10-globe-map-split-design.md` §8
+carries the audit, the corrections, and three findings recorded as still open.
+
 ## 0.1.395 — the registry stops being a singleton
 
 Release 5 of 5 for the component split, and the one that delivers the owner's
