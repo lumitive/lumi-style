@@ -3,6 +3,29 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.400 — the gate measured ink the viewport never painted
+
+`inspect_layout.py --deliverable` called a correct document NOT SHIPPABLE on two
+of its ten gating findings, and both were the same measurement error.
+
+`inkBox` measures an SVG by `getBBox()`, which is the union of the children **in
+user space** and knows nothing about the viewport. An SVG with a viewBox clips at
+its own edges, so geometry outside it is not painted. The globe's plate carries a
+drop-shadow, and a filter region inflates that bbox by a tenth of the viewBox in
+every direction — about 50 CSS px at a figure's size. That phantom band collided
+with the paragraph above the figure and spilled past the footer below it. Nothing
+was out of place on the page; the ruler was longer than the thing it measured.
+
+The box is now the intersection of the bbox with the element's own rect, which is
+what a viewport paints. A correct figure pays nothing, because its ink is inside
+its box already. Guarded by a planted case in `check_globe.py`'s shared suite,
+written as the general property rather than the particular bug: a circle drawn far
+larger than the viewBox that frames it. A filter region is one way geometry lands
+outside a viewport and an oversized shape is another, and one clamp answers both.
+
+The check also asserts its own case still overflows, so a browser that changes how
+`getBBox` treats a filter cannot quietly turn this into a check of nothing.
+
 ## 0.1.399 — half of every day was inverted, and a check that swept one axis of a two-axis geometry
 
 Two defects in the day/night terminator, both found by building a deliverable
