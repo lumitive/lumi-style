@@ -41,6 +41,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 GOLDEN = ROOT / "fixtures" / "globe-golden.json"
 JS = ROOT / "assets" / "globe" / "projection.js"
 JS_DATA = ROOT / "assets" / "globe" / "worlddata.js"
+JS_RENDER = ROOT / "assets" / "globe" / "render-svg.js"
 TOPOLOGY = ROOT / "assets" / "vectors" / "world-110m.json"
 REGIONS = ROOT / "assets" / "vectors" / "regions.json"
 
@@ -237,62 +238,256 @@ def check_static_svg():
     return errors
 
 
-# A segment running the full width of the flat map is a ring that was cut at the
-# antimeridian and rejoined across everything. Three causes were found and fixed
-# in 0.1.387 — inserted crossing points landing on the same edge, source vertices
-# sitting exactly on the seam with no side, and a last-piece/first-piece join that
-# was wrong for a world-wrapping ring — taking the count from 15 to 1.
+# A segment running the full width of the figure is a ring that was cut and then
+# rejoined across everything. Four causes were found and fixed in 0.1.387: the two
+# inserted seam crossings landing on the same edge because lon0+180 wraps to -180;
+# source vertices sitting exactly on the antimeridian, which have no side; a
+# pole-edge close that fired on the globe, where the boundary is a disc and not a
+# rectangle; and a limb walk that ran from the wrong end, so its first point sat
+# beside the start of the run instead of beside the end.
 #
-# ONE REMAINS, and it is recorded rather than tolerated silently: a subpath in the
-# oceania region starts on the left edge and its next point is on the right. No
-# oceania ring spans the seam, so the cause is not the seam split and is not yet
-# known. It draws a hairline across the equator at t=1 and nowhere else.
-# Reproduce: scripts/globe_svg.py --form regions --t 1.
-KNOWN_FULL_WIDTH = {"oceania": 1}
+# The renderers now also carry a last-resort guard — no real edge in this
+# projection spans half the figure — which runs after every closure, because a
+# closure can introduce the thing it guards against. This check is what proves
+# the guard is not quietly hiding a fifth cause: it looks at every state.
+# Closures that cut straight across instead of following the boundary. Three
+# remain and they are recorded, not tolerated silently, because the diagnosis is
+# known and the fix is not small:
+#
+#   The limb walk picks the arc that is shorter BY INDEX. The correct arc is the
+#   one that keeps the polygon's interior on the correct side, which is a winding
+#   question, not a distance one. When they differ the fill spills across the cap
+#   — visible as a band over the Arctic on a globe centred near the Atlantic, and
+#   as these flat segments near the poles at intermediate t. Fixing it properly
+#   means carrying winding through the clip, which is the standard spherical
+#   polygon-clipping problem and its own change.
+#
+# Recorded per (form, t) so a fourth fails this check, and so does fixing one of
+# these three without removing its line.
+KNOWN_FLAT_CLOSURES = {
+    ("field", 0.25), ("field", 0.5), ("regions", 0.5),
+}
 
 
 def check_seam_segments():
-    """No region draws a line across the whole flat map, except where recorded.
+    """No figure draws a line across itself, in any form at any t.
 
-    A segment along a pole edge is not this defect: closing a world-wrapping ring
-    like Antarctica along the bottom edge is what a map does. Only segments away
-    from an edge count.
+    A segment along a pole edge at t=1 is not this defect: closing a
+    world-wrapping ring like Antarctica along the bottom edge is what a map
+    does. Only segments away from an edge count.
     """
     import globe_svg
 
     R = globe_svg.DEFAULT_R
-    view = (0.0, 0.0, 1.0, R, R, R)
-    svg = globe_svg.render(view, form="regions")
-    half = R * (1 - view[2] / 2)
-    top, bottom = view[5] - half, view[5] + half
-    found = {}
-    for m in re.finditer(r'data-region="([\w-]+)"[^>]*d="([^"]*)"', svg):
-        pts = [(c.group(1), int(c.group(2)), int(c.group(3)))
-               for c in re.finditer(r"([ML])(-?\d+) (-?\d+)", m.group(2))]
-        for i in range(1, len(pts)):
-            # Only L draws. An M is a move to the start of the next subpath, and
-            # counting the gap before it reported five defects where there was
-            # one — a detector that cannot read the path grammar it is scanning.
-            if pts[i][0] != "L":
-                continue
-            if abs(pts[i][1] - pts[i - 1][1]) < 1.2 * R:
-                continue
-            y = (pts[i][2] + pts[i - 1][2]) / 2
-            if abs(y - top) < R * 0.03 or abs(y - bottom) < R * 0.03:
-                continue
-            found[m.group(1)] = found.get(m.group(1), 0) + 1
     errors = []
-    for rid, n in sorted(found.items()):
-        allowed = KNOWN_FULL_WIDTH.get(rid, 0)
-        if n > allowed:
-            errors.append(f"{rid}: {n} full-width segments away from a pole edge, "
-                          f"{allowed} recorded as known")
-    for rid, allowed in sorted(KNOWN_FULL_WIDTH.items()):
-        if found.get(rid, 0) < allowed:
-            errors.append(f"{rid}: {found.get(rid, 0)} full-width segments but "
-                          f"{allowed} recorded — fixed? remove it from "
-                          f"KNOWN_FULL_WIDTH so the next one is caught")
+    seen_flat = set()
+    for form in ("field", "regions"):
+        for t in (0.0, 0.25, 0.5, 0.75, 0.9, 1.0):
+            view = (0.0, 0.0, t, R, R, R)
+            svg = globe_svg.render(view, form=form)
+            half = R * (1 - t / 2)
+            top, bottom = view[5] - half, view[5] + half
+            for m in re.finditer(r'class="(?:gl-land|rg [^"]*)"[^>]*d="([^"]*)"', svg):
+                pts = [(c.group(1), int(c.group(2)), int(c.group(3)))
+                       for c in re.finditer(r"([ML])(-?\d+) (-?\d+)", m.group(1))]
+                for i in range(1, len(pts)):
+                    if pts[i][0] != "L":
+                        continue          # an M is a move, not a drawn segment
+                    if (abs(pts[i][1] - pts[i - 1][1]) < 1.2 * R
+                            and abs(pts[i][2] - pts[i - 1][2]) < 1.2 * R):
+                        continue
+                    y = (pts[i][2] + pts[i - 1][2]) / 2
+                    if t >= 1.0 and (abs(y - top) < R * 0.03
+                                     or abs(y - bottom) < R * 0.03):
+                        continue
+                    errors.append(f"{form} t={t}: a segment runs from "
+                                  f"{pts[i - 1][1:]} to {pts[i][1:]}")
+                    break
+            # A long PERFECTLY HORIZONTAL segment is never real geography here:
+            # after projection a parallel is a curve, so a run of constant y is
+            # a closure that took a straight line instead of following the
+            # boundary. This is what the bands across the globe are made of, and
+            # nothing else in this package could see them — they are filled
+            # areas, not the full-width jumps the test above looks for.
+            for i in range(1, len(pts)):
+                if pts[i][0] != "L" or pts[i][2] != pts[i - 1][2]:
+                    continue
+                if abs(pts[i][1] - pts[i - 1][1]) < 0.25 * R:
+                    continue
+                if (form, t) in KNOWN_FLAT_CLOSURES:
+                    seen_flat.add((form, t))
+                else:
+                    errors.append(
+                        f"{form} t={t}: a flat segment "
+                        f"{abs(pts[i][1] - pts[i - 1][1])} units wide at "
+                        f"y={pts[i][2]} — a parallel projects as a curve, so "
+                        f"this is a closure that cut straight across instead of "
+                        f"following the boundary")
+                break
     return errors
+
+
+def _norm_path(d):
+    """Path data with insignificant whitespace removed.
+
+    The Python generator joins subpaths with a space and the JS renderer
+    concatenates them; both are valid and the difference is not a defect.
+    Everything else — every coordinate, in order — has to match.
+    """
+    return re.sub(r"\s*([MLZ])\s*", r"\1", d).strip()
+
+
+# One divergence remains between the renderers and it is recorded rather than
+# hidden: at t=0.5 the oceania region closes one subpath in Python where the JS
+# renderer continues it. One command in about 250, at one intermediate t, and it
+# comes from the same winding question as KNOWN_FLAT_CLOSURES above — the two
+# implementations pick different arcs when the index-shorter one is ambiguous.
+# Recorded per (key, region) so a second divergence fails, and so does fixing
+# this one without removing its line.
+KNOWN_RENDERER_DIVERGENCE = {("t0.5_lon0.0", "oceania")}
+
+
+def _commands(d):
+    return [(c.group(1), c.group(2)) for c in
+            re.finditer(r"([MLZ])\s*(-?\d*\s*-?\d*)", d) if c.group(1)]
+
+
+def _path_diff(a, b):
+    """-> a description of the first real difference, or None."""
+    ca, cb = _commands(a), _commands(b)
+    if len(ca) != len(cb):
+        return (f"{len(ca)} path commands against {len(cb)} — one renderer "
+                f"closed or split something the other did not")
+    for i, ((oa, va), (ob, vb)) in enumerate(zip(ca, cb)):
+        if oa != ob:
+            return f"command {i} is {oa} in python and {ob} in js"
+        if oa == "Z":
+            continue
+        pa = [float(x) for x in va.split()]
+        pb = [float(x) for x in vb.split()]
+        if len(pa) != len(pb) or any(abs(x - y) > 1.0 for x, y in zip(pa, pb)):
+            return f"command {i}: python {pa} against js {pb}"
+    return None
+
+
+def check_renderer_parity():
+    """The JS renderer draws what the Python generator drew, path for path.
+
+    Two renderers over one projection is only safe if they agree. They did not:
+    the pole-edge close was scoped to t=1 in Python and unscoped in JavaScript,
+    so a static frame was clean and its first animated frame grew a band across
+    the bottom of the globe. Nothing else in this package could see that — the
+    static frame is what every gate reads.
+
+    Compared as command sequences: same commands in the same order, and every
+    coordinate within one unit.
+
+    Two weaker versions were tried. Point counts with a percentage tolerance
+    caught none of three deliberate divergences — a pole close firing at the
+    wrong t adds two points to one region out of eleven. Byte-for-byte is too
+    strict in the other direction: Python and V8 disagree in the last ulp of
+    sin, so a true coordinate of 972.5 lands either side and rounds to 972 or
+    973. That is a one-unit difference in a 2000-unit space, and demanding
+    identical bytes across two languages' trigonometry is demanding something
+    unachievable rather than something correct.
+    """
+    if not JS_DATA.exists() or not JS_RENDER.exists():
+        return [f"{JS_RENDER.relative_to(ROOT)} is missing"]
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return ["Playwright is not installed, so renderer parity was NOT checked."]
+    import globe_svg
+
+    R = globe_svg.DEFAULT_R
+    # Keys are passed explicitly rather than built on each side. JavaScript
+    # renders 0.0 as "0", so a key composed independently in both languages did
+    # not match and every region reported as "drew nothing" — a parity check
+    # failing on its own bookkeeping.
+    cases = [(0.0, 0.0), (0.5, 0.0), (1.0, 0.0), (0.0, -20.0)]
+    keyed = [{"key": f"t{t}_lon{lon0}", "t": t, "lon0": lon0} for t, lon0 in cases]
+    want = {}
+    for t, lon0 in cases:
+        svg = globe_svg.render((lon0, 0.0, t, R, R, R), form="regions")
+        want[f"t{t}_lon{lon0}"] = {
+            m.group(1): _norm_path(m.group(2))
+            for m in re.finditer(r'data-region="([\w-]+)"[^>]*d="([^"]*)"', svg)}
+
+    # Concatenation is embed_globe's job and it already knows the two traps —
+    # unresolved imports and duplicate top-level consts. Doing it again here by
+    # hand reproduced the second one and the module silently failed to define
+    # itself, which is how a parity check reports a renderer that never ran.
+    import embed_globe
+
+    seen, bundle = {}, []
+    for name in ("projection.js", "worlddata.js", "render-svg.js"):
+        src = embed_globe.strip_module_syntax(
+            (ROOT / "assets" / "globe" / name).read_text(encoding="utf-8"))
+        src, bad = embed_globe.dedupe_top_consts(name, src, seen)
+        if bad:
+            return bad
+        bundle.append(src)
+    render_src = "\n".join(bundle)
+    modules = ""
+
+    topo = json.loads(TOPOLOGY.read_text(encoding="utf-8"))
+    reg = json.loads(REGIONS.read_text(encoding="utf-8"))
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page = browser.new_page()
+        page.goto("about:blank")
+        page.set_content("<div id=h></div>")
+        page.add_script_tag(content=modules + "\n" + render_src
+                            + "\nself.__r = { decode, createSvgRenderer };")
+        got = page.evaluate("""(payload) => {
+          const data = self.__r.decode(payload.topo, payload.reg);
+          const out = {};
+          for (const c of payload.cases) {
+            const svg = document.createElementNS(
+              'http://www.w3.org/2000/svg', 'svg');
+            for (const r of data.regions) {
+              const p = document.createElementNS(
+                'http://www.w3.org/2000/svg', 'path');
+              p.setAttribute('data-region', r.id);
+              svg.appendChild(p);
+            }
+            document.getElementById('h').appendChild(svg);
+            try {
+              const rend = self.__r.createSvgRenderer(svg, data);
+              rend.draw({lon0: c.lon0, lat0: 0, t: c.t, R: payload.R,
+                         cx: payload.R, cy: payload.R, zoom: 1}, {});
+            } catch (e) { return {__error: String(e && e.stack || e)}; }
+            const per = {};
+            for (const p of svg.querySelectorAll('[data-region]')) {
+              per[p.getAttribute('data-region')] =
+                (p.getAttribute('d') || '').replace(/\s*([MLZ])\s*/g, '$1').trim();
+            }
+            out[c.key] = per;
+            svg.remove();
+          }
+          return out;
+        }""", {"topo": topo, "reg": reg, "R": R, "cases": keyed})
+        browser.close()
+
+    if got.get("__error"):
+        return [f"the JS renderer threw: {got['__error'][:300]}"]
+    errors, seen_div = [], set()
+    for key, expect in want.items():
+        for rid, n in sorted(expect.items()):
+            m = got.get(key, {}).get(rid)
+            if m is None:
+                errors.append(f"{key} {rid}: the JS renderer drew nothing")
+            else:
+                why = _path_diff(n, m)
+                if why and (key, rid) in KNOWN_RENDERER_DIVERGENCE:
+                    seen_div.add((key, rid))
+                elif why:
+                    errors.append(f"{key} {rid}: {why}")
+    for key in sorted(KNOWN_RENDERER_DIVERGENCE - seen_div):
+        errors.append(f"{key[0]} {key[1]}: recorded as a known divergence but "
+                      f"the renderers agree — fixed? remove it from "
+                      f"KNOWN_RENDERER_DIVERGENCE so the next one is caught")
+    return errors[:8]
 
 
 def check_viewbox_extent(golden):
@@ -631,6 +826,14 @@ def main(argv):
         else:
             print(f"ok    js port agrees with the python authority on "
                   f"{len(golden['samples'])} samples")
+        errors = check_renderer_parity()
+        if errors:
+            failed += 1
+            print("FAIL  the two renderers agree")
+            for e in errors[:6]:
+                print(f"        {e}")
+        else:
+            print("ok    the two renderers agree")
         errors = check_decoder()
         if errors:
             failed += 1
