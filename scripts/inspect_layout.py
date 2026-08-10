@@ -84,7 +84,19 @@ GEOMETRIES = {
     # size nobody designed for is worth more here than a third designed one.
     "wide":   (1800, 1000),
 }
-DEFAULT_GEOMETRIES = ["16x9", "a4", "wide"]
+# EVERY geometry the rules name, plus the one off-design render. Until 0.1.390
+# this was ["16x9", "a4", "wide"] and the other two were unreachable without a
+# flag — including `laptop`, which design-rules.md §7 names explicitly and tells
+# you what it catches ("a short laptop window (e.g. 1000x550)"), and `16x9-hd`,
+# which §7 also names ("checked at 1920x1080") and is the shape a deck is
+# actually projected at in most rooms.
+#
+# The argument for rendering `wide` at all is that a defect invisible at the
+# design size shows at a shape nobody designed for. That argument covers these
+# two exactly as well, and two of the five geometries being opt-in meant the
+# rules named a check nothing ran. Two more renders per file is the cost; the
+# alternative the rules already argue against is dropping them.
+DEFAULT_GEOMETRIES = ["16x9", "16x9-hd", "a4", "laptop", "wide"]
 
 # Measured in the page, not from CSS. Everything here runs in the browser.
 PROBE = r"""
@@ -832,9 +844,42 @@ PROBE = r"""
       // pages of a real deliverable because the document's `.page` padding
       // overrode the sheet's margin. Measured on the SPANS, not the row, since
       // the row carries the waterline's padding.
+      //
+      // COUNT THE LINE BOXES, do not infer them from a height. This compared
+      // getBoundingClientRect().height against `parseFloat(lineHeight) || 14`,
+      // and both halves were wrong at once: the stage is SCALED to the
+      // viewport, so the rect is in device space while lineHeight is in CSS
+      // px, and `line-height: normal` does not parse, so every comparison fell
+      // back to a hard-coded 14. At 1920x1080 the page scales 1.5x and a
+      // perfectly good one-line footer measured 22.5 against a threshold of
+      // 22.4 — all 18 pages reported wrapped, by a tenth of a pixel, on the
+      // matrix point design-rules.md §7 names and nothing had ever run.
+      // A Range over the contents yields one client rect per line box, in
+      // whatever space the element is drawn in, so the ratio is scale-free.
       footWrapped: !!footEl && [...footEl.children].some(e => {
-        const lh = parseFloat(getComputedStyle(e).lineHeight) || 14;
-        return e.getBoundingClientRect().height > lh * 1.6;
+        // TEXT NODES, not the element. A Range over element contents returns
+        // the element's own border box as one rect, so a two-line footer
+        // counted as one line and the planted case did not fire.
+        const walker = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
+        const range = document.createRange();
+        const rects = [];
+        let n;
+        while ((n = walker.nextNode())) {
+          if (!n.nodeValue.trim()) continue;
+          range.selectNodeContents(n);
+          for (const r of range.getClientRects()) {
+            if (r.width > 0.5 && r.height > 0.5) rects.push(r);
+          }
+        }
+        if (!rects.length) return false;
+        // An inline icon sits on the same line as its text at a different top,
+        // so tops within most of a line box count as the same line.
+        const tall = Math.max(...rects.map(r => r.height));
+        const tops = [];
+        for (const r of rects) {
+          if (!tops.some(t => Math.abs(t - r.top) < tall * 0.6)) tops.push(r.top);
+        }
+        return tops.length > 1;
       }),
       // A figure's number and name are one line too: wrapped, the caption stops
       // reading as a label and starts reading as prose under the drawing.
@@ -2210,16 +2255,40 @@ def main(argv):
         decl_geo, decl_genre = declared(path)
         file_geometries = geometries
         if not args.geometry and decl_geo:
-            # The declared stage, plus one off-shape window to prove the stage
-            # holds regardless of the reader's window.
+            # The declared stage and every matrix point the rules attach to it,
+            # plus one off-shape window to prove the stage holds regardless of
+            # the reader's window.
+            #
+            # This narrowed to two geometries until 0.1.390, which is the real
+            # reason `laptop` and `16x9-hd` were never run: widening
+            # DEFAULT_GEOMETRIES alone would not have reached a deliverable,
+            # because a deliverable declares its stage and took this branch.
+            #
+            # design-rules.md §7 makes both landscape entries matrix points, not
+            # options: "16:9 landscape, 1280x720, CHECKED AT 1920x1080". The
+            # short laptop window is named there too, and its stated rationale
+            # is a slide one — "Slides use min-height:100svh, so an overflowing
+            # page pushes its footer below the fold silently" — so it binds the
+            # landscape stage. A4 is a print geometry and rendering a 1123px
+            # page in a 550px window would report an overflow that means
+            # nothing, so portrait does not take it.
             file_geometries = (["a4", "wide"] if decl_geo == "portrait"
-                               else ["16x9", "wide"])
+                               else ["16x9", "16x9-hd", "laptop", "wide"])
         elif not args.geometry and not decl_geo:
             print(f"  note: {path.name} declares no data-geometry, so all of "
                   f"{', '.join(geometries)} are graded. A deliverable is designed "
                   f"for one geometry and should say which.")
         out_dir = pathlib.Path(args.out) if args.out else path.parent / "_layout"
         dark = args.dark or ".dark." in path.name
+        # Which matrix points this run covers, and which it is skipping. Printed
+        # rather than assumed: "verified at one matrix point is not verified" is
+        # a rule in design-rules.md §7, and a report that does not say how many
+        # points it visited cannot be read against it.
+        skipped = [g for g in GEOMETRIES if g not in file_geometries]
+        if not args.json:
+            print(f"\n{path.name}: {len(file_geometries)} geometry point(s) — "
+                  f"{', '.join(file_geometries)}"
+                  + (f"; not run: {', '.join(skipped)}" if skipped else ""))
         for geometry in file_geometries:
             shot_dir = None
             if not args.no_sheet:

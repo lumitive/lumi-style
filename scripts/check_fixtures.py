@@ -9,6 +9,17 @@ The broken fixture is the point. `deck-pass` proves a clean document is not
 flagged; only `deck-broken` can prove the check still *fires*, and it asserts
 which finding fired rather than merely that the run failed. A check that fails
 for the wrong reason is not a check that passed.
+
+And asserting a verdict is not the same as EXERCISING it. Until 0.1.390 this
+suite asserted every metric on both fixtures and thirteen of eighteen design
+verdicts read `ok` on both, so a checker rewritten to `return "ok"` would have
+passed the regression test whose stated purpose is to catch that. Coverage is
+computed now — see coverage_report — and a graded verdict with no failing case
+fails this run.
+
+Takes a couple of minutes locally, because it now drives a headless Chromium
+over three fixtures at four geometries each. It still cannot run in CI, and it
+says so with a count rather than passing quietly.
 """
 from __future__ import annotations
 
@@ -19,7 +30,23 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 FIXTURES = ROOT / "fixtures"
-SCRIPTS = {"prose": "check_prose.py", "design": "check_design.py"}
+SCRIPTS = {"prose": "check_prose.py", "design": "check_design.py",
+           "layout": "inspect_layout.py"}
+
+# inspect_layout needs a headless Chromium, which CI does not have. That is a
+# stated posture in CLAUDE.md, not an oversight, so the runner asserts it where
+# a browser exists and SKIPS LOUDLY where one does not — never silently, because
+# a suite that reports "all verdicts as expected" while nine gates went unrun is
+# the same defect 0.1.350 removed from inspect_layout itself.
+LAYOUT_ARGV = ["--deliverable", "--no-sheet"]
+
+
+def browser_available() -> bool:
+    try:
+        import playwright.sync_api  # noqa: F401
+    except ImportError:
+        return False
+    return True
 
 
 def run(script: str, args: list[str], path: pathlib.Path):
@@ -38,9 +65,74 @@ def verdicts_of(report) -> dict:
     return (report or {}).get("verdicts", {}) or {}
 
 
+def coverage_report(collected, skipped_kinds) -> list[str]:
+    """Say which verdicts have a case that fails, and refuse the ones that do not.
+
+    This is the assertion the suite was missing. Until 0.1.390 every metric was
+    asserted on both fixtures, and thirteen of eighteen design verdicts plus four
+    of seven prose verdicts read `ok` on both — so a checker rewritten to
+    `return "ok"` would have passed the regression suite whose stated purpose is
+    to catch exactly that. Asserting a verdict is not the same as exercising it.
+
+    A metric whose TARGET is literally "reported" cannot fail by construction and
+    is counted separately rather than excused silently. That distinction is why
+    the checkers now emit `targets` beside `verdicts`: without it this function
+    would have to carry its own list of which metrics are graded, and a list like
+    that goes stale the release after it is written.
+
+    `n/a` counts as exercised. A reported metric that goes n/a where a document
+    has no figures to measure still proves the checker is looking.
+
+    Takes the reports main() already collected rather than re-running anything.
+    Re-running doubled a suite that now drives a browser over three fixtures at
+    four geometries each, and the run stopped finishing inside two minutes.
+    """
+    graded, reported, exercised = {}, {}, set()
+    for (fixture, kind), report in collected.items():
+        base = kind.split("@")[0]
+        # inspect_layout has no per-metric targets because every one of its ten
+        # findings gates: what it emits is the decidable subset, and the
+        # judgements that are merely reported never reach `verdicts` at all.
+        targets = report.get("targets")
+        if targets is None and base != "layout":
+            return [f"{fixture} [{kind}]: the report carries no 'targets', so "
+                    f"coverage cannot be computed; a checker that stops "
+                    f"declaring its targets disables this assertion"]
+        targets = targets or {}
+        for metric, verdict in (report.get("verdicts") or {}).items():
+            # Substring, not equality: M1's target reads ">=70% (reported)"
+            # because the number is worth printing even though it never gates,
+            # and an equality test filed it as graded and then demanded a
+            # failing case it cannot have.
+            bucket = reported if "reported" in targets.get(metric, "") else graded
+            bucket[metric] = True
+            if verdict != "ok":
+                exercised.add(metric)
+
+    missing = sorted(m for m in graded if m not in exercised)
+    n_rep_ex = sum(1 for m in reported if m in exercised)
+    print(f"note  coverage: {len(graded) - len(missing)}/{len(graded)} graded "
+          f"verdicts have a fixture that fails them; {len(reported)} are "
+          f"reported and cannot fail ({n_rep_ex} exercised via n/a)")
+    if skipped_kinds:
+        # Loud, and it names the count. The acceptance for this move is that the
+        # number of gates it could not assert is ZERO where a browser is present.
+        print(f"note  SKIPPED {len(skipped_kinds)} rendered run(s) — no Chromium "
+              f"importable, so inspect_layout's ten gates were NOT asserted here. "
+              f"This run did not test them. pip install playwright && "
+              f"playwright install chromium")
+    if missing:
+        return [f"{m} is graded and no fixture fails it — the suite cannot tell it "
+                f"from a metric rewritten to return ok" for m in missing]
+    return []
+
+
 def main() -> int:
     spec = json.loads((FIXTURES / "expected.json").read_text(encoding="utf-8"))
     errors = []
+    # Every report, keyed by (fixture, kind), so coverage_report reads what was
+    # already run instead of running it again.
+    collected, skipped_kinds = {}, set()
     # A suite with nothing to run is not a suite that passed. This printed
     # "ok 0 fixtures, 0 check runs" and exited 0 on an empty spec, which is the
     # inspect_layout defect of 0.1.350 one level up.
@@ -60,6 +152,9 @@ def main() -> int:
             # genre; the suffix only names the run. Without this, M9's
             # training binding had no asserted run anywhere and a revert of
             # the genre pair passed CI.
+            if kind.split("@")[0] == "layout" and not browser_available():
+                skipped_kinds.add(kind)
+                continue        # reported loudly by coverage_report below
             code, report = run(SCRIPTS[kind.split("@")[0]], expect.get("argv", []), path)
             label = f"{fixture} [{kind}]"
             if code != expect["exit"]:
@@ -71,6 +166,7 @@ def main() -> int:
             # list and the detail lookup below crashed on it.
             if isinstance(report, list) and report:
                 report = report[0]
+            collected[(fixture, kind)] = report
             actual = verdicts_of(report)
             for metric, want in expect.get("verdicts", {}).items():
                 got = actual.get(metric)
@@ -118,6 +214,8 @@ def main() -> int:
         errors.append(
             f"export_pdf.py did not refuse --scale 1 by naming the floor "
             f"(exit {proc.returncode}); the 2K floor is prose again")
+
+    errors += coverage_report(collected, skipped_kinds)
 
     for err in errors:
         print(f"FAIL  {err}")

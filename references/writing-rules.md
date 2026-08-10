@@ -118,6 +118,38 @@ LUMI's own seed survives as group 8.
    when you cannot; never fake precision.
 5. No adjective stacks in place of numbers: if "significantly better" has no
    figure behind it, delete the adjective and keep the fact.
+6. **What counts as a source marker, and how far it may sit from its number.**
+   Rule 1 says every number carries its source. This says what "carries" means,
+   because M2 and M6 in `references/eval-rubric.md` measure it and a metric that
+   invents its own vocabulary is a second rule nobody wrote down. The markers
+   are literal, and this list is the contract — `check_repo.py` holds
+   `check_prose.py` to it exactly as it holds the ban list to §2:
+
+   - `source` — "Source: meter management system"
+   - `derived from`
+   - `based on`
+   - `as of` — a dated position
+   - `per` — a named system or document
+   - `n=` — a sample size
+   - `extract` — a dated pull from a named system
+   - `illustrative` — with the three labels rule 2 puts beside it. These are
+     declarations rather than sources, and they satisfy the same obligation:
+     a number that says what it is is not a number pretending to be measured.
+   - `mock`
+   - `proposal value`
+   - `uncalibrated`
+
+   **The window is the page for an ordinary figure and the block for a range.**
+   A reader takes in a page at once, so a title reading "coverage reached 41%"
+   is sourced by the figure caption under it; requiring the marker in the same
+   block would fail a correctly built deck, which is how the window was settled
+   (measured on the tracked fixtures: page window 100%, block window 0%).
+   A range is stricter because rule 1 makes it stricter — it "must trace to a
+   single source or it may not appear" — and a single source cannot be inferred
+   from a marker three blocks away.
+
+   A document with no page structure — Markdown, a plain report — has one page,
+   so the window is the document.
 
 ## 5 · Voice (the LUMI register)
 

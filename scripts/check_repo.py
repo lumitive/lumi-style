@@ -873,6 +873,51 @@ def check_ban_list_parity():
     return errors
 
 
+def check_source_marker_parity():
+    """check_prose.py's SOURCE_MARKERS is a second copy of the rules; hold them.
+
+    M2 and M6 measure "every number carries its source", so what counts AS a
+    source is a rule, not an implementation detail. Section 4 rule 6 states the
+    markers and this guard holds the script to them — the same discipline as
+    `ban-list parity`, added for the same reason: a metric that invents its own
+    vocabulary is a second rule nobody wrote down, and it drifts silently.
+    """
+    try:
+        text = (ROOT / "references/writing-rules.md").read_text(encoding="utf-8")
+        section = re.search(r"^## 4 [^\n]*\n(.*?)(?=^## )", text, re.S | re.M)
+        if not section:
+            raise ValueError("could not locate section 4 in writing-rules.md")
+        rule6 = re.search(r"^6\.\s+\*\*What counts as a source marker.*?"
+                          r"(?=\n\s*\*\*The window)", section.group(1), re.S | re.M)
+        if not rule6:
+            raise ValueError("could not locate rule 6's marker list in section 4")
+        # Each marker is the first backticked token on its own bullet.
+        rules = {m.group(1).strip().lower()
+                 for m in re.finditer(r"^\s*-\s+`([^`]+)`", rule6.group(0), re.M)}
+        src = (ROOT / "scripts/check_prose.py").read_text(encoding="utf-8")
+        tree = ast.parse(src)
+        script = None
+        for node in ast.walk(tree):
+            if (isinstance(node, ast.Assign)
+                    and any(getattr(t, "id", None) == "SOURCE_MARKERS"
+                            for t in node.targets)):
+                script = {s.lower() for s in ast.literal_eval(node.value)}
+        if script is None:
+            raise ValueError("check_prose.py declares no SOURCE_MARKERS")
+    except (OSError, ValueError, SyntaxError) as exc:
+        return [f"could not compare the source-marker lists: {exc}"]
+
+    errors = []
+    for marker in sorted(rules - script):
+        errors.append(f"writing-rules.md section 4 rule 6 lists the source marker "
+                      f"{marker!r}, which check_prose.py does not match")
+    for marker in sorted(script - rules):
+        errors.append(f"check_prose.py matches {marker!r} as a source marker, which "
+                      f"writing-rules.md section 4 rule 6 does not list — the rules "
+                      f"are the source, not the script")
+    return errors
+
+
 PLATFORMS = ROOT / "adapters" / "platforms.json"
 
 # entry point -> the regex its version stamp must match, with {v} the version.
@@ -1385,6 +1430,7 @@ CHECKS = (
     ("media-only rules", check_media_only_rules),
     ("layout parity", check_layout_parity),
     ("ban-list parity", check_ban_list_parity),
+    ("source-marker parity", check_source_marker_parity),
 )
 
 

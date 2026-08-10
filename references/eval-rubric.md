@@ -6,14 +6,20 @@
 
 ## Machine metrics M1–M12 (scriptable; spot-check manually when no script)
 
+**Nine of the twelve have code.** `check_prose.py` implements M1, M2, M4, M6,
+M8, M9, M10, M11 and M12. M3 (coined terms), M5 (Chinese punctuation) and M7
+(term mixing) do not, and the parenthesis in this heading is what covers them —
+so it names three metrics now, not six. Until 0.1.390 it carried half the table,
+and three of the six it carried stood behind a fact red line.
+
 | id | Metric | Target | Predicate |
 |---|---|---|---|
-| M1 | Assertive-title rate | ≥70% (decks included — never waived) | share of titles that name a subject and carry a verifiable fact |
-| M2 | Number-sourcing rate | ≥90% | share of percentage figures with a nearby source marker |
+| M1 | Assertive-title rate | ≥70%, **reported not gating** (decks included — never waived) | share of titles that name a subject and carry a verifiable fact |
+| M2 | Number-sourcing rate | ≥90% | share of percentage and currency figures whose PAGE carries a source marker (writing-rules §4 rule 6) |
 | M3 | Coined-term violations | =0 | occurrences of banned legacy coinages (substring exemptions apply) |
 | M4 | Banned AI-tell phrases | =0 | banned-phrase hits (fixed-collocation exemptions apply) |
 | M5 | Punctuation violations (zh) | =0 | half-width punctuation adjacent to CJK (code/pre/formula exempt) |
-| M6 | Unsourced range figures | =0 | range-shaped numbers with no nearby source |
+| M6 | Unsourced range figures | =0 | range-shaped numbers with no source marker in their own BLOCK (writing-rules §4 rule 6) |
 | M7 | Term mixing | =0 | old and new names of one concept co-occurring |
 | M8 | Sentence-rhythm health (two-tailed) | overlong ≤8% **and** length CV ≥0.35 (decks included — never waived) | share of sentences past the length threshold, **and** the coefficient of variation of sentence length |
 | M9 | Em dashes in en sales/marketing | =0 | em/en dash characters outside code, data, and internal analysis documents |
@@ -246,3 +252,23 @@ where its claims live, so a low assertive-title rate on a deck is a real defect,
 not a genre artifact. (Lesson: M1 was waived for decks as "advisory", which
 removed the only metric that would have caught deck titles collapsing to bare
 antitheses — the regression ran for three versions unmeasured.)
+
+**Measured always, gating never — and those are different things.** 0.1.390 gave
+M1 code for the first time, and it REPORTS. This is not the waiver above
+returning in another costume: that waiver stopped measuring decks, and this
+measures every document and prints the titles it doubts. What it declines to do
+is fail a run on a REGEX PROXY for a judgement. "Names a subject and carries a
+verifiable fact" is not decidable, so the script tests for a numeral, a named
+entity or a dated term — and a metric that gates gets satisfied, which for a
+title heuristic means writing titles the regex likes. That is how the page-fill
+floor was met in 0.1.339 and why it was withdrawn in 0.1.340. The number is
+information for a reader, who overrules it. It is promoted to a gate only if a
+review shows it caught something a person did not, which needs two releases of
+real documents read against it.
+
+**M2 and M6 do gate**, because their predicates are decidable: a marker from a
+stated list is either in the window or it is not. Both windows are defined in
+`writing-rules.md` §4 rule 6 rather than only in code, and `check_repo.py`'s
+`source-marker parity` guard holds the script's list to the rules' — the same
+discipline as the ban list, added because a metric that invents its own
+vocabulary is a second rule nobody wrote down.
