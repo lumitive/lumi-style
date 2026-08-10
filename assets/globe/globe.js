@@ -16,9 +16,9 @@
 // state is live | partial | zero | out. A region absent from the object renders
 // as zero, because no data is not coverage.
 
-import { decode } from './worlddata.js';
+import { decode } from '../geo/worlddata.js';
 import { createSvgRenderer } from './render-svg.js';
-import { pickRegion, pickMark, toUserSpace, MARK_RADIUS_CSS_PX } from './pick.js';
+import { pickRegion, pickMark, toUserSpace, MARK_RADIUS_CSS_PX } from '../geo/pick.js';
 import { attachControls } from './controls.js';
 
 const AUTOROTATE_DEG_PER_SEC = 6;

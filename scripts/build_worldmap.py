@@ -195,7 +195,7 @@ def build():
 def build_golden():
     """A fixed grid of projection results, computed by the Python authority.
 
-    assets/globe/projection.js is a hand port of geo_projection.py and nothing
+    assets/geo/projection.js is a hand port of geo_projection.py and nothing
     here can compile JavaScript, so the port is held to this instead. The grid is
     fixed and never sampled randomly: a fixture that changes between runs cannot
     tell a port regression from noise.

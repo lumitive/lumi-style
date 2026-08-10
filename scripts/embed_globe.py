@@ -35,22 +35,26 @@ import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-GLOBE = ROOT / "assets" / "globe"
+ASSETS = ROOT / "assets"
 TOPOLOGY = ROOT / "assets" / "vectors" / "world-110m.json"
 REGIONS = ROOT / "assets" / "vectors" / "regions.json"
 
 # Dependency order. Concatenation replaces the module graph, so a module must
 # appear after everything it names. render-canvas is deliberately absent.
+# Paths are relative to assets/: the shared geometry core lives in geo/ (one
+# library, two components) and the globe's own modules in globe/.
 ORDER = [
-    "projection.js",
-    "worlddata.js",
-    "pick.js",
-    "render-svg.js",
-    "controls.js",
-    "globe.js",
+    "geo/projection.js",
+    "geo/worlddata.js",
+    "geo/pick.js",
+    "globe/render-svg.js",
+    "globe/controls.js",
+    "globe/globe.js",
 ]
 
-IMPORT_RE = re.compile(r"^\s*import\s+[^;]*?from\s+'\./[\w-]+\.js';\s*$", re.M)
+# Same-package ('./x.js') and shared-core ('../geo/x.js') imports both strip:
+# the concatenation replaces the whole module graph, wherever an edge points.
+IMPORT_RE = re.compile(r"^\s*import\s+[^;]*?from\s+'\.\.?/(?:geo/)?[\w-]+\.js';\s*$", re.M)
 EXPORT_RE = re.compile(r"^export\s+(?=(?:async\s+)?function|const|class)", re.M)
 EXPORT_LIST_RE = re.compile(r"^export\s*\{[^}]*\};\s*$", re.M)
 
@@ -132,11 +136,11 @@ def dedupe_top_consts(name, src, seen):
 def build(states=None, autorotate=True, form="field"):
     parts, seen, conflicts = [], {}, []
     for name in ORDER:
-        path = GLOBE / name
+        path = ASSETS / name
         if not path.exists():
             raise SystemExit(f"FAIL  {path.relative_to(ROOT)} is missing")
         src = path.read_text(encoding="utf-8")
-        if name == "globe.js":
+        if name == "globe/globe.js":
             src = no_fetch(canvas_stub(src))
         src, bad = dedupe_top_consts(name, strip_module_syntax(src), seen)
         conflicts += bad
