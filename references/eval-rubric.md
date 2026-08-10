@@ -6,11 +6,29 @@
 
 ## Machine metrics M1–M12 (scriptable; spot-check manually when no script)
 
-**Nine of the twelve have code.** `check_prose.py` implements M1, M2, M4, M6,
-M8, M9, M10, M11 and M12. M3 (coined terms), M5 (Chinese punctuation) and M7
-(term mixing) do not, and the parenthesis in this heading is what covers them —
-so it names three metrics now, not six. Until 0.1.390 it carried half the table,
-and three of the six it carried stood behind a fact red line.
+**Ten of the twelve have code.** `check_prose.py` implements M1, M2, M4, M5, M6,
+M8, M9, M10, M11 and M12. Until 0.1.390 the parenthesis in this heading carried
+half the table, and three of the six it carried stood behind a fact red line.
+
+**Two are recorded as NOT MECHANIZED, with the reason**, which is a decision
+rather than a gap:
+
+- **M3, coined-term violations** and **M7, term mixing**, both need a per-document
+  registry of concept-to-name pairs that this package does not ship. §1's term
+  rules are about consistency *within a document*, so the data is the document's,
+  not the skill's — and inventing a registry here would be a rule nobody wrote,
+  which maintenance convention 2 forbids and convention 5 names directly ("a rule
+  may not mandate an asset the package does not ship"). §1's own substring-collision
+  warning (`金标` ⊂ `金标准`) is why a naive matcher would be worse than none.
+- **The de-translationese pass (§6b)** is judgement about register. Approximating
+  it with patterns would produce a number that reads like a measurement and is not
+  one.
+
+M5 is the counter-example that makes the line honest: Chinese punctuation looked
+like the same kind of judgement and is not. A half-width mark with a Han
+character beside it is decidable, and the single adjacency test replaces §3's
+whole exemption list — code, URLs, emails, version strings and pure English runs
+have no Han character next to their punctuation.
 
 | id | Metric | Target | Predicate |
 |---|---|---|---|

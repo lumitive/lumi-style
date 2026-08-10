@@ -173,8 +173,15 @@ def main() -> int:
                 if got != want:
                     errors.append(f"{label}: {metric} is {got!r}, expected {want!r}")
             # A document too thin to grade is not a document that passed.
+            # `allow_na` names the metrics whose n/a is CORRECT rather than
+            # decay — the Chinese pair on an English deck is n/a because the
+            # document is not Chinese, and reading that as a decayed fixture
+            # would push someone to delete the guard instead of scoping it.
+            allowed = set(expect.get("allow_na", []))
             for forbidden in expect.get("forbid_verdicts", []):
                 for metric, got in actual.items():
+                    if metric in allowed:
+                        continue
                     if got == forbidden:
                         errors.append(
                             f"{label}: {metric} came back {forbidden!r} — the fixture "

@@ -23,6 +23,10 @@
     },
     "forbid_verdicts": [
      "n/a"
+    ],
+    "allow_na": [
+     "M4zh_banned_hits",
+     "M5_zh_punctuation"
     ]
    },
    "design": {
@@ -259,6 +263,46 @@
      "reserve_overspent": "FAIL",
      "role_split": "FAIL",
      "datum": "n/a"
+    }
+   }
+  },
+  "prose-zh-pass.zh.html": {
+   "prose": {
+    "argv": [],
+    "exit": 0,
+    "verdicts": {
+     "M12_visible_cjk": "n/a",
+     "M4_banned_hits": "ok",
+     "M4zh_banned_hits": "ok",
+     "M5_zh_punctuation": "ok",
+     "M8_overlong_share": "n/a",
+     "M8_length_cv": "n/a",
+     "M9_dashes": "ok",
+     "M6_unsourced_ranges": "ok",
+     "M2_number_sourcing": "n/a",
+     "M1_assertive_titles": "n/a",
+     "M10_triad_rate": "n/a",
+     "M11_title_uniformity": "n/a"
+    }
+   }
+  },
+  "prose-zh-broken.zh.html": {
+   "prose": {
+    "argv": [],
+    "exit": 1,
+    "verdicts": {
+     "M12_visible_cjk": "n/a",
+     "M4_banned_hits": "ok",
+     "M4zh_banned_hits": "FAIL",
+     "M5_zh_punctuation": "FAIL",
+     "M8_overlong_share": "n/a",
+     "M8_length_cv": "n/a",
+     "M9_dashes": "ok",
+     "M6_unsourced_ranges": "ok",
+     "M2_number_sourcing": "n/a",
+     "M1_assertive_titles": "n/a",
+     "M10_triad_rate": "n/a",
+     "M11_title_uniformity": "n/a"
     }
    }
   }
