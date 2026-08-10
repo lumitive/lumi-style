@@ -28,6 +28,7 @@ into silence.
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import math
 import pathlib
@@ -61,6 +62,11 @@ ROUND_TRIP_LIMB = 1e-4
 # a viewBox fixed at 2R square scores 50% at t=1, which renders a 2:1 map at
 # half the height its cell allows.
 FRAME_FILL_FLOOR = 0.80
+# How far the rendered night side may sit from the closed-form area. A
+# CEILING on error, and 0.5% is roughly six times the 0.08% the corrected
+# clip achieves — loose enough to survive antialiasing, far too tight for
+# either lens this check was written after.
+TERMINATOR_AREA_TOLERANCE = 0.005
 
 
 def _views(golden):
@@ -1106,6 +1112,97 @@ def check_far_side_hidden():
             errors.append(f"mark {mid} is on the near side and renders nothing")
     return errors
 
+
+def check_terminator_area():
+    """The night side covers the fraction of the disc that geometry says.
+
+    Closed form, so this is a real assertion and not a snapshot: a great circle
+    whose pole sits at angular distance d from the view centre projects to an
+    ellipse of semi-axes R and R|cos d|, which cuts the disc into a night part
+    of exactly (1 - cos d) / 2. Measured by COUNTING PIXELS in a browser,
+    because the two defects this check exists for were both well-formed
+    polygons that no markup reader could fault:
+
+      * the terminator ring is a hemisphere, the one radius at which
+        signed_area's branch flips, and facing the antisolar point it lay
+        exactly ON the limb — the clip then had to decide the winding of a
+        curve coincident with the boundary it was being clipped against, and
+        left a lens of daylight inside the night side;
+      * cap_point returns unwrapped longitudes, so the ring stepped through a
+        355-degree discontinuity once per circuit and densify interpolated
+        straight through it, sweeping the whole world and closing into a second
+        lens. The same failure densify has now had three times, always where a
+        ring's longitude representation jumps and nothing tells the
+        interpolator.
+
+    Before the fixes the worst error over these views was 13.5% and the lens
+    was plainly visible; after, 0.08%.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return ["Playwright is not installed, so the terminator was NOT checked."]
+    import geo_frame
+    import globe_svg
+
+    sun = geo_frame.solar_position(
+        datetime.datetime.fromisoformat(globe_svg.DEFAULT_SUN_UTC))
+    views = [(120.3, 23.45), (90.0, 10.0), (60.0, 0.0), (30.0, -10.0),
+             (0.0, -20.0), (-59.7, -23.45), (180.0, 0.0), (-120.0, 40.0),
+             (45.0, -60.0)]
+    R = globe_svg.DEFAULT_R
+    # The plate and the land take one colour, night another, so the disc is
+    # what either painted and the ratio needs no assumption about the viewBox.
+    css = ("body{margin:0;background:#fff}svg{width:500px;height:500px;display:block}"
+           "*{fill:none;stroke:none}.gl-plate{fill:#f00}.gl-land{fill:#f00}"
+           ".gl-night{fill:#00f}")
+    errors = []
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        for lon0, lat0 in views:
+            svg = globe_svg.render((lon0, lat0, 0.0, R, R, R), night=sun)
+            page = browser.new_page(viewport={"width": 500, "height": 500})
+            page.set_content(f"<!doctype html><meta charset=utf-8>"
+                             f"<style>{css}</style>{svg}")
+            page.wait_for_timeout(120)
+            shot = page.screenshot()
+            page.close()
+            night, disc = _count_night(shot)
+            if not disc:
+                errors.append(f"lon0={lon0:g} lat0={lat0:g}: nothing drew")
+                continue
+            d = math.degrees(math.acos(max(-1.0, min(1.0,
+                gp.cos_c(sun[0], sun[1], lon0, lat0)))))
+            want = (1 - math.cos(math.radians(d))) / 2
+            have = night / disc
+            if abs(have - want) > TERMINATOR_AREA_TOLERANCE:
+                errors.append(
+                    f"lon0={lon0:g} lat0={lat0:g}: the sun is {d:.1f} degrees "
+                    f"from the view centre, so night should cover {want:.1%} of "
+                    f"the disc and it covers {have:.1%} — off by {have - want:+.1%}")
+        browser.close()
+    return errors
+
+
+def _count_night(png_bytes):
+    """-> (night pixels, disc pixels) from the two-colour render above.
+
+    Pillow is optional here and its absence is reported by the caller as a
+    failure to measure, never as a pass: a check that did not run is not a
+    check that passed.
+    """
+    try:
+        from PIL import Image
+    except ImportError:
+        return (0, 0)
+    import io
+    im = Image.open(io.BytesIO(png_bytes)).convert("RGB")
+    px = list(im.get_flattened_data() if hasattr(im, "get_flattened_data")
+              else im.getdata())
+    night = sum(1 for r, _g, b in px if b > 150 and r < 120)
+    day = sum(1 for r, _g, b in px if r > 150 and b < 120)
+    return night, night + day
+
 # (label, fn, needs_golden, suite, needs_browser). The suites follow the
 # component split:
 # `shared` is the projection core and the t-sweeps that guard 0.1.389's winding
@@ -1123,6 +1220,7 @@ CHECKS = (
     ("the spherical clip holds its invariants", check_clip_invariants, False, "shared", False),
     ("the globe frame holds its contract", check_globe_frame, False, "globe", False),
     ("a far-side mark renders nothing", check_far_side_hidden, False, "globe", True),
+    ("the night side covers what geometry says", check_terminator_area, False, "globe", True),
     ("the region map frame holds its contract", check_regionmap_frame, False, "map", False),
 )
 

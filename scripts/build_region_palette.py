@@ -444,9 +444,16 @@ def render(reg=None, prefix=None):
         lines.append("  --gl-graticule: var(--ln2);")
         lines.append("  --gl-land: var(--acc-2);")
         lines.append("  --gl-land-edge: var(--ln1);")
+    lines.append("  --gl-night: rgba(43,46,51,.28);")
+    lines.append("  --gl-tropic: var(--ln2);")
     lines.append("}")
     lines.append("")
     lines.append(dark_sel + " {")
+    if not prefix:
+        # On the dark canvas the night side cannot be a darker wash — there is
+        # nowhere darker to go. It becomes a cool veil instead, which still
+        # reads as "not lit" against the land.
+        lines.append("  --gl-night: rgba(10,12,20,.45);")
     for rid in ids:
         h = angles[rid]
         lines.append(f"  --rg-{rid}: {hue_hex(L_DARK, h)};")
@@ -482,9 +489,25 @@ def render(reg=None, prefix=None):
         " * is-live is the UNMARKED state: the plain region fill IS live, and an",
         " * explicit .is-live rule would just restate the binding above it.",
         " */",
-        ".gl-plate { fill: var(--gl-plate); }",
+        "/* The plate, with the shadow that lifts the globe off the page. A flat",
+        " * filled disc reads as a circle printed on the paper; a shadow under",
+        " * it reads as a sphere in front of it, and it costs one declaration",
+        " * against a lighting model. Scoped to the plate so the marks and the",
+        " * land are not smeared by it. */",
+        ".gl-plate { fill: var(--gl-plate); "
+        "filter: drop-shadow(0 6px 26px rgba(43,46,51,.22)); }",
         ".gl-graticule { fill: none; stroke: var(--gl-graticule); }",
         ".gl-land { fill: var(--gl-land); stroke: var(--gl-land-edge); stroke-width: 1; }",
+        "/* The equator and the tropics are NAMED lines, not graticule: a reader",
+        " * can point at them, so they are drawn a step stronger and the tropics",
+        " * are dashed to say they are a pair. */",
+        ".gl-equator { fill: none; stroke: var(--gl-graticule); stroke-width: 2.5; }",
+        ".gl-tropic { fill: none; stroke: var(--gl-tropic); stroke-width: 2; "
+        "stroke-dasharray: 10 8; }",
+        "/* Night is a lighting condition laid over the geography, so it is a",
+        " * wash rather than a fill and it takes no pointer events — a reader",
+        " * aiming at a mark in the dark must still hit the mark. */",
+        ".gl-night { fill: var(--gl-night); stroke: none; pointer-events: none; }",
         ".gl-mark { fill: var(--acc); }",
         ".gl-node { fill: var(--bg); stroke: var(--tx2); stroke-width: 1.5; }",
         ".rg { stroke-width: 1; }",
@@ -520,6 +543,11 @@ def render(reg=None, prefix=None):
         " * A mark grows; a node takes the accent so it reads as selected. */",
         ".gl-mark.is-hover { stroke: var(--nw); stroke-width: 3; }",
         ".gl-node.is-hover { fill: var(--acc); stroke: var(--nw); }",
+        "/* The drag affordance. The arcball has worked since the globe shipped",
+        " * and nothing ever said so: no cursor, no chrome, no hint. A figure",
+        " * that can be turned should look like it. */",
+        "svg.gl { cursor: grab; }",
+        "svg.gl.is-dragging { cursor: grabbing; }",
         "svg.gl:focus-visible, svg.regionmap:focus-visible {",
         "  outline: 2px solid var(--acc); outline-offset: 2px;",
         "}",

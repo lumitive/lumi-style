@@ -39,11 +39,33 @@ export function pickMark(x, y, frame, radius) {
   return best;
 }
 
-/** Convert a pointer event to the SVG's user-unit coordinate space. */
+/**
+ * Convert a pointer event to the SVG's user-unit coordinate space, and undo
+ * any transform the drawing sits under.
+ *
+ * The globe's layers live inside a group carrying the axial tilt and the
+ * flattening, so a pointer lands in the TILTED frame while every coordinate
+ * the renderer produced is in the projection's own. Without the inverse the
+ * hit test is off by the tilt — worst at the limb, exactly where the marks a
+ * reader aims at are smallest. getScreenCTM does the arithmetic the browser
+ * already knows, so the transform can change without this changing.
+ */
 export function toUserSpace(svg, clientX, clientY) {
   const rect = svg.getBoundingClientRect();
   const vb = svg.viewBox.baseVal;
   if (!rect.width || !rect.height) return null;
+  const layer = svg.querySelector('.gl-earth');
+  if (layer && layer.getScreenCTM) {
+    const ctm = layer.getScreenCTM();
+    if (ctm) {
+      const pt = svg.createSVGPoint();
+      pt.x = clientX;
+      pt.y = clientY;
+      const local = pt.matrixTransform(ctm.inverse());
+      const scale = Math.min(rect.width / vb.width, rect.height / vb.height);
+      return { x: local.x, y: local.y, scale };
+    }
+  }
   // preserveAspectRatio defaults to xMidYMid meet, so the drawing is uniformly
   // scaled and centred. Reproducing that here is what keeps the hit test aligned
   // with what the reader sees in a cell that is not the figure's own aspect.
