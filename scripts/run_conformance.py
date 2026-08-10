@@ -240,7 +240,9 @@ def score_recall(task: dict, text: str) -> dict:
 def render(record: dict) -> str:
     lines = [f"# LUMI style conformance · skill {record['version']}", "",
              f"Runs {record['run_id']} · {record['host']} · "
-             f"{record['detected']} of {record['agents']} agents detected · n={record['repeat']} per agent",
+             f"{record['detected']} of {record['agents']} agents detected · "
+             f"up to n={record['repeat']} per agent · "
+             f"{record['structural']} of {record['agents']} can never answer a CLI probe",
              "",
              "| agent | capability | cli | " +
              " | ".join(t for t in record["task_ids"]) + " | verdict |",
@@ -259,6 +261,23 @@ def render(record: dict) -> str:
               "A cell reading `stale: task changed` means the recorded verdict answers "
               "a version of that task the repository no longer contains — it is not a "
               "pass and not a failure, it is a result that has to be re-earned.",
+              "",
+              "**Absence has two kinds and they are marked differently.** A row "
+              "reading `not installed` is a machine away: the agent ships a CLI, "
+              "nobody has run it here, and one install would produce a row "
+              "tomorrow. A row reading `cannot be probed` never will — an IDE with "
+              "no command line, and chat models reached through an API — so its "
+              "artifacts have to be produced by hand and scored with `--agent`. "
+              "Printing the two identically made the board read as ten pieces of "
+              "pending work when only six are.",
+              "",
+              "**Where a cell names more than one run, it names the spread too.** "
+              "`3 runs, all pass` is a different claim from `3 runs UNSTABLE: "
+              "fail×1, pass×2`, and until 0.1.390 the harness could not tell them "
+              "apart: a repeat of an agent OVERWROTE its earlier row, so every "
+              "verdict was one sample and a flaky checker could not be "
+              "distinguished from a flaky agent. Repeating costs tokens and "
+              "produces an uncomfortable number, which is the value.",
               "",
               "**A verdict can change without the artifact changing.** The checks are "
               "the moving part: a row re-scored after a release that taught the "
@@ -447,13 +466,19 @@ def main(argv):
     # results ADD a row instead of blanking every row the new directory does not
     # contain. Later wins on a collision: re-running one agent replaces its own
     # cells and nobody else's.
+    # ACCUMULATED, not overwritten. `scored.update()` made a second run of the
+    # same agent REPLACE the first, so the board printed "n=1 per agent" as a
+    # property of the harness when it was a property of this line: a repeat was
+    # silently discarded, and the one thing a repeat is for — telling a flaky
+    # checker from a flaky agent — was the one thing that could not happen.
     scored = {}
     for name in runs:
         f = pathlib.Path(name) / "scores.json"
         if not f.exists():
             print(f"FAIL  {f} does not exist; run `score --run {name}` first")
             return 1
-        scored.update(json.loads(f.read_text(encoding="utf-8")))
+        for key, value in json.loads(f.read_text(encoding="utf-8")).items():
+            scored.setdefault(key, []).append(value)
     rows = []
     for a in agents:
         ok, note = probed[a["id"]]
@@ -464,35 +489,58 @@ def main(argv):
         mine = {k.split("/", 1)[1]: v for k, v in scored.items()
                 if k.split("/", 1)[0] == a["id"]}
         cells, verdicts = {}, []
+        runs_here = 0
         for t in tasks:
-            s = mine.get(t["id"])
-            if s is None:
+            got = mine.get(t["id"]) or []
+            runs_here = max(runs_here, len(got))
+            if not got:
                 cells[t["id"]] = "—" if not ok else "not run"
-            elif s.get("task_hash") != task_fingerprint(t):
+                continue
+            fresh = [s for s in got if s.get("task_hash") == task_fingerprint(t)]
+            if not fresh:
                 # The verdict stands, but not for this task. Showing it would be
                 # reporting an answer to a question no longer asked.
                 cells[t["id"]] = "stale: task changed"
                 verdicts.append("stale")
-            else:
-                v = s["verdict"]
-                cells[t["id"]] = v if v == "pass" else (
-                    f"{v}: {', '.join(s.get('failed', []))}" if s.get("failed") else v)
-                verdicts.append(v)
+                continue
+            seen = [s["verdict"] for s in fresh]
+            worst = "fail" if "fail" in seen else seen[0]
+            detail = ", ".join(sorted({f for s in fresh for f in s.get("failed", [])}))
+            cell = worst if worst == "pass" else (f"{worst}: {detail}" if detail else worst)
+            # THE SPREAD, beside the verdict. A mean with no spread is the thing
+            # this board is told not to report: with n>1 the cell says how many
+            # runs agreed, and disagreement is named rather than averaged away.
+            if len(fresh) > 1:
+                agree = seen.count(worst)
+                cell += (f" · {len(fresh)} runs, all {worst}" if agree == len(fresh)
+                         else f" · {len(fresh)} runs UNSTABLE: "
+                              + ", ".join(f"{v}×{seen.count(v)}" for v in sorted(set(seen))))
+            cells[t["id"]] = cell
+            verdicts.append(worst)
         if verdicts:
             verdict = ("pass" if all(v == "pass" for v in verdicts)
                        else "stale" if any(v == "stale" for v in verdicts)
                        and not any(v == "fail" for v in verdicts) else "fail")
             cli = note if ok else "driven by hand"
         else:
-            verdict = "not installed" if not ok else "not run"
+            # Six of the ten "not installed" rows are a machine away; four can
+            # never answer a CLI probe at all — an IDE with no command line and
+            # two chat models behind an API. Printing them identically made the
+            # board look like ten pieces of pending work when only six are.
+            structural = not a.get("probe")
+            verdict = ("cannot be probed" if structural
+                       else "not installed" if not ok else "not run")
             cli = note if ok else "—"
         rows.append({"name": a["name"], "capability": a["capability"],
-                     "cli": cli, "tasks": cells, "verdict": verdict})
+                     "cli": cli, "tasks": cells, "verdict": verdict,
+                     "runs": runs_here})
     record = {"version": version,
               "run_id": ", ".join(f"`{r}`" for r in runs) or "detect-only",
               "host": f"{sys.platform}", "agents": len(agents),
               "detected": sum(1 for v in probed.values() if v[0]),
-              "repeat": 1, "task_ids": [t["id"] for t in tasks], "rows": rows}
+              "repeat": max((r["runs"] for r in rows), default=0),
+              "structural": sum(1 for r in rows if r["verdict"] == "cannot be probed"),
+              "task_ids": [t["id"] for t in tasks], "rows": rows}
     print(render(record))
     return 0
 

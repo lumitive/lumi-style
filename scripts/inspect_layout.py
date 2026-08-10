@@ -2275,9 +2275,15 @@ def main(argv):
             file_geometries = (["a4", "wide"] if decl_geo == "portrait"
                                else ["16x9", "16x9-hd", "laptop", "wide"])
         elif not args.geometry and not decl_geo:
+            # STDERR. This printed to stdout, ahead of the JSON document, so
+            # `--json` on any deliverable that declares no data-geometry emitted
+            # a stream no parser could read — and run_conformance scored the run
+            # "layout emitted no parseable report", which reads as a defect in
+            # the deliverable rather than in this file. A note about what was
+            # measured belongs beside the data, not inside it.
             print(f"  note: {path.name} declares no data-geometry, so all of "
                   f"{', '.join(geometries)} are graded. A deliverable is designed "
-                  f"for one geometry and should say which.")
+                  f"for one geometry and should say which.", file=sys.stderr)
         out_dir = pathlib.Path(args.out) if args.out else path.parent / "_layout"
         dark = args.dark or ".dark." in path.name
         # Which matrix points this run covers, and which it is skipping. Printed
@@ -2285,10 +2291,10 @@ def main(argv):
         # a rule in design-rules.md §7, and a report that does not say how many
         # points it visited cannot be read against it.
         skipped = [g for g in GEOMETRIES if g not in file_geometries]
-        if not args.json:
-            print(f"\n{path.name}: {len(file_geometries)} geometry point(s) — "
-                  f"{', '.join(file_geometries)}"
-                  + (f"; not run: {', '.join(skipped)}" if skipped else ""))
+        print(f"\n{path.name}: {len(file_geometries)} geometry point(s) — "
+              f"{', '.join(file_geometries)}"
+              + (f"; not run: {', '.join(skipped)}" if skipped else ""),
+              file=sys.stderr if args.json else sys.stdout)
         for geometry in file_geometries:
             shot_dir = None
             if not args.no_sheet:
