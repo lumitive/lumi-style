@@ -418,6 +418,27 @@ def _rings_of(country, arcs):
     return out
 
 
+def _unwrap_lons(points):
+    """Make a sequence of (lon, lat) continuous in longitude.
+
+    Any representation that wraps at +-180 puts a 360-degree step between two
+    neighbouring points, and every consumer that interpolates between them —
+    densify, above all — reads that step as a journey. This is the same repair
+    night_ring and great_circle each carry, hoisted to where a caller can apply
+    it to something it did not build.
+    """
+    if len(points) < 2:
+        return list(points)
+    out = [tuple(points[0])]
+    for lon, lat in points[1:]:
+        while lon - out[-1][0] > 180:
+            lon -= 360
+        while out[-1][0] - lon > 180:
+            lon += 360
+        out.append((lon, lat))
+    return out
+
+
 def _project_ring(ring, view):
     """-> list of screen-space runs, for an OPEN line such as a graticule.
 
@@ -427,6 +448,19 @@ def _project_ring(ring, view):
     lon0, lat0, t, R, cx, cy = view
     runs = []
     for part in gp.split_at_seam(ring, lon0):
+        # RE-UNWRAP EACH PART BEFORE DENSIFYING. split_at_seam re-expresses
+        # longitudes relative to lon0, and a part can come back straddling that
+        # rewrap: a lane spanning 103.8 to 121.5 degrees came out spanning -255
+        # to 121.5, a span of 376 degrees for seventeen degrees of route.
+        # densify interpolates linearly in longitude, so it filled that with a
+        # sweep right around the world and the lane drew as a ring.
+        #
+        # Normalising the whole part would reintroduce the jump; unwrapping it
+        # makes the part continuous, which is what densify needs and what a
+        # part IS — one unbroken piece of line. For a part that is already
+        # continuous, and every graticule and coastline part is, this is a
+        # no-op.
+        part = _unwrap_lons(part)
         dense = gp.densify(part, STEP_DEG) if len(part) > 1 else part
         cur = []
         for lon, lat in dense:

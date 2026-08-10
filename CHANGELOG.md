@@ -3,6 +3,52 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.404 — the ring came back, and a tilt nobody could see
+
+**The ring, again, from a different place.** 0.1.403 unwrapped the longitudes
+where a lane is BUILT. `split_at_seam` re-expresses them relative to lon0
+afterwards, and returned a part spanning 376 degrees for seventeen degrees of
+route — so `densify` swept the world filling the gap and the lane closed into a
+ring, exactly as before, one stage further down the pipeline. Each part is now
+re-unwrapped after the split, which is a no-op for every part that was already
+continuous, and that is every coastline and every graticule line.
+
+**The check that could not fail.** 0.1.403 claimed the fix was verified by
+sweeping 24 rotations and measuring each lane's drawn width against the disc.
+That measurement is incapable of failing: every path is clipped to the visible
+cap, so its extent is bounded by the disc by construction. It reported "no ring"
+about a figure full of them.
+
+The property that works is LENGTH. A lane's projected length cannot exceed R
+times its angular length, whatever produced a sweep and wherever in the pipeline
+it happened. Under the old behaviour a Shanghai-to-Singapore lane drew 3.5 times
+its own arc. That is now the assertion, over four routes and twenty-four
+rotations each, and reverting the repair reports it in those terms.
+
+**A tilt nobody could see.** Reported as "I do not feel the lean". Measured, the
+tilt was correct all along: the pole sits 23.44 degrees off vertical, 389 units
+right of centre at R=1000. The problem was that a sphere is rotationally
+symmetric, so a rotated drawing of one has nothing to be rotated AGAINST — the
+graticule turns with the geography and the result reads as a globe seen from
+somewhere else.
+
+A desk globe reads as tilted because you see the spindle against the stand. So
+the figure now draws the rotation axis through both poles and out past the limb,
+and a vertical reference through the centre, emitted outside the tilt group
+because a vertical that tilted with everything else would be no reference at
+all. The angle between them is the obliquity, and it is now a thing on the page
+rather than a claim in a caption.
+
+**Not a defect: the terminator.** Reported as wrong because Beijing and
+Singapore fell on opposite sides of it while sharing a time zone. They do, and
+they should. A time zone is a political convention — China runs one across sixty
+degrees of longitude — while the terminator is astronomical and depends on
+latitude at least as much as on the clock. At 06:00 on the June solstice the sun
+is 12 degrees above the horizon in Beijing and 14.5 below it in Singapore, which
+is why Beijing's midsummer sunrise is around 04:45 and Singapore's is near 07:00
+every day of the year. The figure was right; the expectation it was measured
+against was not.
+
 ## 0.1.403 — a lane that wrapped the world, and routes through the straits
 
 **The bug.** Reported from a rendered globe: several lanes closed into rings

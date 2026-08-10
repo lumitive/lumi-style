@@ -189,6 +189,13 @@ body.dark {
  * second thing. The accent is the same one a mark uses, because a
  * lane and a datum are both the figure's subject and the geography
  * behind them is not. */
+/* THE AXIS AND ITS REFERENCE. The obliquity has been in the
+ * transform since 0.1.397 and invisible for as long, because a sphere
+ * is rotationally symmetric and a rotated drawing of one has nothing
+ * to be rotated against. These two lines are that something: the
+ * spindle and the stand. */
+.gl-axis { stroke: var(--tx3); stroke-width: 2; stroke-linecap: round; }
+.gl-axis-ref { stroke: var(--ln1); stroke-width: 1.5; stroke-dasharray: 5 7; }
 .gl-link { fill: none; stroke: var(--acc); stroke-linecap: round; }
 .gl-hub { fill: var(--acc); stroke: var(--bg); stroke-width: 2; }
 /* A signal is one code in transit: the dot is where, the text is
