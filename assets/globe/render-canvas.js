@@ -10,25 +10,12 @@
 // the same custom properties the stylesheet gives the SVG, so the two back ends
 // paint the same figure and neither has a hex in it.
 
-import { project, splitAtSeam } from './projection.js';
+import {
+  project, splitAtSeam, densify, clipToCap,
+} from './projection.js';
 import { ringsOf, ringsOfRegion } from './worlddata.js';
 
 const STEP_DEG = 2;
-
-function densify(ring, stepDeg) {
-  const out = [];
-  for (let i = 0; i < ring.length - 1; i += 1) {
-    const [x0, y0] = ring[i];
-    const [x1, y1] = ring[i + 1];
-    const n = Math.max(1, Math.floor(
-      Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) / stepDeg));
-    for (let k = 0; k < n; k += 1) {
-      out.push([x0 + ((x1 - x0) * k) / n, y0 + ((y1 - y0) * k) / n]);
-    }
-  }
-  out.push(ring[ring.length - 1]);
-  return out;
-}
 
 export function createCanvasRenderer(container, data, options = {}) {
   const svg = container.querySelector('svg.gl');
@@ -67,12 +54,15 @@ export function createCanvasRenderer(container, data, options = {}) {
     for (let lon = -180; lon <= 180; lon += 3) r.push([lon, lat]);
     graticule.push(r);
   }
-  const dense = new Map();
-  const denseOf = (ring) => {
-    let d = dense.get(ring);
-    if (!d) { d = densify(ring, STEP_DEG); dense.set(ring, d); }
-    return d;
-  };
+  // Densified per call and deliberately NOT memoised. This was a Map keyed on
+  // the ring array, which never once hit: splitAtSeam allocates fresh arrays
+  // every frame, so every lookup missed and every miss added an entry that was
+  // never read again — an unbounded map growing at 60 frames a second, in the
+  // back end that exists for animation. Clipping to the cap allocates too, so
+  // the cache could only get worse. A real cache here would have to key on the
+  // ring's identity BEFORE it is cut, which is what regionRings and landRings
+  // already hold, and the densify cost is not what makes this loop expensive.
+  const denseOf = (ring) => densify(ring, STEP_DEG);
 
   const buf = { xy: new Float32Array(4096), n: 0 };
   function ensure(n) {
@@ -127,7 +117,18 @@ export function createCanvasRenderer(container, data, options = {}) {
     return runs;
   }
 
+  // A filled ring is clipped to the cap ON THE SPHERE first, exactly as
+  // render-svg.js does it, so both back ends close along the same arc in the
+  // same direction. Until 0.1.389 this closed a clipped fill with a bare
+  // closePath — a chord straight across the sphere — while the SVG side walked
+  // a boundary. Two back ends that disagree about the shape of a country are
+  // not one renderer with two outputs, which is what the design claims.
   function strokeOrFill(ring, view, scale, ox, oy, close) {
+    const rings = close ? clipToCap(ring, view, STEP_DEG) : [ring];
+    for (const r of rings) strokeOrFillOne(r, view, scale, ox, oy, close);
+  }
+
+  function strokeOrFillOne(ring, view, scale, ox, oy, close) {
     for (const part of splitAtSeam(ring, view.lon0)) {
       if (part.length < 2) continue;
       const runs = tracePart(part, view, scale, ox, oy);

@@ -162,6 +162,23 @@ def _limb_walk(a, b):
     return gp.limb_walk(a, b, R, R, R)
 
 
+def _outer(ring):
+    """The ring wound as an outer ring — interior on the right, seen from
+    outside — which is what the limb walk needs to close it the right way.
+
+    These eight rings are hand-authored coordinate tables and their winding is
+    ACCIDENTAL: `maritime-se-asia` and `australia` score negative, with no hole
+    to justify it, because of the order someone typed the coastline in. That did
+    not matter while limb_walk took the shorter arc and it decides the arc now,
+    so it is normalised here rather than by reordering two tables where a
+    reviewer could not see the difference.
+
+    Only the globe needs this. The flat map draws every ring whole and never
+    closes one along a boundary, so winding says nothing there.
+    """
+    return ring if gp.signed_area(ring) > 0 else ring[::-1]
+
+
 def _path(runs, close_on_limb):
     out = []
     for run in runs:
@@ -198,7 +215,7 @@ def globe():
     for name, ring in LAND.items():
         if name in GLOBE_SKIP:
             continue
-        d = _path(_visible_runs(_densify(ring), lon0, lat0), True)
+        d = _path(_visible_runs(_densify(_outer(ring)), lon0, lat0), True)
         if d:
             L.append(f'<path class="geo-land" id="geo-{name}" d="{d}"/>')
 

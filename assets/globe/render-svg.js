@@ -9,7 +9,9 @@
 // It also hands back the projected runs it just built, because the hit test
 // wants exactly those and projecting the world twice per frame would be silly.
 
-import { project, splitAtSeam, cosC } from './projection.js';
+import {
+  project, splitAtSeam, densify, clipToCap,
+} from './projection.js';
 import { ringsOf, ringsOfRegion } from './worlddata.js';
 
 const STEP_DEG = 2;
@@ -36,96 +38,27 @@ function viewBoxFor(view) {
     2 * (halfW + pad), 2 * (halfH + pad)];
 }
 
-/** Densify an edge so it curves under projection instead of cutting the sphere. */
-function densify(ring, stepDeg) {
-  const out = [];
-  for (let i = 0; i < ring.length - 1; i += 1) {
-    const [x0, y0] = ring[i];
-    const [x1, y1] = ring[i + 1];
-    const n = Math.max(1, Math.floor(
-      Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) / stepDeg));
-    for (let k = 0; k < n; k += 1) {
-      out.push([x0 + ((x1 - x0) * k) / n, y0 + ((y1 - y0) * k) / n]);
-    }
-  }
-  out.push(ring[ring.length - 1]);
-  return out;
-}
-
-const D2R = Math.PI / 180;
-const R2D = 180 / Math.PI;
-const BOUNDARY_SAMPLES = 240;
-
 /**
- * The visibility boundary in screen space, as a closed polyline.
+ * Close a piece whose two ends sit on OPPOSITE sides of the seam.
  *
- * A clipped ring has to be closed along this curve, not with a straight line
- * between its two ends. Closing with a chord is what produced the crimson
- * slivers down the right limb of the mid-unroll frame: `Z` joins the last point
- * to the first, and for a country cut in half by the horizon those two points
- * are nowhere near each other. build_geography.py has always walked the limb for
- * exactly this reason; the runtime has to as well, and mid-unroll the boundary
- * is no longer a circle so it is sampled rather than drawn as an arc.
+ * Only a world-wrapping ring does this — Antarctica crosses the seam once — and
+ * the way a map draws it is around the pole, not straight across.
  *
- * The boundary is where cos_c = -t: a small circle at angular distance
- * acos(-t) from the view centre, which is the horizon at t=0 and the whole
- * sphere at t=1.
- */
-function boundaryFor(view) {
-  if (view.t >= 1) return null;
-  const c = Math.acos(Math.max(-1, Math.min(1, -view.t)));
-  const p0 = view.lat0 * D2R;
-  const out = [];
-  for (let i = 0; i < BOUNDARY_SAMPLES; i += 1) {
-    const az = (2 * Math.PI * i) / BOUNDARY_SAMPLES;
-    const lat = Math.asin(Math.sin(p0) * Math.cos(c)
-      + Math.cos(p0) * Math.sin(c) * Math.cos(az));
-    const lon = view.lon0 + Math.atan2(
-      Math.sin(az) * Math.sin(c) * Math.cos(p0),
-      Math.cos(c) - Math.sin(p0) * Math.sin(lat)) * R2D;
-    const p = project(lon, lat * R2D, view);
-    out.push([p.x, p.y]);
-  }
-  return out;
-}
-
-function nearestBoundaryIndex(pt, boundary) {
-  let best = 0;
-  let bestD = Infinity;
-  for (let i = 0; i < boundary.length; i += 1) {
-    const d = (boundary[i][0] - pt[0]) ** 2 + (boundary[i][1] - pt[1]) ** 2;
-    if (d < bestD) { bestD = d; best = i; }
-  }
-  return best;
-}
-
-/** The shorter way round the boundary from index a to index b. */
-function boundaryWalk(a, b, boundary) {
-  const n = boundary.length;
-  const fwd = (b - a + n) % n;
-  const out = [];
-  if (fwd <= n - fwd) {
-    for (let k = 1; k <= fwd; k += 1) out.push(boundary[(a + k) % n]);
-  } else {
-    for (let k = 1; k <= n - fwd; k += 1) out.push(boundary[(a - k + n) % n]);
-  }
-  return out;
-}
-
-/**
- * Close a piece whose two ends sit on OPPOSITE edges, around the pole.
- * Only a world-wrapping ring does this — Antarctica crosses the seam once.
- * Mirrors _pole_close in scripts/globe_svg.py.
+ * Both edges are exact rather than fitted. At lon_rel = +-180 the sphere term
+ * cos(phi) sin(lam) vanishes at every latitude, so THE SEAM IS A PAIR OF
+ * VERTICAL LINES at x = cx +- tR. A pole is a point on the sphere and a SEGMENT
+ * on the unrolled map, at y = cy -+ R(1 - t/2), spanning those two verticals.
+ * Both collapse at t=0 and both are the whole boundary at t=1.
+ *
+ * Mirrors _pole_close in scripts/globe_svg.py. Until 0.1.389 both sides were
+ * restricted to t=1 and measured against x = cx +- R, the seam's position at
+ * t=1 only.
  */
 function poleClose(a, b, view) {
-  // t=1 only. At t<1 the figure is bounded by the horizon, not by a rectangle,
-  // and this fired there too — a band across the bottom of the globe. The
-  // Python side had the guard and this did not, which is exactly the kind of
-  // divergence the renderer-parity check below now refuses to allow.
-  if (view.t < 1) return [];
-  const left = view.cx - view.R;
-  const right = view.cx + view.R;
-  const eps = view.R * 0.02;
+  if (view.t <= 0) return [];
+  const left = view.cx - view.t * view.R;
+  const right = view.cx + view.t * view.R;
+  const eps = Math.max(view.R * 0.002, view.t * view.R * 0.02);
   const on = (p, e) => Math.abs(p[0] - e) < eps;
   if (!((on(a, left) || on(a, right)) && (on(b, left) || on(b, right)))) return [];
   if ((on(a, left) && on(b, left)) || (on(a, right) && on(b, right))) return [];
@@ -135,54 +68,49 @@ function poleClose(a, b, view) {
 }
 
 /**
- * Bisect to where the edge a->b crosses the visibility boundary.
- * Mirrors _limb_point in scripts/globe_svg.py — a run that stops short of the
- * boundary cannot be closed along it, and closes with a chord instead.
+ * Project an OPEN line such as a graticule into screen-space runs.
+ * No closure and no cap closing: a line that leaves the figure simply stops.
  */
-function limbPoint(a, b, view) {
-  let inside = a;
-  let outside = b;
-  for (let i = 0; i < 30; i += 1) {
-    const mid = [(inside[0] + outside[0]) / 2, (inside[1] + outside[1]) / 2];
-    if (project(mid[0], mid[1], view).visible) inside = mid; else outside = mid;
-  }
-  const p = project(inside[0], inside[1], view);
-  return [p.x, p.y];
-}
-
-/** Project one lat/lon ring into screen-space runs, cut at the seam and the limb. */
-function projectRing(ring, view, boundary) {
+function projectRing(ring, view) {
   const runs = [];
   for (const part of splitAtSeam(ring, view.lon0)) {
     const dense = part.length > 1 ? densify(part, STEP_DEG) : part;
     let cur = [];
-    let prev = null;
     for (const [lon, lat] of dense) {
       const p = project(lon, lat, view);
       if (p.visible) {
-        if (prev && !prev[1]) cur.push(limbPoint([lon, lat], prev[0], view));
         cur.push([p.x, p.y]);
       } else {
-        if (prev && prev[1]) cur.push(limbPoint(prev[0], [lon, lat], view));
         if (cur.length > 1) runs.push(cur);
         cur = [];
       }
-      prev = [[lon, lat], p.visible];
     }
     if (cur.length > 1) runs.push(cur);
   }
-  // A run that starts and ends on the boundary was cut by it, so close it along
-  // the boundary. Without this the fill balloons across the sphere.
-  if (!boundary) return runs;
-  return runs.map((run) => {
-    if (run.length < 3) return run;
-    const startI = nearestBoundaryIndex(run[0], boundary);
-    const endI = nearestBoundaryIndex(run[run.length - 1], boundary);
-    const near = (pt, i) => (boundary[i][0] - pt[0]) ** 2
-      + (boundary[i][1] - pt[1]) ** 2 < (view.R * 0.03) ** 2;
-    if (!near(run[0], startI) || !near(run[run.length - 1], endI)) return run;
-    return run.concat(boundaryWalk(endI, startI, boundary));
-  });
+  return runs;
+}
+
+/**
+ * Project a FILLED ring into screen-space runs, already closed.
+ *
+ * Three steps in this order, and the order is the fix that 0.1.389 is: clip to
+ * the cap ON THE SPHERE in the ring's own winding, split the closed result at
+ * the seam, then project. Clipping in screen space means closing along a
+ * projected cap, and a projected cap jumps the width of the seam twice at every
+ * t > 0. Mirrors _project_area in scripts/globe_svg.py.
+ */
+function projectArea(ring, view) {
+  const runs = [];
+  for (const closed of clipToCap(ring, view, STEP_DEG)) {
+    for (const part of splitAtSeam(closed, view.lon0)) {
+      const pts = part.map(([lo, la]) => {
+        const p = project(lo, la, view);
+        return [p.x, p.y];
+      });
+      if (pts.length > 1) runs.push(pts);
+    }
+  }
+  return runs;
 }
 
 /**
@@ -268,7 +196,6 @@ export function createSvgRenderer(svg, data) {
 
   function draw(view, state = {}) {
     const out = { regions: new Map(), marks: [], nodes: [], view };
-    const boundary = boundaryFor(view);
     const vb = viewBoxFor(view);
     svg.setAttribute('viewBox',
       `${vb[0].toFixed(1)} ${vb[1].toFixed(1)} ${vb[2].toFixed(1)} ${vb[3].toFixed(1)}`);
@@ -281,19 +208,19 @@ export function createSvgRenderer(svg, data) {
     }
     if (graticule) {
       let d = '';
-      for (const ring of graticuleRings) d += `${pathData(projectRing(ring, view, null), false)} `;
+      for (const ring of graticuleRings) d += `${pathData(projectRing(ring, view), false)} `;
       graticule.setAttribute('d', d.trim());
     }
     if (land) {
       let d = '';
-      for (const ring of landRings) d += `${pathData(projectRing(ring, view, boundary), true)} `;
+      for (const ring of landRings) d += `${pathData(projectArea(ring, view), true, view)} `;
       land.setAttribute('d', d.trim());
     }
     for (const [id, el] of regionPaths) {
       const runs = [];
       let d = '';
       for (const ring of regionRings.get(id) || []) {
-        const r = projectRing(ring, view, boundary);
+        const r = projectArea(ring, view);
         for (const run of r) runs.push(run);
         d += `${pathData(r, true, view)} `;
       }
@@ -336,4 +263,6 @@ export function createSvgRenderer(svg, data) {
   return { draw, destroy() {}, svg };
 }
 
-export { projectRing, pathData, viewBoxFor };
+export {
+  projectRing, projectArea, pathData, viewBoxFor,
+};
