@@ -1309,7 +1309,7 @@ def check_trade_lanes():
     code index is inside the list it indexes.
     """
     import globe_svg
-    from geo_frame import great_circle
+    from geo_frame import great_circle, great_circle_route
 
     errors = []
 
@@ -1369,6 +1369,39 @@ def check_trade_lanes():
                           f"{type(exc).__name__}; the signal layer must skip "
                           f"itself when there is nothing for a signal to carry")
             return None
+
+    # CONTINUOUS IN LONGITUDE. atan2 returns (-180, 180], so a lane crossing the
+    # antimeridian steps 355 degrees between two points five degrees apart —
+    # and densify, which interpolates linearly in longitude, fills that gap by
+    # sweeping the whole world. The lane closes into a ring around the globe.
+    # Every Pacific route did this and coplanarity could not see it: the samples
+    # are all still on the right great circle, they are just written in a
+    # representation that jumps.
+    for a, b in (((-118.24, 33.74), (151.21, -33.87)),
+                 ((139.69, 35.69), (-74.01, 40.71)),
+                 ((151.21, -33.87), (-79.38, 43.65)),
+                 ((103.82, 1.35), (-118.24, 33.74))):
+        pts = great_circle(a, b, 48)
+        worst = max(abs(pts[i + 1][0] - pts[i][0]) for i in range(len(pts) - 1))
+        if worst > 90.0:
+            errors.append(
+                f"the lane {a}->{b} jumps {worst:.0f} degrees of longitude "
+                f"between adjacent samples; densify interpolates straight "
+                f"through that and the lane draws as a ring around the globe")
+
+    # A route through chokepoints is one continuous ring, not several.
+    route = great_circle_route([(121.47, 31.23), (100.5, 2.5), (43.4, 12.6),
+                                (32.55, 30.0), (-5.6, 35.95), (4.48, 51.92)], 12)
+    worst = max(abs(route[i + 1][0] - route[i][0]) for i in range(len(route) - 1))
+    if worst > 90.0:
+        errors.append(f"a route through waypoints jumps {worst:.0f} degrees at "
+                      f"a leg joint; the unwrap has to carry across the joint "
+                      f"or the seam reappears once per waypoint")
+    for i in range(len(route) - 1):
+        if route[i] == route[i + 1]:
+            errors.append("a route repeats a point at a leg joint, so the "
+                          "waypoint is drawn twice and any dash pattern stalls")
+            break
 
     # Clipped at the limb like every other ring.
     R = globe_svg.DEFAULT_R

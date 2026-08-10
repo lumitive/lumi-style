@@ -51,7 +51,7 @@ import geo_projection as gp   # noqa: E402
 from geo_frame import (   # noqa: E402,F401  (re-exported: render() and callers use them)
     ROOT, TOPOLOGY, REGIONS, STEP_DEG, GRATICULE, PAD, DEFAULT_R,
     OBLIQUITY_DEG, FLATTENING, CITY_GAP, CITY_EM_W, CITY_EM_H,
-    LABEL_LIMB_COS, LINK_R, great_circle, link_weight_attrs,
+    LABEL_LIMB_COS, LINK_R, great_circle_route, link_weight_attrs,
     tilt_to_screen, screen_to_tilt,
     earth_transform, solar_position,
     night_ring, place_city_labels,
@@ -254,12 +254,20 @@ def render(view, marks=None, night=None, nodes=False,
     # datum sits on top of everything.
     for link in links:
         a, b = tuple(link["a"]), tuple(link["b"])
+        # `via` is the route's chokepoints, in order. A box from Shanghai to
+        # Rotterdam does not cross Siberia — it goes Malacca, Bab-el-Mandeb,
+        # Suez, Gibraltar, because those are the gaps in the land. Each leg is
+        # still the shortest path, so the geometry stays honest at the scale it
+        # is claimed at; what changes is that the claim is now a shipping lane
+        # rather than a line on a sphere. WHICH straits a route uses is
+        # editorial and belongs to the document, not to this package.
+        route = [a] + [tuple(v) for v in link.get("via", [])] + [b]
         w, o = link_weight_attrs(link.get("w", 0.5))
-        d = _d(_project_ring(great_circle(a, b), _scaled(view, LINK_R)), False)
+        d = _d(_project_ring(great_circle_route(route), _scaled(view, LINK_R)), False)
         if not d:
             continue
         body.append(f'<path class="gl-link" data-link="{html.escape(str(link.get("id", "")))}" '
-                    f'data-a="{a[0]:g},{a[1]:g}" data-b="{b[0]:g},{b[1]:g}" '
+                    f'data-route="{";".join(f"{x:g},{y:g}" for x, y in route)}" '
                     f'data-w="{float(link.get("w", 0.5)):.2f}" '
                     f'stroke-width="{w * R:.1f}" opacity="{o:.2f}" d="{d}"/>')
 

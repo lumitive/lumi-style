@@ -232,8 +232,56 @@ def great_circle(a, b, n=64):
         v = tuple(s1 * x + s2 * y for x, y in zip(p, q))
         m = math.sqrt(sum(c * c for c in v))
         v = tuple(c / m for c in v)
-        out.append((math.degrees(math.atan2(v[1], v[0])),
-                    math.degrees(math.asin(max(-1.0, min(1.0, v[2]))))))
+        lon = math.degrees(math.atan2(v[1], v[0]))
+        lat = math.degrees(math.asin(max(-1.0, min(1.0, v[2]))))
+        # UNWRAP. atan2 returns (-180, 180], so a lane crossing the
+        # antimeridian steps from -178.6 to +176.1 — a jump of 355 degrees
+        # between two points that are five degrees apart. densify interpolates
+        # linearly in longitude and cannot know that, so it filled the gap by
+        # sweeping the entire world and the lane closed into a RING around the
+        # globe. Visible on any Pacific route; invisible to every check.
+        #
+        # This is the FOURTH time this exact failure has been introduced here,
+        # and the comment in night_ring below already named the first three.
+        # A ring whose longitude representation jumps has to say so, or say
+        # nothing and be continuous. split_at_seam re-wraps afterwards.
+        if out:
+            while lon - out[-1][0] > 180:
+                lon -= 360
+            while out[-1][0] - lon > 180:
+                lon += 360
+        out.append((lon, lat))
+    return out
+
+
+def great_circle_route(waypoints, n=24):
+    """A route through a sequence of places, each leg the shortest path.
+
+    A trade lane is not one great circle. A box from Shanghai to Rotterdam does
+    not cross Siberia; it goes through the Malacca Strait, Bab-el-Mandeb, the
+    Suez Canal and Gibraltar, because those are the gaps in the land. Modelling
+    the route as legs between CHOKEPOINTS is what makes the drawing a shipping
+    lane rather than a line on a sphere — and each leg is still the shortest
+    path, so the geometry stays honest at the scale it is claimed at.
+
+    The joint between two legs is dropped once, so the result is one continuous
+    ring and the unwrapping above carries across the whole route.
+    """
+    if len(waypoints) < 2:
+        return [tuple(waypoints[0])] if waypoints else []
+    out = []
+    for a, b in zip(waypoints, waypoints[1:]):
+        leg = great_circle(a, b, n)
+        if out:
+            # Continue the unwrap across the joint rather than restarting it.
+            shift = 0.0
+            while leg[0][0] + shift - out[-1][0] > 180:
+                shift -= 360
+            while out[-1][0] - (leg[0][0] + shift) > 180:
+                shift += 360
+            leg = [(lo + shift, la) for lo, la in leg]
+            leg = leg[1:]
+        out += leg
     return out
 
 

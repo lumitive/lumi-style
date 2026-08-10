@@ -3,6 +3,39 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.403 — a lane that wrapped the world, and routes through the straits
+
+**The bug.** Reported from a rendered globe: several lanes closed into rings
+around the sphere as it turned. `great_circle` took its longitudes from atan2,
+which returns (-180, 180], so a lane crossing the antimeridian stepped from
+-178.6 to +176.1 — a jump of 355 degrees between two samples five degrees
+apart. `densify` interpolates linearly in longitude and cannot know that, so it
+filled the gap by sweeping the entire world. Every Pacific route did it.
+
+This is the FOURTH time this exact failure has been introduced in this
+repository, and the comment in `night_ring` already named the first three. The
+check could not see it because it asked the right question about the wrong
+thing: coplanarity holds perfectly for a ring whose samples are all on the
+correct great circle and merely written in a representation that jumps. Lanes
+are now checked for continuity in longitude as well, and reverting the unwrap
+reports "jumps 358 degrees of longitude between adjacent samples".
+
+**The routes.** A lane is no longer one great circle. `--links` takes `via`, a
+list of waypoints, and the lane becomes a sequence of legs — each still the
+shortest path, so the geometry stays honest at the scale it is claimed at, but
+the claim is now a shipping lane rather than a line on a sphere. Shanghai to
+Rotterdam goes Luzon, Malacca, Bab-el-Mandeb, Suez, Gibraltar; Rotterdam to Los
+Angeles goes through Panama, which without it drew straight across Mexico.
+
+The unwrap carries across the leg joints, and the joint point is dropped once,
+so a five-leg route is one continuous ring rather than five that happen to
+touch. Both are checked: a route that reintroduced the seam at a joint, and a
+route that repeated its waypoint, each fail with their own message.
+
+WHICH straits a lane uses is editorial — a claim about shipping rather than
+about geometry — so the waypoints are supplied by the document. This package
+ships the route maths and no routes.
+
 ## 0.1.402 — trade lanes on the sphere, and a signal that carries a real code
 
 The globe takes `--links` and `--codes`. A lane is drawn as the GREAT CIRCLE

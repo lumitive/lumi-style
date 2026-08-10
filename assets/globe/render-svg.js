@@ -182,9 +182,10 @@ export function createSvgRenderer(svg, data) {
   const linkEls = [...svg.querySelectorAll('.gl-link')];
   const hubEls = [...svg.querySelectorAll('.gl-hub')];
   const linkRings = new Map(linkEls.map((el) => {
-    const a = (el.dataset.a || '').split(',').map(Number);
-    const b = (el.dataset.b || '').split(',').map(Number);
-    return [el, greatCircle(a, b)];
+    const route = (el.dataset.route || '').split(';')
+      .map((p) => p.split(',').map(Number))
+      .filter((p) => p.length === 2 && Number.isFinite(p[0]));
+    return [el, greatCircleRoute(route)];
   }));
   const linkById = new Map(linkEls.map((el) => [el.dataset.link, el]));
   const sigEls = [...svg.querySelectorAll('.gl-sig')].map((g) => ({
@@ -329,8 +330,36 @@ export function createSvgRenderer(svg, data) {
       const s2 = Math.sin(t * w) / Math.sin(w);
       const v = [s1 * p[0] + s2 * q[0], s1 * p[1] + s2 * q[1], s1 * p[2] + s2 * q[2]];
       const m = Math.hypot(v[0], v[1], v[2]);
-      out.push([Math.atan2(v[1] / m, v[0] / m) * 180 / Math.PI,
-        Math.asin(Math.max(-1, Math.min(1, v[2] / m))) * 180 / Math.PI]);
+      let lon = Math.atan2(v[1] / m, v[0] / m) * 180 / Math.PI;
+      const lat = Math.asin(Math.max(-1, Math.min(1, v[2] / m))) * 180 / Math.PI;
+      // UNWRAP, exactly as great_circle does in scripts/geo_frame.py. atan2
+      // returns (-180, 180], so a Pacific lane steps 355 degrees between two
+      // adjacent samples and densify sweeps the whole world filling the gap —
+      // the lane closes into a ring around the globe.
+      if (out.length) {
+        while (lon - out[out.length - 1][0] > 180) lon -= 360;
+        while (out[out.length - 1][0] - lon > 180) lon += 360;
+      }
+      out.push([lon, lat]);
+    }
+    return out;
+  }
+
+  // A route through chokepoints, each leg the shortest path, unwrapped across
+  // the joints so the whole thing is one continuous ring.
+  function greatCircleRoute(waypoints, n = 24) {
+    if (waypoints.length < 2) return waypoints.slice();
+    let out = [];
+    for (let i = 0; i < waypoints.length - 1; i += 1) {
+      let leg = greatCircle(waypoints[i], waypoints[i + 1], n);
+      if (out.length) {
+        let shift = 0;
+        while (leg[0][0] + shift - out[out.length - 1][0] > 180) shift -= 360;
+        while (out[out.length - 1][0] - (leg[0][0] + shift) > 180) shift += 360;
+        leg = leg.map((p) => [p[0] + shift, p[1]]);
+        leg = leg.slice(1);
+      }
+      out = out.concat(leg);
     }
     return out;
   }
