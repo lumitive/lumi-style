@@ -51,7 +51,8 @@ import geo_projection as gp   # noqa: E402
 from geo_frame import (   # noqa: E402,F401  (re-exported: render() and callers use them)
     ROOT, TOPOLOGY, REGIONS, STEP_DEG, GRATICULE, PAD, DEFAULT_R,
     OBLIQUITY_DEG, FLATTENING, CITY_GAP, CITY_EM_W, CITY_EM_H,
-    LABEL_LIMB_COS, tilt_to_screen, screen_to_tilt,
+    LABEL_LIMB_COS, LINK_R, great_circle, link_weight_attrs,
+    tilt_to_screen, screen_to_tilt,
     earth_transform, solar_position,
     night_ring, place_city_labels,
     _load, _rings_of, _project_ring, _project_area, _pole_close,
@@ -84,6 +85,17 @@ def mark_radius(weight, wmax, R):
     return R * (MARK_R_MIN + (MARK_R_MAX - MARK_R_MIN) * u)
 
 
+def _scaled(view, scale):
+    """The same view at a different radius, concentric with the globe.
+
+    unrolled already takes the centre, so a larger R alone gives a concentric
+    sphere — no correction, and adding one pushes the drawing a full radius off
+    the globe and out of the frame.
+    """
+    lon0, lat0, t, R, cx, cy = view
+    return (lon0, lat0, t, R * scale, cx, cy)
+
+
 def _upright(x, y):
     """Cancel the earth group's tilt for one element, about its own anchor.
 
@@ -98,7 +110,7 @@ def _upright(x, y):
 
 
 def render(view, marks=None, night=None, nodes=False,
-           regions_path=None, cities=None):
+           regions_path=None, cities=None, links=None, codes=None):
     """-> the <svg class="gl"> element as a string.
 
     `view` is (lon0, lat0, t, R, cx, cy). t stays in the signature because the
@@ -109,6 +121,8 @@ def render(view, marks=None, night=None, nodes=False,
     lon0, lat0, t, R, cx, cy = view
     marks = marks or []
     cities = cities or []
+    links = links or []
+    codes = codes or []
     blocs = reg["regions"] if regions_path else []
 
     body = []
@@ -228,6 +242,55 @@ def render(view, marks=None, night=None, nodes=False,
                     f'cx="{_r(px)}" cy="{_r(py)}" r="{R * 0.017:.1f}"'
                     f'{"" if vis else " display=\"none\""}>'
                     f'<title>{html.escape(node["n"])}</title></circle>')
+
+    # TRADE LANES, on the sphere. A great circle is the shortest path across a
+    # sphere, so the drawing and the claim are one object — and because a lane
+    # is just a ring, _project_ring gives it limb clipping, seam splitting and
+    # far-side culling for free. A lane on the back of the Earth is not drawn
+    # because there is nothing there to draw, which is the same reason a
+    # coastline behind the globe is absent.
+    #
+    # Drawn OVER the land and UNDER the marks: a lane crosses geography and a
+    # datum sits on top of everything.
+    for link in links:
+        a, b = tuple(link["a"]), tuple(link["b"])
+        w, o = link_weight_attrs(link.get("w", 0.5))
+        d = _d(_project_ring(great_circle(a, b), _scaled(view, LINK_R)), False)
+        if not d:
+            continue
+        body.append(f'<path class="gl-link" data-link="{html.escape(str(link.get("id", "")))}" '
+                    f'data-a="{a[0]:g},{a[1]:g}" data-b="{b[0]:g},{b[1]:g}" '
+                    f'data-w="{float(link.get("w", 0.5)):.2f}" '
+                    f'stroke-width="{w * R:.1f}" opacity="{o:.2f}" d="{d}"/>')
+
+    # The hubs a lane runs between, drawn once each.
+    for i, (hlon, hlat) in enumerate(sorted({tuple(l[k]) for l in links
+                                             for k in ("a", "b")})):
+        px, py, vis = gp.unrolled(hlon, hlat, lon0, lat0, t, R * LINK_R, cx, cy)
+        body.append(f'<circle class="gl-hub" data-hub="{i}" '
+                    f'data-lon="{hlon:g}" data-lat="{hlat:g}" '
+                    f'cx="{_r(px)}" cy="{_r(py)}" r="{R * 0.010:.1f}"'
+                    f'{"" if vis else " display=\"none\""}/>')
+
+    # SIGNALS ARE EMITTED, NOT CREATED. The runtime mutates markup and never
+    # makes it — the same rule marks obey — so a signal has to have somewhere to
+    # land before it moves, and a document with JavaScript off shows the lanes
+    # carrying codes rather than lanes carrying nothing.
+    #
+    # A heavier lane carries more of them, because traffic is the datum.
+    if codes:
+        n = 0
+        for link in links:
+            for k in range(2 if float(link.get("w", 0.5)) > 0.85 else 1):
+                lid = html.escape(str(link.get("id", "")))
+                body.append(
+                    f'<g class="gl-sig" data-sig-link="{lid}" '
+                    f'data-t="{(n * 0.37 + k * 0.5) % 1:.3f}" '
+                    f'data-code="{n % len(codes)}">'
+                    f'<circle r="{R * 0.0075:.1f}"/>'
+                    f'<text font-size="{R * 0.020:.0f}">{html.escape(codes[n % len(codes)])}</text>'
+                    f'</g>')
+                n += 1
 
     # Named places. A city is not a mark: a mark's size is its datum and its
     # name lives in a title, while a city IS its name — so this layer carries
@@ -364,6 +427,16 @@ def main(argv):
                     help='named places: [{"lon","lat","n"}]. Unlike a mark, a '
                          'city carries its NAME on the figure, so this layer '
                          'culls its own labels where they would collide.')
+    ap.add_argument("--links", metavar="JSON|@FILE", default=None,
+                    help='trade lanes: [{"id","a":[lon,lat],"b":[lon,lat],"w"}]. '
+                         'Each is drawn as the great circle between its ends, '
+                         'which is the shortest path across a sphere and so is '
+                         'the claim itself rather than a picture of it.')
+    ap.add_argument("--codes", metavar="JSON|@FILE", default=None,
+                    help="strings to send along the lanes, one per signal. A "
+                         "signal with no code behind it is decoration, which "
+                         "the brand rules forbid, so this is what turns lanes "
+                         "into a field.")
     ap.add_argument("--no-night", action="store_true",
                     help="omit the terminator; the globe is then uniformly lit")
     ap.add_argument("--marks", metavar="JSON|@FILE", default=None,
@@ -377,7 +450,9 @@ def main(argv):
         datetime.datetime.fromisoformat(args.time))
     print(render(view, marks=_load_marks(args.marks), night=night,
                  nodes=args.nodes, regions_path=args.regions,
-                 cities=_load_marks(args.cities)))
+                 cities=_load_marks(args.cities),
+                 links=_load_marks(args.links),
+                 codes=_load_marks(args.codes)))
     return 0
 
 

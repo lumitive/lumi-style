@@ -177,6 +177,24 @@ export function createSvgRenderer(svg, data) {
   const blocEls = [...svg.querySelectorAll('.gl-rg')];
   const blocLabelEls = [...svg.querySelectorAll('.gl-rg-label')];
   const cityDots = [...svg.querySelectorAll('.gl-city-dot')];
+  // Trade lanes and the signals riding them. Lanes sit ON the sphere, so they
+  // turn with the geography and are redrawn every frame like the coastline.
+  const linkEls = [...svg.querySelectorAll('.gl-link')];
+  const hubEls = [...svg.querySelectorAll('.gl-hub')];
+  const linkRings = new Map(linkEls.map((el) => {
+    const a = (el.dataset.a || '').split(',').map(Number);
+    const b = (el.dataset.b || '').split(',').map(Number);
+    return [el, greatCircle(a, b)];
+  }));
+  const linkById = new Map(linkEls.map((el) => [el.dataset.link, el]));
+  const sigEls = [...svg.querySelectorAll('.gl-sig')].map((g) => ({
+    g,
+    dot: g.querySelector('circle'),
+    txt: g.querySelector('text'),
+    path: linkById.get(g.dataset.sigLink) || null,
+    t: Number(g.dataset.t) || 0,
+    ci: Number(g.dataset.code) || 0,
+  })).filter((s) => s.path);
   const cityLabels = new Map();
   for (const el of svg.querySelectorAll('.gl-city')) {
     cityLabels.set(el.dataset.cityLabel, el);
@@ -289,6 +307,71 @@ export function createSvgRenderer(svg, data) {
     return boxes;
   }
 
+  // Spherical linear interpolation between two places: the shortest path
+  // across a sphere. Mirrors great_circle in scripts/geo_frame.py — same
+  // sampling, so the frame the emitter wrote and the frame this draws are the
+  // same curve rather than two curves that look alike.
+  function greatCircle(a, b, n = 64) {
+    const unit = (lon, lat) => {
+      const p = lon * Math.PI / 180;
+      const q = lat * Math.PI / 180;
+      return [Math.cos(q) * Math.cos(p), Math.cos(q) * Math.sin(p), Math.sin(q)];
+    };
+    const p = unit(a[0], a[1]);
+    const q = unit(b[0], b[1]);
+    const dot = Math.max(-1, Math.min(1, p[0] * q[0] + p[1] * q[1] + p[2] * q[2]));
+    const w = Math.acos(dot);
+    if (w < 1e-9) return [[a[0], a[1]]];
+    const out = [];
+    for (let i = 0; i <= n; i += 1) {
+      const t = i / n;
+      const s1 = Math.sin((1 - t) * w) / Math.sin(w);
+      const s2 = Math.sin(t * w) / Math.sin(w);
+      const v = [s1 * p[0] + s2 * q[0], s1 * p[1] + s2 * q[1], s1 * p[2] + s2 * q[2]];
+      const m = Math.hypot(v[0], v[1], v[2]);
+      out.push([Math.atan2(v[1] / m, v[0] / m) * 180 / Math.PI,
+        Math.asin(Math.max(-1, Math.min(1, v[2] / m))) * 180 / Math.PI]);
+    }
+    return out;
+  }
+
+  const LINK_R = 1.004;
+  const scaled = (view) => ({ ...view, R: view.R * LINK_R });
+
+  function drawLinks(view) {
+    const sv = scaled(view);
+    for (const el of linkEls) {
+      el.setAttribute('d', pathData(projectRing(linkRings.get(el), sv), false));
+    }
+    for (const el of hubEls) {
+      const p = project(Number(el.dataset.lon), Number(el.dataset.lat), sv);
+      el.setAttribute('cx', r0(p.x));
+      el.setAttribute('cy', r0(p.y));
+      if (p.visible) el.removeAttribute('display');
+      else el.setAttribute('display', 'none');
+    }
+  }
+
+  // A signal is one code in transit. Position comes from the lane's own path —
+  // the browser already knows where a path goes — so a signal is always exactly
+  // on its lane, including where the lane is clipped at the limb.
+  function placeSignals(view, codes) {
+    for (const s of sigEls) {
+      const len = s.path.getTotalLength ? s.path.getTotalLength() : 0;
+      if (!len) { s.g.setAttribute('display', 'none'); continue; }
+      s.g.removeAttribute('display');
+      const p = s.path.getPointAtLength(s.t * len);
+      s.dot.setAttribute('cx', r0(p.x));
+      s.dot.setAttribute('cy', r0(p.y));
+      const ty = p.y - view.R * 0.021;
+      s.txt.setAttribute('x', r0(p.x));
+      s.txt.setAttribute('y', r0(ty));
+      // Upright: every layer here lives inside .gl-earth, which is tilted.
+      s.txt.setAttribute('transform', upright(p.x, ty));
+      if (codes && codes.length) s.txt.textContent = codes[s.ci % codes.length];
+    }
+  }
+
   function drawCities(view, reserved) {
     const size = view.R * 0.026;
     const pts = cityDots.map((el) => {
@@ -382,6 +465,10 @@ export function createSvgRenderer(svg, data) {
       for (const ring of blocRings.get(el)) d += `${pathData(projectArea(ring, view), true, view)} `;
       el.setAttribute('d', d.trim());
     }
+    if (linkEls.length) {
+      drawLinks(view);
+      placeSignals(view, state.codes);
+    }
     const reserved = drawBlocLabels(view);
     if (cityDots.length) drawCities(view, reserved);
     // The region-drawing block lived here until 0.1.396. globe_svg.py has not
@@ -416,7 +503,23 @@ export function createSvgRenderer(svg, data) {
     return out;
   }
 
-  return { draw, destroy() {}, svg };
+  // The signal clock. Exposed rather than run here: this module draws a frame
+  // and owns no time, and globe.js already has the loop, the reduced-motion
+  // gate and the off-screen gate that everything else on this figure obeys.
+  function advanceSignals(dt, codes) {
+    for (const s of sigEls) {
+      const w = Number(s.path.dataset.w) || 0.5;
+      s.t += (0.055 + 0.055 * w) * dt;
+      if (s.t >= 1) {
+        s.t -= 1;
+        // Step by a stride coprime with nothing in particular — the point is
+        // that a lane works through the whole list rather than looping a few.
+        s.ci = (s.ci + 11) % Math.max(1, (codes || []).length || 1);
+      }
+    }
+  }
+
+  return { draw, destroy() {}, svg, advanceSignals, hasSignals: sigEls.length > 0 };
 }
 
 export {

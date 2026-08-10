@@ -549,6 +549,21 @@ def render(reg=None, prefix=None):
         " * and keeps one palette across both figures rather than minting a",
         " * second set of colours that would have to be kept in step. */",
         ".gl-rg { fill-opacity: .42; stroke-opacity: .55; }",
+        "/* TRADE LANES. One hue for every lane, because a lane is a lane:",
+        " * weight is a quantity and it is carried by width and opacity, which",
+        " * are quantities too. Hue is identity here and is not free to mean a",
+        " * second thing. The accent is the same one a mark uses, because a",
+        " * lane and a datum are both the figure's subject and the geography",
+        " * behind them is not. */",
+        ".gl-link { fill: none; stroke: var(--acc); stroke-linecap: round; }",
+        ".gl-hub { fill: var(--acc); stroke: var(--bg); stroke-width: 2; }",
+        "/* A signal is one code in transit: the dot is where, the text is",
+        " * what. The halo is the same one city names carry — a label on a",
+        " * sphere has no white box to sit in. */",
+        ".gl-sig circle { fill: var(--acc); }",
+        ".gl-sig text { fill: var(--acc); font-family: var(--mono); "
+        "text-anchor: middle; letter-spacing: .03em; paint-order: stroke fill; "
+        "stroke: var(--bg); stroke-width: 3; stroke-linejoin: round; }",
         ".rg-full { pointer-events: none; }",
         ".rg-outline { fill: none; stroke: var(--nw); stroke-width: 4; "
         "stroke-linejoin: round; }",
