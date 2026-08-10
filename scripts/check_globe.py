@@ -1106,23 +1106,24 @@ def check_far_side_hidden():
             errors.append(f"mark {mid} is on the near side and renders nothing")
     return errors
 
-# (label, fn, needs_golden, suite). The suites follow the component split:
+# (label, fn, needs_golden, suite, needs_browser). The suites follow the
+# component split:
 # `shared` is the projection core and the t-sweeps that guard 0.1.389's winding
 # work — they outlive the products' pinned t — `globe` and `map` are each
 # component's own contract. Default runs everything; CI's --python-only line is
 # unchanged.
 CHECKS = (
-    ("round trip", check_round_trip, True, "shared"),
-    ("poles are points", check_poles, True, "shared"),
-    ("limb culling", check_culling, True, "shared"),
-    ("seam splitting", check_seam, False, "shared"),
-    ("viewbox extent", check_viewbox_extent, True, "shared"),
-    ("static svg fits its viewbox", check_static_svg, False, "shared"),
-    ("no line across the flat map", check_seam_segments, False, "shared"),
-    ("the spherical clip holds its invariants", check_clip_invariants, False, "shared"),
-    ("the globe frame holds its contract", check_globe_frame, False, "globe"),
-    ("a far-side mark renders nothing", check_far_side_hidden, False, "globe"),
-    ("the region map frame holds its contract", check_regionmap_frame, False, "map"),
+    ("round trip", check_round_trip, True, "shared", False),
+    ("poles are points", check_poles, True, "shared", False),
+    ("limb culling", check_culling, True, "shared", False),
+    ("seam splitting", check_seam, False, "shared", False),
+    ("viewbox extent", check_viewbox_extent, True, "shared", False),
+    ("static svg fits its viewbox", check_static_svg, False, "shared", False),
+    ("no line across the flat map", check_seam_segments, False, "shared", False),
+    ("the spherical clip holds its invariants", check_clip_invariants, False, "shared", False),
+    ("the globe frame holds its contract", check_globe_frame, False, "globe", False),
+    ("a far-side mark renders nothing", check_far_side_hidden, False, "globe", True),
+    ("the region map frame holds its contract", check_regionmap_frame, False, "map", False),
 )
 
 
@@ -1143,8 +1144,17 @@ def main(argv):
     golden = json.loads(GOLDEN.read_text(encoding="utf-8"))
 
     failed = 0
-    for label, fn, needs_golden, suite in CHECKS:
+    skipped = []
+    for label, fn, needs_golden, suite, needs_browser in CHECKS:
         if args.suite != "all" and suite != args.suite:
+            continue
+        # A browser check under --python-only is SKIPPED and named, not run and
+        # failed. It reached CI as a failure once: "Playwright is not installed"
+        # is a fact about the machine, and reporting a fact about the machine as
+        # a defect in the code is the noise that teaches people to ignore a
+        # gate. Named rather than silent, per this file's own posture.
+        if needs_browser and args.python_only:
+            skipped.append(label)
             continue
         try:
             errors = fn(golden) if needs_golden else fn()
@@ -1159,6 +1169,8 @@ def main(argv):
             print(f"ok    {label}")
 
     if args.python_only:
+        for label in skipped:
+            print(f"note  SKIPPED (--python-only, needs a browser): {label}")
         print(f"note  the JS port was NOT verified (--python-only); "
               f"{len(golden['samples'])} golden samples are waiting for it")
     elif args.suite == "map":
