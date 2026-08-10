@@ -518,6 +518,14 @@ def render(reg=None, prefix=None):
         lines.append(f"{scope}.rg-{rid}.is-zero {{ fill: var(--rg-{rid}-wash); }}")
     lines += [
         ".rg.is-out { fill: var(--brass); }",
+        "/* A bloc's FULL membership, outlined when a reader selects it. No",
+        " * fill: the countries underneath keep their own bloc's colour, which",
+        " * is the point — the outline says 'these too' without claiming they",
+        " * stopped belonging where they were. */",
+        ".rg-full { pointer-events: none; }",
+        ".rg-outline { fill: none; stroke: var(--nw); stroke-width: 4; "
+        "stroke-linejoin: round; }",
+        ".rg.is-selected { stroke: var(--nw); stroke-width: 3; }",
         ".rg.is-partial { stroke: var(--amber); stroke-width: 2; }",
         "/* Region labels, set in the ink the contrast floor is computed against:",
         " * selftest() asserts every fill carries INK_LIGHT / INK_DARK at 4.5:1 or",
@@ -525,6 +533,14 @@ def render(reg=None, prefix=None):
         " * outside the floor's guarantee. */",
         ".rg-label { fill: var(--nw); font-family: var(--din); "
         "font-weight: 600; text-anchor: middle; pointer-events: none; }",
+        "/* The two tspans a label can carry. Both have existed as CLASSES since",
+        " * labels shipped and neither had a rule, so a value and a membership",
+        " * count set identically to the bloc name beside them — the same",
+        " * class-with-no-rendering defect the 0.1.396 audit found on the",
+        " * globe's hover state, one file away. */",
+        ".rg-label-n { font-weight: 700; font-variant-numeric: tabular-nums; }",
+        ".rg-label-v { font-weight: 400; fill: var(--tx2); "
+        "font-variant-numeric: tabular-nums; }",
         "/* No font-size here: the emitter sets it as an attribute scaled to the",
         " * frame's R, because a fixed pixel size inside a 2R-unit viewBox",
         " * renders at whatever the layout divides it to — 13px became ~7 at a",
@@ -596,6 +612,17 @@ def validate_registry(reg, require_full=False):
     return errors
 
 
+# THE SHIPPED INSTANCES. A registry that ships in assets/vectors/ ships its
+# palette too — otherwise every deliverable that uses it hand-rolls one, which
+# is convention 5 (a rule may not mandate an asset the package does not ship)
+# in the small. A bare --check verifies every row, so adding a registry here is
+# the whole of adding it to CI.
+SHIPPED = [
+    (ROOT / "assets/vectors/regions-trade.json",
+     ROOT / "tokens/region-palette-trade.css", "trade"),
+]
+
+
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--check", action="store_true")
@@ -647,6 +674,12 @@ def main(argv):
             failed = 1
         elif not failed:
             print(f"ok    {out_path.relative_to(ROOT) if out_path.is_relative_to(ROOT) else out_path} is current")
+        if not args.regions:
+            # A bare --check is CI's, and CI has to see every shipped palette,
+            # not only the default one.
+            for reg_path, css_path, prefix in SHIPPED:
+                failed |= main(["--check", "--regions", str(reg_path),
+                                "--out", str(css_path), "--prefix", prefix])
         return failed
     out_path.write_text(built, encoding="utf-8")
     print(f"wrote {out_path.relative_to(ROOT) if out_path.is_relative_to(ROOT) else out_path}"
