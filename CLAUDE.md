@@ -12,6 +12,7 @@ sync, and recording changes in the changelog.
 ## Checks
 
 ```bash
+python3 scripts/preflight.py             # run EXACTLY what CI runs, read from ci.yml
 python3 scripts/check_repo.py            # repo invariants; exit 1 on any failure
 python3 scripts/check_prose.py <file>    # AI-flavor metrics (M4, M8-M11) on a deliverable
 python3 scripts/check_design.py <file>   # design metrics (D1-D17) on a deliverable
@@ -38,7 +39,12 @@ bash    scripts/ci_wait.sh <PR>          # bounded wait, short-circuits on outag
 
 Standard library only, no dependencies. `.github/workflows/ci.yml` runs
 `check_repo.py` plus syntax checks on every push to `main` and every pull
-request. Its guards are the mechanical half of the invariants below: version
+request. **`check_repo.py` is one of seventeen steps CI runs, and reporting it
+green is not reporting the release green** — 0.1.415 was verified on eight of
+them, pushed, and failed CI on a generator check nothing local had invoked.
+`scripts/preflight.py` reads the step list out of `ci.yml` and runs all of it,
+so "local green" and "CI green" are the same claim; it refuses to run a subset
+if it cannot parse the workflow. Its guards are the mechanical half of the invariants below: version
 stamps, version citations, the English-only red line, markdown link targets,
 stale forward promises, the platform manifest, retired values, palette parity
 between the two `tokens/` files, that every `var()` in `tokens/` resolves to a

@@ -463,6 +463,9 @@ def render(reg=None, prefix=None):
     lines.append("}")
     lines.append("")
     lines.append(dark_sel + " {")
+    lines.append("  --gold: #E8C25A;")           # 8.82:1 on the dark plate
+    lines.append("  --gl-equator: var(--gold);")
+    lines.append("  --gl-tropic: var(--gold);")
     if not prefix:
         # On the dark canvas the night side cannot be a darker wash — there is
         # nowhere darker to go. It becomes a cool veil instead, which still
@@ -481,9 +484,6 @@ def render(reg=None, prefix=None):
         # this replaces said were not needed.
         lines.append("  --gl-plate: #26262B;")
         lines.append("  --gl-graticule: rgba(240,240,250,.16);")
-        lines.append("  --gold: #E8C25A;")       # 8.82:1 on the dark plate
-        lines.append("  --gl-equator: var(--gold);")
-        lines.append("  --gl-tropic: var(--gold);")
     for rid in ids:
         h = angles[rid]
         lines.append(f"  --rg-{rid}: {hue_hex(L_DARK, h)};")
@@ -775,6 +775,17 @@ def main(argv):
     out_path.write_text(built, encoding="utf-8")
     print(f"wrote {out_path.relative_to(ROOT) if out_path.is_relative_to(ROOT) else out_path}"
           f"  ({len(built):,} bytes)")
+    if not args.regions:
+        # A BARE WRITE COVERS WHAT A BARE CHECK COVERS. It did not: --check
+        # recursed over SHIPPED and the write did not, so the only way to
+        # refresh the trade palette was to know its three-argument incantation.
+        # A change to shared chrome landed in one file, the repo checks passed
+        # because they do not run this generator, and CI failed on the other.
+        # A build and its check that disagree about what "everything" means is
+        # a trap whichever way round it is.
+        for reg_path, css_path, prefix in SHIPPED:
+            main(["--regions", str(reg_path), "--out", str(css_path),
+                  "--prefix", prefix])
     # The registry that was just written, not the shipped one: asserting the
     # default's floors after writing a custom palette would bless a custom
     # registry that clears nothing.
