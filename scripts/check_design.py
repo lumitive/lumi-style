@@ -281,7 +281,7 @@ def d1_contrast(css, resolved, palette):
                 # A class token, not a substring: keying on `i` once matched
                 # every selector containing the letter i and put half the deck
                 # on the wrong surface.
-                if re.search(r"\.%s(?![\w-])" % re.escape(panel), sel):
+                if re.search(rf"\.{re.escape(panel)}(?![\w-])", sel):
                     surfaces = [(panels[panel],
                                  over_bg(parse_color(resolved.get(panels[panel], "")), bg))]
                     break
@@ -659,7 +659,7 @@ def d19_vocabulary(raw):
     # A gate whose first act is to fail the fixture is a gate nobody will keep.
     ids = set(re.findall(r'\bid="([^"]+)"', raw))
     symbols = set(re.findall(r'<symbol[^>]*\bid="([^"]+)"', raw))
-    used = {m for m in re.findall(r'<use[^>]*\bhref="#([^"]+)"', raw)}
+    used = set(re.findall(r'<use[^>]*\bhref="#([^"]+)"', raw))
     dangling = sorted(used - ids)
 
     bad_blocks = []
@@ -743,7 +743,7 @@ def d14_placeholders(raw):
     body = re.sub(r"<(script|style|svg)\b.*?</\1>", " ", raw, flags=re.S | re.I)
     body = re.sub(r"<!--.*?-->", " ", body, flags=re.S)
     found = []
-    for cls, pid, page in _pages(body) or [("", "(document)", body)]:
+    for _cls, pid, page in _pages(body) or [("", "(document)", body)]:
         text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", page))
         for m in PLACEHOLDER.finditer(text):
             inner = m.group(0).strip("[]{}<>").strip()
@@ -1071,9 +1071,9 @@ def main(argv):
                 print(f"        {len(vv['dangling'])} icon reference(s) resolve to "
                       f"nothing: {', '.join('#' + d for d in vv['dangling'][:5])}")
                 if not vv["symbols"]:
-                    print(f"        this document carries NO <symbol> at all — the "
-                          f"sprite lives in the reference fixture's BODY, and a "
-                          f"document assembled from its <head> alone has none of it")
+                    print("        this document carries NO <symbol> at all — the "
+                          "sprite lives in the reference fixture's BODY, and a "
+                          "document assembled from its <head> alone has none of it")
             for cls, missing in vv["bad_blocks"][:5]:
                 print(f"        .{cls} is used without {', '.join('.' + m for m in missing)}"
                       f" — tokens/ renders it through those children, and without "

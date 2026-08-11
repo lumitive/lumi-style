@@ -34,11 +34,19 @@ import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-import geo_projection as gp   # noqa: E402
-from geo_frame import (       # noqa: E402
-    REGIONS, TOPOLOGY, GRATICULE, PAD, DEFAULT_R,
+import geo_projection as gp  # noqa: E402
+from geo_frame import (  # noqa: E402
+    DEFAULT_R,
+    GRATICULE,
     OBLIQUITY_DEG,
-    _load, _rings_of, _project_ring, _project_area, _d, _r, extent,
+    PAD,
+    _d,
+    _load,
+    _project_area,
+    _project_ring,
+    _r,
+    _rings_of,
+    extent,
 )
 
 

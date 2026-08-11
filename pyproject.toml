@@ -1,0 +1,60 @@
+# Tool configuration ONLY — there is deliberately no [project] or
+# [build-system] table. Nothing in this repository installs as a package; the
+# skill's deliverable path runs on the Python standard library alone. This
+# file exists so ruff, mypy and pytest (dev/CI tools, pinned in
+# requirements-dev.txt) read one shared configuration.
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+# Curated, not maximal: defaults (E4/E7/E9/F) plus warnings, import order,
+# bugbear, pyupgrade, flake8-bandit (the security scan) and comprehensions.
+# SIM/PL/RUF are deliberately absent — on a heavily-commented, prose-styled
+# codebase they generate churn arguments, not bugs.
+select = ["E4", "E7", "E9", "F", "W", "I", "B", "UP", "S", "C4"]
+ignore = [
+    # B905 (zip without strict=): 21 pre-existing call sites. Flipping them to
+    # strict=True changes runtime behavior (raises on length mismatch) and is
+    # not safe before the call sites have tests; revisit once the test suite
+    # covers them. Tracked as a deliberate deferral, not an endorsement.
+    "B905",
+    # S603/S607 (subprocess audit / partial executable path): every subprocess
+    # call in scripts/ runs a repo-controlled argv list ("git", "node",
+    # "python3") on a developer machine or CI runner; PATH lookup for those is
+    # the intended behavior, not an injection surface.
+    "S603", "S607",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# shell=True IS the point of preflight — see the comment block above its
+# subprocess.run call: splitting the commands would run something other than
+# what CI runs, which is the one thing that file must not do.
+"scripts/preflight.py" = ["S602"]
+# pytest tests assert; that is what they are for.
+"tests/*" = ["S101"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["scripts"]
+# The pragmatic floor: type-check the bodies of unannotated functions (finds
+# the None-flows-into-arithmetic class with zero annotation cost) without
+# requiring 16k legacy lines to be annotated first. Strictness is ratcheted
+# per module below as files are touched.
+check_untyped_defs = true
+no_implicit_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = "playwright.*"
+ignore_missing_imports = true
+
+# The ratchet: shared libraries are held strict from birth.
+[[tool.mypy.overrides]]
+module = ["color_math", "css_tokens"]
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

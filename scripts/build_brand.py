@@ -37,7 +37,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
-import globe_svg                                                   # noqa: E402
+import globe_svg  # noqa: E402
 
 OUT_DIR = ROOT / "assets" / "brand" / "lumivate"
 
@@ -140,7 +140,8 @@ def mark_style(force=None):
                        and not k.endswith(("-stroke", "-wash"))}):
         rules += f".lumivate-mark .rg-{rid}{{fill:var(--rg-{rid})}}"
 
-    keep = lambda d: {k: decl(v, d) for k, v in d.items()
+    def keep(d):
+        return {k: decl(v, d) for k, v in d.items()
                       if k.startswith(("--rg-", "--gl-")) or k in
                       ("--tx1", "--tx2", "--tx3", "--ln1", "--ln2", "--ln3",
                        "--bg", "--nw", "--acc", "--acc-2")}

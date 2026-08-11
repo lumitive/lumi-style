@@ -1,0 +1,11 @@
+# Development tools ONLY. The skill package's deliverable path runs on the
+# Python standard library alone — nothing here is imported by scripts/ at
+# runtime, and nothing here ships in a deliverable.
+#
+# Exact pins, bumped deliberately like any other change: CI installs this
+# file, and preflight.py runs the same install step locally, so local and CI
+# always type-check and lint with the same tool versions. Run inside a venv
+# if you do not want the install touching your user site-packages.
+ruff==0.16.2
+mypy==2.3.0
+pytest==9.1.1

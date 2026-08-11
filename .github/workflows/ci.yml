@@ -33,6 +33,12 @@ jobs:
       # mask a fresh syntax error.
       - run: python3 -m compileall -q -f scripts/
       - run: bash -n scripts/emergency_merge.sh scripts/ci_wait.sh
+      # Dev tools, pinned in requirements-dev.txt so local (via preflight) and
+      # CI always lint with the same versions. The DELIVERABLE path stays
+      # zero-dependency: nothing in scripts/ imports any of these at runtime.
+      - run: python3 -m pip install -q -r requirements-dev.txt
+      # ruff's S rules (flake8-bandit) are the Python security scan.
+      - run: python3 -m ruff check .
       # Both JavaScript surfaces — the tracked assets/**.js runtimes and the
       # probe strings embedded in inspect_layout.py — parsed by `node --check`.
       # Until 0.1.416 neither had any syntax gate (0.1.414: "the guard shipped

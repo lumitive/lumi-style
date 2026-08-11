@@ -3,6 +3,51 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.417 — the scripts get a linter, and the linter's first catch is this repo's own failure family
+
+Release R2 of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`).
+
+**The toolchain.** `pyproject.toml` (tool configuration only — deliberately no
+packaging tables; the deliverable path stays standard-library-only) and
+`requirements-dev.txt` (exact pins) bring in ruff as linter and security
+scanner. CI installs the pinned tools and runs `ruff check .`; `preflight.py`
+picks both steps up from the workflow, so local and CI lint with identical
+versions by construction. The rule set is curated, not maximal: defaults plus
+import order, bugbear, pyupgrade, flake8-bandit (`S` — the Python security
+scan) and comprehensions. No `ruff format`: it would rewrite most of 16k lines
+and destroy blame on comments that are load-bearing institutional memory.
+
+**62 findings, two of them this repository's own recurring families.**
+
+- `VERSION_CITATION_WAIVERS` in `check_repo.py` defined the keys `"1.4.11"`
+  and `"2.5.8"` **twice each** — two releases each added their own WCAG
+  waiver, and the literal duplicate silently shadowed the first. Enumeration
+  rot inside the very table that exists to manage exceptions; a linted dict
+  literal now refuses it.
+- A lambda in `check_globe.py`'s winding sweep closed over the loop variables
+  `top`/`bottom` late (B023). In today's shape the call happens in the same
+  iteration, so no wrong verdict shipped — the binding is now explicit so the
+  next edit cannot turn it into one.
+
+The rest: unused imports and variables, a shadowed `ROOT` import in
+`globe_svg.py`, ambiguous single-letter names, printf-style formatting, one
+semicolon statement. Three rules are deliberately ignored with recorded
+reasons in `pyproject.toml`: B905 (21 `zip()` sites — flipping them to
+`strict=True` changes runtime behavior and waits for test coverage), S603 and
+S607 (every subprocess call runs a repo-controlled argv list; PATH lookup of
+`git`/`node`/`python3` is intended). `preflight.py`'s `shell=True` keeps a
+targeted S602 ignore pointing at its own justification comment.
+
+**The gate can fail.** A planted unused import failed `ruff check .` and was
+removed (design rule D8).
+
+**mypy is configured but not yet gating.** `check_untyped_defs` over
+`scripts/` reports 105 findings in 21 files — annotation debt and inference
+limits, none a live defect on inspection. Per the plan's stop-loss, the
+burn-down is its own next release rather than a rushed appendix to this one;
+the CI step lands with it.
+
 ## 0.1.416 — a compile list that cannot rot, and the JavaScript gets a syntax gate
 
 The first release of the engineering-quality migration

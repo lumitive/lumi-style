@@ -47,17 +47,40 @@ import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-import geo_projection as gp   # noqa: E402
-from geo_frame import (   # noqa: E402,F401  (re-exported: render() and callers use them)
-    ROOT, TOPOLOGY, REGIONS, STEP_DEG, GRATICULE, PAD, DEFAULT_R,
-    OBLIQUITY_DEG, FLATTENING, CITY_GAP, CITY_EM_W, CITY_EM_H,
-    LABEL_LIMB_COS, LINK_R, great_circle_route, link_weight_attrs,
-    classify_arcs, arc_points,
-    tilt_to_screen, screen_to_tilt,
-    earth_transform, solar_position,
-    night_ring, place_city_labels,
-    _load, _rings_of, _project_ring, _project_area, _pole_close,
-    _r, _guard, _d, extent,
+import geo_projection as gp  # noqa: E402
+from geo_frame import (  # noqa: E402,F401  (re-exported: render() and callers use them)
+    CITY_EM_H,
+    CITY_EM_W,
+    CITY_GAP,
+    DEFAULT_R,
+    FLATTENING,
+    GRATICULE,
+    LABEL_LIMB_COS,
+    LINK_R,
+    OBLIQUITY_DEG,
+    PAD,
+    REGIONS,
+    STEP_DEG,
+    TOPOLOGY,
+    _d,
+    _guard,
+    _load,
+    _pole_close,
+    _project_area,
+    _project_ring,
+    _r,
+    _rings_of,
+    arc_points,
+    classify_arcs,
+    earth_transform,
+    extent,
+    great_circle_route,
+    link_weight_attrs,
+    night_ring,
+    place_city_labels,
+    screen_to_tilt,
+    solar_position,
+    tilt_to_screen,
 )
 
 # A denser graticule than the 30 degrees the first cut used. The graticule is
@@ -309,7 +332,7 @@ def render(view, marks=None, night=None, nodes=False,
                     f'stroke-width="{w * R:.1f}" opacity="{o:.2f}" d="{d}"/>')
 
     # The hubs a lane runs between, drawn once each.
-    for i, (hlon, hlat) in enumerate(sorted({tuple(l[k]) for l in links
+    for i, (hlon, hlat) in enumerate(sorted({tuple(lk[k]) for lk in links
                                              for k in ("a", "b")})):
         px, py, vis = gp.unrolled(hlon, hlat, lon0, lat0, t, R * LINK_R, cx, cy)
         body.append(f'<circle class="gl-hub" data-hub="{i}" '

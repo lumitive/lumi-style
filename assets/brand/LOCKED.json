@@ -2,14 +2,14 @@
   "component": "LUMI-Globe-Field",
   "owner": "LUMIVATE",
   "locked_at": "0.1.405",
-  "why": "0.1.415: the owner authorized re-cutting the marks so the frozen snapshots match the live component again. The named parallels went gold and heavier (equator 3->5, tropics 2->3.5) and the dark rule ladder was raised; a self-contained mark carries resolved literals, so it cannot pick either up on its own. Also fixes build_brand.py resolving the DARK block against the LIGHT palette, which would have stamped the dark cover with the light gold at 1.4:1.",
+  "why": "0.1.417: lint-only edits with byte-identical generated output — build_brand.py converts a lambda assignment to a def (E731); globe_svg.py drops a shadowed ROOT import (F811) and renames an ambiguous single-letter variable (E741). Every generator --check stayed green before and after.",
   "files": {
     "assets/brand/lumivate/globe-mark-small.svg": "668e714999aabcd21ba04ad65730ed1826d83ef99766943eab05388ce880130f",
     "assets/brand/lumivate/globe-mark.svg": "2cdc9f4f2101a9078f74dacc0d97f878bb4cf464e9c070618362a295b335e5be",
     "assets/geo/projection.js": "edd697e297802a77c3eca5bb73231a869e4781d25a24e6c3104aa1fc52b328cb",
     "assets/globe/globe.js": "a56687ef6334fd9abbfd1e974f0ee90dcf020f3117f8526f3399bceca1807258",
     "assets/globe/render-svg.js": "732aa3c8de6934662a01584b78bd5959dea9d0bd3273d263f9d6143244bc12d7",
-    "scripts/build_brand.py": "397dfdd5cb565b4f2cf424a2152f4e1ed826fc2fed61b1ced999cb5986fd19ab",
-    "scripts/globe_svg.py": "4414a7c12ac1e26f8171c22f4ea8dede27063dd5d7bb21d18885e78e2be89e5b"
+    "scripts/build_brand.py": "86c14e60b5e9b03885a2153bc27aa5404dea733fc96022682cd96b696a815692",
+    "scripts/globe_svg.py": "c0f517879d1ca11ffb51c9387dcfde6a20947cc1566b5a7147ae50d8ff030686"
   }
 }

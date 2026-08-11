@@ -1180,8 +1180,8 @@ def ground_report(url, viewport=(1280, 720), dark=False):
                     if r > worst:
                         worst, worst_px = r, q
                 out.append({"id": pid, "contrast": round(worst, 3),
-                            "canvas": "#%02X%02X%02X" % canvas,
-                            "loudest": "#%02X%02X%02X" % worst_px})
+                            "canvas": "#{:02X}{:02X}{:02X}".format(*canvas),
+                            "loudest": "#{:02X}{:02X}{:02X}".format(*worst_px)})
         browser.close()
     return {"pages": out, "nested": nested}
 
@@ -1887,7 +1887,8 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
         opener_ids = {r["id"] for r in openers}
         for r in live:
             if r["id"] in opener_ids or r.get("isCover") or r.get("isClosing"):
-                runs.append(run); run = 0
+                runs.append(run)
+                run = 0
             else:
                 run += 1
         runs.append(run)
@@ -2227,8 +2228,8 @@ def ground_print(label, g):
         # every page, and until 0.1.378 a deck with none read the same here as
         # a deck that had been checked. Reported, never gated — a document
         # outside the brand may be quiet on purpose, and a reviewer decides.
-        print(f"  GROUND MISSING: no page draws one — brand.md asks for water "
-              f"and light behind every page, dense to sparse by page class")
+        print("  GROUND MISSING: no page draws one — brand.md asks for water "
+              "and light behind every page, dense to sparse by page class")
         return 0
     loud = [r for r in pages if r["contrast"] > GROUND_CEILING]
     if loud:
@@ -2492,7 +2493,7 @@ def main(argv):
                       f"findings fired — " + ", ".join(sorted(failing)))
             else:
                 na = sorted(k for k, v in folded.items() if v[0] == "n/a")
-                print(f"\nNo gating finding fired"
+                print("\nNo gating finding fired"
                       + (f" ({len(na)} had nothing to grade: {', '.join(na)})" if na else "")
                       + ". That is geometry and consistency, not a verdict on the "
                         "design — look at the contact sheet.")
