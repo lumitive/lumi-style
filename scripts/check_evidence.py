@@ -80,14 +80,16 @@ TOUCH_MAP: tuple[tuple[str, tuple[str, ...]], ...] = (
 )
 
 # Files whose every-release change is usually just the version stamp (or a
-# regeneration of it). A change of <= STAMP_LINES total added+deleted lines
-# does not count as a touch; anything larger does.
-STAMPED_PREFIXES = (
-    "SKILL.md", "AGENTS.md", "prompts/lumi-style-core.md",
-    "tokens/lumi-theme.css", "tokens/lumi-layouts.css",
-    "tokens/design-tokens.json", "conformance/CONFORMANCE.md", "fixtures/",
+# regeneration of it). A change of <= the named line budget (added+deleted)
+# does not count as a touch; anything larger does. The fixtures carry the
+# stamp in several generated spots, so their budget is wider — measured at 6
+# lines per fixture for a stamp-only regeneration.
+STAMPED_PREFIXES: tuple[tuple[str, int], ...] = (
+    ("SKILL.md", 2), ("AGENTS.md", 2), ("prompts/lumi-style-core.md", 2),
+    ("tokens/lumi-theme.css", 2), ("tokens/lumi-layouts.css", 2),
+    ("tokens/design-tokens.json", 2), ("conformance/CONFORMANCE.md", 2),
+    ("fixtures/", 8),
 )
-STAMP_LINES = 2
 
 # The overclaim phrases, checked ONLY in the newest CHANGELOG section and
 # only when this release carries waivers or gap-cited failures. Deliberately
@@ -143,7 +145,8 @@ def effective_touches(base: str) -> list[str] | None:
             continue
         adds, dels, path = parts
         lines = (0 if adds == "-" else int(adds)) + (0 if dels == "-" else int(dels))
-        if any(path.startswith(p) for p in STAMPED_PREFIXES) and lines <= STAMP_LINES:
+        budget = next((n for p, n in STAMPED_PREFIXES if path.startswith(p)), 0)
+        if budget and lines <= budget:
             continue
         touched.append(path)
     # git diff cannot see a file that was never tracked, and a brand-new

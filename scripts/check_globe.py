@@ -33,6 +33,7 @@ import json
 import math
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 from collections.abc import Callable
@@ -621,6 +622,55 @@ def check_port(golden):
         result = page.evaluate(script, {"views": views, "samples": samples})
         browser.close()
 
+    return _compare_port(golden, result)
+
+
+def check_port_node(golden):
+    """The same golden-grid agreement, under bare `node` — no browser.
+
+    projection.js is DOM-free maths, so a plain node process can import it
+    and run the 1300 samples; this is what lets CI hold the port to the
+    Python authority at all (until 0.1.426 NOTHING in CI verified the port —
+    the golden grid existed and only an operator's machine ever read it
+    through JavaScript). A missing node is a FAILURE, never a skip: a check
+    that quietly skips is the failure mode this repository keeps
+    rediscovering.
+    """
+    if not JS.exists():
+        return [f"{JS.relative_to(ROOT)} is missing; the port cannot be checked"]
+    if shutil.which("node") is None:
+        return ["node is not installed, so the JS port was NOT verified — "
+                "install node (CI does via setup-node); this check never skips"]
+    runner = f"""
+import {{ project, invert, splitAtSeam }} from {json.dumps(JS.resolve().as_uri())};
+const chunks = [];
+process.stdin.on('data', (c) => chunks.push(c));
+process.stdin.on('end', () => {{
+  const {{ views, samples }} = JSON.parse(Buffer.concat(chunks).toString());
+  const out = [], rt = [];
+  for (const s of samples) {{
+    const v = views[s[0]];
+    const r = project(s[1], s[2], v);
+    out.push([r.x, r.y, r.visible]);
+    rt.push(r.visible ? invert(r.x, r.y, v) : null);
+  }}
+  process.stdout.write(JSON.stringify({{ out, rt }}));
+}});
+"""
+    p = subprocess.run(
+        ["node", "--input-type=module", "-e", runner],
+        input=json.dumps({"views": golden["views"], "samples": golden["samples"]}),
+        capture_output=True, text=True)
+    if p.returncode != 0:
+        tail = p.stderr.strip().splitlines()[-3:]
+        return ["node could not run the port: " + " / ".join(tail)]
+    return _compare_port(golden, json.loads(p.stdout))
+
+
+def _compare_port(golden, result):
+    """The backend-agnostic half: golden grid vs whatever ran the JS."""
+    views = golden["views"]
+    samples = golden["samples"]
     errors = []
     for (vi, lon, lat, px, py, pvis), (jx, jy, jvis) in zip(samples, result["out"]):
         if abs(jx - px) > TOLERANCE or abs(jy - py) > TOLERANCE:
@@ -2079,6 +2129,10 @@ CHECKS: tuple[tuple[str, Callable[..., list[str]], bool, str, bool], ...] = (
 
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--node", action="store_true",
+                    help="verify the JS port over the golden grid under bare "
+                         "node (no browser needed; composes with "
+                         "--python-only, which is how CI runs it)")
     ap.add_argument("--python-only", action="store_true",
                     help="skip the browser half; the port is then UNVERIFIED")
     ap.add_argument("--suite", choices=("shared", "globe", "map", "all"),
@@ -2118,11 +2172,23 @@ def main(argv):
         else:
             print(f"ok    {label}")
 
+    if args.node:
+        errors = check_port_node(golden)
+        if errors:
+            failed += 1
+            print("FAIL  js port agrees with the python authority (node)")
+            for e in errors[:8]:
+                print(f"        {e}")
+        else:
+            print(f"ok    js port agrees with the python authority on "
+                  f"{len(golden['samples'])} samples (bare node)")
+
     if args.python_only:
         for label in skipped:
             print(f"note  SKIPPED (--python-only, needs a browser): {label}")
-        print(f"note  the JS port was NOT verified (--python-only); "
-              f"{len(golden['samples'])} golden samples are waiting for it")
+        if not args.node:
+            print(f"note  the JS port was NOT verified (--python-only); "
+                  f"{len(golden['samples'])} golden samples are waiting for it")
     elif args.suite == "map":
         # The map runtime never touches geometry, so there is no browser half
         # for it: nothing it does can disagree with the Python emitter.
