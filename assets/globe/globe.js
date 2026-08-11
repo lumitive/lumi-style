@@ -275,6 +275,41 @@ export async function createGlobe(container, options = {}) {
     raf = requestAnimationFrame(tick);
   }
 
+  // THE PIN. An export has to be reproducible: export_pdf.py loads the page and
+  // captures, and with a globe turning under it the PDF was a screenshot of
+  // whatever moment the browser happened to reach. Pinning sets the view and
+  // stops the clock, so the same document exports the same frame twice.
+  //
+  // WHICH view a document exports is the document's decision, carried on the
+  // figure as data-globe-print-lon0 — the same split the codes and the lane
+  // waypoints already follow. The screen may open on the Pacific and the PDF
+  // land on Singapore, and neither is this package's business.
+  function pin(lon0) {
+    pinned = true;
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+    // Reset the signals as well as the rotation. A pin that stopped the clock
+    // and left the signals wherever they had drifted to gave a correctly
+    // pinned longitude and a different picture every time.
+    renderer.resetSignals?.();
+    if (typeof lon0 === 'number' && Number.isFinite(lon0)) {
+      view.lon0 = ((lon0 % 360) + 360) % 360;
+    }
+    paint();
+    svg.dataset.lon0 = String(view.lon0);
+    return view.lon0;
+  }
+
+  const printLon0 = Number(container.dataset.globePrintLon0);
+  if (Number.isFinite(printLon0)) {
+    // Cmd-P in a browser gets the frame the PDF gets. beforeprint fires before
+    // the snapshot is taken, which is the only moment this can be done from
+    // inside the document.
+    addEventListener('beforeprint', () => pin(printLon0));
+  }
+  // A page-level handle, so a tool outside the document can pin every globe on
+  // it without knowing how any of them was built.
+  (window.lumiGlobes = window.lumiGlobes || []).push({ pin, container, svg });
+
   function start() {
     if (raf === null && !pinned) {
       last = performance.now();
@@ -320,6 +355,7 @@ export async function createGlobe(container, options = {}) {
   paint();
 
   return {
+    pin,
     get view() { return { ...view }; },
     // The projected runs of the last frame. A host doing its own hit
     // testing needs them, and so does anything verifying this component.

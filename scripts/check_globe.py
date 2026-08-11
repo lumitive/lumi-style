@@ -1502,6 +1502,71 @@ def check_trade_lanes():
 # and nothing yet holds the ring-clipping pipeline on the JavaScript side.
 
 
+def check_land_lines():
+    """Three weights, one classification, and every arc in exactly one of them.
+
+    The shared-arc topology is what makes this possible without new data: an
+    arc between two countries is stored once and referenced by both, so its
+    number of users says whether it is a coast. Three properties:
+
+    1. the three sets PARTITION the arcs — every arc drawn once, none twice,
+       none missing. A doubled arc is a doubled stroke and reads as a heavier
+       line for no reason; a missing one is a gap in a coastline;
+    2. a coast is an arc used by ONE country, and there are 548 of them. If
+       this drifts, either the topology changed or the rule did, and both are
+       worth stopping for;
+    3. WITHOUT a registry there are no bloc edges at all. A globe carrying no
+       blocs must not draw a boundary between blocs it does not have.
+
+    Also asserted: the frame's arc lists match the classification, because the
+    runtime trusts them and re-derives nothing.
+    """
+    import globe_svg
+    from geo_frame import classify_arcs
+
+    topo = json.loads((ROOT / "assets/vectors/world-110m.json").read_text("utf-8"))
+    reg = json.loads((ROOT / "assets/vectors/regions-trade.json").read_text("utf-8"))
+    owner = {c: r["id"] for r in reg["regions"] for c in r["members"]}
+    errors = []
+
+    all_arcs = set(range(len(topo["arcs"])))
+    for label, own in (("no registry", {}), ("trade blocs", owner)):
+        coast, edge, border = classify_arcs(topo, own)
+        union = coast | edge | border
+        if len(coast) + len(edge) + len(border) != len(union):
+            errors.append(f"{label}: an arc is in more than one land layer, so "
+                          f"it is stroked twice and reads heavier than its rule")
+        missing = all_arcs - union
+        if missing:
+            errors.append(f"{label}: {len(missing)} arcs are in no layer and "
+                          f"are simply not drawn — that is a gap in a coastline")
+        if len(coast) != 548:
+            errors.append(f"{label}: {len(coast)} coast arcs, expected 548. "
+                          f"Either the topology changed or the one-user rule "
+                          f"did; both are worth stopping for")
+        if not own and edge:
+            errors.append(f"no registry: {len(edge)} bloc edges on a globe that "
+                          f"has no blocs")
+
+    R = globe_svg.DEFAULT_R
+    svg = globe_svg.render((0.0, 12.0, 0.0, R, R, R),
+                           regions_path=str(ROOT / "assets/vectors/regions-trade.json"))
+    coast, edge, border = classify_arcs(topo, owner)
+    for cls, want in (("gl-coast", coast), ("gl-bloc-edge", edge),
+                      ("gl-border", border)):
+        m = re.search(rf'class="{cls}" data-arcs="([^"]*)"', svg)
+        if not m:
+            errors.append(f"the frame carries no {cls} layer")
+            continue
+        got = {int(v) for v in m.group(1).split()}
+        if got != want:
+            errors.append(f"{cls}: the frame lists {len(got)} arcs and the "
+                          f"classification says {len(want)}; the runtime draws "
+                          f"from this list and re-derives nothing, so a frame "
+                          f"that disagrees with it is what ships")
+    return errors
+
+
 def check_earth_is_tilted():
     """The earth layer carries the tilt, at the obliquity, leaning right.
 
@@ -1847,6 +1912,7 @@ CHECKS = (
     ("the globe frame holds its contract", check_globe_frame, False, "globe", False),
     ("the earth is tilted, right, at the obliquity", check_earth_is_tilted, False, "globe", False),
     ("the globe's layers hold their contract", check_globe_layers, False, "globe", False),
+    ("the land is drawn in three weights", check_land_lines, False, "globe", False),
     ("a lane is the shortest path, and carries a code", check_trade_lanes, False, "globe", False),
     ("city names never overlap", check_city_labels_do_not_collide, False, "globe", True),
     ("a field draws no strangers", check_field_has_no_strangers, False, "globe", False),

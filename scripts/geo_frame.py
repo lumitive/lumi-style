@@ -418,6 +418,60 @@ def _rings_of(country, arcs):
     return out
 
 
+def classify_arcs(topo, owner=None):
+    """-> (coast, bloc_edge, border) as sets of arc indices.
+
+    build_worldmap.py builds a SHARED-ARC topology: an arc between two
+    countries is stored once and referenced by both. That single fact is the
+    whole mechanism here, and it needs no new data.
+
+        used by exactly one country   -> COAST      (548 of 1314)
+        used by two, different blocs  -> BLOC EDGE
+        used by two, same bloc        -> BORDER
+
+    Why it matters: every land line was drawn at one weight, so a coastline and
+    a provincial border looked alike and the eye had nothing to group by. A
+    reader asked to compare where one trade bloc sits against another needs the
+    continents to read as shapes first.
+
+    `owner` maps country code -> bloc id, or None for countries in no bloc.
+    Without it there are no blocs, every shared arc is a plain border, and the
+    result is the two-weight version — which is the right answer for a globe
+    that carries no registry.
+
+    CLASSIFIED HERE AND ONLY HERE. The runtime receives the three index lists in
+    the markup rather than re-deriving them: assets/globe/ and this file are a
+    hand-maintained port, and 0.1.404 and 0.1.405 were both spent on a repair
+    applied to one side of it.
+    """
+    owner = owner or {}
+    users = {}
+    for country in topo["countries"]:
+        for refs in country["rings"]:
+            for idx in refs:
+                users.setdefault(idx if idx >= 0 else ~idx, []).append(country["a"])
+
+    coast, bloc_edge, border = set(), set(), set()
+    for idx, who in users.items():
+        distinct = sorted(set(who))
+        # An arc referenced twice by the SAME country — a ring that walks it
+        # forward and back — is still one user and still a coast, which is why
+        # this counts DISTINCT owners rather than references.
+        if len(distinct) < 2:
+            coast.add(idx)
+        elif owner.get(distinct[0]) != owner.get(distinct[1]):
+            bloc_edge.add(idx)
+        else:
+            border.add(idx)
+    return coast, bloc_edge, border
+
+
+def arc_points(idx, arcs):
+    """The decoded polyline for one arc index. Direction is irrelevant here —
+    a line has no winding — so the sign convention rings use is dropped."""
+    return arcs[idx if idx >= 0 else ~idx]
+
+
 def _unwrap_lons(points):
     """Make a sequence of (lon, lat) continuous in longitude.
 
