@@ -3,6 +3,18 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.430 — the type checker's verdict depended on which machine asked
+
+The migration's first CI run failed on a step every local run had passed:
+mypy red on `import PIL` — Pillow is an optional local dependency
+(inspect_layout's pixel audit, check_globe's browser half) that exists on
+the operator's machine and not on a clean runner, and the playwright
+override in `pyproject.toml` had no PIL sibling. A tool configuration that
+resolves imports from whatever happens to be installed is FM-06 wearing a
+new coat: "local green" and "CI green" were briefly different claims again,
+one config line apart. Both optional dependencies now carry explicit
+`ignore_missing_imports` overrides, with the comment saying why.
+
 ## 0.1.429 — the documentation catches up with the migration it documents
 
 The closing release of the engineering-quality migration
