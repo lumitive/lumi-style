@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.414 (2026-08-10)
+   LUMI page layouts · v0.1.415 (2026-08-12)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -300,6 +300,20 @@ svg .dash { stroke-dasharray: 4 3; }
 .cap .n {
   font-weight: 700; font-size: var(--fs-fine); color: var(--tx2);
   letter-spacing: .04em;
+}
+/* The caption's description: one or two sentences saying what to NOTICE in the
+   drawing, distinct from the name above it, which states the conclusion.
+
+   It ships here because inspect_layout.py has asserted `.cap .d` since it
+   learned to read caption prose, and nothing in tokens/ rendered it — so a
+   document that added the class got browser-default 16px serif under a 10px
+   caption. The vocabulary guard did not catch it: that guard reads the probe's
+   named class lists, and this one is reached by an inline querySelector, which
+   is a hole in the guard rather than a licence for the class. Repaired the way
+   CLAUDE.md asks — the rendering ships, rather than the check being relaxed. */
+.cap .d {
+  display: block; margin-top: 3px; font-size: var(--fs-fine);
+  color: var(--tx3); font-weight: 400; letter-spacing: 0;
 }
 /* A stat band: the label is record, the value is the number. `align-items:
    start` is the rule, not a preference — a band that centres each cell lets a

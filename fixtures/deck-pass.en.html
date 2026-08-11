@@ -222,9 +222,23 @@ body.dark {
   --tx3: rgba(240,240,250,.66);
   --tx4: rgba(240,240,250,.58);
 
-  --ln1: rgba(240,240,250,.18);
-  --ln2: rgba(240,240,250,.11);
-  --ln3: rgba(240,240,250,.07);
+  /* THE LINE LADDER IS NOT THE TEXT LADDER, and it is not the light ladder
+     inverted either — which is what these were, and a reader called the dark
+     inner pages' dividers invisible.
+
+     A hairline is judged on the absolute step in light across it, not on a
+     contrast ratio, so the ratio understates the problem: 18% white on #1D1D1F
+     measures 1.71:1, which looks adequate beside the light edition's 1.47:1,
+     and is nevertheless a line you cannot find. The step is what differs — a
+     20% black rule on white moves 51 levels away from a ground with 255 to
+     spend; 18% white on near-black moves 39 from a ground with 29.
+
+     So the dark ladder is set ABOVE its light counterpart on purpose rather
+     than matched to it. Measured against --bg: 2.71 / 1.82 / 1.45, from
+     1.71 / 1.36 / 1.20. These are rules and fills only; text uses --tx*. */
+  --ln1: rgba(240,240,250,.32);
+  --ln2: rgba(240,240,250,.20);
+  --ln3: rgba(240,240,250,.13);
 
   --acc:       #7C9F63;          /* lifted for contrast on near-black */
   --acc-live:  #7FC45A;          /* 7.97:1 on the space-grey ground */
@@ -270,7 +284,7 @@ body.dark {
   --d-teal:    #3FA98C;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.414 (2026-08-10)
+   LUMI page layouts · v0.1.415 (2026-08-12)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -571,6 +585,20 @@ svg .dash { stroke-dasharray: 4 3; }
 .cap .n {
   font-weight: 700; font-size: var(--fs-fine); color: var(--tx2);
   letter-spacing: .04em;
+}
+/* The caption's description: one or two sentences saying what to NOTICE in the
+   drawing, distinct from the name above it, which states the conclusion.
+
+   It ships here because inspect_layout.py has asserted `.cap .d` since it
+   learned to read caption prose, and nothing in tokens/ rendered it — so a
+   document that added the class got browser-default 16px serif under a 10px
+   caption. The vocabulary guard did not catch it: that guard reads the probe's
+   named class lists, and this one is reached by an inline querySelector, which
+   is a hole in the guard rather than a licence for the class. Repaired the way
+   CLAUDE.md asks — the rendering ships, rather than the check being relaxed. */
+.cap .d {
+  display: block; margin-top: 3px; font-size: var(--fs-fine);
+  color: var(--tx3); font-weight: 400; letter-spacing: 0;
 }
 /* A stat band: the label is record, the value is the number. `align-items:
    start` is the rule, not a preference — a band that centres each cell lets a
@@ -1528,16 +1556,18 @@ body:not([data-geometry="portrait"]) .fig .port { display: none; }
   --gl-land: var(--acc-2);
   --gl-land-edge: var(--ln1);
   --gl-night: rgba(43,46,51,.28);
-  --gl-equator: var(--ln1);
-  --gl-tropic: var(--ln2);
+  --gold: #A07800;
+  --gl-equator: var(--gold);
+  --gl-tropic: var(--gold);
 }
 
 body.dark {
   --gl-night: rgba(10,12,20,.45);
   --gl-plate: #26262B;
   --gl-graticule: rgba(240,240,250,.16);
-  --gl-equator: rgba(240,240,250,.34);
-  --gl-tropic: rgba(240,240,250,.20);
+  --gold: #E8C25A;
+  --gl-equator: var(--gold);
+  --gl-tropic: var(--gold);
   --rg-africa: #7349C7;
   --rg-africa-stroke: #A997E0;
   --rg-africa-wash: #331D5E;
@@ -1594,10 +1624,12 @@ body.dark {
 .gl-graticule { fill: none; stroke: var(--gl-graticule); }
 .gl-land { fill: var(--gl-land); stroke: var(--gl-land-edge); stroke-width: 1; }
 /* The equator and the tropics are NAMED lines, not graticule: a reader
- * can point at them, so they are drawn a step stronger and the tropics
- * are dashed to say they are a pair. */
-.gl-equator { fill: none; stroke: var(--gl-equator); stroke-width: 3; }
-.gl-tropic { fill: none; stroke: var(--gl-tropic); stroke-width: 2; stroke-dasharray: 10 8; }
+ * can point at them, so they are gold, drawn well above the grid, and
+ * the tropics are dashed to say they are a pair. At 3 and 2 they read
+ * as heavier graticule; the weight is what separates a line you can
+ * name from a line that is scaffolding. */
+.gl-equator { fill: none; stroke: var(--gl-equator); stroke-width: 5; }
+.gl-tropic { fill: none; stroke: var(--gl-tropic); stroke-width: 3.5; stroke-dasharray: 12 9; }
 /* Night is a lighting condition laid over the geography, so it is a
  * wash rather than a fill and it takes no pointer events — a reader
  * aiming at a mark in the dark must still hit the mark. */
@@ -1787,7 +1819,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
       <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
     </div>
-    <p class="colophon">Built with lumi-style 0.1.414 &#183; source: meter management system.</p>
+    <p class="colophon">Built with lumi-style 0.1.415 &#183; source: meter management system.</p>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 18</span></div></section>
 <section class="page opener" id="openA">
@@ -2290,7 +2322,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>
     </div>
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.414.
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.415.
     Source: meter management system; every number here is invented, and a
     bracketed slot must not ship.</p></div>
   </div>

@@ -3,6 +3,97 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.415 — a lane is drawn over water by construction, and the named parallels stop being graticule
+
+**The lanes.** A trade lane drawn as a great circle goes through the planet. The
+first repair named the canals and straits as waypoints, which is what an atlas
+does, and it was not enough: the legs BETWEEN the named gaps ran straight across
+Spain, France, Mexico, Australia and South Africa. Measured against the shipped
+topology, **586 of 1,494 samples on twelve of thirteen lanes were inside a
+country polygon**.
+
+The second repair was more waypoints. It went from 39% of samples on land to 14%
+and **stopped converging**, because every waypoint you add creates two legs that
+each clip something new. Three rounds of that is the whole lesson: hand-placed
+waypoints are whack-a-mole, and the shape of the fix was wrong rather than
+incomplete.
+
+`scripts/sea_route.py` routes over water **by construction**. It rasterizes the
+land polygons into a quarter-degree mask, carves the canals, and runs Dijkstra
+over the water cells; a route it returns cannot cross land, because a path
+through a land cell does not exist in the graph. That is a different kind of
+guarantee than a route that has been checked and found clean.
+
+Two lists, and the distinction between them is the honest part. **Canals** are
+open because somebody dug them — no raster of a coastline contains Suez at 200
+metres. **Narrows** are open because the raster is coarser than the water:
+Gibraltar is 14km against a 28km cell, and the first run of the router returned
+NO ROUTE from the Gulf to the Indian Ocean because Hormuz had closed. Raising
+the resolution moves that line without removing it.
+
+Re-measured on the geometry that ships: **52 of 1,847 samples, every one of them
+one to three points at a quay or inside the Panama cut.** Both correct — a lane
+ends at a dock and a ship goes through the canal.
+
+**The check discriminates.** `--check` also measures the naive great circle
+between the same ports and requires it to come back dry, 55% to 92% on land. A
+check that can only pass has not been shown to distinguish anything, and three
+checks in this repository were written, run green, and later found incapable of
+failing.
+
+**Two defects found while measuring, both of them mine, both the same family.**
+The land count was taken against a route rebuilt from the waypoints rather than
+against `lane["points"]`, which is what the document draws — a measurement of a
+reconstruction is not a measurement of the artifact, and it disagreed with the
+router by 22 samples. And Douglas-Peucker was **undoing the routing**: it
+collapsed each coastal detour into the chord the detour existed to avoid, so
+every corner was on water and the line between two corners was through Holland.
+Simplification is now refused where the shortcut is dry.
+
+**The parallels.** The equator and the tropics are where the planet's axial tilt
+puts the sun overhead; the graticule is a grid somebody chose. Drawing them in
+the same grey said they were the same kind of thing. They are now gold — antique
+rather than leaf, because a metallic gold measures 1.7:1 on the plate and the
+stroke floor is 3.0 — and heavier, equator 3 to 5 and tropics 2 to 3.5.
+
+**The dark rule ladder was the light one copied across.** A reader called the
+dark edition's inner-page dividers invisible. The ratio understated it: 18%
+white on near-black measures 1.71:1, which reads as adequate beside the light
+edition's 1.47:1, and is still a line you cannot find. A hairline is judged on
+the absolute step in light across it, and there are 29 levels to spend down here
+against 255 up there. Raised to .32/.20/.13, above its light counterpart on
+purpose rather than matched to it.
+
+**Three parsing and provenance defects, each found by making a change the old
+code had never been asked to make.**
+
+`css_vars` in `check_repo.py` never stripped comments. Every token here is
+documented in prose beside it and that prose cites token names, so a comment
+reading "measured against --bg: 2.71 / 1.82" parsed as a declaration of `--bg`.
+It failed loudly, which was luck — the same misparse on a token the JSON does
+not carry would have been silently absent.
+
+`build_brand.py` resolved the DARK block against the LIGHT palette. Invisible
+for as long as every dark chrome value was a literal, because there was nothing
+to resolve. The moment `--gl-equator` became `var(--gold)`, the dark mark would
+have been stamped with the light gold at 1.4:1 on a near-black plate — and a
+self-contained mark carries resolved literals, so nothing downstream could have
+corrected it.
+
+`.cap .d` had **no rendering in `tokens/`**. `inspect_layout.py` has asserted it
+since it learned to read caption prose, so a document that added the class got
+browser-default serif under a 10px caption. The vocabulary guard did not catch
+it because that guard reads the probe's named class lists and this one is
+reached by an inline `querySelector` — a hole in the guard, not a licence for
+the class. Repaired the way this file's own convention asks: the rendering
+ships, rather than the check being relaxed.
+
+**The brand lock did its job and was re-stamped with authorization.** The frozen
+marks carry resolved literals, so they picked up neither the gold nor the
+weights; the lock refused the regenerated files and forced the question to the
+owner rather than letting the marks drift. Re-cut and re-locked with the reason
+recorded in the lock file.
+
 ## 0.1.414 — the flash was never fixed: the guard shipped in Python and the runtime is JavaScript
 
 0.1.411 found the flash, named the country, measured the polygon at 3.143e6

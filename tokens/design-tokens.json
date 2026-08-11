@@ -1,5 +1,5 @@
 {
-  "$schema_note": "LUMI design tokens v0.1.414 (2026-08-10). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
+  "$schema_note": "LUMI design tokens v0.1.415 (2026-08-12). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
   "palette_default": "light",
   "palette": {
     "light": {
@@ -54,9 +54,9 @@
         0.58
       ],
       "rule_ladder": [
-        0.18,
-        0.11,
-        0.07
+        0.32,
+        0.2,
+        0.13
       ],
       "accent": "#7C9F63",
       "accent_deep": "#48633E",
