@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.405.** This file restates part of `references/`; where they
+> **lumi-style 0.1.406.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -41,9 +41,19 @@ most skeptical reader, and treat over-design as a finding, not a virtue.
 0. `references/brand.md` — **read this first, and commit.** The water thesis, the
    two structural devices (the **field**: one mark per datum; the **waterline**: one horizon per page,
    air above and record below; the **ground**: continuous water and light behind
-   the page, which may be decorative only because it cannot be counted),
+   the page, now seigaiha-derived, which may be decorative only because it
+   cannot be counted),
    and the accelerators — the only place in this repository that says what to
    reach for. A field with nothing behind it is decoration and is checked for.
+   Brand.md 2c also sets the **register**: sales, consulting and internal
+   analysis are restrained; training and user documentation may declare
+   `<body data-register="expressive">`, which unlocks the hand-drawn icon skin
+   (`scripts/embed_icons.py --register expressive`), the illustration set
+   (`scripts/embed_illustrations.py`, one scene per page as a ceiling, one
+   meaning per scene) and the seigaiha pattern band (covers, part openers and
+   footer strips — never behind a figure, a table, a field or body text). The
+   register adds vocabulary, never exceptions: contrast floors, the lime's
+   surface-only rule, the red lines and every figure rule bind in both.
 1. `references/writing-rules.md` — wording red lines, banned phrases, punctuation,
    number discipline, LUMI voice, de-AI-flavor checklist. Non-negotiable.
 2. `references/storyline-templates.md` — pick the narrative skeleton by scenario
@@ -81,7 +91,7 @@ most skeptical reader, and treat over-design as a finding, not a virtue.
 4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish),
    the D-series and `inspect_layout.py` diagnostics (**design judgements
    reported, never gating** — but an unmeasurable check exits 1 and says what it
-   could not find, and `--deliverable` exits 1 on the ten findings that are
+   could not find, and `--deliverable` exits 1 on the eleven findings that are
    decidable rather than aesthetic),
    and H1–H6 self-scoring. Never self-score 5 before a reader has scored it, and
    always give the reason for the score, not just the number.
@@ -121,7 +131,8 @@ under the figure is the page's source and the footer carries the page number.
 `python3 scripts/inspect_layout.py <file>` and look at the contact sheet it
 builds; before handing the file over, run it again with **`--deliverable`**,
 which exits non-zero on collision, content spill, page height, hidden content, a
-wrapped footer, an overspent title reserve, a role split and a lost datum. A clean run there is not
+wrapped footer, a seigaiha band under evidence, an overspent title reserve, a
+role split and a lost datum. A clean run there is not
 a verified document — it means nothing measurable is broken. A rule that loses on specificity is indistinguishable from no rule: one
 had been in the layout file since 0.1.339, had never once applied, and left twelve
 of fifteen multi-column pages with their columns out of line. Worse: a probe that
@@ -165,7 +176,7 @@ two-pass audit; §6b de-translationese when the Chinese was translated from
 English), and only then the pre-delivery checklist in the rubric. Measure both
 halves rather than reading them: `python3 scripts/check_prose.py <file>` for
 English prose, and `python3 scripts/check_design.py <file>` for any HTML
-deliverable. **D12, D14 and D15 gate; every other D-metric is reported for you to
+deliverable. **D12, D14, D15 and D19 gate; every other D-metric is reported for you to
 judge** — a page is done when a human reads it as intentional, and a threshold
 satisfiable without improving the page ends the looking. (This line claimed
 "D1–D4 and D6 gate" for eight releases, naming four metrics that never did and

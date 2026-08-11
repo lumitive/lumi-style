@@ -3,6 +3,63 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.406 — the expressive register: hand-drawn icons, twelve scenes, and the water learns its ancestry
+
+**The case.** The owner reviewed the skill from the perspective of its three
+deliverable families and found the visual range too narrow for training and
+user documentation: one icon skin, no illustration capability, and a water
+language that never showed the Japanese ancestry the `上善若水` thesis points at.
+The ask named a hand-drawn icon style, an exaggerated cartoon illustration
+style with Japanese design influence, and seigaiha water. An owner directive is
+a documented case; the design record is
+`specs/2026-08-11-expressive-register-design.md`.
+
+**Two registers, one discipline** (`brand.md` 2c). A document may declare
+`data-register="expressive"`; training and user documentation may, sales,
+consulting and internal analysis may not. The register adds vocabulary — it
+changes no floor, no ceiling, no red line, and an evidence page reads the same
+in both. The word already meant typography in 2b; 2c takes the older, linguistic
+sense and says so, because a name collision inside one brand file is drift with
+a head start.
+
+**What ships, because a rule may not mandate an asset the package does not
+ship** (convention 5, learned three times):
+
+- `assets/icons/lumi/` — 24 hand-drawn skins over the same reserved meanings,
+  same 24×24 `currentColor` grid, name-parity with Lucide enforced so the
+  vocabulary cannot fork; a missing skin degrades to the neutral glyph. Six new
+  reserved meanings for teaching documents (tip, step, practice, caution,
+  question, done). The requested source library was checked first and its
+  license forbids redistribution, so nothing from it ships — the skins are
+  first-party, drawn for this repository.
+- `assets/illustrations/` — twelve scenes drawn in code
+  (`build_illustrations.py`), painted only with `var()` tokens from a role
+  list the tokens themselves declare, so a scene re-skins with the palette and
+  the checker asserts a vocabulary the package ships. One meaning per scene,
+  stated in a manifest; one illustration per page is a ceiling.
+- The seigaiha pair (`build_seigaiha.py`). The ground is seigaiha-*derived* —
+  arcs varied from fixed tables, uncountable, inside every existing ground
+  ceiling — and replaces the sixteen polylines in both registers. The true
+  repeat is a separate bounded device, the pattern band, legal only where
+  nothing sits on it: a pure seigaiha is repeated identical marks, which is
+  exactly what the ground rule forbids, so the ancestry ships as two devices
+  with two honesty contracts instead of one rule quietly weakened.
+
+**The decidable halves gate; the aesthetic halves are read.** `check_design.py`
+D19 fails a document that uses expressive vocabulary without declaring the
+register, or sets two illustrations on one page — both decidable the way D12
+and D14 are. `inspect_layout.py` gains its eleventh rendered finding: a band
+whose box intersects a figure, a table, a field or running text. Whether a
+scene *means* what its page needs stays with the reader and the manifest. A
+fourth fixture (`deck-expressive.en.html`) is the non-vacuous pass — register
+declared, vocabulary in use, every gate green — because `deck-pass` reads D19
+ok with no vocabulary at all, which cannot tell "honoured" from "matched
+nothing"; the failing case is planted on `deck-broken` page 16.
+
+Also fixed in passing: `design-tokens.json` still described the icon set as
+"the eight semantic icons", sixty-seven releases after 0.1.338 replaced them
+with the Lucide library.
+
 ## 0.1.405 — LUMIVATE's mark, a lock with teeth, and the ring's last hiding place
 
 **The brand directory.** `assets/brand/lumivate/` carries two globe marks,

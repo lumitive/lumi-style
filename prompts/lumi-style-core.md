@@ -54,7 +54,23 @@ you can see light on it.
   may not, because it is uncountable — nothing to count, nothing to misread. It
   may never exceed 1.40:1 against its canvas, measured on the render, and never
   resolve into repeated identical marks.* The wider hue range lives here; the
-  foreground stays one colour one meaning.
+  foreground stays one colour one meaning. The shipped drawing is
+  seigaiha-derived — Japanese water, arcs varied so nothing repeats
+  (`assets/vectors/seigaiha-ground.svg`).
+
+**Two document registers** (distinct from the type register below). Sales,
+consulting and internal analysis are **restrained** — everything in this file,
+as written. Training and user documentation may declare
+`<body data-register="expressive">`, which adds vocabulary, never exceptions:
+a hand-drawn icon skin (`assets/icons/lumi/`), an illustration set
+(`assets/illustrations/` — flat token-painted scenes, one meaning per scene
+per document, **one illustration per page as a ceiling**, beside content and
+never behind text or evidence), and the true seigaiha repeat as a bounded
+pattern band (covers, part openers, footer strips only — a countable
+decoration must never sit where it could read as evidence). Every floor,
+ceiling, red line and figure rule binds in both registers. The assets ship in
+the package; **if you cannot read them, stay restrained rather than
+improvising look-alikes.**
 
 **The acid green** `#B8FF00` is a surface, not text: 1.21:1 on white, 16.44:1 with
 near-black reversed out of it. Part openers are full lime fields with the claim in
@@ -386,6 +402,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.405** snapshot, cut 2026-08-10. It is self-contained by
+> This file is the **0.1.406** snapshot, cut 2026-08-11. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

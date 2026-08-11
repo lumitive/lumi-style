@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.405"
+  version: "0.1.406"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -105,7 +105,12 @@ been removed; they now apply at step 4 instead of framing step 0.
    pick the scenario: sales/marketing · consulting/client document · internal
    analysis · training material — four different narrative skeletons. Read
    [`references/storyline-templates.md`](references/storyline-templates.md) and
-   choose before writing. **Work in parallel where the platform allows** —
+   choose before writing. The scenario also settles the **register**
+   (`brand.md` 2c): sales, consulting and internal analysis are restrained;
+   training and user documentation may declare
+   `<body data-register="expressive">` and draw on the hand-drawn icon skin,
+   the illustration set and the seigaiha pattern band — vocabulary, never
+   exceptions, and evidence pages obey every restrained rule regardless. **Work in parallel where the platform allows** —
    pages are independent once the storyline is fixed — and when the expected
    end-to-end generation time passes ten minutes, say so before starting.
 2. **Write and review** under
@@ -155,8 +160,12 @@ been removed; they now apply at step 4 instead of framing step 0.
    the content**: §3's table is a reference of what has worked, not a lookup, and
    a page that wants something not in it should get it. **Embed the vendored
    assets rather than improvising**: `scripts/embed_font.py` for the display face,
-   `scripts/embed_icons.py` for the icon library, `assets/vectors/` for the globe
-   and trade map. **For a world figure that states data, generate it rather than
+   `scripts/embed_icons.py` for the icon library (`--register expressive` for the
+   hand-drawn skin), `scripts/embed_illustrations.py` for the illustration scenes
+   (expressive register only, one per page as a ceiling, meanings from its
+   manifest), `assets/vectors/` for the globe, the trade map, and the seigaiha
+   drawings (`seigaiha-ground.svg` for the ground in both registers,
+   `seigaiha-band.svg` for the expressive band — placement rules in `brand.md`). **For a world figure that states data, generate it rather than
    drawing it**: `python3 scripts/regionmap_svg.py` emits the flat trade-region
    map with its labels already placed (`--labels zh` for Chinese, `--states`
    for the data), and `python3 scripts/globe_svg.py` the rotating globe.
@@ -217,15 +226,18 @@ been removed; they now apply at step 4 instead of framing step 0.
    scripts/inspect_layout.py <file>` renders the pages and builds a contact sheet;
    its design judgements gate nothing but it **exits 1 when a check could not be
    measured**, and those lines come before every green one. Run it again with
-   **`--deliverable`**, which exits non-zero on the ten findings a rendered page
+   **`--deliverable`**, which exits non-zero on the eleven findings a rendered page
    can be wrong about decidably: collision, content spill, page height, hidden
    content, a wrapped footer, a viewBox that does not parse, a drawing clipped by
-   its own viewBox, an overspent title reserve, a role split, a lost datum.
-   `python3 scripts/check_design.py <file>` reports D1–D17 and gates on three
+   its own viewBox, a seigaiha band under evidence or text, an overspent title
+   reserve, a role split, a lost datum.
+   `python3 scripts/check_design.py <file>` reports D1–D19 and gates on four
    things, none of them a design judgement: **D12**, the handling terms and origin
    every page owes (the terms open with the seal-red `shield` handling marker —
    the rendering ships in `tokens/`, the gate is the terms); **D14**, any slot
-   left for yourself; and **D15**, a file path in a footer. `python3 scripts/check_prose.py <file>` grades the English, and
+   left for yourself; **D15**, a file path in a footer; and **D19**, expressive
+   vocabulary in a document that never declared the register, or a second
+   illustration on a page. `python3 scripts/check_prose.py <file>` grades the English, and
    **M12 fails on Chinese in text a reader sees** when the document declares
    English — a clean banned-phrase run is not a language pass.
    **A clean run is not a verified document. Look at the sheet.**

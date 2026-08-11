@@ -73,24 +73,31 @@ references/storyline-templates.md narrative skeletons: sales (value & future) ·
                                   internal analysis · training + shared discipline
 references/design-rules.md        design language: color semantics · dual-voice typography ·
                                   five chart iron rules · semantic icons · layout
-references/eval-rubric.md         eval rubric M1–M12 / D1–D17 / H1–H6 + the review protocol
+references/eval-rubric.md         eval rubric M1–M12 / D1–D19 / H1–H6 + the review protocol
 tokens/                           design tokens (CSS + JSON): two ladders · palette · type · scale
 assets/fonts                      D-DIN, vendored (SIL OFL) — embed, never link
-assets/icons                      vendored Lucide library (ISC) + the reserved bindings, currentColor
-assets/vectors                    orthographic globe · flat trade map, generated from lat/lon
+assets/icons                      vendored Lucide library (ISC) + the reserved bindings, currentColor,
+                                  plus lumi/, the first-party hand-drawn skin (expressive register)
+assets/illustrations              twelve first-party scenes, token-painted, one meaning each
+                                  (expressive register; drawn by build_illustrations)
+assets/vectors                    orthographic globe · flat trade map, generated from lat/lon,
+                                  and the seigaiha water pair (ground + pattern band)
 assets/vectors/world-110m.json    Natural Earth 110m as a shared-arc topology (public domain)
 assets/vectors/regions.json       trade-region registry, node point layer, bilingual names
 assets/geo                        the shared geometry core: projection, topology decode, hit test
 assets/globe                      the globe component: SVG and canvas back ends over the core
 fixtures/                         synthetic deliverables the checkers are tested on — a
                                   well-formed one, one with a named defect per page, one
-                                  that exists only to fail, and a Chinese prose pair
+                                  that exists only to fail, an expressive-register training
+                                  deck, and a Chinese prose pair
 conformance/                      fixed task suite · the tracked cross-agent scoreboard
 scripts/                          check_repo · check_prose (M) · check_design (D) ·
                                   inspect_layout (renders and looks) · export_pdf (PDF/4K) ·
                                   output_dir (where a deliverable belongs) ·
                                   check_fixtures · build_entrypoints · build_fixtures ·
-                                  run_conformance · embed_font · embed_icons · build_geography
+                                  run_conformance · embed_font · embed_icons ·
+                                  embed_illustrations · build_illustrations ·
+                                  build_seigaiha · build_geography
 adapters/platforms.json           the platform registry: install paths · capability
                                   tiers · entry files, guarded by check_repo
 adapters/*.md                     per-platform loading notes
@@ -126,7 +133,10 @@ leads with A4), handling terms behind a seal shield on every page, a cover and
 closing sharing one vector mark, a lime opener at every part boundary, one claim
 per screen and one focal element on it, visual blocks carrying about half of
 every content page, numbers are the copy, titles are conclusions, and a table is
-for values.**
+for values.** Training and user documentation may add a second, expressive
+register — hand-drawn icon skins, twelve token-painted illustration scenes, a
+seigaiha pattern band on surfaces that carry no evidence — vocabulary on top of
+the same discipline, never exceptions to it (`references/brand.md` 2c).
 The layout skeleton was researched from the public web design of SpaceX and Tesla
 (whitespace, spec-first copy, monochrome discipline); the palette and its
 semantics are LUMI's own — one color, one meaning, enforced more strictly than
