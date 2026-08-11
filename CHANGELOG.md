@@ -3,6 +3,30 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.423 — the commit subject convention grows teeth, scoped to where it matters
+
+Release R7 of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`). CLAUDE.md rule 3 has
+required `X.Y.Z — summary` subjects for a long time; ~10 of the last 40
+commits deviated and nothing noticed, because nothing checked.
+
+**`check_commit_convention` is the 22nd guard**, and its scope is the
+lesson: only a commit that TOUCHES `CHANGELOG.md` must carry the version
+prefix, and the version must equal the newest heading — specs-only commits,
+fixture regens and backlog edits are exempt, which is exactly what the
+historical deviations were. A convention enforced wider than its purpose
+would have reddened ten legitimate commits to catch zero real defects.
+Merge commits are judged by their second parent; a tarball checkout (no
+`.git`) asserts nothing; history is not retroactively reddened — only HEAD
+is examined. Branch naming stays unenforced, recorded as AG-2.
+
+Tested on synthetic git repositories (conforming passes; missing prefix
+fails; subject/heading version mismatch fails — "one of them is lying about
+what this release is"; non-CHANGELOG commits and no-git trees are exempt),
+and deliberately reddened once on the live repository: a commit touching
+CHANGELOG.md with the subject "a subject with no version" failed the guard
+and was reset away.
+
 ## 0.1.422 — the ledgers: gaps, failure modes, and the backlog comes back from the dead
 
 Release R6 of the engineering-quality migration
