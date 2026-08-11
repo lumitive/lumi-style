@@ -623,6 +623,15 @@ bindings the choice is free, but **within one document an icon still means
 exactly one thing** — an icon reused for a second meaning is worse than no icon,
 because the reader learns a vocabulary that then lies to them.
 
+**Two skins, one vocabulary.** `assets/icons/lumi/` is the first-party
+hand-drawn skin for the expressive register (brand.md 2c): the same names on
+the same grid, re-stroked slightly heavier (1.75 against the 1.25 hairline),
+resolved lumi-first by `--register expressive` with Lucide as the fallback. A
+skin never introduces a name the library cannot resolve — `embed_icons.py
+--check` enforces the parity — so `shield` means compliance in both registers
+and a missing skin degrades to the neutral glyph, not to nothing. Restrained
+documents use the hairline skin only.
+
 **Where they go**: the section eyebrow on a content page carries the icon that
 names that page's subject, ahead of the `PART <letter> · <subject>` label the
 §3 eyebrow contract sets. **So does every labelled node inside a figure and
@@ -680,6 +689,39 @@ Field-tested layout guards (each from a real defect):
   (min-height) and stack stat numbers above their labels, or differing title
   wraps misalign every row below.
 
+## 5b · Illustration: scenes for the expressive register
+
+**The illustration set ships with this skill** — `assets/illustrations/`,
+twelve scenes drawn by `scripts/build_illustrations.py`, embedded per document
+by `scripts/embed_illustrations.py` (`--list`, `--search`, sprite by name).
+Expressive register only (brand.md 2c); a restrained document carries none.
+
+**The style is the contract**, and the generator holds it: 320×240, flat
+shapes only — no gradients, no raster, no `<text>` — exaggerated cartoon
+proportions (the head rivals the body), Japanese flat composition (asymmetric
+placement, generous negative space, thick/thin line contrast). Every scene
+carries a waterline, water appears as seigaiha-derived arc texture, and every
+paint is a `var()` token from the `illustration.roles` list in
+`tokens/design-tokens.json`, so a scene re-skins with the palette it lands in
+— that token discipline, not a stamped logo, is how the brand lives inside the
+drawing. People are painted from the same roles: no hex, no skin tones. The
+lime keeps its surface rule at scene scale — at most one filled lime panel,
+never a stroke. `embed_illustrations.py --check` gates all of it.
+
+**Semantics mirror icons.** The manifest beside the files states each scene's
+one meaning, and within one document an illustration means exactly one thing —
+a scene reused for a second meaning teaches a vocabulary and then lies in it.
+Outside the manifest's meaning an illustration is the wrong scene, not a
+decoration; if nothing fits, the page does not get one.
+
+**Placement and budget.** An illustration sits beside content — an opener, an
+empty state, a step header — never behind text, never behind evidence, and
+never on the same surface as a figure or table. **One illustration per page is
+a ceiling, not a target**; most pages carry none, and a page that needs two
+scenes is two pages. Instantiate as `<svg class="illo"><use href="#il-NAME"/>
+</svg>`; the base rendering ships in `tokens/lumi-layouts.css` and, like an
+icon, an illustration never inherits container scaling.
+
 ## 7 · The verification matrix
 
 A layout is verified only across the **matrix**, not at a point:
@@ -727,6 +769,14 @@ A layout is verified only across the **matrix**, not at a point:
   gives two 370px gutters, so a page that is a split in landscape usually wants a
   different structure in portrait. Collapsing every horizontal layout at a width
   breakpoint is not a portrait design; it is the landscape design giving up.
+- **Register axis.** A document declaring `data-register="expressive"` adds
+  three checks at the browser pass: no band under a figure, a table or body
+  text (a decidable finding, not a taste call); at most one illustration per
+  page, sitting beside content rather than behind it; and the illustration's
+  meaning matching its manifest entry — the scene vocabulary read against the
+  page, by a person. Expressive vocabulary appearing in a document that never
+  declared the register is the inverse finding and `check_design.py` reports
+  it.
 - **Export axis** (owner directive 2026-08-09). `scripts/export_pdf.py` renders
   a deliverable at the stage geometry: **PDF** as one vector page per `.page`
   (no resolution to pick), and **page rasters** at `--scale` device pixels per

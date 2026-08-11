@@ -200,6 +200,18 @@
 }
 /* The inline icon, one size, accent by default; a container re-colours it. */
 svg.ic { width: 16px; height: 16px; flex: none; color: var(--acc); }
+/* The illustration (expressive register, design-rules.md §5b): one size like
+   an icon, never inheriting container scaling; it sits beside content in a
+   flex/grid cell, never behind it. One per page is a ceiling. */
+svg.illo { width: 280px; height: 210px; flex: none; }
+/* The pattern band (expressive register, brand.md): the honest seigaiha
+   repeat, a strip on surfaces that carry no evidence — covers, part openers,
+   footer strips. Both custom properties are ceilings. */
+svg.band {
+  display: block; width: 100%;
+  height: var(--band-h); max-height: var(--band-h-max);
+  opacity: var(--band-alpha);
+}
 h2.t {
   font-family: var(--din); font-size: var(--fs-title); font-weight: var(--w-title);
   line-height: 1.02; letter-spacing: var(--ls-title); text-transform: uppercase;

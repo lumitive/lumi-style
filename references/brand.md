@@ -132,6 +132,13 @@ the waterline and thin out above it: water sits under the surface, so the air
 where the claim lives stays clear. That is what makes the ground structural
 rather than wallpaper.
 
+The shipped ground drawing is **seigaiha-derived** (`scripts/build_seigaiha.py`,
+tracked at `assets/vectors/seigaiha-ground.svg`): clusters of concentric arcs
+whose radii, count, weight and position all vary from fixed tables, so the
+Japanese ancestry of this water reads while nothing repeats — the uncountability
+rule above, held. The true repeat is a different device with a different
+honesty contract: the band, below.
+
 ### The waterline
 
 Every page has one horizon where the light collects.
@@ -148,6 +155,25 @@ from the top down reads as *poured*.
 > **What makes a waterline dishonest: two of them, or none.** More than one
 > horizon and the page has no datum, it has stripes. None, and it is a document
 > again.
+
+### The pattern band — the honest repeat (expressive register only)
+
+A true seigaiha repeat — identical fans on a strict lattice — is everything a
+ground may not be: countable on purpose. It exists as its own device
+(`scripts/build_seigaiha.py`, tracked at `assets/vectors/seigaiha-band.svg`,
+sized and quieted by the `--band-*` tokens) because the ground rule's logic
+does not actually forbid pattern; it forbids pattern *where it could be read
+as evidence*. So the band is legal exactly where nothing sits on it: a cover,
+a part opener, a footer strip — and **never behind a figure, a table, a field,
+or body text**. Both of its numbers are ceilings: height (`--band-h-max`) and
+loudness (`--band-alpha`), and quieter or shorter is always allowed.
+
+> **What makes a band dishonest: sitting under evidence, or being loud.** A
+> countable decoration under data marks is a second field the reader will try
+> to read; a band louder than the faintest text ink is contending with words.
+
+The band belongs to the expressive register (2c below) and does not appear in
+restrained documents at all — their only pattern is the uncountable ground.
 
 ### The acid green
 
@@ -286,6 +312,38 @@ because 0.1.332 required an embedded display face, shipped none, and rendered
 nothing until 0.1.337. The register comes from weight, scale and leading, which are
 free.
 
+## 2c · The two registers: restrained and expressive
+
+2b is the register the type speaks in. This is the other, older sense of the
+word — the register a document is *written* in: who the reader is, and what
+liberties the page may take with them. There are two, and a document declares
+its choice once, as `<body data-register="expressive">`; no declaration means
+restrained.
+
+**Restrained** is everything above, unchanged, and is mandatory for sales,
+consulting and internal analysis. The reader of those documents is
+adjudicating — weighing evidence, deciding whether to trust — and everything
+this file says about non-contention exists for exactly that reader.
+
+**Expressive** is available to training and user documentation, where the
+reader is learning rather than adjudicating, and a page that smiles helps
+rather than undermines. It adds vocabulary, never exceptions:
+
+- **the hand-drawn icon skin** (`assets/icons/lumi/`, resolved by
+  `scripts/embed_icons.py --register expressive`) — the same reserved meanings
+  in a warmer hand, falling back to the neutral glyph where no skin exists;
+- **the illustration set** (`assets/illustrations/`, embedded by
+  `scripts/embed_illustrations.py`) — twelve scenes drawn from the palette's
+  own tokens, one meaning per scene per document, at most one per page;
+- **the pattern band** (above) — the honest seigaiha repeat, on surfaces that
+  carry no evidence.
+
+What the register never changes: the contrast floors, the lime's surface-only
+rule, the one-waterline rule, the field's honesty, the ground's ceilings, the
+red lines, and every rule about figures, tables and numbers. An evidence page
+in a training deck is a restrained page that happens to have friendly
+neighbours. The register is a vocabulary switch, not a discipline switch.
+
 ## 3 · Accelerators — what a LUMI page should be willing to do
 
 This section exists because for four releases this skill said only what not to do,
@@ -321,6 +379,13 @@ are permissions. They are not requirements, and none of them outranks a red line
 Wordmark small. No watermark, no ornament, no flourish, no logo behind the
 content. LUMI's mark appears twice in a deck — the cover and the closing — and is
 never larger than it needs to be to be read.
+
+The expressive register (2c) does not repeal this; it re-scopes what counts as
+contention for a reader who is learning. Its illustrations and bands are
+vocabulary with assigned meanings, placed where no evidence lives — they sit
+beside the content, never behind it, and an expressive page still has exactly
+one loudest thing, which is never the brand. In the restrained register this
+section applies as written, ornament ban included.
 
 This is the part that makes impact and non-contention compatible rather than
 opposed. If

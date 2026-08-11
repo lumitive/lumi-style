@@ -65,6 +65,12 @@ sits between them.
   the risk actually was. A reader called the resulting covers unprofessional and
   asked for vector geography. Vector geography needs no photo library, so 0.1.338
   ships it instead of banning it.
+
+  In the expressive register (`brand.md` 2c) the cover may additionally carry
+  the seigaiha **pattern band** as a strip, and its one vector mark may be an
+  illustration from the shipped set — the mark contract still binds: one mark,
+  saying something true about the document, sized as a field the typography
+  sits against. Photography stays out in both registers.
 - **Closing**: one closing statement that echoes the action page. A short
   imperative ("Let the numbers decide.") is one option, not the required form —
   a punchy four-word command is a recognized AI-deck ending, and it is weaker than
@@ -144,6 +150,13 @@ training deck reviewed as the reference.)
 - **Geometry**: A4 portrait is the primary geometry — a training document is
   printed, annotated and bound (`design-rules.md` §7). The 16:9 composition is
   still built and verified as the projection edition.
+- **Register**: training and user documentation may declare
+  `data-register="expressive"` (`brand.md` 2c) and draw on the hand-drawn icon
+  skin, the illustration set (one scene per page is a ceiling, meanings from
+  the manifest — `design-rules.md` §5b), and the seigaiha pattern band on
+  covers, part openers and footer strips. User documentation rides this
+  template and this register; it is not a separate genre. Evidence pages obey
+  every restrained rule regardless.
 
 ## Shared discipline
 
