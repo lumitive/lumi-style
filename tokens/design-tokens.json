@@ -209,6 +209,20 @@
     "vectors": "assets/vectors/ — globe-orthographic.svg and world-flat.svg (original geometry), seigaiha-ground.svg and seigaiha-band.svg (scripts/build_seigaiha.py)",
     "note": "v0.1.338. A rule may not mandate an asset the package does not ship: §5 required a semantic icon library for six versions and shipped none, so deliverables carried zero icons, and the cover rule banned imagery because there was no photo library rather than shipping vector geography that needs none."
   },
+  "illustration": {
+    "generated_by": "scripts/build_illustrations.py -> assets/illustrations/",
+    "viewBox": "0 0 320 240",
+    "register": "expressive only; ceiling one illustration per page",
+    "roles": [
+      "--bg", "--nw", "--card-bg",
+      "--acc", "--acc-1", "--acc-2", "--acc-3", "--acc-4", "--acc-5",
+      "--acc-wash", "--acc-inbox", "--on-acc",
+      "--lime", "--on-lime",
+      "--d-blue", "--d-teal",
+      "--seal", "--amber"
+    ],
+    "note": "The paint vocabulary an illustration may use — scripts/embed_illustrations.py --check enforces it, and reads it from here so the probe asserts a vocabulary the tokens actually ship. Every paint is a var() reference: an illustration re-skins with the palette, which is how the brand lives inside the drawing. The lime keeps its surface-only rule at scene scale: at most one filled lime panel, never a stroke. People are painted from these roles — no hex, no skin tones."
+  },
   "band": {
     "generated_by": "scripts/build_seigaiha.py -> assets/vectors/seigaiha-band.svg",
     "height": "72px",

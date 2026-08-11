@@ -1,0 +1,122 @@
+{
+  "onboarding": {
+    "meaning": "the first arrival: on the dock, the gate ahead",
+    "tags": [
+      "welcome",
+      "start",
+      "begin",
+      "intro",
+      "gate",
+      "torii"
+    ]
+  },
+  "search-empty": {
+    "meaning": "an empty result: the line is cast, nothing on the hook yet",
+    "tags": [
+      "empty",
+      "no-results",
+      "search",
+      "fishing",
+      "missing"
+    ]
+  },
+  "success": {
+    "meaning": "the catch held up, the panel says done",
+    "tags": [
+      "done",
+      "complete",
+      "achievement",
+      "check",
+      "catch"
+    ]
+  },
+  "error": {
+    "meaning": "the bucket tipped: something spilled, and it is contained",
+    "tags": [
+      "failure",
+      "spill",
+      "mistake",
+      "alert",
+      "broken"
+    ]
+  },
+  "teamwork": {
+    "meaning": "two rowers, one boat, one current",
+    "tags": [
+      "collaboration",
+      "together",
+      "crew",
+      "rowing"
+    ]
+  },
+  "data-flow": {
+    "meaning": "records riding the current downstream",
+    "tags": [
+      "pipeline",
+      "stream",
+      "documents",
+      "integration",
+      "flow"
+    ]
+  },
+  "decision": {
+    "meaning": "the river forks at the rock; one channel is taken",
+    "tags": [
+      "choice",
+      "fork",
+      "branch",
+      "tradeoff",
+      "crossroads"
+    ]
+  },
+  "practice": {
+    "meaning": "copying the wave until the hand knows it",
+    "tags": [
+      "exercise",
+      "training",
+      "learn",
+      "repeat",
+      "drill"
+    ]
+  },
+  "setup": {
+    "meaning": "the spanner and the gear, before the tide",
+    "tags": [
+      "install",
+      "configure",
+      "tools",
+      "prepare",
+      "wrench"
+    ]
+  },
+  "feedback": {
+    "meaning": "a ripple sent out and the reply that returns",
+    "tags": [
+      "response",
+      "review",
+      "echo",
+      "comment",
+      "reply"
+    ]
+  },
+  "security": {
+    "meaning": "the breakwater takes the wave; the harbour stays calm",
+    "tags": [
+      "protection",
+      "safety",
+      "defense",
+      "compliance",
+      "harbour"
+    ]
+  },
+  "progress": {
+    "meaning": "the koi climbing the waterfall, most of the way up",
+    "tags": [
+      "advance",
+      "growth",
+      "milestone",
+      "koi",
+      "waterfall"
+    ]
+  }
+}
