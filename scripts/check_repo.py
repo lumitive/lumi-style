@@ -1632,6 +1632,53 @@ def check_ledgers():
     return errors
 
 
+def check_commit_convention():
+    """A release commit's subject carries the version it ships.
+
+    CLAUDE.md rule 3 has said `X.Y.Z — summary` for a long time and nothing
+    checked it; ~10 of the 40 commits before 0.1.423 deviated. The enforceable
+    subset, chosen to fit real history: only a commit that TOUCHES
+    CHANGELOG.md must match — specs-only commits, fixture regens and backlog
+    edits are exempt, which is exactly what the historical deviations were.
+    Only HEAD is examined (history is not retroactively reddened); a merge
+    commit is judged by its second parent; a tree with no .git — a tarball
+    checkout — has nothing to assert.
+    """
+    if not (ROOT / ".git").exists():
+        return []
+
+    def git(*args):
+        p = subprocess.run(["git", *args], cwd=ROOT,
+                           capture_output=True, text=True)
+        return p.returncode, p.stdout.strip()
+
+    rc, subject = git("log", "-1", "--format=%s")
+    if rc != 0:
+        return []
+    target = "HEAD"
+    if subject.startswith("Merge "):
+        rc, merged = git("log", "-1", "--format=%s", "HEAD^2")
+        if rc != 0:
+            return []
+        target, subject = "HEAD^2", merged
+    rc, files = git("diff-tree", "--no-commit-id", "--name-only", "-r", target)
+    if rc != 0 or "CHANGELOG.md" not in files.splitlines():
+        return []
+    m = re.match(r"(\d+\.\d+\.\d+) — ", subject)
+    if not m:
+        return [f"the commit touches CHANGELOG.md but its subject "
+                f"{subject!r} does not follow 'X.Y.Z — summary' "
+                f"(CLAUDE.md rule 3)"]
+    newest = re.search(r"^##\s+(\d+\.\d+\.\d+)",
+                       (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"),
+                       re.M)
+    if newest and m.group(1) != newest.group(1):
+        return [f"the commit subject says {m.group(1)} but the newest "
+                f"CHANGELOG heading is {newest.group(1)} — one of them is "
+                f"lying about what this release is"]
+    return []
+
+
 CHECKS = (
     ("version stamps", check_versions),
     ("output default", check_output_default),
@@ -1654,6 +1701,7 @@ CHECKS = (
     ("brand lock", check_brand_lock),
     ("no shadow math", check_no_shadow_math),
     ("ledgers", check_ledgers),
+    ("commit convention", check_commit_convention),
 )
 
 
