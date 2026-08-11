@@ -23,7 +23,7 @@ import pathlib
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-import geo_projection as gp   # noqa: E402
+import geo_projection as gp  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TOPOLOGY = ROOT / "assets" / "vectors" / "world-110m.json"

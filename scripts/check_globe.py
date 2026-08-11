@@ -37,7 +37,7 @@ import subprocess
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-import geo_projection as gp   # noqa: E402
+import geo_projection as gp  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 GOLDEN = ROOT / "fixtures" / "globe-golden.json"
@@ -298,8 +298,8 @@ def check_seam_segments():
             view = (0.0, 0.0, t, R, R, R)
             half = R * (1 - t / 2)
             top, bottom = view[5] - half, view[5] + half
-            on_pole_edge = lambda y: (abs(y - top) < R * 0.03      # noqa: E731
-                                      or abs(y - bottom) < R * 0.03)
+            on_pole_edge = lambda y, top=top, bottom=bottom: (  # noqa: E731
+                abs(y - top) < R * 0.03 or abs(y - bottom) < R * 0.03)
             for m in re.finditer(r'class="(?:gl-land|rg [^"]*)"[^>]*d="([^"]*)"', svg):
                 pts = [(c.group(1), int(c.group(2)), int(c.group(3)))
                        for c in re.finditer(r"([ML])(-?\d+) (-?\d+)", m.group(1))]
@@ -862,7 +862,6 @@ def check_clip_invariants():
     for lon0, lat0 in ((0.0, 0.0), (-170.0, 0.0), (-170.0, 20.0),
                        (17.0, 40.0), (100.0, -30.0)):
         for t in (0.0, 0.25, 0.5, 0.75, 0.9):
-            c = math.acos(max(-1.0, min(1.0, -t)))
             for code, ring in rings:
                 out = gp.clip_to_cap(ring, lon0, lat0, t, 2.0)
                 inside = [gp.cos_c(lo, la, lon0, lat0) >= -t for lo, la in ring]
@@ -1631,7 +1630,7 @@ def check_rotation_is_continuous():
     return []
 
 
-def check_runtime_closure(): 
+def check_runtime_closure():
     """The tangent guard is in the JAVASCRIPT, not only in the Python.
 
     This check exists because the repair for it shipped in
@@ -1873,8 +1872,8 @@ def check_far_side_hidden():
         from playwright.sync_api import sync_playwright
     except ImportError:
         return ["Playwright is not installed, so far-side hiding was NOT checked."]
-    import globe_svg
     import embed_globe
+    import globe_svg
 
     R = globe_svg.DEFAULT_R
     marks = [{"lon": 103.8, "lat": 1.35, "weight": 5, "id": "sin"},

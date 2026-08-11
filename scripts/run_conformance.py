@@ -38,8 +38,8 @@ whose closing paragraph says absences are listed rather than omitted.
 from __future__ import annotations
 
 import argparse
-import json
 import hashlib
+import json
 import pathlib
 import re
 import shutil

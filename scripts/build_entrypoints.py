@@ -99,7 +99,7 @@ def red_lines() -> str:
     """
     text = (ROOT / "SKILL.md").read_text(encoding="utf-8")
     lines = text.splitlines()
-    start = next(i for i, l in enumerate(lines) if l.startswith("## Six non-negotiable"))
+    start = next(i for i, ln in enumerate(lines) if ln.startswith("## Six non-negotiable"))
     end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
     block = "\n".join(lines[start + 1:end]).strip()
     if not block:
@@ -177,7 +177,7 @@ def render_pointer(p: dict, version: str, heading: str, path: str) -> str:
         f"> **lumi-style {version}.** This file points at the skill; it does not "
         f"restate it. The rules live in [`SKILL.md`]({up}SKILL.md) and "
         f"[`references/`]({up}references/), and on any conflict those win.", "",
-        f"You are producing content in LUMI's design language and writing style.",
+        "You are producing content in LUMI's design language and writing style.",
         "",
         f"**Load [`SKILL.md`]({up}SKILL.md) and follow its workflow.** It reads "
         f"`references/brand.md` first — the only file that says what to reach for — "

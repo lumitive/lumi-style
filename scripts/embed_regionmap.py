@@ -28,8 +28,10 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 # The strip/guard machinery is embed_globe's; a second copy would drift.
-from embed_globe import (   # noqa: E402
-    strip_module_syntax, dedupe_top_consts, IMPORT_RE,
+from embed_globe import (  # noqa: E402
+    IMPORT_RE,
+    dedupe_top_consts,
+    strip_module_syntax,
 )
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
