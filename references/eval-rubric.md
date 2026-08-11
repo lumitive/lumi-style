@@ -45,7 +45,7 @@ have no Han character next to their punctuation.
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame (e.g. "Topic: clause") |
 | M12 | Visible CJK in an English deliverable | =0 — **gates** | Chinese in text a reader sees, when the document declares English by `lang`, filename or `--lang`. Quoted as data (`<code>`, `<pre>`, backticks) is exempt |
 
-## Design diagnostics D1–D19 (`scripts/check_design.py` — reported, never gating, four named exceptions)
+## Design diagnostics D1–D20 (`scripts/check_design.py` — reported, never gating, five named exceptions)
 
 | id | Metric | Target | Predicate |
 |---|---|---|---|
@@ -66,7 +66,8 @@ have no Han character next to their punctuation.
 | D16 | Visual presence and share | reported | content pages carrying no visual block (static half, `check_design.py`); rendered visual area against the genre's target — ~50% sales/marketing/consulting, ~30% training (`inspect_layout.py`). Pages declaring `data-role="apparatus"` are exempt, up to a ceiling of one content page in five |
 | D17 | Export weight | reported | blend modes, filters and vector nodes: what the document will cost a reader who opens the PDF |
 | D18 | Region labels | =0, reported | every coloured region in a globe figure carries a label or a legend entry; hue separates neighbours, text carries identity |
-| D19 | Register integrity | =0 — **gates** | expressive vocabulary (`svg.illo`, `svg.seigaiha`) only in a document declaring `data-register="expressive"`, and at most one illustration per page (a ceiling) — brand.md 2c, design-rules.md §5b |
+| D19 | Vocabulary resolution | =0 — **gates** | every `<use href>` resolves to a defined symbol, every block pattern renders, every opener carries its class — a document that cannot render itself does not ship (0.1.409) |
+| D20 | Register integrity | =0 — **gates** | expressive vocabulary (`svg.illo`, `svg.seigaiha`) only in a document declaring `data-register="expressive"`, and at most one illustration per page (a ceiling) — brand.md 2c, design-rules.md §5b |
 
 **No design judgement in the D-series gates.** `check_design.py` exits 0 unless a
 file cannot be measured at all; every number is a diagnostic for a designer to
@@ -74,9 +75,10 @@ read. `SKILL.md` rule 4 is why: a page is done when a human reads it as
 intentional, and a metric that can be satisfied without improving the page ends
 the looking rather than directing it.
 
-**Four exceptions, and none is a design judgement.** D12 is a commercial
+**Five exceptions, and none is a design judgement.** D12 is a commercial
 requirement on the artifact, D14 asks whether the document is finished, D15
-asks whether the footer cites something a reader can open, and D19 asks whether
+asks whether the footer cites something a reader can open, D19 asks whether the
+document can render its own markup, and D20 asks whether
 the document says what register it is written in — all decidable, in the
 way "does this page read as intentional" is not. **D15 is the second instance of
 one defect:** `.foot .src` was removed from `tokens/` in 0.1.366 after the first

@@ -323,6 +323,36 @@ const CAP_EPS = 1e-9;
  * Mirrors clip_to_cap in scripts/geo_projection.py, and the golden grid in
  * scripts/check_globe.py is what holds the two together.
  */
+// How much larger than its source a clipped ring may be before its closure is
+// judged to have gone the wrong way, in steradians. Mirrors CLOSURE_SLACK in
+// scripts/geo_projection.py: larger than any country ring in this topology
+// (Russia, the largest, is 0.41 sr) and far smaller than the 2*pi a wrong-way
+// closure encloses.
+const CLOSURE_SLACK = 0.35;
+
+/** Re-walk one closed piece's cap arc in the given direction. */
+function reclose(seq, view, c, step, forward) {
+  const onCap = new Set();
+  seq.forEach((p, i) => {
+    const d = Math.acos(Math.max(-1, Math.min(1, cosC(p[0], p[1], view))));
+    if (Math.abs(d - c) < 1e-6) onCap.add(i);
+  });
+  if (!onCap.size) return null;
+  const keep = seq.filter((_p, i) => !onCap.has(i));
+  if (keep.length < 2) return null;
+  const a0 = azimuth(keep[keep.length - 1][0], keep[keep.length - 1][1], view);
+  const a1 = azimuth(keep[0][0], keep[0][1], view);
+  const TAU = 2 * Math.PI;
+  const span = forward ? ((a1 - a0) % TAU + TAU) % TAU : ((a0 - a1) % TAU + TAU) % TAU;
+  const steps = Math.max(1, Math.ceil(span / step));
+  const arc = [];
+  for (let i = 1; i < steps; i += 1) {
+    const az = (a0 + (span * i / steps) * (forward ? 1 : -1)) % TAU;
+    arc.push(capPoint((az + TAU) % TAU, c, view));
+  }
+  return keep.concat(arc, [keep[0]]);
+}
+
 export function clipToCap(ring, view, stepDeg, forwardIn) {
   if (view.t >= 1) return [ring.slice()];
   const c = Math.acos(Math.max(-1, Math.min(1, -view.t)));
@@ -386,6 +416,7 @@ export function clipToCap(ring, view, stepDeg, forwardIn) {
   // within a hair of a hemisphere — the terminator is exactly that — so the
   // Python authority takes the same override. Mirrors clip_to_cap in
   // scripts/geo_projection.py.
+  const forwardGiven = forwardIn !== undefined;
   const forward = forwardIn === undefined ? signedArea(ring) > 0 : forwardIn;
   const step = CAP_STEP_DEG * D2R;
   const ends = runs.map((r) => [azimuth(r[0][0], r[0][1], view),
@@ -424,5 +455,30 @@ export function clipToCap(ring, view, stepDeg, forwardIn) {
     }
     if (seq.length > 2) out.push(seq.concat([seq[0]]));
   }
-  return out;
+
+  // THE TANGENT GUARD. Mirrors clip_to_cap in scripts/geo_projection.py, and
+  // the reason it is here rather than only there is the whole point: the fix
+  // shipped in Python, the emitter's sweep went green, and every frame after
+  // the first is drawn by THIS file — so a country grazing the limb went on
+  // being painted over the entire disc, six frames per revolution, with the
+  // repair sitting in a language the runtime does not run. That is the second
+  // time a repair has reached one side of this hand-maintained port; 0.1.405
+  // is the first, and it has its own paragraph in the changelog saying so.
+  //
+  // A clipped ring cannot enclose more of the sphere than the ring it came
+  // from plus the sliver a cap arc adds. Where it does, both closure
+  // directions are re-walked and the smaller kept.
+  if (forwardGiven) return out;
+  const source = Math.abs(signedArea(ring));
+  const fixed = [];
+  for (const seq of out) {
+    if (Math.abs(signedArea(seq)) <= source + CLOSURE_SLACK) { fixed.push(seq); continue; }
+    let best = seq;
+    for (const dir of [true, false]) {
+      const alt = reclose(seq, view, c, step, dir);
+      if (alt && Math.abs(signedArea(alt)) < Math.abs(signedArea(best))) best = alt;
+    }
+    fixed.push(best);
+  }
+  return fixed;
 }

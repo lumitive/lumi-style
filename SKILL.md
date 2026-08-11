@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.406"
+  version: "0.1.415"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -231,11 +231,12 @@ been removed; they now apply at step 4 instead of framing step 0.
    content, a wrapped footer, a viewBox that does not parse, a drawing clipped by
    its own viewBox, a seigaiha band under evidence or text, an overspent title
    reserve, a role split, a lost datum.
-   `python3 scripts/check_design.py <file>` reports D1–D19 and gates on four
+   `python3 scripts/check_design.py <file>` reports D1–D20 and gates on five
    things, none of them a design judgement: **D12**, the handling terms and origin
    every page owes (the terms open with the seal-red `shield` handling marker —
    the rendering ships in `tokens/`, the gate is the terms); **D14**, any slot
-   left for yourself; **D15**, a file path in a footer; and **D19**, expressive
+   left for yourself; **D15**, a file path in a footer; **D19**, markup that
+   does not resolve to anything rendered; and **D20**, expressive
    vocabulary in a document that never declared the register, or a second
    illustration on a page. `python3 scripts/check_prose.py <file>` grades the English, and
    **M12 fails on Chinese in text a reader sees** when the document declares

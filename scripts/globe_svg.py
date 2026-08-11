@@ -52,6 +52,7 @@ from geo_frame import (   # noqa: E402,F401  (re-exported: render() and callers 
     ROOT, TOPOLOGY, REGIONS, STEP_DEG, GRATICULE, PAD, DEFAULT_R,
     OBLIQUITY_DEG, FLATTENING, CITY_GAP, CITY_EM_W, CITY_EM_H,
     LABEL_LIMB_COS, LINK_R, great_circle_route, link_weight_attrs,
+    classify_arcs, arc_points,
     tilt_to_screen, screen_to_tilt,
     earth_transform, solar_position,
     night_ring, place_city_labels,
@@ -69,6 +70,7 @@ GLOBE_GRATICULE = 15
 # a frame that changes every time it is generated cannot be byte-compared, and
 # every generated artifact in this repository is. A document that wants its own
 # moment passes --time.
+ROOT = pathlib.Path(__file__).resolve().parent.parent
 DEFAULT_SUN_UTC = "2026-06-21T04:00:00"
 
 # The mark radius, as fractions of R. MIN is a floor (a datum must survive being
@@ -185,6 +187,26 @@ def render(view, marks=None, night=None, nodes=False,
                     f'data-members="{" ".join(b["members"])}" d="{d}"/>')
     d = " ".join(x for x in rest if x)
     body.append(f'<path class="gl-land" d="{d}"/>')
+
+    # THE LINEWORK, IN THREE WEIGHTS. The fills above carry no stroke; every
+    # land line is drawn here instead, so a coastline, a boundary between two
+    # trade blocs and a border inside one are three different marks rather than
+    # the same mark three times.
+    #
+    # The arc indices ride in the markup because the runtime redraws these
+    # every frame and must not re-derive which arc is which — see classify_arcs
+    # in geo_frame.py for why that rule exists and what it cost to learn.
+    coast, bloc_edge, border = classify_arcs(topo, owner)
+    for cls, idxs in (("gl-border", border), ("gl-bloc-edge", bloc_edge),
+                      ("gl-coast", coast)):
+        if not idxs:
+            continue
+        order = sorted(idxs)
+        d = " ".join(x for x in
+                     (_d(_project_ring(arc_points(i, arcs), view), False)
+                      for i in order) if x)
+        body.append(f'<path class="{cls}" data-arcs="{" ".join(map(str, order))}" '
+                    f'd="{d}"/>')
 
     # Night: the cap of the sphere the sun is not on. It goes through the same
     # clip every country goes through, so it comes back already cut at the limb.
@@ -440,6 +462,16 @@ def main(argv):
                          "a field. Without a field they are drawn anyway — "
                          "scenery may name places; a field must not silently "
                          "gain points that are not its data.")
+    ap.add_argument("--preset", choices=("cover",), default=None,
+                    help="a named view this package ships. `cover` is LUMIVATE's "
+                         "own: Pacific-centred at lon0=-160, the trade blocs "
+                         "filled, the terminator on, and every data layer the "
+                         "caller supplies drawn. It fixes the VIEW and the LAYER "
+                         "SET so a document does not have to know four flags, "
+                         "and so every document that draws the mark draws the "
+                         "same one. Its first cut filled blocs and nothing else "
+                         "— a preset named for the cover that omitted four of "
+                         "the five layers, which a reader spotted immediately.")
     ap.add_argument("--regions", metavar="PATH", default=None,
                     help="a region registry. With one, the land is routed into "
                          "one path per region instead of a single path, and "
@@ -469,6 +501,19 @@ def main(argv):
                          "than pretend to state data.")
     args = ap.parse_args(argv)
     view = (args.lon0, args.lat0, 0.0, args.r, args.r, args.r)
+    if args.preset == "cover":
+        # The named view. Set before the rest so an explicit flag still wins:
+        # a preset is a starting point, not a lock.
+        if args.lon0 == 0.0:
+            args.lon0 = -160.0
+        if args.lat0 == 0.0:
+            args.lat0 = 10.0
+        if args.regions is None:
+            args.regions = str(ROOT / "assets" / "vectors" / "regions-trade.json")
+        # The terminator stays. It is the globe's own waterline — the one
+        # horizon where its light collects — and switching it off was the same
+        # thinning that dropped the other layers.
+
     night = None if args.no_night else solar_position(
         datetime.datetime.fromisoformat(args.time))
     print(render(view, marks=_load_marks(args.marks), night=night,

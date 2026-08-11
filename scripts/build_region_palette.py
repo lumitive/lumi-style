@@ -445,6 +445,13 @@ def render(reg=None, prefix=None):
         lines.append("  --gl-land: var(--acc-2);")
         lines.append("  --gl-land-edge: var(--ln1);")
     lines.append("  --gl-night: rgba(43,46,51,.28);")
+    # The equator is the globe's WATERLINE — brand.md's one horizon where the
+    # light collects, applied to a sphere. It had been drawn in the graticule's
+    # own ink, so the figure offered four candidate horizons at nearly equal
+    # weight and a reader had no datum to read against. One horizon, and it is
+    # this one; the tropics stay dashed and quiet because they are context for
+    # the tilt rather than a line to measure from.
+    lines.append("  --gl-equator: var(--ln1);")
     lines.append("  --gl-tropic: var(--ln2);")
     lines.append("}")
     lines.append("")
@@ -454,14 +461,26 @@ def render(reg=None, prefix=None):
         # nowhere darker to go. It becomes a cool veil instead, which still
         # reads as "not lit" against the land.
         lines.append("  --gl-night: rgba(10,12,20,.45);")
+        # THE SPHERE HAS TO BE THERE. The chrome indirects to theme tokens and
+        # those redefine under dark, which is true and was not sufficient:
+        # --gl-plate resolves to --ln3, and on a #1D1D1F page --ln3 is so close
+        # to the background that the ocean and the page became one black field.
+        # The globe read as a scatter of continents floating on nothing.
+        #
+        # Water on a dark page is not the absence of light, it is a surface
+        # with less of it — so the plate lifts just clear of the background,
+        # and the graticule and the equator lift with it, because a sphere cue
+        # nobody can see is not a cue. These are the FOUR VALUES the comment
+        # this replaces said were not needed.
+        lines.append("  --gl-plate: #26262B;")
+        lines.append("  --gl-graticule: rgba(240,240,250,.16);")
+        lines.append("  --gl-equator: rgba(240,240,250,.34);")
+        lines.append("  --gl-tropic: rgba(240,240,250,.20);")
     for rid in ids:
         h = angles[rid]
         lines.append(f"  --rg-{rid}: {hue_hex(L_DARK, h)};")
         lines.append(f"  --rg-{rid}-stroke: {stroke_hex(L_DARK, h, True)};")
         lines.append(f"  --rg-{rid}-wash: {hue_hex(0.30, h)};")
-    # The chrome indirects to theme tokens, and those redefine under body.dark,
-    # so the dark chrome needs no separate values — restated here so a reader
-    # of the dark block does not go looking for the missing four.
     lines.append("}")
     lines.append("")
     if prefix:
@@ -501,7 +520,8 @@ def render(reg=None, prefix=None):
         "/* The equator and the tropics are NAMED lines, not graticule: a reader",
         " * can point at them, so they are drawn a step stronger and the tropics",
         " * are dashed to say they are a pair. */",
-        ".gl-equator { fill: none; stroke: var(--gl-graticule); stroke-width: 2.5; }",
+        ".gl-equator { fill: none; stroke: var(--gl-equator); "
+        "stroke-width: 3; }",
         ".gl-tropic { fill: none; stroke: var(--gl-tropic); stroke-width: 2; "
         "stroke-dasharray: 10 8; }",
         "/* Night is a lighting condition laid over the geography, so it is a",
@@ -549,22 +569,31 @@ def render(reg=None, prefix=None):
         " * and keeps one palette across both figures rather than minting a",
         " * second set of colours that would have to be kept in step. */",
         ".gl-rg { fill-opacity: .42; stroke-opacity: .55; }",
-        "/* A COUNTRY IN NO BLOC IS AN OUTLINE, NOT A FILL. On a figure whose",
-        " * subject is trade blocs, filling the rest of the world says the rest",
-        " * of the world is a category — and it is not one, it is the absence",
-        " * of the eight. An outline still draws every coast, so the reader can",
-        " * see where the blocs stop, without a ninth colour claiming to mean",
-        " * something. This is `.gl-land` only: on a globe with no registry",
-        " * there are no blocs, nothing is absent, and the land is the",
-        " * subject. */",
-        ".gl-land:not(:only-of-type) { fill: none; stroke: var(--ln1); "
-        "stroke-width: 1.2; }",
-        "/* TRADE LANES. One hue for every lane, because a lane is a lane:",
-        " * weight is a quantity and it is carried by width and opacity, which",
-        " * are quantities too. Hue is identity here and is not free to mean a",
-        " * second thing. The accent is the same one a mark uses, because a",
-        " * lane and a datum are both the figure's subject and the geography",
-        " * behind them is not. */",
+        "/* THE LAND, IN THREE WEIGHTS. Every land line used to be one weight,",
+        " * so a coastline and a provincial border looked alike and the eye had",
+        " * nothing to group by. A reader asked to compare where one bloc sits",
+        " * against another needs the continents to read as shapes first, and",
+        " * that is what a hierarchy of line is for.",
+        " *",
+        " * The FILLS carry no stroke at all now; all linework is here. */",
+        ".gl-rg { fill-opacity: .42; stroke: none; }",
+        ".gl-land { fill: none; stroke: none; }",
+        "/* A coast is a continent's edge, and it is the heaviest line on the",
+        " * figure after the data. This is also what puts Oceania back: an",
+        " * island coast is a coast whether or not the island is in a bloc, and",
+        " * 0.1.405's outline-only rule had left Papua New Guinea, Fiji, the",
+        " * Solomons and Vanuatu as 1.2px hairlines. */",
+        ".gl-coast { fill: none; stroke: var(--tx2); stroke-width: 2.6; "
+        "stroke-linejoin: round; stroke-linecap: round; }",
+        "/* Where one trade bloc meets another. Heavier than a border inside a",
+        " * bloc and lighter than a coast, which is the order of the question a",
+        " * reader is asking. */",
+        ".gl-bloc-edge { fill: none; stroke: var(--tx2); stroke-width: 2; "
+        "stroke-opacity: .75; stroke-linejoin: round; }",
+        "/* A border between two countries in the SAME bloc. Present, because",
+        " * the countries are real; faint, because the figure is not about",
+        " * them. */",
+        ".gl-border { fill: none; stroke: var(--ln1); stroke-width: .8; }",
         ".gl-link { fill: none; stroke: var(--acc); stroke-linecap: round; }",
         ".gl-hub { fill: var(--acc); stroke: var(--bg); stroke-width: 2; }",
         "/* A signal is one code in transit: the dot is where, the text is",

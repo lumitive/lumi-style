@@ -12,7 +12,7 @@
 import {
   project, splitAtSeam, densify, clipToCap, cosC,
 } from '../geo/projection.js';
-import { ringsOf } from '../geo/worlddata.js';
+import { ringsOf, arcPoints } from '../geo/worlddata.js';
 
 const STEP_DEG = 2;
 // Matches PAD in scripts/globe_svg.py, in the same user units.
@@ -200,6 +200,14 @@ export function createSvgRenderer(svg, data) {
   const blocEls = [...svg.querySelectorAll('.gl-rg')];
   const blocLabelEls = [...svg.querySelectorAll('.gl-rg-label')];
   const cityDots = [...svg.querySelectorAll('.gl-city-dot')];
+  // The three land-line layers. Each names its own arcs in the markup; the
+  // classification is Python's and is not repeated here — see classify_arcs in
+  // scripts/geo_frame.py, and 0.1.404/0.1.405 for what a port maintained in
+  // two places costs.
+  const lineEls = [...svg.querySelectorAll('.gl-coast, .gl-bloc-edge, .gl-border')];
+  const lineArcs = new Map(lineEls.map((el) => [el,
+    (el.dataset.arcs || '').split(' ').filter(Boolean)
+      .map(Number).map((i) => arcPoints(i, data))]));
   // Trade lanes and the signals riding them. Lanes sit ON the sphere, so they
   // turn with the geography and are redrawn every frame like the coastline.
   const linkEls = [...svg.querySelectorAll('.gl-link')];
@@ -512,6 +520,11 @@ export function createSvgRenderer(svg, data) {
       for (const ring of landRings) d += `${pathData(projectArea(ring, view), true, view)} `;
       land.setAttribute('d', d.trim());
     }
+    for (const el of lineEls) {
+      let d = '';
+      for (const arc of lineArcs.get(el)) d += `${pathData(projectRing(arc, view), false)} `;
+      el.setAttribute('d', d.trim());
+    }
     for (const el of blocEls) {
       let d = '';
       for (const ring of blocRings.get(el)) d += `${pathData(projectArea(ring, view), true, view)} `;
@@ -558,6 +571,19 @@ export function createSvgRenderer(svg, data) {
   // The signal clock. Exposed rather than run here: this module draws a frame
   // and owns no time, and globe.js already has the loop, the reduced-motion
   // gate and the off-screen gate that everything else on this figure obeys.
+  // Put every signal back where the emitter put it. A pinned frame has to be
+  // reproducible FROM THE MARKUP — that is what makes an export the same twice
+  // — and stopping the clock is not enough on its own: the signals had already
+  // travelled for however long the page was open before the pin, so two runs
+  // of export_pdf.py on one unchanged document produced two different images
+  // with an identical, correctly pinned longitude.
+  function resetSignals() {
+    for (const s of sigEls) {
+      s.t = Number(s.g.dataset.t) || 0;
+      s.ci = Number(s.g.dataset.code) || 0;
+    }
+  }
+
   function advanceSignals(dt, codes) {
     for (const s of sigEls) {
       const w = Number(s.path.dataset.w) || 0.5;
@@ -571,7 +597,8 @@ export function createSvgRenderer(svg, data) {
     }
   }
 
-  return { draw, destroy() {}, svg, advanceSignals, hasSignals: sigEls.length > 0 };
+  return { draw, destroy() {}, svg, advanceSignals, resetSignals,
+    hasSignals: sigEls.length > 0 };
 }
 
 export {

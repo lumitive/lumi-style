@@ -1502,6 +1502,215 @@ def check_trade_lanes():
 # and nothing yet holds the ring-clipping pipeline on the JavaScript side.
 
 
+def check_land_lines():
+    """Three weights, one classification, and every arc in exactly one of them.
+
+    The shared-arc topology is what makes this possible without new data: an
+    arc between two countries is stored once and referenced by both, so its
+    number of users says whether it is a coast. Three properties:
+
+    1. the three sets PARTITION the arcs — every arc drawn once, none twice,
+       none missing. A doubled arc is a doubled stroke and reads as a heavier
+       line for no reason; a missing one is a gap in a coastline;
+    2. a coast is an arc used by ONE country, and there are 548 of them. If
+       this drifts, either the topology changed or the rule did, and both are
+       worth stopping for;
+    3. WITHOUT a registry there are no bloc edges at all. A globe carrying no
+       blocs must not draw a boundary between blocs it does not have.
+
+    Also asserted: the frame's arc lists match the classification, because the
+    runtime trusts them and re-derives nothing.
+    """
+    import globe_svg
+    from geo_frame import classify_arcs
+
+    topo = json.loads((ROOT / "assets/vectors/world-110m.json").read_text("utf-8"))
+    reg = json.loads((ROOT / "assets/vectors/regions-trade.json").read_text("utf-8"))
+    owner = {c: r["id"] for r in reg["regions"] for c in r["members"]}
+    errors = []
+
+    all_arcs = set(range(len(topo["arcs"])))
+    for label, own in (("no registry", {}), ("trade blocs", owner)):
+        coast, edge, border = classify_arcs(topo, own)
+        union = coast | edge | border
+        if len(coast) + len(edge) + len(border) != len(union):
+            errors.append(f"{label}: an arc is in more than one land layer, so "
+                          f"it is stroked twice and reads heavier than its rule")
+        missing = all_arcs - union
+        if missing:
+            errors.append(f"{label}: {len(missing)} arcs are in no layer and "
+                          f"are simply not drawn — that is a gap in a coastline")
+        if len(coast) != 548:
+            errors.append(f"{label}: {len(coast)} coast arcs, expected 548. "
+                          f"Either the topology changed or the one-user rule "
+                          f"did; both are worth stopping for")
+        if not own and edge:
+            errors.append(f"no registry: {len(edge)} bloc edges on a globe that "
+                          f"has no blocs")
+
+    R = globe_svg.DEFAULT_R
+    svg = globe_svg.render((0.0, 12.0, 0.0, R, R, R),
+                           regions_path=str(ROOT / "assets/vectors/regions-trade.json"))
+    coast, edge, border = classify_arcs(topo, owner)
+    for cls, want in (("gl-coast", coast), ("gl-bloc-edge", edge),
+                      ("gl-border", border)):
+        m = re.search(rf'class="{cls}" data-arcs="([^"]*)"', svg)
+        if not m:
+            errors.append(f"the frame carries no {cls} layer")
+            continue
+        got = {int(v) for v in m.group(1).split()}
+        if got != want:
+            errors.append(f"{cls}: the frame lists {len(got)} arcs and the "
+                          f"classification says {len(want)}; the runtime draws "
+                          f"from this list and re-derives nothing, so a frame "
+                          f"that disagrees with it is what ships")
+    return errors
+
+
+def check_rotation_is_continuous():
+    """A clipped ring never encloses more of the sphere than the ring it came
+    from. This is the closure family's invariant, asserted directly.
+
+    Four releases of this family were each found by a reader watching the
+    figure — a lens of daylight, a lane closing into a ring, a country painted
+    over the whole disc for six frames once a minute — and each fix shipped
+    without a check that would have caught it.
+
+    THE FIRST VERSION OF THIS CHECK SAMPLED THE SYMPTOM and was useless. It
+    rendered a revolution at 0.6-degree steps and compared adjacent frames,
+    which is a fine description of what a reader sees and a bad test: the
+    Venezuela defect occupies about two tenths of a degree, so the sweep
+    stepped over it and reported ok with the bug reinstated. Sampling for a
+    narrow event needs a step finer than the event, and nobody knows how narrow
+    the next one is.
+
+    So this asserts the PROPERTY instead. Clipping adds a cap arc, so a
+    legitimate result is a little larger than its input — by the sliver between
+    a chord and the limb, never by a hemisphere. A wrong-way closure encloses
+    about 6.3 steradians whatever the input was. Every ring in the topology, at
+    72 rotations, and the honest worst case measures 0.0000 sr of excess.
+    """
+    from geo_frame import _load, _rings_of
+
+    # TESTED AT THE TANGENCY, NOT ON A GRID. This was the second thing the
+    # check got wrong: a five-degree sweep of lon0 misses a defect two tenths
+    # of a degree wide just as surely as the frame sweep did. The failure is
+    # not distributed over the rotation — it happens when the ring GRAZES the
+    # limb, and that longitude is computable from the ring itself. So each ring
+    # is put on its own limb and nudged across it.
+    topo, _reg, arcs = _load()
+    lat0 = 10.0
+    worst = (0.0, None, None)
+    for country in topo["countries"]:
+        for ring in _rings_of(country, arcs):
+            source = abs(gp.signed_area(ring))
+            lon = sum(p[0] for p in ring) / len(ring)
+            lat = sum(p[1] for p in ring) / len(ring)
+            # cos_c = 0 puts the ring's centre exactly on the limb. Solve for
+            # the lon0 that does it, then walk a degree either side in
+            # twentieths, which is finer than any window seen so far.
+            import math as _m
+            num = -_m.sin(_m.radians(lat0)) * _m.sin(_m.radians(lat))
+            den = _m.cos(_m.radians(lat0)) * _m.cos(_m.radians(lat))
+            base = []
+            if den and abs(num / den) <= 1.0:
+                d = _m.degrees(_m.acos(num / den))
+                base = [lon - d, lon + d]
+            tests = [b + k * 0.05 for b in base for k in range(-20, 21)]
+            for lon0 in tests + [float(v) for v in range(0, 360, 15)]:
+                for piece in gp.clip_to_cap(ring, float(lon0), lat0, 0.0, 2.0):
+                    excess = abs(gp.signed_area(piece)) - source
+                    if excess > worst[0]:
+                        worst = (excess, country["a"], lon0)
+    if worst[0] > gp.CLOSURE_SLACK:
+        return [f"{worst[1]} at lon0={worst[2]} clips to a polygon enclosing "
+                f"{worst[0]:.3f} steradians more than the ring it came from. A "
+                f"clip adds a cap arc, not a hemisphere: this closure went the "
+                f"wrong way round the cap, and on a rotating globe the country "
+                f"is painted over the whole disc for as long as it lasts"]
+    return []
+
+
+def check_runtime_closure(): 
+    """The tangent guard is in the JAVASCRIPT, not only in the Python.
+
+    This check exists because the repair for it shipped in
+    scripts/geo_projection.py, the emitter's sweep went green, the release note
+    was written — and every frame after the first is drawn by
+    assets/geo/projection.js, which had no guard. A country grazing the limb
+    went on being painted over the whole disc, six frames per revolution, with
+    the fix sitting in a language the runtime does not run. The reader saw no
+    change at all.
+
+    That is the SECOND time a repair has reached one side of this
+    hand-maintained port. 0.1.405 is the first and has its own paragraph saying
+    so, which is exactly why a paragraph is not a check.
+
+    So: drive the RUNTIME through the tangency and measure what it draws. Not
+    the emitter, which has been green throughout both failures.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return ["Playwright is not installed, so the runtime closure was NOT checked."]
+    import globe_svg
+
+    R = globe_svg.DEFAULT_R
+    reg = str(ROOT / "assets" / "vectors" / "regions-trade.json")
+    # The rotations that put a ring on the limb. 20.3 is Venezuela's, measured;
+    # the others sweep for any neighbour of it.
+    svg = globe_svg.render((0.0, 10.0, 0.0, R, R, R), regions_path=reg)
+    runtime = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "embed_globe.py")],
+        capture_output=True, text=True, check=True).stdout
+
+    js = """(lon0) => {
+      const svg = document.querySelector('svg.gl');
+      const g = window.__lumiGlobes && window.__lumiGlobes[0];
+      if (!g) return null;
+      g.pin(lon0);
+      let total = 0;
+      for (const el of svg.querySelectorAll('.gl-land, .gl-rg')) {
+        total += (el.getAttribute('d') || '').length;
+      }
+      return total;
+    }"""
+    errors = []
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page = browser.new_page(viewport={"width": 700, "height": 700})
+        page.set_content(
+            f'<!doctype html><meta charset=utf-8>'
+            f'<style>svg.gl{{width:600px;height:600px}}</style>'
+            f'<div class="fig" data-globe>{svg}</div>{runtime}')
+        page.wait_for_timeout(500)
+        page.evaluate("window.__lumiGlobes = window.lumiGlobes")
+        prev, worst = None, (0, None)
+        lon = 19.0
+        while lon < 22.0:
+            cur = page.evaluate(js, lon)
+            if cur is None:
+                errors.append("the runtime did not register a globe; this check "
+                              "measured nothing")
+                break
+            if prev is not None and abs(cur - prev) > worst[0]:
+                worst = (abs(cur - prev), lon)
+            prev = cur
+            lon += 0.05
+        browser.close()
+
+    # 900 characters, the same ceiling the emitter's own honest change sits far
+    # below. A wrong-way closure moved 2,060.
+    if worst[0] > 900:
+        errors.append(
+            f"the RUNTIME's land geometry changes by {worst[0]} characters "
+            f"between two frames 0.05 degrees apart, at lon0={worst[1]:.2f}. "
+            f"The tangent guard is in scripts/geo_projection.py and not in "
+            f"assets/geo/projection.js, so the emitter is green and every "
+            f"frame a reader sees is not")
+    return errors
+
+
 def check_earth_is_tilted():
     """The earth layer carries the tilt, at the obliquity, leaning right.
 
@@ -1847,6 +2056,9 @@ CHECKS = (
     ("the globe frame holds its contract", check_globe_frame, False, "globe", False),
     ("the earth is tilted, right, at the obliquity", check_earth_is_tilted, False, "globe", False),
     ("the globe's layers hold their contract", check_globe_layers, False, "globe", False),
+    ("the land is drawn in three weights", check_land_lines, False, "globe", False),
+    ("a revolution is continuous", check_rotation_is_continuous, False, "globe", False),
+    ("the runtime closes its rings too", check_runtime_closure, False, "globe", True),
     ("a lane is the shortest path, and carries a code", check_trade_lanes, False, "globe", False),
     ("city names never overlap", check_city_labels_do_not_collide, False, "globe", True),
     ("a field draws no strangers", check_field_has_no_strangers, False, "globe", False),

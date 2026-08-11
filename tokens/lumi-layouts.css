@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.406 (2026-08-11)
+   LUMI page layouts · v0.1.415 (2026-08-12)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -226,11 +226,16 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
    one came back set in the wrong face while the consistency audit called it
    clean. One rendering, audited, and wrong: consistency is not correctness. */
 .cover h1, .closing h2 {
-  font-family: var(--din); font-size: var(--fs-display);
+  font-family: var(--din); font-size: var(--fs-cover);
   font-weight: var(--w-display); line-height: var(--lh-display);
   letter-spacing: var(--ls-display); text-transform: uppercase;
   color: var(--tx1); margin: 0 0 24px;
 }
+/* The subject the deck is about, inside its own title. One title, two inks: the
+   claim stays ink and the noun takes the live green, so the green marks what
+   the page is FOR rather than decorating it. Cover and closing only — a content
+   title carries its emphasis in the words. */
+.cover h1 .subj, .closing h2 .subj { color: var(--acc-live); }
 .sup {
   font-size: var(--fs-support); font-weight: var(--w-support); line-height: 1.42;
   color: var(--tx2); max-width: var(--measure); margin: 0;
@@ -767,22 +772,37 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    Four cells: the typeblock (wordmark and display title), the mark cell (the
    one vector on the page), the attrs column, and a full-width row for the spec
    strip or, on a closing, the closenote and colophon. */
-.body.cover-grid { grid-template-columns: 1.02fr .98fr; grid-auto-rows: min-content;
+/* minmax(0, …) on BOTH columns. A bare `fr` track keeps an implicit auto
+   minimum, so a mark cell holding an SVG at its intrinsic size stretches the
+   track past its share and the composition runs off the page — measured at
+   602px inside a 509px column. `min-width: 0` on the item does not reach the
+   track, which is why it failed to fix this twice. */
+.body.cover-grid { grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr); grid-auto-rows: min-content;
   grid-template-rows: 1fr auto auto; column-gap: 56px; row-gap: 10px; align-items: center; }
+/* The mark cell holds its content INSIDE the cell and centres it, which is
+   what "half the page, centred" means for a cover. */
+.body.cover-grid > .markcell { min-width: 0; min-height: 0; display: flex;
+  align-items: center; justify-content: center; }
+.body.cover-grid > .markcell > svg { max-width: 100%; max-height: 100%;
+  width: auto; height: auto; }
 .body.cover-grid > .typeblock { display: flex; flex-direction: column;
   justify-content: center; gap: 12px; }   /* not 0: the display tier runs at
     leading .92, so its glyphs stand taller than their line box and a zero gap
     lets the title's ascenders land on the wordmark above it. Measured as a 3px
     overlap on a cover and a closing, which the collision check catches and a
     reader reads as a smudge. */
-/* The mark takes the full height of its cell and bleeds off the page edge —
-   height-led, so it grows without clipping the route across its top, which is
-   the one part of the mark that carries meaning. */
-.body.cover-grid > .markcell { display: flex; align-items: center; min-height: 0;
-  margin-right: calc(-1 * var(--page-pad, 92px)); overflow: visible;
-  justify-content: flex-end; }
-.body.cover-grid > .markcell svg { height: 100%; width: auto; max-height: none;
-  max-width: none; transform: translateX(6%); }
+/* THE MARK IS CONTAINED AND CENTRED IN ITS HALF OF THE PAGE, and it used to
+   bleed. The bleed was height-led with `max-width: none` and a 6% nudge past
+   the right margin, on the reasoning that a mark grows better than it clips.
+   It reads as a mark running off the page: a reader measured a cover globe at
+   602px inside a 509px column, reaching the viewport edge while the footer
+   rule stopped 90px short of it, and asked for half the page, centred.
+   Height-led is kept — the route across the mark's top is still the part that
+   carries meaning — but it is now bounded by the cell it is in. */
+.body.cover-grid > .markcell { display: flex; align-items: center;
+  justify-content: center; min-width: 0; min-height: 0; overflow: hidden; }
+.body.cover-grid > .markcell svg { height: auto; width: auto;
+  max-height: 100%; max-width: 100%; transform: none; }
 /* Document attributes: needed, not prominent — one narrow mono column in the
    clear lower-left, out of the composition's way. */
 .body.cover-grid > .attrs { grid-column: 1; align-self: end; display: flex;
@@ -806,7 +826,7 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    same way on both — scoped to `.cover` alone until 0.1.378, which half-shipped
    the role: the closing's `.sub` fell through to generic paragraph styling
    while the waiver that would have said so had been deleted. */
-.cover .sub, .closing .sub { margin-top: 22px; font-size: var(--fs-support);
+.cover .sub, .closing .sub { margin-top: 22px; font-size: var(--fs-cover-sub);
               color: var(--tx2); max-width: 62ch; }
 .spec { display: flex; gap: 0; margin-top: 44px; border-top: 1px solid var(--ln1);
         border-bottom: 1px solid var(--ln1); flex-wrap: wrap; }
@@ -1157,9 +1177,11 @@ body[data-geometry="portrait"] .body.cover-grid { grid-template-columns: 1fr; gr
    bleed composition is the landscape design, and at 794px it lands the globe
    on the attrs column below it (measured: a 2px overlap on the fixture's own
    cover, which is how this rule got here). */
-body[data-geometry="portrait"] .body.cover-grid > .markcell { margin-right: 0; justify-content: center; }
-body[data-geometry="portrait"] .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 34svh;
-                                   transform: none; }
+/* The sheet keeps its own ceiling — a portrait cover gives the mark a band
+   rather than a column, and 34svh is what leaves room for the stack beneath
+   it. The margin and transform overrides are gone because the landscape rule
+   no longer sets them. */
+body[data-geometry="portrait"] .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 34svh; }
 body[data-geometry="portrait"] .page.opener .openframe { gap: 18px; }
 body[data-geometry="portrait"] .duo { grid-template-columns: 1fr; gap: 16px; }
 /* Figures are drawn twice. A 2.4:1 chain in a 0.8:1 cell fills a third of it,

@@ -19,7 +19,7 @@ repository had access to sat in the gitignored `docs/`.
 - `deck-expressive.en.html` — a small training deck in the expressive register
   (`brand.md` 2c): the declared body attribute, the hand-drawn icon skin, one
   illustration per page at most, the seigaiha band on the cover. It is the
-  non-vacuous half of D19 — `deck-pass` reads D19 `ok` with no expressive
+  non-vacuous half of D20 — `deck-pass` reads D20 `ok` with no expressive
   vocabulary at all, which cannot tell "the register is honoured" from "the
   probe matched nothing".
 - `prose-zh-pass.zh.html` / `prose-zh-broken.zh.html` — the Chinese prose pair,

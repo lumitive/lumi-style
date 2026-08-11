@@ -51,7 +51,8 @@
      "D16_visual_presence": "ok",
      "D17_export_weight": "ok",
      "D18_region_labels": "ok",
-     "D19_register": "ok"
+     "D19_vocabulary": "ok",
+     "D20_register": "ok"
     },
     "contains": {
      "D10_label_icons": [
@@ -135,7 +136,8 @@
      "D16_visual_presence": "ok",
      "D17_export_weight": "ok",
      "D18_region_labels": "FAIL",
-     "D19_register": "FAIL"
+     "D19_vocabulary": "ok",
+     "D20_register": "FAIL"
     },
     "contains": {
      "D16_visual_presence": [
@@ -144,7 +146,7 @@
      "D18_detail": [
       "southeast-asia"
      ],
-     "D19_register": [
+     "D20_register": [
       "p16"
      ]
     }
@@ -229,7 +231,7 @@
    },
    "design": {
     "argv": [],
-    "exit": 0,
+    "exit": 1,
     "verdicts": {
      "D1_contrast": "FAIL",
      "D18_region_labels": "n/a",
@@ -249,7 +251,8 @@
      "D10_label_icons": "ok",
      "D17_export_weight": "ok",
      "D16_visual_presence": "ok",
-     "D19_register": "ok"
+     "D19_vocabulary": "FAIL",
+     "D20_register": "ok"
     }
    },
    "layout": {
@@ -285,7 +288,8 @@
      "D13_lime_as_text": "ok",
      "D14_placeholders": "ok",
      "D15_footer_path": "ok",
-     "D19_register": "ok"
+     "D20_register": "ok",
+     "D19_vocabulary": "ok"
     },
     "$comment": "The non-vacuous half of D19: the register declared and the vocabulary present — an illustration as the cover mark, one scene on the practice page, the seigaiha band on the cover, the hand-drawn icon skin — and every gate still ok. deck-pass reads D19 ok with no vocabulary at all, which cannot tell 'the register is honoured' from 'the probe matched nothing'."
    }

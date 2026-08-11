@@ -882,6 +882,28 @@ PROBE = r"""
       // numbers measured against element boxes, which is the pre-fix behaviour.
       inkUnavailable: inkFail - inkFailAtStart,
       hasFooter: !!footEl,
+      // A STARVED COLUMN: a block carrying words, rendered too narrow to hold
+      // them. This is the shape of a defect no markup reader can see — the
+      // `.swap` grid is `1fr 34px 1fr` and takes three children, so a block
+      // written with two put its second half in the 34px arrow track. Every
+      // gate passed; the text wrapped one word per line and its content was
+      // trimmed three times before anyone measured the box.
+      //
+      // The test is not "narrow" — a chip or a number legitimately is. It is
+      // narrow WHILE HOLDING A SENTENCE: more than a few words in less than
+      // 60px, which is under four characters a line at body size.
+      starved: (() => {
+        const bad = [];
+        for (const e of s.querySelectorAll(TEXT_SEL)) {
+          const r = e.getBoundingClientRect();
+          const words = (e.textContent || '').trim().split(/\s+/).length;
+          if (r.width > 1 && r.width < 60 && words >= 4 && r.height > r.width) {
+            bad.push((e.className || e.tagName) + ' ' + Math.round(r.width) +
+                     'x' + Math.round(r.height) + 'px, ' + words + ' words');
+          }
+        }
+        return bad;
+      })(),
       // The footer is one line by contract: three spans on a row. A second
       // line is furniture overflowing its own frame, and it shipped on all 31
       // pages of a real deliverable because the document's `.page` padding
@@ -1510,6 +1532,10 @@ def contact_sheet(shots, out_path, cols=4):
 # and D7's withdrawal in 0.1.340 is what it cost to learn that).
 def _colliding(live):
     return [r for r in live if r.get("textOverlaps", 0)]
+
+
+def _starved(live):
+    return [r for r in live if r.get("starved")]
 
 
 def _spilling(live):
@@ -2145,6 +2171,10 @@ def deliverable_verdicts(rows, consistency):
     add("collision", _colliding(live), not live,
         lambda h: f"{len(h)} pages have blocks landing on each other: " + _fmt_ids(h))
     footed = [r for r in live if r.get("hasFooter")]
+    add("starved_column", _starved(live), not live,
+        lambda h: (f"{len(h)} pages hold a sentence in a column too narrow for "
+                   f"it: " + _fmt_ids(h) + " — "
+                   + "; ".join(x for r in h[:2] for x in r["starved"][:2])))
     add("content_spill", _spilling(live), not footed,
         lambda h: f"{len(h)} pages run past the footer rule: " + _fmt_ids(h))
     add("page_height", _too_tall(live), not live,

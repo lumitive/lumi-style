@@ -160,7 +160,24 @@ def shipped_css() -> str:
     # at. 0.1.388 taught check_design to accumulate `:root` blocks rather than
     # keep the last one, precisely so a document could append this file; the
     # fixture then never did.
-    return (":root {" + css[start + len(":root {"):i] + "}\n"
+    # AND THE DARK PALETTE. Only the :root block was taken, so `body.dark`
+    # never reached a deliverable — adding the class to a shipped document
+    # changed nothing at all, because the values it redefines were not in the
+    # file. The dark palette had been in tokens/ since 0.1.333 and reachable
+    # from nothing since. A palette a document cannot express is a palette the
+    # package does not have.
+    dstart = css.index("body.dark {")
+    ddepth, dend = 0, dstart
+    for dend in range(dstart + len("body.dark {"), len(css)):
+        if css[dend] == "{":
+            ddepth += 1
+        elif css[dend] == "}":
+            if ddepth == 0:
+                break
+            ddepth -= 1
+    dark = css[dstart:dend + 1] + "\n"
+
+    return (":root {" + css[start + len(":root {"):i] + "}\n" + dark
             + (ROOT / "tokens/lumi-layouts.css").read_text(encoding="utf-8")
             + (ROOT / "tokens/region-palette.css").read_text(encoding="utf-8"))
 
@@ -394,10 +411,14 @@ def page(i: int, total: int, spec, broken: bool) -> str:
                         "quarter of the programme, before the rural feeders had been "\
                         "surveyed at all, which makes the comparison generous."  # M8 overlong
         if i == 16:
-            # D19: an illustration in a document that never declares the
+            # D20: an illustration in a document that never declares the
             # expressive register (brand.md 2c). The instance alone is the
-            # defect — the probe reads the class, so no symbol defs are needed.
-            illo = '<svg class="illo" aria-hidden="true"><use href="#il-practice"/></svg>'
+            # defect — the probe reads the class. Drawn inline rather than via
+            # <use>, because a dangling href would trip D19_vocabulary too and
+            # a plant that fires two metrics is not one named defect.
+            illo = ('<svg class="illo" viewBox="0 0 320 240" aria-hidden="true">'
+                    '<path d="M 40 160 L 280 160" stroke="var(--acc-4)" '
+                    'stroke-width="1.6"/></svg>')
     lis = "".join(f"<li>{b}</li>" for b in bullets)
     # Page 12 carries the graded ladder and page 17 the glossary, so the two
     # block patterns promoted in 0.1.375 are exercised by the suite instead of
@@ -748,6 +769,8 @@ body {{ font-family: var(--din); font-size: 15px; color: var(--tx1);
             overflow: hidden; }}
 ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
 </style></head><body data-geometry="landscape" data-genre="sales">
+<!-- D19_vocabulary: #g-ground here and #i-shield below resolve to nothing. -->
+<svg class="ground" viewBox="0 0 1280 720" aria-hidden="true"><use href="#g-ground"/></svg>
 <section class="page cover" id="cover">
   <div class="body cover-grid">
     <div class="typeblock">
@@ -759,7 +782,8 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
        footer row. inspect_layout counts LINE BOXES rather than comparing a
        scaled height to a fixed line-height, and this is the case that proves
        it still fires after that was fixed. -->
-  <div class="foot"><div class="terms"><span class="conf">{TERMS} &#183; not for
+  <div class="foot"><div class="terms"><span class="conf"><svg class="ic"
+  aria-hidden="true"><use href="#i-shield"/></svg>{TERMS} &#183; not for
   distribution outside the receiving organisation &#183; retain under the record
   schedule &#183; destroy on request &#183; this line exists to wrap</span></div>
   <span class="site">{SITE}</span></div></section>{pages}
@@ -776,6 +800,16 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
     <div class="lede"><p class="clamped">{_LONG} and then a third line that the
     clamp removes from the page without removing it from the markup, which is
     the shape of the defect: the checker reads text a reader cannot see.</p></div>
+  </div>
+  <div class="foot"><div class="terms"><span class="conf">{TERMS}</span></div>
+  <span class="site">{SITE}</span></div></section>
+<section class="page" id="dstarved">
+  <div class="body">
+    <h2>{_TITLE} on the starved page</h2>
+    <!-- starved_column: .swap is a 1fr/34px/1fr grid and takes three children;
+         with two, the second lands in the 34px arrow track. -->
+    <div class="swaps"><div class="swap"><span class="no">{_LONG} before</span>
+    <span class="yes">{_LONG} after</span></div></div>
   </div>
   <div class="foot"><div class="terms"><span class="conf">{TERMS}</span></div>
   <span class="site">{SITE}</span></div></section>
@@ -858,7 +892,7 @@ def build_zh(broken: bool) -> str:
 # ── the expressive fixture ────────────────────────────────────────────────────
 # A small training deck in the expressive register (brand.md 2c): the declared
 # body attribute, the hand-drawn icon skin, one illustration per page at most,
-# and the seigaiha band on the cover. Its job is the non-vacuous half of D19 —
+# and the seigaiha band on the cover. Its job is the non-vacuous half of D20 —
 # deck-pass reads ok with no vocabulary at all, which cannot tell "the register
 # is honoured" from "the probe matched nothing".
 def build_expressive() -> str:

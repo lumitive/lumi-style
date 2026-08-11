@@ -80,6 +80,18 @@ export function decode(topology, registry) {
  * keeping it would put a duplicate vertex at every junction, which is invisible
  * on screen and doubles the work of every projection pass.
  */
+/**
+ * The decoded polyline for one arc index, sign dropped.
+ *
+ * A ring references arcs with a sign for direction; a LINE has no winding, so
+ * the three land-line layers (coast, bloc edge, border) index arcs directly.
+ * Which arc belongs to which layer is decided once, in scripts/geo_frame.py,
+ * and travels in the markup — this function only decodes.
+ */
+export function arcPoints(index, data) {
+  return data.arcs[index >= 0 ? index : ~index];
+}
+
 export function ringsOf(code, data) {
   const country = data.countries.get(code);
   if (!country) return [];

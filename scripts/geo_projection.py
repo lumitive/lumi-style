@@ -216,6 +216,39 @@ CAP_STEP_DEG = 1.5              # azimuth resolution of a closure arc
 CAP_EPS = 1e-9
 
 
+# How much larger than its source a clipped ring may be before the closure is
+# judged to have gone the wrong way, in steradians. The clip adds a cap arc, so
+# a legitimate result IS larger than its input — but by the sliver between the
+# chord and the limb, never by a hemisphere. 0.35 sr is bigger than any country
+# ring in this topology (Russia, the largest, is 0.41 sr in total) and far
+# smaller than the 2*pi a wrong-way closure encloses.
+CLOSURE_SLACK = 0.35
+
+
+def _reclose(seq, ring, lon0, lat0, c, step, forward):
+    """Re-walk one closed piece's cap arcs in the opposite direction.
+
+    The visible run is whatever survived the cull; only the arc between its
+    ends is in question, so this keeps the run and replaces the arc.
+    """
+    on_cap = [i for i, p in enumerate(seq)
+              if abs(math.acos(max(-1.0, min(1.0, cos_c(p[0], p[1], lon0, lat0))))
+                     - c) < 1e-6]
+    if not on_cap:
+        return None
+    keep = [p for i, p in enumerate(seq) if i not in set(on_cap)]
+    if len(keep) < 2:
+        return None
+    a0 = azimuth(keep[-1][0], keep[-1][1], lon0, lat0)
+    a1 = azimuth(keep[0][0], keep[0][1], lon0, lat0)
+    span = (a1 - a0) % (2 * math.pi) if forward else (a0 - a1) % (2 * math.pi)
+    steps = max(1, int(math.ceil(span / step)))
+    arc = [cap_point((a0 + (span * i / steps) * (1 if forward else -1))
+                     % (2 * math.pi), c, lon0, lat0)
+           for i in range(1, steps)]
+    return keep + arc + [keep[0]]
+
+
 def clip_to_cap(ring, lon0, lat0, t, step_deg, forward=None):
     """Intersect a (lon, lat) ring with the visible cap. -> list of closed rings.
 
@@ -305,6 +338,7 @@ def clip_to_cap(ring, lon0, lat0, t, step_deg, forward=None):
     # and the figure shaded its daylight. Rings built by cap_point traverse with
     # the interior on the right by construction and pass forward=True; a country
     # ring, far below the ceiling, still asks.
+    forward_given = forward is not None
     if forward is None:
         forward = signed_area(ring) > 0
     step = math.radians(CAP_STEP_DEG)
@@ -348,7 +382,52 @@ def clip_to_cap(ring, lon0, lat0, t, step_deg, forward=None):
             k = best
         if len(seq) > 2:
             out.append(seq + [seq[0]])
-    return out
+
+    # THE TANGENT GUARD. A clipped ring cannot enclose more of the sphere than
+    # the ring it came from. When a small country grazes the limb — Venezuela at
+    # lon0 = 20.3, a sliver a few dozen points wide — the entry and exit
+    # azimuths of its one visible run sit almost on top of each other, and the
+    # arc chosen between them can be the long way: the closure sweeps the whole
+    # cap and the country is painted over the entire disc. Measured: area
+    # 3.143e6 against a disc of 3.142e6, for six frames, once per revolution.
+    # A reader sees the globe flash.
+    #
+    # This is the fourth appearance of the closure-direction family and the
+    # first where the ring is not a hemisphere, not a seam-crosser and not
+    # unwrapped wrong — it is simply tangent, and 1e-12 of azimuth decides
+    # which way round the arc goes. So the guard is not another rule about
+    # direction; it is an assertion about the OUTCOME, which is what makes it
+    # robust to the next member of the family: rebuild the piece the other way
+    # and keep whichever encloses less.
+    # NOT WHEN THE CALLER VOUCHED FOR THE RING. The guard's whole premise is
+    # that signed_area(ring) bounds the honest result — and signed_area is
+    # meaningless within a hair of a hemisphere, which is exactly what the
+    # day/night terminator is. Applied there it reads a false source area,
+    # fires, and re-inverts the night side that 0.1.399 spent a release
+    # correcting. `forward is not None` is precisely the set of callers that
+    # know their own handedness, and it is the set this must leave alone.
+    if forward_given:
+        return out
+
+    source = abs(signed_area(ring))
+    fixed = []
+    for seq in out:
+        if abs(signed_area(seq)) <= source + CLOSURE_SLACK:
+            fixed.append(seq)
+            continue
+        # BOTH directions, and keep the smallest. Not `not forward`: the ring's
+        # handedness is still right, so flipping it produced a piece slightly
+        # WORSE than the one it replaced (6.30 sr against 6.26). The arc that
+        # actually recovers Venezuela is the forward one re-walked between the
+        # kept run's own ends, and knowing which of the two that is beforehand
+        # is exactly the thing 1e-12 of azimuth was deciding wrong.
+        best = seq
+        for direction in (True, False):
+            alt = _reclose(seq, ring, lon0, lat0, c, step, direction)
+            if alt is not None and abs(signed_area(alt)) < abs(signed_area(best)):
+                best = alt
+        fixed.append(best)
+    return fixed
 
 
 # ── the unroll ────────────────────────────────────────────────────────────────

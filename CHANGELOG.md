@@ -3,7 +3,7 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
-## 0.1.406 — the expressive register: hand-drawn icons, twelve scenes, and the water learns its ancestry
+## 0.1.415 — the expressive register: hand-drawn icons, twelve scenes, and the water learns its ancestry
 
 **The case.** The owner reviewed the skill from the perspective of its three
 deliverable families and found the visual range too narrow for training and
@@ -46,19 +46,370 @@ ship** (convention 5, learned three times):
   with two honesty contracts instead of one rule quietly weakened.
 
 **The decidable halves gate; the aesthetic halves are read.** `check_design.py`
-D19 fails a document that uses expressive vocabulary without declaring the
+D20 fails a document that uses expressive vocabulary without declaring the
 register, or sets two illustrations on one page — both decidable the way D12
 and D14 are. `inspect_layout.py` gains its eleventh rendered finding: a band
 whose box intersects a figure, a table, a field or running text. Whether a
 scene *means* what its page needs stays with the reader and the manifest. A
 fourth fixture (`deck-expressive.en.html`) is the non-vacuous pass — register
-declared, vocabulary in use, every gate green — because `deck-pass` reads D19
+declared, vocabulary in use, every gate green — because `deck-pass` reads D20
 ok with no vocabulary at all, which cannot tell "honoured" from "matched
-nothing"; the failing case is planted on `deck-broken` page 16.
+nothing"; the failing case is planted on `deck-broken` page 16. (The metric is
+D20, not D19, because 0.1.409 took D19 for vocabulary resolution while this
+work was in flight on its own branch — the collision was caught in the merge,
+along with the release number itself: this entry began life as 0.1.406, a
+number 0.1.406 below had already claimed.)
 
 Also fixed in passing: `design-tokens.json` still described the icon set as
 "the eight semantic icons", sixty-seven releases after 0.1.338 replaced them
 with the Lucide library.
+
+## 0.1.414 — the flash was never fixed: the guard shipped in Python and the runtime is JavaScript
+
+0.1.411 found the flash, named the country, measured the polygon at 3.143e6
+against a disc of 3.142e6, guarded it, checked it, and shipped a release note.
+The reader saw **no change at all**, and was right to say so.
+
+The guard went into `scripts/geo_projection.py`. The first frame of a globe comes
+from there; **every frame after it is drawn by `assets/geo/projection.js`**,
+which had no guard. So the emitter's sweep was green, the invariant held over
+278 rings at 72 rotations, the release note was accurate about the emitter, and
+the figure a reader watches went on flashing on exactly the same schedule.
+
+**This is the second time a repair has reached one side of this hand-maintained
+port.** 0.1.405 is the first, and it has its own paragraph in this file saying
+precisely that. A paragraph is not a check.
+
+Re-measured on the shipped demo: **eight jumps in eighty seconds, not one.**
+`.gl-land` at 30.1s — the Venezuela case, unchanged by the fix — and `.gl-rg`,
+the bloc fills, at 15.5s, 40.6s and 75.5s, a layer the first investigation never
+watched because it went looking for the country it had already found. After the
+port: **zero jumps in eighty seconds.**
+
+The check now drives the RUNTIME through the tangency and measures what it
+draws, rather than sweeping the emitter that was green through both failures.
+Reverting the JavaScript guard reports it in those words: "the tangent guard is
+in scripts/geo_projection.py and not in assets/geo/projection.js, so the emitter
+is green and every frame a reader sees is not".
+
+Also in this release, the cover and closing support line gets its own size.
+`.sub` shared `--fs-support` with a content page's `.sup`, so it stayed at 17px
+when the title came down from 80 to 58 and left the two voices closer together
+than they were drawn to be.
+
+## 0.1.413 — the cover mark is contained, not bled
+
+The cover mark took the full height of its cell and ran past the right margin —
+`height: 100%`, `max-width: none`, and a six per cent nudge outward — on the
+reasoning that a mark grows better than it clips. Measured on a real cover: 602px
+inside a 509px column, reaching the viewport edge while the footer rule stopped
+90px short of it. A reader asked for half the page, centred, and was right.
+
+It is now bounded by the cell it sits in and centred there, exactly filling its
+column. Height-led is kept, because the route across the mark's top is still the
+part that carries meaning; what is gone is the licence to grow past the frame.
+
+**Worth recording: two earlier attempts to fix this failed for a reason that was
+not visible from the markup.** `min-width: 0` on the item, then `minmax(0, …)`
+on the track, then a `max-width` in the document's own stylesheet — all three
+were correct and none applied, because a rule shipped in `tokens/` set
+`max-width: none` at equal specificity and later in the file. The document was
+never going to win that; the rule that said "bleed" had to stop saying it. Three
+rounds of fixing the wrong end, and one query to the browser for which rules
+actually matched the element ended it.
+
+## 0.1.412 — a column starved to 34px, the standard order, and a green that clears its floors
+
+**`starved_column` gates.** `.swap` renders on `grid-template-columns: 1fr 34px
+1fr` and takes THREE children — a before, an arrow, an after. A deliverable
+wrote it with two, so the second half landed in the 34px arrow track and wrapped
+one word per line. Every gate passed. Its content was trimmed three times across
+three rounds of review before anyone measured the box, which was 34px wide the
+whole time.
+
+The finding is a block holding a sentence in a column too narrow for it: four or
+more words in under 60px, taller than it is wide. Not "narrow" — a chip and a
+number legitimately are.
+
+**A first version of this check tried to count children against grid columns and
+was deleted the hour it was written**, because CSS grid flows extra children onto
+the next row on purpose: `.gr` carries three children in a two-column grid and
+renders correctly, so the check failed the reference fixture on its first run.
+The property is real and it is not static. A starved column is measurable only
+once rendered, which is why it lives in `inspect_layout.py` and not beside D19.
+
+**The scaffold emits the standard order**, which is the default unless a request
+says otherwise:
+
+    cover · agenda · Part A opener · content… · Part B opener · content… · closing
+
+The first version emitted cover, one opener, a run of pages and a closing. That
+is not a deck, it is a deck's middle. `--parts A,B` is now two by default,
+because one part is not a part.
+
+**The cover and closing set at 58px**, not the part opener's 80. A shipped deck
+measures 57.6px on both while its openers measure 80.6, and a reader asked for
+the cover to match it: an opener is one line of claim on an empty page, while a
+cover carries a title, a support line, an attribute strip and a mark, and 80
+crowds them. New token, so the opener is untouched.
+
+Their titles carry **two inks**: the claim in ink, the noun the deck is about in
+the live green, so the green marks what the page is for rather than decorating
+it.
+
+**`--acc-live` #3E7A2E.** `--acc` is legible and reads brown at figure scale;
+`--lime` is a surface and D13 correctly refuses it as a stroke on white at
+1.21:1. The new green measures **5.21:1 on white and 3.23:1 on the dark ground**,
+clearing the label and stroke floors in both palettes, with `--acc-tint` for the
+table row wash. Measured, not chosen by eye.
+
+**`.body.cover-grid` takes `minmax(0, …)` on both columns.** A bare `fr` track
+keeps an implicit auto minimum, so a mark cell holding an SVG at its intrinsic
+size stretched the track past its share — measured at 602px inside a 509px
+column — and ran the composition off the page. `min-width: 0` on the item does
+not reach the track, which is why it failed to fix this twice.
+
+**`--preset cover` carries every layer.** Its first cut filled trade blocs and
+nothing else — no marks, no cities, no lanes, no signals, no terminator — which
+is a preset named for the cover that omitted four of the five things the cover
+is made of. A reader spotted it in one look.
+
+## 0.1.411 — Venezuela painted over the whole globe, once a minute
+
+Reported as "the screen flashes about every minute". Measured over 70 seconds of
+real frames: one layer, `.gl-land`, jumping 2,071 characters and back inside a
+tenth of a second. Reproduced in the emitter at lon0 = 20.3, isolated to a
+single country, and then measured properly — **Venezuela's clipped polygon
+encloses 3.143e6 square units against a disc of 3.142e6.** It is not a flash. It
+is Venezuela, drawn over the entire Earth, for six frames, once per revolution.
+
+**The cause is the closure family's fourth appearance and its first without a
+special shape.** The others were a hemisphere, a seam-crosser and a ring whose
+longitudes were not unwrapped. This one is an ordinary small country that
+happens to graze the limb: its single visible run enters and exits at almost the
+same azimuth, and which way the closing arc goes between them is decided by
+about 1e-12 of angle. Going the long way sweeps the whole cap.
+
+So the repair is not another rule about direction. It is an assertion about the
+OUTCOME: a clipped ring cannot enclose more of the sphere than the ring it came
+from, plus the sliver a cap arc adds. Where it does, both closure directions are
+tried and the smaller kept. Across all 278 rings at 72 rotations the honest
+worst case is 0.0000 steradians of excess; a wrong-way closure is 6.28.
+
+**A caller that vouched for its own handedness is exempt**, and finding that out
+cost a round trip: the guard's premise is that `signed_area(ring)` bounds the
+honest result, and `signed_area` is meaningless within a hair of a hemisphere —
+which the day/night terminator exactly is. Applied there it read a false source
+area, fired, and re-inverted the night side that 0.1.399 spent a release
+correcting.
+
+**The check took three attempts, and the first two are the lesson.**
+
+The first rendered a revolution at 0.6-degree steps and compared adjacent
+frames. That is a good description of what a reader sees and a bad test: the
+defect occupies about two tenths of a degree, so the sweep stepped over it and
+reported ok with the bug reinstated.
+
+The second asserted the right property — the area invariant — but sampled lon0
+every five degrees, and missed it for the same reason. A grid cannot find an
+event narrower than its spacing, and nobody knows how narrow the next one is.
+
+The third stopped sampling. The failure is not distributed over the rotation: it
+happens when a ring GRAZES the limb, and that longitude is computable from the
+ring. Each ring is now placed on its own limb and nudged across it in
+twentieths of a degree. Reverting the repair fails it in the message above.
+
+## 0.1.410 — the cover globe, and a preset so a document does not have to know four flags
+
+`globe_svg.py --preset cover` is LUMIVATE's own view: Pacific-centred at
+lon0=-160, the trade blocs filled, the terminator off. It exists so a document
+does not have to carry four flag values to draw the mark, and so every document
+that draws it draws the same one. An explicit flag still wins — a preset is a
+starting point, not a lock.
+
+`assets/brand/lumivate/` gains **`globe-cover.svg`** and
+**`globe-cover.dark.svg`**, that view at cover scale, self-contained in each
+palette. **Two files, not one that adapts**: `prefers-color-scheme` follows the
+browser rather than the page a mark is dropped on, so a mark that adapts goes
+dark on a light deck read in a dark-mode browser.
+
+`assets/brand/README.md` documents the live recipe — the frame, the runtime, and
+`data-globe-print-lon0` for a reproducible export — which is what makes the
+rotating globe reachable from any agent with the skill installed: no demo
+machinery, no build directory, two commands that already ship.
+
+**D19 earned itself on the first document built after it landed.** The rebuilt
+proposal referenced `#i-flow`, an icon this package has never had, and the gate
+named it before a reader could. The same rebuild then hit the palette split for
+the third time in this repository: `--rg-*` variables live in the SCOPED region
+palette and the class-to-fill bindings in the UNSCOPED one, so inlining half of
+them gave a globe with every variable defined and nothing bound to it — black,
+and looking deliberate. The first two were the brand mark and the region map.
+
+## 0.1.409 — D19: a document that cannot render itself does not ship
+
+A deliverable passed `check_design`, `check_prose` and
+`inspect_layout --deliverable`, and reached its reader with **no icons anywhere**,
+a blank part opener, and a numbered block whose numbers had come away from their
+content. Every rule it broke was already written down. Nothing stopped it.
+
+**D19 gates**, beside D12, D14 and D15, and asserts three things a document can
+be wrong about decidably:
+
+- **every reference resolves here.** A `<use href="#x">` needs an `id="x"` in
+  the same document. The failing deck carried **zero** of them: the icon sprite
+  lives in the reference fixture's BODY, and a document assembled by slicing its
+  `<head>` gets the whole stylesheet and none of the icons. Thirteen pages of
+  handling terms lost their seal-red shield, and the page ground never drew.
+  A `<use>` pointing at nothing is valid markup that renders as empty space;
+- **every block carries its contract.** `tokens/` renders `.grades` through
+  `.gr` and `.gn`, `.band` through `.k` and `.v`, `.swap` through `.no` and
+  `.yes`. A class used without the children its rendering assumes silently
+  borrows whatever styling it collides with — `.grades` picked up the `.key`
+  callout's red outline and left every paragraph outside the box;
+- **a part opener carries `class="page opener"`.** The lime opener is a class,
+  not a layout. Without it the page renders blank, which is what a reader
+  reported.
+
+This is the deliverable-side mirror of `check_repo.py`'s `probe vocabulary`
+guard, which says a class a CHECKER asserts must have a rendering in `tokens/`.
+The same sentence turned around: a class a DOCUMENT uses must have the rendering
+it is asking for, in the document that uses it.
+
+**Two false starts are worth recording, because both would have made it
+useless.** The first collected only `<symbol>` ids and so failed the reference
+fixture on its first run — the page ground is a `<g id>`, and `<use>` may
+reference any element; a gate whose opening move is to fail the fixture is a
+gate nobody keeps. The second matched a block's body with a non-greedy
+`(.*?)</\1>`, which stops at the first closing tag of that name and truncated a
+`.swap` before its second half, reporting a missing `.yes` that was right there.
+A gate that cries wolf teaches its reader to skip the line.
+
+**`scripts/new_deck.py` is the positive half.** It emits a skeleton carrying the
+complete preamble — token block *and* sprite *and* ground — a cover, a part
+opener with its class, one of every block pattern with the markup that renders
+it, and a closing. An author edits content into a structure that already works.
+Its own preamble bug is instructive: taking the first `<svg>` after `<body>`
+left `#g-ground` dangling, because the fixture opens with two hidden SVGs. A
+preamble is whatever comes before the content, and guessing how many elements
+that is was wrong twice in one hour.
+
+## 0.1.408 — a dark palette that draws the sphere, not just the dark
+
+0.1.407 got the dark palette into a document. It was reachable and it was not
+finished, and the difference is worth naming: the chrome indirects to theme
+tokens and those redefine under dark, which is true, and it was not sufficient.
+
+`--gl-plate` resolves to `--ln3`, and on a #1D1D1F page `--ln3` sits so close to
+the background that the ocean and the page became one black field. The globe
+read as a scatter of continents floating on nothing — every value correct, the
+figure gone. The comment in the generator said in as many words that the dark
+chrome "needs no separate values"; it needed four.
+
+Water on a dark page is not the absence of light, it is a surface with less of
+it. The plate lifts just clear of the background and the graticule, the equator
+and the tropics lift with it, because a sphere cue nobody can see is not a cue.
+
+**Every deliverable now ships light and dark, from one build.** The two differ
+by exactly the body's class and `data-theme`; every figure in them is
+byte-identical, because a dark edition maintained separately is a dark edition
+that drifts and the reader who compares the two is the one who finds out. The
+`.dark.` in the filename is load-bearing: `inspect_layout.py` infers the palette
+from it, so the dark edition is graded dark rather than graded twice as light.
+
+The closing page loses its illustration. A closing that restates the cover's
+image is a closing that has nothing of its own to say.
+
+## 0.1.407 — the dark palette reaches a document at last, and the mark stops being a second design
+
+**The dark palette had been unreachable since 0.1.333.** `build_fixtures.py`
+inlined only the `:root` block from `tokens/lumi-theme.css`, so `body.dark`
+never entered a deliverable — adding the class to a shipped document changed
+nothing at all, because the values it redefines were not in the file. Nine
+releases of a dark palette that no document could express. It is inlined now,
+and the globe reads on black without a single new value: the chrome indirects to
+theme tokens and the theme tokens redefine.
+
+**The mark is the cover's globe, not a second drawing of it.** 0.1.405 shipped a
+monochrome treatment on the reasoning that a logo has to print in one colour.
+That reasoning is sound and the answer was still wrong: a company whose figure
+and whose mark disagree has two marks. The monochrome styles are deleted
+outright and the mark carries the cover's own look, resolved to literals and
+inlined, with its own `prefers-color-scheme` dark variant — so one file is
+correct on a white page and a black one and needs nothing from `tokens/`.
+
+Building it turned up a defect the same shape as the mark's whole reason for
+existing: the first cut read the SCOPED region palette only, and the chrome
+variables — `--gl-plate`, `--gl-graticule`, `--gl-equator` — are emitted in the
+UNSCOPED file, because a scoped instance is regions-only by design. Every one
+resolved to nothing, `fill` became invalid, and an SVG with an invalid fill is a
+black SVG. The whole ocean came out black in both palettes and looked
+deliberate.
+
+**A stray checkout poisoned every file-scanning guard.** `check_repo.py` walks
+the filesystem rather than git's index, so a Claude Code worktree left at
+`.claude/worktrees/` — a full copy of this repository at an older version — was
+scanned as if it belonged to the tree. Seventeen failures across three guards,
+every one of them true of a checkout nobody was editing. Gitignoring it was not
+enough: a guard that reads the disk has to be told what the disk is for, so the
+walker now skips dot-directories rather than `.git` alone.
+
+**Figures 1 and 2 are kept as LUMIVATE brand images**, written beside the
+document rather than into this package. The line is the one the HS codes and the
+lane waypoints already fall on: those figures carry 128 tariff codes, 23 ports
+and thirteen shipping routes, which are a deliverable's data. lumi-style ships
+the component and its own mark; a figure built from a client's tariff list stays
+out, and red line 9 is why.
+
+## 0.1.406 — the land in three weights, and an export that is the same twice
+
+**Continents read as continents.** Every land line was one weight, so a
+coastline and a provincial border looked alike and the eye had nothing to group
+by — on a figure whose stated job is comparing where one trade bloc sits against
+another. The shared-arc topology `build_worldmap.py` already builds is the whole
+mechanism and it needs no new data: an arc between two countries is stored once
+and referenced by both, so its number of users says what it is.
+
+    548 arcs used by one country  -> coast, 2.6px
+    196 used by two, different blocs -> bloc edge, 2px
+    570 used by two, same bloc    -> border, 0.8px
+
+The fills lose their strokes; all linework moves to those three layers.
+Classified in Python once and carried to the runtime in the markup, which is
+the standing lesson of 0.1.404 and 0.1.405: those two releases were spent on
+one repair applied to one side of a hand-maintained port.
+
+**Oceania is back, and its absence was a regression I introduced.** 0.1.405 made
+countries outside a bloc outline-only, and Papua New Guinea, Fiji, the Solomons,
+Vanuatu and New Caledonia belong to no bloc — so an entire continent became
+1.2px hairlines around small islands. A coast is a coast whether or not it is in
+a bloc, so the same change that weights continents puts them back.
+
+**One horizon.** `.gl-equator` was drawn in the graticule's own ink, so the
+figure offered four candidate horizons at nearly equal weight. It gets its own
+token now. That is `references/brand.md`'s waterline applied to a sphere: one
+horizon where the light collects, and exactly one — the tropics stay dashed and
+quiet because they are context for the tilt rather than a line to measure from.
+
+**An export is the same twice.** `export_pdf.py` loaded the page and captured
+whatever rotation the browser had reached, so two runs on one unchanged document
+produced two different PDFs. The component gains `pin(lon0)`: it sets the view,
+stops the clock, and — this is the half that took a second attempt — **resets the
+signals to where the emitter put them**. The first version stopped the rotation
+and left the signals wherever they had drifted, which gave a correctly pinned
+longitude and a different picture every time. A pinned frame has to be
+reproducible FROM THE MARKUP or it is not pinned.
+
+Which view a document exports is the document's decision, carried as
+`data-globe-print-lon0`. A `beforeprint` listener does the same, so Cmd-P in a
+browser gives the frame the PDF gives.
+
+**The deck is three pages and the cover is the globe.** The live figure moved
+from an interior page to the cover, where `cover-grid` gives it a larger cell
+than it had, and Figure 1's page is gone. It opens on the Pacific — the one view
+where every lane is visible at once — and exports on Singapore. The legend went
+with the page it stood on; what it did, the marks do through their own titles
+and hover.
 
 ## 0.1.405 — LUMIVATE's mark, a lock with teeth, and the ring's last hiding place
 

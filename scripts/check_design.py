@@ -20,10 +20,11 @@ metric. Four of them were arithmetic:
     D12 commercial footer  handling terms and origin on every page (**gates**)
     D14 placeholders       slots the author left for themselves (**gates**)
     D15 footer path        no repository path reaches a footer (**gates**)
-    D19 register           expressive vocabulary only under its declaration,
+    D19 vocabulary         icons, blocks and openers resolve here (**gates**)
+    D20 register           expressive vocabulary only under its declaration,
                            and one illustration per page (**gates**)
 
-**Nothing here gates except D12, D14, D15 and D19.** Every other number is a diagnostic for a
+**Nothing here gates except D12, D14, D15, D19 and D20.** Every other number is a diagnostic for a
 designer to read, and the exit code is 0 unless a file could not be measured at
 all. SKILL.md rule 4 is the reason: a page is done when a human reads it as
 intentional, and a metric that can be satisfied without improving the page ends
@@ -510,7 +511,7 @@ def d18_region_labels(raw):
     return {"regions": len(ids), "unlabelled": sorted(ids - labelled)}
 
 
-def d19_register(raw):
+def d20_register(raw):
     """The expressive vocabulary appears only under its declaration (**gates**).
 
     brand.md 2c: a document opts into the expressive register with
@@ -608,6 +609,113 @@ def _block_text(body, cls):
         depth += -1 if found.group(1) else 1
         i = found.end()
     return re.sub(r"<[^>]+>", " ", body[m.end():i])
+
+# The block patterns tokens/ renders as a STRUCTURE, and the children that
+# structure assumes. A class with a rendering, used without the shape that
+# rendering was written for, is markup that silently borrows somebody else's
+# styling — `.grades` without `.gr` picked up the `.key` callout's red outline
+# and left every paragraph outside the box it belonged to.
+BLOCK_CONTRACTS = {
+    "grades": ("gr",),
+    "gr": ("gn",),
+    "band": ("k", "v"),
+    "swap": ("no", "yes"),
+    "card": ("ledname",),
+    "vow": ("vn", "vt"),
+}
+
+
+def _element_body(raw, match):
+    """The inner HTML of the element `match` opens, counting nested tags.
+
+    A non-greedy `(.*?)</\1>` stops at the FIRST closing tag of that name,
+    which for a div containing divs is the wrong one — it truncated a `.swap`
+    body before its second half and reported a missing `.yes` that was right
+    there. A gate that cries wolf is worse than no gate, because it teaches its
+    reader to skip the line.
+    """
+    tag = match.group(1)
+    depth, i = 1, match.end()
+    opener = re.compile(rf'<{tag}\b', re.I)
+    closer = re.compile(rf'</{tag}\s*>', re.I)
+    while depth and i < len(raw):
+        o = opener.search(raw, i)
+        c = closer.search(raw, i)
+        if not c:
+            return raw[match.end():]
+        if o and o.start() < c.start():
+            depth += 1
+            i = o.end()
+        else:
+            depth -= 1
+            if not depth:
+                return raw[match.end():c.start()]
+            i = c.end()
+    return raw[match.end():]
+
+
+# _grid_arity lived here and was removed the hour it was written: it counted a
+# block's children against its grid's column count, and CSS grid flows extra
+# children onto the next row on purpose — `.gr` carries three children in a
+# two-column grid and renders correctly. It failed the reference fixture on its
+# first run, which is the same disqualifying move D19's first cut made.
+#
+# The property is real and it is not static. A child starved into a 34px track
+# is measurable only once rendered, so it lives in inspect_layout.py as
+# `starved_column`.
+
+
+def d19_vocabulary(raw):
+    """Every reference in this document resolves inside this document.
+
+    **This gates.** Three assertions, none of them a judgement about a page:
+
+    1. an icon `<use href="#x">` has a `<symbol id="x">` here;
+    2. a block class is used with the children tokens/ renders it through;
+    3. a part opener carries `class="page opener"`.
+
+    All three are what a deliverable got wrong while passing every other check
+    in this file. The icon sprite lives in the reference fixture's BODY, so a
+    document assembled by slicing its `<head>` carries none of it — thirteen
+    pages of handling terms lost their seal-red shield, and nothing here could
+    see it, because a `<use>` pointing at nothing is valid markup that renders
+    as empty space.
+
+    This is the deliverable-side mirror of the `probe vocabulary` guard in
+    check_repo.py, which says a class a checker asserts must have a rendering in
+    tokens/. The same sentence turned around: a class a DOCUMENT uses must have
+    the rendering it is asking for, in the document that uses it.
+    """
+    # EVERY id, not just <symbol>. A <use> may reference any element — the page
+    # ground is a <g id="g-ground"> and the icons are <symbol>s — so a check
+    # that only collected symbols called the reference implementation broken.
+    # A gate whose first act is to fail the fixture is a gate nobody will keep.
+    ids = set(re.findall(r'\bid="([^"]+)"', raw))
+    symbols = set(re.findall(r'<symbol[^>]*\bid="([^"]+)"', raw))
+    used = {m for m in re.findall(r'<use[^>]*\bhref="#([^"]+)"', raw)}
+    dangling = sorted(used - ids)
+
+    bad_blocks = []
+    for cls, needs in BLOCK_CONTRACTS.items():
+        for m in re.finditer(rf'<(\w+)[^>]*class="[^"]*\b{cls}\b[^"]*"[^>]*>',
+                             raw):
+            body = _element_body(raw, m)
+            missing = [n for n in needs
+                       if not re.search(rf'class="[^"]*\b{n}\b', body)]
+            if missing:
+                bad_blocks.append((cls, missing))
+
+    openers = []
+    for m in re.finditer(r'<section([^>]*)>(.*?)</section>', raw, re.S):
+        attrs, body = m.group(1), m.group(2)
+        if "openframe" in body and "opener" not in attrs:
+            openers.append(re.search(r'id="([^"]*)"', attrs).group(1)
+                           if re.search(r'id="([^"]*)"', attrs) else "?")
+
+    return {"symbols": len(symbols), "used": len(used), "dangling": dangling,
+            "bad_blocks": bad_blocks, "bad_arity": [],
+            "openers_missing_class": openers}
+
 
 def d12_commercial_footer(raw, site=None):
     """Every page carries its handling terms and the origin of the document.
@@ -818,16 +926,17 @@ def measure(path):
         "D12_commercial_footer": d12_commercial_footer(raw),
         "D14_placeholders": d14_placeholders(raw),
         "D15_footer_path": d15_footer_path(raw),
+        "D19_vocabulary": d19_vocabulary(raw),
         "D13_lime_as_text": d13_lime_never_light_text(css, resolved, palette),
         "D9_layout_variety": d9_layout_variety(raw),
         "D10_label_icons": (d10 := d10_label_icons(raw)),
         "D16_visual_presence": (d16 := d16_visual_presence(raw)),
         "D17_export_weight": d17_export_weight(raw, css),
         "D18_region_labels": (d18 := d18_region_labels(raw)),
-        "D19_register": (d19 := d19_register(raw)),
+        "D20_register": (d20 := d20_register(raw)),
         # The register verdict's detail: which pages carried expressive
         # vocabulary without the declaration, and which broke the ceiling.
-        "D19_detail": d19["undeclared_vocabulary"] + d19["over_ceiling"],
+        "D20_detail": d20["undeclared_vocabulary"] + d20["over_ceiling"],
         # The contains hook in check_fixtures.py reads <PREFIX>_detail. D16's
         # is the WHOLE dict, not just the prose-only list, so the pass fixture
         # can assert '"prose_only": []' — a regression that flags every
@@ -890,8 +999,13 @@ def grade(r):
     fp = r["D15_footer_path"]
     rows.append(("D15_footer_path", len(fp["found"]) if fp else None, "=0 (gates)",
                  bool(fp) and not fp["found"], fp is None))
-    rg = r["D19_register"]
-    rows.append(("D19_register",
+    vo = r["D19_vocabulary"]
+    vo_bad = (len(vo["dangling"]) + len(vo["bad_blocks"]) + len(vo["bad_arity"])
+              + len(vo["openers_missing_class"])) if vo else None
+    rows.append(("D19_vocabulary", vo_bad, "=0 (gates)",
+                 vo_bad == 0, vo is None))
+    rg = r["D20_register"]
+    rows.append(("D20_register",
                  len(rg["undeclared_vocabulary"]) + len(rg["over_ceiling"]),
                  "=0 (gates)",
                  not (rg["undeclared_vocabulary"] or rg["over_ceiling"]), False))
@@ -946,7 +1060,8 @@ def main(argv):
         # separates them from every other row here.
         if any(r["verdicts"].get(m) == "FAIL"
                for m in ("D12_commercial_footer", "D14_placeholders",
-                         "D15_footer_path", "D19_register")):
+                         "D15_footer_path", "D19_vocabulary",
+                         "D20_register")):
             gated_failure += 1
         results.append(r)
 
@@ -993,12 +1108,34 @@ def main(argv):
         if d and d["laid_out"]:
             print(f"        {d['laid_out']} of {d['figures']} figures are markup "
                   f"rather than a drawing; §4 asks what the content is and to draw that")
+        vv = r["D19_vocabulary"]
+        if vv:
+            if vv["dangling"]:
+                print(f"        {len(vv['dangling'])} icon reference(s) resolve to "
+                      f"nothing: {', '.join('#' + d for d in vv['dangling'][:5])}")
+                if not vv["symbols"]:
+                    print(f"        this document carries NO <symbol> at all — the "
+                          f"sprite lives in the reference fixture's BODY, and a "
+                          f"document assembled from its <head> alone has none of it")
+            for cls, missing in vv["bad_blocks"][:5]:
+                print(f"        .{cls} is used without {', '.join('.' + m for m in missing)}"
+                      f" — tokens/ renders it through those children, and without "
+                      f"them it borrows whatever styling it collides with")
+            for cls, got, want in vv["bad_arity"][:5]:
+                print(f"        .{cls} has {got} children and tokens/ lays it "
+                      f"out on {want} columns — the extra or missing child "
+                      f"lands in the wrong track, which is how a half-width "
+                      f"column became 34px and wrapped one word per line")
+            for pid in vv["openers_missing_class"][:5]:
+                print(f"        section {pid} carries an .openframe and not "
+                      f"class=\"page opener\" — the lime opener is a class, not a "
+                      f"layout, so the page renders blank")
         for ph in r["D14_placeholders"][:8]:
             print(f"        {ph['page']} still carries the slot {ph['text']}")
         for fpath in (r["D15_footer_path"] or {}).get("found", [])[:6]:
             print(f"        page {fpath['page']} footer cites the file "
                   f"{fpath['path']} — a path is not a source a reader can open")
-        rg = r["D19_register"]
+        rg = r["D20_register"]
         for pid in rg["undeclared_vocabulary"][:6]:
             print(f"        {pid} carries expressive vocabulary but the body "
                   f"never declares data-register=\"expressive\" (brand.md 2c)")
@@ -1018,10 +1155,11 @@ def main(argv):
         print("\nnothing flagged")
     elif gated_failure:
         print(f"\n{failures} metric(s) failed, and {gated_failure} file(s) fail on "
-              f"D12, D14, D15 or D19 — those block: a page missing its handling "
-              f"terms, a document still carrying a slot, a footer citing a file "
-              f"path, and expressive vocabulary in a document that never declared "
-              f"the register are not judgements about design")
+              f"D12, D14, D15, D19 or D20 — those five block: a page missing "
+              f"its handling terms, a document still carrying a slot, a footer "
+              f"citing a file path, markup that cannot render itself, and "
+              f"expressive vocabulary in a document that never declared the "
+              f"register are not judgements about design")
     else:
         print(f"\n{failures} thing(s) worth a look — none of this blocks; "
               f"read them, then look at the page")

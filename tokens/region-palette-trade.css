@@ -48,6 +48,7 @@
   --rg-usmca-stroke: #853FA1;
   --rg-usmca-wash: #F2E6F8;
   --gl-night: rgba(43,46,51,.28);
+  --gl-equator: var(--ln1);
   --gl-tropic: var(--ln2);
 }
 

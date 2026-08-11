@@ -25,6 +25,13 @@
 
   /* ── semantic colors (one color, one meaning) ── */
   --acc:       #48633E;          /* the single accent: emphasis / pass / built */
+  /* THE LIVE GREEN. --acc is legible and reads brown at figure scale; --lime is
+     a SURFACE and D13 correctly refuses it as a stroke on the light canvas
+     (1.21:1). This sits between them and clears both floors in both palettes:
+     5.21:1 on white as text, 3.23:1 on the dark ground as a stroke. Figures and
+     the cover title's subject word take it. Measured, not chosen by eye. */
+  --acc-live:  #3E7A2E;
+  --acc-tint:  #EEF6E9;          /* table row wash; body text on it reads 12.3:1 */
   --acc-deep:  #48633E;          /* accent-filled surfaces (headers, bars) */
   --acc-inbox: #9FC384;          /* accent text inside an inverted (ink-filled) box */
   --acc-wash:  #EDF2EA;          /* accent surface tint (tier-1 callouts, cells) */
@@ -162,7 +169,19 @@
      the mark. The values below are what the old clamps resolved to at each
      design stage, so nothing moved at the geometry each was drawn for; the
      portrait block overrides them for the 794px sheet. */
-  --fs-display: 80px;                      /* cover, closing, part openers */
+  --fs-display: 80px;                      /* part openers */
+  /* THE COVER AND CLOSING SET SMALLER THAN A PART OPENER, and that is not a
+     preference — a shipped deck measures 57.6px on both while its openers
+     measure 80.6px, and a reader asked for the cover to match it. An opener is
+     one line of claim on an empty lime page and carries 80; a cover carries a
+     title, a support line, an attribute strip and a mark, and 80 crowds them. */
+  --fs-cover: 58px;                        /* cover and closing titles */
+  /* The cover's support line, distinct from a content page's. It shared
+     --fs-support with `.sup` and so stayed at 17px when the title came down
+     from 80 to 58, which left the two voices closer together than they were
+     designed to be. A reference cover carries no support line at all; this
+     package keeps one and sets it a step below the page's. */
+  --fs-cover-sub: 15px;
   --fs-title:   34px;                      /* page titles */
   --fs-support: 17px;                      /* the second voice, not small print */
 
@@ -204,8 +223,69 @@
   --fs-lead-xl: 105px;                      /* one number, alone, full stop */
   --fs-say:     29px;                       /* the claim that is the page */
 }
+body.dark {
+  --bg:  #1D1D1F;                /* Apple space grey */
+  --nw:  #F0F0FA;                /* cold white — never pure white */
+  --card-bg: #2C2C2E;
+
+  /* text ladder — cold white #F0F0FA on the dark canvas. Its own alphas: the
+     same numbers that work on near-white are unreadable here.
+     Contrast against --bg / --card-bg, measured:
+     tx1 11.73/9.89 · tx2 9.05/7.79 · tx3 7.14/6.27 · tx4 5.82/5.21 */
+  --tx1: rgba(240,240,250,.88);
+  --tx2: rgba(240,240,250,.76);
+  --tx3: rgba(240,240,250,.66);
+  --tx4: rgba(240,240,250,.58);
+
+  --ln1: rgba(240,240,250,.18);
+  --ln2: rgba(240,240,250,.11);
+  --ln3: rgba(240,240,250,.07);
+
+  --acc:       #7C9F63;          /* lifted for contrast on near-black */
+  --acc-live:  #7FC45A;          /* 7.97:1 on the space-grey ground */
+  --acc-tint:  #232A20;          /* the row wash inverted; text on it 13.0:1 */
+  --acc-inbox: #48633E;
+  --acc-wash:  rgba(124,159,99,.14);
+  /* Text on the lifted accent fill flips to canvas ink: cold white on #7C9F63
+     measures 2.65 and fails. Until 0.1.338 this token claimed to serve both
+     palettes, and a white label inside an accent bar shipped unreadable. */
+  --on-acc:    #1D1D1F;          /* 6.4 on #7C9F63 */
+  --seal-t:    #E97C6E;          /* lifted seal for text on grey; fills keep --seal.
+                                    6.07 on the canvas, 5.00 on --seal-wash */
+  --seal-wash: rgba(233,124,110,.15);
+  --amber:     #E0A73E;          /* 7.83 on space grey */
+  --amber-wash:rgba(224,167,62,.15);
+  --brass:     #C3B393;          /* 8.17 on space grey */
+  --brass-wash:rgba(195,179,147,.14);
+
+  /* the ramp on space grey. Its own values, like every other ladder here:
+     acc-5 space grey 5.61 · acc-4 cold white 4.69 · acc-3 6.67 ·
+     acc-2 9.70 · acc-1 13.46 */
+  --acc-5: #7C9F63;
+  --acc-4: #5B724B;
+  --acc-3: #49593E;
+  --acc-2: #363F31;
+  --acc-1: #242624;
+  --on-acc-5: #1D1D1F;
+  --on-acc-lo: #F0F0FA;
+
+
+  --lime:      #B8FF00;          /* 13.90 as text on space grey */
+  --on-lime:   #0A0907;
+  /* The dark ramp receded in name only until 0.1.378: mid sat at .24 against
+     strong's .20, so a part opener carried a DENSER ground than the cover —
+     the inversion the ratio rule in the light block exists to prevent, left
+     unfixed when 0.1.375 restated that rule one palette up. Strong stays at
+     its measured value; mid takes the same ≈0.76 ratio the light tiers hold. */
+  --ground-strong: .20;          /* light on dark water carries further */
+  --ground-mid:    .15;
+  --ground-faint:  .095;
+
+  --d-blue:    #5B8FC9;
+  --d-teal:    #3FA98C;
+}
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.406 (2026-08-11)
+   LUMI page layouts · v0.1.415 (2026-08-12)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -432,11 +512,16 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
    one came back set in the wrong face while the consistency audit called it
    clean. One rendering, audited, and wrong: consistency is not correctness. */
 .cover h1, .closing h2 {
-  font-family: var(--din); font-size: var(--fs-display);
+  font-family: var(--din); font-size: var(--fs-cover);
   font-weight: var(--w-display); line-height: var(--lh-display);
   letter-spacing: var(--ls-display); text-transform: uppercase;
   color: var(--tx1); margin: 0 0 24px;
 }
+/* The subject the deck is about, inside its own title. One title, two inks: the
+   claim stays ink and the noun takes the live green, so the green marks what
+   the page is FOR rather than decorating it. Cover and closing only — a content
+   title carries its emphasis in the words. */
+.cover h1 .subj, .closing h2 .subj { color: var(--acc-live); }
 .sup {
   font-size: var(--fs-support); font-weight: var(--w-support); line-height: 1.42;
   color: var(--tx2); max-width: var(--measure); margin: 0;
@@ -973,22 +1058,37 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    Four cells: the typeblock (wordmark and display title), the mark cell (the
    one vector on the page), the attrs column, and a full-width row for the spec
    strip or, on a closing, the closenote and colophon. */
-.body.cover-grid { grid-template-columns: 1.02fr .98fr; grid-auto-rows: min-content;
+/* minmax(0, …) on BOTH columns. A bare `fr` track keeps an implicit auto
+   minimum, so a mark cell holding an SVG at its intrinsic size stretches the
+   track past its share and the composition runs off the page — measured at
+   602px inside a 509px column. `min-width: 0` on the item does not reach the
+   track, which is why it failed to fix this twice. */
+.body.cover-grid { grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr); grid-auto-rows: min-content;
   grid-template-rows: 1fr auto auto; column-gap: 56px; row-gap: 10px; align-items: center; }
+/* The mark cell holds its content INSIDE the cell and centres it, which is
+   what "half the page, centred" means for a cover. */
+.body.cover-grid > .markcell { min-width: 0; min-height: 0; display: flex;
+  align-items: center; justify-content: center; }
+.body.cover-grid > .markcell > svg { max-width: 100%; max-height: 100%;
+  width: auto; height: auto; }
 .body.cover-grid > .typeblock { display: flex; flex-direction: column;
   justify-content: center; gap: 12px; }   /* not 0: the display tier runs at
     leading .92, so its glyphs stand taller than their line box and a zero gap
     lets the title's ascenders land on the wordmark above it. Measured as a 3px
     overlap on a cover and a closing, which the collision check catches and a
     reader reads as a smudge. */
-/* The mark takes the full height of its cell and bleeds off the page edge —
-   height-led, so it grows without clipping the route across its top, which is
-   the one part of the mark that carries meaning. */
-.body.cover-grid > .markcell { display: flex; align-items: center; min-height: 0;
-  margin-right: calc(-1 * var(--page-pad, 92px)); overflow: visible;
-  justify-content: flex-end; }
-.body.cover-grid > .markcell svg { height: 100%; width: auto; max-height: none;
-  max-width: none; transform: translateX(6%); }
+/* THE MARK IS CONTAINED AND CENTRED IN ITS HALF OF THE PAGE, and it used to
+   bleed. The bleed was height-led with `max-width: none` and a 6% nudge past
+   the right margin, on the reasoning that a mark grows better than it clips.
+   It reads as a mark running off the page: a reader measured a cover globe at
+   602px inside a 509px column, reaching the viewport edge while the footer
+   rule stopped 90px short of it, and asked for half the page, centred.
+   Height-led is kept — the route across the mark's top is still the part that
+   carries meaning — but it is now bounded by the cell it is in. */
+.body.cover-grid > .markcell { display: flex; align-items: center;
+  justify-content: center; min-width: 0; min-height: 0; overflow: hidden; }
+.body.cover-grid > .markcell svg { height: auto; width: auto;
+  max-height: 100%; max-width: 100%; transform: none; }
 /* Document attributes: needed, not prominent — one narrow mono column in the
    clear lower-left, out of the composition's way. */
 .body.cover-grid > .attrs { grid-column: 1; align-self: end; display: flex;
@@ -1012,7 +1112,7 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    same way on both — scoped to `.cover` alone until 0.1.378, which half-shipped
    the role: the closing's `.sub` fell through to generic paragraph styling
    while the waiver that would have said so had been deleted. */
-.cover .sub, .closing .sub { margin-top: 22px; font-size: var(--fs-support);
+.cover .sub, .closing .sub { margin-top: 22px; font-size: var(--fs-cover-sub);
               color: var(--tx2); max-width: 62ch; }
 .spec { display: flex; gap: 0; margin-top: 44px; border-top: 1px solid var(--ln1);
         border-bottom: 1px solid var(--ln1); flex-wrap: wrap; }
@@ -1363,9 +1463,11 @@ body[data-geometry="portrait"] .body.cover-grid { grid-template-columns: 1fr; gr
    bleed composition is the landscape design, and at 794px it lands the globe
    on the attrs column below it (measured: a 2px overlap on the fixture's own
    cover, which is how this rule got here). */
-body[data-geometry="portrait"] .body.cover-grid > .markcell { margin-right: 0; justify-content: center; }
-body[data-geometry="portrait"] .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 34svh;
-                                   transform: none; }
+/* The sheet keeps its own ceiling — a portrait cover gives the mark a band
+   rather than a column, and 34svh is what leaves room for the stack beneath
+   it. The margin and transform overrides are gone because the landscape rule
+   no longer sets them. */
+body[data-geometry="portrait"] .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 34svh; }
 body[data-geometry="portrait"] .page.opener .openframe { gap: 18px; }
 body[data-geometry="portrait"] .duo { grid-template-columns: 1fr; gap: 16px; }
 /* Figures are drawn twice. A 2.4:1 chain in a 0.8:1 cell fills a third of it,
@@ -1454,11 +1556,16 @@ body:not([data-geometry="portrait"]) .fig .port { display: none; }
   --gl-land: var(--acc-2);
   --gl-land-edge: var(--ln1);
   --gl-night: rgba(43,46,51,.28);
+  --gl-equator: var(--ln1);
   --gl-tropic: var(--ln2);
 }
 
 body.dark {
   --gl-night: rgba(10,12,20,.45);
+  --gl-plate: #26262B;
+  --gl-graticule: rgba(240,240,250,.16);
+  --gl-equator: rgba(240,240,250,.34);
+  --gl-tropic: rgba(240,240,250,.20);
   --rg-africa: #7349C7;
   --rg-africa-stroke: #A997E0;
   --rg-africa-wash: #331D5E;
@@ -1517,7 +1624,7 @@ body.dark {
 /* The equator and the tropics are NAMED lines, not graticule: a reader
  * can point at them, so they are drawn a step stronger and the tropics
  * are dashed to say they are a pair. */
-.gl-equator { fill: none; stroke: var(--gl-graticule); stroke-width: 2.5; }
+.gl-equator { fill: none; stroke: var(--gl-equator); stroke-width: 3; }
 .gl-tropic { fill: none; stroke: var(--gl-tropic); stroke-width: 2; stroke-dasharray: 10 8; }
 /* Night is a lighting condition laid over the geography, so it is a
  * wash rather than a fill and it takes no pointer events — a reader
@@ -1576,21 +1683,29 @@ body.dark {
  * and keeps one palette across both figures rather than minting a
  * second set of colours that would have to be kept in step. */
 .gl-rg { fill-opacity: .42; stroke-opacity: .55; }
-/* A COUNTRY IN NO BLOC IS AN OUTLINE, NOT A FILL. On a figure whose
- * subject is trade blocs, filling the rest of the world says the rest
- * of the world is a category — and it is not one, it is the absence
- * of the eight. An outline still draws every coast, so the reader can
- * see where the blocs stop, without a ninth colour claiming to mean
- * something. This is `.gl-land` only: on a globe with no registry
- * there are no blocs, nothing is absent, and the land is the
- * subject. */
-.gl-land:not(:only-of-type) { fill: none; stroke: var(--ln1); stroke-width: 1.2; }
-/* TRADE LANES. One hue for every lane, because a lane is a lane:
- * weight is a quantity and it is carried by width and opacity, which
- * are quantities too. Hue is identity here and is not free to mean a
- * second thing. The accent is the same one a mark uses, because a
- * lane and a datum are both the figure's subject and the geography
- * behind them is not. */
+/* THE LAND, IN THREE WEIGHTS. Every land line used to be one weight,
+ * so a coastline and a provincial border looked alike and the eye had
+ * nothing to group by. A reader asked to compare where one bloc sits
+ * against another needs the continents to read as shapes first, and
+ * that is what a hierarchy of line is for.
+ *
+ * The FILLS carry no stroke at all now; all linework is here. */
+.gl-rg { fill-opacity: .42; stroke: none; }
+.gl-land { fill: none; stroke: none; }
+/* A coast is a continent's edge, and it is the heaviest line on the
+ * figure after the data. This is also what puts Oceania back: an
+ * island coast is a coast whether or not the island is in a bloc, and
+ * 0.1.405's outline-only rule had left Papua New Guinea, Fiji, the
+ * Solomons and Vanuatu as 1.2px hairlines. */
+.gl-coast { fill: none; stroke: var(--tx2); stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
+/* Where one trade bloc meets another. Heavier than a border inside a
+ * bloc and lighter than a coast, which is the order of the question a
+ * reader is asking. */
+.gl-bloc-edge { fill: none; stroke: var(--tx2); stroke-width: 2; stroke-opacity: .75; stroke-linejoin: round; }
+/* A border between two countries in the SAME bloc. Present, because
+ * the countries are real; faint, because the figure is not about
+ * them. */
+.gl-border { fill: none; stroke: var(--ln1); stroke-width: .8; }
 .gl-link { fill: none; stroke: var(--acc); stroke-linecap: round; }
 .gl-hub { fill: var(--acc); stroke: var(--bg); stroke-width: 2; }
 /* A signal is one code in transit: the dot is where, the text is
@@ -1700,7 +1815,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
       <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
     </div>
-    <p class="colophon">Built with lumi-style 0.1.406 &#183; source: meter management system.</p>
+    <p class="colophon">Built with lumi-style 0.1.415 &#183; source: meter management system.</p>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 18</span></div></section>
 <section class="page opener" id="openA">
@@ -2107,7 +2222,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <p class="gd">A callout carries the aside a reader should not miss, and no more than one of them belongs on a page.</p>
       <ul><li>Rescheduling costs one quarter.</li><li>Accepting it costs billing accuracy.</li></ul>
       
-    </div><svg class="illo" aria-hidden="true"><use href="#il-practice"/></svg>
+    </div><svg class="illo" viewBox="0 0 320 240" aria-hidden="true"><path d="M 40 160 L 280 160" stroke="var(--acc-4)" stroke-width="1.6"/></svg>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>16 / 18</span></div></section>
 <section class="page" id="p17" data-role="apparatus">
@@ -2159,7 +2274,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>
     </div>
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.406.
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.415.
     Source: meter management system; every number here is invented, and a
     bracketed slot must not ship.</p></div>
   </div>
