@@ -60,10 +60,11 @@ jobs:
       - run: python3 scripts/build_brand.py --check
       - run: python3 scripts/build_trade_registry.py --check
       - run: python3 scripts/build_region_palette.py --check
-      # The maths properties only. The JS port needs a browser, so like
-      # check_prose/check_design/inspect_layout its full run is an
-      # operator step; --python-only is the half a runner can do.
-      - run: python3 scripts/check_globe.py --python-only
+      # The maths properties, plus the JS port held to the Python authority
+      # over the 1300-sample golden grid under bare node (projection.js is
+      # DOM-free). The remaining browser checks (renderer parity, painted
+      # ink) stay operator steps recorded via the evidence gate.
+      - run: python3 scripts/check_globe.py --python-only --node
       - run: python3 scripts/embed_globe.py --check
       - run: python3 scripts/embed_regionmap.py --check
       # Ordering matters: a stale generated tree must report as stale rather

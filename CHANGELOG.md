@@ -3,6 +3,28 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.426 — CI verifies the JavaScript port for the first time
+
+Release R10 of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`). The golden grid — 1300
+projection samples, the ONLY thing holding `assets/geo/projection.js` to the
+Python authority — had never been read through JavaScript by any CI run:
+the comparison lived behind Playwright, so it ran when an operator
+remembered.
+
+`projection.js` is DOM-free maths, and bare `node` can import it.
+`check_globe.py` now splits "obtain the JS results" from "compare against
+the golden grid" (the compare was always backend-agnostic) and gains a
+`--node` backend that pipes the grid through a plain node process. The CI
+step becomes `--python-only --node`: the port is verified on every push,
+with no browser. A missing node is a FAILURE, never a skip. The remaining
+browser checks (renderer parity, painted ink, occlusion) stay operator
+steps, recorded through the evidence gate like any other.
+
+Deliberate red: multiplying one `Math.sin` in the port by 1.000001 failed
+the node check across the grid; reverting restored agreement on all 1300
+samples.
+
 ## 0.1.425 — the evidence gate goes red, and GAP-002 is the first ledgered closure
 
 Release R9 of the engineering-quality migration
