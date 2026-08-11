@@ -3,6 +3,30 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.421 — five guards are shown able to fail
+
+Release R5 of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`).
+
+Until now every guard in `check_repo.py` had run only against the live
+repository — which is always in the passing state, so a guard rewritten to
+`return []` would have gone unnoticed for as long as the defect it watches
+for stayed away. That is precisely how 0.1.390 found three checkers
+"incapable of failing" after they had been reporting green.
+
+`tests/test_check_repo_guards.py` (16 tests) puts the first five guards on
+synthetic trees, each with a passing fixture AND a failing fixture per
+failure mode: **check_versions** (agreement passes; one diverging stamp
+fails naming the file; a missing stamp fails rather than being skipped),
+**check_english_only** (CJK prose fails; backticked CJK data and the
+allowlisted rule files do not), **check_palette_parity** (a diverging hex,
+an unmapped JSON key, and a mapped key with no CSS var each fail),
+**check_version_citations** (an undefined version fails; a waived one
+passes; a stale entry-point stamp naming a real older release fails —
+the mode only the stamp-position half can catch), and **check_links**
+(a broken relative target fails with file:line; external URLs are proven
+never to be resolved). The remaining fourteen guards follow in later waves.
+
 ## 0.1.420 — four copies of the color math become one, and a guard keeps it that way
 
 Release R4 of the engineering-quality migration
