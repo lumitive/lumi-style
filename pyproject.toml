@@ -47,8 +47,12 @@ no_implicit_optional = true
 warn_unused_ignores = true
 warn_redundant_casts = true
 
+# The two OPTIONAL local dependencies (inspect_layout / export_pdf /
+# check_globe browser halves). Without these overrides mypy's verdict depends
+# on which machine ran it: green where Pillow happens to be installed, red on
+# a clean CI runner — found the first time CI ran the migration branch.
 [[tool.mypy.overrides]]
-module = "playwright.*"
+module = ["playwright.*", "PIL", "PIL.*"]
 ignore_missing_imports = true
 
 # The ratchet: shared libraries are held strict from birth.
