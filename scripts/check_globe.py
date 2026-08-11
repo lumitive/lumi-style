@@ -1567,6 +1567,70 @@ def check_land_lines():
     return errors
 
 
+def check_rotation_is_continuous():
+    """A clipped ring never encloses more of the sphere than the ring it came
+    from. This is the closure family's invariant, asserted directly.
+
+    Four releases of this family were each found by a reader watching the
+    figure — a lens of daylight, a lane closing into a ring, a country painted
+    over the whole disc for six frames once a minute — and each fix shipped
+    without a check that would have caught it.
+
+    THE FIRST VERSION OF THIS CHECK SAMPLED THE SYMPTOM and was useless. It
+    rendered a revolution at 0.6-degree steps and compared adjacent frames,
+    which is a fine description of what a reader sees and a bad test: the
+    Venezuela defect occupies about two tenths of a degree, so the sweep
+    stepped over it and reported ok with the bug reinstated. Sampling for a
+    narrow event needs a step finer than the event, and nobody knows how narrow
+    the next one is.
+
+    So this asserts the PROPERTY instead. Clipping adds a cap arc, so a
+    legitimate result is a little larger than its input — by the sliver between
+    a chord and the limb, never by a hemisphere. A wrong-way closure encloses
+    about 6.3 steradians whatever the input was. Every ring in the topology, at
+    72 rotations, and the honest worst case measures 0.0000 sr of excess.
+    """
+    from geo_frame import _load, _rings_of
+
+    # TESTED AT THE TANGENCY, NOT ON A GRID. This was the second thing the
+    # check got wrong: a five-degree sweep of lon0 misses a defect two tenths
+    # of a degree wide just as surely as the frame sweep did. The failure is
+    # not distributed over the rotation — it happens when the ring GRAZES the
+    # limb, and that longitude is computable from the ring itself. So each ring
+    # is put on its own limb and nudged across it.
+    topo, _reg, arcs = _load()
+    lat0 = 10.0
+    worst = (0.0, None, None)
+    for country in topo["countries"]:
+        for ring in _rings_of(country, arcs):
+            source = abs(gp.signed_area(ring))
+            lon = sum(p[0] for p in ring) / len(ring)
+            lat = sum(p[1] for p in ring) / len(ring)
+            # cos_c = 0 puts the ring's centre exactly on the limb. Solve for
+            # the lon0 that does it, then walk a degree either side in
+            # twentieths, which is finer than any window seen so far.
+            import math as _m
+            num = -_m.sin(_m.radians(lat0)) * _m.sin(_m.radians(lat))
+            den = _m.cos(_m.radians(lat0)) * _m.cos(_m.radians(lat))
+            base = []
+            if den and abs(num / den) <= 1.0:
+                d = _m.degrees(_m.acos(num / den))
+                base = [lon - d, lon + d]
+            tests = [b + k * 0.05 for b in base for k in range(-20, 21)]
+            for lon0 in tests + [float(v) for v in range(0, 360, 15)]:
+                for piece in gp.clip_to_cap(ring, float(lon0), lat0, 0.0, 2.0):
+                    excess = abs(gp.signed_area(piece)) - source
+                    if excess > worst[0]:
+                        worst = (excess, country["a"], lon0)
+    if worst[0] > gp.CLOSURE_SLACK:
+        return [f"{worst[1]} at lon0={worst[2]} clips to a polygon enclosing "
+                f"{worst[0]:.3f} steradians more than the ring it came from. A "
+                f"clip adds a cap arc, not a hemisphere: this closure went the "
+                f"wrong way round the cap, and on a rotating globe the country "
+                f"is painted over the whole disc for as long as it lasts"]
+    return []
+
+
 def check_earth_is_tilted():
     """The earth layer carries the tilt, at the obliquity, leaning right.
 
@@ -1913,6 +1977,7 @@ CHECKS = (
     ("the earth is tilted, right, at the obliquity", check_earth_is_tilted, False, "globe", False),
     ("the globe's layers hold their contract", check_globe_layers, False, "globe", False),
     ("the land is drawn in three weights", check_land_lines, False, "globe", False),
+    ("a revolution is continuous", check_rotation_is_continuous, False, "globe", False),
     ("a lane is the shortest path, and carries a code", check_trade_lanes, False, "globe", False),
     ("city names never overlap", check_city_labels_do_not_collide, False, "globe", True),
     ("a field draws no strangers", check_field_has_no_strangers, False, "globe", False),
