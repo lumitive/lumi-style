@@ -252,7 +252,7 @@ body.dark {
   --d-teal:    #3FA98C;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.408 (2026-08-10)
+   LUMI page layouts · v0.1.409 (2026-08-10)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -1711,6 +1711,8 @@ body { font-family: var(--din); font-size: 15px; color: var(--tx1);
             overflow: hidden; }
 ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
 </style></head><body data-geometry="landscape" data-genre="sales">
+<!-- D19_vocabulary: #g-ground here and #i-shield below resolve to nothing. -->
+<svg class="ground" viewBox="0 0 1280 720" aria-hidden="true"><use href="#g-ground"/></svg>
 <section class="page cover" id="cover">
   <div class="body cover-grid">
     <div class="typeblock">
@@ -1722,7 +1724,8 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
        footer row. inspect_layout counts LINE BOXES rather than comparing a
        scaled height to a fixed line-height, and this is the case that proves
        it still fires after that was fixed. -->
-  <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward &#183; not for
+  <div class="foot"><div class="terms"><span class="conf"><svg class="ic"
+  aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward &#183; not for
   distribution outside the receiving organisation &#183; retain under the record
   schedule &#183; destroy on request &#183; this line exists to wrap</span></div>
   <span class="site">www.example.org</span></div></section>
@@ -1857,7 +1860,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
     <h2>The reporting position across the estate under review has not moved materially since the previous cycle closed and remains subject to the same constraints that were recorded at the time by the programme at the close</h2></div>
     <!-- D6_footer missing_source: the colophon names no provenance, and D6 asks
          the DOCUMENT once rather than every page. -->
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.408.</p></div>
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.409.</p></div>
   </div>
   <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div>
   <span class="site">www.example.org</span></div></section>

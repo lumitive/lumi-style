@@ -775,6 +775,8 @@ body {{ font-family: var(--din); font-size: 15px; color: var(--tx1);
             overflow: hidden; }}
 ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
 </style></head><body data-geometry="landscape" data-genre="sales">
+<!-- D19_vocabulary: #g-ground here and #i-shield below resolve to nothing. -->
+<svg class="ground" viewBox="0 0 1280 720" aria-hidden="true"><use href="#g-ground"/></svg>
 <section class="page cover" id="cover">
   <div class="body cover-grid">
     <div class="typeblock">
@@ -786,7 +788,8 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
        footer row. inspect_layout counts LINE BOXES rather than comparing a
        scaled height to a fixed line-height, and this is the case that proves
        it still fires after that was fixed. -->
-  <div class="foot"><div class="terms"><span class="conf">{TERMS} &#183; not for
+  <div class="foot"><div class="terms"><span class="conf"><svg class="ic"
+  aria-hidden="true"><use href="#i-shield"/></svg>{TERMS} &#183; not for
   distribution outside the receiving organisation &#183; retain under the record
   schedule &#183; destroy on request &#183; this line exists to wrap</span></div>
   <span class="site">{SITE}</span></div></section>{pages}
