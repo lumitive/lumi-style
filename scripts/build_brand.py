@@ -38,6 +38,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import globe_svg  # noqa: E402
+from css_tokens import rule_vars  # noqa: E402
 
 OUT_DIR = ROOT / "assets" / "brand" / "lumivate"
 
@@ -60,16 +61,11 @@ VIEW = (20.0, 18.0, 0.0, 100.0, 100.0, 100.0)
 #
 # It carries its own DARK MODE too, on prefers-color-scheme, so the same file
 # is correct on a white page and a black one without the host doing anything.
-def _vars(css, selector):
-    """The custom-property declarations inside one rule, as a dict."""
-    i = css.index(selector + " {")
-    j = css.index("}", i)
-    out = {}
-    for line in css[i:j].splitlines():
-        m = re.match(r"\s*(--[\w-]+)\s*:\s*([^;]+);", line)
-        if m:
-            out[m.group(1)] = m.group(2).strip()
-    return out
+# _vars moved to css_tokens.rule_vars (0.1.420): same shape, but comments
+# are stripped and the block runs to the MATCHING brace — the old copy
+# could read a declaration out of a multi-line comment and truncated at
+# the first `}` in the file. Proven identical on all six real call sites
+# before the switch.
 
 
 def mark_style(force=None):
@@ -89,9 +85,10 @@ def mark_style(force=None):
     # came out black in both palettes and it looked deliberate.
     base = (ROOT / "tokens/region-palette.css").read_text(encoding="utf-8")
     trade = (ROOT / "tokens/region-palette-trade.css").read_text(encoding="utf-8")
-    light = {**_vars(theme, ":root"), **_vars(base, ":root"), **_vars(trade, ".trade")}
-    dark = {**light, **_vars(theme, "body.dark"), **_vars(base, "body.dark"),
-            **_vars(trade, "body.dark .trade")}
+    light = {**rule_vars(theme, ":root"), **rule_vars(base, ":root"),
+             **rule_vars(trade, ".trade")}
+    dark = {**light, **rule_vars(theme, "body.dark"), **rule_vars(base, "body.dark"),
+            **rule_vars(trade, "body.dark .trade")}
 
     def decl(v, table):
         # One indirection deep is all the token files use, and resolving it

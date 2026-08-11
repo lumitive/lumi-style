@@ -14,6 +14,9 @@ import sys
 import traceback
 from typing import cast
 
+import color_math
+from css_tokens import css_block, css_vars  # noqa: F401 — css_block is API for tests/tools
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 # CJK is permitted only where it is rule *data* for Chinese-language output.
@@ -98,35 +101,8 @@ def rel(path):
     return str(path.relative_to(ROOT))
 
 
-def css_block(css, opener):
-    """Return the declarations inside `opener { ... }`."""
-    start = css.index(opener) + len(opener)
-    depth = 1
-    for i in range(start, len(css)):
-        if css[i] == "{":
-            depth += 1
-        elif css[i] == "}":
-            depth -= 1
-            if depth == 0:
-                return css[start:i]
-    raise ValueError(f"unterminated block: {opener}")
-
-
-def css_vars(block):
-    """-> {name: value} for the custom properties a block declares.
-
-    COMMENTS ARE STRIPPED FIRST, and that is not tidiness. Every token in this
-    package is documented in prose beside it, and that prose cites token names
-    and the contrast numbers they were chosen for. A comment reading
-    "measured against --bg: 2.71 / 1.82" parses as a declaration of --bg, so
-    the parity check compared design-tokens.json against a sentence and
-    reported the dark background as "2.71 / 1.82 / 1.45, from". It failed
-    loudly, which was luck: the same misparse on a token the JSON does not
-    carry would have been silently absent instead.
-    """
-    block = re.sub(r"/\*.*?\*/", "", block, flags=re.S)
-    return {m.group(1): m.group(2).strip()
-            for m in re.finditer(r"--([\w-]+)\s*:\s*([^;]+);", block)}
+# css_block / css_vars moved to css_tokens.py (0.1.420) — one CSS reader,
+# fixed once; the 0.1.415 comment-stripping story lives on its docstring.
 
 
 def check_versions():
@@ -312,18 +288,6 @@ def _check_contrast_floor(tokens):
     """Every text-ladder step must clear the documented floor against both
     surfaces of its own palette. This is the guard that would have caught the
     0.1.337 defect: the alphas were legal, they were simply unreadable."""
-    def _lin(c):
-        c /= 255
-        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
-
-    def _luma(rgb):
-        r, g, b = (_lin(x) for x in rgb)
-        return 0.2126 * r + 0.7152 * g + 0.0722 * b
-
-    def _hex(value):
-        v = value.lstrip("#")
-        return tuple(int(v[i:i + 2], 16) for i in (0, 2, 4))
-
     floor = tokens["contrast"]["floor_text"]
     errors = []
     for palette_name, palette in tokens["palette"].items():
@@ -333,13 +297,12 @@ def _check_contrast_floor(tokens):
                     re.match(r"rgba\(([\d,\s]+),ALPHA\)", palette["ladder_base"]))
         ink = tuple(int(c) for c in base.group(1).replace(" ", "").split(","))
         for surface_key in ("bg", "card_bg"):
-            surface = _hex(palette[surface_key])
-            ls = _luma(surface)
+            surface = color_math.hex_to_rgb(palette[surface_key])
+            ls = color_math.luma255(surface)
             for i, alpha in enumerate(palette["text_ladder"], 1):
-                mixed = tuple(ink[c] * alpha + surface[c] * (1 - alpha) for c in range(3))
-                lm = _luma(mixed)
-                hi, lo = max(ls, lm), min(ls, lm)
-                ratio = (hi + 0.05) / (lo + 0.05)
+                mixed = color_math.mix255(ink, surface, alpha)
+                lm = color_math.luma255(mixed)
+                ratio = color_math.contrast_from_luma(ls, lm)
                 if ratio < floor:
                     errors.append(
                         f"contrast: palette.{palette_name}.text_ladder[{i - 1}] "
@@ -1547,6 +1510,38 @@ def check_brand_lock():
     return brand_lock.verify()
 
 
+def check_no_shadow_math():
+    """No script re-grows a private copy of the shared color or CSS readers.
+
+    0.1.415's escape shape: a fix landed in one of several duplicated
+    implementations while the same class stayed live in the others. 0.1.420
+    extracted the one implementation into color_math.py / css_tokens.py; this
+    guard is what keeps "one" true. It scans for the definition names — an
+    import or a call is fine, a fresh `def` is the drift.
+    """
+    shared = {"color_math.py", "css_tokens.py"}
+    owners = {
+        "_lin": "color_math.py", "_luma": "color_math.py",
+        "srgb_linear": "color_math.py", "srgb_encode": "color_math.py",
+        "luma255": "color_math.py", "contrast255": "color_math.py",
+        "contrast_hex": "color_math.py", "contrast_from_luma": "color_math.py",
+        "css_vars": "css_tokens.py", "css_block": "css_tokens.py",
+        "rule_vars": "css_tokens.py", "strip_comments": "css_tokens.py",
+        "_vars": "css_tokens.py",
+    }
+    errors = []
+    for path in sorted((ROOT / "scripts").glob("*.py")):
+        if path.name in shared:
+            continue
+        text = path.read_text(encoding="utf-8")
+        for name, owner in owners.items():
+            if re.search(rf"^\s*def {re.escape(name)}\(", text, re.M):
+                errors.append(
+                    f"{rel(path)} defines {name}() — the shared implementation "
+                    f"lives in scripts/{owner}; import it instead of copying it")
+    return errors
+
+
 CHECKS = (
     ("version stamps", check_versions),
     ("output default", check_output_default),
@@ -1567,6 +1562,7 @@ CHECKS = (
     ("review scores", check_review_scores),
     ("source-marker parity", check_source_marker_parity),
     ("brand lock", check_brand_lock),
+    ("no shadow math", check_no_shadow_math),
 )
 
 

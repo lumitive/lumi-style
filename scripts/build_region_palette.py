@@ -27,6 +27,8 @@ import pathlib
 import sys
 from typing import Any
 
+import color_math
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REGIONS = ROOT / "assets" / "vectors" / "regions.json"
 TOPOLOGY = ROOT / "assets" / "vectors" / "world-110m.json"
@@ -114,21 +116,21 @@ def _rgb(value):
     return tuple(int(v[i:i + 2], 16) / 255 for i in (0, 2, 4))
 
 
-def _lin(c):
-    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+# _lin moved to color_math.srgb_linear (0.1.420); this file's 0.04045 was
+# the threshold the unification kept.
 
 
 def contrast(fg, bg):
     """WCAG 2.1 relative-luminance ratio between two hex colours."""
     def luma(hexcol):
-        r, g, b = (_lin(c) for c in _rgb(hexcol))
+        r, g, b = (color_math.srgb_linear(c) for c in _rgb(hexcol))
         return 0.2126 * r + 0.7152 * g + 0.0722 * b
     a, b = luma(fg) + 0.05, luma(bg) + 0.05
     return max(a, b) / min(a, b)
 
 
 def lab_of(hexcol):
-    r, g, b = (_lin(c) for c in _rgb(hexcol))
+    r, g, b = (color_math.srgb_linear(c) for c in _rgb(hexcol))
     x = 0.4124564 * r + 0.3575761 * g + 0.1804375 * b
     y = 0.2126729 * r + 0.7151522 * g + 0.0721750 * b
     z = 0.0193339 * r + 0.1191920 * g + 0.9503041 * b

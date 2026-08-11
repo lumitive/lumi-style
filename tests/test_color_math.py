@@ -1,76 +1,70 @@
-"""Characterization tests for the sRGB/contrast math, written BEFORE the
-dedup refactor extracts it into scripts/color_math.py.
+"""Tests for scripts/color_math.py — the one sRGB/contrast implementation.
 
-The repository currently carries this math in several places with two
-different linearizer thresholds:
-
-- check_design._lin      takes 0-255, threshold 0.03928 (the WCAG 2.0 text)
-- build_region_palette._lin takes 0-1, threshold 0.04045 (IEC 61966-2-1,
-  what the WCAG errata settled on)
-- check_repo's copy is nested inside _check_contrast_floor (tested through
-  that guard), threshold 0.03928
-- inspect_layout's copy is nested inside its ground audit (Playwright path,
-  not tested here), threshold 0.03928
-
-These tests pin today's behavior of each copy, including the exact spot the
-thresholds disagree, so the extraction can prove it changed nothing it did
-not mean to change.
+Written first (0.1.419) as characterization tests against the four duplicated
+copies; re-pointed here when 0.1.420 extracted the module. The byte-safety
+argument for the threshold unification (0.03928 -> 0.04045) is preserved
+below as pure-math tests so the decision stays recorded and enforced.
 """
-import build_region_palette
-import check_design
 import check_repo
+import color_math
 import pytest
 
 
-def test_check_design_lin_endpoints():
-    assert check_design._lin(0) == 0.0
-    assert check_design._lin(255) == pytest.approx(1.0)
+def _old_lin_03928(c: float) -> float:
+    """The retired 0.03928-threshold linearizer, kept HERE ONLY as the
+    reference the byte-safety tests compare against."""
+    c /= 255
+    return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
 
 
-def test_check_design_lin_branches():
-    # 10/255 = 0.0392… ≤ 0.03928 → linear branch; 11/255 = 0.0431… → gamma.
-    assert check_design._lin(10) == pytest.approx((10 / 255) / 12.92)
-    assert check_design._lin(11) == pytest.approx(
-        ((11 / 255 + 0.055) / 1.055) ** 2.4)
+def test_lin_endpoints():
+    assert color_math.srgb_linear(0.0) == 0.0
+    assert color_math.srgb_linear(1.0) == pytest.approx(1.0)
 
 
-def test_check_design_black_on_white_is_21():
-    assert check_design.contrast((0, 0, 0), (255, 255, 255)) == pytest.approx(21.0)
-    assert check_design.contrast((255, 255, 255), (0, 0, 0)) == pytest.approx(21.0)
-
-
-def test_region_palette_lin_branches():
-    # 0-1 domain, 0.04045 threshold.
-    assert build_region_palette._lin(0.04) == pytest.approx(0.04 / 12.92)
-    assert build_region_palette._lin(0.05) == pytest.approx(
+def test_lin_branches():
+    assert color_math.srgb_linear(0.04) == pytest.approx(0.04 / 12.92)
+    assert color_math.srgb_linear(0.05) == pytest.approx(
         ((0.05 + 0.055) / 1.055) ** 2.4)
 
 
-def test_region_palette_black_on_white_is_21():
-    assert build_region_palette.contrast("#000000", "#FFFFFF") == pytest.approx(21.0)
+def test_encode_inverts_linear():
+    for v in (0.0, 0.001, 0.0031308, 0.04, 0.2, 0.7, 1.0):
+        assert color_math.srgb_encode(color_math.srgb_linear(v)) == pytest.approx(v)
 
 
-def test_thresholds_agree_on_every_integer_channel():
-    """Why the two thresholds never produced a divergent shipped byte: no
-    integer channel value c has c/255 inside (0.03928, 0.04045], so for real
-    pixel data the two copies compute identical luminance. The unification to
-    0.04045 is therefore byte-safe for everything generated from hex colours.
-    """
+def test_black_on_white_is_21():
+    assert color_math.contrast255((0, 0, 0), (255, 255, 255)) == pytest.approx(21.0)
+    assert color_math.contrast_hex("#FFFFFF", "#000000") == pytest.approx(21.0)
+
+
+def test_hex_to_rgb():
+    assert color_math.hex_to_rgb("#B08D2E") == (0xB0, 0x8D, 0x2E)
+    assert color_math.hex_to_rgb("1A1A1A") == (26, 26, 26)
+
+
+def test_mix255_endpoints():
+    ink, surface = (0, 0, 0), (255, 255, 255)
+    assert color_math.mix255(ink, surface, 1.0) == (0.0, 0.0, 0.0)
+    assert color_math.mix255(ink, surface, 0.0) == (255.0, 255.0, 255.0)
+
+
+def test_threshold_unification_is_integer_channel_safe():
+    """The recorded byte-safety argument: no integer channel value c has
+    c/255 inside (0.03928, 0.04045], so against the retired threshold every
+    hex- or pixel-derived color computes identical luminance."""
     for c in range(256):
-        assert check_design._lin(c) == pytest.approx(
-            build_region_palette._lin(c / 255), abs=1e-12)
+        assert color_math.srgb_linear(c / 255) == pytest.approx(
+            _old_lin_03928(c), abs=1e-12)
 
 
-def test_thresholds_disagree_between_the_two_lines():
-    """The band where they DO differ — non-integer channels, which only the
-    alpha-mix path in check_repo's contrast floor can produce. Documented so
-    the refactor's choice of 0.04045 is a recorded decision, not an accident.
-    """
+def test_threshold_band_difference_is_immaterial():
+    """Between the two lines (non-integer mixes only — the alpha ladder),
+    the difference exists and is at most ~2e-5 in linear light."""
     v = 0.040  # 0.03928 < v ≤ 0.04045
-    gamma_side = check_design._lin(v * 255)
-    linear_side = build_region_palette._lin(v)
-    assert gamma_side != linear_side
-    assert gamma_side == pytest.approx(linear_side, abs=2e-5)  # and immaterially so
+    assert color_math.srgb_linear(v) != _old_lin_03928(v * 255)
+    assert color_math.srgb_linear(v) == pytest.approx(
+        _old_lin_03928(v * 255), abs=2e-5)
 
 
 def _tokens(text_ladder, floor=4.5):
