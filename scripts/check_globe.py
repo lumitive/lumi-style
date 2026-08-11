@@ -1631,6 +1631,86 @@ def check_rotation_is_continuous():
     return []
 
 
+def check_runtime_closure(): 
+    """The tangent guard is in the JAVASCRIPT, not only in the Python.
+
+    This check exists because the repair for it shipped in
+    scripts/geo_projection.py, the emitter's sweep went green, the release note
+    was written — and every frame after the first is drawn by
+    assets/geo/projection.js, which had no guard. A country grazing the limb
+    went on being painted over the whole disc, six frames per revolution, with
+    the fix sitting in a language the runtime does not run. The reader saw no
+    change at all.
+
+    That is the SECOND time a repair has reached one side of this
+    hand-maintained port. 0.1.405 is the first and has its own paragraph saying
+    so, which is exactly why a paragraph is not a check.
+
+    So: drive the RUNTIME through the tangency and measure what it draws. Not
+    the emitter, which has been green throughout both failures.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return ["Playwright is not installed, so the runtime closure was NOT checked."]
+    import globe_svg
+
+    R = globe_svg.DEFAULT_R
+    reg = str(ROOT / "assets" / "vectors" / "regions-trade.json")
+    # The rotations that put a ring on the limb. 20.3 is Venezuela's, measured;
+    # the others sweep for any neighbour of it.
+    svg = globe_svg.render((0.0, 10.0, 0.0, R, R, R), regions_path=reg)
+    runtime = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "embed_globe.py")],
+        capture_output=True, text=True, check=True).stdout
+
+    js = """(lon0) => {
+      const svg = document.querySelector('svg.gl');
+      const g = window.__lumiGlobes && window.__lumiGlobes[0];
+      if (!g) return null;
+      g.pin(lon0);
+      let total = 0;
+      for (const el of svg.querySelectorAll('.gl-land, .gl-rg')) {
+        total += (el.getAttribute('d') || '').length;
+      }
+      return total;
+    }"""
+    errors = []
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch()
+        page = browser.new_page(viewport={"width": 700, "height": 700})
+        page.set_content(
+            f'<!doctype html><meta charset=utf-8>'
+            f'<style>svg.gl{{width:600px;height:600px}}</style>'
+            f'<div class="fig" data-globe>{svg}</div>{runtime}')
+        page.wait_for_timeout(500)
+        page.evaluate("window.__lumiGlobes = window.lumiGlobes")
+        prev, worst = None, (0, None)
+        lon = 19.0
+        while lon < 22.0:
+            cur = page.evaluate(js, lon)
+            if cur is None:
+                errors.append("the runtime did not register a globe; this check "
+                              "measured nothing")
+                break
+            if prev is not None and abs(cur - prev) > worst[0]:
+                worst = (abs(cur - prev), lon)
+            prev = cur
+            lon += 0.05
+        browser.close()
+
+    # 900 characters, the same ceiling the emitter's own honest change sits far
+    # below. A wrong-way closure moved 2,060.
+    if worst[0] > 900:
+        errors.append(
+            f"the RUNTIME's land geometry changes by {worst[0]} characters "
+            f"between two frames 0.05 degrees apart, at lon0={worst[1]:.2f}. "
+            f"The tangent guard is in scripts/geo_projection.py and not in "
+            f"assets/geo/projection.js, so the emitter is green and every "
+            f"frame a reader sees is not")
+    return errors
+
+
 def check_earth_is_tilted():
     """The earth layer carries the tilt, at the obliquity, leaning right.
 
@@ -1978,6 +2058,7 @@ CHECKS = (
     ("the globe's layers hold their contract", check_globe_layers, False, "globe", False),
     ("the land is drawn in three weights", check_land_lines, False, "globe", False),
     ("a revolution is continuous", check_rotation_is_continuous, False, "globe", False),
+    ("the runtime closes its rings too", check_runtime_closure, False, "globe", True),
     ("a lane is the shortest path, and carries a code", check_trade_lanes, False, "globe", False),
     ("city names never overlap", check_city_labels_do_not_collide, False, "globe", True),
     ("a field draws no strangers", check_field_has_no_strangers, False, "globe", False),

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.413 (2026-08-10)
+   LUMI page layouts · v0.1.414 (2026-08-10)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -813,7 +813,7 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    same way on both — scoped to `.cover` alone until 0.1.378, which half-shipped
    the role: the closing's `.sub` fell through to generic paragraph styling
    while the waiver that would have said so had been deleted. */
-.cover .sub, .closing .sub { margin-top: 22px; font-size: var(--fs-support);
+.cover .sub, .closing .sub { margin-top: 22px; font-size: var(--fs-cover-sub);
               color: var(--tx2); max-width: 62ch; }
 .spec { display: flex; gap: 0; margin-top: 44px; border-top: 1px solid var(--ln1);
         border-bottom: 1px solid var(--ln1); flex-wrap: wrap; }
