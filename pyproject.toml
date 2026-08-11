@@ -37,7 +37,7 @@ ignore = [
 
 [tool.mypy]
 python_version = "3.12"
-files = ["scripts"]
+files = ["scripts", "tests"]
 # The pragmatic floor: type-check the bodies of unannotated functions (finds
 # the None-flows-into-arithmetic class with zero annotation cost) without
 # requiring 16k legacy lines to be annotated first. Strictness is ratcheted

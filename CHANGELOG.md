@@ -3,6 +3,47 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.419 — the first tests, and a live bug pinned where it lives
+
+Release R3 of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`). 16,398 lines of scripts
+had zero test files; `tests/` now exists and `python3 -m pytest -q` is a CI
+step. The suite is deliberately small and aimed, not a coverage drive.
+
+**Characterization before refactor.** `test_color_math.py` and
+`test_css_tokens.py` pin the CURRENT behavior of the duplicated color and
+CSS-parsing copies — including the exact fact that makes the coming
+unification byte-safe: the two linearizer thresholds (0.03928 in
+check_design/check_repo, 0.04045 in build_region_palette) agree on **every
+integer channel value 0-255** and disagree only on the non-integer mixes
+that the alpha-ladder floor produces, by at most 2e-5. R4 can now prove it
+changed nothing it did not mean to change.
+
+**The build_brand bug is pinned as a strict xfail, not fixed.** 0.1.415
+fixed comment-parsing in `check_repo.css_vars` and the same class stayed
+live in `build_brand._vars`. Characterizing it found the repro is narrower
+than assumed: the line-anchored `re.match` misses same-line comment
+citations harmlessly, and fires when a **multi-line comment's continuation
+line begins with a declaration-shaped citation** — verified live,
+`{'--bg': '2.71 against white'}` parsed out of a comment. Two
+`xfail(strict=True)` tests assert the correct behavior; when R4's shared
+module fixes it they will XPASS and force their own promotion. A bug the
+suite asserts is a bug that cannot be quietly forgotten (the KNOWN_GAPS
+pattern, arriving properly in R6).
+
+**What else is covered**: `check_repo`'s contrast-floor guard against
+synthetic palettes (one passing, one failing — proving the guard can fail);
+`sea_route`'s grid geometry and pathfinder on a synthetic water world
+(round-trips, seam wrap, connected paths, walled-in goal returns None);
+`review_scores.validate` shown clean on the shipped store and shown to
+refuse a free-text key (the red-line-9 defense), a self-5-without-reader,
+and an out-of-anchor score. Deliberately NOT tested: geo_projection (the
+1300-sample golden grid owns it), Playwright paths, and the eleven
+generator `--check`s (CI owns them) — a duplicated check is a drift source.
+
+**The gate can fail**: a planted `assert 1 == 2` failed the run and was
+removed (design rule D8).
+
 ## 0.1.418 — the type checker goes from 105 findings to gating
 
 Release R2b of the engineering-quality migration
