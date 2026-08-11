@@ -518,7 +518,8 @@ def measure(path, genre, lang=None):
     # figure, the BLOCK for a range. Both record what they missed, because a
     # rate with no list of misses tells an author a number and not a place.
     figures = sourced = 0
-    m2_missing, m6_missing = [], []
+    m2_missing: list[str] = []
+    m6_missing: list[str] = []
     for page_text, blocks in windows:
         page_sourced = bool(SOURCE_RE.search(page_text))
         for block in blocks:

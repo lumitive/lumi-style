@@ -134,6 +134,7 @@ def dedupe_top_consts(name, src, seen):
 
 
 def build(autorotate=True):
+    seen: dict[str, tuple[str, str]]
     parts, seen, conflicts = [], {}, []
     for name in ORDER:
         path = ASSETS / name
@@ -216,7 +217,7 @@ def check():
         errors.append("createGlobe is not defined in the block")
     # A duplicate top-level declaration is a SyntaxError, and a SyntaxError in a
     # deliverable is invisible: the static frame renders and nothing moves.
-    decls = {}
+    decls: dict[str, int] = {}
     # No leading whitespace: top level means column zero. Allowing indentation
     # matched every local inside every function and reported eleven collisions
     # that do not exist — a check that cannot read scope is noise.

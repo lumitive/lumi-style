@@ -135,6 +135,7 @@ def build():
     # a country keeps it. Sizes are distinct, so no tiebreak is needed and the
     # result does not depend on the order above.
     by_size = sorted(blocs, key=lambda b: (len(b[5]), b[0]))
+    base: dict[str, list[str]]
     claimed, base = {}, {b[0]: [] for b in blocs}
     for bid, _en, _zh, _abbr, _anchor, codes in by_size:
         for code in codes:

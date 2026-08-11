@@ -45,6 +45,7 @@ import json
 import math
 import pathlib
 import sys
+from typing import Any
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import geo_projection as gp  # noqa: E402
@@ -156,7 +157,8 @@ def render(view, marks=None, night=None, nodes=False,
         body.append(f'<circle class="gl-plate" cx="{_r(cx)}" cy="{_r(cy)}" '
                     f'r="{_r(R)}" opacity="{1 - t:.3f}"/>')
 
-    grat = []
+    grat: Any = []
+    lat: float
     for lon in range(-180, 181, GLOBE_GRATICULE):
         grat.append(_d(_project_ring([(lon, la) for la in range(-90, 91, 3)], view), False))
     for lat in range(-90, 91, GLOBE_GRATICULE):
@@ -174,7 +176,7 @@ def render(view, marks=None, night=None, nodes=False,
     eq = _d(_project_ring([(lo, 0.0) for lo in range(-180, 181, 3)], view), False)
     if eq:
         body.append(f'<path class="gl-equator" d="{eq}"/>')
-    trop = []
+    trop: Any = []
     for lat in (OBLIQUITY_DEG, -OBLIQUITY_DEG):
         trop.append(_d(_project_ring([(lo, lat) for lo in range(-180, 181, 3)], view), False))
     trop = " ".join(x for x in trop if x)
@@ -193,8 +195,8 @@ def render(view, marks=None, night=None, nodes=False,
     # in the markup is how the flat map's per-instance registry idea reaches a
     # globe without shipping a second copy of anything.
     owner = {code: b["id"] for b in blocs for code in b["members"]}
-    buckets = {b["id"]: [] for b in blocs}
-    rest = []
+    buckets: dict[Any, list[str]] = {b["id"]: [] for b in blocs}
+    rest: list[str] = []
     for country in topo["countries"]:
         target = buckets.get(owner.get(country["a"]), rest)
         for ring in _rings_of(country, arcs):

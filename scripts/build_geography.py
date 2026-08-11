@@ -204,6 +204,8 @@ def globe():
          f'<circle class="geo-sphere" cx="{R}" cy="{R}" r="{R:.0f}"/>']
 
     grat = []
+    lon: float
+    lat: float
     for lon in range(-180, 180, 30):
         grat.append(_path(_visible_runs(
             _densify([(lon, la) for la in range(-90, 91, 5)]), lon0, lat0, False), False))

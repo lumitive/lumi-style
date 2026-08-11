@@ -3,6 +3,37 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.418 — the type checker goes from 105 findings to gating
+
+Release R2b of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`) — the mypy burn-down that
+0.1.417 deferred rather than rushed.
+
+**105 findings across 21 files, now zero, and `python3 -m mypy` is a CI
+step.** The floor is `check_untyped_defs`: function bodies are type-checked
+without requiring 16k legacy lines to be annotated first. Almost everything
+was annotation debt — empty containers mypy could not infer
+(`out: dict[str, list[str]] = {}`), tuples that widen across a loop,
+`Match | None` flowing into `.group()`. The genuinely rotten corner was
+`run_conformance.py`'s score/report path, where one name (`seen`) held a
+str, a dict and a list at different lines — renamed so each name has one
+type, logic untouched.
+
+**The discipline was byte-equivalence, not review confidence.** Every
+generator `--check` (nine of them) proved its output byte-identical after
+the edits; `check_globe.py --python-only`, `check_fixtures.py`,
+`check_prose.py` and `check_design.py` on the fixtures produced
+byte-identical reports before and after. Narrowing guards were added only
+where the `None` state is provably unreachable, and they `raise` rather
+than `assert` because ruff's S101 bans asserts outside `tests/`. Two narrow
+`# type: ignore[attr-defined]` remain, both in `output_dir.py`'s Windows
+registry branch, where typeshed gates `winreg` attributes on the platform
+and no annotation can help a darwin/linux run; each carries its reason.
+
+**The gate can fail**: a planted `int`-returned-as-`str` failed the run and
+was removed (design rule D8). The brand lock was updated for the annotation
+edits to its frozen sources, reason recorded in the lock.
+
 ## 0.1.417 — the scripts get a linter, and the linter's first catch is this repo's own failure family
 
 Release R2 of the engineering-quality migration

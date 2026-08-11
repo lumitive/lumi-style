@@ -12,6 +12,7 @@ import re
 import subprocess
 import sys
 import traceback
+from typing import cast
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -76,7 +77,7 @@ PROSE_GLOBS = ("*.md", "Pipeline/*.html")
 
 
 def md_files():
-    seen = {}
+    seen: dict[pathlib.Path, None] = {}
     for pattern in PROSE_GLOBS:
         for p in ROOT.rglob(pattern) if "/" not in pattern else ROOT.glob(pattern):
             # Skip .git AND every other dot-directory. This walks the
@@ -328,7 +329,8 @@ def _check_contrast_floor(tokens):
     for palette_name, palette in tokens["palette"].items():
         if not isinstance(palette, dict):
             continue
-        base = re.match(r"rgba\(([\d,\s]+),ALPHA\)", palette["ladder_base"])
+        base = cast(re.Match[str],
+                    re.match(r"rgba\(([\d,\s]+),ALPHA\)", palette["ladder_base"]))
         ink = tuple(int(c) for c in base.group(1).replace(" ", "").split(","))
         for surface_key in ("bg", "card_bg"):
             surface = _hex(palette[surface_key])
@@ -352,7 +354,7 @@ def _check_contrast_floor(tokens):
 # documented exception is a reviewable state, an undocumented one is a defect
 # nobody noticed. Empty on purpose — every knob tokens/ reaches for today either
 # ships or carries a literal fallback.
-UNDEFINED_VAR_WAIVERS = {}
+UNDEFINED_VAR_WAIVERS: dict[str, str] = {}
 
 
 def _css_without_comments(css):
@@ -543,7 +545,8 @@ def _prose_wrappers():
             continue
         out = []
         for row in node.iter.elts:
-            wrapper, item, kind = (e.value for e in row.elts)
+            wrapper, item, kind = (cast(ast.Constant, e).value
+                                   for e in cast(ast.Tuple, row).elts)
             out.append((wrapper, item if kind == "class" else None))
         if out:
             return out
@@ -564,7 +567,8 @@ def _design_visual_blocks():
     for node in tree.body:
         if (isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name)
                 and node.targets[0].id == "VISUAL_BLOCKS"):
-            return {e.value for e in node.value.elts}
+            return {cast(ast.Constant, e).value
+                    for e in cast(ast.Tuple, node.value).elts}
     raise ValueError("check_design.py no longer defines VISUAL_BLOCKS at module "
                      "level; the static half of the visual vocabulary reads nothing")
 
@@ -658,7 +662,8 @@ def check_probe_vocabulary():
         return ["ROLES or SCOPED parsed to nothing; a guard that reads no "
                 "selectors passes every document by construction"]
 
-    contract, census_classes = set(), {}
+    contract = set()
+    census_classes: dict[str, list[str]] = {}
     for sel in roles:
         contract |= _classes(sel)
     for sel, scopes in scoped:
@@ -716,7 +721,7 @@ def check_probe_vocabulary():
 # query and became the document's own declaration: `.land` and `.port` are now
 # base rules under `body[data-geometry=...]`, so the pair that needed the only
 # honest waiver no longer needs one.
-MEDIA_ONLY_WAIVERS = {}
+MEDIA_ONLY_WAIVERS: dict[str, str] = {}
 
 
 def check_media_only_rules():
@@ -795,7 +800,8 @@ def check_layout_parity():
     for node in tree.body:
         if (isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name)
                 and node.targets[0].id == "LAYOUTS"):
-            graded = {e.value for e in node.value.elts}
+            graded = {cast(str, cast(ast.Constant, e).value)
+                      for e in cast(ast.Set, node.value).elts}
     if graded is None:
         return ["check_design.py no longer defines LAYOUTS at module level; the "
                 "layout list cannot be compared"]
@@ -857,11 +863,12 @@ def _script_ban_phrases():
             continue
         name = getattr(node.targets[0], "id", None)
         if name == "BANNED":
-            for element in node.value.elts:
-                matched.add(element.elts[1].value.lower())
+            for element in cast(ast.List, node.value).elts:
+                phrase = cast(ast.Constant, cast(ast.Tuple, element).elts[1])
+                matched.add(cast(str, phrase.value).lower())
         elif name == "NOT_MECHANIZED":
-            for key in node.value.keys:
-                waived.add(key.value.lower())
+            for key in cast(ast.Dict, node.value).keys:
+                waived.add(cast(str, cast(ast.Constant, key).value).lower())
     return matched, waived
 
 
@@ -1081,7 +1088,7 @@ def _load_platforms():
 # caption — but once each retired value carried `context` phrases, the icon
 # sentence stopped looking like a floor claim at all. A waiver that survives its
 # cause is a standing permission nobody re-reads.
-RETIRED_VALUE_WAIVERS = {}
+RETIRED_VALUE_WAIVERS: dict[tuple[str, str, str], str] = {}
 
 # The words this repository actually uses when it retires something, harvested
 # rather than invented: a retirement written in a phrasing not listed here is a
@@ -1134,7 +1141,8 @@ def check_retired_values():
         # lines and a line-scoped check reported the second half as an unmarked
         # restatement. A sentence is the unit a reader reads; it is the unit the
         # marker has to be found in.
-        in_fence, para, start = False, [], 1
+        para: list[str] = []
+        in_fence, start = False, 1
         paragraphs = []
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             prose, in_fence = _strip_code(line, in_fence)
@@ -1360,7 +1368,10 @@ def check_version_citations():
     headings = set(re.findall(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M))
     if not headings:
         return ["CHANGELOG.md: no '## X.Y.Z' release headings found"]
-    current = re.search(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M).group(1)
+    newest = re.search(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M)
+    if newest is None:  # unreachable: findall above matched this same pattern
+        return ["CHANGELOG.md: no '## X.Y.Z' release headings found"]
+    current = newest.group(1)
 
     errors = []
     try:
@@ -1499,7 +1510,8 @@ def check_region_coverage():
     topo = json.loads(topo_path.read_text(encoding="utf-8"))
     reg = json.loads(reg_path.read_text(encoding="utf-8"))
     countries = {c["a"] for c in topo["countries"]}
-    seen, errors = {}, []
+    seen: dict[str, str] = {}
+    errors = []
     for region in reg["regions"]:
         for code in region["members"]:
             if code in seen:

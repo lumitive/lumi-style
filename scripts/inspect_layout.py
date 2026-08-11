@@ -2105,7 +2105,7 @@ def consistency_print(label, c):
               f"rects in a .fig is a filled measure bar (>=120px long, 30-90px thick, "
               f"class f-acc or f-lime)")
     for comp, uses in c["comps"].items():
-        fills = {}
+        fills: dict[str, list[str]] = {}
         for u in uses:
             fills.setdefault(u["fill"], []).append(u["page"])
         if len(fills) > 1:
@@ -2470,7 +2470,7 @@ def main(argv):
     # One verdict per finding across every geometry: a page that collides at A4
     # and not at 1280 collides. Reported per geometry above; folded here, because
     # a deliverable is one artifact and it ships or it does not.
-    folded = {}
+    folded: dict[str, tuple[str, str]] = {}
     for verdicts in graded.values():
         for finding, (verdict, detail) in verdicts.items():
             was = folded.get(finding, ("n/a", ""))

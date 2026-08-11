@@ -66,7 +66,10 @@ def preamble(genre, geometry):
 
 
 def ground(src):
-    return re.search(r'(<svg class="ground".*?</svg>)', src, re.S).group(1)
+    m = re.search(r'(<svg class="ground".*?</svg>)', src, re.S)
+    if m is None:
+        raise ValueError('the source deck has no <svg class="ground"> block')
+    return m.group(1)
 
 
 def foot(n, total):

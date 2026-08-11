@@ -25,6 +25,7 @@ import json
 import math
 import pathlib
 import sys
+from typing import Any
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REGIONS = ROOT / "assets" / "vectors" / "regions.json"
@@ -227,7 +228,7 @@ def region_neighbours(reg):
     """
     topo = json.loads(TOPOLOGY.read_text(encoding="utf-8"))
     of = {c: r["id"] for r in reg["regions"] for c in r["members"]}
-    out = {r["id"]: set() for r in reg["regions"]}
+    out: dict[str, set[str]] = {r["id"]: set() for r in reg["regions"]}
     for country, others in topo["neighbours"].items():
         for other in others:
             a, b = of.get(country), of.get(other)
@@ -236,7 +237,7 @@ def region_neighbours(reg):
                 out[b].add(a)
 
     arcs = _decode_arcs(topo)
-    pts = {}
+    pts: dict[str, list[Any]] = {}
     for country in topo["countries"]:
         rid = of.get(country["a"])
         if not rid:
@@ -290,6 +291,7 @@ def hue_angles(regions, neighbours):
         return min(d, n - d) * step
 
     def greedy(order, prefer_spread):
+        slot: dict[str, int]
         slot, used = {}, set()
         for rid in order:
             placed = [slot[x] for x in neighbours[rid] if x in slot]
@@ -303,6 +305,8 @@ def hue_angles(regions, neighbours):
                 key = (nearest, total if prefer_spread else -total)
                 if best is None or key > best[0]:
                     best = (key, s)
+            if best is None:  # unreachable: used holds fewer than n slots, so one was free
+                raise AssertionError("no free hue slot")
             slot[rid] = best[1]
             used.add(best[1])
         return slot
@@ -332,6 +336,8 @@ def hue_angles(regions, neighbours):
             key = (score(slot), tuple(slot[r] for r in ids))
             if best is None or key[0] > best[0][0]:
                 best = (key, slot)
+    if best is None:  # unreachable: orders is non-empty, so a candidate was kept
+        raise AssertionError("no hue assignment kept")
     return {rid: (best[1][rid] * step) % 360 for rid in ids}
 
 
@@ -674,6 +680,7 @@ def validate_registry(reg, require_full=False):
     """
     topo = json.loads(TOPOLOGY.read_text(encoding="utf-8"))
     known = {c["a"] for c in topo["countries"]}
+    seen: dict[str, Any]
     errors, seen = [], {}
     ids = {r["id"] for r in reg.get("regions", [])}
     for r in reg.get("regions", []):
@@ -737,7 +744,7 @@ def main(argv):
     args = ap.parse_args(argv)
 
     reg = None
-    out_path = OUT
+    out_path: pathlib.Path | None = OUT
     if args.regions:
         if not args.out and not args.selftest:
             raise SystemExit("FAIL  --regions needs --out: a custom palette "
@@ -756,6 +763,8 @@ def main(argv):
 
     if args.selftest:
         return selftest(reg)
+    if out_path is None:  # unreachable: --regions without --out is refused above unless --selftest
+        raise AssertionError("no output path")
     built = render(reg, prefix=args.prefix)
     current = out_path.read_text(encoding="utf-8") if out_path.exists() else None
     if args.check:

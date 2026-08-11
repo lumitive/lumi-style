@@ -35,6 +35,8 @@ import pathlib
 import re
 import subprocess
 import sys
+from collections.abc import Callable
+from typing import Any
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import geo_projection as gp  # noqa: E402
@@ -365,7 +367,7 @@ def _norm_path(d):
 # The set is kept rather than deleted because it is also the lock: an entry that
 # stops reproducing fails this check, so a recorded defect cannot heal in
 # silence. That half was the half KNOWN_FLAT_CLOSURES never implemented.
-KNOWN_RENDERER_DIVERGENCE = set()
+KNOWN_RENDERER_DIVERGENCE: set[tuple[str, str]] = set()
 
 
 def _commands(d):
@@ -453,7 +455,8 @@ def check_renderer_parity():
     # itself, which is how a parity check reports a renderer that never ran.
     import embed_globe
 
-    seen, bundle = {}, []
+    seen: dict[str, tuple[str, str]] = {}
+    bundle: list[str] = []
     for name in ("geo/projection.js", "geo/worlddata.js", "globe/render-svg.js"):
         src = embed_globe.strip_module_syntax(
             (ROOT / "assets" / name).read_text(encoding="utf-8"))
@@ -540,8 +543,8 @@ def check_renderer_parity():
             elif abs(int(js[0]) - int(px)) > 1 or abs(int(js[1]) - int(py)) > 1:
                 errors.append(f"{key} mark {mid}: Python at ({px}, {py}), "
                               f"JS at ({js[0]}, {js[1]})")
-    for key in sorted(KNOWN_RENDERER_DIVERGENCE - seen_div):
-        errors.append(f"{key[0]} {key[1]}: recorded as a known divergence but "
+    for div in sorted(KNOWN_RENDERER_DIVERGENCE - seen_div):
+        errors.append(f"{div[0]} {div[1]}: recorded as a known divergence but "
                       f"the renderers agree — fixed? remove it from "
                       f"KNOWN_RENDERER_DIVERGENCE so the next one is caught")
     return errors[:8]
@@ -681,7 +684,7 @@ def _python_rings(topo):
     for country in topo["countries"]:
         points, area = 0, 0.0
         for refs in country["rings"]:
-            ring = []
+            ring: list[Any] = []
             for idx in refs:
                 arc = arcs[idx if idx >= 0 else ~idx]
                 seq = arc if idx >= 0 else arc[::-1]
@@ -1018,7 +1021,7 @@ def check_trade_layers():
     reg = json.loads(reg_path.read_text(encoding="utf-8"))
     errors = []
 
-    owner = {}
+    owner: dict[str, str] = {}
     for r in reg["regions"]:
         for code in r["members"]:
             if code in owner:
@@ -1070,7 +1073,10 @@ def check_trade_layers():
                       f"overlay, so no reader can ever see the difference")
     for el in re.findall(r'<path class="rg-outline[^>]*>', svg):
         if 'display="none"' not in el:
-            rid = re.search(r'data-overlay="([a-z]+)"', el).group(1)
+            ov = re.search(r'data-overlay="([a-z]+)"', el)
+            if ov is None:
+                raise ValueError(f"rg-outline path carries no data-overlay: {el}")
+            rid = ov.group(1)
             errors.append(f"{rid}: its overlay renders in the static frame; "
                           f"overlays are what a click reveals, and all of them at "
                           f"once is every border on the map drawn twice")
@@ -1178,7 +1184,7 @@ def check_globe_layers():
 
     svg = globe_svg.render((103.8, 12.0, 0.0, R, R, R),
                            regions_path=str(reg_path), cities=cities)
-    claimed = {}
+    claimed: dict[str, str] = {}
     for m in re.finditer(r'data-bloc="([a-z]+)" data-members="([^"]*)"', svg):
         for code in m.group(2).split():
             if code in claimed:
@@ -1684,7 +1690,8 @@ def check_runtime_closure():
             f'<div class="fig" data-globe>{svg}</div>{runtime}')
         page.wait_for_timeout(500)
         page.evaluate("window.__lumiGlobes = window.lumiGlobes")
-        prev, worst = None, (0, None)
+        prev = None
+        worst: tuple[float, float | None] = (0, None)
         lon = 19.0
         while lon < 22.0:
             cur = page.evaluate(js, lon)
@@ -1876,6 +1883,7 @@ def check_far_side_hidden():
     import globe_svg
 
     R = globe_svg.DEFAULT_R
+    marks: list[dict[str, Any]]
     marks = [{"lon": 103.8, "lat": 1.35, "weight": 5, "id": "sin"},
              {"lon": -122.4, "lat": 37.8, "weight": 5, "id": "sf"},
              {"lon": 13.4, "lat": 52.5, "weight": 5, "id": "ber"},
@@ -2043,7 +2051,7 @@ def _count_night(png_bytes):
 # work — they outlive the products' pinned t — `globe` and `map` are each
 # component's own contract. Default runs everything; CI's --python-only line is
 # unchanged.
-CHECKS = (
+CHECKS: tuple[tuple[str, Callable[..., list[str]], bool, str, bool], ...] = (
     ("round trip", check_round_trip, True, "shared", False),
     ("poles are points", check_poles, True, "shared", False),
     ("limb culling", check_culling, True, "shared", False),

@@ -25,6 +25,7 @@ import argparse
 import json
 import pathlib
 import sys
+from typing import Any
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 # The strip/guard machinery is embed_globe's; a second copy would drift.
@@ -47,7 +48,7 @@ def build(states=None, regions_path=None):
     reg = json.loads(pathlib.Path(regions_path).read_text(encoding="utf-8")
                      if regions_path else REGIONS.read_text(encoding="utf-8"))
 
-    host = {"regions": {}}
+    host: dict[str, dict[str, Any]] = {"regions": {}}
     for rid, v in (states or {}).items():
         host["regions"][rid] = v if isinstance(v, dict) else {"state": v}
 
