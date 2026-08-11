@@ -3,6 +3,43 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.420 — four copies of the color math become one, and a guard keeps it that way
+
+Release R4 of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`) — the dedup the last two
+releases prepared for.
+
+**`scripts/color_math.py` and `scripts/css_tokens.py`** now hold the one
+sRGB/WCAG implementation and the one CSS custom-property reader, both under
+strict mypy from birth. check_repo, check_design, build_brand,
+build_region_palette and inspect_layout import them; their private copies are
+deleted. The linearizer threshold is unified at 0.04045 (IEC 61966-2-1, the
+WCAG errata value) — a decision made byte-safe by 0.1.419's measurement, and
+proven byte-safe here: **every generator `--check` reported its output
+current after the switch**, brand SVGs included.
+
+**The build_brand bug died on schedule.** `rule_vars` strips comments and
+reads the block to the *matching* brace; the old `_vars` was proven identical
+on all six real call sites first (the bug had never fired on production CSS —
+which is why no shipped byte ever showed it), then replaced. 0.1.419's two
+strict xfails XPASSed exactly as designed and were promoted to plain
+regression tests, joined by a new one: an unbalanced brace inside a comment,
+which the extraction survives because comments are stripped before the block
+is located.
+
+**`check_no_shadow_math` is the 20th guard.** It fails any script that
+re-grows a `def` of the shared function names outside the two modules —
+imports and calls are fine, a fresh definition is the drift. Tested on
+synthetic trees both ways (a clean tree passes, a re-grown `_lin` fails,
+prose mentions do not trip it), because a guard shown only passing has not
+been shown to work.
+
+**What deliberately did not move**: build_region_palette's
+high-precision-coefficient `lab_of` luma (a different formula for a
+different purpose — Lab, not WCAG), and check_design's `token_blocks`
+(light/dark semantics, not generic parsing). The brand lock was updated for
+the `_vars` removal, reason recorded.
+
 ## 0.1.419 — the first tests, and a live bug pinned where it lives
 
 Release R3 of the engineering-quality migration

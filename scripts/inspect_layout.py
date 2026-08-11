@@ -55,6 +55,8 @@ import sys
 import tempfile
 from contextlib import redirect_stdout
 
+import color_math
+
 
 class Unmeasurable(Exception):
     """A check could not run. Never silently a pass — see the module docstring.
@@ -1132,10 +1134,8 @@ def ground_report(url, viewport=(1280, 720), dark=False):
         raise Unmeasurable("ground contrast needs Pillow — pip install pillow") from exc
 
     def rel_lum(px):
-        def f(v):
-            v /= 255.0
-            return v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4
-        return 0.2126 * f(px[0]) + 0.7152 * f(px[1]) + 0.0722 * f(px[2])
+        # color_math.luma255 (0.1.420) — one sRGB implementation for the repo.
+        return color_math.luma255(px)
 
     out = []
     with sync_playwright() as pw:

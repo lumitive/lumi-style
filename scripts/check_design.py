@@ -53,6 +53,9 @@ import pathlib
 import re
 import sys
 
+import color_math
+import css_tokens
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 # TYPE_FLOOR_PX / SOURCE_FLOOR_PX lived here until 0.1.352, defined and never
@@ -86,18 +89,10 @@ class Unmeasurable(Exception):
 
 
 # ── colour ────────────────────────────────────────────────────────────────────
-def _lin(c):
-    c /= 255
-    return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
-
-
-def _luma(rgb):
-    r, g, b = (_lin(x) for x in rgb[:3])
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b
-
-
+# _lin/_luma moved to color_math.py (0.1.420) — one sRGB implementation,
+# one threshold (0.04045; integer-channel identical to the old 0.03928).
 def contrast(fg, bg):
-    a, b = _luma(fg), _luma(bg)
+    a, b = color_math.luma255(fg), color_math.luma255(bg)
     hi, lo = max(a, b), min(a, b)
     return (hi + 0.05) / (lo + 0.05)
 
@@ -141,7 +136,7 @@ def css_of(raw):
     # inside the captured selector, ":root" then never matches exactly, and the
     # token block is treated as ordinary CSS: the file reads as unmeasurable and
     # its own palette definitions get reported as stray literals.
-    return re.sub(r"/\*.*?\*/", " ", css, flags=re.S)
+    return css_tokens.strip_comments(css, " ")
 
 
 def token_blocks(css):
@@ -335,11 +330,11 @@ def d3_callouts(raw):
 
 
 def d4_palette(raw):
-    stripped = re.sub(r"/\*.*?\*/", " ", raw, flags=re.S)
+    stripped = css_tokens.strip_comments(raw, " ")
     for bodies in token_block_bodies(css_of(raw)).values():
         for body in bodies:
             stripped = stripped.replace(
-                re.sub(r"/\*.*?\*/", " ", body, flags=re.S), " ")
+                css_tokens.strip_comments(body, " "), " ")
     stripped = re.sub(r"src:\s*url\(data:[^)]*\)", " ", stripped)
     stripped = re.sub(r"<!--.*?-->", " ", stripped, flags=re.S)
     # Numeric HTML entities are not colours. `&#183;` is a middot and the deck
