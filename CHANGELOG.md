@@ -3,6 +3,34 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.427 — the conformance board gets a memory, and freshness becomes an obligation
+
+Release R11 of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`) — the IDEA-7 work: making
+the multi-agent scoreboard mean something over time.
+
+**`conformance/history.json` is the tracked memory.** The scoreboard in
+CONFORMANCE.md is regenerated per release and stamps the CURRENT version, so
+"when was this actually measured, against what" was unrecoverable — the
+three existing run directories are seeded into history with their version
+recorded honestly as pre-history rather than guessed. Going forward
+`run_conformance.py report --record` appends one row per scored agent per
+run — skill version, date, per-task verdicts, and the digest of the
+untracked scores.json, which is what makes a row evidence rather than an
+assertion. `validate` (already in CI) refuses a malformed history.
+
+**The evidence gate's `conformance-freshness` obligation is armed.** A
+release that changes the rule surface while the board trails head by more
+than 15 releases owes fresh rows for at least two agents across all three
+tasks, or a written waiver. The gate binds on the RECENCY of measurement,
+never on passing: both scored agents currently fail T1-deck, that failure
+lives on the ledger as GAP-001, and a pass-gate would block every release
+forever while inviting exactly the overclaim this migration exists to kill.
+
+Deliberate reds: a history row stripped of its agent key failed `validate`;
+the freshness logic is unit-tested in both directions (two recent agents =
+fresh; one recent = stale; pre-history rows = stale by construction).
+
 ## 0.1.426 — CI verifies the JavaScript port for the first time
 
 Release R10 of the engineering-quality migration

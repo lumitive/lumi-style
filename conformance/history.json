@@ -1,0 +1,36 @@
+[
+  {
+    "skill_version": "pre-history (run predates history.json)",
+    "agent": "claude-code",
+    "date": "2026-08-08",
+    "run_dir": "conformance/results/claude-code-20260808",
+    "tasks": {
+      "T1-deck": "fail",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "d55e112af4d964daae410aa7ec32c9bc47ab1c907a654d6ee3c48b7e5ec55a93"
+  },
+  {
+    "skill_version": "pre-history (run predates history.json)",
+    "agent": "cursor",
+    "date": "2026-08-08",
+    "run_dir": "conformance/results/cursor-20260808",
+    "tasks": {
+      "T1-deck": "fail",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "2048d0f39dabd68f81b599851f072a5a7a26baea31d392e4527f72437b6bcba8"
+  },
+  {
+    "skill_version": "pre-history (run predates history.json)",
+    "agent": "claude-code",
+    "date": "2026-08-09",
+    "run_dir": "conformance/results/claude-code-20260809-r2",
+    "tasks": {
+      "T1-deck": "fail"
+    },
+    "scores_sha256": "8fe51a5a6a409e47eb4962c5c1dc51dc084302051afb3845aab66900dd64e013"
+  }
+]

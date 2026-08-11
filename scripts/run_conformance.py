@@ -302,6 +302,10 @@ def main(argv):
     ap.add_argument("--agent", default=None,
                     help="prepare (or report) this agent even if no CLI answers its "
                          "probe — IDEs and API models are driven by hand")
+    ap.add_argument("--record", action="store_true",
+                    help="with report: append one row per scored agent per run "
+                         "to conformance/history.json — the tracked memory the "
+                         "evidence gate's freshness obligation reads")
     args = ap.parse_args(argv)
 
     try:
@@ -311,6 +315,25 @@ def main(argv):
         return 1
 
     if args.command == "validate":
+        hist = ROOT / "conformance" / "history.json"
+        if hist.exists():
+            try:
+                rows = json.loads(hist.read_text(encoding="utf-8"))
+                if not isinstance(rows, list):
+                    raise ValueError("history must be a JSON list")
+                for i, r in enumerate(rows):
+                    for key in ("skill_version", "agent", "date", "run_dir",
+                                "tasks", "scores_sha256"):
+                        if key not in r:
+                            raise ValueError(f"history[{i}] missing {key!r}")
+                    if not isinstance(r["tasks"], dict):
+                        raise ValueError(f"history[{i}].tasks is not a dict")
+            except (json.JSONDecodeError, ValueError) as exc:
+                print(f"FAIL  conformance/history.json does not parse: {exc}")
+                return 1
+            print(f"ok    {len(tasks)} tasks, {len(agents)} agents in the "
+                  f"registry, {len(rows)} history rows")
+            return 0
         print(f"ok    {len(tasks)} tasks, {len(agents)} agents in the registry")
         return 0
 
@@ -544,6 +567,42 @@ def main(argv):
               "structural": sum(1 for r in rows if r["verdict"] == "cannot be probed"),
               "task_ids": [t["id"] for t in tasks], "rows": rows}
     print(render(record))
+
+    if args.record:
+        # One row per scored agent per run directory, pinned to the artifact
+        # by digest: the scores.json stays untracked (results/ is gitignored
+        # on purpose), so the digest is what makes a history row evidence
+        # rather than an assertion. Idempotent: an identical row is not
+        # appended twice.
+        import datetime
+        import hashlib
+        hist_path = ROOT / "conformance" / "history.json"
+        history = (json.loads(hist_path.read_text(encoding="utf-8"))
+                   if hist_path.exists() else [])
+        added = 0
+        for name in runs:
+            f = pathlib.Path(name) / "scores.json"
+            digest = hashlib.sha256(f.read_bytes()).hexdigest()
+            per_agent: dict[str, dict[str, str]] = {}
+            for key, value in json.loads(f.read_text(encoding="utf-8")).items():
+                agent_id, _, task_id = key.partition("/")
+                per_agent.setdefault(agent_id, {})[task_id] = value.get(
+                    "verdict", "unscored")
+            for agent_id, task_verdicts in sorted(per_agent.items()):
+                row = {"skill_version": version, "agent": agent_id,
+                       "date": datetime.date.today().isoformat(),
+                       "run_dir": str(name), "tasks": task_verdicts,
+                       "scores_sha256": digest}
+                if not any(r.get("agent") == agent_id
+                           and r.get("run_dir") == str(name)
+                           and r.get("scores_sha256") == digest
+                           for r in history):
+                    history.append(row)
+                    added += 1
+        hist_path.write_text(json.dumps(history, indent=2) + "\n",
+                             encoding="utf-8")
+        print(f"\nrecorded {added} new history row(s) -> "
+              f"{hist_path.relative_to(ROOT)} ({len(history)} total)")
     return 0
 
 

@@ -41,7 +41,14 @@ from typing import Any
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 EVIDENCE_DIR = ROOT / "releases" / "evidence"
-CHANGELOG = ROOT / "CHANGELOG.md"
+
+# How many releases the conformance history may trail head before a
+# rule-surface release owes fresh multi-agent rows. A ceiling: calibrated to
+# observed velocity (~30 releases in 6 days), i.e. roughly a twice-weekly
+# run. Single hard threshold, no warn tier — a warn on a manual-cost gate is
+# a gate nobody runs.
+CONFORMANCE_STALE_AFTER = 15
+CONFORMANCE_MIN_AGENTS = 2
 
 # obligation id -> (canonical command, what it proves). Deterministic,
 # fixture-targeted, executable by anyone with the named local dependencies.
@@ -101,11 +108,31 @@ SPEC_LINE_THRESHOLD = 150  # changed lines above which a spec citation is owed
 
 
 def releases_in_changelog() -> list[str]:
-    return re.findall(r"^##\s+(\d+\.\d+\.\d+)", CHANGELOG.read_text("utf-8"), re.M)
+    return re.findall(r"^##\s+(\d+\.\d+\.\d+)",
+                      (ROOT / "CHANGELOG.md").read_text("utf-8"), re.M)
+
+
+def conformance_fresh() -> bool | None:
+    """None while unarmed (no history file); else whether the multi-agent
+    scoreboard is recent enough. Fresh = at least CONFORMANCE_MIN_AGENTS
+    distinct agents have rows within CONFORMANCE_STALE_AFTER releases of
+    head, each covering all three tasks. The gate binds on the RECENCY of
+    measurement, never on passing — both scored agents currently fail
+    T1-deck (GAP-001), and a pass-gate would block every release forever
+    while inviting exactly the overclaim this gate exists to kill.
+    """
+    hist = ROOT / "conformance" / "history.json"
+    if not hist.exists():
+        return None
+    rows = json.loads(hist.read_text("utf-8"))
+    recent = set(releases_in_changelog()[:CONFORMANCE_STALE_AFTER + 1])
+    agents = {r.get("agent") for r in rows
+              if r.get("skill_version") in recent and len(r.get("tasks", {})) >= 3}
+    return len(agents) >= CONFORMANCE_MIN_AGENTS
 
 
 def newest_section() -> str:
-    text = CHANGELOG.read_text("utf-8")
+    text = (ROOT / "CHANGELOG.md").read_text("utf-8")
     m = re.search(r"^##\s+\d+\.\d+\.\d+\b.*?(?=^##\s+\d+\.\d+\.\d+\b|\Z)",
                   text, re.M | re.S)
     return m.group(0) if m else ""
@@ -162,11 +189,13 @@ def obligations_for(paths: list[str]) -> list[str]:
     for prefix, obliges in TOUCH_MAP:
         if any(p.startswith(prefix) for p in paths):
             for ob in obliges:
-                if ob == "conformance-freshness" and not (
-                        ROOT / "conformance" / "history.json").exists():
-                    # Not yet armed (arrives with the conformance-history
-                    # release). Named rather than silent, per house rule.
-                    continue
+                if ob == "conformance-freshness":
+                    fresh = conformance_fresh()
+                    if fresh is None or fresh:
+                        # Unarmed (no history yet) or already fresh: nothing
+                        # owed. Only a STALE board on a rule-surface release
+                        # creates the obligation.
+                        continue
                 if ob not in out:
                     out.append(ob)
     return out
@@ -331,12 +360,20 @@ def check_file(v: str, warn: bool) -> list[str]:
     if len(ids) != len(set(ids)):
         errors.append("two checks share an id")
 
-    # Obligations all answered.
+    # Obligations all answered. conformance-freshness is satisfied by the
+    # board BECOMING fresh (run_conformance report --record writes the rows
+    # this reads) — recording a validate run would prove nothing.
     done = {c.get("id") for c in checks if "exit_code" in c}
     for ob in doc.get("obligations", []):
+        if ob == "conformance-freshness" and conformance_fresh():
+            continue
         if ob not in done and ob not in waived:
             errors.append(f"obligation {ob!r} has neither a recorded "
-                          f"execution nor a reasoned waiver")
+                          f"execution nor a reasoned waiver"
+                          + (" (satisfy it with fresh rows for "
+                             f"≥{CONFORMANCE_MIN_AGENTS} agents via "
+                             "run_conformance.py report --record)"
+                             if ob == "conformance-freshness" else ""))
 
     # Recompute obligations against the diff — a hand-deleted obligation is
     # caught here. Degrades loudly when git cannot answer.
