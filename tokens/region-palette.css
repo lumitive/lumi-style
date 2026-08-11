@@ -61,16 +61,18 @@
   --gl-land: var(--acc-2);
   --gl-land-edge: var(--ln1);
   --gl-night: rgba(43,46,51,.28);
-  --gl-equator: var(--ln1);
-  --gl-tropic: var(--ln2);
+  --gold: #A07800;
+  --gl-equator: var(--gold);
+  --gl-tropic: var(--gold);
 }
 
 body.dark {
   --gl-night: rgba(10,12,20,.45);
   --gl-plate: #26262B;
   --gl-graticule: rgba(240,240,250,.16);
-  --gl-equator: rgba(240,240,250,.34);
-  --gl-tropic: rgba(240,240,250,.20);
+  --gold: #E8C25A;
+  --gl-equator: var(--gold);
+  --gl-tropic: var(--gold);
   --rg-africa: #7349C7;
   --rg-africa-stroke: #A997E0;
   --rg-africa-wash: #331D5E;
@@ -127,10 +129,12 @@ body.dark {
 .gl-graticule { fill: none; stroke: var(--gl-graticule); }
 .gl-land { fill: var(--gl-land); stroke: var(--gl-land-edge); stroke-width: 1; }
 /* The equator and the tropics are NAMED lines, not graticule: a reader
- * can point at them, so they are drawn a step stronger and the tropics
- * are dashed to say they are a pair. */
-.gl-equator { fill: none; stroke: var(--gl-equator); stroke-width: 3; }
-.gl-tropic { fill: none; stroke: var(--gl-tropic); stroke-width: 2; stroke-dasharray: 10 8; }
+ * can point at them, so they are gold, drawn well above the grid, and
+ * the tropics are dashed to say they are a pair. At 3 and 2 they read
+ * as heavier graticule; the weight is what separates a line you can
+ * name from a line that is scaffolding. */
+.gl-equator { fill: none; stroke: var(--gl-equator); stroke-width: 5; }
+.gl-tropic { fill: none; stroke: var(--gl-tropic); stroke-width: 3.5; stroke-dasharray: 12 9; }
 /* Night is a lighting condition laid over the geography, so it is a
  * wash rather than a fill and it takes no pointer events — a reader
  * aiming at a mark in the dark must still hit the mark. */

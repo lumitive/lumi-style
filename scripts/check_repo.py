@@ -112,6 +112,18 @@ def css_block(css, opener):
 
 
 def css_vars(block):
+    """-> {name: value} for the custom properties a block declares.
+
+    COMMENTS ARE STRIPPED FIRST, and that is not tidiness. Every token in this
+    package is documented in prose beside it, and that prose cites token names
+    and the contrast numbers they were chosen for. A comment reading
+    "measured against --bg: 2.71 / 1.82" parses as a declaration of --bg, so
+    the parity check compared design-tokens.json against a sentence and
+    reported the dark background as "2.71 / 1.82 / 1.45, from". It failed
+    loudly, which was luck: the same misparse on a token the JSON does not
+    carry would have been silently absent instead.
+    """
+    block = re.sub(r"/\*.*?\*/", "", block, flags=re.S)
     return {m.group(1): m.group(2).strip()
             for m in re.finditer(r"--([\w-]+)\s*:\s*([^;]+);", block)}
 

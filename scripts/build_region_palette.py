@@ -451,8 +451,15 @@ def render(reg=None, prefix=None):
     # weight and a reader had no datum to read against. One horizon, and it is
     # this one; the tropics stay dashed and quiet because they are context for
     # the tilt rather than a line to measure from.
-    lines.append("  --gl-equator: var(--ln1);")
-    lines.append("  --gl-tropic: var(--ln2);")
+    # THE THREE NAMED PARALLELS ARE GOLD, and this is the only gold in the
+    # package. The graticule is a grid somebody chose; the equator and the
+    # tropics are where the planet's axial tilt puts the sun overhead. Drawing
+    # them in the same grey as every other line said they were the same kind
+    # of thing. A true metallic gold measures 1.7:1 on this plate and the
+    # stroke floor is 3.0, so this is antique gold rather than leaf.
+    lines.append("  --gold: #A07800;")           # 3.18:1 on the light plate
+    lines.append("  --gl-equator: var(--gold);")
+    lines.append("  --gl-tropic: var(--gold);")
     lines.append("}")
     lines.append("")
     lines.append(dark_sel + " {")
@@ -474,8 +481,9 @@ def render(reg=None, prefix=None):
         # this replaces said were not needed.
         lines.append("  --gl-plate: #26262B;")
         lines.append("  --gl-graticule: rgba(240,240,250,.16);")
-        lines.append("  --gl-equator: rgba(240,240,250,.34);")
-        lines.append("  --gl-tropic: rgba(240,240,250,.20);")
+        lines.append("  --gold: #E8C25A;")       # 8.82:1 on the dark plate
+        lines.append("  --gl-equator: var(--gold);")
+        lines.append("  --gl-tropic: var(--gold);")
     for rid in ids:
         h = angles[rid]
         lines.append(f"  --rg-{rid}: {hue_hex(L_DARK, h)};")
@@ -518,12 +526,14 @@ def render(reg=None, prefix=None):
         ".gl-graticule { fill: none; stroke: var(--gl-graticule); }",
         ".gl-land { fill: var(--gl-land); stroke: var(--gl-land-edge); stroke-width: 1; }",
         "/* The equator and the tropics are NAMED lines, not graticule: a reader",
-        " * can point at them, so they are drawn a step stronger and the tropics",
-        " * are dashed to say they are a pair. */",
+        " * can point at them, so they are gold, drawn well above the grid, and",
+        " * the tropics are dashed to say they are a pair. At 3 and 2 they read",
+        " * as heavier graticule; the weight is what separates a line you can",
+        " * name from a line that is scaffolding. */",
         ".gl-equator { fill: none; stroke: var(--gl-equator); "
-        "stroke-width: 3; }",
-        ".gl-tropic { fill: none; stroke: var(--gl-tropic); stroke-width: 2; "
-        "stroke-dasharray: 10 8; }",
+        "stroke-width: 5; }",
+        ".gl-tropic { fill: none; stroke: var(--gl-tropic); stroke-width: 3.5; "
+        "stroke-dasharray: 12 9; }",
         "/* Night is a lighting condition laid over the geography, so it is a",
         " * wash rather than a fill and it takes no pointer events — a reader",
         " * aiming at a mark in the dark must still hit the mark. */",

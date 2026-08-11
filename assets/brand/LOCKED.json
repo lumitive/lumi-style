@@ -2,14 +2,14 @@
   "component": "LUMI-Globe-Field",
   "owner": "LUMIVATE",
   "locked_at": "0.1.405",
-  "why": "0.1.414: the tangent guard is ported to the JavaScript runtime",
+  "why": "0.1.415: the owner authorized re-cutting the marks so the frozen snapshots match the live component again. The named parallels went gold and heavier (equator 3->5, tropics 2->3.5) and the dark rule ladder was raised; a self-contained mark carries resolved literals, so it cannot pick either up on its own. Also fixes build_brand.py resolving the DARK block against the LIGHT palette, which would have stamped the dark cover with the light gold at 1.4:1.",
   "files": {
-    "assets/brand/lumivate/globe-mark-small.svg": "0e1b39f712a804dac56a883875b6bf023f3e5f7655e456cca9bcbf4ff28e436f",
-    "assets/brand/lumivate/globe-mark.svg": "5b762f847b90d6f86fe1b47b679a3b57a1763d91c592f774ce1a878661f0423a",
+    "assets/brand/lumivate/globe-mark-small.svg": "668e714999aabcd21ba04ad65730ed1826d83ef99766943eab05388ce880130f",
+    "assets/brand/lumivate/globe-mark.svg": "2cdc9f4f2101a9078f74dacc0d97f878bb4cf464e9c070618362a295b335e5be",
     "assets/geo/projection.js": "edd697e297802a77c3eca5bb73231a869e4781d25a24e6c3104aa1fc52b328cb",
     "assets/globe/globe.js": "a56687ef6334fd9abbfd1e974f0ee90dcf020f3117f8526f3399bceca1807258",
     "assets/globe/render-svg.js": "732aa3c8de6934662a01584b78bd5959dea9d0bd3273d263f9d6143244bc12d7",
-    "scripts/build_brand.py": "611b96cf3f9ab26b9924caffbc18fea8689698d8dc428c39c4755963daed68ca",
+    "scripts/build_brand.py": "397dfdd5cb565b4f2cf424a2152f4e1ed826fc2fed61b1ced999cb5986fd19ab",
     "scripts/globe_svg.py": "4414a7c12ac1e26f8171c22f4ea8dede27063dd5d7bb21d18885e78e2be89e5b"
   }
 }

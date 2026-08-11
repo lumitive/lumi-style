@@ -93,12 +93,21 @@ def mark_style(force=None):
     dark = {**light, **_vars(theme, "body.dark"), **_vars(base, "body.dark"),
             **_vars(trade, "body.dark .trade")}
 
-    def decl(v):
+    def decl(v, table):
         # One indirection deep is all the token files use, and resolving it
         # here is what makes the file standalone.
+        #
+        # THE TABLE IS A PARAMETER because this resolved against `light`
+        # unconditionally, including when it was resolving the dark block. It
+        # went unnoticed for as long as every dark chrome value was written as
+        # a literal: there was nothing to resolve, so the wrong table was never
+        # consulted. The moment --gl-equator became var(--gold), the dark cover
+        # would have been stamped with the LIGHT gold — #A07800 at 1.4:1 on a
+        # near-black plate — and the file is self-contained, so nothing
+        # downstream could have corrected it.
         seen = 0
         while v.startswith("var(") and seen < 4:
-            v = light.get(v[4:v.index(")")].strip(), v)
+            v = table.get(v[4:v.index(")")].strip(), v)
             seen += 1
         return v
 
@@ -113,10 +122,12 @@ def mark_style(force=None):
         ".lumivate-mark .gl-plate{fill:var(--gl-plate)}"
         ".lumivate-mark .gl-graticule{fill:none;stroke:var(--gl-graticule);"
         "stroke-width:1.4}"
+        # Same viewBox and same radius as the live component, so these are the
+        # live component's numbers and not a scaled copy of them.
         ".lumivate-mark .gl-equator{fill:none;stroke:var(--gl-equator);"
-        "stroke-width:3}"
+        "stroke-width:5}"
         ".lumivate-mark .gl-tropic{fill:none;stroke:var(--gl-tropic);"
-        "stroke-width:2;stroke-dasharray:10 8}"
+        "stroke-width:3.5;stroke-dasharray:12 9}"
         ".lumivate-mark .gl-land{fill:none;stroke:none}"
         ".lumivate-mark .gl-rg{fill-opacity:.42;stroke:none}"
         ".lumivate-mark .gl-coast{fill:none;stroke:var(--tx2);stroke-width:2.6;"
@@ -129,7 +140,7 @@ def mark_style(force=None):
                        and not k.endswith(("-stroke", "-wash"))}):
         rules += f".lumivate-mark .rg-{rid}{{fill:var(--rg-{rid})}}"
 
-    keep = lambda d: {k: decl(v) for k, v in d.items()
+    keep = lambda d: {k: decl(v, d) for k, v in d.items()
                       if k.startswith(("--rg-", "--gl-")) or k in
                       ("--tx1", "--tx2", "--tx3", "--ln1", "--ln2", "--ln3",
                        "--bg", "--nw", "--acc", "--acc-2")}
