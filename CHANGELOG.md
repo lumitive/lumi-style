@@ -3,6 +3,27 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.413 — the cover mark is contained, not bled
+
+The cover mark took the full height of its cell and ran past the right margin —
+`height: 100%`, `max-width: none`, and a six per cent nudge outward — on the
+reasoning that a mark grows better than it clips. Measured on a real cover: 602px
+inside a 509px column, reaching the viewport edge while the footer rule stopped
+90px short of it. A reader asked for half the page, centred, and was right.
+
+It is now bounded by the cell it sits in and centred there, exactly filling its
+column. Height-led is kept, because the route across the mark's top is still the
+part that carries meaning; what is gone is the licence to grow past the frame.
+
+**Worth recording: two earlier attempts to fix this failed for a reason that was
+not visible from the markup.** `min-width: 0` on the item, then `minmax(0, …)`
+on the track, then a `max-width` in the document's own stylesheet — all three
+were correct and none applied, because a rule shipped in `tokens/` set
+`max-width: none` at equal specificity and later in the file. The document was
+never going to win that; the rule that said "bleed" had to stop saying it. Three
+rounds of fixing the wrong end, and one query to the browser for which rules
+actually matched the element ended it.
+
 ## 0.1.412 — a column starved to 34px, the standard order, and a green that clears its floors
 
 **`starved_column` gates.** `.swap` renders on `grid-template-columns: 1fr 34px
