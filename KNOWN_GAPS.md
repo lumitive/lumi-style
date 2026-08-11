@@ -23,13 +23,15 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-002 · Five checks CI cannot run are verified by prose
 
-- status: open
+- status: fixed
 - opened: 0.1.422
+- closed: 0.1.425
 - surface: scripts/inspect_layout.py, scripts/check_prose.py,
   scripts/check_design.py, scripts/check_globe.py, scripts/run_conformance.py
 - symptom: the layout gates, full-deliverable prose/design modes, the globe's
   JS half and conformance runs need a browser or an operator; their results
-  are recorded as sentences in release notes — claims, not evidence. 0.1.415
+  were recorded as sentences in release notes — claims, not evidence. 0.1.415
   reported "all gates green" on eight of seventeen.
-- check: python3 scripts/check_evidence.py --check (arrives with the
-  evidence-gate release; this entry flips to fixed when the gate goes red)
+- check: python3 scripts/check_evidence.py --check (red in CI since 0.1.425:
+  an operator check is a recorded execution with a digest, or the release
+  does not ship)

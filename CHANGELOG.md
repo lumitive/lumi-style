@@ -3,6 +3,24 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.425 — the evidence gate goes red, and GAP-002 is the first ledgered closure
+
+Release R9 of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`). One release of warn-only
+operation proved every failure shape fires (a deleted obligation, a copied
+digest, an overclaim phrase beside a waiver — all demonstrated in 0.1.424's
+red runs); the `--warn` flag comes off and `check_evidence.py --check` now
+blocks.
+
+Verified the way the gate itself demands: the same planted violation that
+warned last release **exits non-zero and reddens preflight** now, and the
+honest run is green. **GAP-002 flips to fixed** — the five operator checks
+are no longer verified by sentences; an execution record with a command,
+exit code and output digest is the only thing the gate accepts, and this
+CHANGELOG citation is what the ledgers guard requires of a closure. The
+ledger's first entry-to-closure cycle completes in three releases, which is
+the point of having a ledger.
+
 ## 0.1.424 — the evidence gate arrives, warn-only, and writes its own first file
 
 Release R8 of the engineering-quality migration
