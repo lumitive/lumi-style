@@ -3,6 +3,47 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.416 — a compile list that cannot rot, and the JavaScript gets a syntax gate
+
+The first release of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`, owner directive 2026-08-12 —
+the audit behind it found the deficits; this entry ships the two cheapest).
+
+**The compile list had rotted to 26 of 29.** CI's `py_compile` step enumerated
+scripts by hand, and the enumeration was stale in the way this repository's
+own conventions predict every enumeration goes stale: it omitted
+`review_scores.py`, `sea_route.py` — the 425-line router 0.1.415 shipped —
+and `preflight.py` itself, the script whose entire job is guaranteeing that
+"local green" and "CI green" are the same claim. A syntax error in the
+completeness checker would have shipped without any check noticing. The step
+is now `python3 -m compileall -q -f scripts/`: it covers whatever is in the
+directory, so there is no list to rot, and `-f` forces recompilation so a
+cached `.pyc` can never mask a fresh error.
+
+**The JavaScript had no syntax gate at all.** Eight tracked `.js` runtimes
+(2,319 lines) and three browser-side probes embedded as Python strings in
+`inspect_layout.py` (~1,150 lines) — `py_compile` reads the latter as prose.
+This is the exact gap 0.1.414 named ("the guard shipped in Python, the
+runtime is JavaScript"). `scripts/check_js.py` parses both surfaces with
+`node --input-type=module --check` on stdin — no package.json, no toolchain,
+a bare `node` binary — and a missing `node` is a FAILURE, never a skip
+(0.1.386: a check that skips is not a check that passed). The embedded probes
+stay embedded: extraction would change inspect_layout's single-file operator
+story for zero added checking power.
+
+**The gate was shown able to fail before it shipped** (design rule D8 —
+three checks in this repository's history ran green and were later found
+incapable of failing). A planted unbalanced brace in `assets/geo/pick.js`
+failed the run with `SyntaxError: Unexpected end of input`; a planted error
+inside the `PROBE` string passed `py_compile` — the blind spot, demonstrated
+— and failed `check_js.py`. Both plants were then removed and the run went
+green.
+
+**`preflight.py`'s own docstring carried the failure it exists to prevent.**
+It said CI is "FIFTEEN commands" — seventeen at the time of writing, about to
+be eighteen. The count is deleted rather than corrected, by the file's own
+argument: a hand-maintained idea of "everything" was the original bug.
+
 ## 0.1.415 — a lane is drawn over water by construction, and the named parallels stop being graticule
 
 **The lanes.** A trade lane drawn as a great circle goes through the planet. The

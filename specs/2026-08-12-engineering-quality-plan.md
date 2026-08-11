@@ -1,12 +1,14 @@
 # Engineering quality — the plan
 
 Date: 2026-08-12 · Decomposes `2026-08-12-engineering-quality-design.md` into
-releases. Versions are indicative from 0.1.416; each release carries its own
+releases, R1 through R12 — version numbers are assigned at ship time, one
+per release, never promised in advance (the version-citations guard is right
+about that); each release carries its own
 CHANGELOG entry, the full version-stamp set, and ends with
 `python3 scripts/preflight.py` green. Every release that adds a gate performs
 and records a deliberate-red run (design D8).
 
-## R1 · 0.1.416 — CI hygiene + JavaScript syntax checks
+## R1 — CI hygiene + JavaScript syntax checks
 
 - `ci.yml`: replace the hand-maintained 26-file `py_compile` list with
   `python3 -m compileall -q -f scripts/` (covers all 29, cannot rot); add
@@ -20,7 +22,7 @@ and records a deliberate-red run (design D8).
   probes stay embedded: extraction would change the single-file operator
   story for zero added checking power.
 
-## R2 · 0.1.417 — toolchain
+## R2 — toolchain
 
 - `pyproject.toml` (tool sections only; header states the deliverable path
   stays zero-dependency) + `requirements-dev.txt` (exact pins).
@@ -32,7 +34,7 @@ and records a deliberate-red run (design D8).
 - `ci.yml`: `pip install -q -r requirements-dev.txt`, `ruff check .`, `mypy`.
 - Split into two releases if the mypy burn-down proves deep.
 
-## R3 · 0.1.418 — pytest + characterization tests (strictly before R4)
+## R3 — pytest + characterization tests (strictly before R4)
 
 - `tests/` + `tests/conftest.py` (one `sys.path.insert` to `scripts/`).
 - `test_color_math.py`, `test_css_tokens.py` written against the CURRENT
@@ -44,7 +46,7 @@ and records a deliberate-red run (design D8).
   the eleven `--check` steps (CI owns them).
 - `ci.yml`: `python3 -m pytest -q`.
 
-## R4 · 0.1.419 — dedup refactor
+## R4 — dedup refactor
 
 - `scripts/color_math.py`: `srgb_linear` (one threshold, 0.04045, history
   noted), `srgb_encode`, `luma`, `contrast_ratio`, `hex_to_rgb`, `mix` —
@@ -61,7 +63,7 @@ and records a deliberate-red run (design D8).
 - New guard `check_no_shadow_math` in `check_repo.py`: no re-duplication of
   the shared functions outside the shared modules.
 
-## R5 · 0.1.420 — guard tests, wave 1
+## R5 — guard tests, wave 1
 
 - `tests/test_check_repo_guards.py`: synthetic repos in `tmp_path` via
   monkeypatched `ROOT`; one passing and one failing fixture per guard —
@@ -69,7 +71,7 @@ and records a deliberate-red run (design D8).
   check_english_only, check_palette_parity, check_version_citations,
   check_links. Later waves cover the rest.
 
-## R6 · 0.1.421 — ledgers
+## R6 — ledgers
 
 - `KNOWN_GAPS.md`: `## GAP-NNN` entries with status/opened/surface/symptom/
   check; `fixed` needs `closed:`, `declined` needs `closed:` + `reason:`.
@@ -84,13 +86,13 @@ and records a deliberate-red run (design D8).
   GAP-citing TODO/FIXME in scripts/ or references/, no dangling
   `GAP-`/`FM-`/`IDEA-` references in CHANGELOG or specs/.
 
-## R7 · 0.1.422 — commit convention guard
+## R7 — commit convention guard
 
 - `check_commit_convention`: only commits that touch `CHANGELOG.md` must
   match `^X.Y.Z — ` with the version equal to the newest heading; merge
   commits examine `HEAD^2`; no-`.git` returns clean. Everything else exempt.
 
-## R8 · 0.1.423 — evidence gate, warn-only
+## R8 — evidence gate, warn-only
 
 - `scripts/check_evidence.py` + tracked `releases/evidence/<version>.json`.
   Schema (no verdict field): version, diff_base, spec, obligations, checks
@@ -108,19 +110,19 @@ and records a deliberate-red run (design D8).
   scripts/check_evidence.py --check --warn`. This release's own evidence
   file is produced by the gate's `--init` + `record`.
 
-## R9 · 0.1.424 — the gate goes red
+## R9 — the gate goes red
 
 - Drop `--warn`. The three planted violations from R8 now exit non-zero and
   redden preflight; then the honest run is green.
 
-## R10 · 0.1.425 — globe JS golden grid in CI
+## R10 — globe JS golden grid in CI
 
 - `check_globe.py`: split "obtain JS results" from "compare against golden";
   add a `--node` backend running the 1300-sample grid under bare node
   (projection.js is DOM-free; verified importable). CI step becomes
   `--python-only --node`; a missing/ancient node fails loudly, never skips.
 
-## R11 · 0.1.426 — conformance as routine practice
+## R11 — conformance as routine practice
 
 - Tracked `conformance/history.json`; `run_conformance.py report --record`
   appends rows (skill_version, agent, date, run_dir, per-task verdicts,
@@ -130,7 +132,7 @@ and records a deliberate-red run (design D8).
   releases with history >15 versions stale require fresh rows for ≥2 agents
   across all three tasks, or a written waiver.
 
-## R12 · 0.1.427 — secrets guard, CLI smoke, performance floor
+## R12 — secrets guard, CLI smoke, performance floor
 
 - `check_secrets` guard: high-signal patterns only (AKIA, PRIVATE KEY,
   ghp_/github_pat_, sk-, generic key assignments) over `git ls-files` text
