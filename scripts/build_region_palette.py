@@ -461,14 +461,26 @@ def render(reg=None, prefix=None):
         # nowhere darker to go. It becomes a cool veil instead, which still
         # reads as "not lit" against the land.
         lines.append("  --gl-night: rgba(10,12,20,.45);")
+        # THE SPHERE HAS TO BE THERE. The chrome indirects to theme tokens and
+        # those redefine under dark, which is true and was not sufficient:
+        # --gl-plate resolves to --ln3, and on a #1D1D1F page --ln3 is so close
+        # to the background that the ocean and the page became one black field.
+        # The globe read as a scatter of continents floating on nothing.
+        #
+        # Water on a dark page is not the absence of light, it is a surface
+        # with less of it — so the plate lifts just clear of the background,
+        # and the graticule and the equator lift with it, because a sphere cue
+        # nobody can see is not a cue. These are the FOUR VALUES the comment
+        # this replaces said were not needed.
+        lines.append("  --gl-plate: #26262B;")
+        lines.append("  --gl-graticule: rgba(240,240,250,.16);")
+        lines.append("  --gl-equator: rgba(240,240,250,.34);")
+        lines.append("  --gl-tropic: rgba(240,240,250,.20);")
     for rid in ids:
         h = angles[rid]
         lines.append(f"  --rg-{rid}: {hue_hex(L_DARK, h)};")
         lines.append(f"  --rg-{rid}-stroke: {stroke_hex(L_DARK, h, True)};")
         lines.append(f"  --rg-{rid}-wash: {hue_hex(0.30, h)};")
-    # The chrome indirects to theme tokens, and those redefine under body.dark,
-    # so the dark chrome needs no separate values — restated here so a reader
-    # of the dark block does not go looking for the missing four.
     lines.append("}")
     lines.append("")
     if prefix:
