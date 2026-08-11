@@ -1542,6 +1542,96 @@ def check_no_shadow_math():
     return errors
 
 
+def check_ledgers():
+    """The three ledgers stay parseable, closed entries stay honest, and no
+    citation dangles.
+
+    KNOWN_GAPS.md holds concrete gaps (GAP-ids), FAILURE_MODES.md holds
+    escape classes (FM-ids), Pipeline/ideas-prd.md holds the backlog
+    (IDEA-ids). Mechanically checkable: id uniqueness, legal statuses,
+    per-status required keys, a `fixed`/`declined` entry's closing release
+    exists in the CHANGELOG *and* that release's entry cites the id, no
+    tracked bug hides in a code comment, and every id cited in CHANGELOG or
+    specs/ exists in its ledger. What an entry SAYS stays with the reviewer —
+    a guard pretending to judge prose would be FM-01 in this repo's own
+    registry.
+    """
+    errors = []
+    gaps_text = (ROOT / "KNOWN_GAPS.md").read_text(encoding="utf-8")
+    fm_text = (ROOT / "FAILURE_MODES.md").read_text(encoding="utf-8")
+    ideas_text = (ROOT / "Pipeline/ideas-prd.md").read_text(encoding="utf-8")
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    releases = re.findall(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M)
+
+    def section_of(version):
+        m = re.search(rf"^##\s+{re.escape(version)}\b.*?(?=^##\s|\Z)",
+                      changelog, re.M | re.S)
+        return m.group(0) if m else ""
+
+    gap_ids = re.findall(r"^## (GAP-\d+)", gaps_text, re.M)
+    fm_ids = re.findall(r"^## (FM-\d+)", fm_text, re.M)
+    idea_ids = re.findall(r"^## (IDEA-\d+)", ideas_text, re.M)
+    for name, ids in (("KNOWN_GAPS.md", gap_ids), ("FAILURE_MODES.md", fm_ids),
+                      ("Pipeline/ideas-prd.md", idea_ids)):
+        dupes = {i for i in ids if ids.count(i) > 1}
+        if dupes:
+            errors.append(f"{name}: duplicate ids {sorted(dupes)}")
+
+    for m in re.finditer(r"^## (GAP-\d+)[^\n]*\n(.*?)(?=^## |\Z)",
+                         gaps_text, re.M | re.S):
+        gid, body = m.group(1), m.group(2)
+        keys = dict(re.findall(r"^- (\w+):\s*(.+)$", body, re.M))
+        status = keys.get("status", "").split()[0] if keys.get("status") else ""
+        if status not in ("open", "fixed", "declined"):
+            errors.append(f"KNOWN_GAPS.md {gid}: status {status!r} is not "
+                          f"open|fixed|declined")
+            continue
+        for req in ("status", "opened", "surface", "symptom", "check"):
+            if req not in keys:
+                errors.append(f"KNOWN_GAPS.md {gid}: missing '- {req}:'")
+        needed = {"fixed": ("closed",), "declined": ("closed", "reason"),
+                  "open": ()}[status]
+        for req in needed:
+            if req not in keys:
+                errors.append(f"KNOWN_GAPS.md {gid}: status {status} requires "
+                              f"'- {req}:'")
+        if "closed" in keys and status != "open":
+            closed = keys["closed"].strip()
+            if closed not in releases:
+                errors.append(f"KNOWN_GAPS.md {gid}: closed: {closed} names no "
+                              f"CHANGELOG heading")
+            elif gid not in section_of(closed):
+                errors.append(f"KNOWN_GAPS.md {gid}: the {closed} CHANGELOG "
+                              f"entry does not cite {gid} — a closure the "
+                              f"release notes do not record")
+
+    for m in re.finditer(r"^## (FM-\d+)[^\n]*\n(.*?)(?=^## |\Z)",
+                         fm_text, re.M | re.S):
+        fid, body = m.group(1), m.group(2)
+        for req in ("detection", "prevention"):
+            if not re.search(rf"^- {req}:", body, re.M):
+                errors.append(f"FAILURE_MODES.md {fid}: missing '- {req}:'")
+
+    # Tracked bugs live in the ledger, not in code comments.
+    todo_re = re.compile(r"(TODO|FIXME)[^\n]*GAP" + r"-\d+")
+    for path in sorted((ROOT / "scripts").glob("*.py")) + sorted(
+            (ROOT / "references").glob("*.md")):
+        for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if todo_re.search(line):
+                errors.append(f"{rel(path)}:{n}: a TODO/FIXME cites a GAP id — "
+                              f"the ledger is the tracker, the comment is rot")
+
+    known = set(gap_ids) | set(fm_ids) | set(idea_ids)
+    cite_re = re.compile(r"\b(?:GAP|FM|IDEA)" + r"-\d+\b")
+    for path in [ROOT / "CHANGELOG.md"] + sorted((ROOT / "specs").glob("*.md")):
+        for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            for cite in cite_re.findall(line):
+                if cite not in known:
+                    errors.append(f"{rel(path)}:{n}: cites {cite}, which no "
+                                  f"ledger defines")
+    return errors
+
+
 CHECKS = (
     ("version stamps", check_versions),
     ("output default", check_output_default),
@@ -1563,6 +1653,7 @@ CHECKS = (
     ("source-marker parity", check_source_marker_parity),
     ("brand lock", check_brand_lock),
     ("no shadow math", check_no_shadow_math),
+    ("ledgers", check_ledgers),
 )
 
 

@@ -3,6 +3,45 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.422 — the ledgers: gaps, failure modes, and the backlog comes back from the dead
+
+Release R6 of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`). Until now this
+repository's institutional memory of its own defects lived as prose inside
+CHANGELOG entries — vivid, and unqueryable. Three ledgers make it state.
+
+**`KNOWN_GAPS.md`** tracks concrete open defects with machine-checked
+structure. Seeded with the two that were living as folklore: **GAP-001**
+(both scored conformance agents fail T1-deck — on the scoreboard for months,
+tracked toward closure by nothing) and **GAP-002** (the five checks CI
+cannot run are verified by sentences in release notes — the gap the
+evidence-gate release exists to close, and this entry is how its closure
+will be recorded rather than merely claimed). The lumi project's rule
+arrives with the file: tracked bugs live in the ledger, and a TODO in a
+script citing a GAP id fails CI.
+
+**`FAILURE_MODES.md`** registers the ten escape classes extracted from this
+changelog's own history — the check that could not fail, the guard in the
+wrong language, prose-copy drift, reverse drift, enumeration rot,
+local-green-is-not-CI-green, generator/consumer asymmetry, the number with
+no stated direction, the rule mandating an unshipped asset, and
+only-the-eye-finds-it — each with detection and prevention pointers, plus
+an **Abandoned gates** section recording six declined mechanisms with
+reasons, so a declined idea is a decision rather than a quarterly re-debate.
+
+**`Pipeline/ideas-prd.md` is restored** from the commit that deleted it
+(`e861df0` left only the 298KB rendered deck), with stable IDEA-ids and a
+dated status block: IDEA-3 and IDEA-4 verifiably shipped since the survey,
+IDEA-7 is in progress as this migration's conformance work, four remain
+open.
+
+**`check_ledgers` is the 21st guard**: id uniqueness, legal statuses,
+per-status required keys, a closed entry's release must exist in the
+CHANGELOG *and* cite the id, no GAP-citing TODO in scripts/ or references/,
+and no dangling GAP/FM/IDEA citation anywhere in CHANGELOG or specs/. What
+an entry says stays with the reviewer — a guard judging prose would be
+FM-01 in its own registry.
+
 ## 0.1.421 — five guards are shown able to fail
 
 Release R5 of the engineering-quality migration
