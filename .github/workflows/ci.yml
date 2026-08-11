@@ -77,6 +77,7 @@ jobs:
       # network, no vendor SDKs — and must never look as though it did.
       - run: python3 scripts/run_conformance.py validate
       # What CI cannot execute must be recorded as an execution, not a
-      # sentence (GAP-002). Warn-only for one release; red after.
-      - run: python3 scripts/check_evidence.py --check --warn
+      # sentence (GAP-002, closed 0.1.425). Red since 0.1.425 after one
+      # warn-only release proved every failure shape fires.
+      - run: python3 scripts/check_evidence.py --check
       - run: python3 scripts/check_repo.py
