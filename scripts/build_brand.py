@@ -45,25 +45,95 @@ OUT_DIR = ROOT / "assets" / "brand" / "lumivate"
 # land in it, and an ocean-centred globe reads as an empty circle at icon size.
 VIEW = (20.0, 18.0, 0.0, 100.0, 100.0, 100.0)
 
-# SELF-CONTAINED, AND MONOCHROME. A figure's palette is built to recede behind
-# data — the land is --acc-2, a wash — and a mark rendered in it disappears at
-# 64px. A mark also has to survive being dropped into a page that has never
-# heard of tokens/region-palette.css, so it carries its own styles inline.
+# SELF-CONTAINED, AND THE SAME STYLE AS THE COVER.
 #
-# One ink at three strengths, taken from --nw (#212621), because a logo has to
-# work in one colour: on a letterhead, in a favicon, stamped, faxed. The values
-# are literals here on purpose — a var() in a mark is a var() that resolves to
-# nothing on somebody else's page.
-MARK_STYLE = (
-    "<style>"
-    ".lumivate-mark .gl-plate{fill:none}"
-    ".lumivate-mark .gl-graticule{fill:none;stroke:#212621;stroke-opacity:.28;"
-    "stroke-width:1.1}"
-    ".lumivate-mark .gl-land{fill:#212621;fill-opacity:.86;stroke:none}"
-    ".lumivate-mark .gl-axis{stroke:#212621;stroke-width:3;stroke-linecap:round}"
-    ".lumivate-mark .gl-limb{fill:none;stroke:#212621;stroke-opacity:.55;"
-    "stroke-width:2}"
-    "</style>")
+# The first cut of this mark was monochrome — one ink at three strengths, on
+# the reasoning that a logo has to print in one colour. The owner removed it:
+# the mark on the closing page has to be the globe on the cover, not a second
+# design of the same object. A company whose figure and whose mark disagree has
+# two marks.
+#
+# So the styles below are the cover's, inlined. Inlined rather than referenced
+# because a mark still has to render on a page that has never heard of
+# tokens/ — dropped into a slide, an email, somebody else's site — and a var()
+# in a mark is a var() that resolves to nothing there.
+#
+# It carries its own DARK MODE too, on prefers-color-scheme, so the same file
+# is correct on a white page and a black one without the host doing anything.
+def _vars(css, selector):
+    """The custom-property declarations inside one rule, as a dict."""
+    i = css.index(selector + " {")
+    j = css.index("}", i)
+    out = {}
+    for line in css[i:j].splitlines():
+        m = re.match(r"\s*(--[\w-]+)\s*:\s*([^;]+);", line)
+        if m:
+            out[m.group(1)] = m.group(2).strip()
+    return out
+
+
+def mark_style():
+    """The cover's look, resolved to literals and scoped to the mark."""
+    theme = (ROOT / "tokens/lumi-theme.css").read_text(encoding="utf-8")
+    # region-palette.css AND its trade-scoped sibling. The chrome variables —
+    # --gl-plate, --gl-graticule, --gl-equator — are emitted only in the
+    # UNSCOPED file, because a scoped instance is regions-only by design. Read
+    # just the scoped one and every var() resolves to nothing, `fill` is
+    # invalid, and an SVG with an invalid fill is a BLACK SVG. The whole ocean
+    # came out black in both palettes and it looked deliberate.
+    base = (ROOT / "tokens/region-palette.css").read_text(encoding="utf-8")
+    trade = (ROOT / "tokens/region-palette-trade.css").read_text(encoding="utf-8")
+    light = {**_vars(theme, ":root"), **_vars(base, ":root"), **_vars(trade, ".trade")}
+    dark = {**light, **_vars(theme, "body.dark"), **_vars(base, "body.dark"),
+            **_vars(trade, "body.dark .trade")}
+
+    def decl(v):
+        # One indirection deep is all the token files use, and resolving it
+        # here is what makes the file standalone.
+        seen = 0
+        while v.startswith("var(") and seen < 4:
+            v = light.get(v[4:v.index(")")].strip(), v)
+            seen += 1
+        return v
+
+    def block(vals, scope):
+        rows = [f"{scope}{{"]
+        for k, v in sorted(vals.items()):
+            rows.append(f"{k}:{v};")
+        rows.append("}")
+        return "".join(rows)
+
+    rules = (
+        ".lumivate-mark .gl-plate{fill:var(--gl-plate)}"
+        ".lumivate-mark .gl-graticule{fill:none;stroke:var(--gl-graticule);"
+        "stroke-width:1.4}"
+        ".lumivate-mark .gl-equator{fill:none;stroke:var(--gl-equator);"
+        "stroke-width:3}"
+        ".lumivate-mark .gl-tropic{fill:none;stroke:var(--gl-tropic);"
+        "stroke-width:2;stroke-dasharray:10 8}"
+        ".lumivate-mark .gl-land{fill:none;stroke:none}"
+        ".lumivate-mark .gl-rg{fill-opacity:.42;stroke:none}"
+        ".lumivate-mark .gl-coast{fill:none;stroke:var(--tx2);stroke-width:2.6;"
+        "stroke-linejoin:round;stroke-linecap:round}"
+        ".lumivate-mark .gl-bloc-edge{fill:none;stroke:var(--tx2);stroke-width:2;"
+        "stroke-opacity:.75;stroke-linejoin:round}"
+        ".lumivate-mark .gl-border{fill:none;stroke:var(--ln1);stroke-width:.8}"
+    )
+    for rid in sorted({k[5:] for k in light if k.startswith("--rg-")
+                       and not k.endswith(("-stroke", "-wash"))}):
+        rules += f".lumivate-mark .rg-{rid}{{fill:var(--rg-{rid})}}"
+
+    keep = lambda d: {k: decl(v) for k, v in d.items()
+                      if k.startswith(("--rg-", "--gl-")) or k in
+                      ("--tx1", "--tx2", "--tx3", "--ln1", "--ln2", "--ln3",
+                       "--bg", "--nw", "--acc", "--acc-2")}
+    return ("<style>"
+            + block(keep(light), ".lumivate-mark")
+            + rules
+            + "@media (prefers-color-scheme: dark){"
+            + block(keep(dark), ".lumivate-mark") + "}"
+            + "</style>")
+
 
 NOTE = ("<!-- LUMIVATE brand mark. GENERATED by scripts/build_brand.py and "
         "LOCKED: see assets/brand/LOCKED.json. Do not edit, and do not change "
@@ -81,7 +151,9 @@ def _strip(svg, classes):
 
 
 def build(small=False):
-    svg = globe_svg.render(VIEW, night=None)
+    svg = globe_svg.render(
+        VIEW, night=None,
+        regions_path=str(ROOT / "assets/vectors/regions-trade.json"))
     svg = _strip(svg, ["gl-night", "gl-node", "gl-equator", "gl-tropic",
                        "gl-axis-ref"])
     if small:
@@ -93,12 +165,7 @@ def build(small=False):
         # silhouette, and a silhouette is exactly what survives being small.
         svg = _strip(svg, ["gl-graticule"])
     svg = svg.replace('class="gl"', 'class="gl lumivate-mark"', 1)
-    # The limb: the sphere's own edge. The figure gets it from the plate fill,
-    # which a mark has no use for — a logo with a filled disc behind it cannot
-    # sit on a dark background — so the mark draws the circle instead.
-    lon0, lat0, t, R, cx, cy = VIEW
-    limb = (f'<circle class="gl-limb" cx="{cx:g}" cy="{cy:g}" r="{R:g}"/>')
-    svg = svg.replace('<g class="gl-earth"', MARK_STYLE + limb + '<g class="gl-earth"', 1)
+    svg = svg.replace('<g class="gl-earth"', mark_style() + '<g class="gl-earth"', 1)
     svg = svg.replace('aria-label="LUMI globe, field of marks"',
                       'aria-label="LUMIVATE"', 1)
     svg = re.sub(r"<!-- generated by scripts/globe_svg\.py[^>]*-->", NOTE, svg, count=1)

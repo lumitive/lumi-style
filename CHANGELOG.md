@@ -3,6 +3,47 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.407 — the dark palette reaches a document at last, and the mark stops being a second design
+
+**The dark palette had been unreachable since 0.1.333.** `build_fixtures.py`
+inlined only the `:root` block from `tokens/lumi-theme.css`, so `body.dark`
+never entered a deliverable — adding the class to a shipped document changed
+nothing at all, because the values it redefines were not in the file. Nine
+releases of a dark palette that no document could express. It is inlined now,
+and the globe reads on black without a single new value: the chrome indirects to
+theme tokens and the theme tokens redefine.
+
+**The mark is the cover's globe, not a second drawing of it.** 0.1.405 shipped a
+monochrome treatment on the reasoning that a logo has to print in one colour.
+That reasoning is sound and the answer was still wrong: a company whose figure
+and whose mark disagree has two marks. The monochrome styles are deleted
+outright and the mark carries the cover's own look, resolved to literals and
+inlined, with its own `prefers-color-scheme` dark variant — so one file is
+correct on a white page and a black one and needs nothing from `tokens/`.
+
+Building it turned up a defect the same shape as the mark's whole reason for
+existing: the first cut read the SCOPED region palette only, and the chrome
+variables — `--gl-plate`, `--gl-graticule`, `--gl-equator` — are emitted in the
+UNSCOPED file, because a scoped instance is regions-only by design. Every one
+resolved to nothing, `fill` became invalid, and an SVG with an invalid fill is a
+black SVG. The whole ocean came out black in both palettes and looked
+deliberate.
+
+**A stray checkout poisoned every file-scanning guard.** `check_repo.py` walks
+the filesystem rather than git's index, so a Claude Code worktree left at
+`.claude/worktrees/` — a full copy of this repository at an older version — was
+scanned as if it belonged to the tree. Seventeen failures across three guards,
+every one of them true of a checkout nobody was editing. Gitignoring it was not
+enough: a guard that reads the disk has to be told what the disk is for, so the
+walker now skips dot-directories rather than `.git` alone.
+
+**Figures 1 and 2 are kept as LUMIVATE brand images**, written beside the
+document rather than into this package. The line is the one the HS codes and the
+lane waypoints already fall on: those figures carry 128 tariff codes, 23 ports
+and thirteen shipping routes, which are a deliverable's data. lumi-style ships
+the component and its own mark; a figure built from a client's tariff list stays
+out, and red line 9 is why.
+
 ## 0.1.406 — the land in three weights, and an export that is the same twice
 
 **Continents read as continents.** Every land line was one weight, so a

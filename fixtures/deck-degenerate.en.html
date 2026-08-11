@@ -192,8 +192,67 @@
   --fs-lead-xl: 105px;                      /* one number, alone, full stop */
   --fs-say:     29px;                       /* the claim that is the page */
 }
+body.dark {
+  --bg:  #1D1D1F;                /* Apple space grey */
+  --nw:  #F0F0FA;                /* cold white — never pure white */
+  --card-bg: #2C2C2E;
+
+  /* text ladder — cold white #F0F0FA on the dark canvas. Its own alphas: the
+     same numbers that work on near-white are unreadable here.
+     Contrast against --bg / --card-bg, measured:
+     tx1 11.73/9.89 · tx2 9.05/7.79 · tx3 7.14/6.27 · tx4 5.82/5.21 */
+  --tx1: rgba(240,240,250,.88);
+  --tx2: rgba(240,240,250,.76);
+  --tx3: rgba(240,240,250,.66);
+  --tx4: rgba(240,240,250,.58);
+
+  --ln1: rgba(240,240,250,.18);
+  --ln2: rgba(240,240,250,.11);
+  --ln3: rgba(240,240,250,.07);
+
+  --acc:       #7C9F63;          /* lifted for contrast on near-black */
+  --acc-inbox: #48633E;
+  --acc-wash:  rgba(124,159,99,.14);
+  /* Text on the lifted accent fill flips to canvas ink: cold white on #7C9F63
+     measures 2.65 and fails. Until 0.1.338 this token claimed to serve both
+     palettes, and a white label inside an accent bar shipped unreadable. */
+  --on-acc:    #1D1D1F;          /* 6.4 on #7C9F63 */
+  --seal-t:    #E97C6E;          /* lifted seal for text on grey; fills keep --seal.
+                                    6.07 on the canvas, 5.00 on --seal-wash */
+  --seal-wash: rgba(233,124,110,.15);
+  --amber:     #E0A73E;          /* 7.83 on space grey */
+  --amber-wash:rgba(224,167,62,.15);
+  --brass:     #C3B393;          /* 8.17 on space grey */
+  --brass-wash:rgba(195,179,147,.14);
+
+  /* the ramp on space grey. Its own values, like every other ladder here:
+     acc-5 space grey 5.61 · acc-4 cold white 4.69 · acc-3 6.67 ·
+     acc-2 9.70 · acc-1 13.46 */
+  --acc-5: #7C9F63;
+  --acc-4: #5B724B;
+  --acc-3: #49593E;
+  --acc-2: #363F31;
+  --acc-1: #242624;
+  --on-acc-5: #1D1D1F;
+  --on-acc-lo: #F0F0FA;
+
+
+  --lime:      #B8FF00;          /* 13.90 as text on space grey */
+  --on-lime:   #0A0907;
+  /* The dark ramp receded in name only until 0.1.378: mid sat at .24 against
+     strong's .20, so a part opener carried a DENSER ground than the cover —
+     the inversion the ratio rule in the light block exists to prevent, left
+     unfixed when 0.1.375 restated that rule one palette up. Strong stays at
+     its measured value; mid takes the same ≈0.76 ratio the light tiers hold. */
+  --ground-strong: .20;          /* light on dark water carries further */
+  --ground-mid:    .15;
+  --ground-faint:  .095;
+
+  --d-blue:    #5B8FC9;
+  --d-teal:    #3FA98C;
+}
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.406 (2026-08-10)
+   LUMI page layouts · v0.1.407 (2026-08-10)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -1794,7 +1853,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
     <h2>The reporting position across the estate under review has not moved materially since the previous cycle closed and remains subject to the same constraints that were recorded at the time by the programme at the close</h2></div>
     <!-- D6_footer missing_source: the colophon names no provenance, and D6 asks
          the DOCUMENT once rather than every page. -->
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.406.</p></div>
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.407.</p></div>
   </div>
   <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div>
   <span class="site">www.example.org</span></div></section>
