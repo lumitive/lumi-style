@@ -176,7 +176,24 @@ def shipped_css() -> str:
     # at. 0.1.388 taught check_design to accumulate `:root` blocks rather than
     # keep the last one, precisely so a document could append this file; the
     # fixture then never did.
-    return (":root {" + css[start + len(":root {"):i] + "}\n"
+    # AND THE DARK PALETTE. Only the :root block was taken, so `body.dark`
+    # never reached a deliverable — adding the class to a shipped document
+    # changed nothing at all, because the values it redefines were not in the
+    # file. The dark palette had been in tokens/ since 0.1.333 and reachable
+    # from nothing since. A palette a document cannot express is a palette the
+    # package does not have.
+    dstart = css.index("body.dark {")
+    ddepth, dend = 0, dstart
+    for dend in range(dstart + len("body.dark {"), len(css)):
+        if css[dend] == "{":
+            ddepth += 1
+        elif css[dend] == "}":
+            if ddepth == 0:
+                break
+            ddepth -= 1
+    dark = css[dstart:dend + 1] + "\n"
+
+    return (":root {" + css[start + len(":root {"):i] + "}\n" + dark
             + (ROOT / "tokens/lumi-layouts.css").read_text(encoding="utf-8")
             + (ROOT / "tokens/region-palette.css").read_text(encoding="utf-8"))
 

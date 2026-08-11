@@ -2,14 +2,14 @@
   "component": "LUMI-Globe-Field",
   "owner": "LUMIVATE",
   "locked_at": "0.1.405",
-  "why": "0.1.406: the land is drawn in three weights and the component gained pin() for reproducible export",
+  "why": "0.1.407: the mark takes the cover's style; the monochrome treatment is deleted",
   "files": {
-    "assets/brand/lumivate/globe-mark-small.svg": "4b62f74f16f158d7daf6eb6cadc2617adda3d2a9a533d57507a87944a9cac11a",
-    "assets/brand/lumivate/globe-mark.svg": "73ba4189809c15a2c5268c6e91f69fb7fc5824568235179a293518a1fdfa468b",
+    "assets/brand/lumivate/globe-mark-small.svg": "0f512b06da13b66c99246ba45d310de0026859b6734ed513141b44ccf9b83b0c",
+    "assets/brand/lumivate/globe-mark.svg": "bf353ee8b3bcf068a4854f4921d7c4d4e00d19594dbf1aa71eb9f93c66b8d4a9",
     "assets/geo/projection.js": "5f440b8329957a9dd1448f96adf98ac9efcc5f3e7a108ad5d864f267989812f4",
     "assets/globe/globe.js": "a56687ef6334fd9abbfd1e974f0ee90dcf020f3117f8526f3399bceca1807258",
     "assets/globe/render-svg.js": "732aa3c8de6934662a01584b78bd5959dea9d0bd3273d263f9d6143244bc12d7",
-    "scripts/build_brand.py": "139ae67e88645021ee5b1e2b704e35510dbff345dbd7f9c9bbecb369071c7190",
+    "scripts/build_brand.py": "f33d0977a14504bf007049ab80a32569e3433576fb19ed454f4e9ff217cf4f84",
     "scripts/globe_svg.py": "9c8e89fd22adce9b597e280633a7c84e0c64fa0e121b24f4dd3d30bb44be3558"
   }
 }

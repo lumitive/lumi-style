@@ -79,7 +79,15 @@ def md_files():
     seen = {}
     for pattern in PROSE_GLOBS:
         for p in ROOT.rglob(pattern) if "/" not in pattern else ROOT.glob(pattern):
-            if ".git" in p.parts:
+            # Skip .git AND every other dot-directory. This walks the
+            # filesystem rather than git's index, so anything checked out under
+            # the tree is scanned as if it belonged to it — and a Claude Code
+            # worktree at .claude/worktrees/ is a full copy of this repository
+            # at an older version. It failed the version-citation, english-only
+            # and stale-promise guards seventeen ways at once, all of them true
+            # of a checkout nobody was editing. gitignoring it was not enough:
+            # a guard that reads the disk has to be told what the disk is for.
+            if any(part.startswith(".") for part in p.relative_to(ROOT).parts[:-1]):
                 continue
             seen[p] = None
     return sorted(seen)
