@@ -21,25 +21,23 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      # Standard library only — no dependency step, nothing to pin or update.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       # scripts/ had no CI coverage at all until 0.1.336: a syntax error in either
       # script would have shipped silently, including into the emergency merge
-      # path that runs when CI itself is unavailable.
-      - run: |
-          python3 -m py_compile \
-            scripts/check_repo.py scripts/check_prose.py scripts/check_design.py \
-            scripts/embed_font.py scripts/embed_icons.py scripts/build_geography.py \
-            scripts/geo_projection.py scripts/build_worldmap.py \
-            scripts/build_region_palette.py scripts/build_trade_registry.py \
-            scripts/build_brand.py scripts/lock.py scripts/new_deck.py \
-            scripts/check_globe.py \
-            scripts/globe_svg.py scripts/geo_frame.py scripts/embed_globe.py \
-            scripts/regionmap_svg.py scripts/embed_regionmap.py \
-            scripts/build_entrypoints.py scripts/inspect_layout.py \
-            scripts/build_fixtures.py scripts/check_fixtures.py \
-            scripts/run_conformance.py scripts/export_pdf.py \
-            scripts/output_dir.py
+      # path that runs when CI itself is unavailable. compileall, not a file
+      # list: the hand-maintained list this replaced had rotted to 26 of 29
+      # scripts — it omitted preflight.py, review_scores.py and sea_route.py —
+      # and a glob cannot rot. -f forces recompile so a cached .pyc can never
+      # mask a fresh syntax error.
+      - run: python3 -m compileall -q -f scripts/
       - run: bash -n scripts/emergency_merge.sh scripts/ci_wait.sh
+      # Both JavaScript surfaces — the tracked assets/**.js runtimes and the
+      # probe strings embedded in inspect_layout.py — parsed by `node --check`.
+      # Until 0.1.416 neither had any syntax gate (0.1.414: "the guard shipped
+      # in Python, the runtime is JavaScript").
+      - run: python3 scripts/check_js.py
       # Every vendored asset must stay byte-identical: a silent change would alter
       # the metrics or the marks of every deliverable that embeds it. The icons
       # and geography arrived in 0.1.338 under the same reasoning as the face.

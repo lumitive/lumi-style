@@ -5,8 +5,9 @@
     python3 scripts/preflight.py -x       # stop at the first failure
 
 WHY THIS EXISTS. `check_repo.py` answers "is this change good" and is the thing
-a person reaches for. It is one of FIFTEEN commands CI runs. So a release could
-be — and was — reported locally as "all gates green" on the strength of eight of
+a person reaches for. It is ONE of the commands CI runs — how many is whatever
+the workflow says today, never a number written here. So a release could be —
+and was — reported locally as "all gates green" on the strength of eight of
 them, pushed, and failed in CI on a generator check that had never been run.
 
 The failure that produced this file: a shared value was added to a palette
@@ -22,7 +23,7 @@ running a subset and printing a reassuring line — that failure mode is the one
 this repository keeps rediscovering.
 
 Standard library only, because there is no yaml module in it and this needs no
-dependency to read fifteen `run:` lines.
+dependency to read a workflow's `run:` lines.
 """
 from __future__ import annotations
 
