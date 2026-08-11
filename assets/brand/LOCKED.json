@@ -2,14 +2,14 @@
   "component": "LUMI-Globe-Field",
   "owner": "LUMIVATE",
   "locked_at": "0.1.405",
-  "why": "0.1.409: D19 gates a document's own vocabulary",
+  "why": "0.1.410: the cover globe pair joins the brand assets",
   "files": {
     "assets/brand/lumivate/globe-mark-small.svg": "0e1b39f712a804dac56a883875b6bf023f3e5f7655e456cca9bcbf4ff28e436f",
     "assets/brand/lumivate/globe-mark.svg": "5b762f847b90d6f86fe1b47b679a3b57a1763d91c592f774ce1a878661f0423a",
     "assets/geo/projection.js": "5f440b8329957a9dd1448f96adf98ac9efcc5f3e7a108ad5d864f267989812f4",
     "assets/globe/globe.js": "a56687ef6334fd9abbfd1e974f0ee90dcf020f3117f8526f3399bceca1807258",
     "assets/globe/render-svg.js": "732aa3c8de6934662a01584b78bd5959dea9d0bd3273d263f9d6143244bc12d7",
-    "scripts/build_brand.py": "f33d0977a14504bf007049ab80a32569e3433576fb19ed454f4e9ff217cf4f84",
-    "scripts/globe_svg.py": "9c8e89fd22adce9b597e280633a7c84e0c64fa0e121b24f4dd3d30bb44be3558"
+    "scripts/build_brand.py": "611b96cf3f9ab26b9924caffbc18fea8689698d8dc428c39c4755963daed68ca",
+    "scripts/globe_svg.py": "6ff286db9fc37a82790f4f896d8d869c3e6c89dac1e8756cab492d6128276431"
   }
 }

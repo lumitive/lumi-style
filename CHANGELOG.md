@@ -3,6 +3,33 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.410 — the cover globe, and a preset so a document does not have to know four flags
+
+`globe_svg.py --preset cover` is LUMIVATE's own view: Pacific-centred at
+lon0=-160, the trade blocs filled, the terminator off. It exists so a document
+does not have to carry four flag values to draw the mark, and so every document
+that draws it draws the same one. An explicit flag still wins — a preset is a
+starting point, not a lock.
+
+`assets/brand/lumivate/` gains **`globe-cover.svg`** and
+**`globe-cover.dark.svg`**, that view at cover scale, self-contained in each
+palette. **Two files, not one that adapts**: `prefers-color-scheme` follows the
+browser rather than the page a mark is dropped on, so a mark that adapts goes
+dark on a light deck read in a dark-mode browser.
+
+`assets/brand/README.md` documents the live recipe — the frame, the runtime, and
+`data-globe-print-lon0` for a reproducible export — which is what makes the
+rotating globe reachable from any agent with the skill installed: no demo
+machinery, no build directory, two commands that already ship.
+
+**D19 earned itself on the first document built after it landed.** The rebuilt
+proposal referenced `#i-flow`, an icon this package has never had, and the gate
+named it before a reader could. The same rebuild then hit the palette split for
+the third time in this repository: `--rg-*` variables live in the SCOPED region
+palette and the class-to-fill bindings in the UNSCOPED one, so inlining half of
+them gave a globe with every variable defined and nothing bound to it — black,
+and looking deliberate. The first two were the brand mark and the region map.
+
 ## 0.1.409 — D19: a document that cannot render itself does not ship
 
 A deliverable passed `check_design`, `check_prose` and
