@@ -865,9 +865,14 @@ def build_expressive() -> str:
     total = 4
     exp_sprite = sprite(["book-open", "pencil", "shield"], register="expressive")
     scenes = illo_sprite(["onboarding", "practice"])
+    # The band is a full-width strip along the cover's top edge — a placed
+    # device on empty air, not a swatch inside the grid. Above the footer it
+    # collided with the meta strip and the colophon, which is exactly the
+    # placement the device forbids and band_over_evidence exists to catch.
     band = ('<svg class="seigaiha" viewBox="0 0 1280 96" '
             'preserveAspectRatio="xMidYMid slice" aria-hidden="true" '
-            'focusable="false"><use href="#g-seigaiha"/></svg>')
+            'focusable="false" style="position:absolute;left:0;right:0;'
+            'top:0;z-index:0"><use href="#g-seigaiha"/></svg>')
     cover = f"""
 <section class="page cover" id="cover">
   {GROUND}
@@ -883,33 +888,33 @@ def build_expressive() -> str:
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
     </div>
     <p class="colophon">Built with lumi-style {VERSION} &#183; source: meter management system.</p>
-    {band}
   </div>
+  {band}
   {foot(1, total)}</section>"""
     concept = f"""
 <section class="page" id="x2">
   {GROUND}
-  <div class="body">
+  <div class="body stack">
     <div class="lede">
       <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg>Module 1 &#183; The estate</p>
       <h2 class="t">What a meter read is</h2>
       <p class="sup">One concept on this page: a read is a value taken, an estimate is a value inferred.</p>
     </div>
-    <ul><li>A read comes from the device.</li>
+    <div class="fill"><ul><li>A read comes from the device.</li>
     <li>An estimate comes from the model, and it says so.</li>
-    <li>The distinction survives into every report downstream.</li></ul>
+    <li>The distinction survives into every report downstream.</li></ul></div>
   </div>
   {foot(2, total)}</section>"""
     practice = f"""
 <section class="page" id="x3">
   {GROUND}
-  <div class="body">
+  <div class="body stack">
     <div class="lede">
       <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg>Module 1 &#183; Practice</p>
       <h2 class="t">Try the classification yourself</h2>
       <p class="sup">Three values follow; say which are reads before checking the key.</p>
     </div>
-    <svg class="illo" role="img" aria-label="practice scene"><use href="#il-practice"/></svg>
+    <div class="fill"><svg class="illo" role="img" aria-label="practice scene"><use href="#il-practice"/></svg></div>
   </div>
   {foot(3, total)}</section>"""
     closing = f"""

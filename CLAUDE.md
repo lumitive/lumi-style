@@ -14,7 +14,7 @@ sync, and recording changes in the changelog.
 ```bash
 python3 scripts/check_repo.py            # repo invariants; exit 1 on any failure
 python3 scripts/check_prose.py <file>    # AI-flavor metrics (M4, M8-M11) on a deliverable
-python3 scripts/check_design.py <file>   # design metrics (D1-D17) on a deliverable
+python3 scripts/check_design.py <file>   # design metrics (D1-D19) on a deliverable
 python3 scripts/inspect_layout.py <file> # render a deliverable and report what the layout does
 python3 scripts/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
 python3 scripts/output_dir.py            # where a deliverable belongs; --create needs the user's say-so
@@ -80,11 +80,13 @@ English-only and takes `--genre {sales,internal,training}`; internal analysis
 is exempt from the em-dash rule and training binds like sales. `check_design.py` reads a document's own token block, so it
 grades a file against the palette that file actually declares rather than against
 this repo's; a deliverable that does not use the token block is reported
-`UNMEASURABLE` rather than passed. Three of its metrics **gate**, and none is a
+`UNMEASURABLE` rather than passed. Four of its metrics **gate**, and none is a
 design judgement: **D12** (handling terms and origin on every page) is a
 commercial requirement on the artifact, **D14** (no `[TO FILL]`, `[TBD]` or
-`{{…}}` reaching the reader) asks whether the document is finished, and **D15**
-(no repository path in a footer) is D12's mirror. All three are
+`{{…}}` reaching the reader) asks whether the document is finished, **D15**
+(no repository path in a footer) is D12's mirror, and **D19** (expressive
+vocabulary only under a declared `data-register="expressive"`, one
+illustration per page) asks whether the document says what it is. All four are
 decidable in the way "does this page read as intentional" is not.
 
 Its banned-phrase list is a second copy of `references/writing-rules.md` §2, so
@@ -129,7 +131,7 @@ Actions incident blocks merging for everyone. Do not wait it out by polling.
 - `references/writing-rules.md` — output-language default, terminology red lines, banned phrases, punctuation, number discipline, the LUMI voice
 - `references/storyline-templates.md` — narrative skeletons per scenario (sales / consulting / internal analysis / training), cover & closing templates, the pre-delivery critic gate
 - `references/design-rules.md` — color semantics, typography, chart rules, semantic icons, layout guards, verification matrix
-- `references/eval-rubric.md` — M1–M12 / D1–D17 / H1–H6 scoring rubric and the review protocol (the iteration engine)
+- `references/eval-rubric.md` — M1–M12 / D1–D19 / H1–H6 scoring rubric and the review protocol (the iteration engine)
 
 `tokens/lumi-theme.css` and `tokens/design-tokens.json` are the authority for
 palette and type values. Their palette values mirror each other exactly and must
