@@ -3,6 +3,40 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.424 — the evidence gate arrives, warn-only, and writes its own first file
+
+Release R8 of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`) — the centerpiece, and
+the release that starts closing GAP-002.
+
+**`scripts/check_evidence.py` + `releases/evidence/<version>.json`.** What
+CI cannot execute — the browser layout gates, the globe's JS half, and (once
+armed) conformance freshness — must now be EXECUTED and recorded, never
+narrated. The schema's load-bearing decision: **there is no verdict field.**
+`record --id <obligation>` runs the canonical command itself and
+machine-writes exit code, output digest and date; a human never types
+"pass", so an unexecuted claim has no field to live in. Big artifacts stay
+local; the tracked file carries command + exit code + digests — re-runnable
+evidence in the lumi SOP's R2 sense.
+
+**Obligations are computed, not declared.** `--init` maps the release diff
+through a TOUCH_MAP; CI recomputes them from `diff_base` (checkout now
+fetches full history), so a hand-deleted obligation is caught. Version-stamp
+bumps in the stamped files do not count as touches — a gate that nags on
+every release becomes a gate waived on reflex. A nonzero recorded exit must
+cite an OPEN KNOWN_GAPS entry (the assert-broken-behavior pattern); two
+checks sharing an output digest fail (copied evidence); the spec rule folds
+in (>150 changed rule-surface lines require a cited specs/ file or a
+reasoned waiver); and the overclaim phrases — "all gates green" and its
+family — fail the gate when written in a release that carries waivers.
+
+**Warn-only for exactly this release** (the step ships as `--check --warn`),
+because a gate's first exercise should not be able to block the release that
+introduces it. Three planted violations were shown to fire under warn: a
+deleted obligation, a duplicated digest, and an overclaim phrase beside a
+waiver. The gate goes red next release, which is also when GAP-002 flips to
+fixed.
+
 ## 0.1.423 — the commit subject convention grows teeth, scoped to where it matters
 
 Release R7 of the engineering-quality migration

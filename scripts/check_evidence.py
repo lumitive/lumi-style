@@ -1,0 +1,429 @@
+#!/usr/bin/env python3
+"""The evidence gate: what CI cannot run must be EXECUTED and recorded,
+never narrated.
+
+    python3 scripts/check_evidence.py --init [<version>]   # write the skeleton
+    python3 scripts/check_evidence.py record --id <obligation>
+    python3 scripts/check_evidence.py --check [--warn]     # the CI step
+
+WHY. Five of this package's checks need a browser or an operator; until
+0.1.424 their results were sentences in release notes — claims, not evidence
+(GAP-002). 0.1.415 reported "all gates green" on eight of seventeen. The lumi
+project's SOP names the principle: a requirement is built only when its
+declared check has been EXECUTED with linked evidence, and CI green proves
+form, never the operator half.
+
+THE SCHEMA HAS NO VERDICT FIELD, deliberately. `record` executes the
+canonical command itself and machine-writes the exit code, output digest and
+date. A human never types "pass"; an unexecuted claim has no field to live
+in. Large artifacts (contact sheets, rasters) stay local and untracked — the
+tracked file carries the command, exit code and digests, which is re-runnable
+evidence: anyone can execute the same command and compare.
+
+One evidence file per release at releases/evidence/<version>.json, REQUIRED
+for every release (an empty-obligations file is still written — uniformity is
+what makes absence detectable). Obligations are computed from the release
+diff through TOUCH_MAP; version-stamp-only changes to the stamped files do
+not count as touches (a stamp bump is not a layout change, and a gate that
+nags on every release becomes a gate people waive on reflex).
+"""
+from __future__ import annotations
+
+import argparse
+import datetime
+import hashlib
+import json
+import pathlib
+import re
+import subprocess
+import sys
+from typing import Any
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+EVIDENCE_DIR = ROOT / "releases" / "evidence"
+CHANGELOG = ROOT / "CHANGELOG.md"
+
+# obligation id -> (canonical command, what it proves). Deterministic,
+# fixture-targeted, executable by anyone with the named local dependencies.
+OBLIGATIONS: dict[str, tuple[str, str]] = {
+    "layout-fixtures": (
+        "python3 scripts/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+        "the ten decidable layout gates on the passing fixture, in a real browser",
+    ),
+    "globe-js": (
+        "python3 scripts/check_globe.py",
+        "the globe checks INCLUDING the browser half that CI cannot run",
+    ),
+    "conformance-freshness": (
+        "python3 scripts/run_conformance.py validate",
+        "rule-surface releases keep the multi-agent scoreboard fresh "
+        "(armed once conformance/history.json exists)",
+    ),
+}
+
+# path prefix -> obligation ids it triggers.
+TOUCH_MAP: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("tokens/", ("layout-fixtures", "conformance-freshness")),
+    ("references/design-rules.md", ("layout-fixtures",)),
+    ("scripts/inspect_layout.py", ("layout-fixtures",)),
+    ("fixtures/", ("layout-fixtures",)),
+    ("assets/geo/", ("globe-js",)),
+    ("assets/globe/", ("globe-js",)),
+    ("scripts/globe_svg.py", ("globe-js",)),
+    ("scripts/geo_frame.py", ("globe-js",)),
+    ("scripts/geo_projection.py", ("globe-js",)),
+    ("scripts/embed_globe.py", ("globe-js",)),
+    ("scripts/check_globe.py", ("globe-js",)),
+    ("SKILL.md", ("conformance-freshness",)),
+    ("references/", ("conformance-freshness",)),
+    ("prompts/", ("conformance-freshness",)),
+)
+
+# Files whose every-release change is usually just the version stamp (or a
+# regeneration of it). A change of <= STAMP_LINES total added+deleted lines
+# does not count as a touch; anything larger does.
+STAMPED_PREFIXES = (
+    "SKILL.md", "AGENTS.md", "prompts/lumi-style-core.md",
+    "tokens/lumi-theme.css", "tokens/lumi-layouts.css",
+    "tokens/design-tokens.json", "conformance/CONFORMANCE.md", "fixtures/",
+)
+STAMP_LINES = 2
+
+# The overclaim phrases, checked ONLY in the newest CHANGELOG section and
+# only when this release carries waivers or gap-cited failures. Deliberately
+# a short fixed tuple — a general prose parser would be its own drift source.
+OVERCLAIM = ("all gates green", "gates green", "all checks pass",
+             "every gate", "fully verified")
+
+SPEC_LINE_THRESHOLD = 150  # changed lines above which a spec citation is owed
+
+
+def releases_in_changelog() -> list[str]:
+    return re.findall(r"^##\s+(\d+\.\d+\.\d+)", CHANGELOG.read_text("utf-8"), re.M)
+
+
+def newest_section() -> str:
+    text = CHANGELOG.read_text("utf-8")
+    m = re.search(r"^##\s+\d+\.\d+\.\d+\b.*?(?=^##\s+\d+\.\d+\.\d+\b|\Z)",
+                  text, re.M | re.S)
+    return m.group(0) if m else ""
+
+
+def git(*args: str) -> tuple[int, str]:
+    p = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+    return p.returncode, p.stdout.strip()
+
+
+def find_release_commit(version: str) -> str | None:
+    """The newest commit whose subject starts with `<version> — `. Errors
+    beat guesses: None when no commit matches (pre-0.1.423 history has
+    stragglers, which is why the commit-convention guard now exists)."""
+    rc, out = git("log", "--format=%H %s")
+    if rc != 0:
+        return None
+    for line in out.splitlines():
+        sha, _, subject = line.partition(" ")
+        if subject.startswith(f"{version} — "):
+            return sha
+    return None
+
+
+def effective_touches(base: str) -> list[str] | None:
+    """Changed paths since `base` (committed and working tree), with
+    stamp-only changes to the stamped files filtered out. None when git
+    cannot answer (shallow clone without the base) — the caller degrades
+    LOUDLY, never silently."""
+    rc, numstat = git("diff", "--numstat", base)
+    if rc != 0:
+        return None
+    touched = []
+    for line in numstat.splitlines():
+        parts = line.split("\t")
+        if len(parts) != 3:
+            continue
+        adds, dels, path = parts
+        lines = (0 if adds == "-" else int(adds)) + (0 if dels == "-" else int(dels))
+        if any(path.startswith(p) for p in STAMPED_PREFIXES) and lines <= STAMP_LINES:
+            continue
+        touched.append(path)
+    # git diff cannot see a file that was never tracked, and a brand-new
+    # script is exactly the kind of change that owes evidence.
+    rc, untracked = git("ls-files", "--others", "--exclude-standard")
+    if rc == 0:
+        touched.extend(p for p in untracked.splitlines() if p)
+    return touched
+
+
+def obligations_for(paths: list[str]) -> list[str]:
+    out: list[str] = []
+    for prefix, obliges in TOUCH_MAP:
+        if any(p.startswith(prefix) for p in paths):
+            for ob in obliges:
+                if ob == "conformance-freshness" and not (
+                        ROOT / "conformance" / "history.json").exists():
+                    # Not yet armed (arrives with the conformance-history
+                    # release). Named rather than silent, per house rule.
+                    continue
+                if ob not in out:
+                    out.append(ob)
+    return out
+
+
+def spec_lines_changed(base: str) -> int:
+    rc, numstat = git("diff", "--numstat", base, "--",
+                      "scripts/", "references/", "tokens/")
+    if rc != 0:
+        return 0
+    total = 0
+    for line in numstat.splitlines():
+        parts = line.split("\t")
+        if len(parts) == 3:
+            total += (0 if parts[0] == "-" else int(parts[0]))
+            total += (0 if parts[1] == "-" else int(parts[1]))
+    rc, untracked = git("ls-files", "--others", "--exclude-standard", "--",
+                        "scripts/", "references/", "tokens/")
+    if rc == 0:
+        for p in untracked.splitlines():
+            if p:
+                total += len((ROOT / p).read_text("utf-8").splitlines())
+    return total
+
+
+def evidence_path(version: str) -> pathlib.Path:
+    return EVIDENCE_DIR / f"{version}.json"
+
+
+def load(version: str) -> dict[str, Any]:
+    return json.loads(evidence_path(version).read_text("utf-8"))
+
+
+def save(version: str, doc: dict[str, Any]) -> None:
+    EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
+    evidence_path(version).write_text(json.dumps(doc, indent=2) + "\n", "utf-8")
+
+
+def cmd_init(version: str | None) -> int:
+    versions = releases_in_changelog()
+    v = version or versions[0]
+    if v not in versions:
+        print(f"FAIL  {v} is not a CHANGELOG heading")
+        return 1
+    idx = versions.index(v)
+    if idx + 1 >= len(versions):
+        print(f"FAIL  {v} has no predecessor in the CHANGELOG")
+        return 1
+    prev = versions[idx + 1]
+    base = find_release_commit(prev)
+    if base is None:
+        print(f"FAIL  no commit subject starts with '{prev} — '; cannot "
+              f"compute the release diff. Name the base explicitly by "
+              f"editing the file, or fix the commit history.")
+        return 1
+    touched = effective_touches(base)
+    if touched is None:
+        print("FAIL  git cannot diff against the base (shallow clone?)")
+        return 1
+    obligations = obligations_for(touched)
+    spec = ""
+    if spec_lines_changed(base) > SPEC_LINE_THRESHOLD:
+        spec = "REQUIRED: name a specs/*.md file (or 'waived: <reason>')"
+    doc: dict[str, Any] = {
+        "version": v,
+        "diff_base": base,
+        "spec": spec,
+        "obligations": obligations,
+        "checks": [],
+        "waivers": [],
+    }
+    save(v, doc)
+    print(f"wrote {evidence_path(v).relative_to(ROOT)}: "
+          f"{len(obligations)} obligation(s) from {len(touched)} effective "
+          f"touch(es)")
+    for ob in obligations:
+        print(f"  - {ob}: {OBLIGATIONS[ob][0]}")
+    return 0
+
+
+def cmd_record(obligation: str) -> int:
+    if obligation not in OBLIGATIONS:
+        print(f"FAIL  unknown obligation {obligation!r}; known: "
+              f"{', '.join(OBLIGATIONS)}")
+        return 1
+    v = releases_in_changelog()[0]
+    if not evidence_path(v).exists():
+        print(f"FAIL  no evidence file for {v}; run --init first")
+        return 1
+    doc = load(v)
+    command = OBLIGATIONS[obligation][0]
+    print(f"running: {command}")
+    # shell=True for the same reason preflight.py uses it: the recorded
+    # string must be exactly what a re-runner would paste into a shell.
+    p = subprocess.run(command, shell=True, cwd=ROOT,  # noqa: S602
+                       capture_output=True, text=True)
+    digest = hashlib.sha256((p.stdout + p.stderr).encode()).hexdigest()
+    entry: dict[str, Any] = {
+        "id": obligation,
+        "command": command,
+        "exit_code": p.returncode,
+        "stdout_sha256": digest,
+        "date": datetime.date.today().isoformat(),
+    }
+    doc["checks"] = [c for c in doc.get("checks", []) if c.get("id") != obligation]
+    doc["checks"].append(entry)
+    save(v, doc)
+    tail = (p.stdout + p.stderr).strip().splitlines()[-3:]
+    for line in tail:
+        print(f"  {line}")
+    print(f"recorded {obligation}: exit {p.returncode}, sha256 {digest[:16]}…")
+    if p.returncode != 0:
+        print("  NOTE a nonzero exit must cite an open KNOWN_GAPS entry "
+              "(add \"gap\": \"GAP-NNN\" to the entry) or the gate fails.")
+    return 0
+
+
+def check_file(v: str, warn: bool) -> list[str]:
+    errors: list[str] = []
+    if not evidence_path(v).exists():
+        return [f"releases/evidence/{v}.json does not exist — every release "
+                f"writes one (--init), even with zero obligations"]
+    try:
+        doc = load(v)
+    except json.JSONDecodeError as exc:
+        return [f"releases/evidence/{v}.json is not valid JSON: {exc}"]
+
+    if doc.get("version") != v:
+        errors.append(f"evidence file says version {doc.get('version')!r}, "
+                      f"CHANGELOG says {v}")
+
+    checks = doc.get("checks", [])
+    waived = {w.get("id") for w in doc.get("waivers", [])
+              if isinstance(w, dict) and w.get("reason")}
+    for w in doc.get("waivers", []):
+        if not isinstance(w, dict) or not w.get("id") or not w.get("reason"):
+            errors.append("a waiver without an id and a reason is not a waiver")
+
+    # D7-analog: structural completeness of every recorded check.
+    for c in checks:
+        for field in ("id", "command", "exit_code", "stdout_sha256", "date"):
+            if field not in c:
+                errors.append(f"check {c.get('id', '?')}: missing {field!r}")
+        if c.get("exit_code", 0) != 0:
+            gap = c.get("gap", "")
+            gaps_text = (ROOT / "KNOWN_GAPS.md").read_text("utf-8")
+            open_ids = re.findall(
+                r"^## (GAP-\d+)[^\n]*\n(?:(?!^## ).)*?- status: open",
+                gaps_text, re.M | re.S)
+            if gap not in open_ids:
+                errors.append(
+                    f"check {c.get('id')}: exit {c.get('exit_code')} without "
+                    f"citing an OPEN KNOWN_GAPS entry — a known failure ships "
+                    f"ledgered, an unknown one does not ship")
+
+    # D6-analog: copied evidence.
+    digests = [c.get("stdout_sha256") for c in checks if c.get("stdout_sha256")]
+    if len(digests) != len(set(digests)):
+        errors.append("two checks share a stdout_sha256 — evidence was "
+                      "copied, not executed")
+    ids = [c.get("id") for c in checks]
+    if len(ids) != len(set(ids)):
+        errors.append("two checks share an id")
+
+    # Obligations all answered.
+    done = {c.get("id") for c in checks if "exit_code" in c}
+    for ob in doc.get("obligations", []):
+        if ob not in done and ob not in waived:
+            errors.append(f"obligation {ob!r} has neither a recorded "
+                          f"execution nor a reasoned waiver")
+
+    # Recompute obligations against the diff — a hand-deleted obligation is
+    # caught here. Degrades loudly when git cannot answer.
+    base = doc.get("diff_base", "")
+    recomputed = None
+    if base:
+        rc, _ = git("cat-file", "-e", base)
+        if rc == 0:
+            touched = effective_touches(base)
+            if touched is not None:
+                recomputed = obligations_for(touched)
+    if recomputed is None:
+        print("note  cannot recompute obligations (diff base unavailable); "
+              "trusting the file's list — this is a degraded check, not a "
+              "passing one")
+    else:
+        for ob in recomputed:
+            if ob not in doc.get("obligations", []):
+                errors.append(f"the release diff obliges {ob!r} but the "
+                              f"evidence file's list omits it")
+        # Spec discipline, computed from the same diff.
+        if spec_lines_changed(base) > SPEC_LINE_THRESHOLD:
+            spec = str(doc.get("spec", ""))
+            if spec.startswith("waived:") and len(spec) > len("waived: "):
+                pass
+            elif spec and (ROOT / spec).exists():
+                if spec not in newest_section():
+                    errors.append(f"spec {spec!r} exists but the newest "
+                                  f"CHANGELOG entry does not cite it")
+            else:
+                errors.append(
+                    f"this release changes >{SPEC_LINE_THRESHOLD} lines of "
+                    f"scripts//references//tokens/ — the evidence file's "
+                    f"'spec' must name an existing specs/*.md (cited in the "
+                    f"CHANGELOG entry) or read 'waived: <reason>'")
+
+    # Overclaim phrases while anything is waived or gap-cited.
+    compromised = bool(waived) or any(c.get("exit_code", 0) != 0 for c in checks)
+    if compromised:
+        section = newest_section().lower()
+        for phrase in OVERCLAIM:
+            if phrase in section:
+                errors.append(
+                    f"the CHANGELOG entry says {phrase!r} while this release "
+                    f"carries a waiver or a gap-cited failure — the sentence "
+                    f"0.1.415 taught this repo not to write")
+    return errors
+
+
+def cmd_check(warn: bool) -> int:
+    v = releases_in_changelog()[0]
+    errors = check_file(v, warn)
+    mode = "WARN" if warn else "FAIL"
+    for e in errors:
+        print(f"{mode}  {e}")
+    if not errors:
+        doc = load(v) if evidence_path(v).exists() else {}
+        print(f"ok    evidence for {v}: "
+              f"{len(doc.get('checks', []))} execution(s), "
+              f"{len(doc.get('obligations', []))} obligation(s), "
+              f"{len(doc.get('waivers', []))} waiver(s)")
+        return 0
+    print(f"\n{len(errors)} finding(s)."
+          + (" Warn-only for this release; the gate goes red next." if warn
+             else " The release does not ship until these close."))
+    return 0 if warn else 1
+
+
+def main(argv: list[str]) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    sub = ap.add_subparsers(dest="mode")
+    ap.add_argument("--init", nargs="?", const="", metavar="VERSION",
+                    help="write the skeleton for VERSION (default: newest)")
+    ap.add_argument("--check", action="store_true",
+                    help="validate the newest release's evidence (CI step)")
+    ap.add_argument("--warn", action="store_true",
+                    help="with --check: report findings but exit 0")
+    rec = sub.add_parser("record", help="execute one obligation and record it")
+    rec.add_argument("--id", required=True, dest="obligation")
+    args = ap.parse_args(argv)
+
+    if args.mode == "record":
+        return cmd_record(args.obligation)
+    if args.init is not None:
+        return cmd_init(args.init or None)
+    if args.check:
+        return cmd_check(args.warn)
+    ap.print_help()
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

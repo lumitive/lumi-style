@@ -1669,9 +1669,13 @@ def check_commit_convention():
         return [f"the commit touches CHANGELOG.md but its subject "
                 f"{subject!r} does not follow 'X.Y.Z — summary' "
                 f"(CLAUDE.md rule 3)"]
-    newest = re.search(r"^##\s+(\d+\.\d+\.\d+)",
-                       (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"),
-                       re.M)
+    # The CHANGELOG as of the commit being judged, NOT the working tree:
+    # during release prep the next entry exists uncommitted while HEAD is
+    # still the previous release, and that window is not a violation.
+    rc, committed_changelog = git("show", f"{target}:CHANGELOG.md")
+    if rc != 0:
+        return []
+    newest = re.search(r"^##\s+(\d+\.\d+\.\d+)", committed_changelog, re.M)
     if newest and m.group(1) != newest.group(1):
         return [f"the commit subject says {m.group(1)} but the newest "
                 f"CHANGELOG heading is {newest.group(1)} — one of them is "
