@@ -1683,6 +1683,56 @@ def check_commit_convention():
     return []
 
 
+# path -> reason. A hit that is deliberate rule DATA (an example in a rules
+# file, a test fixture) is waived here with its reason, never silenced by
+# narrowing the pattern.
+SECRET_WAIVERS: dict[str, str] = {}
+
+# High-signal only: on a prose-heavy repository a chatty secret scanner is a
+# scanner people stop reading. Each pattern is written so it cannot match its
+# own source here.
+SECRET_PATTERNS = (
+    ("AWS access key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
+    ("private key block", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
+    ("GitHub token", re.compile(r"\bghp_[A-Za-z0-9]{36}\b")),
+    ("GitHub fine-grained token", re.compile(r"\bgithub_pat_[A-Za-z0-9_]{22,}\b")),
+    ("API secret assignment", re.compile(
+        r"(?i)\b(?:api|secret)[_-]?key\s*[:=]\s*['\"][A-Za-z0-9+/_-]{20,}['\"]")),
+)
+
+
+def check_secrets():
+    """No credential-shaped string ships in a tracked file.
+
+    A check_repo guard rather than a CI action, for the same reason preflight
+    exists: preflight runs what CI runs, and a gate that lives only in a
+    workflow marketplace action is invisible to the local half of that
+    contract (AG-5 in FAILURE_MODES.md records the decline).
+    """
+    p = subprocess.run(["git", "ls-files"], cwd=ROOT,
+                       capture_output=True, text=True)
+    if p.returncode != 0:
+        return []  # a tarball checkout has no listing and CI always does
+    errors = []
+    for relpath in p.stdout.splitlines():
+        if not relpath or relpath in SECRET_WAIVERS:
+            continue
+        path = ROOT / relpath
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue  # binary assets carry no greppable credential
+        for name, pattern in SECRET_PATTERNS:
+            m = pattern.search(text)
+            if m:
+                line = text[:m.start()].count("\n") + 1
+                errors.append(f"{relpath}:{line}: {name} — a credential-shaped "
+                              f"string in a tracked file. Rotate it, remove "
+                              f"it, or waive it in SECRET_WAIVERS with the "
+                              f"reason it is data")
+    return errors
+
+
 CHECKS = (
     ("version stamps", check_versions),
     ("output default", check_output_default),
@@ -1706,6 +1756,7 @@ CHECKS = (
     ("no shadow math", check_no_shadow_math),
     ("ledgers", check_ledgers),
     ("commit convention", check_commit_convention),
+    ("secrets", check_secrets),
 )
 
 

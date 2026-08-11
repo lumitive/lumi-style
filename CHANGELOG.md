@@ -3,6 +3,33 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.428 — a secrets guard that preflight can run, a --help floor, and a timing baseline that only warns
+
+Release R12 of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`) — the closing sweep.
+
+**`check_secrets` is the 23rd guard.** Five high-signal patterns (AWS keys,
+private-key blocks, GitHub tokens, credential-shaped assignments) over every
+tracked text file, with a reasoned waiver table for rule data. A guard
+rather than a marketplace action because preflight runs what CI runs, and a
+gate living only in a workflow is invisible to the local half of that
+contract (AG-5). Each pattern is written so it cannot match its own source.
+Tested both ways on synthetic git trees, including the binary-skip and the
+waiver path; the live tree is clean.
+
+**Every CLI answers `--help` or the suite is red.** The cheapest behavioral
+floor there is: an import-time crash, broken argparse wiring, or a missing
+module-scope dependency in any of the operator scripts now surfaces in the
+test suite instead of mid-release.
+
+**preflight grows a local timing floor.** `--timing-update` records per-step
+wall time to `releases/perf-baseline.json` (keyed by command digest, so
+reordering steps cannot misalign a comparison); every later run prints
+`WARN slow` for a step exceeding max(2x baseline, baseline + 5s). Warn-only
+and local-only by design: a baseline is one machine's number, and a
+cross-machine fail-gate fails for reasons unrelated to the code — AG-3
+records the declined stronger version.
+
 ## 0.1.427 — the conformance board gets a memory, and freshness becomes an obligation
 
 Release R11 of the engineering-quality migration
