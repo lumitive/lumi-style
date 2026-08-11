@@ -224,7 +224,8 @@ def main(argv):
 
     geometry = args.geometry or ("portrait" if args.genre == "training" else "landscape")
 
-    rc, seen = 0, set()
+    rc = 0
+    seen: set = set()
     for name in args.files:
         path = pathlib.Path(name)
         if not path.exists():

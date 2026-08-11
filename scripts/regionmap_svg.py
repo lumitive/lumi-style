@@ -32,6 +32,7 @@ import html
 import json
 import pathlib
 import sys
+from typing import Any
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import geo_projection as gp  # noqa: E402
@@ -141,7 +142,8 @@ def render(lon0=0.0, R=DEFAULT_R, states=None, labels="en", regions_path=None):
     # The graticule is emitted last and CLIPPED to the ink box: a scoped map
     # must not carry world-spanning lines outside its own viewBox — the
     # fits-in-viewBox check reads that as clipped ink, and it is.
-    grat = []
+    grat: Any = []
+    lat: float
     for lon in range(-180, 181, GRATICULE):
         grat.append(_d(_clip_runs(_project_ring(
             [(lon, la) for la in range(-90, 91, 3)], view), x0, y0, x1, y1), False))

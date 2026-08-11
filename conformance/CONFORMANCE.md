@@ -1,4 +1,4 @@
-# LUMI style conformance · skill 0.1.417
+# LUMI style conformance · skill 0.1.418
 
 Runs `conformance/results/claude-code-20260808`, `conformance/results/cursor-20260808`, `conformance/results/claude-code-20260809-r2` · darwin · 1 of 12 agents detected · up to n=2 per agent · 4 of 12 can never answer a CLI probe
 

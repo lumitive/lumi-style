@@ -26,6 +26,7 @@ import json
 import pathlib
 import sys
 from collections import defaultdict
+from typing import Any
 
 import geo_projection as gp
 
@@ -117,6 +118,8 @@ def _cut_into_arcs(rings):
     for owner, pts in rings:
         for p in pts:
             owners[p].add(owner)
+    arcs: list[Any]
+    index: dict[Any, int]
     arcs, index, refs = [], {}, []
     for owner, pts in rings:
         cuts = {0, len(pts) - 1}
@@ -176,12 +179,13 @@ def build():
     eps_q = TOLERANCE * QUANTUM
     arcs = [_rdp(a, eps_q) if len(a) > 2 else a for a in arcs]
 
+    countries: dict[str, Any]
     countries, owners_of_arc = {}, defaultdict(set)
     for code, ref in refs:
         countries.setdefault(code, {**meta[code], "rings": []})["rings"].append(ref)
         for i in ref:
             owners_of_arc[i if i >= 0 else ~i].add(code)
-    neighbours = defaultdict(set)
+    neighbours: defaultdict[str, set[str]] = defaultdict(set)
     for owners in owners_of_arc.values():
         for a in owners:
             neighbours[a] |= (owners - {a})

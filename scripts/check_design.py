@@ -163,7 +163,7 @@ def token_block_bodies(css):
     raw document by verbatim string match and a joined body matches nothing.
     Joining them there is what made every token colour report as a stray literal.
     """
-    out = {"light": [], "dark": []}
+    out: dict[str, list[str]] = {"light": [], "dark": []}
     for sel, body in BLOCK_RE.findall(css):
         s = sel.strip()
         if s == ":root":
@@ -233,7 +233,7 @@ def d1_contrast(css, resolved, palette):
     # background to a palette token declares a surface, and text scoped under it
     # is graded against that surface. Found by reading the CSS, so a deck that
     # paints a panel a new colour is measured correctly without editing this.
-    panels = {}
+    panels: dict[str, str] = {}
     for sel, props in rules(css):
         bgv = (props.get("background") or props.get("background-color") or "").strip()
         m = re.fullmatch(r"var\(\s*--([\w-]+)\s*(?:,[^)]*)?\)", bgv)
@@ -676,8 +676,8 @@ def d19_vocabulary(raw):
     for m in re.finditer(r'<section([^>]*)>(.*?)</section>', raw, re.S):
         attrs, body = m.group(1), m.group(2)
         if "openframe" in body and "opener" not in attrs:
-            openers.append(re.search(r'id="([^"]*)"', attrs).group(1)
-                           if re.search(r'id="([^"]*)"', attrs) else "?")
+            idm = re.search(r'id="([^"]*)"', attrs)
+            openers.append(idm.group(1) if idm else "?")
 
     return {"symbols": len(symbols), "used": len(used), "dangling": dangling,
             "bad_blocks": bad_blocks, "bad_arity": [],
@@ -811,7 +811,7 @@ def d9_layout_variety(raw):
             used.append(layout)
     if not used and not unknown:
         return None
-    counts = {}
+    counts: dict[str, int] = {}
     for layout in used:
         counts[layout] = counts.get(layout, 0) + 1
     total = len(used) + len(unknown)
@@ -819,7 +819,7 @@ def d9_layout_variety(raw):
     return {
         "pages": total, "distinct": len(counts),
         "top_share": round(100.0 * top / total, 1) if total else 0.0,
-        "top_layout": max(counts, key=counts.get) if counts else None,
+        "top_layout": max(counts, key=counts.__getitem__) if counts else None,
         "counts": dict(sorted(counts.items(), key=lambda kv: -kv[1])),
         "unknown": unknown,
     }
@@ -915,7 +915,7 @@ def measure(path):
 
 
 def grade(r):
-    rows = []
+    rows: list[tuple[str, object, str, bool, bool]] = []
     rows.append(("D1_contrast", len(r["D1_contrast"]), "=0",
                  not r["D1_contrast"], False))
     d18 = r["D18_region_labels"]

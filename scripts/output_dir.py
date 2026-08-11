@@ -58,8 +58,10 @@ def _windows_documents() -> pathlib.Path:
         raise Unresolvable("winreg is unavailable on this Python") from exc
     key = r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
     try:
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key) as handle:
-            value, _ = winreg.QueryValueEx(handle, "Personal")
+        # typeshed gates winreg's attributes on sys.platform == "win32", so a
+        # darwin/linux mypy run cannot see them; the import guard above governs.
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key) as handle:  # type: ignore[attr-defined]
+            value, _ = winreg.QueryValueEx(handle, "Personal")  # type: ignore[attr-defined]
         if value:
             return pathlib.Path(os.path.expandvars(value))
     except OSError:

@@ -87,7 +87,9 @@ def coverage_report(collected, skipped_kinds) -> list[str]:
     Re-running doubled a suite that now drives a browser over three fixtures at
     four geometries each, and the run stopped finishing inside two minutes.
     """
-    graded, reported, exercised = {}, {}, set()
+    graded: dict[str, bool] = {}
+    reported: dict[str, bool] = {}
+    exercised = set()
     for (fixture, kind), report in collected.items():
         base = kind.split("@")[0]
         # inspect_layout has no per-metric targets because every one of its ten

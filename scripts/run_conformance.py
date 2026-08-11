@@ -45,6 +45,7 @@ import re
 import shutil
 import subprocess
 import sys
+from typing import Any
 
 # The scripts are peers in one directory; the genre vocabulary lives in
 # check_prose.py and is imported, never copied (see GENRES there).
@@ -405,9 +406,10 @@ def main(argv):
                     shown = str(target.relative_to(ROOT))
                 except ValueError:
                     shown = str(target)
-                entry, failed = {"artifact": shown,
-                                 "task_hash": asked_fingerprint(task_dir, task)}, []
-                seen = {}
+                entry: dict[str, Any] = {"artifact": shown,
+                                         "task_hash": asked_fingerprint(task_dir, task)}
+                failed: list[str] = []
+                verdict_union: dict[str, Any] = {}
                 for kind in task["score"]:
                     if kind == "recall":
                         entry["recall"] = score_recall(
@@ -429,7 +431,7 @@ def main(argv):
                             # the same defect as the unread `unparseable` flag,
                             # in the release that fixed that one.
                             failed.append(f"{kind} exited {entry[kind]['exit']}")
-                        seen.update(entry[kind]["verdicts"])
+                        verdict_union.update(entry[kind]["verdicts"])
                 # `require` is checked ONCE, against the union of every checker's
                 # verdicts. Per-kind it needed `got is not None` to skip the other
                 # checker's metrics, and that clause also swallowed the case this
@@ -438,7 +440,7 @@ def main(argv):
                 # using none of LUMI's tokens, so an agent emitting exactly that
                 # scored green on the scoreboard.
                 for metric, want in (task.get("require") or {}).items():
-                    got = seen.get(metric)
+                    got = verdict_union.get(metric)
                     if got is None:
                         failed.append(f"{metric} never reported")
                     elif got != want:
@@ -471,7 +473,7 @@ def main(argv):
     # property of the harness when it was a property of this line: a repeat was
     # silently discarded, and the one thing a repeat is for — telling a flaky
     # checker from a flaky agent — was the one thing that could not happen.
-    scored = {}
+    scored: dict[str, list[Any]] = {}
     for name in runs:
         f = pathlib.Path(name) / "scores.json"
         if not f.exists():

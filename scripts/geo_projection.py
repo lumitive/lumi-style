@@ -16,6 +16,7 @@ Nothing here does I/O and nothing here knows about colour. Standard library only
 from __future__ import annotations
 
 import math
+from typing import Any
 
 
 def densify(ring, step_deg):
@@ -358,6 +359,7 @@ def clip_to_cap(ring, lon0, lat0, t, step_deg, forward=None):
             # direction. With one run that is its own entry, the long way round
             # when the ring wraps the cap — which is the case the index-shortest
             # rule got wrong.
+            best: Any
             best, bestd = k, None
             for j, (e2, _x, _r) in enumerate(ends):
                 d = (e2 - exit_az) % (2 * math.pi) if forward else \
@@ -374,6 +376,8 @@ def clip_to_cap(ring, lon0, lat0, t, step_deg, forward=None):
                     d = 2 * math.pi
                 if bestd is None or d < bestd:
                     bestd, best = d, j
+            if bestd is None:  # unreachable: ends is non-empty, so the loop always sets it
+                raise AssertionError("no candidate azimuth found")
             steps = max(1, int(math.ceil(bestd / step)))
             span = bestd
             for s in range(1, steps):

@@ -33,6 +33,7 @@ import argparse
 import json
 import pathlib
 import sys
+from typing import Any
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REGISTRY = ROOT / "adapters" / "platforms.json"
@@ -203,6 +204,7 @@ def render_pointer(p: dict, version: str, heading: str, path: str) -> str:
 
 def render_plugin(kind: str, version: str) -> str:
     name, desc = skill_field("name"), skill_field("description")
+    doc: dict[str, Any]
     if kind == "plugin":
         doc = {"$comment": JSON_BANNER, "name": name, "version": version,
                "description": desc, "author": {"name": "LUMI"},

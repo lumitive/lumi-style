@@ -21,6 +21,7 @@ import json
 import math
 import pathlib
 import sys
+from typing import Any
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import geo_projection as gp  # noqa: E402
@@ -225,7 +226,7 @@ def great_circle(a, b, n=64):
     w = math.acos(dot)
     if w < 1e-9:
         return [tuple(a)]
-    out = []
+    out: list[tuple[float, float]] = []
     for i in range(n + 1):
         t = i / n
         s1, s2 = math.sin((1 - t) * w) / math.sin(w), math.sin(t * w) / math.sin(w)
@@ -269,7 +270,7 @@ def great_circle_route(waypoints, n=24):
     """
     if len(waypoints) < 2:
         return [tuple(waypoints[0])] if waypoints else []
-    out = []
+    out: list[tuple[float, float]] = []
     for a, b in zip(waypoints, waypoints[1:]):
         leg = great_circle(a, b, n)
         if out:
@@ -406,7 +407,7 @@ def _load(regions_path=None):
 def _rings_of(country, arcs):
     out = []
     for refs in country["rings"]:
-        ring = []
+        ring: list[Any] = []
         for idx in refs:
             arc = arcs[idx if idx >= 0 else ~idx]
             seq = arc if idx >= 0 else arc[::-1]
@@ -445,7 +446,7 @@ def classify_arcs(topo, owner=None):
     applied to one side of it.
     """
     owner = owner or {}
-    users = {}
+    users: dict[int, list[str]] = {}
     for country in topo["countries"]:
         for refs in country["rings"]:
             for idx in refs:
