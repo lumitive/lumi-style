@@ -3,6 +3,51 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.411 — Venezuela painted over the whole globe, once a minute
+
+Reported as "the screen flashes about every minute". Measured over 70 seconds of
+real frames: one layer, `.gl-land`, jumping 2,071 characters and back inside a
+tenth of a second. Reproduced in the emitter at lon0 = 20.3, isolated to a
+single country, and then measured properly — **Venezuela's clipped polygon
+encloses 3.143e6 square units against a disc of 3.142e6.** It is not a flash. It
+is Venezuela, drawn over the entire Earth, for six frames, once per revolution.
+
+**The cause is the closure family's fourth appearance and its first without a
+special shape.** The others were a hemisphere, a seam-crosser and a ring whose
+longitudes were not unwrapped. This one is an ordinary small country that
+happens to graze the limb: its single visible run enters and exits at almost the
+same azimuth, and which way the closing arc goes between them is decided by
+about 1e-12 of angle. Going the long way sweeps the whole cap.
+
+So the repair is not another rule about direction. It is an assertion about the
+OUTCOME: a clipped ring cannot enclose more of the sphere than the ring it came
+from, plus the sliver a cap arc adds. Where it does, both closure directions are
+tried and the smaller kept. Across all 278 rings at 72 rotations the honest
+worst case is 0.0000 steradians of excess; a wrong-way closure is 6.28.
+
+**A caller that vouched for its own handedness is exempt**, and finding that out
+cost a round trip: the guard's premise is that `signed_area(ring)` bounds the
+honest result, and `signed_area` is meaningless within a hair of a hemisphere —
+which the day/night terminator exactly is. Applied there it read a false source
+area, fired, and re-inverted the night side that 0.1.399 spent a release
+correcting.
+
+**The check took three attempts, and the first two are the lesson.**
+
+The first rendered a revolution at 0.6-degree steps and compared adjacent
+frames. That is a good description of what a reader sees and a bad test: the
+defect occupies about two tenths of a degree, so the sweep stepped over it and
+reported ok with the bug reinstated.
+
+The second asserted the right property — the area invariant — but sampled lon0
+every five degrees, and missed it for the same reason. A grid cannot find an
+event narrower than its spacing, and nobody knows how narrow the next one is.
+
+The third stopped sampling. The failure is not distributed over the rotation: it
+happens when a ring GRAZES the limb, and that longitude is computable from the
+ring. Each ring is now placed on its own limb and nudged across it in
+twentieths of a degree. Reverting the repair fails it in the message above.
+
 ## 0.1.410 — the cover globe, and a preset so a document does not have to know four flags
 
 `globe_svg.py --preset cover` is LUMIVATE's own view: Pacific-centred at
