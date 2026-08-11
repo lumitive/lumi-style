@@ -70,6 +70,7 @@ GLOBE_GRATICULE = 15
 # a frame that changes every time it is generated cannot be byte-compared, and
 # every generated artifact in this repository is. A document that wants its own
 # moment passes --time.
+ROOT = pathlib.Path(__file__).resolve().parent.parent
 DEFAULT_SUN_UTC = "2026-06-21T04:00:00"
 
 # The mark radius, as fractions of R. MIN is a floor (a datum must survive being
@@ -461,6 +462,13 @@ def main(argv):
                          "a field. Without a field they are drawn anyway — "
                          "scenery may name places; a field must not silently "
                          "gain points that are not its data.")
+    ap.add_argument("--preset", choices=("cover",), default=None,
+                    help="a named view this package ships. `cover` is LUMIVATE's "
+                         "own: Pacific-centred at lon0=-160, the trade blocs "
+                         "filled, the terminator off. It exists so a document "
+                         "does not have to know four flag values to draw the "
+                         "mark, and so every document that draws it draws the "
+                         "same one.")
     ap.add_argument("--regions", metavar="PATH", default=None,
                     help="a region registry. With one, the land is routed into "
                          "one path per region instead of a single path, and "
@@ -490,6 +498,17 @@ def main(argv):
                          "than pretend to state data.")
     args = ap.parse_args(argv)
     view = (args.lon0, args.lat0, 0.0, args.r, args.r, args.r)
+    if args.preset == "cover":
+        # The named view. Set before the rest so an explicit flag still wins:
+        # a preset is a starting point, not a lock.
+        if args.lon0 == 0.0:
+            args.lon0 = -160.0
+        if args.lat0 == 0.0:
+            args.lat0 = 10.0
+        if args.regions is None:
+            args.regions = str(ROOT / "assets" / "vectors" / "regions-trade.json")
+        args.no_night = True
+
     night = None if args.no_night else solar_position(
         datetime.datetime.fromisoformat(args.time))
     print(render(view, marks=_load_marks(args.marks), night=night,
