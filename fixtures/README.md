@@ -1,6 +1,6 @@
 # Fixtures
 
-Three synthetic deliverables that exist so the check scripts can be tested. Before
+Synthetic deliverables that exist so the check scripts can be tested. Before
 0.1.355 they never had been: `check_prose.py`, `check_design.py` and
 `inspect_layout.py` all measure a *deliverable*, and the only deliverables this
 repository had access to sat in the gitignored `docs/`.
@@ -16,6 +16,14 @@ repository had access to sat in the gitignored `docs/`.
   same length, every title the same shape) that cannot be confined to one
   labelled page, and six more design defects on a deck already carrying eight
   would have stopped it teaching anything. Added in 0.1.390.
+- `deck-expressive.en.html` — a small training deck in the expressive register
+  (`brand.md` 2c): the declared body attribute, the hand-drawn icon skin, one
+  illustration per page at most, the seigaiha band on the cover. It is the
+  non-vacuous half of D19 — `deck-pass` reads D19 `ok` with no expressive
+  vocabulary at all, which cannot tell "the register is honoured" from "the
+  probe matched nothing".
+- `prose-zh-pass.zh.html` / `prose-zh-broken.zh.html` — the Chinese prose pair,
+  exercising the zh-only rules.
 
 **Coverage is computed, not claimed.** `check_fixtures.py` reports how many
 graded verdicts have a fixture that fails them and refuses the ones that do not.
@@ -24,10 +32,10 @@ verdicts read `ok` on both fixtures, so a checker rewritten to `return "ok"`
 would have passed the suite whose stated purpose is to catch exactly that.
 
 **The renderer is in the suite too**, behind an availability check:
-`inspect_layout.py`'s ten gating findings are asserted where a headless Chromium
-exists and the run says loudly, with a count, when it skipped them. That is why
-the suite takes a couple of minutes locally — three fixtures at four geometries
-each — and why it still cannot run in CI.
+`inspect_layout.py`'s eleven gating findings are asserted where a headless
+Chromium exists and the run says loudly, with a count, when it skipped them.
+That is why the suite takes a couple of minutes locally, and why it still
+cannot run in CI.
 
 Three rules, and each has already been paid for elsewhere in this repository:
 

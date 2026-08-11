@@ -120,10 +120,12 @@
      numbers point down: the height is a CEILING (shorter is always allowed,
      96px is the most a band may take), and the alpha is a CEILING on loudness
      (quieter is always allowed; at .85 the band measures well under the
-     faintest text ink, so pattern never competes with words). */
-  --band-h:     72px;   /* default height; the ceiling is --band-h-max */
-  --band-h-max: 96px;
-  --band-alpha: .85;
+     faintest text ink, so pattern never competes with words). Named after the
+     pattern rather than "band" because .band is already the spec strip in
+     lumi-layouts.css — one name, one meaning. */
+  --seigaiha-h:     72px;   /* default height; the ceiling is --seigaiha-h-max */
+  --seigaiha-h-max: 96px;
+  --seigaiha-alpha: .85;
 
   --d-blue:    #2F6DB4;          /* chart data colors (CVD-validated) */
   --d-red:     #C0392B;
@@ -404,6 +406,19 @@
 }
 /* The inline icon, one size, accent by default; a container re-colours it. */
 svg.ic { width: 16px; height: 16px; flex: none; color: var(--acc); }
+/* The illustration (expressive register, design-rules.md §5b): one size like
+   an icon, never inheriting container scaling; it sits beside content in a
+   flex/grid cell, never behind it. One per page is a ceiling. */
+svg.illo { width: 280px; height: 210px; flex: none; }
+/* The pattern band (expressive register, brand.md): the honest seigaiha
+   repeat, a strip on surfaces that carry no evidence — covers, part openers,
+   footer strips. Named for the pattern because .band below is the spec strip.
+   Both custom properties are ceilings. */
+svg.seigaiha {
+  display: block; width: 100%;
+  height: var(--seigaiha-h); max-height: var(--seigaiha-h-max);
+  opacity: var(--seigaiha-alpha);
+}
 h2.t {
   font-family: var(--din); font-size: var(--fs-title); font-weight: var(--w-title);
   line-height: 1.02; letter-spacing: var(--ls-title); text-transform: uppercase;

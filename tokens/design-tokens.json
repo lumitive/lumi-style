@@ -223,14 +223,14 @@
     ],
     "note": "The paint vocabulary an illustration may use — scripts/embed_illustrations.py --check enforces it, and reads it from here so the probe asserts a vocabulary the tokens actually ship. Every paint is a var() reference: an illustration re-skins with the palette, which is how the brand lives inside the drawing. The lime keeps its surface-only rule at scene scale: at most one filled lime panel, never a stroke. People are painted from these roles — no hex, no skin tones."
   },
-  "band": {
+  "seigaiha_band": {
     "generated_by": "scripts/build_seigaiha.py -> assets/vectors/seigaiha-band.svg",
     "height": "72px",
     "height_ceiling": "96px",
     "alpha_ceiling": 0.85,
     "register": "expressive only",
-    "placement": "covers, part openers, footer bands; never behind a figure, a table or a field",
-    "note": "A true seigaiha repeat — countable on purpose, which is exactly what a ground may never be. It is honest only where nothing sits on it, so the ground contract's logic (a countable decoration must never read as evidence) is carried over, not waived. Both numbers are CEILINGS: shorter and quieter are always allowed. Values mirror the --band-* tokens in lumi-theme.css and must be edited together."
+    "placement": "covers, part openers, footer strips; never behind a figure, a table or a field",
+    "note": "A true seigaiha repeat — countable on purpose, which is exactly what a ground may never be. It is honest only where nothing sits on it, so the ground contract's logic (a countable decoration must never read as evidence) is carried over, not waived. Both numbers are CEILINGS: shorter and quieter are always allowed. Values mirror the --seigaiha-* tokens in lumi-theme.css and must be edited together; the CSS class is svg.seigaiha, named for the pattern because .band is already the spec strip."
   },
   "layout": {
     "one_claim_per_screen": true,

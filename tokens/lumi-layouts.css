@@ -206,11 +206,12 @@ svg.ic { width: 16px; height: 16px; flex: none; color: var(--acc); }
 svg.illo { width: 280px; height: 210px; flex: none; }
 /* The pattern band (expressive register, brand.md): the honest seigaiha
    repeat, a strip on surfaces that carry no evidence — covers, part openers,
-   footer strips. Both custom properties are ceilings. */
-svg.band {
+   footer strips. Named for the pattern because .band below is the spec strip.
+   Both custom properties are ceilings. */
+svg.seigaiha {
   display: block; width: 100%;
-  height: var(--band-h); max-height: var(--band-h-max);
-  opacity: var(--band-alpha);
+  height: var(--seigaiha-h); max-height: var(--seigaiha-h-max);
+  opacity: var(--seigaiha-alpha);
 }
 h2.t {
   font-family: var(--din); font-size: var(--fs-title); font-weight: var(--w-title);

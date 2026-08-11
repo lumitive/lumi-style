@@ -15,7 +15,8 @@ pretending to be water.
 The BAND is a true seigaiha repeat — countable on purpose — and is therefore
 legal only where nothing sits on it: covers, part openers, footer bands, in the
 expressive register, never behind a figure, a table or a field. Its loudness
-and height ride the `--band-*` tokens.
+and height ride the `--seigaiha-*` tokens; the CSS class is `svg.seigaiha`
+(`.band` is already the spec strip in lumi-layouts.css).
 
 Every number is a fixed table (index arithmetic, no randomness): the tracked
 assets and the fixtures built from these functions must be byte-stable.
@@ -132,7 +133,7 @@ def ground_defs() -> str:
 
 
 def band_defs() -> str:
-    return _defs_svg("g-band", band_marks())
+    return _defs_svg("g-seigaiha", band_marks())
 
 
 def _asset_svg(viewbox: str, gid: str, marks: list[str]) -> str:
@@ -154,7 +155,7 @@ def ground_asset() -> str:
 
 
 def band_asset() -> str:
-    return _asset_svg("0 0 1280 96", "g-band", band_marks())
+    return _asset_svg("0 0 1280 96", "g-seigaiha", band_marks())
 
 
 TARGETS = ((GROUND_ASSET, ground_asset), (BAND_ASSET, band_asset))

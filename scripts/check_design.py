@@ -20,8 +20,10 @@ metric. Four of them were arithmetic:
     D12 commercial footer  handling terms and origin on every page (**gates**)
     D14 placeholders       slots the author left for themselves (**gates**)
     D15 footer path        no repository path reaches a footer (**gates**)
+    D19 register           expressive vocabulary only under its declaration,
+                           and one illustration per page (**gates**)
 
-**Nothing here gates except D12, D14 and D15.** Every other number is a diagnostic for a
+**Nothing here gates except D12, D14, D15 and D19.** Every other number is a diagnostic for a
 designer to read, and the exit code is 0 unless a file could not be measured at
 all. SKILL.md rule 4 is the reason: a page is done when a human reads it as
 intentional, and a metric that can be satisfied without improving the page ends
@@ -508,6 +510,37 @@ def d18_region_labels(raw):
     return {"regions": len(ids), "unlabelled": sorted(ids - labelled)}
 
 
+def d19_register(raw):
+    """The expressive vocabulary appears only under its declaration (**gates**).
+
+    brand.md 2c: a document opts into the expressive register with
+    `<body data-register="expressive">`; the illustration set (`svg.illo` /
+    `il-` symbols) and the seigaiha pattern band (`svg.seigaiha`) belong to
+    that register. A scene or band in a document that never declared the
+    register is decidable in the way D12 and D14 are — it is not a judgement
+    about the page, it asks whether the document says what it is. The inverse
+    (a declared register drawing on none of the vocabulary) is fine, and so is
+    a training deck that stays restrained.
+
+    Also decidable: the illustration ceiling, one per page (design-rules.md
+    §5b — a ceiling, so zero is always allowed). Whether the scene MEANS what
+    the page needs stays with the reader and the manifest.
+    """
+    declared = bool(re.search(r'<body[^>]*data-register="expressive"', raw))
+    undeclared_vocabulary = []
+    over_ceiling = []
+    for cls, pid, body in _pages(raw):
+        illos = len(re.findall(r'<svg[^>]*class="[^"]*\billo\b', body))
+        bands = len(re.findall(r'<svg[^>]*class="[^"]*\bseigaiha\b', body))
+        if not declared and (illos or bands):
+            undeclared_vocabulary.append(pid)
+        if illos > 1:
+            over_ceiling.append(pid)
+    return {"declared": declared,
+            "undeclared_vocabulary": undeclared_vocabulary,
+            "over_ceiling": over_ceiling}
+
+
 def d8_support_line(raw):
     """Every content page carries a support line under the title. Figure pages
     are not exempt: a diagram with nothing introducing it drops the reader in."""
@@ -791,6 +824,10 @@ def measure(path):
         "D16_visual_presence": (d16 := d16_visual_presence(raw)),
         "D17_export_weight": d17_export_weight(raw, css),
         "D18_region_labels": (d18 := d18_region_labels(raw)),
+        "D19_register": (d19 := d19_register(raw)),
+        # The register verdict's detail: which pages carried expressive
+        # vocabulary without the declaration, and which broke the ceiling.
+        "D19_detail": d19["undeclared_vocabulary"] + d19["over_ceiling"],
         # The contains hook in check_fixtures.py reads <PREFIX>_detail. D16's
         # is the WHOLE dict, not just the prose-only list, so the pass fixture
         # can assert '"prose_only": []' — a regression that flags every
@@ -853,6 +890,11 @@ def grade(r):
     fp = r["D15_footer_path"]
     rows.append(("D15_footer_path", len(fp["found"]) if fp else None, "=0 (gates)",
                  bool(fp) and not fp["found"], fp is None))
+    rg = r["D19_register"]
+    rows.append(("D19_register",
+                 len(rg["undeclared_vocabulary"]) + len(rg["over_ceiling"]),
+                 "=0 (gates)",
+                 not (rg["undeclared_vocabulary"] or rg["over_ceiling"]), False))
     v = r["D9_layout_variety"]
     rows.append(("D9_layout_spread",
                  f"{v['distinct']} layouts, top {v['top_share']}%" if v else None,
@@ -904,7 +946,7 @@ def main(argv):
         # separates them from every other row here.
         if any(r["verdicts"].get(m) == "FAIL"
                for m in ("D12_commercial_footer", "D14_placeholders",
-                         "D15_footer_path")):
+                         "D15_footer_path", "D19_register")):
             gated_failure += 1
         results.append(r)
 
@@ -956,6 +998,13 @@ def main(argv):
         for fpath in (r["D15_footer_path"] or {}).get("found", [])[:6]:
             print(f"        page {fpath['page']} footer cites the file "
                   f"{fpath['path']} — a path is not a source a reader can open")
+        rg = r["D19_register"]
+        for pid in rg["undeclared_vocabulary"][:6]:
+            print(f"        {pid} carries expressive vocabulary but the body "
+                  f"never declares data-register=\"expressive\" (brand.md 2c)")
+        for pid in rg["over_ceiling"][:6]:
+            print(f"        {pid} carries more than one illustration — one per "
+                  f"page is a ceiling (design-rules.md §5b)")
         v = r["D9_layout_variety"]
         if v:
             for pid, cls in v["unknown"][:6]:
@@ -969,9 +1018,10 @@ def main(argv):
         print("\nnothing flagged")
     elif gated_failure:
         print(f"\n{failures} metric(s) failed, and {gated_failure} file(s) fail on "
-              f"D12, D14 or D15 — those three block: a page missing its handling "
-              f"terms, a document still carrying a slot, and a footer citing a file "
-              f"path are not judgements about design")
+              f"D12, D14, D15 or D19 — those block: a page missing its handling "
+              f"terms, a document still carrying a slot, a footer citing a file "
+              f"path, and expressive vocabulary in a document that never declared "
+              f"the register are not judgements about design")
     else:
         print(f"\n{failures} thing(s) worth a look — none of this blocks; "
               f"read them, then look at the page")

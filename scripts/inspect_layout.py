@@ -839,6 +839,31 @@ PROBE = r"""
       groundRepeats += Object.values(sig).filter(n => n >= 4).length;
     }
 
+    // The seigaiha band (brand.md, expressive register) is countable on
+    // purpose, so it is honest only where nothing sits on it. A band whose box
+    // intersects a figure, a table, a field or running text is decidable —
+    // they overlap or they do not — and it is the one way this device can
+    // silently become a second field.
+    const bandOverEvidence = [];
+    for (const band of s.querySelectorAll('svg.seigaiha')) {
+      const br = band.getBoundingClientRect();
+      if (br.width < 1 || br.height < 1) continue;
+      for (const el of s.querySelectorAll(
+          '.fig, table, .field, p, ul, ol, dl, h1, h2, h3')) {
+        if (band.contains(el) || el.contains(band)) continue;
+        const er = el.getBoundingClientRect();
+        if (er.width < 1 || er.height < 1) continue;
+        const ox = Math.min(br.right, er.right) - Math.max(br.left, er.left);
+        const oy = Math.min(br.bottom, er.bottom) - Math.max(br.top, er.top);
+        if (ox > 4 && oy > 4) {
+          bandOverEvidence.push(el.tagName.toLowerCase()
+            + (el.className && typeof el.className === 'string'
+               ? '.' + el.className.split(' ')[0] : ''));
+        }
+      }
+    }
+    const bandCount = s.querySelectorAll('svg.seigaiha').length;
+
     const tables = [];
     for (const t of s.querySelectorAll('table')) {
       const txt = (t.innerText || '');
@@ -931,6 +956,7 @@ PROBE = r"""
       focalRatio: +(focalPx / Math.max(1, bodyPx)).toFixed(2),
       figLeadPct: +(100 * figLead).toFixed(0),
       caps, tables, drawn, capGapPx, capOffPct, clipped, badBox, sourceEcho, sourceComparable, fields, horizons,
+      bandCount, bandOverEvidence,
       textOverlaps, worstOverlap,
       ledeBlocks, ledeClamped, reserveExpected,
       openerOutsidePx, openerSide,
@@ -2134,6 +2160,12 @@ def deliverable_verdicts(rows, consistency):
     add("figure_clipped", [r for r in live if r.get("clipped")], not drawn,
         lambda h: f"{len(h)} pages draw outside a figure's own viewBox, which "
                   f"clips it away unseen: " + _fmt_ids(h))
+    banded = [r for r in live if r.get("bandCount")]
+    add("band_over_evidence", [r for r in banded if r.get("bandOverEvidence")],
+        not banded,
+        lambda h: f"{len(h)} pages set the seigaiha band under evidence or "
+                  f"text (brand.md: the honest repeat sits where nothing sits "
+                  f"on it): " + _fmt_ids(h))
     ledes = [r for r in live if r.get("ledeBlocks")]
     add("reserve_overspent", _overspent(live),
         not ledes or not ledes[0].get("reserveExpected"),

@@ -161,12 +161,13 @@ from the top down reads as *poured*.
 A true seigaiha repeat — identical fans on a strict lattice — is everything a
 ground may not be: countable on purpose. It exists as its own device
 (`scripts/build_seigaiha.py`, tracked at `assets/vectors/seigaiha-band.svg`,
-sized and quieted by the `--band-*` tokens) because the ground rule's logic
-does not actually forbid pattern; it forbids pattern *where it could be read
-as evidence*. So the band is legal exactly where nothing sits on it: a cover,
-a part opener, a footer strip — and **never behind a figure, a table, a field,
-or body text**. Both of its numbers are ceilings: height (`--band-h-max`) and
-loudness (`--band-alpha`), and quieter or shorter is always allowed.
+instantiated as `svg.seigaiha`, sized and quieted by the `--seigaiha-*`
+tokens) because the ground rule's logic does not actually forbid pattern; it
+forbids pattern *where it could be read as evidence*. So the band is legal
+exactly where nothing sits on it: a cover, a part opener, a footer strip — and
+**never behind a figure, a table, a field, or body text**. Both of its numbers
+are ceilings: height (`--seigaiha-h-max`) and loudness (`--seigaiha-alpha`),
+and quieter or shorter is always allowed.
 
 > **What makes a band dishonest: sitting under evidence, or being loud.** A
 > countable decoration under data marks is a second field the reader will try

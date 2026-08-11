@@ -7,11 +7,15 @@ measure. The only ones that existed sat in the gitignored `docs/`, carrying a
 client name that red line 9 bars from the repository. So the gates that are meant
 to make output quality portable across models were themselves unverified.
 
-Two fixtures, both synthetic and both client-free — a fictional metering
-programme, `www.example.org` as the origin, no engagement fact anywhere:
+All fixtures are synthetic and client-free — a fictional metering programme,
+`www.example.org` as the origin, no engagement fact anywhere. The two the suite
+grew from:
 
     fixtures/deck-pass.en.html     a well-formed deliverable; every check passes
     fixtures/deck-broken.en.html   the same deck with one named defect per metric
+
+The rest are named where they are built below: the degenerate deck (fails on
+purpose), the expressive-register training deck, and the Chinese prose pair.
 
 The broken one matters more. A fixture that only proves "clean input passes"
 cannot tell a working check from a check that returns ok unconditionally — which
@@ -42,6 +46,8 @@ STALE = "is stale or missing; re-run without --check"
 # the library it claims to demonstrate.
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from embed_icons import sprite  # noqa: E402
+from embed_illustrations import sprite as illo_sprite  # noqa: E402
+from build_seigaiha import band_defs  # noqa: E402
 
 TERMS = "Confidential &#183; internal use &#183; do not forward"
 SITE = "www.example.org"
@@ -345,6 +351,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     style = ""
     terms = TERMS
     src = ""
+    illo = ""
     if broken:
         if i == 4:
             gd = ("Leveraging a seamless framework, this callout showcases a robust "
@@ -386,6 +393,11 @@ def page(i: int, total: int, spec, broken: bool) -> str:
             sup = sup + " The gap is measured against a baseline taken in the first "\
                         "quarter of the programme, before the rural feeders had been "\
                         "surveyed at all, which makes the comparison generous."  # M8 overlong
+        if i == 16:
+            # D19: an illustration in a document that never declares the
+            # expressive register (brand.md 2c). The instance alone is the
+            # defect — the probe reads the class, so no symbol defs are needed.
+            illo = '<svg class="illo" aria-hidden="true"><use href="#il-practice"/></svg>'
     lis = "".join(f"<li>{b}</li>" for b in bullets)
     # Page 12 carries the graded ladder and page 17 the glossary, so the two
     # block patterns promoted in 0.1.375 are exercised by the suite instead of
@@ -507,7 +519,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
       <h2 class="t">{title}</h2>
       <p class="sup">{sup}</p>
     </div>
-    {cells}
+    {cells}{illo}
   </div>
   {foot(i, total, terms, src=src)}</section>"""
 
@@ -843,10 +855,96 @@ def build_zh(broken: bool) -> str:
 """
 
 
+# ── the expressive fixture ────────────────────────────────────────────────────
+# A small training deck in the expressive register (brand.md 2c): the declared
+# body attribute, the hand-drawn icon skin, one illustration per page at most,
+# and the seigaiha band on the cover. Its job is the non-vacuous half of D19 —
+# deck-pass reads ok with no vocabulary at all, which cannot tell "the register
+# is honoured" from "the probe matched nothing".
+def build_expressive() -> str:
+    total = 4
+    exp_sprite = sprite(["book-open", "pencil", "shield"], register="expressive")
+    scenes = illo_sprite(["onboarding", "practice"])
+    band = ('<svg class="seigaiha" viewBox="0 0 1280 96" '
+            'preserveAspectRatio="xMidYMid slice" aria-hidden="true" '
+            'focusable="false"><use href="#g-seigaiha"/></svg>')
+    cover = f"""
+<section class="page cover" id="cover">
+  {GROUND}
+  <div class="body cover-grid">
+    <div class="typeblock">
+      <p class="wordmark">LUMI</p>
+      <h1>Reading the meter estate</h1>
+      <p class="sub">A synthetic training module. Every figure here is invented.</p>
+    </div>
+    <div class="markcell"><svg class="illo" role="img" aria-label="onboarding scene"><use href="#il-onboarding"/></svg></div>
+    <div class="attrs">
+      <div><span class="k">Audience</span><span class="v">Checker regression suite</span></div>
+      <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
+    </div>
+    <p class="colophon">Built with lumi-style {VERSION} &#183; source: meter management system.</p>
+    {band}
+  </div>
+  {foot(1, total)}</section>"""
+    concept = f"""
+<section class="page" id="x2">
+  {GROUND}
+  <div class="body">
+    <div class="lede">
+      <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg>Module 1 &#183; The estate</p>
+      <h2 class="t">What a meter read is</h2>
+      <p class="sup">One concept on this page: a read is a value taken, an estimate is a value inferred.</p>
+    </div>
+    <ul><li>A read comes from the device.</li>
+    <li>An estimate comes from the model, and it says so.</li>
+    <li>The distinction survives into every report downstream.</li></ul>
+  </div>
+  {foot(2, total)}</section>"""
+    practice = f"""
+<section class="page" id="x3">
+  {GROUND}
+  <div class="body">
+    <div class="lede">
+      <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#i-pencil"/></svg>Module 1 &#183; Practice</p>
+      <h2 class="t">Try the classification yourself</h2>
+      <p class="sup">Three values follow; say which are reads before checking the key.</p>
+    </div>
+    <svg class="illo" role="img" aria-label="practice scene"><use href="#il-practice"/></svg>
+  </div>
+  {foot(3, total)}</section>"""
+    closing = f"""
+<section class="page closing" id="closing">
+  {GROUND}
+  <div class="body cover-grid">
+    <div class="typeblock">
+      <p class="wordmark">LUMI</p>
+      <h2>Classify before you report</h2>
+      <p class="sub">The distinction is the module.</p>
+    </div>
+    <div class="closenote"><p class="colophon">Built with lumi-style {VERSION}.
+    Source: meter management system; every number here is invented.</p></div>
+  </div>
+  {foot(total, total)}</section>"""
+    return f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Meter training module (expressive fixture)</title>
+<!-- generated by scripts/build_fixtures.py - do not hand-edit -->
+<style>
+{shipped_css()}
+*, *::before, *::after {{ box-sizing: border-box; }}
+body {{ font-family: var(--din); font-size: 15px; color: var(--tx1);
+        background: var(--bg); margin: 0; }}
+ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
+.colophon {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }}
+</style></head><body data-geometry="landscape" data-genre="training" data-register="expressive">{exp_sprite}{scenes}{band_defs()}{GROUND_DEFS}{cover}{concept}{practice}{closing}</body></html>
+"""
+
+
 def targets() -> dict[str, str]:
     return {"fixtures/deck-pass.en.html": build(False),
             "fixtures/deck-broken.en.html": build(True),
             "fixtures/deck-degenerate.en.html": build_degenerate(),
+            "fixtures/deck-expressive.en.html": build_expressive(),
             "fixtures/prose-zh-pass.zh.html": build_zh(False),
             "fixtures/prose-zh-broken.zh.html": build_zh(True)}
 
