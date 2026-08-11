@@ -3,6 +3,39 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.414 — the flash was never fixed: the guard shipped in Python and the runtime is JavaScript
+
+0.1.411 found the flash, named the country, measured the polygon at 3.143e6
+against a disc of 3.142e6, guarded it, checked it, and shipped a release note.
+The reader saw **no change at all**, and was right to say so.
+
+The guard went into `scripts/geo_projection.py`. The first frame of a globe comes
+from there; **every frame after it is drawn by `assets/geo/projection.js`**,
+which had no guard. So the emitter's sweep was green, the invariant held over
+278 rings at 72 rotations, the release note was accurate about the emitter, and
+the figure a reader watches went on flashing on exactly the same schedule.
+
+**This is the second time a repair has reached one side of this hand-maintained
+port.** 0.1.405 is the first, and it has its own paragraph in this file saying
+precisely that. A paragraph is not a check.
+
+Re-measured on the shipped demo: **eight jumps in eighty seconds, not one.**
+`.gl-land` at 30.1s — the Venezuela case, unchanged by the fix — and `.gl-rg`,
+the bloc fills, at 15.5s, 40.6s and 75.5s, a layer the first investigation never
+watched because it went looking for the country it had already found. After the
+port: **zero jumps in eighty seconds.**
+
+The check now drives the RUNTIME through the tangency and measures what it
+draws, rather than sweeping the emitter that was green through both failures.
+Reverting the JavaScript guard reports it in those words: "the tangent guard is
+in scripts/geo_projection.py and not in assets/geo/projection.js, so the emitter
+is green and every frame a reader sees is not".
+
+Also in this release, the cover and closing support line gets its own size.
+`.sub` shared `--fs-support` with a content page's `.sup`, so it stayed at 17px
+when the title came down from 80 to 58 and left the two voices closer together
+than they were drawn to be.
+
 ## 0.1.413 — the cover mark is contained, not bled
 
 The cover mark took the full height of its cell and ran past the right margin —

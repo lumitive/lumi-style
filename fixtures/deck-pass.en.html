@@ -161,6 +161,12 @@
      one line of claim on an empty lime page and carries 80; a cover carries a
      title, a support line, an attribute strip and a mark, and 80 crowds them. */
   --fs-cover: 58px;                        /* cover and closing titles */
+  /* The cover's support line, distinct from a content page's. It shared
+     --fs-support with `.sup` and so stayed at 17px when the title came down
+     from 80 to 58, which left the two voices closer together than they were
+     designed to be. A reference cover carries no support line at all; this
+     package keeps one and sets it a step below the page's. */
+  --fs-cover-sub: 15px;
   --fs-title:   34px;                      /* page titles */
   --fs-support: 17px;                      /* the second voice, not small print */
 
@@ -264,7 +270,7 @@ body.dark {
   --d-teal:    #3FA98C;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.413 (2026-08-10)
+   LUMI page layouts · v0.1.414 (2026-08-10)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -1078,7 +1084,7 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    same way on both — scoped to `.cover` alone until 0.1.378, which half-shipped
    the role: the closing's `.sub` fell through to generic paragraph styling
    while the waiver that would have said so had been deleted. */
-.cover .sub, .closing .sub { margin-top: 22px; font-size: var(--fs-support);
+.cover .sub, .closing .sub { margin-top: 22px; font-size: var(--fs-cover-sub);
               color: var(--tx2); max-width: 62ch; }
 .spec { display: flex; gap: 0; margin-top: 44px; border-top: 1px solid var(--ln1);
         border-bottom: 1px solid var(--ln1); flex-wrap: wrap; }
@@ -1781,7 +1787,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
       <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
     </div>
-    <p class="colophon">Built with lumi-style 0.1.413 &#183; source: meter management system.</p>
+    <p class="colophon">Built with lumi-style 0.1.414 &#183; source: meter management system.</p>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 18</span></div></section>
 <section class="page opener" id="openA">
@@ -2284,7 +2290,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>
     </div>
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.413.
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.414.
     Source: meter management system; every number here is invented, and a
     bracketed slot must not ship.</p></div>
   </div>
