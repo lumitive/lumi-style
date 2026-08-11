@@ -465,10 +465,13 @@ def main(argv):
     ap.add_argument("--preset", choices=("cover",), default=None,
                     help="a named view this package ships. `cover` is LUMIVATE's "
                          "own: Pacific-centred at lon0=-160, the trade blocs "
-                         "filled, the terminator off. It exists so a document "
-                         "does not have to know four flag values to draw the "
-                         "mark, and so every document that draws it draws the "
-                         "same one.")
+                         "filled, the terminator on, and every data layer the "
+                         "caller supplies drawn. It fixes the VIEW and the LAYER "
+                         "SET so a document does not have to know four flags, "
+                         "and so every document that draws the mark draws the "
+                         "same one. Its first cut filled blocs and nothing else "
+                         "— a preset named for the cover that omitted four of "
+                         "the five layers, which a reader spotted immediately.")
     ap.add_argument("--regions", metavar="PATH", default=None,
                     help="a region registry. With one, the land is routed into "
                          "one path per region instead of a single path, and "
@@ -507,7 +510,9 @@ def main(argv):
             args.lat0 = 10.0
         if args.regions is None:
             args.regions = str(ROOT / "assets" / "vectors" / "regions-trade.json")
-        args.no_night = True
+        # The terminator stays. It is the globe's own waterline — the one
+        # horizon where its light collects — and switching it off was the same
+        # thinning that dropped the other layers.
 
     night = None if args.no_night else solar_position(
         datetime.datetime.fromisoformat(args.time))

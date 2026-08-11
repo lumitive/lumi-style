@@ -25,6 +25,13 @@
 
   /* ── semantic colors (one color, one meaning) ── */
   --acc:       #48633E;          /* the single accent: emphasis / pass / built */
+  /* THE LIVE GREEN. --acc is legible and reads brown at figure scale; --lime is
+     a SURFACE and D13 correctly refuses it as a stroke on the light canvas
+     (1.21:1). This sits between them and clears both floors in both palettes:
+     5.21:1 on white as text, 3.23:1 on the dark ground as a stroke. Figures and
+     the cover title's subject word take it. Measured, not chosen by eye. */
+  --acc-live:  #3E7A2E;
+  --acc-tint:  #EEF6E9;          /* table row wash; body text on it reads 12.3:1 */
   --acc-deep:  #48633E;          /* accent-filled surfaces (headers, bars) */
   --acc-inbox: #9FC384;          /* accent text inside an inverted (ink-filled) box */
   --acc-wash:  #EDF2EA;          /* accent surface tint (tier-1 callouts, cells) */
@@ -147,7 +154,13 @@
      the mark. The values below are what the old clamps resolved to at each
      design stage, so nothing moved at the geometry each was drawn for; the
      portrait block overrides them for the 794px sheet. */
-  --fs-display: 80px;                      /* cover, closing, part openers */
+  --fs-display: 80px;                      /* part openers */
+  /* THE COVER AND CLOSING SET SMALLER THAN A PART OPENER, and that is not a
+     preference — a shipped deck measures 57.6px on both while its openers
+     measure 80.6px, and a reader asked for the cover to match it. An opener is
+     one line of claim on an empty lime page and carries 80; a cover carries a
+     title, a support line, an attribute strip and a mark, and 80 crowds them. */
+  --fs-cover: 58px;                        /* cover and closing titles */
   --fs-title:   34px;                      /* page titles */
   --fs-support: 17px;                      /* the second voice, not small print */
 
@@ -208,6 +221,8 @@ body.dark {
   --ln3: rgba(240,240,250,.07);
 
   --acc:       #7C9F63;          /* lifted for contrast on near-black */
+  --acc-live:  #7FC45A;          /* 7.97:1 on the space-grey ground */
+  --acc-tint:  #232A20;          /* the row wash inverted; text on it 13.0:1 */
   --acc-inbox: #48633E;
   --acc-wash:  rgba(124,159,99,.14);
   /* Text on the lifted accent fill flips to canvas ink: cold white on #7C9F63
@@ -249,7 +264,7 @@ body.dark {
   --d-teal:    #3FA98C;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.411 (2026-08-10)
+   LUMI page layouts · v0.1.412 (2026-08-10)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -463,11 +478,16 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
    one came back set in the wrong face while the consistency audit called it
    clean. One rendering, audited, and wrong: consistency is not correctness. */
 .cover h1, .closing h2 {
-  font-family: var(--din); font-size: var(--fs-display);
+  font-family: var(--din); font-size: var(--fs-cover);
   font-weight: var(--w-display); line-height: var(--lh-display);
   letter-spacing: var(--ls-display); text-transform: uppercase;
   color: var(--tx1); margin: 0 0 24px;
 }
+/* The subject the deck is about, inside its own title. One title, two inks: the
+   claim stays ink and the noun takes the live green, so the green marks what
+   the page is FOR rather than decorating it. Cover and closing only — a content
+   title carries its emphasis in the words. */
+.cover h1 .subj, .closing h2 .subj { color: var(--acc-live); }
 .sup {
   font-size: var(--fs-support); font-weight: var(--w-support); line-height: 1.42;
   color: var(--tx2); max-width: var(--measure); margin: 0;
@@ -1004,8 +1024,19 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    Four cells: the typeblock (wordmark and display title), the mark cell (the
    one vector on the page), the attrs column, and a full-width row for the spec
    strip or, on a closing, the closenote and colophon. */
-.body.cover-grid { grid-template-columns: 1.02fr .98fr; grid-auto-rows: min-content;
+/* minmax(0, …) on BOTH columns. A bare `fr` track keeps an implicit auto
+   minimum, so a mark cell holding an SVG at its intrinsic size stretches the
+   track past its share and the composition runs off the page — measured at
+   602px inside a 509px column. `min-width: 0` on the item does not reach the
+   track, which is why it failed to fix this twice. */
+.body.cover-grid { grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr); grid-auto-rows: min-content;
   grid-template-rows: 1fr auto auto; column-gap: 56px; row-gap: 10px; align-items: center; }
+/* The mark cell holds its content INSIDE the cell and centres it, which is
+   what "half the page, centred" means for a cover. */
+.body.cover-grid > .markcell { min-width: 0; min-height: 0; display: flex;
+  align-items: center; justify-content: center; }
+.body.cover-grid > .markcell > svg { max-width: 100%; max-height: 100%;
+  width: auto; height: auto; }
 .body.cover-grid > .typeblock { display: flex; flex-direction: column;
   justify-content: center; gap: 12px; }   /* not 0: the display tier runs at
     leading .92, so its glyphs stand taller than their line box and a zero gap
@@ -1744,7 +1775,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
       <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
     </div>
-    <p class="colophon">Built with lumi-style 0.1.411 &#183; source: meter management system.</p>
+    <p class="colophon">Built with lumi-style 0.1.412 &#183; source: meter management system.</p>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 18</span></div></section>
 <section class="page opener" id="openA">
@@ -2203,7 +2234,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>
     </div>
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.411.
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.412.
     Source: meter management system; every number here is invented, and a
     bracketed slot must not ship.</p></div>
   </div>
