@@ -3,6 +3,32 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.408 — a dark palette that draws the sphere, not just the dark
+
+0.1.407 got the dark palette into a document. It was reachable and it was not
+finished, and the difference is worth naming: the chrome indirects to theme
+tokens and those redefine under dark, which is true, and it was not sufficient.
+
+`--gl-plate` resolves to `--ln3`, and on a #1D1D1F page `--ln3` sits so close to
+the background that the ocean and the page became one black field. The globe
+read as a scatter of continents floating on nothing — every value correct, the
+figure gone. The comment in the generator said in as many words that the dark
+chrome "needs no separate values"; it needed four.
+
+Water on a dark page is not the absence of light, it is a surface with less of
+it. The plate lifts just clear of the background and the graticule, the equator
+and the tropics lift with it, because a sphere cue nobody can see is not a cue.
+
+**Every deliverable now ships light and dark, from one build.** The two differ
+by exactly the body's class and `data-theme`; every figure in them is
+byte-identical, because a dark edition maintained separately is a dark edition
+that drifts and the reader who compares the two is the one who finds out. The
+`.dark.` in the filename is load-bearing: `inspect_layout.py` infers the palette
+from it, so the dark edition is graded dark rather than graded twice as light.
+
+The closing page loses its illustration. A closing that restates the cover's
+image is a closing that has nothing of its own to say.
+
 ## 0.1.407 — the dark palette reaches a document at last, and the mark stops being a second design
 
 **The dark palette had been unreachable since 0.1.333.** `build_fixtures.py`
