@@ -32,19 +32,31 @@ python3 scripts/embed_globe.py           # the globe runtime as one inline <scri
 python3 scripts/build_entrypoints.py     # regenerate every per-platform artifact; --check in CI
 python3 scripts/build_fixtures.py        # regenerate the tracked test fixtures; --check in CI
 python3 scripts/check_fixtures.py        # run the checkers against the fixtures and assert verdicts
+python3 scripts/check_js.py              # node --check over the 8 tracked .js files + 3 embedded probes
+python3 scripts/check_evidence.py        # --init | record --id X | --check: the evidence gate (see below)
 python3 scripts/review_scores.py         # the six human dimensions over time; --check validates
-python3 scripts/run_conformance.py       # validate | detect | run | score | report (local, not CI)
+python3 scripts/run_conformance.py       # validate | detect | run | score | report [--record] (runs are local)
+python3 -m pytest -q                     # the test suite under tests/; gates in CI
+python3 -m ruff check .                  # lint + the S security rules; gates in CI
+python3 -m mypy                          # type-check (check_untyped_defs floor); gates in CI
 bash    scripts/ci_wait.sh <PR>          # bounded wait, short-circuits on outage
 ```
 
-Standard library only, no dependencies. `.github/workflows/ci.yml` runs
-`check_repo.py` plus syntax checks on every push to `main` and every pull
-request. **`check_repo.py` is one of seventeen steps CI runs, and reporting it
-green is not reporting the release green** — 0.1.415 was verified on eight of
-them, pushed, and failed CI on a generator check nothing local had invoked.
+**The deliverable path is standard library only** — nothing in `scripts/`
+imports outside it at runtime. Development tools (ruff, mypy, pytest) are
+pinned in `requirements-dev.txt`, installed by CI and by `preflight.py`'s
+pip step, and ship in no deliverable. `.github/workflows/ci.yml` holds the
+authoritative step list — deliberately not counted here: this file once said
+"seventeen" while preflight's docstring said "fifteen", and both numbers were
+somebody's memory of the workflow rather than the workflow.
+**`check_repo.py` is ONE of those steps, and reporting it green is not
+reporting the release green** — 0.1.415 was verified on eight of the gates,
+pushed, and failed CI on a generator check nothing local had invoked.
 `scripts/preflight.py` reads the step list out of `ci.yml` and runs all of it,
 so "local green" and "CI green" are the same claim; it refuses to run a subset
-if it cannot parse the workflow. Its guards are the mechanical half of the invariants below: version
+if it cannot parse the workflow, and `--timing-update` records a local
+per-step timing baseline that later runs WARN against (warn-only by design —
+a baseline is one machine's number). Its guards are the mechanical half of the invariants below: version
 stamps, version citations, the English-only red line, markdown link targets,
 stale forward promises, the platform manifest, retired values, palette parity
 between the two `tokens/` files, that every `var()` in `tokens/` resolves to a
@@ -54,21 +66,42 @@ media query, that the layouts `tokens/` defines are the layouts `check_design.py
 grades, the text ladder's contrast floor,
 ban-list parity, that every statement of the output-directory default names the
 same literal directory, that every generated artifact and fixture is current, that the
-checkers still produce the expected verdicts on both fixtures, and that the
-vendored assets are intact.
+checkers still produce the expected verdicts on both fixtures, that the
+vendored assets are intact, that no script re-grows a private copy of the
+shared color/CSS implementations (`color_math.py` / `css_tokens.py`), that
+the three ledgers parse and no GAP/FM/IDEA citation dangles, that a commit
+touching CHANGELOG.md carries its version in the subject, and that no
+credential-shaped string ships in a tracked file.
 
-`check_globe.py` is the fifth thing CI cannot run in full: its maths half is
-`--python-only` and runs in CI, and the half that checks
-`assets/geo/projection.js` against the Python authority needs a headless
-Chromium. **This repository contains no JavaScript toolchain** — no
-package.json, no runner — so a golden grid of 1300 projection samples is
-what holds the port to the Python, and it is the only thing that does.
+`tests/` holds the pytest suite: characterization tests for the shared
+modules, synthetic-tree tests that prove each guard can FAIL as well as pass
+(a guard only ever seen passing is FM-01 in `FAILURE_MODES.md`), and a
+`--help` floor over every CLI. Every new gate ships with a deliberate-red
+run recorded in its CHANGELOG entry.
+
+`check_globe.py`'s browser half narrowed at 0.1.426: the JS projection port
+is now held to the Python authority IN CI — the 1300-sample golden grid runs
+under bare `node` (`--python-only --node`), since `projection.js` is DOM-free.
+What still needs a browser (renderer parity, painted ink, occlusion) is an
+operator step recorded through the evidence gate. There is still no
+package.json and no JS runner beyond `node` itself; `check_js.py` syntax-parses
+both JavaScript surfaces, including the probe strings embedded in
+`inspect_layout.py` that `py_compile` reads as prose.
 
 `check_prose.py`, `check_design.py` and `inspect_layout.py` all measure a
 **deliverable** rather than this repo. Two of them do run in CI, against the
 tracked synthetic fixtures in `fixtures/` — that is the whole point of shipping
 them. `inspect_layout.py` still cannot: it needs a headless Chromium, so it is
-run locally and its verdicts are recorded in the release notes. `inspect_layout.py` needs a headless Chromium (`pip install pillow
+run locally — and since 0.1.425 its result is recorded through
+**`check_evidence.py`**, never as a sentence in the release notes. The
+evidence gate is the standing answer to GAP-002: each release writes
+`releases/evidence/<version>.json`; `--init` computes which operator checks
+the release diff obliges (browser layout gates, the globe's browser half,
+conformance freshness), `record --id X` EXECUTES the canonical command and
+machine-writes exit code + output digest + date (the schema has no verdict
+field — a human never types "pass"), and `--check` gates in CI: unmet
+obligations, copied digests, nonzero exits not citing an open KNOWN_GAPS
+entry, and overclaim phrases beside a waiver all fail the release. `inspect_layout.py` needs a headless Chromium (`pip install pillow
 playwright && playwright install chromium`); its real output is a contact sheet
 for a person to look at. **None of its design judgements gates, but it exits 1
 when a check could not be measured at all** — a document whose markup it cannot
@@ -281,3 +314,19 @@ repo itself.)
    every entry summarizes a real engagement's review: record the lesson and the
    score that forced it, never the client or the document (follow the anonymized
    phrasing of the existing entries).
+10. **State lives in the ledgers, not in prose.** A known defect is a
+    `KNOWN_GAPS.md` entry (a TODO in a script citing a GAP id fails CI); a
+    recurring failure shape is a `FAILURE_MODES.md` entry; deferred work is a
+    `Pipeline/ideas-prd.md` item. When a CHANGELOG entry defers something,
+    name the ledger id it now lives under — this is a prose rule, not a gate
+    (AG-1 records why the mechanical version was declined), but the
+    dangling-reference half IS mechanical: a cited id that no ledger defines
+    fails CI. A declined enforcement mechanism goes to FAILURE_MODES'
+    "Abandoned gates" with its reason, so it is a decision instead of a
+    quarterly re-debate.
+11. **A new gate ships with a deliberate-red run.** Plant a violation, watch
+    the gate fail, remove it, record the exercise in the CHANGELOG entry.
+    Guards additionally get synthetic-tree tests with at least one failing
+    fixture (`tests/test_check_repo_guards.py` is the pattern). This repo has
+    shipped three checks that ran green and were later found incapable of
+    failing; a gate's first proof is that it can go red.

@@ -3,6 +3,31 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.429 — the documentation catches up with the migration it documents
+
+The closing release of the engineering-quality migration
+(`specs/2026-08-12-engineering-quality-design.md`, R1-R12 shipped as
+0.1.416-0.1.428). What changed here is prose, and the prose is load-bearing:
+drift between what the repo does and what its documents say it does is this
+repo's named main hazard.
+
+**CLAUDE.md**: the Checks section gains the new commands (check_js,
+check_evidence, pytest/ruff/mypy), the step-count is deleted rather than
+corrected ("seventeen" here and "fifteen" in preflight's docstring were both
+somebody's memory of the workflow), the guard inventory gains its four new
+members, the "no JavaScript toolchain" paragraph is rewritten for a world
+where CI verifies the port under bare node, the evidence gate replaces
+"verdicts are recorded in the release notes", and two maintenance
+conventions arrive: **rule 10** (state lives in the ledgers — deferral names
+an id, dangling citations fail CI, declined gates go to Abandoned gates)
+and **rule 11** (a new gate ships with a deliberate-red run and
+failing-fixture tests). **README** file map: tests/, releases/evidence/,
+the ledgers, the shared modules, the restored backlog.
+
+The three entry points and prompts restate style rules, not engineering
+process, and were re-read rather than edited — no engineering claim lives in
+them to drift.
+
 ## 0.1.428 — a secrets guard that preflight can run, a --help floor, and a timing baseline that only warns
 
 Release R12 of the engineering-quality migration

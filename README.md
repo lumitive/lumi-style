@@ -85,17 +85,25 @@ assets/globe                      the globe component: SVG and canvas back ends 
 fixtures/                         synthetic deliverables the checkers are tested on — a
                                   well-formed one, one with a named defect per page, one
                                   that exists only to fail, and a Chinese prose pair
-conformance/                      fixed task suite · the tracked cross-agent scoreboard
+conformance/                      fixed task suite · the tracked cross-agent scoreboard ·
+                                  history.json, the dated memory the freshness gate reads
 scripts/                          check_repo · check_prose (M) · check_design (D) ·
                                   inspect_layout (renders and looks) · export_pdf (PDF/4K) ·
                                   output_dir (where a deliverable belongs) ·
-                                  check_fixtures · build_entrypoints · build_fixtures ·
+                                  check_fixtures · check_js · check_evidence (the evidence
+                                  gate) · color_math + css_tokens (the shared
+                                  implementations) · build_entrypoints · build_fixtures ·
                                   run_conformance · embed_font · embed_icons · build_geography
+tests/                            pytest suite: shared-module characterization, guards
+                                  proven able to fail, a --help floor on every CLI
+releases/evidence/                one JSON per release: the operator checks the diff
+                                  obliged, each an EXECUTED command with its digest
+KNOWN_GAPS.md · FAILURE_MODES.md  the defect ledger and the escape-class registry
 adapters/platforms.json           the platform registry: install paths · capability
                                   tiers · entry files, guarded by check_repo
 adapters/*.md                     per-platform loading notes
-Pipeline/                         the ideas backlog as a deck: problems with their
-                                  evidence, ranked — proposals, never rules
+Pipeline/                         the ideas backlog: problems with their evidence,
+                                  ranked, with stable IDEA-ids — proposals, never rules
 ```
 
 Rules and assets ship together on purpose. Four times now a rule has required
