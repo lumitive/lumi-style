@@ -118,7 +118,7 @@ def coverage_report(collected, skipped_kinds) -> list[str]:
         # Loud, and it names the count. The acceptance for this move is that the
         # number of gates it could not assert is ZERO where a browser is present.
         print(f"note  SKIPPED {len(skipped_kinds)} rendered run(s) — no Chromium "
-              f"importable, so inspect_layout's eleven gates were NOT asserted here. "
+              f"importable, so inspect_layout's twelve gates were NOT asserted here. "
               f"This run did not test them. pip install playwright && "
               f"playwright install chromium")
     if missing:

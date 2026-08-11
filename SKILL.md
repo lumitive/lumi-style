@@ -226,11 +226,11 @@ been removed; they now apply at step 4 instead of framing step 0.
    scripts/inspect_layout.py <file>` renders the pages and builds a contact sheet;
    its design judgements gate nothing but it **exits 1 when a check could not be
    measured**, and those lines come before every green one. Run it again with
-   **`--deliverable`**, which exits non-zero on the eleven findings a rendered page
-   can be wrong about decidably: collision, content spill, page height, hidden
-   content, a wrapped footer, a viewBox that does not parse, a drawing clipped by
-   its own viewBox, a seigaiha band under evidence or text, an overspent title
-   reserve, a role split, a lost datum.
+   **`--deliverable`**, which exits non-zero on the twelve findings a rendered page
+   can be wrong about decidably: collision, a starved column, content spill,
+   page height, hidden content, a wrapped footer, a viewBox that does not
+   parse, a drawing clipped by its own viewBox, a seigaiha band under evidence
+   or text, an overspent title reserve, a role split, a lost datum.
    `python3 scripts/check_design.py <file>` reports D1–D20 and gates on five
    things, none of them a design judgement: **D12**, the handling terms and origin
    every page owes (the terms open with the seal-red `shield` handling marker —

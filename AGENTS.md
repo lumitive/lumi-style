@@ -91,7 +91,7 @@ most skeptical reader, and treat over-design as a finding, not a virtue.
 4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish),
    the D-series and `inspect_layout.py` diagnostics (**design judgements
    reported, never gating** — but an unmeasurable check exits 1 and says what it
-   could not find, and `--deliverable` exits 1 on the eleven findings that are
+   could not find, and `--deliverable` exits 1 on the twelve findings that are
    decidable rather than aesthetic),
    and H1–H6 self-scoring. Never self-score 5 before a reader has scored it, and
    always give the reason for the score, not just the number.
@@ -130,9 +130,9 @@ under the figure is the page's source and the footer carries the page number.
 **Rendered geometry decides, not declared CSS.** Run
 `python3 scripts/inspect_layout.py <file>` and look at the contact sheet it
 builds; before handing the file over, run it again with **`--deliverable`**,
-which exits non-zero on collision, content spill, page height, hidden content, a
-wrapped footer, a seigaiha band under evidence, an overspent title reserve, a
-role split and a lost datum. A clean run there is not
+which exits non-zero on collision, a starved column, content spill, page
+height, hidden content, a wrapped footer, a seigaiha band under evidence, an
+overspent title reserve, a role split and a lost datum. A clean run there is not
 a verified document — it means nothing measurable is broken. A rule that loses on specificity is indistinguishable from no rule: one
 had been in the layout file since 0.1.339, had never once applied, and left twelve
 of fifteen multi-column pages with their columns out of line. Worse: a probe that
