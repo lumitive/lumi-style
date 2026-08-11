@@ -28,6 +28,9 @@ dependency to read a workflow's `run:` lines.
 from __future__ import annotations
 
 import argparse
+import datetime
+import hashlib
+import json
 import pathlib
 import re
 import subprocess
@@ -36,6 +39,28 @@ import time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 WORKFLOW = ROOT / ".github/workflows/ci.yml"
+PERF_BASELINE = ROOT / "releases" / "perf-baseline.json"
+
+
+def load_baseline():
+    """-> {command_sha256: seconds}, empty when no baseline is recorded."""
+    if not PERF_BASELINE.exists():
+        return {}
+    try:
+        doc = json.loads(PERF_BASELINE.read_text(encoding="utf-8"))
+        return {s["command_sha256"]: s["seconds"] for s in doc.get("steps", [])}
+    except (json.JSONDecodeError, KeyError, TypeError):
+        print("note  releases/perf-baseline.json does not parse; timing "
+              "comparison skipped (re-record with --timing-update)")
+        return {}
+
+
+def slow_bound(baseline_secs):
+    """WARN above max(2x baseline, baseline + 5s): the absolute floor keeps
+    sub-second steps from crying wolf. Warn-only and local-only by design —
+    a baseline is one machine's number, and a cross-machine fail-gate fails
+    for reasons unrelated to the code (FAILURE_MODES.md AG-3)."""
+    return max(2 * baseline_secs, baseline_secs + 5.0)
 
 
 def ci_commands(text):
@@ -89,6 +114,9 @@ def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("-x", "--exitfirst", action="store_true",
                     help="stop at the first failing step")
+    ap.add_argument("--timing-update", action="store_true",
+                    help="record this run's per-step wall time as the local "
+                         "performance baseline (releases/perf-baseline.json)")
     args = ap.parse_args(argv)
 
     if not WORKFLOW.exists():
@@ -102,6 +130,8 @@ def main(argv):
         return 1
 
     print(f"{len(cmds)} steps, read from {WORKFLOW.relative_to(ROOT)}\n")
+    baseline = load_baseline()
+    timings = []
     failed = []
     for n, cmd in enumerate(cmds, 1):
         start = time.monotonic()
@@ -115,8 +145,15 @@ def main(argv):
         p = subprocess.run(cmd, shell=True, cwd=ROOT, capture_output=True,
                            text=True)
         secs = time.monotonic() - start
+        digest = hashlib.sha256(cmd.encode()).hexdigest()
+        timings.append({"label": label(cmd), "command_sha256": digest,
+                        "seconds": round(secs, 2)})
         mark = "ok  " if p.returncode == 0 else "FAIL"
         print(f"{mark}  {n:2d}/{len(cmds)}  {label(cmd):<70} {secs:5.1f}s")
+        if digest in baseline and secs > slow_bound(baseline[digest]):
+            print(f"          WARN slow: {secs:.1f}s vs {baseline[digest]:.1f}s "
+                  f"baseline (bound {slow_bound(baseline[digest]):.1f}s) — "
+                  f"informational, never a failure")
         if p.returncode != 0:
             failed.append((cmd, p))
             for line in (p.stdout + p.stderr).strip().splitlines()[-12:]:
@@ -125,6 +162,15 @@ def main(argv):
                 break
 
     print()
+    if args.timing_update:
+        PERF_BASELINE.parent.mkdir(parents=True, exist_ok=True)
+        PERF_BASELINE.write_text(json.dumps({
+            "machine": sys.platform,
+            "recorded": datetime.date.today().isoformat(),
+            "steps": timings,
+        }, indent=2) + "\n", encoding="utf-8")
+        print(f"recorded {len(timings)}-step timing baseline -> "
+              f"{PERF_BASELINE.relative_to(ROOT)}")
     if failed:
         print(f"{len(failed)} of {len(cmds)} steps failed. CI will fail the same way.")
         return 1

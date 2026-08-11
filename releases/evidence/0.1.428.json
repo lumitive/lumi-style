@@ -1,0 +1,8 @@
+{
+  "version": "0.1.428",
+  "diff_base": "71a934ca50c36a81cb6efc93bc2e35aa416aa341",
+  "spec": "specs/2026-08-12-engineering-quality-design.md",
+  "obligations": [],
+  "checks": [],
+  "waivers": []
+}
