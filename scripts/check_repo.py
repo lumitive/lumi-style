@@ -1686,7 +1686,14 @@ def check_commit_convention():
 # path -> reason. A hit that is deliberate rule DATA (an example in a rules
 # file, a test fixture) is waived here with its reason, never silenced by
 # narrowing the pattern.
-SECRET_WAIVERS: dict[str, str] = {}
+SECRET_WAIVERS: dict[str, str] = {
+    "tests/test_secrets_guard.py":
+        "the guard's own failing fixtures: AWS's documented example key, a "
+        "synthetic PEM header and a synthetic assignment — the strings that "
+        "prove the guard can fail. (Spelling the key here would trip the "
+        "guard on its own waiver table, which is how this sentence learned "
+        "not to.)",
+}
 
 # High-signal only: on a prose-heavy repository a chatty secret scanner is a
 # scanner people stop reading. Each pattern is written so it cannot match its
