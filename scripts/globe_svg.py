@@ -52,6 +52,7 @@ from geo_frame import (   # noqa: E402,F401  (re-exported: render() and callers 
     ROOT, TOPOLOGY, REGIONS, STEP_DEG, GRATICULE, PAD, DEFAULT_R,
     OBLIQUITY_DEG, FLATTENING, CITY_GAP, CITY_EM_W, CITY_EM_H,
     LABEL_LIMB_COS, LINK_R, great_circle_route, link_weight_attrs,
+    classify_arcs, arc_points,
     tilt_to_screen, screen_to_tilt,
     earth_transform, solar_position,
     night_ring, place_city_labels,
@@ -185,6 +186,26 @@ def render(view, marks=None, night=None, nodes=False,
                     f'data-members="{" ".join(b["members"])}" d="{d}"/>')
     d = " ".join(x for x in rest if x)
     body.append(f'<path class="gl-land" d="{d}"/>')
+
+    # THE LINEWORK, IN THREE WEIGHTS. The fills above carry no stroke; every
+    # land line is drawn here instead, so a coastline, a boundary between two
+    # trade blocs and a border inside one are three different marks rather than
+    # the same mark three times.
+    #
+    # The arc indices ride in the markup because the runtime redraws these
+    # every frame and must not re-derive which arc is which — see classify_arcs
+    # in geo_frame.py for why that rule exists and what it cost to learn.
+    coast, bloc_edge, border = classify_arcs(topo, owner)
+    for cls, idxs in (("gl-border", border), ("gl-bloc-edge", bloc_edge),
+                      ("gl-coast", coast)):
+        if not idxs:
+            continue
+        order = sorted(idxs)
+        d = " ".join(x for x in
+                     (_d(_project_ring(arc_points(i, arcs), view), False)
+                      for i in order) if x)
+        body.append(f'<path class="{cls}" data-arcs="{" ".join(map(str, order))}" '
+                    f'd="{d}"/>')
 
     # Night: the cap of the sphere the sun is not on. It goes through the same
     # clip every country goes through, so it comes back already cut at the limb.

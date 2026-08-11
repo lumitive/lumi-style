@@ -107,6 +107,23 @@ def export(path: pathlib.Path, geometry: str, scale: float, png: bool,
                 print(f"FAIL  {path}: the document's own script threw during "
                       f"build — {page_errors[0][:120]}")
                 return 1
+            # PIN EVERY GLOBE BEFORE CAPTURING. A rotating figure makes an
+            # export a screenshot of whatever moment the browser reached, so
+            # two runs of this tool on one unchanged document produced two
+            # different PDFs. Each globe carries the longitude its document
+            # wants exported; a globe that names none is pinned where it
+            # stands, which still stops the clock.
+            pinned = page.evaluate("""() => {
+              const gs = window.lumiGlobes || [];
+              for (const g of gs) {
+                const v = Number(g.container.dataset.globePrintLon0);
+                g.pin(Number.isFinite(v) ? v : undefined);
+              }
+              return gs.length;
+            }""")
+            if pinned:
+                print(f"      pinned {pinned} globe(s) for a reproducible frame")
+
             sections = page.query_selector_all(PAGE_SELECTOR)
             if not sections:
                 print(f"FAIL  {path}: no {PAGE_SELECTOR!r} sections; nothing to export")

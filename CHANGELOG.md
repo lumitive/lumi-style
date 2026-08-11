@@ -3,6 +3,56 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.406 — the land in three weights, and an export that is the same twice
+
+**Continents read as continents.** Every land line was one weight, so a
+coastline and a provincial border looked alike and the eye had nothing to group
+by — on a figure whose stated job is comparing where one trade bloc sits against
+another. The shared-arc topology `build_worldmap.py` already builds is the whole
+mechanism and it needs no new data: an arc between two countries is stored once
+and referenced by both, so its number of users says what it is.
+
+    548 arcs used by one country  -> coast, 2.6px
+    196 used by two, different blocs -> bloc edge, 2px
+    570 used by two, same bloc    -> border, 0.8px
+
+The fills lose their strokes; all linework moves to those three layers.
+Classified in Python once and carried to the runtime in the markup, which is
+the standing lesson of 0.1.404 and 0.1.405: those two releases were spent on
+one repair applied to one side of a hand-maintained port.
+
+**Oceania is back, and its absence was a regression I introduced.** 0.1.405 made
+countries outside a bloc outline-only, and Papua New Guinea, Fiji, the Solomons,
+Vanuatu and New Caledonia belong to no bloc — so an entire continent became
+1.2px hairlines around small islands. A coast is a coast whether or not it is in
+a bloc, so the same change that weights continents puts them back.
+
+**One horizon.** `.gl-equator` was drawn in the graticule's own ink, so the
+figure offered four candidate horizons at nearly equal weight. It gets its own
+token now. That is `references/brand.md`'s waterline applied to a sphere: one
+horizon where the light collects, and exactly one — the tropics stay dashed and
+quiet because they are context for the tilt rather than a line to measure from.
+
+**An export is the same twice.** `export_pdf.py` loaded the page and captured
+whatever rotation the browser had reached, so two runs on one unchanged document
+produced two different PDFs. The component gains `pin(lon0)`: it sets the view,
+stops the clock, and — this is the half that took a second attempt — **resets the
+signals to where the emitter put them**. The first version stopped the rotation
+and left the signals wherever they had drifted, which gave a correctly pinned
+longitude and a different picture every time. A pinned frame has to be
+reproducible FROM THE MARKUP or it is not pinned.
+
+Which view a document exports is the document's decision, carried as
+`data-globe-print-lon0`. A `beforeprint` listener does the same, so Cmd-P in a
+browser gives the frame the PDF gives.
+
+**The deck is three pages and the cover is the globe.** The live figure moved
+from an interior page to the cover, where `cover-grid` gives it a larger cell
+than it had, and Figure 1's page is gone. It opens on the Pacific — the one view
+where every lane is visible at once — and exports on Singapore. The legend went
+with the page it stood on; what it did, the marks do through their own titles
+and hover.
+
 ## 0.1.405 — LUMIVATE's mark, a lock with teeth, and the ring's last hiding place
 
 **The brand directory.** `assets/brand/lumivate/` carries two globe marks,
