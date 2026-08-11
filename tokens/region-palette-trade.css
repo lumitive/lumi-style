@@ -48,13 +48,15 @@
   --rg-usmca-stroke: #853FA1;
   --rg-usmca-wash: #F2E6F8;
   --gl-night: rgba(43,46,51,.28);
+  --gold: #A07800;
   --gl-equator: var(--gold);
   --gl-tropic: var(--gold);
-  --gold: #A07800;
 }
 
 body.dark .trade {
-  --gold: #E8C25A;      /* 8.82:1 on the dark plate; the light gold is 1.4 */
+  --gold: #E8C25A;
+  --gl-equator: var(--gold);
+  --gl-tropic: var(--gold);
   --rg-afcfta: #975537;
   --rg-afcfta-stroke: #E38B63;
   --rg-afcfta-wash: #462313;

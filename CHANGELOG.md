@@ -88,6 +88,24 @@ reached by an inline `querySelector` — a hole in the guard, not a licence for
 the class. Repaired the way this file's own convention asks: the rendering
 ships, rather than the check being relaxed.
 
+**`scripts/preflight.py`: local green and CI green become the same claim.**
+This release was verified locally against eight gates, reported as "all gates
+green", and failed CI on the ninth. `check_repo.py` is what a person reaches
+for and it is **one of seventeen steps**; nothing local invoked the palette
+generator's check, so nothing local could have seen the failure. The new script
+reads the step list out of `.github/workflows/ci.yml` — never a copy of it,
+because a hand-maintained idea of "everything" is exactly what was wrong — and
+refuses to run a subset if it cannot parse the workflow. Run second, it caught
+a stale fixture set that would have been the next red build.
+
+**The palette generator's build and its check disagreed about "everything".**
+A bare `--check` recursed over every shipped registry; a bare write refreshed
+only the default one, so the trade palette could be refreshed only by knowing
+its three-argument incantation. Shared chrome landed in one file and not the
+other. The write now covers what the check covers. The same edit also found
+that the scoped instance redefined the light gold and not the dark one, which
+looks correct only while the unscoped file happens to be included beside it.
+
 **The brand lock did its job and was re-stamped with authorization.** The frozen
 marks carry resolved literals, so they picked up neither the gold nor the
 weights; the lock refused the regenerated files and forced the question to the
