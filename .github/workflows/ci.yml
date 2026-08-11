@@ -17,7 +17,11 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
+      # Full history: the evidence gate recomputes each release's obligations
+      # from the diff against the previous release's commit.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -72,4 +76,7 @@ jobs:
       # Parses the suite only. It cannot invoke an agent — no keys, no
       # network, no vendor SDKs — and must never look as though it did.
       - run: python3 scripts/run_conformance.py validate
+      # What CI cannot execute must be recorded as an execution, not a
+      # sentence (GAP-002). Warn-only for one release; red after.
+      - run: python3 scripts/check_evidence.py --check --warn
       - run: python3 scripts/check_repo.py
