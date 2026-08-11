@@ -2,7 +2,7 @@
   "component": "LUMI-Globe-Field",
   "owner": "LUMIVATE",
   "locked_at": "0.1.405",
-  "why": "0.1.408: the dark palette gains its own chrome values",
+  "why": "0.1.409: D19 gates a document's own vocabulary",
   "files": {
     "assets/brand/lumivate/globe-mark-small.svg": "0e1b39f712a804dac56a883875b6bf023f3e5f7655e456cca9bcbf4ff28e436f",
     "assets/brand/lumivate/globe-mark.svg": "5b762f847b90d6f86fe1b47b679a3b57a1763d91c592f774ce1a878661f0423a",

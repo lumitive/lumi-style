@@ -31,7 +31,7 @@ jobs:
             scripts/embed_font.py scripts/embed_icons.py scripts/build_geography.py \
             scripts/geo_projection.py scripts/build_worldmap.py \
             scripts/build_region_palette.py scripts/build_trade_registry.py \
-            scripts/build_brand.py scripts/lock.py \
+            scripts/build_brand.py scripts/lock.py scripts/new_deck.py \
             scripts/check_globe.py \
             scripts/globe_svg.py scripts/geo_frame.py scripts/embed_globe.py \
             scripts/regionmap_svg.py scripts/embed_regionmap.py \

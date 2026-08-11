@@ -3,6 +3,54 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.409 — D19: a document that cannot render itself does not ship
+
+A deliverable passed `check_design`, `check_prose` and
+`inspect_layout --deliverable`, and reached its reader with **no icons anywhere**,
+a blank part opener, and a numbered block whose numbers had come away from their
+content. Every rule it broke was already written down. Nothing stopped it.
+
+**D19 gates**, beside D12, D14 and D15, and asserts three things a document can
+be wrong about decidably:
+
+- **every reference resolves here.** A `<use href="#x">` needs an `id="x"` in
+  the same document. The failing deck carried **zero** of them: the icon sprite
+  lives in the reference fixture's BODY, and a document assembled by slicing its
+  `<head>` gets the whole stylesheet and none of the icons. Thirteen pages of
+  handling terms lost their seal-red shield, and the page ground never drew.
+  A `<use>` pointing at nothing is valid markup that renders as empty space;
+- **every block carries its contract.** `tokens/` renders `.grades` through
+  `.gr` and `.gn`, `.band` through `.k` and `.v`, `.swap` through `.no` and
+  `.yes`. A class used without the children its rendering assumes silently
+  borrows whatever styling it collides with — `.grades` picked up the `.key`
+  callout's red outline and left every paragraph outside the box;
+- **a part opener carries `class="page opener"`.** The lime opener is a class,
+  not a layout. Without it the page renders blank, which is what a reader
+  reported.
+
+This is the deliverable-side mirror of `check_repo.py`'s `probe vocabulary`
+guard, which says a class a CHECKER asserts must have a rendering in `tokens/`.
+The same sentence turned around: a class a DOCUMENT uses must have the rendering
+it is asking for, in the document that uses it.
+
+**Two false starts are worth recording, because both would have made it
+useless.** The first collected only `<symbol>` ids and so failed the reference
+fixture on its first run — the page ground is a `<g id>`, and `<use>` may
+reference any element; a gate whose opening move is to fail the fixture is a
+gate nobody keeps. The second matched a block's body with a non-greedy
+`(.*?)</\1>`, which stops at the first closing tag of that name and truncated a
+`.swap` before its second half, reporting a missing `.yes` that was right there.
+A gate that cries wolf teaches its reader to skip the line.
+
+**`scripts/new_deck.py` is the positive half.** It emits a skeleton carrying the
+complete preamble — token block *and* sprite *and* ground — a cover, a part
+opener with its class, one of every block pattern with the markup that renders
+it, and a closing. An author edits content into a structure that already works.
+Its own preamble bug is instructive: taking the first `<svg>` after `<body>`
+left `#g-ground` dangling, because the fixture opens with two hidden SVGs. A
+preamble is whatever comes before the content, and guessing how many elements
+that is was wrong twice in one hour.
+
 ## 0.1.408 — a dark palette that draws the sphere, not just the dark
 
 0.1.407 got the dark palette into a document. It was reachable and it was not
