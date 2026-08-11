@@ -621,6 +621,17 @@ def _element_body(raw, match):
     return raw[match.end():]
 
 
+# _grid_arity lived here and was removed the hour it was written: it counted a
+# block's children against its grid's column count, and CSS grid flows extra
+# children onto the next row on purpose — `.gr` carries three children in a
+# two-column grid and renders correctly. It failed the reference fixture on its
+# first run, which is the same disqualifying move D19's first cut made.
+#
+# The property is real and it is not static. A child starved into a 34px track
+# is measurable only once rendered, so it lives in inspect_layout.py as
+# `starved_column`.
+
+
 def d19_vocabulary(raw):
     """Every reference in this document resolves inside this document.
 
@@ -669,7 +680,8 @@ def d19_vocabulary(raw):
                            if re.search(r'id="([^"]*)"', attrs) else "?")
 
     return {"symbols": len(symbols), "used": len(used), "dangling": dangling,
-            "bad_blocks": bad_blocks, "openers_missing_class": openers}
+            "bad_blocks": bad_blocks, "bad_arity": [],
+            "openers_missing_class": openers}
 
 
 def d12_commercial_footer(raw, site=None):
@@ -951,7 +963,7 @@ def grade(r):
     rows.append(("D15_footer_path", len(fp["found"]) if fp else None, "=0 (gates)",
                  bool(fp) and not fp["found"], fp is None))
     vo = r["D19_vocabulary"]
-    vo_bad = (len(vo["dangling"]) + len(vo["bad_blocks"])
+    vo_bad = (len(vo["dangling"]) + len(vo["bad_blocks"]) + len(vo["bad_arity"])
               + len(vo["openers_missing_class"])) if vo else None
     rows.append(("D19_vocabulary", vo_bad, "=0 (gates)",
                  vo_bad == 0, vo is None))
@@ -1066,6 +1078,11 @@ def main(argv):
                 print(f"        .{cls} is used without {', '.join('.' + m for m in missing)}"
                       f" — tokens/ renders it through those children, and without "
                       f"them it borrows whatever styling it collides with")
+            for cls, got, want in vv["bad_arity"][:5]:
+                print(f"        .{cls} has {got} children and tokens/ lays it "
+                      f"out on {want} columns — the extra or missing child "
+                      f"lands in the wrong track, which is how a half-width "
+                      f"column became 34px and wrapped one word per line")
             for pid in vv["openers_missing_class"][:5]:
                 print(f"        section {pid} carries an .openframe and not "
                       f"class=\"page opener\" — the lime opener is a class, not a "

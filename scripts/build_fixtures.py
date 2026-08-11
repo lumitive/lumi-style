@@ -809,6 +809,16 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
   </div>
   <div class="foot"><div class="terms"><span class="conf">{TERMS}</span></div>
   <span class="site">{SITE}</span></div></section>
+<section class="page" id="dstarved">
+  <div class="body">
+    <h2>{_TITLE} on the starved page</h2>
+    <!-- starved_column: .swap is a 1fr/34px/1fr grid and takes three children;
+         with two, the second lands in the 34px arrow track. -->
+    <div class="swaps"><div class="swap"><span class="no">{_LONG} before</span>
+    <span class="yes">{_LONG} after</span></div></div>
+  </div>
+  <div class="foot"><div class="terms"><span class="conf">{TERMS}</span></div>
+  <span class="site">{SITE}</span></div></section>
 <section class="page" id="dnumbers">
   <div class="body">
     <h2>{_TITLE} on the unsourced page</h2>

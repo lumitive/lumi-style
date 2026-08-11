@@ -3,6 +3,62 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.412 — a column starved to 34px, the standard order, and a green that clears its floors
+
+**`starved_column` gates.** `.swap` renders on `grid-template-columns: 1fr 34px
+1fr` and takes THREE children — a before, an arrow, an after. A deliverable
+wrote it with two, so the second half landed in the 34px arrow track and wrapped
+one word per line. Every gate passed. Its content was trimmed three times across
+three rounds of review before anyone measured the box, which was 34px wide the
+whole time.
+
+The finding is a block holding a sentence in a column too narrow for it: four or
+more words in under 60px, taller than it is wide. Not "narrow" — a chip and a
+number legitimately are.
+
+**A first version of this check tried to count children against grid columns and
+was deleted the hour it was written**, because CSS grid flows extra children onto
+the next row on purpose: `.gr` carries three children in a two-column grid and
+renders correctly, so the check failed the reference fixture on its first run.
+The property is real and it is not static. A starved column is measurable only
+once rendered, which is why it lives in `inspect_layout.py` and not beside D19.
+
+**The scaffold emits the standard order**, which is the default unless a request
+says otherwise:
+
+    cover · agenda · Part A opener · content… · Part B opener · content… · closing
+
+The first version emitted cover, one opener, a run of pages and a closing. That
+is not a deck, it is a deck's middle. `--parts A,B` is now two by default,
+because one part is not a part.
+
+**The cover and closing set at 58px**, not the part opener's 80. A shipped deck
+measures 57.6px on both while its openers measure 80.6, and a reader asked for
+the cover to match it: an opener is one line of claim on an empty page, while a
+cover carries a title, a support line, an attribute strip and a mark, and 80
+crowds them. New token, so the opener is untouched.
+
+Their titles carry **two inks**: the claim in ink, the noun the deck is about in
+the live green, so the green marks what the page is for rather than decorating
+it.
+
+**`--acc-live` #3E7A2E.** `--acc` is legible and reads brown at figure scale;
+`--lime` is a surface and D13 correctly refuses it as a stroke on white at
+1.21:1. The new green measures **5.21:1 on white and 3.23:1 on the dark ground**,
+clearing the label and stroke floors in both palettes, with `--acc-tint` for the
+table row wash. Measured, not chosen by eye.
+
+**`.body.cover-grid` takes `minmax(0, …)` on both columns.** A bare `fr` track
+keeps an implicit auto minimum, so a mark cell holding an SVG at its intrinsic
+size stretched the track past its share — measured at 602px inside a 509px
+column — and ran the composition off the page. `min-width: 0` on the item does
+not reach the track, which is why it failed to fix this twice.
+
+**`--preset cover` carries every layer.** Its first cut filled trade blocs and
+nothing else — no marks, no cities, no lanes, no signals, no terminator — which
+is a preset named for the cover that omitted four of the five things the cover
+is made of. A reader spotted it in one look.
+
 ## 0.1.411 — Venezuela painted over the whole globe, once a minute
 
 Reported as "the screen flashes about every minute". Measured over 70 seconds of
