@@ -206,8 +206,17 @@
   "assets": {
     "fonts": "assets/fonts/ — D-DIN.woff2, D-DIN-Bold.woff2, COPYING.txt (SIL OFL)",
     "icons": "assets/icons/ — the eight semantic icons named in design-rules.md §5, hairline 1.25px, stroke=currentColor, 24x24",
-    "vectors": "assets/vectors/ — globe-orthographic.svg and world-flat.svg, original geometry",
+    "vectors": "assets/vectors/ — globe-orthographic.svg and world-flat.svg (original geometry), seigaiha-ground.svg and seigaiha-band.svg (scripts/build_seigaiha.py)",
     "note": "v0.1.338. A rule may not mandate an asset the package does not ship: §5 required a semantic icon library for six versions and shipped none, so deliverables carried zero icons, and the cover rule banned imagery because there was no photo library rather than shipping vector geography that needs none."
+  },
+  "band": {
+    "generated_by": "scripts/build_seigaiha.py -> assets/vectors/seigaiha-band.svg",
+    "height": "72px",
+    "height_ceiling": "96px",
+    "alpha_ceiling": 0.85,
+    "register": "expressive only",
+    "placement": "covers, part openers, footer bands; never behind a figure, a table or a field",
+    "note": "A true seigaiha repeat — countable on purpose, which is exactly what a ground may never be. It is honest only where nothing sits on it, so the ground contract's logic (a countable decoration must never read as evidence) is carried over, not waived. Both numbers are CEILINGS: shorter and quieter are always allowed. Values mirror the --band-* tokens in lumi-theme.css and must be edited together."
   },
   "layout": {
     "one_claim_per_screen": true,
