@@ -15,6 +15,19 @@
 > semantics are LUMI's own. Tokens live in `tokens/`; this file covers usage and
 > judgment. (Repository language: English only — red line.)
 
+## Contents
+
+- [1 · Color: one color, one meaning; hierarchy via transparency](#1-color-one-color-one-meaning-hierarchy-via-transparency)
+  - [1c · Region hue: the one place colour encodes identity](#1c-region-hue-the-one-place-colour-encodes-identity)
+  - [1d · The mark and the map](#1d-the-mark-and-the-map)
+- [2 · Typography: two voices, never mixed](#2-typography-two-voices-never-mixed)
+- [3 · Layout: one claim per screen](#3-layout-one-claim-per-screen)
+- [4 · Five chart iron rules + form selection](#4-five-chart-iron-rules-form-selection)
+- [4b · The commercial footer](#4b-the-commercial-footer)
+- [5 · Icons: semantic, never decorative](#5-icons-semantic-never-decorative)
+- [7 · The verification matrix](#7-the-verification-matrix)
+- [6 · Numbers are the copy](#6-numbers-are-the-copy)
+
 ## 1 · Color: one color, one meaning; hierarchy via transparency
 
 - **Canvas — light by default, dark on request.** The light canvas is **pure

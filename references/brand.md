@@ -17,6 +17,20 @@
 
 ---
 
+## Contents
+
+- [1 · The thesis](#1-the-thesis)
+- [2 · The two devices](#2-the-two-devices)
+  - [The field](#the-field)
+  - [The ground — and why it may be decorative when a field may not](#the-ground-and-why-it-may-be-decorative-when-a-field-may-not)
+  - [The waterline](#the-waterline)
+  - [The acid green](#the-acid-green)
+  - [The light: an accent with intensity](#the-light-an-accent-with-intensity)
+- [2b · The register: heavy, large, tight](#2b-the-register-heavy-large-tight)
+- [3 · Accelerators — what a LUMI page should be willing to do](#3-accelerators-what-a-lumi-page-should-be-willing-to-do)
+- [4 · Non-contention as a visual rule](#4-non-contention-as-a-visual-rule)
+- [5 · Provenance](#5-provenance)
+
 ## 1 · The thesis
 
 > `上善若水，水利万物而不争`
