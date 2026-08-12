@@ -3,6 +3,34 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.436 — the audit's first pass: what a repo accretes, named and removed
+
+R0 of the audit (`specs/` record follows with R1). Four findings from a
+full-tree inventory, each with its story:
+
+**A file named `1`, empty, tracked since 0.1.387** — a shell-redirect typo
+swept up by a broad `git add`, sitting at the top of the GitHub file listing
+for six days. Deleted. **The 298KB rendered deck at the old
+`Pipeline/ideas-prd.en.html`** — created when the backlog became a deck at
+0.1.386, superseded when the markdown source was restored at 0.1.422, cited
+by nothing, and a deliverable committed to a repo whose own ignore rules
+declare deliverables barred (it escaped because `*.html` was never in the
+list). Deleted; the ignore hole is closed. **Four contact sheets in
+`fixtures/_layout/` both tracked and gitignored** — indexed one day before
+the ignore rule arrived, contradicting it ever since. Untracked; renders are
+renders, and the evidence gate owns the record-keeping the tracking once
+approximated. **`scripts/new_deck.py`, referenced by nothing** — kept and
+documented in the Checks block with its own docstring's words; a deliberate
+tool should not need archaeology to be discovered.
+
+**`Pipeline/` is now `backlog/`** — the only capitalized directory in the
+tree, and a name that read as CI plumbing to an outside reader when the
+content is a ranked idea backlog. Every live reference moved with it
+(guards, tests, docs, ignore rules); CHANGELOG and specs/ keep the old name
+as frozen history. A retention line for `releases/evidence/` is written
+down: kept forever, small, the audit trail — the gate only reads the
+current file, so there is nothing to prune for.
+
 ## 0.1.435 — a score row pins its instruments (IDEA-8): "the skill changed" stops rendering as "the agent is flaky"
 
 IDEA-8 ships, on the owner's instruction, with GAP-001's misread as its

@@ -76,7 +76,7 @@ VERSION = re.compile(r"\b(\d+\.\d+\.\d+)\b")
 # only answer until 0.1.386, when a rule document was converted to HTML and
 # silently left the english-only and stale-promise guards behind — a conversion
 # that reduces coverage is a conversion that should have said so.
-PROSE_GLOBS = ("*.md", "Pipeline/*.html")
+PROSE_GLOBS = ("*.md",)  # the one tracked backlog render was deleted at 0.1.436
 
 
 def md_files():
@@ -1547,7 +1547,7 @@ def check_ledgers():
     citation dangles.
 
     KNOWN_GAPS.md holds concrete gaps (GAP-ids), FAILURE_MODES.md holds
-    escape classes (FM-ids), Pipeline/ideas-prd.md holds the backlog
+    escape classes (FM-ids), backlog/ideas-prd.md holds the backlog
     (IDEA-ids). Mechanically checkable: id uniqueness, legal statuses,
     per-status required keys, a `fixed`/`declined` entry's closing release
     exists in the CHANGELOG *and* that release's entry cites the id, no
@@ -1559,7 +1559,7 @@ def check_ledgers():
     errors = []
     gaps_text = (ROOT / "KNOWN_GAPS.md").read_text(encoding="utf-8")
     fm_text = (ROOT / "FAILURE_MODES.md").read_text(encoding="utf-8")
-    ideas_text = (ROOT / "Pipeline/ideas-prd.md").read_text(encoding="utf-8")
+    ideas_text = (ROOT / "backlog/ideas-prd.md").read_text(encoding="utf-8")
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     releases = re.findall(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M)
 
@@ -1576,7 +1576,7 @@ def check_ledgers():
     # the shape that meant to be an id and is not one.
     for name, text_, strict in (("KNOWN_GAPS.md", gaps_text, r"^## GAP-\d+"),
                                 ("FAILURE_MODES.md", fm_text, r"^## FM-\d+"),
-                                ("Pipeline/ideas-prd.md", ideas_text,
+                                ("backlog/ideas-prd.md", ideas_text,
                                  r"^## IDEA-\d+")):
         # "^## GAP-\d+" -> "GAP". The former slice (strict[6:index("-")])
         # produced "P"/""/"EA", so the detection below could never fire —
@@ -1591,7 +1591,7 @@ def check_ledgers():
                     errors.append(f"{name}: heading {line!r} looks like an "
                                   f"entry id but does not parse as one")
     for name, ids in (("KNOWN_GAPS.md", gap_ids), ("FAILURE_MODES.md", fm_ids),
-                      ("Pipeline/ideas-prd.md", idea_ids)):
+                      ("backlog/ideas-prd.md", idea_ids)):
         dupes = {i for i in ids if ids.count(i) > 1}
         if dupes:
             errors.append(f"{name}: duplicate ids {sorted(dupes)}")

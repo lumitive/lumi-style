@@ -19,6 +19,7 @@ python3 scripts/check_design.py <file>   # design metrics (D1-D17) on a delivera
 python3 scripts/inspect_layout.py <file> # render a deliverable and report what the layout does
 python3 scripts/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
 python3 scripts/output_dir.py            # where a deliverable belongs; --create needs the user's say-so
+python3 scripts/new_deck.py              # emit a deck skeleton that already renders, in the standard order
 python3 scripts/embed_font.py            # @font-face block with the face inlined
 python3 scripts/embed_icons.py           # <symbol> sprite of the semantic icon set
 python3 scripts/build_geography.py       # regenerate assets/vectors/ from lat/lon data
@@ -108,7 +109,10 @@ conformance freshness), `record --id X` EXECUTES the canonical command and
 machine-writes exit code + output digest + date (the schema has no verdict
 field — a human never types "pass"), and `--check` gates in CI: unmet
 obligations, copied digests, nonzero exits not citing an open KNOWN_GAPS
-entry, and overclaim phrases beside a waiver all fail the release. `inspect_layout.py` needs a headless Chromium (`pip install pillow
+entry, and overclaim phrases beside a waiver all fail the release.
+Evidence files are kept forever: they are small (under 1KB), they are the
+audit trail, and the gate only ever reads the current release's file — there
+is nothing to prune for and deleting evidence would be against the point. `inspect_layout.py` needs a headless Chromium (`pip install pillow
 playwright && playwright install chromium`); its real output is a contact sheet
 for a person to look at. **None of its design judgements gates, but it exits 1
 when a check could not be measured at all** — a document whose markup it cannot
@@ -324,7 +328,7 @@ repo itself.)
 10. **State lives in the ledgers, not in prose.** A known defect is a
     `KNOWN_GAPS.md` entry (a TODO in a script citing a GAP id fails CI); a
     recurring failure shape is a `FAILURE_MODES.md` entry; deferred work is a
-    `Pipeline/ideas-prd.md` item. When a CHANGELOG entry defers something,
+    `backlog/ideas-prd.md` item. When a CHANGELOG entry defers something,
     name the ledger id it now lives under — this is a prose rule, not a gate
     (AG-1 records why the mechanical version was declined), but the
     dangling-reference half IS mechanical: a cited id that no ledger defines

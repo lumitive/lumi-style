@@ -59,7 +59,10 @@ fixtures/_layout/
 
 # inspect_layout contact sheets are renders, not records — the same reason
 # fixtures/_layout is ignored.
-Pipeline/_layout/
+backlog/_layout/
+# A rendered deck slipped in as backlog/ideas-prd.en.html once (deleted at
+# 0.1.436): *.html was never in this list, so the deliverable ban had a hole.
+backlog/*.html
 
 # Claude Code worktrees: separate checkouts, not content of this one.
 .claude/worktrees/

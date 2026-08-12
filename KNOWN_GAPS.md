@@ -4,7 +4,7 @@ The queryable ledger of known defects and unclosed verification gaps in this
 package. One entry per gap, machine-checked by `check_repo.py`'s ledger guard:
 ids unique, statuses legal (`open | fixed | declined`), `fixed` entries name
 the closing release (whose CHANGELOG entry must cite the id), `declined`
-entries carry a reason. Deferred work goes to `Pipeline/ideas-prd.md`
+entries carry a reason. Deferred work goes to `backlog/ideas-prd.md`
 (IDEA-ids); recurring failure *shapes* go to `FAILURE_MODES.md` (FM-ids);
 this file holds concrete, current gaps.
 

@@ -102,7 +102,7 @@ KNOWN_GAPS.md · FAILURE_MODES.md  the defect ledger and the escape-class regist
 adapters/platforms.json           the platform registry: install paths · capability
                                   tiers · entry files, guarded by check_repo
 adapters/*.md                     per-platform loading notes
-Pipeline/                         the ideas backlog: problems with their evidence,
+backlog/                          the ideas backlog: problems with their evidence,
                                   ranked, with stable IDEA-ids — proposals, never rules
 ```
 
