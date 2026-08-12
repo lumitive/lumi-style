@@ -90,7 +90,8 @@ TOUCH_MAP: tuple[tuple[str, tuple[str, ...]], ...] = (
 # regeneration of it). A change of <= the named line budget (added+deleted)
 # does not count as a touch; anything larger does. The fixtures carry the
 # stamp in several generated spots, so their budget is wider — measured at 6
-# lines per fixture for a stamp-only regeneration.
+# lines per fixture for a stamp-only regeneration; budget 8 leaves headroom
+# for a stamp that gains a character and reflows.
 STAMPED_PREFIXES: tuple[tuple[str, int], ...] = (
     ("SKILL.md", 2), ("AGENTS.md", 2), ("prompts/lumi-style-core.md", 2),
     ("tokens/lumi-theme.css", 2), ("tokens/lumi-layouts.css", 2),
@@ -124,7 +125,15 @@ def conformance_fresh() -> bool | None:
     hist = ROOT / "conformance" / "history.json"
     if not hist.exists():
         return None
-    rows = json.loads(hist.read_text("utf-8"))
+    try:
+        rows = json.loads(hist.read_text("utf-8"))
+    except json.JSONDecodeError:
+        # Fail closed and named: a corrupt history reads as stale, which
+        # obliges fresh measurement rather than quietly un-arming the gate.
+        # (run_conformance.py validate fails CI on the same corruption.)
+        print("note  conformance/history.json does not parse; treating the "
+              "board as stale")
+        return False
     recent = set(releases_in_changelog()[:CONFORMANCE_STALE_AFTER + 1])
     agents = {r.get("agent") for r in rows
               if r.get("skill_version") in recent and len(r.get("tasks", {})) >= 3}
@@ -166,6 +175,7 @@ def effective_touches(base: str) -> list[str] | None:
     if rc != 0:
         return None
     touched = []
+    presumed_stamps: list[str] = []
     for line in numstat.splitlines():
         parts = line.split("\t")
         if len(parts) != 3:
@@ -174,6 +184,7 @@ def effective_touches(base: str) -> list[str] | None:
         lines = (0 if adds == "-" else int(adds)) + (0 if dels == "-" else int(dels))
         budget = next((n for p, n in STAMPED_PREFIXES if path.startswith(p)), 0)
         if budget and lines <= budget:
+            presumed_stamps.append(path)
             continue
         touched.append(path)
     # git diff cannot see a file that was never tracked, and a brand-new
@@ -181,6 +192,14 @@ def effective_touches(base: str) -> list[str] | None:
     rc, untracked = git("ls-files", "--others", "--exclude-standard")
     if rc == 0:
         touched.extend(p for p in untracked.splitlines() if p)
+    if presumed_stamps:
+        # The filter is size-blind (a one-line SUBSTANTIVE token edit passes
+        # under the same budget as a stamp), so what it presumed is named
+        # rather than silent — the operator can disagree.
+        print(f"note  {len(presumed_stamps)} stamp-sized change(s) presumed "
+              f"version stamps and not counted as touches: "
+              f"{', '.join(presumed_stamps[:6])}"
+              + ("…" if len(presumed_stamps) > 6 else ""))
     return touched
 
 
@@ -205,6 +224,9 @@ def spec_lines_changed(base: str) -> int:
     rc, numstat = git("diff", "--numstat", base, "--",
                       "scripts/", "references/", "tokens/")
     if rc != 0:
+        print("note  spec-rule diff failed; counting 0 changed lines — "
+              "callers only reach this with a resolvable base, so seeing "
+              "this line at all is itself worth investigating")
         return 0
     total = 0
     for line in numstat.splitlines():
@@ -280,6 +302,16 @@ def cmd_record(obligation: str) -> int:
     if obligation not in OBLIGATIONS:
         print(f"FAIL  unknown obligation {obligation!r}; known: "
               f"{', '.join(OBLIGATIONS)}")
+        return 1
+    if obligation == "conformance-freshness":
+        # Refused, not recorded: its validate command exits 0 on a STALE
+        # board, so a recorded execution would discharge the obligation
+        # while proving nothing (found by the PR #87 review). The only two
+        # ways to satisfy it are the board becoming fresh
+        # (run_conformance.py report --record) or a reasoned waiver.
+        print("FAIL  conformance-freshness cannot be satisfied by a recorded "
+              "run — refresh the board (run_conformance.py report --record, "
+              "≥2 agents, all tasks) or write a reasoned waiver")
         return 1
     v = releases_in_changelog()[0]
     if not evidence_path(v).exists():
@@ -360,36 +392,59 @@ def check_file(v: str, warn: bool) -> list[str]:
     if len(ids) != len(set(ids)):
         errors.append("two checks share an id")
 
-    # Obligations all answered. conformance-freshness is satisfied by the
-    # board BECOMING fresh (run_conformance report --record writes the rows
-    # this reads) — recording a validate run would prove nothing.
+    # Obligations all answered. conformance-freshness has exactly two
+    # satisfaction paths — the board BECOMING fresh, or a waiver — and a
+    # recorded execution is NOT one of them (cmd_record refuses the id, and
+    # this loop never consults `done` for it): its validate command exits 0
+    # on a stale board, so a recorded run would prove nothing. Found by the
+    # PR #87 review, which recorded exactly such a run and watched the gate
+    # go green.
     done = {c.get("id") for c in checks if "exit_code" in c}
     for ob in doc.get("obligations", []):
-        if ob == "conformance-freshness" and conformance_fresh():
+        if ob == "conformance-freshness":
+            if not conformance_fresh() and ob not in waived:
+                errors.append(
+                    f"obligation {ob!r}: the board is still stale and no "
+                    f"waiver is written — satisfy it with fresh rows for "
+                    f"≥{CONFORMANCE_MIN_AGENTS} agents via "
+                    f"run_conformance.py report --record")
             continue
         if ob not in done and ob not in waived:
             errors.append(f"obligation {ob!r} has neither a recorded "
-                          f"execution nor a reasoned waiver"
-                          + (" (satisfy it with fresh rows for "
-                             f"≥{CONFORMANCE_MIN_AGENTS} agents via "
-                             "run_conformance.py report --record)"
-                             if ob == "conformance-freshness" else ""))
+                          f"execution nor a reasoned waiver")
 
     # Recompute obligations against the diff — a hand-deleted obligation is
-    # caught here. Degrades loudly when git cannot answer.
+    # caught here. A base the repo SHOULD be able to resolve but cannot is a
+    # FAILURE, not a note: the audited file must not be able to switch off
+    # its own audit by carrying a blank or bogus diff_base (found by the
+    # PR #87 review, which blanked the field and watched the gate exit 0).
+    # The one legitimate degradation is a genuinely shallow clone, which is
+    # detectable and still gets named.
     base = doc.get("diff_base", "")
     recomputed = None
-    if base:
+    if not base:
+        errors.append("the evidence file carries no diff_base — --init "
+                      "writes one, and without it the obligation recompute "
+                      "and the spec rule cannot run")
+    else:
         rc, _ = git("cat-file", "-e", base)
         if rc == 0:
             touched = effective_touches(base)
             if touched is not None:
                 recomputed = obligations_for(touched)
-    if recomputed is None:
-        print("note  cannot recompute obligations (diff base unavailable); "
-              "trusting the file's list — this is a degraded check, not a "
-              "passing one")
-    else:
+        if recomputed is None:
+            rc_sh, shallow = git("rev-parse", "--is-shallow-repository")
+            if rc_sh == 0 and shallow.strip() == "true":
+                print("note  shallow clone: cannot resolve the diff base; "
+                      "trusting the file's obligation list — this is a "
+                      "degraded check, not a passing one")
+            else:
+                errors.append(
+                    f"diff_base {base[:16]}… does not resolve in a "
+                    f"full-history checkout — the recompute that catches a "
+                    f"hand-edited obligation list cannot run, and that is a "
+                    f"finding, not a note")
+    if recomputed is not None:
         for ob in recomputed:
             if ob not in doc.get("obligations", []):
                 errors.append(f"the release diff obliges {ob!r} but the "

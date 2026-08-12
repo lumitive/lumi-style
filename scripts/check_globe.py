@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 """Verify the globe maths, and that the JavaScript port agrees with it.
 
-assets/geo/projection.js is a hand port of scripts/geo_projection.py. Nothing
-in this repository can compile JavaScript — there is no package.json, and CI runs
-py_compile over the Python and bash -n over two shell scripts — so the port is
-held to the Python authority by a golden grid instead of by a type checker.
+assets/geo/projection.js is a hand port of scripts/geo_projection.py, held
+to the Python authority by a golden grid of 1300 samples. Since 0.1.426 that
+comparison runs IN CI under bare node (projection.js is DOM-free maths);
+check_js.py syntax-parses every JS surface. There is still no package.json
+and no JS runner beyond node itself.
 
-    python3 scripts/check_globe.py --python-only   # properties only; runs in CI
-    python3 scripts/check_globe.py                 # also the port; needs Playwright
+    python3 scripts/check_globe.py --python-only --node  # the CI line:
+                                                  # maths + the port, no browser
+    python3 scripts/check_globe.py                 # also the browser checks
+                                                   # (renderer parity, painted
+                                                   # ink); needs Playwright
 
-Like check_prose.py, check_design.py and inspect_layout.py, the full run cannot
-run in CI. --python-only can, and does.
+Only the browser half cannot run in CI; it is an operator step recorded
+through the evidence gate.
 
 Two halves, and they check different things:
 
@@ -664,14 +668,31 @@ process.stdin.on('end', () => {{
     if p.returncode != 0:
         tail = p.stderr.strip().splitlines()[-3:]
         return ["node could not run the port: " + " / ".join(tail)]
-    return _compare_port(golden, json.loads(p.stdout))
+    try:
+        result = json.loads(p.stdout)
+    except json.JSONDecodeError as exc:
+        return [f"node exited 0 but its output is not JSON ({exc}) — the "
+                f"port was NOT verified"]
+    return _compare_port(golden, result)
 
 
 def _compare_port(golden, result):
-    """The backend-agnostic half: golden grid vs whatever ran the JS."""
+    """The backend-agnostic half: golden grid vs whatever ran the JS.
+
+    The length check is load-bearing: zip() truncates silently, so a backend
+    returning a short (or empty) result list would have compared a prefix —
+    or nothing — and still printed agreement on all 1300 samples (PR #87
+    review). A comparison that did not cover every sample is a failure, not
+    a smaller success.
+    """
     views = golden["views"]
     samples = golden["samples"]
     errors = []
+    for key in ("out", "rt"):
+        got = len(result.get(key, []))
+        if got != len(samples):
+            return [f"the JS backend returned {got} {key!r} results for "
+                    f"{len(samples)} samples — the grid was not covered"]
     for (vi, lon, lat, px, py, pvis), (jx, jy, jvis) in zip(samples, result["out"]):
         if abs(jx - px) > TOLERANCE or abs(jy - py) > TOLERANCE:
             errors.append(f"view {vi} ({lon}, {lat}): python ({px:.9f}, {py:.9f}) "
@@ -2099,8 +2120,8 @@ def _count_night(png_bytes):
 # component split:
 # `shared` is the projection core and the t-sweeps that guard 0.1.389's winding
 # work — they outlive the products' pinned t — `globe` and `map` are each
-# component's own contract. Default runs everything; CI's --python-only line is
-# unchanged.
+# component's own contract. Default runs everything; CI runs
+# `--python-only --node` (the maths plus the port, no browser).
 CHECKS: tuple[tuple[str, Callable[..., list[str]], bool, str, bool], ...] = (
     ("round trip", check_round_trip, True, "shared", False),
     ("poles are points", check_poles, True, "shared", False),
@@ -2134,7 +2155,8 @@ def main(argv):
                          "node (no browser needed; composes with "
                          "--python-only, which is how CI runs it)")
     ap.add_argument("--python-only", action="store_true",
-                    help="skip the browser half; the port is then UNVERIFIED")
+                    help="skip the browser half; without --node the port "
+                         "is then UNVERIFIED")
     ap.add_argument("--suite", choices=("shared", "globe", "map", "all"),
                     default="all",
                     help="which component's checks to run; shared is the "

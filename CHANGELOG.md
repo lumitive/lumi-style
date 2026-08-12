@@ -3,6 +3,61 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.431 — the review turns its findings on the gate that was built to catch them
+
+A four-lens review of PR #87 — the migration of
+`specs/2026-08-12-engineering-quality-design.md`, reviewed for correctness,
+test coverage, silent failures and comment accuracy — found the migration's
+own gates carrying three of the
+failure shapes they were built to end, plus a sweep of smaller holes. All
+closed here; every fix carries a test that fails against the shipped code.
+
+**The three that mattered.** (1) The `conformance-freshness` obligation
+could be discharged by recording its `validate` command — which exits 0 on a
+STALE board; the code's own comment said a recorded run "would prove
+nothing", and the code accepted exactly that. `record` now refuses the id;
+the only satisfactions are a fresh board or a waiver. (2) A blank or bogus
+`diff_base` in the evidence file switched off the obligation recompute AND
+the spec rule with only a stdout note — the audited artifact could disarm
+its auditor. Now: unresolvable base in a full-history checkout is a FAILURE;
+the degradation survives only where it is legitimate (a genuinely shallow
+clone, detected as such and still named). (3) `check_commit_convention` was
+disarmed on merge commits — `git diff-tree` prints nothing for a merge
+without `-m --first-parent`, and the PR checkout CI judges is always a
+merge; the one path CI takes was the one path untested. Fixed, with merge
+and merely-"Merge "-titled commits both covered by new tests.
+
+**The rest of the sweep**: `_compare_port` now refuses a short or empty JS
+result list (zip truncates silently — an empty backend response previously
+read as agreement on 1300 samples); `check_js` discovers probes by naming
+convention instead of a hand tuple (the exact rot this migration removed
+from ci.yml, reintroduced twelve files away); `check_secrets` distinguishes
+a tarball (exempt) from a git failure inside a checkout (a finding); the
+ledger guard catches near-miss headings ("## GAP 003") that previously fell
+out of every structural check — and the first version of that catch had a
+broken kind-extraction the new tests refused, which is the discipline
+working; presumed version stamps are now named per run instead of silently
+filtered; a corrupt conformance history reads as stale (fail-closed) instead
+of crashing; preflight coerces baseline numbers and declines to record a
+baseline from a failed run; `run_conformance --record` fails loudly on a
+corrupt scores.json.
+
+**Coverage the review demanded**: `tests/test_check_evidence.py` gives the
+gate its synthetic-tree suite (15 tests — the eight failure shapes plus the
+stamp filter both ways); 31 tests added in all, 136 total. The GitHub token
+patterns get fixtures; weak assertions were strengthened; the
+freshness-ignores-verdicts property became a real assertion. The
+`report --record` producer path stays untested and is LEDGERED as GAP-003
+with its mitigations, rather than left as folklore.
+
+**Prose drift the review caught**: check_globe.py's own docstring still
+described the pre-0.1.426 world ("nothing in this repository can compile
+JavaScript") — rewritten; the "--help floor over every CLI" claim narrowed
+to what the test actually enforces (argparse CLIs); AG-3 cited a flag that
+does not exist (`--timing` → `--timing-update`); the evidence gate's dates
+and two hand counts corrected; CLAUDE.md's guard list marked as
+representative with the CHECKS tuple named as the authority.
+
 ## 0.1.430 — the type checker's verdict depended on which machine asked
 
 The migration's first CI run failed on a step every local run had passed:
@@ -54,7 +109,7 @@ contract (AG-5). Each pattern is written so it cannot match its own source.
 Tested both ways on synthetic git trees, including the binary-skip and the
 waiver path; the live tree is clean.
 
-**Every CLI answers `--help` or the suite is red.** The cheapest behavioral
+**Every argparse CLI answers `--help` or the suite is red.** The cheapest behavioral
 floor there is: an import-time crash, broken argparse wiring, or a missing
 module-scope dependency in any of the operator scripts now surfaces in the
 test suite instead of mid-release.
@@ -296,8 +351,8 @@ the `_vars` removal, reason recorded.
 ## 0.1.419 — the first tests, and a live bug pinned where it lives
 
 Release R3 of the engineering-quality migration
-(`specs/2026-08-12-engineering-quality-design.md`). 16,398 lines of scripts
-had zero test files; `tests/` now exists and `python3 -m pytest -q` is a CI
+(`specs/2026-08-12-engineering-quality-design.md`). The ~16.4k lines of
+scripts/ (16,398 at the 0.1.415 audit) had zero test files; `tests/` now exists and `python3 -m pytest -q` is a CI
 step. The suite is deliberately small and aimed, not a coverage drive.
 
 **Characterization before refactor.** `test_color_math.py` and
@@ -351,7 +406,7 @@ str, a dict and a list at different lines — renamed so each name has one
 type, logic untouched.
 
 **The discipline was byte-equivalence, not review confidence.** Every
-generator `--check` (nine of them) proved its output byte-identical after
+generator `--check` in the workflow proved its output byte-identical after
 the edits; `check_globe.py --python-only`, `check_fixtures.py`,
 `check_prose.py` and `check_design.py` on the fixtures produced
 byte-identical reports before and after. Narrowing guards were added only

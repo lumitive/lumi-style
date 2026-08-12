@@ -48,8 +48,9 @@ def load_baseline():
         return {}
     try:
         doc = json.loads(PERF_BASELINE.read_text(encoding="utf-8"))
-        return {s["command_sha256"]: s["seconds"] for s in doc.get("steps", [])}
-    except (json.JSONDecodeError, KeyError, TypeError):
+        return {s["command_sha256"]: float(s["seconds"])
+                for s in doc.get("steps", [])}
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError):
         print("note  releases/perf-baseline.json does not parse; timing "
               "comparison skipped (re-record with --timing-update)")
         return {}
@@ -162,7 +163,10 @@ def main(argv):
                 break
 
     print()
-    if args.timing_update:
+    if args.timing_update and failed:
+        print("note  timing baseline NOT recorded: a failed step's short "
+              "wall time must not become the bar")
+    if args.timing_update and not failed:
         PERF_BASELINE.parent.mkdir(parents=True, exist_ok=True)
         PERF_BASELINE.write_text(json.dumps({
             "machine": sys.platform,
