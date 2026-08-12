@@ -53,7 +53,11 @@ CHANGELOG can cite. Verified against the tree at restoration time:
 - **IDEA-7 in progress** — the conformance-history work of the
   engineering-quality migration (`specs/2026-08-12-engineering-quality-plan.md`
   R11) is this item's acceptance in different words.
-- IDEA-1, IDEA-2, IDEA-5, IDEA-6 remain open.
+- **IDEA-1 shipped** (correction, 2026-08-12: the restoration first listed it
+  open, carrying the 0.1.385 survey's state without re-verifying — M1, M2 and
+  M6 are all computed and graded in `scripts/check_prose.py` today, and the
+  conformance runs record their verdicts).
+- IDEA-2, IDEA-5, IDEA-6 remain open.
 
 ## IDEA-1 · Implement M1, M2 and M6
 
