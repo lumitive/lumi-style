@@ -723,11 +723,21 @@ def d19_vocabulary(raw):
 
     bad_blocks = []
     for cls, needs in BLOCK_CONTRACTS.items():
-        for m in re.finditer(rf'<(\w+)[^>]*class="[^"]*\b{cls}\b[^"]*"[^>]*>',
-                             raw):
+        # A CLASS IS A WHOLE TOKEN IN THE LIST, not a substring of one.
+        # `\bcard\b` matched `f-card` — the SVG PAINT class every drawing uses
+        # for a card-coloured fill — so a document with seventy-five painted
+        # rects and four correct `.card` blocks reported thirteen cards
+        # missing `.ledname`, and a conformance run was scored `fail` on it.
+        # `(?<![\w-])` is the same fix D18 needed for `rg-`; this is that bug
+        # in the other checker, found by a document that had done nothing
+        # wrong.
+        for m in re.finditer(
+                rf'<(\w+)[^>]*class="[^"]*(?<![\w-]){cls}(?![\w-])[^"]*"[^>]*>',
+                raw):
             body = _element_body(raw, m)
             missing = [n for n in needs
-                       if not re.search(rf'class="[^"]*\b{n}\b', body)]
+                       if not re.search(rf'class="[^"]*(?<![\w-]){n}(?![\w-])',
+                                        body)]
             if missing:
                 bad_blocks.append((cls, missing))
 
@@ -817,6 +827,13 @@ AUTHOR_FILL = (
     "What it means in this document, one sentence.",
     "A title naming its subject and carrying a fact",
     "The support line, one sentence and not a summary.",
+    # The colophon's provenance clause (0.1.450). The scaffold's colophon read
+    # "Built with lumi-style VERSION." and stopped there — which trips D6, the
+    # check that asks the DOCUMENT where its numbers came from, on every page
+    # at once. A scaffold that hands an author a document failing a check it
+    # cannot see is the shape this file exists to close, so the clause is in
+    # the scaffold and its slot is here.
+    "WHERE THE\n    NUMBERS CAME FROM",
 )
 SCAFFOLD_SLOTS = re.compile("|".join(re.escape(s) for s in AUTHOR_FILL))
 

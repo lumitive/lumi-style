@@ -160,3 +160,25 @@ def test_a_wrapped_footer_is_not_also_reported_as_a_baseline_defect():
     wrapped = [{"hasFooter": True, "id": "p4", "footWrapped": True,
                 "footBaseline": {"ratio": None, "runs": 3, "split": True}}]
     assert il._footer_misaligned(wrapped) == []
+
+
+# d19 — a class is a whole token, not a substring of one.
+
+def test_d19_paint_class_is_not_a_block():
+    # `f-card` is the SVG paint class every drawing uses for a card-coloured
+    # fill. `\bcard\b` matched it, so a figure-rich document reported one
+    # "card missing .ledname" per painted rect — and a conformance run was
+    # scored fail on exactly that.
+    raw = _doc(page_body='<svg><rect class="f-card"/><rect class="f-card"/></svg>')
+    assert check_design.d19_vocabulary(raw)["bad_blocks"] == []
+
+
+def test_d19_a_real_card_without_its_ledname_still_fails():
+    raw = _doc(page_body='<div class="card"><p>no ledname here</p></div>')
+    assert check_design.d19_vocabulary(raw)["bad_blocks"] == [("card", ["ledname"])]
+
+
+def test_d19_a_complete_card_passes():
+    raw = _doc(page_body='<div class="card"><p class="ledname">Subject</p>'
+                         '<p class="verdict">The line to carry away.</p></div>')
+    assert check_design.d19_vocabulary(raw)["bad_blocks"] == []

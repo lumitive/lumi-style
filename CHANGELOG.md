@@ -3,6 +3,80 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.450 — the board is re-earned after fifteen releases, and three of its own instruments were wrong
+
+Two debts the 0.1.443–0.1.449 series left open, both discharged, and the work
+of discharging them found more than it fixed.
+
+**The conformance board.** It had stood at 0.1.434 while the checkers changed
+under it, so nothing recorded measured the instruments this package now
+ships. Refreshed at 0.1.450: **two agents, three tasks each, all six pass.**
+Cursor's row changed shape — `cursor-agent` was installed on this machine
+during the run, so it moved from `driven by hand` to a probed CLI version and
+its tasks ran non-interactively like any other, which is the first time this
+board has been able to say that about a second agent.
+
+Earning those six verdicts took three corrections, none of them in either
+agent:
+
+* **A recorded `fail` was withdrawn.** The first Claude Code attempt died
+  mid-run on a transport error while it was still fixing its own findings, so
+  the artifact scored was a draft. The rows were reverted and the artifact
+  kept at `conformance/results/interrupted-claude-code-20260813/`. A verdict
+  is earned or it is not recorded.
+* **An agent that passed the task it was given was rolled up as `fail`,**
+  because two tasks nobody had driven scored as missing deliverables. `score`
+  now separates `not attempted` — nothing was ever written into that task's
+  directory — from `no deliverable`, and the roll-up reads `partial: N of M
+  driven, all pass`. The board's prose has drawn this line for absent AGENTS
+  since 0.1.390 ("printing the two identically made the board read as ten
+  pieces of pending work when only six are"); the roll-up had never drawn it
+  for absent RUNS.
+* **T3 scored a correct answer wrong on its grammatical number.**
+  `\bhuman\b` refused "Licensed humans" and passed "a licensed human" — the
+  same fact, failed for an `s`. The patterns take an optional plural now,
+  which changes the task fingerprint, so earlier T3 rows read `stale` until
+  re-earned.
+
+**The scaffold taught less than the checks require, in three places** — found
+by reading what a failing agent had actually written, and confirmed against
+`new_deck.py` itself rather than against that run. `SKILL.md` names `.card` +
+`.ledname` in prose and D19 GATES on it, while SAMPLES shipped worked examples
+for four block patterns and not that one; the colophon read "Built with
+lumi-style VERSION." and stopped, which trips D6 — the check that asks the
+DOCUMENT where its numbers came from — on every page at once; and a sample
+labelled `.gd` "the tier-one callout" while D3 budgets `.key` and `.red`,
+teaching the wrong class for the rule it named. Every entry in
+BLOCK_CONTRACTS now has a worked example, the colophon carries a provenance
+slot (and that slot is in D14's list, held by the scaffold-slots guard), and
+the callout sample says which tier it is.
+
+**D19 counted a paint class as a block.** `\bcard\b` matched `f-card`, the
+SVG fill class every drawing uses, so a figure-rich 30-page document with
+four correct `.card` blocks and seventy-five painted rects reported thirteen
+cards missing `.ledname`. This is D18's `rg-` bug in the other checker, and
+it means the conformance failure that started the scaffold investigation was
+itself partly a false positive: the fixes stand on their own evidence, the
+diagnosis did not. Token-boundary matching both ways, three tests.
+
+**The ten-minute target has its first from-scratch measurement**, and it does
+not meet it. A 30-page A4 training handbook built from nothing through the
+parallel protocol — four authors, real content sourced entirely from this
+repository — took **27 minutes end to end** to a document that passes every
+gate: 50 seconds to fix the storyline, scaffold and split; 24m49s for the
+slowest of four parallel authors; 2m21s to assemble, fix three real defects
+and clear the gates, of which the checkers themselves are 25 seconds. Single
+page cost is about 1.6 minutes and it is the RULES' price, not the agent's
+pace: every content page owes a drawn figure, a second content block, a
+marked key point and a traceable number, and the four authors produced 74
+SVGs between them. Against the hour-plus a 34-page serial build cost before
+the protocol, that is a 2.2x improvement and not the 2.7x further one the
+target asks for. Three ways to close it — raise parallelism to eight, set the
+target per genre (training is the most expensive; 16:9 sales and consulting
+are not), or restate the number as a measured range — are the owner's to
+choose, and SKILL.md keeps saying ten until she does. The handbook is not
+committed here: deliverables live outside this repository.
+
 ## 0.1.449 — the squash subject is a release subject, and main's own CI said so
 
 Merging the retrospective series turned main red on the commit that landed

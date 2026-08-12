@@ -492,9 +492,27 @@ def main(argv):
                     # outcome — an agent that answered in chat instead of
                     # writing a file — and it has to read as a failure to
                     # produce, never as an absent finding.
-                    scores[key] = {"verdict": "no deliverable",
-                                   "task_hash": asked_fingerprint(task_dir, task),
-                                   "detail": f"nothing matching {task['deliverable']}"}
+                    #
+                    # UNLESS NOTHING WAS EVER DRIVEN HERE. A hand-driven agent
+                    # is one an operator invokes task by task, and the two they
+                    # did not reach are not two failures: 0.1.450's board
+                    # marked Cursor **fail** on a day it produced a passing
+                    # deck, because two prompts it was never given scored as
+                    # missing deliverables. The board's own prose already draws
+                    # this line for absent AGENTS ("printing the two
+                    # identically made the board read as ten pieces of pending
+                    # work when only six are") and the roll-up did not draw it
+                    # for absent RUNS. An untouched directory — the prompt this
+                    # harness wrote and nothing else — is the evidence.
+                    left = {f.name for f in task_dir.iterdir()}
+                    untouched = not (left - {"PROMPT.txt", "input.md"})
+                    scores[key] = {
+                        "verdict": "not attempted" if untouched
+                        else "no deliverable",
+                        "task_hash": asked_fingerprint(task_dir, task),
+                        "detail": ("the prompt was never driven here"
+                                   if untouched
+                                   else f"nothing matching {task['deliverable']}")}
                     unscored += 1
                     continue
                 target = produced[0]
@@ -630,9 +648,21 @@ def main(argv):
             cells[t["id"]] = cell
             verdicts.append(worst)
         if verdicts:
-            verdict = ("pass" if all(v == "pass" for v in verdicts)
-                       else "stale" if any(v == "stale" for v in verdicts)
-                       and not any(v == "fail" for v in verdicts) else "fail")
+            # A task nobody drove is not a task the agent failed. It drops out
+            # of the roll-up entirely, and an agent that passed everything it
+            # was actually given reads `partial` — the pass is real, the
+            # coverage is not complete, and both facts survive.
+            judged = [v for v in verdicts if v != "not attempted"]
+            if not judged:
+                verdict = "not run"
+            elif all(v == "pass" for v in judged):
+                verdict = "pass" if len(judged) == len(verdicts) else \
+                    f"partial: {len(judged)} of {len(verdicts)} driven, all pass"
+            elif any(v == "stale" for v in judged) and \
+                    not any(v == "fail" for v in judged):
+                verdict = "stale"
+            else:
+                verdict = "fail"
             cli = note if ok else "driven by hand"
         else:
             # Six of the ten "not installed" rows are a machine away; four can

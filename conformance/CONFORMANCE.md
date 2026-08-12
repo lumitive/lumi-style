@@ -1,13 +1,13 @@
-# LUMI style conformance · skill 0.1.449
+# LUMI style conformance · skill 0.1.450
 
-Runs `conformance/results/cursor-20260813`, `conformance/results/claude-code-20260813` · darwin · 1 of 12 agents detected · up to n=1 per agent · 4 of 12 can never answer a CLI probe
+Runs `conformance/results/latest` (2026-08-13) · darwin · 2 of 12 agents detected · up to n=1 per agent · 4 of 12 can never answer a CLI probe
 
 | agent | capability | cli | T1-deck | T2-deaify | T3-recall | verdict |
 |---|---|---|---|---|---|---|
 | Claude Code | full | 2.1.228 (Claude Code) | pass | pass | pass | **pass** |
 | Gemini CLI | full | — | — | — | — | **not installed** |
 | OpenAI Codex | full | — | — | — | — | **not installed** |
-| Cursor | full | driven by hand | pass | — | — | **pass** |
+| Cursor | full | 2026.08.11-e8db854 | pass | pass | pass | **pass** |
 | Google Antigravity | full | — | — | — | — | **cannot be probed** |
 | GitHub Copilot | full | — | — | — | — | **not installed** |
 | OpenCode | full | — | — | — | — | **not installed** |
@@ -16,6 +16,31 @@ Runs `conformance/results/cursor-20260813`, `conformance/results/claude-code-202
 | Hermes | full | — | — | — | — | **cannot be probed** |
 | Kimi | prompt | — | — | — | — | **cannot be probed** |
 | DeepSeek | prompt | — | — | — | — | **cannot be probed** |
+
+**The 0.1.450 refresh, and what it cost to earn.** The board had stood at
+0.1.434 for fifteen releases while the checkers changed under it, so this run
+is the first that measures the current instruments. Three things had to be
+fixed before its verdicts meant anything, and all three were faults in the
+harness or the package rather than in either agent:
+
+* A first Claude Code attempt was recorded `fail` and the row was WITHDRAWN.
+  The agent had been killed mid-run by a transport error while it was still
+  fixing its own findings, so what was scored was a draft. Its artifact is
+  kept at `conformance/results/interrupted-claude-code-20260813/`. A verdict
+  has to be earned, and an interrupted run does not earn one.
+* An agent that passed the one task it was given was rolled up as **fail**,
+  because two tasks nobody had driven scored as missing deliverables. A task
+  never attempted is not a task failed: `score` now separates `not attempted`
+  from `no deliverable` by whether anything was ever written into the task's
+  directory, and the roll-up reads `partial: N of M driven, all pass`.
+* T3 marked a correct answer wrong for its grammatical number — `\bhuman\b`
+  refused "Licensed humans" while passing "a licensed human". The patterns
+  take an optional plural now, which changes the task fingerprint, so every
+  earlier T3 row reads `stale: task changed` until it is re-earned.
+
+Cursor's row changed shape too: `cursor-agent` was installed on this machine
+during the refresh, so the agent moved from `driven by hand` to a probed CLI
+version and its three tasks were run non-interactively like any other.
 
 ## What this table is not
 

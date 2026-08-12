@@ -167,20 +167,48 @@ def foot(n, total):
             f'<span>{n:02d} / {total}</span></div>')
 
 
-# One of every block pattern, with the markup the FIXTURE uses — not the markup
-# a class name suggests. `.swap` is the worked example: its rendering is
-# `grid-template-columns: 1fr 34px 1fr` and it takes THREE children — a before,
-# an arrow, an after. Written with two, the after lands in the 34px arrow column
-# and wraps one word per line. That shipped, and its content was trimmed three
-# times before anyone measured the box.
+# ONE OF EVERY BLOCK PATTERN THAT CARRIES A GATED CONTRACT, with the markup the
+# FIXTURE uses — not the markup a class name suggests. `.swap` is the worked
+# example: its rendering is `grid-template-columns: 1fr 34px 1fr` and it takes
+# THREE children — a before, an arrow, an after. Written with two, the after
+# lands in the 34px arrow column and wraps one word per line. That shipped, and
+# its content was trimmed three times before anyone measured the box.
+#
+# `.card` and `.vow` joined at 0.1.450, from the conformance board's first
+# refresh in fifteen releases: an agent given this scaffold reached for `.card`
+# — named in SKILL.md's prose, holding a contract D19 GATES on — and wrote
+# twelve of them without `.ledname`, because prose is what it had. That is this
+# file's own opening paragraph happening to this file. Every entry in
+# check_design's BLOCK_CONTRACTS now has a worked example here; when a contract
+# is added there, its example belongs here in the same release.
 ARROW = '<span class="arw">&#8594;</span>'
 
 SAMPLES = [
     '      <p class="listhead">A heading over a block</p>\n'
-    '      <p class="gd">The tier-one callout. One per page, no more.</p>\n'
+    # `.gd` is the standard callout, NOT the tier-1 one: D3 budgets `.key` and
+    # `.red`, and this line said "tier-one" while emitting neither, which
+    # taught the wrong class for the rule it named.
+    '      <p class="gd">A marked aside, one size everywhere.</p>\n'
+    '      <p class="key">The tier-1 callout: the aside that changes a '
+    'decision. One per page, and no more than a third of the pages.</p>\n'
     '      <ul><li>A bulleted list is a small set of criteria that must all '
     'hold.</li>\n'
     '      <li>A numbered list is a sequence someone performs in order.</li></ul>',
+
+    '      <div class="card"><p class="ledname">The card&#8217;s subject</p>\n'
+    '        <dl><dt>The question it answers</dt>\n'
+    '          <dd>and the answer, in a sentence.</dd></dl>\n'
+    '        <p class="verdict">The one line to carry away. Page 00.</p></div>',
+
+    '      <div class="vows">\n'
+    '        <div class="vow"><span class="vn">01</span>'
+    '<p class="vt">The commitment, named</p>\n'
+    '          <p class="vw">What it means in practice, and what it '
+    'rules out.</p></div>\n'
+    '        <div class="vow"><span class="vn">02</span>'
+    '<p class="vt">A second commitment</p>\n'
+    '          <p class="vw">Its consequence, stated the same way.</p></div>\n'
+    '      </div>',
 
     '      <div class="band">'
     '<div><span class="k">Label</span><div class="v">41<span class="u">%</span>'
@@ -346,7 +374,8 @@ def main(argv):
     <div class="attrs">
       <div><span class="k">Label</span><span class="v">value</span></div>
     </div>
-    <p class="colophon">Built with lumi-style VERSION.</p>
+    <p class="colophon">Built with lumi-style VERSION &#183; source: WHERE THE
+    NUMBERS CAME FROM.</p>
   </div>
   {foot(total, total)}
 </section>''')
