@@ -13,8 +13,9 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-001 · T1-deck fails on both scored conformance agents
 
-- status: open
+- status: fixed
 - opened: 0.1.422
+- closed: 0.1.434
 - surface: conformance/CONFORMANCE.md, references/storyline-templates.md,
   scripts/check_prose.py, tokens/lumi-layouts.css (historical)
 - symptom: both agents ever scored (Claude Code, Cursor) fail the T1-deck
@@ -28,10 +29,11 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   are agent-capability (unfit title reserves, inline role overrides, an
   overfull closing page shipped against the agent's own screenshot, a
   1-unit descender clip, one unsourced page).
-- check: re-run T1-deck ONLY (T2/T3 pass) on ≥2 agents against current main,
-  score with run_conformance.py, record via report --record. The frozen
-  artifacts cannot flip by any repo edit; the verdict must be re-earned.
-  Cursor is hand-driven — the re-run needs the operator.
+- check: EXECUTED 2026-08-13 — T1 re-run on both agents against the 0.1.433
+  rules: Cursor hand-driven by the operator (pass), Claude Code driven clean
+  with the skill (pass; T2/T3 also pass). Scored with run_conformance.py,
+  recorded via report --record (history rows pin skill 0.1.433); the
+  scoreboard renders the current-skill runs and names the superseded ones.
 
 ## GAP-003 · The conformance history's producer path has no automated test
 

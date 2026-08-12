@@ -3,6 +3,34 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.434 — GAP-001 closes: both agents pass T1-deck against the rules that fixed it
+
+The verdict is re-earned, not re-argued. T1-deck was re-run on both scored
+agents against the 0.1.433 rules: **Cursor, hand-driven by the operator —
+pass**; **Claude Code, driven clean with the skill — pass** (T2 and T3 also
+pass, giving that row all three tasks). Scored with `run_conformance.py`,
+recorded with `report --record`; the history rows pin skill 0.1.433, which
+is what lets this closure say precisely what was measured against what.
+**GAP-001 → fixed**, one diagnosis and one re-run after it was opened — the
+ledger's second full entry-to-closure cycle.
+
+**The scoreboard now renders the current-skill runs** and names the
+2026-08-08/09 runs as superseded: they measured a skill that shipped a
+colliding media block in its own tokens until 0.1.380, with instruments
+added after the decks were built (the GAP-001 diagnosis). Merging them into
+the current cells produced "3 runs UNSTABLE" — a true sentence about mixed
+skill versions misread as agent flakiness — so the table answers "does the
+CURRENT skill conform" and `history.json` keeps every row with its version.
+IDEA-8 (a score row pins its instruments) remains the structural fix.
+
+**Operator observations recorded** (review protocol input, not rules):
+Cursor needed multiple repair rounds before its deck passed — first-pass
+yield is a real cost the scoreboard does not yet see; and the clean Claude
+Code run's own verification loop caught and fixed four layout defects and
+one prose-frame failure before delivery, which is the pre-delivery gate
+doing its job. The operator's read: "basically in place; small issues to
+optimize later."
+
 ## 0.1.433 — the ledgers do their first real work: GAP-001 diagnosed, GAP-003 closed, and the backlog audited
 
 The post-merge sweep of everything the ledgers held, driven by the owner's
