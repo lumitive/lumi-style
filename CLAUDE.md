@@ -288,6 +288,18 @@ repo itself.)
      is a stamp, and is in `ENTRY_STAMP`.
 
    Commit messages follow `X.Y.Z — comma-separated summary of the rule changes`.
+   **A branch carrying several releases is MERGED, not squashed** — and if it
+   is squashed, its subject takes the NEWEST version, never the range and
+   never the PR title. Two independent pieces of this repo's machinery assume
+   one commit per release: `check_commit_convention` holds a
+   CHANGELOG-touching subject to `X.Y.Z — summary` *and* to the newest heading
+   in that same commit, and `check_evidence.py --init` finds the previous
+   release by looking for a commit whose subject starts with it. Squashing
+   PR #94 put `0.1.443–0.1.447` — a title written before the branch's last
+   release — on a tree whose CHANGELOG said 0.1.448: main's own CI went red on
+   the merge, and the next release could not compute its diff base. Set the
+   subject at merge time (`gh pr merge --subject`) and read it against the
+   CHANGELOG before pressing it.
 
 4. **A number in a rule states whether it is a floor, a ceiling, or a target.**
    This repo has now shipped three regressions from the same root: 0.1.332's

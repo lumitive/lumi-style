@@ -3,6 +3,30 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.449 — the squash subject is a release subject, and main's own CI said so
+
+Merging the retrospective series turned main red on the commit that landed
+it. `check_commit_convention` holds a CHANGELOG-touching commit's subject to
+`X.Y.Z — summary` AND to the newest heading in that same commit; a squash
+merge inherits the PR title, and PR #94's title was written before the branch
+shipped its last release, so `0.1.443–0.1.447` arrived on a tree whose
+CHANGELOG said 0.1.448. Both halves of the guard fired, correctly, on main.
+
+**And the subject was the smaller half.** `check_evidence.py --init` finds the
+previous release by looking for a commit whose subject starts with that
+version — and squashing collapsed eight release commits into one, so 0.1.449
+could not compute its own diff base and had to be told the squash commit by
+hand. The release machinery here assumes one commit per release, in two
+independent places, and a squash of a multi-release branch breaks both.
+
+So rule 3 now says both things: a squash merge takes the NEWEST version in
+its subject — not the range it covers, not the PR title, which is stale by
+construction if the branch shipped after it was written — and a branch
+carrying several releases is better merged than squashed, because the
+per-release commits are what the evidence gate walks. Recorded because the
+failure is invisible until it is on main, where fixing it costs a release
+rather than an amend: `main` forbids force pushes, which is right.
+
 ## 0.1.448 — a five-lens review of the retrospective, and the checks it added get checked
 
 Five specialist reviews over 0.1.443–0.1.447 (general, silent-failure,

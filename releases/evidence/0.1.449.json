@@ -1,0 +1,9 @@
+{
+  "version": "0.1.449",
+  "diff_base": "40d5ad3",
+  "spec": "",
+  "obligations": [],
+  "checks": [],
+  "waivers": [],
+  "note": "diff_base is the SQUASH commit that landed 0.1.443-0.1.448. --init could not resolve it: it looks for a commit whose subject starts with the previous version, and squashing collapsed eight release commits into one titled with a stale range. That is the second thing the squash broke and the reason 0.1.449 records the convention."
+}
