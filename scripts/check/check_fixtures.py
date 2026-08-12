@@ -28,7 +28,8 @@ import pathlib
 import subprocess
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 
 # --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
 # Bare-name sibling imports must resolve from any drawer depth: walk up to

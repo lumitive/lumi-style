@@ -36,7 +36,8 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 import color_math  # noqa: E402 — after the bootstrap, deliberately
 from css_tokens import css_block, css_vars  # noqa: E402, F401 — css_block is API for tests/tools
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 
 # CJK is permitted only where it is rule *data* for Chinese-language output.
 # Anywhere else it breaks the English-only repository red line.
@@ -472,7 +473,7 @@ PROBE_NOT_SHIPPED = {
     "who": "an attribution line; a document's own furniture.",
 }
 
-# The class-carrying lists inside scripts/inspect_layout.py, by kind. Read out of
+# The class-carrying lists inside scripts/check/inspect_layout.py, by kind. Read out of
 # the source with ast.parse and a regex and NEVER by importing it: importing to
 # inspect it is how a guard ends up running the thing it is checking.
 # `TSEL` became `TEXT_SEL` in 0.1.373 when the collision scan and the new
@@ -488,7 +489,7 @@ PROBE_CENSUS_LISTS = ("CENTER", "INK", "TEXT_SEL", "DSEL", "VIS")
 
 def _probe_sources():
     """The two probe strings from inspect_layout.py, or an explanatory failure."""
-    tree = ast.parse((ROOT / "scripts/inspect_layout.py").read_text(encoding="utf-8"))
+    tree = ast.parse((ROOT / "scripts/check/inspect_layout.py").read_text(encoding="utf-8"))
     out = {}
     for node in tree.body:
         if (isinstance(node, ast.Assign) and isinstance(node.value, ast.Constant)
@@ -518,7 +519,7 @@ def _prose_wrappers():
     The tuple is a literal inside `extract()`, so this walks the function body
     rather than the module's top level.
     """
-    tree = ast.parse((ROOT / "scripts/check_prose.py").read_text(encoding="utf-8"))
+    tree = ast.parse((ROOT / "scripts/check/check_prose.py").read_text(encoding="utf-8"))
     for node in ast.walk(tree):
         if not isinstance(node, ast.For) or not isinstance(node.target, ast.Tuple):
             continue
@@ -545,7 +546,7 @@ def _design_visual_blocks():
     guard that covers one of two callers is a guard with a blind spot the
     shape of the other", with the caller count corrected upward once again.
     """
-    tree = ast.parse((ROOT / "scripts/check_design.py").read_text(encoding="utf-8"))
+    tree = ast.parse((ROOT / "scripts/check/check_design.py").read_text(encoding="utf-8"))
     for node in tree.body:
         if (isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name)
                 and node.targets[0].id == "VISUAL_BLOCKS"):
@@ -774,7 +775,7 @@ def check_layout_parity():
     try:
         css = "".join(_css_without_comments(p.read_text(encoding="utf-8"))
                       for p in sorted((ROOT / "tokens").glob("*.css")))
-        tree = ast.parse((ROOT / "scripts/check_design.py").read_text(encoding="utf-8"))
+        tree = ast.parse((ROOT / "scripts/check/check_design.py").read_text(encoding="utf-8"))
     except (OSError, SyntaxError) as exc:                   # noqa: BLE001
         return [f"could not compare the layout lists: {exc}"]
 
@@ -838,7 +839,7 @@ def _script_ban_phrases():
 
     Parsed rather than imported: this guard must not execute the other script.
     """
-    tree = ast.parse((ROOT / "scripts/check_prose.py").read_text(encoding="utf-8"))
+    tree = ast.parse((ROOT / "scripts/check/check_prose.py").read_text(encoding="utf-8"))
     matched, waived = set(), set()
     for node in tree.body:
         if not isinstance(node, ast.Assign):
@@ -929,7 +930,7 @@ def check_zh_ban_list_parity():
             raise ValueError("could not locate the qualified ban in section 2")
         rules.add(qualified.group(1))
 
-        src = (ROOT / "scripts/check_prose.py").read_text(encoding="utf-8")
+        src = (ROOT / "scripts/check/check_prose.py").read_text(encoding="utf-8")
         tree = ast.parse(src)
         script = None
         for node in ast.walk(tree):
@@ -979,7 +980,7 @@ def check_source_marker_parity():
         # Each marker is the first backticked token on its own bullet.
         rules = {m.group(1).strip().lower()
                  for m in re.finditer(r"^\s*-\s+`([^`]+)`", rule6.group(0), re.M)}
-        src = (ROOT / "scripts/check_prose.py").read_text(encoding="utf-8")
+        src = (ROOT / "scripts/check/check_prose.py").read_text(encoding="utf-8")
         tree = ast.parse(src)
         script = None
         for node in ast.walk(tree):

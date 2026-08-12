@@ -17,7 +17,7 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 - opened: 0.1.422
 - closed: 0.1.434
 - surface: conformance/CONFORMANCE.md, references/storyline-templates.md,
-  scripts/check_prose.py, tokens/lumi-layouts.css (historical)
+  scripts/check/check_prose.py, tokens/lumi-layouts.css (historical)
 - symptom: both agents ever scored (Claude Code, Cursor) fail the T1-deck
   task. DIAGNOSED at 0.1.433 by reproducing every verdict: the dominant
   failure (collision, both agents) was the skill's own window-keyed media
@@ -58,12 +58,12 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 - status: fixed
 - opened: 0.1.422
 - closed: 0.1.425
-- surface: scripts/inspect_layout.py, scripts/check_prose.py,
-  scripts/check_design.py, scripts/check_globe.py, scripts/run_conformance.py
+- surface: scripts/check/inspect_layout.py, scripts/check/check_prose.py,
+  scripts/check/check_design.py, scripts/check/check_globe.py, scripts/run_conformance.py
 - symptom: the layout gates, full-deliverable prose/design modes, the globe's
   JS half and conformance runs need a browser or an operator; their results
   were recorded as sentences in release notes — claims, not evidence. 0.1.415
   reported "all gates green" on eight of seventeen.
-- check: python3 scripts/check_evidence.py --check (red in CI since 0.1.425:
+- check: python3 scripts/check/check_evidence.py --check (red in CI since 0.1.425:
   an operator check is a recorded execution with a digest, or the release
   does not ship)

@@ -13,10 +13,10 @@ sync, and recording changes in the changelog.
 
 ```bash
 python3 scripts/preflight.py             # run EXACTLY what CI runs, read from ci.yml
-python3 scripts/check_repo.py            # repo invariants; exit 1 on any failure
-python3 scripts/check_prose.py <file>    # AI-flavor metrics (M4, M8-M11) on a deliverable
-python3 scripts/check_design.py <file>   # design metrics (D1-D17) on a deliverable
-python3 scripts/inspect_layout.py <file> # render a deliverable and report what the layout does
+python3 scripts/check/check_repo.py            # repo invariants; exit 1 on any failure
+python3 scripts/check/check_prose.py <file>    # AI-flavor metrics (M4, M8-M11) on a deliverable
+python3 scripts/check/check_design.py <file>   # design metrics (D1-D17) on a deliverable
+python3 scripts/check/inspect_layout.py <file> # render a deliverable and report what the layout does
 python3 scripts/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
 python3 scripts/output_dir.py            # where a deliverable belongs; --create needs the user's say-so
 python3 scripts/new_deck.py              # emit a deck skeleton that already renders, in the standard order
@@ -28,13 +28,13 @@ python3 scripts/build/build_region_palette.py  # region hues; --selftest asserts
 python3 scripts/render/globe_svg.py             # one static SVG frame of the globe
 python3 scripts/render/regionmap_svg.py         # the flat region map, labels from the registry
 python3 scripts/build/embed_regionmap.py       # the map runtime as one inline <script>
-python3 scripts/check_globe.py           # globe maths + the JS port (needs Playwright)
+python3 scripts/check/check_globe.py           # globe maths + the JS port (needs Playwright)
 python3 scripts/build/embed_globe.py           # the globe runtime as one inline <script>
 python3 scripts/build/build_entrypoints.py     # regenerate every per-platform artifact; --check in CI
 python3 scripts/build/build_fixtures.py        # regenerate the tracked test fixtures; --check in CI
-python3 scripts/check_fixtures.py        # run the checkers against the fixtures and assert verdicts
-python3 scripts/check_js.py              # node --check over the 8 tracked .js files + 3 embedded probes
-python3 scripts/check_evidence.py        # --init | record --id X | --check: the evidence gate (see below)
+python3 scripts/check/check_fixtures.py        # run the checkers against the fixtures and assert verdicts
+python3 scripts/check/check_js.py              # node --check over the 8 tracked .js files + 3 embedded probes
+python3 scripts/check/check_evidence.py        # --init | record --id X | --check: the evidence gate (see below)
 python3 scripts/review_scores.py         # the six human dimensions over time; --check validates
 python3 scripts/run_conformance.py       # validate | detect | run | score | report [--record] (runs are local)
 python3 -m pytest -q                     # the test suite under tests/; gates in CI

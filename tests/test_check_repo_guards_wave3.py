@@ -23,7 +23,8 @@ import shutil
 import check_repo
 import lock as brand_lock
 
-REAL_SCRIPTS = pathlib.Path(check_repo.__file__).resolve().parent
+REAL_SCRIPTS = next(p for p in pathlib.Path(check_repo.__file__).resolve().parents
+                    if p.name == "scripts")
 
 DIMS = ["H1", "H2", "H3", "H4", "H5", "H6"]
 
@@ -94,8 +95,8 @@ def _layout_tree(tmp_path, css=None, design_src='LAYOUTS = {"hero", "split"}\n')
         # .body.no-lede is on the guard's exclusion list and must not be flagged.
         css = ".body.hero { padding: 0; }\n.body.split { padding: 0; }\n.body.no-lede { }\n"
     (tokens / "lumi-layouts.css").write_text(css, encoding="utf-8")
-    scripts = tmp_path / "scripts"
-    scripts.mkdir()
+    scripts = tmp_path / "scripts" / "check"
+    scripts.mkdir(parents=True)
     (scripts / "check_design.py").write_text(design_src, encoding="utf-8")
     return tmp_path
 
@@ -170,8 +171,8 @@ DEFAULT_ZH = [("值得注意的是", "值得注意的是"), ("综上所述", "�
 
 
 def _write_prose_script(tmp_path, banned=None, waived=None, zh=None, markers=None):
-    scripts = tmp_path / "scripts"
-    scripts.mkdir(exist_ok=True)
+    scripts = tmp_path / "scripts" / "check"
+    scripts.mkdir(parents=True, exist_ok=True)
     banned = DEFAULT_BANNED if banned is None else banned
     waived = {"in order to": "left to the reviewer"} if waived is None else waived
     zh = DEFAULT_ZH if zh is None else zh

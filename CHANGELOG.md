@@ -3,6 +3,31 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.439 — the checkers take their drawer, and a second invisible path shape gets a reader
+
+R3 of the audit (`specs/2026-08-13-audit-restructure-design.md`): the eight
+checkers — check_repo, check_evidence, check_js, check_fixtures,
+check_globe, check_design, check_prose, inspect_layout — move to
+`scripts/check/`. The registry's one `_DRAWER` knob turns, which is the
+0.1.437 dedupe paying out: two consumers followed without an edit.
+
+The move surfaced the same two families as R2, each caught mechanically:
+ROOT's `parent.parent` in all eight movers (fixed with the depth-agnostic
+walk), and `$SCRIPT_DIR`-prefixed shell references the string sweep cannot
+see (emergency_merge's trusted-check path, ci_wait's checker call — both
+fixed, the emergency destination now creates the check/ drawer). The
+synthetic guard tests' stub trees moved their fake checkers into the same
+drawer the guards now read, and one test derived the scripts root from
+check_repo's own location — made drawer-agnostic the same way ROOT was.
+The locked JS assets cited checker paths in comments; swept, re-embedded,
+re-locked with the reason recorded.
+
+Verified beyond the battery: the evidence gate DEMANDED layout-fixtures and
+globe-js for this diff (the moved TOUCH_MAP entries firing — an obligation
+that failed to appear for a moved trigger file would have been the
+stop-ship); PYTHONSAFEPATH runs green from the new path; the emergency
+closure test exercises the new layout end to end.
+
 ## 0.1.438 — twenty files change drawers, and every net the last release strung held
 
 R2 of the audit (`specs/2026-08-13-audit-restructure-design.md`):

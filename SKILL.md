@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.438"
+  version: "0.1.439"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -214,18 +214,18 @@ been removed; they now apply at step 4 instead of framing step 0.
 
    **Then measure rather than trust**, and this is where the gates live, because
    they belong after the making rather than inside it. `python3
-   scripts/inspect_layout.py <file>` renders the pages and builds a contact sheet;
+   scripts/check/inspect_layout.py <file>` renders the pages and builds a contact sheet;
    its design judgements gate nothing but it **exits 1 when a check could not be
    measured**, and those lines come before every green one. Run it again with
    **`--deliverable`**, which exits non-zero on the ten findings a rendered page
    can be wrong about decidably: collision, content spill, page height, hidden
    content, a wrapped footer, a viewBox that does not parse, a drawing clipped by
    its own viewBox, an overspent title reserve, a role split, a lost datum.
-   `python3 scripts/check_design.py <file>` reports D1–D17 and gates on three
+   `python3 scripts/check/check_design.py <file>` reports D1–D17 and gates on three
    things, none of them a design judgement: **D12**, the handling terms and origin
    every page owes (the terms open with the seal-red `shield` handling marker —
    the rendering ships in `tokens/`, the gate is the terms); **D14**, any slot
-   left for yourself; and **D15**, a file path in a footer. `python3 scripts/check_prose.py <file>` grades the English, and
+   left for yourself; and **D15**, a file path in a footer. `python3 scripts/check/check_prose.py <file>` grades the English, and
    **M12 fails on Chinese in text a reader sees** when the document declares
    English — a clean banned-phrase run is not a language pass.
    **A clean run is not a verified document. Look at the sheet.**

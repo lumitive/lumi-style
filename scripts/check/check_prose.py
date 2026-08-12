@@ -5,9 +5,9 @@ M1-M11 were described as "scriptable" for six versions while no script existed,
 so every AI-flavor rule was enforced by good intentions alone. This runs the
 machine-checkable half against a real file.
 
-    python3 scripts/check_prose.py deck.en.html [more files ...]
-    python3 scripts/check_prose.py --genre internal report.md   # skips M9
-    python3 scripts/check_prose.py --json deck.en.html
+    python3 scripts/check/check_prose.py deck.en.html [more files ...]
+    python3 scripts/check/check_prose.py --genre internal report.md   # skips M9
+    python3 scripts/check/check_prose.py --json deck.en.html
 
 Both output languages, since 0.1.390. English gets the full set; a document that
 declares `zh` gets the banned-phrase list and the punctuation pass (M4zh, M5) and
@@ -16,8 +16,8 @@ transfer to Chinese — and the de-translationese pass in writing-rules.md secti
 6b is recorded as NOT mechanized rather than approximated, because it is
 judgement about register.
 
-    python3 scripts/check_prose.py report.zh.html        # the Chinese path
-    python3 scripts/check_prose.py --lang zh report.html # when the file does not say
+    python3 scripts/check/check_prose.py report.zh.html        # the Chinese path
+    python3 scripts/check/check_prose.py --lang zh report.html # when the file does not say
 
 A Chinese document used to come back UNMEASURABLE, which was the real reason
 this file was English-only: the word splitter needs spaces, so every Chinese

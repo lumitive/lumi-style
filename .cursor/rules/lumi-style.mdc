@@ -2,7 +2,7 @@
 
 # LUMI Style — Cursor
 
-> **lumi-style 0.1.438.** This file points at the skill; it does not restate it. The rules live in [`SKILL.md`](../../SKILL.md) and [`references/`](../../references/), and on any conflict those win.
+> **lumi-style 0.1.439.** This file points at the skill; it does not restate it. The rules live in [`SKILL.md`](../../SKILL.md) and [`references/`](../../references/), and on any conflict those win.
 
 You are producing content in LUMI's design language and writing style.
 
@@ -25,4 +25,4 @@ You are producing content in LUMI's design language and writing style.
    figure;
 6. AI never signs; money/safety conclusions never come from a language model.
 
-**Measure rather than trust**: `python3 scripts/check_prose.py <file>` for English prose, `python3 scripts/check_design.py <file>` for any HTML, and `python3 scripts/inspect_layout.py <file>` to render the pages and look at them. Their design judgements gate nothing, but an unmeasurable check exits 1 and names what it could not find.
+**Measure rather than trust**: `python3 scripts/check/check_prose.py <file>` for English prose, `python3 scripts/check/check_design.py <file>` for any HTML, and `python3 scripts/check/inspect_layout.py <file>` to render the pages and look at them. Their design judgements gate nothing, but an unmeasurable check exits 1 and names what it could not find.

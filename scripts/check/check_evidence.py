@@ -2,9 +2,9 @@
 """The evidence gate: what CI cannot run must be EXECUTED and recorded,
 never narrated.
 
-    python3 scripts/check_evidence.py --init [<version>]   # write the skeleton
-    python3 scripts/check_evidence.py record --id <obligation>
-    python3 scripts/check_evidence.py --check [--warn]     # the CI step
+    python3 scripts/check/check_evidence.py --init [<version>]   # write the skeleton
+    python3 scripts/check/check_evidence.py record --id <obligation>
+    python3 scripts/check/check_evidence.py --check [--warn]     # the CI step
 
 WHY. Five of this package's checks need a browser or an operator; until
 0.1.424 their results were sentences in release notes — claims, not evidence
@@ -39,7 +39,8 @@ import subprocess
 import sys
 from typing import Any
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 EVIDENCE_DIR = ROOT / "releases" / "evidence"
 
 # How many releases the conformance history may trail head before a
@@ -54,11 +55,11 @@ CONFORMANCE_MIN_AGENTS = 2
 # fixture-targeted, executable by anyone with the named local dependencies.
 OBLIGATIONS: dict[str, tuple[str, str]] = {
     "layout-fixtures": (
-        "python3 scripts/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+        "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
         "the ten decidable layout gates on the passing fixture, in a real browser",
     ),
     "globe-js": (
-        "python3 scripts/check_globe.py",
+        "python3 scripts/check/check_globe.py",
         "the globe checks INCLUDING the browser half that CI cannot run",
     ),
     "conformance-freshness": (
@@ -72,7 +73,7 @@ OBLIGATIONS: dict[str, tuple[str, str]] = {
 TOUCH_MAP: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("tokens/", ("layout-fixtures", "conformance-freshness")),
     ("references/design-rules.md", ("layout-fixtures",)),
-    ("scripts/inspect_layout.py", ("layout-fixtures",)),
+    ("scripts/check/inspect_layout.py", ("layout-fixtures",)),
     ("fixtures/", ("layout-fixtures",)),
     ("assets/geo/", ("globe-js",)),
     ("assets/globe/", ("globe-js",)),
@@ -80,7 +81,7 @@ TOUCH_MAP: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("scripts/lib/geo_frame.py", ("globe-js",)),
     ("scripts/lib/geo_projection.py", ("globe-js",)),
     ("scripts/build/embed_globe.py", ("globe-js",)),
-    ("scripts/check_globe.py", ("globe-js",)),
+    ("scripts/check/check_globe.py", ("globe-js",)),
     ("SKILL.md", ("conformance-freshness",)),
     ("references/", ("conformance-freshness",)),
     ("prompts/", ("conformance-freshness",)),

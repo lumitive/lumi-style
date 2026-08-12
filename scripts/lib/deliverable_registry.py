@@ -18,7 +18,7 @@ _SCRIPTS = next(p for p in pathlib.Path(__file__).resolve().parents
 
 # kind -> script filename. The drawer prefix is added by checker_path, so a
 # future move edits _DRAWER alone.
-_DRAWER = ""  # becomes "check" when the checkers move drawers
+_DRAWER = "check"  # the checkers' drawer since the 0.1.439 move
 _SCRIPTS_BY_KIND = {
     "prose": "check_prose.py",
     "design": "check_design.py",

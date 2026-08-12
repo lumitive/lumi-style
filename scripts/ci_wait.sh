@@ -52,7 +52,7 @@ if [ "$STATUS" != "operational" ] && [ "$STATUS" != "unknown" ]; then
   echo "    Verifying locally instead — this answers whether the change is good,"
   echo "    which is a different question from whether the merge button is unlocked."
   echo
-  python3 "$SCRIPT_DIR/check_repo.py"
+  python3 "$SCRIPT_DIR/check/check_repo.py"
   RC=$?
   echo
   if [ "$RC" -eq 0 ]; then

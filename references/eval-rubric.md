@@ -45,7 +45,7 @@ have no Han character next to their punctuation.
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame (e.g. "Topic: clause") |
 | M12 | Visible CJK in an English deliverable | =0 — **gates** | Chinese in text a reader sees, when the document declares English by `lang`, filename or `--lang`. Quoted as data (`<code>`, `<pre>`, backticks) is exempt |
 
-## Design diagnostics D1–D17 (`scripts/check_design.py` — reported, never gating, three named exceptions)
+## Design diagnostics D1–D17 (`scripts/check/check_design.py` — reported, never gating, three named exceptions)
 
 | id | Metric | Target | Predicate |
 |---|---|---|---|
@@ -107,7 +107,7 @@ side (click-through must never measure relevance, because the metric rewards wha
 it exists to suppress); D7 was the same mistake in the design half.
 
 For anything that has to be rendered before it can be seen, use
-`scripts/inspect_layout.py`. Its real output is a contact sheet for a human to
+`scripts/check/inspect_layout.py`. Its real output is a contact sheet for a human to
 look at, and none of its **design** judgements gates.
 
 **`--deliverable` is the exception, and it is a pre-delivery step, not a repo

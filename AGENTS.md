@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.438.** This file restates part of `references/`; where they
+> **lumi-style 0.1.439.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -118,7 +118,7 @@ adapts to the reader's window and pixel density natively. State the source once 
 under the figure is the page's source and the footer carries the page number.
 
 **Rendered geometry decides, not declared CSS.** Run
-`python3 scripts/inspect_layout.py <file>` and look at the contact sheet it
+`python3 scripts/check/inspect_layout.py <file>` and look at the contact sheet it
 builds; before handing the file over, run it again with **`--deliverable`**,
 which exits non-zero on collision, content spill, page height, hidden content, a
 wrapped footer, an overspent title reserve, a role split and a lost datum. A clean run there is not
@@ -163,8 +163,8 @@ filenames, and pure-English runs). Then run the **mandatory de-AI-flavor pass**
 (`references/writing-rules.md` §6 — word, sentence and structural moves plus the
 two-pass audit; §6b de-translationese when the Chinese was translated from
 English), and only then the pre-delivery checklist in the rubric. Measure both
-halves rather than reading them: `python3 scripts/check_prose.py <file>` for
-English prose, and `python3 scripts/check_design.py <file>` for any HTML
+halves rather than reading them: `python3 scripts/check/check_prose.py <file>` for
+English prose, and `python3 scripts/check/check_design.py <file>` for any HTML
 deliverable. **D12, D14 and D15 gate; every other D-metric is reported for you to
 judge** — a page is done when a human reads it as intentional, and a threshold
 satisfiable without improving the page ends the looking. (This line claimed

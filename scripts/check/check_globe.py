@@ -7,9 +7,9 @@ comparison runs IN CI under bare node (projection.js is DOM-free maths);
 check_js.py syntax-parses every JS surface. There is still no package.json
 and no JS runner beyond node itself.
 
-    python3 scripts/check_globe.py --python-only --node  # the CI line:
+    python3 scripts/check/check_globe.py --python-only --node  # the CI line:
                                                   # maths + the port, no browser
-    python3 scripts/check_globe.py                 # also the browser checks
+    python3 scripts/check/check_globe.py                 # also the browser checks
                                                    # (renderer parity, painted
                                                    # ink); needs Playwright
 
@@ -63,7 +63,8 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import geo_projection as gp  # noqa: E402
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 GOLDEN = ROOT / "fixtures" / "globe-golden.json"
 JS = ROOT / "assets" / "geo" / "projection.js"
 JS_DATA = ROOT / "assets" / "geo" / "worlddata.js"
@@ -1223,7 +1224,7 @@ def check_ink_is_what_is_painted():
             "check is measuring nothing. Either the browser changed how a "
             "filter region enters getBBox, or the case needs rewriting")
 
-    src = (ROOT / "scripts" / "inspect_layout.py").read_text(encoding="utf-8")
+    src = (ROOT / "scripts" / "check" / "inspect_layout.py").read_text(encoding="utf-8")
     if "Math.max(r.top, bb.y * m.d + m.f)" not in src:
         errors.append(
             "inspect_layout's inkBox does not clamp getBBox to the element's "

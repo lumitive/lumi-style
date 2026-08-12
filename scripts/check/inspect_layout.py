@@ -34,10 +34,10 @@ anything could not be measured**. That is not a gate on the design; it is the
 difference between a probe that says nothing and a probe that says everything is
 fine. The judgements themselves still gate nothing.
 
-    python3 scripts/inspect_layout.py ~/Documents/LUMI-Style/deck.html
-    python3 scripts/inspect_layout.py ~/Documents/LUMI-Style/deck.html --geometry a4
-    python3 scripts/inspect_layout.py ~/Documents/LUMI-Style/deck.html --dark
-    python3 scripts/inspect_layout.py ~/Documents/LUMI-Style/deck.html --json
+    python3 scripts/check/inspect_layout.py ~/Documents/LUMI-Style/deck.html
+    python3 scripts/check/inspect_layout.py ~/Documents/LUMI-Style/deck.html --geometry a4
+    python3 scripts/check/inspect_layout.py ~/Documents/LUMI-Style/deck.html --dark
+    python3 scripts/check/inspect_layout.py ~/Documents/LUMI-Style/deck.html --json
 
 Needs Playwright with Chromium (`pip install pillow playwright && playwright
 install chromium`). Pillow is needed only for the ground contrast audit, which

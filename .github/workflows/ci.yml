@@ -49,7 +49,7 @@ jobs:
       # probe strings embedded in inspect_layout.py — parsed by `node --check`.
       # Until 0.1.416 neither had any syntax gate (0.1.414: "the guard shipped
       # in Python, the runtime is JavaScript").
-      - run: python3 scripts/check_js.py
+      - run: python3 scripts/check/check_js.py
       # Every vendored asset must stay byte-identical: a silent change would alter
       # the metrics or the marks of every deliverable that embeds it. The icons
       # and geography arrived in 0.1.338 under the same reasoning as the face.
@@ -64,7 +64,7 @@ jobs:
       # over the 1300-sample golden grid under bare node (projection.js is
       # DOM-free). The remaining browser checks (renderer parity, painted
       # ink) stay operator steps recorded via the evidence gate.
-      - run: python3 scripts/check_globe.py --python-only --node
+      - run: python3 scripts/check/check_globe.py --python-only --node
       - run: python3 scripts/build/embed_globe.py --check
       - run: python3 scripts/build/embed_regionmap.py --check
       # Ordering matters: a stale generated tree must report as stale rather
@@ -73,12 +73,12 @@ jobs:
       - run: python3 scripts/build/build_fixtures.py --check
       # The gates, tested. Runs after the staleness checks so a stale
       # fixture reports as stale rather than as a metric regression.
-      - run: python3 scripts/check_fixtures.py
+      - run: python3 scripts/check/check_fixtures.py
       # Parses the suite only. It cannot invoke an agent — no keys, no
       # network, no vendor SDKs — and must never look as though it did.
       - run: python3 scripts/run_conformance.py validate
       # What CI cannot execute must be recorded as an execution, not a
       # sentence (GAP-002, closed 0.1.425). Red since 0.1.425 after one
       # warn-only release proved every failure shape fires.
-      - run: python3 scripts/check_evidence.py --check
-      - run: python3 scripts/check_repo.py
+      - run: python3 scripts/check/check_evidence.py --check
+      - run: python3 scripts/check/check_repo.py

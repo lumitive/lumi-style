@@ -343,8 +343,8 @@ def test_region_coverage_missing_topology_fails(tmp_path, monkeypatch):
 
 def _probe_tree(tmp_path, monkeypatch, *, ink="p, h2, .band, .gd", extra_role="",
                 visual_blocks=("fig", "band"), waivers=None):
-    scripts = tmp_path / "scripts"
-    scripts.mkdir()
+    scripts = tmp_path / "scripts" / "check"
+    scripts.mkdir(parents=True)
     (scripts / "inspect_layout.py").write_text(
         'PROBE = """\n'
         "const CENTER = '.cover';\n"
