@@ -15,16 +15,29 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 - status: open
 - opened: 0.1.422
-- surface: conformance/CONFORMANCE.md, scripts/check_design.py, SKILL.md
+- surface: conformance/CONFORMANCE.md, references/storyline-templates.md,
+  scripts/check_prose.py, tokens/lumi-layouts.css (historical)
 - symptom: both agents ever scored (Claude Code, Cursor) fail the T1-deck
-  task — collision and layout-gate findings on the produced deck. The
-  scoreboard records it; nothing tracks it toward closure.
-- check: python3 scripts/run_conformance.py score --run <run-dir>
+  task. DIAGNOSED at 0.1.433 by reproducing every verdict: the dominant
+  failure (collision, both agents) was the skill's own window-keyed media
+  block in tokens/lumi-layouts.css — both decks copied it verbatim — removed
+  at 0.1.380, AFTER the decks were built; the instruments that see it
+  (0.1.368/0.1.385/0.1.390) also postdate the builds. Two live skill defects
+  found and fixed at 0.1.433: the [TO FILL] template-vs-D14 contradiction
+  and M6 counting enumeration labels as ranges. The five remaining findings
+  are agent-capability (unfit title reserves, inline role overrides, an
+  overfull closing page shipped against the agent's own screenshot, a
+  1-unit descender clip, one unsourced page).
+- check: re-run T1-deck ONLY (T2/T3 pass) on ≥2 agents against current main,
+  score with run_conformance.py, record via report --record. The frozen
+  artifacts cannot flip by any repo edit; the verdict must be re-earned.
+  Cursor is hand-driven — the re-run needs the operator.
 
 ## GAP-003 · The conformance history's producer path has no automated test
 
-- status: open
+- status: fixed
 - opened: 0.1.431
+- closed: 0.1.433
 - surface: scripts/run_conformance.py (report --record)
 - symptom: conformance_fresh() is tested against hand-written rows, but
   nothing tests that `report --record` produces rows of that shape — the
@@ -32,9 +45,11 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   one-sided producer/consumer contract is FM-07's shape. Mitigations that
   keep this a 5-not-an-8: `validate` schema-checks the history in CI, and a
   malformed or under-grouped row reads as stale (fail-closed).
-- check: a test driving report --record against a synthetic run directory
-  (needs the conformance registry stubbed; deferred with this note rather
-  than silently)
+- check: python3 -m pytest tests/test_record_producer.py — drives the real
+  main() against a synthetic ROOT (stubbed registry, task, run dir); closing
+  it found one defect: a corrupt scores.json crashed the report merge loop
+  with a traceback before the --record block's own does-not-parse guard could
+  fire, so that guard was unreachable (fixed with the test)
 
 ## GAP-002 · Five checks CI cannot run are verified by prose
 

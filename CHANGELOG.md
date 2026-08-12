@@ -3,6 +3,74 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.433 — the ledgers do their first real work: GAP-001 diagnosed, GAP-003 closed, and the backlog audited
+
+The post-merge sweep of everything the ledgers held, driven by the owner's
+"merge, then handle the leftovers" (owner directive, 2026-08-12; spec:
+`specs/2026-08-12-engineering-quality-design.md`).
+
+**GAP-001 diagnosed to root cause — and the dominant failure was the skill's
+own.** Every archived T1-deck verdict was reproduced with today's checkers.
+The collision failures on BOTH agents trace, causally (neutralizing the one
+block clears every collision; the rival hypotheses were falsified first), to
+a window-keyed media block that sat in `tokens/lumi-layouts.css` itself
+until 0.1.380 — both agents copied it verbatim, comment included. The decks
+were built at 0.1.364-0.1.371 and scored by instruments created at
+0.1.368-0.1.390: true verdicts about stale artifacts. Two LIVE skill defects
+found in the process, both fixed here as rule revisions with this diagnosis
+as their documented case:
+
+- `references/storyline-templates.md` mandated `[TO FILL]` contact slots
+  while D14 gates a finished document at zero placeholders — a fully
+  compliant agent could not satisfy both (Cursor obeyed the template to the
+  letter, caveat sentence included, and failed the gate for it). The closing
+  template now says: real contacts from the user, or omit the slots and name
+  the owning role in prose; brackets belong only in drafts.
+- `scripts/check_prose.py` M6 counted "Plastics (1–2)" — an enumeration
+  label naming resin types — as an unsourced numeric range. A dashed pair in
+  a short block carrying no figure-shaped number anywhere is now reported as
+  a label, never counted; anything with quantitative context still counts.
+  The Cursor deck's M6 goes to 0 on the truthful label; the broken fixture's
+  planted range still fails (coverage stays 34/34).
+- `references/design-rules.md` §7 still told authors to "provide
+  height-based media queries" off a `min-height:100svh` rationale that died
+  at 0.1.343 — the exact sentence both agents obeyed when they invented
+  their colliding blocks. It now says what the check proves (the fixed
+  stage SCALES) and bans window-keyed restyling of the stage's insides.
+
+The five remaining findings are agent-capability, not rule material
+(overspent title reserves against a stated ceiling, inline role overrides,
+an overfull closing page shipped against the agent's own screenshot, a
+1-unit descender clip, one unsourced page). GAP-001 stays OPEN with its
+closure step recorded: the frozen artifacts cannot flip by any repo edit —
+T1 must be re-run on ≥2 agents against current main and re-scored, and
+Cursor is hand-driven, so the re-run needs the operator. The diagnosis also
+seeded **IDEA-8** (a score row should pin its instruments: `task_hash` pins
+the question, nothing pins the ruler).
+
+**GAP-003 closed.** `tests/test_record_producer.py` drives the real
+`report --record` against a synthetic registry: one row per agent, digest
+pinning, idempotency, accumulation-not-overwrite. Closing it found the
+defect the ledger predicted category-wise: a corrupt scores.json crashed
+the report merge loop with a traceback BEFORE the --record block's own
+"does not parse" guard could fire — that guard was unreachable dead code,
+now reachable and tested.
+
+**Guard test waves 2 and 3**: the remaining fourteen `check_repo` guards
+get synthetic pass+fail trees (61 new tests; suite now 202). Wave 2 covers
+output-default through probe-vocabulary; wave 3 covers media-only through
+brand-lock, including the subprocess-delegating and import-delegating
+guards, each by the least-magic seam available.
+
+**The backlog audit.** Item-by-item verification against the tree found
+the restored survey mostly absorbed by later releases: IDEA-1 and IDEA-5
+shipped at 0.1.390 (`0145bfb`), IDEA-6's acceptance is the registry's
+`population_note` (the written-waiver branch), IDEA-7 shipped at 0.1.427.
+The one genuine survivor is IDEA-2 (Chinese as a supported output path).
+The status block now says so, with the correction itself recorded — a
+restored ledger that silently carries a stale state is drift wearing a
+ledger's clothes.
+
 ## 0.1.432 — a hash is not a name: the evidence gate survives its first rebase
 
 The first merge to `main` (PR #87, rebase-merged to keep the sixteen release

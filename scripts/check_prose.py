@@ -520,6 +520,7 @@ def measure(path, genre, lang=None):
     figures = sourced = 0
     m2_missing: list[str] = []
     m6_missing: list[str] = []
+    m6_labels: list[str] = []
     for page_text, blocks in windows:
         page_sourced = bool(SOURCE_RE.search(page_text))
         for block in blocks:
@@ -531,7 +532,17 @@ def measure(path, genre, lang=None):
                 m2_missing.append(block[:90])
             block_sourced = bool(SOURCE_RE.search(block))
             if not block_sourced:
-                m6_missing.extend(block[:90] for _ in NUMERIC_RANGE.findall(block))
+                for _ in NUMERIC_RANGE.findall(block):
+                    # A dashed pair in a SHORT block carrying no figure-shaped
+                    # number anywhere ("Plastics (1–2)." in a table cell) is an
+                    # enumeration label, not a data range — reported, never
+                    # counted. A conformance deck failed M6 on exactly that
+                    # truthful label (GAP-001). Errs toward counting: any %,
+                    # currency or longer prose context still counts.
+                    if len(block.strip()) <= 40 and not FIGURE_RE.search(block):
+                        m6_labels.append(block[:90])
+                    else:
+                        m6_missing.append(block[:90])
     m2_rate = 100.0 * sourced / figures if figures else None
 
     m1_missing = [t for t in titles if not _has_fact(t)]
@@ -560,6 +571,7 @@ def measure(path, genre, lang=None):
         "M2_detail": m2_missing,
         "M6_unsourced_ranges": len(m6_missing),
         "M6_detail": m6_missing,
+        "M6_label_enumerations": m6_labels,
         "M8_overlong_share": round(overlong, 1),
         "M8_length_cv": round(cv, 3),
         "M9_dashes": dashes if genre in ("sales", "training") else None,

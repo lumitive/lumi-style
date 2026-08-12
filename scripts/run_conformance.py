@@ -502,7 +502,16 @@ def main(argv):
         if not f.exists():
             print(f"FAIL  {f} does not exist; run `score --run {name}` first")
             return 1
-        for key, value in json.loads(f.read_text(encoding="utf-8")).items():
+        # Guarded here, at the first read, so a corrupt file is a verdict and
+        # not a traceback. The --record block below re-reads with its own
+        # guard, but this loop runs first, so an unguarded loads here made
+        # that guard unreachable — found by test_record_producer.py.
+        try:
+            scored_doc = json.loads(f.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            print(f"FAIL  {f} does not parse ({exc}); nothing reported")
+            return 1
+        for key, value in scored_doc.items():
             scored.setdefault(key, []).append(value)
     rows = []
     for a in agents:

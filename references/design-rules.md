@@ -764,11 +764,14 @@ A layout is verified only across the **matrix**, not at a point:
   guess there rather than an answer. It is a convenience, never the authority:
   the rule above is a literal path a `prompt`-tier model can write down unaided,
   and the script must agree with it.
-- **Viewport axis**: also check a short laptop window (e.g. 1000×550). Slides use
-  `min-height:100svh`, so an overflowing page pushes its footer below the fold
-  silently. **The footer rule and page number must be visible on every page at
-  every matrix point** — provide height-based media queries that step down type
-  and spacing.
+- **Viewport axis**: also check a short laptop window (e.g. 1000×550). The
+  landscape page is a fixed 1280×720 stage scaled by `zoom`, so the check
+  exists to prove the stage SCALES — do **not** add window-keyed
+  (`max-width`/`max-height`) media queries that restyle the inside of the
+  stage: a window-triggered reflow of a stage that never got narrower is how
+  both scored conformance decks shipped colliding pages (GAP-001; the tokens
+  themselves carried such a block until 0.1.380). **The footer rule and page
+  number must be visible on every page at every matrix point.**
 - Verified at one matrix point is not verified. Screenshot page by page; a
   defect found by the reader is a matrix point you skipped.
 - **Geometry axis (SVG).** `check_design.py` reads declared CSS and cannot see
