@@ -807,6 +807,18 @@ A layout is verified only across the **matrix**, not at a point:
   number must be visible on every page at every matrix point.**
 - Verified at one matrix point is not verified. Screenshot page by page; a
   defect found by the reader is a matrix point you skipped.
+- **Do not narrow the matrix on the command line.** `inspect_layout.py` already
+  reads `data-geometry` and runs the points that declaration implies — four for
+  a landscape deck, two for portrait. Passing a single `--geometry` overrides
+  that and turns the matrix off, which is how a 0.1.449 deliverable was verified
+  at 16:9 alone: its content-spill fix left one pixel of clearance under a gate
+  that fires above one, and one pixel is what a different geometry moves.
+  Narrow it only to reproduce a known defect, and run the full set again after
+  the fix.
+- **Palette axis.** `--dark` is a switch, not a matrix point: one run renders
+  one palette, so a deliverable that ships a dark variant is checked by running
+  the tool a second time. Nothing infers this — a `*.dark.*` filename is the
+  only thing that turns it on by itself.
 - **Geometry axis (SVG).** `check_design.py` reads declared CSS and cannot see
   rendered geometry, so figures need browser checks. Three, in this order,
   because each caught a defect the previous one missed:

@@ -74,6 +74,44 @@ ERROR_TAIL_LINES = 20
 STEP_SOURCES = ("run", "self-reported")
 
 
+def failing_verdicts(output: bytes):
+    """The checkers' own verdict names, out of a `--json` run. None if not JSON.
+
+    A tail of twenty lines is the right record of a crash and the wrong record
+    of a checker: every check script prints its thresholds LAST, so the tail of
+    a `--json` failure is the schema footer. The first third-party debug log
+    this package collected carried five errors, and three of them were that
+    footer — the log knew something had failed and could not say what, which is
+    the one thing it exists to say.
+
+    Two shapes, because the checkers have two. check_prose.py and
+    check_design.py print a LIST of per-file documents, each with its own
+    `verdicts`; inspect_layout.py prints one dict with `verdicts` at the top and
+    an `unmeasured` count beside it. `n/a` is not a failure — it means the
+    metric could not be graded, and inspect_layout distinguishes it on purpose.
+    """
+    try:
+        doc = json.loads(output.decode("utf-8", "replace"))
+    except (ValueError, UnicodeDecodeError):
+        return None
+    found: list[str] = []
+    for report in (doc if isinstance(doc, list) else [doc]):
+        if not isinstance(report, dict):
+            continue
+        name = report.get("file", "")
+        # An UNMEASURABLE file has no verdicts at all and still exits nonzero.
+        # Saying so is the point; check_design drops such a file from the JSON
+        # entirely, so "nonzero with nothing failing" is a real answer.
+        if report.get("unmeasurable"):
+            found.append(f"{name}: unmeasurable — {report['unmeasurable']}")
+        for metric, verdict in (report.get("verdicts") or {}).items():
+            if verdict not in ("ok", "n/a"):
+                found.append(f"{name + ': ' if name else ''}{metric} {verdict}")
+        if report.get("unmeasured"):
+            found.append(f"{report['unmeasured']} check(s) could not be measured")
+    return found
+
+
 def _now():
     return datetime.datetime.now(datetime.UTC).isoformat(timespec="seconds")
 
@@ -250,7 +288,19 @@ def cmd_run(args):
         tail = (proc.stdout + proc.stderr).decode("utf-8", "replace").strip()
         tail = "\n".join(tail.splitlines()[-ERROR_TAIL_LINES:])
         entry["tail"] = tail
-        err = {"stage": label, "message": tail, "date": entry["date"]}
+        # A CHECKER SAYS WHICH CHECK FAILED, and the tail does not. Fall back
+        # to the tail whenever the output is not the JSON we can read: a crash,
+        # a run without --json, a tool that is not one of ours.
+        verdicts = failing_verdicts(proc.stdout)
+        if verdicts is None:
+            message = tail
+        elif verdicts:
+            entry["failing"] = verdicts
+            message = "; ".join(verdicts)
+        else:
+            message = (f"exit {proc.returncode} and no failing verdict in the "
+                       f"output — read the run itself")
+        err = {"stage": label, "message": message, "date": entry["date"]}
 
     def append(log):
         log["commands"].append(entry)

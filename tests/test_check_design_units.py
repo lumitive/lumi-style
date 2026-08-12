@@ -182,3 +182,43 @@ def test_d19_a_complete_card_passes():
     raw = _doc(page_body='<div class="card"><p class="ledname">Subject</p>'
                          '<p class="verdict">The line to carry away.</p></div>')
     assert check_design.d19_vocabulary(raw)["bad_blocks"] == []
+
+
+# d19's fourth assertion — a mark obliges a runtime, and only that direction.
+
+GLOBE = '<div class="markcell" data-globe><svg class="gl"><path/></svg></div>'
+RUNTIME = "<script>function createGlobe(el, opts) { return null; }</script>"
+
+
+def test_d19_a_globe_mark_without_the_runtime_fails():
+    # The shipped defect: a build script harvested the runtime out of a fixture
+    # with a regex, matched nothing, and emitted an empty <script></script>.
+    # Two cover/closing marks, no createGlobe, three checkers green.
+    raw = _doc(page_body=GLOBE) + "<script></script>"
+    assert check_design.d19_vocabulary(raw)["globe_no_runtime"] is True
+
+
+def test_d19_a_globe_mark_with_the_runtime_passes():
+    raw = _doc(page_body=GLOBE) + RUNTIME
+    assert check_design.d19_vocabulary(raw)["globe_no_runtime"] is False
+
+
+def test_d19_a_globe_drawing_without_the_mark_does_not_fail():
+    # THE DIRECTION IS THE POINT, and this test is here to stop anyone
+    # reversing it. fixtures/deck-pass.en.html carries the brand globe with no
+    # data-globe and no runtime on purpose; asserting "a drawing obliges a
+    # mark" would fail this package's own passing fixture on its first run.
+    raw = _doc(page_body='<div class="markcell"><svg class="gl"><path/></svg></div>')
+    vo = check_design.d19_vocabulary(raw)
+    assert vo["globe_no_runtime"] is False
+    assert vo["globe_marks"] == 0
+
+
+def test_d19_a_cover_globe_without_the_mark_is_reported_not_graded():
+    raw = ('<!doctype html><html><head><title>T</title></head><body>'
+           '<section class="page cover" id="cover">'
+           '<div class="markcell"><svg class="gl"><path/></svg></div>'
+           f"{FOOT}</section></body></html>")
+    vo = check_design.d19_vocabulary(raw)
+    assert vo["globe_marks_missing_hook"] == ["cover"]
+    assert vo["globe_no_runtime"] is False   # reported; it must not gate

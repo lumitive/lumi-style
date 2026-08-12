@@ -162,6 +162,15 @@ LUMI's own seed survives as group 8.
    rather than a data range ("Plastics (1–2)" naming resin types) is not a
    range figure; the machine reports such labels and counts only pairs with
    quantitative context (GAP-001 found the overreach on a truthful label).
+   **The test is what the numbers do, not how short the sentence is.** A
+   counting noun in front of the pair — blocks 1–3, rows 4–9, steps 2–4 — means
+   the numbers identify things; a percentage or a currency amount anywhere in
+   the block means they measure, and that counts however it is worded. The
+   machine carried a forty-character length proxy for this instead, and the
+   proxy let go twice: it was written for the short label above, then it failed
+   "Answer confirmation questions in blocks 1–3 and cross-region" in a shipped
+   deliverable, whose author reworded a correct sentence to get past it.
+   Length is a backstop here now, not the judgement (FM-13).
 
    A document with no page structure — Markdown, a plain report — has one page,
    so the window is the document.

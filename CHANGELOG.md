@@ -3,6 +3,108 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.451 — a third-party debug log, read: a dead globe nothing gated, and a length standing in for a rule
+
+The owner built a deliverable on another platform under debug mode on 0.1.449
+and handed over the log. It is the first execution record this package has from
+an agent it did not drive, and reading it — plus one defect the owner found by
+eye — produced four repository defects and one new gate. The decisions, and the
+two that were declined, are in
+`specs/2026-08-13-third-party-debug-log-design.md`.
+
+**The mark that does not turn is now a failed check.** The cover and closing
+globes on that deliverable were still frames. The document carried
+`[data-globe]` on both and no runtime at all: the build script had tried to
+harvest the runtime out of `fixtures/deck-pass.en.html` with a regex, matched
+nothing — that fixture carries the drawing and deliberately carries no script —
+and emitted an empty `<script></script>`. All three checkers passed it. The
+brand contract has said since 0.1.442 that this mark is "embedded live … so it
+rotates" and that a still globe is the fallback, not the design, and nothing
+enforced it.
+
+`data-globe` is a reference: it is the runtime's selector and nothing else
+reads it. So this is **D19's fourth assertion**, next to an icon `<use>`
+pointing at no symbol — a reference that does not resolve inside the document
+it appears in. Motion is not measured and could not be; the runtime is in the
+file or it is not, and `createGlobe` is the same word `embed_globe.py`'s own
+`check()` looks for, read from the other end rather than spelled a second way.
+
+*The direction is the whole design.* A MARK obliges a RUNTIME, never the
+reverse. Asserting that a globe drawing obliges `data-globe` would have failed
+`fixtures/deck-pass.en.html` on its first run — the mistake D19's own first cut
+and the withdrawn `_grid_arity` both made. A cover globe with no mark is
+reported instead. Deliberate-red: the owner's deliverable fails the new
+assertion (`D19_vocabulary 1`, exit 1) where it exited 0 before; a healthy
+deliverable with its runtime stripped fails; the same file untouched passes;
+`fixtures/deck-pass.en.html` passes. Four unit tests, one of which exists only
+to stop someone reversing the direction later.
+
+`SKILL.md`'s assembly protocol now says the runtime is **built, never
+harvested** — and names why the merge gate missed it: that gate refuses
+leftover placeholders, and a substitution resolving to the empty string is not
+a leftover.
+
+**M6 counted a truthful sentence, and its author reworded a correct line to get
+past it.** "Answer confirmation questions in blocks 1–3 and cross-region" is an
+enumeration label — the numbers identify blocks, they do not measure anything.
+The script exempted such labels by asking whether the block was 40 characters
+or fewer. `writing-rules.md` §4 rule 6 has never mentioned a length: it asks
+whether the pair has quantitative context. The proxy let go twice in one
+metric — it was written for GAP-001's short label, then it counted this
+61-character sentence.
+
+The test is semantic now: a figure-shaped number anywhere in the block counts
+(that branch stays first, or the one fixture that fails M6 stops failing it); a
+counting noun in front of the pair reads as a label; length survives only as a
+backstop under both, which is what still catches a bare `Plastics (1–2).` cell.
+The rules state the test, `references/eval-rubric.md` restates it, and
+`check_prose.py` now prints what it exempted — the list existed in the JSON and
+was never shown, so an author could not tell a range that passed from a range
+this metric never saw. Deliberate-red: the label was planted in
+`fixtures/deck-pass.en.html` through the generator first, the passing fixture
+went `M6_unsourced_ranges FAIL` on a correct sentence, and the new
+classification returned it to `ok` while `deck-degenerate.en.html` kept failing
+on its unsourced `62–78%`. Seven unit tests in a new
+`tests/test_check_prose_units.py`; there had been none for this script.
+
+**Debug mode recorded five errors and three of them said nothing.** A nonzero
+exit writes its own error entry from the last twenty lines of output — right
+for a crash, wrong for a checker, because every check script prints its
+thresholds last, so the tail of a `--json` failure is the schema footer. The
+log knew something had failed and could not say what, which is the one thing it
+exists to say. `debug_log.py` now parses the output when it is JSON and records
+the verdicts that are not `ok`, in both shapes the checkers emit — a list of
+per-file documents, or one dict with `verdicts` at the top — falling back to the
+tail for anything it cannot read. `n/a` is not a failure, and "nonzero with
+nothing failing" says so rather than printing a blank. Re-running the owner's
+own failing command through it turns twenty lines of thresholds into
+`D19_vocabulary FAIL`. Four tests, including the non-JSON fallback.
+
+**Two failure modes recorded, both visible only because the log kept
+snapshots.** `FM-12` — removing 36 em dashes to satisfy M9 drove M11 title
+uniformity from 40.0 to 56.0 against a ceiling of 60.0; the dashes had been
+carrying the structural variety in the titles, three checkers reported green,
+and none of them mentioned that one fix had spent sixteen points of a
+neighbour's margin. `FM-13` — a threshold standing in for the rule's own test,
+which is M6 above, and the reason a false positive that edits prose is worse
+than a miss.
+
+**The matrix was switched off from the command line.** That deliverable was
+checked at 16:9 alone, and its content-spill fix left one pixel of clearance
+under a gate that fires above one pixel. `inspect_layout.py` already runs the
+points a document's `data-geometry` implies — four for landscape, two for
+portrait; passing a single `--geometry` overrides that. Its own help text had
+been advertising a default of three geometries since the default became five at
+0.1.390, which is the enumeration rot this repository keeps finding in itself.
+The rule is now "do not narrow the matrix", stated in `design-rules.md` §7 with
+a palette axis beside it — `--dark` is a second run, not a matrix point — and
+re-flowed into all three entry points. It is a rule and not a gate, by owner
+decision.
+
+Two stale counts fixed along the way: `SKILL.md` and `AGENTS.md` both said
+`check_design.py` gates on three things and listed D12, D14 and D15. D19 has
+gated since 0.1.443.
+
 ## 0.1.450 — the board is re-earned after fifteen releases, and three of its own instruments were wrong
 
 Two debts the 0.1.443–0.1.449 series left open, both discharged, and the work

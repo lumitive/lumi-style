@@ -276,3 +276,60 @@ def test_a_missing_or_damaged_log_fails_with_a_line_not_a_traceback(tmp_path):
     damaged.write_text('{"debug_log": "1", "commands": [')
     with pytest.raises(SystemExit):
         debug_log.main(["validate", str(damaged)])
+
+
+# What a FAILING CHECKER records. The tail of a --json run is the threshold
+# footer every check script prints last, so the first third-party log this
+# package collected held five errors of which three said nothing at all.
+
+def _emit(payload, code=1):
+    """A fake checker: prints `payload` as JSON on stdout, then exits `code`."""
+    return [sys.executable, "-c",
+            f"import json; print(json.dumps({payload!r})); raise SystemExit({code})"]
+
+
+def test_a_failing_checker_records_which_check_failed(tmp_path, capsys):
+    # check_prose.py / check_design.py: a LIST of per-file documents.
+    doc = [{"file": "deck.en.html",
+            "verdicts": {"M4_banned_hits": "ok", "M6_unsourced_ranges": "FAIL",
+                         "M12_visible_cjk": "n/a"},
+            "targets": {"M6_unsourced_ranges": "=0"}}]
+    path = _init(tmp_path)
+    _run(path, *_emit(doc), label="check_prose")
+    log = _read(path)
+    message = log["errors"][0]["message"]
+    assert "M6_unsourced_ranges" in message
+    assert "M4_banned_hits" not in message, "an ok verdict is not a failure"
+    assert "M12_visible_cjk" not in message, "n/a means ungraded, not failed"
+    assert log["commands"][0]["failing"] == ["deck.en.html: M6_unsourced_ranges FAIL"]
+
+
+def test_a_failing_layout_run_records_its_verdicts_and_unmeasured(tmp_path, capsys):
+    # inspect_layout.py --deliverable --json: ONE dict, verdicts at the top.
+    doc = {"results": [], "unmeasured": 2,
+           "verdicts": {"collision": "ok", "content_spill": "FAIL"}}
+    path = _init(tmp_path)
+    _run(path, *_emit(doc), label="inspect")
+    message = _read(path)["errors"][0]["message"]
+    assert "content_spill" in message
+    assert "2 check(s) could not be measured" in message
+
+
+def test_a_nonzero_exit_with_no_failing_verdict_says_so(tmp_path, capsys):
+    # check_design drops an unmeasurable file from the JSON and still exits 1,
+    # so "nothing failed" is a real answer and must not read as an empty line.
+    path = _init(tmp_path)
+    _run(path, *_emit([]), label="check_design")
+    message = _read(path)["errors"][0]["message"]
+    assert "no failing verdict" in message
+
+
+def test_a_non_json_failure_still_records_its_tail(tmp_path, capsys):
+    # The fallback has to hold: a crash, or any tool that is not one of ours.
+    path = _init(tmp_path)
+    _run(path, sys.executable, "-c",
+         "import sys; print('Traceback: it died here', file=sys.stderr); "
+         "raise SystemExit(2)")
+    log = _read(path)
+    assert "it died here" in log["errors"][0]["message"]
+    assert "failing" not in log["commands"][0]

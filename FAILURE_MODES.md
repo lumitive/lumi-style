@@ -141,6 +141,42 @@ the 0.1.442 owner review's bold `.attrs .k` and one-line `.attrs .v` (verified
 on a shipped 16:9 deliverable, lost by the next build) and `.band .v .u`
 (every hand-built deliverable's DOC_CSS carried it; the tokens did not).
 
+## FM-12 · The fix that spent another metric's headroom
+
+- detection: a checker re-run after a fix reports the metric that was fixed and
+  nothing else, so a second metric moving toward its limit is invisible until
+  the release after it crosses
+- prevention: compare the WHOLE verdict set across the before and after runs,
+  not the metric under repair; debug mode's repeated `attach` snapshots exist
+  to make that diff possible, and a fix that moves a neighbour records the
+  movement in the same breath as the fix
+
+Shipped instances: 0.1.449, in the first third-party debug log — removing 36 em
+dashes to satisfy M9 (the sales dash ban) drove M11 title uniformity from 40.0
+to 56.0 against a ceiling of 60.0. The dashes had been carrying the structural
+variety in the titles. Three checkers reported green on the finished document
+and none of them mentioned that one fix had spent sixteen points of a different
+metric's margin.
+
+## FM-13 · A threshold standing in for the rule's own test
+
+- detection: the number the script decides on cannot be found anywhere in
+  `references/` — it is the author's proxy for a question the rules ask
+  semantically, and nothing holds the two together
+- prevention: write the semantic test the rules state; keep a threshold only as
+  a backstop under it, and say in the code that that is what it is. A proxy is
+  legitimate where no decidable test exists — but then the metric reports and
+  does not gate
+
+Shipped instances: M6's "a dashed pair in a block of 40 characters or fewer is
+an enumeration label". The rules say a label is a pair without quantitative
+context and never mention a length. The proxy let go twice in the same metric:
+it was written for GAP-001's short label, then in 0.1.449 it counted "Answer
+confirmation questions in blocks 1–3 and cross-region" — 61 characters, a
+truthful enumeration — and the author reworded a correct sentence to pass the
+gate. A false positive that edits prose is worse than a miss, because nothing
+downstream records that it happened.
+
 ---
 
 # Abandoned gates

@@ -45,7 +45,7 @@ have no Han character next to their punctuation.
 | M3 | Coined-term violations | =0 | occurrences of banned legacy coinages (substring exemptions apply) |
 | M4 | Banned AI-tell phrases | =0 | banned-phrase hits (fixed-collocation exemptions apply) |
 | M5 | Punctuation violations (zh) | =0 | half-width punctuation adjacent to CJK (code/pre/formula exempt) |
-| M6 | Unsourced range figures | =0 | range-shaped numbers with no source marker in their own BLOCK (writing-rules §4 rule 6) |
+| M6 | Unsourced range figures | =0 | range-shaped numbers with no source marker in their own BLOCK; an enumeration label ("blocks 1–3") is reported, not counted (writing-rules §4 rule 6) |
 | M7 | Term mixing | =0 | old and new names of one concept co-occurring |
 | M8 | Sentence-rhythm health (two-tailed) | overlong ≤8% **and** length CV ≥0.35 (decks included — never waived) | share of sentences past the length threshold, **and** the coefficient of variation of sentence length |
 | M9 | Em dashes in en sales/marketing | =0 | em/en dash characters outside code, data, and internal analysis documents |
@@ -305,4 +305,8 @@ stated list is either in the window or it is not. Both windows are defined in
 `writing-rules.md` §4 rule 6 rather than only in code, and `check_repo.py`'s
 `source-marker parity` guard holds the script's list to the rules' — the same
 discipline as the ban list, added because a metric that invents its own
-vocabulary is a second rule nobody wrote down.
+vocabulary is a second rule nobody wrote down. What M6 exempts is defined
+there too, and for the same reason: the script had been deciding "label or
+range" on a length nobody had written down, and it reworded a correct sentence
+in a shipped document before anyone noticed the rules never mentioned a length
+at all.

@@ -694,13 +694,14 @@ def _element_body(raw, match):
 def d19_vocabulary(raw):
     """Every reference in this document resolves inside this document.
 
-    **This gates.** Three assertions, none of them a judgement about a page:
+    **This gates.** Four assertions, none of them a judgement about a page:
 
     1. an icon `<use href="#x">` has a `<symbol id="x">` here;
     2. a block class is used with the children tokens/ renders it through;
-    3. a part opener carries `class="page opener"`.
+    3. a part opener carries `class="page opener"`;
+    4. a `[data-globe]` figure has the globe runtime in this document.
 
-    All three are what a deliverable got wrong while passing every other check
+    All four are what a deliverable got wrong while passing every other check
     in this file. The icon sprite lives in the reference fixture's BODY, so a
     document assembled by slicing its `<head>` carries none of it — thirteen
     pages of handling terms lost their seal-red shield, and nothing here could
@@ -711,6 +712,25 @@ def d19_vocabulary(raw):
     check_repo.py, which says a class a checker asserts must have a rendering in
     tokens/. The same sentence turned around: a class a DOCUMENT uses must have
     the rendering it is asking for, in the document that uses it.
+
+    The fourth assertion is the same defect one layer out. `data-globe` is the
+    runtime's selector and nothing else reads it, so the attribute is a
+    REFERENCE to a script that has to be in the document — and a `[data-globe]`
+    with no runtime is a `<use>` pointing at nothing, told in JavaScript. It
+    shipped: a deliverable built by a one-off script that harvested the runtime
+    out of a fixture with a regex, matched nothing, and emitted an empty
+    `<script></script>`; the cover and closing globes were still frames, all
+    three checkers passed it, and the brand contract says that mark is
+    "embedded live … so it rotates" (storyline-templates.md, owner directive).
+    Motion is not measurable here and is not what this asserts: the runtime is
+    either in the file or it is not.
+
+    **The direction matters.** A MARK obliges a RUNTIME, never the reverse. The
+    mirrored assertion — a globe drawing obliges `data-globe` — would fail
+    fixtures/deck-pass.en.html, which carries the drawing and deliberately
+    carries no runtime, and a gate whose first act is to fail this package's own
+    passing fixture is the mistake D19's first cut and `_grid_arity` both made.
+    A cover globe with no `data-globe` is reported instead, below.
     """
     # EVERY id, not just <symbol>. A <use> may reference any element — the page
     # ground is a <g id="g-ground"> and the icons are <symbol>s — so a check
@@ -748,9 +768,29 @@ def d19_vocabulary(raw):
             idm = re.search(r'id="([^"]*)"', attrs)
             openers.append(idm.group(1) if idm else "?")
 
+    # `createGlobe` is the word embed_globe.py's own check() looks for in the
+    # block it just built (scripts/build/embed_globe.py). One vocabulary, read
+    # from both ends — a second spelling here would be FM-04 in miniature.
+    marked = len(re.findall(r"\bdata-globe\b", raw))
+    globe_no_runtime = bool(marked) and "createGlobe" not in raw
+
+    # REPORTED, never counted. A cover or closing page drawing a globe with no
+    # data-globe on it is a brand-contract question (brand.md: the mark is
+    # embedded live), and the contract is not decidable from markup the way a
+    # missing runtime is — the page may be quoting the drawing on purpose.
+    still_marks = []
+    for cls, pid, body in _pages(raw):
+        if "cover" not in cls and "closing" not in cls:
+            continue
+        if re.search(r'<svg[^>]*class="[^"]*(?<![\w-])gl(?![\w-])', body) \
+                and "data-globe" not in body:
+            still_marks.append(pid)
+
     return {"symbols": len(symbols), "used": len(used), "dangling": dangling,
             "bad_blocks": bad_blocks, "bad_arity": [],
-            "openers_missing_class": openers}
+            "openers_missing_class": openers,
+            "globe_marks": marked, "globe_no_runtime": globe_no_runtime,
+            "globe_marks_missing_hook": still_marks}
 
 
 def d12_commercial_footer(raw, site=None):
@@ -1084,7 +1124,8 @@ def grade(r):
                  bool(fp) and not fp["found"], fp is None))
     vo = r["D19_vocabulary"]
     vo_bad = (len(vo["dangling"]) + len(vo["bad_blocks"]) + len(vo["bad_arity"])
-              + len(vo["openers_missing_class"])) if vo else None
+              + len(vo["openers_missing_class"])
+              + int(vo["globe_no_runtime"])) if vo else None
     rows.append(("D19_vocabulary", vo_bad, "=0 (gates)",
                  vo_bad == 0, vo is None))
     v = r["D9_layout_variety"]
@@ -1194,6 +1235,17 @@ def main(argv):
                     print("        this document carries NO <symbol> at all — the "
                           "sprite lives in the reference fixture's BODY, and a "
                           "document assembled from its <head> alone has none of it")
+            if vv["globe_no_runtime"]:
+                print(f"        {vv['globe_marks']} [data-globe] figure(s) and no "
+                      f"globe runtime in this document — the marks are still "
+                      f"frames; the assembler emits it with "
+                      f"scripts/build/embed_globe.py, it is never copied out of "
+                      f"another file")
+            if vv["globe_marks_missing_hook"]:
+                print(f"        reported, not graded: globe drawn without "
+                      f"data-globe on "
+                      f"{', '.join(vv['globe_marks_missing_hook'][:4])} — the "
+                      f"brand mark is embedded live on the cover and the closing")
             for cls, missing in vv["bad_blocks"][:5]:
                 print(f"        .{cls} is used without {', '.join('.' + m for m in missing)}"
                       f" — tokens/ renders it through those children, and without "
