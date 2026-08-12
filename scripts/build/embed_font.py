@@ -53,7 +53,13 @@ def check():
     return 1 if problems else 0
 
 
-def emit():
+def css():
+    """The @font-face block as a string, for callers that build documents.
+
+    new_deck.py inlines this into every scaffold: two 0.1.442-era deliverables
+    shipped with zero @font-face blocks and fell back to the system stack,
+    because embedding was a separate step an author had to remember.
+    """
     out = []
     for name, weight in FACES:
         data = base64.b64encode((FONTS / name).read_bytes()).decode("ascii")
@@ -61,7 +67,11 @@ def emit():
             f"@font-face{{font-family:'D-DIN';font-style:normal;font-weight:{weight};"
             f"font-display:swap;src:url(data:font/woff2;base64,{data}) format('woff2')}}"
         )
-    print("\n".join(out))
+    return "\n".join(out)
+
+
+def emit():
+    print(css())
     return 0
 
 

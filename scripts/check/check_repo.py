@@ -81,6 +81,8 @@ PALETTE_KEY_TO_VAR = {
     "data_red": "d-red",
     "data_teal": "d-teal",
     "card_bg": "card-bg",
+    "accent_live": "acc-live",
+    "accent_tint": "acc-tint",
 }
 PALETTE_NON_COLOR = {"ladder_base", "note", "text_ladder", "rule_ladder"}
 
@@ -331,6 +333,28 @@ def check_palette_parity():
                         f"tokens/lumi-theme.css: --{var} is {actual}, expected "
                         f"rgba({channels},{alpha}) for the {palette_name} {ladder} ladder"
                     )
+    # The reverse direction (0.1.443). This guard walked JSON→CSS only, so a
+    # colour the CSS defined and the JSON never heard of was invisible to it:
+    # --acc-live and --acc-tint shipped in the theme through dozens of releases
+    # while design-tokens.json, whose job is to mirror the palette, carried
+    # neither — and the 0.1.442 owner review traced a three-greens defect
+    # straight through that hole. Every colour-valued custom property the
+    # theme's palette blocks declare must be reachable from the JSON: through
+    # the key map or as a generated ladder step. A mirror runs both ways.
+    mapped_vars = set(PALETTE_KEY_TO_VAR.values())
+    ladder_step = re.compile(r"^(tx|ln)\d$")
+    colour = re.compile(r"^(#|rgba?\()")
+    for opener, palette_name in ((":root {", "light"), ("body.dark {", "dark")):
+        for var, value in css_vars(css_block(css, opener)).items():
+            if not colour.match(value.strip()):
+                continue
+            if var in mapped_vars or ladder_step.match(var):
+                continue
+            errors.append(
+                f"tokens/lumi-theme.css: --{var} ({palette_name}: {value}) is a "
+                f"colour design-tokens.json does not carry — the mirror runs "
+                f"both ways"
+            )
     errors.extend(_check_contrast_floor(tokens))
     return errors
 

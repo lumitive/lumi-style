@@ -80,6 +80,8 @@ references/design-rules.md        design language: color semantics · dual-voice
                                   five chart iron rules · semantic icons · layout
 references/eval-rubric.md         eval rubric M1–M12 / D1–D17 / H1–H6 + the review protocol
 tokens/                           design tokens (CSS + JSON): two ladders · palette · type · scale
+assets/brand                      LUMIVATE's locked marks — the field globe is the
+                                  default cover/closing mark, embedded live
 assets/fonts                      D-DIN, vendored (SIL OFL) — embed, never link
 assets/icons                      vendored Lucide library (ISC) + the reserved bindings, currentColor
 assets/vectors                    orthographic globe · flat trade map, generated from lat/lon
@@ -135,11 +137,12 @@ else.
 
 ## The design language in one line
 
-**Pure-white canvas (Apple space grey on request) · natural green as the single
-accent · China red for warnings only, amber for partial, brass for reference;
+**Pure-white canvas (Apple space grey on request) · one green meaning in two
+measured inks (forest as text, live green in figures) plus the lime as the
+event surface · China red for warnings only, amber for partial, brass for reference;
 a fixed 16:9 page and a fixed A4 sheet (the genre picks which leads — training
 leads with A4), handling terms behind a seal shield on every page, a cover and
-closing sharing one vector mark, a lime opener at every part boundary, one claim
+closing sharing the rotating LUMIVATE field globe, a lime opener at every part boundary, one claim
 per screen and one focal element on it, visual blocks carrying about half of
 every content page, numbers are the copy, titles are conclusions, and a table is
 for values.**

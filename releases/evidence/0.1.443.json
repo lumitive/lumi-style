@@ -1,0 +1,32 @@
+{
+  "version": "0.1.443",
+  "diff_base": "3678e68d04e959053a6e47d5e1d2aa7b362303b8",
+  "spec": "specs/2026-08-12-owner-review-retrospective-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness",
+    "globe-js"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "1b5bdeb5a61ad2d20a33d3da502302d8f38586d68853af80bea2090b4082d668",
+      "date": "2026-08-12"
+    },
+    {
+      "id": "globe-js",
+      "command": "python3 scripts/check/check_globe.py",
+      "exit_code": 0,
+      "stdout_sha256": "90cabb900d7d3d4e17eef3e694eb1f549b09c6e2cc9594d7d814f6f25544297c",
+      "date": "2026-08-12"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "rule semantics DID change (the green merge, the scaffold mandate, the wordmark, the field-globe default), so a board refresh is genuinely owed \u2014 but it needs the operator's hand-driven multi-agent half, and the owner's acceptance path for this retrospective is the W10 rebuild of the reviewed deliverable plus a fresh board run after the perf and debug-mode releases land. Deferred to that run, not discharged."
+    }
+  ]
+}

@@ -125,6 +125,22 @@ Shipped instances: 0.1.387-0.1.390 (four releases of "defects only the eye
 found after the checks went green"; four solid black rectangles in the
 passing fixture, invisible to three passing metrics).
 
+## FM-11 · Verified in one document, promoted never
+
+- detection: a rendering the owner has seen and approved exists only in a
+  single deliverable's own DOC_CSS (or its build script), not in `tokens/` —
+  so the next document built from the tokens alone silently loses it, and the
+  loss reads as a new defect instead of a regression
+- prevention: when a deliverable's local CSS survives review, the same release
+  promotes it into `tokens/` or records why not; the review question is "what
+  did this document define that the tokens do not"
+
+Shipped instances: the footer flex (defined only by the fixture until 0.1.36x,
+so real deliverables wrapped their page numbers — recorded at the `.foot` rule);
+the 0.1.442 owner review's bold `.attrs .k` and one-line `.attrs .v` (verified
+on a shipped 16:9 deliverable, lost by the next build) and `.band .v .u`
+(every hand-built deliverable's DOC_CSS carried it; the tokens did not).
+
 ---
 
 # Abandoned gates

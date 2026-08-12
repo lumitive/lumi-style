@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.442 (2026-08-13)
+   LUMI page layouts · v0.1.443 (2026-08-12)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -100,8 +100,19 @@
    line is a standing warning to the reader — do not forward — so the marker
    takes it; the semantic ledger in design-rules.md §1 records the extension.
    The icon is the `shield` reserved binding from scripts/build/embed_icons.py. */
-.foot .conf { color: var(--tx4); display: inline-flex; align-items: center; gap: 6px; }
-.foot .conf .ic { width: 12px; height: 12px; color: var(--seal-t); }
+/* `.terms` is the wrapper the reference footer has always carried, and until
+   the 0.1.442 owner review no stylesheet anywhere gave it a rule — a role with
+   no shipped rendering, again. Worse than inert: the wrapper's baseline came
+   from `.conf`, an inline-flex whose own baseline was synthesized from its
+   FIRST item — the 12px shield, a replaced element whose baseline is its
+   bottom edge — so the handling terms rode 2px above the site and the page
+   number on every page (measured on all 34 of a shipped review). `display:
+   contents` makes the wrapper transparent to the row; `align-items: baseline`
+   on `.conf` with the icon opted out (`align-self: center`) hands the group's
+   baseline to its TEXT, which is what the row aligns on. */
+.foot .terms { display: contents; }
+.foot .conf { color: var(--tx4); display: inline-flex; align-items: baseline; gap: 6px; }
+.foot .conf .ic { width: 12px; height: 12px; color: var(--seal-t); align-self: center; }
 /* `var(--accent)` until 0.1.367, here and on `.lead .v em` — and `--accent` is
    defined in NEITHER token file; the semantic accent has been `--acc` since the
    palette existed. An undefined custom property with no fallback is invalid at
@@ -219,10 +230,22 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
   color: var(--tx1); margin: 0 0 24px;
 }
 /* The subject the deck is about, inside its own title. One title, two inks: the
-   claim stays ink and the noun takes the live green, so the green marks what
-   the page is FOR rather than decorating it. Cover and closing only — a content
-   title carries its emphasis in the words. */
-.cover h1 .subj, .closing h2 .subj { color: var(--acc-live); }
+   claim stays ink and the noun takes THE LIME ON ITS OWN DARK CHIP — the same
+   acid green the part openers carry at page scale, so the cover, the dividers
+   and the closing speak one green (owner decision, 0.1.442 review: the title
+   green and the opener green read as two different brands). The lime never
+   touches the light canvas directly: 1.21:1 as bare text, 16.44:1 reversed out
+   of the chip — D13's carve-out is exactly this rule, a lime `color` beside its
+   own `--on-lime` backing. `box-decoration-break: clone` keeps the chip whole
+   when a long subject wraps. On the dark canvas the chip sits near-invisible
+   against the ground and the word reads as bare lime, which is that palette's
+   sanctioned accent (13.90:1). Cover and closing only — a content title
+   carries its emphasis in the words. */
+.cover h1 .subj, .closing h2 .subj {
+  background: var(--on-lime); color: var(--lime);
+  padding: .02em .16em; border-radius: .08em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
 .sup {
   font-size: var(--fs-support); font-weight: var(--w-support); line-height: 1.42;
   color: var(--tx2); max-width: var(--measure); margin: 0;
@@ -282,7 +305,12 @@ svg .mid  { font-weight: 700; font-size: 30px; font-variant-numeric: tabular-num
 svg .f-card { fill: var(--card-bg); }   svg .f-ink { fill: var(--tx1); }
 svg .f-t2 { fill: var(--tx2); }         svg .f-mut { fill: var(--tx3); }
 svg .f-fade { fill: var(--tx4); }       svg .f-wash { fill: var(--ln3); }
-svg .f-acc { fill: var(--acc); }        svg .f-accw { fill: var(--acc-wash); }
+/* f-acc and s-acc bind to the LIVE green, not the text accent: the figure
+   medium's rendering of the one accent meaning (the merged rule at the token —
+   lumi-theme.css "one meaning, two measured inks"). Bound to --acc until the
+   0.1.442 owner review, which is how a document's figures ran a third green
+   its cover and dividers never used. */
+svg .f-acc { fill: var(--acc-live); }   svg .f-accw { fill: var(--acc-wash); }
 svg .f-seal { fill: var(--seal-t); }    svg .f-sealw { fill: var(--seal-wash); }
 svg .f-amber { fill: var(--amber); }    svg .f-amberw { fill: var(--amber-wash); }
 svg .f-brass { fill: var(--brass); }    svg .f-brassw { fill: var(--brass-wash); }
@@ -290,7 +318,7 @@ svg .f-blue { fill: var(--d-blue); }    svg .f-red { fill: var(--d-red); }
 svg .f-teal { fill: var(--d-teal); }    svg .f-on { fill: var(--on-acc); }
 svg .f-none { fill: none; }
 svg .f-lime { fill: var(--lime); }      svg .f-on-lime { fill: var(--on-lime); }
-svg .s-line { stroke: var(--ln1); }     svg .s-acc { stroke: var(--acc); }
+svg .s-line { stroke: var(--ln1); }     svg .s-acc { stroke: var(--acc-live); }
 svg .s-mut { stroke: var(--tx4); }      svg .s-seal { stroke: var(--seal-t); }
 svg .s-ink { stroke: var(--tx2); }      svg .s-blue { stroke: var(--d-blue); }
 svg .s-amber { stroke: var(--amber); }  svg .s-brass { stroke: var(--brass); }
@@ -345,6 +373,18 @@ svg .dash { stroke-dasharray: 4 3; }
   line-height: .92; letter-spacing: -.03em; font-variant-numeric: tabular-nums;
   color: var(--tx1);
 }
+/* The unit inside a band value steps down like the lead tier's does. This rule
+   and the two below it lived only in deliverables' own DOC_CSS since the first
+   deck that needed them, so a document built from the tokens alone set "/15"
+   at the full 30px value size — the same promoted-too-late shape as the footer
+   flex above (FM-11). `.v.acc` is the accent AS TEXT (the support tier of
+   brand.md's number rank); `.v .first` is the lime number panel — the argument
+   tier — near-black reversed out of the lime, never lime on the canvas. */
+.band .v .u { font-size: .42em; letter-spacing: 0; color: var(--tx3); }
+.band .v.acc { color: var(--acc); }
+.band .v .first { background: var(--lime); color: var(--on-lime);
+                  padding: 0 .18em; margin-left: -.18em; border-radius: 1px;
+                  -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 
 /* ── the block patterns (v0.1.369) ──────────────────────────────────────────
    Four shapes a deliverable repeats — the tier-1 callout, the card, the swap,
@@ -805,14 +845,21 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
 .body.cover-grid > .markcell svg { height: auto; width: auto;
   max-height: 100%; max-width: 100%; transform: none; }
 /* Document attributes: needed, not prominent — one narrow mono column in the
-   clear lower-left, out of the composition's way. */
+   clear lower-left, out of the composition's way. The key is BOLD in the ink
+   tone and the value holds ONE LINE, truncating with an ellipsis rather than
+   wrapping: both were reviewed and verified on a shipped 16:9 deliverable,
+   lived only in that document's own DOC_CSS, and were lost by the next build —
+   the same promoted-too-late shape as the footer flex above (owner review,
+   0.1.442: "the first column is not bold, the second wraps"). A value that
+   truncates is a value the author shortens; the 46ch column is the budget. */
 .body.cover-grid > .attrs { grid-column: 1; align-self: end; display: flex;
   flex-direction: column; gap: 3px; max-width: 46ch;
   font-family: var(--mono); font-size: var(--fs-fine); color: var(--tx4); }
 .body.cover-grid > .attrs > div { display: flex; gap: 10px; }
 .body.cover-grid > .attrs .k { min-width: 15ch; flex: none; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--tx4); }
-.body.cover-grid > .attrs .v { color: var(--tx3); }
+  text-transform: uppercase; font-weight: 700; color: var(--tx1); }
+.body.cover-grid > .attrs .v { color: var(--tx3); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; }
 .body.cover-grid > .spec, .body.cover-grid > .colophon { grid-column: 1 / -1; }
 .body.cover-grid > .closenote { grid-column: 1 / -1; display: flex;
   flex-direction: column; gap: 12px; }
@@ -843,13 +890,16 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
 /* ── geography (assets/vectors/, generated by scripts/build/build_geography.py) ────
    A region drawn is a region claimed, so the marker states its coverage:
    accent = live, dashed ring = a market with zero rows behind it, muted = out
-   of scope. Painted from the ladders only. */
+   of scope. Painted from the ladders only. Live marks and routes take the
+   FIGURE rendering of the accent (--acc-live), same as f-acc/s-acc above —
+   geography is a figure, and this section held the text ink until the 0.1.442
+   merge of the two accent claims. */
 .geo-sphere { fill: none; stroke: var(--ln2); stroke-width: .8; }
 .geo-halo { fill: none; stroke: var(--ln3); stroke-width: 1.2; }
 .geo-graticule { fill: none; stroke: var(--ln2); stroke-width: .5; }
 .geo-land { fill: var(--ln1); stroke: none; }
-.geo-route { fill: none; stroke: var(--acc); stroke-width: 1.3; stroke-dasharray: 3 2.5; }
-circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
+.geo-route { fill: none; stroke: var(--acc-live); stroke-width: 1.3; stroke-dasharray: 3 2.5; }
+circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc-live); }
 .geo-mark.geo-zero circle { fill: none; stroke: var(--tx3); stroke-width: 1.6;
                             stroke-dasharray: 3 2.2; }
 .geo-mark.geo-out circle { fill: var(--tx4); }
@@ -865,7 +915,7 @@ circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
   color: var(--tx3); margin-bottom: 8px; }
 .geolegend span { display: flex; align-items: center; gap: 6px; }
 .geolegend i { width: 9px; height: 9px; border-radius: 50%; display: block;
-               background: var(--acc); }
+               background: var(--acc-live); }
 .geolegend i.zero { background: none; border: 1.6px dashed var(--tx3); }
 .geolegend i.out { background: var(--tx4); }
 
@@ -1088,6 +1138,11 @@ body[data-geometry="portrait"] .body.sidebar-notes > div:not(.spec):not(.band):n
    this stage, now fixed so the window cannot move them (v0.1.382). */
 body[data-geometry="portrait"] {
   --fs-display: 50px;
+  /* The cover keeps its rank below the opener on the sheet too: a 34-page
+     portrait review shipped its cover title at the landscape 58px because this
+     block never overrode it — the theme file's comment claimed it did. 42 holds
+     the same step under the 50px opener that 58 holds under 80. */
+  --fs-cover:   42px;
   --fs-title:   26px;
   --fs-band-value: 30px;
   --fs-lead:    40px;
@@ -1203,6 +1258,18 @@ body[data-geometry="portrait"] .fig .port { display: block; }
    at full column width with no page exceeding the sheet. The page box stays the
    real bound and `--deliverable` fails a page that passes it. */
 body:not([data-geometry="portrait"]) .fig .port { display: none; }
+
+/* Printing is part of the portrait contract — a training document is printed,
+   annotated and bound (storyline-templates.md Template 4). This rule shipped
+   in every hand-built deliverable's DOC_CSS and never in the tokens, so a
+   document built from the tokens alone printed as one continuous column. The
+   form is the one verified on the first portrait handbook. `html` and `.page`
+   both have base renderings above; print only adds behaviour, which is the
+   media-only guard's honest exception. */
+@media print {
+  html { scroll-snap-type: none; }
+  .page { page-break-after: always; }
+}
 
 /* The short-narrow collapse was removed in 0.1.380. It predates the zoom
    stage: a page is a fixed box scaled to the window, so a 900px window shows a

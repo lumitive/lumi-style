@@ -45,10 +45,16 @@
 
   | Token | Light | Dark | Means |
   |---|---|---|---|
-  | `--acc` | #48633E (6.71) | #7C9F63 (5.61) | built · running · pass · emphasis |
-  | `--seal` | #C8102E (5.88) | #E0685A (5.05) | warning · red line · veto · blocked |
-  | `--amber` | #A86407 (4.68) | #E0A73E (7.83) | partial · in progress · awaiting an input |
+  | `--acc` | #48633E (6.71) | #7C9F63 (5.61) | built · running · pass · emphasis — as TEXT |
+  | `--acc-live` | #3E7A2E (5.21) | #7FC45A (7.97) | the same meaning in FIGURES: strokes, marks, small fills |
+  | `--seal` | #C8102E (5.88) | #C8102E for fills; text lifts to `--seal-t` #E97C6E (6.07) | warning · red line · veto · blocked |
+  | `--amber` | #9C5D06 (5.27) | #E0A73E (7.83) | partial · in progress · awaiting an input |
   | `--brass` | #7A6C52 (5.13) | #C3B393 (8.17) | reference · archival · out of scope but real |
+
+  (The amber and dark-seal cells drifted from the tokens for six releases —
+  0.1.343 moved the values and this table kept the old ones. Where a number
+  here disagrees with `tokens/`, the tokens win; the 0.1.442 retrospective
+  re-synced the row and added the live green's.)
 
   *Provenance: the palette was accent-plus-warning only, so "partial" and "not
   built" both rendered as dashed grey and a deck could not say the one thing it
@@ -436,8 +442,9 @@ the reader's eye.
 
 ## 4 · Five chart iron rules + form selection
 
-1. Figure titles state conclusions, not labels; 2. one accent color (natural
-green), everything else grayscale, red only for warnings; 3. no gridlines, no
+1. Figure titles state conclusions, not labels; 2. one accent color — the
+figure green `--acc-live`, which is what the `f-acc`/`s-acc` paint classes
+resolve to — everything else grayscale, red only for warnings; 3. no gridlines, no
 chart borders, no legend for single series; 4. every figure carries a source line
 (small light-gray text); 5. a type scale that suits the figure, not a fixed one.
 

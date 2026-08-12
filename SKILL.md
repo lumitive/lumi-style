@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.442"
+  version: "0.1.443"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -152,7 +152,14 @@ been removed; they now apply at step 4 instead of framing step 0.
    stating a conclusion against 1 of 5. Every rule it broke was already in §4. The
    skill had not lost the craft; this step had stopped pointing at it.*
 
-   **Then compose the page.** Tokens come from
+   **Then compose the page — starting from the scaffold, never the fixture.**
+   `python3 scripts/ops/new_deck.py --genre <genre> --geometry <geometry>` emits
+   the standard order with the display face embedded and every icon reference
+   resolving. `fixtures/` are checker inputs: a 34-page review reached its
+   reader with `REPLACE ME` as its browser-tab title and the fixture's
+   `www.example.org` in all 34 footers because its pages were hand-copied from
+   one, and `check_design.py`'s D14 now refuses the scaffold's own slots.
+   Tokens come from
    [`tokens/lumi-theme.css`](tokens/lumi-theme.css),
    [`tokens/design-tokens.json`](tokens/design-tokens.json) and
    [`tokens/lumi-layouts.css`](tokens/lumi-layouts.css). **Choose a page layout for
@@ -222,9 +229,10 @@ been removed; they now apply at step 4 instead of framing step 0.
    scripts/check/inspect_layout.py <file>` renders the pages and builds a contact sheet;
    its design judgements gate nothing but it **exits 1 when a check could not be
    measured**, and those lines come before every green one. Run it again with
-   **`--deliverable`**, which exits non-zero on the ten findings a rendered page
-   can be wrong about decidably: collision, content spill, page height, hidden
-   content, a wrapped footer, a viewBox that does not parse, a drawing clipped by
+   **`--deliverable`**, which exits non-zero on the findings a rendered page
+   can be wrong about decidably: collision, a starved column, content spill,
+   page height, hidden content, a wrapped footer, a footer whose runs sit on
+   different baselines, a viewBox that does not parse, a drawing clipped by
    its own viewBox, an overspent title reserve, a role split, a lost datum.
    `python3 scripts/check/check_design.py <file>` reports D1–D17 and gates on three
    things, none of them a design judgement: **D12**, the handling terms and origin

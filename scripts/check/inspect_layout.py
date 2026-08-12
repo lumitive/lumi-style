@@ -942,6 +942,38 @@ PROBE = r"""
         }
         return tops.length > 1;
       }),
+      // Same rects, different axis: the footer's runs share one BASELINE by
+      // contract — one row, one face, one size. `.conf`'s synthesized baseline
+      // came from its 12px shield icon (a replaced element, baseline = bottom
+      // edge) until the 0.1.442 owner review, so the handling terms rode 2px
+      // above the site and the page number on every page of a shipped 34-page
+      // deliverable, and nothing here had ever measured the axis. Bottom edges
+      // of the TEXT-NODE rects stand in for baselines (constant descent at one
+      // face and size), and the spread is a ratio of the tallest rect so the
+      // zoomed stage can neither manufacture nor hide it.
+      footBaselineSpreadRatio: (() => {
+        if (!footEl) return null;
+        const walker = document.createTreeWalker(footEl, NodeFilter.SHOW_TEXT);
+        const range = document.createRange();
+        const rects = [];
+        let n;
+        while ((n = walker.nextNode())) {
+          if (!n.nodeValue.trim()) continue;
+          range.selectNodeContents(n);
+          for (const r of range.getClientRects()) {
+            if (r.width > 0.5 && r.height > 0.5) rects.push(r);
+          }
+        }
+        if (rects.length < 2) return null;
+        const tall = Math.max(...rects.map(r => r.height));
+        const top = Math.min(...rects.map(r => r.top));
+        // First line only: a wrapped footer is footWrapped's finding, and
+        // grading its second line here would report one defect twice.
+        const line1 = rects.filter(r => r.top - top < tall * 0.6);
+        if (line1.length < 2) return null;
+        const bottoms = line1.map(r => r.bottom);
+        return (Math.max(...bottoms) - Math.min(...bottoms)) / tall;
+      })(),
       // A figure's number and name are one line too: wrapped, the caption stops
       // reading as a label and starts reading as prose under the drawing.
       capWrapped: [...s.querySelectorAll('.cap .n')].filter(e => {
@@ -1575,6 +1607,19 @@ def _footer_wrapped(live):
     return [r for r in live if r.get("hasFooter") and r.get("footWrapped")]
 
 
+# The measured defect was 2.4px of spread on a ~15px line box (ratio .16); the
+# fixed sheet measures 0.00. The floor sits at half the defect so a regression
+# fails long before a reader sees it, while sub-pixel rounding across zoom
+# levels stays inside it.
+FOOT_BASELINE_RATIO = 0.08
+
+
+def _footer_misaligned(live):
+    return [r for r in live
+            if r.get("hasFooter")
+            and (r.get("footBaselineSpreadRatio") or 0) > FOOT_BASELINE_RATIO]
+
+
 def _role_splits(c):
     return [role for role in c["roles"] if _role_split(role)]
 
@@ -2011,6 +2056,14 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
     elif [r for r in live if r.get("hasFooter")]:
         print(f"  footer: one line on all "
               f"{len([r for r in live if r.get('hasFooter')])} pages that carry one")
+    fb = _footer_misaligned(live)
+    if fb:
+        worst = max(r.get("footBaselineSpreadRatio") or 0 for r in fb)
+        print(f"  FOOTER BASELINE: {len(fb)} of {len(live)} footers set their "
+              f"runs on different baselines (worst spread {worst:.2f} of the "
+              f"line box) — one row, one baseline: " + _fmt_ids(fb))
+    elif [r for r in live if r.get("hasFooter")]:
+        print("  footer baseline: one line, one baseline on every measured page")
     capw = sum(r.get("capWrapped", 0) for r in live)
     capn = sum(r.get("capCount", 0) for r in live)
     if capw:
@@ -2177,6 +2230,9 @@ def deliverable_verdicts(rows, consistency):
         lambda h: f"{len(h)} pages clip their own title block: " + _fmt_ids(h))
     add("footer_wrap", _footer_wrapped(live), not footed,
         lambda h: f"{len(h)} footers wrap to a second line: " + _fmt_ids(h))
+    add("footer_baseline", _footer_misaligned(live), not footed,
+        lambda h: f"{len(h)} footers set their runs on different baselines: "
+                  + _fmt_ids(h))
     drawn = [r for r in live if r.get("drawn")]
     add("figure_viewbox", [r for r in live if r.get("badBox")], not drawn,
         lambda h: f"{len(h)} pages carry a drawing whose viewBox does not parse: "
@@ -2277,10 +2333,12 @@ def main(argv):
                     help="skip the off-shape aspect assertion")
     ap.add_argument("--deliverable", action="store_true",
                     help="grade this file as something about to be sent: exit "
-                         "non-zero on collision, content spill, page height, "
-                         "hidden content, a wrapped footer, a drawing clipped "
-                         "by its own viewBox, an overspent title reserve, a role "
-                         "split or a lost datum. Without it nothing here gates.")
+                         "non-zero on collision, a starved column, content "
+                         "spill, page height, hidden content, a wrapped footer, "
+                         "a footer whose runs sit on different baselines, an "
+                         "unparseable viewBox, a drawing clipped by its own "
+                         "viewBox, an overspent title reserve, a role split or "
+                         "a lost datum. Without it nothing here gates.")
     args = ap.parse_args(argv)
 
     def declared(path):

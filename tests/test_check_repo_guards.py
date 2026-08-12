@@ -126,6 +126,29 @@ def test_palette_parity_mapped_key_missing_var_fails(tmp_path, monkeypatch):
     assert any("--lime is not defined" in e for e in errors)
 
 
+def test_palette_parity_css_colour_absent_from_json_fails(tmp_path, monkeypatch):
+    # The reverse direction (0.1.443): a colour the CSS defines and the JSON
+    # never heard of. --acc-live shipped exactly this way for dozens of
+    # releases while the guard walked JSON→CSS only.
+    tree = _palette_tree(tmp_path)
+    css = (tree / "tokens" / "lumi-theme.css").read_text()
+    (tree / "tokens" / "lumi-theme.css").write_text(
+        css.replace("}\nbody.dark", "  --mystery-green: #3E7A2E;\n}\nbody.dark"))
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    errors = check_repo.check_palette_parity()
+    assert any("--mystery-green" in e and "both ways" in e for e in errors)
+
+
+def test_palette_parity_non_colour_css_var_is_not_mirrored(tmp_path, monkeypatch):
+    # A type size is not palette; the reverse check reads values, not names.
+    tree = _palette_tree(tmp_path)
+    css = (tree / "tokens" / "lumi-theme.css").read_text()
+    (tree / "tokens" / "lumi-theme.css").write_text(
+        css.replace("}\nbody.dark", "  --fs-something: 42px;\n}\nbody.dark"))
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    assert check_repo.check_palette_parity() == []
+
+
 # check_version_citations — stamps at their declared position, citations
 # resolving to CHANGELOG headings, waivers honored. ENTRY_STAMP, PLATFORMS and
 # the waiver table are data tables bound at import, so they are monkeypatched

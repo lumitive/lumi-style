@@ -513,14 +513,23 @@ def d18_region_labels(raw):
     the rule conditional on a number the measurement does not support, and would
     pass a two-region map whose two regions are unlabelled.
 
-    A region is anchored by `data-region-label="<id>"` on any element, or by a
-    legend row carrying `data-legend="<id>"`.
+    A region is anchored by `data-region-label="<id>"` on any element, by a
+    legend row carrying `data-legend="<id>"`, or by the globe component's own
+    anchor, `data-bloc-label="<id>"` — the vocabulary `globe_svg.py` emits and
+    `render-svg.js` re-places per frame. The brand field globe labels all eight
+    of its blocs that way, and before this line D18 read the locked brand asset
+    as eight unlabelled regions.
     """
-    ids = set(re.findall(r'class="[^"]*\brg-([\w-]+)', raw))
+    # `(?<![\w-])` and not `\b`: the globe's own furniture classes —
+    # `gl-rg-label`, `gl-rg-n`, `gl-rg-p` — contain `rg-` after a hyphen, and
+    # `\b` happily matched there, reading the component's label machinery as
+    # three unlabelled regions named "label", "n" and "p".
+    ids = set(re.findall(r'class="[^"]*(?<![\w-])rg-([\w-]+)', raw))
     if not ids:
         return None
     labelled = set(re.findall(r'data-region-label="([\w-]+)"', raw))
     labelled |= set(re.findall(r'data-legend="([\w-]+)"', raw))
+    labelled |= set(re.findall(r'data-bloc-label="([\w-]+)"', raw))
     return {"regions": len(ids), "unlabelled": sorted(ids - labelled)}
 
 
@@ -565,6 +574,14 @@ def d13_lime_never_light_text(css, resolved, palette):
         if not re.search(r"(^|;)\s*color\s*:\s*var\(\s*--lime\s*[,)]", body):
             continue
         if "dark" in sel:                       # the dark canvas may use it as text
+            continue
+        # The dark chip is the sanctioned form: lime `color` beside its OWN
+        # `--on-lime` backing in the same rule (`.subj`, 0.1.443). The pairing
+        # is what makes it legal — 16.44:1 on the chip against 1.21:1 on the
+        # canvas — so the carve-out demands the background in the same block,
+        # never somewhere an ancestor might provide it.
+        if re.search(r"(^|;)\s*background(-color)?\s*:\s*var\(\s*--on-lime\s*[,)]",
+                     body):
             continue
         bad.append(re.sub(r"\s+", " ", sel)[:60])
     return bad
@@ -741,6 +758,17 @@ PLACEHOLDER_MARKERS = re.compile(
 # document uses legitimately, and a gate that fails on it is a gate people learn
 # to route around.
 
+# The scaffold's own slots, which are not bracketed. `REPLACE ME` is the title
+# new_deck.py substitutes into every scaffold head; `lumi-style VERSION` is its
+# colophon before the version is filled in. A 34-page review reached its reader
+# with the first one as its browser-tab title, and nothing here looked, because
+# every marker this file knew wore brackets. Both patterns are case-sensitive:
+# they match the scaffold's literal output, not prose that mentions replacing
+# things. (The fixture's `www.example.org` footer is deliberately NOT a marker:
+# fixtures keep a reserved domain precisely so no engagement fact ships in this
+# repository, and a deliverable's site slot stays with the reviewer — IDEA-9.)
+SCAFFOLD_SLOTS = re.compile(r"REPLACE ME|lumi-style VERSION\b")
+
 
 def d14_placeholders(raw):
     """No slot an author left for themselves may reach the reader.
@@ -765,6 +793,15 @@ def d14_placeholders(raw):
             if not PLACEHOLDER_MARKERS.search(inner):
                 continue
             found.append({"page": pid, "text": m.group(0)[:40]})
+        for m in SCAFFOLD_SLOTS.finditer(text):
+            found.append({"page": pid, "text": m.group(0)[:40]})
+    # The head is not a page, and the title lives there. The per-page walk
+    # above never sees it, which is exactly how `REPLACE ME` shipped.
+    head_end = body.find("<section")
+    if head_end != -1:
+        head_text = re.sub(r"<[^>]+>", " ", body[:head_end])
+        for m in SCAFFOLD_SLOTS.finditer(head_text):
+            found.append({"page": "(head)", "text": m.group(0)[:40]})
     return found
 
 

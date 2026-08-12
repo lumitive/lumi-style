@@ -76,7 +76,17 @@ if _version_m is None:
 VERSION = _version_m.group(1)
 
 # The cover/closing mark, inlined verbatim from the generated asset.
-GLOBE = (ROOT / "assets/vectors/globe-orthographic.svg").read_text(encoding="utf-8").strip()
+# The cover/closing mark is the LUMIVATE FIELD GLOBE — the locked brand asset
+# and, since the 0.1.442 owner review, the default mark a deliverable embeds
+# (BUG#1 there was a fresh anonymous render where the brand belonged). The
+# vendored file's own <style> block is stripped: inline SVG shares the
+# document's style scope, and the fixture's token block is the one that paints.
+# Static here — the fixture is a checker input and ships no scripts; the
+# scaffold (new_deck.py) embeds the runtime that turns it.
+GLOBE = re.sub(
+    r"<style>.*?</style>", "",
+    (ROOT / "assets/brand/lumivate/globe-field.svg").read_text(encoding="utf-8"),
+    count=1, flags=re.S).strip()
 
 # Titles deliberately spread across five frames. M11 fails a deck whose titles
 # all take one shape, and a fixture that trips it by accident teaches nothing.
@@ -592,15 +602,15 @@ def opener(part: str, number: int, total: int, claim: str, run: str) -> str:
 def build(broken: bool) -> str:
     total = len(PAGES) + 4   # cover, two part openers, closing
     # Cover and closing are the same kind of page, set the same way: cover-grid,
-    # with the orthographic globe as the one vector mark on each (the closing
-    # repeats the cover's geography rather than introducing a new claim).
+    # with the LUMIVATE field globe as the one vector mark on each (the closing
+    # repeats the cover's mark rather than introducing a new claim).
     cover = f"""
 <section class="page cover" id="cover">
   {GROUND}
   <div class="body cover-grid">
     <div class="typeblock">
-      <p class="wordmark">LUMI</p>
-      <h1>Metering programme review</h1>
+      <p class="wordmark">LUMI Style</p>
+      <h1>Metering programme <span class="subj">review</span></h1>
       <p class="sub">A synthetic deliverable. Every figure here is invented.</p>
     </div>
     <div class="markcell">{GLOBE}</div>
@@ -617,8 +627,8 @@ def build(broken: bool) -> str:
   {GROUND}
   <div class="body cover-grid">
     <div class="typeblock">
-      <p class="wordmark">LUMI</p>
-      <h2>What to settle this month</h2>
+      <p class="wordmark">LUMI Style</p>
+      <h2>What to settle this <span class="subj">month</span></h2>
       <p class="sub">Relay siting first, then crew allocation.</p>
     </div>
     <div class="markcell">{GLOBE}</div>
@@ -781,6 +791,11 @@ body {{ font-family: var(--din); font-size: 15px; color: var(--tx1);
    ladder on the light canvas. Stated directly rather than left to D1, because
    D1 only catches it when surface detection resolves the right background. */
 .limetext {{ color: var(--lime); }}
+/* footer_baseline: one run lifted off the row's shared baseline. The shipped
+   defect was subtler — the shield icon's replaced-element baseline capturing
+   `.conf`, 2.4px on a 15px line box — but the probe measures the spread, not
+   the mechanism, so the plant states the shift directly. */
+#d3 .foot .site {{ position: relative; top: -3px; }}
 /* page_height: a page that sets its own height past the 720px stage. A child
    cannot do this — `.page` is a fixed-height frame, so an overlong child spills
    and trips content_spill instead. Overriding the frame is what a document
@@ -799,7 +814,7 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
 <section class="page cover" id="cover">
   <div class="body cover-grid">
     <div class="typeblock">
-      <p class="wordmark">LUMI</p>
+      <p class="wordmark">LUMI Style</p>
       <h1>{_TITLE} on the cover</h1>
     </div>
   </div>
@@ -868,7 +883,7 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
   <span class="site">{SITE}</span></div></section>
 <section class="page closing" id="closing">
   <div class="body cover-grid">
-    <div class="typeblock"><p class="wordmark">LUMI</p>
+    <div class="typeblock"><p class="wordmark">LUMI Style</p>
     <h2>{_TITLE} at the close</h2></div>
     <!-- D6_footer missing_source: the colophon names no provenance, and D6 asks
          the DOCUMENT once rather than every page. -->

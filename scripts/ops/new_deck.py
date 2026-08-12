@@ -18,10 +18,21 @@ THE STANDARD ORDER, which is the default unless a request says otherwise:
 
     cover · agenda · Part A opener · content… · Part B opener · content… · closing
 
+`--genre training` appends the reference pages Template 4's arc ends on — a
+glossary as `dl.gloss`, marked `data-role="apparatus"` — before the closing,
+because a training document's last pages are the ones a learner returns to.
+
 The first version of this file emitted cover, one opener, a run of pages and a
 closing. That is not a deck; it is a deck's middle. The agenda is the page a
 reader uses to decide what to skip, and parts are a sequence rather than a
 single heading.
+
+RUN THIS SCRIPT; DO NOT SLICE THE FIXTURE BY HAND. A 34-page review shipped
+with the fixture's own furniture in reader-facing positions — `REPLACE ME` as
+its title, `www.example.org` in every footer — because its pages were copied
+from `fixtures/deck-pass.en.html` instead of generated here. The fixture is a
+checker input; this scaffold is the thing an author starts from, and
+`check_design.py`'s D14 now refuses the slots both of them emit.
 
 D19 in check_design.py is the negative half of this: it refuses a document whose
 references do not resolve and whose blocks do not carry their contract. This is
@@ -33,12 +44,51 @@ from __future__ import annotations
 
 import argparse
 import pathlib
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+# Bare-name sibling imports must resolve from any drawer depth: walk up to
+# the scripts/ root and APPEND it and its drawers to sys.path — append,
+# never insert(0), so the standard library and the caller's environment
+# always win. Drawer order is lib-first and the scripts ROOT LAST on
+# purpose: the emergency path overwrites a PR's lib/ files with trusted
+# copies, and lib-first means a file PLANTED at the scripts root can never
+# outrank them (the shadowing the PR #92 review demonstrated).
+import pathlib as _bs_pathlib  # noqa: E402
 import re
 import sys
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+# --- end bootstrap ---
+import embed_font  # noqa: E402
+import embed_globe  # noqa: E402
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if p.name == "scripts").parent
 FIXTURE = ROOT / "fixtures" / "deck-pass.en.html"
+BRAND_GLOBE = ROOT / "assets" / "brand" / "lumivate" / "globe-field.svg"
+
+
+def brand_globe():
+    """The LUMIVATE field globe, prepared for embedding in a document.
+
+    The default cover/closing mark (owner directive, 0.1.442 review: a
+    deliverable shipped a fresh anonymous render instead of the brand). The
+    vendored file is the standalone published form and carries its own
+    `<style>` block; INLINE SVG SHARES THE DOCUMENT'S STYLE SCOPE, so embedded
+    as-is that block would redefine the document's tokens globally. The
+    document's own token block paints the classes, so the style is stripped
+    and nothing else is touched — the lock in assets/brand/LOCKED.json holds
+    the file, not this embedding.
+    """
+    src = BRAND_GLOBE.read_text(encoding="utf-8")
+    return re.sub(r"<style>.*?</style>", "", src, count=1, flags=re.S)
 
 GENRES = ("sales", "consulting", "internal", "training")
 
@@ -62,6 +112,13 @@ def preamble(genre, geometry):
     body_open_end = src.index(">", body_at) + 1
     sprite = src[body_open_end:src.index("<section", body_open_end)]
     head = re.sub(r"<title>.*?</title>", "<title>REPLACE ME</title>", head, count=1)
+    # The face rides along. design-rules.md requires it embedded, and when
+    # embedding was a separate step, two deliverables in one week shipped with
+    # zero @font-face blocks and rendered in the system stack. The fixture
+    # itself stays font-free — it is a checker input, and the checkers read
+    # markup, not metrics.
+    head = head.replace("</head>",
+                        "<style>\n" + embed_font.css() + "\n</style></head>")
     return (head + f'\n<body class="deck" data-theme="light" '
             f'data-geometry="{geometry}" data-genre="{genre}">\n' + sprite)
 
@@ -133,22 +190,25 @@ def main(argv):
     src = FIXTURE.read_text(encoding="utf-8")
     g = ground(src)
     parts = [x.strip() for x in args.parts.split(",") if x.strip()]
-    total = args.pages + 3 + len(parts)      # cover, agenda, closing, + openers
+    # cover, agenda, closing, + openers; training appends its reference page.
+    apparatus = 1 if args.genre == "training" else 0
+    total = args.pages + 3 + len(parts) + apparatus
     out = [preamble(args.genre, args.geometry)]
 
     # The cover title carries TWO INKS: the claim in ink, the noun the deck is
-    # about in the live green, so the green marks what the page is for rather
-    # than decorating it.
+    # about as lime on its own dark chip (`.subj`) — the same green the part
+    # openers carry at page scale, so the title marks what the page is FOR in
+    # the deck's one event colour rather than decorating it.
     out.append(f'''<section class="page cover" id="cover">
   {g}
   <div class="body cover-grid">
     <div class="typeblock">
-      <p class="wordmark">LUMI</p>
+      <p class="wordmark">LUMI Style</p>
       <h1>A title that states the argument about its
       <span class="subj">subject</span></h1>
       <p class="sub">One sentence saying what this is.</p>
     </div>
-    <div class="markcell"><!-- the mark, or a live globe: assets/brand/README.md --></div>
+    <div class="markcell" data-globe>{brand_globe()}</div>
     <div class="attrs">
       <div><span class="k">Label</span><span class="v">value</span></div>
       <div><span class="k">Label</span><span class="v">value</span></div>
@@ -220,16 +280,40 @@ def main(argv):
 </section>''')
             n += 1
 
+    if apparatus:
+        # Template 4's arc ends on the pages a learner returns to. The page is
+        # DECLARED apparatus (design-rules.md §2b): D16's visual-share target
+        # exempts it, up to the one-in-five ceiling.
+        out.append(f'''<section class="page" id="gloss" data-role="apparatus">
+  {g}
+  <div class="body stack">
+    <div class="lede">
+      <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#i-book-open"/></svg>Reference</p>
+      <h2 class="t">The terms this document uses, defined once</h2>
+      <p class="sup">The page a learner returns to after the session.</p>
+    </div>
+    <div class="fill">
+      <dl class="gloss">
+        <dt>Term</dt><dd>What it means in this document, one sentence.</dd>
+        <dt>A second term</dt><dd>and its definition, with its source where a
+        trainee will repeat it.</dd>
+      </dl>
+    </div>
+  </div>
+  {foot(n, total)}
+</section>''')
+        n += 1
+
     out.append(f'''<section class="page closing" id="close">
   {g}
   <div class="body cover-grid">
     <div class="typeblock">
-      <p class="wordmark">LUMI</p>
+      <p class="wordmark">LUMI Style</p>
       <h2>What the reader carries out about its
       <span class="subj">subject</span></h2>
       <p class="sub">The argument in one paragraph.</p>
     </div>
-    <div class="markcell"><!-- the same mark as the cover --></div>
+    <div class="markcell" data-globe>{brand_globe()}</div>
     <div class="attrs">
       <div><span class="k">Label</span><span class="v">value</span></div>
     </div>
@@ -238,6 +322,11 @@ def main(argv):
   {foot(total, total)}
 </section>''')
 
+    # The runtime turns every [data-globe] — the cover and the closing. It
+    # respects prefers-reduced-motion, and with JavaScript off the reader keeps
+    # the exact static frame above. Rotation is part of the mark's contract
+    # (owner directive): a still field globe is the fallback, not the design.
+    out.append(embed_globe.build())
     out.append("</body></html>")
     print("\n".join(out))
     print(f"<!-- scaffold: {total} pages, standard order. Every icon reference "

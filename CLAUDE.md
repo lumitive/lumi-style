@@ -119,10 +119,13 @@ when a check could not be measured at all** — a document whose markup it canno
 read, a role whose class it cannot find, an audit that crashed. That distinction
 is the point: until 0.1.350 all three of those printed the same reassuring lines as
 a clean document. **`--deliverable` gates a *document*, never this repo**: it
-exits non-zero on the ten findings that are decidable rather than aesthetic
-(collision, content spill, page height, hidden content, a wrapped footer, a
-viewBox that does not parse, a drawing clipped by its own viewBox, an overspent
-title reserve, a role split, a lost datum) and is the pre-delivery step in `SKILL.md`.
+exits non-zero on the findings that are decidable rather than aesthetic
+(collision, a starved column, content spill, page height, hidden content, a
+wrapped footer, a footer whose runs sit on different baselines, a viewBox that
+does not parse, a drawing clipped by its own viewBox, an overspent title
+reserve, a role split, a lost datum — the code's `deliverable_verdicts` is the
+authority; this list has been counted wrong in four files at once) and is the
+pre-delivery step in `SKILL.md`.
 `run_conformance.py` runs it that way. Everything else it prints stays reported,
 including the part-opener count, which is an observation and not a floor. `check_prose.py` is
 English-only and takes `--genre {sales,internal,training}`; internal analysis

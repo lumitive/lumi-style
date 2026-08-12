@@ -3,6 +3,86 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.443 — the owner reads 34 pages, and seven defects turn out to be three root causes
+
+An owner review of a 34-page A4-portrait deliverable built at 0.1.442 reported
+seven defects. Forensics traced them to three roots, and each fix landed with
+the mechanism that stops its recurrence
+(spec: `specs/2026-08-12-owner-review-retrospective-design.md`).
+
+**Root one: the document was hand-copied from the test fixture, not scaffolded.**
+Its 1,781-line style block was byte-identical to `fixtures/deck-pass.en.html`,
+its title still read `REPLACE ME`, its 34 footers carried the fixture's
+`www.example.org`, and it shipped zero `<script>` and zero `@font-face`. The
+scaffold is now the stated start (`SKILL.md`, `AGENTS.md`, `new_deck.py`'s own
+docstring), `new_deck.py` embeds the display face itself (a separate
+embedding step was skipped by two deliverables in one week), and D14 gained
+the scaffold's own unbracketed slots — `REPLACE ME` and the literal
+`lumi-style VERSION` — including the head, which the per-page walk never saw.
+Deliberate red: an unfilled scaffold now exits 1 on D14 with both slots named
+(run recorded this release). The fixture-site string stays uncaught by
+decision, not oversight: IDEA-9.
+
+**Root two: renderings the owner had verified existed only in single documents'
+DOC_CSS, so the next build lost them.** Recorded as FM-11, and everything it
+names is promoted into `tokens/`: the cover `.attrs` key is bold in the ink
+tone and its value holds one line with an ellipsis (verified on a shipped 16:9
+deliverable, reported lost as two defects); `.band .v .u` steps the unit down;
+`.band .v.acc` and the lime `.first` panel ship; the print page-break block
+rides in the tokens instead of every assemble script. The portrait block also
+gains the `--fs-cover: 42px` override the theme's comment had claimed existed
+(a cover title shipped at the landscape 58px on a 794px sheet), and
+`--genre training` appends Template 4's reference page (`dl.gloss`,
+`data-role="apparatus"`).
+
+**Root three: the repo's own green rules contradicted each other, and the token
+mirror had a blind side.** `brand.md` said figures take the forest; the theme
+file said the live green; the paint classes bound the forest — so one document
+ran three unrelated greens and the owner saw all three (two defects reported).
+The merged rule ships in both files: one accent meaning, two measured inks —
+`--acc` as text, `--acc-live` in figures (`f-acc`/`s-acc`, the geo layer and
+the legend swatch now bind to it; `--on-acc` measures 4.61 on it, above the
+floor). The cover/closing subject word moves to the owner-chosen lime-on-dark
+chip (`.subj`: lime on `--on-lime`, 16.44:1, `box-decoration-break: clone`),
+with D13 carving out exactly that pairing and nothing else. `--acc-live` and
+`--acc-tint` join `design-tokens.json`, and `check_palette_parity` now walks
+BOTH directions — a CSS colour the JSON never heard of fails (deliberate red:
+un-mapping `accent_live` produced four errors naming the hole; the one-way
+walk had passed it for dozens of releases).
+
+**The brand mark is now an asset, not an instruction.** The owner named the
+FIELD globe the default cover/closing mark; it is vendored at
+`assets/brand/lumivate/globe-field.svg` and locked — as are the cover pair,
+which had been unlocked since the lock existed. `new_deck.py` embeds it on
+both marked pages (its own `<style>` stripped: inline SVG shares the
+document's scope), marks the cells `data-globe`, and appends the runtime, so
+the scaffold's globe TURNS (verified: land paths mutate frame to frame;
+reduced-motion and no-JS fall back to the static frame). The fixtures embed
+the same mark statically. D18 accepts the component's `data-bloc-label`
+anchor and stops reading `gl-rg-label/n/p` as three regions named "label",
+"n" and "p" (a `\b` that matched after a hyphen).
+
+**The footer's runs now share a baseline, and a probe holds it.** `.terms` had
+no rule anywhere and `.conf`'s baseline came from its 12px shield icon, so the
+handling terms rode 2px above the page number on every page (measured 2.41px;
+0.00 after `display: contents` + baseline alignment with the icon opted out).
+`inspect_layout.py` gains `footer_baseline` — text-run bottoms as a ratio of
+the line box, gated under `--deliverable` at 0.08 (half the shipped defect) —
+with a planted 3px lift in the degenerate fixture as its failing case. The
+`--deliverable` findings list was re-synced everywhere it is enumerated: four
+files carried four different counts of it (FM-05 live), so the lists now match
+the code's `deliverable_verdicts` and name it as the authority.
+
+**And the wordmark is the literal string "LUMI Style"** (owner directive) —
+carried until now only by template markup, stated nowhere in prose; both
+generators, both fixtures, `storyline-templates.md` and `brand.md` now agree.
+Entry points re-flowed by hand, which also caught four stale restatements:
+the core prompt's display weight (400 — the exact counterexample the token
+comment names), the SAME 400 inside `design-tokens.json`'s own typography
+block (the mirror restating the mistake beside the CSS that names it), the
+core prompt's amber/dark-seal hexes, and design-rules' §1 ledger row for the
+same two. 14 tests added.
+
 ## 0.1.442 — the review breaks into the emergency path twice, and both doors get bricked up
 
 A four-lens review of PR #92 (the audit's six releases) found its most
