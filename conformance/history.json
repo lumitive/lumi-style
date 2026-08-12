@@ -54,5 +54,35 @@
       "T3-recall": "pass"
     },
     "scores_sha256": "e188526b64ea15b4a2115fd3be6fbd4a65f9cb7c8dc78dc38e65a6790877bee6"
+  },
+  {
+    "skill_version": "0.1.434",
+    "agent": "cursor",
+    "date": "2026-08-12",
+    "run_dir": "conformance/results/cursor-20260813",
+    "tasks": {
+      "T1-deck": "pass"
+    },
+    "scores_sha256": "67b72a177635a2a3496b029c1028bb6d60f9b77afa7b44aa4537ba2222ef203f",
+    "instrument_version": "0.1.434",
+    "built": {
+      "T1-deck": "0.1.433"
+    }
+  },
+  {
+    "skill_version": "0.1.434",
+    "agent": "claude-code",
+    "date": "2026-08-12",
+    "run_dir": "conformance/results/claude-code-20260813",
+    "tasks": {
+      "T1-deck": "pass",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "08d1bb440dabd6fb16c2379502c5d98df5e32a3dc48b39393a114ded96f7e35a",
+    "instrument_version": "0.1.434",
+    "built": {
+      "T1-deck": "0.1.433"
+    }
   }
 ]

@@ -111,6 +111,61 @@ def load_tasks() -> list[dict]:
     return tasks
 
 
+def skill_version() -> str:
+    """The version of the skill (and so of its checkers) as installed here."""
+    return (ROOT / "SKILL.md").read_text(
+        encoding="utf-8").split('version: "')[1].split('"')[0]
+
+
+def _ver_key(v: str) -> tuple[int, ...]:
+    return tuple(int(x) for x in v.split("."))
+
+
+def cell_spread(fresh: list[dict]) -> tuple[str, str]:
+    """-> (cell text, governing verdict) for one task's fresh results.
+
+    IDEA-8's render half. With n>1 the cell names the spread; and when the
+    DISAGREEMENT ALIGNS WITH DIFFERENT BUILD VERSIONS — every build has one
+    verdict, more than one build, all builds known — the cell says "skill
+    changed between builds" and the LATEST build's verdict governs, because
+    "the skill improved" and "the agent is flaky" are opposite conclusions
+    that a bare UNSTABLE cannot tell apart (the GAP-001 misread: fail rows
+    built pre-0.1.380 merged with a pass built at 0.1.433 rendered as agent
+    instability). Any conflict NOT explained by builds — same build
+    disagreeing, or a build unknown — stays UNSTABLE, which errs toward the
+    uncomfortable reading.
+    """
+    seen = [s["verdict"] for s in fresh]
+    worst = "fail" if "fail" in seen else seen[0]
+    detail = ", ".join(sorted({f for s in fresh for f in s.get("failed", [])}))
+    if len(fresh) > 1 and len(set(seen)) > 1:
+        by_build: dict[str | None, set[str]] = {}
+        for s in fresh:
+            by_build.setdefault(s.get("built_version"), set()).add(s["verdict"])
+        aligned = (None not in by_build and len(by_build) > 1
+                   and all(len(v) == 1 for v in by_build.values()))
+        if aligned:
+            builds = sorted((b for b in by_build if b is not None), key=_ver_key)
+            latest = builds[-1]
+            worst = next(iter(by_build[latest]))
+            latest_detail = ", ".join(sorted(
+                {f for s in fresh if s.get("built_version") == latest
+                 for f in s.get("failed", [])}))
+            base = (worst if worst == "pass" or not latest_detail
+                    else f"{worst}: {latest_detail}")
+            return (base + " · skill changed between builds: "
+                    + ", ".join(f"{next(iter(by_build[b]))}@{b}" for b in builds),
+                    worst)
+        cell = worst if worst == "pass" else (f"{worst}: {detail}" if detail else worst)
+        return (cell + f" · {len(fresh)} runs UNSTABLE: "
+                + ", ".join(f"{v}×{seen.count(v)}" for v in sorted(set(seen))),
+                worst)
+    cell = worst if worst == "pass" else (f"{worst}: {detail}" if detail else worst)
+    if len(fresh) > 1:
+        cell += f" · {len(fresh)} runs, all {worst}"
+    return cell, worst
+
+
 def task_fingerprint(task: dict) -> str:
     """What a result is a result *of*.
 
@@ -429,8 +484,18 @@ def main(argv):
                     shown = str(target.relative_to(ROOT))
                 except ValueError:
                     shown = str(target)
+                # IDEA-8's record half: task_hash pins the question;
+                # these two pin the ruler and the artifact's own vintage. The
+                # colophon regex reads the "built with lumi-style X.Y.Z" line
+                # a LUMI deliverable carries; absent (markdown answers), the
+                # build vintage is honestly unknown.
+                built_m = re.search(r"lumi-style\s+(\d+\.\d+\.\d+)",
+                                    target.read_text(encoding="utf-8",
+                                                     errors="replace"))
                 entry: dict[str, Any] = {"artifact": shown,
-                                         "task_hash": asked_fingerprint(task_dir, task)}
+                                         "task_hash": asked_fingerprint(task_dir, task),
+                                         "instrument_version": skill_version(),
+                                         "built_version": built_m.group(1) if built_m else None}
                 failed: list[str] = []
                 verdict_union: dict[str, Any] = {}
                 for kind in task["score"]:
@@ -486,7 +551,7 @@ def main(argv):
         return 1 if any(s["verdict"] != "pass" for s in scores.values()) else 0
 
     # report
-    version = (ROOT / "SKILL.md").read_text(encoding="utf-8").split('version: "')[1].split('"')[0]
+    version = skill_version()
     # Merged across every --run given, in the order given, so a second agent's
     # results ADD a row instead of blanking every row the new directory does not
     # contain. Later wins on a collision: re-running one agent replaces its own
@@ -537,18 +602,11 @@ def main(argv):
                 cells[t["id"]] = "stale: task changed"
                 verdicts.append("stale")
                 continue
-            seen = [s["verdict"] for s in fresh]
-            worst = "fail" if "fail" in seen else seen[0]
-            detail = ", ".join(sorted({f for s in fresh for f in s.get("failed", [])}))
-            cell = worst if worst == "pass" else (f"{worst}: {detail}" if detail else worst)
-            # THE SPREAD, beside the verdict. A mean with no spread is the thing
-            # this board is told not to report: with n>1 the cell says how many
-            # runs agreed, and disagreement is named rather than averaged away.
-            if len(fresh) > 1:
-                agree = seen.count(worst)
-                cell += (f" · {len(fresh)} runs, all {worst}" if agree == len(fresh)
-                         else f" · {len(fresh)} runs UNSTABLE: "
-                              + ", ".join(f"{v}×{seen.count(v)}" for v in sorted(set(seen))))
+            # THE SPREAD, beside the verdict — and since IDEA-8, a
+            # conflict that aligns with different build versions is named as
+            # the skill changing rather than the agent wobbling (cell_spread's
+            # docstring carries the argument).
+            cell, worst = cell_spread(fresh)
             cells[t["id"]] = cell
             verdicts.append(worst)
         if verdicts:
@@ -599,15 +657,28 @@ def main(argv):
                 print(f"FAIL  {f} does not parse ({exc}); nothing recorded "
                       f"from this run")
                 return 1
+            per_built: dict[str, dict[str, str]] = {}
+            instruments: set[str] = set()
             for key, value in scored_doc.items():
                 agent_id, _, task_id = key.partition("/")
                 per_agent.setdefault(agent_id, {})[task_id] = value.get(
                     "verdict", "unscored")
+                if value.get("built_version"):
+                    per_built.setdefault(agent_id, {})[task_id] = value["built_version"]
+                if value.get("instrument_version"):
+                    instruments.add(value["instrument_version"])
             for agent_id, task_verdicts in sorted(per_agent.items()):
                 row = {"skill_version": version, "agent": agent_id,
                        "date": datetime.date.today().isoformat(),
                        "run_dir": str(name), "tasks": task_verdicts,
                        "scores_sha256": digest}
+                # IDEA-8: the ruler and the artifact vintages, when the
+                # scores carry them (older scores.json rows predate the
+                # fields and stay honestly silent).
+                if instruments:
+                    row["instrument_version"] = sorted(instruments, key=_ver_key)[-1]
+                if per_built.get(agent_id):
+                    row["built"] = per_built[agent_id]
                 if not any(r.get("agent") == agent_id
                            and r.get("run_dir") == str(name)
                            and r.get("scores_sha256") == digest
