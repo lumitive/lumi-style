@@ -67,6 +67,10 @@ found most of the survey absorbed by later releases — the corrected record:
   no platform is claimed onto it without an exercised run, and the note
   records why it is empty (capability claims were unverified until
   `capability_verified` arrived; only claude-code is confirmed `full`).
+- **IDEA-8 shipped** (0.1.435) — score entries and history rows carry
+  `instrument_version` and the colophon `built_version`; `cell_spread`
+  renders build-aligned conflicts as the skill changing, latest build
+  governing.
 - **IDEA-7 shipped** (0.1.427) — `conformance/history.json`, `report
   --record`, and the evidence gate's freshness obligation are this item's
   acceptance in different words.

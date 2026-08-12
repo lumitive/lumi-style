@@ -3,6 +3,35 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.435 — a score row pins its instruments (IDEA-8): "the skill changed" stops rendering as "the agent is flaky"
+
+IDEA-8 ships, on the owner's instruction, with GAP-001's misread as its
+documented case. `task_hash` pinned the question; nothing pinned the ruler
+or the artifact's vintage, and the cost was measured twice this week: the
+archived T1 failures hung on the board for three weeks reading as agent
+incapacity when they were verdicts about a pre-0.1.380 skill, and merging
+old and new runs rendered "3 runs UNSTABLE" — a true sentence about mixed
+skill versions wearing the costume of agent flakiness.
+
+**The record half**: every `score` entry now carries `instrument_version`
+(the skill/checker version doing the scoring) and `built_version` (read
+from the deliverable's own colophon line; markdown answers without one stay
+honestly unknown). `report --record` copies both onto history rows.
+
+**The render half**: `cell_spread` (extracted pure and tested both ways)
+decides what a verdict conflict means. A conflict that ALIGNS with
+different builds — every build one verdict, more than one build, all builds
+known — renders as "skill changed between builds: fail@0.1.364, pass@0.1.433"
+with the LATEST build's verdict governing, symmetric in both directions (a
+new build failing where the old passed is a named regression). Any conflict
+builds cannot explain — same build disagreeing, or a vintage unknown —
+stays UNSTABLE, which errs toward the uncomfortable reading. Eight tests,
+including numeric-not-lexical version ordering.
+
+The 2026-08-13 runs were re-scored to carry the fields (instrument 0.1.434,
+deck built 0.1.433, verdicts unchanged) and re-recorded; the scoreboard's
+superseded-runs note now points at the mechanism instead of promising it.
+
 ## 0.1.434 — GAP-001 closes: both agents pass T1-deck against the rules that fixed it
 
 The verdict is re-earned, not re-argued. T1-deck was re-run on both scored
