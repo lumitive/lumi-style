@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.450"
+  version: "0.1.451"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -129,6 +129,13 @@ been removed; they now apply at step 4 instead of framing step 0.
      — and then the merge gate: scan for any unreplaced placeholder and REFUSE
      the build on a leftover (`SystemExit`, naming them). A placeholder that
      survives to the reader is D14's territory; the scan catches it at merge.
+     **The runtime is BUILT, never harvested**: the assembler calls
+     `embed_globe.build()` for the block that turns the cover and closing
+     marks. A 0.1.449 deliverable scraped it out of a fixture with a regex
+     instead, matched nothing, emitted an empty `<script></script>`, and
+     shipped two still globes — and a substitution that resolves to the empty
+     string passes the merge gate, because the gate looks for leftovers rather
+     than for losses. D19 gates that one now.
    - **Verify once, at the end, on the assembled document** — the step-4 gate
      stack does not run per part. During authoring a part gets at most the
      cheap text checks (`check_prose.py`, `check_design.py`; both take
@@ -258,11 +265,17 @@ been removed; they now apply at step 4 instead of framing step 0.
    page height, hidden content, a wrapped footer, a footer whose runs sit on
    different baselines, a viewBox that does not parse, a drawing clipped by
    its own viewBox, an overspent title reserve, a role split, a lost datum.
-   `python3 scripts/check/check_design.py <file>` reports D1–D17 and gates on three
+   **Pass it the file and nothing else** — it reads `data-geometry` and runs the
+   matrix that declaration implies, and a single `--geometry` switches the matrix
+   off. Add a second run with `--dark` if the deliverable ships a dark variant;
+   one run renders one palette.
+   `python3 scripts/check/check_design.py <file>` reports D1–D17 and gates on four
    things, none of them a design judgement: **D12**, the handling terms and origin
    every page owes (the terms open with the seal-red `shield` handling marker —
    the rendering ships in `tokens/`, the gate is the terms); **D14**, any slot
-   left for yourself; and **D15**, a file path in a footer. `python3 scripts/check/check_prose.py <file>` grades the English, and
+   left for yourself; **D15**, a file path in a footer; and **D19**, a reference
+   that does not resolve inside the document — an icon pointing at no symbol, or
+   a `data-globe` mark with no runtime to turn it. `python3 scripts/check/check_prose.py <file>` grades the English, and
    **M12 fails on Chinese in text a reader sees** when the document declares
    English — a clean banned-phrase run is not a language pass.
    **A clean run is not a verified document. Look at the sheet.**

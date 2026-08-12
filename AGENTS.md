@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.450.** This file restates part of `references/`; where they
+> **lumi-style 0.1.451.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -107,12 +107,14 @@ facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
 **Every page carries a commercial footer**: the seal-red `shield` handling
 marker, the confidentiality terms and the organisation's site on the left,
 `N / total` on the right (the marker inverts on the lime opener).
-`check_design.py`'s D12 is one of three checks there that fail the run, because
-it is a requirement on the artifact rather than a judgement about a page. Two others join it: **D14, no slot you left for
+`check_design.py`'s D12 is one of four checks there that fail the run, because
+it is a requirement on the artifact rather than a judgement about a page. Three others join it: **D14, no slot you left for
 yourself may reach the reader** — `[TO FILL]`, `[TBD]`, `{{name}}`, an empty
-bracket pair — and **D15, no footer may cite a file path**, because a source line
+bracket pair — **D15, no footer may cite a file path**, because a source line
 names something a reader can act on and not a file on the machine that built the
-deck. **And an English deliverable must be in English**: `check_prose.py`'s M12
+deck — and **D19, every reference resolves inside the document**: an icon
+`<use>` pointing at no symbol, or a `data-globe` mark with no runtime shipped
+beside it, renders as valid markup and empty space. **And an English deliverable must be in English**: `check_prose.py`'s M12
 fails on Chinese in reader-visible text when the document declares English, with
 `<code>` the exemption for a name that must appear in Chinese. It asks whether the document is finished, and nothing else
 in this package can see one: a placeholder is not a banned phrase, not a colour,
@@ -141,7 +143,11 @@ builds; before handing the file over, run it again with **`--deliverable`**,
 which exits non-zero on collision, a starved column, content spill, page height,
 hidden content, a wrapped footer, a footer whose runs sit on different
 baselines, a viewBox that does not parse, a drawing clipped by its own viewBox,
-an overspent title reserve, a role split and a lost datum. A clean run there is not
+an overspent title reserve, a role split and a lost datum. **Pass it the file and
+nothing else**: it reads `data-geometry` and runs the matrix that declaration
+implies, and a single `--geometry` switches the matrix off — a 0.1.449
+deliverable checked at 16:9 alone left one pixel of clearance under a gate that
+fires above one. `--dark` is a second run, not a matrix point. A clean run there is not
 a verified document — it means nothing measurable is broken. A rule that loses on specificity is indistinguishable from no rule: one
 had been in the layout file since 0.1.339, had never once applied, and left twelve
 of fifteen multi-column pages with their columns out of line. Worse: a probe that

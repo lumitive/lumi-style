@@ -2414,7 +2414,10 @@ def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("files", nargs="+")
     ap.add_argument("--geometry", action="append", choices=list(GEOMETRIES),
-                    help="repeatable; defaults to 16x9, a4 and wide")
+                    help="repeatable; NARROWS the matrix. Left alone, the "
+                         "document's data-geometry picks the points it owes "
+                         "(landscape: 16x9, 16x9-hd, laptop, wide; portrait: "
+                         "a4, wide) and a file declaring neither gets all five")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--no-sheet", action="store_true", help="numbers only, no screenshots")
     ap.add_argument("--out", default=None, help="where the sheet and shots go")

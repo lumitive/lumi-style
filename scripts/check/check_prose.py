@@ -250,6 +250,16 @@ def _has_fact(title):
 GENRES = ("sales", "internal", "training")
 BLOCK_END = re.compile(r"</(?:p|li|h[1-6]|td|th|div|section|figcaption|blockquote)>", re.I)
 NUMERIC_RANGE = re.compile(r"\d\s*[–—]\s*\d")
+# A noun that COUNTS things rather than measuring them. "blocks 1–3" names
+# three blocks; "62–78%" measures. The list is the vocabulary a deliverable
+# actually enumerates with — pages, steps, phases, table rows — and it is
+# deliberately closed: an open test ("any word before a dash pair") would
+# exempt every range in the language, which is the metric switched off.
+COUNTING_NOUN = re.compile(
+    r"(?:^|[\s(\[])(?:block|step|page|phase|item|row|column|part|section|"
+    r"question|tier|level|round|week|day|lane|slot|stage|band|point|task|"
+    r"chapter|appendix|annex|figure|table|note|clause|site|zone|batch)s?"
+    r"\s*(?:no\.?|number)?\s*$", re.I)
 # A cell whose entire content is a dash means "no value" — the standard
 # typographic convention in a table, not a dash in prose. M9 bans the AI-flavor
 # tell of em-dashes in sentences; it counted `<td>—</td>` and failed a
@@ -532,17 +542,36 @@ def measure(path, genre, lang=None):
                 m2_missing.append(block[:90])
             block_sourced = bool(SOURCE_RE.search(block))
             if not block_sourced:
-                for _ in NUMERIC_RANGE.findall(block):
-                    # A dashed pair in a SHORT block carrying no figure-shaped
-                    # number anywhere ("Plastics (1–2)." in a table cell) is an
-                    # enumeration label, not a data range — reported, never
-                    # counted. A conformance deck failed M6 on exactly that
-                    # truthful label (GAP-001). Errs toward counting: any %,
-                    # currency or longer prose context still counts.
-                    if len(block.strip()) <= 40 and not FIGURE_RE.search(block):
-                        m6_labels.append(block[:90])
-                    else:
-                        m6_missing.append(block[:90])
+                # A dashed pair that is an ENUMERATION LABEL rather than a data
+                # range is not a range figure — writing-rules section 4 rule 6
+                # says the machine reports such labels and counts only pairs
+                # with quantitative context. Three tests, in this order:
+                #
+                # 1. any %, currency or figure-shaped number in the block IS
+                #    the quantitative context the rules name — it counts, and
+                #    this branch has to stay first or the one fixture that
+                #    fails M6 stops failing it;
+                # 2. otherwise a COUNTING NOUN in front of the pair ("blocks
+                #    1–3", "steps 2–4") says the numbers identify things
+                #    rather than measure them;
+                # 3. otherwise the old short-block backstop, which is what
+                #    catches a bare table cell like "Plastics (1–2)."
+                #
+                # Test 3 used to be the WHOLE rule, at 40 characters, and it
+                # let go twice: GAP-001 was the short label it was written for,
+                # and then it failed a truthful 61-character sentence —
+                # "Answer confirmation questions in blocks 1–3 and
+                # cross-region." — in a real deliverable, whose author
+                # rewrote the sentence to satisfy it. A length was standing in
+                # for a question about meaning (FM-13); it is a backstop now,
+                # not the judgement.
+                quantitative = bool(FIGURE_RE.search(block))
+                short = len(block.strip()) <= 40
+                for m in NUMERIC_RANGE.finditer(block):
+                    labelled = not quantitative and (
+                        bool(COUNTING_NOUN.search(block[:m.start()])) or short)
+                    target = m6_labels if labelled else m6_missing
+                    target.append(block[:90])
     m2_rate = 100.0 * sourced / figures if figures else None
 
     m1_missing = [t for t in titles if not _has_fact(t)]
@@ -684,6 +713,13 @@ def main(argv):
             print("        banned: " + ", ".join(f"{p}x{n}" for p, n in worst))
         for snippet in r["M12_detail"][:6]:
             print(f"        CJK in reader text: …{snippet}…")
+        # WHAT WAS EXEMPTED, said out loud. These live in the JSON and were
+        # never printed, so an author whose range passed M6 by being read as an
+        # enumeration label could not tell that from a range this metric never
+        # saw — and if the reading is wrong, the number is wrong in the
+        # direction nobody checks.
+        for snippet in r["M6_label_enumerations"][:4]:
+            print(f"        read as an enumeration label, not a range: {snippet}")
 
     if args.json:
         print(json.dumps(reports, indent=2))

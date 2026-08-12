@@ -402,7 +402,9 @@ audit**; ⑦ for HTML, walk §7 as a checklist — no text on the non-text ladde
 element per page, no prose in a table, one tier-one callout per page, footers
 carrying `N / total`, side-by-side cells starting on one line, figures at one
 level, no literal colors outside the token block, and **every page exactly one
-page** at both geometries; ⑧ the **red-team pass**: read the draft as its most
+page** at every geometry the declared format implies and once more in dark if a
+dark variant ships — a format checked at one size only is a format unchecked;
+⑧ the **red-team pass**: read the draft as its most
 skeptical reader — overstated claims, the first number they would check, pages
 designed past their content; over-design is a finding, not a virtue; ⑨ self-score
 H1–H6 (reader value / structural expression / chart self-explanation / honest
@@ -410,6 +412,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.450** snapshot, cut 2026-08-13. It is self-contained by
+> This file is the **0.1.451** snapshot, cut 2026-08-13. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

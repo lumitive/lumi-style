@@ -134,7 +134,14 @@ PAGES = [
      ["Rescheduling costs one quarter.", "Accepting it costs billing accuracy."]),
     ("calendar", "Next", "Three things to settle before the next cycle",
      "Relay siting, crew allocation, and whether the estimate rate becomes a reported metric.",
-     ["Relay siting needs a survey.", "Crew allocation needs a decision."]),
+     # M6_label_enumerations: "blocks 1&#8211;3" is an ENUMERATION LABEL, not a
+     # data range, and it sits in a block far longer than the 40-character
+     # proxy that used to carry this exemption. The rules ask whether the pair
+     # has quantitative context (writing-rules section 4 rule 6); a counting
+     # noun in front of it says it does not. Planted here so the exemption is
+     # proven at the verdict level and not only in a unit test.
+     ["Relay siting needs a survey covering blocks 1&#8211;3 in the rural phase.",
+      "Crew allocation needs a decision."]),
 ]
 
 # The eyebrow sprite plus the footer's handling marker.
