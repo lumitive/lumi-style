@@ -3,7 +3,10 @@ import subprocess
 
 import check_repo
 
-BOOTSTRAP_STUB = "# --- scripts path " + "bootstrap (canonical) ---\n"
+BOOTSTRAP_STUB = (
+    "# --- scripts path " + "bootstrap (canonical) ---\n"
+    + 'for _sub in ("lib", "render", "check", "build", "ops", ""):\n'
+    + "    _bs_sys.path.append(_p)\n")
 
 
 def _repo(tmp_path, files):
@@ -44,7 +47,8 @@ def test_script_paths_waiver_silences_with_reason(tmp_path, monkeypatch):
     monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, {
         "scripts/tool.py": "x = 1\n",
         "threat.md": "imagine a scripts/hijack.py planted by a PR\n"}))
-    monkeypatch.setitem(check_repo.SCRIPT_PATH_WAIVERS, "threat.md",
+    monkeypatch.setitem(check_repo.SCRIPT_PATH_WAIVERS,
+                        ("threat.md", "scripts/hijack.py"),
                         "hypothetical illustration, not a reference")
     assert check_repo.check_script_paths() == []
 
@@ -98,3 +102,37 @@ def test_script_paths_constructed_path_resolving_passes(tmp_path, monkeypatch):
             'subprocess.run([str(ROOT / "scripts" / "lib" / "there.py")])\n',
         "scripts/lib/there.py": "x = 1\n"}))
     assert check_repo.check_script_paths() == []
+
+
+def test_bootstrap_marker_without_code_fails(tmp_path, monkeypatch):
+    """0.1.442: a marker comment with no sys.path code behind it is a
+    vacancy wearing a badge — the guard reads the load-bearing lines now."""
+    marker_only = "# --- scripts path " + "bootstrap (canonical) ---\n"
+    monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, {
+        "scripts/consumer.py": marker_only + "import color_math\n",
+        "scripts/color_math.py": "def f():\n    return 1\n"}))
+    errors = check_repo.check_bootstrap()
+    assert len(errors) == 1 and "vacancy" in errors[0]
+
+
+def test_bootstrap_lib_module_outside_sibling_list_fails(tmp_path, monkeypatch):
+    """A new lib/ module whose importers were never checked is enumeration
+    rot; the guard now holds SIBLING_MODULES to lib/'s contents."""
+    monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, {
+        "scripts/lib/brand_new_helper.py": "X = 1\n"}))
+    errors = check_repo.check_bootstrap()
+    assert any("brand_new_helper" in e and "SIBLING_MODULES" in e
+               for e in errors)
+
+
+def test_waiver_covers_one_citation_not_the_file(tmp_path, monkeypatch):
+    """0.1.442: waiving one illustrative mention must not exempt the rest
+    of the file (the emergency runbook was entirely unguarded before)."""
+    monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, {
+        "scripts/tool.py": "x = 1\n",
+        "threat.md": "imagine scripts/hijack.py; but scripts/also_gone.py "
+                     "is a REAL dangling mention\n"}))
+    monkeypatch.setitem(check_repo.SCRIPT_PATH_WAIVERS,
+                        ("threat.md", "scripts/hijack.py"), "illustration")
+    errors = check_repo.check_script_paths()
+    assert len(errors) == 1 and "also_gone" in errors[0]

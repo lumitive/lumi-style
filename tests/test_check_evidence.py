@@ -237,3 +237,14 @@ def test_validate_maps_catches_a_dangling_obligation_command(tmp_path, monkeypat
                         {"x": ("python3 scripts/gone.py --check", "why")})
     errors = check_evidence.validate_maps()
     assert len(errors) == 1 and "recording it would fail" in errors[0]
+
+
+def test_validate_maps_catches_a_dangling_directory_prefix(tmp_path, monkeypatch):
+    """0.1.442: a renamed DIRECTORY disarmed its obligation as silently as a
+    renamed file — validate_maps reads both shapes now."""
+    monkeypatch.setattr(check_evidence, "ROOT", tmp_path)
+    monkeypatch.setattr(check_evidence, "TOUCH_MAP",
+                        (("assets/gone/", ("globe-js",)),))
+    monkeypatch.setattr(check_evidence, "OBLIGATIONS", {})
+    errors = check_evidence.validate_maps()
+    assert len(errors) == 1 and "directory" in errors[0]

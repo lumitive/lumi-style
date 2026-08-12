@@ -48,9 +48,10 @@ import pathlib
 # Bare-name sibling imports must resolve from any drawer depth: walk up to
 # the scripts/ root and APPEND it and its drawers to sys.path — append,
 # never insert(0), so the standard library and the caller's environment
-# always win (the stdlib-shadowing hijack documented in emergency_merge.sh
-# stays dead; the emergency path's protection is trusted copies overwriting
-# a PR's files at the same paths, not path order).
+# always win. Drawer order is lib-first and the scripts ROOT LAST on
+# purpose: the emergency path overwrites a PR's lib/ files with trusted
+# copies, and lib-first means a file PLANTED at the scripts root can never
+# outrank them (the shadowing the PR #92 review demonstrated).
 import pathlib as _bs_pathlib  # noqa: E402
 import re
 import shutil
@@ -61,7 +62,7 @@ from typing import Any
 
 _SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
                      if p.name == "scripts")
-for _sub in ("", "lib", "render", "check", "build", "ops"):
+for _sub in ("lib", "render", "check", "build", "ops", ""):
     _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
     if _p not in _bs_sys.path:
         _bs_sys.path.append(_p)

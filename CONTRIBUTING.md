@@ -13,8 +13,9 @@ CHANGELOG entry that introduced each rule tells its story.
 2. **One version, moved everywhere at once.** A release bumps the version in
    SKILL.md's frontmatter, the newest CHANGELOG heading, the three `tokens/`
    file headers, `AGENTS.md`, `prompts/lumi-style-core.md` and
-   `conformance/CONFORMANCE.md` — CI's `check_versions` guard refuses a
-   partial move. Commit subjects for release commits read
+   `conformance/CONFORMANCE.md` — CI refuses a partial move
+   (`check_versions` holds the first five; `check_version_citations`' 
+   ENTRY_STAMP table holds the entry-point stamps). Commit subjects for release commits read
    `X.Y.Z — comma-separated summary` (guard-enforced when CHANGELOG is
    touched).
 3. **Run what CI runs, before pushing**: `python3 scripts/preflight.py`

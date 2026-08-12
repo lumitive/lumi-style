@@ -7,10 +7,10 @@ exercised failure mode.
 
 Two guards do not run inside check_repo's own process:
 
-- check_review_scores shells out to ROOT/scripts/review_scores.py, so the
+- check_review_scores shells out to ROOT/scripts/ops/review_scores.py, so the
   synthetic tree carries the REAL delegate (copied in), which keeps the actual
   schema logic under test instead of a stub pretending to be it.
-- check_brand_lock imports scripts/lock.py, whose own module-level ROOT and
+- check_brand_lock imports scripts/lib/lock.py, whose own module-level ROOT and
   LOCK are bound at import; the module is already cached (conftest puts
   scripts/ on sys.path), so monkeypatching those two attributes is the whole
   redirection — no fake module, no import machinery.

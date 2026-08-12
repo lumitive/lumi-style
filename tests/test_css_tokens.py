@@ -1,4 +1,4 @@
-"""Tests for scripts/css_tokens.py — the one CSS custom-property reader.
+"""Tests for scripts/lib/css_tokens.py — the one CSS custom-property reader.
 
 Written first (0.1.419) as characterization tests against the duplicated
 copies, with build_brand's two comment bugs pinned as strict xfails; when

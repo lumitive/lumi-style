@@ -24,12 +24,15 @@
 #      Verified. PYTHONSAFEPATH=1 (Python 3.11+) removes that directory from the
 #      path, so we require 3.11 and refuse otherwise. Since 0.1.420 check_repo
 #      imports sibling modules (color_math, css_tokens, lock — all pure
-#      stdlib underneath), so the trusted copy is the whole CLOSURE, each file
-#      overwriting the PR's version at the same path: the PR's copies never
-#      run, stdlib still resolves first (the bootstrap block only APPENDS),
-#      and the hijack stays dead. Found broken by the 2026-08-13 audit: the
-#      single-file copy left import color_math unresolvable under SAFEPATH,
-#      so this path would have misdiagnosed EVERY PR as a real defect.
+#      stdlib underneath), so the trusted copy is the whole EXECUTION closure
+#      (imports plus the review_scores subprocess), each file overwriting the
+#      PR's version at the same path. Three layers keep PR code dead: stdlib
+#      resolves first (the bootstrap only APPENDS), lib/ precedes the scripts
+#      root in the append order, and root-level *.py in the temp tree is
+#      purged outright. Found broken by the restructuring audit
+#      (specs/2026-08-13-audit-restructure-design.md): the single-file copy
+#      left import color_math unresolvable under SAFEPATH, so this path
+#      would have misdiagnosed EVERY PR as a real defect.
 #   2. Fork PRs are refused. A same-repo branch means someone with push access
 #      made it; a fork branch means anyone did.
 #   3. Verify what will actually be merged. We fetch refs/pull/N/merge, confirm
@@ -43,10 +46,15 @@ PR="${1:?usage: bash scripts/ops/emergency_merge.sh <PR-NUMBER>}"
 PROT="repos/$REPO/branches/main/protection/enforce_admins"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TRUSTED_CHECK="$SCRIPT_DIR/../check/check_repo.py"
-# check_repo's non-stdlib import closure. Every file here must itself be
-# pure-stdlib (verified; a sibling gaining a third-party import would fail
-# loudly under SAFEPATH, never silently widen this list).
-TRUSTED_CLOSURE=("$SCRIPT_DIR/../lib/color_math.py" "$SCRIPT_DIR/../lib/css_tokens.py" "$SCRIPT_DIR/../lib/lock.py" "$SCRIPT_DIR/../lib/deliverable_registry.py")
+# The trusted EXECUTION closure: everything that runs during the emergency
+# check. Three files are check_repo's sibling imports (color_math,
+# css_tokens, lock), one is the script it SUBPROCESSES (review_scores — the
+# PR #92 review found the PR's own copy being executed here), and
+# deliverable_registry rides along prophylactically. Every file must itself
+# be pure-stdlib underneath. tests/test_emergency_checker_closure.py parses
+# this array and asserts it against check_repo's actual imports — widening
+# check_repo without widening this list fails the suite.
+TRUSTED_CLOSURE=("$SCRIPT_DIR/../lib/color_math.py" "$SCRIPT_DIR/../lib/css_tokens.py" "$SCRIPT_DIR/../lib/lock.py" "$SCRIPT_DIR/../lib/deliverable_registry.py" "$SCRIPT_DIR/review_scores.py")
 UNLOCKED=0
 RESTORE_FAILED=0
 WORK=""
@@ -134,11 +142,24 @@ MERGE_PARENT=$(git -C "$WORK/repo" rev-parse --verify --quiet 'FETCH_HEAD^2' || 
 echo "    merge ref confirmed against head ${HEAD_SHA:0:7}"
 
 echo "==> Running the TRUSTED local checker over that tree"
-mkdir -p "$WORK/repo/scripts/lib" "$WORK/repo/scripts/check"
-cp "$TRUSTED_CHECK" "$WORK/repo/scripts/check/check_repo.py"
+mkdir -p "$WORK/repo/scripts/lib" "$WORK/repo/scripts/check" "$WORK/repo/scripts/ops" \
+  || die 3 "could not prepare the trusted directories"
+cp "$TRUSTED_CHECK" "$WORK/repo/scripts/check/check_repo.py" \
+  || die 3 "could not install the trusted checker — refusing to run the PR's copy"
 for f in "${TRUSTED_CLOSURE[@]}"; do
-  cp "$f" "$WORK/repo/scripts/lib/$(basename "$f")"
+  case "$f" in
+    */review_scores.py) dest="$WORK/repo/scripts/ops" ;;
+    *)                  dest="$WORK/repo/scripts/lib" ;;
+  esac
+  cp "$f" "$dest/$(basename "$f")" \
+    || die 3 "could not install trusted $(basename "$f") — a partial closure misdiagnoses PRs"
 done
+# Purge any PR-planted shadow at the scripts ROOT: the bootstrap appends the
+# root LAST (after lib/), and this removes the class entirely rather than
+# relying on order alone. preflight.py is the only legitimate root script
+# and the emergency check never imports it.
+find "$WORK/repo/scripts" -maxdepth 1 -name "*.py" -delete \
+  || die 3 "could not purge root-level scripts from the PR tree"
 # PYTHONSAFEPATH keeps the PR's scripts/ off sys.path, so a planted json.py
 # cannot hijack an import. Overwriting the checker alone does not do this.
 PYTHONSAFEPATH=1 python3 "$WORK/repo/scripts/check/check_repo.py"

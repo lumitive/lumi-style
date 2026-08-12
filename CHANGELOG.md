@@ -3,6 +3,51 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.442 — the review breaks into the emergency path twice, and both doors get bricked up
+
+A four-lens review of PR #92 (the audit's six releases) found its most
+serious findings where they hurt most: the emergency merge path — the code
+that runs with maintainer credentials when CI is down. Both were
+DEMONSTRATED, not argued (spec: `specs/2026-08-13-audit-restructure-design.md`).
+
+**The two demonstrated breaks.** (1) `check_repo`'s review-scores guard
+SUBPROCESSES `ops/review_scores.py` — and the trusted closure did not carry
+it, so the emergency run executed the PR's own copy of that file. The
+closure is now the EXECUTION closure (imports + the subprocess), and the
+regression test parses the shell script's actual array and holds it to
+check_repo's real imports both directions — no hand-copied list to drift.
+(2) The bootstrap appended the scripts ROOT before lib/, so a PR planting
+`scripts/color_math.py` at the root outranked the trusted overwritten copy
+in lib/ — arbitrary code at import time, shown live in a sandbox. Three
+layers now: the drawer order is lib-first/root-last in every block, the
+emergency sequence purges root-level *.py from the temp tree outright, and
+a canary test plants the exact shadow and asserts it never runs. The
+unchecked `cp`/`mkdir` in the trust-establishing step gained `|| die` (a
+failed copy used to fall through to executing the PR's checker).
+
+**The guards grow the teeth the review found missing**: check_bootstrap
+reads the block's load-bearing CODE (append line + canonical drawer order),
+not the marker comment a stub could fake, and holds SIBLING_MODULES to
+lib/'s actual contents; SCRIPT_PATH_WAIVERS is keyed by (file, citation) so
+waiving one illustrative line no longer exempts the whole emergency
+runbook; the frozen zone narrows so the LIVE perf baseline is scanned;
+`scripts/README.md` joins the pattern; validate_maps refuses dangling
+DIRECTORY prefixes, not only files.
+
+**28 of 0.1.441's 35 Contents anchors were dead on GitHub** — '·' in a
+heading slugs to a DOUBLE hyphen (the dot vanishes, both spaces survive)
+and the hand slugger collapsed them. check_links now resolves in-page and
+cross-file anchors with a faithful slugger (it reproduced all 28 before the
+fix); the four TOCs are regenerated through it.
+
+**Prose set straight**: the runbook's closure label says what the closure
+IS (imports + subprocess + one prophylactic); the "audit found broken"
+claims cite the spec rather than a date that postdates the commits;
+scripts/README's import-edge claims match measurement (two of build/ on
+geo_*, GENRES imported directly by two ops tools, "no script imports ops/");
+NOTICE's Lucide line matches the vendored LICENSE; conftest explains why
+tests deliberately insert(0) where the block appends. 12 tests added (233).
+
 ## 0.1.441 — a public repo says what it is, and its licenses tell the truth
 
 R5 of the audit (`specs/2026-08-13-audit-restructure-design.md`) — the

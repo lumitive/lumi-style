@@ -1,4 +1,4 @@
-"""Tests for scripts/color_math.py — the one sRGB/contrast implementation.
+"""Tests for scripts/lib/color_math.py — the one sRGB/contrast implementation.
 
 Written first (0.1.419) as characterization tests against the four duplicated
 copies; re-pointed here when 0.1.420 extracted the module. The byte-safety

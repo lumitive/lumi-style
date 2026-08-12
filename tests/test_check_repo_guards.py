@@ -178,7 +178,7 @@ def test_version_citations_stale_stamp_fails(tmp_path, monkeypatch):
 def test_links_valid_and_external_pass(tmp_path, monkeypatch):
     (tmp_path / "target.md").write_text("here\n")
     (tmp_path / "index.md").write_text(
-        "[ok](target.md) [anchor](#top) [mail](mailto:a@b.c)\n"
+        "# Top\n[ok](target.md) [anchor](#top) [mail](mailto:a@b.c)\n"
         "[ext](https://example.invalid/never-fetched) [ext2](http://example.invalid/x)\n")
     monkeypatch.setattr(check_repo, "ROOT", tmp_path)
     assert check_repo.check_links() == []
@@ -190,3 +190,21 @@ def test_links_broken_relative_target_fails(tmp_path, monkeypatch):
     errors = check_repo.check_links()
     assert len(errors) == 1
     assert "index.md:1" in errors[0] and "missing.md" in errors[0]
+
+
+def test_links_dead_anchor_fails(tmp_path, monkeypatch):
+    """0.1.442: anchors resolve too — the class the 0.1.441 Contents blocks
+    shipped broken 28 times."""
+    (tmp_path / "index.md").write_text("# A Title\n[toc](#0--wrong)\n")
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    errors = check_repo.check_links()
+    assert len(errors) == 1 and "matches no heading" in errors[0]
+
+
+def test_links_middle_dot_slug_matches_github(tmp_path, monkeypatch):
+    """The exact 0.1.441 bug shape: '0 · Output language' slugs with a
+    DOUBLE hyphen on GitHub (the dot vanishes, both spaces survive)."""
+    (tmp_path / "index.md").write_text(
+        "## 0 · Output language\n[good](#0--output-language)\n")
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    assert check_repo.check_links() == []
