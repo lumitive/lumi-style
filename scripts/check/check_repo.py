@@ -13,9 +13,10 @@ import pathlib
 # Bare-name sibling imports must resolve from any drawer depth: walk up to
 # the scripts/ root and APPEND it and its drawers to sys.path — append,
 # never insert(0), so the standard library and the caller's environment
-# always win (the stdlib-shadowing hijack documented in emergency_merge.sh
-# stays dead; the emergency path's protection is trusted copies overwriting
-# a PR's files at the same paths, not path order).
+# always win. Drawer order is lib-first and the scripts ROOT LAST on
+# purpose: the emergency path overwrites a PR's lib/ files with trusted
+# copies, and lib-first means a file PLANTED at the scripts root can never
+# outrank them (the shadowing the PR #92 review demonstrated).
 import pathlib as _bs_pathlib  # noqa: E402
 import re
 import subprocess
@@ -26,7 +27,7 @@ from typing import cast
 
 _SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
                      if p.name == "scripts")
-for _sub in ("", "lib", "render", "check", "build", "ops"):
+for _sub in ("lib", "render", "check", "build", "ops", ""):
     _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
     if _p not in _bs_sys.path:
         _bs_sys.path.append(_p)
@@ -215,18 +216,48 @@ def check_english_only():
     return errors
 
 
+def _gh_slug(heading):
+    """GitHub's anchor slugger, the parts that matter here: lowercase, strip
+    everything but word characters/spaces/hyphens, spaces to hyphens WITHOUT
+    collapsing runs — '0 · Output language' becomes '0--output-language'
+    (the '·' vanishes, its two flanking spaces both survive as hyphens).
+    Getting this wrong is how 0.1.441 shipped 28 dead Contents anchors."""
+    s = re.sub(r"[^\w\s-]", "", heading.strip().lower())
+    return re.sub(r"\s", "-", s)
+
+
+def _anchors_of(path):
+    text = path.read_text(encoding="utf-8")
+    slugs = set()
+    for m in re.finditer(r"^#{1,6}\s+(.*)$", text, re.M):
+        slugs.add(_gh_slug(m.group(1)))
+    return slugs
+
+
 def check_links():
+    """Relative link targets exist — and since 0.1.442, in-page and
+    cross-file ANCHORS resolve too (the class check_links was blind to when
+    the 0.1.441 Contents blocks shipped dead)."""
     errors = []
     for path in md_files():
         text = path.read_text(encoding="utf-8")
         for m in re.finditer(r"\]\(([^)]+)\)", text):
             target = m.group(1).split()[0]
-            if re.match(r"^(https?:|mailto:|#)", target):
+            lineno = text.count("\n", 0, m.start()) + 1
+            if re.match(r"^(https?:|mailto:)", target):
                 continue
-            resolved = (path.parent / target.split("#")[0]).resolve()
+            if target.startswith("#"):
+                if target[1:] not in _anchors_of(path):
+                    errors.append(f"{rel(path)}:{lineno}: in-page anchor "
+                                  f"{target} matches no heading")
+                continue
+            base, _, frag = target.partition("#")
+            resolved = (path.parent / base).resolve()
             if not resolved.exists():
-                lineno = text.count("\n", 0, m.start()) + 1
                 errors.append(f"{rel(path)}:{lineno}: link target does not exist: {target}")
+            elif frag and resolved.suffix == ".md" and frag not in _anchors_of(resolved):
+                errors.append(f"{rel(path)}:{lineno}: anchor #{frag} matches "
+                              f"no heading in {base}")
     return errors
 
 
@@ -1798,21 +1829,25 @@ def check_secrets():
 # A script-path mention that is deliberate data (a hypothetical example, a
 # threat-model illustration) is waived here with its reason, never silenced
 # by narrowing the pattern. Starts empty on purpose.
-SCRIPT_PATH_WAIVERS: dict[str, str] = {
-    "scripts/ops/emergency_merge.sh":
-        "its threat-model comment cites a HYPOTHETICAL stdlib-shadowing "
-        "module path as the hijack example — deliberate illustration, not a "
-        "reference. (Spelling that path here would trip this guard on its "
-        "own waiver table, which is how this sentence learned not to.)",
+# Keyed by (file, cited path): waiving one illustrative mention must not
+# exempt the rest of the file — the PR #92 review found the whole
+# emergency runbook outside the guard because of a file-scoped waiver.
+SCRIPT_PATH_WAIVERS: dict[tuple[str, str], str] = {
+    ("scripts/ops/emergency_merge.sh", "scripts/json" + ".py"):
+        "the threat-model comment's HYPOTHETICAL stdlib-shadowing example — "
+        "deliberate illustration, not a reference (the key is concatenated "
+        "so this table cannot trip the guard on itself)",
 }
 
 # Files whose script-path mentions are FROZEN HISTORY and never rewritten,
 # plus tests/ — synthetic tree fixtures cite paths that exist only in
 # tmp_path by construction.
-SCRIPT_PATH_FROZEN = ("CHANGELOG.md", "specs/", "releases/",
+# releases/evidence/ is frozen history; releases/perf-baseline.json is
+# LIVE (re-recorded, read by preflight) and stays scanned.
+SCRIPT_PATH_FROZEN = ("CHANGELOG.md", "specs/", "releases/evidence/",
                       "conformance/results/", "tests/")
 
-SCRIPT_PATH_RE = re.compile(r"scripts/[\w./-]+\.(?:py|sh)\b")
+SCRIPT_PATH_RE = re.compile(r"scripts/[\w./-]+\.(?:py|sh|md)\b")
 
 # The shape the string form cannot see: a path BUILT from pieces,
 # `ROOT / "scripts" / "build" / "embed_globe.py"`. The 0.1.438 move broke
@@ -1842,7 +1877,7 @@ def check_script_paths():
                 "a scan that did not run is not a scan that passed"]
     errors = []
     for relpath in p.stdout.splitlines():
-        if not relpath or relpath in SCRIPT_PATH_WAIVERS:
+        if not relpath:
             continue
         if any(relpath.startswith(f) for f in SCRIPT_PATH_FROZEN):
             continue
@@ -1854,6 +1889,8 @@ def check_script_paths():
         for n, line in enumerate(text.splitlines(), 1):
             for match in SCRIPT_PATH_RE.finditer(line):
                 cited = match.group(0)
+                if (relpath, cited) in SCRIPT_PATH_WAIVERS:
+                    continue
                 if not (ROOT / cited).is_file():
                     errors.append(
                         f"{relpath}:{n}: cites {cited}, which does not exist "
@@ -1886,26 +1923,47 @@ SIBLING_IMPORT_RE = re.compile(
     r"^\s*(?:import|from)\s+(" + "|".join(SIBLING_MODULES) + r")\b", re.M)
 
 
-def check_bootstrap():
-    """A script that imports a sibling carries the canonical bootstrap block.
+# The block's load-bearing lines: the guard asserts THESE, not the comment
+# marker alone — the PR #92 review showed a bare marker comment satisfying
+# the old check with no sys.path code behind it.
+BOOTSTRAP_TUPLE = '("lib", "render", "check", "build", "ops", "")'
+BOOTSTRAP_APPEND = "_bs_sys.path.append(_p)"
 
-    Bare-name imports resolve today because a flat scripts/ is sys.path[0]
-    on direct runs. The subdirectory layout breaks that silently — an import
-    error surfaces only when the specific code path runs (check_globe's ~25
-    function-local imports are the worst case). The bootstrap block is
-    layout-agnostic; requiring it wherever a sibling import exists means the
-    move cannot leave a script stranded.
+
+def check_bootstrap():
+    """A script that imports a sibling carries the canonical bootstrap block
+    — the CODE, not just the marker — with the canonical drawer order
+    (lib first, scripts root LAST: the emergency path's shadow defense).
+
+    Also holds SIBLING_MODULES to lib/'s actual contents: a new shared
+    module whose importers were never checked is enumeration rot wearing a
+    guard's clothes.
     """
     errors = []
+    lib_stems = {p.stem for p in (ROOT / "scripts" / "lib").glob("*.py")}
+    missing = lib_stems - set(SIBLING_MODULES)
+    for stem in sorted(missing):
+        errors.append(
+            f"scripts/lib/{stem}.py is not in SIBLING_MODULES — its "
+            f"importers are invisible to this guard")
     for path in sorted(p for p in (ROOT / "scripts").rglob("*.py")
                        if "__pycache__" not in p.parts):
         text = path.read_text(encoding="utf-8")
         m = SIBLING_IMPORT_RE.search(text)
-        if m and path.stem != m.group(1) and BOOTSTRAP_MARKER not in text:
+        if not m or path.stem == m.group(1):
+            continue
+        if BOOTSTRAP_MARKER not in text:
             errors.append(
                 f"{rel(path)} imports sibling {m.group(1)!r} without the "
                 f"canonical bootstrap block — bare names stop resolving the "
                 f"moment this file or its sibling changes drawers")
+            continue
+        if BOOTSTRAP_APPEND not in text or BOOTSTRAP_TUPLE not in text:
+            errors.append(
+                f"{rel(path)} carries the bootstrap marker but not the "
+                f"canonical block (append line + drawer tuple, lib first "
+                f"and root last) — a marker without the code is a vacancy "
+                f"wearing a badge")
     return errors
 
 

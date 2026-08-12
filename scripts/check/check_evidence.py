@@ -117,9 +117,16 @@ def validate_maps() -> list[str]:
     forgets this file goes red instead of quiet."""
     errors = []
     for prefix, _obs in TOUCH_MAP:
-        if prefix.endswith((".py", ".md", ".sh")) and not (ROOT / prefix).is_file():
-            errors.append(f"TOUCH_MAP names {prefix!r}, which does not exist "
-                          f"— that entry can never fire")
+        if prefix.endswith((".py", ".md", ".sh")):
+            if not (ROOT / prefix).is_file():
+                errors.append(f"TOUCH_MAP names {prefix!r}, which does not "
+                              f"exist — that entry can never fire")
+        elif prefix.endswith("/") and not (ROOT / prefix).is_dir():
+            # The PR #92 review: a renamed DIRECTORY disarmed its obligation
+            # as silently as a renamed file would have — same class, one
+            # shape over.
+            errors.append(f"TOUCH_MAP names directory {prefix!r}, which does "
+                          f"not exist — that entry can never fire")
     for ob, (command, _why) in OBLIGATIONS.items():
         for token in command.split():
             if token.startswith("scripts/") and not (ROOT / token).is_file():

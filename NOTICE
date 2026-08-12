@@ -30,7 +30,8 @@ travels with it; the Reserved Font Name restricts derivatives, and none are made
 here. Regenerate the embed block with scripts/build/embed_font.py.
 
 Lucide — https://github.com/lucide-icons/lucide
-Copyright (c) 2026 Lucide Icons and Contributors. ISC License — full text in
+Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022
+as part of Feather (MIT); all other copyright (c) Lucide Contributors 2022. ISC License — full text in
 assets/icons/lucide/LICENSE.
 
 Vendored in release 1.8.0 as assets/icons/lucide/, 2007 icons from lucide-static

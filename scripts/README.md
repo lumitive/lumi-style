@@ -43,18 +43,24 @@ ops/            operator tools
   run_conformance  the cross-agent task suite (validate runs in CI)
   export_pdf · output_dir · new_deck · review_scores
   ci_wait.sh · emergency_merge.sh   the CI-outage runbook pair; the trusted
-                  emergency closure = check/check_repo.py + everything in lib/
+                  emergency EXECUTION closure = check/check_repo.py +
+                  color_math/css_tokens/lock/deliverable_registry from lib/ +
+                  ops/review_scores.py (the subprocess) — the closure test
+                  parses the .sh and holds it to check_repo's real imports
 ```
 
-Import edges (who depends on whom): everything in render/ and half of
-build/ sits on `lib/geo_*`; the checkers sit on `lib/color_math` and
-`lib/css_tokens`; `check/check_globe` additionally imports both renderers
+Import edges (who depends on whom): all of render/ and two of build/
+(build_geography, build_worldmap — three counting build_brand via
+globe_svg) sit on `lib/geo_*`; check_repo and check_design sit on both `lib/color_math` and
+`lib/css_tokens` (inspect_layout on color_math alone); `check/check_globe` additionally imports both renderers
 and `build/embed_globe`; `ops/run_conformance` and `check/check_fixtures`
-reach the deliverable checkers only through `lib/deliverable_registry`.
-Nothing imports `ops/` and nothing in `lib/` imports anything local except
-`geo_frame → geo_projection`.
+INVOKE the deliverable checkers only through `lib/deliverable_registry`
+(run_conformance and ops/export_pdf additionally import `check_prose` for
+its GENRES constant). No script imports `ops/` (tests do), and nothing in
+`lib/` imports anything local except `geo_frame → geo_projection`.
 
-History note: this tree was flat (35 files) until 0.1.438–0.1.440. The
+History note: this tree was flat (36 files, counting the registry that
+arrived with the hardening) until 0.1.438–0.1.440. The
 migration story, including the four silent-failure shapes it surfaced and
 the guards that now prevent them, is in the CHANGELOG entries for those
 releases and `specs/2026-08-13-audit-restructure-design.md`.

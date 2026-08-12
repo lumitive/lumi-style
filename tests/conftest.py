@@ -1,7 +1,10 @@
 # scripts/ is deliberately not a package (the scripts are operator commands,
 # not a library), so tests import them by bare name with every drawer on
-# sys.path — mirroring the canonical bootstrap block the scripts themselves
-# carry (check_repo's bootstrap guard enforces it there).
+# sys.path. UNLIKE the canonical bootstrap block (which APPENDS so stdlib
+# and the caller's environment win), tests insert(0) on purpose: the suite
+# must test THIS repo's modules even when site-packages carries a same-named
+# package (`lock` is a real pypi name). The threat the append order defends
+# against — PR-controlled trees — does not exist in the test environment.
 import pathlib
 import sys
 

@@ -93,7 +93,9 @@ fixtures/                         synthetic deliverables the checkers are tested
 conformance/                      fixed task suite · the tracked cross-agent scoreboard ·
                                   history.json, the dated memory the freshness gate reads
 scripts/                          five drawers + preflight at the top (see scripts/README.md):
-                                  check/ — check_repo · check_prose (M) · check_design (D) ·
+                                  check/ (the gates) · build/ (generators + embedders) ·
+                                  lib/ (shared implementations) · render/ (geometry→SVG) ·
+                                  ops/ (operator tools) — among them check_prose (M) · check_design (D) ·
                                   inspect_layout (renders and looks) · export_pdf (PDF/4K) ·
                                   output_dir (where a deliverable belongs) ·
                                   check_fixtures · check_js · check_evidence (the evidence
