@@ -1571,6 +1571,25 @@ def check_ledgers():
     gap_ids = re.findall(r"^## (GAP-\d+)", gaps_text, re.M)
     fm_ids = re.findall(r"^## (FM-\d+)", fm_text, re.M)
     idea_ids = re.findall(r"^## (IDEA-\d+)", ideas_text, re.M)
+    # A near-miss heading ("## GAP 003", "##GAP-4", "## gap-005") would fall
+    # out of every structural check below — invisible, not validated. Catch
+    # the shape that meant to be an id and is not one.
+    for name, text_, strict in (("KNOWN_GAPS.md", gaps_text, r"^## GAP-\d+"),
+                                ("FAILURE_MODES.md", fm_text, r"^## FM-\d+"),
+                                ("Pipeline/ideas-prd.md", ideas_text,
+                                 r"^## IDEA-\d+")):
+        # "^## GAP-\d+" -> "GAP". The former slice (strict[6:index("-")])
+        # produced "P"/""/"EA", so the detection below could never fire —
+        # found by the tests this comment now cites (test_ledgers_guard.py).
+        kind = strict.split()[1].split("-")[0]
+        for m in re.finditer(rf"^##.*\b{kind}\b.*$", text_, re.M | re.I):
+            line = m.group(0)
+            if not re.match(strict, line) and "·" not in line.split(kind)[0]:
+                # Prose headings that merely mention the word pass; a heading
+                # SHAPED like an entry that does not parse as one fails.
+                if re.match(rf"^##\s*{kind}[\s-]*\d", line, re.I):
+                    errors.append(f"{name}: heading {line!r} looks like an "
+                                  f"entry id but does not parse as one")
     for name, ids in (("KNOWN_GAPS.md", gap_ids), ("FAILURE_MODES.md", fm_ids),
                       ("Pipeline/ideas-prd.md", idea_ids)):
         dupes = {i for i in ids if ids.count(i) > 1}
@@ -1658,10 +1677,18 @@ def check_commit_convention():
     target = "HEAD"
     if subject.startswith("Merge "):
         rc, merged = git("log", "-1", "--format=%s", "HEAD^2")
-        if rc != 0:
-            return []
-        target, subject = "HEAD^2", merged
-    rc, files = git("diff-tree", "--no-commit-id", "--name-only", "-r", target)
+        if rc == 0:
+            target, subject = "HEAD^2", merged
+        # A commit merely TITLED "Merge ..." with no second parent falls
+        # through and is judged as itself — returning [] here exempted any
+        # commit that borrowed the word (found by the PR #87 review).
+    # -m --first-parent: without it, diff-tree prints NOTHING for a merge
+    # commit, so when the judged target was itself a merge (the shape CI's
+    # pull_request checkout produces every time) the guard saw no files and
+    # exited clean — disarmed on exactly the event that runs it (same
+    # review). With it, a merge reports its files against its first parent.
+    rc, files = git("diff-tree", "--no-commit-id", "--name-only", "-r",
+                    "-m", "--first-parent", target)
     if rc != 0 or "CHANGELOG.md" not in files.splitlines():
         return []
     m = re.match(r"(\d+\.\d+\.\d+) — ", subject)
@@ -1716,10 +1743,17 @@ def check_secrets():
     workflow marketplace action is invisible to the local half of that
     contract (AG-5 in FAILURE_MODES.md records the decline).
     """
+    if not (ROOT / ".git").exists():
+        return []  # a tarball checkout has no listing to scan (documented)
     p = subprocess.run(["git", "ls-files"], cwd=ROOT,
                        capture_output=True, text=True)
     if p.returncode != 0:
-        return []  # a tarball checkout has no listing and CI always does
+        # A git failure INSIDE a git checkout is a finding, not a skip — the
+        # PR #87 review pointed at check_js.py holding the opposite (correct)
+        # policy for the identical condition.
+        return [f"git ls-files failed ({p.stderr.strip()[:80]}) — the secret "
+                f"scan did not run, and a scan that did not run is not a "
+                f"scan that passed"]
     errors = []
     for relpath in p.stdout.splitlines():
         if not relpath or relpath in SECRET_WAIVERS:

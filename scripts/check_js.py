@@ -30,10 +30,18 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
-# The probe string literals in inspect_layout.py that hold browser-side JS.
-# Each is an arrow-function expression; wrapped in parens it parses as a
-# complete module.
-EMBEDDED_PROBES = ("PROBE", "ASPECT_PROBE", "CONSISTENCY_PROBE")
+def embedded_probes(module):
+    """Every module-level string constant named like a probe (PROBE or
+    *_PROBE) — DISCOVERED, not hand-listed. The PR #87 review pointed out
+    that a hand-maintained three-name tuple here had the exact failure mode
+    this release removed from ci.yml: a fourth probe would ship with zero
+    syntax checking and a reassuring 'all 3 probes parse' line. Each probe
+    is an arrow-function expression; wrapped in parens it parses as a
+    complete module.
+    """
+    return sorted(name for name in dir(module)
+                  if (name == "PROBE" or name.endswith("_PROBE"))
+                  and isinstance(getattr(module, name), str))
 
 
 def tracked_js():
@@ -69,7 +77,7 @@ def main():
     files = tracked_js()
     if not files:
         failures.append("git ls-files returned no .js files — the repository "
-                        "ships eight; the listing itself is broken")
+                        "tracks several; the listing itself is broken")
     for rel in files:
         ok, msg = node_check((ROOT / rel).read_text(encoding="utf-8"))
         print(f"{'ok  ' if ok else 'FAIL'}  {rel}")
@@ -78,14 +86,13 @@ def main():
 
     sys.path.insert(0, str(ROOT / "scripts"))
     import inspect_layout  # noqa: E402 — import after sys.path, deliberately
-    for name in EMBEDDED_PROBES:
-        source = getattr(inspect_layout, name, None)
-        if source is None:
-            print(f"FAIL  inspect_layout.{name}")
-            failures.append(f"inspect_layout.{name}: probe variable no longer "
-                            "exists — update EMBEDDED_PROBES or the probe")
-            continue
-        ok, msg = node_check(f"({source})")
+    probes = embedded_probes(inspect_layout)
+    if not probes:
+        failures.append("no *_PROBE strings discovered in inspect_layout — "
+                        "either the naming convention changed (update the "
+                        "discovery) or the probes are gone; both are findings")
+    for name in probes:
+        ok, msg = node_check(f"({getattr(inspect_layout, name)})")
         print(f"{'ok  ' if ok else 'FAIL'}  inspect_layout.{name} (embedded)")
         if not ok:
             failures.append(f"inspect_layout.{name}: {msg}")
@@ -97,7 +104,7 @@ def main():
             print(f"  - {f}")
         return 1
     print(f"all {len(files)} tracked .js files and "
-          f"{len(EMBEDDED_PROBES)} embedded probes parse.")
+          f"{len(probes)} discovered probes parse.")
     return 0
 
 

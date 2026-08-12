@@ -584,7 +584,13 @@ def main(argv):
             f = pathlib.Path(name) / "scores.json"
             digest = hashlib.sha256(f.read_bytes()).hexdigest()
             per_agent: dict[str, dict[str, str]] = {}
-            for key, value in json.loads(f.read_text(encoding="utf-8")).items():
+            try:
+                scored_doc = json.loads(f.read_text(encoding="utf-8"))
+            except json.JSONDecodeError as exc:
+                print(f"FAIL  {f} does not parse ({exc}); nothing recorded "
+                      f"from this run")
+                return 1
+            for key, value in scored_doc.items():
                 agent_id, _, task_id = key.partition("/")
                 per_agent.setdefault(agent_id, {})[task_id] = value.get(
                     "verdict", "unscored")

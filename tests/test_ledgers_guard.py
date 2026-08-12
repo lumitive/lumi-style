@@ -105,5 +105,39 @@ def test_fm_missing_prevention_fails(tmp_path, monkeypatch):
     assert any("FM-01" in e and "prevention" in e for e in errors)
 
 
+def test_declined_without_reason_fails(tmp_path, monkeypatch):
+    gaps = GAP_OK.replace("- status: open",
+                          "- status: declined\n- closed: 0.1.401")
+    changelog = CHANGELOG_OK.replace("a release", "declined GAP-001 here")
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _tree(tmp_path, gaps=gaps, changelog=changelog))
+    errors = check_repo.check_ledgers()
+    assert any("requires '- reason:'" in e for e in errors)
+
+
+def test_closed_version_must_name_a_changelog_heading(tmp_path, monkeypatch):
+    gaps = GAP_OK.replace("- status: open",
+                          "- status: fixed\n- closed: 0.9.999")
+    monkeypatch.setattr(check_repo, "ROOT", _tree(tmp_path, gaps=gaps))
+    errors = check_repo.check_ledgers()
+    assert any("names no CHANGELOG heading" in e for e in errors)
+
+
+def test_dangling_citation_in_specs_fails(tmp_path, monkeypatch):
+    tree = _tree(tmp_path)
+    (tree / "specs" / "2026-08-12-thing-design.md").write_text(
+        "# a design record\n\nBuilds on IDEA-99.\n")
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    errors = check_repo.check_ledgers()
+    assert any("IDEA-99" in e and "no ledger defines" in e for e in errors)
+
+
+def test_near_miss_heading_fails_as_unparsed(tmp_path, monkeypatch):
+    gaps = GAP_OK + "\n## GAP 003 · x\n\n- status: open\n"
+    monkeypatch.setattr(check_repo, "ROOT", _tree(tmp_path, gaps=gaps))
+    errors = check_repo.check_ledgers()
+    assert any("does not parse" in e for e in errors)
+
+
 def test_live_repo_is_clean():
     assert check_repo.check_ledgers() == []

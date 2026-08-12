@@ -45,8 +45,13 @@ def test_stale_when_rows_predate_the_window(tmp_path, monkeypatch):
     assert check_evidence.conformance_fresh() is False
 
 
-def test_freshness_ignores_pass_fail():
-    """The gate binds on recency, never on passing: a failing verdict in a
-    fresh row still counts as measurement (GAP-001 stays open on its own
-    ledger; blocking releases on it would invite overclaim)."""
-    assert _row("x")["tasks"]["T1-deck"] == "fail"  # the fixture IS a failure
+def test_freshness_ignores_pass_fail(tmp_path, monkeypatch):
+    """The gate binds on recency, never on passing: two recent agents whose
+    rows fail EVERY task still count as measurement, so the board is fresh
+    (GAP-001 stays open on its own ledger; blocking releases on it would
+    invite overclaim)."""
+    all_fail = {"T1-deck": "fail", "T2-deaify": "fail", "T3-recall": "fail"}
+    rows = [dict(_row("0.1.500", "claude-code"), tasks=all_fail),
+            dict(_row("0.1.498", "cursor"), tasks=all_fail)]
+    monkeypatch.setattr(check_evidence, "ROOT", _tree(tmp_path, rows))
+    assert check_evidence.conformance_fresh() is True

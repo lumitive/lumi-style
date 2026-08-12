@@ -2,8 +2,9 @@
 
 The cheapest possible behavioral floor: an import-time crash, a broken
 argparse wiring, or a missing dependency at module scope all surface here
-before an operator hits them mid-release. Scripts without argparse (library
-modules) are exempt by not being listed.
+before an operator hits them mid-release. Scripts without argparse are exempt by not being listed —
+note that set includes four flag-less operator CLIs (check_repo,
+check_js, check_fixtures, embed_font), not only library modules.
 """
 import pathlib
 import subprocess

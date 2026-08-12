@@ -95,9 +95,9 @@ scripts/                          check_repo · check_prose (M) · check_design 
                                   implementations) · build_entrypoints · build_fixtures ·
                                   run_conformance · embed_font · embed_icons · build_geography
 tests/                            pytest suite: shared-module characterization, guards
-                                  proven able to fail, a --help floor on every CLI
-releases/evidence/                one JSON per release: the operator checks the diff
-                                  obliged, each an EXECUTED command with its digest
+                                  proven able to fail, a --help floor on every argparse CLI
+releases/evidence/                one JSON per release since 0.1.424: the operator checks
+                                  the diff obliged, each an EXECUTED command with its digest
 KNOWN_GAPS.md · FAILURE_MODES.md  the defect ledger and the escape-class registry
 adapters/platforms.json           the platform registry: install paths · capability
                                   tiers · entry files, guarded by check_repo

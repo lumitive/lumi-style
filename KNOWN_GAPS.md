@@ -21,6 +21,21 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   scoreboard records it; nothing tracks it toward closure.
 - check: python3 scripts/run_conformance.py score --run <run-dir>
 
+## GAP-003 · The conformance history's producer path has no automated test
+
+- status: open
+- opened: 0.1.431
+- surface: scripts/run_conformance.py (report --record)
+- symptom: conformance_fresh() is tested against hand-written rows, but
+  nothing tests that `report --record` produces rows of that shape — the
+  agent/task key split, the digest pinning, the idempotency claim. A
+  one-sided producer/consumer contract is FM-07's shape. Mitigations that
+  keep this a 5-not-an-8: `validate` schema-checks the history in CI, and a
+  malformed or under-grouped row reads as stale (fail-closed).
+- check: a test driving report --record against a synthetic run directory
+  (needs the conformance registry stubbed; deferred with this note rather
+  than silently)
+
 ## GAP-002 · Five checks CI cannot run are verified by prose
 
 - status: fixed

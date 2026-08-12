@@ -33,13 +33,35 @@ def test_aws_key_fails_with_line(tmp_path, monkeypatch):
 def test_private_key_block_fails(tmp_path, monkeypatch):
     monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, {
         "deploy.pem": "-----BEGIN RSA PRIVATE KEY-----\nabc\n"}))
-    assert len(check_repo.check_secrets()) == 1
+    errors = check_repo.check_secrets()
+    assert len(errors) == 1
+    assert "private key block" in errors[0] and "deploy.pem:1" in errors[0]
 
 
 def test_api_key_assignment_fails(tmp_path, monkeypatch):
     monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, {
         "conf.py": 'api_key = "abcdefghijklmnopqrstuv123456"\n'}))
-    assert len(check_repo.check_secrets()) == 1
+    errors = check_repo.check_secrets()
+    assert len(errors) == 1
+    assert "API secret assignment" in errors[0] and "conf.py:1" in errors[0]
+
+
+def test_github_token_fails_naming_the_pattern(tmp_path, monkeypatch):
+    token = "ghp_" + "a1" * 18  # synthetic: 36 alnum chars after the prefix
+    monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, {
+        "notes.md": f"x\ntoken = {token}\n"}))
+    errors = check_repo.check_secrets()
+    assert len(errors) == 1
+    assert "GitHub token" in errors[0] and "notes.md:2" in errors[0]
+
+
+def test_github_fine_grained_token_fails(tmp_path, monkeypatch):
+    token = "github_pat_" + "b2" * 12  # synthetic 24-char tail
+    monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, {
+        "notes.md": f"token = {token}\n"}))
+    errors = check_repo.check_secrets()
+    assert len(errors) == 1
+    assert "GitHub fine-grained token" in errors[0]
 
 
 def test_waiver_silences_with_reason(tmp_path, monkeypatch):

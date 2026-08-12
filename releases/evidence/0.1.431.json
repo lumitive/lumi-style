@@ -1,0 +1,18 @@
+{
+  "version": "0.1.431",
+  "diff_base": "198c33645e90979c5497e2d93a9b9423dbb0d93a",
+  "spec": "specs/2026-08-12-engineering-quality-design.md",
+  "obligations": [
+    "globe-js"
+  ],
+  "checks": [
+    {
+      "id": "globe-js",
+      "command": "python3 scripts/check_globe.py",
+      "exit_code": 0,
+      "stdout_sha256": "90cabb900d7d3d4e17eef3e694eb1f549b09c6e2cc9594d7d814f6f25544297c",
+      "date": "2026-08-12"
+    }
+  ],
+  "waivers": []
+}

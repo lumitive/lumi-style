@@ -150,7 +150,7 @@ commit-subject convention (which feeds release tooling) is enforced instead.
 
 Declined 0.1.422. A timing baseline is one machine's number; a cross-machine
 fail-gate fails for reasons unrelated to the code — FM-01 inverted. The
-floor that shipped is local, warn-only, in preflight (`--timing`). GitHub's
+floor that shipped is local, warn-only, in preflight (`--timing-update`). GitHub's
 UI already reports job duration.
 
 ## AG-4 · ruff format over the existing tree

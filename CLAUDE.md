@@ -69,14 +69,19 @@ same literal directory, that every generated artifact and fixture is current, th
 checkers still produce the expected verdicts on both fixtures, that the
 vendored assets are intact, that no script re-grows a private copy of the
 shared color/CSS implementations (`color_math.py` / `css_tokens.py`), that
-the three ledgers parse and no GAP/FM/IDEA citation dangles, that a commit
-touching CHANGELOG.md carries its version in the subject, and that no
-credential-shaped string ships in a tracked file.
+the three ledgers parse and no GAP/FM/IDEA citation dangles, that the release
+commit's subject carries its version (HEAD only — history is not
+retroactively reddened), and that no credential-shaped string ships in a
+tracked file.
+The list above is representative; `check_repo.py`'s `CHECKS` tuple is the
+authority, and a guard with no entry there does not run.
 
 `tests/` holds the pytest suite: characterization tests for the shared
 modules, synthetic-tree tests that prove each guard can FAIL as well as pass
 (a guard only ever seen passing is FM-01 in `FAILURE_MODES.md`), and a
-`--help` floor over every CLI. Every new gate ships with a deliberate-red
+`--help` floor over every argparse CLI (the flag-less ones — check_repo,
+check_js, check_fixtures, embed_font — are exempt by construction). Every
+new gate ships with a deliberate-red
 run recorded in its CHANGELOG entry.
 
 `check_globe.py`'s browser half narrowed at 0.1.426: the JS projection port
@@ -85,14 +90,16 @@ under bare `node` (`--python-only --node`), since `projection.js` is DOM-free.
 What still needs a browser (renderer parity, painted ink, occlusion) is an
 operator step recorded through the evidence gate. There is still no
 package.json and no JS runner beyond `node` itself; `check_js.py` syntax-parses
-both JavaScript surfaces, including the probe strings embedded in
-`inspect_layout.py` that `py_compile` reads as prose.
+both JavaScript surfaces — the tracked `.js` files and the probe strings
+embedded in `inspect_layout.py` (discovered by naming convention, never
+hand-listed) that `py_compile` reads as prose.
 
 `check_prose.py`, `check_design.py` and `inspect_layout.py` all measure a
 **deliverable** rather than this repo. Two of them do run in CI, against the
 tracked synthetic fixtures in `fixtures/` — that is the whole point of shipping
 them. `inspect_layout.py` still cannot: it needs a headless Chromium, so it is
-run locally — and since 0.1.425 its result is recorded through
+run locally — and since 0.1.424 (gating since 0.1.425) its result is
+recorded through
 **`check_evidence.py`**, never as a sentence in the release notes. The
 evidence gate is the standing answer to GAP-002: each release writes
 `releases/evidence/<version>.json`; `--init` computes which operator checks
