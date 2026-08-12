@@ -2,11 +2,11 @@
   "component": "LUMI-Globe-Field",
   "owner": "LUMIVATE",
   "locked_at": "0.1.405",
-  "why": "0.1.438: scripts/ reorganized — build_brand moved to scripts/build/, globe_svg to scripts/render/, and the three locked JS assets' comment citations updated to the new paths; every generator --check byte-identical after the move.",
+  "why": "0.1.439: the checkers moved to scripts/check/ — the locked JS assets' comment citations of check_globe/inspect_layout updated with the sweep; vendored copies re-embedded, every --check byte-identical.",
   "files": {
     "assets/brand/lumivate/globe-mark-small.svg": "282f78967678387b550db2b464b2586397b540603f1f757b95cf084e7b04eb0c",
     "assets/brand/lumivate/globe-mark.svg": "5a3bd1f8c97e6bb1b0e29d765d8bf08ebc64f837e48d8cfe67886738b8eeef68",
-    "assets/geo/projection.js": "c442aa5194cebce6f5fb3fe3f2a34292ce21164374b218dab59246b016f11348",
+    "assets/geo/projection.js": "e8baadee739820af14190c1c06d75cd89e65af3138ea62856a83eb26ef608971",
     "assets/globe/globe.js": "fd4eb0334e42411cc3a243cfac1295bf97e9187448641a1cb403b0a16ceaf969",
     "assets/globe/render-svg.js": "ff8b9156a6d7444742f7b04d02839d4f2a3e02721212885e3a36fbc9b4502146",
     "scripts/build/build_brand.py": "f1a6c56eab05572b1d403ada76722dfbbd2aaef4c0f08987fed9c6722422cecf",

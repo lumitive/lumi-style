@@ -1,7 +1,7 @@
 // Sphere-to-screen maths for the LUMI globe.
 //
 // A hand port of scripts/lib/geo_projection.py. THE PYTHON IS THE AUTHORITY: this
-// file is checked against it over a golden grid by scripts/check_globe.py, to
+// file is checked against it over a golden grid by scripts/check/check_globe.py, to
 // 1e-9 on every sample. Change one and you must change the other in the same
 // commit, or that check fails and says so.
 //
@@ -321,7 +321,7 @@ const CAP_EPS = 1e-9;
  * Runs are LINKED rather than each closed on itself, so a country the cap cuts
  * into two visible pieces comes back as one polygon when that is what it is.
  * Mirrors clip_to_cap in scripts/lib/geo_projection.py, and the golden grid in
- * scripts/check_globe.py is what holds the two together.
+ * scripts/check/check_globe.py is what holds the two together.
  */
 // How much larger than its source a clipped ring may be before its closure is
 // judged to have gone the wrong way, in steradians. Mirrors CLOSURE_SLACK in

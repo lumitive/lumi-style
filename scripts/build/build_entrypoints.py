@@ -195,9 +195,9 @@ def render_pointer(p: dict, version: str, heading: str, path: str) -> str:
         "",
         red_lines(),
         "",
-        "**Measure rather than trust**: `python3 scripts/check_prose.py <file>` for "
-        "English prose, `python3 scripts/check_design.py <file>` for any HTML, and "
-        "`python3 scripts/inspect_layout.py <file>` to render the pages and look at "
+        "**Measure rather than trust**: `python3 scripts/check/check_prose.py <file>` for "
+        "English prose, `python3 scripts/check/check_design.py <file>` for any HTML, and "
+        "`python3 scripts/check/inspect_layout.py <file>` to render the pages and look at "
         "them. Their design judgements gate nothing, but an unmeasurable check "
         "exits 1 and names what it could not find.",
     ]).rstrip() + "\n"

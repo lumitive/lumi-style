@@ -8,7 +8,7 @@ DeepSeek has no skill mechanism, so it takes the self-contained single-file core
 2. put the core prompt in messages[0] (role=system); re-inject at the start of each long session;
 3. Then issue tasks normally ("Following the rules above, write…").
 
-The core is self-contained with zero tool assumptions; on any conflict, `references/` wins. Re-copy it after a rule update — it is a snapshot, and this one is 0.1.438.
+The core is self-contained with zero tool assumptions; on any conflict, `references/` wins. Re-copy it after a rule update — it is a snapshot, and this one is 0.1.439.
 
 For long tasks, re-inject at the start of each new session so the rules are not pushed out of context.
 

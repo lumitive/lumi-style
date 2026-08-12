@@ -5,7 +5,7 @@ Extracted from build_geography.py, where it lived as module-private functions
 against a module constant R = 150.0 and an implicit centre at (R, R). Three more
 callers need it parameterised: build_worldmap.py, globe_svg.py, and
 assets/geo/projection.js, which is a hand port of exactly these functions and
-is held to them by a golden grid in scripts/check_globe.py.
+is held to them by a golden grid in scripts/check/check_globe.py.
 
 The extraction was byte-output-preserving and build_geography.py --check is the
 proof of that: it runs in CI, and a single changed character in either emitted

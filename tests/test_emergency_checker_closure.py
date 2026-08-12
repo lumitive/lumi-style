@@ -17,7 +17,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 # Must mirror TRUSTED_CLOSURE in scripts/emergency_merge.sh.
-CLOSURE = ("check_repo.py", "lib/color_math.py", "lib/css_tokens.py",
+CLOSURE = ("check/check_repo.py", "lib/color_math.py", "lib/css_tokens.py",
            "lib/lock.py", "lib/deliverable_registry.py")
 
 
@@ -49,7 +49,8 @@ def test_trusted_checker_runs_under_safepath(tmp_path):
     for name in CLOSURE:
         shutil.copy(ROOT / "scripts" / name, work / "scripts" / name)
     env = dict(os.environ, PYTHONSAFEPATH="1")
-    p = subprocess.run([sys.executable, str(work / "scripts" / "check_repo.py")],
+    p = subprocess.run([sys.executable,
+                        str(work / "scripts" / "check" / "check_repo.py")],
                        capture_output=True, text=True, env=env, timeout=300)
     # No .git in the temp tree: the git-dependent guards return clean by
     # design. What this asserts is that the checker RUNS — no

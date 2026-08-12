@@ -314,7 +314,7 @@ the reader's eye.
   content area the figure or table actually occupies — together with the
   **figure-to-cell aspect ratio**: a 5:1 diagram in a 1.8:1 cell renders at 40% of
   the available height no matter how it is scaled, and the only fix is a different
-  drawing. `scripts/inspect_layout.py` reports both, per page, and gates nothing.
+  drawing. `scripts/check/inspect_layout.py` reports both, per page, and gates nothing.
 
   **A figure is drawn for the geometry it will sit in.** The cell decides: a
   full-width cell is about **2.5:1 on the 16:9 stage and about 0.85:1 on the A4

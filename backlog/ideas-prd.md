@@ -49,7 +49,7 @@ open/closed state without re-verifying, and item-by-item verification then
 found most of the survey absorbed by later releases — the corrected record:
 
 - **IDEA-1 shipped** (0.1.390, commit `0145bfb`) — M1, M2 and M6 are computed
-  and graded in `scripts/check_prose.py`; the conformance runs record their
+  and graded in `scripts/check/check_prose.py`; the conformance runs record their
   verdicts.
 - **IDEA-2 OPEN** — the only survivor. Chinese as a supported output path;
   Large; the render fixture was blocked on a font licence at the 0.1.390
@@ -82,7 +82,7 @@ six carry rules the package itself calls non-negotiable.
 
 **Evidence.**
 
-- `scripts/check_prose.py` computes M4, M8 (two halves), M9, M10, M11 and M12.
+- `scripts/check/check_prose.py` computes M4, M8 (two halves), M9, M10, M11 and M12.
   M1, M2, M3, M5, M6 and M7 appear in the rubric table and nowhere else.
 - [`../references/eval-rubric.md`](../references/eval-rubric.md) heads that table
   "scriptable; spot-check manually when no script". The parenthesis is carrying
@@ -150,7 +150,7 @@ exclude, not as something to produce well.
 
 **Evidence.**
 
-- `scripts/check_prose.py` states in its own docstring that it handles English
+- `scripts/check/check_prose.py` states in its own docstring that it handles English
   deliverables only, and that Chinese is governed by the de-translationese pass in
   the rules.
 - [`../references/writing-rules.md`](../references/writing-rules.md) ships a
@@ -219,7 +219,7 @@ CI.
 
 **Evidence.**
 
-- `scripts/check_fixtures.py` runs `check_prose.py` and `check_design.py` only.
+- `scripts/check/check_fixtures.py` runs `check_prose.py` and `check_design.py` only.
   `inspect_layout.py` is absent, so **all nine `--deliverable` gates have zero
   assertions in CI**.
 - Of the seventeen design verdicts, **thirteen are `ok` on both fixtures** — only
@@ -308,7 +308,7 @@ someone types them.
 
 **Evidence.**
 
-- `scripts/inspect_layout.py` defines a `laptop` geometry at 1000×550 and a
+- `scripts/check/inspect_layout.py` defines a `laptop` geometry at 1000×550 and a
   `16x9-hd` at 1920×1080, and its default geometry list contains neither.
 - `../references/design-rules.md` §7 requires the short-laptop check by name and
   states what it catches: an overflowing page pushing its footer below the fold

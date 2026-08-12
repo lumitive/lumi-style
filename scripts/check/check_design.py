@@ -29,7 +29,7 @@ intentional, and a metric that can be satisfied without improving the page ends
 the looking instead of directing it. D7, an 82% page-fill floor, was withdrawn in
 0.1.340 for exactly that — it was satisfied by stretching table rows while four
 diagrams rendered at 40% of their cell. For page geometry and centerpiece scale
-use scripts/inspect_layout.py.
+use scripts/check/inspect_layout.py.
 
 **D12 and D14 are different in kind, which is why they are the exceptions.**
 Neither is a judgement about whether a page is well made. D12 is a commercial
@@ -40,8 +40,8 @@ is *finished*, which is decidable in a way that "is this page intentional" is
 not. A design metric that gates is a mistake; a commercial one that does not is a
 different mistake.
 
-    python3 scripts/check_design.py deck.html [more files ...]
-    python3 scripts/check_design.py --json deck.html
+    python3 scripts/check/check_design.py deck.html [more files ...]
+    python3 scripts/check/check_design.py --json deck.html
 
 Standard library only, like the rest of scripts/.
 """
@@ -74,7 +74,8 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 import color_math  # noqa: E402 — after the bootstrap, deliberately
 import css_tokens  # noqa: E402 — after the bootstrap, deliberately
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 
 # TYPE_FLOOR_PX / SOURCE_FLOOR_PX lived here until 0.1.352, defined and never
 # read — dead since 0.1.340 withdrew the type floor they encoded. A constant that

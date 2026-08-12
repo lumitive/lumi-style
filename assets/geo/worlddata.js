@@ -1,7 +1,7 @@
 // Decode the shared-arc world topology and index it for the renderers.
 //
 // The file this reads is written by scripts/build/build_worldmap.py, and
-// scripts/check_globe.py compares what comes out of here against what went in:
+// scripts/check/check_globe.py compares what comes out of here against what went in:
 // point counts, ring closure, and Germany landing where Germany is.
 //
 // The format, so this file can be read without the generator open:

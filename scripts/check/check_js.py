@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Syntax-check every JavaScript surface this repository ships.
 
-    python3 scripts/check_js.py
+    python3 scripts/check/check_js.py
 
 Two surfaces, one blind spot this closes. The tracked `.js` files under
 `assets/` are the runtimes deliverables inline; the three probe strings inside
-`scripts/inspect_layout.py` are JavaScript that executes in a browser but lives
+`scripts/check/inspect_layout.py` are JavaScript that executes in a browser but lives
 as Python string literals, where `py_compile` sees prose. Until 0.1.416 neither
 surface had any syntax check at all — 0.1.414's lesson ("the guard shipped in
 Python, the runtime is JavaScript") happened in exactly this gap.
@@ -28,7 +28,8 @@ import shutil
 import subprocess
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 
 # --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
 # Bare-name sibling imports must resolve from any drawer depth: walk up to
