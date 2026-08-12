@@ -146,7 +146,10 @@ LUMI's own seed survives as group 8.
    (measured on the tracked fixtures: page window 100%, block window 0%).
    A range is stricter because rule 1 makes it stricter — it "must trace to a
    single source or it may not appear" — and a single source cannot be inferred
-   from a marker three blocks away.
+   from a marker three blocks away. A dashed pair that is an enumeration label
+   rather than a data range ("Plastics (1–2)" naming resin types) is not a
+   range figure; the machine reports such labels and counts only pairs with
+   quantitative context (GAP-001 found the overreach on a truthful label).
 
    A document with no page structure — Markdown, a plain report — has one page,
    so the window is the document.

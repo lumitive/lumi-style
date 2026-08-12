@@ -73,9 +73,14 @@ sits between them.
   under the same truth test — a cover and a closing are the same kind of page,
   set the same way (`cover-grid` in `tokens/lumi-layouts.css`), and the closing
   restates where the document stood, so its mark repeats the cover's geography
-  rather than introducing a new claim. **Contact details are placeholder slots by design**
-  (`[TO FILL]`) unless the user supplies real ones — inventing an email address
-  is inventing a fact. State on the page that a bracketed version must not ship.
+  rather than introducing a new claim. **Contact details: real ones from the user, or none at all.**
+  Inventing an email address is inventing a fact. When the user supplies no
+  contact details and cannot be asked, OMIT the contact slots entirely and name
+  the owning role in prose ("the programme board owns the go/no-go") — do not
+  emit `[TO FILL]` slots: D14 gates a finished document at zero placeholders,
+  and a template that mandates brackets while the gate bans them fails every
+  compliant author (the contradiction a conformance run proved, GAP-001).
+  `[TO FILL]` belongs only in a draft the user will fill BEFORE delivery.
   End with the colophon (owner · date · "built with lumi-style X.Y.Z" · the
   number-discipline line).
 - **Version lockstep**: by default a deliverable's version number **is** the

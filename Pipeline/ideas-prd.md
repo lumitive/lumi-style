@@ -44,20 +44,32 @@ that protects everything else.
 
 This file was deleted in `e861df0` leaving only the rendered HTML deck; it is
 restored here as the queryable backlog, with stable ids the ledgers and the
-CHANGELOG can cite. Verified against the tree at restoration time:
+CHANGELOG can cite. The first restoration carried the 0.1.385 survey's
+open/closed state without re-verifying, and item-by-item verification then
+found most of the survey absorbed by later releases — the corrected record:
 
+- **IDEA-1 shipped** (0.1.390, commit `0145bfb`) — M1, M2 and M6 are computed
+  and graded in `scripts/check_prose.py`; the conformance runs record their
+  verdicts.
+- **IDEA-2 OPEN** — the only survivor. Chinese as a supported output path;
+  Large; the render fixture was blocked on a font licence at the 0.1.390
+  deferral.
 - **IDEA-3 shipped** — 0.1.390's fixture coverage work is exactly this item
   (34/34 graded verdicts have a failing fixture today).
 - **IDEA-4 shipped** — `reviews/scores.json` + `scripts/review_scores.py`
   exist and gate in CI.
-- **IDEA-7 in progress** — the conformance-history work of the
-  engineering-quality migration (`specs/2026-08-12-engineering-quality-plan.md`
-  R11) is this item's acceptance in different words.
-- **IDEA-1 shipped** (correction, 2026-08-12: the restoration first listed it
-  open, carrying the 0.1.385 survey's state without re-verifying — M1, M2 and
-  M6 are all computed and graded in `scripts/check_prose.py` today, and the
-  conformance runs record their verdicts).
-- IDEA-2, IDEA-5, IDEA-6 remain open.
+- **IDEA-5 shipped** (0.1.390, same commit) — all five geometries are in
+  `DEFAULT_GEOMETRIES` and the report prints which ran and which were
+  skipped, the item's acceptance verbatim.
+- **IDEA-6 resolved** — the registry's `files` tier carries a
+  `population_note` that IS this item's written-waiver acceptance branch: the
+  tier describes a real class (an agent that reads files and cannot execute),
+  no platform is claimed onto it without an exercised run, and the note
+  records why it is empty (capability claims were unverified until
+  `capability_verified` arrived; only claude-code is confirmed `full`).
+- **IDEA-7 shipped** (0.1.427) — `conformance/history.json`, `report
+  --record`, and the evidence gate's freshness obligation are this item's
+  acceptance in different words.
 
 ## IDEA-1 · Implement M1, M2 and M6
 
@@ -345,6 +357,27 @@ three waivers because its discovery path could not be confirmed; do not add a
 fourth by guessing.
 
 **Effort.** Small, mostly verification rather than code.
+
+---
+
+## IDEA-8 · A score row pins its instruments
+
+**Problem.** `task_hash` pins the question; nothing pins the ruler. The
+GAP-001 diagnosis found all three archived decks were built against one
+skill version and scored against a stricter later one (the deliverable gate
+itself, `figure_clipped`, and the laptop matrix point all postdate the
+builds), and rescoring them today accretes still-newer failures (D19).
+
+**Proposal.** `run_conformance.py score` records the checker commit/skill
+version at score time and the deck's colophon build version; the scoreboard
+marks rows where build < instrument as answers to an older question.
+
+**Acceptance.** A history row carries both versions, and CONFORMANCE.md
+renders the mismatch visibly.
+
+**Risks.** None structural; one more field in scores.json and history rows.
+
+**Effort.** Small.
 
 ---
 
