@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.443"
+  version: "0.1.444"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -110,8 +110,32 @@ been removed; they now apply at step 4 instead of framing step 0.
    analysis · training material — four different narrative skeletons. Read
    [`references/storyline-templates.md`](references/storyline-templates.md) and
    choose before writing. **Work in parallel where the platform allows** —
-   pages are independent once the storyline is fixed — and when the expected
-   end-to-end generation time passes ten minutes, say so before starting.
+   pages are independent once the storyline is fixed — and the parallel form
+   has a protocol, proven on real builds (owner target: a 30-page document in
+   under ten minutes end-to-end):
+
+   - **The orchestrator owns the frame.** It fixes the storyline and the page
+     order, generates the scaffold (`new_deck.py`), and splits the content
+     pages into contiguous parts — `body-1.html`, `body-2.html`, … — each a
+     run of complete `<section class="page">` blocks. Shared things stay OUT
+     of the parts as placeholders: `FOOT_<n>` where each footer goes,
+     `GLOBE_SVG` and friends for shared assets, so no part needs to know the
+     page total or carry a copy of an asset.
+   - **Part authors run in parallel**, one agent per part, each against the
+     same tokens and rules and its slice of the storyline. A part writes page
+     markup only — no `<head>`, no fonts, no runtime, no page numbers.
+   - **A small assembler stitches**: preamble + parts joined in order +
+     placeholder substitution (footers with the now-known total, assets once)
+     — and then the merge gate: scan for any unreplaced placeholder and REFUSE
+     the build on a leftover (`SystemExit`, naming them). A placeholder that
+     survives to the reader is D14's territory; the scan catches it at merge.
+   - **Verify once, at the end, on the assembled document** — the step-4 gate
+     stack does not run per part. During authoring a part gets at most the
+     cheap text checks (`check_prose.py`, `check_design.py`; both take
+     multiple files and run in under a second).
+
+   When the expected end-to-end time still passes ten minutes — a serial
+   platform, or a document far past thirty pages — say so before starting.
 2. **Write and review** under
    [`references/writing-rules.md`](references/writing-rules.md) (terminology red
    lines / banned phrases / punctuation / number discipline / the LUMI voice /

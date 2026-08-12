@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.443.** This file restates part of `references/`; where they
+> **lumi-style 0.1.444.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -31,8 +31,14 @@ delivery note and proceed — one clear prompt should normally produce a finishe
 document. Write a finished document to `Documents/LUMI-Style/` under the user's
 home directory unless the user names another, and **ask before creating that
 folder**; an export lands beside the document it was made from, and because the
-folder is shared, a filename carries the document's own name and version. Run independent pages in parallel where your platform allows, and when
-expected generation time passes ten minutes, say so before starting. Before
+folder is shared, a filename carries the document's own name and version. Run independent pages in parallel where your platform allows —
+the protocol is in `SKILL.md` step 1: the orchestrator fixes the storyline,
+scaffolds and splits content into `body-N.html` parts carrying `FOOT_<n>` and
+asset placeholders; part authors run in parallel writing page markup only; an
+assembler stitches, substitutes, and refuses the build on any unreplaced
+placeholder; the gate stack runs once on the assembled document. Owner
+target: a 30-page document in under ten minutes end-to-end; when the estimate
+still passes ten minutes, say so before starting. Before
 delivery, the **red-team pass** rides the critic gate: read the draft as its
 most skeptical reader, and treat over-design as a finding, not a virtue.
 
@@ -87,8 +93,9 @@ most skeptical reader, and treat over-design as a finding, not a virtue.
 4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish),
    the D-series and `inspect_layout.py` diagnostics (**design judgements
    reported, never gating** — but an unmeasurable check exits 1 and says what it
-   could not find, and `--deliverable` exits 1 on the ten findings that are
-   decidable rather than aesthetic),
+   could not find, and `--deliverable` exits 1 on the findings that are
+   decidable rather than aesthetic — the code's `deliverable_verdicts` is the
+   authority on the list),
    and H1–H6 self-scoring. Never self-score 5 before a reader has scored it, and
    always give the reason for the score, not just the number.
 

@@ -1,0 +1,24 @@
+{
+  "version": "0.1.444",
+  "diff_base": "f593d8c5f10e547b2b6b55da361a7f9906f62b69",
+  "spec": "specs/2026-08-12-owner-review-retrospective-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "1b5bdeb5a61ad2d20a33d3da502302d8f38586d68853af80bea2090b4082d668",
+      "date": "2026-08-12"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "performance release: probe internals and the parallel-protocol prose changed, no design semantics moved (report output verified byte-identical on the pass fixture). The board refresh stays owed with 0.1.443's reasons and lands after the retrospective series, with the owner's rebuild as the first acceptance run. Deferred, not discharged."
+    }
+  ]
+}

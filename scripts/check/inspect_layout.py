@@ -46,6 +46,7 @@ reports `NOT MEASURED` without it rather than disappearing.
 from __future__ import annotations
 
 import argparse
+import collections
 import contextlib
 import io
 import json
@@ -65,6 +66,7 @@ import sys
 import sys as _bs_sys  # noqa: E402
 import tempfile
 from contextlib import redirect_stdout
+from typing import Any
 
 _SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
                      if p.name == "scripts")
@@ -1090,6 +1092,42 @@ def open_page(browser, url, viewport, dark=False):
     return page, errors
 
 
+class _Shared:
+    """One Playwright, one Chromium, however many probes a run makes.
+
+    Until 0.1.444 every report function opened its own `sync_playwright()`
+    context and launched its own browser — three per geometry plus one per
+    file, so a landscape deck's default run launched Chromium THIRTEEN times
+    to answer questions one browser could hold. The launch cycle measures
+    ~1.4s, so that alone was ~17s of a run's wall clock, and it was the shape
+    of the code, not a decision anyone had made. Probes now share this
+    process-wide pair; `atexit` closes it, so standalone callers (tests,
+    run_conformance) leak nothing.
+    """
+    pw: Any = None
+    browser: Any = None
+
+
+def shared_browser():
+    if _Shared.browser is None:
+        import atexit
+
+        from playwright.sync_api import sync_playwright
+        _Shared.pw = sync_playwright().start()
+        _Shared.browser = _Shared.pw.chromium.launch()
+        atexit.register(close_shared_browser)
+    return _Shared.browser
+
+
+def close_shared_browser():
+    if _Shared.browser is not None:
+        with contextlib.suppress(Exception):
+            _Shared.browser.close()
+        with contextlib.suppress(Exception):
+            _Shared.pw.stop()
+        _Shared.browser = _Shared.pw = None
+
+
 def aspect_report(url, dark=False):
     """Does a landscape page hold 16:9 in a window that is not 16:9?
 
@@ -1102,13 +1140,12 @@ def aspect_report(url, dark=False):
     4:3 window while it reported success. **A probe that builds its own answer
     proves nothing.** So this one renders shapes nobody designed for.
     """
-    from playwright.sync_api import sync_playwright
     target = 16 / 9
     findings = []
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch()
-        for w, h in OFF_SHAPES:
-            page, errors = open_page(browser, url, (w, h), dark)
+    browser = shared_browser()
+    for w, h in OFF_SHAPES:
+        page, errors = open_page(browser, url, (w, h), dark)
+        try:
             rows = page.evaluate(ASPECT_PROBE)
             if not rows:
                 raise Unmeasurable("no section.page matched, so no page's aspect "
@@ -1122,17 +1159,15 @@ def aspect_report(url, dark=False):
                              "offAspect": len(bad), "errors": errors,
                              "worst": (max(bad, key=lambda r: abs(r["aspect"] - target))
                                        if bad else None)})
+        finally:
             page.close()
-        browser.close()
     return findings
 
 
 def with_playwright(url, geometry, dark, shot_dir, stem):
-    from playwright.sync_api import sync_playwright
     rows, shots = None, []
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch()
-        page, errors = open_page(browser, url, GEOMETRIES[geometry], dark)
+    page, errors = open_page(shared_browser(), url, GEOMETRIES[geometry], dark)
+    try:
         rows = page.evaluate(PROBE)
         if shot_dir:
             # Screenshot the section element, not the viewport. The first version
@@ -1157,7 +1192,8 @@ def with_playwright(url, geometry, dark, shot_dir, stem):
                 out = shot_dir / f"{stem}-{geometry}-{'dark' if dark else 'light'}-{r['id']}.png"
                 page.locator(f"section#{r['id']}").screenshot(path=str(out))
                 shots.append(out)
-        browser.close()
+    finally:
+        page.close()
     return rows, shots, errors
 
 
@@ -1173,7 +1209,6 @@ def ground_report(url, viewport=(1280, 720), dark=False):
     and looks like graffiti — this repo has made that mistake in three different
     forms already.
     """
-    from playwright.sync_api import sync_playwright
     try:
         from PIL import Image
     except ImportError as exc:
@@ -1189,9 +1224,8 @@ def ground_report(url, viewport=(1280, 720), dark=False):
         return color_math.luma255(px)
 
     out = []
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch()
-        page, _errors = open_page(browser, url, viewport, dark)
+    page, _errors = open_page(shared_browser(), url, viewport, dark)
+    try:
         page.add_style_tag(content=".page > .body, .page > .foot, .rail, .tools"
                                    "{visibility:hidden!important}"
                                    "html{scroll-behavior:auto!important;"
@@ -1200,7 +1234,6 @@ def ground_report(url, viewport=(1280, 720), dark=False):
                             ".filter(s => s.getBoundingClientRect().height > 4)"
                             ".map(s => s.id)")
         if not ids:
-            browser.close()
             raise Unmeasurable("no section.page with a box, so no ground to measure")
         nested = []
         with tempfile.TemporaryDirectory() as td:
@@ -1221,10 +1254,16 @@ def ground_report(url, viewport=(1280, 720), dark=False):
                 # getdata() is deprecated in Pillow 14; get_flattened_data is its
                 # replacement and does not exist before it.
                 px = list(getattr(im, "get_flattened_data", im.getdata)())
-                canvas = max(set(px), key=px.count)          # the page's own canvas
+                # Counter, not `max(set(px), key=px.count)`: `.count` is O(N)
+                # and ran once per unique colour, so this line alone measured
+                # ~2.6s per page — ~90s per geometry on a 34-page document,
+                # the single largest cost in the whole script. One pass counts
+                # everything, and the unique keys feed the contrast loop too.
+                counts = collections.Counter(px)
+                canvas = counts.most_common(1)[0][0]         # the page's own canvas
                 cl = rel_lum(canvas)
                 worst, worst_px = 1.0, canvas
-                for q in set(px):
+                for q in counts:
                     ql = rel_lum(q)
                     hi, lo = max(cl, ql), min(cl, ql)
                     r = (hi + 0.05) / (lo + 0.05)
@@ -1233,7 +1272,8 @@ def ground_report(url, viewport=(1280, 720), dark=False):
                 out.append({"id": pid, "contrast": round(worst, 3),
                             "canvas": "#{:02X}{:02X}{:02X}".format(*canvas),
                             "loudest": "#{:02X}{:02X}{:02X}".format(*worst_px)})
-        browser.close()
+    finally:
+        page.close()
     return {"pages": out, "nested": nested}
 
 
@@ -1515,12 +1555,11 @@ def consistency_report(url, viewport=(1280, 720), dark=False):
     deck that is clean in landscape, because the portrait block in
     `lumi-layouts.css` set it per context.
     """
-    from playwright.sync_api import sync_playwright
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch()
-        page, errors = open_page(browser, url, viewport, dark)
+    page, errors = open_page(shared_browser(), url, viewport, dark)
+    try:
         out = page.evaluate(CONSISTENCY_PROBE)
-        browser.close()
+    finally:
+        page.close()
     if not out or not out.get("pages"):
         raise Unmeasurable("no section.page matched, so no role could be compared")
     out["errors"] = errors

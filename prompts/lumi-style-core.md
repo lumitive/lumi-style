@@ -23,7 +23,11 @@ directory unless the user names a directory, and **ask before creating that
 folder** — never write into the package's own install tree. An export lands
 beside the document it was made from. The folder is shared, so a filename
 carries the document's own name and version. Work
-pages in parallel where your platform allows, and when expected generation time
+pages in parallel where your platform allows — fix the storyline first, split
+the content pages into contiguous parts with placeholders where footers and
+shared assets go, author parts in parallel, then stitch and substitute, and
+refuse the merge while any placeholder is left unreplaced. Verify once, on the
+assembled document. When expected generation time still
 passes ten minutes, say so before starting.
 
 ## 0 Commit first (read before the red lines)
@@ -401,6 +405,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.443** snapshot, cut 2026-08-12. It is self-contained by
+> This file is the **0.1.444** snapshot, cut 2026-08-12. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

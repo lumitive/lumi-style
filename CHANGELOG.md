@@ -3,6 +3,38 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.444 — the render gate stops paying for thirteen browsers and one quadratic line
+
+The owner's performance complaint (an hour for 34 pages, ceiling ten minutes;
+spec: `specs/2026-08-12-owner-review-retrospective-design.md` D8) split into
+measured parts: the scripts account for four to eight minutes and the rest is
+the instructed serial authoring loop. Both halves move.
+
+**The scripts' two structural costs are gone.** `ground_report`'s canvas
+detection ran `max(set(px), key=px.count)` — `.count` is O(N) per unique
+colour, measured at ~2.6s per page, ~90s per geometry on a 34-page document,
+the single largest cost in the file — and is now one `Counter` pass whose
+unique keys feed the contrast loop too. And every probe opened its own
+`sync_playwright()` and launched its own Chromium — three per geometry plus
+one per file, thirteen launches for a default landscape run, ~1.4s each —
+and they now share one process-wide browser closed at exit. Measured on the
+18-page pass fixture, full default run: **57.8s → 22.4s**, report output
+byte-identical (characterization diff, zero hunks).
+
+**The authoring hour gets its protocol.** "Work in parallel where the
+platform allows" was one sentence with no mechanism, three times. SKILL.md
+step 1 now carries the parallel build protocol, formalized from the
+convention every hand-built deliverable's `_sources/` already proved:
+orchestrator fixes storyline, scaffolds, splits content into `body-N.html`
+parts carrying `FOOT_<n>`/asset placeholders; part authors run in parallel
+writing page markup only; an assembler stitches and substitutes and REFUSES
+the merge on any unreplaced placeholder; the gate stack runs once, on the
+assembled document. AGENTS.md and the core prompt restate it. The owner's
+ten-minute ceiling is named as the target and the say-so-first clause keeps
+its meaning for serial platforms.
+
+The local timing baseline is re-recorded (warn-only by design, AG-3).
+
 ## 0.1.443 — the owner reads 34 pages, and seven defects turn out to be three root causes
 
 An owner review of a 34-page A4-portrait deliverable built at 0.1.442 reported
