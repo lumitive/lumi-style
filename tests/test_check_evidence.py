@@ -135,11 +135,26 @@ def test_blank_diff_base_fails(tmp_path, monkeypatch):
     assert "diff_base" in errors[0]
 
 
-def test_bogus_diff_base_in_a_full_clone_fails(tmp_path, monkeypatch):
+def test_bogus_diff_base_re_resolves_by_subject(tmp_path, monkeypatch):
+    """The rebase lesson (main run 31553098031): a dangling SHA whose
+    previous release still exists BY SUBJECT re-resolves and passes —
+    subjects survive a rebase, hashes do not."""
     base = _tree(tmp_path, monkeypatch)
     _evidence(tmp_path, base, diff_base="0" * 40)
     errors = check_evidence.check_file(V, warn=False)
-    assert any("does not resolve" in e for e in errors)
+    assert errors == []
+
+
+def test_bogus_diff_base_with_no_subject_match_fails(tmp_path, monkeypatch, capsys):
+    base = _tree(tmp_path, monkeypatch)
+    _evidence(tmp_path, base, diff_base="0" * 40)
+    # break the subject fallback: rewrite the base commit's subject so no
+    # commit matches the previous release
+    subprocess.run(["git", "commit", "--amend", "-q", "-m", "not a release"],
+                   cwd=tmp_path, check=True)
+    errors = check_evidence.check_file(V, warn=False)
+    assert any("does not resolve" in e and "no commit subject" in e
+               for e in errors)
 
 
 def test_overclaim_with_a_waiver_quotes_the_phrase(tmp_path, monkeypatch):

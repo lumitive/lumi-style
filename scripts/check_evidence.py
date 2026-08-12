@@ -428,6 +428,24 @@ def check_file(v: str, warn: bool) -> list[str]:
                       "and the spec rule cannot run")
     else:
         rc, _ = git("cat-file", "-e", base)
+        if rc != 0:
+            # A recorded SHA is rebase-fragile: the very first rebase-merge
+            # to main rewrote every hash and turned each evidence file's
+            # diff_base into a dangling pointer, and this check correctly
+            # reddened main (run 31553098031). Commit SUBJECTS survive a
+            # rebase, and the commit-convention guard makes them reliable —
+            # so re-resolve the previous release by subject before calling
+            # anything a finding.
+            versions = releases_in_changelog()
+            idx = versions.index(v) if v in versions else -1
+            fallback = (find_release_commit(versions[idx + 1])
+                        if 0 <= idx < len(versions) - 1 else None)
+            if fallback is not None:
+                print(f"note  diff_base {base[:12]}… does not resolve "
+                      f"(rebased history); re-resolved the previous release "
+                      f"by commit subject as {fallback[:12]}…")
+                base = fallback
+                rc = 0
         if rc == 0:
             touched = effective_touches(base)
             if touched is not None:
@@ -441,7 +459,8 @@ def check_file(v: str, warn: bool) -> list[str]:
             else:
                 errors.append(
                     f"diff_base {base[:16]}… does not resolve in a "
-                    f"full-history checkout — the recompute that catches a "
+                    f"full-history checkout, and no commit subject matches "
+                    f"the previous release — the recompute that catches a "
                     f"hand-edited obligation list cannot run, and that is a "
                     f"finding, not a note")
     if recomputed is not None:
