@@ -84,5 +84,71 @@
     "built": {
       "T1-deck": "0.1.433"
     }
+  },
+  {
+    "skill_version": "0.1.449",
+    "agent": "claude-code",
+    "date": "2026-08-13",
+    "run_dir": "conformance/results/latest",
+    "tasks": {
+      "T1-deck": "pass",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "c759d1bcb4ef9c13c253d947ed3755b91c2535dd8db06afc2898e254128d34d2",
+    "instrument_version": "0.1.449",
+    "built": {
+      "T1-deck": "0.1.449",
+      "T3-recall": "0.1.449"
+    }
+  },
+  {
+    "skill_version": "0.1.449",
+    "agent": "cursor",
+    "date": "2026-08-13",
+    "run_dir": "conformance/results/latest",
+    "tasks": {
+      "T1-deck": "pass",
+      "T2-deaify": "no deliverable",
+      "T3-recall": "no deliverable"
+    },
+    "scores_sha256": "c759d1bcb4ef9c13c253d947ed3755b91c2535dd8db06afc2898e254128d34d2",
+    "instrument_version": "0.1.449",
+    "built": {
+      "T1-deck": "0.1.449"
+    }
+  },
+  {
+    "skill_version": "0.1.449",
+    "agent": "claude-code",
+    "date": "2026-08-13",
+    "run_dir": "conformance/results/latest",
+    "tasks": {
+      "T1-deck": "pass",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "fd73b17ab456cfe3502297e666498cb23748684b4e61a01d9fa75cd3d7f5f2bf",
+    "instrument_version": "0.1.449",
+    "built": {
+      "T1-deck": "0.1.449",
+      "T3-recall": "0.1.449"
+    }
+  },
+  {
+    "skill_version": "0.1.449",
+    "agent": "cursor",
+    "date": "2026-08-13",
+    "run_dir": "conformance/results/latest",
+    "tasks": {
+      "T1-deck": "pass",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "fd73b17ab456cfe3502297e666498cb23748684b4e61a01d9fa75cd3d7f5f2bf",
+    "instrument_version": "0.1.449",
+    "built": {
+      "T1-deck": "0.1.449"
+    }
   }
 ]

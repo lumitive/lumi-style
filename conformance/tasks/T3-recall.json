@@ -18,11 +18,11 @@
     "who may sign a money or safety conclusion": [
       "\\bnever\\b",
       "\\bno one\\b",
-      "\\bhuman\\b"
+      "\\bhumans?\\b"
     ],
     "what every number must carry": [
-      "\\bsource\\b",
-      "\\bderivation\\b"
+      "\\bsources?\\b",
+      "\\bderivations?\\b"
     ],
     "how many focal elements a page gets": [
       "\\bone\\b",
@@ -30,5 +30,5 @@
     ]
   },
   "prompt": "Using the LUMI style skill, answer these five questions in a Markdown file named answers.md, one short line each, numbered:\n1. What is the default output language?\n2. Which colour is reserved for warnings and red lines only?\n3. Who may sign a money or safety conclusion?\n4. What must every number carry?\n5. How many focal elements does a page get?",
-  "scoring": "Word-boundary regexes, matched per numbered answer line. Bare substrings made three of five questions unfailable: 'not' matches note/cannot/nothing, '1' is guaranteed by the prompt's own instruction to number the answers, and 'red' matches 'red line' and 'required'. A recall task an agent passes without loading anything measures nothing."
+  "scoring": "Word-boundary regexes, matched per numbered answer line. Bare substrings made three of five questions unfailable: 'not' matches note/cannot/nothing, '1' is guaranteed by the prompt's own instruction to number the answers, and 'red' matches 'red line' and 'required'. A recall task an agent passes without loading anything measures nothing. 0.1.450: the patterns take an optional plural. `\\bhuman\\b` refused 'Licensed humans' \u2014 a correct answer, in the same words the passing answer used, failing on an 's'. A recall check that scores the grammatical number of a right answer measures typing, not recall, and it is the shape CLAUDE.md calls a check that fails for the wrong reason."
 }
