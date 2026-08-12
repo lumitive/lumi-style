@@ -17,14 +17,14 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 # Must mirror TRUSTED_CLOSURE in scripts/emergency_merge.sh.
-CLOSURE = ("check_repo.py", "color_math.py", "css_tokens.py", "lock.py",
-           "deliverable_registry.py")
+CLOSURE = ("check_repo.py", "lib/color_math.py", "lib/css_tokens.py",
+           "lib/lock.py", "lib/deliverable_registry.py")
 
 
 def test_closure_list_matches_the_shell_script():
     text = (ROOT / "scripts" / "emergency_merge.sh").read_text(encoding="utf-8")
     for name in CLOSURE:
-        assert name in text, (name, "missing from emergency_merge.sh — the "
+        assert name.split("/")[-1] in text, (name, "missing from emergency_merge.sh — the "
                               "closure lists must not drift apart")
 
 

@@ -40,7 +40,7 @@ Three rules, and each has already been paid for elsewhere in this repository:
    metering programme, `www.example.org` as the origin. The temptation to make a
    fixture "realistic" by copying a live deck is exactly how that red line gets
    crossed.
-3. **Both files are generated** by `scripts/build_fixtures.py`, which lifts the
+3. **Both files are generated** by `scripts/build/build_fixtures.py`, which lifts the
    `:root` token block from `tokens/`. A fixture grading a document against a
    palette the skill no longer ships is worse than no fixture. `--check` runs in
    CI.

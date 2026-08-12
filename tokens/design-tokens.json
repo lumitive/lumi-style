@@ -1,5 +1,5 @@
 {
-  "$schema_note": "LUMI design tokens v0.1.437 (2026-08-13). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
+  "$schema_note": "LUMI design tokens v0.1.438 (2026-08-13). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
   "palette_default": "light",
   "palette": {
     "light": {
@@ -149,7 +149,7 @@
       "Consolas",
       "monospace"
     ],
-    "note": "v1.2+: D-DIN is the single Latin face (titles ALL-CAPS weight 400, tight leading; CJK titles: weight 700 + 0.04em tracking, no uppercase). SIL OFL (Datto 2017), Latin-only; vendored in assets/fonts/ and embedded by scripts/embed_font.py. tabular-nums always on for data."
+    "note": "v1.2+: D-DIN is the single Latin face (titles ALL-CAPS weight 400, tight leading; CJK titles: weight 700 + 0.04em tracking, no uppercase). SIL OFL (Datto 2017), Latin-only; vendored in assets/fonts/ and embedded by scripts/build/embed_font.py. tabular-nums always on for data."
   },
   "typography": {
     "letter_spacing": {
@@ -218,7 +218,7 @@
     "verification_matrix": "language x viewport (design / print / short-laptop); footer visible at every point"
   },
   "region": {
-    "generated_by": "scripts/build_region_palette.py -> tokens/region-palette.css",
+    "generated_by": "scripts/build/build_region_palette.py -> tokens/region-palette.css",
     "space": "oklch, converted to sRGB hex on emit",
     "L_light": 0.7,
     "L_dark": 0.52,

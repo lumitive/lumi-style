@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """The brand lock: hashes for files that may not change unnoticed.
 
-    python3 scripts/lock.py                      # report
-    python3 scripts/lock.py --update "<why>"     # re-lock at current contents
+    python3 scripts/lib/lock.py                      # report
+    python3 scripts/lib/lock.py --update "<why>"     # re-lock at current contents
 
 `assets/brand/LOCKED.json` names a component, the version it was locked at, an
 owner, and a SHA-256 per file. `check_repo.py` reads it and fails when a hash
@@ -26,7 +26,8 @@ import json
 import pathlib
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 LOCK = ROOT / "assets" / "brand" / "LOCKED.json"
 
 
@@ -57,7 +58,7 @@ def verify():
                 f"        now     {got[:16]}…\n"
                 f"        {lock['why']}\n"
                 f"        Record the new hash and a reason in the SAME commit: "
-                f"python3 scripts/lock.py --update \"<why>\" — or revert.")
+                f"python3 scripts/lib/lock.py --update \"<why>\" — or revert.")
     return out
 
 

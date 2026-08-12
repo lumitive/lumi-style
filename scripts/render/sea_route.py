@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Route between two places over water, using the shipped 110m topology.
 
-    python3 scripts/sea_route.py 121.47 31.23 4.48 51.92     # Shanghai -> Rotterdam
-    python3 scripts/sea_route.py --check                     # the self-test
+    python3 scripts/render/sea_route.py 121.47 31.23 4.48 51.92     # Shanghai -> Rotterdam
+    python3 scripts/render/sea_route.py --check                     # the self-test
 
 WHY THIS EXISTS. A trade lane drawn as a great circle goes through the planet's
 surface — the Shanghai-to-Rotterdam arc crosses Siberia, and the one to Los

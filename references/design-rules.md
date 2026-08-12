@@ -109,7 +109,7 @@ meaning — the standing `light_ramp` already has. Semantic colour is untouched:
 `--acc`, `--seal`, `--amber`, `--brass` and the chart triple still mean what
 they mean, and a region hue never appears outside a region shape.
 
-The hues are generated, never picked: `scripts/build_region_palette.py` spaces
+The hues are generated, never picked: `scripts/build/build_region_palette.py` spaces
 them evenly around the OKLCH circle and assigns them so adjacent regions sit as
 far apart as the graph allows. Two regions count as adjacent when they share a
 border **or come within 1500 km**, because an ocean strait is not a visual
@@ -170,7 +170,7 @@ the reader's eye.
   reserved for the accent word. Rounded faces (Quicksand/Nunito) are retired
   from decks. **The face ships with this skill** — `assets/fonts/D-DIN.woff2`
   and `D-DIN-Bold.woff2` (SIL OFL, `COPYING.txt` alongside). Embed it as a data
-  URI, never link it: `python3 scripts/embed_font.py` prints the ready
+  URI, never link it: `python3 scripts/build/embed_font.py` prints the ready
   `@font-face` block, and `--check` verifies the vendored files are intact.
   A linked font falls back the moment a deliverable is opened offline, emailed,
   or printed elsewhere; a declared-but-unvendored one renders nothing at all,
@@ -606,8 +606,8 @@ on a 24×24 grid, `stroke=currentColor` re-stroked to 1.25px, so they follow the
 text ladder and switch with the palette for free. Two commands do the work:
 
 ```bash
-python3 scripts/embed_icons.py --search tariff   # find one
-python3 scripts/embed_icons.py radar route code  # sprite of just these
+python3 scripts/build/embed_icons.py --search tariff   # find one
+python3 scripts/build/embed_icons.py radar route code  # sprite of just these
 ```
 
 **Embed only what the document uses.** A full-library sprite is 0.9 MB of dead
@@ -617,7 +617,7 @@ weight in every deliverable, which is how a library becomes a liability.
 Breadth comes from the library: a page about a tariff line, a page about a court
 ruling and a page about a comment deadline should not share one icon, and they
 will if the set is small. Consistency comes from the **reserved bindings** in
-`scripts/embed_icons.py` (`--list`), which pin one icon per recurring LUMI
+`scripts/build/embed_icons.py` (`--list`), which pin one icon per recurring LUMI
 meaning so the same concept looks the same in every deliverable. Outside those
 bindings the choice is free, but **within one document an icon still means
 exactly one thing** — an icon reused for a second meaning is worse than no icon,

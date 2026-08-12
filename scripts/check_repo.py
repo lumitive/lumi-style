@@ -1488,7 +1488,7 @@ def check_region_coverage():
     reg_path = ROOT / "assets" / "vectors" / "regions.json"
     for path in (topo_path, reg_path):
         if not path.exists():
-            return [f"{rel(path)} is missing; run scripts/build_worldmap.py"]
+            return [f"{rel(path)} is missing; run scripts/build/build_worldmap.py"]
     topo = json.loads(topo_path.read_text(encoding="utf-8"))
     reg = json.loads(reg_path.read_text(encoding="utf-8"))
     countries = {c["a"] for c in topo["countries"]}
@@ -1813,6 +1813,15 @@ SCRIPT_PATH_FROZEN = ("CHANGELOG.md", "specs/", "releases/",
 
 SCRIPT_PATH_RE = re.compile(r"scripts/[\w./-]+\.(?:py|sh)\b")
 
+# The shape the string form cannot see: a path BUILT from pieces,
+# `ROOT / "scripts" / "build" / "embed_globe.py"`. The 0.1.438 move broke
+# exactly one of these (check_globe subprocessing embed_globe) and neither
+# the sweep nor the string guard saw it — the checker crashed at obligation
+# time instead. Reconstructed and resolved here so the remaining
+# constructions cannot rot through the later moves.
+SCRIPT_PATH_CONSTRUCTED_RE = re.compile(
+    r'"scripts"(?:\s*/\s*"[\w]+")*\s*/\s*"[\w.]+\.(?:py|sh)"')
+
 
 def check_script_paths():
     """Every `scripts/<path>` string in live tracked text resolves to a file.
@@ -1850,6 +1859,14 @@ def check_script_paths():
                         f"— the script moved or was renamed; update the "
                         f"mention, regenerate the artifact, or waive it in "
                         f"SCRIPT_PATH_WAIVERS with a reason")
+            for match in SCRIPT_PATH_CONSTRUCTED_RE.finditer(line):
+                segments = re.findall(r'"([^"]+)"', match.group(0))
+                cited = "/".join(segments)
+                if not (ROOT / cited).is_file():
+                    errors.append(
+                        f"{relpath}:{n}: builds the path {cited}, which does "
+                        f"not exist — a constructed script path rotted; "
+                        f"update the pieces or waive with a reason")
     return errors
 
 

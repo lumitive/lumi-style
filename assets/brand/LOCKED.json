@@ -2,14 +2,14 @@
   "component": "LUMI-Globe-Field",
   "owner": "LUMIVATE",
   "locked_at": "0.1.405",
-  "why": "0.1.437: the canonical scripts-path bootstrap block lands in every sibling-importing script, build_brand and globe_svg included — behavior-neutral path setup (append-only), every generator --check byte-identical; part of the reorganization hardening.",
+  "why": "0.1.438: scripts/ reorganized — build_brand moved to scripts/build/, globe_svg to scripts/render/, and the three locked JS assets' comment citations updated to the new paths; every generator --check byte-identical after the move.",
   "files": {
-    "assets/brand/lumivate/globe-mark-small.svg": "668e714999aabcd21ba04ad65730ed1826d83ef99766943eab05388ce880130f",
-    "assets/brand/lumivate/globe-mark.svg": "2cdc9f4f2101a9078f74dacc0d97f878bb4cf464e9c070618362a295b335e5be",
-    "assets/geo/projection.js": "edd697e297802a77c3eca5bb73231a869e4781d25a24e6c3104aa1fc52b328cb",
-    "assets/globe/globe.js": "a56687ef6334fd9abbfd1e974f0ee90dcf020f3117f8526f3399bceca1807258",
-    "assets/globe/render-svg.js": "732aa3c8de6934662a01584b78bd5959dea9d0bd3273d263f9d6143244bc12d7",
-    "scripts/build_brand.py": "395ce141fa19f39fa057bdfc1c20fd1a809194c9dc3bff2dd9bd859507bf7d78",
-    "scripts/globe_svg.py": "07487cb57bb9bcfedb62ee086021d1a25fe3ac663fc9c5c6810012c64de0d9a5"
+    "assets/brand/lumivate/globe-mark-small.svg": "282f78967678387b550db2b464b2586397b540603f1f757b95cf084e7b04eb0c",
+    "assets/brand/lumivate/globe-mark.svg": "5a3bd1f8c97e6bb1b0e29d765d8bf08ebc64f837e48d8cfe67886738b8eeef68",
+    "assets/geo/projection.js": "c442aa5194cebce6f5fb3fe3f2a34292ce21164374b218dab59246b016f11348",
+    "assets/globe/globe.js": "fd4eb0334e42411cc3a243cfac1295bf97e9187448641a1cb403b0a16ceaf969",
+    "assets/globe/render-svg.js": "ff8b9156a6d7444742f7b04d02839d4f2a3e02721212885e3a36fbc9b4502146",
+    "scripts/build/build_brand.py": "f1a6c56eab05572b1d403ada76722dfbbd2aaef4c0f08987fed9c6722422cecf",
+    "scripts/render/globe_svg.py": "9cda34d42cdd24745754eeee5c8d715b39ee5b2fb197e8b13a7b54f0b27d47c1"
   }
 }

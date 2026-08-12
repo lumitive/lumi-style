@@ -53,24 +53,24 @@ jobs:
       # Every vendored asset must stay byte-identical: a silent change would alter
       # the metrics or the marks of every deliverable that embeds it. The icons
       # and geography arrived in 0.1.338 under the same reasoning as the face.
-      - run: python3 scripts/embed_font.py --check
-      - run: python3 scripts/embed_icons.py --check
-      - run: python3 scripts/build_geography.py --check
-      - run: python3 scripts/build_worldmap.py --check
-      - run: python3 scripts/build_brand.py --check
-      - run: python3 scripts/build_trade_registry.py --check
-      - run: python3 scripts/build_region_palette.py --check
+      - run: python3 scripts/build/embed_font.py --check
+      - run: python3 scripts/build/embed_icons.py --check
+      - run: python3 scripts/build/build_geography.py --check
+      - run: python3 scripts/build/build_worldmap.py --check
+      - run: python3 scripts/build/build_brand.py --check
+      - run: python3 scripts/build/build_trade_registry.py --check
+      - run: python3 scripts/build/build_region_palette.py --check
       # The maths properties, plus the JS port held to the Python authority
       # over the 1300-sample golden grid under bare node (projection.js is
       # DOM-free). The remaining browser checks (renderer parity, painted
       # ink) stay operator steps recorded via the evidence gate.
       - run: python3 scripts/check_globe.py --python-only --node
-      - run: python3 scripts/embed_globe.py --check
-      - run: python3 scripts/embed_regionmap.py --check
+      - run: python3 scripts/build/embed_globe.py --check
+      - run: python3 scripts/build/embed_regionmap.py --check
       # Ordering matters: a stale generated tree must report as stale rather
       # than as a mystery failure in a guard that reads it.
-      - run: python3 scripts/build_entrypoints.py --check
-      - run: python3 scripts/build_fixtures.py --check
+      - run: python3 scripts/build/build_entrypoints.py --check
+      - run: python3 scripts/build/build_fixtures.py --check
       # The gates, tested. Runs after the staleness checks so a stale
       # fixture reports as stale rather than as a metric regression.
       - run: python3 scripts/check_fixtures.py

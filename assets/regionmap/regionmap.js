@@ -6,7 +6,7 @@
 //   m.setData({ regions: { europe: { state: 'live', value: 71 } } });
 //   container.addEventListener('regionselect', e => …);
 //
-// This runtime touches NO GEOMETRY. The static frame scripts/regionmap_svg.py
+// This runtime touches NO GEOMETRY. The static frame scripts/render/regionmap_svg.py
 // emits is complete — a flat map does not rotate, unroll or animate — so what
 // is left for a runtime is state: classes, values, labels, hover, focus and
 // the accessibility layer. That is also why creation is synchronous and needs
@@ -39,7 +39,7 @@ export function createRegionMap(container, options = {}) {
   const svg = container.querySelector('svg.regionmap');
   if (!svg) {
     console.error('[lumi-regionmap] no <svg class="regionmap"> in the container; '
-                  + 'generate one with scripts/regionmap_svg.py');
+                  + 'generate one with scripts/render/regionmap_svg.py');
     return null;
   }
   if (!registry) {

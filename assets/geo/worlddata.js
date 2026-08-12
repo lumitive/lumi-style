@@ -1,6 +1,6 @@
 // Decode the shared-arc world topology and index it for the renderers.
 //
-// The file this reads is written by scripts/build_worldmap.py, and
+// The file this reads is written by scripts/build/build_worldmap.py, and
 // scripts/check_globe.py compares what comes out of here against what went in:
 // point counts, ring closure, and Germany landing where Germany is.
 //
@@ -85,7 +85,7 @@ export function decode(topology, registry) {
  *
  * A ring references arcs with a sign for direction; a LINE has no winding, so
  * the three land-line layers (coast, bloc edge, border) index arcs directly.
- * Which arc belongs to which layer is decided once, in scripts/geo_frame.py,
+ * Which arc belongs to which layer is decided once, in scripts/lib/geo_frame.py,
  * and travels in the markup — this function only decodes.
  */
 export function arcPoints(index, data) {

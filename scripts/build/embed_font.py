@@ -8,8 +8,8 @@ with the face declared but not vendored and it rendered nothing at all, which is
 why the woff2 files now live in this repository instead of being found again for
 every deck.
 
-    python3 scripts/embed_font.py            # print the CSS block
-    python3 scripts/embed_font.py --check    # verify the vendored files are intact
+    python3 scripts/build/embed_font.py            # print the CSS block
+    python3 scripts/build/embed_font.py --check    # verify the vendored files are intact
 
 Paste the output into the deliverable's <style>. Roughly 56 KB of base64 for the
 pair, which is the whole cost of never thinking about fonts again.
@@ -20,7 +20,8 @@ import hashlib
 import pathlib
 import sys
 
-FONTS = pathlib.Path(__file__).resolve().parent.parent / "assets" / "fonts"
+FONTS = next(p for p in pathlib.Path(__file__).resolve().parents
+             if p.name == "scripts").parent / "assets" / "fonts"
 FACES = [("D-DIN.woff2", 400), ("D-DIN-Bold.woff2", 700)]
 
 # Recorded when the files were vendored. A mismatch means the font changed, which

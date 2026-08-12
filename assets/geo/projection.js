@@ -1,6 +1,6 @@
 // Sphere-to-screen maths for the LUMI globe.
 //
-// A hand port of scripts/geo_projection.py. THE PYTHON IS THE AUTHORITY: this
+// A hand port of scripts/lib/geo_projection.py. THE PYTHON IS THE AUTHORITY: this
 // file is checked against it over a golden grid by scripts/check_globe.py, to
 // 1e-9 on every sample. Change one and you must change the other in the same
 // commit, or that check fails and says so.
@@ -221,7 +221,7 @@ export function splitAtSeam(ring, lon0) {
 
 /**
  * Densify an edge so it curves under projection instead of cutting the sphere.
- * Mirrors densify in scripts/geo_projection.py. It lives here rather than in a
+ * Mirrors densify in scripts/lib/geo_projection.py. It lives here rather than in a
  * renderer because clipToCap below needs it and both back ends need that.
  */
 export function densify(ring, stepDeg) {
@@ -252,7 +252,7 @@ export function densify(ring, stepDeg) {
  * of 91 degrees scores negative where one of 89 scores positive. Country rings
  * are far below it; the visible cap is far above it for every t > 0, which is
  * why clipToCap takes the cap's handedness from its azimuth parameterisation
- * instead. Mirrors signed_area in scripts/geo_projection.py.
+ * instead. Mirrors signed_area in scripts/lib/geo_projection.py.
  */
 export function signedArea(ring) {
   const r = (ring[0][0] === ring[ring.length - 1][0]
@@ -303,7 +303,7 @@ const CAP_STEP_DEG = 1.5;
 // artifact rather than coastline; at t=0, where the cap passes exactly through
 // both poles, every one of them evaluates to cos_c = +-6.1e-17. Counted as
 // interior they form a phantom run and the fill walks the entire limb.
-// Mirrors CAP_EPS in scripts/geo_projection.py.
+// Mirrors CAP_EPS in scripts/lib/geo_projection.py.
 const CAP_EPS = 1e-9;
 
 /**
@@ -320,12 +320,12 @@ const CAP_EPS = 1e-9;
  *
  * Runs are LINKED rather than each closed on itself, so a country the cap cuts
  * into two visible pieces comes back as one polygon when that is what it is.
- * Mirrors clip_to_cap in scripts/geo_projection.py, and the golden grid in
+ * Mirrors clip_to_cap in scripts/lib/geo_projection.py, and the golden grid in
  * scripts/check_globe.py is what holds the two together.
  */
 // How much larger than its source a clipped ring may be before its closure is
 // judged to have gone the wrong way, in steradians. Mirrors CLOSURE_SLACK in
-// scripts/geo_projection.py: larger than any country ring in this topology
+// scripts/lib/geo_projection.py: larger than any country ring in this topology
 // (Russia, the largest, is 0.41 sr) and far smaller than the 2*pi a wrong-way
 // closure encloses.
 const CLOSURE_SLACK = 0.35;
@@ -415,7 +415,7 @@ export function clipToCap(ring, view, stepDeg, forwardIn) {
   // interior is on the right by construction. signedArea cannot read a ring
   // within a hair of a hemisphere — the terminator is exactly that — so the
   // Python authority takes the same override. Mirrors clip_to_cap in
-  // scripts/geo_projection.py.
+  // scripts/lib/geo_projection.py.
   const forwardGiven = forwardIn !== undefined;
   const forward = forwardIn === undefined ? signedArea(ring) > 0 : forwardIn;
   const step = CAP_STEP_DEG * D2R;
@@ -456,7 +456,7 @@ export function clipToCap(ring, view, stepDeg, forwardIn) {
     if (seq.length > 2) out.push(seq.concat([seq[0]]));
   }
 
-  // THE TANGENT GUARD. Mirrors clip_to_cap in scripts/geo_projection.py, and
+  // THE TANGENT GUARD. Mirrors clip_to_cap in scripts/lib/geo_projection.py, and
   // the reason it is here rather than only there is the whole point: the fix
   // shipped in Python, the emitter's sweep went green, and every frame after
   // the first is drawn by THIS file — so a country grazing the limb went on

@@ -169,7 +169,7 @@ def main() -> int:
     for fixture, checks in spec["fixtures"].items():
         path = FIXTURES / fixture
         if not path.exists():
-            errors.append(f"{fixture}: missing; run scripts/build_fixtures.py")
+            errors.append(f"{fixture}: missing; run scripts/build/build_fixtures.py")
             continue
         for kind, expect in checks.items():
             # "prose@training" runs check_prose a second time under another

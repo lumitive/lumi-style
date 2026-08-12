@@ -77,3 +77,24 @@ def test_bootstrap_module_does_not_flag_itself(tmp_path, monkeypatch):
 def test_live_repo_is_clean():
     assert check_repo.check_script_paths() == []
     assert check_repo.check_bootstrap() == []
+
+
+def test_script_paths_constructed_path_fails_when_dangling(tmp_path, monkeypatch):
+    """The 0.1.438 lesson: `ROOT / "scripts" / "x.py"` is invisible to the
+    string form; the constructed form must resolve too."""
+    monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, {
+        "scripts/tool.py":
+            'import subprocess\n'
+            'subprocess.run([str(ROOT / "scripts" / "gone.py")])\n'}))
+    errors = check_repo.check_script_paths()
+    assert len(errors) == 1
+    assert "builds the path scripts/gone.py" in errors[0]
+
+
+def test_script_paths_constructed_path_resolving_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, {
+        "scripts/tool.py":
+            'import subprocess\n'
+            'subprocess.run([str(ROOT / "scripts" / "lib" / "there.py")])\n',
+        "scripts/lib/there.py": "x = 1\n"}))
+    assert check_repo.check_script_paths() == []
