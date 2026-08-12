@@ -22,7 +22,14 @@
 #      check_repo.py is NOT sufficient: the script's own directory is sys.path[0],
 #      so a PR adding scripts/json.py hijacks an import and runs arbitrary code.
 #      Verified. PYTHONSAFEPATH=1 (Python 3.11+) removes that directory from the
-#      path, so we require 3.11 and refuse otherwise.
+#      path, so we require 3.11 and refuse otherwise. Since 0.1.420 check_repo
+#      imports sibling modules (color_math, css_tokens, lock — all pure
+#      stdlib underneath), so the trusted copy is the whole CLOSURE, each file
+#      overwriting the PR's version at the same path: the PR's copies never
+#      run, stdlib still resolves first (the bootstrap block only APPENDS),
+#      and the hijack stays dead. Found broken by the 2026-08-13 audit: the
+#      single-file copy left import color_math unresolvable under SAFEPATH,
+#      so this path would have misdiagnosed EVERY PR as a real defect.
 #   2. Fork PRs are refused. A same-repo branch means someone with push access
 #      made it; a fork branch means anyone did.
 #   3. Verify what will actually be merged. We fetch refs/pull/N/merge, confirm
@@ -36,6 +43,10 @@ PR="${1:?usage: bash scripts/emergency_merge.sh <PR-NUMBER>}"
 PROT="repos/$REPO/branches/main/protection/enforce_admins"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TRUSTED_CHECK="$SCRIPT_DIR/check_repo.py"
+# check_repo's non-stdlib import closure. Every file here must itself be
+# pure-stdlib (verified; a sibling gaining a third-party import would fail
+# loudly under SAFEPATH, never silently widen this list).
+TRUSTED_CLOSURE=("$SCRIPT_DIR/color_math.py" "$SCRIPT_DIR/css_tokens.py" "$SCRIPT_DIR/lock.py" "$SCRIPT_DIR/deliverable_registry.py")
 UNLOCKED=0
 RESTORE_FAILED=0
 WORK=""
@@ -80,6 +91,9 @@ trap 'cleanup; exit 143' TERM
 die() { echo "!! $2"; exit "$1"; }
 
 [ -f "$TRUSTED_CHECK" ] || die 1 "$TRUSTED_CHECK not found."
+for f in "${TRUSTED_CLOSURE[@]}"; do
+  [ -f "$f" ] || die 1 "$f not found — the trusted closure is incomplete."
+done
 python3 - <<'PY' || die 1 "Python 3.11+ required (PYTHONSAFEPATH); refusing to run PR code without it."
 import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)
 PY
@@ -122,6 +136,9 @@ echo "    merge ref confirmed against head ${HEAD_SHA:0:7}"
 echo "==> Running the TRUSTED local checker over that tree"
 mkdir -p "$WORK/repo/scripts"
 cp "$TRUSTED_CHECK" "$WORK/repo/scripts/check_repo.py"
+for f in "${TRUSTED_CLOSURE[@]}"; do
+  cp "$f" "$WORK/repo/scripts/$(basename "$f")"
+done
 # PYTHONSAFEPATH keeps the PR's scripts/ off sys.path, so a planted json.py
 # cannot hijack an import. Overwriting the checker alone does not do this.
 PYTHONSAFEPATH=1 python3 "$WORK/repo/scripts/check_repo.py"

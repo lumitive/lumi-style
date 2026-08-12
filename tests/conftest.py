@@ -1,8 +1,10 @@
 # scripts/ is deliberately not a package (the scripts are operator commands,
-# not a library), so tests import them the same way check_repo.py:1532 imports
-# lock.py: by putting scripts/ on sys.path. This is the one place that happens
-# for tests.
+# not a library), so tests import them by bare name with every drawer on
+# sys.path — mirroring the canonical bootstrap block the scripts themselves
+# carry (check_repo's bootstrap guard enforces it there).
 import pathlib
 import sys
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "scripts"))
+_SCRIPTS = pathlib.Path(__file__).resolve().parent.parent / "scripts"
+for _sub in ("", "lib", "render", "check", "build", "ops"):
+    sys.path.insert(0, str(_SCRIPTS / _sub) if _sub else str(_SCRIPTS))

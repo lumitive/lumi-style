@@ -2,14 +2,14 @@
   "component": "LUMI-Globe-Field",
   "owner": "LUMIVATE",
   "locked_at": "0.1.405",
-  "why": "0.1.420: build_brand._vars replaced by the shared css_tokens.rule_vars — comments stripped, block read to the matching brace; proven identical on all six real call sites before the switch, and every brand SVG --check byte-identical after it.",
+  "why": "0.1.437: the canonical scripts-path bootstrap block lands in every sibling-importing script, build_brand and globe_svg included — behavior-neutral path setup (append-only), every generator --check byte-identical; part of the reorganization hardening.",
   "files": {
     "assets/brand/lumivate/globe-mark-small.svg": "668e714999aabcd21ba04ad65730ed1826d83ef99766943eab05388ce880130f",
     "assets/brand/lumivate/globe-mark.svg": "2cdc9f4f2101a9078f74dacc0d97f878bb4cf464e9c070618362a295b335e5be",
     "assets/geo/projection.js": "edd697e297802a77c3eca5bb73231a869e4781d25a24e6c3104aa1fc52b328cb",
     "assets/globe/globe.js": "a56687ef6334fd9abbfd1e974f0ee90dcf020f3117f8526f3399bceca1807258",
     "assets/globe/render-svg.js": "732aa3c8de6934662a01584b78bd5959dea9d0bd3273d263f9d6143244bc12d7",
-    "scripts/build_brand.py": "6d4cf135c05811685f9c4396d6a0b4a2540fdeb7df20f45310d405d51fadd799",
-    "scripts/globe_svg.py": "68873494e3938386fac586b81042807d4c62c7cb3eaa009dac0e323c4914cf1b"
+    "scripts/build_brand.py": "395ce141fa19f39fa057bdfc1c20fd1a809194c9dc3bff2dd9bd859507bf7d78",
+    "scripts/globe_svg.py": "07487cb57bb9bcfedb62ee086021d1a25fe3ac663fc9c5c6810012c64de0d9a5"
   }
 }
