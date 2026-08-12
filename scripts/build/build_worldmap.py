@@ -13,8 +13,8 @@ four-colouring the adjacency graph, and a hand-maintained adjacency list beside
 real geometry is correct on the day it is written and silently wrong after any
 change to the registry.
 
-    python3 scripts/build_worldmap.py           # write the topology and the fixture
-    python3 scripts/build_worldmap.py --check   # verify both are current
+    python3 scripts/build/build_worldmap.py           # write the topology and the fixture
+    python3 scripts/build/build_worldmap.py --check   # verify both are current
 
 Standard library only. Never touches the network; the upstream file is vendored
 and NOTICE records why.
@@ -48,7 +48,8 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import geo_projection as gp  # noqa: E402 — after the bootstrap, deliberately
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 UPSTREAM = ROOT / "assets" / "vectors" / "upstream" / "ne_110m_admin_0_countries.geojson"
 TOPOLOGY = ROOT / "assets" / "vectors" / "world-110m.json"
 GOLDEN = ROOT / "fixtures" / "globe-golden.json"

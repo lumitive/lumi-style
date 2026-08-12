@@ -67,7 +67,7 @@ export async function createGlobe(container, options = {}) {
   const svg = container.querySelector('svg.gl');
   if (!svg) {
     console.error('[lumi-globe] no <svg class="gl"> in the container; '
-                  + 'generate one with scripts/globe_svg.py');
+                  + 'generate one with scripts/render/globe_svg.py');
     return null;
   }
 

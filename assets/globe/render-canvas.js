@@ -20,7 +20,7 @@ const STEP_DEG = 2;
 export function createCanvasRenderer(container, data, options = {}) {
   // The field's data. The SVG back end reads marks from the markup the emitter
   // baked; a canvas has no markup, so they arrive as data. Radius matches
-  // scripts/globe_svg.py's mark_radius exactly — sqrt of the normalised
+  // scripts/render/globe_svg.py's mark_radius exactly — sqrt of the normalised
   // weight between the same two fractions of R — and the field renderer
   // parity check is what holds the two together.
   const MARK_R_MIN = 0.008;

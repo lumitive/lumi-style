@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify the globe maths, and that the JavaScript port agrees with it.
 
-assets/geo/projection.js is a hand port of scripts/geo_projection.py, held
+assets/geo/projection.js is a hand port of scripts/lib/geo_projection.py, held
 to the Python authority by a golden grid of 1300 samples. Since 0.1.426 that
 comparison runs IN CI under bare node (projection.js is DOM-free maths);
 check_js.py syntax-parses every JS surface. There is still no package.json
@@ -1728,7 +1728,7 @@ def check_runtime_closure():
     """The tangent guard is in the JAVASCRIPT, not only in the Python.
 
     This check exists because the repair for it shipped in
-    scripts/geo_projection.py, the emitter's sweep went green, the release note
+    scripts/lib/geo_projection.py, the emitter's sweep went green, the release note
     was written — and every frame after the first is drawn by
     assets/geo/projection.js, which had no guard. A country grazing the limb
     went on being painted over the whole disc, six frames per revolution, with
@@ -1754,7 +1754,7 @@ def check_runtime_closure():
     # the others sweep for any neighbour of it.
     svg = globe_svg.render((0.0, 10.0, 0.0, R, R, R), regions_path=reg)
     runtime = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "embed_globe.py")],
+        [sys.executable, str(ROOT / "scripts" / "build" / "embed_globe.py")],
         capture_output=True, text=True, check=True).stdout
 
     js = """(lon0) => {
@@ -1799,7 +1799,7 @@ def check_runtime_closure():
         errors.append(
             f"the RUNTIME's land geometry changes by {worst[0]} characters "
             f"between two frames 0.05 degrees apart, at lon0={worst[1]:.2f}. "
-            f"The tangent guard is in scripts/geo_projection.py and not in "
+            f"The tangent guard is in scripts/lib/geo_projection.py and not in "
             f"assets/geo/projection.js, so the emitter is green and every "
             f"frame a reader sees is not")
     return errors
@@ -2182,7 +2182,7 @@ def main(argv):
 
     if not GOLDEN.exists():
         print(f"FAIL  {GOLDEN.relative_to(ROOT)} is missing; "
-              f"run scripts/build_worldmap.py")
+              f"run scripts/build/build_worldmap.py")
         return 1
     golden = json.loads(GOLDEN.read_text(encoding="utf-8"))
 

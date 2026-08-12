@@ -13,11 +13,11 @@ The library is now Lucide (2007 icons, ISC, vendored in assets/icons/lucide/).
 Breadth solves expressiveness; the CORE map below solves consistency by reserving
 one icon per recurring LUMI meaning. Both halves are needed.
 
-    python3 scripts/embed_icons.py radar route code     # sprite of just these
-    python3 scripts/embed_icons.py --core               # sprite of the reserved set
-    python3 scripts/embed_icons.py --search tariff      # find an icon by name or tag
-    python3 scripts/embed_icons.py --list               # the reserved meanings
-    python3 scripts/embed_icons.py --check              # library integrity
+    python3 scripts/build/embed_icons.py radar route code     # sprite of just these
+    python3 scripts/build/embed_icons.py --core               # sprite of the reserved set
+    python3 scripts/build/embed_icons.py --search tariff      # find an icon by name or tag
+    python3 scripts/build/embed_icons.py --list               # the reserved meanings
+    python3 scripts/build/embed_icons.py --check              # library integrity
 
 Embed only what a document uses. A 2007-icon sprite in every deliverable would be
 0.9 MB of dead weight, which is how a library becomes a liability.
@@ -31,7 +31,8 @@ import pathlib
 import re
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 LIB = ROOT / "assets" / "icons" / "lucide"
 STROKE = "1.25"          # LUMI hairline; Lucide ships at 2
 MIN_LIBRARY = 300        # below this the set is too thin to express a document
@@ -66,7 +67,7 @@ def load(name):
     if not path.exists():
         raise SystemExit(
             f"no icon named {name!r} in {LIB.relative_to(ROOT)} — "
-            f"try: python3 scripts/embed_icons.py --search {name}")
+            f"try: python3 scripts/build/embed_icons.py --search {name}")
     return path.read_text(encoding="utf-8")
 
 

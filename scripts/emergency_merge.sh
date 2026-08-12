@@ -46,7 +46,7 @@ TRUSTED_CHECK="$SCRIPT_DIR/check_repo.py"
 # check_repo's non-stdlib import closure. Every file here must itself be
 # pure-stdlib (verified; a sibling gaining a third-party import would fail
 # loudly under SAFEPATH, never silently widen this list).
-TRUSTED_CLOSURE=("$SCRIPT_DIR/color_math.py" "$SCRIPT_DIR/css_tokens.py" "$SCRIPT_DIR/lock.py" "$SCRIPT_DIR/deliverable_registry.py")
+TRUSTED_CLOSURE=("$SCRIPT_DIR/lib/color_math.py" "$SCRIPT_DIR/lib/css_tokens.py" "$SCRIPT_DIR/lib/lock.py" "$SCRIPT_DIR/lib/deliverable_registry.py")
 UNLOCKED=0
 RESTORE_FAILED=0
 WORK=""
@@ -134,10 +134,10 @@ MERGE_PARENT=$(git -C "$WORK/repo" rev-parse --verify --quiet 'FETCH_HEAD^2' || 
 echo "    merge ref confirmed against head ${HEAD_SHA:0:7}"
 
 echo "==> Running the TRUSTED local checker over that tree"
-mkdir -p "$WORK/repo/scripts"
+mkdir -p "$WORK/repo/scripts/lib"
 cp "$TRUSTED_CHECK" "$WORK/repo/scripts/check_repo.py"
 for f in "${TRUSTED_CLOSURE[@]}"; do
-  cp "$f" "$WORK/repo/scripts/$(basename "$f")"
+  cp "$f" "$WORK/repo/scripts/lib/$(basename "$f")"
 done
 # PYTHONSAFEPATH keeps the PR's scripts/ off sys.path, so a planted json.py
 # cannot hijack an import. Overwriting the checker alone does not do this.

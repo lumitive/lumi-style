@@ -1,6 +1,6 @@
 // The deliverable back end: mutate the static frame, never replace it.
 //
-// scripts/globe_svg.py emits the markup and this file rewrites its `d`
+// scripts/render/globe_svg.py emits the markup and this file rewrites its `d`
 // attributes as the view changes. It creates no elements and destroys none,
 // which is what keeps three things true at once: the file on disk is a complete
 // no-JavaScript fallback, every gate in this package can still read the figure
@@ -15,7 +15,7 @@ import {
 import { ringsOf, arcPoints } from '../geo/worlddata.js';
 
 const STEP_DEG = 2;
-// Matches PAD in scripts/globe_svg.py, in the same user units.
+// Matches PAD in scripts/render/globe_svg.py, in the same user units.
 const PAD = 40;
 
 /**
@@ -50,7 +50,7 @@ function viewBoxFor(view) {
  * on the unrolled map, at y = cy -+ R(1 - t/2), spanning those two verticals.
  * Both collapse at t=0 and both are the whole boundary at t=1.
  *
- * Mirrors _pole_close in scripts/globe_svg.py. Until 0.1.389 both sides were
+ * Mirrors _pole_close in scripts/render/globe_svg.py. Until 0.1.389 both sides were
  * restricted to t=1 and measured against x = cx +- R, the seam's position at
  * t=1 only.
  */
@@ -74,7 +74,7 @@ function poleClose(a, b, view) {
 // Make a sequence continuous in longitude. Any representation that wraps at
 // +-180 puts a 360-degree step between neighbours, and densify reads that step
 // as a journey — it fills the gap by sweeping the world and the line closes
-// into a ring around the globe. Mirrors _unwrap_lons in scripts/geo_frame.py.
+// into a ring around the globe. Mirrors _unwrap_lons in scripts/lib/geo_frame.py.
 function unwrapLons(points) {
   if (points.length < 2) return points.slice();
   const out = [points[0].slice()];
@@ -120,7 +120,7 @@ function projectRing(ring, view) {
  * the cap ON THE SPHERE in the ring's own winding, split the closed result at
  * the seam, then project. Clipping in screen space means closing along a
  * projected cap, and a projected cap jumps the width of the seam twice at every
- * t > 0. Mirrors _project_area in scripts/globe_svg.py.
+ * t > 0. Mirrors _project_area in scripts/render/globe_svg.py.
  */
 function projectArea(ring, view) {
   const runs = [];
@@ -141,7 +141,7 @@ function projectArea(ring, view) {
  *
  * An invariant, not a patch over one bug: in this projection no real polygon
  * edge spans half the figure, so a pair that does means a cut that did not
- * take. Mirrors _guard in scripts/globe_svg.py.
+ * take. Mirrors _guard in scripts/render/globe_svg.py.
  */
 function guard(runs, R) {
   const out = [];
@@ -159,7 +159,7 @@ function guard(runs, R) {
   return out;
 }
 
-/** Round half away from zero. Mirrors _r in scripts/globe_svg.py; the two
+/** Round half away from zero. Mirrors _r in scripts/render/globe_svg.py; the two
  *  renderers must produce the same integer for the same coordinate. */
 function r0(v) {
   return (v >= 0 ? 1 : -1) * Math.floor(Math.abs(v) + 0.5);
@@ -202,7 +202,7 @@ export function createSvgRenderer(svg, data) {
   const cityDots = [...svg.querySelectorAll('.gl-city-dot')];
   // The three land-line layers. Each names its own arcs in the markup; the
   // classification is Python's and is not repeated here — see classify_arcs in
-  // scripts/geo_frame.py, and 0.1.404/0.1.405 for what a port maintained in
+  // scripts/lib/geo_frame.py, and 0.1.404/0.1.405 for what a port maintained in
   // two places costs.
   const lineEls = [...svg.querySelectorAll('.gl-coast, .gl-bloc-edge, .gl-border')];
   const lineArcs = new Map(lineEls.map((el) => [el,
@@ -233,7 +233,7 @@ export function createSvgRenderer(svg, data) {
   }
 
   // lat/lon geometry is resolved once. Only the projection runs per frame.
-  // Routed exactly as scripts/globe_svg.py routes it: a country belongs to one
+  // Routed exactly as scripts/render/globe_svg.py routes it: a country belongs to one
   // bloc or to none, so every ring is resolved once and lands in one bucket.
   // Without blocs this is the single land list it has always been.
   const claimed = new Map();
@@ -250,7 +250,7 @@ export function createSvgRenderer(svg, data) {
       for (const ring of ringsOf(code, data)) target.push(ring);
     }
   }
-  // 15 degrees, mirroring GLOBE_GRATICULE in scripts/globe_svg.py. The
+  // 15 degrees, mirroring GLOBE_GRATICULE in scripts/render/globe_svg.py. The
   // graticule is the cue that makes a flat disc read as a sphere, and the
   // first cut's 30 degrees was too sparse to do that work once the geography
   // went quiet. The equator is skipped here because it is a NAMED line below.
@@ -283,18 +283,18 @@ export function createSvgRenderer(svg, data) {
   // A city's label is placed by the same two rules the emitter uses, ported
   // here rather than shared: the frame the emitter wrote is correct for its own
   // rotation only, and the moment the globe turns the crowding changes. See
-  // place_city_labels in scripts/geo_frame.py — same order, same comparison,
+  // place_city_labels in scripts/lib/geo_frame.py — same order, same comparison,
   // same drop, so a paused globe and a printed one agree.
   const CITY_GAP = 0.9;
   // Cancel the earth group's tilt for one label, about its own anchor. Mirrors
-  // _upright in scripts/globe_svg.py: every layer lives inside .gl-earth, and
+  // _upright in scripts/render/globe_svg.py: every layer lives inside .gl-earth, and
   // a name set at 23 degrees is a name the reader tips their head for.
   const upright = (x, y) => `rotate(${-OBLIQUITY} ${x.toFixed(1)} ${y.toFixed(1)})`;
   const TILT = (OBLIQUITY * Math.PI) / 180;
   // A point in the earth group's space, as the reader SEES it. Placement asks
   // a screen question — does this word land on that word — and the group
   // rotates, so asking it in group space compares boxes nobody ever sees.
-  // Mirrors tilt_to_screen in scripts/geo_frame.py.
+  // Mirrors tilt_to_screen in scripts/lib/geo_frame.py.
   const toScreen = (x, y, cx, cy) => {
     const dx = x - cx;
     const dy = y - cy;
@@ -307,13 +307,13 @@ export function createSvgRenderer(svg, data) {
     dx * Math.sin(-TILT) + dy * Math.cos(-TILT)];
 
   // 0.66: an over-estimate of the shipped face, which measures 0.48-0.62
-  // em/char on real names. Mirrors CITY_EM_W in scripts/geo_frame.py.
+  // em/char on real names. Mirrors CITY_EM_W in scripts/lib/geo_frame.py.
   const CITY_EM_W = 0.66;
   const CITY_EM_H = 1.15;
   const LABEL_LIMB_COS = 0.25;
 
   // Bloc labels first: anchored to their region, hidden well before the limb,
-  // and their boxes handed to the city pass. Mirrors scripts/globe_svg.py —
+  // and their boxes handed to the city pass. Mirrors scripts/render/globe_svg.py —
   // the layer that cannot move goes in first.
   function drawBlocLabels(view) {
     const boxes = [];
@@ -340,7 +340,7 @@ export function createSvgRenderer(svg, data) {
   }
 
   // Spherical linear interpolation between two places: the shortest path
-  // across a sphere. Mirrors great_circle in scripts/geo_frame.py — same
+  // across a sphere. Mirrors great_circle in scripts/lib/geo_frame.py — same
   // sampling, so the frame the emitter wrote and the frame this draws are the
   // same curve rather than two curves that look alike.
   function greatCircle(a, b, n = 64) {
@@ -363,7 +363,7 @@ export function createSvgRenderer(svg, data) {
       const m = Math.hypot(v[0], v[1], v[2]);
       let lon = Math.atan2(v[1] / m, v[0] / m) * 180 / Math.PI;
       const lat = Math.asin(Math.max(-1, Math.min(1, v[2] / m))) * 180 / Math.PI;
-      // UNWRAP, exactly as great_circle does in scripts/geo_frame.py. atan2
+      // UNWRAP, exactly as great_circle does in scripts/lib/geo_frame.py. atan2
       // returns (-180, 180], so a Pacific lane steps 355 degrees between two
       // adjacent samples and densify sweeps the whole world filling the gap —
       // the lane closes into a ring around the globe.

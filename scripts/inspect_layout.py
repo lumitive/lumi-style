@@ -87,7 +87,7 @@ class Unmeasurable(Exception):
 
 # Two things every render waits for. Fixed sleeps alone are what let a report be
 # measured against fallback font metrics and printed as fact: this package
-# embeds a display face (`scripts/embed_font.py`), and every number in the report
+# embeds a display face (`scripts/build/embed_font.py`), and every number in the report
 # is a distance between glyphs that have not necessarily arrived yet.
 SETTLE_MS = 350
 

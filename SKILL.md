@@ -4,7 +4,7 @@ description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
 metadata:
-  version: "0.1.437"
+  version: "0.1.438"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -154,12 +154,12 @@ been removed; they now apply at step 4 instead of framing step 0.
    [`tokens/lumi-layouts.css`](tokens/lumi-layouts.css). **Choose a page layout for
    the content**: §3's table is a reference of what has worked, not a lookup, and
    a page that wants something not in it should get it. **Embed the vendored
-   assets rather than improvising**: `scripts/embed_font.py` for the display face,
-   `scripts/embed_icons.py` for the icon library, `assets/vectors/` for the globe
+   assets rather than improvising**: `scripts/build/embed_font.py` for the display face,
+   `scripts/build/embed_icons.py` for the icon library, `assets/vectors/` for the globe
    and trade map. **For a world figure that states data, generate it rather than
-   drawing it**: `python3 scripts/regionmap_svg.py` emits the flat trade-region
+   drawing it**: `python3 scripts/render/regionmap_svg.py` emits the flat trade-region
    map with its labels already placed (`--labels zh` for Chinese, `--states`
-   for the data), and `python3 scripts/globe_svg.py` the rotating globe.
+   for the data), and `python3 scripts/render/globe_svg.py` the rotating globe.
    These are two components, not two forms of one
    (`specs/2026-08-10-globe-map-split-design.md`): the map is flat, labelled
    and state-driven; the globe rotates and carries `--marks`, its data as a

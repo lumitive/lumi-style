@@ -42,7 +42,8 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import geo_projection as gp  # noqa: E402
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 TOPOLOGY = ROOT / "assets" / "vectors" / "world-110m.json"
 REGIONS = ROOT / "assets" / "vectors" / "regions.json"
 

@@ -3,6 +3,35 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.438 — twenty files change drawers, and every net the last release strung held
+
+R2 of the audit (`specs/2026-08-13-audit-restructure-design.md`):
+`scripts/lib/` (the five shared libraries plus the checker
+registry), `scripts/render/` (globe_svg, regionmap_svg, sea_route) and
+`scripts/build/` (seven builders, four embedders) exist; twenty files moved
+by `git mv`, bare-name imports untouched — the bootstrap block did its job
+without an edit.
+
+**What the move actually broke, and what caught it**: `ROOT` computed as
+`parent.parent` pointed one level wrong from inside a drawer — the first
+regenerator run created a stray `scripts/assets/` tree before the second
+crashed loudly on a missing upstream file. Fourteen scripts now compute
+ROOT by walking up to the scripts/ root, the same depth-agnostic idiom as
+the bootstrap. Everything else was nets holding: the script-paths guard
+enumerated all 68 files carrying old path mentions (docs, tokens comments,
+generated artifacts, the locked JS assets' own comment citations); every
+one of the eleven generator `--check`s proved the swept sources and the
+regenerated artifacts byte-identical; the evidence gate's map self-check
+forced the four TOUCH_MAP renames; the brand lock was re-keyed by hand
+BEFORE `lock.py --update` (its `--update` raises on a missing path — the
+ordering the plan called out) and re-locked with the move recorded.
+
+The emergency closure now copies from `scripts/lib/`; the regression test
+runs the sequence under PYTHONSAFEPATH against the new layout. Deliberate
+reds: a tampered byte in `scripts/render/globe_svg.py` failed the lock
+naming the NEW path; a planted mention of the OLD globe_svg path failed the
+script-paths guard; both reverted by re-editing.
+
 ## 0.1.437 — before anything moves, everything that could fail silently learns to shout
 
 R1 of the audit (`specs/2026-08-13-audit-restructure-design.md`) — and the

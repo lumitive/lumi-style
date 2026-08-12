@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.437.** This file restates part of `references/`; where they
+> **lumi-style 0.1.438.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -73,8 +73,8 @@ most skeptical reader, and treat over-design as a finding, not a virtue.
    A figure's name holds one line. **A table is for values**: prose in a
    grid is a layout error, so draw what the content actually is. Under a figure
    goes the number, its conclusion name and the source line, and nothing else.
-   Embed the vendored assets rather than improvising: `scripts/embed_font.py`,
-   `scripts/embed_icons.py`, `assets/vectors/`. **No size or fill floors** —
+   Embed the vendored assets rather than improvising: `scripts/build/embed_font.py`,
+   `scripts/build/embed_icons.py`, `assets/vectors/`. **No size or fill floors** —
    0.1.340 withdrew the 82% page-fill floor and the 11px type floor, both invented
    without an ask, and the fill floor was satisfiable by stretching a table while
    four diagrams rendered at 40% of their cell.

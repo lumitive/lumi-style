@@ -20,18 +20,18 @@ python3 scripts/inspect_layout.py <file> # render a deliverable and report what 
 python3 scripts/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
 python3 scripts/output_dir.py            # where a deliverable belongs; --create needs the user's say-so
 python3 scripts/new_deck.py              # emit a deck skeleton that already renders, in the standard order
-python3 scripts/embed_font.py            # @font-face block with the face inlined
-python3 scripts/embed_icons.py           # <symbol> sprite of the semantic icon set
-python3 scripts/build_geography.py       # regenerate assets/vectors/ from lat/lon data
-python3 scripts/build_worldmap.py        # shared-arc world topology + the golden grid
-python3 scripts/build_region_palette.py  # region hues; --selftest asserts four floors
-python3 scripts/globe_svg.py             # one static SVG frame of the globe
-python3 scripts/regionmap_svg.py         # the flat region map, labels from the registry
-python3 scripts/embed_regionmap.py       # the map runtime as one inline <script>
+python3 scripts/build/embed_font.py            # @font-face block with the face inlined
+python3 scripts/build/embed_icons.py           # <symbol> sprite of the semantic icon set
+python3 scripts/build/build_geography.py       # regenerate assets/vectors/ from lat/lon data
+python3 scripts/build/build_worldmap.py        # shared-arc world topology + the golden grid
+python3 scripts/build/build_region_palette.py  # region hues; --selftest asserts four floors
+python3 scripts/render/globe_svg.py             # one static SVG frame of the globe
+python3 scripts/render/regionmap_svg.py         # the flat region map, labels from the registry
+python3 scripts/build/embed_regionmap.py       # the map runtime as one inline <script>
 python3 scripts/check_globe.py           # globe maths + the JS port (needs Playwright)
-python3 scripts/embed_globe.py           # the globe runtime as one inline <script>
-python3 scripts/build_entrypoints.py     # regenerate every per-platform artifact; --check in CI
-python3 scripts/build_fixtures.py        # regenerate the tracked test fixtures; --check in CI
+python3 scripts/build/embed_globe.py           # the globe runtime as one inline <script>
+python3 scripts/build/build_entrypoints.py     # regenerate every per-platform artifact; --check in CI
+python3 scripts/build/build_fixtures.py        # regenerate the tracked test fixtures; --check in CI
 python3 scripts/check_fixtures.py        # run the checkers against the fixtures and assert verdicts
 python3 scripts/check_js.py              # node --check over the 8 tracked .js files + 3 embedded probes
 python3 scripts/check_evidence.py        # --init | record --id X | --check: the evidence gate (see below)
@@ -196,7 +196,7 @@ Three entry points load these rules, and each restates part of them:
 `adapters/platforms.json` is the **platform registry** — the single source of
 install paths, capability tiers and entry files for every platform this package
 claims. `adapters/*.md` are the per-platform loading notes, one per registry record and
-**generated** by `scripts/build_entrypoints.py` — as are `GEMINI.md`,
+**generated** by `scripts/build/build_entrypoints.py` — as are `GEMINI.md`,
 `.github/copilot-instructions.md`, `.cursor/rules/lumi-style.mdc`, the plugin
 manifests and `.well-known/skills/index.json`. Edit the registry, never the
 artifact; `--check` runs in CI. `SKILL.md`, `AGENTS.md`,

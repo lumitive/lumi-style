@@ -27,7 +27,7 @@ design-rules.md requires the display face to be embedded in every deliverable,
 and a release that declared it without shipping it rendered nothing. The OFL
 permits redistribution provided the font is not sold on its own and the license
 travels with it; the Reserved Font Name restricts derivatives, and none are made
-here. Regenerate the embed block with scripts/embed_font.py.
+here. Regenerate the embed block with scripts/build/embed_font.py.
 
 Lucide — https://github.com/lucide-icons/lucide
 Copyright (c) 2026 Lucide Icons and Contributors. ISC License — full text in
@@ -47,7 +47,7 @@ reader found the expressiveness short and the icons poorly matched to the
 content — eight meanings cannot cover a twenty-five page deck, so they were
 reused for meanings they did not fit. Breadth is what fixes that, and drawing
 two thousand icons by hand is not a design language, it is a second project.
-LUMI's own contribution is the reserved bindings in scripts/embed_icons.py,
+LUMI's own contribution is the reserved bindings in scripts/build/embed_icons.py,
 which pin one icon per recurring LUMI meaning. Re-vendor by fetching the
 lucide-static tarball from the npm registry and re-running the same reformatting.
 
@@ -64,10 +64,10 @@ Public domain. The project asks for credit and does not require it.
 
 Vendored as assets/vectors/upstream/ne_110m_admin_0_countries.geojson, the 110m
 admin-0 country set, unmodified. The LUMI globe needs country-level boundaries,
-which the hand-written coastlines in scripts/build_geography.py cannot express:
+which the hand-written coastlines in scripts/build/build_geography.py cannot express:
 those are a two-degree stylisation for a cover mark and cannot say "these 27
 countries are one region". The file is vendored rather than fetched so that
-scripts/build_worldmap.py never touches the network and its --check is
+scripts/build/build_worldmap.py never touches the network and its --check is
 reproducible offline. Regenerate assets/vectors/world-110m.json by running that
 script.
 

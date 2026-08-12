@@ -332,7 +332,7 @@ def test_region_coverage_missing_topology_fails(tmp_path, monkeypatch):
     _region_tree(tmp_path, monkeypatch, write_topo=False)
     errors = check_repo.check_region_coverage()
     assert errors == ["assets/vectors/world-110m.json is missing; "
-                      "run scripts/build_worldmap.py"]
+                      "run scripts/build/build_worldmap.py"]
 
 
 # check_probe_vocabulary — contract selectors must be shipped and unwaivable,
