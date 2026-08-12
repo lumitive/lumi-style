@@ -345,6 +345,19 @@ the reader's eye.
   the same week. Portrait figures stack what landscape figures place side by
   side; that is the redraw, not a scale factor.*
 
+  *Provenance, the 16:9 side (owner investigation, 0.1.442 review item 8 —
+  the owner suspected the proportions without evidence, and the measurement
+  agreed): across two shipped landscape decks, one 30-page deck carried a
+  2.7:1 figure in a 1.28:1 cell (ratio 2.1) and a 3.8:1 figure in a 1.59:1
+  cell (ratio 2.4) — each rendering at under half its cell — and a 15-page
+  deck ran three of five figures past 1.2× their cell. The same sweep found
+  the display tier nearly unused: across 45 landscape pages, zero uses of
+  `--fs-lead-xl` and the 54px SVG numeral, and the largest number on most
+  pages was a 43px band value. The targets above bind at authoring time;
+  the probe stays reported-not-gated (eval-rubric: a number satisfiable
+  without improving the page ends the looking), so drawing to the cell is
+  the author's discipline, checked by the eye on the contact sheet.*
+
   *Provenance: 0.1.339 turned "the pages look empty" into an 82% fill floor and then
   satisfied it — stretching table rows, and measuring the bounding box of all ink
   so that a small chart with a long caption scored as full. Four diagrams at 4.6

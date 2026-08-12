@@ -3,6 +3,28 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.446 — the owner's hunch about 16:9 proportion measures out, and the rule gets its receipts
+
+The 0.1.442 review's item 8 was a suspicion stated without evidence — figures
+and key numbers not sitting right on the 16:9 stage — and the owner asked for
+an investigation, not a rule
+(spec: `specs/2026-08-12-owner-review-retrospective-design.md` D10). Measured
+across two shipped landscape decks with the aspect probe and a tier census:
+one 30-page deck carried a 2.7:1 figure in a 1.28:1 cell and a 3.8:1 figure
+in a 1.59:1 cell — each rendering under half its cell — and a 15-page deck
+ran three of five figures past 1.2× their cell; across all 45 landscape
+pages, `--fs-lead-xl` and the 54px SVG numeral were used ZERO times, so the
+largest number on most pages was a 43px band value. The hunch was right,
+twice over — the two-document threshold for promotion is met.
+
+What promotes is provenance, not a gate: design-rules §4's drawn-for-the-cell
+targets gain the measured case as their 16:9 receipt, and the decision NOT to
+gate the aspect probe is re-recorded with eval-rubric's standing reason — a
+number satisfiable without improving the page ends the looking. The same
+sweep found both decks failing the new `footer_baseline` gate, confirming the
+0.1.443 footer defect was systemic across every shipped document, not one
+build's slip.
+
 ## 0.1.445 — debug mode: the build writes its own evidence, in one schema on every platform
 
 The owner's product ask from the 0.1.442 review
