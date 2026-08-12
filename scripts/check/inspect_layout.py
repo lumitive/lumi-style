@@ -46,6 +46,7 @@ reports `NOT MEASURED` without it rather than disappearing.
 from __future__ import annotations
 
 import argparse
+import collections
 import contextlib
 import io
 import json
@@ -65,6 +66,7 @@ import sys
 import sys as _bs_sys  # noqa: E402
 import tempfile
 from contextlib import redirect_stdout
+from typing import Any
 
 _SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
                      if p.name == "scripts")
@@ -942,6 +944,55 @@ PROBE = r"""
         }
         return tops.length > 1;
       }),
+      // Same rects, different axis: the footer's runs share one BASELINE by
+      // contract — one row, one face, one size. `.conf`'s synthesized baseline
+      // came from its 12px shield icon (a replaced element, baseline = bottom
+      // edge) until the 0.1.442 owner review, so the handling terms rode 2px
+      // above the site and the page number on every page of a shipped 34-page
+      // deliverable, and nothing here had ever measured the axis. Bottom edges
+      // of the TEXT-NODE rects stand in for baselines (constant descent at one
+      // face and size), and the spread is a ratio of the tallest rect so the
+      // zoomed stage can neither manufacture nor hide it.
+      //
+      // THE NULLS ARE NOT ALL THE SAME, and reading them as one another was
+      // how this probe went blind exactly where the defect is worst. `line1`
+      // keeps the runs within 0.6 of a line box of the topmost rect, so a run
+      // displaced by MORE than that becomes the topmost rect and stands alone
+      // — the probe returned null, every consumer read `null or 0`, and the
+      // report printed "one line, one baseline" for a footer 12px out of true.
+      // A check that fires at 3px and goes silent at 12px is worse than none.
+      // So the shape carries what happened: `runs` (how many text runs the
+      // footer has at all) and `split` (there are runs, and no two of them
+      // share the first line — which is not an absence of evidence, it is the
+      // finding, one size up).
+      footBaseline: (() => {
+        const out = {ratio: null, runs: 0, split: false};
+        if (!footEl) return out;
+        const walker = document.createTreeWalker(footEl, NodeFilter.SHOW_TEXT);
+        const range = document.createRange();
+        const rects = [];
+        let n;
+        while ((n = walker.nextNode())) {
+          if (!n.nodeValue.trim()) continue;
+          range.selectNodeContents(n);
+          for (const r of range.getClientRects()) {
+            if (r.width > 0.5 && r.height > 0.5) rects.push(r);
+          }
+        }
+        out.runs = rects.length;
+        // One run is a footer with nothing to compare — a page number alone.
+        // Nothing to grade, and saying so is not the same as saying "clean".
+        if (rects.length < 2) return out;
+        const tall = Math.max(...rects.map(r => r.height));
+        const top = Math.min(...rects.map(r => r.top));
+        // First line only: a wrapped footer is footWrapped's finding, and
+        // grading its second line here would report one defect twice.
+        const line1 = rects.filter(r => r.top - top < tall * 0.6);
+        if (line1.length < 2) { out.split = true; return out; }
+        const bottoms = line1.map(r => r.bottom);
+        out.ratio = (Math.max(...bottoms) - Math.min(...bottoms)) / tall;
+        return out;
+      })(),
       // A figure's number and name are one line too: wrapped, the caption stops
       // reading as a label and starts reading as prose under the drawing.
       capWrapped: [...s.querySelectorAll('.cap .n')].filter(e => {
@@ -1058,6 +1109,42 @@ def open_page(browser, url, viewport, dark=False):
     return page, errors
 
 
+class _Shared:
+    """One Playwright, one Chromium, however many probes a run makes.
+
+    Until 0.1.444 every report function opened its own `sync_playwright()`
+    context and launched its own browser — three per geometry plus one per
+    file, so a landscape deck's default run launched Chromium THIRTEEN times
+    to answer questions one browser could hold. The launch cycle measures
+    ~1.4s, so that alone was ~18s of a run's wall clock, twelve launches of it removable, and it was the shape
+    of the code, not a decision anyone had made. Probes now share this
+    process-wide pair; `atexit` closes it, so standalone callers (tests,
+    run_conformance) leak nothing.
+    """
+    pw: Any = None
+    browser: Any = None
+
+
+def shared_browser():
+    if _Shared.browser is None:
+        import atexit
+
+        from playwright.sync_api import sync_playwright
+        _Shared.pw = sync_playwright().start()
+        _Shared.browser = _Shared.pw.chromium.launch()
+        atexit.register(close_shared_browser)
+    return _Shared.browser
+
+
+def close_shared_browser():
+    if _Shared.browser is not None:
+        with contextlib.suppress(Exception):
+            _Shared.browser.close()
+        with contextlib.suppress(Exception):
+            _Shared.pw.stop()
+        _Shared.browser = _Shared.pw = None
+
+
 def aspect_report(url, dark=False):
     """Does a landscape page hold 16:9 in a window that is not 16:9?
 
@@ -1070,13 +1157,12 @@ def aspect_report(url, dark=False):
     4:3 window while it reported success. **A probe that builds its own answer
     proves nothing.** So this one renders shapes nobody designed for.
     """
-    from playwright.sync_api import sync_playwright
     target = 16 / 9
     findings = []
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch()
-        for w, h in OFF_SHAPES:
-            page, errors = open_page(browser, url, (w, h), dark)
+    browser = shared_browser()
+    for w, h in OFF_SHAPES:
+        page, errors = open_page(browser, url, (w, h), dark)
+        try:
             rows = page.evaluate(ASPECT_PROBE)
             if not rows:
                 raise Unmeasurable("no section.page matched, so no page's aspect "
@@ -1090,17 +1176,15 @@ def aspect_report(url, dark=False):
                              "offAspect": len(bad), "errors": errors,
                              "worst": (max(bad, key=lambda r: abs(r["aspect"] - target))
                                        if bad else None)})
+        finally:
             page.close()
-        browser.close()
     return findings
 
 
 def with_playwright(url, geometry, dark, shot_dir, stem):
-    from playwright.sync_api import sync_playwright
     rows, shots = None, []
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch()
-        page, errors = open_page(browser, url, GEOMETRIES[geometry], dark)
+    page, errors = open_page(shared_browser(), url, GEOMETRIES[geometry], dark)
+    try:
         rows = page.evaluate(PROBE)
         if shot_dir:
             # Screenshot the section element, not the viewport. The first version
@@ -1125,7 +1209,8 @@ def with_playwright(url, geometry, dark, shot_dir, stem):
                 out = shot_dir / f"{stem}-{geometry}-{'dark' if dark else 'light'}-{r['id']}.png"
                 page.locator(f"section#{r['id']}").screenshot(path=str(out))
                 shots.append(out)
-        browser.close()
+    finally:
+        page.close()
     return rows, shots, errors
 
 
@@ -1141,7 +1226,6 @@ def ground_report(url, viewport=(1280, 720), dark=False):
     and looks like graffiti — this repo has made that mistake in three different
     forms already.
     """
-    from playwright.sync_api import sync_playwright
     try:
         from PIL import Image
     except ImportError as exc:
@@ -1157,9 +1241,8 @@ def ground_report(url, viewport=(1280, 720), dark=False):
         return color_math.luma255(px)
 
     out = []
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch()
-        page, _errors = open_page(browser, url, viewport, dark)
+    page, _errors = open_page(shared_browser(), url, viewport, dark)
+    try:
         page.add_style_tag(content=".page > .body, .page > .foot, .rail, .tools"
                                    "{visibility:hidden!important}"
                                    "html{scroll-behavior:auto!important;"
@@ -1168,7 +1251,6 @@ def ground_report(url, viewport=(1280, 720), dark=False):
                             ".filter(s => s.getBoundingClientRect().height > 4)"
                             ".map(s => s.id)")
         if not ids:
-            browser.close()
             raise Unmeasurable("no section.page with a box, so no ground to measure")
         nested = []
         with tempfile.TemporaryDirectory() as td:
@@ -1189,10 +1271,16 @@ def ground_report(url, viewport=(1280, 720), dark=False):
                 # getdata() is deprecated in Pillow 14; get_flattened_data is its
                 # replacement and does not exist before it.
                 px = list(getattr(im, "get_flattened_data", im.getdata)())
-                canvas = max(set(px), key=px.count)          # the page's own canvas
+                # Counter, not `max(set(px), key=px.count)`: `.count` is O(N)
+                # and ran once per unique colour, so this line alone measured
+                # ~2.6s per page — ~90s per geometry on a 34-page document,
+                # the single largest cost in the whole script. One pass counts
+                # everything, and the unique keys feed the contrast loop too.
+                counts = collections.Counter(px)
+                canvas = counts.most_common(1)[0][0]         # the page's own canvas
                 cl = rel_lum(canvas)
                 worst, worst_px = 1.0, canvas
-                for q in set(px):
+                for q in counts:
                     ql = rel_lum(q)
                     hi, lo = max(cl, ql), min(cl, ql)
                     r = (hi + 0.05) / (lo + 0.05)
@@ -1201,7 +1289,8 @@ def ground_report(url, viewport=(1280, 720), dark=False):
                 out.append({"id": pid, "contrast": round(worst, 3),
                             "canvas": "#{:02X}{:02X}{:02X}".format(*canvas),
                             "loudest": "#{:02X}{:02X}{:02X}".format(*worst_px)})
-        browser.close()
+    finally:
+        page.close()
     return {"pages": out, "nested": nested}
 
 
@@ -1483,12 +1572,11 @@ def consistency_report(url, viewport=(1280, 720), dark=False):
     deck that is clean in landscape, because the portrait block in
     `lumi-layouts.css` set it per context.
     """
-    from playwright.sync_api import sync_playwright
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch()
-        page, errors = open_page(browser, url, viewport, dark)
+    page, errors = open_page(shared_browser(), url, viewport, dark)
+    try:
         out = page.evaluate(CONSISTENCY_PROBE)
-        browser.close()
+    finally:
+        page.close()
     if not out or not out.get("pages"):
         raise Unmeasurable("no section.page matched, so no role could be compared")
     out["errors"] = errors
@@ -1573,6 +1661,47 @@ def _role_split(role):
 
 def _footer_wrapped(live):
     return [r for r in live if r.get("hasFooter") and r.get("footWrapped")]
+
+
+# The measured defect was 2.4px of spread on a ~15px line box (ratio .16); the
+# fixed sheet measures 0.00. The floor sits at half the defect so a regression
+# fails long before a reader sees it, while sub-pixel rounding across zoom
+# levels stays inside it.
+FOOT_BASELINE_RATIO = 0.08
+
+
+def _footer_baseline_gradable(live):
+    """Pages whose footer carries two runs to compare.
+
+    A footer that is only a page number has nothing to grade, and grading it
+    `ok` would be the same false all-clear the probe's own nulls used to
+    produce — n/a is the honest verdict, and it is not the same as passing.
+    """
+    return [r for r in live
+            if r.get("hasFooter")
+            and (r.get("footBaseline") or {}).get("runs", 0) >= 2]
+
+
+def _footer_misaligned(live):
+    """Footers whose runs do not sit on one baseline.
+
+    Two shapes of the same defect: a measurable spread past the floor, and a
+    footer whose runs do not share a line at all (`split`). The second is the
+    LARGER displacement, and reading its null as zero is what let a footer 12px
+    out of true report as "one line, one baseline". A genuinely wrapped footer
+    is excluded — `footer_wrap` is already failing that page, and one defect
+    reported twice under two names teaches an author to distrust both.
+    """
+    out = []
+    for r in live:
+        if not r.get("hasFooter"):
+            continue
+        fb = r.get("footBaseline") or {}
+        if (fb.get("ratio") or 0) > FOOT_BASELINE_RATIO:
+            out.append(r)
+        elif fb.get("split") and not r.get("footWrapped"):
+            out.append(r)
+    return out
 
 
 def _role_splits(c):
@@ -2011,6 +2140,21 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
     elif [r for r in live if r.get("hasFooter")]:
         print(f"  footer: one line on all "
               f"{len([r for r in live if r.get('hasFooter')])} pages that carry one")
+    fb = _footer_misaligned(live)
+    graded = [r for r in live
+              if r.get("hasFooter") and (r.get("footBaseline") or {}).get("runs", 0) >= 2]
+    if fb:
+        worst = max((r.get("footBaseline") or {}).get("ratio") or 0 for r in fb)
+        split = [r for r in fb if (r.get("footBaseline") or {}).get("split")]
+        print(f"  FOOTER BASELINE: {len(fb)} of {len(live)} footers set their "
+              f"runs on different baselines (worst measured spread "
+              f"{worst:.2f} of the line box"
+              + (f"; {len(split)} so far apart that no two runs share the "
+                 f"first line" if split else "") + ") — one row, one "
+              "baseline: " + _fmt_ids(fb))
+    elif graded:
+        print(f"  footer baseline: one line, one baseline on all {len(graded)} "
+              f"pages whose footer carries more than one run")
     capw = sum(r.get("capWrapped", 0) for r in live)
     capn = sum(r.get("capCount", 0) for r in live)
     if capw:
@@ -2177,6 +2321,10 @@ def deliverable_verdicts(rows, consistency):
         lambda h: f"{len(h)} pages clip their own title block: " + _fmt_ids(h))
     add("footer_wrap", _footer_wrapped(live), not footed,
         lambda h: f"{len(h)} footers wrap to a second line: " + _fmt_ids(h))
+    add("footer_baseline", _footer_misaligned(live),
+        not _footer_baseline_gradable(footed),
+        lambda h: f"{len(h)} footers set their runs on different baselines: "
+                  + _fmt_ids(h))
     drawn = [r for r in live if r.get("drawn")]
     add("figure_viewbox", [r for r in live if r.get("badBox")], not drawn,
         lambda h: f"{len(h)} pages carry a drawing whose viewBox does not parse: "
@@ -2277,10 +2425,12 @@ def main(argv):
                     help="skip the off-shape aspect assertion")
     ap.add_argument("--deliverable", action="store_true",
                     help="grade this file as something about to be sent: exit "
-                         "non-zero on collision, content spill, page height, "
-                         "hidden content, a wrapped footer, a drawing clipped "
-                         "by its own viewBox, an overspent title reserve, a role "
-                         "split or a lost datum. Without it nothing here gates.")
+                         "non-zero on collision, a starved column, content "
+                         "spill, page height, hidden content, a wrapped footer, "
+                         "a footer whose runs sit on different baselines, an "
+                         "unparseable viewBox, a drawing clipped by its own "
+                         "viewBox, an overspent title reserve, a role split or "
+                         "a lost datum. Without it nothing here gates.")
     args = ap.parse_args(argv)
 
     def declared(path):

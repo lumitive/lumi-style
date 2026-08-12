@@ -27,18 +27,29 @@
   --ln3: rgba(43,46,51,.07);     /* tint fills, inactive chart bands */
 
   /* ── semantic colors (one color, one meaning) ── */
-  --acc:       #48633E;          /* the single accent: emphasis / pass / built */
-  /* THE LIVE GREEN. --acc is legible and reads brown at figure scale; --lime is
-     a SURFACE and D13 correctly refuses it as a stroke on the light canvas
-     (1.21:1). This sits between them and clears both floors in both palettes:
-     5.21:1 on white as text, 3.23:1 on the dark ground as a stroke. Figures and
-     the cover title's subject word take it. Measured, not chosen by eye. */
+  /* ONE MEANING — the accent: emphasis / pass / built — TWO MEASURED INKS, one
+     per medium. `--acc` carries it in text and table furniture, where it
+     measures 6.71:1 on the canvas; at figure scale it reads brown. `--acc-live`
+     carries it in FIGURES — the `f-acc` / `s-acc` paint classes in
+     lumi-layouts.css bind to it — because it clears both floors in both
+     palettes: 5.21:1 on white as text, 3.23:1 on the dark ground as a stroke,
+     and it reads as the lime's family where the forest does not. Until the
+     0.1.442 owner review those two sentences lived in two files and
+     contradicted each other — brand.md said figures take `--acc`, this file
+     said `--acc-live`, the paint classes bound `--acc` — so one document
+     shipped three unrelated greens and the owner saw all three. The paint
+     classes are the binding, this comment is the rule, and brand.md §5 now
+     says the same thing. (The cover title's subject word moved on: it takes
+     the lime on its own dark chip — see `.subj` in lumi-layouts.css.) */
+  --acc:       #48633E;
   --acc-live:  #3E7A2E;
   --acc-tint:  #EEF6E9;          /* table row wash; body text on it reads 12.3:1 */
   --acc-deep:  #48633E;          /* accent-filled surfaces (headers, bars) */
   --acc-inbox: #9FC384;          /* accent text inside an inverted (ink-filled) box */
   --acc-wash:  #EDF2EA;          /* accent surface tint (tier-1 callouts, cells) */
-  --on-acc:    #F0F0FA;          /* text on an accent fill — 5.93 on #48633E */
+  --on-acc:    #F0F0FA;          /* text on an accent fill — 5.93 on #48633E,
+                                    4.61 on the live green (above the 4.5 floor;
+                                    measured when f-acc moved to --acc-live) */
   --seal:      #C8102E;          /* warnings / red lines / vetoes ONLY — 5.88 on --bg */
   --seal-t:    #C8102E;
   --seal-wash: #F9ECEE;
@@ -287,7 +298,7 @@ body.dark {
   --d-teal:    #3FA98C;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.442 (2026-08-13)
+   LUMI page layouts · v0.1.448 (2026-08-12)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -388,8 +399,19 @@ body.dark {
    line is a standing warning to the reader — do not forward — so the marker
    takes it; the semantic ledger in design-rules.md §1 records the extension.
    The icon is the `shield` reserved binding from scripts/build/embed_icons.py. */
-.foot .conf { color: var(--tx4); display: inline-flex; align-items: center; gap: 6px; }
-.foot .conf .ic { width: 12px; height: 12px; color: var(--seal-t); }
+/* `.terms` is the wrapper the reference footer has always carried, and until
+   the 0.1.442 owner review no stylesheet anywhere gave it a rule — a role with
+   no shipped rendering, again. Worse than inert: the wrapper's baseline came
+   from `.conf`, an inline-flex whose own baseline was synthesized from its
+   FIRST item — the 12px shield, a replaced element whose baseline is its
+   bottom edge — so the handling terms rode 2px above the site and the page
+   number on every page (measured on all 34 of a shipped review). `display:
+   contents` makes the wrapper transparent to the row; `align-items: baseline`
+   on `.conf` with the icon opted out (`align-self: center`) hands the group's
+   baseline to its TEXT, which is what the row aligns on. */
+.foot .terms { display: contents; }
+.foot .conf { color: var(--tx4); display: inline-flex; align-items: baseline; gap: 6px; }
+.foot .conf .ic { width: 12px; height: 12px; color: var(--seal-t); align-self: center; }
 /* `var(--accent)` until 0.1.367, here and on `.lead .v em` — and `--accent` is
    defined in NEITHER token file; the semantic accent has been `--acc` since the
    palette existed. An undefined custom property with no fallback is invalid at
@@ -507,10 +529,22 @@ h2.t .lc { text-transform: none; letter-spacing: 0; }
   color: var(--tx1); margin: 0 0 24px;
 }
 /* The subject the deck is about, inside its own title. One title, two inks: the
-   claim stays ink and the noun takes the live green, so the green marks what
-   the page is FOR rather than decorating it. Cover and closing only — a content
-   title carries its emphasis in the words. */
-.cover h1 .subj, .closing h2 .subj { color: var(--acc-live); }
+   claim stays ink and the noun takes THE LIME ON ITS OWN DARK CHIP — the same
+   acid green the part openers carry at page scale, so the cover, the dividers
+   and the closing speak one green (owner decision, 0.1.442 review: the title
+   green and the opener green read as two different brands). The lime never
+   touches the light canvas directly: 1.21:1 as bare text, 16.44:1 reversed out
+   of the chip — D13's carve-out is exactly this rule, a lime `color` beside its
+   own `--on-lime` backing. `box-decoration-break: clone` keeps the chip whole
+   when a long subject wraps. On the dark canvas the chip sits near-invisible
+   against the ground and the word reads as bare lime, which is that palette's
+   sanctioned accent (13.90:1). Cover and closing only — a content title
+   carries its emphasis in the words. */
+.cover h1 .subj, .closing h2 .subj {
+  background: var(--on-lime); color: var(--lime);
+  padding: .02em .16em; border-radius: .08em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
 .sup {
   font-size: var(--fs-support); font-weight: var(--w-support); line-height: 1.42;
   color: var(--tx2); max-width: var(--measure); margin: 0;
@@ -570,7 +604,12 @@ svg .mid  { font-weight: 700; font-size: 30px; font-variant-numeric: tabular-num
 svg .f-card { fill: var(--card-bg); }   svg .f-ink { fill: var(--tx1); }
 svg .f-t2 { fill: var(--tx2); }         svg .f-mut { fill: var(--tx3); }
 svg .f-fade { fill: var(--tx4); }       svg .f-wash { fill: var(--ln3); }
-svg .f-acc { fill: var(--acc); }        svg .f-accw { fill: var(--acc-wash); }
+/* f-acc and s-acc bind to the LIVE green, not the text accent: the figure
+   medium's rendering of the one accent meaning (the merged rule at the token —
+   lumi-theme.css "one meaning, two measured inks"). Bound to --acc until the
+   0.1.442 owner review, which is how a document's figures ran a third green
+   its cover and dividers never used. */
+svg .f-acc { fill: var(--acc-live); }   svg .f-accw { fill: var(--acc-wash); }
 svg .f-seal { fill: var(--seal-t); }    svg .f-sealw { fill: var(--seal-wash); }
 svg .f-amber { fill: var(--amber); }    svg .f-amberw { fill: var(--amber-wash); }
 svg .f-brass { fill: var(--brass); }    svg .f-brassw { fill: var(--brass-wash); }
@@ -578,7 +617,7 @@ svg .f-blue { fill: var(--d-blue); }    svg .f-red { fill: var(--d-red); }
 svg .f-teal { fill: var(--d-teal); }    svg .f-on { fill: var(--on-acc); }
 svg .f-none { fill: none; }
 svg .f-lime { fill: var(--lime); }      svg .f-on-lime { fill: var(--on-lime); }
-svg .s-line { stroke: var(--ln1); }     svg .s-acc { stroke: var(--acc); }
+svg .s-line { stroke: var(--ln1); }     svg .s-acc { stroke: var(--acc-live); }
 svg .s-mut { stroke: var(--tx4); }      svg .s-seal { stroke: var(--seal-t); }
 svg .s-ink { stroke: var(--tx2); }      svg .s-blue { stroke: var(--d-blue); }
 svg .s-amber { stroke: var(--amber); }  svg .s-brass { stroke: var(--brass); }
@@ -633,6 +672,18 @@ svg .dash { stroke-dasharray: 4 3; }
   line-height: .92; letter-spacing: -.03em; font-variant-numeric: tabular-nums;
   color: var(--tx1);
 }
+/* The unit inside a band value steps down like the lead tier's does. This rule
+   and the two below it lived only in deliverables' own DOC_CSS since the first
+   deck that needed them, so a document built from the tokens alone set "/15"
+   at the full 30px value size — the same promoted-too-late shape as the footer
+   flex above (FM-11). `.v.acc` is the accent AS TEXT (the support tier of
+   brand.md's number rank); `.v .first` is the lime number panel — the argument
+   tier — near-black reversed out of the lime, never lime on the canvas. */
+.band .v .u { font-size: .42em; letter-spacing: 0; color: var(--tx3); }
+.band .v.acc { color: var(--acc); }
+.band .v .first { background: var(--lime); color: var(--on-lime);
+                  padding: 0 .18em; margin-left: -.18em; border-radius: 1px;
+                  -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 
 /* ── the block patterns (v0.1.369) ──────────────────────────────────────────
    Four shapes a deliverable repeats — the tier-1 callout, the card, the swap,
@@ -679,10 +730,20 @@ svg .dash { stroke-dasharray: 4 3; }
    that undoes it is the same defect as a font-size that exists only there. */
 .duo { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
 
-/* The card: a small bordered block with a name and a body. */
+/* The card: a small bordered block with a name and a body.
+
+   IT CARRIES ITS OWN OPAQUE SURFACE. Every page draws a ground — water and
+   light behind the composition — and a card with no background let the
+   waterline run straight through its text, which reads as interference over
+   the one block whose job is to hold a self-contained answer (owner review,
+   0.1.446 optimisation 3). `--card-bg` is the token for exactly this: a
+   surface a hair off the canvas, opaque in both palettes, so the card sits ON
+   the page rather than in it. The tier-1 callout has had its wash since it
+   shipped; this is the same idea for the block that had none. */
 .card {
   display: flex; flex-direction: column; gap: 10px;
   border: 1px solid var(--ln1); padding: 16px 18px;
+  background: var(--card-bg);
 }
 .ledname {
   font-family: var(--din); font-size: var(--fs-support); font-weight: 700;
@@ -720,13 +781,51 @@ svg .dash { stroke-dasharray: 4 3; }
 .swap .arw { font-family: var(--mono); color: var(--tx4); }
 
 /* The vow: a numbered commitment, read as a set. */
+/* THE NUMBER SITS ON THE TITLE'S LINE, and the wording hangs under both. The
+   number is an ordinal for its title — "02 · Provenance is retained" is one
+   statement — and stacking it above put a lone two-digit fragment on its own
+   line four times a page, which reads as four orphaned numbers rather than a
+   numbered set (owner review, 0.1.446 optimisation 2). Baseline alignment,
+   not centre: the mono numeral and the title sit on one line of type. */
 .vows { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
-.vow { display: flex; flex-direction: column; gap: 6px; }
+.vow { display: grid; grid-template-columns: auto 1fr;
+       column-gap: 10px; row-gap: 6px; align-items: baseline; }
 .vn { font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .12em;
       color: var(--acc); }
-.vt { font-size: var(--fs-fig-title); font-weight: 700; line-height: 1.35;
-      color: var(--tx1); margin: 0; }
-.vw { font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2); margin: 0; }
+.vt { grid-column: 2; font-size: var(--fs-fig-title); font-weight: 700;
+      line-height: 1.35; color: var(--tx1); margin: 0; }
+.vw { grid-column: 2; font-size: var(--fs-fig-title); line-height: 1.5;
+      color: var(--tx2); margin: 0; }
+
+/* ── the table (0.1.447) ────────────────────────────────────────────────────
+   "A table is for values" and "comparisons always use tables" are rules this
+   package has shipped since 1.2 — and until now `tokens/` styled no table at
+   all. Three deliverables in this workspace each hand-wrote the same block in
+   their own DOC_CSS, at three different type sizes, and a document built from
+   the tokens alone rendered browser-default tables on the pages the rules push
+   hardest toward tables. FM-11 at its largest: the mandated pattern with no
+   shipped rendering. The values below are the reviewed ones, promoted.
+
+   Values, hairline rows, no chrome: chart iron rule 3 bans gridlines and
+   borders, and a table is a chart made of glyphs. */
+table { border-collapse: collapse; width: 100%; font-size: var(--fs-fig-title);
+        font-variant-numeric: tabular-nums; }
+th { font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .14em;
+     text-align: left; text-transform: uppercase; color: var(--tx3);
+     font-weight: 400; padding: 0 14px 8px 0; border-bottom: 1px solid var(--ln1);
+     vertical-align: bottom; }
+td { padding: 9px 14px 9px 0; border-bottom: 1px solid var(--ln2);
+     vertical-align: top; color: var(--tx2); line-height: 1.5; }
+td.rh { color: var(--tx1); }                 /* the row's own subject */
+td:last-child, th:last-child { padding-right: 0; }
+tr.acc td.rh { color: var(--acc); }
+/* THE FEEDBACK TABLE'S LAST COLUMN IS A SCALE, AND A SCALE IS ONE TOKEN.
+   `1 · 2 · 3 · 4 · 5` broken across two lines reads as two ranges, so a reader
+   circling a number cannot tell what they are circling — and its header
+   ("Your score") wrapped with it (owner review, 0.1.446, BUG#2). The scoring
+   page is a shipped pattern (storyline-templates 11), so its rendering ships
+   here rather than in each document. */
+table.score td:last-child, table.score th:last-child { white-space: nowrap; }
 
 /* The caveat column. Its type was set twice in portrait — `li` at 12px, a table
    at 11.5px — and never in base, so the column had no voice of its own until a
@@ -1093,14 +1192,21 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
 .body.cover-grid > .markcell svg { height: auto; width: auto;
   max-height: 100%; max-width: 100%; transform: none; }
 /* Document attributes: needed, not prominent — one narrow mono column in the
-   clear lower-left, out of the composition's way. */
+   clear lower-left, out of the composition's way. The key is BOLD in the ink
+   tone and the value holds ONE LINE, truncating with an ellipsis rather than
+   wrapping: both were reviewed and verified on a shipped 16:9 deliverable,
+   lived only in that document's own DOC_CSS, and were lost by the next build —
+   the same promoted-too-late shape as the footer flex above (owner review,
+   0.1.442: "the first column is not bold, the second wraps"). A value that
+   truncates is a value the author shortens; the 46ch column is the budget. */
 .body.cover-grid > .attrs { grid-column: 1; align-self: end; display: flex;
   flex-direction: column; gap: 3px; max-width: 46ch;
   font-family: var(--mono); font-size: var(--fs-fine); color: var(--tx4); }
 .body.cover-grid > .attrs > div { display: flex; gap: 10px; }
 .body.cover-grid > .attrs .k { min-width: 15ch; flex: none; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--tx4); }
-.body.cover-grid > .attrs .v { color: var(--tx3); }
+  text-transform: uppercase; font-weight: 700; color: var(--tx1); }
+.body.cover-grid > .attrs .v { color: var(--tx3); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; }
 .body.cover-grid > .spec, .body.cover-grid > .colophon { grid-column: 1 / -1; }
 .body.cover-grid > .closenote { grid-column: 1 / -1; display: flex;
   flex-direction: column; gap: 12px; }
@@ -1131,13 +1237,16 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
 /* ── geography (assets/vectors/, generated by scripts/build/build_geography.py) ────
    A region drawn is a region claimed, so the marker states its coverage:
    accent = live, dashed ring = a market with zero rows behind it, muted = out
-   of scope. Painted from the ladders only. */
+   of scope. Painted from the ladders only. Live marks and routes take the
+   FIGURE rendering of the accent (--acc-live), same as f-acc/s-acc above —
+   geography is a figure, and this section held the text ink until the 0.1.442
+   merge of the two accent claims. */
 .geo-sphere { fill: none; stroke: var(--ln2); stroke-width: .8; }
 .geo-halo { fill: none; stroke: var(--ln3); stroke-width: 1.2; }
 .geo-graticule { fill: none; stroke: var(--ln2); stroke-width: .5; }
 .geo-land { fill: var(--ln1); stroke: none; }
-.geo-route { fill: none; stroke: var(--acc); stroke-width: 1.3; stroke-dasharray: 3 2.5; }
-circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
+.geo-route { fill: none; stroke: var(--acc-live); stroke-width: 1.3; stroke-dasharray: 3 2.5; }
+circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc-live); }
 .geo-mark.geo-zero circle { fill: none; stroke: var(--tx3); stroke-width: 1.6;
                             stroke-dasharray: 3 2.2; }
 .geo-mark.geo-out circle { fill: var(--tx4); }
@@ -1153,7 +1262,7 @@ circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc); }
   color: var(--tx3); margin-bottom: 8px; }
 .geolegend span { display: flex; align-items: center; gap: 6px; }
 .geolegend i { width: 9px; height: 9px; border-radius: 50%; display: block;
-               background: var(--acc); }
+               background: var(--acc-live); }
 .geolegend i.zero { background: none; border: 1.6px dashed var(--tx3); }
 .geolegend i.out { background: var(--tx4); }
 
@@ -1375,7 +1484,20 @@ body[data-geometry="portrait"] .body.sidebar-notes > div:not(.spec):not(.band):n
    their own values here: what the old viewport-relative clamps resolved to at
    this stage, now fixed so the window cannot move them (v0.1.382). */
 body[data-geometry="portrait"] {
-  --fs-display: 50px;
+  /* THE SHEET IS NARROWER, NOT QUIETER. 0.1.443 set these by holding the
+     landscape ratios against a smaller stage — opener 50, cover 42 — and the
+     owner read the result as flat beside a 16:9 deck whose opener carries 80
+     and whose cover carries 58 (0.1.446 review, optimisation 1). A cover and
+     a part opener are the two pages that exist to land one statement, so the
+     sheet gives them the SAME ink as the slide and gains impact from the
+     narrower measure rather than losing it. Measured at 794x1123 on a 34-page
+     handbook: the opener's claim still sets on one line and no page exceeds
+     its box. (The cover's clearances moved with the mark's ceiling in the
+     same release and are recorded at the `.markcell` rule, once.) The rank below still holds — a cover sets under an
+     opener, here as there. Content titles are NOT in this move: `--fs-title`
+     stays 26, because a content page's job is its evidence. */
+  --fs-display: 72px;
+  --fs-cover:   58px;
   --fs-title:   26px;
   --fs-band-value: 30px;
   --fs-lead:    40px;
@@ -1467,10 +1589,14 @@ body[data-geometry="portrait"] .body.cover-grid { grid-template-columns: 1fr; gr
    on the attrs column below it (measured: a 2px overlap on the fixture's own
    cover, which is how this rule got here). */
 /* The sheet keeps its own ceiling — a portrait cover gives the mark a band
-   rather than a column, and 34svh is what leaves room for the stack beneath
-   it. The margin and transform overrides are gone because the landscape rule
-   no longer sets them. */
-body[data-geometry="portrait"] .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 34svh; }
+   rather than a column. 34svh was that band when the cover title set at 42px;
+   with the title at 58 (0.1.446 review) the mark read as a small pale disc
+   under a large headline instead of the field the typography sits against,
+   and the brand README forbids the other lever — a mark restyled by its host
+   is not a mark, so what moves is its SIZE, never its ink. Measured at
+   794x1123 on a 34-page handbook: 44svh leaves 55px above the mark and 50px
+   between the attribute strip and the footer rule, with no page over its box. */
+body[data-geometry="portrait"] .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 44svh; }
 body[data-geometry="portrait"] .page.opener .openframe { gap: 18px; }
 body[data-geometry="portrait"] .duo { grid-template-columns: 1fr; gap: 16px; }
 /* Figures are drawn twice. A 2.4:1 chain in a 0.8:1 cell fills a third of it,
@@ -1491,6 +1617,18 @@ body[data-geometry="portrait"] .fig .port { display: block; }
    at full column width with no page exceeding the sheet. The page box stays the
    real bound and `--deliverable` fails a page that passes it. */
 body:not([data-geometry="portrait"]) .fig .port { display: none; }
+
+/* Printing is part of the portrait contract — a training document is printed,
+   annotated and bound (storyline-templates.md Template 4). This rule shipped
+   in every hand-built deliverable's DOC_CSS and never in the tokens, so a
+   document built from the tokens alone printed as one continuous column. The
+   form is the one verified on the first portrait handbook. `html` and `.page`
+   both have base renderings above; print only adds behaviour, which is the
+   media-only guard's honest exception. */
+@media print {
+  html { scroll-snap-type: none; }
+  .page { page-break-after: always; }
+}
 
 /* The short-narrow collapse was removed in 0.1.380. It predates the zoom
    stage: a page is a fixed box scaled to the window, so a 900px window shows a
@@ -1762,6 +1900,108 @@ svg.gl.is-dragging { cursor: grabbing; }
 svg.gl:focus-visible, svg.regionmap:focus-visible {
   outline: 2px solid var(--acc); outline-offset: 2px;
 }
+/* LUMI region palette — GENERATED by scripts/build/build_region_palette.py.
+ * Do not edit: run the script. --check fails on a stale file.
+ *
+ * Hue encodes region IDENTITY and carries no data meaning, the standing
+ * light_ramp already has. One colour one meaning still governs data.
+ * Identity is a label, not a measurement, so text carries it: every
+ * coloured region takes a label or a legend entry, checked by D18.
+ *
+ * Generated in OKLCH and shipped as sRGB hex, never as an oklch() value:
+ * parse_color in check_design.py cannot read that form and would skip D1
+ * on every hue here without saying so.
+ *
+ * SHIPS THE BINDINGS TOO, since 0.1.391. The variables alone were a
+ * palette nobody could use: globe_svg.py emits class='rg rg-europe' and
+ * nothing joined the class to the variable, so any document that did not
+ * hand-write ~90 rules drew every region in the UA default — black — and
+ * every check passed, because none reads rendered colour. The reference
+ * fixture carried the join privately; a package asset should not need a
+ * private companion to render (maintenance convention 5).
+ *
+ * L 0.7 light / 0.52 dark, chroma 65% of the
+ * per-hue gamut maximum, 8 hues evenly spaced at 45.0 degrees, assigned so adjacent regions sit
+ * as far apart on the circle as the graph allows.
+ */
+.trade {
+  --rg-afcfta: #E08256;
+  --rg-afcfta-stroke: #8F5033;
+  --rg-afcfta-wash: #F8E7E0;
+  --rg-asean: #79B158;
+  --rg-asean-stroke: #4B6F35;
+  --rg-asean-wash: #D3F9C0;
+  --rg-cptpp: #E2789B;
+  --rg-cptpp-stroke: #9D3C60;
+  --rg-cptpp-wash: #F8E6EA;
+  --rg-eu: #5FB0A0;
+  --rg-eu-stroke: #396F64;
+  --rg-eu-wash: #C2F8EC;
+  --rg-gcc: #869BDE;
+  --rg-gcc-stroke: #3D54C9;
+  --rg-gcc-wash: #E6EBF8;
+  --rg-mercosur: #B59C57;
+  --rg-mercosur-stroke: #726234;
+  --rg-mercosur-wash: #F8EAC6;
+  --rg-rcep: #5EAAC7;
+  --rg-rcep-stroke: #386B7E;
+  --rg-rcep-wash: #DAEFF8;
+  --rg-usmca: #C17FDE;
+  --rg-usmca-stroke: #853FA1;
+  --rg-usmca-wash: #F2E6F8;
+  --gl-night: rgba(43,46,51,.28);
+  --gold: #A07800;
+  --gl-equator: var(--gold);
+  --gl-tropic: var(--gold);
+}
+
+body.dark .trade {
+  --gold: #E8C25A;
+  --gl-equator: var(--gold);
+  --gl-tropic: var(--gold);
+  --rg-afcfta: #975537;
+  --rg-afcfta-stroke: #E38B63;
+  --rg-afcfta-wash: #462313;
+  --rg-asean: #4F7538;
+  --rg-asean-stroke: #7EB75C;
+  --rg-asean-wash: #203414;
+  --rg-cptpp: #A54066;
+  --rg-cptpp-stroke: #E382A1;
+  --rg-cptpp-wash: #4D182C;
+  --rg-eu: #3D756A;
+  --rg-eu-stroke: #63B6A7;
+  --rg-eu-wash: #17342E;
+  --rg-gcc: #445CCC;
+  --rg-gcc-stroke: #8DA2E0;
+  --rg-gcc-wash: #17226D;
+  --rg-mercosur: #796737;
+  --rg-mercosur-stroke: #BCA25B;
+  --rg-mercosur-wash: #362D13;
+  --rg-rcep: #3C7185;
+  --rg-rcep-stroke: #62B1CF;
+  --rg-rcep-wash: #16323C;
+  --rg-usmca: #8C43A9;
+  --rg-usmca-stroke: #C588E1;
+  --rg-usmca-wash: #401A4F;
+}
+
+.trade .rg { stroke-width: 1; }
+.trade .rg-afcfta { fill: var(--rg-afcfta); stroke: var(--rg-afcfta-stroke); }
+.trade .rg-afcfta.is-zero { fill: var(--rg-afcfta-wash); }
+.trade .rg-asean { fill: var(--rg-asean); stroke: var(--rg-asean-stroke); }
+.trade .rg-asean.is-zero { fill: var(--rg-asean-wash); }
+.trade .rg-cptpp { fill: var(--rg-cptpp); stroke: var(--rg-cptpp-stroke); }
+.trade .rg-cptpp.is-zero { fill: var(--rg-cptpp-wash); }
+.trade .rg-eu { fill: var(--rg-eu); stroke: var(--rg-eu-stroke); }
+.trade .rg-eu.is-zero { fill: var(--rg-eu-wash); }
+.trade .rg-gcc { fill: var(--rg-gcc); stroke: var(--rg-gcc-stroke); }
+.trade .rg-gcc.is-zero { fill: var(--rg-gcc-wash); }
+.trade .rg-mercosur { fill: var(--rg-mercosur); stroke: var(--rg-mercosur-stroke); }
+.trade .rg-mercosur.is-zero { fill: var(--rg-mercosur-wash); }
+.trade .rg-rcep { fill: var(--rg-rcep); stroke: var(--rg-rcep-stroke); }
+.trade .rg-rcep.is-zero { fill: var(--rg-rcep-wash); }
+.trade .rg-usmca { fill: var(--rg-usmca); stroke: var(--rg-usmca-stroke); }
+.trade .rg-usmca.is-zero { fill: var(--rg-usmca-wash); }
 
 *, *::before, *::after { box-sizing: border-box; }
 body { font-family: var(--din); font-size: 15px; color: var(--tx1);
@@ -1773,6 +2013,11 @@ body { font-family: var(--din); font-size: 15px; color: var(--tx1);
    ladder on the light canvas. Stated directly rather than left to D1, because
    D1 only catches it when surface detection resolves the right background. */
 .limetext { color: var(--lime); }
+/* footer_baseline: one run lifted off the row's shared baseline. The shipped
+   defect was subtler — the shield icon's replaced-element baseline capturing
+   `.conf`, 2.4px on a 15px line box — but the probe measures the spread, not
+   the mechanism, so the plant states the shift directly. */
+#d3 .foot .site { position: relative; top: -3px; }
 /* page_height: a page that sets its own height past the 720px stage. A child
    cannot do this — `.page` is a fixed-height frame, so an overlong child spills
    and trips content_spill instead. Overriding the frame is what a document
@@ -1791,7 +2036,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
 <section class="page cover" id="cover">
   <div class="body cover-grid">
     <div class="typeblock">
-      <p class="wordmark">LUMI</p>
+      <p class="wordmark">LUMI Style</p>
       <h1>The reporting position across the estate under review has not moved materially since the previous cycle closed and remains subject to the same constraints that were recorded at the time by the programme on the cover</h1>
     </div>
   </div>
@@ -1941,11 +2186,11 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
   <span class="site">www.example.org</span></div></section>
 <section class="page closing" id="closing">
   <div class="body cover-grid">
-    <div class="typeblock"><p class="wordmark">LUMI</p>
+    <div class="typeblock"><p class="wordmark">LUMI Style</p>
     <h2>The reporting position across the estate under review has not moved materially since the previous cycle closed and remains subject to the same constraints that were recorded at the time by the programme at the close</h2></div>
     <!-- D6_footer missing_source: the colophon names no provenance, and D6 asks
          the DOCUMENT once rather than every page. -->
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.442.</p></div>
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.448.</p></div>
   </div>
   <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div>
   <span class="site">www.example.org</span></div></section>

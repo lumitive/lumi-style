@@ -422,6 +422,30 @@ be uncomfortable. That is the value. Do not report a mean without the spread.
 
 ---
 
+## IDEA-9 · The fixture's reserved domain doubles as a deliverable placeholder
+
+**Problem.** `fixtures/deck-pass.en.html` carries `www.example.org` as its
+footer site — deliberately, because fixtures ship no real fact — and a 34-page
+deliverable shipped that same string to a reader, because its footers were
+copied from the fixture and D12 accepts any domain-shaped token.
+
+**Evidence.** The 0.1.442 owner review: every one of a 34-page deliverable's
+footers read `www.example.org`. D14's scaffold-slot patterns (added in the same
+retrospective) deliberately exclude it, because refusing the reserved domain
+in deliverables while requiring it in fixtures needs a fixture-vocabulary
+decision, not a regex.
+
+**Proposal.** Either give the fixtures a marked synthetic site that D14 can
+refuse in deliverables without a carve-out (e.g. move the "this is fixture
+furniture" signal out of the string and into markup the fixture alone uses),
+or decide the site slot stays with the reviewer and record it in
+`check_design.py`'s NOT_MECHANIZED with this reasoning.
+
+**Acceptance.** A deliverable carrying the fixture's site string fails a gate,
+or the decision not to mechanize is recorded where ban-list parity looks.
+
+---
+
 ## Not doing, and why
 
 - **A third geometry.** Two fixed stages are already two compositions per subject.

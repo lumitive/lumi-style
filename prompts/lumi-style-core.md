@@ -23,8 +23,17 @@ directory unless the user names a directory, and **ask before creating that
 folder** — never write into the package's own install tree. An export lands
 beside the document it was made from. The folder is shared, so a filename
 carries the document's own name and version. Work
-pages in parallel where your platform allows, and when expected generation time
-passes ten minutes, say so before starting.
+pages in parallel where your platform allows — fix the storyline first, split
+the content pages into contiguous parts with placeholders where footers and
+shared assets go, author parts in parallel, then stitch and substitute, and
+refuse the merge while any placeholder is left unreplaced. Verify once, on the
+assembled document. When expected generation time still
+passes ten minutes, say so before starting. **When the request says "debug
+mode"**: this tier runs no scripts, so append a plain-English debug section to
+the delivery note instead — the steps taken with rough timings, every error
+met, an H1–H6 self-score with a reason per dimension (never a self-scored 5),
+and a named list of the checks you could not run, which the operator owes.
+Write no client name or engagement figure into it.
 
 ## 0 Commit first (read before the red lines)
 
@@ -58,7 +67,10 @@ you can see light on it.
 
 **The acid green** `#B8FF00` is a surface, not text: 1.21:1 on white, 16.44:1 with
 near-black reversed out of it. Part openers are full lime fields with the claim in
-near-black at display size. It carries no meaning. **Once per page, and it marks a
+near-black at display size. **The cover and closing title's subject word takes the
+lime on its own dark chip** (near-black `#0A0907` behind lime text) — never bare
+lime on the light canvas — so the title, the openers and the closing speak one
+green. It carries no meaning. **Once per body page, and it marks a
 number panel — never a chart mark**: a bar that is lime here and forest there asks
 a reader what the difference means. A page with no number panel simply has no lime.
 
@@ -201,7 +213,10 @@ Say "uncertain" plainly.
 ## 6 Five chart iron rules (for HTML/SVG output)
 
 Figure titles state conclusions; one accent color with all else grayscale
-(warning color only for warnings); no gridlines/borders/single-series legends;
+(warning color only for warnings) — **in figures the accent is the live green
+`#3E7A2E` light / `#7FC45A` dark**, because the text accent `#48633E` reads
+brown at figure scale; same meaning, two measured inks, one per medium;
+no gridlines/borders/single-series legends;
 every figure has a source line; a type scale that suits the figure.
 
 **The legend goes where the figure's own layout wants it** — top right above the
@@ -230,9 +245,12 @@ scoring form stays a form.
 **Canvas**: pure white #FFFFFF by default — not a warm cream, which reads as a
 template default; dark is Apple space grey #1D1D1F, only when the user asks, as one
 `body.dark` override block, never a forked file. Card surfaces #FAFAFA / #2C2C2E.
-Single accent #48633E on light, lifted to #7C9F63 on dark; warning #C8102E (China
-red, warnings only, lifted to #E0685A as text on dark). Two more state colors, one
-meaning each: amber #A86407 / #E0A73E = partial, in progress, awaiting an input;
+The accent means one thing (emphasis · pass · built) in two measured inks:
+as TEXT #48633E on light, lifted to #7C9F63 on dark; in FIGURES the live green
+#3E7A2E light / #7FC45A dark, because the text ink reads brown at figure scale.
+Warning #C8102E (China red, warnings only, lifted to #E97C6E as text on dark).
+Two more state colors, one
+meaning each: amber #9C5D06 / #E0A73E = partial, in progress, awaiting an input;
 brass #7A6C52 / #C3B393 = reference, archival, out of scope but real. A literal
 color anywhere outside the token block is a defect.
 
@@ -245,7 +263,9 @@ text here. Text on an accent fill is cold white on light and canvas ink on dark;
 cold white on the lifted dark accent measures 2.65 and fails.
 
 **Type**: D-DIN for titles, body and data alike, with a CJK fallback; display
-titles ALL-CAPS at weight 400 (CJK: weight 700 + .04em tracking, never uppercase).
+titles ALL-CAPS at weight 700 — the register comes from weight, scale and
+leading, not tracking; D-DIN 400 uppercase with wide tracking reads as a spec
+sheet (CJK: weight 700 + .04em tracking, never uppercase).
 Data voice (codes/rates/dates/counters): tabular-nums with fixed-width digit boxes.
 The small end of the scale runs figure title 13 / axis 11.5 / source 10.5. **There
 is no type floor** — 0.1.340 withdrew the 11px one, invented without an ask.
@@ -292,7 +312,11 @@ up under it. Vertical: stack, hero-band (dominant block over a thin strip),
 band-hero (its inverse), thirds-v. Horizontal: split 50/50, split-wide 38/62,
 split-narrow 62/38, columns-2/3/4. Composite: rail, quad, sidebar-notes,
 full-bleed, diagonal-flow, and cover-grid (the cover and the closing, set the
-same way: typeblock, mark cell, attrs column, full-width row). Choose by content: one number is the story → hero-band;
+same way: typeblock — the wordmark is the literal string "LUMI Style" — mark
+cell, attrs column, full-width row; the attrs key sets bold and uppercase, the
+attrs value holds ONE line and a value that overruns gets shortened; the mark
+is LUMIVATE's field globe where the platform can embed assets, and the
+typographic wordmark alone where it cannot). Choose by content: one number is the story → hero-band;
 2-4 parallel items → columns-N or quad; centerpiece wider than 3:1 → stack; tall or
 square centerpiece with long prose → split; long prose, small evidence →
 split-narrow; heavy caveats → sidebar-notes; a table of 6+ columns → stack, no
@@ -386,6 +410,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.442** snapshot, cut 2026-08-13. It is self-contained by
+> This file is the **0.1.448** snapshot, cut 2026-08-12. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

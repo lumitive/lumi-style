@@ -15,7 +15,7 @@
     {
       "label": "python3 -m pip install -q -r requirements-dev.txt",
       "command_sha256": "abe91d625422ce6955f65962c7fbfbe5ec38393eb5c95f01fefca49347fa9ec5",
-      "seconds": 0.38
+      "seconds": 0.37
     },
     {
       "label": "python3 -m ruff check .",
@@ -25,17 +25,17 @@
     {
       "label": "python3 -m mypy",
       "command_sha256": "6b5962908a114f1dfd0bb66773f48cad743c2f3c0097e67caf24d5ef95cca6a9",
-      "seconds": 0.23
+      "seconds": 0.38
     },
     {
       "label": "python3 -m pytest -q",
       "command_sha256": "61adb62480de84d9ab140e02b0ebc3c11f941ab1f49ac245feebc76a1b61bc5f",
-      "seconds": 18.37
+      "seconds": 19.35
     },
     {
       "label": "python3 scripts/check/check_js.py",
       "command_sha256": "e9632910f4adb5facf02a4d44374389666c50a1194762f28f71df8aa70d8326a",
-      "seconds": 0.73
+      "seconds": 0.72
     },
     {
       "label": "python3 scripts/build/embed_font.py --check",
@@ -45,7 +45,7 @@
     {
       "label": "python3 scripts/build/embed_icons.py --check",
       "command_sha256": "8ef04b55ef4880561acd67d5997ca84d28584acf253fcbeb2bd09ac6a5854667",
-      "seconds": 0.12
+      "seconds": 0.13
     },
     {
       "label": "python3 scripts/build/build_geography.py --check",
@@ -55,7 +55,7 @@
     {
       "label": "python3 scripts/build/build_worldmap.py --check",
       "command_sha256": "9f49a617b9f97951f173743a21b4616dbd8038b45121e1e1f134670f0a3f99d1",
-      "seconds": 0.09
+      "seconds": 0.08
     },
     {
       "label": "python3 scripts/build/build_brand.py --check",
@@ -70,12 +70,12 @@
     {
       "label": "python3 scripts/build/build_region_palette.py --check",
       "command_sha256": "303a25b60fb68dc6b0f9daa799ac813f17eb6df888d2dd517ae7a58571336c1a",
-      "seconds": 0.34
+      "seconds": 0.33
     },
     {
       "label": "python3 scripts/check/check_globe.py --python-only --node",
       "command_sha256": "eeef970134862094da034870dd315f700aaf0dc55e6dd1bdda6aa19f1624513b",
-      "seconds": 5.97
+      "seconds": 5.94
     },
     {
       "label": "python3 scripts/build/embed_globe.py --check",
@@ -85,7 +85,7 @@
     {
       "label": "python3 scripts/build/embed_regionmap.py --check",
       "command_sha256": "c3f351f8ca8a6890a4ec554bcf68186ecc6ef0c2ce956fa89d89cca6b42b6eae",
-      "seconds": 0.05
+      "seconds": 0.06
     },
     {
       "label": "python3 scripts/build/build_entrypoints.py --check",
@@ -100,7 +100,7 @@
     {
       "label": "python3 scripts/check/check_fixtures.py",
       "command_sha256": "517e43fb30004c5109b8e010a362419b454f66571ba3c67fe40db073d30a0e19",
-      "seconds": 118.36
+      "seconds": 42.02
     },
     {
       "label": "python3 scripts/ops/run_conformance.py validate",
@@ -110,7 +110,7 @@
     {
       "label": "python3 scripts/check/check_evidence.py --check",
       "command_sha256": "f326706d185b49222df9c51639a25688525d1439ebd30e1bf72aae09bbc4460d",
-      "seconds": 0.2
+      "seconds": 0.17
     },
     {
       "label": "python3 scripts/check/check_repo.py",

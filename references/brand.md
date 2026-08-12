@@ -179,13 +179,26 @@ mark a reader must tell apart as text. It could do the fills — but 84 acid pan
 is the opposite of non-contention and destroys the thing that makes it an event.
 So:
 
-- **`--acc`, the forest, is the working green.** Everything that must read on
-  white: strokes, chart marks, small fills, emphasis. It is not a legacy colour
-  and it is not going away.
-- **`--lime` is the event green.** Large panels only.
+- **`--acc`, the forest, is the working green in text.** Emphasis, pass states,
+  table furniture, the footer's site — everything that reads as *words* on
+  white. It is not a legacy colour and it is not going away.
+- **`--acc-live` is the working green in figures.** Strokes, chart marks, small
+  fills — the `f-acc` / `s-acc` paint classes bind to it. Same meaning as the
+  forest, measured for the other medium: the forest reads brown at figure
+  scale, and the live green clears the stroke and text floors in both palettes
+  (5.21:1 on white, 3.23:1 on the dark ground) while reading as the lime's
+  family. *Provenance: this bullet said "strokes, chart marks" belonged to the
+  forest while the token file said figures take the live green, and the 0.1.442
+  owner review saw the result — a document whose dividers, titles and figures
+  ran three unrelated greens. One meaning, two measured inks, and each file
+  now says so.*
+- **`--lime` is the event green.** Large panels, and the cover/closing title's
+  subject chip — always with the near-black reversed out of it or backing it,
+  never bare on the light canvas.
 
-This is not an inconsistency to be tidied up later. It is two jobs, and the only
-way to collapse them into one is a dark content canvas.
+This is not an inconsistency to be tidied up later. It is one meaning in two
+measured inks plus an event colour, and the only way to collapse them into one
+ink is a dark content canvas.
 
 **Key numbers rank in three steps.** A number that is the argument is set like
 one — the display weight, not a caption with large type:
@@ -332,8 +345,10 @@ are permissions. They are not requirements, and none of them outranks a red line
 
 **The brand is never the loudest thing on the page. The evidence is.**
 
-Wordmark small. No watermark, no ornament, no flourish, no logo behind the
-content. LUMI's mark appears twice in a deck — the cover and the closing — and is
+Wordmark small — the literal string "LUMI Style". No watermark, no ornament,
+no flourish, no logo behind the content. LUMI's mark appears twice in a deck —
+the cover and the closing, and by default it is the locked FIELD GLOBE
+(`assets/brand/lumivate/globe-field.svg`), embedded live so it turns — and is
 never larger than it needs to be to be read.
 
 This is the part that makes impact and non-contention compatible rather than

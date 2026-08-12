@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · v0.1.442 (2026-08-13)
+   LUMI visual theme · v0.1.448 (2026-08-12)
    Single source of truth for palette and typography. New documents reference
    this file or copy the token blocks verbatim (note the provenance when
    copying). Version lockstep: a deliverable's version = the lumi-style
@@ -49,18 +49,29 @@
   --ln3: rgba(43,46,51,.07);     /* tint fills, inactive chart bands */
 
   /* ── semantic colors (one color, one meaning) ── */
-  --acc:       #48633E;          /* the single accent: emphasis / pass / built */
-  /* THE LIVE GREEN. --acc is legible and reads brown at figure scale; --lime is
-     a SURFACE and D13 correctly refuses it as a stroke on the light canvas
-     (1.21:1). This sits between them and clears both floors in both palettes:
-     5.21:1 on white as text, 3.23:1 on the dark ground as a stroke. Figures and
-     the cover title's subject word take it. Measured, not chosen by eye. */
+  /* ONE MEANING — the accent: emphasis / pass / built — TWO MEASURED INKS, one
+     per medium. `--acc` carries it in text and table furniture, where it
+     measures 6.71:1 on the canvas; at figure scale it reads brown. `--acc-live`
+     carries it in FIGURES — the `f-acc` / `s-acc` paint classes in
+     lumi-layouts.css bind to it — because it clears both floors in both
+     palettes: 5.21:1 on white as text, 3.23:1 on the dark ground as a stroke,
+     and it reads as the lime's family where the forest does not. Until the
+     0.1.442 owner review those two sentences lived in two files and
+     contradicted each other — brand.md said figures take `--acc`, this file
+     said `--acc-live`, the paint classes bound `--acc` — so one document
+     shipped three unrelated greens and the owner saw all three. The paint
+     classes are the binding, this comment is the rule, and brand.md §5 now
+     says the same thing. (The cover title's subject word moved on: it takes
+     the lime on its own dark chip — see `.subj` in lumi-layouts.css.) */
+  --acc:       #48633E;
   --acc-live:  #3E7A2E;
   --acc-tint:  #EEF6E9;          /* table row wash; body text on it reads 12.3:1 */
   --acc-deep:  #48633E;          /* accent-filled surfaces (headers, bars) */
   --acc-inbox: #9FC384;          /* accent text inside an inverted (ink-filled) box */
   --acc-wash:  #EDF2EA;          /* accent surface tint (tier-1 callouts, cells) */
-  --on-acc:    #F0F0FA;          /* text on an accent fill — 5.93 on #48633E */
+  --on-acc:    #F0F0FA;          /* text on an accent fill — 5.93 on #48633E,
+                                    4.61 on the live green (above the 4.5 floor;
+                                    measured when f-acc moved to --acc-live) */
   --seal:      #C8102E;          /* warnings / red lines / vetoes ONLY — 5.88 on --bg */
   --seal-t:    #C8102E;
   --seal-wash: #F9ECEE;

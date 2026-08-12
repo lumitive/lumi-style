@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.442.** This file restates part of `references/`; where they
+> **lumi-style 0.1.448.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -31,10 +31,21 @@ delivery note and proceed — one clear prompt should normally produce a finishe
 document. Write a finished document to `Documents/LUMI-Style/` under the user's
 home directory unless the user names another, and **ask before creating that
 folder**; an export lands beside the document it was made from, and because the
-folder is shared, a filename carries the document's own name and version. Run independent pages in parallel where your platform allows, and when
-expected generation time passes ten minutes, say so before starting. Before
+folder is shared, a filename carries the document's own name and version. Run independent pages in parallel where your platform allows —
+the protocol is in `SKILL.md` step 1: the orchestrator fixes the storyline,
+scaffolds and splits content into `body-N.html` parts carrying `FOOT_<n>` and
+asset placeholders; part authors run in parallel writing page markup only; an
+assembler stitches, substitutes, and refuses the build on any unreplaced
+placeholder; the gate stack runs once on the assembled document. Owner
+target: a 30-page document in under ten minutes end-to-end; when the estimate
+still passes ten minutes, say so before starting. Before
 delivery, the **red-team pass** rides the critic gate: read the draft as its
 most skeptical reader, and treat over-design as a finding, not a virtue.
+**When the request says "debug mode"**, write the execution log beside the
+deliverable through `scripts/ops/debug_log.py` (init · run every check through
+it · attach the checkers' `--json` · assess H1–H6 with reasons, never a
+self-scored 5 · error on any failure · validate) — English-only, no engagement
+facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
 
 **Load order** (all files are in this repository):
 
@@ -50,9 +61,15 @@ most skeptical reader, and treat over-design as a finding, not a virtue.
    (sales = value & future; consulting = PwC frame with assertive subtitles;
    internal analysis; training = enabling a team to do something). Do this before
    writing. A deck opens with a cover and ends with a closing page, each carrying
-   the same single vector mark, and **every part boundary gets a lime opener
+   the same single vector mark — **by default the locked LUMIVATE field globe
+   (`assets/brand/lumivate/globe-field.svg`), embedded live with `data-globe` +
+   the inlined runtime so it turns** — the wordmark is the literal string
+   "LUMI Style", and **every part boundary gets a lime opener
    page** — about five content pages between openers is a pacing target, reported
-   and never gated.
+   and never gated. **Scaffold with `python3 scripts/ops/new_deck.py` and never
+   hand-copy a fixture**: a shipped review carried `REPLACE ME` as its title and
+   the fixture's `www.example.org` in every footer, and D14 now refuses both
+   slots.
 3. `references/design-rules.md` + `tokens/` — visual rules and design tokens for
    any HTML/slides/chart output. Text uses the `--tx1..--tx4` ladder only;
    `--ln1..--ln3` is for rules, borders and fills and never carries text. Choose
@@ -81,8 +98,9 @@ most skeptical reader, and treat over-design as a finding, not a virtue.
 4. `references/eval-rubric.md` — pre-delivery critic gate (structure before polish),
    the D-series and `inspect_layout.py` diagnostics (**design judgements
    reported, never gating** — but an unmeasurable check exits 1 and says what it
-   could not find, and `--deliverable` exits 1 on the ten findings that are
-   decidable rather than aesthetic),
+   could not find, and `--deliverable` exits 1 on the findings that are
+   decidable rather than aesthetic — the code's `deliverable_verdicts` is the
+   authority on the list),
    and H1–H6 self-scoring. Never self-score 5 before a reader has scored it, and
    always give the reason for the score, not just the number.
 
@@ -120,8 +138,10 @@ under the figure is the page's source and the footer carries the page number.
 **Rendered geometry decides, not declared CSS.** Run
 `python3 scripts/check/inspect_layout.py <file>` and look at the contact sheet it
 builds; before handing the file over, run it again with **`--deliverable`**,
-which exits non-zero on collision, content spill, page height, hidden content, a
-wrapped footer, an overspent title reserve, a role split and a lost datum. A clean run there is not
+which exits non-zero on collision, a starved column, content spill, page height,
+hidden content, a wrapped footer, a footer whose runs sit on different
+baselines, a viewBox that does not parse, a drawing clipped by its own viewBox,
+an overspent title reserve, a role split and a lost datum. A clean run there is not
 a verified document — it means nothing measurable is broken. A rule that loses on specificity is indistinguishable from no rule: one
 had been in the layout file since 0.1.339, had never once applied, and left twelve
 of fifteen multi-column pages with their columns out of line. Worse: a probe that
@@ -154,7 +174,9 @@ narrative leads with value & future (honesty boundaries take exactly one page);
 titles follow the contract "Topic: assertive subtitle" — each names its subject
 and carries a verifiable fact, with no word ceiling and no bare-antithesis
 titles, and all titles concatenated must read as a complete argument;
-charts use one accent color, conclusion-style titles, and a source line;
+charts use one accent color — the figure green `--acc-live`, which is what the
+`f-acc`/`s-acc` paint classes resolve to; `--acc` is the same meaning as text
+ink — plus conclusion-style titles and a source line;
 AI never signs — money/safety conclusions never come from a language model.
 
 **Workflow note**: after drafting Chinese prose, run a full-width punctuation pass

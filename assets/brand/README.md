@@ -5,10 +5,21 @@ convention you are meant to apply, adapt and argue with. What is here is
 LUMIVATE's property: marks that identify the company, which have one correct
 form and no adaptable one.
 
-    lumivate/globe-cover.svg       the cover globe, light edition
-    lumivate/globe-cover.dark.svg  the cover globe, dark edition
+    lumivate/globe-field.svg       THE FIELD GLOBE — the default cover/closing mark
+    lumivate/globe-cover.svg       the plain cover globe, light edition
+    lumivate/globe-cover.dark.svg  the plain cover globe, dark edition
     lumivate/globe-mark.svg        the small mark, 64px and up
     lumivate/globe-mark-small.svg  the small mark, 16-48px
+
+**The field globe is the mark a deliverable embeds on its cover and closing**
+(owner directive, 0.1.442 review — a document shipped a fresh anonymous render
+where the brand belonged, and the directive names this file as the default).
+It is LUMIVATE's own field — 8 trade blocs, 13 sea lanes, HS-6 codes in
+transit, 23 named ports — carried as company identity, the way a logo carries
+a company's business: its data is LUMIVATE's, never the document's claim, and
+its `aria-label` says so. It was generated outside this repository and is
+vendored and locked here as an asset; the plain cover pair remains for
+contexts that want a mark without the field.
 
 The cover pair is **two files, not one that adapts.** `prefers-color-scheme`
 follows the browser rather than the page a mark is dropped on, so a mark that
@@ -21,11 +32,23 @@ are the same object at two sizes.
 
 ## Using them
 
-They are **self-contained**. Each carries its own styles inline, in one ink at
-three strengths, so a mark dropped into a page that has never heard of
-`tokens/` still renders — and so it survives being printed in one colour, which
-is what a logo has to do. Do not restyle them from outside; a mark that changes
-colour with its host is not a mark.
+They are **self-contained**. Each carries its own styles inline, so a mark
+dropped into a page that has never heard of `tokens/` still renders — and so
+it survives being printed in one colour, which is what a logo has to do. Do
+not restyle them from outside; a mark that changes colour with its host is not
+a mark.
+
+**Except when embedding in a lumi-style document**: inline SVG shares the
+document's style scope, so the field globe's own `<style>` block would
+redefine the document's tokens globally. Strip that one block — and then the
+document must carry **both** `tokens/region-palette.css` and
+`tokens/region-palette-trade.css`, or the mark's eight trade blocs fall back
+to the browser default and render black. `scripts/ops/new_deck.py`'s
+`brand_globe()` is the reference implementation and the scaffold's preamble
+ships both palettes, so a scaffolded document already has this right on both
+marked pages. (0.1.447 shipped a version that kept the mark's own copy of the
+palette instead. It rendered correctly and was wrong: a generated file frozen
+inside a locked asset is a file no regeneration check can see drift.)
 
 Pick by size, not by preference. The small one drops the graticule because
 below about 48px a 15-degree grid falls closer together than the pixels; the
@@ -33,15 +56,19 @@ large one keeps it because above that it is what makes a disc read as a sphere.
 
 ## The live globe
 
-The cover globe rotates when a document wants it to. Two commands, both of
-which ship here, and nothing else:
+**The mark rotates by default** — rotation is part of the field globe's
+contract (owner directive, with `prefers-reduced-motion` respected and the
+exact static frame as the no-JavaScript fallback). The scaffold does this for
+you: `new_deck.py` marks both cells `data-globe` and appends the runtime. By
+hand it is one attribute and one command:
 
-    python3 scripts/render/globe_svg.py --preset cover     # the frame
     python3 scripts/build/embed_globe.py                  # the runtime, inline
 
-Put the frame inside an element carrying `data-globe`, put the runtime once at
-the end of the body, and it turns. `--preset cover` is the same view the static
-pair is drawn from, so the still and the moving version are the same globe.
+Put the (style-stripped) field globe inside an element carrying `data-globe`,
+put the runtime once at the end of the body, and it turns — sphere, lanes,
+signals and city labels are all re-projected per frame by the same maths the
+generator used. `scripts/render/globe_svg.py --preset cover` remains the way
+to render a fresh plain frame when a document needs a different view.
 
 For a document that will be exported, add `data-globe-print-lon0="103.8"` to
 the figure. `export_pdf.py` pins every globe on the page before it captures —

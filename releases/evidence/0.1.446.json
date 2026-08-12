@@ -1,0 +1,24 @@
+{
+  "version": "0.1.446",
+  "diff_base": "ca4ce67b560a7927613a455518dbf8153de6fd0c",
+  "spec": "specs/2026-08-12-owner-review-retrospective-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "1b5bdeb5a61ad2d20a33d3da502302d8f38586d68853af80bea2090b4082d668",
+      "date": "2026-08-12"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "a provenance-only revision: the drawn-for-the-cell targets did not move, they gained their measured 16:9 case. The board refresh remains owed with 0.1.443's reasons and lands after the retrospective series with the owner's rebuild as the first acceptance run. Deferred, not discharged."
+    }
+  ]
+}

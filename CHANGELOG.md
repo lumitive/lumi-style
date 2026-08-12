@@ -3,6 +3,320 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.448 — a five-lens review of the retrospective, and the checks it added get checked
+
+Five specialist reviews over 0.1.443–0.1.447 (general, silent-failure,
+test-coverage, comment-accuracy, schema design), against the series' own spec
+`specs/2026-08-12-owner-review-retrospective-design.md`. They found real defects in
+the release series that exists to find real defects — including, twice, a new
+check that could not see the thing it was written for. Every finding below
+was reproduced before it was fixed.
+
+**The debug log dropped evidence under the very protocol it shipped beside.**
+Eight parallel `run` calls — the shape SKILL.md step 1 puts in flight — left
+one entry of eight, and the file itself came back unparseable: read-modify-
+write with a truncating save. Writes are now atomic (`tmp` + `os.replace`)
+under a cross-platform `O_CREAT|O_EXCL` lock, and eight concurrent writers
+keep eight records, proven by test. Three more shapes of the same defect
+closed: a command that could not START (a typo'd path) reached no record at
+all and `validate` called the log clean; a nonzero exit wrote no `errors`
+entry, so the first real log had one failure and no account of it; and
+`attach` overwrote per kind, so a build that failed a check and then passed
+it kept only the passing document. `run` now digests stdout AND stderr, the
+way `check_evidence.py` does — stdout alone gave every crash the same
+empty-output digest.
+
+**`validate` reached less far than the writers, which is backwards** — a log
+arrives at an evaluator as a file, not as a sequence of subcommand calls. A
+score of 9, a self-scored 5 as the string `"5"`, a `stdout_sha256` reading
+`not-a-digest`, a step with no provenance, an unknown platform and an EMPTY
+log all passed. All refused now; the empty-log case had been encoded as an
+expectation by a test named `..._clean_log_passes`. What `validate` still
+cannot do — prove a digest is the digest of what that command produced — the
+docstring now says instead of implying otherwise. The engagement-fact claim
+is corrected the same way: the closed key set means no field INVITES a client
+fact, but four free-text channels exist and red line 9 binds the author in
+them; `reviews/scores.json`'s defence is that it has no free-text field at
+all, and this schema cannot borrow what it did not copy.
+
+**The footer-baseline gate fired at 3px and went silent at 12px.** Its probe
+returned null when no two runs shared the first line — which is what a LARGE
+displacement produces — and every consumer read `null or 0`, so the report
+printed "one line, one baseline" for a visibly broken footer. The probe now
+returns what happened (`runs`, `split`), a split footer is the finding one
+size up, a single-run footer is n/a rather than ok, and a wrapped footer is
+not reported twice under two names. Deliberate red: the 12px case the old
+probe passed now fails the gate.
+
+**Two verdicts were emitted and asserted by nobody** — `footer_baseline` from
+the release that added it, `starved_column` since 0.1.412 — because
+`fixtures/expected.json` was walked key by declared key. Both declared now,
+and the class is closed: `check_fixtures.py` fails any verdict a checker
+emits that the table does not name. It immediately found two more
+(`M4zh_banned_hits`, `M5_zh_punctuation`). Two literal "ten"s in that file
+went the way of the other enumerations.
+
+**The 0.1.447 globe fix was right about the symptom and wrong about the
+cause.** Its comment said the `.gl-*` rules and the `.trade` palette "live
+nowhere in `tokens/`". They do — `tokens/region-palette.css` and
+`region-palette-trade.css`, both generated, both `--check`ed. What had gone
+wrong was narrower: the trade palette was the one generated file the fixture
+preamble did not include. Keeping a copy inside the SVG cured it and froze a
+generated file inside a LOCKED asset where no regeneration check can see it
+drift. The preamble includes both palettes now — the same answer figure 9's
+black rectangles got in 0.1.391 — the hand-written CSS brace scanner is
+deleted with its four silent-failure modes (comment braces, at-rule nesting,
+selector lists, unbalanced input), and `tests/test_new_deck.py` holds the
+invariant that matters: every region class the mark uses has a binding and a
+variable in what the scaffold ships. Deliberate red: remove the trade palette
+from the preamble and that test goes red, which is BUG#1 stated as a machine
+check instead of a paragraph.
+
+**D14 knew two of the scaffold's slots.** An author who fixed both still
+shipped a cover reading "One sentence saying what this is." All nine are
+listed now, and a new `check_repo` guard holds the list against what the
+scaffold actually emits in both directions — a string the scaffold no longer
+writes is stale, and a scaffold that still trips D14 after every declared
+slot is substituted has furniture the list has not learned.
+
+**D18's regex fix was half of one.** It stopped the globe's `gl-rg-label`
+furniture reading as a region, and left the flat map's `rg-full` /
+`rg-outline-<id>` — written by this package's own emitter — inventing two.
+Regions are now read from the class list, keyed on the bare `rg` marker.
+
+**And the numbers.** `--acc` was documented at 5.94:1 where it measures 6.71
+(the repo's own §1 ledger already said so; 5.94 is a transposition of
+`--on-acc`'s 5.93) — it had reached all three fixtures. A portrait comment
+cited a clearance measured at a mark ceiling the same release replaced. The
+launch-cost arithmetic said 17s where 13 × 1.4 is 18.2. `assets/brand/README`
+instructed the exact reading `new_deck.py` records as the defect. The
+reverse palette walk recognised three colour syntaxes and would have skipped
+an `oklch()` token silently; it now asks what is NOT a colour. `scripts/README`
+gained the two import edges this series added, and `new_deck.py` a note that
+its fixture read must stay lazy or the fixture generator cannot import.
+
+29 tests added (294).
+
+## 0.1.447 — the mark gets its colours back, the sheet gets its voice, and the table finally ships
+
+Second round of the owner review, on the rebuilt handbook
+(spec: `specs/2026-08-12-owner-review-retrospective-design.md`, decisions D2
+and D5 extended). Five reports; two of them opened repository faults larger
+than the page that showed them.
+
+**The brand mark was embedded with its component rules thrown away.** 0.1.443's
+`brand_globe()` stripped the vendored globe's entire `<style>`, reasoning that
+"the document's token block paints the classes". It does not: the `.gl-*`
+rendering and the `.trade` region palette live in that block and nowhere in
+`tokens/`, so every trade region filled with the UA default and the owner
+asked where the colours went. The strip is now surgical — only the blocks
+that would redefine the HOST's palette (`:root`, `body.dark`, `.dark`) come
+out, and a comma inside the prose above a selector no longer hides it from
+the stripper. All eight blocs paint again, at the component's own 42%.
+
+**D4 could see one of this package's two region palettes.**
+`region-palette.css` declares on `:root` and passed; `region-palette-trade.css`
+declares the same kind of generated values on `.trade` and every one of its
+fifty hexes read as a stray literal — on documents that had done exactly what
+`SKILL.md` tells an author to do. A shipped deliverable in the workspace had
+been failing D4 on all fifty since it was built, and nothing had looked. The
+token-block list now matches what `tokens/` ships; four tests hold both
+directions (a `.trade` value is not a literal, a real stray still fires).
+
+**`tokens/` shipped no table.** "A table is for values" and "comparisons
+always use tables" have been rules since 1.2, and the token files styled no
+table at all — three deliverables in one workspace each hand-wrote the same
+block at three different type sizes, and a document built from the tokens
+alone rendered browser defaults on the pages the rules push hardest toward
+tables. FM-11 at its largest. The reviewed rendering is promoted, and with it
+the feedback table's scale column: `1 · 2 · 3 · 4 · 5` had broken across two
+lines, which reads as two ranges to a reader circling a number (BUG#2).
+
+**The sheet was set as a smaller slide.** 0.1.443 scaled the portrait display
+tiers down by the stage ratio — opener 50, cover 42 — and the owner read the
+result as flat beside a 16:9 deck at 80/58. A cover and a part opener exist to
+land one statement, so the sheet now takes the SAME ink as the slide (72/58)
+and gains impact from the narrower measure; content titles do not move,
+because a content page's job is its evidence. The mark's ceiling follows from
+34svh to 44svh — the brand README forbids restyling a mark from outside, so
+what changes is its size, never its ink. Measured: 55px above the mark, 50px
+below the attribute strip, no page over its box, on both marked pages.
+
+**Two block renderings corrected from the page.** The vow's ordinal now sits
+on its title's line — stacked, it put four orphaned two-digit fragments down
+a page instead of a numbered set — and the card carries `--card-bg`, opaque
+in both palettes, because the page's ground ran its waterline straight
+through the one block whose job is to hold a self-contained answer.
+
+## 0.1.446 — the owner's hunch about 16:9 proportion measures out, and the rule gets its receipts
+
+The 0.1.442 review's item 8 was a suspicion stated without evidence — figures
+and key numbers not sitting right on the 16:9 stage — and the owner asked for
+an investigation, not a rule
+(spec: `specs/2026-08-12-owner-review-retrospective-design.md` D10). Measured
+across two shipped landscape decks with the aspect probe and a tier census:
+one 30-page deck carried a 2.7:1 figure in a 1.28:1 cell and a 3.8:1 figure
+in a 1.59:1 cell — each rendering under half its cell — and a 15-page deck
+ran three of five figures past 1.2× their cell; across all 45 landscape
+pages, `--fs-lead-xl` and the 54px SVG numeral were used ZERO times, so the
+largest number on most pages was a 43px band value. The hunch was right,
+twice over — the two-document threshold for promotion is met.
+
+What promotes is provenance, not a gate: design-rules §4's drawn-for-the-cell
+targets gain the measured case as their 16:9 receipt, and the decision NOT to
+gate the aspect probe is re-recorded with eval-rubric's standing reason — a
+number satisfiable without improving the page ends the looking. The same
+sweep found both decks failing the new `footer_baseline` gate, confirming the
+0.1.443 footer defect was systemic across every shipped document, not one
+build's slip.
+
+## 0.1.445 — debug mode: the build writes its own evidence, in one schema on every platform
+
+The owner's product ask from the 0.1.442 review
+(spec: `specs/2026-08-12-debug-mode-design.md`): on the words "debug mode",
+the skill writes `<stem>.debug.json` beside the deliverable — errors,
+performance, and a quality assessment — so a later session can run a real
+eval from the log alone.
+
+**One helper is the schema.** `scripts/ops/debug_log.py` (standard library
+only): `init` stamps skill version, platform (validated against the
+registry), machine and date; `run -- <command>` EXECUTES the command and
+machine-writes exit code, stdout digest and timing — the evidence-gate
+principle, no verdict field for a human to type; `attach` embeds the three
+checkers' `--json` verbatim; `assess` records H1–H6 with a mandatory reason
+and REFUSES a self-scored 5 (review_scores' standing rule); `error`, `note`,
+and `validate`, which fails an unknown top-level key (the closed-set
+engagement-fact defence, borrowed from reviews/scores.json) and any CJK
+content (English-only by owner requirement).
+
+**Platforms cost nothing new.** Full-tier platforms run the script — same log
+from Claude Code, Codex, Cursor, Gemini, Pi, OpenClaw, Hermes; the prompt
+tier writes what it can into the delivery note and names what it owes, the
+degradation contract the checkers already use. `adapters/` is untouched on
+purpose: a per-platform debug note would be a restated rule, which the
+registry's own header forbids. macOS/Windows is `pathlib` + the deliverable's
+own folder — no new OS surface.
+
+Ten tests, both directions (FM-01 discipline): the run recorder proven to
+pass exit codes through, the self-5 refused, validate red on an unknown key,
+on CJK, and on a hand-written command entry with no digest. Deliberate red
+recorded: `validate` on a log carrying `"client"` and Chinese notes exits 1
+naming both. The first argparse cut of `run` swallowed `--label` into the
+executed command (REMAINDER's stdlib sharp edge) — caught by the test, fixed
+by splitting at `--` before parsing, and kept in the file as a comment.
+
+## 0.1.444 — the render gate stops paying for thirteen browsers and one quadratic line
+
+The owner's performance complaint (an hour for 34 pages, ceiling ten minutes;
+spec: `specs/2026-08-12-owner-review-retrospective-design.md` D8) split into
+measured parts: the scripts account for four to eight minutes and the rest is
+the instructed serial authoring loop. Both halves move.
+
+**The scripts' two structural costs are gone.** `ground_report`'s canvas
+detection ran `max(set(px), key=px.count)` — `.count` is O(N) per unique
+colour, measured at ~2.6s per page, ~90s per geometry on a 34-page document,
+the single largest cost in the file — and is now one `Counter` pass whose
+unique keys feed the contrast loop too. And every probe opened its own
+`sync_playwright()` and launched its own Chromium — three per geometry plus
+one per file, thirteen launches for a default landscape run, ~1.4s each —
+and they now share one process-wide browser closed at exit. Measured on the
+18-page pass fixture, full default run: **57.8s → 22.4s**, report output
+byte-identical (characterization diff, zero hunks).
+
+**The authoring hour gets its protocol.** "Work in parallel where the
+platform allows" was one sentence with no mechanism, three times. SKILL.md
+step 1 now carries the parallel build protocol, formalized from the
+convention every hand-built deliverable's `_sources/` already proved:
+orchestrator fixes storyline, scaffolds, splits content into `body-N.html`
+parts carrying `FOOT_<n>`/asset placeholders; part authors run in parallel
+writing page markup only; an assembler stitches and substitutes and REFUSES
+the merge on any unreplaced placeholder; the gate stack runs once, on the
+assembled document. AGENTS.md and the core prompt restate it. The owner's
+ten-minute ceiling is named as the target and the say-so-first clause keeps
+its meaning for serial platforms.
+
+The local timing baseline is re-recorded (warn-only by design, AG-3).
+
+## 0.1.443 — the owner reads 34 pages, and seven defects turn out to be three root causes
+
+An owner review of a 34-page A4-portrait deliverable built at 0.1.442 reported
+seven defects. Forensics traced them to three roots, and each fix landed with
+the mechanism that stops its recurrence
+(spec: `specs/2026-08-12-owner-review-retrospective-design.md`).
+
+**Root one: the document was hand-copied from the test fixture, not scaffolded.**
+Its 1,781-line style block was byte-identical to `fixtures/deck-pass.en.html`,
+its title still read `REPLACE ME`, its 34 footers carried the fixture's
+`www.example.org`, and it shipped zero `<script>` and zero `@font-face`. The
+scaffold is now the stated start (`SKILL.md`, `AGENTS.md`, `new_deck.py`'s own
+docstring), `new_deck.py` embeds the display face itself (a separate
+embedding step was skipped by two deliverables in one week), and D14 gained
+the scaffold's own unbracketed slots — `REPLACE ME` and the literal
+`lumi-style VERSION` — including the head, which the per-page walk never saw.
+Deliberate red: an unfilled scaffold now exits 1 on D14 with both slots named
+(run recorded this release). The fixture-site string stays uncaught by
+decision, not oversight: IDEA-9.
+
+**Root two: renderings the owner had verified existed only in single documents'
+DOC_CSS, so the next build lost them.** Recorded as FM-11, and everything it
+names is promoted into `tokens/`: the cover `.attrs` key is bold in the ink
+tone and its value holds one line with an ellipsis (verified on a shipped 16:9
+deliverable, reported lost as two defects); `.band .v .u` steps the unit down;
+`.band .v.acc` and the lime `.first` panel ship; the print page-break block
+rides in the tokens instead of every assemble script. The portrait block also
+gains the `--fs-cover: 42px` override the theme's comment had claimed existed
+(a cover title shipped at the landscape 58px on a 794px sheet), and
+`--genre training` appends Template 4's reference page (`dl.gloss`,
+`data-role="apparatus"`).
+
+**Root three: the repo's own green rules contradicted each other, and the token
+mirror had a blind side.** `brand.md` said figures take the forest; the theme
+file said the live green; the paint classes bound the forest — so one document
+ran three unrelated greens and the owner saw all three (two defects reported).
+The merged rule ships in both files: one accent meaning, two measured inks —
+`--acc` as text, `--acc-live` in figures (`f-acc`/`s-acc`, the geo layer and
+the legend swatch now bind to it; `--on-acc` measures 4.61 on it, above the
+floor). The cover/closing subject word moves to the owner-chosen lime-on-dark
+chip (`.subj`: lime on `--on-lime`, 16.44:1, `box-decoration-break: clone`),
+with D13 carving out exactly that pairing and nothing else. `--acc-live` and
+`--acc-tint` join `design-tokens.json`, and `check_palette_parity` now walks
+BOTH directions — a CSS colour the JSON never heard of fails (deliberate red:
+un-mapping `accent_live` produced four errors naming the hole; the one-way
+walk had passed it for dozens of releases).
+
+**The brand mark is now an asset, not an instruction.** The owner named the
+FIELD globe the default cover/closing mark; it is vendored at
+`assets/brand/lumivate/globe-field.svg` and locked — as are the cover pair,
+which had been unlocked since the lock existed. `new_deck.py` embeds it on
+both marked pages (its own `<style>` stripped: inline SVG shares the
+document's scope), marks the cells `data-globe`, and appends the runtime, so
+the scaffold's globe TURNS (verified: land paths mutate frame to frame;
+reduced-motion and no-JS fall back to the static frame). The fixtures embed
+the same mark statically. D18 accepts the component's `data-bloc-label`
+anchor and stops reading `gl-rg-label/n/p` as three regions named "label",
+"n" and "p" (a `\b` that matched after a hyphen).
+
+**The footer's runs now share a baseline, and a probe holds it.** `.terms` had
+no rule anywhere and `.conf`'s baseline came from its 12px shield icon, so the
+handling terms rode 2px above the page number on every page (measured 2.41px;
+0.00 after `display: contents` + baseline alignment with the icon opted out).
+`inspect_layout.py` gains `footer_baseline` — text-run bottoms as a ratio of
+the line box, gated under `--deliverable` at 0.08 (half the shipped defect) —
+with a planted 3px lift in the degenerate fixture as its failing case. The
+`--deliverable` findings list was re-synced everywhere it is enumerated: four
+files carried four different counts of it (FM-05 live), so the lists now match
+the code's `deliverable_verdicts` and name it as the authority.
+
+**And the wordmark is the literal string "LUMI Style"** (owner directive) —
+carried until now only by template markup, stated nowhere in prose; both
+generators, both fixtures, `storyline-templates.md` and `brand.md` now agree.
+Entry points re-flowed by hand, which also caught four stale restatements:
+the core prompt's display weight (400 — the exact counterexample the token
+comment names), the SAME 400 inside `design-tokens.json`'s own typography
+block (the mirror restating the mistake beside the CSS that names it), the
+core prompt's amber/dark-seal hexes, and design-rules' §1 ledger row for the
+same two. 14 tests added.
+
 ## 0.1.442 — the review breaks into the emergency path twice, and both doors get bricked up
 
 A four-lens review of PR #92 (the audit's six releases) found its most

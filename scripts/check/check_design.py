@@ -181,11 +181,26 @@ def token_block_bodies(css):
     out: dict[str, list[str]] = {"light": [], "dark": []}
     for sel, body in BLOCK_RE.findall(css):
         s = sel.strip()
-        if s == ":root":
+        if s in (":root", ".trade"):
             out["light"].append(body)
-        elif re.fullmatch(r"body\.dark|:root\[data-theme=[\"']dark[\"']\]", s):
+        elif re.fullmatch(r"body\.dark(\s+\.trade)?"
+                          r"|:root\[data-theme=[\"']dark[\"']\]", s):
             out["dark"].append(body)
     return {k: v for k, v in out.items() if v}
+
+
+# `.trade` is in that list because this package ships TWO generated region
+# palettes and D4 could only see one of them. `region-palette.css` declares its
+# variables on `:root` and passed; `region-palette-trade.css` declares the same
+# kind of values on `.trade` (the class the trade globe carries) and every one
+# of its fifty hexes read as a stray literal — on a deliverable that had done
+# exactly what SKILL.md tells an author to do, include the palette and let the
+# figure paint. Found when the brand field globe became the default cover mark
+# (0.1.447) and the pass fixture inherited its palette; a shipped deliverable
+# from the same workspace had been failing D4 on all fifty since it was built.
+# The rule D4 enforces is "no literal outside the token block". Which blocks
+# hold tokens is a fact about this package, not a judgement — so the checker's
+# list has to match what `tokens/` actually ships.
 
 
 def resolve(css, palette):
@@ -513,14 +528,35 @@ def d18_region_labels(raw):
     the rule conditional on a number the measurement does not support, and would
     pass a two-region map whose two regions are unlabelled.
 
-    A region is anchored by `data-region-label="<id>"` on any element, or by a
-    legend row carrying `data-legend="<id>"`.
+    A region is anchored by `data-region-label="<id>"` on any element, by a
+    legend row carrying `data-legend="<id>"`, or by the globe component's own
+    anchor, `data-bloc-label="<id>"` — the vocabulary `globe_svg.py` emits and
+    `render-svg.js` re-places per frame. The brand field globe labels all eight
+    of its blocs that way, and before this line D18 read the locked brand asset
+    as eight unlabelled regions.
     """
-    ids = set(re.findall(r'class="[^"]*\brg-([\w-]+)', raw))
+    # A REGION IS `class="rg rg-<id>"`, and the id is read from a class list
+    # split on whitespace rather than scanned out of the attribute. The scan
+    # was wrong twice over: `\b` matched inside the globe's own furniture
+    # (`gl-rg-label` read as a region named "label"), and being greedy it kept
+    # only the LAST `rg-` token in an attribute, so `class="rg-outline
+    # rg-outline-eu"` — which the package's own flat-map emitter writes on
+    # every region — lost the first and invented a region called
+    # "outline-eu". Both the map's furniture (`.rg-full`, `.rg-outline`,
+    # `.rg-label*`) and the globe's are shipped vocabulary in
+    # `tokens/region-palette.css`; a region is the token that rides beside the
+    # bare `rg` marker.
+    ids = set()
+    for attr in re.findall(r'class="([^"]*)"', raw):
+        classes = attr.split()
+        if "rg" not in classes:
+            continue
+        ids |= {c[3:] for c in classes if c.startswith("rg-") and len(c) > 3}
     if not ids:
         return None
     labelled = set(re.findall(r'data-region-label="([\w-]+)"', raw))
     labelled |= set(re.findall(r'data-legend="([\w-]+)"', raw))
+    labelled |= set(re.findall(r'data-bloc-label="([\w-]+)"', raw))
     return {"regions": len(ids), "unlabelled": sorted(ids - labelled)}
 
 
@@ -565,6 +601,14 @@ def d13_lime_never_light_text(css, resolved, palette):
         if not re.search(r"(^|;)\s*color\s*:\s*var\(\s*--lime\s*[,)]", body):
             continue
         if "dark" in sel:                       # the dark canvas may use it as text
+            continue
+        # The dark chip is the sanctioned form: lime `color` beside its OWN
+        # `--on-lime` backing in the same rule (`.subj`, 0.1.443). The pairing
+        # is what makes it legal — 16.44:1 on the chip against 1.21:1 on the
+        # canvas — so the carve-out demands the background in the same block,
+        # never somewhere an ancestor might provide it.
+        if re.search(r"(^|;)\s*background(-color)?\s*:\s*var\(\s*--on-lime\s*[,)]",
+                     body):
             continue
         bad.append(re.sub(r"\s+", " ", sel)[:60])
     return bad
@@ -741,6 +785,41 @@ PLACEHOLDER_MARKERS = re.compile(
 # document uses legitimately, and a gate that fails on it is a gate people learn
 # to route around.
 
+# THE SCAFFOLD'S OWN SLOTS, which are not bracketed. `new_deck.py` hands an
+# author a document that already renders, and the price of that is a page of
+# furniture worded to be replaced: a title, a support line, attribute rows, a
+# glossary entry, a colophon. A 34-page review reached its reader with
+# `REPLACE ME` as its browser-tab title, and nothing here looked, because every
+# marker this file knew wore brackets.
+#
+# The first cut of this list held two of them, so an author who fixed the two
+# D14 named still shipped a cover whose support line read "One sentence saying
+# what this is." The list lives HERE, because what a checker refuses is the
+# checker's business and a deliverable grader may not import the scaffold
+# generator — and `check_repo`'s **scaffold slots** guard holds it against
+# what `new_deck.py` actually emits, in both directions: a string here that
+# the scaffold no longer writes is stale, and a scaffold whose slots survive a
+# full substitution pass is a scaffold with furniture this list has not
+# learned. Completeness beyond that stays with the reviewer.
+#
+# Case-sensitive: these match the scaffold's literal output, not prose that
+# mentions replacing things. (The fixture's `www.example.org` footer is
+# deliberately NOT here: fixtures keep a reserved domain precisely so no
+# engagement fact ships in this repository, and a deliverable's site slot
+# stays with the reviewer — IDEA-9.)
+AUTHOR_FILL = (
+    "REPLACE ME",
+    "lumi-style VERSION",
+    "A title that states the argument about its",
+    "What the reader carries out about its",
+    "One sentence saying what this is.",
+    "The argument in one paragraph.",
+    "What it means in this document, one sentence.",
+    "A title naming its subject and carrying a fact",
+    "The support line, one sentence and not a summary.",
+)
+SCAFFOLD_SLOTS = re.compile("|".join(re.escape(s) for s in AUTHOR_FILL))
+
 
 def d14_placeholders(raw):
     """No slot an author left for themselves may reach the reader.
@@ -765,6 +844,15 @@ def d14_placeholders(raw):
             if not PLACEHOLDER_MARKERS.search(inner):
                 continue
             found.append({"page": pid, "text": m.group(0)[:40]})
+        for m in SCAFFOLD_SLOTS.finditer(text):
+            found.append({"page": pid, "text": m.group(0)[:40]})
+    # The head is not a page, and the title lives there. The per-page walk
+    # above never sees it, which is exactly how `REPLACE ME` shipped.
+    head_end = body.find("<section")
+    if head_end != -1:
+        head_text = re.sub(r"<[^>]+>", " ", body[:head_end])
+        for m in SCAFFOLD_SLOTS.finditer(head_text):
+            found.append({"page": "(head)", "text": m.group(0)[:40]})
     return found
 
 

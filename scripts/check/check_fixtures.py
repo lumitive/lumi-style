@@ -116,7 +116,7 @@ def coverage_report(collected, skipped_kinds) -> list[str]:
     exercised = set()
     for (fixture, kind), report in collected.items():
         base = kind.split("@")[0]
-        # inspect_layout has no per-metric targets because every one of its ten
+        # inspect_layout has no per-metric targets because every one of its
         # findings gates: what it emits is the decidable subset, and the
         # judgements that are merely reported never reach `verdicts` at all.
         targets = report.get("targets")
@@ -144,7 +144,7 @@ def coverage_report(collected, skipped_kinds) -> list[str]:
         # Loud, and it names the count. The acceptance for this move is that the
         # number of gates it could not assert is ZERO where a browser is present.
         print(f"note  SKIPPED {len(skipped_kinds)} rendered run(s) — no Chromium "
-              f"importable, so inspect_layout's ten gates were NOT asserted here. "
+              f"importable, so inspect_layout's gates were NOT asserted here. "
               f"This run did not test them. pip install playwright && "
               f"playwright install chromium")
     if missing:
@@ -198,6 +198,21 @@ def main() -> int:
                 got = actual.get(metric)
                 if got != want:
                     errors.append(f"{label}: {metric} is {got!r}, expected {want!r}")
+            # EVERY VERDICT A CHECKER EMITS MUST BE NAMED HERE. The loop above
+            # walks the DECLARED keys, so a verdict nobody declared was never
+            # compared — and two had been living that way: `starved_column`
+            # since 0.1.412 and `footer_baseline` from the release that added
+            # it, both green in every run and asserted by nothing. That is
+            # FM-01 one level up: not a check that cannot fail, but a check
+            # whose result nobody reads. Declaring a verdict is cheap; the
+            # drift is silent, so the guard is mechanical.
+            undeclared = sorted(set(actual) - set(expect.get("verdicts", {})))
+            if undeclared:
+                errors.append(
+                    f"{label}: {', '.join(undeclared)} — emitted by the checker "
+                    f"and named by no expected verdict, so nothing compares it. "
+                    f"Add it to fixtures/expected.json with the value this "
+                    f"fixture should produce.")
             # A document too thin to grade is not a document that passed.
             # `allow_na` names the metrics whose n/a is CORRECT rather than
             # decay — the Chinese pair on an English deck is n/a because the

@@ -42,22 +42,35 @@ two decks side by side read as one document.)
 A deck opens with a **cover** and ends with a **closing page**; the content arc
 sits between them.
 
-- **Cover**: wordmark (typographic, no logo file needed) · document title as the
+- **Cover**: wordmark — the literal string **"LUMI Style"** (typographic, no
+  logo file needed; the string was carried only by template markup until an
+  owner directive fixed it in prose, 2026-08-12) · document title as the
   page's single statement · one-line subtitle saying who it is for and what it
-  answers · a meta strip in spec-band form (audience / date / version /
-  classification) · a colophon line ("built with lumi-style X.Y.Z") · **and
-  exactly one vector mark.** Body copy and photography stay out. The mark is
-  drawn from `assets/vectors/` (the orthographic globe, the flat trade map) or is
-  the document's own subject rendered as geometry; it is sized as a field the
-  typography sits against, not as a spot illustration, and it is painted from the
-  non-text ladder so it never competes with the title.
+  answers · a meta strip as the **`.attrs` key/value block** (audience / date /
+  version / classification) — the key bold and uppercase, the value **one line**,
+  truncating rather than wrapping, so a value that overruns gets shortened
+  (this bullet said "spec-band form" while the shipped skeleton emitted
+  `.attrs`, and the two drifted until an owner review caught the unstyled
+  result; `.spec` remains the in-page strip) · a colophon line ("built with
+  lumi-style X.Y.Z") · **and exactly one vector mark.** Body copy and
+  photography stay out. **The default mark is the LUMIVATE field globe**
+  (`assets/brand/lumivate/globe-field.svg`, locked), embedded live — `data-globe`
+  plus the inlined runtime, which the scaffold does for you — so it rotates,
+  with reduced-motion respected and the static frame as the fallback (owner
+  directive, 0.1.442 review: a shipped cover carried a fresh anonymous render
+  where the brand belonged, and it did not turn). It is sized as a field the
+  typography sits against, not as a spot illustration.
 
-  **The mark must say something true about the document.** A globe on a deck about
-  one supply chain shows that chain's nodes and routes and nothing else. Geography
-  implies coverage, so a region drawn is a region claimed: mark the built ones in
-  accent, the empty ones as hollow dashed rings, and the out-of-scope ones muted.
-  Decoration that implies reach the engagement does not have breaks red line 1 as
-  surely as a sentence would.
+  **The brand mark is identity; a replacement mark is a claim.** The field
+  globe carries LUMIVATE's own field — its blocs, lanes and codes — the way a
+  logo carries a company's business, and its `aria-label` says so; it claims
+  nothing about the document. A document may instead render its own subject as
+  geometry, and THAT mark must say something true about the document: a globe
+  on a deck about one supply chain shows that chain's nodes and routes and
+  nothing else. Geography implies coverage, so a region drawn is a region
+  claimed: mark the built ones in accent, the empty ones as hollow dashed
+  rings, and the out-of-scope ones muted. Decoration that implies reach the
+  engagement does not have breaks red line 1 as surely as a sentence would.
 
   *Provenance:* this rule read "No charts, no body copy — the cover is typography"
   through 0.1.337. The ban existed because the skill had no photo library, and it
@@ -69,7 +82,7 @@ sits between them.
   imperative ("Let the numbers decide.") is one option, not the required form —
   a punchy four-word command is a recognized AI-deck ending, and it is weaker than
   naming the concrete next step and who owns it · a one-sentence recap of the ask · contact
-  slots in spec-band form · **and the same single vector mark as the cover**,
+  slots in the same `.attrs` block the cover uses · **and the same single vector mark as the cover**,
   under the same truth test — a cover and a closing are the same kind of page,
   set the same way (`cover-grid` in `tokens/lumi-layouts.css`), and the closing
   restates where the document stood, so its mark repeats the cover's geography

@@ -56,8 +56,17 @@ globe_svg) sit on `lib/geo_*`; check_repo and check_design sit on both `lib/colo
 and `build/embed_globe`; `ops/run_conformance` and `check/check_fixtures`
 INVOKE the deliverable checkers only through `lib/deliverable_registry`
 (run_conformance and ops/export_pdf additionally import `check_prose` for
-its GENRES constant). No script imports `ops/` (tests do), and nothing in
-`lib/` imports anything local except `geo_frame → geo_projection`.
+its GENRES constant). `ops/new_deck` imports `build/embed_font`,
+`build/embed_globe` and `build/embed_icons` — the scaffold embeds what it
+tells an author to embed — and `build/build_fixtures` imports `ops/new_deck`
+back, for the one function that prepares the brand mark, so that the fixture
+and the scaffold cannot disagree about how it is embedded. **That pair is a
+cycle waiting to happen**: `new_deck` reads `fixtures/deck-pass.en.html`, the
+artifact `build_fixtures` generates, so its `FIXTURE` read stays inside
+`preamble()` and must never move to module scope — at module scope the
+fixture generator could not import while the fixture was absent or stale.
+Nothing else imports `ops/` (tests do), and nothing in `lib/` imports
+anything local except `geo_frame → geo_projection`.
 
 History note: this tree was flat (36 files, counting the registry that
 arrived with the hardening) until 0.1.438–0.1.440. The

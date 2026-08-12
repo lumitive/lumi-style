@@ -81,6 +81,8 @@ PALETTE_KEY_TO_VAR = {
     "data_red": "d-red",
     "data_teal": "d-teal",
     "card_bg": "card-bg",
+    "accent_live": "acc-live",
+    "accent_tint": "acc-tint",
 }
 PALETTE_NON_COLOR = {"ladder_base", "note", "text_ladder", "rule_ladder"}
 
@@ -331,6 +333,34 @@ def check_palette_parity():
                         f"tokens/lumi-theme.css: --{var} is {actual}, expected "
                         f"rgba({channels},{alpha}) for the {palette_name} {ladder} ladder"
                     )
+    # The reverse direction (0.1.443). This guard walked JSON→CSS only, so a
+    # colour the CSS defined and the JSON never heard of was invisible to it:
+    # --acc-live and --acc-tint shipped in the theme through dozens of releases
+    # while design-tokens.json, whose job is to mirror the palette, carried
+    # neither — and the 0.1.442 owner review traced a three-greens defect
+    # straight through that hole. Every colour-valued custom property the
+    # theme's palette blocks declare must be reachable from the JSON: through
+    # the key map or as a generated ladder step. A mirror runs both ways.
+    mapped_vars = set(PALETTE_KEY_TO_VAR.values())
+    ladder_step = re.compile(r"^(tx|ln)\d$")
+    # WHAT IS NOT A COLOUR, rather than what is. An allow-list of colour
+    # syntaxes (`#`, `rgb(`, `rgba(`) would skip a token written as `oklch()`,
+    # `hsl()` or `color-mix()` — and this package already uses `color-mix` in
+    # its layout file, so one such token in a palette block would slip the
+    # mirror silently: the same one-way blindness this walk was added to close.
+    not_colour = re.compile(r"^(-?[\d.]+(px|em|rem|svh|vh|vw|%|s|ms)?$|var\(|"
+                            r"['\"]|normal$|none$|inherit$|[\w-]+,)")
+    for opener, palette_name in ((":root {", "light"), ("body.dark {", "dark")):
+        for var, value in css_vars(css_block(css, opener)).items():
+            if not_colour.match(value.strip()):
+                continue
+            if var in mapped_vars or ladder_step.match(var):
+                continue
+            errors.append(
+                f"tokens/lumi-theme.css: --{var} ({palette_name}: {value}) is a "
+                f"colour design-tokens.json does not carry — the mirror runs "
+                f"both ways"
+            )
     errors.extend(_check_contrast_floor(tokens))
     return errors
 
@@ -1967,6 +1997,55 @@ def check_bootstrap():
     return errors
 
 
+def check_scaffold_slots():
+    """D14's scaffold-slot list and what the scaffold actually emits are one list.
+
+    `new_deck.py` hands an author a document that already renders, and the
+    price is furniture worded to be replaced. D14 refuses those strings, and
+    for one release it knew two of them — so an author who fixed both still
+    shipped a cover reading "One sentence saying what this is." The two files
+    cannot import each other (a deliverable grader may not depend on the
+    scaffold generator, and the generator already reads the fixture), so this
+    holds them together from outside, both ways:
+
+      · every string D14 lists must still appear in the scaffold — otherwise
+        it is a pattern guarding nothing, and the next reader trusts it;
+      · a scaffold with all of them substituted must leave D14 with nothing —
+        otherwise the scaffold has furniture the list has not learned.
+    """
+    import contextlib
+    import io
+
+    import check_design
+    import new_deck
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf), \
+            contextlib.redirect_stderr(io.StringIO()), \
+            contextlib.suppress(SystemExit):
+        new_deck.main(["--genre", "training", "--pages", "2"])
+    html = buf.getvalue()
+    if "<section" not in html:
+        return ["scripts/ops/new_deck.py emitted no scaffold, so D14's slot "
+                "list could not be held against it"]
+    errors = []
+    for slot in check_design.AUTHOR_FILL:
+        if slot not in html:
+            errors.append(
+                f"check_design.AUTHOR_FILL lists {slot!r}, which the scaffold "
+                f"no longer emits — a pattern guarding nothing")
+    filled = html
+    for slot in check_design.AUTHOR_FILL:
+        filled = filled.replace(slot, "filled in by the author")
+    left = check_design.d14_placeholders(filled)
+    if left:
+        errors.append(
+            f"the scaffold still trips D14 after every declared slot is "
+            f"substituted ({left[0]['text']!r} on {left[0]['page']}) — it "
+            f"emits furniture check_design.AUTHOR_FILL has not learned")
+    return errors
+
+
 CHECKS = (
     ("version stamps", check_versions),
     ("output default", check_output_default),
@@ -1993,6 +2072,7 @@ CHECKS = (
     ("secrets", check_secrets),
     ("script paths", check_script_paths),
     ("bootstrap", check_bootstrap),
+    ("scaffold slots", check_scaffold_slots),
 )
 
 
