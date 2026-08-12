@@ -35,13 +35,13 @@ CHANGELOG_OK = """# Changelog
 
 def _tree(tmp_path, gaps=GAP_OK, fm=FM_OK, ideas=IDEAS_OK,
           changelog=CHANGELOG_OK, script="x = 1\n"):
-    (tmp_path / "Pipeline").mkdir()
+    (tmp_path / "backlog").mkdir()
     (tmp_path / "scripts").mkdir()
     (tmp_path / "references").mkdir()
     (tmp_path / "specs").mkdir()
     (tmp_path / "KNOWN_GAPS.md").write_text(gaps)
     (tmp_path / "FAILURE_MODES.md").write_text(fm)
-    (tmp_path / "Pipeline/ideas-prd.md").write_text(ideas)
+    (tmp_path / "backlog/ideas-prd.md").write_text(ideas)
     (tmp_path / "CHANGELOG.md").write_text(changelog)
     (tmp_path / "scripts/x.py").write_text(script)
     (tmp_path / "references/rules.md").write_text("# rules\n")
