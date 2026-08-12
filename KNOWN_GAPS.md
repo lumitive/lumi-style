@@ -40,7 +40,7 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 - status: fixed
 - opened: 0.1.431
 - closed: 0.1.433
-- surface: scripts/run_conformance.py (report --record)
+- surface: scripts/ops/run_conformance.py (report --record)
 - symptom: conformance_fresh() is tested against hand-written rows, but
   nothing tests that `report --record` produces rows of that shape — the
   agent/task key split, the digest pinning, the idempotency claim. A
@@ -59,7 +59,7 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 - opened: 0.1.422
 - closed: 0.1.425
 - surface: scripts/check/inspect_layout.py, scripts/check/check_prose.py,
-  scripts/check/check_design.py, scripts/check/check_globe.py, scripts/run_conformance.py
+  scripts/check/check_design.py, scripts/check/check_globe.py, scripts/ops/run_conformance.py
 - symptom: the layout gates, full-deliverable prose/design modes, the globe's
   JS half and conformance runs need a browser or an operator; their results
   were recorded as sentences in release notes — claims, not evidence. 0.1.415

@@ -63,7 +63,7 @@ OBLIGATIONS: dict[str, tuple[str, str]] = {
         "the globe checks INCLUDING the browser half that CI cannot run",
     ),
     "conformance-freshness": (
-        "python3 scripts/run_conformance.py validate",
+        "python3 scripts/ops/run_conformance.py validate",
         "rule-surface releases keep the multi-agent scoreboard fresh "
         "(armed once conformance/history.json exists)",
     ),

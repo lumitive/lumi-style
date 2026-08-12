@@ -23,11 +23,11 @@ the whole risk:
 * **It does not run in CI.** No API keys, no network, no vendor SDKs. CI proves
   the package is well-formed and the gates fire; this proves neither.
 
-    python3 scripts/run_conformance.py validate     # tasks + registry parse (CI-safe)
-    python3 scripts/run_conformance.py detect       # which agent CLIs exist here
-    python3 scripts/run_conformance.py run          # invoke every detected agent
-    python3 scripts/run_conformance.py score --run DIR
-    python3 scripts/run_conformance.py report --run DIR [--run DIR ...]
+    python3 scripts/ops/run_conformance.py validate     # tasks + registry parse (CI-safe)
+    python3 scripts/ops/run_conformance.py detect       # which agent CLIs exist here
+    python3 scripts/ops/run_conformance.py run          # invoke every detected agent
+    python3 scripts/ops/run_conformance.py score --run DIR
+    python3 scripts/ops/run_conformance.py report --run DIR [--run DIR ...]
 
 `report` takes as many run directories as the operator has, and merges them.
 Building the board from one directory blanks every agent that directory does not
@@ -70,7 +70,8 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 from check_prose import GENRES  # noqa: E402
 from deliverable_registry import checker_path, kinds  # noqa: E402
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 REGISTRY = ROOT / "adapters" / "platforms.json"
 TASKS = ROOT / "conformance" / "tasks"
 RESULTS = ROOT / "conformance" / "results"

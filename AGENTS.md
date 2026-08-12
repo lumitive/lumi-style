@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.439.** This file restates part of `references/`; where they
+> **lumi-style 0.1.440.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -111,7 +111,7 @@ window's shape. **A deliverable is designed for ONE geometry and declares it**
 training leads A4 portrait, and **when the request settles neither the genre nor
 the format, ask before generating.** A second geometry is a second composition
 in its own file, never the same file viewed sideways. **Exports render at the stage**
-(`scripts/export_pdf.py`): PDF is vector, one page per `.page`; rasters take a
+(`scripts/ops/export_pdf.py`): PDF is vector, one page per `.page`; rasters take a
 device-pixel multiplier — **default 3 (4K from the landscape stage), floor 2
 (2K), refused below** — and the scale never changes the CSS stage, whose zoom
 adapts to the reader's window and pixel density natively. State the source once per page: on a single-figure page the line

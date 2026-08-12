@@ -17,9 +17,9 @@ python3 scripts/check/check_repo.py            # repo invariants; exit 1 on any 
 python3 scripts/check/check_prose.py <file>    # AI-flavor metrics (M4, M8-M11) on a deliverable
 python3 scripts/check/check_design.py <file>   # design metrics (D1-D17) on a deliverable
 python3 scripts/check/inspect_layout.py <file> # render a deliverable and report what the layout does
-python3 scripts/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
-python3 scripts/output_dir.py            # where a deliverable belongs; --create needs the user's say-so
-python3 scripts/new_deck.py              # emit a deck skeleton that already renders, in the standard order
+python3 scripts/ops/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
+python3 scripts/ops/output_dir.py            # where a deliverable belongs; --create needs the user's say-so
+python3 scripts/ops/new_deck.py              # emit a deck skeleton that already renders, in the standard order
 python3 scripts/build/embed_font.py            # @font-face block with the face inlined
 python3 scripts/build/embed_icons.py           # <symbol> sprite of the semantic icon set
 python3 scripts/build/build_geography.py       # regenerate assets/vectors/ from lat/lon data
@@ -35,12 +35,12 @@ python3 scripts/build/build_fixtures.py        # regenerate the tracked test fix
 python3 scripts/check/check_fixtures.py        # run the checkers against the fixtures and assert verdicts
 python3 scripts/check/check_js.py              # node --check over the 8 tracked .js files + 3 embedded probes
 python3 scripts/check/check_evidence.py        # --init | record --id X | --check: the evidence gate (see below)
-python3 scripts/review_scores.py         # the six human dimensions over time; --check validates
-python3 scripts/run_conformance.py       # validate | detect | run | score | report [--record] (runs are local)
+python3 scripts/ops/review_scores.py         # the six human dimensions over time; --check validates
+python3 scripts/ops/run_conformance.py       # validate | detect | run | score | report [--record] (runs are local)
 python3 -m pytest -q                     # the test suite under tests/; gates in CI
 python3 -m ruff check .                  # lint + the S security rules; gates in CI
 python3 -m mypy                          # type-check (check_untyped_defs floor); gates in CI
-bash    scripts/ci_wait.sh <PR>          # bounded wait, short-circuits on outage
+bash    scripts/ops/ci_wait.sh <PR>          # bounded wait, short-circuits on outage
 ```
 
 **The deliverable path is standard library only** — nothing in `scripts/`
@@ -155,7 +155,7 @@ Actions incident blocks merging for everyone. Do not wait it out by polling.
    `githubstatus.com/api/v2/components.json` answers whether waiting is worth
    anything. Polling a capacity-constrained service also adds to the load causing
    the outage.
-2. **Bound every wait.** `scripts/ci_wait.sh <PR>` does both of the above: it
+2. **Bound every wait.** `scripts/ops/ci_wait.sh <PR>` does both of the above: it
    short-circuits when Actions is degraded, and otherwise checks three times over
    about four minutes and then stops. Open-ended polling turns a service problem
    into a person problem — during the 2026-08-06 outage it consumed most of a
@@ -166,7 +166,7 @@ Actions incident blocks merging for everyone. Do not wait it out by polling.
    blocking on a queue nobody can drain.
 4. **A cancelled run is a symptom, not a verdict.** Re-run it once. If it is
    cancelled again during a declared incident, stop re-running.
-5. Merging anyway is `scripts/emergency_merge.sh <PR>`, which verifies the merge
+5. Merging anyway is `scripts/ops/emergency_merge.sh <PR>`, which verifies the merge
    result locally before it unlocks anything and restores protection on every
    exit path. It is the last resort, not the second.
 

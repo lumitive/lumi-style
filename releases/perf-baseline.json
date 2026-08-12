@@ -8,8 +8,8 @@
       "seconds": 0.15
     },
     {
-      "label": "bash -n scripts/emergency_merge.sh scripts/ci_wait.sh",
-      "command_sha256": "a33e0c953b55d8717d455cc90cdbb7df95b23274d8a0c2fabe67a2e6bfd4b442",
+      "label": "bash -n scripts/ops/emergency_merge.sh scripts/ops/ci_wait.sh",
+      "command_sha256": "21b64d5f007f8a08a49013508f2cdd4e0c33b0ce921adad3f472f8c2c7743b0e",
       "seconds": 0.01
     },
     {
@@ -30,92 +30,92 @@
     {
       "label": "python3 -m pytest -q",
       "command_sha256": "61adb62480de84d9ab140e02b0ebc3c11f941ab1f49ac245feebc76a1b61bc5f",
-      "seconds": 14.17
+      "seconds": 18.37
     },
     {
-      "label": "python3 scripts/check_js.py",
-      "command_sha256": "1d6e949f7856349a959159b8ac1c9a9ddbda473a34844975e6f4f94ca7a9f3e7",
-      "seconds": 0.78
+      "label": "python3 scripts/check/check_js.py",
+      "command_sha256": "e9632910f4adb5facf02a4d44374389666c50a1194762f28f71df8aa70d8326a",
+      "seconds": 0.73
     },
     {
-      "label": "python3 scripts/embed_font.py --check",
-      "command_sha256": "59efa308a792df46089f88ec862787a9324640ca67f8dc78ca3bb37ce904eea2",
+      "label": "python3 scripts/build/embed_font.py --check",
+      "command_sha256": "ae53386da5b62a48badd13531bddb539bfe1d50d249f7d1ee69f14b5f53597b8",
       "seconds": 0.04
     },
     {
-      "label": "python3 scripts/embed_icons.py --check",
-      "command_sha256": "d6a9dd409da914fa0ce99ee02cd47e82799c3678713d31c5e7d127c635bbcbe5",
-      "seconds": 0.13
+      "label": "python3 scripts/build/embed_icons.py --check",
+      "command_sha256": "8ef04b55ef4880561acd67d5997ca84d28584acf253fcbeb2bd09ac6a5854667",
+      "seconds": 0.12
     },
     {
-      "label": "python3 scripts/build_geography.py --check",
-      "command_sha256": "072d4a320d2311fa984c5bd268576b13f997ce4c3ac0007c2d6fa2f9cbd08fda",
+      "label": "python3 scripts/build/build_geography.py --check",
+      "command_sha256": "2abd192c362dfaf5653b54b8d53ca5e8f7611070257839a6e4c8a5e03e8cd3b3",
       "seconds": 0.06
     },
     {
-      "label": "python3 scripts/build_worldmap.py --check",
-      "command_sha256": "a7b6bf49e58309fdb5626c852675092d683155bc5e817ce07924c382d1c70b17",
+      "label": "python3 scripts/build/build_worldmap.py --check",
+      "command_sha256": "9f49a617b9f97951f173743a21b4616dbd8038b45121e1e1f134670f0a3f99d1",
       "seconds": 0.09
     },
     {
-      "label": "python3 scripts/build_brand.py --check",
-      "command_sha256": "d2742866f5a75076a8d80817f1c98662e602433796d092efc5f11fab1c9c1e7b",
-      "seconds": 0.22
+      "label": "python3 scripts/build/build_brand.py --check",
+      "command_sha256": "b453a48fe2abbd4ececd6808ebe5781ee948e9587924e1e5a2b09d66f26fd269",
+      "seconds": 0.2
     },
     {
-      "label": "python3 scripts/build_trade_registry.py --check",
-      "command_sha256": "631a97aea9b4cf9b5f9ddf28025783ce0ede1f2bd28d7b6dd479f75dcc0899fe",
+      "label": "python3 scripts/build/build_trade_registry.py --check",
+      "command_sha256": "9c65424dd69c2fabeb472a31d8b930a4a0849e5f97497026eb310ea926354455",
+      "seconds": 0.05
+    },
+    {
+      "label": "python3 scripts/build/build_region_palette.py --check",
+      "command_sha256": "303a25b60fb68dc6b0f9daa799ac813f17eb6df888d2dd517ae7a58571336c1a",
+      "seconds": 0.34
+    },
+    {
+      "label": "python3 scripts/check/check_globe.py --python-only --node",
+      "command_sha256": "eeef970134862094da034870dd315f700aaf0dc55e6dd1bdda6aa19f1624513b",
+      "seconds": 5.97
+    },
+    {
+      "label": "python3 scripts/build/embed_globe.py --check",
+      "command_sha256": "0eba742902075b0ac8c25e6214ea4551767c6980f09d00bfb5485f19e3afe8e9",
       "seconds": 0.06
     },
     {
-      "label": "python3 scripts/build_region_palette.py --check",
-      "command_sha256": "59388f192b636f63f36c43e06b547ff5e5fca737301a0be68cd2508e520d47c1",
-      "seconds": 0.35
+      "label": "python3 scripts/build/embed_regionmap.py --check",
+      "command_sha256": "c3f351f8ca8a6890a4ec554bcf68186ecc6ef0c2ce956fa89d89cca6b42b6eae",
+      "seconds": 0.05
     },
     {
-      "label": "python3 scripts/check_globe.py --python-only --node",
-      "command_sha256": "b8ac05e1aec00d200d973cd590e0448c18b8fbaecbc86c8b63fdf604c6fe8053",
-      "seconds": 6.18
+      "label": "python3 scripts/build/build_entrypoints.py --check",
+      "command_sha256": "b2409e087ef2489db095c2e34f4e7a6ea1714682c98fd8ef92f5bf9cd9477c7c",
+      "seconds": 0.05
     },
     {
-      "label": "python3 scripts/embed_globe.py --check",
-      "command_sha256": "b0b1b9a89119e222d4009ccb7bc7a03796877639fcbc66918eb142203a29b576",
+      "label": "python3 scripts/build/build_fixtures.py --check",
+      "command_sha256": "646c8168ca765308ff9bac08a67f82ed139bb0607d04d6f04ae2c60698eb7529",
       "seconds": 0.06
     },
     {
-      "label": "python3 scripts/embed_regionmap.py --check",
-      "command_sha256": "5736ff0efbc60afdc83381b68892eba7c16f7ec0b68434e7eb8337ac87755487",
-      "seconds": 0.06
+      "label": "python3 scripts/check/check_fixtures.py",
+      "command_sha256": "517e43fb30004c5109b8e010a362419b454f66571ba3c67fe40db073d30a0e19",
+      "seconds": 118.36
     },
     {
-      "label": "python3 scripts/build_entrypoints.py --check",
-      "command_sha256": "89f8ea1ae1c907baa5d43a1b28570b779a9bfa7de7be5fa0c4de510dc898dcae",
-      "seconds": 0.06
+      "label": "python3 scripts/ops/run_conformance.py validate",
+      "command_sha256": "f6cdf2a1cd01c9ec3827192bf0ab10e0060b500595373dc9672b99c62b103f20",
+      "seconds": 0.07
     },
     {
-      "label": "python3 scripts/build_fixtures.py --check",
-      "command_sha256": "76713527b30caf039ba1b35fefbc4f6a14a257dd1afb92d45ffdd5437317dea5",
-      "seconds": 0.06
+      "label": "python3 scripts/check/check_evidence.py --check",
+      "command_sha256": "f326706d185b49222df9c51639a25688525d1439ebd30e1bf72aae09bbc4460d",
+      "seconds": 0.2
     },
     {
-      "label": "python3 scripts/check_fixtures.py",
-      "command_sha256": "1522017a2314fd8b46ef95ef9fb4cdbfd81e4527213b0ce7c8ecc9f65ed3213f",
-      "seconds": 120.78
-    },
-    {
-      "label": "python3 scripts/run_conformance.py validate",
-      "command_sha256": "42c0e5c41150282dd7b47cf87cd8700f2ecd0a81f910ba894753dbccf1782926",
-      "seconds": 0.08
-    },
-    {
-      "label": "python3 scripts/check_evidence.py --check",
-      "command_sha256": "b89cc1c57e5cb30642f52b5f0ec0ae5d110d2a2736c269f4731c9fa4c821f1a3",
-      "seconds": 0.19
-    },
-    {
-      "label": "python3 scripts/check_repo.py",
-      "command_sha256": "ea76bd5acd0ae95c974a6bed333e3df9f4d2e1fae8fc8917e5425883ab420ceb",
-      "seconds": 0.9
+      "label": "python3 scripts/check/check_repo.py",
+      "command_sha256": "0a6bb83c3890c2f36e51e3468a8d93eb90edf821b9aebc90a1a4daa2a6012c65",
+      "seconds": 1.03
     }
   ]
 }

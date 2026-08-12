@@ -36,7 +36,7 @@ jobs:
       # and a glob cannot rot. -f forces recompile so a cached .pyc can never
       # mask a fresh syntax error.
       - run: python3 -m compileall -q -f scripts/
-      - run: bash -n scripts/emergency_merge.sh scripts/ci_wait.sh
+      - run: bash -n scripts/ops/emergency_merge.sh scripts/ops/ci_wait.sh
       # Dev tools, pinned in requirements-dev.txt so local (via preflight) and
       # CI always lint with the same versions. The DELIVERABLE path stays
       # zero-dependency: nothing in scripts/ imports any of these at runtime.
@@ -76,7 +76,7 @@ jobs:
       - run: python3 scripts/check/check_fixtures.py
       # Parses the suite only. It cannot invoke an agent — no keys, no
       # network, no vendor SDKs — and must never look as though it did.
-      - run: python3 scripts/run_conformance.py validate
+      - run: python3 scripts/ops/run_conformance.py validate
       # What CI cannot execute must be recorded as an execution, not a
       # sentence (GAP-002, closed 0.1.425). Red since 0.1.425 after one
       # warn-only release proved every failure shape fires.

@@ -727,7 +727,7 @@ A layout is verified only across the **matrix**, not at a point:
   gives two 370px gutters, so a page that is a split in landscape usually wants a
   different structure in portrait. Collapsing every horizontal layout at a width
   breakpoint is not a portrait design; it is the landscape design giving up.
-- **Export axis** (owner directive 2026-08-09). `scripts/export_pdf.py` renders
+- **Export axis** (owner directive 2026-08-09). `scripts/ops/export_pdf.py` renders
   a deliverable at the stage geometry: **PDF** as one vector page per `.page`
   (no resolution to pick), and **page rasters** at `--scale` device pixels per
   CSS pixel — **default 3, which is 4K from the landscape stage (3840×2160);
@@ -759,7 +759,7 @@ A layout is verified only across the **matrix**, not at a point:
   that share a stem there do not sit politely side by side: `export_pdf.py`
   refuses the second export rather than overwrite the first.
 
-  `scripts/output_dir.py` resolves the path for an agent that can run it —
+  `scripts/ops/output_dir.py` resolves the path for an agent that can run it —
   Windows redirects and localizes the Documents folder, so `~/Documents` is a
   guess there rather than an answer. It is a convenience, never the authority:
   the rule above is a literal path a `prompt`-tier model can write down unaided,

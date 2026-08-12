@@ -22,7 +22,7 @@ CLOSURE = ("check/check_repo.py", "lib/color_math.py", "lib/css_tokens.py",
 
 
 def test_closure_list_matches_the_shell_script():
-    text = (ROOT / "scripts" / "emergency_merge.sh").read_text(encoding="utf-8")
+    text = (ROOT / "scripts" / "ops" / "emergency_merge.sh").read_text(encoding="utf-8")
     for name in CLOSURE:
         assert name.split("/")[-1] in text, (name, "missing from emergency_merge.sh — the "
                               "closure lists must not drift apart")

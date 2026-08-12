@@ -9,9 +9,9 @@ routinely redirected to OneDrive and localized into another language, so
 `~/Documents` is a guess rather than an answer. On macOS it is the answer, and on
 Linux the XDG user-dirs file is consulted first for the same reason.
 
-    python3 scripts/output_dir.py            # print the path and whether it exists
-    python3 scripts/output_dir.py --create   # create it — only with the user's say-so
-    python3 scripts/output_dir.py --path     # the bare path, for a shell to consume
+    python3 scripts/ops/output_dir.py            # print the path and whether it exists
+    python3 scripts/ops/output_dir.py --create   # create it — only with the user's say-so
+    python3 scripts/ops/output_dir.py --path     # the bare path, for a shell to consume
 
 **Creating the directory needs the user's authorization** (owner directive,
 2026-08-09), which is why `--create` exists and why nothing here makes a folder
@@ -145,7 +145,7 @@ def main(argv):
     print(f"ok    {target}")
     if not target.is_dir():
         print("      does not exist yet — ask the user, then "
-              "`python3 scripts/output_dir.py --create`")
+              "`python3 scripts/ops/output_dir.py --create`")
     return 0
 
 

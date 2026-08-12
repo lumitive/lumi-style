@@ -285,8 +285,9 @@ def test_source_marker_parity_script_inventing_a_marker_fails(tmp_path, monkeypa
 
 def _scores_tree(tmp_path, overrides=None):
     scripts = tmp_path / "scripts"
-    scripts.mkdir()
-    shutil.copyfile(REAL_SCRIPTS / "review_scores.py", scripts / "review_scores.py")
+    (scripts / "ops").mkdir(parents=True)
+    shutil.copyfile(REAL_SCRIPTS / "ops" / "review_scores.py",
+                    scripts / "ops" / "review_scores.py")
     (tmp_path / "CHANGELOG.md").write_text("## 0.1.1\n\n- first.\n", encoding="utf-8")
     record = {"release": "0.1.1", "genre": "sales",
               "self": dict.fromkeys(DIMS, 4), "reader": dict.fromkeys(DIMS, 4),

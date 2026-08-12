@@ -1,7 +1,7 @@
 #!/bin/bash
 # Bounded wait on a PR's required check, with an outage short-circuit.
 #
-#   bash scripts/ci_wait.sh <PR-NUMBER>
+#   bash scripts/ops/ci_wait.sh <PR-NUMBER>
 #
 # Exit codes:
 #   0  check passed
@@ -27,7 +27,7 @@
 set -uo pipefail
 
 REPO=lumitive/lumi-style
-PR="${1:?usage: bash scripts/ci_wait.sh <PR-NUMBER>}"
+PR="${1:?usage: bash scripts/ops/ci_wait.sh <PR-NUMBER>}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "==> GitHub Actions status"
@@ -52,13 +52,13 @@ if [ "$STATUS" != "operational" ] && [ "$STATUS" != "unknown" ]; then
   echo "    Verifying locally instead — this answers whether the change is good,"
   echo "    which is a different question from whether the merge button is unlocked."
   echo
-  python3 "$SCRIPT_DIR/check/check_repo.py"
+  python3 "$SCRIPT_DIR/../check/check_repo.py"
   RC=$?
   echo
   if [ "$RC" -eq 0 ]; then
     echo "    Local checks pass. The change is verified; only the gate is blocked."
     echo "    Options: wait for the incident to clear, or merge through"
-    echo "             bash scripts/emergency_merge.sh $PR"
+    echo "             bash scripts/ops/emergency_merge.sh $PR"
   else
     echo "    Local checks FAIL. Fix these first; the outage is not your problem yet."
   fi

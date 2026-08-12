@@ -5,7 +5,7 @@
 # admins too, so nobody can merge while Actions is down. This opens that lock for
 # one merge and closes it again.
 #
-#   Usage:  bash scripts/emergency_merge.sh <PR-NUMBER>
+#   Usage:  bash scripts/ops/emergency_merge.sh <PR-NUMBER>
 #
 # Exit codes (a caller must be able to tell these apart):
 #   0  merged, protection restored
@@ -39,14 +39,14 @@
 set -uo pipefail
 
 REPO=lumitive/lumi-style
-PR="${1:?usage: bash scripts/emergency_merge.sh <PR-NUMBER>}"
+PR="${1:?usage: bash scripts/ops/emergency_merge.sh <PR-NUMBER>}"
 PROT="repos/$REPO/branches/main/protection/enforce_admins"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TRUSTED_CHECK="$SCRIPT_DIR/check/check_repo.py"
+TRUSTED_CHECK="$SCRIPT_DIR/../check/check_repo.py"
 # check_repo's non-stdlib import closure. Every file here must itself be
 # pure-stdlib (verified; a sibling gaining a third-party import would fail
 # loudly under SAFEPATH, never silently widen this list).
-TRUSTED_CLOSURE=("$SCRIPT_DIR/lib/color_math.py" "$SCRIPT_DIR/lib/css_tokens.py" "$SCRIPT_DIR/lib/lock.py" "$SCRIPT_DIR/lib/deliverable_registry.py")
+TRUSTED_CLOSURE=("$SCRIPT_DIR/../lib/color_math.py" "$SCRIPT_DIR/../lib/css_tokens.py" "$SCRIPT_DIR/../lib/lock.py" "$SCRIPT_DIR/../lib/deliverable_registry.py")
 UNLOCKED=0
 RESTORE_FAILED=0
 WORK=""
