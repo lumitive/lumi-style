@@ -32,5 +32,27 @@
       "T1-deck": "fail"
     },
     "scores_sha256": "8fe51a5a6a409e47eb4962c5c1dc51dc084302051afb3845aab66900dd64e013"
+  },
+  {
+    "skill_version": "0.1.433",
+    "agent": "cursor",
+    "date": "2026-08-12",
+    "run_dir": "conformance/results/cursor-20260813",
+    "tasks": {
+      "T1-deck": "pass"
+    },
+    "scores_sha256": "fabd20bbe1519b1a992ead1b29b1c256579aae513624676b08feb25be8e6ff2a"
+  },
+  {
+    "skill_version": "0.1.433",
+    "agent": "claude-code",
+    "date": "2026-08-12",
+    "run_dir": "conformance/results/claude-code-20260813",
+    "tasks": {
+      "T1-deck": "pass",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "e188526b64ea15b4a2115fd3be6fbd4a65f9cb7c8dc78dc38e65a6790877bee6"
   }
 ]
