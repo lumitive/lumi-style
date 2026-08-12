@@ -3,6 +3,57 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.447 — the mark gets its colours back, the sheet gets its voice, and the table finally ships
+
+Second round of the owner review, on the rebuilt handbook
+(spec: `specs/2026-08-12-owner-review-retrospective-design.md`, decisions D2
+and D5 extended). Five reports; two of them opened repository faults larger
+than the page that showed them.
+
+**The brand mark was embedded with its component rules thrown away.** 0.1.443's
+`brand_globe()` stripped the vendored globe's entire `<style>`, reasoning that
+"the document's token block paints the classes". It does not: the `.gl-*`
+rendering and the `.trade` region palette live in that block and nowhere in
+`tokens/`, so every trade region filled with the UA default and the owner
+asked where the colours went. The strip is now surgical — only the blocks
+that would redefine the HOST's palette (`:root`, `body.dark`, `.dark`) come
+out, and a comma inside the prose above a selector no longer hides it from
+the stripper. All eight blocs paint again, at the component's own 42%.
+
+**D4 could see one of this package's two region palettes.**
+`region-palette.css` declares on `:root` and passed; `region-palette-trade.css`
+declares the same kind of generated values on `.trade` and every one of its
+fifty hexes read as a stray literal — on documents that had done exactly what
+`SKILL.md` tells an author to do. A shipped deliverable in the workspace had
+been failing D4 on all fifty since it was built, and nothing had looked. The
+token-block list now matches what `tokens/` ships; four tests hold both
+directions (a `.trade` value is not a literal, a real stray still fires).
+
+**`tokens/` shipped no table.** "A table is for values" and "comparisons
+always use tables" have been rules since 1.2, and the token files styled no
+table at all — three deliverables in one workspace each hand-wrote the same
+block at three different type sizes, and a document built from the tokens
+alone rendered browser defaults on the pages the rules push hardest toward
+tables. FM-11 at its largest. The reviewed rendering is promoted, and with it
+the feedback table's scale column: `1 · 2 · 3 · 4 · 5` had broken across two
+lines, which reads as two ranges to a reader circling a number (BUG#2).
+
+**The sheet was set as a smaller slide.** 0.1.443 scaled the portrait display
+tiers down by the stage ratio — opener 50, cover 42 — and the owner read the
+result as flat beside a 16:9 deck at 80/58. A cover and a part opener exist to
+land one statement, so the sheet now takes the SAME ink as the slide (72/58)
+and gains impact from the narrower measure; content titles do not move,
+because a content page's job is its evidence. The mark's ceiling follows from
+34svh to 44svh — the brand README forbids restyling a mark from outside, so
+what changes is its size, never its ink. Measured: 55px above the mark, 50px
+below the attribute strip, no page over its box, on both marked pages.
+
+**Two block renderings corrected from the page.** The vow's ordinal now sits
+on its title's line — stacked, it put four orphaned two-digit fragments down
+a page instead of a numbered set — and the card carries `--card-bg`, opaque
+in both palettes, because the page's ground ran its waterline straight
+through the one block whose job is to hold a self-contained answer.
+
 ## 0.1.446 — the owner's hunch about 16:9 proportion measures out, and the rule gets its receipts
 
 The 0.1.442 review's item 8 was a suspicion stated without evidence — figures

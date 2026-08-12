@@ -75,20 +75,66 @@ FIXTURE = ROOT / "fixtures" / "deck-pass.en.html"
 BRAND_GLOBE = ROOT / "assets" / "brand" / "lumivate" / "globe-field.svg"
 
 
+# The selectors inside a vendored mark's style block that carry a DOCUMENT
+# palette rather than the component's own rendering. Inline SVG shares the
+# host document's style scope, so these would silently redefine the host's
+# tokens; everything else in that block is the component and must survive.
+PALETTE_SELECTORS = (":root", "body.dark", ".dark")
+
+
+def _strip_palette(style):
+    """Drop the palette blocks from a vendored component's CSS, keep the rest.
+
+    The first cut of this dropped the ENTIRE `<style>` element, on the reading
+    that "the document's token block paints the classes". It does not: the
+    globe's own `.gl-*` rules and its `.trade` region palette live in that
+    block and nowhere in `tokens/`, so stripping it left every trade region
+    filling with the UA default — black — and the land unfilled. The region
+    palette file says this failure in its own header ("a palette nobody could
+    use… every check passed, because none reads rendered colour"), and the
+    0.1.442 review found it again from the other side: the owner asked where
+    the trade-region colours went.
+    """
+    out, i = [], 0
+    while i < len(style):
+        brace = style.find("{", i)
+        if brace == -1:
+            out.append(style[i:])
+            break
+        selector = style[i:brace].strip().lstrip("}").strip()
+        depth, j = 1, brace + 1
+        while depth and j < len(style):
+            depth += 1 if style[j] == "{" else -1 if style[j] == "}" else 0
+            j += 1
+        # Comments first, THEN the split: these blocks are documented in prose
+        # above them, and a comma inside that prose cut the selector mid-comment
+        # so `:root` read as commentary and survived.
+        selector = re.sub(r"/\*.*?\*/", " ", selector, flags=re.S)
+        first = selector.split(",")[0].strip().split("\n")[-1].strip()
+        if first not in PALETTE_SELECTORS:
+            out.append(style[i:j])
+        i = j
+    return "".join(out)
+
+
 def brand_globe():
     """The LUMIVATE field globe, prepared for embedding in a document.
 
     The default cover/closing mark (owner directive, 0.1.442 review: a
     deliverable shipped a fresh anonymous render instead of the brand). The
     vendored file is the standalone published form and carries its own
-    `<style>` block; INLINE SVG SHARES THE DOCUMENT'S STYLE SCOPE, so embedded
-    as-is that block would redefine the document's tokens globally. The
-    document's own token block paints the classes, so the style is stripped
-    and nothing else is touched — the lock in assets/brand/LOCKED.json holds
-    the file, not this embedding.
+    `<style>` block, which holds two different things: the component's own
+    rendering (`.gl-*` and the `.trade` region palette, which exist nowhere
+    else) and a copy of the document palette. Only the second is stripped —
+    inline SVG shares the host's style scope, so a vendored `:root` would
+    redefine the host's tokens, while the component's rules are exactly what
+    makes the mark render. The lock in assets/brand/LOCKED.json holds the
+    file; this prepares a copy for embedding and changes nothing on disk.
     """
     src = BRAND_GLOBE.read_text(encoding="utf-8")
-    return re.sub(r"<style>.*?</style>", "", src, count=1, flags=re.S)
+    return re.sub(r"<style>(.*?)</style>",
+                  lambda m: "<style>" + _strip_palette(m.group(1)) + "</style>",
+                  src, count=1, flags=re.S)
 
 GENRES = ("sales", "consulting", "internal", "training")
 

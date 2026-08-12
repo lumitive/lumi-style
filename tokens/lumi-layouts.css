@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.446 (2026-08-12)
+   LUMI page layouts · v0.1.447 (2026-08-12)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -431,10 +431,20 @@ svg .dash { stroke-dasharray: 4 3; }
    that undoes it is the same defect as a font-size that exists only there. */
 .duo { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
 
-/* The card: a small bordered block with a name and a body. */
+/* The card: a small bordered block with a name and a body.
+
+   IT CARRIES ITS OWN OPAQUE SURFACE. Every page draws a ground — water and
+   light behind the composition — and a card with no background let the
+   waterline run straight through its text, which reads as interference over
+   the one block whose job is to hold a self-contained answer (owner review,
+   0.1.446 optimisation 3). `--card-bg` is the token for exactly this: a
+   surface a hair off the canvas, opaque in both palettes, so the card sits ON
+   the page rather than in it. The tier-1 callout has had its wash since it
+   shipped; this is the same idea for the block that had none. */
 .card {
   display: flex; flex-direction: column; gap: 10px;
   border: 1px solid var(--ln1); padding: 16px 18px;
+  background: var(--card-bg);
 }
 .ledname {
   font-family: var(--din); font-size: var(--fs-support); font-weight: 700;
@@ -472,13 +482,51 @@ svg .dash { stroke-dasharray: 4 3; }
 .swap .arw { font-family: var(--mono); color: var(--tx4); }
 
 /* The vow: a numbered commitment, read as a set. */
+/* THE NUMBER SITS ON THE TITLE'S LINE, and the wording hangs under both. The
+   number is an ordinal for its title — "02 · Provenance is retained" is one
+   statement — and stacking it above put a lone two-digit fragment on its own
+   line four times a page, which reads as four orphaned numbers rather than a
+   numbered set (owner review, 0.1.446 optimisation 2). Baseline alignment,
+   not centre: the mono numeral and the title sit on one line of type. */
 .vows { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
-.vow { display: flex; flex-direction: column; gap: 6px; }
+.vow { display: grid; grid-template-columns: auto 1fr;
+       column-gap: 10px; row-gap: 6px; align-items: baseline; }
 .vn { font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .12em;
       color: var(--acc); }
-.vt { font-size: var(--fs-fig-title); font-weight: 700; line-height: 1.35;
-      color: var(--tx1); margin: 0; }
-.vw { font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2); margin: 0; }
+.vt { grid-column: 2; font-size: var(--fs-fig-title); font-weight: 700;
+      line-height: 1.35; color: var(--tx1); margin: 0; }
+.vw { grid-column: 2; font-size: var(--fs-fig-title); line-height: 1.5;
+      color: var(--tx2); margin: 0; }
+
+/* ── the table (0.1.447) ────────────────────────────────────────────────────
+   "A table is for values" and "comparisons always use tables" are rules this
+   package has shipped since 1.2 — and until now `tokens/` styled no table at
+   all. Three deliverables in this workspace each hand-wrote the same block in
+   their own DOC_CSS, at three different type sizes, and a document built from
+   the tokens alone rendered browser-default tables on the pages the rules push
+   hardest toward tables. FM-11 at its largest: the mandated pattern with no
+   shipped rendering. The values below are the reviewed ones, promoted.
+
+   Values, hairline rows, no chrome: chart iron rule 3 bans gridlines and
+   borders, and a table is a chart made of glyphs. */
+table { border-collapse: collapse; width: 100%; font-size: var(--fs-fig-title);
+        font-variant-numeric: tabular-nums; }
+th { font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .14em;
+     text-align: left; text-transform: uppercase; color: var(--tx3);
+     font-weight: 400; padding: 0 14px 8px 0; border-bottom: 1px solid var(--ln1);
+     vertical-align: bottom; }
+td { padding: 9px 14px 9px 0; border-bottom: 1px solid var(--ln2);
+     vertical-align: top; color: var(--tx2); line-height: 1.5; }
+td.rh { color: var(--tx1); }                 /* the row's own subject */
+td:last-child, th:last-child { padding-right: 0; }
+tr.acc td.rh { color: var(--acc); }
+/* THE FEEDBACK TABLE'S LAST COLUMN IS A SCALE, AND A SCALE IS ONE TOKEN.
+   `1 · 2 · 3 · 4 · 5` broken across two lines reads as two ranges, so a reader
+   circling a number cannot tell what they are circling — and its header
+   ("Your score") wrapped with it (owner review, 0.1.446, BUG#2). The scoring
+   page is a shipped pattern (storyline-templates 11), so its rendering ships
+   here rather than in each document. */
+table.score td:last-child, table.score th:last-child { white-space: nowrap; }
 
 /* The caveat column. Its type was set twice in portrait — `li` at 12px, a table
    at 11.5px — and never in base, so the column had no voice of its own until a
@@ -1137,12 +1185,20 @@ body[data-geometry="portrait"] .body.sidebar-notes > div:not(.spec):not(.band):n
    their own values here: what the old viewport-relative clamps resolved to at
    this stage, now fixed so the window cannot move them (v0.1.382). */
 body[data-geometry="portrait"] {
-  --fs-display: 50px;
-  /* The cover keeps its rank below the opener on the sheet too: a 34-page
-     portrait review shipped its cover title at the landscape 58px because this
-     block never overrode it — the theme file's comment claimed it did. 42 holds
-     the same step under the 50px opener that 58 holds under 80. */
-  --fs-cover:   42px;
+  /* THE SHEET IS NARROWER, NOT QUIETER. 0.1.443 set these by holding the
+     landscape ratios against a smaller stage — opener 50, cover 42 — and the
+     owner read the result as flat beside a 16:9 deck whose opener carries 80
+     and whose cover carries 58 (0.1.446 review, optimisation 1). A cover and
+     a part opener are the two pages that exist to land one statement, so the
+     sheet gives them the SAME ink as the slide and gains impact from the
+     narrower measure rather than losing it. Measured at 794x1123 on a 34-page
+     handbook: the cover's stack clears the footer by 78px with the mark at its
+     34svh ceiling, the opener's claim still sets on one line, and no page
+     exceeds its box. The rank below still holds — a cover sets under an
+     opener, here as there. Content titles are NOT in this move: `--fs-title`
+     stays 26, because a content page's job is its evidence. */
+  --fs-display: 72px;
+  --fs-cover:   58px;
   --fs-title:   26px;
   --fs-band-value: 30px;
   --fs-lead:    40px;
@@ -1234,10 +1290,14 @@ body[data-geometry="portrait"] .body.cover-grid { grid-template-columns: 1fr; gr
    on the attrs column below it (measured: a 2px overlap on the fixture's own
    cover, which is how this rule got here). */
 /* The sheet keeps its own ceiling — a portrait cover gives the mark a band
-   rather than a column, and 34svh is what leaves room for the stack beneath
-   it. The margin and transform overrides are gone because the landscape rule
-   no longer sets them. */
-body[data-geometry="portrait"] .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 34svh; }
+   rather than a column. 34svh was that band when the cover title set at 42px;
+   with the title at 58 (0.1.446 review) the mark read as a small pale disc
+   under a large headline instead of the field the typography sits against,
+   and the brand README forbids the other lever — a mark restyled by its host
+   is not a mark, so what moves is its SIZE, never its ink. Measured at
+   794x1123 on a 34-page handbook: 44svh leaves 55px above the mark and 50px
+   between the attribute strip and the footer rule, with no page over its box. */
+body[data-geometry="portrait"] .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 44svh; }
 body[data-geometry="portrait"] .page.opener .openframe { gap: 18px; }
 body[data-geometry="portrait"] .duo { grid-template-columns: 1fr; gap: 16px; }
 /* Figures are drawn twice. A 2.4:1 chain in a 0.8:1 cell fills a third of it,

@@ -93,6 +93,38 @@ def test_d13_lime_with_its_own_dark_chip_passes():
     assert check_design.d13_lime_never_light_text(css, {}, "light") == []
 
 
+# d4 — which blocks this package's tokens actually live in.
+
+def _doc_css(css):
+    return f"<html><head><style>{css}</style></head><body>" \
+           f'<section class="page" id="p1"><div class="body">x</div>{FOOT}' \
+           f"</section></body></html>"
+
+
+def test_d4_root_tokens_are_not_literals():
+    assert check_design.d4_palette(_doc_css(":root { --acc: #48633E; }")) == []
+
+
+def test_d4_trade_palette_is_a_token_block():
+    # region-palette-trade.css declares on `.trade`, not `:root` — the same
+    # kind of generated palette as its sibling, and D4 read all fifty of its
+    # values as stray literals until 0.1.447.
+    css = (".trade { --rg-eu: #5FB0A0; --rg-eu-stroke: #396F64; }\n"
+           "body.dark .trade { --rg-eu: #63B6A7; }")
+    assert check_design.d4_palette(_doc_css(css)) == []
+
+
+def test_d4_still_catches_a_literal_outside_the_token_blocks():
+    css = ":root { --acc: #48633E; }\n.fig rect { fill: #FF0000; }"
+    assert check_design.d4_palette(_doc_css(css)) == ["#FF0000"]
+
+
+def test_d4_catches_a_literal_in_markup_too():
+    raw = _doc_css(":root { --acc: #48633E; }").replace(
+        "<div class=\"body\">x</div>", '<div class="body"><svg><rect fill="#123456"/></svg></div>')
+    assert check_design.d4_palette(raw) == ["#123456"]
+
+
 def test_d13_chip_must_be_in_the_same_rule():
     # An ancestor providing the backing is not the carve-out: the pairing has
     # to be inseparable from the colour or the check cannot see it.

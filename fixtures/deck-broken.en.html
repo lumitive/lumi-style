@@ -295,7 +295,7 @@ body.dark {
   --d-teal:    #3FA98C;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.446 (2026-08-12)
+   LUMI page layouts · v0.1.447 (2026-08-12)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -727,10 +727,20 @@ svg .dash { stroke-dasharray: 4 3; }
    that undoes it is the same defect as a font-size that exists only there. */
 .duo { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
 
-/* The card: a small bordered block with a name and a body. */
+/* The card: a small bordered block with a name and a body.
+
+   IT CARRIES ITS OWN OPAQUE SURFACE. Every page draws a ground — water and
+   light behind the composition — and a card with no background let the
+   waterline run straight through its text, which reads as interference over
+   the one block whose job is to hold a self-contained answer (owner review,
+   0.1.446 optimisation 3). `--card-bg` is the token for exactly this: a
+   surface a hair off the canvas, opaque in both palettes, so the card sits ON
+   the page rather than in it. The tier-1 callout has had its wash since it
+   shipped; this is the same idea for the block that had none. */
 .card {
   display: flex; flex-direction: column; gap: 10px;
   border: 1px solid var(--ln1); padding: 16px 18px;
+  background: var(--card-bg);
 }
 .ledname {
   font-family: var(--din); font-size: var(--fs-support); font-weight: 700;
@@ -768,13 +778,51 @@ svg .dash { stroke-dasharray: 4 3; }
 .swap .arw { font-family: var(--mono); color: var(--tx4); }
 
 /* The vow: a numbered commitment, read as a set. */
+/* THE NUMBER SITS ON THE TITLE'S LINE, and the wording hangs under both. The
+   number is an ordinal for its title — "02 · Provenance is retained" is one
+   statement — and stacking it above put a lone two-digit fragment on its own
+   line four times a page, which reads as four orphaned numbers rather than a
+   numbered set (owner review, 0.1.446 optimisation 2). Baseline alignment,
+   not centre: the mono numeral and the title sit on one line of type. */
 .vows { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
-.vow { display: flex; flex-direction: column; gap: 6px; }
+.vow { display: grid; grid-template-columns: auto 1fr;
+       column-gap: 10px; row-gap: 6px; align-items: baseline; }
 .vn { font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .12em;
       color: var(--acc); }
-.vt { font-size: var(--fs-fig-title); font-weight: 700; line-height: 1.35;
-      color: var(--tx1); margin: 0; }
-.vw { font-size: var(--fs-fig-title); line-height: 1.5; color: var(--tx2); margin: 0; }
+.vt { grid-column: 2; font-size: var(--fs-fig-title); font-weight: 700;
+      line-height: 1.35; color: var(--tx1); margin: 0; }
+.vw { grid-column: 2; font-size: var(--fs-fig-title); line-height: 1.5;
+      color: var(--tx2); margin: 0; }
+
+/* ── the table (0.1.447) ────────────────────────────────────────────────────
+   "A table is for values" and "comparisons always use tables" are rules this
+   package has shipped since 1.2 — and until now `tokens/` styled no table at
+   all. Three deliverables in this workspace each hand-wrote the same block in
+   their own DOC_CSS, at three different type sizes, and a document built from
+   the tokens alone rendered browser-default tables on the pages the rules push
+   hardest toward tables. FM-11 at its largest: the mandated pattern with no
+   shipped rendering. The values below are the reviewed ones, promoted.
+
+   Values, hairline rows, no chrome: chart iron rule 3 bans gridlines and
+   borders, and a table is a chart made of glyphs. */
+table { border-collapse: collapse; width: 100%; font-size: var(--fs-fig-title);
+        font-variant-numeric: tabular-nums; }
+th { font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .14em;
+     text-align: left; text-transform: uppercase; color: var(--tx3);
+     font-weight: 400; padding: 0 14px 8px 0; border-bottom: 1px solid var(--ln1);
+     vertical-align: bottom; }
+td { padding: 9px 14px 9px 0; border-bottom: 1px solid var(--ln2);
+     vertical-align: top; color: var(--tx2); line-height: 1.5; }
+td.rh { color: var(--tx1); }                 /* the row's own subject */
+td:last-child, th:last-child { padding-right: 0; }
+tr.acc td.rh { color: var(--acc); }
+/* THE FEEDBACK TABLE'S LAST COLUMN IS A SCALE, AND A SCALE IS ONE TOKEN.
+   `1 · 2 · 3 · 4 · 5` broken across two lines reads as two ranges, so a reader
+   circling a number cannot tell what they are circling — and its header
+   ("Your score") wrapped with it (owner review, 0.1.446, BUG#2). The scoring
+   page is a shipped pattern (storyline-templates 11), so its rendering ships
+   here rather than in each document. */
+table.score td:last-child, table.score th:last-child { white-space: nowrap; }
 
 /* The caveat column. Its type was set twice in portrait — `li` at 12px, a table
    at 11.5px — and never in base, so the column had no voice of its own until a
@@ -1433,12 +1481,20 @@ body[data-geometry="portrait"] .body.sidebar-notes > div:not(.spec):not(.band):n
    their own values here: what the old viewport-relative clamps resolved to at
    this stage, now fixed so the window cannot move them (v0.1.382). */
 body[data-geometry="portrait"] {
-  --fs-display: 50px;
-  /* The cover keeps its rank below the opener on the sheet too: a 34-page
-     portrait review shipped its cover title at the landscape 58px because this
-     block never overrode it — the theme file's comment claimed it did. 42 holds
-     the same step under the 50px opener that 58 holds under 80. */
-  --fs-cover:   42px;
+  /* THE SHEET IS NARROWER, NOT QUIETER. 0.1.443 set these by holding the
+     landscape ratios against a smaller stage — opener 50, cover 42 — and the
+     owner read the result as flat beside a 16:9 deck whose opener carries 80
+     and whose cover carries 58 (0.1.446 review, optimisation 1). A cover and
+     a part opener are the two pages that exist to land one statement, so the
+     sheet gives them the SAME ink as the slide and gains impact from the
+     narrower measure rather than losing it. Measured at 794x1123 on a 34-page
+     handbook: the cover's stack clears the footer by 78px with the mark at its
+     34svh ceiling, the opener's claim still sets on one line, and no page
+     exceeds its box. The rank below still holds — a cover sets under an
+     opener, here as there. Content titles are NOT in this move: `--fs-title`
+     stays 26, because a content page's job is its evidence. */
+  --fs-display: 72px;
+  --fs-cover:   58px;
   --fs-title:   26px;
   --fs-band-value: 30px;
   --fs-lead:    40px;
@@ -1530,10 +1586,14 @@ body[data-geometry="portrait"] .body.cover-grid { grid-template-columns: 1fr; gr
    on the attrs column below it (measured: a 2px overlap on the fixture's own
    cover, which is how this rule got here). */
 /* The sheet keeps its own ceiling — a portrait cover gives the mark a band
-   rather than a column, and 34svh is what leaves room for the stack beneath
-   it. The margin and transform overrides are gone because the landscape rule
-   no longer sets them. */
-body[data-geometry="portrait"] .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 34svh; }
+   rather than a column. 34svh was that band when the cover title set at 42px;
+   with the title at 58 (0.1.446 review) the mark read as a small pale disc
+   under a large headline instead of the field the typography sits against,
+   and the brand README forbids the other lever — a mark restyled by its host
+   is not a mark, so what moves is its SIZE, never its ink. Measured at
+   794x1123 on a 34-page handbook: 44svh leaves 55px above the mark and 50px
+   between the attribute strip and the footer rule, with no page over its box. */
+body[data-geometry="portrait"] .body.cover-grid > .markcell svg { width: 100%; height: auto; max-height: 44svh; }
 body[data-geometry="portrait"] .page.opener .openframe { gap: 18px; }
 body[data-geometry="portrait"] .duo { grid-template-columns: 1fr; gap: 16px; }
 /* Figures are drawn twice. A 2.4:1 chain in a 0.8:1 cell fills a third of it,
@@ -1871,7 +1931,266 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <h1>Metering programme <span class="subj">review</span></h1>
       <p class="sub">A synthetic deliverable. Every figure here is invented.</p>
     </div>
-    <div class="markcell"><svg xmlns="http://www.w3.org/2000/svg" class="gl trade lumivate-figure" viewBox="-40.0 -40.0 2080.0 2080.0" role="img" aria-label="LUMI globe, field of marks" data-t="0" data-lon0="-160" data-lat0="10" data-r="1000" data-cx="1000" data-cy="1000"><!-- LUMIVATE brand image. Figure 1 — the field: 8 trade blocs, 13 sea lanes, 128 HS-6 codes in transit, 23 named ports. Exclusive to LUMIVATE; generated by _sources/globe-demo/assemble.py -->
+    <div class="markcell"><svg xmlns="http://www.w3.org/2000/svg" class="gl trade lumivate-figure" viewBox="-40.0 -40.0 2080.0 2080.0" role="img" aria-label="LUMI globe, field of marks" data-t="0" data-lon0="-160" data-lat0="10" data-r="1000" data-cx="1000" data-cy="1000"><!-- LUMIVATE brand image. Figure 1 — the field: 8 trade blocs, 13 sea lanes, 128 HS-6 codes in transit, 23 named ports. Exclusive to LUMIVATE; generated by _sources/globe-demo/assemble.py --><style>
+
+/* The join between the classes the emitters write and the variables
+ * above. globe_svg.py / the runtime emit these classes; without these
+ * rules the classes bind to nothing.
+ *
+ * Two of the state colours are SEMANTIC in a file whose header says hue
+ * carries identity only — deliberately: is-out and is-partial are not
+ * region identity, they are the standing status vocabulary (--brass =
+ * reference / out of scope, --amber = partial), and painting them from
+ * the region hue would claim a measurement the hue does not make.
+ * is-live is the UNMARKED state: the plain region fill IS live, and an
+ * explicit .is-live rule would just restate the binding above it.
+ */
+/* The plate, with the shadow that lifts the globe off the page. A flat
+ * filled disc reads as a circle printed on the paper; a shadow under
+ * it reads as a sphere in front of it, and it costs one declaration
+ * against a lighting model. Scoped to the plate so the marks and the
+ * land are not smeared by it. */
+.gl-plate { fill: var(--gl-plate); filter: drop-shadow(0 6px 26px rgba(43,46,51,.22)); }
+.gl-graticule { fill: none; stroke: var(--gl-graticule); }
+.gl-land { fill: var(--gl-land); stroke: var(--gl-land-edge); stroke-width: 1; }
+/* The equator and the tropics are NAMED lines, not graticule: a reader
+ * can point at them, so they are gold, drawn well above the grid, and
+ * the tropics are dashed to say they are a pair. At 3 and 2 they read
+ * as heavier graticule; the weight is what separates a line you can
+ * name from a line that is scaffolding. */
+.gl-equator { fill: none; stroke: var(--gl-equator); stroke-width: 5; }
+.gl-tropic { fill: none; stroke: var(--gl-tropic); stroke-width: 3.5; stroke-dasharray: 12 9; }
+/* Night is a lighting condition laid over the geography, so it is a
+ * wash rather than a fill and it takes no pointer events — a reader
+ * aiming at a mark in the dark must still hit the mark. */
+.gl-night { fill: var(--gl-night); stroke: none; pointer-events: none; }
+.gl-mark { fill: var(--acc); }
+.gl-node { fill: var(--bg); stroke: var(--tx2); stroke-width: 1.5; }
+.rg { stroke-width: 1; }
+.rg-africa { fill: var(--rg-africa); stroke: var(--rg-africa-stroke); }
+.rg-africa.is-zero { fill: var(--rg-africa-wash); }
+.rg-antarctic { fill: var(--rg-antarctic); stroke: var(--rg-antarctic-stroke); }
+.rg-antarctic.is-zero { fill: var(--rg-antarctic-wash); }
+.rg-central-asia { fill: var(--rg-central-asia); stroke: var(--rg-central-asia-stroke); }
+.rg-central-asia.is-zero { fill: var(--rg-central-asia-wash); }
+.rg-europe { fill: var(--rg-europe); stroke: var(--rg-europe-stroke); }
+.rg-europe.is-zero { fill: var(--rg-europe-wash); }
+.rg-latin-america { fill: var(--rg-latin-america); stroke: var(--rg-latin-america-stroke); }
+.rg-latin-america.is-zero { fill: var(--rg-latin-america-wash); }
+.rg-middle-east { fill: var(--rg-middle-east); stroke: var(--rg-middle-east-stroke); }
+.rg-middle-east.is-zero { fill: var(--rg-middle-east-wash); }
+.rg-north-america { fill: var(--rg-north-america); stroke: var(--rg-north-america-stroke); }
+.rg-north-america.is-zero { fill: var(--rg-north-america-wash); }
+.rg-northeast-asia { fill: var(--rg-northeast-asia); stroke: var(--rg-northeast-asia-stroke); }
+.rg-northeast-asia.is-zero { fill: var(--rg-northeast-asia-wash); }
+.rg-oceania { fill: var(--rg-oceania); stroke: var(--rg-oceania-stroke); }
+.rg-oceania.is-zero { fill: var(--rg-oceania-wash); }
+.rg-south-asia { fill: var(--rg-south-asia); stroke: var(--rg-south-asia-stroke); }
+.rg-south-asia.is-zero { fill: var(--rg-south-asia-wash); }
+.rg-southeast-asia { fill: var(--rg-southeast-asia); stroke: var(--rg-southeast-asia-stroke); }
+.rg-southeast-asia.is-zero { fill: var(--rg-southeast-asia-wash); }
+.rg.is-out { fill: var(--brass); }
+/* A bloc's FULL membership, outlined when a reader selects it. No
+ * fill: the countries underneath keep their own bloc's colour, which
+ * is the point — the outline says 'these too' without claiming they
+ * stopped belonging where they were. */
+/* The globe's own layers. A city is a NAME on the sphere and a bloc
+ * label is an identifier over a fill, so both are set in the utility
+ * face at a weight that survives being drawn over land — and both
+ * carry a halo, because a label on a globe has no white box to sit
+ * in the way a map label does. paint-order puts the stroke behind
+ * the glyph so the halo never eats the letterform. */
+.gl-city, .gl-rg-label { font-family: var(--din); paint-order: stroke fill; stroke: var(--bg); stroke-width: 3.5; stroke-linejoin: round; pointer-events: none; }
+.gl-city { fill: var(--tx2); font-weight: 500; }
+.gl-city-dot { fill: var(--tx3); }
+.gl-rg-label { fill: var(--nw); font-weight: 700; text-anchor: middle; letter-spacing: .02em; }
+.gl-rg-n { font-variant-numeric: tabular-nums; }
+/* The people count recedes: the reader is identifying a bloc, and the
+ * magnitude is context for the identification rather than the point
+ * of it. Same relationship .rg-label-v has to .rg-label. */
+.gl-rg-p { fill: var(--tx2); font-weight: 400; font-variant-numeric: tabular-nums; }
+/* A BLOC ON THE GLOBE IS QUIETER THAN THE SAME BLOC ON A MAP. The flat
+ * map is a choropleth and the fill IS the subject; the globe is a
+ * field of marks and the fill is where they sit. At full strength the
+ * eight hues buried the marks — Australia read hotter than the datum
+ * on top of it — so the globe takes the same hue at reduced strength
+ * and keeps one palette across both figures rather than minting a
+ * second set of colours that would have to be kept in step. */
+.gl-rg { fill-opacity: .42; stroke-opacity: .55; }
+/* THE LAND, IN THREE WEIGHTS. Every land line used to be one weight,
+ * so a coastline and a provincial border looked alike and the eye had
+ * nothing to group by. A reader asked to compare where one bloc sits
+ * against another needs the continents to read as shapes first, and
+ * that is what a hierarchy of line is for.
+ *
+ * The FILLS carry no stroke at all now; all linework is here. */
+.gl-rg { fill-opacity: .42; stroke: none; }
+.gl-land { fill: none; stroke: none; }
+/* A coast is a continent's edge, and it is the heaviest line on the
+ * figure after the data. This is also what puts Oceania back: an
+ * island coast is a coast whether or not the island is in a bloc, and
+ * 0.1.405's outline-only rule had left Papua New Guinea, Fiji, the
+ * Solomons and Vanuatu as 1.2px hairlines. */
+.gl-coast { fill: none; stroke: var(--tx2); stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
+/* Where one trade bloc meets another. Heavier than a border inside a
+ * bloc and lighter than a coast, which is the order of the question a
+ * reader is asking. */
+.gl-bloc-edge { fill: none; stroke: var(--tx2); stroke-width: 2; stroke-opacity: .75; stroke-linejoin: round; }
+/* A border between two countries in the SAME bloc. Present, because
+ * the countries are real; faint, because the figure is not about
+ * them. */
+.gl-border { fill: none; stroke: var(--ln1); stroke-width: .8; }
+.gl-link { fill: none; stroke: var(--acc); stroke-linecap: round; }
+.gl-hub { fill: var(--acc); stroke: var(--bg); stroke-width: 2; }
+/* A signal is one code in transit: the dot is where, the text is
+ * what. The halo is the same one city names carry — a label on a
+ * sphere has no white box to sit in. */
+.gl-sig circle { fill: var(--acc); }
+.gl-sig text { fill: var(--acc); font-family: var(--mono); text-anchor: middle; letter-spacing: .03em; paint-order: stroke fill; stroke: var(--bg); stroke-width: 3; stroke-linejoin: round; }
+.rg-full { pointer-events: none; }
+.rg-outline { fill: none; stroke: var(--nw); stroke-width: 4; stroke-linejoin: round; }
+.rg.is-selected { stroke: var(--nw); stroke-width: 3; }
+.rg.is-partial { stroke: var(--amber); stroke-width: 2; }
+/* Region labels, set in the ink the contrast floor is computed against:
+ * selftest() asserts every fill carries INK_LIGHT / INK_DARK at 4.5:1 or
+ * better, and --nw is those two values. A label in any other colour is
+ * outside the floor's guarantee. */
+.rg-label { fill: var(--nw); font-family: var(--din); font-weight: 600; text-anchor: middle; pointer-events: none; }
+/* The two tspans a label can carry. Both have existed as CLASSES since
+ * labels shipped and neither had a rule, so a value and a membership
+ * count set identically to the bloc name beside them — the same
+ * class-with-no-rendering defect the 0.1.396 audit found on the
+ * globe's hover state, one file away. */
+.rg-label-n { font-weight: 700; font-variant-numeric: tabular-nums; }
+.rg-label-v { font-weight: 400; fill: var(--tx2); font-variant-numeric: tabular-nums; }
+/* No font-size here: the emitter sets it as an attribute scaled to the
+ * frame's R, because a fixed pixel size inside a 2R-unit viewBox
+ * renders at whatever the layout divides it to — 13px became ~7 at a
+ * typical figure width. CSS would override the attribute, so CSS
+ * stays silent about size. */
+/* Hover and keyboard focus. The runtime has toggled is-hover since the
+ * globe shipped and no stylesheet anywhere defined it, so hovering
+ * worked and showed nothing; and the first delivered demo set
+ * outline:none on a tabindex='0' element with no :focus-visible to
+ * replace it. Both affordances ship here so no document re-decides
+ * them. Not inside any media query, per the media-only-rules guard. */
+.rg.is-hover { stroke-width: 2.5; }
+/* The globe's points need their own hover rule. 0.1.393 shipped the
+ * region one and the globe kept toggling is-hover on marks and nodes
+ * against no CSS at all — the same defect, moved rather than closed.
+ * A mark grows; a node takes the accent so it reads as selected. */
+.gl-mark.is-hover { stroke: var(--nw); stroke-width: 3; }
+.gl-node.is-hover { fill: var(--acc); stroke: var(--nw); }
+/* The drag affordance. The arcball has worked since the globe shipped
+ * and nothing ever said so: no cursor, no chrome, no hint. A figure
+ * that can be turned should look like it. */
+svg.gl { cursor: grab; }
+svg.gl.is-dragging { cursor: grabbing; }
+svg.gl:focus-visible, svg.regionmap:focus-visible {
+  outline: 2px solid var(--acc); outline-offset: 2px;
+}
+
+/* LUMI region palette — GENERATED by scripts/build/build_region_palette.py.
+ * Do not edit: run the script. --check fails on a stale file.
+ *
+ * Hue encodes region IDENTITY and carries no data meaning, the standing
+ * light_ramp already has. One colour one meaning still governs data.
+ * Identity is a label, not a measurement, so text carries it: every
+ * coloured region takes a label or a legend entry, checked by D18.
+ *
+ * Generated in OKLCH and shipped as sRGB hex, never as an oklch() value:
+ * parse_color in check_design.py cannot read that form and would skip D1
+ * on every hue here without saying so.
+ *
+ * SHIPS THE BINDINGS TOO, since 0.1.391. The variables alone were a
+ * palette nobody could use: globe_svg.py emits class='rg rg-europe' and
+ * nothing joined the class to the variable, so any document that did not
+ * hand-write ~90 rules drew every region in the UA default — black — and
+ * every check passed, because none reads rendered colour. The reference
+ * fixture carried the join privately; a package asset should not need a
+ * private companion to render (maintenance convention 5).
+ *
+ * L 0.7 light / 0.52 dark, chroma 65% of the
+ * per-hue gamut maximum, 8 hues evenly spaced at 45.0 degrees, assigned so adjacent regions sit
+ * as far apart on the circle as the graph allows.
+ */
+.trade {
+  --rg-afcfta: #E08256;
+  --rg-afcfta-stroke: #8F5033;
+  --rg-afcfta-wash: #F8E7E0;
+  --rg-asean: #79B158;
+  --rg-asean-stroke: #4B6F35;
+  --rg-asean-wash: #D3F9C0;
+  --rg-cptpp: #E2789B;
+  --rg-cptpp-stroke: #9D3C60;
+  --rg-cptpp-wash: #F8E6EA;
+  --rg-eu: #5FB0A0;
+  --rg-eu-stroke: #396F64;
+  --rg-eu-wash: #C2F8EC;
+  --rg-gcc: #869BDE;
+  --rg-gcc-stroke: #3D54C9;
+  --rg-gcc-wash: #E6EBF8;
+  --rg-mercosur: #B59C57;
+  --rg-mercosur-stroke: #726234;
+  --rg-mercosur-wash: #F8EAC6;
+  --rg-rcep: #5EAAC7;
+  --rg-rcep-stroke: #386B7E;
+  --rg-rcep-wash: #DAEFF8;
+  --rg-usmca: #C17FDE;
+  --rg-usmca-stroke: #853FA1;
+  --rg-usmca-wash: #F2E6F8;
+  --gl-night: rgba(43,46,51,.28);
+  --gl-equator: var(--gold);
+  --gl-tropic: var(--gold);
+  --gold: #A07800;
+}
+
+body.dark .trade {
+  --gold: #E8C25A;      /* 8.82:1 on the dark plate; the light gold is 1.4 */
+  --rg-afcfta: #975537;
+  --rg-afcfta-stroke: #E38B63;
+  --rg-afcfta-wash: #462313;
+  --rg-asean: #4F7538;
+  --rg-asean-stroke: #7EB75C;
+  --rg-asean-wash: #203414;
+  --rg-cptpp: #A54066;
+  --rg-cptpp-stroke: #E382A1;
+  --rg-cptpp-wash: #4D182C;
+  --rg-eu: #3D756A;
+  --rg-eu-stroke: #63B6A7;
+  --rg-eu-wash: #17342E;
+  --rg-gcc: #445CCC;
+  --rg-gcc-stroke: #8DA2E0;
+  --rg-gcc-wash: #17226D;
+  --rg-mercosur: #796737;
+  --rg-mercosur-stroke: #BCA25B;
+  --rg-mercosur-wash: #362D13;
+  --rg-rcep: #3C7185;
+  --rg-rcep-stroke: #62B1CF;
+  --rg-rcep-wash: #16323C;
+  --rg-usmca: #8C43A9;
+  --rg-usmca-stroke: #C588E1;
+  --rg-usmca-wash: #401A4F;
+}
+
+.trade .rg { stroke-width: 1; }
+.trade .rg-afcfta { fill: var(--rg-afcfta); stroke: var(--rg-afcfta-stroke); }
+.trade .rg-afcfta.is-zero { fill: var(--rg-afcfta-wash); }
+.trade .rg-asean { fill: var(--rg-asean); stroke: var(--rg-asean-stroke); }
+.trade .rg-asean.is-zero { fill: var(--rg-asean-wash); }
+.trade .rg-cptpp { fill: var(--rg-cptpp); stroke: var(--rg-cptpp-stroke); }
+.trade .rg-cptpp.is-zero { fill: var(--rg-cptpp-wash); }
+.trade .rg-eu { fill: var(--rg-eu); stroke: var(--rg-eu-stroke); }
+.trade .rg-eu.is-zero { fill: var(--rg-eu-wash); }
+.trade .rg-gcc { fill: var(--rg-gcc); stroke: var(--rg-gcc-stroke); }
+.trade .rg-gcc.is-zero { fill: var(--rg-gcc-wash); }
+.trade .rg-mercosur { fill: var(--rg-mercosur); stroke: var(--rg-mercosur-stroke); }
+.trade .rg-mercosur.is-zero { fill: var(--rg-mercosur-wash); }
+.trade .rg-rcep { fill: var(--rg-rcep); stroke: var(--rg-rcep-stroke); }
+.trade .rg-rcep.is-zero { fill: var(--rg-rcep-wash); }
+.trade .rg-usmca { fill: var(--rg-usmca); stroke: var(--rg-usmca-stroke); }
+.trade .rg-usmca.is-zero { fill: var(--rg-usmca-wash); }
+</style>
 <!-- generated by scripts/render/globe_svg.py; the runtime in assets/globe/ mutates these paths and never replaces them -->
 <g class="gl-earth" transform="translate(1000 1000) rotate(23.4393) scale(1 0.996647189) translate(-1000 -1000)">
 <circle class="gl-plate" cx="1000" cy="1000" r="1000" opacity="1.000"/>
@@ -1997,7 +2316,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
       <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
     </div>
-    <p class="colophon">Built with lumi-style 0.1.446 &#183; source: meter management system.</p>
+    <p class="colophon">Built with lumi-style 0.1.447 &#183; source: meter management system.</p>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 18</span></div></section>
 <section class="page opener" id="openA">
@@ -2431,7 +2750,266 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <h2>What to settle this <span class="subj">month</span></h2>
       <p class="sub">Relay siting first, then crew allocation.</p>
     </div>
-    <div class="markcell"><svg xmlns="http://www.w3.org/2000/svg" class="gl trade lumivate-figure" viewBox="-40.0 -40.0 2080.0 2080.0" role="img" aria-label="LUMI globe, field of marks" data-t="0" data-lon0="-160" data-lat0="10" data-r="1000" data-cx="1000" data-cy="1000"><!-- LUMIVATE brand image. Figure 1 — the field: 8 trade blocs, 13 sea lanes, 128 HS-6 codes in transit, 23 named ports. Exclusive to LUMIVATE; generated by _sources/globe-demo/assemble.py -->
+    <div class="markcell"><svg xmlns="http://www.w3.org/2000/svg" class="gl trade lumivate-figure" viewBox="-40.0 -40.0 2080.0 2080.0" role="img" aria-label="LUMI globe, field of marks" data-t="0" data-lon0="-160" data-lat0="10" data-r="1000" data-cx="1000" data-cy="1000"><!-- LUMIVATE brand image. Figure 1 — the field: 8 trade blocs, 13 sea lanes, 128 HS-6 codes in transit, 23 named ports. Exclusive to LUMIVATE; generated by _sources/globe-demo/assemble.py --><style>
+
+/* The join between the classes the emitters write and the variables
+ * above. globe_svg.py / the runtime emit these classes; without these
+ * rules the classes bind to nothing.
+ *
+ * Two of the state colours are SEMANTIC in a file whose header says hue
+ * carries identity only — deliberately: is-out and is-partial are not
+ * region identity, they are the standing status vocabulary (--brass =
+ * reference / out of scope, --amber = partial), and painting them from
+ * the region hue would claim a measurement the hue does not make.
+ * is-live is the UNMARKED state: the plain region fill IS live, and an
+ * explicit .is-live rule would just restate the binding above it.
+ */
+/* The plate, with the shadow that lifts the globe off the page. A flat
+ * filled disc reads as a circle printed on the paper; a shadow under
+ * it reads as a sphere in front of it, and it costs one declaration
+ * against a lighting model. Scoped to the plate so the marks and the
+ * land are not smeared by it. */
+.gl-plate { fill: var(--gl-plate); filter: drop-shadow(0 6px 26px rgba(43,46,51,.22)); }
+.gl-graticule { fill: none; stroke: var(--gl-graticule); }
+.gl-land { fill: var(--gl-land); stroke: var(--gl-land-edge); stroke-width: 1; }
+/* The equator and the tropics are NAMED lines, not graticule: a reader
+ * can point at them, so they are gold, drawn well above the grid, and
+ * the tropics are dashed to say they are a pair. At 3 and 2 they read
+ * as heavier graticule; the weight is what separates a line you can
+ * name from a line that is scaffolding. */
+.gl-equator { fill: none; stroke: var(--gl-equator); stroke-width: 5; }
+.gl-tropic { fill: none; stroke: var(--gl-tropic); stroke-width: 3.5; stroke-dasharray: 12 9; }
+/* Night is a lighting condition laid over the geography, so it is a
+ * wash rather than a fill and it takes no pointer events — a reader
+ * aiming at a mark in the dark must still hit the mark. */
+.gl-night { fill: var(--gl-night); stroke: none; pointer-events: none; }
+.gl-mark { fill: var(--acc); }
+.gl-node { fill: var(--bg); stroke: var(--tx2); stroke-width: 1.5; }
+.rg { stroke-width: 1; }
+.rg-africa { fill: var(--rg-africa); stroke: var(--rg-africa-stroke); }
+.rg-africa.is-zero { fill: var(--rg-africa-wash); }
+.rg-antarctic { fill: var(--rg-antarctic); stroke: var(--rg-antarctic-stroke); }
+.rg-antarctic.is-zero { fill: var(--rg-antarctic-wash); }
+.rg-central-asia { fill: var(--rg-central-asia); stroke: var(--rg-central-asia-stroke); }
+.rg-central-asia.is-zero { fill: var(--rg-central-asia-wash); }
+.rg-europe { fill: var(--rg-europe); stroke: var(--rg-europe-stroke); }
+.rg-europe.is-zero { fill: var(--rg-europe-wash); }
+.rg-latin-america { fill: var(--rg-latin-america); stroke: var(--rg-latin-america-stroke); }
+.rg-latin-america.is-zero { fill: var(--rg-latin-america-wash); }
+.rg-middle-east { fill: var(--rg-middle-east); stroke: var(--rg-middle-east-stroke); }
+.rg-middle-east.is-zero { fill: var(--rg-middle-east-wash); }
+.rg-north-america { fill: var(--rg-north-america); stroke: var(--rg-north-america-stroke); }
+.rg-north-america.is-zero { fill: var(--rg-north-america-wash); }
+.rg-northeast-asia { fill: var(--rg-northeast-asia); stroke: var(--rg-northeast-asia-stroke); }
+.rg-northeast-asia.is-zero { fill: var(--rg-northeast-asia-wash); }
+.rg-oceania { fill: var(--rg-oceania); stroke: var(--rg-oceania-stroke); }
+.rg-oceania.is-zero { fill: var(--rg-oceania-wash); }
+.rg-south-asia { fill: var(--rg-south-asia); stroke: var(--rg-south-asia-stroke); }
+.rg-south-asia.is-zero { fill: var(--rg-south-asia-wash); }
+.rg-southeast-asia { fill: var(--rg-southeast-asia); stroke: var(--rg-southeast-asia-stroke); }
+.rg-southeast-asia.is-zero { fill: var(--rg-southeast-asia-wash); }
+.rg.is-out { fill: var(--brass); }
+/* A bloc's FULL membership, outlined when a reader selects it. No
+ * fill: the countries underneath keep their own bloc's colour, which
+ * is the point — the outline says 'these too' without claiming they
+ * stopped belonging where they were. */
+/* The globe's own layers. A city is a NAME on the sphere and a bloc
+ * label is an identifier over a fill, so both are set in the utility
+ * face at a weight that survives being drawn over land — and both
+ * carry a halo, because a label on a globe has no white box to sit
+ * in the way a map label does. paint-order puts the stroke behind
+ * the glyph so the halo never eats the letterform. */
+.gl-city, .gl-rg-label { font-family: var(--din); paint-order: stroke fill; stroke: var(--bg); stroke-width: 3.5; stroke-linejoin: round; pointer-events: none; }
+.gl-city { fill: var(--tx2); font-weight: 500; }
+.gl-city-dot { fill: var(--tx3); }
+.gl-rg-label { fill: var(--nw); font-weight: 700; text-anchor: middle; letter-spacing: .02em; }
+.gl-rg-n { font-variant-numeric: tabular-nums; }
+/* The people count recedes: the reader is identifying a bloc, and the
+ * magnitude is context for the identification rather than the point
+ * of it. Same relationship .rg-label-v has to .rg-label. */
+.gl-rg-p { fill: var(--tx2); font-weight: 400; font-variant-numeric: tabular-nums; }
+/* A BLOC ON THE GLOBE IS QUIETER THAN THE SAME BLOC ON A MAP. The flat
+ * map is a choropleth and the fill IS the subject; the globe is a
+ * field of marks and the fill is where they sit. At full strength the
+ * eight hues buried the marks — Australia read hotter than the datum
+ * on top of it — so the globe takes the same hue at reduced strength
+ * and keeps one palette across both figures rather than minting a
+ * second set of colours that would have to be kept in step. */
+.gl-rg { fill-opacity: .42; stroke-opacity: .55; }
+/* THE LAND, IN THREE WEIGHTS. Every land line used to be one weight,
+ * so a coastline and a provincial border looked alike and the eye had
+ * nothing to group by. A reader asked to compare where one bloc sits
+ * against another needs the continents to read as shapes first, and
+ * that is what a hierarchy of line is for.
+ *
+ * The FILLS carry no stroke at all now; all linework is here. */
+.gl-rg { fill-opacity: .42; stroke: none; }
+.gl-land { fill: none; stroke: none; }
+/* A coast is a continent's edge, and it is the heaviest line on the
+ * figure after the data. This is also what puts Oceania back: an
+ * island coast is a coast whether or not the island is in a bloc, and
+ * 0.1.405's outline-only rule had left Papua New Guinea, Fiji, the
+ * Solomons and Vanuatu as 1.2px hairlines. */
+.gl-coast { fill: none; stroke: var(--tx2); stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
+/* Where one trade bloc meets another. Heavier than a border inside a
+ * bloc and lighter than a coast, which is the order of the question a
+ * reader is asking. */
+.gl-bloc-edge { fill: none; stroke: var(--tx2); stroke-width: 2; stroke-opacity: .75; stroke-linejoin: round; }
+/* A border between two countries in the SAME bloc. Present, because
+ * the countries are real; faint, because the figure is not about
+ * them. */
+.gl-border { fill: none; stroke: var(--ln1); stroke-width: .8; }
+.gl-link { fill: none; stroke: var(--acc); stroke-linecap: round; }
+.gl-hub { fill: var(--acc); stroke: var(--bg); stroke-width: 2; }
+/* A signal is one code in transit: the dot is where, the text is
+ * what. The halo is the same one city names carry — a label on a
+ * sphere has no white box to sit in. */
+.gl-sig circle { fill: var(--acc); }
+.gl-sig text { fill: var(--acc); font-family: var(--mono); text-anchor: middle; letter-spacing: .03em; paint-order: stroke fill; stroke: var(--bg); stroke-width: 3; stroke-linejoin: round; }
+.rg-full { pointer-events: none; }
+.rg-outline { fill: none; stroke: var(--nw); stroke-width: 4; stroke-linejoin: round; }
+.rg.is-selected { stroke: var(--nw); stroke-width: 3; }
+.rg.is-partial { stroke: var(--amber); stroke-width: 2; }
+/* Region labels, set in the ink the contrast floor is computed against:
+ * selftest() asserts every fill carries INK_LIGHT / INK_DARK at 4.5:1 or
+ * better, and --nw is those two values. A label in any other colour is
+ * outside the floor's guarantee. */
+.rg-label { fill: var(--nw); font-family: var(--din); font-weight: 600; text-anchor: middle; pointer-events: none; }
+/* The two tspans a label can carry. Both have existed as CLASSES since
+ * labels shipped and neither had a rule, so a value and a membership
+ * count set identically to the bloc name beside them — the same
+ * class-with-no-rendering defect the 0.1.396 audit found on the
+ * globe's hover state, one file away. */
+.rg-label-n { font-weight: 700; font-variant-numeric: tabular-nums; }
+.rg-label-v { font-weight: 400; fill: var(--tx2); font-variant-numeric: tabular-nums; }
+/* No font-size here: the emitter sets it as an attribute scaled to the
+ * frame's R, because a fixed pixel size inside a 2R-unit viewBox
+ * renders at whatever the layout divides it to — 13px became ~7 at a
+ * typical figure width. CSS would override the attribute, so CSS
+ * stays silent about size. */
+/* Hover and keyboard focus. The runtime has toggled is-hover since the
+ * globe shipped and no stylesheet anywhere defined it, so hovering
+ * worked and showed nothing; and the first delivered demo set
+ * outline:none on a tabindex='0' element with no :focus-visible to
+ * replace it. Both affordances ship here so no document re-decides
+ * them. Not inside any media query, per the media-only-rules guard. */
+.rg.is-hover { stroke-width: 2.5; }
+/* The globe's points need their own hover rule. 0.1.393 shipped the
+ * region one and the globe kept toggling is-hover on marks and nodes
+ * against no CSS at all — the same defect, moved rather than closed.
+ * A mark grows; a node takes the accent so it reads as selected. */
+.gl-mark.is-hover { stroke: var(--nw); stroke-width: 3; }
+.gl-node.is-hover { fill: var(--acc); stroke: var(--nw); }
+/* The drag affordance. The arcball has worked since the globe shipped
+ * and nothing ever said so: no cursor, no chrome, no hint. A figure
+ * that can be turned should look like it. */
+svg.gl { cursor: grab; }
+svg.gl.is-dragging { cursor: grabbing; }
+svg.gl:focus-visible, svg.regionmap:focus-visible {
+  outline: 2px solid var(--acc); outline-offset: 2px;
+}
+
+/* LUMI region palette — GENERATED by scripts/build/build_region_palette.py.
+ * Do not edit: run the script. --check fails on a stale file.
+ *
+ * Hue encodes region IDENTITY and carries no data meaning, the standing
+ * light_ramp already has. One colour one meaning still governs data.
+ * Identity is a label, not a measurement, so text carries it: every
+ * coloured region takes a label or a legend entry, checked by D18.
+ *
+ * Generated in OKLCH and shipped as sRGB hex, never as an oklch() value:
+ * parse_color in check_design.py cannot read that form and would skip D1
+ * on every hue here without saying so.
+ *
+ * SHIPS THE BINDINGS TOO, since 0.1.391. The variables alone were a
+ * palette nobody could use: globe_svg.py emits class='rg rg-europe' and
+ * nothing joined the class to the variable, so any document that did not
+ * hand-write ~90 rules drew every region in the UA default — black — and
+ * every check passed, because none reads rendered colour. The reference
+ * fixture carried the join privately; a package asset should not need a
+ * private companion to render (maintenance convention 5).
+ *
+ * L 0.7 light / 0.52 dark, chroma 65% of the
+ * per-hue gamut maximum, 8 hues evenly spaced at 45.0 degrees, assigned so adjacent regions sit
+ * as far apart on the circle as the graph allows.
+ */
+.trade {
+  --rg-afcfta: #E08256;
+  --rg-afcfta-stroke: #8F5033;
+  --rg-afcfta-wash: #F8E7E0;
+  --rg-asean: #79B158;
+  --rg-asean-stroke: #4B6F35;
+  --rg-asean-wash: #D3F9C0;
+  --rg-cptpp: #E2789B;
+  --rg-cptpp-stroke: #9D3C60;
+  --rg-cptpp-wash: #F8E6EA;
+  --rg-eu: #5FB0A0;
+  --rg-eu-stroke: #396F64;
+  --rg-eu-wash: #C2F8EC;
+  --rg-gcc: #869BDE;
+  --rg-gcc-stroke: #3D54C9;
+  --rg-gcc-wash: #E6EBF8;
+  --rg-mercosur: #B59C57;
+  --rg-mercosur-stroke: #726234;
+  --rg-mercosur-wash: #F8EAC6;
+  --rg-rcep: #5EAAC7;
+  --rg-rcep-stroke: #386B7E;
+  --rg-rcep-wash: #DAEFF8;
+  --rg-usmca: #C17FDE;
+  --rg-usmca-stroke: #853FA1;
+  --rg-usmca-wash: #F2E6F8;
+  --gl-night: rgba(43,46,51,.28);
+  --gl-equator: var(--gold);
+  --gl-tropic: var(--gold);
+  --gold: #A07800;
+}
+
+body.dark .trade {
+  --gold: #E8C25A;      /* 8.82:1 on the dark plate; the light gold is 1.4 */
+  --rg-afcfta: #975537;
+  --rg-afcfta-stroke: #E38B63;
+  --rg-afcfta-wash: #462313;
+  --rg-asean: #4F7538;
+  --rg-asean-stroke: #7EB75C;
+  --rg-asean-wash: #203414;
+  --rg-cptpp: #A54066;
+  --rg-cptpp-stroke: #E382A1;
+  --rg-cptpp-wash: #4D182C;
+  --rg-eu: #3D756A;
+  --rg-eu-stroke: #63B6A7;
+  --rg-eu-wash: #17342E;
+  --rg-gcc: #445CCC;
+  --rg-gcc-stroke: #8DA2E0;
+  --rg-gcc-wash: #17226D;
+  --rg-mercosur: #796737;
+  --rg-mercosur-stroke: #BCA25B;
+  --rg-mercosur-wash: #362D13;
+  --rg-rcep: #3C7185;
+  --rg-rcep-stroke: #62B1CF;
+  --rg-rcep-wash: #16323C;
+  --rg-usmca: #8C43A9;
+  --rg-usmca-stroke: #C588E1;
+  --rg-usmca-wash: #401A4F;
+}
+
+.trade .rg { stroke-width: 1; }
+.trade .rg-afcfta { fill: var(--rg-afcfta); stroke: var(--rg-afcfta-stroke); }
+.trade .rg-afcfta.is-zero { fill: var(--rg-afcfta-wash); }
+.trade .rg-asean { fill: var(--rg-asean); stroke: var(--rg-asean-stroke); }
+.trade .rg-asean.is-zero { fill: var(--rg-asean-wash); }
+.trade .rg-cptpp { fill: var(--rg-cptpp); stroke: var(--rg-cptpp-stroke); }
+.trade .rg-cptpp.is-zero { fill: var(--rg-cptpp-wash); }
+.trade .rg-eu { fill: var(--rg-eu); stroke: var(--rg-eu-stroke); }
+.trade .rg-eu.is-zero { fill: var(--rg-eu-wash); }
+.trade .rg-gcc { fill: var(--rg-gcc); stroke: var(--rg-gcc-stroke); }
+.trade .rg-gcc.is-zero { fill: var(--rg-gcc-wash); }
+.trade .rg-mercosur { fill: var(--rg-mercosur); stroke: var(--rg-mercosur-stroke); }
+.trade .rg-mercosur.is-zero { fill: var(--rg-mercosur-wash); }
+.trade .rg-rcep { fill: var(--rg-rcep); stroke: var(--rg-rcep-stroke); }
+.trade .rg-rcep.is-zero { fill: var(--rg-rcep-wash); }
+.trade .rg-usmca { fill: var(--rg-usmca); stroke: var(--rg-usmca-stroke); }
+.trade .rg-usmca.is-zero { fill: var(--rg-usmca-wash); }
+</style>
 <!-- generated by scripts/render/globe_svg.py; the runtime in assets/globe/ mutates these paths and never replaces them -->
 <g class="gl-earth" transform="translate(1000 1000) rotate(23.4393) scale(1 0.996647189) translate(-1000 -1000)">
 <circle class="gl-plate" cx="1000" cy="1000" r="1000" opacity="1.000"/>
@@ -2556,7 +3134,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>
     </div>
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.446.
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.447.
     Source: meter management system; every number here is invented, and a
     bracketed slot must not ship.</p></div>
   </div>

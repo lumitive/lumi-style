@@ -1,0 +1,31 @@
+{
+  "version": "0.1.447",
+  "diff_base": "4f7c2b9fd06e54645a3e63113139327e2bb4d711",
+  "spec": "specs/2026-08-12-owner-review-retrospective-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "7998821e7d15ee1887905419388010183ace0f2c8e0c2edf9bbd0c3552b8bd5a",
+      "date": "2026-08-12"
+    },
+    {
+      "id": "globe-js",
+      "command": "python3 scripts/check/check_globe.py",
+      "exit_code": 0,
+      "stdout_sha256": "90cabb900d7d3d4e17eef3e694eb1f549b09c6e2cc9594d7d814f6f25544297c",
+      "date": "2026-08-12"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "second review round: the portrait display tiers, the table rendering and the region-palette fix all change what a conformance task would score, so the board refresh is owed harder than before \u2014 it still needs the operator's hand-driven multi-agent half and lands after this series, with the owner's rebuilt handbook as the first acceptance run. Deferred, not discharged."
+    }
+  ]
+}

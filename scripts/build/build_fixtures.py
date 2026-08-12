@@ -60,6 +60,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
+import new_deck  # noqa: E402
 from embed_icons import sprite  # noqa: E402
 
 TERMS = "Confidential &#183; internal use &#183; do not forward"
@@ -78,15 +79,14 @@ VERSION = _version_m.group(1)
 # The cover/closing mark, inlined verbatim from the generated asset.
 # The cover/closing mark is the LUMIVATE FIELD GLOBE — the locked brand asset
 # and, since the 0.1.442 owner review, the default mark a deliverable embeds
-# (BUG#1 there was a fresh anonymous render where the brand belonged). The
-# vendored file's own <style> block is stripped: inline SVG shares the
-# document's style scope, and the fixture's token block is the one that paints.
-# Static here — the fixture is a checker input and ships no scripts; the
-# scaffold (new_deck.py) embeds the runtime that turns it.
-GLOBE = re.sub(
-    r"<style>.*?</style>", "",
-    (ROOT / "assets/brand/lumivate/globe-field.svg").read_text(encoding="utf-8"),
-    count=1, flags=re.S).strip()
+# (BUG#1 there was a fresh anonymous render where the brand belonged).
+# Prepared by new_deck.brand_globe(), which strips the vendored file's copy of
+# the DOCUMENT palette (inline SVG shares the host's style scope) and keeps the
+# component's own rules — the `.gl-*` rendering and the `.trade` region palette
+# live in that block and nowhere in tokens/. Static here: the fixture is a
+# checker input and ships no scripts; the scaffold embeds the runtime that
+# turns it.
+GLOBE = new_deck.brand_globe().strip()
 
 # Titles deliberately spread across five frames. M11 fails a deck whose titles
 # all take one shape, and a fixture that trips it by accident teaches nothing.

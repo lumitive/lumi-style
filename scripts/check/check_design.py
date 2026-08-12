@@ -181,11 +181,26 @@ def token_block_bodies(css):
     out: dict[str, list[str]] = {"light": [], "dark": []}
     for sel, body in BLOCK_RE.findall(css):
         s = sel.strip()
-        if s == ":root":
+        if s in (":root", ".trade"):
             out["light"].append(body)
-        elif re.fullmatch(r"body\.dark|:root\[data-theme=[\"']dark[\"']\]", s):
+        elif re.fullmatch(r"body\.dark(\s+\.trade)?"
+                          r"|:root\[data-theme=[\"']dark[\"']\]", s):
             out["dark"].append(body)
     return {k: v for k, v in out.items() if v}
+
+
+# `.trade` is in that list because this package ships TWO generated region
+# palettes and D4 could only see one of them. `region-palette.css` declares its
+# variables on `:root` and passed; `region-palette-trade.css` declares the same
+# kind of values on `.trade` (the class the trade globe carries) and every one
+# of its fifty hexes read as a stray literal — on a deliverable that had done
+# exactly what SKILL.md tells an author to do, include the palette and let the
+# figure paint. Found when the brand field globe became the default cover mark
+# (0.1.447) and the pass fixture inherited its palette; a shipped deliverable
+# from the same workspace had been failing D4 on all fifty since it was built.
+# The rule D4 enforces is "no literal outside the token block". Which blocks
+# hold tokens is a fact about this package, not a judgement — so the checker's
+# list has to match what `tokens/` actually ships.
 
 
 def resolve(css, palette):
