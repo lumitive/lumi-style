@@ -14,8 +14,10 @@ import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SCRIPTS = sorted(
-    p.name for p in (ROOT / "scripts").glob("*.py")
-    if "argparse" in p.read_text(encoding="utf-8"))
+    (p.relative_to(ROOT) for p in (ROOT / "scripts").rglob("*.py")
+     if "__pycache__" not in p.parts
+     and "argparse" in p.read_text(encoding="utf-8")),
+    key=str)
 
 
 def test_the_list_is_not_empty():
@@ -24,7 +26,7 @@ def test_the_list_is_not_empty():
 
 @pytest.mark.parametrize("script", SCRIPTS)
 def test_help_exits_zero(script):
-    p = subprocess.run([sys.executable, str(ROOT / "scripts" / script),
+    p = subprocess.run([sys.executable, str(ROOT / script),
                         "--help"], capture_output=True, text=True, timeout=60)
     assert p.returncode == 0, (script, p.stderr[-300:])
     assert p.stdout.strip(), f"{script} --help printed nothing"

@@ -3,6 +3,48 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.437 — before anything moves, everything that could fail silently learns to shout
+
+R1 of the audit (`specs/2026-08-13-audit-restructure-design.md`) — and the
+release that fixes a live defect the planning itself found: **the emergency
+merge path has been broken since 0.1.420.** `PYTHONSAFEPATH=1` strips the
+script directory from the import path, and check_repo had gained sibling
+imports — so the trusted single-file copy died on `import color_math`
+before running one guard, and the last-resort path (the one that runs when
+CI is down) would have misdiagnosed EVERY PR as "real defect in the PR".
+Recorded before fixing: the 0.1.436 tree exits with ModuleNotFoundError.
+The trusted copy is now the whole closure (check_repo + the lib four, all
+pure-stdlib underneath), each file overwriting the PR's version at the same
+path; a permanent regression test simulates the emergency sequence under
+SAFEPATH.
+
+**Two guards arrive for the reorganization ahead.** `script paths`: every
+`scripts/<path>` string in live tracked text must resolve to a file —
+~180 prose and config mentions had no machine watching them, and none of a
+move's documentation debt can rot silently now (CHANGELOG, specs/ and
+tests' synthetic fixtures are excluded as frozen or fabricated; the guard
+tripped three times during its own development — on the bootstrap comment's
+hypothetical hijack path and on its own waiver reason — which is the
+pattern working). `bootstrap`: any script importing a sibling must carry
+the canonical path-bootstrap block (append-only, layout-agnostic, the
+marker joined at runtime so the guard cannot satisfy itself).
+
+**The rest of the hardening**: the no-shadow-math and ledger guards scan
+recursively (a subdirectory could previously empty them silently); the CLI
+--help floor discovers scripts at any depth; the evidence gate refuses a
+TOUCH_MAP entry or OBLIGATIONS command that points at nothing (the
+ENTRY_STAMP lesson); the duplicated checker map in check_fixtures and
+run_conformance collapses into `deliverable_registry.py` (FM-07 closed —
+the drawer the checkers live in is now encoded in exactly one knob);
+conftest and mypy_path know every future drawer, keeping the strict-typing
+ratchet's bare names valid forever. The bootstrap block landed in 19
+scripts; brand-locked build_brand and globe_svg re-locked with the reason
+recorded. 13 tests added (223 total). Deliberate reds: a dangling doc path,
+a dead TOUCH_MAP entry, a deep-tree shadow def, and a stripped annotation
+each turned their gate red and were reverted — by re-editing, not by
+`git checkout`, which claimed one uncommitted fix during the exercise and
+taught the lesson again.
+
 ## 0.1.436 — the audit's first pass: what a repo accretes, named and removed
 
 R0 of the audit (`specs/` record follows with R1). Four findings from a

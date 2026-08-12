@@ -8,14 +8,33 @@ the three entry points is a reading task and stays with the reviewer.
 import ast
 import json
 import pathlib
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+# Bare-name sibling imports must resolve from any drawer depth: walk up to
+# the scripts/ root and APPEND it and its drawers to sys.path — append,
+# never insert(0), so the standard library and the caller's environment
+# always win (the stdlib-shadowing hijack documented in emergency_merge.sh
+# stays dead; the emergency path's protection is trusted copies overwriting
+# a PR's files at the same paths, not path order).
+import pathlib as _bs_pathlib  # noqa: E402
 import re
 import subprocess
 import sys
+import sys as _bs_sys  # noqa: E402
 import traceback
 from typing import cast
 
-import color_math
-from css_tokens import css_block, css_vars  # noqa: F401 — css_block is API for tests/tools
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("", "lib", "render", "check", "build", "ops"):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+# --- end bootstrap ---
+
+import color_math  # noqa: E402 — after the bootstrap, deliberately
+from css_tokens import css_block, css_vars  # noqa: E402, F401 — css_block is API for tests/tools
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
@@ -1505,8 +1524,7 @@ def check_brand_lock():
     deliberate act with a reason attached, recorded in the same commit, which
     is the only thing a lock in source control can honestly promise.
     """
-    sys.path.insert(0, str(ROOT / "scripts"))
-    import lock as brand_lock
+    import lock as brand_lock  # resolved by the module-level bootstrap
     return brand_lock.verify()
 
 
@@ -1530,7 +1548,8 @@ def check_no_shadow_math():
         "_vars": "css_tokens.py",
     }
     errors = []
-    for path in sorted((ROOT / "scripts").glob("*.py")):
+    for path in sorted(p for p in (ROOT / "scripts").rglob("*.py")
+                       if "__pycache__" not in p.parts):
         if path.name in shared:
             continue
         text = path.read_text(encoding="utf-8")
@@ -1633,7 +1652,8 @@ def check_ledgers():
 
     # Tracked bugs live in the ledger, not in code comments.
     todo_re = re.compile(r"(TODO|FIXME)[^\n]*GAP" + r"-\d+")
-    for path in sorted((ROOT / "scripts").glob("*.py")) + sorted(
+    for path in sorted(p for p in (ROOT / "scripts").rglob("*.py")
+                       if "__pycache__" not in p.parts) + sorted(
             (ROOT / "references").glob("*.md")):
         for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             if todo_re.search(line):
@@ -1774,6 +1794,103 @@ def check_secrets():
     return errors
 
 
+# A script-path mention that is deliberate data (a hypothetical example, a
+# threat-model illustration) is waived here with its reason, never silenced
+# by narrowing the pattern. Starts empty on purpose.
+SCRIPT_PATH_WAIVERS: dict[str, str] = {
+    "scripts/emergency_merge.sh":
+        "its threat-model comment cites a HYPOTHETICAL stdlib-shadowing "
+        "module path as the hijack example — deliberate illustration, not a "
+        "reference. (Spelling that path here would trip this guard on its "
+        "own waiver table, which is how this sentence learned not to.)",
+}
+
+# Files whose script-path mentions are FROZEN HISTORY and never rewritten,
+# plus tests/ — synthetic tree fixtures cite paths that exist only in
+# tmp_path by construction.
+SCRIPT_PATH_FROZEN = ("CHANGELOG.md", "specs/", "releases/",
+                      "conformance/results/", "tests/")
+
+SCRIPT_PATH_RE = re.compile(r"scripts/[\w./-]+\.(?:py|sh)\b")
+
+
+def check_script_paths():
+    """Every `scripts/<path>` string in live tracked text resolves to a file.
+
+    The scripts/ reorganization's enabling guard: ~180 prose and config
+    mentions of script paths had no machine watching them — check_links only
+    validates markdown links, and none target scripts/. A moved or renamed
+    script would leave every doc mention rotting with CI green. From this
+    guard on, a dangling mention is a failure; CHANGELOG and specs/ are
+    frozen history and excluded; generated artifacts are scanned too, which
+    holds their SOURCE literals honest through the regeneration gate.
+    """
+    p = subprocess.run(["git", "ls-files"], cwd=ROOT,
+                       capture_output=True, text=True)
+    if p.returncode != 0:
+        return ["git ls-files failed — the script-path scan did not run, and "
+                "a scan that did not run is not a scan that passed"]
+    errors = []
+    for relpath in p.stdout.splitlines():
+        if not relpath or relpath in SCRIPT_PATH_WAIVERS:
+            continue
+        if any(relpath.startswith(f) for f in SCRIPT_PATH_FROZEN):
+            continue
+        path = ROOT / relpath
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        for n, line in enumerate(text.splitlines(), 1):
+            for match in SCRIPT_PATH_RE.finditer(line):
+                cited = match.group(0)
+                if not (ROOT / cited).is_file():
+                    errors.append(
+                        f"{relpath}:{n}: cites {cited}, which does not exist "
+                        f"— the script moved or was renamed; update the "
+                        f"mention, regenerate the artifact, or waive it in "
+                        f"SCRIPT_PATH_WAIVERS with a reason")
+    return errors
+
+
+# The bare sibling-module names a scripts/ file may import. An import of one
+# of these requires the canonical bootstrap block (the sys.path walk that
+# makes bare names resolve from any drawer depth).
+SIBLING_MODULES = (
+    "geo_projection", "geo_frame", "globe_svg", "regionmap_svg", "sea_route",
+    "color_math", "css_tokens", "lock", "deliverable_registry",
+    "embed_globe", "embed_icons", "check_prose", "inspect_layout",
+)
+# Joined at runtime so this constant cannot satisfy the guard for THIS
+# file: check_repo imports siblings too and owes the real block.
+BOOTSTRAP_MARKER = "scripts path " + "bootstrap"
+SIBLING_IMPORT_RE = re.compile(
+    r"^\s*(?:import|from)\s+(" + "|".join(SIBLING_MODULES) + r")\b", re.M)
+
+
+def check_bootstrap():
+    """A script that imports a sibling carries the canonical bootstrap block.
+
+    Bare-name imports resolve today because a flat scripts/ is sys.path[0]
+    on direct runs. The subdirectory layout breaks that silently — an import
+    error surfaces only when the specific code path runs (check_globe's ~25
+    function-local imports are the worst case). The bootstrap block is
+    layout-agnostic; requiring it wherever a sibling import exists means the
+    move cannot leave a script stranded.
+    """
+    errors = []
+    for path in sorted(p for p in (ROOT / "scripts").rglob("*.py")
+                       if "__pycache__" not in p.parts):
+        text = path.read_text(encoding="utf-8")
+        m = SIBLING_IMPORT_RE.search(text)
+        if m and path.stem != m.group(1) and BOOTSTRAP_MARKER not in text:
+            errors.append(
+                f"{rel(path)} imports sibling {m.group(1)!r} without the "
+                f"canonical bootstrap block — bare names stop resolving the "
+                f"moment this file or its sibling changes drawers")
+    return errors
+
+
 CHECKS = (
     ("version stamps", check_versions),
     ("output default", check_output_default),
@@ -1798,6 +1915,8 @@ CHECKS = (
     ("ledgers", check_ledgers),
     ("commit convention", check_commit_convention),
     ("secrets", check_secrets),
+    ("script paths", check_script_paths),
+    ("bootstrap", check_bootstrap),
 )
 
 

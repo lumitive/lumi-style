@@ -38,6 +38,10 @@ ignore = [
 [tool.mypy]
 python_version = "3.12"
 files = ["scripts", "tests"]
+# Every drawer, so bare module names keep resolving after the physical
+# reorganization — which keeps the strict override below valid forever.
+mypy_path = ["scripts", "scripts/lib", "scripts/render", "scripts/check",
+             "scripts/build", "scripts/ops"]
 # The pragmatic floor: type-check the bodies of unannotated functions (finds
 # the None-flows-into-arithmetic class with zero annotation cost) without
 # requiring 16k legacy lines to be annotated first. Strictness is ratcheted

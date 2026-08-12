@@ -49,6 +49,11 @@ def _tree(tmp_path, monkeypatch, changelog=CHANGELOG):
     _git(tmp_path, "add", "-A")
     _git(tmp_path, "commit", "-q", "-m", "0.1.499 — base")
     monkeypatch.setattr(check_evidence, "ROOT", tmp_path)
+    # The map self-check validates TOUCH_MAP/OBLIGATIONS against ROOT; the
+    # synthetic tree carries none of the real scripts, so tests that are not
+    # about the maps run with empty ones (test_validate_maps covers them).
+    monkeypatch.setattr(check_evidence, "TOUCH_MAP", ())
+    monkeypatch.setattr(check_evidence, "OBLIGATIONS", {})
     monkeypatch.setattr(check_evidence, "EVIDENCE_DIR",
                         tmp_path / "releases" / "evidence")
     return _git(tmp_path, "rev-parse", "HEAD")
@@ -210,3 +215,25 @@ def test_untracked_new_file_is_a_touch(tmp_path, monkeypatch):
     touched = check_evidence.effective_touches(base)
     assert touched is not None
     assert "scripts/new_check.py" in touched
+
+
+def test_validate_maps_clean_on_the_live_repo():
+    assert check_evidence.validate_maps() == []
+
+
+def test_validate_maps_catches_a_dangling_touch_entry(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_evidence, "ROOT", tmp_path)
+    monkeypatch.setattr(check_evidence, "TOUCH_MAP",
+                        (("scripts/gone.py", ("layout-fixtures",)),))
+    monkeypatch.setattr(check_evidence, "OBLIGATIONS", {})
+    errors = check_evidence.validate_maps()
+    assert len(errors) == 1 and "can never fire" in errors[0]
+
+
+def test_validate_maps_catches_a_dangling_obligation_command(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_evidence, "ROOT", tmp_path)
+    monkeypatch.setattr(check_evidence, "TOUCH_MAP", ())
+    monkeypatch.setattr(check_evidence, "OBLIGATIONS",
+                        {"x": ("python3 scripts/gone.py --check", "why")})
+    errors = check_evidence.validate_maps()
+    assert len(errors) == 1 and "recording it would fail" in errors[0]

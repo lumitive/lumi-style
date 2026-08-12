@@ -108,6 +108,25 @@ OVERCLAIM = ("all gates green", "gates green", "all checks pass",
 SPEC_LINE_THRESHOLD = 150  # changed lines above which a spec citation is owed
 
 
+def validate_maps() -> list[str]:
+    """TOUCH_MAP file-entries and OBLIGATIONS commands must point at files
+    that exist. A prefix pointing at nothing obliges nothing — silently —
+    which is the ENTRY_STAMP lesson (a stamp position pointing at nothing
+    checks nothing). Runs at the head of --check so a scripts/ move that
+    forgets this file goes red instead of quiet."""
+    errors = []
+    for prefix, _obs in TOUCH_MAP:
+        if prefix.endswith((".py", ".md", ".sh")) and not (ROOT / prefix).is_file():
+            errors.append(f"TOUCH_MAP names {prefix!r}, which does not exist "
+                          f"— that entry can never fire")
+    for ob, (command, _why) in OBLIGATIONS.items():
+        for token in command.split():
+            if token.startswith("scripts/") and not (ROOT / token).is_file():
+                errors.append(f"OBLIGATIONS[{ob!r}] runs {token!r}, which "
+                              f"does not exist — recording it would fail")
+    return errors
+
+
 def releases_in_changelog() -> list[str]:
     return re.findall(r"^##\s+(\d+\.\d+\.\d+)",
                       (ROOT / "CHANGELOG.md").read_text("utf-8"), re.M)
@@ -346,7 +365,7 @@ def cmd_record(obligation: str) -> int:
 
 
 def check_file(v: str, warn: bool) -> list[str]:
-    errors: list[str] = []
+    errors: list[str] = list(validate_maps())
     if not evidence_path(v).exists():
         return [f"releases/evidence/{v}.json does not exist — every release "
                 f"writes one (--init), even with zero obligations"]

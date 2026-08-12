@@ -38,12 +38,30 @@ from __future__ import annotations
 
 import argparse
 import pathlib
-import re
-import sys
 
 # The genre vocabulary is imported from its one home, never copied. This tool
 # additionally knows `consulting`, which has no check_prose flag (a recorded
 # no-change) but does have a primary geometry: 16:9, like sales.
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+# Bare-name sibling imports must resolve from any drawer depth: walk up to
+# the scripts/ root and APPEND it and its drawers to sys.path — append,
+# never insert(0), so the standard library and the caller's environment
+# always win (the stdlib-shadowing hijack documented in emergency_merge.sh
+# stays dead; the emergency path's protection is trusted copies overwriting
+# a PR's files at the same paths, not path order).
+import pathlib as _bs_pathlib  # noqa: E402
+import re
+import sys
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("", "lib", "render", "check", "build", "ops"):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+# --- end bootstrap ---
 from check_prose import GENRES  # noqa: E402
 
 # One stage per geometry, the same fixed boxes the tokens declare.

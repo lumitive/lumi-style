@@ -29,9 +29,31 @@ import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+# Bare-name sibling imports must resolve from any drawer depth: walk up to
+# the scripts/ root and APPEND it and its drawers to sys.path — append,
+# never insert(0), so the standard library and the caller's environment
+# always win (the stdlib-shadowing hijack documented in emergency_merge.sh
+# stays dead; the emergency path's protection is trusted copies overwriting
+# a PR's files at the same paths, not path order).
+import pathlib as _bs_pathlib  # noqa: E402
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("", "lib", "render", "check", "build", "ops"):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+# --- end bootstrap ---
+
+from deliverable_registry import checker_path  # noqa: E402
+
 FIXTURES = ROOT / "fixtures"
-SCRIPTS = {"prose": "check_prose.py", "design": "check_design.py",
-           "layout": "inspect_layout.py"}
+# The kind->checker map lives in deliverable_registry (one copy; its
+# docstring carries the FM-07 story).
 
 # inspect_layout needs a headless Chromium, which CI does not have. That is a
 # stated posture in CLAUDE.md, not an oversight, so the runner asserts it where
@@ -49,9 +71,9 @@ def browser_available() -> bool:
     return True
 
 
-def run(script: str, args: list[str], path: pathlib.Path):
+def run(kind: str, args: list[str], path: pathlib.Path):
     proc = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / script), str(path), "--json", *args],
+        [sys.executable, str(checker_path(kind)), str(path), "--json", *args],
         capture_output=True, text=True)
     try:
         return proc.returncode, json.loads(proc.stdout)
@@ -157,7 +179,7 @@ def main() -> int:
             if kind.split("@")[0] == "layout" and not browser_available():
                 skipped_kinds.add(kind)
                 continue        # reported loudly by coverage_report below
-            code, report = run(SCRIPTS[kind.split("@")[0]], expect.get("argv", []), path)
+            code, report = run(kind.split("@")[0], expect.get("argv", []), path)
             label = f"{fixture} [{kind}]"
             if code != expect["exit"]:
                 errors.append(f"{label}: exit {code}, expected {expect['exit']}")

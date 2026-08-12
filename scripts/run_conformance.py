@@ -41,15 +41,34 @@ import argparse
 import hashlib
 import json
 import pathlib
+
+# The scripts are peers in one directory; the genre vocabulary lives in
+# check_prose.py and is imported, never copied (see GENRES there).
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+# Bare-name sibling imports must resolve from any drawer depth: walk up to
+# the scripts/ root and APPEND it and its drawers to sys.path — append,
+# never insert(0), so the standard library and the caller's environment
+# always win (the stdlib-shadowing hijack documented in emergency_merge.sh
+# stays dead; the emergency path's protection is trusted copies overwriting
+# a PR's files at the same paths, not path order).
+import pathlib as _bs_pathlib  # noqa: E402
 import re
 import shutil
 import subprocess
 import sys
+import sys as _bs_sys  # noqa: E402
 from typing import Any
 
-# The scripts are peers in one directory; the genre vocabulary lives in
-# check_prose.py and is imported, never copied (see GENRES there).
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("", "lib", "render", "check", "build", "ops"):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+# --- end bootstrap ---
 from check_prose import GENRES  # noqa: E402
+from deliverable_registry import checker_path, kinds  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 REGISTRY = ROOT / "adapters" / "platforms.json"
@@ -65,9 +84,9 @@ CAP_RANK = {"prompt": 0, "files": 1, "full": 2}
 # text, no part openers and a clamped title scored `pass` on prose and design and
 # was recorded as conformant, because the two checkers that ran cannot see a
 # rendered page and the one that can was never asked.
-SCRIPTS = {"prose": "check_prose.py", "design": "check_design.py",
-           "layout": "inspect_layout.py"}
-SCORE_KINDS = set(SCRIPTS) | {"recall"}
+# The kind->checker map lives in deliverable_registry (one copy; its
+# docstring carries the FM-07 story).
+SCORE_KINDS = set(kinds()) | {"recall"}
 
 
 def load_tasks() -> list[dict]:
@@ -237,8 +256,7 @@ def score_checks(kind: str, path: pathlib.Path, genre: str | None = None) -> dic
     analysis. The task said what it was and nothing carried the word to the
     checker.
     """
-    script = SCRIPTS[kind]
-    argv = [sys.executable, str(ROOT / "scripts" / script), str(path), "--json"]
+    argv = [sys.executable, str(checker_path(kind)), str(path), "--json"]
     if kind == "prose" and genre:
         argv += ["--genre", genre]
     if kind == "layout":
