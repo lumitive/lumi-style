@@ -3,6 +3,25 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.432 — a hash is not a name: the evidence gate survives its first rebase
+
+The first merge to `main` (PR #87, rebase-merged to keep the sixteen release
+commits individual) rewrote every commit hash — and turned each evidence
+file's `diff_base` into a dangling pointer. `check_evidence.py --check`
+reddened main exactly as 0.1.431 hardened it to ("does not resolve in a
+full-history checkout"): the gate was right that something did not resolve,
+and wrong about what that meant.
+
+The recorded SHA is rebase-fragile by construction; the commit SUBJECT is
+not — a rebase preserves messages, and the commit-convention guard makes
+release subjects reliable. `--check` now re-resolves an unresolvable base by
+finding the previous release's `X.Y.Z — ` subject before calling anything a
+finding, printing the re-resolution as a note. The failure remains for the
+case that deserves it: a base that resolves by neither hash nor subject.
+The test that asserted "bogus SHA fails" split into the honest pair: bogus
+SHA with a subject-matching predecessor re-resolves and passes; bogus SHA
+with no matching subject fails naming both misses.
+
 ## 0.1.431 — the review turns its findings on the gate that was built to catch them
 
 A four-lens review of PR #87 — the migration of
