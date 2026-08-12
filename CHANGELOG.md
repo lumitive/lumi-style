@@ -3,6 +3,41 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.445 — debug mode: the build writes its own evidence, in one schema on every platform
+
+The owner's product ask from the 0.1.442 review
+(spec: `specs/2026-08-12-debug-mode-design.md`): on the words "debug mode",
+the skill writes `<stem>.debug.json` beside the deliverable — errors,
+performance, and a quality assessment — so a later session can run a real
+eval from the log alone.
+
+**One helper is the schema.** `scripts/ops/debug_log.py` (standard library
+only): `init` stamps skill version, platform (validated against the
+registry), machine and date; `run -- <command>` EXECUTES the command and
+machine-writes exit code, stdout digest and timing — the evidence-gate
+principle, no verdict field for a human to type; `attach` embeds the three
+checkers' `--json` verbatim; `assess` records H1–H6 with a mandatory reason
+and REFUSES a self-scored 5 (review_scores' standing rule); `error`, `note`,
+and `validate`, which fails an unknown top-level key (the closed-set
+engagement-fact defence, borrowed from reviews/scores.json) and any CJK
+content (English-only by owner requirement).
+
+**Platforms cost nothing new.** Full-tier platforms run the script — same log
+from Claude Code, Codex, Cursor, Gemini, Pi, OpenClaw, Hermes; the prompt
+tier writes what it can into the delivery note and names what it owes, the
+degradation contract the checkers already use. `adapters/` is untouched on
+purpose: a per-platform debug note would be a restated rule, which the
+registry's own header forbids. macOS/Windows is `pathlib` + the deliverable's
+own folder — no new OS surface.
+
+Ten tests, both directions (FM-01 discipline): the run recorder proven to
+pass exit codes through, the self-5 refused, validate red on an unknown key,
+on CJK, and on a hand-written command entry with no digest. Deliberate red
+recorded: `validate` on a log carrying `"client"` and Chinese notes exits 1
+naming both. The first argparse cut of `run` swallowed `--label` into the
+executed command (REMAINDER's stdlib sharp edge) — caught by the test, fixed
+by splitting at `--` before parsing, and kept in the file as a comment.
+
 ## 0.1.444 — the render gate stops paying for thirteen browsers and one quadratic line
 
 The owner's performance complaint (an hour for 34 pages, ceiling ten minutes;

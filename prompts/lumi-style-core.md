@@ -28,7 +28,12 @@ the content pages into contiguous parts with placeholders where footers and
 shared assets go, author parts in parallel, then stitch and substitute, and
 refuse the merge while any placeholder is left unreplaced. Verify once, on the
 assembled document. When expected generation time still
-passes ten minutes, say so before starting.
+passes ten minutes, say so before starting. **When the request says "debug
+mode"**: this tier runs no scripts, so append a plain-English debug section to
+the delivery note instead — the steps taken with rough timings, every error
+met, an H1–H6 self-score with a reason per dimension (never a self-scored 5),
+and a named list of the checks you could not run, which the operator owes.
+Write no client name or engagement figure into it.
 
 ## 0 Commit first (read before the red lines)
 
@@ -405,6 +410,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.444** snapshot, cut 2026-08-12. It is self-contained by
+> This file is the **0.1.445** snapshot, cut 2026-08-12. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

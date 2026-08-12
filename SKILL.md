@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.444"
+  version: "0.1.445"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -284,6 +284,33 @@ been removed; they now apply at step 4 instead of framing step 0.
 6. **Review loop**: decks embed the scoring table as the final page; on receiving
    reviews, any dimension diverging ≥2 forces a retrospective that produces a rule
    revision (CHANGELOG + version bump) — this is the skill's iteration engine.
+
+## Debug mode (on request only)
+
+When the user's request says **"debug mode"**, write an execution log beside
+the deliverable — `<stem>.debug.json` in the same folder — through
+`scripts/ops/debug_log.py`, never by hand
+(design: `specs/2026-08-12-debug-mode-design.md`; the subcommands are the
+schema, so every platform produces the same log):
+
+- `init <deliverable> --platform <registry id>` at the start;
+- `run <log> --label <step> -- <command>` for **every check or build command**
+  — it executes the command and machine-writes exit code, output digest and
+  timing, so the log is evidence, not claims;
+- `attach <log> --kind design|prose|layout --json-file <f>` with each
+  checker's `--json` output;
+- `assess <log> --dim H1..H6 --score 1-4 --reason "…"` after the self-score
+  step (5 is refused — never self-score 5 before a reader);
+- `error <log> --stage <where> --message <what>` the moment anything fails;
+- `validate <log>` before delivery, and point the user at the file in the
+  delivery note.
+
+The log is **English-only**, carries **no engagement fact** (its key set is
+closed so there is nowhere to put one), and stays in the engagement folder —
+never in this repository. A platform that cannot run scripts (the prompt tier)
+writes what it can into the delivery note and names what it owes, the same
+degradation contract the checkers use. Without the words "debug mode", write
+no log.
 
 ## Six non-negotiable red lines (every scenario)
 

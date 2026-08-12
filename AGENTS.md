@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.444.** This file restates part of `references/`; where they
+> **lumi-style 0.1.445.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -41,6 +41,11 @@ target: a 30-page document in under ten minutes end-to-end; when the estimate
 still passes ten minutes, say so before starting. Before
 delivery, the **red-team pass** rides the critic gate: read the draft as its
 most skeptical reader, and treat over-design as a finding, not a virtue.
+**When the request says "debug mode"**, write the execution log beside the
+deliverable through `scripts/ops/debug_log.py` (init · run every check through
+it · attach the checkers' `--json` · assess H1–H6 with reasons, never a
+self-scored 5 · error on any failure · validate) — English-only, no engagement
+facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
 
 **Load order** (all files are in this repository):
 

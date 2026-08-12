@@ -1,0 +1,15 @@
+{
+  "version": "0.1.445",
+  "diff_base": "db3a51a627599603891110dc19ffe09a36477532",
+  "spec": "specs/2026-08-12-debug-mode-design.md",
+  "obligations": [
+    "conformance-freshness"
+  ],
+  "checks": [],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "debug mode adds a new operator surface but changes no design or prose rule a conformance task grades. The board refresh remains owed with 0.1.443's reasons and lands after the retrospective series, with the owner's rebuild as the first acceptance run. Deferred, not discharged."
+    }
+  ]
+}
