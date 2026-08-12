@@ -222,9 +222,19 @@ def shipped_css() -> str:
             ddepth -= 1
     dark = css[dstart:dend + 1] + "\n"
 
+    # AND THE TRADE PALETTE, for the same reason and by the same history. The
+    # cover and closing mark is the LUMIVATE field globe, whose regions are
+    # trade blocs carrying `rg rg-eu` and friends; `region-palette.css` binds
+    # the CONTINENTAL ids and defines none of those, so the mark's eight blocs
+    # fell back to black exactly as figure 9 once did. 0.1.447 first answered
+    # that by keeping the mark's own copy of this file inside the SVG — which
+    # worked and was wrong: it froze a copy of a GENERATED file inside a locked
+    # asset, where `build_region_palette.py --check` cannot see it drift. Two
+    # generated palettes, both included, both checked.
     return (":root {" + css[start + len(":root {"):i] + "}\n" + dark
             + (ROOT / "tokens/lumi-layouts.css").read_text(encoding="utf-8")
-            + (ROOT / "tokens/region-palette.css").read_text(encoding="utf-8"))
+            + (ROOT / "tokens/region-palette.css").read_text(encoding="utf-8")
+            + (ROOT / "tokens/region-palette-trade.css").read_text(encoding="utf-8"))
 
 
 # region_bindings() lived here from 0.1.390 to 0.1.391 — the fixture generating

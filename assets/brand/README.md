@@ -40,10 +40,15 @@ a mark.
 
 **Except when embedding in a lumi-style document**: inline SVG shares the
 document's style scope, so the field globe's own `<style>` block would
-redefine the document's tokens globally. Strip that one block and let the
-document's token block paint the classes — `scripts/ops/new_deck.py`'s
-`brand_globe()` is the reference implementation, and the scaffold it emits
-already carries the globe this way on both marked pages.
+redefine the document's tokens globally. Strip that one block — and then the
+document must carry **both** `tokens/region-palette.css` and
+`tokens/region-palette-trade.css`, or the mark's eight trade blocs fall back
+to the browser default and render black. `scripts/ops/new_deck.py`'s
+`brand_globe()` is the reference implementation and the scaffold's preamble
+ships both palettes, so a scaffolded document already has this right on both
+marked pages. (0.1.447 shipped a version that kept the mark's own copy of the
+palette instead. It rendered correctly and was wrong: a generated file frozen
+inside a locked asset is a file no regeneration check can see drift.)
 
 Pick by size, not by preference. The small one drops the graticule because
 below about 48px a 15-degree grid falls closer together than the pixels; the

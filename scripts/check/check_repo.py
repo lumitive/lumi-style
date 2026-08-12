@@ -343,10 +343,16 @@ def check_palette_parity():
     # the key map or as a generated ladder step. A mirror runs both ways.
     mapped_vars = set(PALETTE_KEY_TO_VAR.values())
     ladder_step = re.compile(r"^(tx|ln)\d$")
-    colour = re.compile(r"^(#|rgba?\()")
+    # WHAT IS NOT A COLOUR, rather than what is. An allow-list of colour
+    # syntaxes (`#`, `rgb(`, `rgba(`) would skip a token written as `oklch()`,
+    # `hsl()` or `color-mix()` — and this package already uses `color-mix` in
+    # its layout file, so one such token in a palette block would slip the
+    # mirror silently: the same one-way blindness this walk was added to close.
+    not_colour = re.compile(r"^(-?[\d.]+(px|em|rem|svh|vh|vw|%|s|ms)?$|var\(|"
+                            r"['\"]|normal$|none$|inherit$|[\w-]+,)")
     for opener, palette_name in ((":root {", "light"), ("body.dark {", "dark")):
         for var, value in css_vars(css_block(css, opener)).items():
-            if not colour.match(value.strip()):
+            if not_colour.match(value.strip()):
                 continue
             if var in mapped_vars or ladder_step.match(var):
                 continue
@@ -1991,6 +1997,55 @@ def check_bootstrap():
     return errors
 
 
+def check_scaffold_slots():
+    """D14's scaffold-slot list and what the scaffold actually emits are one list.
+
+    `new_deck.py` hands an author a document that already renders, and the
+    price is furniture worded to be replaced. D14 refuses those strings, and
+    for one release it knew two of them — so an author who fixed both still
+    shipped a cover reading "One sentence saying what this is." The two files
+    cannot import each other (a deliverable grader may not depend on the
+    scaffold generator, and the generator already reads the fixture), so this
+    holds them together from outside, both ways:
+
+      · every string D14 lists must still appear in the scaffold — otherwise
+        it is a pattern guarding nothing, and the next reader trusts it;
+      · a scaffold with all of them substituted must leave D14 with nothing —
+        otherwise the scaffold has furniture the list has not learned.
+    """
+    import contextlib
+    import io
+
+    import check_design
+    import new_deck
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf), \
+            contextlib.redirect_stderr(io.StringIO()), \
+            contextlib.suppress(SystemExit):
+        new_deck.main(["--genre", "training", "--pages", "2"])
+    html = buf.getvalue()
+    if "<section" not in html:
+        return ["scripts/ops/new_deck.py emitted no scaffold, so D14's slot "
+                "list could not be held against it"]
+    errors = []
+    for slot in check_design.AUTHOR_FILL:
+        if slot not in html:
+            errors.append(
+                f"check_design.AUTHOR_FILL lists {slot!r}, which the scaffold "
+                f"no longer emits — a pattern guarding nothing")
+    filled = html
+    for slot in check_design.AUTHOR_FILL:
+        filled = filled.replace(slot, "filled in by the author")
+    left = check_design.d14_placeholders(filled)
+    if left:
+        errors.append(
+            f"the scaffold still trips D14 after every declared slot is "
+            f"substituted ({left[0]['text']!r} on {left[0]['page']}) — it "
+            f"emits furniture check_design.AUTHOR_FILL has not learned")
+    return errors
+
+
 CHECKS = (
     ("version stamps", check_versions),
     ("output default", check_output_default),
@@ -2017,6 +2072,7 @@ CHECKS = (
     ("secrets", check_secrets),
     ("script paths", check_script_paths),
     ("bootstrap", check_bootstrap),
+    ("scaffold slots", check_scaffold_slots),
 )
 
 

@@ -71,70 +71,53 @@ import embed_globe  # noqa: E402
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if p.name == "scripts").parent
+# READ LAZILY, inside preamble(). build_fixtures.py imports this module for
+# brand_globe(), and this module reads the artifact build_fixtures GENERATES —
+# so a module-scope read here would stop the fixture generator from importing
+# whenever the fixture is absent or stale, which is exactly when it is run.
 FIXTURE = ROOT / "fixtures" / "deck-pass.en.html"
 BRAND_GLOBE = ROOT / "assets" / "brand" / "lumivate" / "globe-field.svg"
-
-
-# The selectors inside a vendored mark's style block that carry a DOCUMENT
-# palette rather than the component's own rendering. Inline SVG shares the
-# host document's style scope, so these would silently redefine the host's
-# tokens; everything else in that block is the component and must survive.
-PALETTE_SELECTORS = (":root", "body.dark", ".dark")
-
-
-def _strip_palette(style):
-    """Drop the palette blocks from a vendored component's CSS, keep the rest.
-
-    The first cut of this dropped the ENTIRE `<style>` element, on the reading
-    that "the document's token block paints the classes". It does not: the
-    globe's own `.gl-*` rules and its `.trade` region palette live in that
-    block and nowhere in `tokens/`, so stripping it left every trade region
-    filling with the UA default — black — and the land unfilled. The region
-    palette file says this failure in its own header ("a palette nobody could
-    use… every check passed, because none reads rendered colour"), and the
-    0.1.442 review found it again from the other side: the owner asked where
-    the trade-region colours went.
-    """
-    out, i = [], 0
-    while i < len(style):
-        brace = style.find("{", i)
-        if brace == -1:
-            out.append(style[i:])
-            break
-        selector = style[i:brace].strip().lstrip("}").strip()
-        depth, j = 1, brace + 1
-        while depth and j < len(style):
-            depth += 1 if style[j] == "{" else -1 if style[j] == "}" else 0
-            j += 1
-        # Comments first, THEN the split: these blocks are documented in prose
-        # above them, and a comma inside that prose cut the selector mid-comment
-        # so `:root` read as commentary and survived.
-        selector = re.sub(r"/\*.*?\*/", " ", selector, flags=re.S)
-        first = selector.split(",")[0].strip().split("\n")[-1].strip()
-        if first not in PALETTE_SELECTORS:
-            out.append(style[i:j])
-        i = j
-    return "".join(out)
 
 
 def brand_globe():
     """The LUMIVATE field globe, prepared for embedding in a document.
 
     The default cover/closing mark (owner directive, 0.1.442 review: a
-    deliverable shipped a fresh anonymous render instead of the brand). The
-    vendored file is the standalone published form and carries its own
-    `<style>` block, which holds two different things: the component's own
-    rendering (`.gl-*` and the `.trade` region palette, which exist nowhere
-    else) and a copy of the document palette. Only the second is stripped —
-    inline SVG shares the host's style scope, so a vendored `:root` would
-    redefine the host's tokens, while the component's rules are exactly what
-    makes the mark render. The lock in assets/brand/LOCKED.json holds the
-    file; this prepares a copy for embedding and changes nothing on disk.
+    deliverable shipped a fresh anonymous render instead of the brand).
+
+    THE VENDORED FILE IS THE STANDALONE PUBLISHED FORM, so it carries its own
+    `<style>` — a copy of the document palette plus a copy of both region
+    palettes. Inline SVG shares the host document's style scope, so embedding
+    that block redefines the host's tokens; the whole element comes out, and
+    the host paints the mark from `tokens/`, where every rule in it also
+    lives.
+
+    0.1.447 first stripped only the palette SELECTORS and kept the rest, on
+    the reading that the component's rules existed nowhere else. They do:
+    `.gl-*` and `.trade` are `tokens/region-palette.css` and
+    `tokens/region-palette-trade.css`, both generated and both `--check`ed.
+    What had actually gone wrong was narrower — the trade palette was the one
+    generated file the fixture preamble did not include, so the mark's eight
+    blocs fell back to the UA default. Keeping a copy inside the SVG cured the
+    symptom and froze a generated file inside a LOCKED asset where no
+    regeneration check can see it drift. The preamble includes both palettes
+    now, which is the same answer figure 9's black rectangles got in 0.1.391.
+
+    The scaffold therefore owes the mark its palette: `test_new_deck.py` holds
+    that every `--rg-*` the embedded globe references is defined by the CSS
+    the preamble ships, which is the machine form of "the mark paints".
     """
     src = BRAND_GLOBE.read_text(encoding="utf-8")
-    return re.sub(r"<style>(.*?)</style>",
-                  lambda m: "<style>" + _strip_palette(m.group(1)) + "</style>",
-                  src, count=1, flags=re.S)
+    blocks = re.findall(r"<style\b[^>]*>", src)
+    if len(blocks) != 1:
+        raise SystemExit(f"FAIL  {BRAND_GLOBE.name} carries {len(blocks)} "
+                         f"<style> blocks; this prepares exactly one, and a "
+                         f"second would ship the palette it exists to remove")
+    out = re.sub(r"<style\b[^>]*>.*?</style>", "", src, count=1, flags=re.S)
+    if "<style" in out:
+        raise SystemExit(f"FAIL  {BRAND_GLOBE.name} still carries a <style> "
+                         f"block after stripping")
+    return out
 
 GENRES = ("sales", "consulting", "internal", "training")
 
@@ -328,7 +311,7 @@ def main(argv):
 
     if apparatus:
         # Template 4's arc ends on the pages a learner returns to. The page is
-        # DECLARED apparatus (design-rules.md §2b): D16's visual-share target
+        # DECLARED apparatus (design-rules.md §3): D16's visual-share target
         # exempts it, up to the one-in-five ceiling.
         out.append(f'''<section class="page" id="gloss" data-role="apparatus">
   {g}

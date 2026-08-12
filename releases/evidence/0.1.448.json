@@ -1,0 +1,24 @@
+{
+  "version": "0.1.448",
+  "diff_base": "9bc7dafa1b8ccf098ab190c5a2b33c503cbe9c77",
+  "spec": "specs/2026-08-12-owner-review-retrospective-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "cdeb3d93b85f8502461ec4c020fcacf49126fa383d9cfcad25e217754da1e4ef",
+      "date": "2026-08-12"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "a review-response release: it hardens the checks the series added and corrects their prose, and changes no rule a conformance task grades except D14's slot list and D18's region reading, both of which make the graders stricter rather than different. The board refresh stays owed with 0.1.443's reasons, after this series. Deferred, not discharged."
+    }
+  ]
+}

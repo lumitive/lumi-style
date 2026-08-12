@@ -953,8 +953,21 @@ PROBE = r"""
       // of the TEXT-NODE rects stand in for baselines (constant descent at one
       // face and size), and the spread is a ratio of the tallest rect so the
       // zoomed stage can neither manufacture nor hide it.
-      footBaselineSpreadRatio: (() => {
-        if (!footEl) return null;
+      //
+      // THE NULLS ARE NOT ALL THE SAME, and reading them as one another was
+      // how this probe went blind exactly where the defect is worst. `line1`
+      // keeps the runs within 0.6 of a line box of the topmost rect, so a run
+      // displaced by MORE than that becomes the topmost rect and stands alone
+      // — the probe returned null, every consumer read `null or 0`, and the
+      // report printed "one line, one baseline" for a footer 12px out of true.
+      // A check that fires at 3px and goes silent at 12px is worse than none.
+      // So the shape carries what happened: `runs` (how many text runs the
+      // footer has at all) and `split` (there are runs, and no two of them
+      // share the first line — which is not an absence of evidence, it is the
+      // finding, one size up).
+      footBaseline: (() => {
+        const out = {ratio: null, runs: 0, split: false};
+        if (!footEl) return out;
         const walker = document.createTreeWalker(footEl, NodeFilter.SHOW_TEXT);
         const range = document.createRange();
         const rects = [];
@@ -966,15 +979,19 @@ PROBE = r"""
             if (r.width > 0.5 && r.height > 0.5) rects.push(r);
           }
         }
-        if (rects.length < 2) return null;
+        out.runs = rects.length;
+        // One run is a footer with nothing to compare — a page number alone.
+        // Nothing to grade, and saying so is not the same as saying "clean".
+        if (rects.length < 2) return out;
         const tall = Math.max(...rects.map(r => r.height));
         const top = Math.min(...rects.map(r => r.top));
         // First line only: a wrapped footer is footWrapped's finding, and
         // grading its second line here would report one defect twice.
         const line1 = rects.filter(r => r.top - top < tall * 0.6);
-        if (line1.length < 2) return null;
+        if (line1.length < 2) { out.split = true; return out; }
         const bottoms = line1.map(r => r.bottom);
-        return (Math.max(...bottoms) - Math.min(...bottoms)) / tall;
+        out.ratio = (Math.max(...bottoms) - Math.min(...bottoms)) / tall;
+        return out;
       })(),
       // A figure's number and name are one line too: wrapped, the caption stops
       // reading as a label and starts reading as prose under the drawing.
@@ -1099,7 +1116,7 @@ class _Shared:
     context and launched its own browser — three per geometry plus one per
     file, so a landscape deck's default run launched Chromium THIRTEEN times
     to answer questions one browser could hold. The launch cycle measures
-    ~1.4s, so that alone was ~17s of a run's wall clock, and it was the shape
+    ~1.4s, so that alone was ~18s of a run's wall clock, twelve launches of it removable, and it was the shape
     of the code, not a decision anyone had made. Probes now share this
     process-wide pair; `atexit` closes it, so standalone callers (tests,
     run_conformance) leak nothing.
@@ -1653,10 +1670,38 @@ def _footer_wrapped(live):
 FOOT_BASELINE_RATIO = 0.08
 
 
-def _footer_misaligned(live):
+def _footer_baseline_gradable(live):
+    """Pages whose footer carries two runs to compare.
+
+    A footer that is only a page number has nothing to grade, and grading it
+    `ok` would be the same false all-clear the probe's own nulls used to
+    produce — n/a is the honest verdict, and it is not the same as passing.
+    """
     return [r for r in live
             if r.get("hasFooter")
-            and (r.get("footBaselineSpreadRatio") or 0) > FOOT_BASELINE_RATIO]
+            and (r.get("footBaseline") or {}).get("runs", 0) >= 2]
+
+
+def _footer_misaligned(live):
+    """Footers whose runs do not sit on one baseline.
+
+    Two shapes of the same defect: a measurable spread past the floor, and a
+    footer whose runs do not share a line at all (`split`). The second is the
+    LARGER displacement, and reading its null as zero is what let a footer 12px
+    out of true report as "one line, one baseline". A genuinely wrapped footer
+    is excluded — `footer_wrap` is already failing that page, and one defect
+    reported twice under two names teaches an author to distrust both.
+    """
+    out = []
+    for r in live:
+        if not r.get("hasFooter"):
+            continue
+        fb = r.get("footBaseline") or {}
+        if (fb.get("ratio") or 0) > FOOT_BASELINE_RATIO:
+            out.append(r)
+        elif fb.get("split") and not r.get("footWrapped"):
+            out.append(r)
+    return out
 
 
 def _role_splits(c):
@@ -2096,13 +2141,20 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
         print(f"  footer: one line on all "
               f"{len([r for r in live if r.get('hasFooter')])} pages that carry one")
     fb = _footer_misaligned(live)
+    graded = [r for r in live
+              if r.get("hasFooter") and (r.get("footBaseline") or {}).get("runs", 0) >= 2]
     if fb:
-        worst = max(r.get("footBaselineSpreadRatio") or 0 for r in fb)
+        worst = max((r.get("footBaseline") or {}).get("ratio") or 0 for r in fb)
+        split = [r for r in fb if (r.get("footBaseline") or {}).get("split")]
         print(f"  FOOTER BASELINE: {len(fb)} of {len(live)} footers set their "
-              f"runs on different baselines (worst spread {worst:.2f} of the "
-              f"line box) — one row, one baseline: " + _fmt_ids(fb))
-    elif [r for r in live if r.get("hasFooter")]:
-        print("  footer baseline: one line, one baseline on every measured page")
+              f"runs on different baselines (worst measured spread "
+              f"{worst:.2f} of the line box"
+              + (f"; {len(split)} so far apart that no two runs share the "
+                 f"first line" if split else "") + ") — one row, one "
+              "baseline: " + _fmt_ids(fb))
+    elif graded:
+        print(f"  footer baseline: one line, one baseline on all {len(graded)} "
+              f"pages whose footer carries more than one run")
     capw = sum(r.get("capWrapped", 0) for r in live)
     capn = sum(r.get("capCount", 0) for r in live)
     if capw:
@@ -2269,7 +2321,8 @@ def deliverable_verdicts(rows, consistency):
         lambda h: f"{len(h)} pages clip their own title block: " + _fmt_ids(h))
     add("footer_wrap", _footer_wrapped(live), not footed,
         lambda h: f"{len(h)} footers wrap to a second line: " + _fmt_ids(h))
-    add("footer_baseline", _footer_misaligned(live), not footed,
+    add("footer_baseline", _footer_misaligned(live),
+        not _footer_baseline_gradable(footed),
         lambda h: f"{len(h)} footers set their runs on different baselines: "
                   + _fmt_ids(h))
     drawn = [r for r in live if r.get("drawn")]

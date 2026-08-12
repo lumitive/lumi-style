@@ -535,11 +535,23 @@ def d18_region_labels(raw):
     of its blocs that way, and before this line D18 read the locked brand asset
     as eight unlabelled regions.
     """
-    # `(?<![\w-])` and not `\b`: the globe's own furniture classes —
-    # `gl-rg-label`, `gl-rg-n`, `gl-rg-p` — contain `rg-` after a hyphen, and
-    # `\b` happily matched there, reading the component's label machinery as
-    # three unlabelled regions named "label", "n" and "p".
-    ids = set(re.findall(r'class="[^"]*(?<![\w-])rg-([\w-]+)', raw))
+    # A REGION IS `class="rg rg-<id>"`, and the id is read from a class list
+    # split on whitespace rather than scanned out of the attribute. The scan
+    # was wrong twice over: `\b` matched inside the globe's own furniture
+    # (`gl-rg-label` read as a region named "label"), and being greedy it kept
+    # only the LAST `rg-` token in an attribute, so `class="rg-outline
+    # rg-outline-eu"` — which the package's own flat-map emitter writes on
+    # every region — lost the first and invented a region called
+    # "outline-eu". Both the map's furniture (`.rg-full`, `.rg-outline`,
+    # `.rg-label*`) and the globe's are shipped vocabulary in
+    # `tokens/region-palette.css`; a region is the token that rides beside the
+    # bare `rg` marker.
+    ids = set()
+    for attr in re.findall(r'class="([^"]*)"', raw):
+        classes = attr.split()
+        if "rg" not in classes:
+            continue
+        ids |= {c[3:] for c in classes if c.startswith("rg-") and len(c) > 3}
     if not ids:
         return None
     labelled = set(re.findall(r'data-region-label="([\w-]+)"', raw))
@@ -773,16 +785,40 @@ PLACEHOLDER_MARKERS = re.compile(
 # document uses legitimately, and a gate that fails on it is a gate people learn
 # to route around.
 
-# The scaffold's own slots, which are not bracketed. `REPLACE ME` is the title
-# new_deck.py substitutes into every scaffold head; `lumi-style VERSION` is its
-# colophon before the version is filled in. A 34-page review reached its reader
-# with the first one as its browser-tab title, and nothing here looked, because
-# every marker this file knew wore brackets. Both patterns are case-sensitive:
-# they match the scaffold's literal output, not prose that mentions replacing
-# things. (The fixture's `www.example.org` footer is deliberately NOT a marker:
-# fixtures keep a reserved domain precisely so no engagement fact ships in this
-# repository, and a deliverable's site slot stays with the reviewer — IDEA-9.)
-SCAFFOLD_SLOTS = re.compile(r"REPLACE ME|lumi-style VERSION\b")
+# THE SCAFFOLD'S OWN SLOTS, which are not bracketed. `new_deck.py` hands an
+# author a document that already renders, and the price of that is a page of
+# furniture worded to be replaced: a title, a support line, attribute rows, a
+# glossary entry, a colophon. A 34-page review reached its reader with
+# `REPLACE ME` as its browser-tab title, and nothing here looked, because every
+# marker this file knew wore brackets.
+#
+# The first cut of this list held two of them, so an author who fixed the two
+# D14 named still shipped a cover whose support line read "One sentence saying
+# what this is." The list lives HERE, because what a checker refuses is the
+# checker's business and a deliverable grader may not import the scaffold
+# generator — and `check_repo`'s **scaffold slots** guard holds it against
+# what `new_deck.py` actually emits, in both directions: a string here that
+# the scaffold no longer writes is stale, and a scaffold whose slots survive a
+# full substitution pass is a scaffold with furniture this list has not
+# learned. Completeness beyond that stays with the reviewer.
+#
+# Case-sensitive: these match the scaffold's literal output, not prose that
+# mentions replacing things. (The fixture's `www.example.org` footer is
+# deliberately NOT here: fixtures keep a reserved domain precisely so no
+# engagement fact ships in this repository, and a deliverable's site slot
+# stays with the reviewer — IDEA-9.)
+AUTHOR_FILL = (
+    "REPLACE ME",
+    "lumi-style VERSION",
+    "A title that states the argument about its",
+    "What the reader carries out about its",
+    "One sentence saying what this is.",
+    "The argument in one paragraph.",
+    "What it means in this document, one sentence.",
+    "A title naming its subject and carrying a fact",
+    "The support line, one sentence and not a summary.",
+)
+SCAFFOLD_SLOTS = re.compile("|".join(re.escape(s) for s in AUTHOR_FILL))
 
 
 def d14_placeholders(raw):

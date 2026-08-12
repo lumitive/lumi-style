@@ -3,6 +3,100 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.448 — a five-lens review of the retrospective, and the checks it added get checked
+
+Five specialist reviews over 0.1.443–0.1.447 (general, silent-failure,
+test-coverage, comment-accuracy, schema design), against the series' own spec
+`specs/2026-08-12-owner-review-retrospective-design.md`. They found real defects in
+the release series that exists to find real defects — including, twice, a new
+check that could not see the thing it was written for. Every finding below
+was reproduced before it was fixed.
+
+**The debug log dropped evidence under the very protocol it shipped beside.**
+Eight parallel `run` calls — the shape SKILL.md step 1 puts in flight — left
+one entry of eight, and the file itself came back unparseable: read-modify-
+write with a truncating save. Writes are now atomic (`tmp` + `os.replace`)
+under a cross-platform `O_CREAT|O_EXCL` lock, and eight concurrent writers
+keep eight records, proven by test. Three more shapes of the same defect
+closed: a command that could not START (a typo'd path) reached no record at
+all and `validate` called the log clean; a nonzero exit wrote no `errors`
+entry, so the first real log had one failure and no account of it; and
+`attach` overwrote per kind, so a build that failed a check and then passed
+it kept only the passing document. `run` now digests stdout AND stderr, the
+way `check_evidence.py` does — stdout alone gave every crash the same
+empty-output digest.
+
+**`validate` reached less far than the writers, which is backwards** — a log
+arrives at an evaluator as a file, not as a sequence of subcommand calls. A
+score of 9, a self-scored 5 as the string `"5"`, a `stdout_sha256` reading
+`not-a-digest`, a step with no provenance, an unknown platform and an EMPTY
+log all passed. All refused now; the empty-log case had been encoded as an
+expectation by a test named `..._clean_log_passes`. What `validate` still
+cannot do — prove a digest is the digest of what that command produced — the
+docstring now says instead of implying otherwise. The engagement-fact claim
+is corrected the same way: the closed key set means no field INVITES a client
+fact, but four free-text channels exist and red line 9 binds the author in
+them; `reviews/scores.json`'s defence is that it has no free-text field at
+all, and this schema cannot borrow what it did not copy.
+
+**The footer-baseline gate fired at 3px and went silent at 12px.** Its probe
+returned null when no two runs shared the first line — which is what a LARGE
+displacement produces — and every consumer read `null or 0`, so the report
+printed "one line, one baseline" for a visibly broken footer. The probe now
+returns what happened (`runs`, `split`), a split footer is the finding one
+size up, a single-run footer is n/a rather than ok, and a wrapped footer is
+not reported twice under two names. Deliberate red: the 12px case the old
+probe passed now fails the gate.
+
+**Two verdicts were emitted and asserted by nobody** — `footer_baseline` from
+the release that added it, `starved_column` since 0.1.412 — because
+`fixtures/expected.json` was walked key by declared key. Both declared now,
+and the class is closed: `check_fixtures.py` fails any verdict a checker
+emits that the table does not name. It immediately found two more
+(`M4zh_banned_hits`, `M5_zh_punctuation`). Two literal "ten"s in that file
+went the way of the other enumerations.
+
+**The 0.1.447 globe fix was right about the symptom and wrong about the
+cause.** Its comment said the `.gl-*` rules and the `.trade` palette "live
+nowhere in `tokens/`". They do — `tokens/region-palette.css` and
+`region-palette-trade.css`, both generated, both `--check`ed. What had gone
+wrong was narrower: the trade palette was the one generated file the fixture
+preamble did not include. Keeping a copy inside the SVG cured it and froze a
+generated file inside a LOCKED asset where no regeneration check can see it
+drift. The preamble includes both palettes now — the same answer figure 9's
+black rectangles got in 0.1.391 — the hand-written CSS brace scanner is
+deleted with its four silent-failure modes (comment braces, at-rule nesting,
+selector lists, unbalanced input), and `tests/test_new_deck.py` holds the
+invariant that matters: every region class the mark uses has a binding and a
+variable in what the scaffold ships. Deliberate red: remove the trade palette
+from the preamble and that test goes red, which is BUG#1 stated as a machine
+check instead of a paragraph.
+
+**D14 knew two of the scaffold's slots.** An author who fixed both still
+shipped a cover reading "One sentence saying what this is." All nine are
+listed now, and a new `check_repo` guard holds the list against what the
+scaffold actually emits in both directions — a string the scaffold no longer
+writes is stale, and a scaffold that still trips D14 after every declared
+slot is substituted has furniture the list has not learned.
+
+**D18's regex fix was half of one.** It stopped the globe's `gl-rg-label`
+furniture reading as a region, and left the flat map's `rg-full` /
+`rg-outline-<id>` — written by this package's own emitter — inventing two.
+Regions are now read from the class list, keyed on the bare `rg` marker.
+
+**And the numbers.** `--acc` was documented at 5.94:1 where it measures 6.71
+(the repo's own §1 ledger already said so; 5.94 is a transposition of
+`--on-acc`'s 5.93) — it had reached all three fixtures. A portrait comment
+cited a clearance measured at a mark ceiling the same release replaced. The
+launch-cost arithmetic said 17s where 13 × 1.4 is 18.2. `assets/brand/README`
+instructed the exact reading `new_deck.py` records as the defect. The
+reverse palette walk recognised three colour syntaxes and would have skipped
+an `oklch()` token silently; it now asks what is NOT a colour. `scripts/README`
+gained the two import edges this series added, and `new_deck.py` a note that
+its fixture read must stay lazy or the fixture generator cannot import.
+
+29 tests added (294).
+
 ## 0.1.447 — the mark gets its colours back, the sheet gets its voice, and the table finally ships
 
 Second round of the owner review, on the rebuilt handbook

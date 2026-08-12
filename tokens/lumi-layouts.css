@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.447 (2026-08-12)
+   LUMI page layouts · v0.1.448 (2026-08-12)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -1192,9 +1192,9 @@ body[data-geometry="portrait"] {
      a part opener are the two pages that exist to land one statement, so the
      sheet gives them the SAME ink as the slide and gains impact from the
      narrower measure rather than losing it. Measured at 794x1123 on a 34-page
-     handbook: the cover's stack clears the footer by 78px with the mark at its
-     34svh ceiling, the opener's claim still sets on one line, and no page
-     exceeds its box. The rank below still holds — a cover sets under an
+     handbook: the opener's claim still sets on one line and no page exceeds
+     its box. (The cover's clearances moved with the mark's ceiling in the
+     same release and are recorded at the `.markcell` rule, once.) The rank below still holds — a cover sets under an
      opener, here as there. Content titles are NOT in this move: `--fs-title`
      stays 26, because a content page's job is its evidence. */
   --fs-display: 72px;

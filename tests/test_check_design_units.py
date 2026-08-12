@@ -131,3 +131,32 @@ def test_d13_chip_must_be_in_the_same_rule():
     css = (".chip { background: var(--on-lime); }\n"
            ".chip span { color: var(--lime); }")
     assert check_design.d13_lime_never_light_text(css, {}, "light")
+
+
+# inspect_layout's footer-baseline probe: the nulls are not all the same.
+
+def test_footer_baseline_null_is_not_read_as_aligned():
+    import inspect_layout as il
+    # A single-run footer has nothing to compare — n/a, not clean.
+    one_run = [{"hasFooter": True, "footBaseline": {"ratio": None, "runs": 1,
+                                                    "split": False}}]
+    assert il._footer_misaligned(one_run) == []
+    assert il._footer_baseline_gradable(one_run) == []   # n/a, never ok
+
+
+def test_footer_baseline_split_runs_are_a_finding_not_an_absence():
+    import inspect_layout as il
+    # Displaced past 0.6 of a line box: no two runs share the first line, the
+    # probe can compute no ratio, and reading that as zero is what let a
+    # footer 12px out of true report "one line, one baseline".
+    split = [{"hasFooter": True, "id": "p3",
+              "footBaseline": {"ratio": None, "runs": 3, "split": True}}]
+    assert il._footer_misaligned(split) == split
+    assert il._footer_baseline_gradable(split) == split
+
+
+def test_a_wrapped_footer_is_not_also_reported_as_a_baseline_defect():
+    import inspect_layout as il
+    wrapped = [{"hasFooter": True, "id": "p4", "footWrapped": True,
+                "footBaseline": {"ratio": None, "runs": 3, "split": True}}]
+    assert il._footer_misaligned(wrapped) == []
