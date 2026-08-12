@@ -244,7 +244,7 @@ anything.
    version bump) / an anchor revision (anchors can be wrong too) / a recorded
    no-change with reasons. **Record the round in `reviews/scores.json`** — release,
    genre, six self-scores, six reader scores, outcome — and read the series back
-   with `python3 scripts/review_scores.py`. Until 0.1.390 this loop had no memory:
+   with `python3 scripts/ops/review_scores.py`. Until 0.1.390 this loop had no memory:
    every score lived as a sentence in a release note, so no dimension could be read
    over time and nobody could say whether the loop was working. The store carries
    **no free-text field**, which is not an omission — a scores file is the shape

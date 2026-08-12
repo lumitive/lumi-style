@@ -57,7 +57,7 @@ unconfirmed.
 
 **What that is not.** It is not a claim that any model produces good output. The
 checks measure mechanical conformance; a page is done when a human reads it as
-intentional. `python3 scripts/run_conformance.py` runs a fixed task suite through
+intentional. `python3 scripts/ops/run_conformance.py` runs a fixed task suite through
 whichever agent CLIs are installed and records the result in
 [`conformance/CONFORMANCE.md`](conformance/CONFORMANCE.md) — including the agents
 it could not run, which are listed rather than omitted. Each row there is one run

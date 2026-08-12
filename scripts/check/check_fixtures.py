@@ -239,7 +239,7 @@ def main() -> int:
     # refused, and the refusal happens before any browser work (the check sits
     # ahead of the playwright import), so this runs in CI with no Chromium.
     proc = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "export_pdf.py"),
+        [sys.executable, str(ROOT / "scripts" / "ops" / "export_pdf.py"),
          str(FIXTURES / "deck-pass.en.html"), "--png", "--scale", "1"],
         capture_output=True, text=True)
     if proc.returncode != 2 or "floor" not in proc.stderr:

@@ -30,9 +30,9 @@ Exit is non-zero only on mechanical failure — a missing browser, an unreadable
 file, a document with no pages — never as a design judgement (0.1.350: a tool
 that cannot measure must say so, not reassure).
 
-    python3 scripts/export_pdf.py deck.html                    # PDF, landscape
-    python3 scripts/export_pdf.py deck.html --geometry portrait
-    python3 scripts/export_pdf.py deck.html --png --scale 3    # 4K page rasters
+    python3 scripts/ops/export_pdf.py deck.html                    # PDF, landscape
+    python3 scripts/ops/export_pdf.py deck.html --geometry portrait
+    python3 scripts/ops/export_pdf.py deck.html --png --scale 3    # 4K page rasters
 """
 from __future__ import annotations
 

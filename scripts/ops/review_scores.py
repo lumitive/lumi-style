@@ -7,8 +7,8 @@ state of one artifact; the human half had no memory at all. Every score in the
 record was a sentence inside a release note, so nobody could answer "is H3
 improving" without re-reading the changelog.
 
-    python3 scripts/review_scores.py            # the series, per dimension
-    python3 scripts/review_scores.py --check    # validate only (runs in CI)
+    python3 scripts/ops/review_scores.py            # the series, per dimension
+    python3 scripts/ops/review_scores.py --check    # validate only (runs in CI)
 
 This is a schema and a printer, not a system. It stores no prose: see the
 $comment in reviews/scores.json for why a notes column is the one field this
@@ -24,7 +24,8 @@ import pathlib
 import re
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 STORE = ROOT / "reviews" / "scores.json"
 CHANGELOG = ROOT / "CHANGELOG.md"
 

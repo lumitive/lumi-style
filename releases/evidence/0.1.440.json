@@ -1,0 +1,24 @@
+{
+  "version": "0.1.440",
+  "diff_base": "194cf2d4b60645b5d7dda185cb89624d84d3e32b",
+  "spec": "specs/2026-08-13-audit-restructure-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "20c300fe94c548e01cf684ae63b1af8bf846e92d714d002d8cd6c0a0bb5de495",
+      "date": "2026-08-12"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "same as 0.1.438/0.1.439: reorganization path citations only, no rule semantics changed; board refresh awaits the operator's hand-driven Cursor half. Deferred, not discharged."
+    }
+  ]
+}

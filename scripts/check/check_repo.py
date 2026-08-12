@@ -887,14 +887,14 @@ def check_ban_list_parity():
 def check_review_scores():
     """The human half of the loop has a memory now; keep it valid and clean.
 
-    Delegated to scripts/review_scores.py so the schema lives in one place.
+    Delegated to scripts/ops/review_scores.py so the schema lives in one place.
     The reason this runs in CI at all is red line 9: a score store is exactly
     the shape that carries a client name into the repository, and the defence is
     that the schema has no field to put one in. A guard that is not run is a
     comment.
     """
     proc = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "review_scores.py"), "--check"],
+        [sys.executable, str(ROOT / "scripts" / "ops" / "review_scores.py"), "--check"],
         capture_output=True, text=True)
     if proc.returncode == 0:
         return []
@@ -1425,7 +1425,7 @@ def check_version_citations():
 
 
 # Where a deliverable goes, declared once per entry point. The rule lives in
-# references/design-rules.md §7 and the other three restate it; scripts/output_dir.py
+# references/design-rules.md §7 and the other three restate it; scripts/ops/output_dir.py
 # resolves it in code. That is five copies of one string, and a default that
 # lives only in prose is exactly the drift that produced the defect this guard
 # was written for — the package wrote finished client documents into its own
@@ -1439,7 +1439,7 @@ OUTPUT_DEFAULT_SITES = (
     "SKILL.md",
     "AGENTS.md",
     "prompts/lumi-style-core.md",     # the prompt tier: no tools, so the literal is all it has
-    "scripts/output_dir.py",          # the resolver must agree with the prose
+    "scripts/ops/output_dir.py",          # the resolver must agree with the prose
 )
 
 
@@ -1454,7 +1454,7 @@ def check_output_default():
         text = path.read_text(encoding="utf-8", errors="replace")
         # output_dir.py builds the path from two constants rather than writing it
         # out, so the literal is assembled the same way the script does.
-        if name == "scripts/output_dir.py":
+        if name == "scripts/ops/output_dir.py":
             found = re.search(r'^DOCUMENTS\s*=\s*"([^"]+)"', text, re.M)
             folder = re.search(r'^FOLDER\s*=\s*"([^"]+)"', text, re.M)
             if not found or not folder:
@@ -1799,7 +1799,7 @@ def check_secrets():
 # threat-model illustration) is waived here with its reason, never silenced
 # by narrowing the pattern. Starts empty on purpose.
 SCRIPT_PATH_WAIVERS: dict[str, str] = {
-    "scripts/emergency_merge.sh":
+    "scripts/ops/emergency_merge.sh":
         "its threat-model comment cites a HYPOTHETICAL stdlib-shadowing "
         "module path as the hijack example — deliberate illustration, not a "
         "reference. (Spelling that path here would trip this guard on its "

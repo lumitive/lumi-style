@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Emit a deck skeleton that already renders, in the standard order.
 
-    python3 scripts/new_deck.py > mydeck.en.html
-    python3 scripts/new_deck.py --genre internal --pages 8 --parts A,B,C
+    python3 scripts/ops/new_deck.py > mydeck.en.html
+    python3 scripts/ops/new_deck.py --genre internal --pages 8 --parts A,B,C
 
 WHY THIS EXISTS. A deliverable shipped with no icons anywhere, a blank part
 opener, and a block whose two halves rendered 246px and 34px wide — all of it
@@ -36,7 +36,8 @@ import pathlib
 import re
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 FIXTURE = ROOT / "fixtures" / "deck-pass.en.html"
 
 GENRES = ("sales", "consulting", "internal", "training")

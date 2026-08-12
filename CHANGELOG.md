@@ -3,6 +3,30 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.440 — the last drawer closes, and the tree gets its map
+
+R4 of the audit (`specs/2026-08-13-audit-restructure-design.md`): the seven
+operator tools — run_conformance, export_pdf, output_dir, new_deck,
+review_scores, and the CI-outage pair ci_wait.sh / emergency_merge.sh —
+move to `scripts/ops/`, completing the reorganization. `preflight.py` stays
+at the top level on purpose: the front door above five drawers.
+
+The move's own two shell scripts were the fiddliest piece by design —
+`$SCRIPT_DIR` now points inside ops/, so the trusted-check and closure
+paths gained a `../`, and the emergency destination grew the check/ drawer.
+The output-default guard's registered site and its name-comparison special
+case moved together (the pair the plan flagged as a same-commit-or-broken
+edit); the constructed subprocess paths in check_fixtures (export_pdf) and
+check_repo (review_scores) were caught by the constructed-path reader added
+one release earlier — the guard teaching its own migration.
+
+**Finalization**: `scripts/README.md` gives the architect the map — five
+drawers, the import edges, and where the one-copy registries live; the
+timing baseline was re-recorded (every ci.yml command hash changed across
+the three move releases); the final grep audit over the non-frozen tree
+finds zero flat-era paths. The full battery holds: 225 tests, 25 guards,
+23 CI steps, PYTHONSAFEPATH green from the new layout.
+
 ## 0.1.439 — the checkers take their drawer, and a second invisible path shape gets a reader
 
 R3 of the audit (`specs/2026-08-13-audit-restructure-design.md`): the eight

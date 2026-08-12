@@ -25,8 +25,8 @@ def _output_tree(tmp_path, folder="LUMI-Style", omit=None, blank=None):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("The default is described but never named here.\n"
                         if name == blank else statement)
-    scripts = tmp_path / "scripts"
-    scripts.mkdir()
+    scripts = tmp_path / "scripts" / "ops"
+    scripts.mkdir(parents=True)
     (scripts / "output_dir.py").write_text(
         f'DOCUMENTS = "Documents"\nFOLDER = "{folder}"\n')
     return tmp_path
@@ -55,7 +55,7 @@ def test_output_default_diverging_resolver_fails(tmp_path, monkeypatch):
     monkeypatch.setattr(check_repo, "ROOT", _output_tree(tmp_path, folder="Deliverables"))
     errors = check_repo.check_output_default()
     assert len(errors) == 1
-    assert "scripts/output_dir.py" in errors[0]
+    assert "scripts/ops/output_dir.py" in errors[0]
     assert "Documents/Deliverables" in errors[0]
 
 

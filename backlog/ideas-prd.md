@@ -56,7 +56,7 @@ found most of the survey absorbed by later releases — the corrected record:
   deferral.
 - **IDEA-3 shipped** — 0.1.390's fixture coverage work is exactly this item
   (34/34 graded verdicts have a failing fixture today).
-- **IDEA-4 shipped** — `reviews/scores.json` + `scripts/review_scores.py`
+- **IDEA-4 shipped** — `reviews/scores.json` + `scripts/ops/review_scores.py`
   exist and gate in CI.
 - **IDEA-5 shipped** (0.1.390, same commit) — all five geometries are in
   `DEFAULT_GEOMETRIES` and the report prints which ran and which were
