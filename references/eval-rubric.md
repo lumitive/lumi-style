@@ -4,6 +4,14 @@
 > drives rule iteration. This is the skill's continuous-improvement engine.
 > (Repository language: English only — red line.)
 
+## Contents
+
+- [Machine metrics M1–M12 (scriptable; spot-check manually when no script)](#machine-metrics-m1m12-scriptable-spot-check-manually-when-no-script)
+- [Design diagnostics D1–D17 (`scripts/check/check_design.py` — reported, never gating, three named exceptions)](#design-diagnostics-d1d17-scriptscheckcheck_designpy-reported-never-gating-three-named-exceptions)
+- [Human metrics H1–H6 (anchors 1–5 — **anchors must be written in the reviewer's language, not internal jargon**)](#human-metrics-h1h6-anchors-15-anchors-must-be-written-in-the-reviewers-language-not-internal-jargon)
+- [Review protocol (the iteration engine)](#review-protocol-the-iteration-engine)
+- [Known genre distortions (never chase the score)](#known-genre-distortions-never-chase-the-score)
+
 ## Machine metrics M1–M12 (scriptable; spot-check manually when no script)
 
 **Ten of the twelve have code.** `check_prose.py` implements M1, M2, M4, M5, M6,

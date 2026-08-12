@@ -210,6 +210,10 @@ def render_plugin(kind: str, version: str) -> str:
         doc = {"$comment": JSON_BANNER, "name": name, "version": version,
                "description": desc, "author": {"name": "LUMI"},
                "homepage": "https://github.com/lumitive/lumi-style",
+               "repository": {"type": "git",
+                              "url": "https://github.com/lumitive/lumi-style"},
+               "keywords": ["design-language", "writing-style", "skill",
+                            "agent-skills", "lumi"],
                "license": "MIT", "skills": ["./"]}
     elif kind == "marketplace":
         doc = {"$comment": JSON_BANNER, "name": "lumitive",

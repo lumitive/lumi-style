@@ -1,5 +1,8 @@
 # lumi-style
 
+[![checks](https://github.com/lumitive/lumi-style/actions/workflows/ci.yml/badge.svg)](https://github.com/lumitive/lumi-style/actions/workflows/ci.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 **LUMI's design language and writing style, packaged as a continuously-iterating,
 cross-platform skill.** Built on the [Agent Skills](https://agentskills.io)
 standard, so it loads on any agent that implements it.
@@ -66,7 +69,9 @@ of one CLI version on one machine on one date, not a property of the agent.
 ## What's inside
 
 ```
-SKILL.md / AGENTS.md / prompts/   three entry points, one rule set (single source: references/)
+SKILL.md / AGENTS.md / prompts/   the three hand-written entry points — one rule set
+                                  (single source: references/); GEMINI.md, the Copilot
+                                  and Cursor rule files are GENERATED from the registry
 references/writing-rules.md       writing style: terminology red lines · banned phrases ·
                                   punctuation · number discipline · the LUMI voice
 references/storyline-templates.md narrative skeletons: sales (value & future) · consulting ·
@@ -87,7 +92,8 @@ fixtures/                         synthetic deliverables the checkers are tested
                                   that exists only to fail, and a Chinese prose pair
 conformance/                      fixed task suite · the tracked cross-agent scoreboard ·
                                   history.json, the dated memory the freshness gate reads
-scripts/                          check_repo · check_prose (M) · check_design (D) ·
+scripts/                          five drawers + preflight at the top (see scripts/README.md):
+                                  check/ — check_repo · check_prose (M) · check_design (D) ·
                                   inspect_layout (renders and looks) · export_pdf (PDF/4K) ·
                                   output_dir (where a deliverable belongs) ·
                                   check_fixtures · check_js · check_evidence (the evidence
@@ -152,4 +158,7 @@ No rule is added or removed without a documented case behind it.
 
 ## License
 
-MIT
+MIT for everything this repository authors. The package **redistributes
+third-party assets under their own licenses** — D-DIN (SIL OFL 1.1), the
+Lucide icon set (ISC), Natural Earth geometry (public domain) — inventoried
+in [`NOTICE`](NOTICE), with full license texts beside the vendored files.

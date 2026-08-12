@@ -3,8 +3,12 @@ name: lumi-style
 description: |
   LUMI's design language and output writing style. Use when producing business documents, slides, client materials, marketing copy, HTML reports, or charts for LUMI — in any language — or when reviewing existing drafts against LUMI standards. Triggers: "LUMI style", "lumi-style", "按 LUMI 风格". Not for: pure coding tasks or content unrelated to LUMI deliverables.
 license: MIT
+compatibility: >-
+  Scripts need Python 3.12+ (standard library only at runtime).
+  inspect_layout.py and export_pdf.py additionally need local Playwright
+  (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.440"
+  version: "0.1.441"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -161,7 +165,8 @@ been removed; they now apply at step 4 instead of framing step 0.
    map with its labels already placed (`--labels zh` for Chinese, `--states`
    for the data), and `python3 scripts/render/globe_svg.py` the rotating globe.
    These are two components, not two forms of one
-   (`specs/2026-08-10-globe-map-split-design.md`): the map is flat, labelled
+   (the split is recorded in `references/design-rules.md` §6's figure
+   vocabulary; the dated design history lives in specs/): the map is flat, labelled
    and state-driven; the globe rotates and carries `--marks`, its data as a
    JSON list of `{lon, lat, weight, label}`.
    Colour comes from `tokens/region-palette.css`, which ships the class

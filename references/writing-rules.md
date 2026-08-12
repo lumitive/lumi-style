@@ -8,6 +8,18 @@
 > Chinese strings appear below *only as rule data* for Chinese-language output;
 > they are examples, not document prose.
 
+## Contents
+
+- [0 · Output language](#0-output-language)
+- [1 · Terminology red lines](#1-terminology-red-lines)
+- [2 · Banned AI-tell phrases (hard block)](#2-banned-ai-tell-phrases-hard-block)
+- [3 · Punctuation and glyphs [zh-output]](#3-punctuation-and-glyphs-zh-output)
+- [4 · Number discipline (honest metrics — all languages)](#4-number-discipline-honest-metrics-all-languages)
+- [5 · Voice (the LUMI register)](#5-voice-the-lumi-register)
+- [6 · De-AI-flavor pass (mandatory, pre-delivery)](#6-de-ai-flavor-pass-mandatory-pre-delivery)
+- [6b · [zh-output] De-translationese pass](#6b-zh-output-de-translationese-pass)
+- [7 · Fact red lines (outrank every style rule)](#7-fact-red-lines-outrank-every-style-rule)
+
 ## 0 · Output language
 
 **Default: American English.** When the user does not specify a language, LUMI

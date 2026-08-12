@@ -3,6 +3,34 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.441 — a public repo says what it is, and its licenses tell the truth
+
+R5 of the audit (`specs/2026-08-13-audit-restructure-design.md`) — the
+outward-facing pass, aligned with the published skill-authoring conventions.
+
+**README**: CI and license badges; the License section stops saying only
+"MIT" — the repository redistributes D-DIN (SIL OFL 1.1), Lucide (ISC) and
+Natural Earth (public domain), inventoried in NOTICE, and a reader who only
+reads README now learns that; the "three entry points" line tells the whole
+truth (three hand-written, three generated); the tree block points at
+scripts/README.md for the drawer map. **The ISC license text now travels
+with the vendored icons** (`assets/icons/lucide/LICENSE`) instead of only
+being cited from NOTICE.
+
+**CONTRIBUTING.md** turns the maintenance conventions into a page an
+outside contributor can follow — documented cases, the version lockstep,
+preflight-before-push, generated-files discipline, deliberate-red runs, the
+ledgers, and red line 9. **SECURITY.md** routes findings to GitHub Security
+Advisories, privately.
+
+**SKILL.md** gains the `compatibility` field the spec provides for exactly
+this case (Python 3.12+, optional local Playwright + Pillow for the two
+rendering tools), and its one pointer into `specs/` — engineering history
+reached from skill payload — now cites the rule file instead. The four
+references/ files over the authoring guides' size threshold carry a
+Contents block. The plugin manifest gains `repository` and `keywords`
+through the builder, never by hand.
+
 ## 0.1.440 — the last drawer closes, and the tree gets its map
 
 R4 of the audit (`specs/2026-08-13-audit-restructure-design.md`): the seven
