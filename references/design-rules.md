@@ -144,8 +144,9 @@ Four numbers, and each states which way it points:
 | Region boundary stroke against the canvas | **≥ 3 : 1 — a floor** |
 | Chroma, as a fraction of the per-hue sRGB gamut maximum | **0.65 — the lowest value that clears the first floor** |
 
-The generator asserts all four on both canvases and fails naming the pair it
-could not separate. A quieter palette is reached by having fewer regions, never
+The generator asserts the three FLOORS on both canvases and fails naming the
+pair it could not separate. The chroma fraction is a generation input, not a
+floor: it is the knob the floors are cleared with, and nothing asserts it. A quieter palette is reached by having fewer regions, never
 by lowering the floor.
 
 **`tokens/region-palette.css` ships the bindings, not only the values** (since
@@ -607,8 +608,8 @@ marker is the standard rendering, not part of the gate: D12 gates on the terms
 being present, and a page whose terms arrive without the icon has a style
 defect, not a compliance one.
 
-**This is one of the three checks in `check_design.py` that fail the run** (D12,
-with D14 and D15 below).
+**This is one of the four checks in `check_design.py` that fail the run** (D12,
+with D14, D15 and D19).
 Everything else there reports, because a page is done when a human reads it as
 intentional and a threshold satisfiable without improving the page ends the
 looking. This is different in kind: not a judgement about whether a page is well

@@ -78,7 +78,7 @@ references/storyline-templates.md narrative skeletons: sales (value & future) ·
                                   internal analysis · training + shared discipline
 references/design-rules.md        design language: color semantics · dual-voice typography ·
                                   five chart iron rules · semantic icons · layout
-references/eval-rubric.md         eval rubric M1–M12 / D1–D17 / H1–H6 + the review protocol
+references/eval-rubric.md         the M / D / H eval rubric + the review protocol
 tokens/                           design tokens (CSS + JSON): two ladders · palette · type · scale
 assets/brand                      LUMIVATE's locked marks — the field globe is the
                                   default cover/closing mark, embedded live

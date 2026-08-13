@@ -7,7 +7,7 @@
 ## Contents
 
 - [Machine metrics M1–M12 (scriptable; spot-check manually when no script)](#machine-metrics-m1m12-scriptable-spot-check-manually-when-no-script)
-- [Design diagnostics D1–D17 (`scripts/check/check_design.py` — reported, never gating, three named exceptions)](#design-diagnostics-d1d17-scriptscheckcheck_designpy--reported-never-gating-three-named-exceptions)
+- [Design diagnostics (`scripts/check/check_design.py` — reported, never gating, four named exceptions)](#design-diagnostics-scriptscheckcheck_designpy--reported-never-gating-four-named-exceptions)
 - [Human metrics H1–H6 (anchors 1–5 — **anchors must be written in the reviewer's language, not internal jargon**)](#human-metrics-h1h6-anchors-15--anchors-must-be-written-in-the-reviewers-language-not-internal-jargon)
 - [Review protocol (the iteration engine)](#review-protocol-the-iteration-engine)
 - [Known genre distortions (never chase the score)](#known-genre-distortions-never-chase-the-score)
@@ -53,7 +53,7 @@ have no Han character next to their punctuation.
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame (e.g. "Topic: clause") |
 | M12 | Visible CJK in an English deliverable | =0 — **gates** | Chinese in text a reader sees, when the document declares English by `lang`, filename or `--lang`. Quoted as data (`<code>`, `<pre>`, backticks) is exempt |
 
-## Design diagnostics D1–D17 (`scripts/check/check_design.py` — reported, never gating, three named exceptions)
+## Design diagnostics (`scripts/check/check_design.py` — reported, never gating, four named exceptions)
 
 | id | Metric | Target | Predicate |
 |---|---|---|---|
@@ -73,16 +73,19 @@ have no Han character next to their punctuation.
 | D15 | File path in a footer | =0 — **gates** | a repository path pasted into reader copy: two segments and a file extension. The site D12 requires, and any URL, are not paths |
 | D16 | Visual presence and share | reported | content pages carrying no visual block (static half, `check_design.py`); rendered visual area against the genre's target — ~50% sales/marketing/consulting, ~30% training (`inspect_layout.py`). Pages declaring `data-role="apparatus"` are exempt, up to a ceiling of one content page in five |
 | D17 | Export weight | reported | blend modes, filters and vector nodes: what the document will cost a reader who opens the PDF |
+| D18 | Region labels | reported | every coloured region on a map carries its name or a legend entry — the one place hue encodes identity, and the condition under which it may |
+| D19 | Vocabulary resolves | =0 — **gates** | every reference in the document resolves inside it: an icon `<use>` with no `<symbol>`, a block class used without the children `tokens/` renders it through, a part opener with no `opener` class, a `data-globe` mark with no runtime. All render as valid markup and empty space |
 
-**No design judgement in the D-series gates.** `check_design.py` exits 0 unless a
-file cannot be measured at all; every number is a diagnostic for a designer to
-read. `SKILL.md` rule 4 is why: a page is done when a human reads it as
+**No design judgement in the D-series gates.** `check_design.py` exits non-zero
+only when a file cannot be measured at all or when one of the four below fails;
+every other number is a diagnostic for a designer to read. `SKILL.md` rule 4 is why: a page is done when a human reads it as
 intentional, and a metric that can be satisfied without improving the page ends
 the looking rather than directing it.
 
-**Three exceptions, and none is a design judgement.** D12 is a commercial
-requirement on the artifact, D14 asks whether the document is finished, and D15
-asks whether the footer cites something a reader can open — all decidable, in the
+**Four exceptions, and none is a design judgement.** D12 is a commercial
+requirement on the artifact, D14 asks whether the document is finished, D15
+asks whether the footer cites something a reader can open, and D19 asks whether
+every reference in the document resolves inside it — all decidable, in the
 way "does this page read as intentional" is not. **D15 is the second instance of
 one defect:** `.foot .src` was removed from `tokens/` in 0.1.366 after the first
 deliverable to meet it filled every client page with a build path, and a second
@@ -187,7 +190,7 @@ written for exactly this reason, and a third counted a table stretched to 100% o
 its cell as a "dominant figure" — D7's own failure, reproduced inside the tool
 built to replace it.
 
-Provenance: M1–M11 made the prose half of this skill checkable while the design
+Provenance: the prose metrics made the prose half of this skill checkable while the design
 half stayed a reading task, and a deck that passed every prose metric came back
 from its reader with seven defects. Four were arithmetic the whole time. Run
 `check_design.py` on the 0.1.337 deck and it reports 32 contrast failures, 17

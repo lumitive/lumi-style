@@ -1,4 +1,4 @@
-# LUMI style conformance · skill 0.1.451
+# LUMI style conformance · skill 0.1.452
 
 Runs `conformance/results/latest` (2026-08-13) · darwin · 2 of 12 agents detected · up to n=1 per agent · 4 of 12 can never answer a CLI probe
 
@@ -39,8 +39,12 @@ harness or the package rather than in either agent:
   earlier T3 row reads `stale: task changed` until it is re-earned.
 
 Cursor's row changed shape too: `cursor-agent` was installed on this machine
-during the refresh, so the agent moved from `driven by hand` to a probed CLI
-version and its three tasks were run non-interactively like any other.
+during the refresh, so the probe succeeded and the `cli` column prints a version
+where it printed `driven by hand`. **That column reports the probe, not the
+driving.** The three tasks were driven by the operator, as every scored task on
+this board has been — `run_conformance.py` prepares a prompt directory and asks
+a person to invoke the agent against it. No agent on this board has been driven
+by this repository.
 
 ## What this table is not
 

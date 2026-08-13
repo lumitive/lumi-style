@@ -41,7 +41,7 @@ check/          the gates
 
 ops/            operator tools
   run_conformance  the cross-agent task suite (validate runs in CI)
-  export_pdf · output_dir · new_deck · review_scores
+  export_pdf · output_dir · new_deck · review_scores · debug_log
   ci_wait.sh · emergency_merge.sh   the CI-outage runbook pair; the trusted
                   emergency EXECUTION closure = check/check_repo.py +
                   color_math/css_tokens/lock/deliverable_registry from lib/ +

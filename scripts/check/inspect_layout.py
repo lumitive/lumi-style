@@ -82,7 +82,7 @@ import color_math  # noqa: E402 — after the bootstrap, deliberately
 class Unmeasurable(Exception):
     """A check could not run. Never silently a pass — see the module docstring.
 
-    Same type and same contract as `check_design.py:74`. That script has printed
+    Same type and same contract as `check_design.py`'s `Unmeasurable`. That script has printed
     `UNMEASURABLE` and returned non-zero since 0.1.339 while this one, sitting in
     the same directory, expressed all five of its failure paths as silence.
     """

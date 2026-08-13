@@ -3,6 +3,90 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.452 — the count that was wrong in nine places, and the two guards that will not let it be wrong again
+
+0.1.451 fixed a stale count in two files and reported it as a tidy-up. It was
+live in **eight more**, and one of them sits in `AGENTS.md` eighty-six lines
+below the line that release had just corrected — beside that file's own written
+confession about this exact drift: *"This line claimed 'D1–D4 and D6 gate' for
+eight releases… A restatement nothing compares against is the drift this file
+exists to concentrate, not to escape."* The owner read that as a delivery that
+leaks. The measurement agrees with her rather than with the release notes.
+The decisions, and the three that were declined, are in
+`specs/2026-08-13-drift-prevention-design.md`.
+
+**The rate, counted rather than felt.** Twenty-six of this repository's releases
+have carried a fix for a prose copy that disagreed with its code. Five of them
+are in the last ten. Two whole releases — 0.1.360 and 0.1.429 — exist only to do
+this work. Where an entry says how long the drift had stood, it is four to
+eleven releases. Every prevention written for it so far ends in the words "stays
+a review duty".
+
+**Two guards, one of which needs nothing declared.**
+
+`metric id ranges` reads the highest metric id each checker actually defines —
+out of its row table, with `ast`, never by importing it — and fails any range
+written from 1 that stops somewhere else. A range from 1 claims a whole family,
+which is what makes it decidable; `M8-M11` names a subset on purpose and is left
+alone. **Nothing is registered**, so a claim written tomorrow is covered the day
+it is written. That is the difference between this and the list it replaces.
+
+`gating claims` is the declared half: the sites that name *which* design checks
+fail a run, each with the pattern that captures the ids it names, held to the
+rows whose target says `(gates)`. A site whose pattern stops matching is an
+error and not a skip — if rewording a sentence could retire the check on it, the
+guard would protect only the sentences nobody edits. Deliberately not a search
+for sentences *about* gating: deciding that from English is the phrase-trigger
+guard AG-1 declined in 0.1.422, and this does not re-propose it.
+
+Deliberate-red: both guards were written before anything was corrected, and went
+red on the tree that created them — nine counted claims and five gating claims
+across ten files. Ten synthetic-tree tests hold them to failing for the right
+reason, including one proving a reworded claim fails rather than silently
+passing, and one proving a checker that stops parsing is reported rather than
+skipped.
+
+**What they found, all of it now true.** The gating set is named correctly in
+`AGENTS.md`, `CLAUDE.md`, `references/eval-rubric.md`, `references/design-rules.md`
+and `references/brand.md`; `d12_commercial_footer`'s own docstring had called
+itself "the one design check that fails the run" while the module docstring 780
+lines above it named four. Ranges ending at 17 or 11 are gone from six files —
+mostly by **deleting the number and naming the authority**, which `preflight.py`
+has modelled since 0.1.429 ("how many is whatever the workflow says today, never
+a number written here"). The eval rubric's D-table had no row for D18 or D19;
+`check_design.py`'s own metric table omitted D13 and D18; `scripts/README.md`
+calls itself the map of `scripts/` and had never listed `debug_log.py`. Two code
+comments still carried the layout-gate count that 0.1.443 re-synced in four
+prose files and missed here. `CLAUDE.md` described `check_prose.py` as
+English-only, which stopped being true at 0.1.390. The region palette's
+"asserts all four" asserts three floors; the fourth number is a generation input
+nothing asserts. Two `file:line` citations pointed at lines that had moved.
+
+**One correction is to a claim this session's author wrote.** 0.1.450's entry
+said Cursor's conformance tasks "ran non-interactively like any other".
+`run_conformance.py` invokes no agent and never has: `run` prepares a prompt
+directory and prints *"invoke each agent against its PROMPT.txt"*. What changed
+that day was `shutil.which` finding a newly installed binary, so the `cli` column
+printed a version where it had printed `driven by hand`. The operator drove those
+tasks. The entry, the conformance board's narrative and the Cursor record's
+capability waiver all say so now. In a package whose thesis is that a verdict is
+earned or it is not recorded, that was an overclaim.
+
+**`claim_sweep.py`, which reports and never fails.** It lists every counted claim
+next to a name this repository defines, and every `file.py:123` self-citation
+whose line has moved — nothing validated a line number before, and two had
+drifted. Advisory by construction rather than by timidity: AG-1 declined a *gate*
+that reads English, and this is the same reading handed to a person, where being
+wrong costs nothing. Its first cut reported 1115 sentences, which is the whole
+package and teaches a reader to skip the list; narrowing it to counts adjacent to
+names this repository owns, dropping quantifiers ("every guard" survives a new
+guard, "three guards" does not) and skipping generated copies brings it to 197.
+
+Three maintenance conventions land with it, each pointing at a command rather
+than at a good intention: sweep the restatements of any fact you change, prefer
+deleting a number to maintaining it, and do not write a claim about behaviour you
+have not read in the code.
+
 ## 0.1.451 — a third-party debug log, read: a dead globe nothing gated, and a length standing in for a rule
 
 The owner built a deliverable on another platform under debug mode on 0.1.449
@@ -114,9 +198,15 @@ of discharging them found more than it fixed.
 under it, so nothing recorded measured the instruments this package now
 ships. Refreshed at 0.1.450: **two agents, three tasks each, all six pass.**
 Cursor's row changed shape — `cursor-agent` was installed on this machine
-during the run, so it moved from `driven by hand` to a probed CLI version and
-its tasks ran non-interactively like any other, which is the first time this
-board has been able to say that about a second agent.
+during the run, so the probe succeeded and the `cli` column printed a version
+where it had printed `driven by hand`.
+
+*Corrected at 0.1.452.* The sentence that stood here also said Cursor's "tasks
+ran non-interactively like any other", and no code supports that: `run` prepares
+directories and prints "invoke each agent against its PROMPT.txt", and nothing
+in this repository has ever invoked an agent. What changed was `shutil.which`,
+not the harness. The operator drove those tasks. In a document whose whole
+thesis is not overclaiming, that was an overclaim.
 
 Earning those six verdicts took three corrections, none of them in either
 agent:

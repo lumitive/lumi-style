@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Measure the design metrics from references/eval-rubric.md on a deliverable.
 
-M1-M11 made the prose half of this skill checkable. The design half stayed a
+The prose metrics made the prose half of this skill checkable. The design half stayed a
 reading task, and a reader found seven defects in a deck that passed every prose
 metric. Four of them were arithmetic:
 
@@ -14,13 +14,16 @@ metric. Four of them were arithmetic:
     D8  support line  every content page has one under its title
     D9  layout spread  which layouts a deck uses (reported)
     D10 label icons   figure nodes and row-heads carrying an icon (reported)
+    D13 lime as text  the acid green never sets reader copy (reported)
     D16 visual presence  content pages carrying no visual block (reported)
     D17 export weight    blend modes, filters and vector nodes (reported)
+    D18 region labels    every coloured region carries its name (reported)
 
     D12 commercial footer  handling terms and origin on every page (**gates**)
     D14 placeholders       slots the author left for themselves (**gates**)
     D15 footer path        no repository path reaches a footer (**gates**)
-    D19 vocabulary         icons, blocks and openers resolve here (**gates**)
+    D19 vocabulary         icons, blocks, openers and the globe runtime
+                           resolve inside this document (**gates**)
 
 **Nothing here gates except D12, D14, D15 and D19.** Every other number is a diagnostic for a
 designer to read, and the exit code is 0 unless a file could not be measured at
@@ -796,7 +799,8 @@ def d19_vocabulary(raw):
 def d12_commercial_footer(raw, site=None):
     """Every page carries its handling terms and the origin of the document.
 
-    **This is the one design check that fails the run.** Everything else here is
+    **The first of the four design checks that fail the run**, and the reason the
+    other three are phrased against it. Everything else here is
     a diagnostic for a designer to read, because a page is done when a human
     reads it as intentional and a threshold that can be satisfied without
     improving the page ends the looking. This one is different in kind: it is not
