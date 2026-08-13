@@ -37,7 +37,7 @@ python3 scripts/check/check_fixtures.py        # run the checkers against the fi
 python3 scripts/check/check_js.py              # node --check over the 8 tracked .js files + 3 embedded probes
 python3 scripts/check/check_evidence.py        # --init | record --id X | --check: the evidence gate (see below)
 python3 scripts/ops/review_scores.py         # the six human dimensions over time; --check validates
-python3 scripts/ops/run_conformance.py       # validate | detect | run | score | report [--record] (runs are local)
+python3 scripts/ops/run_conformance.py       # validate | detect | run [--drive] | score | report [--record] (local only: no keys in CI)
 python3 -m pytest -q                     # the test suite under tests/; gates in CI
 python3 -m ruff check .                  # lint + the S security rules; gates in CI
 python3 -m mypy                          # type-check (check_untyped_defs floor); gates in CI
@@ -388,7 +388,8 @@ repo itself.)
 14. **Do not write a claim about behaviour you have not read in the code.** This
     binds `CHANGELOG.md` hardest, because an entry is what a later session
     believes. 0.1.450's entry said Cursor's conformance tasks "ran
-    non-interactively like any other"; `run_conformance.py` invokes no agent and
-    never has, and what had changed was `shutil.which` finding a binary. The
-    entry was corrected at 0.1.452. A capability sentence cites the function that
-    implements it or it does not ship.
+    non-interactively like any other"; `run_conformance.py` invoked no agent and
+    never had, and what had changed was `shutil.which` finding a binary. The
+    entry was corrected at 0.1.452, and the capability was BUILT at 0.1.454 —
+    which is the order these two things go in. A capability sentence cites the
+    function that implements it or it does not ship.

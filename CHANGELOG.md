@@ -3,6 +3,66 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.454 — the harness drives the agents, which it had claimed to do and never done
+
+`run_conformance.py` opens by saying it runs the same tasks through every agent
+CLI on this machine. Until this release it did not run anything: `run` created
+directories, wrote a `PROMPT.txt`, and printed *"invoke each agent against its
+PROMPT.txt"*. Every row this board has ever carried was earned by an operator
+typing the command themselves — which is how a newly installed binary once
+turned a hand-driven afternoon into a sentence claiming the tasks had run
+non-interactively. That sentence was corrected at 0.1.452. This is the other
+half: build the thing, in that order. The decisions, and the three that were
+declined, are in `specs/2026-08-13-conformance-driver-design.md`.
+
+**`run --drive`.** Each platform that can be driven declares a `drive` argv in
+the registry — `claude -p --permission-mode acceptEdits`, `cursor-agent -p
+--force` — beside the `probe` argv that was already there. The existing `invoke`
+field stays what it always was, prose for a person ("say 'in LUMI style…'"), and
+a driver built on it would try to execute a sentence.
+
+**The working directory is outside this repository, and that is the load-bearing
+part.** An agent started inside the tree reads this repo's maintenance
+`CLAUDE.md` and behaves like a maintainer of the skill rather than a consumer of
+it: it has the rules, the checkers and this changelog in front of it, and the
+task stops measuring what the task is for. Each run gets a bare temporary
+directory and whatever the platform installed at its own skill path; the
+deliverable and the transcript come back, the agent's scratch does not. A test
+asserts the working directory, because that is the property a refactor loses
+silently.
+
+**A timeout, which the file had nowhere except the 20 seconds on its `--version`
+probe.** Thirty minutes by default, `--timeout` to change it, and an abandoned
+task records `timeout` rather than hanging a session. `--task` runs one task, so
+proving the driver works does not cost a twelve-page deck.
+
+**`--model` records what it was.** Left off, each CLI picks its own default and
+the run records that it did rather than leaving the field blank: a board cell
+saying nothing about the model reads as a claim about the agent rather than
+about one of its configurations. Pinned, the model goes in the record — which is
+what a comparison between two agents needs and what a check of "what does a user
+actually get" does not.
+
+**Driving is not scoring, and `--drive` does not gate a release.** It exits 0
+when the driver ran. Whether the artifacts pass is `score`'s answer, kept
+separate on purpose: this file's own opening paragraph says agent output is
+non-deterministic, so a release blocking on it would block on something that is
+not the release.
+
+**`report --record` writes the board's table itself.** It used to print, and a
+person pasted. That is how `conformance/CONFORMANCE.md` came to carry "What this
+table is not" **three times** — the section was re-appended at every refresh and
+nobody diffed a document they had just generated. The table now sits between
+generated markers; the narrative paragraphs outside them stay hand-written and
+survive a refresh. The duplicates are gone, and the older of two versions of the
+"Superseded runs" paragraph went with them.
+
+Nine tests cover the outcomes a driver has: it drives, it brings back the
+artifact and the transcript, it runs outside the repository, it abandons a hang,
+it records a non-zero exit without claiming an artifact, it reports a binary
+that will not start instead of raising, it refuses a platform with no `drive`
+argv by name, and it records the model either way.
+
 ## 0.1.453 — two checks that had never measured anything, and a drawing that can now be caught contradicting its own numbers
 
 The owner compared two 30-page decks built from these same rules — one by

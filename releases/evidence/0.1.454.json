@@ -1,0 +1,8 @@
+{
+  "version": "0.1.454",
+  "diff_base": "8ef008f4b6c61855d2a258e496533be4e1fd5dba",
+  "spec": "specs/2026-08-13-conformance-driver-design.md",
+  "obligations": [],
+  "checks": [],
+  "waivers": []
+}
