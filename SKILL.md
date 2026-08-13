@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.452"
+  version: "0.1.453"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -264,7 +264,7 @@ been removed; they now apply at step 4 instead of framing step 0.
    can be wrong about decidably: collision, a starved column, content spill,
    page height, hidden content, a wrapped footer, a footer whose runs sit on
    different baselines, a viewBox that does not parse, a drawing clipped by
-   its own viewBox, an overspent title reserve, a role split, a lost datum.
+   its own viewBox, an overspent title reserve, a role split, a lost datum, a mark drawn out of proportion to the value it declares, and a document whose content pages are mostly not drawn on at all.
    **Pass it the file and nothing else** — it reads `data-geometry` and runs the
    matrix that declaration implies, and a single `--geometry` switches the matrix
    off. Add a second run with `--dark` if the deliverable ships a dark variant;

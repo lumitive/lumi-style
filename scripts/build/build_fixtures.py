@@ -883,6 +883,20 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
     <p>Coverage sits at 41% against a target of 60%, and the shortfall is worth
     $2,400,000 across the estate.</p>
     <p>Rural read success runs 62&#8211;78% depending on terrain.</p>
+    <!-- figure_distorts: three bars declaring 80, 4 and 1 with a minimum-width
+         floor under them, so the 4 and the 1 come out the same length as each
+         other and both far longer than their share. A shipped deliverable did
+         exactly this and no metric could see it: the true values were already
+         in the markup, one attribute away from the width that ignored them.
+         Drawn on this page rather than its own so it adds no title and no
+         sentence — M8_length_cv fails here by 0.003, and a fixture that
+         narrow flips on any edit that is not measured against it. -->
+    <div class="fig"><svg viewBox="0 0 400 90" preserveAspectRatio="xMidYMid meet"
+      role="img" aria-label="Three counts, drawn wrong">
+      <rect class="f-acc" x="60" y="8" width="320" height="18" data-datum="80"/>
+      <rect class="f-acc" x="60" y="34" width="48" height="18" data-datum="4"/>
+      <rect class="f-acc" x="60" y="60" width="48" height="18" data-datum="1"/>
+    </svg></div>
   </div>
   <div class="foot"><div class="terms"><span class="conf">{TERMS}</span></div>
   <span class="site">{SITE}</span></div></section>

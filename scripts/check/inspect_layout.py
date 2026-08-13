@@ -121,6 +121,14 @@ GEOMETRIES = {
 # alternative the rules already argue against is dropping them.
 DEFAULT_GEOMETRIES = ["16x9", "16x9-hd", "a4", "laptop", "wide"]
 
+# A CEILING on content pages carrying nothing visual, not a target for the
+# rest (CLAUDE.md convention 4 — say which way a number points). One third,
+# calibrated against two 30-page decks built from these same rules: the one
+# a reader called good carries 0 such pages of 23, the one she called thin
+# carries 10 of 22. Any line between them separates them, so this one is set
+# where a document has to be mostly undrawn before it fails.
+VISUAL_ABSENT_CEILING = 1 / 3
+
 # Measured in the page, not from CSS. Everything here runs in the browser.
 PROBE = r"""
 () => {
@@ -504,6 +512,45 @@ PROBE = r"""
         visualPct = Math.min(100, Math.round(100 * visPx / denom));
     }
 
+    // ── does the drawing agree with its own numbers? ──────────────────────
+    // A mark that encodes a quantity declares it (design-rules §4 rule 9). Where
+    // it does, the drawing is checkable against it, and that is the only way a
+    // checker can ever tell a bar chart from a picture of one: 48px means
+    // nothing to a script until the markup says what it is 48px OF.
+    //
+    // Two findings, both decidable and neither a matter of taste:
+    //   * two marks in one figure declaring DIFFERENT values and rendering at
+    //     the SAME length — the shape a minimum-width floor makes, and it is
+    //     how a deliverable drew 1 and 4 identically while its own caption
+    //     said the smaller one was the point;
+    //   * a length that is out of proportion to its value against the largest
+    //     mark in the same figure.
+    // The encoding dimension is whichever of width/height actually varies, so
+    // horizontal and vertical bars need no flag.
+    const distorted = [];
+    for (const fig of s.querySelectorAll('svg')) {
+      const marks = [...fig.querySelectorAll('[data-datum]')]
+        .map(m => ({v: parseFloat(m.getAttribute('data-datum')),
+                    r: m.getBoundingClientRect()}))
+        .filter(m => Number.isFinite(m.v) && m.v > 0);
+      if (marks.length < 2) continue;
+      const spread = k => Math.max(...marks.map(m => m.r[k]))
+                        - Math.min(...marks.map(m => m.r[k]));
+      const dim = spread('width') >= spread('height') ? 'width' : 'height';
+      const top = marks.reduce((a, b) => (b.v > a.v ? b : a));
+      if (!(top.r[dim] > 0)) continue;
+      for (const m of marks) {
+        const expected = top.r[dim] * (m.v / top.v);
+        // 2px OR 4% of the largest bar, whichever is larger: rounding and a
+        // stroke are not distortion, and a tolerance tighter than the renderer
+        // would fail honest drawings.
+        const slack = Math.max(2, top.r[dim] * 0.04);
+        if (Math.abs(m.r[dim] - expected) > slack)
+          distorted.push({value: m.v, drew: Math.round(m.r[dim]),
+                          shouldDraw: Math.round(expected)});
+      }
+    }
+
     // ── what the page says, beside what it shows (§4, 0.1.384) ────────────
     // A slide is narrated and a sheet is read alone, so a portrait content page
     // owes a second content block beside its centerpiece and one highlighted key
@@ -538,12 +585,25 @@ PROBE = r"""
     // sentence it explains, and on two pages it turned out to repeat the page's
     // own column verbatim. Duplication is the part worth measuring — a reader
     // sees it before they can say why.
+    // WHAT THE DESCRIPTION IS. Rule 7b says what goes under a figure: the
+    // number, the conclusion name, and the source line — and nothing else. So
+    // the description is the caption's own text minus those parts, however the
+    // author marked it up. This used to require a `.d` wrapper and skip any
+    // caption without one. Nothing has ever emitted `.d`: not the scaffold, not
+    // the passing fixture, not either shipped deliverable — 74 captions across
+    // three documents, zero. tokens/ even carries a rendering for it, added
+    // because this probe asserted the class, and the check went on measuring
+    // nothing while reporting a caption count beside it.
     const pageText = (s.innerText || '').replace(/\s+/g, ' ');
     const caps = [];
     for (const cap of s.querySelectorAll('.cap')) {
-      const d = cap.querySelector('.d');
-      if (!d) continue;
-      const txt = (d.innerText || '').replace(/\s+/g, ' ').trim();
+      let txt = (cap.innerText || '').replace(/\s+/g, ' ').trim();
+      for (const part of cap.querySelectorAll('.n, .srcline')) {
+        const t = (part.innerText || '').replace(/\s+/g, ' ').trim();
+        if (t) txt = txt.replace(t, ' ');
+      }
+      txt = txt.replace(/\s+/g, ' ').trim();
+      if (!txt) continue;
       const sentences = txt.split(/(?<=[.?!])\s+/).filter(x => x.split(' ').length > 6);
       const rest = pageText.replace(txt, '');
       const dup = sentences.filter(x => rest.includes(x.slice(0, 45))).length;
@@ -1020,7 +1080,7 @@ PROBE = r"""
       spillPx, pageSpillPx, deepestWho,
       frameSkewPx,
       sideMarginSkewPx: Math.round(Math.abs((body.left - sr.left) - (sr.right - body.right))),
-      layout, colCount, colTopSkewPx, colWeightRatio, visualPct, saidBlocks, keyPoints,
+      layout, colCount, colTopSkewPx, colWeightRatio, visualPct, distorted, saidBlocks, keyPoints,
       focalPx: Math.round(focalPx), focalText, bodyPx: Math.round(bodyPx),
       focalRatio: +(focalPx / Math.max(1, bodyPx)).toFixed(2),
       figLeadPct: +(100 * figLead).toFixed(0),
@@ -2332,6 +2392,41 @@ def deliverable_verdicts(rows, consistency):
     add("figure_clipped", [r for r in live if r.get("clipped")], not drawn,
         lambda h: f"{len(h)} pages draw outside a figure's own viewBox, which "
                   f"clips it away unseen: " + _fmt_ids(h))
+    # A DRAWING THAT CONTRADICTS ITS OWN NUMBERS. Not a design judgement and not
+    # a matter of taste: the mark declares the quantity, and the length either
+    # follows it or it does not. A minimum-width floor drew 1 and 4 as the same
+    # bar and stretched a 4 to twice its length on the page whose caption said
+    # the 4 was the finding.
+    add("figure_distorts", [r for r in live if r.get("distorted")],
+        not live,
+        lambda h: f"{len(h)} pages draw a mark out of proportion to the value it "
+                  f"declares: " + "; ".join(
+                      f"{r['id']} " + ", ".join(
+                          f"{d['value']} drawn as {d['drew']}px, not {d['shouldDraw']}px"
+                          for d in r["distorted"][:2]) for r in h[:3]))
+
+    # HOW MUCH OF THE DOCUMENT IS NOT DRAWN AT ALL. A ceiling on blank pages,
+    # not a target for full ones, and set loose on purpose: the two documents
+    # that calibrated it carry 0% and 45.5% of their content pages with nothing
+    # visual, so anything between separates them and the number needs no
+    # argument.
+    #
+    # The gaming move, written down because 0.1.339's fill floor was met by
+    # stretching table rows: put one token drawing on every page. `figure_distorts`
+    # is its pair — a drawing that encodes nothing cannot be checked, but one
+    # that encodes wrongly now fails — and D5's shape-vocabulary spread still
+    # reports a document whose figures are all the same rectangle.
+    contentp = [r for r in live
+                if not (r.get("isOpener") or r.get("isCover") or r.get("isClosing")
+                        or r.get("isApparatus"))
+                and r.get("visualPct") is not None]
+    blank = [r for r in contentp if r["visualPct"] == 0]
+    add("visual_absent",
+        blank if contentp and len(blank) > len(contentp) * VISUAL_ABSENT_CEILING else [],
+        not contentp,
+        lambda h: f"{len(h)} of {len(contentp)} content pages carry nothing visual "
+                  f"at all, past the {VISUAL_ABSENT_CEILING:.0%} ceiling: " + _fmt_ids(h))
+
     ledes = [r for r in live if r.get("ledeBlocks")]
     add("reserve_overspent", _overspent(live),
         not ledes or not ledes[0].get("reserveExpected"),

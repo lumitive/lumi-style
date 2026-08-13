@@ -16,7 +16,8 @@ Two lists, both advisory:
    matter get promoted into a parity guard in `check_repo.py`, which is where
    the enforcement lives — this file is the net that finds candidates for it.
 
-2. **Self-citations** — `file.py:123` and `file.md:12-34` references. The line
+2. **Self-citations** — a script or document cited with the line it is on.
+   The line
    numbers are checked: a file that is now shorter than the line it cites, or a
    citation whose target moved, is reported. `check_links` validates markdown
    link syntax and `check_script_paths` validates that a script exists; nothing
@@ -78,7 +79,9 @@ COUNT_RE = re.compile(
     rf"\b(?:{NUMBER_WORD}|\d{{1,3}})\b(?:[^.\n]{{0,16}}?)\b(?:{COUNTED_THINGS})\b",
     re.I)
 
-# `path/to/file.py:123` or `file.md:12-34`, in prose or in a comment.
+# A tracked file cited with its line, in prose or in a comment. The examples
+# this comment would otherwise carry are left out on purpose: written down,
+# they are citations, and this tool would report its own illustrations.
 CITE_RE = re.compile(r"\b([\w./-]+\.(?:py|md|json|css|js|sh|ya?ml)):(\d+)(?:-(\d+))?\b")
 
 

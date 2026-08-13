@@ -3,6 +3,94 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.453 — two checks that had never measured anything, and a drawing that can now be caught contradicting its own numbers
+
+The owner compared two 30-page decks built from these same rules — one by
+Claude Code, one by Cursor — and said the second one's figures were much worse.
+They are, and the interesting part is that **the second deck passed every check
+in this package.** The instruments could not tell the two apart.
+The decisions, and the two that were declined, are in
+`specs/2026-08-13-figure-instruments-design.md`.
+
+| | Claude Code | Cursor |
+|---|---|---|
+| visual share, median | 67.5% | **0.0%** |
+| content pages with nothing visual | 0 of 23 | **10 of 22** |
+| figures | 22 | 5 |
+| figures made only of rectangles | 0 | 3 |
+| figures carrying arrows | 12 | 1 |
+| bullet items | 17 | **97** |
+
+The speed difference had the same source: 97 list items instead of 74 drawings.
+The checkers were the *slower* half of that run.
+
+**Two of the checks that should have seen it had never measured anything.**
+
+The caption budget — word count, sentence count, and whether a caption repeats
+its own page — read `.cap .d` and skipped any caption without one. **Nothing has
+ever emitted `.d`**: not the scaffold, not the passing fixture, not either
+shipped deliverable. Seventy-four captions across three documents, zero. The
+stylesheet even carries a rendering for the class, added *because this probe
+asserted it*, with a comment noting the vocabulary guard has a hole where an
+inline `querySelector` reaches. So the class was shipped, the probe went on
+finding none, and a caption count was printed beside a measurement of nothing.
+It now reads the caption's own text minus its number and its source line —
+which is what rule 7b says a caption is — and measures 22 and 5 captions on the
+two decks where it measured 0.
+
+`M2_number_sourcing` reported `n/a` on a deck carrying 161, 88 and 32, with the
+note *"too little data: 270 sentences"*. The verdict was right and the reason
+was false: M2's window is percentages and currency, and that deck has neither.
+This is the same reassuring line M12 used to print, one metric over. **The
+window itself is deliberately not widened** — measured, the wide net finds 172
+"numbers" in that deck, most of them HTML entity codes (`8217` is a right quote,
+`8594` an arrow), page numbers and years. A metric that flags those is one
+reviewers learn to skip. The n/a now states its own reason instead.
+
+**A drawing can now be caught contradicting its own numbers.** `figure_distorts`
+gates: a mark that declares the quantity it encodes must be drawn in proportion
+to it. The case that produced the rule floored every bar at 48px so short bars
+would not vanish — drawing 1 and 4 as the same bar, a 7.4× overstatement, and
+stretching a 4 to 2.1× on the page whose caption read *"Europe stays hollow at
+four."* The true values were already in the markup, one attribute away from the
+width that ignored them.
+
+This required shipping the convention before gating on it (maintenance rule 5):
+`data-datum` had been a `.field` mark's identity, and design-rules §4 rule 9 now
+states the quantitative form and the proportionality it obliges. The tolerance
+is 2px or 4% of the largest mark — rounding and a stroke are not distortion.
+
+**`visual_absent` gates a document that is mostly not drawn on.** A ceiling on
+content pages carrying nothing visual, not a target for the rest, set at one
+third. Calibration needed no argument: the two decks above sit at 0% and 45.5%,
+so any line between them separates them, and this one is set where a document
+has to be mostly undrawn before it fails. Openers, covers, closings and declared
+apparatus pages are excluded — they legitimately carry no data figure.
+
+*Its gaming move, written down because 0.1.339's fill floor was met by
+stretching table rows:* put one token drawing on every page. `figure_distorts`
+is the pair to it — a drawing that encodes nothing cannot be checked, but one
+that encodes wrongly now fails — and D5's shape-vocabulary spread still reports
+a document whose figures are all the same rectangle.
+
+Deliberate-red for both, on real documents rather than only fixtures: the thin
+deck fails both and exits 1; the deck the owner called good passes both; so does
+`fixtures/deck-pass.en.html`. The distortion is planted in
+`fixtures/deck-degenerate.en.html` through the generator, on an existing page
+rather than a new one — that fixture fails `M8_length_cv` by 0.003, and a new
+page's title moved it enough to flip. Seven verdict-level tests, including one
+proving the ceiling does not count openers and covers.
+
+The owner's own build script is fixed in the same breath: the floor is gone, the
+full-width track under each bar is gone — it stated a share against a total the
+bars were 55% of — and a zero line and axis maximum are drawn so a value can be
+read off the figure rather than only off its label. Its viewBox heights were
+hardcoded while the helper returned the height it had computed, so adding a
+baseline clipped the drawing; they are computed now. Rebuilt, the bars read
+1 → 6px, 4 → 26px, 80 → 520px, and `figure_distorts` passes. `visual_absent`
+still fails it, correctly: ten of its pages draw nothing, and that is a
+writing job rather than a helper bug.
+
 ## 0.1.452 — the count that was wrong in nine places, and the two guards that will not let it be wrong again
 
 0.1.451 fixed a stale count in two files and reported it as a tidy-up. It was

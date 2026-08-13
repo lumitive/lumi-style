@@ -222,3 +222,86 @@ def test_d19_a_cover_globe_without_the_mark_is_reported_not_graded():
     vo = check_design.d19_vocabulary(raw)
     assert vo["globe_marks_missing_hook"] == ["cover"]
     assert vo["globe_no_runtime"] is False   # reported; it must not gate
+
+
+# The two gating findings 0.1.453 adds, at the verdict level. The probes that
+# feed them are JavaScript and need a browser; deliverable_verdicts is Python
+# and decides, so this is where a rewritten predicate would be caught.
+
+def _page(pid, **kw):
+    """One healthy page row, in the shape the browser probe emits.
+
+    Every field the other predicates read has to be here: deliverable_verdicts
+    computes all fourteen findings from one pass, so a row missing a key fails
+    a neighbouring check rather than the one under test.
+    """
+    base = {"id": pid, "pageH": 720, "overflowPx": 0, "inkUnavailable": 0,
+            "hasFooter": True, "starved": [], "footWrapped": False,
+            "footBaseline": {"ratio": 0, "runs": 3, "split": False},
+            "capWrapped": 0, "titleMissing": False, "isOpener": False,
+            "isApparatus": False, "isCover": False, "isClosing": False,
+            "spillPx": -44, "pageSpillPx": -89, "visualPct": 50,
+            "distorted": [], "ledeBlocks": 0, "badBox": False, "clipped": False}
+    base.update(kw)
+    return base
+
+
+def test_figure_distorts_passes_a_document_whose_bars_obey_their_values():
+    import inspect_layout as il
+    rows = [_page("p1"), _page("p2")]
+    assert il.deliverable_verdicts(rows, None)["figure_distorts"][0] == "ok"
+
+
+def test_figure_distorts_fails_and_names_the_value_and_both_lengths():
+    # The shipped defect: a minimum-width floor drew 1 and 4 as one bar.
+    import inspect_layout as il
+    rows = [_page("p1"),
+            _page("modes", distorted=[{"value": 1, "drew": 81, "shouldDraw": 11}])]
+    verdict, detail = il.deliverable_verdicts(rows, None)["figure_distorts"]
+    assert verdict == "FAIL"
+    assert "modes" in detail and "81px" in detail and "11px" in detail
+
+
+def test_visual_absent_passes_a_drawn_document():
+    import inspect_layout as il
+    rows = [_page(f"p{i}") for i in range(6)]
+    assert il.deliverable_verdicts(rows, None)["visual_absent"][0] == "ok"
+
+
+def test_visual_absent_fails_when_most_content_pages_draw_nothing():
+    # Calibrated on two real 30-page decks: 0 blank content pages of 23 in the
+    # one a reader called good, 10 of 22 in the one she called thin.
+    import inspect_layout as il
+    rows = [_page(f"blank{i}", visualPct=0) for i in range(10)]
+    rows += [_page(f"drawn{i}") for i in range(12)]
+    verdict, detail = il.deliverable_verdicts(rows, None)["visual_absent"]
+    assert verdict == "FAIL"
+    assert "10 of 22" in detail
+
+
+def test_visual_absent_tolerates_a_document_under_the_ceiling():
+    # A ceiling, not a target. A third of content pages may carry nothing —
+    # a document is not required to draw on every page.
+    import inspect_layout as il
+    rows = [_page(f"blank{i}", visualPct=0) for i in range(3)]
+    rows += [_page(f"drawn{i}") for i in range(9)]
+    assert il.deliverable_verdicts(rows, None)["visual_absent"][0] == "ok"
+
+
+def test_visual_absent_does_not_count_openers_covers_or_apparatus():
+    # Those pages legitimately carry no data figure, and counting them would
+    # fail a well-built deck on its own structure.
+    import inspect_layout as il
+    rows = [_page("cover", visualPct=0, isCover=True),
+            _page("closing", visualPct=0, isClosing=True),
+            _page("open-i", visualPct=0, isOpener=True),
+            _page("score", visualPct=0, isApparatus=True),
+            _page("p1"), _page("p2")]
+    assert il.deliverable_verdicts(rows, None)["visual_absent"][0] == "ok"
+
+
+def test_both_findings_read_na_on_a_document_with_no_measurable_page():
+    import inspect_layout as il
+    out = il.deliverable_verdicts([], None)
+    assert out["figure_distorts"][0] == "n/a"
+    assert out["visual_absent"][0] == "n/a"

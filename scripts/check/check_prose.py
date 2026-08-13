@@ -705,6 +705,14 @@ def main(argv):
                         else f"  (this document declares "
                              f"{r['language'] or 'no language'}, per "
                              f"{r['language_from']})" if name_ == "M12_visible_cjk"
+                        # M2's window is percentage and currency figures, and a
+                        # document can carry hundreds of numbers and none of
+                        # those. "Too little data: 270 sentences" was true of
+                        # the verdict and false about the reason — the same
+                        # reassuring line M12 used to print, one metric over.
+                        else ("  (no percentage or currency figure here; bare "
+                              "counts are outside this metric's window)")
+                        if name_ == "M2_number_sourcing" and not r["figures"]
                         else f"  (too little data: {r['sentences']} sentences, "
                              f"{r['titles']} titles)")
             print(f"  {verdict:<4}  {name_:<22} {str(value):<8} target {target}{note}")
