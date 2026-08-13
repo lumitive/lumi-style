@@ -190,10 +190,25 @@ been removed; they now apply at step 4 instead of framing step 0.
    reader with `REPLACE ME` as its browser-tab title and the fixture's
    `www.example.org` in all 34 footers because its pages were hand-copied from
    one, and `check_design.py`'s D14 now refuses the scaffold's own slots.
-   Tokens come from
-   [`tokens/lumi-theme.css`](tokens/lumi-theme.css),
-   [`tokens/design-tokens.json`](tokens/design-tokens.json) and
-   [`tokens/lumi-layouts.css`](tokens/lumi-layouts.css). **Choose a page layout for
+   **The palette is not yours to choose. Copy the token block in
+   [`tokens/lumi-theme.css`](tokens/lumi-theme.css) into the document and use
+   it** — the scaffold above already does, which is the easiest way to be right.
+   Layouts come from [`tokens/lumi-layouts.css`](tokens/lumi-layouts.css) and
+   the same values in machine-readable form from
+   [`tokens/design-tokens.json`](tokens/design-tokens.json). **Sizes you may
+   set** — design per page, and 0.1.340 withdrew the type floor — **colours you
+   may not.** One colour means one thing across every LUMI document, and a deck
+   that redefines the accent is a different design language wearing the same
+   variable names. `check_design.py`'s D20 fails a document whose colour tokens
+   disagree with the shipped ones.
+   *Provenance: this paragraph said only where tokens come from, while the rule
+   for the display face beside it said "embed rather than improvise". The
+   asymmetry was found while diagnosing three runs that each invented a fresh
+   palette — but those runs turned out to have been unable to READ `tokens/`
+   at all (a harness fault, fixed in the same release), so they are not
+   evidence about this sentence. It is corrected because a rule that states a
+   location where it means an instruction is a rule waiting to be read the
+   generous way, not because it is known to have been.* **Choose a page layout for
    the content**: §3's table is a reference of what has worked, not a lookup, and
    a page that wants something not in it should get it. **Embed the vendored
    assets rather than improvising**: `scripts/build/embed_font.py` for the display face,

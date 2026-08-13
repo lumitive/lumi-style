@@ -91,7 +91,12 @@ facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
    grid is a layout error, so draw what the content actually is. Under a figure
    goes the number, its conclusion name and the source line, and nothing else.
    Embed the vendored assets rather than improvising: `scripts/build/embed_font.py`,
-   `scripts/build/embed_icons.py`, `assets/vectors/`. **No size or fill floors** —
+   `scripts/build/embed_icons.py`, `assets/vectors/`. **The palette is not yours
+   to choose either: copy the token block out of `tokens/lumi-theme.css`** — the
+   scaffold does it for you. Sizes you may set, colours you may not, and
+   `check_design.py`'s D20 fails a document whose colour tokens disagree with
+   the shipped ones. The paragraph this replaces said only where
+   tokens live, which is a location rather than an instruction. **No size or fill floors** —
    0.1.340 withdrew the 82% page-fill floor and the 11px type floor, both invented
    without an ask, and the fill floor was satisfiable by stretching a table while
    four diagrams rendered at 40% of their cell.

@@ -50,6 +50,7 @@
     "--version"
    ],
    "drive": ["claude", "-p", "--permission-mode", "acceptEdits"],
+   "drive_skill_flag": "--add-dir",
    "docs": "https://code.claude.com/docs/en/skills",
    "capability_verified": true
   },
@@ -115,6 +116,7 @@
     "--version"
    ],
    "drive": ["cursor-agent", "-p", "--force", "--output-format", "text"],
+   "drive_skill_flag": "--add-dir",
    "docs": "https://cursor.com/docs/context/skills",
    "extra": [
     "A `.cursor/rules/lumi-style.mdc` pointer file ships for projects that want the rules loaded workspace-wide rather than on demand. It is a convenience — the skill path already works."

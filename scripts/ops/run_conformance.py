@@ -111,6 +111,28 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT):
         return {"verdict": "no driver",
                 "detail": f"{agent['id']} declares no `drive` argv in the "
                           f"registry; drive it by hand and score the artifact"}
+    # THE SKILL HAS TO BE READABLE, and running outside the repository is what
+    # made it not. A CLI driven with `-p` in a temporary directory confines its
+    # file access to that directory, so an agent could read SKILL.md — the
+    # platform surfaces it — and NOT the `tokens/`, `references/`, `scripts/`
+    # and `assets/` beside it. One said so in its own transcript: "blocked from
+    # reading … I'll rebuild the palette inside the file", which is precisely
+    # what three runs of it did, and the harness recorded three invented
+    # palettes as the agent's doing.
+    #
+    # The flag is declared per platform rather than assumed, and the path is the
+    # registry's own install location — the same one a reader would use, so the
+    # run reproduces what a user has rather than something only this harness
+    # arranges.
+    # INSERTED AFTER THE BINARY, never appended. `claude --help` declares
+    # `--add-dir <directories...>` variadic, so a flag placed last swallows the
+    # prompt that follows it as another directory and the CLI exits in a second
+    # with "Input must be provided". Put it first and the platform's own flags
+    # terminate it.
+    flag = agent.get("drive_skill_flag")
+    paths = agent.get("skill_paths") or []
+    if flag and paths:
+        argv[1:1] = [flag, str(pathlib.Path(paths[0]).expanduser())]
     if model:
         argv += ["--model", model]
     workdir = pathlib.Path(tempfile.mkdtemp(prefix=f"lumi-conf-{agent['id']}-"))
@@ -628,6 +650,44 @@ def main(argv):
                 produced = sorted(f for f in task_dir.glob(task["deliverable"])
                                   if f.name not in ("input.md",))
                 key = f"{agent_dir.name}/{task_dir.name}"
+
+                # AN INTERRUPTED RUN DOES NOT EARN A VERDICT. The board already
+                # says so — 0.1.450 withdrew a recorded `fail` by hand because
+                # the agent had been killed mid-run and what was scored was a
+                # draft — and until now the rule lived only in a person's
+                # judgement. `run --drive` can now produce that situation
+                # automatically: a task that hits its timeout is killed while
+                # writing, and the half-file it leaves scores exactly like a
+                # finished one. The same agent had produced a complete deck for
+                # this task in 699s and hit a 1500s ceiling on the next run, so
+                # this is not a rare shape.
+                #
+                # The driver's own record decides, because it is the only thing
+                # that knows. A hand-driven task has no driver.json and is
+                # scored as it always was.
+                driver = task_dir / "driver.json"
+                if driver.exists():
+                    try:
+                        record = json.loads(driver.read_text(encoding="utf-8"))
+                    except ValueError:
+                        record = {}
+                    if record.get("verdict") in ("timeout", "could not start",
+                                                 "no driver"):
+                        scores[key] = {
+                            "verdict": "not earned",
+                            # The fingerprint goes in like every other entry, or
+                            # the freshness check reads a missing hash as a
+                            # changed task and the cell prints "stale" — a
+                            # timeout reported as a question nobody asked.
+                            "task_hash": asked_fingerprint(task_dir, task),
+                            "detail": f"the driver reports "
+                                      f"{record['verdict']!r}"
+                                      + (f" after {record['seconds']}s"
+                                         if record.get("seconds") else "")
+                                      + " — whatever it left behind is a draft, "
+                                        "and a draft is not a result"}
+                        unscored += 1
+                        continue
                 if not produced:
                     # No artifact is NOT a pass. It is the most common real
                     # outcome — an agent that answered in chat instead of
@@ -725,7 +785,7 @@ def main(argv):
                   f"task; `run` writes that layout, and a scoreboard of zero rows is "
                   f"not a scoreboard of passes")
             return 1
-        print(f"\n{len(scores) - unscored} scored, {unscored} produced no deliverable "
+        print(f"\n{len(scores) - unscored} scored, {unscored} not scored "
               f"-> {run_dir / 'scores.json'}")
         return 1 if any(s["verdict"] != "pass" for s in scores.values()) else 0
 
@@ -793,7 +853,11 @@ def main(argv):
             # of the roll-up entirely, and an agent that passed everything it
             # was actually given reads `partial` — the pass is real, the
             # coverage is not complete, and both facts survive.
-            judged = [v for v in verdicts if v != "not attempted"]
+            # "not earned" joins "not attempted" here. Both mean the same
+            # thing to a roll-up — no verdict was produced — and folding either
+            # into `fail` is how a board reports a timeout as a model's defect.
+            judged = [v for v in verdicts
+                      if v not in ("not attempted", "not earned")]
             if not judged:
                 verdict = "not run"
             elif all(v == "pass" for v in judged):

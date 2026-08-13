@@ -242,6 +242,10 @@ scoring form stays a form.
 
 ## 7 Visual tokens (for HTML output)
 
+**These values are the palette, not a description of one.** Copy them; do not
+re-derive a set in the same spirit. Sizes are yours to set per page, colours are
+not — one colour means one thing across every LUMI document.
+
 **Canvas**: pure white #FFFFFF by default — not a warm cream, which reads as a
 template default; dark is Apple space grey #1D1D1F, only when the user asks, as one
 `body.dark` override block, never a forked file. Card surfaces #FAFAFA / #2C2C2E.
