@@ -63,6 +63,22 @@ it records a non-zero exit without claiming an artifact, it reports a binary
 that will not start instead of raising, it refuses a platform with no `drive`
 argv by name, and it records the model either way.
 
+**The first driven run is this release's own evidence, and it is not flattering.**
+Six tasks, two agents, all invoked by the harness: T1-deck 699s and 484s, T2 61s
+and 53s, T3 50s and 42s. Both agents pass T2 and T3 and **both fail T1-deck, for
+unrelated reasons, and neither failure is one of the gates 0.1.453 added** —
+`visual_absent` and `figure_distorts` fired on neither deck, which a release that
+adds gates and then reports failures owes the reader.
+
+Claude Code built a deck that does not use the LUMI token block at all, so
+`check_design.py` reports it `UNMEASURABLE` and the three commercial gates never
+ran; beside that, blocks landing on each other on six pages, one role rendering
+three ways, and 83.3% of its titles in a single frame against a 60% ceiling.
+Cursor fires no gate: its T1 exits 1 on four checks that could not be measured —
+each a component the deck does not contain — and on `M2_number_sourcing` at
+86.0% against a 90% floor. Two very different documents, one word in the verdict
+column.
+
 ## 0.1.453 — two checks that had never measured anything, and a drawing that can now be caught contradicting its own numbers
 
 The owner compared two 30-page decks built from these same rules — one by

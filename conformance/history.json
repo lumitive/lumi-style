@@ -150,5 +150,37 @@
     "built": {
       "T1-deck": "0.1.449"
     }
+  },
+  {
+    "skill_version": "0.1.454",
+    "agent": "claude-code",
+    "date": "2026-08-13",
+    "run_dir": "conformance/results/0.1.454",
+    "tasks": {
+      "T1-deck": "fail",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "aa188cc466d9d6c6d3cd78bca1fb7cf926f55c96a2dd98df85eee3e68cd5b87d",
+    "instrument_version": "0.1.454",
+    "built": {
+      "T1-deck": "0.1.449"
+    }
+  },
+  {
+    "skill_version": "0.1.454",
+    "agent": "cursor",
+    "date": "2026-08-13",
+    "run_dir": "conformance/results/0.1.454",
+    "tasks": {
+      "T1-deck": "fail",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "aa188cc466d9d6c6d3cd78bca1fb7cf926f55c96a2dd98df85eee3e68cd5b87d",
+    "instrument_version": "0.1.454",
+    "built": {
+      "T1-deck": "0.1.454"
+    }
   }
 ]
