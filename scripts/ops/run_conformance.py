@@ -25,7 +25,8 @@ the whole risk:
 
     python3 scripts/ops/run_conformance.py validate     # tasks + registry parse (CI-safe)
     python3 scripts/ops/run_conformance.py detect       # which agent CLIs exist here
-    python3 scripts/ops/run_conformance.py run          # invoke every detected agent
+    python3 scripts/ops/run_conformance.py run --drive  # invoke every detected agent CLI
+    python3 scripts/ops/run_conformance.py run          # write the prompts, drive by hand
     python3 scripts/ops/run_conformance.py score --run DIR
     python3 scripts/ops/run_conformance.py report --run DIR [--run DIR ...]
 
@@ -58,6 +59,8 @@ import shutil
 import subprocess
 import sys
 import sys as _bs_sys  # noqa: E402
+import tempfile
+import time
 from typing import Any
 
 _SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
@@ -77,6 +80,70 @@ REGISTRY = ROOT / "adapters" / "platforms.json"
 TASKS = ROOT / "conformance" / "tasks"
 RESULTS = ROOT / "conformance" / "results"
 CAP_RANK = {"prompt": 0, "files": 1, "full": 2}
+
+# How long one task may take before the driver gives up. T1 is a twelve-page
+# deck and this package's own measurement of a thirty-page one is 27 minutes, so
+# the ceiling is generous; what it buys is that an agent which hangs produces a
+# recorded `timeout` rather than a session that never ends. Before this existed
+# the only timeout in the file was the 20 seconds on the `--version` probe.
+DRIVE_TIMEOUT = 1800
+
+
+def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT):
+    """Invoke one agent on one task, and return what happened.
+
+    Until 0.1.454 nothing in this repository invoked an agent. `run` wrote a
+    PROMPT.txt and printed "invoke each agent against its PROMPT.txt", and every
+    row this board has ever carried was earned by an operator typing the command
+    themselves. The `cli` column reports the `--version` probe, which is how a
+    newly installed binary once turned a hand-driven run into a sentence
+    claiming the tasks had run non-interactively (corrected at 0.1.452).
+
+    **The working directory is outside this repository, and that is not a
+    detail.** An agent started inside the tree reads this repo's maintenance
+    CLAUDE.md and behaves like a maintainer of the skill instead of a consumer
+    of it — it has the rules, the checkers and the changelog in front of it, and
+    the task stops measuring what the task is for. It gets a bare temporary
+    directory and whatever the platform installed at its own skill path.
+    """
+    argv = list(agent.get("drive") or [])
+    if not argv:
+        return {"verdict": "no driver",
+                "detail": f"{agent['id']} declares no `drive` argv in the "
+                          f"registry; drive it by hand and score the artifact"}
+    if model:
+        argv += ["--model", model]
+    workdir = pathlib.Path(tempfile.mkdtemp(prefix=f"lumi-conf-{agent['id']}-"))
+    try:
+        for name in ("PROMPT.txt", "input.md"):
+            if (prompt_dir / name).exists():
+                shutil.copy2(prompt_dir / name, workdir / name)
+        started = time.monotonic()
+        try:
+            proc = subprocess.run(argv + [task["prompt"]], cwd=workdir,
+                                  capture_output=True, timeout=timeout)
+            code, out = proc.returncode, proc.stdout + proc.stderr
+        except subprocess.TimeoutExpired as expired:
+            code, out = None, (expired.stdout or b"") + (expired.stderr or b"")
+        except OSError as exc:
+            return {"verdict": "could not start", "detail": str(exc)}
+        seconds = round(time.monotonic() - started, 1)
+
+        # Bring back whatever the task asked for, plus the transcript. Anything
+        # else the agent wrote stays in the temporary directory: the run record
+        # is the deliverable and the log, not the agent's scratch.
+        produced = [p for p in sorted(workdir.glob(task["deliverable"]))
+                    if p.name not in ("PROMPT.txt", "input.md")]
+        for p in produced:
+            shutil.copy2(p, prompt_dir / p.name)
+        (prompt_dir / "transcript.txt").write_bytes(out)
+        return {"verdict": "timeout" if code is None else "driven",
+                "exit_code": code, "seconds": seconds,
+                "produced": [p.name for p in produced],
+                "digest": hashlib.sha256(out).hexdigest(),
+                "model": model or "(the CLI's default)"}
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)
 
 # What a task's `score` list may name, and the script behind each.
 #
@@ -313,6 +380,42 @@ def score_recall(task: dict, text: str) -> dict:
             "missed": [q for q, ok in hits.items() if not ok]}
 
 
+# The board's generated region. `report --record` replaces what lies between
+# these, and nothing else in the file: the narrative paragraphs are written by a
+# person and have to survive a refresh. Before this existed the operator pasted
+# the rendered output in by hand, which is how "What this table is not" came to
+# appear in that file THREE times — the section was re-appended at every refresh
+# and nobody diffed a document they had just generated.
+BOARD_OPEN = "<!-- generated by run_conformance.py report --record -->"
+BOARD_CLOSE = "<!-- end generated -->"
+
+
+def render_board(record: dict) -> str:
+    """The header and the table — the part a person must never retype."""
+    return "\n".join(render(record).split("\n## What this table is not")[0].rstrip().split("\n"))
+
+
+def write_board(record: dict) -> str:
+    """Replace the generated region of conformance/CONFORMANCE.md in place."""
+    path = ROOT / "conformance" / "CONFORMANCE.md"
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        # Report, never raise. --record's job is the history row; the board is
+        # the second half of it, and a missing board must not take the first
+        # half down with it (the synthetic trees the record tests build have
+        # no board at all).
+        return f"note  the board was not written: {exc}"
+    if BOARD_OPEN not in text or BOARD_CLOSE not in text:
+        return (f"FAIL  {path.name} carries no generated region; add "
+                f"{BOARD_OPEN} and {BOARD_CLOSE} around its header and table")
+    head, rest = text.split(BOARD_OPEN, 1)
+    _, tail = rest.split(BOARD_CLOSE, 1)
+    path.write_text(head + BOARD_OPEN + "\n" + render_board(record) + "\n"
+                    + BOARD_CLOSE + tail, encoding="utf-8")
+    return f"wrote the board table into {path.relative_to(ROOT)}"
+
+
 def render(record: dict) -> str:
     lines = [f"# LUMI style conformance · skill {record['version']}", "",
              f"Runs {record['run_id']} · {record['host']} · "
@@ -377,6 +480,22 @@ def main(argv):
     ap.add_argument("--agent", default=None,
                     help="prepare (or report) this agent even if no CLI answers its "
                          "probe — IDEs and API models are driven by hand")
+    ap.add_argument("--task", default=None,
+                    help="with run: only this task id. The suite is three tasks "
+                         "and one of them is a twelve-page deck, so proving the "
+                         "driver works should not cost a deck")
+    ap.add_argument("--drive", action="store_true",
+                    help="with run: actually invoke each agent, in a temporary "
+                         "directory OUTSIDE this repository, instead of writing "
+                         "a prompt for a person to invoke by hand")
+    ap.add_argument("--model", default=None,
+                    help="with run --drive: pin the model and record which one. "
+                         "Left off, each CLI picks its own default and the run "
+                         "records that it did — a comparison needs the pin, a "
+                         "check of what a user actually gets does not")
+    ap.add_argument("--timeout", type=int, default=DRIVE_TIMEOUT,
+                    help=f"with run --drive: seconds before one task is "
+                         f"abandoned (default {DRIVE_TIMEOUT})")
     ap.add_argument("--record", action="store_true",
                     help="with report: append one row per scored agent per run "
                          "to conformance/history.json — the tracked memory the "
@@ -447,17 +566,39 @@ def main(argv):
                   "or an API model has no CLI to probe — name it with --agent and drive "
                   "it by hand.")
             return 1
+        driven = 0
         for a in wanted:
             for t in tasks:
                 if CAP_RANK[a["capability"]] < CAP_RANK[t["min_capability"]]:
+                    continue
+                if args.task and t["id"] != args.task:
                     continue
                 wd = run_dir / a["id"] / t["id"]
                 wd.mkdir(parents=True, exist_ok=True)
                 (wd / "PROMPT.txt").write_text(t["prompt"], encoding="utf-8")
                 if "input" in t:
                     (wd / "input.md").write_text(t["input"], encoding="utf-8")
-        print(f"prepared {run_dir}; invoke each agent against its PROMPT.txt, then "
-              f"`score --run {run_dir}`")
+                if not args.drive:
+                    continue
+                print(f"  driving {a['id']} on {t['id']} …", flush=True)
+                record = drive(a, t, wd, model=args.model, timeout=args.timeout)
+                (wd / "driver.json").write_text(
+                    json.dumps(record, indent=2) + "\n", encoding="utf-8")
+                driven += record["verdict"] == "driven"
+                print(f"    {record['verdict']}"
+                      + (f" in {record['seconds']}s, wrote "
+                         f"{', '.join(record['produced']) or 'nothing'}"
+                         if "seconds" in record else f" — {record.get('detail', '')}"))
+        if not args.drive:
+            print(f"prepared {run_dir}; invoke each agent against its PROMPT.txt, then "
+                  f"`score --run {run_dir}`. `--drive` runs them here instead.")
+            return 0
+        print(f"drove {driven} task(s) into {run_dir}; now `score --run {run_dir}`")
+        # DRIVING IS NOT SCORING, and this exit code says only that the driver
+        # ran. Whether the artifacts pass is `score`'s answer, and it is
+        # deliberately not folded in here: agent output is non-deterministic by
+        # this file's own opening paragraph, so a release that blocked on it
+        # would block on something that is not the release.
         return 0
 
     if args.command == "score":
@@ -686,6 +827,7 @@ def main(argv):
     print(render(record))
 
     if args.record:
+        print(write_board(record))
         # One row per scored agent per run directory, pinned to the artifact
         # by digest: the scores.json stays untracked (results/ is gitignored
         # on purpose), so the digest is what makes a history row evidence
