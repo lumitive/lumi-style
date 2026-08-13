@@ -30,6 +30,17 @@
 
 ## 1 · Color: one color, one meaning; hierarchy via transparency
 
+**The colour values below are the shipped ones, and a deliverable copies them.**
+`tokens/lumi-theme.css` is the authority and `scripts/ops/new_deck.py` puts it
+in the document for you. A document may set its own SIZES — design per page —
+but a colour token that disagrees with the shipped value is a different design
+language under the same variable names, and `check_design.py`'s D20 fails it.
+*Provenance: the rule set said where the tokens are and never that the values
+were fixed. Found while diagnosing runs that invented palettes — which turned
+out to be a harness fault rather than a reading of this rule, so the correction
+stands on the asymmetry itself: the display face beside it has always said
+"embed rather than improvise".*
+
 - **Canvas — light by default, dark on request.** The light canvas is **pure
   white (#FFFFFF)** with cards a hair off it (#FAFAFA). **Not the warm cream**
   (#F4F1EA and its neighbours) that has become the field default: it reads as a

@@ -128,6 +128,48 @@ three known-good documents and the passing fixture report zero; a second
 the generator. Five unit tests, including one proving `#FFF` and `#FFFFFF` are
 one colour and one proving sizes are ignored.
 
+**An interrupted run does not earn a verdict, and now the harness knows it.**
+Re-driving T1 to check the fixes, Claude Code hit its ceiling at 1500s — the
+same task it had finished in 699s an hour earlier — and was killed while
+writing. It left a half-file with no accent token and no footers, and `score`
+graded it exactly like a finished deck: nine palette mismatches, twenty-four
+missing footers, a `fail` row for an agent that had not been allowed to finish.
+The board withdrew a recorded `fail` by hand for this at 0.1.450 and the rule
+has lived in a person's judgement ever since; `run --drive` can now produce the
+situation automatically, so the rule is code. A task whose `driver.json` reports
+`timeout`, `could not start` or `no driver` scores `not earned`, carries its
+fingerprint like any other entry, and the roll-up excludes it the way it already
+excluded `not attempted` — folding either into `fail` is how a board reports a
+timeout as a model's defect. Five tests, including one proving a hand-driven
+task with no driver record is scored exactly as before.
+
+**The harness was locking the agent out of the skill, and three runs were
+mis-attributed before anyone saw it.** Driven with `-p` in a temporary directory
+— which this release chose deliberately, so an agent does not read the
+maintenance `CLAUDE.md` and start behaving like a maintainer — a CLI confines
+its reads to that directory. So an agent got `SKILL.md`, which the platform
+surfaces, and could not open the `tokens/`, `references/`, `scripts/` and
+`assets/` beside it. One said so in its own transcript: *"blocked from reading …
+I'll rebuild the palette inside the file"*. Three runs of it each invented a
+palette, and the board recorded three agent failures.
+
+The driver hands over the registry's own install path now
+(`--add-dir ~/.claude/skills/lumi-style`), declared per platform rather than
+assumed, so a run reproduces what a reader has instead of something only this
+harness arranges. Re-driven with it, the same agent on the same task produced
+the shipped palette exactly — `--acc #48633E`, `--seal #C8102E`, `--lime
+#B8FF00`, `--tx1 rgba(43,46,51,.92)` — twelve commercial footers, D12 and D20
+both green, and a document three times the size of its locked-out attempts.
+
+*Two smaller faults fell out of the same fix.* `--add-dir` is variadic, so
+appending it made the prompt another directory and the CLI exited in a second
+with "Input must be provided"; it is inserted after the binary now, and a test
+uses a real executable rather than `python -c` because only a real one can
+demonstrate the ordering. And the flag was added, then verified on a
+twelve-page deck for thirty-one minutes before anyone ran the thirty-five-second
+task that would have caught it — the cheap chain check now precedes the
+expensive one.
+
 *The `gating claims` guard added at 0.1.452 earned itself here.* Adding D20
 made five prose sites wrong at once, and it named all five before a commit —
 the same class of drift that had stood for eight releases the day before. Its
