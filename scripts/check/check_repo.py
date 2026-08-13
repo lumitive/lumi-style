@@ -2069,11 +2069,15 @@ METRIC_AUTHORITIES = {
 # prose — which is the better move whenever the sentence can name the authority
 # instead of counting (preflight.py's docstring is the model: "how many is
 # whatever the workflow says today, never a number written here").
+# The patterns locate the SENTENCE and never its count. A claim reading "four"
+# today reads "five" the day a gate is added, and a pattern keyed on the number
+# would need editing at exactly the moment the guard is supposed to fire — which
+# is how a guard becomes a formality. Every count here is `\w+`.
 GATING_CLAIM_SITES: dict[str, str] = {
     "AGENTS.md": r"\*\*((?:D\d+(?:,? (?:and )?)?)+) gate; every other D-metric",
-    "CLAUDE.md": r"Four of its metrics \*\*gate\*\*[^.]*?:((?:[^.]*?\*\*D\d+\*\*)+)",
-    "references/eval-rubric.md": r"\*\*Four exceptions.*?\*\*(.*?)— all decidable",
-    "references/design-rules.md": r"four checks in `check_design\.py` that fail "
+    "CLAUDE.md": r"\w+ of its metrics \*\*gate\*\*(.*?)All \w+ are",
+    "references/eval-rubric.md": r"\*\*\w+ exceptions.*?\*\*(.*?)— all decidable",
+    "references/design-rules.md": r"\w+ checks in `check_design\.py` that fail "
                                   r"the run\*\* \(([^)]*)\)",
     "references/brand.md": r"only ((?:D\d+/?)+) gate",
 }
