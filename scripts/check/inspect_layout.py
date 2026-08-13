@@ -1537,14 +1537,20 @@ CONSISTENCY_PROBE = r"""
       const bb = (r.width && r.width.baseVal)
         ? {width: r.width.baseVal.value, height: r.height.baseVal.value}
         : r.getBoundingClientRect();
-      // What a measure bar looks like, as a shape. All three are FLOORS and
-      // CEILINGS on the candidate window, not targets a bar should aim at:
-      // at least 120px long (shorter and it is a tick, a swatch or a rule),
-      // between 30px and 90px thick (thinner is a rule, thicker is a panel).
-      // A deck whose bars sit outside this window matches nothing here — which
-      // is why the count above is reported rather than the window silently
-      // yielding an empty result that reads as agreement.
-      if (bb.width < 120 || bb.height < 30 || bb.height > 90) continue;
+      // What a measure bar looks like, as a shape. LENGTH is the long side and
+      // THICKNESS the short one, whichever way the bar runs: this used to read
+      // width as length and height as thickness, so a VERTICAL bar chart —
+      // 18 units wide and 180 tall — matched nothing, and a conformance deck
+      // full of them was recorded as having no measure bars at all.
+      // The thickness floor is 12 rather than 30 for the same reason: the deck
+      // that exposed this draws honest 18-unit bars, and 30 was a number from
+      // the one document the window was written against.
+      // All of these are FLOORS and CEILINGS on the candidate window, not
+      // targets a bar should aim at, and the window is a HEURISTIC — which is
+      // why an empty result reports and never fails the run (FM-13).
+      const len = Math.max(bb.width, bb.height);
+      const thick = Math.min(bb.width, bb.height);
+      if (len < 120 || thick < 12 || thick > 90) continue;
       // The filled measure bar specifically — the rect whose length IS the
       // number. Washes, card fills and callout panels are furniture and are
       // allowed to differ; the mark that encodes a value is not, because a
@@ -2323,10 +2329,15 @@ def consistency_print(label, c):
               f"{len(list(d.values())[0])} pages that hold one")
 
     if not c["comps"]:
-        unmeasured += 1
-        print(f"  -- component colour: NOT MEASURED, none of {c.get('barCandidates', 0)} "
-              f"rects in a .fig is a filled measure bar (>=120px long, 30-90px thick, "
-              f"class f-acc or f-lime)")
+        # REPORTED, NEVER COUNTED AS UNMEASURED. The candidate window is a shape
+        # heuristic, and FM-13 governs: a proxy may report, but a run must not
+        # fail on one failing to recognise its subject. It did — a deck of
+        # vertical bars exited 1 on four "unmeasured" checks, one per geometry,
+        # with no gating finding anywhere in it.
+        print(f"  -- component colour: not measured, none of {c.get('barCandidates', 0)} "
+              f"rects in a .fig matches the bar window (>=120 long, 12-90 "
+              f"thick either way round, class f-acc or f-lime) — a window, "
+              f"not a rule about your figures")
     for comp, uses in c["comps"].items():
         fills: dict[str, list[str]] = {}
         for u in uses:

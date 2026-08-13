@@ -798,6 +798,14 @@ def build_degenerate() -> str:
      which it fails. Read fixtures/deck-pass.en.html for what good looks like. -->
 <style>
 {shipped_css()}
+/* D20_palette_fidelity: a SECOND :root redefining the accent to a colour this
+   package does not ship. The document stays internally consistent — every use
+   resolves, D4 sees no stray literal, D1 measures contrast against it — and
+   that is the point: until 0.1.454 nothing compared a document's declared
+   palette with the shipped one, so a deck could carry another design language
+   and pass every check. The owner found it by eye on a conformance deck whose
+   ten shared colour tokens disagreed ten times out of ten. */
+:root {{ --acc: #0F6E6B; }}
 *, *::before, *::after {{ box-sizing: border-box; }}
 body {{ font-family: var(--din); font-size: 15px; color: var(--tx1);
         background: var(--bg); margin: 0; }}

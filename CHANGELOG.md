@@ -79,6 +79,61 @@ each a component the deck does not contain — and on `M2_number_sourcing` at
 86.0% against a 90% floor. Two very different documents, one word in the verdict
 column.
 
+**Then the owner refused the merge and asked why a run failing on both agents
+was being shipped rather than diagnosed.** She was right, and the repository's
+own history says so: `KNOWN_GAPS.md`'s GAP-001 is titled "T1-deck fails on both
+scored conformance agents", and its diagnosis found the dominant cause in this
+package's own tokens rather than in either agent. Both agents failing one task
+is the fingerprint of a defect here. Three turned up.
+
+* **The measure-bar window only recognised horizontal bars.** `width < 120 ||
+  height < 30 || height > 90` reads width as length and height as thickness, so
+  a vertical bar chart — 18 units wide, 180 tall — matched nothing, and Cursor's
+  deck was recorded as containing no measure bars at all. Length is now the long
+  side whichever way the bar runs, and the thickness floor is 12: 30 was a
+  number from the one document the window was written against. The deck goes
+  from 0 recognised bars to 17.
+* **An empty result from that window counted as `unmeasured` and exited 1.** The
+  window is a shape heuristic, and FM-13 — written into the ledger this same
+  day — says a proxy may report but must not fail a run. It reports now. That
+  alone was the whole of Cursor's T1 failure at four geometries.
+* **`--bg` alone decided whether a document used the token block.** A deck
+  defining `--tx1..--tx4`, `--ln1..--ln3` and `--acc` was declared
+  `UNMEASURABLE` for painting its canvas another way, which took the whole
+  design report with it and left three commercial gates reading "never
+  reported". The test is the vocabulary now — three of ten core tokens — and it
+  is the second false `UNMEASURABLE` this sentinel has produced.
+
+**And then the owner looked at the deck and said the styling was simply not
+LUMI's, which no instrument here could see.** Measured: of the colour tokens
+each deck shares with `tokens/lumi-theme.css`, Cursor's deck agrees on **36 of
+36** and Claude Code's on **0 of 10** — an `--acc` that is teal where LUMI's is
+olive, a `--lime` two hues off, the whole rule ladder replaced. Every palette
+check in this package passed it, because every one of them grades a document
+against the block that document declares. Nothing asked whether that block was
+this package's.
+
+**`D20_palette_fidelity` gates.** Every colour token a document declares that
+`tokens/` also defines must carry the shipped value, compared as parsed colours
+so notation is not a difference, and per palette so dark is held to dark.
+**Colours only** — and that line is principled rather than convenient: "one
+colour, one meaning" is a red line, while 0.1.340 withdrew the type floor and
+SKILL.md's first rule is to design per page. Measured on a compliant deck, the
+only tokens that differ from the shipped set are six `--fs-*` sizes and one
+ground opacity; gating on those would fail a document for obeying rule 1.
+
+Deliberate-red: the offending deck fails naming ten tokens and both values;
+three known-good documents and the passing fixture report zero; a second
+`:root` overriding the accent is planted in `deck-degenerate.en.html` through
+the generator. Five unit tests, including one proving `#FFF` and `#FFFFFF` are
+one colour and one proving sizes are ignored.
+
+*The `gating claims` guard added at 0.1.452 earned itself here.* Adding D20
+made five prose sites wrong at once, and it named all five before a commit —
+the same class of drift that had stood for eight releases the day before. Its
+patterns are now count-agnostic: a pattern keyed on the word "four" would need
+editing at exactly the moment the guard is meant to fire.
+
 ## 0.1.453 — two checks that had never measured anything, and a drawing that can now be caught contradicting its own numbers
 
 The owner compared two 30-page decks built from these same rules — one by

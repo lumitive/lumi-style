@@ -1042,8 +1042,26 @@ def measure(path):
         raise Unmeasurable("no <style> block; nothing to measure")
     palette = "dark" if re.search(r'<body[^>]*\bclass="[^"]*\bdark\b', raw) else "light"
     resolved, _ = resolve(css, palette)
-    if "bg" not in resolved:
-        raise Unmeasurable("no --bg token; this file does not use the LUMI token block")
+    # DOES THIS DOCUMENT USE THE TOKEN VOCABULARY — not "does it define one
+    # particular property". `--bg` alone was the sentinel, and it has now
+    # produced two false UNMEASURABLE verdicts on documents that plainly do use
+    # the block: once when a second `:root` shadowed the first (0.1.387), and
+    # once on a conformance deck that defines --tx1..--tx4, --acc and --ln1 and
+    # simply paints its canvas another way. The second cost that deck its whole
+    # design report and cascaded into three commercial gates reading "never
+    # reported" — an agent scored `fail` for a property nothing requires.
+    #
+    # The vocabulary is the test, and the file still says what it could not
+    # find. Metrics that need a specific token report their own absence:
+    # d1_contrast is the one that needs `--bg`, and it grades what it can.
+    vocabulary = {"bg", "tx1", "tx2", "tx3", "tx4", "ln1", "ln2", "ln3",
+                  "acc", "card-bg"}
+    present = vocabulary & set(resolved)
+    if len(present) < 3:
+        raise Unmeasurable(
+            f"this file does not use the LUMI token block: of {len(vocabulary)} "
+            f"core tokens it defines {len(present)} "
+            f"({', '.join('--' + t for t in sorted(present)) or 'none'})")
     return {
         "file": str(path), "palette": palette,
         "D1_contrast": d1_contrast(css, resolved, palette),
@@ -1075,7 +1093,60 @@ def measure(path):
         # the regions is what lets the broken fixture assert WHICH one was left
         # unlabelled; a count alone cannot tell a real catch from an off-by-one.
         "D18_detail": (d18 or {}).get("unlabelled"),
+        "D20_palette_fidelity": d20_palette_fidelity(resolved, palette),
     }
+
+
+def d20_palette_fidelity(resolved, palette):
+    """Is the palette this document declares LUMI's palette? **This gates.**
+
+    The other palette checks ask whether a document is consistent with the block
+    it declares. Nothing asked whether that block is THIS package's — so a deck
+    could define `--tx1`, `--acc` and the whole ladder with values of its own
+    invention and pass every one of them, because each was graded against the
+    invention. One did: a conformance deck whose ten shared colour tokens
+    disagreed with the shipped values TEN times out of ten, including an `--acc`
+    that was teal where LUMI's is olive. The owner saw it immediately — the deck
+    simply looked like another design language — and no check in this package
+    could. FM-10, in the one place the package's whole promise lives.
+
+    **Colours only, and that is the principled line rather than a convenient
+    one.** "One colour, one meaning" is a red line, and a different accent is a
+    different language. Type SIZES are the document's to choose: 0.1.340
+    withdrew the type floor, and SKILL.md's first rule is to design per page
+    with no universal size floors. Measured on a compliant deck, the only
+    tokens that differ from the shipped set are the six `--fs-*` sizes and one
+    ground opacity — every colour matches. Gating on sizes would fail a document
+    for obeying rule 1.
+
+    Compared as PARSED colours, so `#FFF`, `#FFFFFF` and `rgb(255,255,255)` are
+    one value, and per palette, so the dark block is held to the dark tokens.
+    """
+    try:
+        shipped_css = (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")
+    except OSError as exc:                                          # noqa: BLE001
+        return {"unreadable": str(exc), "compared": 0, "differs": []}
+    # Comments first, through the SAME helper the document path uses. Without
+    # it the banner above tokens/lumi-theme.css's `:root` lands inside the
+    # captured selector, the block matches nothing, and this check compares a
+    # document against an empty palette and reports every document clean — the
+    # failure `css_of` documents three functions above, met again by feeding
+    # raw CSS in through a different door.
+    shipped, _ = resolve(css_tokens.strip_comments(shipped_css, " "), palette)
+    differs = []
+    compared = 0
+    for name, want in sorted(shipped.items()):
+        theirs = resolved.get(name)
+        if theirs is None:
+            continue
+        want_rgba, got_rgba = parse_color(want), parse_color(theirs)
+        if want_rgba is None:
+            continue            # a size, a font stack, a duration — not ours
+        compared += 1
+        if got_rgba is None or want_rgba != got_rgba:
+            differs.append({"token": f"--{name}", "shipped": want.strip(),
+                            "document": theirs.strip()})
+    return {"compared": compared, "differs": differs}
 
 
 def grade(r):
@@ -1126,6 +1197,10 @@ def grade(r):
     fp = r["D15_footer_path"]
     rows.append(("D15_footer_path", len(fp["found"]) if fp else None, "=0 (gates)",
                  bool(fp) and not fp["found"], fp is None))
+    pf = r["D20_palette_fidelity"]
+    rows.append(("D20_palette_fidelity",
+                 len(pf["differs"]) if "differs" in pf else None, "=0 (gates)",
+                 not pf.get("differs"), "unreadable" in pf))
     vo = r["D19_vocabulary"]
     vo_bad = (len(vo["dangling"]) + len(vo["bad_blocks"]) + len(vo["bad_arity"])
               + len(vo["openers_missing_class"])
@@ -1263,6 +1338,14 @@ def main(argv):
                 print(f"        section {pid} carries an .openframe and not "
                       f"class=\"page opener\" — the lime opener is a class, not a "
                       f"layout, so the page renders blank")
+        pfd = r["D20_palette_fidelity"]
+        if pfd.get("differs"):
+            print(f"        this document declares a palette of its own: "
+                  f"{len(pfd['differs'])} of {pfd['compared']} shared colour "
+                  f"tokens disagree with tokens/lumi-theme.css")
+            for d in pfd["differs"][:5]:
+                print(f"          {d['token']:16} shipped {d['shipped']:<24} "
+                      f"document {d['document']}")
         for ph in r["D14_placeholders"][:8]:
             print(f"        {ph['page']} still carries the slot {ph['text']}")
         for fpath in (r["D15_footer_path"] or {}).get("found", [])[:6]:

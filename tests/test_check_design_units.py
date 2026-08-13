@@ -305,3 +305,59 @@ def test_both_findings_read_na_on_a_document_with_no_measurable_page():
     out = il.deliverable_verdicts([], None)
     assert out["figure_distorts"][0] == "n/a"
     assert out["visual_absent"][0] == "n/a"
+
+
+# D20 — is the declared palette LUMI's? The check the owner's eye found before
+# any instrument did: a deck can be perfectly consistent with a palette of its
+# own invention, and every other palette metric grades it against that invention.
+
+def _resolved(**tokens):
+    return dict(tokens)
+
+
+def test_d20_a_document_carrying_the_shipped_colours_passes():
+    import check_design as cd
+    shipped, _ = cd.resolve(
+        cd.css_tokens.strip_comments(
+            (cd.ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8"), " "),
+        "light")
+    out = cd.d20_palette_fidelity(shipped, "light")
+    assert out["differs"] == []
+    assert out["compared"] > 20, "the comparison must actually reach the palette"
+
+
+def test_d20_an_invented_accent_fails_and_names_both_values():
+    import check_design as cd
+    out = cd.d20_palette_fidelity(_resolved(acc="#0F6E6B"), "light")
+    # Named as a list rather than compared field by field: ruff's S105 reads
+    # `d["token"] == "..."` as a hardcoded credential, and a noqa on a test
+    # about colours would be the wrong kind of quiet.
+    assert [d["token"] for d in out["differs"]] == ["--acc"]
+    assert [d["document"] for d in out["differs"]] == ["#0F6E6B"]
+    assert out["differs"][0]["shipped"] != "#0F6E6B"
+
+
+def test_d20_ignores_sizes_and_fonts():
+    # SIZES ARE THE DOCUMENT'S. 0.1.340 withdrew the type floor and SKILL.md's
+    # first rule is to design per page; a compliant deck differed from the
+    # shipped set on six --fs-* tokens and nothing else.
+    import check_design as cd
+    out = cd.d20_palette_fidelity(_resolved(**{"fs-display": "72px"}), "light")
+    assert out["differs"] == [] and out["compared"] == 0
+
+
+def test_d20_notation_is_not_a_difference():
+    # #FFF, #FFFFFF and rgb(255,255,255) are one colour.
+    import check_design as cd
+    shipped, _ = cd.resolve(
+        cd.css_tokens.strip_comments(
+            (cd.ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8"), " "),
+        "light")
+    assert cd.parse_color(shipped["bg"]) == cd.parse_color("#FFF")
+    assert cd.d20_palette_fidelity(_resolved(bg="#FFF"), "light")["differs"] == []
+
+
+def test_d20_an_unparseable_document_value_counts_as_a_difference():
+    import check_design as cd
+    out = cd.d20_palette_fidelity(_resolved(acc="var(--something-else)"), "light")
+    assert len(out["differs"]) == 1

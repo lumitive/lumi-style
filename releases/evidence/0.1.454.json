@@ -2,7 +2,17 @@
   "version": "0.1.454",
   "diff_base": "8ef008f4b6c61855d2a258e496533be4e1fd5dba",
   "spec": "specs/2026-08-13-conformance-driver-design.md",
-  "obligations": [],
-  "checks": [],
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "2c6c1061cb8125b722b487291b019ed0f35c5d8b0856a4ac2ba4a74b980ff378",
+      "date": "2026-08-13"
+    }
+  ],
   "waivers": []
 }

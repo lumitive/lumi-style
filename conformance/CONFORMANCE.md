@@ -5,10 +5,10 @@ Runs `conformance/results/0.1.454` · darwin · 2 of 12 agents detected · up to
 
 | agent | capability | cli | T1-deck | T2-deaify | T3-recall | verdict |
 |---|---|---|---|---|---|---|
-| Claude Code | full | 2.1.231 (Claude Code) | fail: D12_commercial_footer never reported, D14_placeholders never reported, D15_footer_path never reported, collision=FAIL, design emitted no parseable report, layout exited 1, prose exited 1 | pass | pass | **fail** |
+| Claude Code | full | 2.1.231 (Claude Code) | fail: D12_commercial_footer=FAIL, collision=FAIL, design exited 1, layout exited 1, prose exited 1 | pass | pass | **fail** |
 | Gemini CLI | full | — | — | — | — | **not installed** |
 | OpenAI Codex | full | — | — | — | — | **not installed** |
-| Cursor | full | 2026.08.11-e8db854 | fail: layout exited 1, prose exited 1 | pass | pass | **fail** |
+| Cursor | full | 2026.08.11-e8db854 | fail: prose exited 1 | pass | pass | **fail** |
 | Google Antigravity | full | — | — | — | — | **cannot be probed** |
 | GitHub Copilot | full | — | — | — | — | **not installed** |
 | OpenCode | full | — | — | — | — | **not installed** |
@@ -25,23 +25,31 @@ agents, every one invoked by `run --drive` in a temporary directory outside this
 repository. Timings: T1-deck 699s (Claude Code) and 484s (Cursor); T2 61s / 53s;
 T3 50s / 42s.
 
-**Both agents fail T1-deck, for unrelated reasons, and neither failure is a new
-gate.** `visual_absent` and `figure_distorts`, added at 0.1.453, fired on
-neither deck — worth stating because a release that adds gates and then reports
-failures owes the reader that distinction.
+**Both agents fail T1-deck, and every finding below is attributed to a cause.**
+That attribution is the point of this board: the first reading of this run
+recorded five findings against the two agents, and three of them turned out to
+be defects in this package's own instruments. Without the classification they
+would have been filed as "the agents cannot do it".
 
-* **Claude Code** built a deck that does not use the LUMI token block at all, so
-  `check_design.py` reports the file `UNMEASURABLE` and the three commercial
-  gates never ran — an unmeasured check is not a passed one, and this is the
-  case that rule exists for. Beside it: blocks landing on each other on six
-  pages, one role rendering three ways, and 83.3% of titles taking a single
-  frame against a 60% ceiling.
-* **Cursor** fires no gate at all. Its T1 exits 1 on four checks that could not
-  be measured — each one a component the deck does not contain — and on
-  `M2_number_sourcing` at 86.0% against a 90% floor. That is a marginal miss and
-  four absences, which is a different sentence from the one above and reads
-  identically in the `verdict` column. The column is a roll-up; the cell is the
-  finding.
+* **I — instrument.** The measure-bar window read width as length, so a vertical
+  bar chart matched nothing and an empty result counted as unmeasured; `--bg`
+  alone decided whether a document used the token block, so a deck that paints
+  its canvas another way lost its entire design report. Both fixed at 0.1.454.
+  These accounted for the whole of Cursor's layout failure and most of Claude
+  Code's.
+* **S — skill.** Nothing compared a document's declared palette with the shipped
+  one, so a deck could carry another design language and pass every palette
+  check. Closed by `D20_palette_fidelity` at 0.1.454.
+* **A — agent.** What remains after the two above. **Claude Code**: a deck whose
+  ten shared colour tokens disagree with `tokens/` ten times out of ten, no
+  commercial footer on any of its twelve pages (D12), blocks landing on each
+  other on six pages, one role rendering three ways, 83.3% of titles in one
+  frame against a 60% ceiling. **Cursor**: `M2_number_sourcing` at 86.0% against
+  a 90% floor, and nothing else — its deck carries 36 of 36 shipped colour
+  tokens and fires no gate.
+
+Two documents, one word in the `verdict` column, and the distance between them
+is the reason the cell is worth more than the roll-up.
 
 **The 0.1.450 refresh, and what it cost to earn.** The board had stood at
 0.1.434 for fifteen releases while the checkers changed under it, so this run

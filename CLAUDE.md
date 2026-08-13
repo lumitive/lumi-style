@@ -133,16 +133,23 @@ language — it reads the document's own `lang`, takes `--lang` to override, and
 runs the Chinese ban list and punctuation rules on a Chinese document; **M12 is
 what fails an English deliverable carrying Chinese a reader can see.** It takes
 `--genre {sales,internal,training}`; internal analysis
-is exempt from the em-dash rule and training binds like sales. `check_design.py` reads a document's own token block, so it
-grades a file against the palette that file actually declares rather than against
-this repo's; a deliverable that does not use the token block is reported
-`UNMEASURABLE` rather than passed. Four of its metrics **gate**, and none is a
+is exempt from the em-dash rule and training binds like sales. `check_design.py` reads a document's own token block, so
+most of it grades a file against the palette that file actually declares rather
+than against this repo's; a deliverable that does not use the token block at all
+— fewer than three of the ten core tokens — is reported `UNMEASURABLE` rather
+than passed. **D20 is the one that looks the other way**: every COLOUR token the
+document declares that `tokens/` also defines must carry the shipped value,
+because a document can be perfectly consistent with a palette of its own
+invention and that is a different design language. Sizes are exempt by the same
+logic that withdrew the type floor at 0.1.340. Five of its metrics **gate**, and none is a
 design judgement: **D12** (handling terms and origin on every page) is a
 commercial requirement on the artifact, **D14** (no `[TO FILL]`, `[TBD]` or
 `{{…}}` reaching the reader) asks whether the document is finished, **D15**
 (no repository path in a footer) is D12's mirror, and **D19** (every reference
 resolves inside the document — an icon pointing at no symbol, a `data-globe`
-mark with no runtime) asks whether the markup can render itself. All four are
+mark with no runtime) asks whether the markup can render itself, and **D20**
+(the colour tokens it declares are the ones `tokens/` ships) asks whether the
+palette is LUMI's at all. All five are
 decidable in the way "does this page read as intentional" is not. The list is
 `check_design.py`'s to change: a row whose target says `(gates)` gates, and the
 `gating claims` guard holds this sentence to it.
