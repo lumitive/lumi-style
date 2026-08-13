@@ -66,3 +66,7 @@ backlog/*.html
 
 # Claude Code worktrees: separate checkouts, not content of this one.
 .claude/worktrees/
+
+# The Evals corpus paths are the operator machine's, not the package's
+# (red line 9: no engagement facts in a tracked file).
+evals/corpus.local.json

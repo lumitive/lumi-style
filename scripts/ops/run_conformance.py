@@ -89,6 +89,63 @@ CAP_RANK = {"prompt": 0, "files": 1, "full": 2}
 DRIVE_TIMEOUT = 1800
 
 
+# What a consumer of this skill must be able to READ. Not a guess about the
+# platform's sandbox: the rules cite these directories by name, so an agent that
+# cannot open them is being asked to follow instructions it cannot see.
+SKILL_SURFACE = ("SKILL.md", "tokens/lumi-theme.css", "references/design-rules.md",
+                 "scripts/ops/new_deck.py", "assets/brand")
+
+
+def environment_check(agent):
+    """Can this agent reach the skill? Returns [] when it can.
+
+    **What this proves, exactly: the skill exists at the registry's install path
+    on THIS machine, and the platform declares a way to be handed it.** It does
+    not prove the agent can read it — the reads happen in the agent's sandbox
+    and this runs in the driver's process. In the 2026-08-13 incident the files
+    existed the whole time; `.exists()` would have said yes and the run would
+    have proceeded. `drive()`'s transcript check is the half that can see the
+    sandbox, after the fact.
+
+    Both halves exist because of one incident on 2026-08-13. An agent driven in
+    a temporary directory produced **two** decks with invented palettes (a
+    third, driven after the fix, carries all 36 shipped colour tokens), and its
+    transcript said *"the skill's references/, tokens/, scripts/ and assets/
+    live outside this session's allowed directory and are blocked from
+    reading"*. The palette was not a judgement it made. Two attributions were
+    published before anyone read that line — first to the agent, then to the
+    rules — and both were wrong.
+
+    The counts matter and were themselves overstated at first ("three decks,
+    three agent failures on the board"; the board carries two `fail` rows, one
+    per agent, and the other agent's was `M2_number_sourcing`). The evidence
+    lives under `conformance/results/`, which is untracked, so a later reader
+    cannot check it — which is the reason to state it exactly.
+    """
+    paths = agent.get("skill_paths") or []
+    if not paths:
+        return [f"{agent['id']} declares no skill_paths; there is nothing to "
+                f"prove reachable"]
+    # EVERY declared path, not the first. The registry lists several per
+    # platform and the live one is not always first: opencode's own list ends
+    # with the shared ~/.claude/skills path, and openclaw's carries a literal
+    # <workspace> placeholder that expanduser will never resolve. Probing
+    # paths[0] alone would skip a working install permanently, and a permanent
+    # skip that looks like a finding is the harder kind of wrong to notice.
+    roots = [pathlib.Path(p).expanduser() for p in paths if "<" not in p]
+    live = [r for r in roots
+            if all((r / rel).exists() for rel in SKILL_SURFACE)]
+    if not live:
+        return [f"{agent['id']} cannot reach the skill from any of its "
+                f"{len(roots)} declared path(s): "
+                + ", ".join(str(r) for r in roots[:3])]
+    if not agent.get("drive_skill_flag"):
+        return [f"{agent['id']} declares no drive_skill_flag, so the driver "
+                f"cannot hand {live[0]} to it — an agent driven in a temporary "
+                f"directory reads SKILL.md and nothing beside it"]
+    return []
+
+
 def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT):
     """Invoke one agent on one task, and return what happened.
 
@@ -159,7 +216,30 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT):
         for p in produced:
             shutil.copy2(p, prompt_dir / p.name)
         (prompt_dir / "transcript.txt").write_bytes(out)
-        return {"verdict": "timeout" if code is None else "driven",
+        # THE EXIT CODE IS READ. It was recorded and never looked at, so a CLI
+        # that rejected its own arguments — a renamed flag, expired auth, a
+        # rate limit — completed in a second having written nothing and was
+        # recorded as "driven". `score` then found no deliverable and put an
+        # agent-shaped failure on the board for an invocation that never
+        # reached the agent.
+        #
+        # And the agent's own words decide too: the 2026-08-13 incident was
+        # visible only in the transcript, where an agent said it could not read
+        # the skill. environment_check cannot see the sandbox; this can.
+        text = out.decode("utf-8", "replace")
+        blocked = re.search(r"blocked from reading|outside .{0,40}allowed "
+                            r"director|cannot (?:read|access) .{0,40}"
+                            r"(?:tokens|references)/", text, re.I)
+        verdict = ("timeout" if code is None
+                   else "environment" if blocked
+                   else "driven" if code == 0
+                   else "driver failed")
+        return {"verdict": verdict,
+                "detail": (blocked and "the agent's own transcript says it could "
+                           "not read the skill; this run attributes nothing")
+                          or (code not in (0, None) and
+                              f"the CLI exited {code} after {seconds}s: "
+                              f"{text.strip()[-200:]}") or None,
                 "exit_code": code, "seconds": seconds,
                 "produced": [p.name for p in produced],
                 "digest": hashlib.sha256(out).hexdigest(),
@@ -588,7 +668,7 @@ def main(argv):
                   "or an API model has no CLI to probe — name it with --agent and drive "
                   "it by hand.")
             return 1
-        driven = 0
+        driven = skipped = 0
         for a in wanted:
             for t in tasks:
                 if CAP_RANK[a["capability"]] < CAP_RANK[t["min_capability"]]:
@@ -601,6 +681,19 @@ def main(argv):
                 if "input" in t:
                     (wd / "input.md").write_text(t["input"], encoding="utf-8")
                 if not args.drive:
+                    continue
+                # PROVEN BEFORE DRIVEN. A run whose agent cannot read the
+                # rules produces artifacts that look like the agent's judgement
+                # and are not; two such runs were attributed to the agent
+                # before anyone read the transcript that said so.
+                blocked = environment_check(a)
+                if blocked:
+                    skipped += 1
+                    print(f"  SKIPPED {a['id']} on {t['id']}: {blocked[0]}")
+                    (wd / "driver.json").write_text(
+                        json.dumps({"verdict": "environment",
+                                    "detail": blocked[0]}, indent=2) + "\n",
+                        encoding="utf-8")
                     continue
                 print(f"  driving {a['id']} on {t['id']} …", flush=True)
                 record = drive(a, t, wd, model=args.model, timeout=args.timeout)
@@ -616,6 +709,15 @@ def main(argv):
                   f"`score --run {run_dir}`. `--drive` runs them here instead.")
             return 0
         print(f"drove {driven} task(s) into {run_dir}; now `score --run {run_dir}`")
+        if not driven and skipped:
+            # Agent RESULTS are non-deterministic and must not gate a release.
+            # The harness being unable to invoke anything is neither: it is
+            # deterministic, operator-fixable, and the condition this release
+            # added a function to detect.
+            print(f"NOTHING RAN: all {skipped} task(s) were blocked before "
+                  f"driving. That is an environment finding, not a result — fix "
+                  f"the install path or the drive flag and run again.")
+            return 1
         # DRIVING IS NOT SCORING, and this exit code says only that the driver
         # ran. Whether the artifacts pass is `score`'s answer, and it is
         # deliberately not folded in here: agent output is non-deterministic by
@@ -669,10 +771,21 @@ def main(argv):
                 if driver.exists():
                     try:
                         record = json.loads(driver.read_text(encoding="utf-8"))
-                    except ValueError:
-                        record = {}
+                    except ValueError as exc:
+                        # A process killed while writing can leave a half
+                        # driver.json as easily as a half deliverable, and
+                        # `record = {}` turned that into the outcome this block
+                        # exists to prevent: a draft scored as a result.
+                        scores[key] = {
+                            "verdict": "not earned",
+                            "task_hash": asked_fingerprint(task_dir, task),
+                            "detail": f"driver.json does not parse ({exc}); the "
+                                      f"driver was very likely killed mid-write"}
+                        unscored += 1
+                        continue
                     if record.get("verdict") in ("timeout", "could not start",
-                                                 "no driver"):
+                                                 "no driver", "environment",
+                                                 "driver failed"):
                         scores[key] = {
                             "verdict": "not earned",
                             # The fingerprint goes in like every other entry, or

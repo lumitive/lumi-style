@@ -24,8 +24,11 @@ metric. Four of them were arithmetic:
     D15 footer path        no repository path reaches a footer (**gates**)
     D19 vocabulary         icons, blocks, openers and the globe runtime
                            resolve inside this document (**gates**)
+    D20 palette fidelity   the colour tokens it declares are the ones
+                           tokens/ ships (**gates**)
 
-**Nothing here gates except D12, D14, D15 and D19.** Every other number is a diagnostic for a
+**A metric gates if and only if its row's target says `(gates)`** — read the
+row table in `grade()`, never a list written anywhere else, including here. Every other number is a diagnostic for a
 designer to read, and the exit code is 0 unless a file could not be measured at
 all. SKILL.md rule 4 is the reason: a page is done when a human reads it as
 intentional, and a metric that can be satisfied without improving the page ends
@@ -1229,6 +1232,17 @@ def grade(r):
             for n, v, t, good, skip in rows]
 
 
+def _d_number(name: str) -> int:
+    """The D number in a verdict name, for ordering a summary line.
+
+    A total order even for a name that does not open with one. None exists
+    today; a crash inside a summary sentence is a poor way to learn that one
+    arrived, and sorting it last is the harmless answer.
+    """
+    match = re.match(r"D(\d+)", name)
+    return int(match.group(1)) if match else 999
+
+
 def main(argv):
     ap = argparse.ArgumentParser(add_help=True, description=__doc__.split("\n")[0])
     ap.add_argument("files", nargs="+")
@@ -1236,6 +1250,7 @@ def main(argv):
     args = ap.parse_args(argv)
 
     results, failures, unmeasurable, gated_failure = [], 0, 0, 0
+    blind_gates = 0
     for name in args.files:
         path = pathlib.Path(name)
         try:
@@ -1252,19 +1267,39 @@ def main(argv):
         # cannot. check_fixtures.py needs exactly that to say which verdicts it
         # asserted and which it could not.
         r["targets"] = {n: t for n, _, t, _ in _rows}
-        # The two gating metrics. Neither is a judgement about whether a page is
-        # well made: D12 is a commercial requirement on the artifact and D14 asks
-        # whether the document is finished. Both are decidable, which is what
-        # separates them from every other row here.
-        if any(r["verdicts"].get(m) == "FAIL"
-               for m in ("D12_commercial_footer", "D14_placeholders",
-                         "D15_footer_path", "D19_vocabulary")):
+        # WHICH METRICS GATE IS READ OFF THE ROWS, never listed here. This was a
+        # hand-written tuple, and it fell one behind the day D20 was added: the
+        # metric declared `"=0 (gates)"`, five documents were made to say five
+        # gates because check_repo's `gating claims` guard reads that string,
+        # and a file failing D20 alone exited 0. That guard compares the DOCS to
+        # the target strings and cannot see a third copy of the list in here.
+        # There is no third copy now — the target string is the one authority,
+        # and adding a gate is adding "(gates)" to its row and nothing else.
+        gates = {n for n, t in r["targets"].items() if "(gates)" in (t or "")}
+        if any(r["verdicts"][n] == "FAIL" for n in gates):
             gated_failure += 1
+        # A GATE THAT COULD NOT BE MEASURED HAS NOT BEEN PASSED. Three of the
+        # five read `n/a` when no `<section class="page">` matches, and a
+        # document is "measurable" on the strength of its token block alone —
+        # so a deck whose pages are `<div class="page">` and which carries no
+        # handling terms on any page printed "nothing flagged" and exited 0.
+        # Both commercial gates were silent, on the checker SKILL.md puts on
+        # the pre-delivery path. `inspect_layout` has said the sentence for
+        # this since 0.1.350: a check that did not run is not a check that
+        # passed.
+        blind = sorted(n for n in gates if r["verdicts"][n] == "n/a")
+        if blind:
+            blind_gates += 1
+            print(f"\n  {len(blind)} gating metric(s) could not be measured on "
+                  f"{r['file']}: {', '.join(blind)}")
+            print("        this is not a pass. D12 and D15 need "
+                  "<section class=\"page\"> to find pages at all — check the "
+                  "page markup before reading anything else here")
         results.append(r)
 
     if args.json:
         print(json.dumps(results, indent=2))
-        return 1 if (unmeasurable or gated_failure) else 0
+        return 1 if (unmeasurable or gated_failure or blind_gates) else 0
 
     for r in results:
         rows = grade(r)
@@ -1360,20 +1395,41 @@ def main(argv):
             if v["pages"] >= LAYOUT_MIN_PAGES and v["distinct"] < LAYOUT_MIN_DISTINCT:
                 print(f"        only {v['distinct']} distinct layouts across {v['pages']} pages")
 
+    if blind_gates:
+        # BEFORE "nothing flagged", always. A run with a gate it could not take
+        # has not cleared that gate, and the reassuring sentence below it is the
+        # one this package keeps finding in its own output.
+        print(f"\n{blind_gates} file(s) carry a gating metric that could not be "
+              f"measured. Nothing below is a verdict on those.")
     if not failures:
-        print("\nnothing flagged")
+        print("nothing else flagged" if blind_gates else "\nnothing flagged")
     elif gated_failure:
+        # Named from the rows, like the exit decision above. This sentence was
+        # the fourth hand-written copy of the gating list and it was one behind
+        # too — it said "those four block" while five metrics declared a gate.
+        # The REASONS are keyed to the metric now for the same reason: the list
+        # of five clauses was printed whatever failed, so three named ids came
+        # with five explanations.
+        why = {"D12": "a page missing its handling terms",
+               "D14": "a document still carrying a slot",
+               "D15": "a footer citing a file path",
+               "D19": "markup that cannot render itself",
+               "D20": "a palette that is not this package's"}
+        blocked = sorted(
+            {n for r in results for n, v in r["verdicts"].items()
+             if v == "FAIL" and "(gates)" in (r["targets"].get(n) or "")},
+            key=_d_number)
+        ids = [n.split("_")[0] for n in blocked]
         print(f"\n{failures} metric(s) failed, and {gated_failure} file(s) fail on "
-              f"D12, D14, D15 or D19 — those four block: a page missing its "
-              f"handling terms, a document still carrying a slot, a footer citing "
-              f"a file path, and markup that cannot render itself are not "
-              f"judgements about design")
+              f"{', '.join(ids)} — those block, because "
+              + ", ".join(why.get(i, f"what {i} asks") for i in ids)
+              + " are not judgements about design")
     else:
         print(f"\n{failures} thing(s) worth a look — none of this blocks; "
               f"read them, then look at the page")
     if unmeasurable:
         print(f"{unmeasurable} file(s) could not be measured at all")
-    return 1 if (unmeasurable or gated_failure) else 0
+    return 1 if (unmeasurable or gated_failure or blind_gates) else 0
 
 
 if __name__ == "__main__":

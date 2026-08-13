@@ -2218,7 +2218,170 @@ def check_gating_claims():
     return errors
 
 
+def check_genre_vocabulary():
+    """One set of genre names, and every consumer keyed on it.
+
+    Five scripts carried five different lists — check_prose 3, new_deck 4,
+    inspect_layout 5, review_scores 5, export_pdf "check_prose's 3 plus a
+    hand-appended consulting". The consequence was not cosmetic: a consulting
+    deliverable could be scaffolded, layout-graded and review-scored, while
+    `check_prose.py --genre consulting` refused the value, so its prose had to
+    be graded under a genre it is not. One of the five had already drifted once
+    before (0.1.379 records export_pdf; 0.1.378's case was run_conformance,
+    which is not one of these five).
+
+    Every genre-keyed table in the package is held to the registry's names, and
+    the list of them lives here rather than in a count: no script may re-declare
+    the vocabulary or bind it to something unverifiable; `inspect_layout`'s
+    visual-share targets and `evals/thresholds.json`'s bars must cover it
+    exactly (a genre missing from the first makes inspect_layout print NOT
+    MEASURED and exit 1; missing from the second means a document scored against
+    nothing); `check_prose`'s DASH_BANNED must decide every genre, because one
+    it does not decide has M9 skipped and explained as "(exempt for internal
+    documents)", which is false for it; and `new_deck`'s SCAFFOLDED must be a
+    subset, never a superset.
+
+    Read with `ast`, so no script is imported.
+    """
+    absent = object()
+    try:
+        source = {name: ast.parse((ROOT / name).read_text(encoding="utf-8"))
+                  for name in ("scripts/lib/deliverable_registry.py",
+                               "scripts/check/check_prose.py",
+                               "scripts/check/inspect_layout.py",
+                               "scripts/ops/new_deck.py",
+                               "scripts/ops/review_scores.py",
+                               "scripts/ops/export_pdf.py",
+                               "scripts/ops/eval_corpus.py")}
+    except (OSError, SyntaxError) as exc:                           # noqa: BLE001
+        return [f"could not read the genre vocabularies: {exc}"]
+
+    def literal(tree, name):
+        """-> the value | `absent` (no such name) | None (present, not a literal).
+
+        Three states, because two of them used to be one. `GENRES = _G` is not
+        a literal, so it returned None — the same answer as "this file does not
+        declare GENRES", which the caller read as compliance. That is the exact
+        indirection the guard exists to catch, wearing the shape the guard
+        treated as proof. And every binding is scanned rather than the first:
+        a literal later in the file is the value that wins at runtime.
+        """
+        found = absent
+        for node in ast.walk(tree):
+            if (isinstance(node, ast.Assign) and node.targets
+                    and isinstance(node.targets[0], ast.Name)
+                    and node.targets[0].id == name):
+                try:
+                    return ast.literal_eval(node.value)
+                except (ValueError, TypeError, SyntaxError, MemoryError,
+                        RecursionError):
+                    # Not pinned to one interpreter's error taxonomy: a guard
+                    # whose blind spot is an exception class stops going red
+                    # quietly.
+                    found = None
+        return found
+
+    authority = literal(source["scripts/lib/deliverable_registry.py"], "GENRES")
+    if authority is absent or authority is None or not authority:
+        return ["scripts/lib/deliverable_registry.py no longer declares GENRES; "
+                "the genre vocabulary has no authority"]
+    errors = []
+    known = set(authority)
+
+    for name, tree in source.items():
+        if name.endswith("deliverable_registry.py"):
+            continue
+        own = literal(tree, "GENRES")
+        if own is None:
+            # Bound to a NAME rather than a literal. That is legitimate for
+            # exactly two shapes: the registry's own name imported under an
+            # alias, and a local list this guard checks separately. Anything
+            # else is a vocabulary nobody can verify, which is the indirection
+            # the guard exists to catch — `GENRES = _G` reads identically to
+            # "this file declares nothing".
+            allowed = {a.asname or a.name for node in ast.walk(tree)
+                       if isinstance(node, ast.ImportFrom)
+                       and node.module == "deliverable_registry"
+                       for a in node.names} | {"SCAFFOLDED"}
+            bound = {node.value.id for node in ast.walk(tree)
+                     if isinstance(node, ast.Assign) and node.targets
+                     and isinstance(node.targets[0], ast.Name)
+                     and node.targets[0].id == "GENRES"
+                     and isinstance(node.value, ast.Name)}
+            if not bound or not bound <= allowed:
+                errors.append(
+                    f"{name} binds GENRES to something this guard cannot "
+                    f"verify ({', '.join(sorted(bound)) or 'an expression'}); "
+                    f"the vocabulary it actually uses is unverifiable. Import "
+                    f"the registry's name, or bind a list this guard checks.")
+        elif own is not absent:
+            errors.append(
+                f"{name} declares its own GENRES {tuple(own)!r}; import it from "
+                f"deliverable_registry instead — five copies of this list is "
+                f"what the guard exists for")
+
+    targets = literal(source["scripts/check/inspect_layout.py"],
+                      "VISUAL_SHARE_TARGET")
+    if targets is None:
+        errors.append("inspect_layout.py no longer declares VISUAL_SHARE_TARGET")
+    else:
+        for genre in sorted(known - set(targets)):
+            errors.append(
+                f"inspect_layout.py has no visual-share target for {genre!r}; a "
+                f"document declaring it prints NOT MEASURED and exits 1, so the "
+                f"whole run stops on a genre nobody gave a target")
+        for genre in sorted(set(targets) - known):
+            errors.append(
+                f"inspect_layout.py targets {genre!r}, which is not a genre "
+                f"deliverable_registry knows")
+
+    banned = literal(source["scripts/check/check_prose.py"], "DASH_BANNED")
+    if banned in (None, absent):
+        errors.append("check_prose.py no longer declares DASH_BANNED as a "
+                      "literal; the dash ban's genre list is unverifiable")
+    else:
+        for genre in sorted(set(banned) - known):
+            errors.append(f"check_prose.py bans the dash for {genre!r}, which is "
+                          f"not a genre deliverable_registry knows")
+        # A genre in neither list gets M9 skipped and PRINTED as "(exempt for
+        # internal documents)" — a sentence that is false for it. Silence with
+        # a wrong label is worse than silence.
+        undecided = sorted(known - set(banned) - {"internal"})
+        if undecided:
+            errors.append(
+                f"check_prose.py has no dash decision for "
+                f"{', '.join(undecided)}; M9 is skipped for them and explained "
+                f"as '(exempt for internal documents)', which is not true of "
+                f"them. Add each to DASH_BANNED or beside `internal` with a "
+                f"reason.")
+
+    try:
+        table = json.loads((ROOT / "evals" / "thresholds.json").read_text(
+            encoding="utf-8"))
+    except (OSError, ValueError) as exc:                            # noqa: BLE001
+        errors.append(f"evals/thresholds.json does not parse: {exc}")
+    else:
+        for metric, spec in table["metrics"].items():
+            for genre in sorted(known - set(spec["genres"])):
+                errors.append(
+                    f"evals/thresholds.json metric {metric!r} has no entry for "
+                    f"genre {genre!r}; eval_corpus reports 'no bar' and the "
+                    f"document is scored against nothing. A bar deliberately "
+                    f"not set is `value: null` with a `why`.")
+
+    scaffolded = literal(source["scripts/ops/new_deck.py"], "SCAFFOLDED")
+    if scaffolded in (None, absent):
+        errors.append("new_deck.py no longer declares SCAFFOLDED")
+    else:
+        for genre in sorted(set(scaffolded) - known):
+            errors.append(
+                f"new_deck.py scaffolds {genre!r}, which is not a genre "
+                f"deliverable_registry knows")
+    return errors
+
+
 CHECKS = (
+    ("genre vocabulary", check_genre_vocabulary),
     ("metric id ranges", check_metric_id_ranges),
     ("gating claims", check_gating_claims),
     ("version stamps", check_versions),

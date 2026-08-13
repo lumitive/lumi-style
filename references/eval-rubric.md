@@ -77,11 +77,36 @@ have no Han character next to their punctuation.
 | D20 | Palette fidelity | =0 — **gates** | every colour token the document declares that `tokens/lumi-theme.css` also defines carries the shipped value. Sizes are the document's to choose (0.1.340 withdrew the type floor); a colour is not, because one colour means one thing |
 | D19 | Vocabulary resolves | =0 — **gates** | every reference in the document resolves inside it: an icon `<use>` with no `<symbol>`, a block class used without the children `tokens/` renders it through, a part opener with no `opener` class, a `data-globe` mark with no runtime. All render as valid markup and empty space |
 
+**Three tiers, not two, and the Target column above says which.**
+
+| tier | what it does |
+|---|---|
+| **gate** | fails the run |
+| **graded** | prints `FAIL`, does **not** fail the run |
+| **reported** | no predicate; a number to read |
+
+**The checker is the authority on which tier a metric is in, not the Target
+column here** — `check_design.grade()`'s target string carries `(gates)` for a
+gate and `reported` for the third tier, and everything else is graded. The
+Target column below has not been re-stated against that and is known to be
+wrong for the graded rows: it reads `reported` for metrics the checker grades
+against a hard predicate and prints `FAIL` for. Re-stating it by hand is how
+this table fell behind in the first place; read the checker.
+
+The middle tier is the one this rubric had no word for. **It is where an Evals
+threshold belongs** — a number that can already fail, but on a document rather
+than on the run. `evals/thresholds.json` carries those bars, and none of them
+gates: see its `status_note` for why, and for the red-team pass that cleared
+all four with two mechanical rewrites.
+
 **No design judgement in the D-series gates.** `check_design.py` exits non-zero
-only when a file cannot be measured at all or when one of the four below fails;
-every other number is a diagnostic for a designer to read. `SKILL.md` rule 4 is why: a page is done when a human reads it as
-intentional, and a metric that can be satisfied without improving the page ends
-the looking rather than directing it.
+when a file cannot be measured at all, or when a metric whose target says
+`(gates)` fails. Which metrics those are is read off the rows and written down
+nowhere else: a hand-written copy of that list fell one behind the day D20
+arrived, and a document failing D20 alone exited 0 while five files said it
+gated. `SKILL.md` rule 4 is why the rest only report: a page is done when a human
+reads it as intentional, and a metric that can be satisfied without improving the
+page ends the looking rather than directing it.
 
 **Five exceptions, and none is a design judgement.** D12 is a commercial
 requirement on the artifact, D14 asks whether the document is finished, D15

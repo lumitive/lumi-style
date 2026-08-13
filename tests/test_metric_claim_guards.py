@@ -9,6 +9,9 @@ Both guards read the checker with `ast` and shell out to `git ls-files`, so a
 synthetic tree has to be a real git repository with a real (tiny) checker in it.
 That is the whole cost of not importing the script under test.
 """
+import json
+import pathlib
+import shutil
 import subprocess
 
 import check_repo
@@ -134,3 +137,131 @@ def test_a_declared_site_that_vanished_fails(tmp_path, monkeypatch):
                         {"GONE.md": r"Only ((?:D\d+/?)+) gates"})
     errors = check_repo.check_gating_claims()
     assert errors and "does not exist" in errors[0]
+
+
+# ── genre vocabulary ─────────────────────────────────────────────────────────
+# Five scripts carried five different genre lists. The consequence was not
+# cosmetic: a consulting deliverable could be scaffolded, layout-graded and
+# review-scored, while `check_prose.py --genre consulting` refused the value,
+# so its prose had to be graded under a genre it is not.
+
+_GENRE_FILES = ("evals/thresholds.json",
+                "scripts/lib/deliverable_registry.py",
+                "scripts/check/check_prose.py",
+                "scripts/check/inspect_layout.py",
+                "scripts/ops/new_deck.py",
+                "scripts/ops/review_scores.py",
+                "scripts/ops/export_pdf.py",
+                "scripts/ops/eval_corpus.py")
+
+
+def _genre_tree(tmp_path, **overwrite):
+    """The live files, with named ones replaced by a one-line stand-in."""
+    for name in _GENRE_FILES:
+        dst = tmp_path / name
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(pathlib.Path(check_repo.ROOT) / name, dst)
+    for name, body in overwrite.items():
+        (tmp_path / name.replace(".", "/", name.count(".") - 1)).write_text(
+            body, encoding="utf-8")
+    return tmp_path
+
+
+def test_the_live_tree_has_one_genre_vocabulary(monkeypatch, tmp_path):
+    monkeypatch.setattr(check_repo, "ROOT", _genre_tree(tmp_path))
+    assert check_repo.check_genre_vocabulary() == []
+
+
+def test_a_second_genre_list_is_named_and_refused(monkeypatch, tmp_path):
+    tree = _genre_tree(tmp_path)
+    (tree / "scripts/ops/review_scores.py").write_text(
+        'GENRES = ("sales", "internal")\n', encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    errors = check_repo.check_genre_vocabulary()
+    assert len(errors) == 1
+    assert "review_scores.py declares its own GENRES" in errors[0]
+
+
+def test_a_genre_with_no_visual_target_is_named(monkeypatch, tmp_path):
+    # The live failure mode: inspect_layout grades an unknown genre NOT
+    # MEASURED and D16 goes quiet on it, which reads as agreement.
+    tree = _genre_tree(tmp_path)
+    (tree / "scripts/check/inspect_layout.py").write_text(
+        'VISUAL_SHARE_TARGET = {"sales": 50}\n', encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    errors = check_repo.check_genre_vocabulary()
+    assert errors
+    assert any("no visual-share target for 'training'" in e for e in errors)
+
+
+def test_a_scaffold_for_an_unknown_genre_is_refused(monkeypatch, tmp_path):
+    tree = _genre_tree(tmp_path)
+    (tree / "scripts/ops/new_deck.py").write_text(
+        'SCAFFOLDED = ("sales", "webinar")\n', encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    errors = check_repo.check_genre_vocabulary()
+    assert len(errors) == 1 and "'webinar'" in errors[0]
+
+
+def test_a_scaffold_subset_is_allowed(monkeypatch, tmp_path):
+    # SCAFFOLDED is deliberately a subset — `marketing` has no skeleton of its
+    # own — so a subset must not be an error or the guard forbids the truth.
+    tree = _genre_tree(tmp_path)
+    (tree / "scripts/ops/new_deck.py").write_text(
+        'SCAFFOLDED = ("sales",)\n', encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    assert check_repo.check_genre_vocabulary() == []
+
+
+def test_a_missing_authority_is_reported_not_skipped(monkeypatch, tmp_path):
+    tree = _genre_tree(tmp_path)
+    (tree / "scripts/lib/deliverable_registry.py").write_text("x = 1\n", encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    errors = check_repo.check_genre_vocabulary()
+    assert errors and "no authority" in errors[0]
+
+
+def test_an_indirect_binding_to_a_private_list_is_refused(monkeypatch, tmp_path):
+    # `GENRES = _G` is not a literal, so it used to return the same answer as
+    # "this file declares no GENRES" — and the caller read that as compliance.
+    # The guard was blessing the exact indirection it exists to catch.
+    tree = _genre_tree(tmp_path)
+    (tree / "scripts/ops/review_scores.py").write_text(
+        '_G = ("sales",)\nGENRES = _G\n', encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    errors = check_repo.check_genre_vocabulary()
+    assert errors and "cannot verify" in errors[0] and "_G" in errors[0]
+
+
+def test_importing_the_registry_under_an_alias_is_allowed(monkeypatch, tmp_path):
+    # The legitimate shape must stay legitimate, or the guard forbids the fix.
+    tree = _genre_tree(tmp_path)
+    (tree / "scripts/ops/review_scores.py").write_text(
+        "from deliverable_registry import GENRES as registry_genres\n"
+        "GENRES = registry_genres\n", encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    assert check_repo.check_genre_vocabulary() == []
+
+
+def test_a_genre_with_no_dash_decision_is_named(monkeypatch, tmp_path):
+    # M9 is skipped for it and PRINTED as "(exempt for internal documents)",
+    # which is false for any other genre.
+    tree = _genre_tree(tmp_path)
+    src = (tree / "scripts/check/check_prose.py").read_text(encoding="utf-8")
+    (tree / "scripts/check/check_prose.py").write_text(
+        src.replace('DASH_BANNED = ("sales", "marketing", "consulting", "training")',
+                    'DASH_BANNED = ("sales",)'), encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    errors = check_repo.check_genre_vocabulary()
+    assert any("no dash decision" in e and "training" in e for e in errors)
+
+
+def test_a_threshold_table_missing_a_genre_is_named(monkeypatch, tmp_path):
+    tree = _genre_tree(tmp_path)
+    table = json.loads((tree / "evals/thresholds.json").read_text(encoding="utf-8"))
+    for spec in table["metrics"].values():
+        spec["genres"].pop("consulting", None)
+    (tree / "evals/thresholds.json").write_text(json.dumps(table), encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    errors = check_repo.check_genre_vocabulary()
+    assert any("no entry for genre 'consulting'" in e for e in errors)

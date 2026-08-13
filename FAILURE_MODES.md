@@ -177,6 +177,38 @@ truthful enumeration — and the author reworded a correct sentence to pass the
 gate. A false positive that edits prose is worse than a miss, because nothing
 downstream records that it happened.
 
+## FM-14 · A metric demoted for not failing a small corpus was the lock on one that gates
+
+- detection: a threshold is set on a quantity, and a related quantity that
+  would catch the cheap way of satisfying it is dropped in the same breath
+  because the corpus did not fail it
+- prevention: a metric that does not separate the corpus is evidence about the
+  CORPUS. Keep it printed beside the bar it protects and say what it is for; a
+  red-team pass against the new bar before shipping is the cheaper version of
+  finding out later
+
+Shipped instance: 0.1.455's first draft set floors on figure density and visual
+share and moved `rect_only_share` and `shape_kinds_min` to reported, because a
+build-script repair mid-calibration had made them stop separating the two
+documents. A red-team pass then cleared all four bars with `.vows` re-tagging
+and one rect-only decorative SVG per page — visible to precisely those two
+demoted metrics, at 0.667 and 1.
+
+## FM-15 · Overruling a written refusal without citing it
+
+- detection: a number is gated whose own source comment says gating it is the
+  known failure, and the release does not mention the comment
+- prevention: grep the constant's definition before thresholding it. This
+  repository writes its refusals down at the site — `check_design`'s D16 and
+  `inspect_layout`'s visual share both explain in place why they report rather
+  than gate — and CLAUDE.md convention 2 requires a documented case to overrule
+  one
+
+Shipped instance: 0.1.455 turned both of those into floors, and turned a value
+`references/` states as a TARGET into a floor as well (convention 4, the class
+behind three earlier regressions). Caught by a red-team pass before merge; the
+bars were demoted to reported.
+
 ---
 
 # Abandoned gates
