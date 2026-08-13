@@ -1,0 +1,18 @@
+{
+  "version": "0.1.452",
+  "diff_base": "b8621c4f5ef27022ad05ac3ac6f62ae0065d6642",
+  "spec": "specs/2026-08-13-drift-prevention-design.md",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "cdeb3d93b85f8502461ec4c020fcacf49126fa383d9cfcad25e217754da1e4ef",
+      "date": "2026-08-13"
+    }
+  ],
+  "waivers": []
+}

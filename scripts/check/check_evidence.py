@@ -56,7 +56,8 @@ CONFORMANCE_MIN_AGENTS = 2
 OBLIGATIONS: dict[str, tuple[str, str]] = {
     "layout-fixtures": (
         "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
-        "the ten decidable layout gates on the passing fixture, in a real browser",
+        "the decidable layout gates on the passing fixture, in a real browser "
+        "(inspect_layout's deliverable_verdicts is the list)",
     ),
     "globe-js": (
         "python3 scripts/check/check_globe.py",

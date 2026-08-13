@@ -506,7 +506,7 @@ def check_token_references():
 # check_prose.py's NOT_MECHANIZED: a documented exception is a reviewable state,
 # an undocumented one is a defect nobody noticed.
 #
-# Every entry here is a CENSUS selector — one of INK / TSEL / DSEL / CENTER,
+# Every entry here is a CENSUS selector — one of the PROBE_CENSUS_LISTS above,
 # whose job is "if the document has one of these, count it as ink, as text, as
 # something drawn". Those lists deliberately over-reach, because a probe that
 # cannot see a block reports the column holding it as empty and its neighbour as
@@ -676,7 +676,7 @@ def check_probe_vocabulary():
     * **contract** — `ROLES` and `SCOPED` claim a role renders exactly one way.
       A claim about rendering must have a rendering behind it, so these may not
       be waived.
-    * **census** — `INK`, `TSEL`, `DSEL`, `CENTER`, and `check_prose.py`'s M10
+    * **census** — every list named in `PROBE_CENSUS_LISTS`, and `check_prose.py`'s M10
       enumeration wrappers, ask only to be counted and over-reach on purpose.
       These may be waived in `PROBE_NOT_SHIPPED`, one written reason each.
     """
@@ -2046,7 +2046,177 @@ def check_scaffold_slots():
     return errors
 
 
+# ── The metric vocabularies, read from the scripts that define them ──────────
+# Two guards live on this. They exist because one wrong count — "check_design.py
+# gates on three things: D12, D14, D15" — outlived the release that made it wrong
+# by eight releases and was found in NINE places, two days running: fixed in two
+# files on the first day, still live in eight on the second, one of them in
+# AGENTS.md eighty-six lines below the line that had just been corrected, beside
+# that file's own written confession about this exact drift. Twenty-six of this
+# repository's releases have carried a fix for a prose copy disagreeing with the
+# code; five of the last ten have. A number a person maintains by remembering is
+# not maintained.
+
+METRIC_AUTHORITIES = {
+    "D": "scripts/check/check_design.py",
+    "M": "scripts/check/check_prose.py",
+}
+
+# WHERE A GATING SET IS CLAIMED IN WORDS, and the pattern that captures the ids
+# it names. Same discipline as ENTRY_STAMP: a site declared here whose pattern
+# stops matching is an ERROR, never a skip, so rewording a claim cannot silently
+# retire the check on it. To add a claim, add a line. To delete one, delete the
+# prose — which is the better move whenever the sentence can name the authority
+# instead of counting (preflight.py's docstring is the model: "how many is
+# whatever the workflow says today, never a number written here").
+GATING_CLAIM_SITES: dict[str, str] = {
+    "AGENTS.md": r"\*\*((?:D\d+(?:,? (?:and )?)?)+) gate; every other D-metric",
+    "CLAUDE.md": r"Four of its metrics \*\*gate\*\*[^.]*?:((?:[^.]*?\*\*D\d+\*\*)+)",
+    "references/eval-rubric.md": r"\*\*Four exceptions.*?\*\*(.*?)— all decidable",
+    "references/design-rules.md": r"four checks in `check_design\.py` that fail "
+                                  r"the run\*\* \(([^)]*)\)",
+    "references/brand.md": r"only ((?:D\d+/?)+) gate",
+}
+
+
+# A range that is QUOTED rather than claimed. The waiver carries its reason, the
+# way SCRIPT_PATH_WAIVERS does: a sentence reproducing an error verbatim is the
+# only thing in this repository that may state a stale range, because correcting
+# the quotation would destroy the record of what was corrected.
+METRIC_RANGE_WAIVERS = {
+    ("AGENTS.md", "D1–D4"):
+        "quotes, inside quotation marks, the wrong claim this line carried for "
+        "eight releases; the confession is the value",
+    ("scripts/check/check_repo.py", "D1–D4"):
+        "this table has to name the string it waives",
+}
+
+
+def _metric_ids(prefix: str) -> tuple[set[str], set[str]]:
+    """-> (every id that produces a verdict row, the subset whose target gates).
+
+    Read out of the checker with `ast`, never by importing it: the authority is
+    the row table each script builds, where a metric's target string carries
+    "(gates)" if and only if it fails the run. Both scripts spell that table
+    differently — one appends tuples, the other returns a list literal — so this
+    walks every tuple rather than keying on either shape.
+    """
+    path = ROOT / METRIC_AUTHORITIES[prefix]
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    ids: set[str] = set()
+    gating: set[str] = set()
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.Tuple) and len(node.elts) >= 3):
+            continue
+        name, target = node.elts[0], node.elts[2]
+        if not (isinstance(name, ast.Constant) and isinstance(name.value, str)):
+            continue
+        match = re.match(rf"({prefix}\d+)_", name.value)
+        if not match:
+            continue
+        ids.add(match.group(1))
+        if isinstance(target, ast.Constant) and "gates" in str(target.value):
+            gating.add(match.group(1))
+    return ids, gating
+
+
+def check_metric_id_ranges():
+    """A range written from 1 claims the whole family, so its end is checkable.
+
+    A range ending at 17 said the design checker stopped there, in five files, while D18 and
+    D19 both shipped verdict rows — including one sentence that named D19 as a
+    gate four words later. This reads only ranges that START at 1, because those
+    are the ones claiming completeness; `M8-M11` names a subset on purpose and is
+    none of this guard's business.
+
+    Nothing is declared here. The claim sites are found, so a new one written
+    tomorrow is covered the day it is written — which is the difference between
+    this and the list it replaces.
+    """
+    tops = {}
+    try:
+        for prefix in METRIC_AUTHORITIES:
+            ids = _metric_ids(prefix)[0]
+            # A checker defining no ids of its family has nothing to compare
+            # against; that is a question for the guard that reads THAT file,
+            # not a reason to stop reading the other one.
+            if ids:
+                tops[prefix] = max(int(i[1:]) for i in ids)
+    except (OSError, SyntaxError) as exc:                           # noqa: BLE001
+        return [f"could not read the metric vocabularies: {exc}"]
+
+    listed = subprocess.run(["git", "ls-files"], cwd=ROOT,
+                            capture_output=True, text=True)
+    if listed.returncode != 0:
+        return ["git ls-files failed — the metric-range scan did not run, and a "
+                "scan that did not run is not a scan that passed"]
+    errors = []
+    for relpath in listed.stdout.splitlines():
+        # CHANGELOG and specs/ are frozen history: each entry was true when it
+        # was written and is not retroactively corrected.
+        if not relpath or any(relpath.startswith(f) for f in SCRIPT_PATH_FROZEN):
+            continue
+        try:
+            text = (ROOT / relpath).read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        for n, line in enumerate(text.splitlines(), 1):
+            for prefix, top in tops.items():
+                for m in re.finditer(rf"\b{prefix}1\s*[-–—]\s*{prefix}?(\d+)\b", line):
+                    if (relpath, m.group(0)) in METRIC_RANGE_WAIVERS:
+                        continue
+                    if int(m.group(1)) != top:
+                        errors.append(
+                            f"{relpath}:{n}: claims {m.group(0)}, but "
+                            f"{METRIC_AUTHORITIES[prefix]} defines up to "
+                            f"{prefix}{top} — a range written from 1 claims the "
+                            f"whole family, so say {prefix}1-{prefix}{top} or "
+                            f"name the script as the authority instead")
+    return errors
+
+
+def check_gating_claims():
+    """Every sentence naming WHICH metrics gate names the set that gates.
+
+    The one that keeps rotting. `check_design.py` decides this in one place — the
+    target string "(gates)" on a row — and the answer has changed twice by a
+    release adding a gate and no release changing the prose.
+
+    Deliberately NOT a search for sentences about gating: deciding whether an
+    English sentence is making that claim is the phrase-trigger guard AG-1
+    declined in 0.1.422 as brittle by construction. The sites are declared and
+    the IDS inside them are matched lexically, which is decidable.
+    """
+    try:
+        gating = _metric_ids("D")[1]
+    except (OSError, SyntaxError) as exc:                           # noqa: BLE001
+        return [f"could not read the gating metrics: {exc}"]
+
+    truth = ", ".join(sorted(gating, key=lambda x: int(x[1:])))
+    errors = []
+    for name, pattern in sorted(GATING_CLAIM_SITES.items()):
+        path = ROOT / name
+        if not path.exists():
+            errors.append(f"{name} is a declared gating-claim site and does not exist")
+            continue
+        found = re.search(pattern, path.read_text(encoding="utf-8"), re.S)
+        if not found:
+            errors.append(
+                f"{name}: the declared gating claim no longer matches its pattern. "
+                f"Re-point it at the sentence, or delete the sentence and name "
+                f"check_design.py as the authority — do not drop the entry")
+            continue
+        claimed = set(re.findall(r"D\d+", found.group(1)))
+        if claimed != gating:
+            errors.append(
+                f"{name}: names {', '.join(sorted(claimed, key=lambda x: int(x[1:]))) or '(none)'}"
+                f" as the design checks that gate; check_design.py gates on {truth}")
+    return errors
+
+
 CHECKS = (
+    ("metric id ranges", check_metric_id_ranges),
+    ("gating claims", check_gating_claims),
     ("version stamps", check_versions),
     ("output default", check_output_default),
     ("version citations", check_version_citations),

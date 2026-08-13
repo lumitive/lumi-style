@@ -15,6 +15,6 @@ The skill reads `references/` and `tokens/` on demand — no need to attach them
 
 A `.cursor/rules/lumi-style.mdc` pointer file ships for projects that want the rules loaded workspace-wide rather than on demand. It is a convenience — the skill path already works.
 
-**Capability tier not exercised.** This note claims the `full` tier. Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed.
+**Capability tier not exercised.** This note claims the `full` tier. Not exercised BY THIS REPOSITORY. The CLI is installed and probed, and an operator has driven all three conformance tasks through it by hand — but run_conformance.py invokes no agent, so nothing here has watched this agent run the checkers itself. See conformance/CONFORMANCE.md.
 
 Vendor documentation: https://cursor.com/docs/context/skills

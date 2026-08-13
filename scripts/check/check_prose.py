@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Measure the AI-flavor metrics from references/eval-rubric.md on a deliverable.
 
-M1-M11 were described as "scriptable" for six versions while no script existed,
+The M-series was described as "scriptable" for six versions while no script existed,
 so every AI-flavor rule was enforced by good intentions alone. This runs the
 machine-checkable half against a real file.
 
@@ -182,7 +182,7 @@ MIN_SENTENCES = 30      # below this, rhythm is noise
 MIN_TITLES = 8          # below this, one frame dominating means nothing
 
 # ── M1, M2, M6 ────────────────────────────────────────────────────────────────
-# The rubric called M1-M11 "scriptable" for six versions while no script existed.
+# The rubric called the M-series "scriptable" for six versions while no script existed.
 # These three were the remainder, and they are the three that stand behind a FACT
 # red line rather than a style rule — M2 and M6 behind "every number carries its
 # source", M1 behind the title contract's demand that a title carry a verifiable

@@ -60,7 +60,7 @@ FIXTURES = ROOT / "fixtures"
 # inspect_layout needs a headless Chromium, which CI does not have. That is a
 # stated posture in CLAUDE.md, not an oversight, so the runner asserts it where
 # a browser exists and SKIPS LOUDLY where one does not — never silently, because
-# a suite that reports "all verdicts as expected" while nine gates went unrun is
+# a suite that reports "all verdicts as expected" while the browser gates went unrun is
 # the same defect 0.1.350 removed from inspect_layout itself.
 LAYOUT_ARGV = ["--deliverable", "--no-sheet"]
 

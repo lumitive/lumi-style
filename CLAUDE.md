@@ -14,8 +14,9 @@ sync, and recording changes in the changelog.
 ```bash
 python3 scripts/preflight.py             # run EXACTLY what CI runs, read from ci.yml
 python3 scripts/check/check_repo.py            # repo invariants; exit 1 on any failure
-python3 scripts/check/check_prose.py <file>    # AI-flavor metrics (M4, M8-M11) on a deliverable
-python3 scripts/check/check_design.py <file>   # design metrics (D1-D17) on a deliverable
+python3 scripts/check/claim_sweep.py           # counted claims + file:line citations; REPORTS, never fails
+python3 scripts/check/check_prose.py <file>    # the prose metrics on a deliverable (the script's row table is the list)
+python3 scripts/check/check_design.py <file>   # the design metrics on a deliverable (the script's row table is the list)
 python3 scripts/check/inspect_layout.py <file> # render a deliverable and report what the layout does
 python3 scripts/ops/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
 python3 scripts/ops/output_dir.py            # where a deliverable belongs; --create needs the user's say-so
@@ -24,7 +25,7 @@ python3 scripts/build/embed_font.py            # @font-face block with the face 
 python3 scripts/build/embed_icons.py           # <symbol> sprite of the semantic icon set
 python3 scripts/build/build_geography.py       # regenerate assets/vectors/ from lat/lon data
 python3 scripts/build/build_worldmap.py        # shared-arc world topology + the golden grid
-python3 scripts/build/build_region_palette.py  # region hues; --selftest asserts four floors
+python3 scripts/build/build_region_palette.py  # region hues; --selftest asserts the contrast floors
 python3 scripts/render/globe_svg.py             # one static SVG frame of the globe
 python3 scripts/render/regionmap_svg.py         # the flat region map, labels from the registry
 python3 scripts/build/embed_regionmap.py       # the map runtime as one inline <script>
@@ -127,17 +128,24 @@ reserve, a role split, a lost datum — the code's `deliverable_verdicts` is the
 authority; this list has been counted wrong in four files at once) and is the
 pre-delivery step in `SKILL.md`.
 `run_conformance.py` runs it that way. Everything else it prints stays reported,
-including the part-opener count, which is an observation and not a floor. `check_prose.py` is
-English-only and takes `--genre {sales,internal,training}`; internal analysis
+including the part-opener count, which is an observation and not a floor. `check_prose.py` grades either output
+language — it reads the document's own `lang`, takes `--lang` to override, and
+runs the Chinese ban list and punctuation rules on a Chinese document; **M12 is
+what fails an English deliverable carrying Chinese a reader can see.** It takes
+`--genre {sales,internal,training}`; internal analysis
 is exempt from the em-dash rule and training binds like sales. `check_design.py` reads a document's own token block, so it
 grades a file against the palette that file actually declares rather than against
 this repo's; a deliverable that does not use the token block is reported
-`UNMEASURABLE` rather than passed. Three of its metrics **gate**, and none is a
+`UNMEASURABLE` rather than passed. Four of its metrics **gate**, and none is a
 design judgement: **D12** (handling terms and origin on every page) is a
 commercial requirement on the artifact, **D14** (no `[TO FILL]`, `[TBD]` or
-`{{…}}` reaching the reader) asks whether the document is finished, and **D15**
-(no repository path in a footer) is D12's mirror. All three are
-decidable in the way "does this page read as intentional" is not.
+`{{…}}` reaching the reader) asks whether the document is finished, **D15**
+(no repository path in a footer) is D12's mirror, and **D19** (every reference
+resolves inside the document — an icon pointing at no symbol, a `data-globe`
+mark with no runtime) asks whether the markup can render itself. All four are
+decidable in the way "does this page read as intentional" is not. The list is
+`check_design.py`'s to change: a row whose target says `(gates)` gates, and the
+`gating claims` guard holds this sentence to it.
 
 Its banned-phrase list is a second copy of `references/writing-rules.md` §2, so
 the **ban-list parity** guard holds the two together: every phrase §2 bans must
@@ -181,7 +189,7 @@ Actions incident blocks merging for everyone. Do not wait it out by polling.
 - `references/writing-rules.md` — output-language default, terminology red lines, banned phrases, punctuation, number discipline, the LUMI voice
 - `references/storyline-templates.md` — narrative skeletons per scenario (sales / consulting / internal analysis / training), cover & closing templates, the pre-delivery critic gate
 - `references/design-rules.md` — color semantics, typography, chart rules, semantic icons, layout guards, verification matrix
-- `references/eval-rubric.md` — M1–M12 / D1–D17 / H1–H6 scoring rubric and the review protocol (the iteration engine)
+- `references/eval-rubric.md` — the M / D / H scoring rubric and the review protocol (the iteration engine)
 
 `tokens/lumi-theme.css` and `tokens/design-tokens.json` are the authority for
 palette and type values. Their palette values mirror each other exactly and must
@@ -246,7 +254,8 @@ where it cannot, make it name what it failed to find.
 ## Maintenance conventions
 
 ("Red lines" in this repo names the six non-negotiable *content* rules for
-deliverables — `SKILL.md:50-62`. These are the separate rules for changing the
+deliverables — SKILL.md's "Six non-negotiable red lines". These are the
+separate rules for changing the
 repo itself.)
 
 1. **Repository language is English only.** Chinese strings appear in rule files
@@ -356,3 +365,30 @@ repo itself.)
     fixture (`tests/test_check_repo_guards.py` is the pattern). This repo has
     shipped three checks that ran green and were later found incapable of
     failing; a gate's first proof is that it can go red.
+12. **Changing a fact means sweeping its restatements — mechanically, not by
+    memory.** Run `python3 scripts/check/claim_sweep.py` before committing and
+    read the claims touching what you changed. This is convention 3's problem in
+    general form and it is this repository's worst one, measured: **twenty-six of
+    its releases have carried a fix for a prose copy that disagreed with the
+    code, and five of the last ten did** — the rate is rising, not falling. The
+    mean time to notice, where the entry says, is four to eleven releases. Two
+    whole releases (0.1.360, 0.1.429) exist only to do this work.
+    *Grepping by hand does not count as sweeping.* 0.1.443 re-synced one list in
+    four prose files and missed two code comments; 0.1.451 re-synced one count in
+    two files and missed eight, one of them in `AGENTS.md` eighty-six lines below
+    the line it had just corrected, beside that file's own written confession
+    about this exact drift.
+13. **Prefer deleting the number to maintaining it.** A sentence that names its
+    authority cannot rot; a sentence that counts can. `preflight.py`'s docstring
+    is the model — "how many is whatever the workflow says today, never a number
+    written here" — and 0.1.429 *deleted* the CI step count rather than
+    correcting it. Where a count must stay, it goes in a parity guard with the
+    code as one side (`metric id ranges` and `gating claims` are the pattern),
+    never in prose alone.
+14. **Do not write a claim about behaviour you have not read in the code.** This
+    binds `CHANGELOG.md` hardest, because an entry is what a later session
+    believes. 0.1.450's entry said Cursor's conformance tasks "ran
+    non-interactively like any other"; `run_conformance.py` invokes no agent and
+    never has, and what had changed was `shutil.which` finding a binary. The
+    entry was corrected at 0.1.452. A capability sentence cites the function that
+    implements it or it does not ship.
