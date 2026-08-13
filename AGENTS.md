@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.452.** This file restates part of `references/`; where they
+> **lumi-style 0.1.453.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -143,7 +143,7 @@ builds; before handing the file over, run it again with **`--deliverable`**,
 which exits non-zero on collision, a starved column, content spill, page height,
 hidden content, a wrapped footer, a footer whose runs sit on different
 baselines, a viewBox that does not parse, a drawing clipped by its own viewBox,
-an overspent title reserve, a role split and a lost datum. **Pass it the file and
+an overspent title reserve, a role split, a lost datum, a mark drawn out of proportion to the value it declares, and a document whose content pages are mostly not drawn on at all. **Pass it the file and
 nothing else**: it reads `data-geometry` and runs the matrix that declaration
 implies, and a single `--geometry` switches the matrix off — a 0.1.449
 deliverable checked at 16:9 alone left one pixel of clearance under a gate that

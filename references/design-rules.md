@@ -563,6 +563,25 @@ this package's own example of satisfying a measurement without improving a page,
 and is why 0.1.340 withdrew the 82% fill floor. It survived four releases as a
 mechanism after being named as a defect.*
 
+9. **A mark that encodes a quantity declares it, and the drawing obeys it.**
+Put the number on the mark — `data-datum="80"` on the bar, the segment, the dot —
+and the length follows it in proportion. This is the only way a check can tell a
+bar chart from a picture of one: 48 pixels means nothing to a script until the
+markup says what it is 48 pixels *of*. `inspect_layout.py --deliverable` fails a
+mark drawn out of proportion to its own declared value, which makes it one of the
+few figure findings that is decidable rather than aesthetic.
+*Provenance: a shipped deck floored every bar at 48px so short bars would not
+vanish. It drew 1 and 4 as the same bar — a 7.4× overstatement — and on the page
+whose caption read "Europe stays hollow at four" it drew that 4 at twice its
+length. Nothing could see it: the figure passed every design metric, and its own
+build script had written the true values into the markup one attribute away from
+the width it then ignored. The fix for a short bar is a shorter axis or a
+different form, never a floor under the ink.*
+**A bar on a full-width track states a share.** If the track is not the whole of
+something, it is a second, wrong scale sitting under the first — the same deck
+laid every bar on a full-width rule, so its largest value read as 100% of a total
+it was 55% of.
+
 Flow-diagram shape vocabulary (shapes carry semantics, never decoration):
 **parallelogram** = data input/output · **rectangle** = process ·
 **diamond** = decision · **stadium/ellipse** = start or terminal ·
