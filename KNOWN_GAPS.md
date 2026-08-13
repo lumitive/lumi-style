@@ -35,6 +35,43 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   recorded via report --record (history rows pin skill 0.1.433); the
   scoreboard renders the current-skill runs and names the superseded ones.
 
+## GAP-004 · The Evals thresholds are gameable and calibrated on two documents
+
+- status: open
+- opened: 0.1.455
+- surface: evals/thresholds.json, scripts/ops/eval_corpus.py
+- symptom: a red-team pass cleared all four bars on the rejected corpus
+  document with two mechanical rewrites that add no content — every `<li>`
+  re-tagged as `.vows` markup, and one decorative rect-only SVG per prose page.
+  The two metrics that saw it (`rect_only_share` 0.667, `shape_kinds_min` 1)
+  had been demoted to reported for not separating a two-document corpus.
+  Separately: the sales column is calibrated from a REJECTED document only —
+  there is no accepted sales document — so those cells say where a bar could
+  sit, not where it should. The bars therefore report and do not gate.
+- check: the agreement study. Score the deliverables already on the operator's
+  machine against the owner's recorded H1-H6 review scores and publish the
+  correlation per threshold. A bar that does not track her judgement across ten
+  documents is not measuring what she measures, however cleanly it separates
+  two. `references/eval-rubric.md`'s own promotion rule asks for the same
+  thing: two releases of real documents read against a metric before it gates.
+
+## GAP-005 · Three of the owner's four deliverable categories have no accepted reference
+
+- status: open
+- opened: 0.1.455
+- surface: evals/thresholds.json, references/storyline-templates.md
+- symptom: only `training` has a document on record as meeting the product
+  requirement. `sales` has a rejected one; `consulting` has none outside
+  synthetic conformance decks; **product introduction has no genre at all** —
+  the phrase appears nowhere in SKILL.md, references/ or scripts/, and the
+  nearest fit (`marketing`) has no skeleton and cannot be scaffolded. Nine of
+  twenty threshold cells therefore read `provisional`, and `internal`'s figure
+  floor is `declined` outright because the only real internal document argues
+  in prose and clears every gate.
+- check: an accepted document per category, or a recorded decision that a
+  category maps onto an existing genre. Until then the provisional cells are
+  reasoned, not measured, and the file says so per cell.
+
 ## GAP-003 · The conformance history's producer path has no automated test
 
 - status: fixed

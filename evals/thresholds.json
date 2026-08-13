@@ -1,0 +1,210 @@
+{
+  "schema": 1,
+  "note": "Per-genre Evals thresholds. Every threshold carries the evidence that set it, because this package has withdrawn an invented one before: 0.1.339's 82% page-fill floor was met by stretching table rows and its reader scored three dimensions at 1. Read `evidence` before trusting a number.",
+  "evidence_levels": {
+    "calibrated": "measured on the two documents on record — one training accepted, one sales rejected. ONLY those two genres can carry this level today.",
+    "inherited": "already stated as a rule elsewhere in this package; repeated here so a runner can read it",
+    "provisional": "reasoned, not measured. No accepted document of this genre exists yet. Re-set when one does.",
+    "declined": "a bar was considered and deliberately not set; the reason is in the cell's `why`. Not the same as provisional, which means 'not measured yet'."
+  },
+  "corpus": {
+    "note": "Documents are identified by id. The paths live in a local file the runner reads if present and this repository does not track, because a corpus entry naming a real deliverable is an engagement fact in a tracked file (CLAUDE.md red line 9). The CHANGELOG entry describing this table anonymises correctly; this file has to as well.",
+    "local_paths": "evals/corpus.local.json (gitignored; see evals/README.md)",
+    "accepted": [
+      {
+        "id": "A1",
+        "genre": "training",
+        "accepted_by": "owner",
+        "date": "2026-08-13",
+        "note": "the only document on record as meeting the product requirement"
+      }
+    ],
+    "rejected": [
+      {
+        "id": "R1",
+        "genre": "sales",
+        "date": "2026-08-13",
+        "rejected_for": "figures far below the accepted document; nearly half its content pages carry nothing visual",
+        "note": "its build script was repaired the same day, so its figure-shape numbers improved and two metrics stopped separating"
+      }
+    ]
+  },
+  "metrics": {
+    "prose_only_share": {
+      "direction": "ceiling",
+      "unit": "share of content pages carrying no visual block",
+      "measured": {
+        "accepted": 0.0,
+        "rejected": 0.455
+      },
+      "genres": {
+        "training": {
+          "value": 0.333,
+          "evidence": "calibrated"
+        },
+        "sales": {
+          "value": 0.333,
+          "evidence": "calibrated"
+        },
+        "marketing": {
+          "value": 0.333,
+          "evidence": "provisional",
+          "why": "the bar is the one calibrated on the training and sales documents; no marketing document is on record, so carrying it here is an extension rather than a measurement"
+        },
+        "consulting": {
+          "value": 0.333,
+          "evidence": "provisional",
+          "why": "the bar is the one calibrated on the training and sales documents; no consulting document is on record, so carrying it here is an extension rather than a measurement"
+        },
+        "internal": {
+          "value": 0.333,
+          "evidence": "provisional",
+          "why": "the bar is the one calibrated on the training and sales documents; no internal document is on record, so carrying it here is an extension rather than a measurement"
+        }
+      },
+      "note": "Already enforced at render time as inspect_layout's `visual_absent`; repeated here so one table answers 'what is the bar'. An internal design document in the corpus sits at 0.545 and clears every gate; whether that is a defect or what an internal analysis looks like is unanswered, which is why internal reads provisional.",
+      "needs_corpus_size": true
+    },
+    "figures_per_content_page": {
+      "direction": "floor",
+      "unit": "drawn figures / content pages",
+      "measured": {
+        "accepted": 0.957,
+        "rejected": 0.227
+      },
+      "genres": {
+        "training": {
+          "value": 0.5,
+          "evidence": "calibrated"
+        },
+        "sales": {
+          "value": 0.5,
+          "evidence": "provisional",
+          "why": "extended from the training measurement. No rule in references/ states a figures-per-page number, so calling this `inherited` claimed a stronger level than it holds."
+        },
+        "marketing": {
+          "value": 0.5,
+          "evidence": "provisional",
+          "why": "extended from the training measurement. No rule in references/ states a figures-per-page number, so calling this `inherited` claimed a stronger level than it holds."
+        },
+        "consulting": {
+          "value": 0.5,
+          "evidence": "provisional",
+          "why": "extended from the training measurement. No rule in references/ states a figures-per-page number, so calling this `inherited` claimed a stronger level than it holds."
+        },
+        "internal": {
+          "value": null,
+          "evidence": "declined",
+          "why": "No accepted internal document exists, and the real candidates argue in prose: one carries 0.273 figures per content page and clears every GATE (it does print a graded D6_footer failure). A floor here would fail a document for being what internal analysis is. Set one when an internal document is accepted on the record."
+        }
+      },
+      "note": "Set below the midpoint of the two measurements, not at it: a floor that is too low fails nothing wrongly, and this one still separates them by 1.9x above and 2.2x below. The genres carrying a 50% visual-share target arguably owe MORE than training does, so using training's floor for them is conservative by construction. `internal` carries no floor at all — see its `why`; the corpus sweep that decided that is why the `declined` level exists.",
+      "measurement_caveat": "Counts `.fig` blocks (check_design's D5). A brand globe or region map in a `.markcell` is NOT counted, so a component demo built entirely of them reads 0.0. That is why the min_content_pages floor exists rather than a special case: a document of four pages is not a corpus member.",
+      "needs_corpus_size": true,
+      "companions": {
+        "note": "rect_only_share and shape_kinds_min are printed beside this number and are the reason to distrust it. A figure floor is cleared by empty `.fig` blocks and rect-only wireframes; these two say so. Read them together or read neither.",
+        "gamed_example": {
+          "figures_per_content_page": 0.682,
+          "rect_only_share": 0.667,
+          "shape_kinds_min": 1
+        }
+      }
+    },
+    "list_items_per_content_page": {
+      "direction": "ceiling",
+      "unit": "<li> elements / content pages",
+      "measured": {
+        "accepted": 0.739,
+        "rejected": 4.409
+      },
+      "genres": {
+        "training": {
+          "value": 2.0,
+          "evidence": "calibrated"
+        },
+        "sales": {
+          "value": 2.0,
+          "evidence": "calibrated"
+        },
+        "marketing": {
+          "value": 2.0,
+          "evidence": "provisional",
+          "why": "the bar is the one calibrated on the training and sales documents; no marketing document is on record, so carrying it here is an extension rather than a measurement"
+        },
+        "consulting": {
+          "value": 2.0,
+          "evidence": "provisional",
+          "why": "the bar is the one calibrated on the training and sales documents; no consulting document is on record, so carrying it here is an extension rather than a measurement"
+        },
+        "internal": {
+          "value": 2.0,
+          "evidence": "provisional"
+        }
+      },
+      "note": "The clearest single signal between the two corpus documents: 17 list items over 23 content pages against 97 over 22. A bulleted list is what a page becomes when nobody drew it. Counted on content pages only, to match the denominator — counting the whole file punished the correct move of putting a boundaries list on a declared apparatus page.",
+      "needs_corpus_size": true
+    },
+    "visual_share_median": {
+      "direction": "floor",
+      "unit": "median rendered visual area over content pages, percent, at the first geometry the document's data-geometry implies",
+      "measured": {
+        "accepted": 81.0,
+        "rejected": 16.5
+      },
+      "genres": {
+        "training": {
+          "value": 30,
+          "evidence": "inherited"
+        },
+        "sales": {
+          "value": 50,
+          "evidence": "inherited"
+        },
+        "marketing": {
+          "value": 50,
+          "evidence": "inherited"
+        },
+        "consulting": {
+          "value": 50,
+          "evidence": "inherited"
+        },
+        "internal": {
+          "value": 50,
+          "evidence": "inherited"
+        }
+      },
+      "note": "The genre targets design-rules already states, applied to the MEDIAN over CONTENT pages: a mean is liftable by one large figure while half the deck stays blank. Both numbers here are that median — an earlier draft recorded the accepted document's MEAN (72.6) and the rejected document's median over ALL pages (0.0), which is two different statistics in one field. The geometry matters and is recorded: the accepted document reads 81 at a4 and the rejected 16.5 at 16x9; a laptop-width run of the same document gives 17.0, so a reordering of inspect_layout's geometry list would move this number.",
+      "needs_corpus_size": true
+    }
+  },
+  "reported_not_thresholded": {
+    "note": "Measured and printed, deliberately without a bar. Each is here because it did NOT separate the accepted document from the rejected one on the current corpus — which is a statement about the corpus, not about the metric. A metric that never fails is not a metric everyone passes; check_fixtures.py makes the same distinction for the fixture suite.",
+    "metrics": {
+      "rect_only_share": {
+        "accepted": 0.0,
+        "rejected": 0.0,
+        "was": "separated before the rejected document's build script was repaired (3 of 5 figures)"
+      },
+      "shape_kinds_min": {
+        "accepted": 2,
+        "rejected": 2,
+        "was": "separated before the same repair (1)"
+      },
+      "arrowed_figure_share": {
+        "accepted": 0.545,
+        "rejected": 0.2,
+        "why": "separates, but no rule requires an arrow — a matrix or a ladder legitimately has none"
+      },
+      "tables": {
+        "accepted": 0,
+        "rejected": 1,
+        "why": "one table is not a defect; design-rules caps it at one per page, which inspect_layout already reports"
+      }
+    }
+  },
+  "min_content_pages": 8,
+  "min_content_pages_note": "Below this, a per-page ratio is one page's opinion and is reported without a verdict. check_prose draws the same KIND of line for number-sourcing (MIN_FIGURES = 4, a different number for a different population). Found by sweeping the corpus: three component demos of one to four content pages read as 0.0 figures per page, which is a statement about their size and about where a globe lives in the markup, not about their quality. Each metric states `needs_corpus_size` rather than the runner inferring it from the metric's spelling — two of the four are ratios that do not carry `per_content_page` in their name and escaped the guard entirely.",
+  "status": "REPORTED, NOT GATING",
+  "status_note": "These bars are measured and printed. None of them fails a run, and the runner's exit code says only whether it could measure. Two reasons, both from this package's own record:\n1. A red-team pass took the rejected document and cleared all four bars with two mechanical rewrites that added no fact and no idea: every <li> re-tagged as `.vows` markup (same words, a class VISUAL_BLOCKS counts), and one decorative rect-only SVG per prose page. `rect_only_share` and `shape_kinds_min` saw it — 0.667 and 1 — and those are exactly the two metrics an earlier draft demoted for not separating a two-document corpus. Dropping a metric because a small corpus does not fail it removes the lock and leaves the door.\n2. Two of these four numbers were examined and REFUSED as gates in writing, and the refusal reason is the exploit above. check_design.py's d16 says a floor there 'would be satisfied by pasting a small block on every page, which is the same failure with a different number, so this reports and a reviewer decides'. inspect_layout.py's visual share says it is 'reported against a target of about half the page, never gated: the withdrawn 82% fill floor is the standing lesson that a satisfiable number ends the looking'. Overruling a written refusal needs a documented case (CLAUDE.md convention 2). There is none yet.\nThe rubric's own promotion rule applies: a reported metric becomes a gate only once a review shows it caught something a person did not, which needs two releases of real documents read against it. The agreement study — these numbers against the owner's H1-H6 scores over the documents already on the machine — is what would earn that, and it has not been run.",
+  "direction_note": "`direction` says which way each number points (CLAUDE.md convention 4). Note that visual_share_median's 50/30 is stated as a TARGET in references/design-rules.md and eval-rubric.md; carrying it here as a floor would be the fourth regression from confusing the two, so it is reported against, never below."
+}

@@ -2478,6 +2478,10 @@ def deliverable_print(label, verdicts):
 # in this table is reported as not measured rather than graded as sales. A
 # document declares its genre in markup, and markup has typos: `data-genre="traning"`
 # used to score a training handbook against the 50% target in silence.
+# Every genre in the package vocabulary needs a target here, or a document
+# declaring it prints NOT MEASURED below and exits 1 — the run stops rather
+# than the metric going quiet. The `genre vocabulary` guard in check_repo.py
+# holds these keys equal to the registry's names.
 VISUAL_SHARE_TARGET = {"sales": 50, "marketing": 50, "consulting": 50,
                        "internal": 50, "training": 30}
 

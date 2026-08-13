@@ -5,6 +5,8 @@ to fail on synthetic input, because a check only ever seen passing is FM-01.
 The fixtures exercise these at the verdict level; these tests pin the pattern
 level — which string fires, which deliberately does not.
 """
+import pathlib
+
 import check_design
 
 FOOT = ('<div class="foot"><span class="conf">Confidential</span>'
@@ -361,3 +363,58 @@ def test_d20_an_unparseable_document_value_counts_as_a_difference():
     import check_design as cd
     out = cd.d20_palette_fidelity(_resolved(acc="var(--something-else)"), "light")
     assert len(out["differs"]) == 1
+
+
+# WHICH METRICS GATE is read off the rows. The exit decision was a hand-written
+# tuple and fell one behind the day D20 arrived: the metric declared "(gates)",
+# five documents were made to say five gates because check_repo reads that
+# string, and a file failing D20 alone exited 0.
+
+def _measured():
+    """A real measurement of the passing fixture.
+
+    Deliberately NOT a hand-built stub: a stub of grade()'s inputs is another
+    hand-maintained copy of a list, which is the defect these two tests exist
+    to lock down. Measuring the fixture cannot fall behind the checker.
+    """
+    import pathlib as _p
+    return check_design.measure(_p.Path(check_design.ROOT)
+                                / "fixtures" / "deck-pass.en.html")
+
+
+def test_the_gate_set_is_the_set_of_rows_declaring_a_gate():
+    declared = {n for n, _, target, _ in check_design.grade(_measured())
+                if "(gates)" in target}
+    assert declared == {"D12_commercial_footer", "D14_placeholders",
+                        "D15_footer_path", "D19_vocabulary",
+                        "D20_palette_fidelity"}
+
+
+def test_a_document_failing_only_a_gate_metric_exits_one(tmp_path, capsys):
+    """THE REGRESSION TEST FOR THE SHIPPED DEFECT, and it has to call main().
+
+    The exit decision was a hand-written tuple that fell one behind the day D20
+    arrived, so a document failing D20 alone exited 0 while five files said it
+    gated. A first version of this test asserted the property on `grade()`'s
+    rows and RE-IMPLEMENTED the derivation in its own body — which is a test of
+    the test: reverting main() to the four-name tuple left it passing. The exit
+    code is the behaviour, so the exit code is what is asserted.
+
+    The fixtures cannot stand in: deck-broken fails several gates at once, so
+    its exit code is 1 either way.
+    """
+    src = (pathlib.Path(check_design.ROOT) / "fixtures" / "deck-pass.en.html"
+           ).read_text(encoding="utf-8")
+    # One colour token off the shipped palette and nothing else touched, so
+    # D20 is the only gate that can fail.
+    doc = tmp_path / "d20-only.en.html"
+    doc.write_text(src.replace("--acc:", "--acc: #0F6E6B; --acc-was:", 1),
+                   encoding="utf-8")
+
+    code = check_design.main([str(doc)])
+    printed = capsys.readouterr().out
+    assert "FAIL  D20_palette_fidelity" in printed
+    for other in ("D12_commercial_footer", "D14_placeholders",
+                  "D15_footer_path", "D19_vocabulary"):
+        assert f"FAIL  {other}" not in printed, "only D20 may fail here"
+    assert code == 1, "a document failing only D20 must not exit 0"

@@ -56,9 +56,16 @@ def test_a_hanging_agent_is_abandoned_and_says_so(tmp_path):
     assert out["exit_code"] is None
 
 
-def test_a_failing_agent_is_recorded_with_its_exit_code(tmp_path):
+def test_a_failing_cli_is_a_driver_failure_not_a_driven_run(tmp_path):
+    # `exit_code` was recorded and never read, so a CLI that rejected its own
+    # arguments — a renamed flag, expired auth, a rate limit — completed in a
+    # second having written nothing and was recorded as "driven". `score` then
+    # found no deliverable and put an agent-shaped failure on the board for an
+    # invocation that never reached the agent.
     out = rc.drive(_agent([sys.executable, "-c", "raise SystemExit(3)"]), TASK, tmp_path)
-    assert out["verdict"] == "driven" and out["exit_code"] == 3
+    assert out["verdict"] == "driver failed"
+    assert out["exit_code"] == 3
+    assert "exited 3" in out["detail"]
     assert out["produced"] == [], "a failed run must not claim an artifact"
 
 
@@ -149,14 +156,19 @@ def test_a_hand_driven_task_needs_no_driver_record(tmp_path, monkeypatch, capsys
     assert _score(run, monkeypatch, capsys)["an-agent/T3-recall"]["verdict"] in ("pass", "fail")
 
 
-def test_an_unreadable_driver_record_does_not_swallow_the_task(tmp_path, monkeypatch, capsys):
+def test_a_half_written_driver_record_is_not_earned(tmp_path, monkeypatch, capsys):
+    # A process killed while writing leaves a half driver.json as easily as a
+    # half deliverable, and treating the unparseable case as "no record" turned
+    # that into the outcome the not-earned guard exists to prevent: a draft
+    # scored as a result.
     task_dir = tmp_path / "run" / "an-agent" / "T3-recall"
     task_dir.mkdir(parents=True)
     (task_dir / "PROMPT.txt").write_text("the prompt", encoding="utf-8")
     (task_dir / "answers.md").write_text("1. english\n", encoding="utf-8")
     (task_dir / "driver.json").write_text("{not json", encoding="utf-8")
     entry = _score(tmp_path / "run", monkeypatch, capsys)["an-agent/T3-recall"]
-    assert entry["verdict"] != "not earned"
+    assert entry["verdict"] == "not earned"
+    assert "killed mid-write" in entry["detail"]
 
 
 def test_the_skill_directory_is_handed_to_the_agent(tmp_path):
@@ -192,3 +204,105 @@ def test_a_platform_declaring_no_skill_flag_is_driven_unchanged(tmp_path):
     rc.drive({"id": "fake", "capability": "full", "drive": [str(fake), "-p"],
               "skill_paths": ["~/x"]}, TASK, tmp_path)
     assert "--add-dir" not in (tmp_path / "b.md").read_text()
+
+
+# The environment is PROVEN clear before a verdict is attributed to anything.
+# Three runs were published as agent failures on 2026-08-13 before anyone read
+# the transcript saying the agent could not open tokens/ at all.
+
+def test_a_reachable_skill_passes_the_environment_check(tmp_path):
+    for rel in rc.SKILL_SURFACE:
+        target = tmp_path / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.mkdir() if "." not in target.name else target.write_text("x")
+    agent = {"id": "fake", "skill_paths": [str(tmp_path)],
+             "drive_skill_flag": "--add-dir"}
+    assert rc.environment_check(agent) == []
+
+
+def test_an_unreachable_surface_is_named_with_its_path(tmp_path):
+    # The live failure: SKILL.md arrives through the platform, tokens/ does not.
+    (tmp_path / "SKILL.md").write_text("x")
+    agent = {"id": "fake", "skill_paths": [str(tmp_path)],
+             "drive_skill_flag": "--add-dir"}
+    errors = rc.environment_check(agent)
+    assert errors and "cannot reach the skill" in errors[0]
+    assert str(tmp_path) in errors[0], "the path it tried must be named"
+
+
+def test_a_platform_that_cannot_be_handed_its_skill_is_refused(tmp_path):
+    # Reachable on disk is not the same as reachable BY THE AGENT: without the
+    # flag the driver cannot pass the directory, which is exactly the shape of
+    # the original defect.
+    for rel in rc.SKILL_SURFACE:
+        target = tmp_path / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.mkdir() if "." not in target.name else target.write_text("x")
+    errors = rc.environment_check({"id": "fake", "skill_paths": [str(tmp_path)]})
+    assert errors and "drive_skill_flag" in errors[0]
+
+
+def test_a_platform_with_no_skill_path_is_refused(tmp_path):
+    errors = rc.environment_check({"id": "an-ide"})
+    assert errors and "nothing to prove reachable" in errors[0]
+
+
+def test_an_environment_skip_is_not_earned_rather_than_failed(tmp_path, monkeypatch, capsys):
+    run = _run_tree(tmp_path, driver={"verdict": "environment",
+                                      "detail": "cannot reach tokens/"})
+    entry = _score(run, monkeypatch, capsys)["an-agent/T3-recall"]
+    assert entry["verdict"] == "not earned"
+
+
+def test_a_blocked_agent_is_never_driven(tmp_path, monkeypatch, capsys):
+    """The call site, not just the function.
+
+    Deleting the eight-line block in `run --drive` left all tests passing: the
+    four unit tests above call `environment_check` directly and the fifth writes
+    driver.json by hand, so the only thing making it a gate rather than a dead
+    function was unproven. That is convention 11's failure shape verbatim.
+    """
+    run_dir = tmp_path / "run"
+    marker = tmp_path / "the-agent-ran"
+    fake = tmp_path / "fake-cli"
+    fake.write_text(f'#!/bin/sh\ntouch "{marker}"\n', encoding="utf-8")
+    fake.chmod(0o755)
+
+    agents = [{"id": "blocked", "name": "Blocked", "capability": "full",
+               "drive": [str(fake), "-p"], "drive_skill_flag": "--add-dir",
+               # an empty directory: the skill is not here
+               "skill_paths": [str(tmp_path / "nothing")],
+               "probe": ["true"]}]
+    tasks = [{"id": "T3-recall", "prompt": "answer", "deliverable": "*.md",
+              "min_capability": "prompt", "score": ["recall"], "answers": {}}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: tasks)
+    monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
+
+    rc.main(["run", "--drive", "--run", str(run_dir)])
+    printed = capsys.readouterr().out
+    assert "SKIPPED" in printed
+    assert not marker.exists(), "a blocked agent must not be invoked at all"
+    record = json.loads((run_dir / "blocked" / "T3-recall" / "driver.json")
+                        .read_text(encoding="utf-8"))
+    assert record["verdict"] == "environment"
+
+
+def test_a_run_where_nothing_could_be_driven_does_not_report_success(
+        tmp_path, monkeypatch, capsys):
+    # `driven` counts only successes and skipped agents incremented nothing, so
+    # a run blocked on every task printed its SKIPPED lines and returned 0. Agent
+    # RESULTS are non-deterministic and must not gate; the harness being unable
+    # to invoke anything is deterministic and operator-fixable.
+    run_dir = tmp_path / "run"
+    agents = [{"id": "blocked", "name": "Blocked", "capability": "full",
+               "drive": ["/bin/true"], "drive_skill_flag": "--add-dir",
+               "skill_paths": [str(tmp_path / "nothing")], "probe": ["true"]}]
+    tasks = [{"id": "T3-recall", "prompt": "answer", "deliverable": "*.md",
+              "min_capability": "prompt", "score": ["recall"], "answers": {}}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: tasks)
+    monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
+    code = rc.main(["run", "--drive", "--run", str(run_dir)])
+    assert "NOTHING RAN" in capsys.readouterr().out
+    assert code == 1

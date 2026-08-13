@@ -15,6 +15,7 @@ sync, and recording changes in the changelog.
 python3 scripts/preflight.py             # run EXACTLY what CI runs, read from ci.yml
 python3 scripts/check/check_repo.py            # repo invariants; exit 1 on any failure
 python3 scripts/check/claim_sweep.py           # counted claims + file:line citations; REPORTS, never fails
+python3 scripts/ops/eval_corpus.py <file>    # a deliverable against evals/thresholds.json; REPORTS, never gates
 python3 scripts/check/check_prose.py <file>    # the prose metrics on a deliverable (the script's row table is the list)
 python3 scripts/check/check_design.py <file>   # the design metrics on a deliverable (the script's row table is the list)
 python3 scripts/check/inspect_layout.py <file> # render a deliverable and report what the layout does

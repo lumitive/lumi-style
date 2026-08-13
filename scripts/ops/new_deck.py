@@ -119,7 +119,13 @@ def brand_globe():
                          f"block after stripping")
     return out
 
-GENRES = ("sales", "consulting", "internal", "training")
+# The genres this scaffold can EMIT — a documented subset of the package's
+# vocabulary, not a second copy of it. `marketing` has no skeleton of its
+# own (storyline-templates.md folds it into Template 1 with sales), so it
+# is absent here and present everywhere the vocabulary is just a label.
+# check_repo's `genre vocabulary` guard holds this to the registry's names.
+SCAFFOLDED = ("sales", "consulting", "internal", "training")
+GENRES = SCAFFOLDED
 
 
 def preamble(genre, geometry):

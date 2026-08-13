@@ -1,0 +1,18 @@
+{
+  "version": "0.1.455",
+  "diff_base": "d21316b657e0a8ddc7e067db2131adc6c16aa167",
+  "spec": "specs/2026-08-14-evals-foundation-design.md",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "2c6c1061cb8125b722b487291b019ed0f35c5d8b0856a4ac2ba4a74b980ff378",
+      "date": "2026-08-14"
+    }
+  ],
+  "waivers": []
+}

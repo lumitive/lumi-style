@@ -288,6 +288,13 @@ def _scores_tree(tmp_path, overrides=None):
     (scripts / "ops").mkdir(parents=True)
     shutil.copyfile(REAL_SCRIPTS / "ops" / "review_scores.py",
                     scripts / "ops" / "review_scores.py")
+    # review_scores.py imports the genre vocabulary from the shared registry
+    # (0.1.455 — five scripts had five copies of it), so the delegate needs its
+    # sibling here or it exits on the import and the guard reports "unknown
+    # failure" for a reason that has nothing to do with the store.
+    (scripts / "lib").mkdir(parents=True)
+    shutil.copyfile(REAL_SCRIPTS / "lib" / "deliverable_registry.py",
+                    scripts / "lib" / "deliverable_registry.py")
     (tmp_path / "CHANGELOG.md").write_text("## 0.1.1\n\n- first.\n", encoding="utf-8")
     record = {"release": "0.1.1", "genre": "sales",
               "self": dict.fromkeys(DIMS, 4), "reader": dict.fromkeys(DIMS, 4),

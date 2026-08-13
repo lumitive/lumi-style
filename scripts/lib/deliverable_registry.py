@@ -26,6 +26,21 @@ _SCRIPTS_BY_KIND = {
 }
 
 
+# THE GENRE VOCABULARY, in one place, for the same reason the checker map is.
+# Five scripts carried five different lists: check_prose 3, new_deck 4,
+# inspect_layout 5, review_scores 5, export_pdf "check_prose's 3 plus a
+# hand-appended consulting". The consequence was not cosmetic — a consulting
+# deliverable could be scaffolded, layout-graded and review-scored, but
+# `check_prose.py --genre consulting` refused the value, so its prose had to be
+# checked under a genre it is not. An Evals suite keyed on genre cannot be built
+# on five vocabularies that disagree.
+#
+# The NAMES are one set. The BEHAVIOUR keyed on them stays with each script —
+# visual-share targets, the dash ban, which scaffolds exist — because those
+# genuinely differ and pretending otherwise would be the opposite mistake.
+GENRES = ("sales", "marketing", "consulting", "internal", "training")
+
+
 def checker_path(kind: str) -> pathlib.Path:
     """-> absolute path of the checker for `kind`; raises KeyError on an
     unknown kind, loudly, because a misspelled kind that silently resolved

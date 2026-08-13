@@ -39,9 +39,30 @@ import argparse
 import html
 import json
 import pathlib
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+# Bare-name sibling imports must resolve from any drawer depth: walk up to
+# the scripts/ root and APPEND it and its drawers to sys.path — append,
+# never insert(0), so the standard library and the caller's environment
+# always win. Drawer order is lib-first and the scripts ROOT LAST on
+# purpose: the emergency path overwrites a PR's lib/ files with trusted
+# copies, and lib-first means a file PLANTED at the scripts root can never
+# outrank them (the shadowing the PR #92 review demonstrated).
+import pathlib as _bs_pathlib  # noqa: E402
 import re
 import statistics
 import sys
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+# --- end bootstrap ---
+from deliverable_registry import GENRES as registry_genres  # noqa: E402
 
 # (regex, phrase). The phrase is verbatim from writing-rules.md section 2 and is
 # the key the parity guard matches on -- do not reword it to read better.
@@ -245,9 +266,21 @@ def _has_fact(title):
 # import this tuple rather than hand-copying it: a hand-copy in the
 # conformance harness rejected `training` for two releases after 0.1.376
 # created it, and only a person writing a training task would have noticed.
-# (`consulting` deliberately has no flag — the recorded no-change in 0.1.378:
-# it inherits the sales dash ban and has produced no defect case.)
-GENRES = ("sales", "internal", "training")
+# (`consulting` had no flag until 0.1.455 — 0.1.378's recorded no-change was
+# that it inherits the sales dash ban, which is now stated in DASH_BANNED
+# rather than implied by refusing the value.)
+# The names come from the one registry; the BEHAVIOUR below is this script's.
+# `consulting` and `marketing` used to be refused here while every other script
+# accepted them, so a consulting deliverable had to be graded as something it is
+# not. Neither changes a measurement: the dash ban is the only genre-sensitive
+# metric, and consulting inherits it from sales exactly as 0.1.378 recorded.
+GENRES = registry_genres
+# Genres whose prose bans the em dash. writing-rules §6 item 8 states it for
+# sales/marketing and training; eval-rubric's M9 row states it as exempting
+# internal analysis, which also covers consulting. The two statements do
+# not agree on consulting and this list follows the rubric — 0.1.378's
+# recorded no-change said consulting inherits the sales ban.
+DASH_BANNED = ("sales", "marketing", "consulting", "training")
 BLOCK_END = re.compile(r"</(?:p|li|h[1-6]|td|th|div|section|figcaption|blockquote)>", re.I)
 NUMERIC_RANGE = re.compile(r"\d\s*[–—]\s*\d")
 # A noun that COUNTS things rather than measuring them. "blocks 1–3" names
@@ -603,7 +636,7 @@ def measure(path, genre, lang=None):
         "M6_label_enumerations": m6_labels,
         "M8_overlong_share": round(overlong, 1),
         "M8_length_cv": round(cv, 3),
-        "M9_dashes": dashes if genre in ("sales", "training") else None,
+        "M9_dashes": dashes if genre in DASH_BANNED else None,
         "M10_triad_rate": None if triad_rate is None else round(triad_rate, 1),
         "M11_title_uniformity": None if uniformity is None else round(uniformity, 1),
     }

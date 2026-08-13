@@ -201,7 +201,7 @@ def main(argv):
     ap.add_argument("--geometry", choices=sorted(STAGES), default=None,
                     help="which fixed stage to render; defaults to the genre's "
                          "primary (design-rules §7)")
-    ap.add_argument("--genre", choices=[*GENRES, "consulting"],
+    ap.add_argument("--genre", choices=list(GENRES),
                     default="sales",
                     help="picks the default geometry: training leads portrait "
                          "(printed, annotated, bound), everything else leads "

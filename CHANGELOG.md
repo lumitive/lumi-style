@@ -3,6 +3,117 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.455 — an Evals suite that measures a document against one that was accepted, and the four faults found while building its foundation
+
+The owner stopped a multi-agent comparison and asked for the thing that should
+have come first: **define what "good" is, from the document that meets the
+product requirement, before comparing anything to anything.** She is right, and
+the reason is measurable — every gate and `=0` check the accepted document takes,
+it clears with a zero count, so they prove the checkers RUN rather than that they
+DISCRIMINATE. A deck she rejected cleared every design verdict too. The decisions,
+and the three that were declined, are in
+`specs/2026-08-14-evals-foundation-design.md`.
+
+**So the Evals sit on the quantities that separate the two**, and none of them
+had a threshold before:
+
+| | accepted (training) | rejected (sales) |
+|---|---|---|
+| content pages with nothing visual | **0.0%** | 45.5% |
+| figures per content page | **0.957** | 0.227 |
+| list items per content page | **0.739** | 4.409 |
+| median visual share | **81%** | 16.5% |
+
+`evals/thresholds.json` carries the bars per genre and — the point of the file —
+**the evidence that set each one**: `calibrated` only for the two genres with a
+document on record, `inherited` where a rule already stated the number,
+`provisional` where it is reasoned and unmeasured, `declined` where a bar would
+be wrong. This package withdrew an invented threshold once (0.1.339's 82% fill
+floor, met by stretching table rows, its reader scoring three dimensions at 1),
+and that withdrawal is why the field exists. How many cells hold each level is in
+the file and deliberately not repeated here — a count in prose is what this
+package keeps finding one release behind, and the first draft of this sentence
+was already wrong by two.
+
+`scripts/ops/eval_corpus.py` scores one document or the recorded corpus. The
+accepted document clears every bar; the rejected one misses every bar.
+
+**And none of it gates, which is the release's own finding against itself.** A
+red-team pass took the rejected document and cleared all four bars with two
+mechanical rewrites that add no fact and no idea: every `<li>` re-tagged as
+`.vows` markup — the same words under a class `VISUAL_BLOCKS` counts — and one
+decorative rect-only SVG per prose page. `rect_only_share` and `shape_kinds_min`
+saw it (0.667 and 1) and an earlier draft of this table had demoted exactly those
+two for not separating a two-document corpus. **Dropping a metric because a small
+corpus does not fail it removes the lock and leaves the door**; they are printed
+beside the figure bar now, with that history.
+
+Both are recorded rather than left in prose: **GAP-004** (the bars are gameable and calibrated on two documents; the agreement study is the check that would close it), **GAP-005** (three of the four categories have no accepted reference, and product introduction has no genre at all), **FM-14** (a metric demoted for not failing a small corpus was the lock on one that gates) and **FM-15** (overruling a written refusal without citing it).
+
+Worse, two of the four numbers had already been examined and refused as gates in
+writing, by the checkers they come from. `check_design`'s D16: *"A floor here
+would be satisfied by pasting a small block on every page, which is the same
+failure with a different number, so this reports and a reviewer decides."* The
+red team pasted an EMPTY block. `inspect_layout`'s visual share: *"Reported
+against a target of about half the page, never gated: the withdrawn 82% fill
+floor is the standing lesson that a satisfiable number ends the looking."* And
+`references/` states 50/30 as a **target**, which this table had turned into a
+floor — CLAUDE.md convention 4, the class this repository has shipped three
+regressions from. Overruling a written refusal needs a documented case; there is
+none, and none was cited. The bars report.
+
+**The corpus sweep corrected the table twice before it shipped** — which is what
+a corpus is for. Three component demos of one to four content pages read as
+0.0 figures per page, because a globe lives in `.markcell` and D5 counts `.fig`:
+a ratio over four pages is one page's opinion, so `min_content_pages` is 8 and
+the caveat is written down. And `internal` lost its figure floor entirely — a
+real design document carries 0.273 figures per content page and passes every
+checker, so a floor there would fail a document for being what internal analysis
+is. Two metrics that separated the two documents yesterday no longer do, because
+the rejected document's build script was repaired in between; they are listed as
+`reported_not_thresholded` with that history, since a metric that never fails is
+not a metric everyone passes.
+
+**Four faults found while laying this foundation.**
+
+*`D20_palette_fidelity` said it gated and did not.* Its row declared
+`"=0 (gates)"`, five documents were made to say five gates because
+`check_repo`'s guard reads that string — and the exit decision was a
+hand-written tuple of four. **A document failing D20 alone exited 0.** Yesterday
+that was masked because the one real D20 failure co-occurred with a D12 failure.
+The tuple is gone: the exit decision reads the rows, and so does the summary
+sentence that was the fourth hand-written copy of the same list. Two tests, one
+measuring the real fixture rather than a stub — a stub of the checker's inputs
+would be another hand-maintained copy, which is the defect being fixed.
+
+*The rubric had two words for three tiers.* Six rows described as `reported` are
+graded against a hard predicate and print `FAIL` without failing the run. The
+tier table is written down now, and **the graded tier is where an Evals threshold
+belongs**: a number that can already fail, but on a document rather than on the
+run.
+
+*Five scripts carried five different genre vocabularies.* `check_prose` 3,
+`new_deck` 4, `inspect_layout` 5, `review_scores` 5, `export_pdf` "three plus a
+hand-appended consulting". Not cosmetic: a consulting deliverable could be
+scaffolded, layout-graded and review-scored, while `check_prose --genre
+consulting` refused the value — so its prose had to be graded under a genre it is
+not, which makes a genre-keyed Evals suite impossible. The names live in
+`deliverable_registry` now; the behaviour keyed on them stays with each script,
+because visual-share targets and the dash ban genuinely differ. A `genre
+vocabulary` guard holds all of it, with three deliberate-red exercises: a second
+list, a genre with no visual-share target, and a scaffold for a genre the
+registry does not know. `new_deck` declares `SCAFFOLDED` as an explicit subset —
+`marketing` has no skeleton of its own — and a subset is allowed where a
+superset is not.
+
+*The environment is proven before a verdict is attributed to anything.*
+`environment_check` reads the registry's own install path and refuses to drive an
+agent that cannot reach `tokens/`, `references/`, `scripts/` and `assets/` — or
+whose platform declares no way to be handed them. This is the mechanism that was
+missing yesterday, when three runs were recorded as agent failures and the
+agent's own transcript said it had been unable to read the rules. A skipped run
+records `environment` and scores `not earned`, never `fail`.
+
 ## 0.1.454 — the harness drives the agents, which it had claimed to do and never done
 
 `run_conformance.py` opens by saying it runs the same tasks through every agent
