@@ -150,11 +150,11 @@ look at, and none of its **design** judgements gates.
 
 **`--deliverable` is the exception, and it is a pre-delivery step, not a repo
 check.** Run against a file you are about to hand over, it exits non-zero on the
-things a rendered page can be wrong about decidably — **collision, a starved
-column, content spill, page height, hidden content, a wrapped footer, a footer
-whose runs sit on different baselines, a viewBox that does not parse, a drawing
-clipped by its own viewBox, an overspent title reserve, a role split, a lost
-datum**. Focal weight, column balance, caption distance, centerpiece scale,
+things a rendered page can be wrong about decidably. **The code's
+`deliverable_verdicts` is the list, and `references/eval-inventory.md` renders
+it** — this sentence enumerated twelve findings while the code carried
+fourteen, and five files counted it four different ways (ten, twelve, fourteen,
+fourteen), which is what a hand-kept enumeration of a growing list does. Focal weight, column balance, caption distance, centerpiece scale,
 empty band and the part-opener count stay reported, because the fix for each is a
 design decision and a number satisfiable without improving the page ends the
 looking. Without the flag nothing here gates and the behaviour is unchanged, so

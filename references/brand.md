@@ -295,15 +295,19 @@ The reference this was studied against runs **245 elements at weight 700 and 52 
 900**, display at 254px and 120px, line-height ~0.9, and letter-spacing `normal`
 everywhere. This deck ran D-DIN 400, uppercase, `.3em` tracking — a spec sheet.
 
-- **Display** (cover, closing, part openers): **80px on the slide, 50px on the
-  sheet** (fixed per stage since 0.1.382, because a viewport-relative size on a
-  fixed box lets the reader's window resize the design), weight
-  **700**, leading **0.92**, tracking negative. It was a third larger on first
+- **Display** (part openers): **80px on the slide, 72px on the sheet** (fixed
+  per stage since 0.1.382, because a viewport-relative size on a fixed box lets
+  the reader's window resize the design), weight **700**, leading **0.92**,
+  tracking negative. **The cover and closing set SMALLER, at 58px** — an opener
+  carries one line and a cover carries four things; the rank is stated at the
+  token (`--fs-cover`) and is not a preference. (This bullet folded the cover
+  into display at "80/50", and both numbers disagreed with the tokens.) It was a third larger on first
   build and a reader pulled it back — big enough to be the event, not so big the
   page becomes a poster with a caption.
 - **Page titles**: weight **700** at **34px on the slide, 26px on the sheet** — half again the
   old size. A title is the claim, not a caption.
-- **Support lines**: 16px weight 500. A second voice, not small print.
+- **Support lines**: 17px weight 500 (`--fs-support`). A second voice, not
+  small print.
 - **Numbers**: the lead tier runs to 116px and figure numerals are set bold.
 - **Tracking**: gone. `.3em` on eyebrows was the most dated device in the deck.
 

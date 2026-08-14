@@ -51,8 +51,10 @@ sits between them.
   truncating rather than wrapping, so a value that overruns gets shortened
   (this bullet said "spec-band form" while the shipped skeleton emitted
   `.attrs`, and the two drifted until an owner review caught the unstyled
-  result; `.spec` remains the in-page strip) · a colophon line ("built with
-  lumi-style X.Y.Z") · **and exactly one vector mark.** Body copy and
+  result; `.spec` remains the in-page strip) · **and exactly one vector mark.**
+  The colophon lives on the CLOSING page only — the cover carried one too
+  until a reader rejected the duplication, and this list kept it for
+  releases after SKILL.md moved it. Body copy and
   photography stay out. **The default mark is the LUMIVATE field globe**
   (`assets/brand/lumivate/globe-field.svg`, locked), embedded live — `data-globe`
   plus the inlined runtime, which the scaffold does for you — so it rotates,

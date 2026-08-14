@@ -120,8 +120,8 @@ LUMI's own seed survives as group 8.
 1. **Every number carries its source** or its derivation; a range figure must trace
    to a single source or it may not appear.
 2. **Illustrative values must be labeled** (illustrative / mock UI / proposal value /
-   uncalibrated) — and the label travels with the number into every downstream
-   document.
+   uncalibrated; in Chinese output the label word is 示意) — and the label
+   travels with the number into every downstream document.
 3. **Never cite an external benchmark that cannot be re-verified.** If a citation is
    later judged unreliable, retract it repo-wide and leave a retirement note in
    place ("the benchmark previously cited here was reviewed and retracted on

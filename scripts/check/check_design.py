@@ -94,9 +94,14 @@ CONTRAST_FLOOR_LARGE = 3.0
 LARGE_TEXT_PX = 24.0
 TIER1_PER_PAGE = 1
 TIER1_PAGE_SHARE = 33.0     # percent of a deck's pages that may carry one
-LAYOUT_MAX_SHARE = 40.0     # percent of a deck's pages one layout may carry
-LAYOUT_MIN_DISTINCT = 5     # in a deck of this many pages or more
-LAYOUT_MIN_PAGES = 15
+# LAYOUT_MAX_SHARE (40.0), LAYOUT_MIN_DISTINCT (5) and LAYOUT_MIN_PAGES (15)
+# stood here until 0.1.456. The first printed an advisory against the 40% share
+# cap that 0.1.340 WITHDREW — the retired register records the withdrawal, and a
+# withdrawn rule that still prints is not withdrawn. The other two were a floor
+# no retrospective ever argued, and it fired on the accepted reference document
+# (3 distinct layouts across 28 pages): an advisory that flags the document the
+# owner accepted is measuring its own taste. D9 states the numbers; a reader
+# judges them.
 
 # The layouts shipped in tokens/lumi-layouts.css. A .body class outside this set
 # is either a typo or a layout invented in the document, and both defeat D9.
@@ -1390,10 +1395,9 @@ def main(argv):
         if v:
             for pid, cls in v["unknown"][:6]:
                 print(f"        {pid} uses no shipped layout (body class: {cls})")
-            if v["top_share"] > LAYOUT_MAX_SHARE:
-                print(f"        {v['top_layout']} carries {v['top_share']}% of pages")
-            if v["pages"] >= LAYOUT_MIN_PAGES and v["distinct"] < LAYOUT_MIN_DISTINCT:
-                print(f"        only {v['distinct']} distinct layouts across {v['pages']} pages")
+            print(f"        layouts: {v['distinct']} distinct across "
+                  f"{v['pages']} pages, {v['top_layout']} carries "
+                  f"{v['top_share']}%")
 
     if blind_gates:
         # BEFORE "nothing flagged", always. A run with a gate it could not take
