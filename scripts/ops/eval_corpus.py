@@ -213,6 +213,16 @@ def score(measured: dict, table: dict) -> list[dict]:
 
 
 def main(argv=None) -> int:
+    def note(*parts):
+        """Prose that must never land in stdout when --json is on.
+
+        A `--json` mode whose stdout does not parse is the defect that bit the
+        debug log this same week: the caller reads the stream, not the
+        intention.
+        """
+        print(*parts, file=sys.stderr if _json_mode[0] else sys.stdout)
+
+    _json_mode = [False]
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("files", nargs="*", type=pathlib.Path)
     ap.add_argument("--corpus", action="store_true",
@@ -223,6 +233,7 @@ def main(argv=None) -> int:
                     help="skip the browser half; visual share reads 'not "
                          "measured' rather than passing")
     args = ap.parse_args(argv)
+    _json_mode[0] = args.json
 
     table = json.loads(THRESHOLDS.read_text(encoding="utf-8"))
     files = list(args.files)
@@ -236,7 +247,7 @@ def main(argv=None) -> int:
         try:
             local = json.loads(local_path.read_text(encoding="utf-8"))
         except OSError:
-            print(f"note  {local_path.relative_to(ROOT)} is absent, so no "
+            note(f"note  {local_path.relative_to(ROOT)} is absent, so no "
                   f"corpus document could be located. evals/README.md gives "
                   f"its shape.")
             local = {}
@@ -248,7 +259,7 @@ def main(argv=None) -> int:
                 else:
                     unresolved.append(entry["id"])
         if unresolved:
-            print(f"note  {len(unresolved)} corpus id(s) have no local path: "
+            note(f"note  {len(unresolved)} corpus id(s) have no local path: "
                   + ", ".join(unresolved))
     if not files and not unresolved:
         ap.error("name at least one file, or --corpus")
@@ -260,12 +271,12 @@ def main(argv=None) -> int:
     reports, missed, untaken, unscored = [], 0, 0, len(unresolved)
     for path in files:
         if not path.exists():
-            print(f"FAIL  {path} does not exist")
+            note(f"FAIL  {path} does not exist")
             unscored += 1
             continue
         measured = measure(path, with_render=not args.no_render)
         if "unmeasurable" in measured:
-            print(f"\nUNMEASURABLE  {path.name}: {measured['unmeasurable']}")
+            note(f"\nUNMEASURABLE  {path.name}: {measured['unmeasurable']}")
             unscored += 1
             continue
         rows = score(measured, table)

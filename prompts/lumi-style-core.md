@@ -95,8 +95,9 @@ lines from a client page and leaves every geometric check clean, because hidden
 text produces no spill, no collision and no overflow. Nothing that does not
 render is fixed.
 
-**The register**: display 80px on the slide and 50px on the sheet at weight 700,
-leading 0.92; titles weight 700 at 34px and 26px; support 17px weight 500; no
+**The register**: part-opener display 80px on the slide and 72px on the sheet
+at weight 700, leading 0.92; cover and closing titles 58px — smaller than an
+opener, by rule; titles weight 700 at 34px and 26px; support 17px weight 500; no
 letter-spacing. The sizes are fixed per stage, never viewport-relative: the page
 is a fixed box, so type that follows the window makes one design render as many. Ship
 only the faces the package carries.
@@ -416,6 +417,6 @@ boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.455** snapshot, cut 2026-08-13. It is self-contained by
+> This file is the **0.1.456** snapshot, cut 2026-08-13. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

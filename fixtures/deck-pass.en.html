@@ -137,8 +137,9 @@
   /* ── typography: D-DIN takes over (v1.2+) ── */
   --din:  'D-DIN', "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", Arial, sans-serif;
   --mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
-  /* display titles: uppercase (Latin), weight 400, leading .95–1.0;
-     CJK titles: weight 700 + .04em tracking — CJK has no uppercase */
+  /* display titles: uppercase (Latin), weight 700 (--w-display below), leading
+     .92; CJK titles: weight 700 + .04em tracking — CJK has no uppercase.
+     (This comment said 400 while --w-display five lines down said 700.) */
   /* .3em was the most dated device in the deck and the reference uses no
      tracking anywhere. Eyebrows keep a hint of it and nothing more. */
   --ls-eyebrow: .08em;
@@ -295,7 +296,7 @@ body.dark {
   --d-teal:    #3FA98C;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.455 (2026-08-13)
+   LUMI page layouts · v0.1.456 (2026-08-13)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -2159,7 +2160,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
       <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
     </div>
-    <p class="colophon">Built with lumi-style 0.1.455 &#183; source: meter management system.</p>
+    <p class="colophon">Built with lumi-style 0.1.456 &#183; source: meter management system.</p>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 18</span></div></section>
 <section class="page opener" id="openA">
@@ -2762,7 +2763,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>
     </div>
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.455.
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.456.
     Source: meter management system; every number here is invented, and a
     bracketed slot must not ship.</p></div>
   </div>

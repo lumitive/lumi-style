@@ -35,6 +35,51 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   recorded via report --record (history rows pin skill 0.1.433); the
   scoreboard renders the current-skill runs and names the superseded ones.
 
+## GAP-006 · Rules whose only home is outside references/, and a subset claim that is false
+
+- status: open
+- opened: 0.1.456
+- surface: SKILL.md, AGENTS.md, prompts/lumi-style-core.md, tokens/lumi-layouts.css,
+  tokens/region-palette.css, assets/brand/README.md, CLAUDE.md
+- symptom: a full sweep found whole rule families stated nowhere in
+  references/ — the entire debug-mode contract (references/ contains no
+  occurrence of "debug"), the parallel-build protocol including the merge gate,
+  the questions-come-once rule, the colophon-placement rule, the
+  scaffold-never-fixture rule, the world-figure generation rule, the
+  capability-tier rule that an agent unable to run the checks may not call a
+  deliverable verified, and the whole globe/map figure grammar living as
+  comments in region-palette.css. CLAUDE.md's architecture section calls
+  prompts/lumi-style-core.md "a strict subset of references/", and with
+  core-only rules on record (never name a region by its colour in prose;
+  the prompt-tier debug degradation format) that claim is false today.
+- check: each family either moves into a reference file with the entry points
+  restating it, or the architecture statement is amended to name entry-point
+  rules as a legitimate second home. Either is a decision; the current state is
+  neither. The generated references/eval-inventory.md covers the NUMERIC half
+  of this gap already — the remaining half is prose rules.
+
+## GAP-007 · The reference files read as accretion, not as documents
+
+- status: open
+- opened: 0.1.456
+- surface: references/design-rules.md, references/storyline-templates.md,
+  references/eval-rubric.md
+- symptom: the owner read the rule set end to end and said a person cannot
+  form a correct judgement from it, and the skeletons agree with her:
+  design-rules' section order is 1, 1c, 1d, 2, 3, 4, 4b, 5, 7, 6 — section 6
+  is physically after section 7 — and its §4 numbers rules 1-5, 6, 7, 7b, 7c,
+  7d, 7e, 8, 8b; storyline-templates wedges its shared apparatus between
+  Template 1 and Template 2; eval-rubric describes three gating surfaces in
+  three places with three vocabularies. The cause is structural: convention 2
+  admits rules only from per-defect retrospectives, so every rule lands as a
+  patch at the site of its wound, and no structural release has ever run.
+- check: a structural release that reorders without rewording — content-frozen,
+  diffable as pure moves, with the parity guards as the safety net — and a
+  re-flow of every §-citation that the reordering breaks (SKILL.md and the
+  checkers cite sections by number). Not begun; recorded so the next reader of
+  these files knows the disorder is known, measured, and scheduled rather than
+  invisible.
+
 ## GAP-004 · The Evals thresholds are gameable and calibrated on two documents
 
 - status: open

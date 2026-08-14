@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.455"
+  version: "0.1.456"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -218,7 +218,7 @@ been removed; they now apply at step 4 instead of framing step 0.
    map with its labels already placed (`--labels zh` for Chinese, `--states`
    for the data), and `python3 scripts/render/globe_svg.py` the rotating globe.
    These are two components, not two forms of one
-   (the split is recorded in `references/design-rules.md` §6's figure
+   (the split is recorded in `references/design-rules.md` §1d's figure
    vocabulary; the dated design history lives in specs/): the map is flat, labelled
    and state-driven; the globe rotates and carries `--marks`, its data as a
    JSON list of `{lon, lat, weight, label}`.

@@ -71,6 +71,10 @@ jobs:
       # than as a mystery failure in a guard that reads it.
       - run: python3 scripts/build/build_entrypoints.py --check
       - run: python3 scripts/build/build_fixtures.py --check
+      # The eval inventory is generated FROM the checkers, so a checker
+      # change regenerates it or this refuses. It runs after the fixture
+      # check because it measures the passing fixture to read the row tables.
+      - run: python3 scripts/build/build_eval_inventory.py --check
       # The gates, tested. Runs after the staleness checks so a stale
       # fixture reports as stale rather than as a metric regression.
       - run: python3 scripts/check/check_fixtures.py

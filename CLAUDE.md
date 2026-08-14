@@ -198,6 +198,7 @@ Actions incident blocks merging for everyone. Do not wait it out by polling.
 - `references/storyline-templates.md` — narrative skeletons per scenario (sales / consulting / internal analysis / training), cover & closing templates, the pre-delivery critic gate
 - `references/design-rules.md` — color semantics, typography, chart rules, semantic icons, layout guards, verification matrix
 - `references/eval-rubric.md` — the M / D / H scoring rubric and the review protocol (the iteration engine)
+- `references/eval-inventory.md` — **generated** (`scripts/build/build_eval_inventory.py`, `--check` in CI): every quantitative constraint extracted from the checkers, with its tier and whether any reference file states it
 
 `tokens/lumi-theme.css` and `tokens/design-tokens.json` are the authority for
 palette and type values. Their palette values mirror each other exactly and must
@@ -220,7 +221,11 @@ claims. `adapters/*.md` are the per-platform loading notes, one per registry rec
 manifests and `.well-known/skills/index.json`. Edit the registry, never the
 artifact; `--check` runs in CI. `SKILL.md`, `AGENTS.md`,
 `prompts/lumi-style-core.md` and `references/` stay hand-written, because
-assembled prose is worse prose and those are the files a reader actually reads.
+assembled prose is worse prose and those are the files a reader actually reads —
+with one owner-directed exception: `references/eval-inventory.md` is generated,
+because it is a table of some one hundred and eighty numbers rather than prose,
+and a hand-written copy of the checkers' numbers is the drift class this
+repository has fixed twenty-six times.
 The notes also carry the precedence rule that `references/` wins on conflict. The
 `platform manifest` guard requires every registry claim to have a file behind it,
 every note to be claimed by a platform, and every *unverified* claim to carry a

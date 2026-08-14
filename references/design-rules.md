@@ -196,9 +196,10 @@ the reader's eye.
 
 - **Primary face — D-DIN takes over** (v1.2): D-DIN is the single Latin face
   for titles, body, and data alike, with CJK fallback (PingFang SC / Noto Sans
-  SC). Display titles are ALL-CAPS at **weight 400** with tight leading
-  (0.95–1.0) — size and case carry the authority, not boldness; bold is
-  reserved for the accent word. Rounded faces (Quicksand/Nunito) are retired
+  SC). Display titles are ALL-CAPS at **weight 700** with tight leading
+  (0.92) — `--w-display` and `--lh-display` in `tokens/` are the authority.
+  (This sentence said weight 400 while the tokens shipped 700 for over a
+  hundred releases — the drift the tokens-win rule exists for.) Rounded faces (Quicksand/Nunito) are retired
   from decks. **The face ships with this skill** — `assets/fonts/D-DIN.woff2`
   and `D-DIN-Bold.woff2` (SIL OFL, `COPYING.txt` alongside). Embed it as a data
   URI, never link it: `python3 scripts/build/embed_font.py` prints the ready

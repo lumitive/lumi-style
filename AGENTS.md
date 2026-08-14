@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.455.** This file restates part of `references/`; where they
+> **lumi-style 0.1.456.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -183,8 +183,9 @@ illustrative values are labeled 示意); no invented Chinese coinages (use the
 standard Chinese term, or the English term directly when none exists); sales
 narrative leads with value & future (honesty boundaries take exactly one page);
 titles follow the contract "Topic: assertive subtitle" — each names its subject
-and carries a verifiable fact, with no word ceiling and no bare-antithesis
-titles, and all titles concatenated must read as a complete argument;
+and carries a verifiable fact, with no word ceiling, no bare-antithesis
+titles and no single title frame across more than 60% of a document, and all
+titles concatenated must read as a complete argument;
 charts use one accent color — the figure green `--acc-live`, which is what the
 `f-acc`/`s-acc` paint classes resolve to; `--acc` is the same meaning as text
 ink — plus conclusion-style titles and a source line;

@@ -3,6 +3,82 @@
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 
+## 0.1.456 — the owner read the rule set and could not follow it; the sweep that checked found ten contradictions and seventy code-only numbers
+
+The owner read `references/` end to end and said the evaluation's categories and
+order are scattered, patched together across iterations, with no main line a
+person can follow. **The skeletons agree with her**: design-rules' section order
+is 1, 1c, 1d, 2, 3, 4, 4b, 5, 7, 6 — section six sits after section seven — and
+its chart section numbers its rules 1-5, 6, 7, 7b, 7c, 7d, 7e, 8, 8b.
+storyline-templates wedges its shared apparatus between Template 1 and
+Template 2. The rubric describes three gating surfaces in three places with
+three vocabularies, and its author (this one) patched it twice the day before
+rather than restructuring it. The cause is structural and recorded as GAP-007:
+convention 2 admits rules only from per-defect retrospectives, so every rule
+lands as a patch at the site of its wound, and no structural release has ever
+run. The disorder is the bill for a process that optimises each sentence's
+truthfulness and never the reader's path. The decisions, and the two declined,
+are in `specs/2026-08-14-rule-consolidation-design.md`.
+
+**The full sweep behind the answer.** Two exhaustive passes — one over every
+code constant, one over every prose rule outside `references/` — found roughly
+one hundred and eighty quantitative constraints on a deliverable, some seventy
+of them stated in no reference file, whole rule families whose only home is an
+entry point or a CSS comment (the debug-mode contract appears nowhere in
+`references/`; the globe and map figure grammar lives as comments in
+`region-palette.css`), and **ten contradictions between copies of one rule**,
+including one inside a single file: `lumi-theme.css`'s header comment said
+display weight 400 five lines above `--w-display: 700`. GAP-006 records the
+homeless-rules half; the numeric half is closed below.
+
+**`references/eval-inventory.md`, generated.** Every metric row with its target
+and tier, every rendered-layout verdict, every discovered module constant with
+its own comment and a cross-check column saying which reference file states the
+number — where **CODE ONLY** is the finding, not a formatting choice. Generated
+rather than hand-copied, because the hand-copy was tried and measured:
+twenty-six releases of this repository fix a prose copy disagreeing with its
+code, and a hand-written inventory of the checkers' numbers would be the
+largest such copy ever created. `--check` joins CI, and the constants are
+discovered rather than listed, so a new one appears on the next build without
+anyone remembering it. This is the one owner-directed exception to
+"references/ stays hand-written", and CLAUDE.md's architecture section now says
+so beside the convention it excepts.
+
+**Ten contradictions, resolved by the standing rule that tokens win.** Display
+weight is 700 (design-rules said 400; the token file's own header agreed with
+the wrong copy). The part-opener display is 80px on the slide and 72 on the
+sheet, and the cover sets SMALLER at 58 (brand.md and the core prompt both said
+"80/50" and folded the cover in). Support lines are 17px (brand said 16).
+`eyebrow_latin` tracking is .08em (the JSON mirror still said the .3em the deck
+retired). The colophon lives on the closing page only (storyline-templates
+still listed it among the cover's contents, releases after SKILL.md moved it —
+a reader had rejected the duplication). AGENTS' red line 4 regains the
+one-frame-under-60% clause its siblings carry. The Chinese label for
+illustrative values (`示意`) moves from an entry point into writing-rules §4 as
+rule data. SKILL's map/globe citation pointed at §6, which is "Numbers are the
+copy"; the split lives in §1d. The rubric's twelve-item enumeration of the
+`--deliverable` verdicts — which five files counted four different ways — now
+names `deliverable_verdicts` as the list and the inventory as its render.
+
+**A withdrawn rule was still printing, and an unargued one was flagging the
+accepted document.** `check_design` carried the 40% layout-share cap 0.1.340
+withdrew — the retired register records the withdrawal, and the checker went on
+printing an advisory against it for a hundred releases. Beside it sat a
+five-distinct-layouts floor no retrospective ever argued, and it fired on the
+document the owner accepted (3 distinct layouts across 28 pages): an advisory
+that flags the accepted reference is measuring its own taste. Both are gone;
+D9 states the numbers and a reader judges them.
+
+Carried in the same release: the agreement study's tooling — 
+`scripts/ops/eval_agreement.py` (blind scoring first, the machine half cached,
+the output a disagreement list rather than a coefficient, because ten documents
+cannot power a correlation and the useful product is the pages where machine and
+reader part company), an optional `document` field on review records that admits
+only corpus ids and refuses filenames (red line 9 holds by shape, not by
+discipline), and `eval_corpus --json` keeping its stdout parseable — its notes
+had been landing in the stream, which is the same defect the debug log fixed
+two days ago.
+
 ## 0.1.455 — an Evals suite that measures a document against one that was accepted, and the four faults found while building its foundation
 
 The owner stopped a multi-agent comparison and asked for the thing that should

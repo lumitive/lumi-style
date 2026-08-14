@@ -58,6 +58,14 @@ from deliverable_registry import GENRES  # noqa: E402
 # Fields, and NOTHING else. An unknown key is an error rather than ignored
 # data: the whole engagement-fact defence is that there is nowhere to put one.
 RECORD_KEYS = {"release", "genre", "self", "reader", "outcome"}
+# OPTIONAL, and it must be a corpus ID rather than a name or a path. The
+# agreement study needs to know which document a score is about; a filename here
+# would put an engagement fact in a tracked file, which is exactly what the
+# closed key set above exists to prevent. So the field is admitted and the
+# validator refuses anything that is not the id shape — the ids resolve through
+# the gitignored evals/corpus.local.json.
+OPTIONAL_KEYS = {"document"}
+DOCUMENT_ID = re.compile(r"^[A-Z]\d{1,3}$")
 
 
 def validate(store) -> list[str]:
@@ -72,7 +80,7 @@ def validate(store) -> list[str]:
 
     for i, rec in enumerate(store.get("reviews", [])):
         where = f"reviews[{i}]"
-        extra = set(rec) - RECORD_KEYS
+        extra = set(rec) - RECORD_KEYS - OPTIONAL_KEYS
         if extra:
             errors.append(
                 f"{where} carries {sorted(extra)!r}, which the schema does not "
@@ -81,6 +89,12 @@ def validate(store) -> list[str]:
                 f"how a client name arrives")
         for missing in sorted(RECORD_KEYS - set(rec)):
             errors.append(f"{where} is missing {missing!r}")
+        doc = rec.get("document")
+        if doc is not None and not DOCUMENT_ID.fullmatch(str(doc)):
+            errors.append(
+                f"{where}.document is {doc!r}; it must be a corpus id like 'A1'. "
+                f"A filename here is an engagement fact in a tracked file, which "
+                f"is what the closed key set prevents")
         if rec.get("release") not in releases:
             errors.append(f"{where}: release {rec.get('release')!r} names no "
                           f"CHANGELOG heading")

@@ -24,7 +24,9 @@ verdicts read `ok` on both fixtures, so a checker rewritten to `return "ok"`
 would have passed the suite whose stated purpose is to catch exactly that.
 
 **The renderer is in the suite too**, behind an availability check:
-`inspect_layout.py`'s ten gating findings are asserted where a headless Chromium
+`inspect_layout.py`'s gating findings (`deliverable_verdicts` is the list —
+a count written here said "ten" while the code carried fourteen) are
+asserted where a headless Chromium
 exists and the run says loudly, with a count, when it skipped them. That is why
 the suite takes a couple of minutes locally — three fixtures at four geometries
 each — and why it still cannot run in CI.
