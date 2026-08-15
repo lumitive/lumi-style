@@ -344,7 +344,7 @@ belongs to the product's purpose, hence `GOAL` among its parents.
 | ② terminology is stable: each key concept has one name throughout (check three) | human · sampled |
 | ~~③ placeholders and draft markers~~ | **held**: D14 (gates) |
 | ~~④ layout consistency (≤2 typefaces, restrained palette, alignment)~~ | **half held**: palette by D4 and D20; **there is no font-count check** — mechanisable, not built |
-| ~~⑤ plain-language baseline~~ | **held**: M4, M8, M9. Register as a whole goes to the judge-finding layer |
+| ~~⑤ plain-language baseline~~ | **held**: M4, M8, M9. Register as a whole goes to the **judge-finding layer** (`scripts/ops/judge_findings.py`): a language model may point at a sentence and say what is wrong with it, and **every finding carries a quotation that must appear in the document** — a model that cannot produce the sentence it objects to has not found anything. No scores, and never gates |
 
 ## Review protocol (the iteration engine)
 

@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.1.471 — a language model may object to a sentence, and must be able to quote it
+
+**`scripts/ops/judge_findings.py`.** A judge that scores is fooled by fluent
+verbosity — that is measured, and it is why C1–C7 is ticked rather than rated.
+But a judge that points at a specific sentence and says what is wrong with it
+does something no metric can: it reads register, which is the half of P-3 that
+will not mechanise.
+
+**Every finding carries a verbatim quotation, and the quotation must appear in
+the document.** Not resemble, not paraphrase — appear. **This is where a
+hallucinated finding dies**: a model that cannot produce the sentence it objects
+to has not found anything. The match is made after flattening whitespace and
+stripping tags, because the model saw the rendered text and must not be held to
+markup it never read; a real quotation survives that and an invented one does not.
+
+**There is no field for a score**, and a finding carrying one is rejected rather
+than trimmed. A fragment shorter than three words is rejected too — it would
+match almost any document.
+
+**Reported, never gating.** These are opinions with evidence attached, and
+gating on them would have an author editing a document to satisfy a model's
+taste, which is the register this whole rule set exists to keep out.
+
+Exercised against a real fixture with four findings: the true quotation was
+accepted, and an invented objection, a one-word fragment and a finding carrying
+a score were all dropped for their own reasons.
+
+This is P3.5, completing P3 of
+`specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
 ## 0.1.470 — the ledger reads the traces, drafts candidates, and ratifies nothing
 
 **`scripts/ops/ledger.py`.** `trace.py` records what happened; this reads the
