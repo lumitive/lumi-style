@@ -35,6 +35,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 
 import color_math  # noqa: E402 — after the bootstrap, deliberately
+import trace_schema  # noqa: E402 — the one definition, shared with scripts/ops/trace.py
 from css_tokens import css_block, css_vars  # noqa: E402, F401 — css_block is API for tests/tools
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
@@ -245,6 +246,39 @@ FROZEN_RULE_IDS = (
     "WR-1", "WR-2", "WR-3", "WR-4", "WR-5", "WR-6", "WR-7", "WR-8", "WR-9",
     "ST-1", "ER-1",
 )
+
+def check_trace_schema():
+    """Every stored trace validates against the schema `trace.py` defines.
+
+    The schema is IMPORTED from scripts/lib/trace_schema.py rather than
+    restated here — and it lives in lib/ rather than beside the CLI so the
+    emergency-merge closure does not have to reach into scripts/ops/.
+    A second copy of a field list is the defect this repository spends most of
+    its releases fixing, and a schema guard that carried its own copy would be
+    the purest instance of it.
+
+    An empty evals/traces/ is a legal state, not a vacuous pass: traces come
+    from real builds, and the repository ships none. What must not happen is a
+    stored trace carrying free text or a verdict nobody measured — red line 9
+    held by a schema instead of by good intentions. The synthetic tests are
+    what prove this can fail.
+    """
+    if not trace_schema.FIELDS:
+        return ["trace_schema defines no FIELDS — the guard would pass vacuously"]
+
+    traces = ROOT / "evals" / "traces"
+    if not traces.exists():
+        return []
+    errors = []
+    for path in sorted(traces.glob("*.json")):
+        try:
+            rec = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            errors.append(f"{rel(path)}: not valid JSON ({exc})")
+            continue
+        for problem in trace_schema.validate(rec):
+            errors.append(f"{rel(path)}: {problem}")
+    return errors
 
 def check_rule_ids():
     """Every rule family carries a unique, position-independent id.
@@ -2176,6 +2210,7 @@ SIBLING_MODULES = (
     "geo_projection", "geo_frame", "globe_svg", "regionmap_svg", "sea_route",
     "color_math", "css_tokens", "lock", "deliverable_registry",
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
+    "trace_schema",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
@@ -2624,6 +2659,7 @@ CHECKS = (
     ("principle trace", check_principle_trace),
     ("red line parity", check_red_line_parity),
     ("rule ids", check_rule_ids),
+    ("trace schema", check_trace_schema),
     ("stale promises", check_stale_promises),
     ("platform manifest", check_platform_manifest),
     ("retired values", check_retired_values),
