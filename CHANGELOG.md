@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.1.466 — P-5's other half gets an implementation, and a third layer that says it is not one
+
+**`scripts/check/check_privacy.py`.** "Every page states how it may be handled"
+has been D12 for a long time. "Sensitive information does not leave the document
+boundary" had **nothing behind it at all**. Three layers, because sensitivity is
+not one kind of question:
+
+**Layer 1 gates** — credential shapes, and terms declared out of bounds for this
+engagement. Both are yes/no facts about the text. It searches the whole file: a
+token in a `data-` attribute has left the boundary just as surely as one in a
+paragraph.
+
+**Layer 2 reports** — an email address, a direct phone number, a private-range
+host, a home directory path. A deliverable legitimately carries a contact
+address, and a gate here would teach authors to delete real content to silence a
+checker.
+
+**Layer 3 is not mechanised, and the script says so.** Whether a passage of
+commercial analysis is sensitive is a judgement. It is named at the pre-delivery
+step as a question for a person. A script that implied it had covered layer 3
+would be worse than one that stops at layer 2.
+
+**Not attempted is not passed.** With no `--terms` list the term half reports
+NOT ATTEMPTED and exits non-zero, on the same reasoning that keeps
+`not_measured` distinct from zero everywhere else here.
+
+**The out-of-bounds list never enters this repository.** It is read from a path
+the operator gives, held for one run, and written nowhere — **the findings do
+not echo the term itself**, which a test asserts. A file of a client's forbidden
+words is the most engagement-specific data there is, and red line 9 says this
+repository holds none.
+
+**Layer 2's first version produced six phone numbers on a clean fixture, none of
+them a phone number.** They were the geography SVG's `data-arcs` attribute, a
+few hundred indices in which "104 105 1061" is phone-shaped. The fix was
+structural rather than a tighter pattern: layer 1 searches the whole file
+because a credential anywhere has escaped, layer 2 searches only what a reader
+sees because contact details are the only thing it is about. **A reported
+section that cries wolf is a reported section nobody reads**, and eight of the
+twelve tests are false-positive tests for that reason.
+
+**Two of this release's own bugs are worth recording.** The trailing guard on
+the phone pattern excluded punctuation, so a phone number at the end of a
+sentence — the normal case — was never found. And a comment added to the pattern
+landed **inside** the raw string, making the regex require its own explanatory
+text; it matched nothing at all. Both were found by running it, neither by
+reading it.
+
+This is P2.4 of `specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
 ## 0.1.465 — genre stops answering two questions, and the tier is derived from behaviour rather than asserted
 
 **`genre` was carrying two jobs**: which thresholds and prose rules apply, and

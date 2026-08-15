@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.465"
+  version: "0.1.466"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -260,7 +260,13 @@ been removed; they now apply at step 4 instead of framing step 0.
    reserves its height as a ceiling; `-webkit-line-clamp` or `overflow: hidden`
    there deletes lines from a client page and leaves the geometry looking clean.
 
-4. **Before delivery**: if two MUST clauses of `references/PRINCIPLES.md`
+4. **Before delivery**: run `python3 scripts/check/check_privacy.py <file>
+   --terms <list>` — P-5's other half. Layer 1 gates (credential shapes, and
+   terms declared out of bounds for this engagement); layer 2 reports; **layer 3
+   is yours**: is any commercial analysis here sensitive? The script names that
+   question and does not answer it. **Without `--terms` the term half reports
+   NOT ATTEMPTED and exits non-zero** — a check nobody ran is not a check that
+   found nothing. Then: if two MUST clauses of `references/PRINCIPLES.md`
    cannot both be satisfied, take its §3 exit — **record both clauses and what
    each demanded, do not emit, hand it to a person**; it is rare, and it is not
    a way out of an inconvenient rule. Otherwise run the critic gate (structure before polish) and its
