@@ -20,6 +20,7 @@ the hidden-constraint condition this inventory exists to surface.
 | check_prose | M10_triad_rate | `<=50%` | graded |
 | check_prose | M11_title_uniformity | `<=60%` | graded |
 | check_prose | M12_visible_cjk | `=0 (gates)` | gate |
+| check_prose | M13_quantity_conflicts | `=0 (reported)` | reported |
 | check_prose | M1_assertive_titles | `>=70% (reported)` | reported |
 | check_prose | M2_number_sourcing | `>=90%` | graded |
 | check_prose | M4_banned_hits | `=0` | graded |
@@ -70,6 +71,7 @@ different ways.
 | M2_TARGET | `90.0` | percent of figures whose page carries a marker | (not searched: too short) |
 | M1_TARGET | `70.0` | percent of titles naming a subject and a fact | (not searched: too short) |
 | MIN_FIGURES | `4` | below this, a sourcing rate is one number's opinion | (not searched: too short) |
+| LOOK_AHEAD | `60` | characters after the phrase in which the number counts | (not searched: too short) |
 
 ### scripts/check/check_design.py
 

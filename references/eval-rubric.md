@@ -8,13 +8,13 @@
 
 ## Contents
 
-- [Machine metrics M1–M12 (scriptable; spot-check manually when no script)](#machine-metrics-m1m12-scriptable-spot-check-manually-when-no-script)
+- [Machine metrics M1–M13 (scriptable; spot-check manually when no script)](#machine-metrics-m1m13-scriptable-spot-check-manually-when-no-script)
 - [Design diagnostics (`scripts/check/check_design.py`)](#design-diagnostics-scriptscheckcheck_designpy)
 - [Human dimensions C1–C7 (tick evidence items; do not rate an impression)](#human-dimensions-c1c7-tick-evidence-items-do-not-rate-an-impression)
 - [Review protocol (the iteration engine)](#review-protocol-the-iteration-engine)
 - [Known genre distortions (never chase the score)](#known-genre-distortions-never-chase-the-score)
 
-## Machine metrics M1–M12 (scriptable; spot-check manually when no script)
+## Machine metrics M1–M13 (scriptable; spot-check manually when no script)
 
 **Ten of the twelve have code.** `check_prose.py` implements M1, M2, M4, M5, M6,
 M8, M9, M10, M11 and M12. Until 0.1.390 the parenthesis in this heading carried
@@ -53,6 +53,7 @@ have no Han character next to their punctuation.
 | M9 | Em dashes in en sales/marketing | =0 | em/en dash characters outside code, data, and internal analysis documents |
 | M10 | Triad rate | ≤50% | share of enumerations (lists, appositive series) containing exactly three items |
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame (e.g. "Topic: clause") |
+| M13 | One quantity, one value | =0 — **reported** | the same two-word noun phrase carrying two different values with no qualifier near either mention. Deliberately narrow: a time series, a target/actual pair and a per-region split are different quantities, not contradictions |
 | M12 | Visible CJK in an English deliverable | =0 — **gates** | Chinese in text a reader sees, when the document declares English by `lang`, filename or `--lang`. Quoted as data (`<code>`, `<pre>`, backticks) is exempt |
 
 ## Design diagnostics (`scripts/check/check_design.py`)
@@ -288,7 +289,7 @@ Those are what a storyline review can check before the document exists.
 | Evidence item | Decided by |
 |---|---|
 | ① the source line names a dataset or report, not "analysis" | human (existence is held by D6; **whether it names anything is not machine-decidable**) |
-| ~~② one quantity, one value across the document~~ | **to build**: cross-page number consistency. **Nothing checks this today**, and it is the most direct hold on figure-text hallucination |
+| ~~② one quantity, one value across the document~~ | **held, reported**: M13. It anchors on a repeated two-word noun phrase and looks forward for the number; a qualifier anywhere near either mention (a year, a quarter, target/actual, a region) silences it, because those are different quantities rather than a contradiction |
 | ③ estimates and forecasts are visibly distinguished from actuals, with the key assumption stated where the estimate appears | human |
 | ~~④ share of argument titles carrying a number~~ | **held**: M1 (reported) |
 | ⑤ limits and boundaries appear where the reader meets them, not only in an appendix | human |

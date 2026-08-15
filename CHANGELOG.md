@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.1.464 — the first check that asks whether a document contradicts itself, and the version of it that did not work
+
+**M13 · one quantity, one value.** Until now a deliverable could state
+"4.2 million" and "4.5 million" of the same thing on two pages and every metric
+stayed green. This is the most direct hold there is on figure-text
+hallucination, and nothing held it.
+
+**The first implementation found nothing on a document written to contradict
+itself.** It took the words immediately BEFORE a number as the quantity's
+label, which in English gathers verbs and prepositions — "stood at", "put it
+at" — rather than the name of the thing being measured. Two mentions of the
+same quantity produced two different labels and no conflict. The rewrite
+anchors on a **repeated two-word noun phrase** and looks **forward** for the
+number, which is the order the language actually uses.
+
+**It is reported, never gating, and deliberately narrow.** A qualifier anywhere
+near either mention silences it — a year, a quarter, target/actual, a region,
+a phase — because those are different quantities rather than a contradiction.
+Four of the seven tests are false-positive tests for exactly that reason: a
+checker confident enough to make an author edit correct prose is the failure
+this repository has already shipped once, and the cost of a false pass here is
+a missed contradiction while the cost of a false failure is the prose itself.
+
+**Verified against every fixture and a real deliverable** before it shipped:
+zero findings on all of them, and a planted contradiction found.
+
+This is P3.4 of `specs/2026-08-15-principles-and-evals-refactor-design.md`,
+and it closes C4-②.
+
 ## 0.1.463 — H1–H6 becomes C1–C7, scored by ticking evidence rather than by forming an impression
 
 **The rubric's human half is replaced.** Six dimensions written as anchors a
