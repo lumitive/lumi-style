@@ -242,7 +242,7 @@ def _anchors_of(path):
 # when sections move. Adding a family adds an id here and in the reference file.
 FROZEN_RULE_IDS = (
     "BR-1", "BR-2", "BR-3", "BR-4", "BR-5", "BR-6",
-    "DR-1", "DR-2", "DR-3", "DR-4", "DR-5", "DR-6", "DR-7", "DR-8", "DR-9", "DR-10",
+    "DR-1", "DR-2", "DR-3", "DR-4", "DR-5", "DR-6", "DR-7", "DR-8", "DR-9", "DR-10", "DR-11",
     "WR-1", "WR-2", "WR-3", "WR-4", "WR-5", "WR-6", "WR-7", "WR-8", "WR-9",
     "ST-1", "ER-1",
 )
