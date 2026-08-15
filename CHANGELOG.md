@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.1.468 — the score store moves to C1–C7 and finally requires the key its own study joins on
+
+**`reviews/scores.json` schema 2.** Dimensions are C1–C7, and **`corpus_id` is
+required on every new record**. The agreement study joins a machine reading to a
+human score on that key, and neither existing record carries one — which is the
+entire reason that study has never had a single joinable row. Requiring it is
+the smallest change that makes K3 reachable at all.
+
+**History is kept verbatim rather than back-filled.** The two schema-1 records
+keep their H1–H6 shape and carry `"schema": 1`; the validator branches on it.
+Inventing a corpus id for a document nobody can re-measure would put a
+**fabricated join key into the evidence**, which is worse than the gap it hides.
+
+**Two steps become permanent CI.** `review_scores.py --check` and
+`eval_agreement.py --report` now run on every release, so the study's state is
+visible rather than remembered. **`--report` exits 0 on purpose**: the study's
+blocker today is an open ledger entry, and a release does not gate on a known
+gap — it records it. Without `--report` the script still fails loudly, because
+a study nobody can run should be loud when someone runs it.
+
+**The prediction map was re-derived, not transliterated.** `PREDICTS` moved from
+H to C by asking what each machine reading is actually a proxy for — C2 is the
+storyline read through the titles, C3 the argument on one page, C4 sourcing —
+and gained two entries. They are **hypotheses the study exists to test**, not
+findings; a mapping that never disagrees with its dimension is either right or
+measuring the same thing twice.
+
+The blind scoring sheet follows the new dimensions, so a reviewer is not handed
+a form for a rubric that no longer exists.
+
+This is P3.2 and P3.3 of
+`specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
 ## 0.1.467 — what this product is, written down, and a brand registry that is not allowed to grow rules
 
 **`specs/2026-08-16-product-definition.md`.** Every other file in `specs/`

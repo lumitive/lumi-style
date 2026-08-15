@@ -59,11 +59,19 @@ LOCAL_CORPUS = ROOT / "evals" / "corpus.local.json"
 # clear without the body text"). A metric about drawing that turns out to track
 # H5 business readability instead is not a success with a footnote — it is a
 # metric measuring something other than what it was introduced for.
+# A machine reading -> the human dimension it is a proxy for. These are
+# HYPOTHESES, not findings: the study exists to test them, and a mapping that
+# never disagrees with its dimension is either right or measuring the same
+# thing twice. They moved from H to C at 0.1.468 and the mapping was re-derived
+# rather than transliterated — C2 is the storyline read through the titles,
+# C3 is the argument on one page, C4 is sourcing.
 PREDICTS = {
-    "prose_only_share": "H3",
-    "figures_per_content_page": "H3",
-    "list_items_per_content_page": "H2",
-    "visual_share_median": "H2",
+    "prose_only_share": "C3",
+    "figures_per_content_page": "C3",
+    "list_items_per_content_page": "C2",
+    "visual_share_median": "C3",
+    "M1_assertive_titles": "C2",
+    "M2_number_sourcing": "C4",
 }
 
 # A reader's 1-5 against a threshold's pass/miss. 3 is the anchor's midpoint —
@@ -137,6 +145,14 @@ def main(argv=None) -> int:
                     help="print a blind scoring form — no mechanical numbers")
     ap.add_argument("--measure", action="store_true",
                     help="run the machine half and cache it")
+    ap.add_argument("--report", action="store_true",
+                    help="print the standing state and exit 0. This is the mode "
+                         "CI runs: the study's blocker today is that no record "
+                         "carries a corpus id, which is an open ledger entry, "
+                         "and a release does not gate on a known gap — it "
+                         "records it. Without --report, no joinable row is an "
+                         "error, because a study nobody can run should be loud "
+                         "when someone runs it.")
     ap.add_argument("files", nargs="*", type=pathlib.Path)
     args = ap.parse_args(argv)
 
@@ -167,16 +183,24 @@ def main(argv=None) -> int:
         print("document, and then run this script with no flags.\n")
         for name in names:
             print(f"## {name}\n")
-            for dim, anchor in (("H1", "reader value"), ("H2", "structural expression"),
-                                ("H3", "chart self-explanation"),
-                                ("H4", "honest-boundary disclosure"),
-                                ("H5", "business readability"),
-                                ("H6", "narrative persuasion")):
+            for dim, anchor in (("C1", "governing message"),
+                                ("C2", "storyline integrity"),
+                                ("C3", "page argument"),
+                                ("C4", "evidence and sourcing"),
+                                ("C5", "type completeness"),
+                                ("C6", "actionability"),
+                                ("C7", "finish and reader efficiency")):
                 print(f"- {dim} {anchor:28} ___   because:")
             print()
         return 0
 
     if not CACHE.exists():
+        if args.report:
+            print("note  agreement study: no cached measurement on this machine. "
+                  "The study is a local operator step; `--measure` builds the "
+                  "cache. Standing blocker: reviews/scores.json carries no "
+                  "corpus id, so there is nothing to join to.")
+            return 0
         print("FAIL  no cached measurement. Run with --measure first.")
         return 1
     measured = json.loads(CACHE.read_text(encoding="utf-8"))
@@ -185,7 +209,7 @@ def main(argv=None) -> int:
         print(f"note  no reader scores name a document, so nothing can be "
               f"compared. {len(measured)} document(s) are measured and waiting; "
               f"`--sheet` prints the form.")
-        return 1
+        return 0 if args.report else 1
 
     rows = study(measured, scored)
     if not rows:
