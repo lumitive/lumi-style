@@ -615,6 +615,9 @@ def measure(path, genre, lang=None):
         "file": str(path),
         "genre": genre,
         "language": language, "language_from": where,
+        "M13_quantity_conflicts": len(quantity_conflicts(body)),
+        "M13_detail": [f"{lab}: " + " vs ".join(f"{v}{u}" for v, u in vals)
+                       for lab, vals in quantity_conflicts(body)][:8],
         "M12_visible_cjk": None if cjk is None else len(cjk),
         "M12_detail": cjk or [],
         "sentences": len(lengths),
@@ -642,6 +645,71 @@ def measure(path, genre, lang=None):
     }
 
 
+# --- M13: one quantity, one value -------------------------------------------
+# The most direct hold on figure-text hallucination, and until 0.1.464 nothing
+# checked it: a document could say "4.2 million" and "4.5 million" of the same
+# thing on two pages and every metric stayed green.
+#
+# The first implementation took the words immediately BEFORE a number as its
+# label, which gathers verbs and prepositions ("stood at", "put it at") rather
+# than the name of the quantity — it found nothing on a document written to
+# contradict itself. This one anchors on a repeated two-word noun phrase and
+# looks FORWARD for the number, which is the order English actually uses.
+#
+# REPORTED, never gating. A labelled quantity legitimately changes across a time
+# series, a target/actual pair or a per-region split, so any qualifier near the
+# mention silences it. Widening this would produce the failure this repository
+# has shipped before: a checker confident enough to make an author edit correct
+# prose to keep it quiet.
+_NUM = re.compile(r"\b(?P<value>\d[\d,]*(?:\.\d+)?)\s?"
+                  r"(?P<unit>%|percent|m\b|bn\b|k\b|million|billion|thousand)", re.I)
+_QUALIFIER = re.compile(
+    r"\b(19|20)\d{2}\b|\b(q[1-4]|h[12]|fy)\b|\b(target|forecast|estimate|"
+    r"baseline|prior|previous|current|projected|actual|illustrative|per|each|"
+    r"average|median|max|min|rural|urban|north|south|east|west|phase|scenario)\b",
+    re.I)
+_STOP = {"the", "a", "an", "of", "and", "or", "to", "in", "on", "by", "is", "was",
+         "are", "were", "at", "for", "with", "from", "than", "about", "that",
+         "this", "it", "its", "as", "be", "been", "has", "have", "had", "will",
+         "when", "which", "put", "stood", "reached", "said"}
+LOOK_AHEAD = 60          # characters after the phrase in which the number counts
+
+
+def quantity_conflicts(text):
+    """[(phrase, [(value, unit), ...])] where one named quantity carries two values.
+
+    A phrase qualifies only if it is two content words long and occurs at least
+    twice — a single mention cannot contradict anything, and a one-word label is
+    too generic to be the name of a quantity.
+    """
+    flat = re.sub(r"\s+", " ", text)
+    words = [(m.group(0).lower(), m.start(), m.end())
+             for m in re.finditer(r"[A-Za-z][\w-]*", flat)]
+    content = [w for w in words if w[0] not in _STOP and len(w[0]) > 2]
+    phrases: dict[str, list] = {}
+    for (w1, s1, _e1), (w2, _s2, e2) in zip(content, content[1:]):
+        if _NUM.match(w1) or w1.isdigit() or w2.isdigit():
+            continue
+        phrases.setdefault(f"{w1} {w2}", []).append((s1, e2))
+    out = []
+    for phrase, spans in phrases.items():
+        if len(spans) < 2:
+            continue
+        found = set()
+        for _s, e in spans:
+            window = flat[e:e + LOOK_AHEAD]
+            m = _NUM.search(window)
+            if not m:
+                continue
+            context = flat[max(0, _s - 40):e + LOOK_AHEAD]
+            if _QUALIFIER.search(context):
+                continue
+            found.add((m.group("value").replace(",", ""), m.group("unit").lower()))
+        if len(found) > 1 and len({u for _v, u in found}) == 1:
+            out.append((phrase, sorted(found)))
+    return sorted(out)
+
+
 def grade(r):
     """[(metric, value, target, verdict)] — verdict is ok / FAIL / n/a."""
     thin_rhythm = r["sentences"] < MIN_SENTENCES
@@ -651,6 +719,10 @@ def grade(r):
         ("M12_visible_cjk", r["M12_visible_cjk"], "=0 (gates)",
          not r["M12_visible_cjk"], r["M12_visible_cjk"] is None),
         ("M4_banned_hits", r["M4_banned_hits"], "=0", r["M4_banned_hits"] == 0, False),
+        # Reported, never gating: a quantity legitimately changes, and a gate
+        # here would make an author edit correct prose to silence it.
+        ("M13_quantity_conflicts", r["M13_quantity_conflicts"], "=0 (reported)",
+         r["M13_quantity_conflicts"] == 0, False),
         # The Chinese pair. n/a on any document that is not Chinese — not "ok",
         # because a metric that passes on a document it never looked at is the
         # reassuring line this package keeps removing.
