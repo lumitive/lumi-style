@@ -2067,6 +2067,10 @@ SECRET_WAIVERS: dict[str, str] = {
         "prove the guard can fail. (Spelling the key here would trip the "
         "guard on its own waiver table, which is how this sentence learned "
         "not to.)",
+    "tests/test_check_privacy.py":
+        "check_privacy's own failing fixtures: the same documented example key, "
+        "used to prove its layer 1 can fire. The two checkers caught each other "
+        "on the day the second one shipped, which is the pair working.",
 }
 
 # High-signal only: on a prose-heavy repository a chatty secret scanner is a
@@ -2390,6 +2394,47 @@ def _metric_ids(prefix: str) -> tuple[set[str], set[str]]:
     return ids, gating
 
 
+def check_brand_registry():
+    """The brand registry names brands whose assets exist, and it stays thin.
+
+    It answers which asset pack and which wordmark, and nothing else. Palette
+    lives in tokens/, rules live in references/, and a brand record that started
+    carrying either would become the fifth surface restating them — which is the
+    defect this whole refactor exists to remove, arriving through a new door.
+
+    The default brand must be one of the brands, and every path a record names
+    must exist: a registry pointing at a missing asset pack is worse than none,
+    because a build reads it and produces a deliverable with nothing on the
+    cover.
+    """
+    path = ROOT / "brands" / "registry.json"
+    if not path.exists():
+        return ["brands/registry.json is missing"]
+    try:
+        reg = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"brands/registry.json does not parse: {exc}"]
+
+    errors = []
+    brands = reg.get("brands") or {}
+    if not brands:
+        return ["brands/registry.json defines no brands — the guard would pass vacuously"]
+    if reg.get("default") not in brands:
+        errors.append(f"default brand {reg.get('default')!r} is not one of "
+                      f"{sorted(brands)}")
+    ALLOWED = {"wordmark", "assets", "cover_mark", "locked", "status"}
+    for name, rec in brands.items():
+        extra = sorted(set(rec) - ALLOWED)
+        if extra:
+            errors.append(f"brand {name!r} carries {extra}; the registry answers "
+                          f"which assets and which wordmark, and rules and palette "
+                          f"stay in references/ and tokens/")
+        for key in ("assets", "cover_mark", "locked"):
+            target = rec.get(key)
+            if target and not (ROOT / target).exists():
+                errors.append(f"brand {name!r} {key} -> {target}, which does not exist")
+    return errors
+
 def check_two_axis_vocabulary():
     """The rule tier and the storyline stay two axes, each derived, neither faked.
 
@@ -2710,6 +2755,7 @@ def check_genre_vocabulary():
 CHECKS = (
     ("genre vocabulary", check_genre_vocabulary),
     ("two-axis vocabulary", check_two_axis_vocabulary),
+    ("brand registry", check_brand_registry),
     ("metric id ranges", check_metric_id_ranges),
     ("gating claims", check_gating_claims),
     ("version stamps", check_versions),

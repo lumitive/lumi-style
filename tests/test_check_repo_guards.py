@@ -445,3 +445,50 @@ def test_rule_ids_vanished_id_fails(tmp_path, monkeypatch):
 def test_rule_ids_empty_tree_fails_rather_than_passing(tmp_path, monkeypatch):
     monkeypatch.setattr(check_repo, "ROOT", _rule_id_tree(tmp_path, ["no declarations"]))
     assert any("vacuously" in e for e in check_repo.check_rule_ids())
+
+
+# check_brand_registry — thin, and every path it names exists.
+
+def _brand_tree(tmp_path, rec=None, default="lumivate"):
+    (tmp_path / "brands").mkdir()
+    (tmp_path / "assets" / "brand" / "lumivate").mkdir(parents=True)
+    (tmp_path / "assets" / "brand" / "lumivate" / "mark.svg").write_text("<svg/>")
+    rec = rec if rec is not None else {"wordmark": "LUMI Style",
+                                       "assets": "assets/brand/lumivate/",
+                                       "cover_mark": "assets/brand/lumivate/mark.svg"}
+    (tmp_path / "brands" / "registry.json").write_text(
+        json.dumps({"schema": 1, "default": default, "brands": {"lumivate": rec}}),
+        encoding="utf-8")
+    return tmp_path
+
+
+def test_brand_registry_valid_tree_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _brand_tree(tmp_path))
+    assert check_repo.check_brand_registry() == []
+
+
+def test_brand_registry_missing_asset_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _brand_tree(
+        tmp_path, rec={"wordmark": "x", "cover_mark": "assets/brand/lumivate/gone.svg"}))
+    assert any("does not exist" in e for e in check_repo.check_brand_registry())
+
+
+def test_brand_registry_default_must_be_a_brand(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _brand_tree(tmp_path, default="other"))
+    assert any("default brand" in e for e in check_repo.check_brand_registry())
+
+
+def test_brand_registry_refuses_to_carry_rules(tmp_path, monkeypatch):
+    """Palette lives in tokens/, rules in references/. A brand record that
+    started carrying either would be a fifth surface restating them."""
+    monkeypatch.setattr(check_repo, "ROOT", _brand_tree(
+        tmp_path, rec={"wordmark": "x", "accent": "#00ff00", "max_fonts": 2}))
+    errors = check_repo.check_brand_registry()
+    assert any("stay in references/ and tokens/" in e for e in errors)
+
+
+def test_brand_registry_empty_fails_rather_than_passing(tmp_path, monkeypatch):
+    (tmp_path / "brands").mkdir()
+    (tmp_path / "brands" / "registry.json").write_text('{"brands": {}}', encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    assert any("vacuously" in e for e in check_repo.check_brand_registry())

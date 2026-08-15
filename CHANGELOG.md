@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.1.467 — what this product is, written down, and a brand registry that is not allowed to grow rules
+
+**`specs/2026-08-16-product-definition.md`.** Every other file in `specs/`
+records a decision already taken; this one states what the product is, and is
+meant to be read before them. One sentence, who it is for, what it does in the
+order a user meets it, what it refuses to do, and the five criteria for telling
+whether it works — all written as outcomes rather than as work completed.
+
+Two of those criteria carry their own knife. **K2 is self-falsifying**: if
+documents from the discussion path do not score better than documents from the
+template path, the four-beat design goes back for review rather than being
+defended. **K4 promises measurable and specifically not cheaper**, because
+without a baseline that claim is unavailable.
+
+**`brands/registry.json` + the `brand registry` guard.** One record per brand,
+answering which asset pack and which wordmark — and **nothing else**. The guard
+rejects a record carrying a palette or a rule, because a brand record that
+started holding either would become the fifth surface restating them: the exact
+defect this refactor exists to remove, arriving through a new door. Every path a
+record names must exist, since a registry pointing at a missing asset pack is
+worse than no registry — a build reads it and produces a cover with nothing on it.
+
+**The two checkers caught each other on the day the second one shipped.** The
+`secrets` guard failed on `check_privacy`'s own test fixture, which contains
+AWS's documented example key to prove layer 1 can fire. Waived by path with the
+reason, which is what that table is for — never by narrowing the pattern.
+
+This is P2.1 and P2.5 of
+`specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
 ## 0.1.466 — P-5's other half gets an implementation, and a third layer that says it is not one
 
 **`scripts/check/check_privacy.py`.** "Every page states how it may be handled"
