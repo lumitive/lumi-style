@@ -1,0 +1,16 @@
+{
+  "version": "0.1.460",
+  "diff_base": "c5556d5e7bbe777f42b434db34fa08ee87b9784e",
+  "spec": "specs/2026-08-15-principles-and-evals-refactor-design.md",
+  "obligations": [],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "2c6c1061cb8125b722b487291b019ed0f35c5d8b0856a4ac2ba4a74b980ff378",
+      "date": "2026-08-15"
+    }
+  ],
+  "waivers": []
+}

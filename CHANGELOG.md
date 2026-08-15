@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.1.460 — the summary that may reword but may not drop a rule, and P-1's coverage gap written down instead of implied
+
+**`red line parity` guard.** `SKILL.md` is the red lines' home and the generated
+entry points already lift the block from it. `AGENTS.md` restates them by hand
+on purpose — it is a file people read, and assembled prose is worse prose — so
+it gets a parity guard rather than generation. The guard checks the count on
+both sides and, for each red line, that the summary keeps at least one of the
+words that distinguish that rule from the others. **The anchor words are derived
+from `SKILL.md`, never listed in the guard**: a guard that hand-lists what it
+checks becomes a third copy of the thing it exists to keep in sync.
+
+**Its first version was wrong in the most instructive way.** It demanded the
+single longest distinguishing word and immediately failed on `AGENTS.md` saying
+"standard Chinese term" where `SKILL.md` says "established Chinese term" — the
+same rule in different words. The available "fix" was to insert a word into
+`AGENTS.md` for no reader's benefit, which is a checker editing prose to satisfy
+itself. Asking for any one anchor instead lets a real paraphrase through while a
+dropped rule still fails. **The limit that leaves is written into the guard**:
+a summary that rewords every distinguishing word of one rule reads exactly like
+a summary that dropped it, and that is the right side to err on — a false pass
+costs a stale summary, a false failure costs the prose.
+
+**A red-team run that silently planted nothing.** The first deliberate-red for
+this guard replaced a sentence that contains a line break, so the replacement
+never matched, the violation was never planted, and the run reported no failure —
+which reads identically to a guard that cannot fail. Caught by checking that the
+edit had actually happened. Both directions then fired: a dropped rule, and a
+seventh red line added to `SKILL.md` while both summaries still said six.
+
+**GAP-008 · P-1 is stated wider than anything checks it.** The palette is held
+by D20 and its neighbours; typography and layout are only partly covered, and an
+agent inventing a seventeenth page layout is caught by nothing — verified in
+code rather than assumed. A principle should be wider than the checks of the
+day; recording the difference is what stops it being read as coverage.
+
+This is P1.4–P1.5 of
+`specs/2026-08-15-principles-and-evals-refactor-design.md`, completing P1.
+
 ## 0.1.459 — the constitution ships, and the guard that holds every rule to a parent it must name
 
 **`references/PRINCIPLES.md`.** Six clauses (P-1 brand consistency, P-2 grounded,

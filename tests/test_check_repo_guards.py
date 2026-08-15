@@ -334,3 +334,70 @@ def test_principle_trace_empty_constitution_fails_rather_than_passing(tmp_path, 
     """A constitution with no clauses must not make the guard vacuous."""
     monkeypatch.setattr(check_repo, "ROOT", _trace_tree(tmp_path, clauses="no clauses here\n"))
     assert any("vacuously" in e for e in check_repo.check_principle_trace())
+
+
+# check_red_line_parity — AGENTS.md's hand-written summary still covers SKILL.md.
+
+def _red_line_tree(tmp_path, skill_items, agents_summary, skill_word="Six",
+                   agents_word="Six"):
+    numbered = "\n".join(f"{i}. {t}" for i, t in enumerate(skill_items, 1))
+    (tmp_path / "SKILL.md").write_text(
+        f"# Skill\n\n## {skill_word} non-negotiable red lines (every scenario)\n\n"
+        f"{numbered}\n\n## Next section\n\ntext\n", encoding="utf-8")
+    (tmp_path / "AGENTS.md").write_text(
+        f"# Agents\n\n**{agents_word} hard red lines**: {agents_summary}\n\nother prose\n",
+        encoding="utf-8")
+    return tmp_path
+
+
+SIX = ["No invented facts; every number carries provenance;",
+       "No coined Chinese: concepts with no established term stay English;",
+       "Sales storyline is value and future;",
+       "Every title names its subject and carries a verifiable datum;",
+       "Charts: one accent colour, conclusion titles, a source line;",
+       "AI never signs; money conclusions come from a person."]
+COVERS = "provenance; established; future; verifiable; accent; a person signs."
+
+
+def test_red_line_parity_covering_summary_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _red_line_tree(tmp_path, SIX, COVERS))
+    assert check_repo.check_red_line_parity() == []
+
+
+def test_red_line_parity_paraphrase_passes(tmp_path, monkeypatch):
+    """A summary may reword and still pass — the real case that forced this.
+
+    AGENTS.md says "standard Chinese term" where SKILL.md says "established
+    Chinese term". The guard's first version demanded the single longest
+    distinguishing word and failed exactly here, which would have meant editing
+    AGENTS.md to satisfy a checker rather than a reader. Asking for ANY anchor
+    lets the rewording through while a dropped rule still fails.
+
+    The limit this leaves, stated rather than hidden: a summary that rewords
+    EVERY distinguishing word of one rule is indistinguishable from dropping it.
+    """
+    paraphrase = ("provenance; standard terms rather than established ones, "
+                  "kept in English; future; verifiable; accent; person.")
+    monkeypatch.setattr(check_repo, "ROOT", _red_line_tree(tmp_path, SIX, paraphrase))
+    assert check_repo.check_red_line_parity() == []
+
+
+def test_red_line_parity_dropped_rule_fails(tmp_path, monkeypatch):
+    dropped = "provenance; future; verifiable; accent; person."
+    monkeypatch.setattr(check_repo, "ROOT", _red_line_tree(tmp_path, SIX, dropped))
+    assert any("drops red line 2" in e for e in check_repo.check_red_line_parity())
+
+
+def test_red_line_parity_count_drift_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _red_line_tree(tmp_path, SIX + ["A seventh rule about zebras."],
+                                       COVERS))
+    errors = check_repo.check_red_line_parity()
+    assert any("lists 7" in e for e in errors)
+
+
+def test_red_line_parity_no_block_fails_rather_than_passing(tmp_path, monkeypatch):
+    (tmp_path / "SKILL.md").write_text("# Skill\n\nno red lines here\n", encoding="utf-8")
+    (tmp_path / "AGENTS.md").write_text("# Agents\n", encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    assert any("vacuously" in e for e in check_repo.check_red_line_parity())
