@@ -18,15 +18,15 @@
 ## Contents
 
 - [1 · Color: one color, one meaning; hierarchy via transparency](#1--color-one-color-one-meaning-hierarchy-via-transparency)
-  - [1c · Region hue: the one place colour encodes identity](#1c--region-hue-the-one-place-colour-encodes-identity)
-  - [1d · The mark and the map](#1d--the-mark-and-the-map)
+  - [1.1 · Region hue: the one place colour encodes identity](#11--region-hue-the-one-place-colour-encodes-identity)
+  - [1.2 · The mark and the map](#12--the-mark-and-the-map)
 - [2 · Typography: two voices, never mixed](#2--typography-two-voices-never-mixed)
 - [3 · Layout: one claim per screen](#3--layout-one-claim-per-screen)
 - [4 · Five chart iron rules + form selection](#4--five-chart-iron-rules--form-selection)
-- [4b · The commercial footer](#4b--the-commercial-footer)
-- [5 · Icons: semantic, never decorative](#5--icons-semantic-never-decorative)
-- [7 · The verification matrix](#7--the-verification-matrix)
-- [6 · Numbers are the copy](#6--numbers-are-the-copy)
+- [5 · The commercial footer](#5--the-commercial-footer)
+- [6 · Icons: semantic, never decorative](#6--icons-semantic-never-decorative)
+- [7 · Numbers are the copy](#7--numbers-are-the-copy)
+- [8 · The verification matrix](#8--the-verification-matrix)
 
 ## 1 · Color: one color, one meaning; hierarchy via transparency
 
@@ -130,7 +130,7 @@ solid `--on-accent`: fading it to 72% for hierarchy drops it to 3.97:1, which is
 the 0.1.338 contrast defect returning through a colour choice. Hierarchy on a field
 comes from size and letterspacing.
 
-### 1c · Region hue: the one place colour encodes identity
+### 1.1 · Region hue: the one place colour encodes identity
 
 **In the globe's region form, hue encodes which region a shape is, and nothing
 else.** This is an owner directive and it is the single exception to *one colour
@@ -177,7 +177,7 @@ deuteranopia collapses two adjacent regions to ΔE00 9.6 and protanopia to 8.5,
 and a real map runs at 60 or less. Hue separates neighbours at a glance; text
 carries identity. `check_design.py` D18 checks for the text and never counts hues.
 
-### 1d · The mark and the map
+### 1.2 · The mark and the map
 
 Two geographies ship, and they disagree about where a coastline is.
 
@@ -496,7 +496,7 @@ question they have not formed yet, and putting it beside breaks the pairing when
 the column stacks. *Provenance: two split-layout pages moved the caption into the
 side column, which detached the number from the figure it numbers.*
 
-7b. **Below the figure: the number, its conclusion name, and the source line.
+8. **Below the figure: the number, its conclusion name, and the source line.
 Nothing else.** Explanation belongs in the page's own column, where it is set at
 reading size next to the argument it serves. Under the figure it sits at caption
 size, a page away from that argument, and it grows: the two longest ran 72 and
@@ -521,7 +521,7 @@ off-centre inside its own viewBox cannot be aligned by any rule here and gets
 redrawn. `inspect_layout.py` reports the offset between the rendered caption's
 centre and the figure's ink.
 
-7c. **Sales and marketing material states its provenance once for the document,
+9. **Sales and marketing material states its provenance once for the document,
 not on every page.** The cover and the closing carry it; the pages carry the
 handling terms instead. A source under every figure and again in every footer is
 apparatus a customs manager does not need, and it was crowding out the line a
@@ -531,7 +531,7 @@ auditing the claim rather than being sold to. Red line 1 is unchanged — no
 invented facts, and every number still traces — the obligation moved to where it
 is read once rather than skipped thirty times. *Reader-requested.*
 
-7d. **A page states its source once (any genre).** §4 rule 4 asks every figure for a source
+10. **A page states its source once (any genre).** §4 rule 4 asks every figure for a source
 line and the footer contract asks every page for one; on a single-figure page
 they are the same sentence twice. The figure's line wins — it is where a reader
 is standing when they ask where the number came from, and it was the more
@@ -540,7 +540,7 @@ source line only when it says something the figure's cannot, and then says only
 that. *Provenance: eleven pages cited overlapping sections in both places and two
 were identical word for word; a reader asked why the information appears twice.*
 
-7e. **One table per page.** Two grids side by side is two documents on one page:
+11. **One table per page.** Two grids side by side is two documents on one page:
 a grid claims its cells are comparable along the axis its header names, and two
 grids with different columns and different row counts share no axis, so their
 rows can never line up and a reader sees the misalignment before they can say
@@ -550,7 +550,7 @@ table beside a three-tier table; a reader called the misalignment a bug and the
 design uncreative, and was right on both. It became one drawing — the deck's own
 thirty pages as a strip, each coloured by tier — and one numbered sequence.*
 
-8. **A table is for values. Prose poured into a grid is a layout error wearing a
+12. **A table is for values. Prose poured into a grid is a layout error wearing a
 table's clothes.** A grid claims its cells are comparable along the axis its
 header names; when the cells hold sentences, the claim is false and the page reads
 as a form. Ask what the content actually is and draw that: a sequence is a flow, a
@@ -563,7 +563,7 @@ four rows, and three pages whose "table" was a tempting sentence beside a safer
 one. `inspect_layout.py` reports the census.* Genuinely tabular things stay
 tables: a scoring form is a form.
 
-8b. **A table's row height comes from its content, never from the space left
+13. **A table's row height comes from its content, never from the space left
 over.** A table does not grow into its cell the way a figure does, and a cell
 holding one is expected to have slack; the slack splits above and below the grid
 and is a page asking to be given something else to say — a second block, a
@@ -575,7 +575,7 @@ this package's own example of satisfying a measurement without improving a page,
 and is why 0.1.340 withdrew the 82% fill floor. It survived four releases as a
 mechanism after being named as a defect.*
 
-9. **A mark that encodes a quantity declares it, and the drawing obeys it.**
+14. **A mark that encodes a quantity declares it, and the drawing obeys it.**
 Put the number on the mark — `data-datum="80"` on the bar, the segment, the dot —
 and the length follows it in proportion. This is the only way a check can tell a
 bar chart from a picture of one: 48 pixels means nothing to a script until the
@@ -621,7 +621,7 @@ two numbers → waterfall; concept relations → icon-led flow diagram; time
 commitments → milestone timeline; **comparisons always use tables** (columns =
 options, rows = dimensions). Illustrative values must be labeled.
 
-## 4b · The commercial footer
+## 5 · The commercial footer
 
 **Every page carries its handling terms and where the document is from.** Left of
 the footer rule: the confidentiality line, then the organisation's site. Right:
@@ -664,7 +664,7 @@ callout saying they must not ship, and nothing in this package noticed: a
 placeholder is not a banned phrase, not a colour, and occupies exactly as much
 room as the text that should have replaced it.
 
-## 5 · Icons: semantic, never decorative
+## 6 · Icons: semantic, never decorative
 
 **The icon library ships with this skill** — `assets/icons/lucide/`, 2007 icons
 on a 24×24 grid, `stroke=currentColor` re-stroked to 1.25px, so they follow the
@@ -745,7 +745,18 @@ Field-tested layout guards (each from a real defect):
   (min-height) and stack stat numbers above their labels, or differing title
   wraps misalign every row below.
 
-## 7 · The verification matrix
+## 7 · Numbers are the copy
+
+- Exact values, never rounded for effect (671 stays 671, not "670+");
+- Label + value spec strips (HEIGHT 70 m style), values in the data voice;
+- Negative/qualifying information is stated inline in parentheses
+  ("(illustrative)", "(proposal value)", "(uncalibrated)") — neither buried in
+  footnotes nor dramatized;
+- **Copy the form, not the framing**: never pick the most flattering measurement
+  condition for a headline number — numbers may serve as copy only when the
+  framing survives scrutiny.
+
+## 8 · The verification matrix
 
 A layout is verified only across the **matrix**, not at a point:
 
@@ -1053,14 +1064,3 @@ A layout is verified only across the **matrix**, not at a point:
   three geometry probes above passed clean on a document that was visibly broken,
   and D8 and D9 were both confirmed by running them against the deck that
   prompted them: 10 missing support lines, 0 layouts.
-
-## 6 · Numbers are the copy
-
-- Exact values, never rounded for effect (671 stays 671, not "670+");
-- Label + value spec strips (HEIGHT 70 m style), values in the data voice;
-- Negative/qualifying information is stated inline in parentheses
-  ("(illustrative)", "(proposal value)", "(uncalibrated)") — neither buried in
-  footnotes nor dramatized;
-- **Copy the form, not the framing**: never pick the most flattering measurement
-  condition for a headline number — numbers may serve as copy only when the
-  framing survives scrutiny.

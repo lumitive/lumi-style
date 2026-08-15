@@ -236,6 +236,54 @@ def _anchors_of(path):
     return slugs
 
 
+def check_section_citations():
+    """Every `<reference>.md §N` citation names a section that exists.
+
+    P0's reorder of design-rules.md moved five sections and renumbered the
+    chart rules, and every guard stayed green while twenty-one citations
+    across SKILL.md, four scripts and two token files pointed at the wrong
+    section. `check_links` only sees markdown link syntax; a §-citation in
+    prose or in a code comment is invisible to it. CHANGELOG.md is exempt by
+    construction: its entries cite the numbering that was true when they were
+    written, and history is not re-flowed. specs/ is exempt for the same
+    reason — a spec is a record of a decision, not a live pointer. `tests/` is
+    exempt because its fixtures cite broken sections ON PURPOSE: the test that
+    proves this guard can fail has to contain the citation it rejects, and a
+    checker that edits its own evidence is worse than no checker.
+    """
+    import collections
+    sections = collections.defaultdict(set)
+    for ref in sorted((ROOT / "references").glob("*.md")):
+        for m in re.finditer(r"^#{2,4} (\d+(?:\.\d+)?[a-z]?) ", ref.read_text(encoding="utf-8"), re.M):
+            sections[ref.name].add(m.group(1))
+    if not sections:
+        return ["no reference files found — the citation guard would pass vacuously"]
+
+    # Citations live in prose, in script comments and in token-file comments,
+    # so this walks more than md_files() does — same dot-directory rule.
+    candidates = []
+    for suffix in ("*.md", "*.py", "*.css", "*.json"):
+        for q in ROOT.rglob(suffix):
+            if any(part.startswith(".") for part in q.relative_to(ROOT).parts[:-1]):
+                continue
+            candidates.append(q)
+
+    errors = []
+    cite = re.compile(r"([a-z-]+\.md)[^\n]{0,40}?§\s*(\d+(?:\.\d+)?[a-z]?)")
+    for path in sorted(set(candidates)):
+        rel = path.relative_to(ROOT).as_posix()
+        if rel == "CHANGELOG.md" or rel.startswith(("specs/", "tests/")):
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for m in cite.finditer(text):
+            fname, sec = m.group(1), m.group(2)
+            if fname not in sections:
+                continue
+            if sec not in sections[fname]:
+                lineno = text.count("\n", 0, m.start()) + 1
+                errors.append(f"{rel}:{lineno}: cites {fname} §{sec}, which has no such section")
+    return errors
+
 def check_links():
     """Relative link targets exist — and since 0.1.442, in-page and
     cross-file ANCHORS resolve too (the class check_links was blind to when
@@ -1486,7 +1534,7 @@ def check_version_citations():
 
 
 # Where a deliverable goes, declared once per entry point. The rule lives in
-# references/design-rules.md §7 and the other three restate it; scripts/ops/output_dir.py
+# references/design-rules.md §8 and the other three restate it; scripts/ops/output_dir.py
 # resolves it in code. That is five copies of one string, and a default that
 # lives only in prose is exactly the drift that produced the defect this guard
 # was written for — the package wrote finished client documents into its own
@@ -2389,6 +2437,7 @@ CHECKS = (
     ("version citations", check_version_citations),
     ("english-only red line", check_english_only),
     ("markdown link targets", check_links),
+    ("section citations", check_section_citations),
     ("stale promises", check_stale_promises),
     ("platform manifest", check_platform_manifest),
     ("retired values", check_retired_values),

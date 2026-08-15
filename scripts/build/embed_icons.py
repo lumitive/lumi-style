@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Emit an inline <symbol> sprite from the vendored icon library.
 
-design-rules.md §5 has required "symbol library embedded per document" since 1.2.
+design-rules.md §6 has required "symbol library embedded per document" since 1.2.
 Until 0.1.338 the package shipped nothing, so deliverables carried no icons. The
 first fix shipped eight hand-drawn icons, and a reader said the expressiveness
 was still short and the icons did not match the content: eight meanings cannot
@@ -172,7 +172,7 @@ def main(argv):
     print(sprite(names))
     print()
     print("<!-- .ic{width:1.4em;height:1.4em;flex:none} on a flex parent; never nudge "
-          "an inline icon with vertical-align (design-rules.md §5). -->")
+          "an inline icon with vertical-align (design-rules.md §6). -->")
     return 0
 
 

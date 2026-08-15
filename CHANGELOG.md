@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.1.457 — the reference file a person could not read in order: five sections moved, nine chart rules renumbered, and the citation guard that should have existed for it
+
+**The reorder (GAP-007's check, first half).** `design-rules.md` ran its sections
+1, 1c, 1d, 2, 3, 4, 4b, 5, **7, 6** — section 6 physically after section 7 — and
+numbered its chart rules 1-5, 6, 7, 7b, 7c, 7d, 7e, 8, 8b, 9. It now runs 1
+(with 1.1 and 1.2), 2 … 8, with the chart rules 1-5 then 6..14. Nothing was
+reworded: the commit proves it by comparing the multiset of non-heading lines
+before and after, which is identical. The Contents block was regenerated from
+the headings rather than hand-edited, because a hand-edited index is the class
+of defect that shipped dead anchors at 0.1.441.
+
+**The citation guard this release exists to add.** Twenty-one live citations
+across `SKILL.md`, four scripts and two token files pointed at the moved
+sections, and **every one of the twenty-nine guards stayed green** — `check_links`
+only sees markdown link syntax, so a §-citation in prose or in a code comment
+was invisible to it. The implementation plan for this work had named the link
+guard as its safety net; that assumption was wrong and was found by testing it
+rather than by reading it. `section citations` now resolves every
+`<reference>.md §N` against the sections that file actually has. `CHANGELOG.md`
+and `specs/` are exempt by construction: both cite the numbering that was true
+when they were written, and history is not re-flowed.
+
+**Deliberate red, both directions**: a citation to a section that never existed
+(§99) fails, and a citation left at the pre-reorder number (§1d) fails — the
+second is the exact mistake the reorder invites. Five synthetic-tree tests ship
+with it, including one asserting the guard reports an error rather than passing
+vacuously when it finds no reference files at all.
+
+**One code citation was to a rule number, not a section.** `inspect_layout.py`
+cited "design-rules §4 rule 9" for the mark-proportionality rule, which the
+renumbering moved to 14. Rule-number citations are not covered by the new guard
+and are recorded as such rather than claimed.
+
+This is P0.1 and P0.2 of the refactor recorded in
+`specs/2026-08-15-principles-and-evals-refactor-design.md`, whose plan file
+decomposes the rest.
+
 Rule revisions come only from review retrospectives (divergence ≥2 → retrospective
 → revision), recorded here with a version bump.
 

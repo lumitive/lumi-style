@@ -231,3 +231,59 @@ def test_links_middle_dot_slug_matches_github(tmp_path, monkeypatch):
         "## 0 · Output language\n[good](#0--output-language)\n")
     monkeypatch.setattr(check_repo, "ROOT", tmp_path)
     assert check_repo.check_links() == []
+
+
+# check_section_citations — a `<reference>.md §N` citation names a real section.
+# P0's reorder proved the need: twenty-one citations pointed at moved sections
+# while every guard stayed green, because check_links only sees link syntax.
+
+def _section_citation_tree(tmp_path, citation, *, in_file="SKILL.md"):
+    (tmp_path / "references").mkdir()
+    (tmp_path / "references" / "design-rules.md").write_text(
+        "# Design rules\n\n## 1 · Color\n\ntext\n\n### 1.2 · The mark\n\ntext\n\n"
+        "## 8 · The verification matrix\n\ntext\n", encoding="utf-8")
+    (tmp_path / in_file).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / in_file).write_text(f"prose citing {citation} here\n", encoding="utf-8")
+    return tmp_path
+
+
+def test_section_citations_resolving_tree_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _section_citation_tree(tmp_path, "`references/design-rules.md` §8"))
+    assert check_repo.check_section_citations() == []
+
+
+def test_section_citations_moved_section_fails(tmp_path, monkeypatch):
+    """The exact P0 failure: a citation left pointing at the old number."""
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _section_citation_tree(tmp_path, "`references/design-rules.md` §7"))
+    errors = check_repo.check_section_citations()
+    assert errors
+    assert any("SKILL.md" in e and "§7" in e for e in errors)
+
+
+def test_section_citations_lettered_section_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _section_citation_tree(tmp_path, "design-rules.md §1d"))
+    assert any("§1d" in e for e in check_repo.check_section_citations())
+
+
+def test_section_citations_changelog_is_exempt(tmp_path, monkeypatch):
+    """History cites the numbering that was true when it was written."""
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _section_citation_tree(tmp_path, "design-rules.md §7", in_file="CHANGELOG.md"))
+    assert check_repo.check_section_citations() == []
+
+
+def test_section_citations_no_references_dir_fails_rather_than_passing(tmp_path, monkeypatch):
+    """A guard that finds nothing to check must say so, not report clean."""
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    assert check_repo.check_section_citations()
+
+
+def test_section_citations_tests_dir_is_exempt(tmp_path, monkeypatch):
+    """Fixtures cite broken sections on purpose; the guard must not eat them."""
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _section_citation_tree(tmp_path, "design-rules.md §7",
+                                       in_file="tests/test_x.py"))
+    assert check_repo.check_section_citations() == []
