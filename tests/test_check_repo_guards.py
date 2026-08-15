@@ -401,3 +401,47 @@ def test_red_line_parity_no_block_fails_rather_than_passing(tmp_path, monkeypatc
     (tmp_path / "AGENTS.md").write_text("# Agents\n", encoding="utf-8")
     monkeypatch.setattr(check_repo, "ROOT", tmp_path)
     assert any("vacuously" in e for e in check_repo.check_red_line_parity())
+
+
+# check_rule_ids — ids are unique, present, and frozen once assigned.
+
+def _rule_id_tree(tmp_path, lines):
+    refs = tmp_path / "references"
+    refs.mkdir()
+    (refs / "design-rules.md").write_text("# Rules\n\n" + "\n".join(lines) + "\n",
+                                          encoding="utf-8")
+    return tmp_path
+
+
+def test_rule_ids_unique_tree_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "FROZEN_RULE_IDS", ("DR-1", "DR-2"))
+    monkeypatch.setattr(check_repo, "ROOT", _rule_id_tree(
+        tmp_path, ["*Serves: **P-1**.* · id `DR-1`", "*Serves: **P-2**.* · id `DR-2`"]))
+    assert check_repo.check_rule_ids() == []
+
+
+def test_rule_ids_duplicate_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "FROZEN_RULE_IDS", ("DR-1",))
+    monkeypatch.setattr(check_repo, "ROOT", _rule_id_tree(
+        tmp_path, ["*Serves: **P-1**.* · id `DR-1`", "*Serves: **P-2**.* · id `DR-1`"]))
+    assert any("already used" in e for e in check_repo.check_rule_ids())
+
+
+def test_rule_ids_missing_id_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "FROZEN_RULE_IDS", ("DR-1",))
+    monkeypatch.setattr(check_repo, "ROOT", _rule_id_tree(
+        tmp_path, ["*Serves: **P-1**.* · id `DR-1`", "*Serves: **P-2**.*"]))
+    assert any("no id" in e for e in check_repo.check_rule_ids())
+
+
+def test_rule_ids_vanished_id_fails(tmp_path, monkeypatch):
+    """An id is a name, not an address: it does not disappear when a file is edited."""
+    monkeypatch.setattr(check_repo, "FROZEN_RULE_IDS", ("DR-1", "DR-2"))
+    monkeypatch.setattr(check_repo, "ROOT", _rule_id_tree(
+        tmp_path, ["*Serves: **P-1**.* · id `DR-1`"]))
+    assert any("no longer do" in e for e in check_repo.check_rule_ids())
+
+
+def test_rule_ids_empty_tree_fails_rather_than_passing(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _rule_id_tree(tmp_path, ["no declarations"]))
+    assert any("vacuously" in e for e in check_repo.check_rule_ids())

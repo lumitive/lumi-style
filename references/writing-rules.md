@@ -22,7 +22,7 @@
 
 ## 0 · Output language
 
-*Serves: **GOAL**.*
+*Serves: **GOAL**.* · id `WR-1`
 
 **Default: American English.** When the user does not specify a language, LUMI
 writes in American English — spelling (-ize, -or, -og: organize, color, catalog),
@@ -36,7 +36,7 @@ deliverables only) or **[en-output]**.
 
 ## 1 · Terminology red lines
 
-*Serves: **P-3**.*
+*Serves: **P-3**.* · id `WR-2`
 
 **[zh-output] Never coin Chinese.** For new technical concepts with no established
 Chinese term, use the English term directly — never invent a Chinese word or a
@@ -64,7 +64,7 @@ recognize fixed collocations before flagging.
 
 ## 2 · Banned AI-tell phrases (hard block)
 
-*Serves: **P-3**.*
+*Serves: **P-3**.* · id `WR-3`
 
 **[zh-output]** rule data: 值得注意的是 · 值得一提的是 · 不可否认 · 综上所述 ·
 让我们一起 · 总而言之 · 众所周知.
@@ -110,7 +110,7 @@ LUMI's own seed survives as group 8.
 
 ## 3 · Punctuation and glyphs [zh-output]
 
-*Serves: **P-3**.*
+*Serves: **P-3**.* · id `WR-4`
 
 - Simplified-Chinese body text uses full-width punctuation (,→, :→: ;→; ?→?);
   half-width stays inside code, URLs, emails, version strings, filenames, and pure
@@ -125,7 +125,7 @@ LUMI's own seed survives as group 8.
 
 ## 4 · Number discipline (honest metrics — all languages)
 
-*Serves: **P-2**.*
+*Serves: **P-2**.* · id `WR-5`
 
 1. **Every number carries its source** or its derivation; a range figure must trace
    to a single source or it may not appear.
@@ -187,7 +187,7 @@ LUMI's own seed survives as group 8.
 
 ## 5 · Voice (the LUMI register)
 
-*Serves: **P-3**.*
+*Serves: **P-3**.* · id `WR-6`
 
 - **Negation-first openings** ("Not X. Y.", "not just X but Y"): **retired as a
   mandated signature.** At most one may appear in a document, on the cover or the
@@ -216,7 +216,7 @@ LUMI's own seed survives as group 8.
 
 ## 6 · De-AI-flavor pass (mandatory, pre-delivery)
 
-*Serves: **P-3**.*
+*Serves: **P-3**.* · id `WR-7`
 
 > **Process discipline: this pass runs on every deliverable, before delivery — it
 > is a gate, not advice.** It used to be named only inside a parenthesis and no
@@ -279,7 +279,7 @@ swallowed by abstraction? is the voice consistent?
 
 ## 6b · [zh-output] De-translationese pass
 
-*Serves: **P-3**.*
+*Serves: **P-3**.* · id `WR-8`
 
 Since sales/marketing material is now authored in English and Chinese is produced
 by translating it, the Chinese deliverable carries a second risk that has already
@@ -300,7 +300,7 @@ After translating, before delivery:
 
 ## 7 · Fact red lines (outrank every style rule)
 
-*Serves: **P-2**.*
+*Serves: **P-2**.* · id `WR-9`
 
 - No invented facts — numbers, people, events, quotes come only from source
   material;
