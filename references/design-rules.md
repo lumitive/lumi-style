@@ -633,6 +633,36 @@ two numbers → waterfall; concept relations → icon-led flow diagram; time
 commitments → milestone timeline; **comparisons always use tables** (columns =
 options, rows = dimensions). Illustrative values must be labeled.
 
+### 4.1 · Choosing a figure from the shape library
+
+*Serves: **P-4**.* · id `DR-11`
+
+**Choose by the relation the content has, never by how a shape looks.** The
+library is tagged with a `relation` — composition, order, process, hierarchy,
+degree, metaphor — and the rule is that the relation in the data and the
+relation the shape encodes must be the same one. A funnel whose values do not
+decrease, a 2×2 whose axes are not independent, a waterfall that does not add
+up: each is a drawing that asserts something the data does not.
+
+**A shape enters the library only if its relation serves these chart rules.**
+Extraction is not ingestion. A family that draws a relation this design language
+has no use for stays in the raw material and does not become a second figure
+vocabulary competing with §4 — three vocabularies is the state this package has
+spent releases getting out of.
+
+**Metaphor families carry a decoration risk and are marked with it.** An
+iceberg, a gear train, a honeycomb: each can carry an argument, and each is
+mostly used because it fills a page. Reaching for one is a moment to check
+P-4 — a figure that carries no argument violates that clause rather than
+satisfying it.
+
+**Shapes reach a deliverable through `scripts/build/embed_shapes.py`**, which
+emits only the symbols the document referenced. Two things follow without new
+machinery: D19 already fails a reference that resolves to no symbol, so the
+pipeline's correctness is checked by a gate that has been running for releases;
+and only the recoloured library is a source, so original-palette geometry has no
+path into a deliverable at all.
+
 ## 5 · The commercial footer
 
 *Serves: **P-5**.* · id `DR-7`

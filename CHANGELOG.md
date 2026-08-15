@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.1.473 — the shape pipeline's last mile, and the one step in it that is a judgement rather than a script
+
+**`scripts/build/embed_shapes.py`.** A deliverable is one self-contained file
+and the library is hundreds of figure units, so both obvious approaches fail:
+inlining it makes every document megabytes of unused geometry, and pasting a
+shape in by hand bypasses the recolour layer and lands on D20. This emits a
+sprite of **only the symbols the document referenced**, rebuilt rather than
+appended to — a shape that stops being used stops travelling.
+
+Two things follow without new machinery. **D19 becomes this pipeline's
+correctness check**: a reference resolving to no symbol already fails, so a
+shape referenced and not embedded is caught by a gate that has run for releases.
+And **brand purity stops being a discipline and becomes an engineering fact** —
+only the recoloured library is a source, so original-palette geometry has no
+path into a deliverable for anyone to remember to avoid.
+
+**`design-rules.md` §4.1 — choosing a figure.** Choose by the relation the
+content has, never by how a shape looks: a funnel whose values do not decrease
+and a 2×2 whose axes are not independent are drawings asserting something the
+data does not. Metaphor families are marked with a decoration risk, because each
+of them can carry an argument and most of them get used to fill a page.
+
+**GAP-009 · what has not happened, said plainly.** 206 units are extracted,
+recoloured and verified in a staging area. **Curation has not happened, and it
+is not a mechanical step**: deciding which families' relation semantics serve
+the chart rules is a judgement about the design language, and ingesting without
+it would put a second figure vocabulary in competition with §4 — the state this
+package has spent releases leaving. Vendoring megabytes of third-party geometry
+is also a decision the owner should make rather than inherit.
+`embed_shapes.py` refuses to run against an absent library **and says why**, so
+the gap is loud rather than latent.
+
+This is T2 of `specs/2026-08-15-principles-and-evals-refactor-design.md`, with
+its ingestion step named as an owner decision rather than quietly skipped.
+
 ## 0.1.472 — a figure may declare the data it draws, and is then held to it
 
 **D21 · the data contract.** A figure can carry the data it draws in a JSON
