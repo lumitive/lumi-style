@@ -30,7 +30,7 @@
 
 ## 1 · Color: one color, one meaning; hierarchy via transparency
 
-*Serves: **P-1**.*
+*Serves: **P-1**.* · id `DR-1`
 
 **The colour values below are the shipped ones, and a deliverable copies them.**
 `tokens/lumi-theme.css` is the authority and `scripts/ops/new_deck.py` puts it
@@ -134,7 +134,7 @@ comes from size and letterspacing.
 
 ### 1.1 · Region hue: the one place colour encodes identity
 
-*Serves: **P-1**.*
+*Serves: **P-1**.* · id `DR-2`
 
 **In the globe's region form, hue encodes which region a shape is, and nothing
 else.** This is an owner directive and it is the single exception to *one colour
@@ -183,7 +183,7 @@ carries identity. `check_design.py` D18 checks for the text and never counts hue
 
 ### 1.2 · The mark and the map
 
-*Serves: **P-1**.*
+*Serves: **P-1**.* · id `DR-3`
 
 Two geographies ship, and they disagree about where a coastline is.
 
@@ -200,7 +200,7 @@ the reader's eye.
 
 ## 2 · Typography: two voices, never mixed
 
-*Serves: **P-1**.*
+*Serves: **P-1**.* · id `DR-4`
 
 - **Primary face — D-DIN takes over** (v1.2): D-DIN is the single Latin face
   for titles, body, and data alike, with CJK fallback (PingFang SC / Noto Sans
@@ -251,7 +251,7 @@ the reader's eye.
 
 ## 3 · Layout: one claim per screen
 
-*Serves: **GOAL**.*
+*Serves: **GOAL**.* · id `DR-5`
 
 - **The eyebrow names the part and the page's subject, and it opens with the
   subject's icon.** On every content page the guide line reads `<icon> PART
@@ -478,7 +478,7 @@ the reader's eye.
 
 ## 4 · Five chart iron rules + form selection
 
-*Serves: **P-4**.* Its accent-colour rule serves **P-1** and its source-line rule serves **P-2**; P0.5's rule IDs will split them.
+*Serves: **P-4**.* Its accent-colour rule serves **P-1** and its source-line rule serves **P-2**; P0.5's rule IDs will split them. · id `DR-6`
 
 1. Figure titles state conclusions, not labels; 2. one accent color — the
 figure green `--acc-live`, which is what the `f-acc`/`s-acc` paint classes
@@ -635,7 +635,7 @@ options, rows = dimensions). Illustrative values must be labeled.
 
 ## 5 · The commercial footer
 
-*Serves: **P-5**.*
+*Serves: **P-5**.* · id `DR-7`
 
 **Every page carries its handling terms and where the document is from.** Left of
 the footer rule: the confidentiality line, then the organisation's site. Right:
@@ -680,7 +680,7 @@ room as the text that should have replaced it.
 
 ## 6 · Icons: semantic, never decorative
 
-*Serves: **P-4**.*
+*Serves: **P-4**.* · id `DR-8`
 
 **The icon library ships with this skill** — `assets/icons/lucide/`, 2007 icons
 on a 24×24 grid, `stroke=currentColor` re-stroked to 1.25px, so they follow the
@@ -763,7 +763,7 @@ Field-tested layout guards (each from a real defect):
 
 ## 7 · Numbers are the copy
 
-*Serves: **P-2**.*
+*Serves: **P-2**.* · id `DR-9`
 
 - Exact values, never rounded for effect (671 stays 671, not "670+");
 - Label + value spec strips (HEIGHT 70 m style), values in the data voice;
@@ -776,7 +776,7 @@ Field-tested layout guards (each from a real defect):
 
 ## 8 · The verification matrix
 
-*Serves: **P-2**.*
+*Serves: **P-2**.* · id `DR-10`
 
 A layout is verified only across the **matrix**, not at a point:
 

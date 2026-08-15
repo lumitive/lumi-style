@@ -236,6 +236,52 @@ def _anchors_of(path):
     return slugs
 
 
+# Rule-family ids, frozen at 0.1.461. An id names a family for as long as the
+# family exists; it is never reused for a different one and never renumbered
+# when sections move. Adding a family adds an id here and in the reference file.
+FROZEN_RULE_IDS = (
+    "BR-1", "BR-2", "BR-3", "BR-4", "BR-5", "BR-6",
+    "DR-1", "DR-2", "DR-3", "DR-4", "DR-5", "DR-6", "DR-7", "DR-8", "DR-9", "DR-10",
+    "WR-1", "WR-2", "WR-3", "WR-4", "WR-5", "WR-6", "WR-7", "WR-8", "WR-9",
+    "ST-1", "ER-1",
+)
+
+def check_rule_ids():
+    """Every rule family carries a unique, position-independent id.
+
+    The point of the id is that it does NOT move when sections do. The first
+    version derived it from the section number, which defeats that exactly —
+    a reorder would have renumbered every id, and §1.1 and §1.2 collapsed to
+    `DR-11` and `DR-12`, colliding with a future eleventh section. Ids are now
+    assigned in document order once and frozen: an id is a name, not an address.
+
+    This checks uniqueness and format, and that no id already recorded in
+    FROZEN_RULE_IDS has vanished — a cited id that stops existing is the same
+    class of breakage as a moved section citation, one level up.
+    """
+    ids: dict[str, str] = {}
+    errors = []
+    for ref in sorted((ROOT / "references").glob("*.md")):
+        text = ref.read_text(encoding="utf-8")
+        for m in re.finditer(r"^\*Serves:.*?· id `([A-Z]{2}-\d+)`", text, re.M):
+            rid = m.group(1)
+            lineno = text.count("\n", 0, m.start()) + 1
+            if rid in ids:
+                errors.append(f"{rel(ref)}:{lineno}: rule id {rid} is already used by "
+                              f"{ids[rid]}")
+            ids[rid] = f"{rel(ref)}:{lineno}"
+        for m in re.finditer(r"^\*Serves:(?!.*· id `)", text, re.M):
+            lineno = text.count("\n", 0, m.start()) + 1
+            errors.append(f"{rel(ref)}:{lineno}: rule family declares a parent but no id")
+    if not ids:
+        return ["no rule ids found — the guard would pass vacuously"]
+    missing = sorted(set(FROZEN_RULE_IDS) - set(ids))
+    if missing:
+        errors.append(f"rule id(s) that existed and no longer do: {missing}. "
+                      f"An id is frozen once assigned; retire it in the ledger "
+                      f"rather than deleting it.")
+    return errors
+
 def check_red_line_parity():
     """AGENTS.md's hand-written red-line summary still covers SKILL.md's list.
 
@@ -2577,6 +2623,7 @@ CHECKS = (
     ("section citations", check_section_citations),
     ("principle trace", check_principle_trace),
     ("red line parity", check_red_line_parity),
+    ("rule ids", check_rule_ids),
     ("stale promises", check_stale_promises),
     ("platform manifest", check_platform_manifest),
     ("retired values", check_retired_values),

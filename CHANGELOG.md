@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.1.461 — rule ids that are names rather than addresses, which is the whole point and which the first version got backwards
+
+**Twenty-seven rule families now carry a stable id** (`BR-`, `DR-`, `WR-`,
+`ST-`, `ER-`), declared beside the clause each family serves. The id is what a
+parent declaration, a trace and a future candidate proposal attach to, and it is
+what makes the next structural reorder cheap: a section can move without
+anything that cites the family breaking.
+
+**The first version derived the id from the section number, which defeats the
+entire purpose.** An id derived from position moves when position moves — the
+reorder two releases ago would have renumbered all of them — and §1.1 and §1.2
+collapsed to `DR-11` and `DR-12`, which collide with a future eleventh section.
+Ids are now assigned in document order once and **frozen**: an id is a name, not
+an address.
+
+**`rule ids` guard**: ids are unique, every family that declares a parent also
+declares an id, and **no id that has existed may vanish** — a cited id that stops
+existing is the same class of breakage as a moved section citation, one level up.
+The frozen set lives in the guard as the code side of the parity, which is this
+repository's pattern for a count that must not rot.
+
+**Deliberate red, both ways**: a duplicated id fails, and a deleted id fails
+twice over — once for the family that now has no id, once for the id that
+vanished from the frozen set.
+
+This is P0.5, completing P0 of
+`specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
 ## 0.1.460 — the summary that may reword but may not drop a rule, and P-1's coverage gap written down instead of implied
 
 **`red line parity` guard.** `SKILL.md` is the red lines' home and the generated

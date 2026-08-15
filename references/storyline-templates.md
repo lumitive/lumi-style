@@ -1,6 +1,6 @@
 # LUMI Storyline Templates
 
-*Serves: **GOAL*** — narrative skeletons serve the reader's decision rather than a constitutional clause; the cover and closing pages inside it serve **P-1** as brand apparatus.
+*Serves: **GOAL*** — narrative skeletons serve the reader's decision rather than a constitutional clause; the cover and closing pages inside it serve **P-1** as brand apparatus. · id `ST-1`
 
 > Four narrative skeletons for four output scenarios, plus the shared
 > discipline. (Repository language: English only — red line.)
