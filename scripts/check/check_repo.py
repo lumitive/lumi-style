@@ -236,6 +236,82 @@ def _anchors_of(path):
     return slugs
 
 
+def check_red_line_parity():
+    """AGENTS.md's hand-written red-line summary still covers SKILL.md's list.
+
+    SKILL.md is the home; the generated entry points already lift the block
+    from it rather than restating it. AGENTS.md is deliberately hand-written
+    (assembled prose is worse prose, and it is a file people read), so it gets
+    a parity guard instead of generation.
+
+    The anchor terms are DERIVED from SKILL.md, never listed here: a guard that
+    hand-lists the things it checks becomes a third copy of the very thing it
+    exists to keep in sync. For each red line, the anchor is the longest word
+    of six letters or more that appears in that line and in no other, which is
+    the words a summary cannot ALL drop and still be about the same rule.
+
+    It asks for ANY one of them, not a specific one. The first version demanded
+    the single longest and immediately fired on a summary that says "standard
+    Chinese term" where SKILL.md says "established Chinese term" — the same rule
+    in different words. Tightening a checker until a correct paraphrase fails
+    turns it into a machine that edits prose to satisfy itself, and the "fix"
+    would have been to insert a word into AGENTS.md for no reader's benefit.
+
+    The limit this leaves: a summary that rewords EVERY distinguishing word of
+    one rule reads to this guard exactly like a summary that dropped it. That
+    is the price of tolerating paraphrase, and it is the right side to err on —
+    a false pass costs a stale summary, a false failure costs the prose itself.
+    """
+    skill = ROOT / "SKILL.md"
+    agents = ROOT / "AGENTS.md"
+    if not (skill.exists() and agents.exists()):
+        return ["SKILL.md or AGENTS.md is missing — the parity guard has no sides"]
+    st = skill.read_text(encoding="utf-8")
+    m = re.search(r"^## (\w+) non-negotiable red lines.*?$(.*?)(?=^## )",
+                  st, re.M | re.S)
+    if not m:
+        return ["SKILL.md has no red-line block — the parity guard would pass vacuously"]
+    items = re.findall(r"^\d+\. (.+?)(?=^\d+\. |\Z)", m.group(2), re.M | re.S)
+    if not items:
+        return ["SKILL.md's red-line block lists no numbered items"]
+
+    errors = []
+    spelled = {2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six",
+               7: "Seven", 8: "Eight", 9: "Nine"}.get(len(items))
+    if m.group(1) != spelled:
+        errors.append(f"SKILL.md says '{m.group(1)} non-negotiable red lines' "
+                      f"but lists {len(items)}")
+
+    at = agents.read_text(encoding="utf-8")
+    ah = re.search(r"\*\*(\w+) hard red lines\*\*", at)
+    # Scope the search to the summary paragraph. Searching the whole file made
+    # the drop test unfireable: AGENTS.md is long enough that some word from
+    # any red line turns up somewhere else in it, so a summary could lose a
+    # rule entirely and still pass — a check that cannot fail for the thing it
+    # exists to catch (FM-01).
+    block = ""
+    if ah:
+        rest = at[ah.start():]
+        end = rest.find("\n\n")
+        block = rest[:end if end > 0 else len(rest)]
+    if not ah:
+        errors.append("AGENTS.md has no '**N hard red lines**' summary to check")
+    elif ah.group(1) != spelled:
+        errors.append(f"AGENTS.md says '{ah.group(1)} hard red lines' but SKILL.md "
+                      f"lists {len(items)}")
+
+    words = [{w.lower() for w in re.findall(r"[A-Za-z]{6,}", it)} for it in items]
+    low = block.lower()
+    for i, ws in enumerate(words, 1):
+        unique = ws - set().union(*(w for j, w in enumerate(words, 1) if j != i))
+        if not unique:
+            continue                      # no word distinguishes it; nothing to anchor on
+        if not any(w in low for w in unique):
+            shown = ", ".join(sorted(unique, key=len, reverse=True)[:5])
+            errors.append(f"AGENTS.md's summary drops red line {i}: none of "
+                          f"SKILL.md's distinguishing words appear in it ({shown})")
+    return errors
+
 def check_principle_trace():
     """Every rule family in references/ declares the clause it serves.
 
@@ -2500,6 +2576,7 @@ CHECKS = (
     ("markdown link targets", check_links),
     ("section citations", check_section_citations),
     ("principle trace", check_principle_trace),
+    ("red line parity", check_red_line_parity),
     ("stale promises", check_stale_promises),
     ("platform manifest", check_platform_manifest),
     ("retired values", check_retired_values),

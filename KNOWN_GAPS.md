@@ -58,6 +58,25 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   neither. The generated references/eval-inventory.md covers the NUMERIC half
   of this gap already — the remaining half is prose rules.
 
+## GAP-008 · P-1 is stated wider than anything checks it
+
+- status: open
+- opened: 0.1.460
+- surface: references/design-rules.md §1-§2, scripts/check/check_design.py
+- symptom: P-1 says the brand pack is the single source of visual and verbal
+  identity and a deliverable does not improvise. What is actually held: the
+  palette (D20 gate, D4, D13, D1, token parity) and the region hues. Typography
+  and layout are only partly covered — **an agent inventing a seventeenth page
+  layout is caught by nothing**, and `check_design.py` has no font-count check
+  at all (verified in code, not assumed). The clause is not wrong; the wording
+  of a principle should be wider than the checks of the day. It is recorded so
+  the gap is not read as coverage.
+- check: a layout-vocabulary check that grades a page's structure against the
+  layouts `tokens/` defines rather than against class names invented by whatever
+  document a probe was written against, plus the font-count check C7-④ names.
+  Neither is built. Until they are, P-1's landing table entry in the refactor
+  spec is the honest statement of what holds.
+
 ## GAP-007 · The reference files read as accretion, not as documents
 
 - status: open
