@@ -1,0 +1,14 @@
+{
+ "$comment": "The brand registry. One record per brand this package can produce deliverables for. It answers 'which asset pack and which wordmark' and nothing else \u2014 palette and type stay in tokens/, rules stay in references/. A second copy of a rule here would be a fifth restatement surface.",
+ "schema": 1,
+ "default": "lumivate",
+ "brands": {
+  "lumivate": {
+   "wordmark": "LUMI Style",
+   "assets": "assets/brand/lumivate/",
+   "cover_mark": "assets/brand/lumivate/globe-field.svg",
+   "locked": "assets/brand/LOCKED.json",
+   "status": "shipped"
+  }
+ }
+}
