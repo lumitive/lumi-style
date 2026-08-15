@@ -1,6 +1,6 @@
 {
-  "version": "0.1.471",
-  "diff_base": "2a97d5271d2a8f426a02915f48f5eb5efbe1beed",
+  "version": "0.1.472",
+  "diff_base": "5208c5d173cd39e1cb03e0d85095f03b887c2508",
   "spec": "specs/2026-08-15-principles-and-evals-refactor-design.md",
   "obligations": [
     "layout-fixtures",
@@ -18,7 +18,7 @@
   "waivers": [
     {
       "id": "conformance-freshness",
-      "reason": "Unchanged from 0.1.470 and still unconfirmed: the board was recorded against 0.1.456, the rule surface has moved under it, and refreshing it drives real agents through the harness with credentials this repository does not hold. Whether each agent still follows the skill is UNKNOWN rather than passing."
+      "reason": "Still unconfirmed and still named: the board predates this refactor, and refreshing it drives real agents with credentials this repository does not hold. Whether each agent follows the changed skill is UNKNOWN rather than passing."
     }
   ]
 }

@@ -360,8 +360,16 @@ FIGURE_WEAK = """<div class="fill">
         height="46" fill="var(--acc)"/><text class="sm" x="400" y="30">a label that runs
         past the right edge of its own viewBox</text></svg>
       <div class="cap"><span class="n">Figure {i}</span> Reads by feeder class
-      <span class="srcline">Meter management system, extract of the period</span></div></div>
+      <span class="srcline">Meter management system, extract of the period</span></div>
+      <script type="application/json" class="f-data">{{"series":[{{"label":"Feeder C","value":91}}]}}</script>
+      </div>
     </div>"""
+# ^ D21's failing subject: the figure DECLARES a series called "Feeder C" at 91,
+# and neither the label nor the number is anywhere on the drawing. A figure that
+# declares nothing is fine; one whose declaration contradicts it is not, because
+# a false contract is worse than none — and the fixture suite refuses a graded
+# metric that no fixture can fail, since that cannot be told from a metric
+# rewritten to return ok.
 
 # A viewBox with three numbers instead of four: legal as an attribute,
 # meaningless as a value, and discarded by the browser — so the drawing lays out
