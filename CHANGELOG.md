@@ -1,5 +1,53 @@
 # Changelog
 
+## 0.1.462 — a trace whose verdicts the measured agent cannot write, and which opens before the build rather than after
+
+**`scripts/ops/trace.py`.** Every claim this repository has made about its own
+quality has come from whichever agent was being measured; 0.1.415 reported all
+gates passing having run eight of seventeen. `check_evidence.py` answered that
+for releases by executing the command and machine-writing the result. A trace is
+the same discipline applied to a build, and three properties are enforced by the
+shape of the tool rather than by whoever runs it:
+
+**Verdicts are transcribed, never supplied.** `close` runs `check_prose.py` and
+`check_design.py` with `--json` and copies their `verdicts` and readings. **There
+is no flag for stating a result** — a test asserts that `--gate`, `--verdict`,
+`--pass` and `--result` appear nowhere in the CLI, which is the same reason
+`check_evidence.py`'s schema has no verdict field.
+
+**A trace opens when the storyline is agreed, not when the deliverable is
+finished.** A record written only at the end never captures an abandoned build,
+and that bias runs one way: toward success. An open record with no `closed_at`
+is itself the evidence that a build was abandoned.
+
+**No free text anywhere.** Every field is closed-vocabulary or a number, and the
+tool refuses to write a record that fails validation. `principle_yields` names
+two clauses and a stage; `refused_to_emit` names the clauses that collided and
+the stage — **the reasoning goes to the debug log, which never leaves the
+delivery directory**. Red line 9 is held by a schema rather than by intentions.
+
+**`trace schema` guard**, which **imports the schema from `trace.py` rather than
+restating it** — a guard carrying its own copy of a field list would be the
+purest instance of the defect this repository spends most of its releases
+fixing. An empty `evals/traces/` is a legal state rather than a vacuous pass:
+the repository ships no traces, and the synthetic tests are what prove the guard
+can fail. Deliberate red: a stored trace carrying a free-text field fails.
+
+**One correction found by running it.** The first transcription assumed the
+checkers emit `rows` with an `id` and a `verdict`. They emit a list of one
+record per file carrying `verdicts` and `targets`, where a gate is marked by
+`(gates)` in the target string. Written from the assumption, the collector
+crashed on the first real deliverable — which is the cheap version of the
+failure this whole mechanism exists to prevent.
+
+**The schema lives in `scripts/lib/`, not beside the CLI.** A test caught the
+first placement: `check_repo.py` importing from `scripts/ops/` would make the
+emergency-merge path execute the pull request's own copy of the thing it is
+checking. Moving it to `lib/` also put it under the no-shadow-math rule, which
+is where a shared definition belongs.
+
+This is P2.3 of `specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
 ## 0.1.461 — rule ids that are names rather than addresses, which is the whole point and which the first version got backwards
 
 **Twenty-seven rule families now carry a stable id** (`BR-`, `DR-`, `WR-`,
