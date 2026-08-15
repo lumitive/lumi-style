@@ -64,7 +64,7 @@ RECORD_KEYS = {"release", "genre", "self", "reader", "outcome"}
 # closed key set above exists to prevent. So the field is admitted and the
 # validator refuses anything that is not the id shape — the ids resolve through
 # the gitignored evals/corpus.local.json.
-OPTIONAL_KEYS = {"document"}
+OPTIONAL_KEYS = {"document", "corpus_id", "storyline"}
 DOCUMENT_ID = re.compile(r"^[A-Z]\d{1,3}$")
 
 
@@ -72,15 +72,22 @@ def validate(store) -> list[str]:
     errors = []
     dims = store.get("dimensions")
     outcomes = set(store.get("outcomes") or [])
-    if dims != ["H1", "H2", "H3", "H4", "H5", "H6"]:
+    if dims != ["C1", "C2", "C3", "C4", "C5", "C6", "C7"]:
         return [f"reviews/scores.json declares dimensions {dims!r}; the rubric "
-                f"defines H1-H6 and the store may not disagree with it"]
+                f"defines C1-C7 and the store may not disagree with it"]
     releases = set(re.findall(r"^##\s+(\d+\.\d+\.\d+)", CHANGELOG.read_text(
         encoding="utf-8"), re.M))
 
+    LEGACY_DIMS = ["H1", "H2", "H3", "H4", "H5", "H6"]
     for i, rec in enumerate(store.get("reviews", [])):
         where = f"reviews[{i}]"
-        extra = set(rec) - RECORD_KEYS - OPTIONAL_KEYS
+        # A schema-1 record is history: it was scored against H1-H6 before
+        # C1-C7 replaced them, and it is kept verbatim rather than back-filled.
+        # Inventing a corpus id for a document nobody can re-measure would put a
+        # fabricated join key into the evidence, which is worse than a gap.
+        legacy = rec.get("schema") == 1
+        expected = LEGACY_DIMS if legacy else dims
+        extra = set(rec) - RECORD_KEYS - OPTIONAL_KEYS - ({"schema"} if legacy else set())
         if extra:
             errors.append(
                 f"{where} carries {sorted(extra)!r}, which the schema does not "
@@ -89,6 +96,12 @@ def validate(store) -> list[str]:
                 f"how a client name arrives")
         for missing in sorted(RECORD_KEYS - set(rec)):
             errors.append(f"{where} is missing {missing!r}")
+        if not legacy and not rec.get("corpus_id"):
+            errors.append(
+                f"{where}: corpus_id is required. The agreement study joins a "
+                f"machine reading to a human score on it, and the two records "
+                f"that predate this rule have none — which is the whole reason "
+                f"that study has never had a single joinable row")
         doc = rec.get("document")
         if doc is not None and not DOCUMENT_ID.fullmatch(str(doc)):
             errors.append(
@@ -107,8 +120,9 @@ def validate(store) -> list[str]:
                           f"three, and a no-change is written down like the others")
         for side in ("self", "reader"):
             scores = rec.get(side)
-            if not isinstance(scores, dict) or set(scores) != set(dims):
-                errors.append(f"{where}.{side} must carry exactly H1-H6")
+            if not isinstance(scores, dict) or set(scores) != set(expected):
+                errors.append(f"{where}.{side} must carry exactly "
+                              f"{'H1-H6 (schema 1, history)' if legacy else 'C1-C7'}")
                 continue
             for dim, val in scores.items():
                 if val is None:

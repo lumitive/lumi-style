@@ -85,4 +85,6 @@ jobs:
       # sentence (GAP-002, closed 0.1.425). Red since 0.1.425 after one
       # warn-only release proved every failure shape fires.
       - run: python3 scripts/check/check_evidence.py --check
+      - run: python3 scripts/ops/review_scores.py --check
+      - run: python3 scripts/ops/eval_agreement.py --report
       - run: python3 scripts/check/check_repo.py

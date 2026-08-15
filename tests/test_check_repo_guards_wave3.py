@@ -26,7 +26,7 @@ import lock as brand_lock
 REAL_SCRIPTS = next(p for p in pathlib.Path(check_repo.__file__).resolve().parents
                     if p.name == "scripts")
 
-DIMS = ["H1", "H2", "H3", "H4", "H5", "H6"]
+DIMS = ["C1", "C2", "C3", "C4", "C5", "C6", "C7"]
 
 
 # check_media_only_rules — no class styled only inside a @media block.
@@ -296,7 +296,7 @@ def _scores_tree(tmp_path, overrides=None):
     shutil.copyfile(REAL_SCRIPTS / "lib" / "deliverable_registry.py",
                     scripts / "lib" / "deliverable_registry.py")
     (tmp_path / "CHANGELOG.md").write_text("## 0.1.1\n\n- first.\n", encoding="utf-8")
-    record = {"release": "0.1.1", "genre": "sales",
+    record = {"release": "0.1.1", "genre": "sales", "corpus_id": "A1",
               "self": dict.fromkeys(DIMS, 4), "reader": dict.fromkeys(DIMS, 4),
               "outcome": "no-change"}
     record.update(overrides or {})
@@ -325,11 +325,11 @@ def test_review_scores_unknown_key_fails(tmp_path, monkeypatch):
 
 def test_review_scores_self_five_without_reader_fails(tmp_path, monkeypatch):
     tree = _scores_tree(tmp_path, overrides={
-        "self": {**dict.fromkeys(DIMS, 4), "H1": 5},
+        "self": {**dict.fromkeys(DIMS, 4), "C1": 5},
         "reader": dict.fromkeys(DIMS)})
     monkeypatch.setattr(check_repo, "ROOT", tree)
     errors = check_repo.check_review_scores()
-    assert any("self-scored 5 on H1" in e for e in errors)
+    assert any("self-scored 5 on C1" in e for e in errors)
 
 
 # check_brand_lock — every locked file hashes to what LOCKED.json records.
