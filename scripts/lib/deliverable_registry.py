@@ -92,3 +92,26 @@ def checker_path(kind: str) -> pathlib.Path:
 
 def kinds() -> tuple[str, ...]:
     return tuple(_SCRIPTS_BY_KIND)
+
+# The sections a storyline typically carries. This is a CHECKLIST APPLIED AT
+# THE END, never a template to start from — the evidence against template-first
+# work is why the pipeline was turned around, and a list like this used as a
+# starting point would reintroduce exactly what that turn was for.
+#
+# It is reported and never gated. Structural compliance does not predict
+# quality; what is enforceable is that an absence be DECLARED, which is what
+# `data-omitted` and the outline's `omitted:` line are for.
+TYPICAL_SECTIONS = {
+    "market-analysis": ("market size", "segments", "competitive landscape",
+                        "demand drivers", "risks", "implication"),
+    "gtm": ("target segment", "positioning", "channel", "pricing",
+            "launch sequence", "success measure"),
+    "status-report": ("headline", "progress", "risks and blockers", "asks",
+                      "next checkpoint"),
+    "due-diligence": ("scope and method", "findings", "quantified exposure",
+                      "limitations", "recommendation"),
+    "product-intro": ("problem", "what it does", "evidence it works",
+                      "how to adopt", "next step"),
+    "training-curriculum": ("objective", "prerequisites", "modules",
+                            "practice", "assessment"),
+}
