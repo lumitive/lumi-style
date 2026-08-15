@@ -1,5 +1,57 @@
 # Changelog
 
+## 0.1.470 — the ledger reads the traces, drafts candidates, and ratifies nothing
+
+**`scripts/ops/ledger.py`.** `trace.py` records what happened; this reads the
+accumulated record and keeps three ledgers. Which metric keeps failing — the
+same bar missed repeatedly is either a real weakness or a bar set wrong. Which
+**instrument** is suspect — a metric more often unmeasurable than measured, or
+one that never fails on anything. And what the constitution recorded: refusals
+to emit, which clause yields, and how many builds were abandoned.
+
+**Instruments are checked before thresholds, and rank above them in the queue.**
+Three of this repository's last five findings were instrument defects, and a
+wrong ruler contaminates every measurement taken after it.
+
+**It ratifies nothing.** Every candidate is a draft carrying its trace ids and
+counts. The whole input to this loop comes from the agent being measured, and an
+automated path from "the numbers moved" to "the rules changed" would let a bad
+instrument rewrite the rules it is failing.
+
+**The queue has all three rules**, because one without them fakes health:
+drafted per N pieces of the same evidence rather than on a schedule; ordered
+instrument-first; and **nothing is dropped** — over capacity a candidate is
+marked deferred and printed, since a queue that silently empties reports health
+it does not have.
+
+**The efficiency board admits only runs that passed the quality line**, because
+a thin deck is cheap and worthless and a board that ranked one would reward the
+exact behaviour every other check here exists to catch. Discussion and outline
+are not charged: the thinking a user was asked to do is not the pipeline's cost,
+and charging it would push everyone back toward the template path.
+
+**Running it found a distinction I had collapsed.** The trace recorded `n/a` —
+a Chinese ban list on an English deck — as `not_measured`, so the first run
+reported three perfectly healthy metrics as broken instruments. They are three
+states, not two: does not apply, applies but could not run, and ran. The fix is
+in `trace.py`, and it is the same discipline as "not measured is not zero", one
+level along.
+
+**An empty ledger prints that it is empty and says so is not a clean bill of
+health** — an empty ledger and a healthy one look identical from here.
+
+**The conformance board is now formally stale, and this release says so.**
+Fourteen releases changed SKILL.md'''s pre-delivery steps, replaced H1-H6 with
+C1-C7 and added two checkers a conforming agent must run. Whether each agent
+still follows the skill is **unknown, not passing**. Refreshing the board drives
+real agents through the harness, which needs credentials this repository does
+not hold — an operator step the owner schedules, not something a release can
+satisfy on her behalf. Recorded as a named waiver rather than carried forward
+quietly.
+
+This is T1's analysis half and P5 of
+`specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
 ## 0.1.469 — the storyline beat gets a machine half, and a script that prints the titles without judging them
 
 **`scripts/check/check_outline.py`.** The fourth beat agrees titles, order and

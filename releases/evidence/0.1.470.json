@@ -1,0 +1,23 @@
+{
+ "version": "0.1.470",
+ "diff_base": "a9869162aa6c1ca32de71b84360da9a61a89dbb3",
+ "spec": "specs/2026-08-15-principles-and-evals-refactor-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [
+  {
+   "id": "layout-fixtures",
+   "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+   "exit_code": 0,
+   "stdout_sha256": "2c6c1061cb8125b722b487291b019ed0f35c5d8b0856a4ac2ba4a74b980ff378",
+   "date": "2026-08-16"
+  }
+ ],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Unconfirmed, and named rather than implied: the board's rows were recorded against 0.1.456, and P0-P3 changed SKILL.md's pre-delivery steps, replaced H1-H6 with C1-C7 and added two checkers a conforming agent must now run. Whether each agent still follows the skill is therefore UNKNOWN, not passing. Refreshing it drives real agents through the harness, which needs credentials this repository does not hold and a cost the owner has not authorised, so it is an operator step she schedules — not something a release can satisfy on her behalf. Recorded against GAP-008's neighbourhood: the board claim is stale and the release says so instead of quietly carrying the old rows forward."
+  }
+ ]
+}
