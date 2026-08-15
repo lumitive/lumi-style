@@ -1102,7 +1102,75 @@ def measure(path):
         # unlabelled; a count alone cannot tell a real catch from an off-by-one.
         "D18_detail": (d18 or {}).get("unlabelled"),
         "D20_palette_fidelity": d20_palette_fidelity(resolved, palette),
+        "D21_data_contract": d21_data_contract(raw),
     }
+
+
+# --- D21: the data contract -------------------------------------------------
+# A figure may DECLARE the data it draws, in a JSON block inside the figure:
+#
+#   <script type="application/json" class="f-data">
+#     {"series": [{"label": "Rural", "value": 40}]}
+#   </script>
+#
+# Then the numbers on the drawing, the numbers in its caption and the declared
+# data are three views of one thing, and disagreement between them is decidable
+# rather than a matter of reading carefully. This is the structural half of the
+# figure-text hallucination problem: M13 catches a document contradicting
+# itself in prose, and this catches a drawing contradicting its own data.
+#
+# It is OPT-IN by design. A figure that declares nothing is not failed — most
+# figures in flight today declare nothing, and a checker that failed them all
+# would be turned off within a day. What it will not tolerate is a declaration
+# that disagrees with the drawing, because a false contract is worse than none.
+_FDATA = re.compile(
+    r'<script[^>]*class="[^"]*\bf-data\b[^"]*"[^>]*>(.*?)</script>', re.S | re.I)
+# A figure in this package is `<div class="fig">`, not `<figure>` — the first
+# version of this check assumed the HTML element and matched nothing on any
+# real fixture. Rather than guess again, the scan starts at each declaration
+# and walks BACK to the nearest figure container, which works for both.
+_FIG_OPEN = re.compile(r'<figure\b|<div[^>]*class="[^"]*\bfig\b[^"]*"', re.I)
+
+
+def d21_data_contract(raw):
+    """-> {declared, mismatches:[...]} — three-way agreement, opt-in."""
+    declared, mismatches = 0, []
+    for m in _FDATA.finditer(raw):
+        declared += 1
+        opens = list(_FIG_OPEN.finditer(raw, 0, m.start()))
+        start = opens[-1].start() if opens else max(0, m.start() - 2000)
+        # The declaration must not be part of what it is checked against: with
+        # it left in, every declared value found ITSELF and the check passed on
+        # figures whose data contradicted the drawing outright.
+        drawing = raw[start:m.start()] + raw[m.end():m.end() + 400]
+        visible = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", drawing))
+        try:
+            data = json.loads(m.group(1))
+        except json.JSONDecodeError as exc:
+            mismatches.append(f"figure {declared}: the declared data is not "
+                              f"valid JSON ({exc.msg}) — a contract nobody can "
+                              f"read is not a contract")
+            continue
+        series = data.get("series") if isinstance(data, dict) else None
+        if not isinstance(series, list) or not series:
+            mismatches.append(f"figure {declared}: declares no series")
+            continue
+        for point in series:
+            if not isinstance(point, dict):
+                mismatches.append(f"figure {declared}: a series point is not an object")
+                continue
+            label = str(point.get("label", "")).strip()
+            if label and label.lower() not in visible.lower():
+                mismatches.append(f"figure {declared}: declares the series "
+                                  f"{label!r}, which is nowhere on the drawing")
+            value = point.get("value")
+            if value is None:
+                continue
+            shown = f"{value:g}" if isinstance(value, (int, float)) else str(value)
+            if not re.search(rf"(?<![\d.]){re.escape(shown)}(?![\d])", visible):
+                mismatches.append(f"figure {declared}: declares {label or 'a point'} "
+                                  f"= {shown}, which appears nowhere on the drawing")
+    return {"declared": declared, "mismatches": mismatches}
 
 
 def d20_palette_fidelity(resolved, palette):
@@ -1209,6 +1277,10 @@ def grade(r):
     rows.append(("D20_palette_fidelity",
                  len(pf["differs"]) if "differs" in pf else None, "=0 (gates)",
                  not pf.get("differs"), "unreadable" in pf))
+    dc = r["D21_data_contract"]
+    rows.append(("D21_data_contract",
+                 len(dc["mismatches"]) if dc else None, "=0 (gates)",
+                 bool(dc) and not dc["mismatches"], dc is None))
     vo = r["D19_vocabulary"]
     vo_bad = (len(vo["dangling"]) + len(vo["bad_blocks"]) + len(vo["bad_arity"])
               + len(vo["openers_missing_class"])

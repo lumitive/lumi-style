@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.1.472 — a figure may declare the data it draws, and is then held to it
+
+**D21 · the data contract.** A figure can carry the data it draws in a JSON
+block beside it, and the numbers on the drawing, the numbers in its caption and
+the declared data become three views of one thing. Disagreement between them is
+then decidable rather than a matter of reading carefully. This is the structural
+half of the figure-text hallucination problem: M13 catches a document
+contradicting itself in prose, D21 catches a drawing contradicting its own data.
+
+**Opt-in, and gating once opted in.** A figure that declares nothing is not
+failed — most figures in flight declare nothing, and a check that failed them
+all would be switched off within a day. **A declaration that contradicts the
+drawing is a different thing**: a false contract is worse than no contract, so
+that gates.
+
+**Two mistakes of mine, both structural rather than fiddly.** The first version
+matched `<figure>` elements; this package's figures are `<div class="fig">`, so
+it matched nothing on any real fixture — **I wrote the markup I assumed rather
+than the markup in use**. The scan now starts at each declaration and walks back
+to the nearest figure container, which works for both. The second: the
+declaration was part of what it was checked against, so **every declared value
+found itself** and figures whose data flatly contradicted their drawing passed.
+
+**A new gating metric needs a fixture that fails it**, and the suite refuses one
+without: a graded metric no fixture can fail cannot be told from a metric
+rewritten to return ok. `deck-broken` now carries a figure declaring a series
+that is nowhere on it.
+
+**`gating claims` did its whole job.** Adding a sixth gate went red in five
+files at once — `AGENTS.md`, `CLAUDE.md`, `brand.md`, `design-rules.md` and the
+rubric — each of which states the gating set in its own words. Every one is now
+correct, and the guard also caught my re-wording breaking the pattern it keys
+on, which is the failure mode where a claim quietly stops being checked.
+
+This is T3 of `specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
 ## 0.1.471 — a language model may object to a sentence, and must be able to quote it
 
 **`scripts/ops/judge_findings.py`.** A judge that scores is fooled by fluent

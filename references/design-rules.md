@@ -654,7 +654,7 @@ being present, and a page whose terms arrive without the icon has a style
 defect, not a compliance one.
 
 **This is one of the five checks in `check_design.py` that fail the run** (D12,
-with D14, D15, D19 and D20).
+with D14, D15, D19, D20 and D21).
 Everything else there reports, because a page is done when a human reads it as
 intentional and a threshold satisfiable without improving the page ends the
 looking. This is different in kind: not a judgement about whether a page is well

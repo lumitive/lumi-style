@@ -41,6 +41,7 @@ the hidden-constraint condition this inventory exists to surface.
 | check_design | D19_vocabulary | `=0 (gates)` | gate |
 | check_design | D1_contrast | `=0` | graded |
 | check_design | D20_palette_fidelity | `=0 (gates)` | gate |
+| check_design | D21_data_contract | `=0 (gates)` | gate |
 | check_design | D2_type_scale | `reported` | reported |
 | check_design | D3_tier1_page_share | `<=33.0%` | graded |
 | check_design | D3_tier1_per_page | `<=1 per page` | graded |
