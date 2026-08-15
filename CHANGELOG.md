@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.1.469 — the storyline beat gets a machine half, and a script that prints the titles without judging them
+
+**`scripts/check/check_outline.py`.** The fourth beat agrees titles, order and
+the logic joining them before anything is built, and it is **the only defence
+completeness has** — C5 reports and never gates, so a missing section is caught
+there or not at all. This is the cheap half of that beat.
+
+**What it decides**: topic-label titles ("Market overview" asserts nothing, and
+a deck of labels cannot read as an argument however good the pages are); group
+size, two to five; and whether a section the storyline typically carries is
+neither named nor declared. **An outline may declare an omission** —
+`omitted: <section> — <reason>` — which is the whole distinction between having
+forgotten a section and having decided against it. A declaration without a
+reason fails, because a bare one separates nothing from nothing.
+
+**What it refuses to decide**: whether the titles in order are an argument. It
+prints them as one paragraph and says nothing about whether they cohere. That
+judgement is the point of the beat, and a checker pretending to make it would
+replace the beat rather than serve it — a test asserts no finding claims to.
+
+**Its completeness comparison can be gamed, and it says so.** The check is a
+substring match against the titles, and an author could satisfy it by naming a
+section in a title that is not about it. **That is precisely why it reports and
+does not gate**: gaming a reported line costs effort and buys nothing, while
+gaming a gate buys a green run. A completeness gate would be worth defeating.
+
+`TYPICAL_SECTIONS` joins the registry as **a checklist applied at the end,
+never a template to start from** — the evidence against template-first work is
+why the pipeline was turned around, and this list used as a starting point
+would reintroduce exactly what that turn was for.
+
+This is P3.6 of `specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
 ## 0.1.468 — the score store moves to C1–C7 and finally requires the key its own study joins on
 
 **`reviews/scores.json` schema 2.** Dimensions are C1–C7, and **`corpus_id` is

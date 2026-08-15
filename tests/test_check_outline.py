@@ -1,0 +1,87 @@
+"""check_outline — the machine half of the storyline review beat.
+
+That beat is the only defence completeness has, since C5 reports and never
+gates. These tests are mostly about what the script refuses to decide.
+"""
+import pathlib
+import sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts" / "check"))
+
+import check_outline as co  # noqa: E402
+
+GOOD = """genre: consulting
+storyline: market-analysis
+
+## Where the market is going
+- Demand grew 12% while capacity grew 3%
+- Three segments carry that growth, and one is closing
+"""
+
+
+def _verdicts(text):
+    *_rest, findings = co.review(text)
+    return {f["check"]: f["verdict"] for f in findings}
+
+
+def test_a_title_with_a_verb_is_not_a_label():
+    assert not co.is_label("Demand grew while capacity did not")
+
+
+def test_a_title_with_a_figure_is_not_a_label():
+    assert not co.is_label("Three segments, one closing by 2027")
+
+
+def test_a_question_is_not_a_label():
+    """A question sets up an answer; it is doing the same work as an assertion."""
+    assert not co.is_label("Can the rural gap close without new hardware?")
+
+
+def test_a_bare_noun_phrase_is_a_label():
+    assert co.is_label("Market overview")
+
+
+def test_label_titles_fail():
+    text = GOOD.replace("- Demand grew 12% while capacity grew 3%",
+                        "- Market overview")
+    assert _verdicts(text)["topic-label titles"] == "FAIL"
+
+
+def test_a_group_of_one_fails():
+    text = GOOD + "\n## Conclusion\n- Everything is fine and will stay fine\n"
+    assert _verdicts(text)["group size"] == "FAIL"
+
+
+def test_completeness_is_a_note_never_a_failure():
+    """Structural compliance does not predict quality, so it cannot gate."""
+    assert _verdicts(GOOD)["type completeness"] == "note"
+
+
+def test_a_declared_omission_without_a_reason_fails():
+    """The declaration is what separates a decision from a gap."""
+    text = GOOD + "\nomitted: risks\n"
+    assert _verdicts(text)["declared omission"] == "FAIL"
+
+
+def test_a_declared_omission_with_a_reason_is_accepted():
+    text = GOOD + "\nomitted: risks — the client commissioned these separately\n"
+    _m, _g, omissions, _t, findings = co.review(text)
+    assert omissions[0]["reason"]
+    assert not any(f["check"] == "declared omission" for f in findings)
+
+
+def test_an_undeclared_genre_fails():
+    """Without it the checklist and the thresholds are guesses."""
+    assert _verdicts(GOOD.replace("genre: consulting\n", ""))["genre"] == "FAIL"
+
+
+def test_a_storyline_outside_the_vocabulary_fails():
+    assert _verdicts(GOOD.replace("market-analysis", "invented"))["storyline"] == "FAIL"
+
+
+def test_it_does_not_judge_the_read_through():
+    """Whether the titles cohere is the point of the beat; a checker claiming
+    to decide it would replace the beat rather than serve it."""
+    checks = set(_verdicts(GOOD))
+    assert not any("read" in c or "cohere" in c or "argument" in c for c in checks)

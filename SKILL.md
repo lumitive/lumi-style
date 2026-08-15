@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.468"
+  version: "0.1.469"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -259,6 +259,14 @@ been removed; they now apply at step 4 instead of framing step 0.
    **A title block that does not fit gets shorter text, never a clamp.** `.lede`
    reserves its height as a ceiling; `-webkit-line-clamp` or `overflow: hidden`
    there deletes lines from a client page and leaves the geometry looking clean.
+
+3b. **Before building, after the storyline is agreed**: run
+   `python3 scripts/check/check_outline.py <outline.md>`. It decides the cheap
+   half — topic-label titles, group size, whether a typical section is unnamed
+   and undeclared — and **prints the titles for you to read as one paragraph
+   without judging whether they cohere**, because that judgement is the point
+   of the beat. Completeness is caught here or not at all: C5 reports and never
+   gates.
 
 4. **Before delivery**: run `python3 scripts/check/check_privacy.py <file>
    --terms <list>` — P-5's other half. Layer 1 gates (credential shapes, and
