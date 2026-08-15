@@ -31,7 +31,7 @@ assembled document. When expected generation time still
 passes ten minutes, say so before starting. **When the request says "debug
 mode"**: this tier runs no scripts, so append a plain-English debug section to
 the delivery note instead — the steps taken with rough timings, every error
-met, an H1–H6 self-score with a reason per dimension (never a self-scored 5),
+met, an C1–C7 self-score with a reason per dimension (never a self-scored 5),
 and a named list of the checks you could not run, which the operator owes.
 Write no client name or engagement figure into it.
 
@@ -412,11 +412,11 @@ dark variant ships — a format checked at one size only is a format unchecked;
 ⑧ the **red-team pass**: read the draft as its most
 skeptical reader — overstated claims, the first number they would check, pages
 designed past their content; over-design is a finding, not a virtue; ⑨ self-score
-H1–H6 (reader value / structural expression / chart self-explanation / honest
+C1–C7 (reader value / structural expression / chart self-explanation / honest
 boundaries / business readability / narrative persuasion), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.462** snapshot, cut 2026-08-15. It is self-contained by
+> This file is the **0.1.463** snapshot, cut 2026-08-15. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.
