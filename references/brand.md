@@ -33,6 +33,8 @@
 
 ## 1 · The thesis
 
+*Serves: **P-1**.*
+
 > `上善若水，水利万物而不争`
 > *The supreme good is like water: it nourishes all things without contending.*
 > — Laozi, Daodejing 8
@@ -75,6 +77,8 @@ a gradient wash. Not a logo. The pattern is the evidence of the current.
 ---
 
 ## 2 · The two devices
+
+*Serves: **P-1**.*
 
 Both are **structural**. They set how a page is built, not what is sprinkled on
 top of it. A committed surface over a template grid is the failure this whole file
@@ -290,6 +294,8 @@ move — it is what lets the brand shimmer without the data lying.
 
 ## 2b · The register: heavy, large, tight
 
+*Serves: **P-3**.*
+
 Weight, scale and leading are where a deck sounds young or sounds like a filing.
 The reference this was studied against runs **245 elements at weight 700 and 52 at
 900**, display at 254px and 120px, line-height ~0.9, and letter-spacing `normal`
@@ -319,6 +325,8 @@ free.
 
 ## 3 · Accelerators — what a LUMI page should be willing to do
 
+*Serves: **P-1**.*
+
 This section exists because for four releases this skill said only what not to do,
 and an author who is only ever braked stops at 65% commitment on every axis. These
 are permissions. They are not requirements, and none of them outranks a red line.
@@ -347,6 +355,8 @@ are permissions. They are not requirements, and none of them outranks a red line
 
 ## 4 · Non-contention as a visual rule
 
+*Serves: **P-1**.*
+
 **The brand is never the loudest thing on the page. The evidence is.**
 
 Wordmark small — the literal string "LUMI Style". No watermark, no ornament,
@@ -366,6 +376,8 @@ difference immediately.
 ---
 
 ## 5 · Provenance
+
+*Serves: **P-2**.*
 
 The 23:1 measurement and the fix come from a documented study of this exact
 failure mode (`impeccable.style/research`, ~30 skill iterations, ~200 sampled

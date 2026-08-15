@@ -236,6 +236,67 @@ def _anchors_of(path):
     return slugs
 
 
+def check_principle_trace():
+    """Every rule family in references/ declares the clause it serves.
+
+    The clause set is read from PRINCIPLES.md rather than hard-coded, so adding
+    a seventh clause needs no edit here and citing a clause that does not exist
+    fails. `GOAL` is a legitimate parent — it means the family serves the
+    product's purpose rather than a constitutional clause, and forcing those
+    families under a clause would produce strained parentage and a traceability
+    chain worth nothing.
+
+    THE LIMIT, stated here because a guard that looks stronger than it is will
+    be trusted for more than it does: this verifies that a declaration exists
+    and names a real clause. **It cannot verify the right parent was chosen.**
+    It stops orphans, not misclassification — which stays a human judgement, in
+    the same class as every other semantic drift between prose copies.
+    """
+    principles = ROOT / "references" / "PRINCIPLES.md"
+    if not principles.exists():
+        return ["references/PRINCIPLES.md is missing — the trace has no root"]
+    clauses = set(re.findall(r"^\*\*(P-\d+) · ", principles.read_text(encoding="utf-8"), re.M))
+    if not clauses:
+        return ["references/PRINCIPLES.md declares no clauses — "
+                "the guard would pass vacuously"]
+    valid = clauses | {"GOAL"}
+
+    errors = []
+    declared_any = False
+    for ref in sorted((ROOT / "references").glob("*.md")):
+        if ref.name in ("PRINCIPLES.md", "eval-inventory.md"):
+            continue          # the constitution itself; the inventory is generated
+        text = ref.read_text(encoding="utf-8")
+        lines = text.split("\n")
+        file_level = any(ln.startswith("*Serves:") for ln in lines[:12])
+        for i, line in enumerate(lines):
+            m = re.match(r"^#{2,3} (\d+(?:\.\d+)?[a-z]?) · ", line)
+            if not m:
+                continue
+            window = "\n".join(lines[i + 1:i + 4])
+            got = re.search(r"^\*Serves: \*\*(P-\d+|GOAL)\*\*", window, re.M)
+            if not got:
+                if file_level:
+                    continue   # the whole file declared one parent
+                errors.append(f"{rel(ref)}:{i + 1}: §{m.group(1)} declares no parent "
+                              f"(add `*Serves: **P-n**.*` or `*Serves: **GOAL**.*`)")
+                continue
+            declared_any = True
+            if got.group(1) not in valid:
+                errors.append(f"{rel(ref)}:{i + 1}: §{m.group(1)} serves "
+                              f"{got.group(1)}, which PRINCIPLES.md does not define")
+    for m in re.finditer(r"\*Serves: \*\*(P-\d+|GOAL)\*", "".join(
+            (ROOT / "references" / f).read_text(encoding="utf-8")
+            for f in ("storyline-templates.md", "eval-rubric.md")
+            if (ROOT / "references" / f).exists())):
+        declared_any = True
+        if m.group(1) not in valid:
+            errors.append(f"a file-level declaration names {m.group(1)}, "
+                          f"which PRINCIPLES.md does not define")
+    if not declared_any:
+        errors.append("no rule family declares a parent — the guard would pass vacuously")
+    return errors
+
 def check_section_citations():
     """Every `<reference>.md §N` citation names a section that exists.
 
@@ -2438,6 +2499,7 @@ CHECKS = (
     ("english-only red line", check_english_only),
     ("markdown link targets", check_links),
     ("section citations", check_section_citations),
+    ("principle trace", check_principle_trace),
     ("stale promises", check_stale_promises),
     ("platform manifest", check_platform_manifest),
     ("retired values", check_retired_values),

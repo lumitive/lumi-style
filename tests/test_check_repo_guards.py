@@ -287,3 +287,50 @@ def test_section_citations_tests_dir_is_exempt(tmp_path, monkeypatch):
                         _section_citation_tree(tmp_path, "design-rules.md §7",
                                        in_file="tests/test_x.py"))
     assert check_repo.check_section_citations() == []
+
+
+# check_principle_trace — every rule family names the clause it serves.
+
+def _trace_tree(tmp_path, serves="P-1", clauses="**P-1 · Brand.** MUST.\n\n**P-2 · Grounded.** MUST.\n"):
+    refs = tmp_path / "references"
+    refs.mkdir()
+    (refs / "PRINCIPLES.md").write_text("# LUMI principles\n\n" + clauses, encoding="utf-8")
+    body = "# Rules\n\n## 1 · Colour\n"
+    if serves:
+        body += f"\n*Serves: **{serves}**.*\n"
+    body += "\ntext\n"
+    (refs / "design-rules.md").write_text(body, encoding="utf-8")
+    return tmp_path
+
+
+def test_principle_trace_declared_family_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _trace_tree(tmp_path))
+    assert check_repo.check_principle_trace() == []
+
+
+def test_principle_trace_goal_is_a_legitimate_parent(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _trace_tree(tmp_path, serves="GOAL"))
+    assert check_repo.check_principle_trace() == []
+
+
+def test_principle_trace_orphan_family_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _trace_tree(tmp_path, serves=None))
+    assert any("declares no parent" in e for e in check_repo.check_principle_trace())
+
+
+def test_principle_trace_undefined_clause_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _trace_tree(tmp_path, serves="P-9"))
+    assert any("P-9" in e for e in check_repo.check_principle_trace())
+
+
+def test_principle_trace_missing_constitution_fails(tmp_path, monkeypatch):
+    tree = _trace_tree(tmp_path)
+    (tree / "references" / "PRINCIPLES.md").unlink()
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    assert any("missing" in e for e in check_repo.check_principle_trace())
+
+
+def test_principle_trace_empty_constitution_fails_rather_than_passing(tmp_path, monkeypatch):
+    """A constitution with no clauses must not make the guard vacuous."""
+    monkeypatch.setattr(check_repo, "ROOT", _trace_tree(tmp_path, clauses="no clauses here\n"))
+    assert any("vacuously" in e for e in check_repo.check_principle_trace())
