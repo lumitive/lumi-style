@@ -1,5 +1,7 @@
 # LUMI Storyline Templates
 
+*Serves: **GOAL*** — narrative skeletons serve the reader's decision rather than a constitutional clause; the cover and closing pages inside it serve **P-1** as brand apparatus.
+
 > Four narrative skeletons for four output scenarios, plus the shared
 > discipline. (Repository language: English only — red line.)
 
@@ -213,6 +215,12 @@ manufacture the uniformity the parallel-structure rule exists to suppress.
   (structure / rigor / so-what / completeness) → Green (ship) / Yellow (fixable —
   don't ship as-is) / Red (the argument collapsed) → Top 3 fixes (what's wrong +
   how to fix) → name one strength that must be protected.
+- **The conflict exit** (`PRINCIPLES.md` §3): if two MUST clauses cannot both be
+  satisfied after the rule has been read as precisely as it can be — not merely
+  when one is inconvenient — **record the conflict and the reasoning, do not
+  emit, and hand it to a person.** It is rare by construction, and a refusal is
+  evidence that a rule needs redrafting rather than a way to stop work: name
+  both clauses and what each demanded.
 - **The red-team pass rides the critic gate** (owner directive 2026-08-09): the
   half of you that built the document — the blue team — argued for it, so before
   delivery the other half reads it as its most skeptical reader — which claim is overstated,

@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.1.459 — the constitution ships, and the guard that holds every rule to a parent it must name
+
+**`references/PRINCIPLES.md`.** Six clauses (P-1 brand consistency, P-2 grounded,
+P-3 plain language, P-4 figures over prose, P-5 safety and compliance, P-6
+accountability), each carrying its own obligation strength. **There is no
+ordering between clauses**, and the file says why: no major professional code
+ranks its own principle set, a strict order is only lossless where each
+criterion outweighs the sum of all below it, and with continuous scores the
+lower clauses are never reached at all. Irreversibility of harm is why a clause
+has the strength it has — it is not a ranking between clauses. The file opens by
+saying what it constrains: **how rules are made and where they belong, not the
+writing of any individual document.** A constitution that restated the rules
+would be the worst instance of this repository's dominant defect, and it
+restates none.
+
+**The conflict exit, at both places it has to exist.** When two MUST clauses
+cannot both be satisfied after the rule has been read as precisely as it can be:
+record the conflict and the reasoning, refuse to emit, hand it to a person. It
+is written into `SKILL.md`'s pre-delivery step and `storyline-templates.md`'s
+critic gate, because **a procedure that exists only in the constitution is not
+executed at the moment it applies**. Both copies say it is rare by construction
+and is not a way out of an inconvenient rule.
+
+**`principle trace` guard.** Every rule family in `references/` declares the
+clause it serves, or `GOAL` — which means it serves the product's purpose rather
+than a constitutional clause, and is a legitimate parent rather than an orphan.
+The clause set is read out of `PRINCIPLES.md` rather than hard-coded, so a
+seventh clause needs no edit to the guard and a citation of a clause that does
+not exist fails. Twenty-seven declarations ship with it.
+
+**The guard's limit is written into the guard.** It verifies that a declaration
+exists and names a real clause. **It cannot verify the right parent was chosen** —
+that stays human judgement, in the same class as every other semantic drift
+between prose copies. A guard that looks stronger than it is will be trusted for
+more than it does.
+
+**Deliberate red, three ways**: a family with its declaration deleted fails; a
+family declaring a clause `PRINCIPLES.md` does not define fails; and removing
+`PRINCIPLES.md` itself fails rather than passing vacuously. This is P1.1–P1.3.
+
+This is P1.1–P1.3 of `specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
+**Recorded as still owed**: the chart-rule family in `design-rules.md` §4 serves
+three clauses at once (form selection P-4, accent colour P-1, source line P-2)
+and declares P-4 with the other two named in prose. P0.5's rule IDs split it.
+
 ## 0.1.458 — the four templates now sit together, and the plan item that would have edited the same prose twice was moved out of P0
 
 **The move.** `storyline-templates.md` ran Template 1, cover-and-closing,

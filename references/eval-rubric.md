@@ -1,5 +1,7 @@
 # LUMI Document Eval Rubric
 
+*Serves: **P-2*** — measuring the document is how the claim "this is verified" becomes grounded.
+
 > Every external deliverable is self-scored first, then reader-scored; divergence
 > drives rule iteration. This is the skill's continuous-improvement engine.
 > (Repository language: English only — red line.)
