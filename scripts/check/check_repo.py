@@ -2390,6 +2390,67 @@ def _metric_ids(prefix: str) -> tuple[set[str], set[str]]:
     return ids, gating
 
 
+def check_two_axis_vocabulary():
+    """The rule tier and the storyline stay two axes, each derived, neither faked.
+
+    `genre` used to answer two questions at once — which thresholds apply, and
+    what shape the argument has. The split only helps if the two halves stay
+    honest, and there are exactly two ways for it to rot.
+
+    **A tier table that does not match what keys on genre.** TIERS is a claim
+    about behaviour: that `internal` is the tier exempt from the dash ban and
+    `training` is the tier with its own visual-share target. If someone changes
+    DASH_BANNED or VISUAL_SHARE_TARGET without changing TIERS, the tier becomes
+    a label with nothing behind it, which is the state `genre` was in before the
+    split.
+
+    **A storyline vocabulary nobody uses, or one used outside the vocabulary.**
+    A trace declaring a storyline the registry does not define means the closed
+    schema is not closed.
+    """
+    errors = []
+    try:
+        import deliverable_registry as reg
+    except Exception as exc:                       # noqa: BLE001
+        return [f"deliverable_registry does not import: {exc}"]
+
+    if set(reg.TIERS) != set(reg.GENRES):
+        errors.append(f"TIERS covers {sorted(reg.TIERS)} but the genres are "
+                      f"{sorted(reg.GENRES)} — every genre needs a tier or it "
+                      f"resolves to nothing")
+    prose = (ROOT / "scripts" / "check" / "check_prose.py").read_text(encoding="utf-8")
+    m = re.search(r"DASH_BANNED = \(([^)]*)\)", prose)
+    if not m:
+        errors.append("check_prose.py has no DASH_BANNED — the tier table's "
+                      "first claim cannot be checked")
+    else:
+        banned = set(re.findall(r'"([^"]+)"', m.group(1)))
+        exempt = {g for g in reg.GENRES if g not in banned}
+        claimed = {g for g, t in reg.TIERS.items() if t == "internal"}
+        if exempt != claimed:
+            errors.append(f"TIERS says the dash-exempt tier is {sorted(claimed)} "
+                          f"but DASH_BANNED leaves {sorted(exempt)} exempt")
+    layout = (ROOT / "scripts" / "check" / "inspect_layout.py").read_text(encoding="utf-8")
+    m = re.search(r"VISUAL_SHARE_TARGET = \{([^}]*)\}", layout)
+    if not m:
+        errors.append("inspect_layout.py has no VISUAL_SHARE_TARGET — the tier "
+                      "table's second claim cannot be checked")
+    else:
+        targets = dict(re.findall(r'"([^"]+)":\s*(\d+)', m.group(1)))
+        odd = {g for g, v in targets.items() if v != "50"}
+        claimed = {g for g, t in reg.TIERS.items() if t == "training"}
+        if odd != claimed:
+            errors.append(f"TIERS says the tier with its own visual-share target "
+                          f"is {sorted(claimed)} but the odd targets are {sorted(odd)}")
+
+    if not reg.STORYLINES:
+        errors.append("STORYLINES is empty — the second axis would be decorative")
+    declared = trace_schema.ENUMS.get("storyline")
+    if declared is not None and set(declared) != set(reg.STORYLINES):
+        errors.append("the trace schema's storyline vocabulary and the "
+                      "registry's have drifted apart")
+    return errors
+
 def check_metric_id_ranges():
     """A range written from 1 claims the whole family, so its end is checkable.
 
@@ -2648,6 +2709,7 @@ def check_genre_vocabulary():
 
 CHECKS = (
     ("genre vocabulary", check_genre_vocabulary),
+    ("two-axis vocabulary", check_two_axis_vocabulary),
     ("metric id ranges", check_metric_id_ranges),
     ("gating claims", check_gating_claims),
     ("version stamps", check_versions),
