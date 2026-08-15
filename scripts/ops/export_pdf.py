@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Export a deliverable to PDF and high-resolution page rasters.
 
-The page geometries are fixed stages (design-rules.md §7): 1280x720 landscape,
+The page geometries are fixed stages (design-rules.md §8): 1280x720 landscape,
 794x1123 A4 portrait. This tool renders at those stages and nowhere else:
 
   * **PDF** — one PDF page per `.page` section at the stage size. Vector, so
@@ -22,7 +22,7 @@ Output lands next to the input file unless --out names a directory. That is NOT
 the skill's output-directory default and is not meant to be: since 0.1.385 a new
 document is written to `Documents/LUMI-Style/`, while an export belongs beside
 the document it was made from, so a deliverable's HTML and PDF travel together.
-Do not "fix" this to resolve the default — design-rules.md §7 says both halves.
+Do not "fix" this to resolve the default — design-rules.md §8 says both halves.
 
 Dependency posture matches inspect_layout.py: optional local tool, never in CI
 beyond a syntax check. `pip install playwright && playwright install chromium`.
@@ -200,7 +200,7 @@ def main(argv):
     ap.add_argument("files", nargs="+")
     ap.add_argument("--geometry", choices=sorted(STAGES), default=None,
                     help="which fixed stage to render; defaults to the genre's "
-                         "primary (design-rules §7)")
+                         "primary (design-rules §8)")
     ap.add_argument("--genre", choices=list(GENRES),
                     default="sales",
                     help="picks the default geometry: training leads portrait "
@@ -224,7 +224,7 @@ def main(argv):
                  f"(2x the stage, 2K); the default is {SCALE_DEFAULT:g} (4K)")
 
     # The document's own declaration decides, because a deliverable is designed
-    # for ONE geometry (design-rules §7). Exporting a landscape deck at A4 is
+    # for ONE geometry (design-rules §8). Exporting a landscape deck at A4 is
     # how a portrait PDF came back with dead half-pages, starved figures and a
     # wrapped footer on all 31 pages: nothing was broken, the composition had
     # simply never been designed. So a contradiction is a refusal, not a warning.

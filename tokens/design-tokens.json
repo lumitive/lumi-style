@@ -1,5 +1,5 @@
 {
-  "$schema_note": "LUMI design tokens v0.1.456 (2026-08-13). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
+  "$schema_note": "LUMI design tokens v0.1.457 (2026-08-15). Mirrors tokens/lumi-theme.css; usage in references/design-rules.md. Version lockstep: tokens carry the skill version. Repository language: English only (red line).",
   "palette_default": "light",
   "palette": {
     "light": {
@@ -210,7 +210,7 @@
   "retired_note": "v0.1.353. A withdrawn number is a fact the authority has to state, or no check can tell 'withdrawn' from 'deleted by accident' — and a withdrawn floor that survives in a prose copy is this repository's documented worst drift: the 82% fill floor and the 11px type floor both outlived their withdrawal by four versions in two entry points nobody was checking. scripts/check/check_repo.py reads this register and requires every restatement of these values to carry a withdrawal marker in the same sentence. Each entry carries a `context` list because a bare number is not a rule: '40%' names the withdrawn D9 share cap in one sentence and 'four diagrams rendered at 40% of their cell' in another, and those are opposite claims written with the same digits. A value counts as a restatement only when the paragraph also carries one of its context phrases.",
   "assets": {
     "fonts": "assets/fonts/ — D-DIN.woff2, D-DIN-Bold.woff2, COPYING.txt (SIL OFL)",
-    "icons": "assets/icons/ — the eight semantic icons named in design-rules.md §5, hairline 1.25px, stroke=currentColor, 24x24",
+    "icons": "assets/icons/ — the eight semantic icons named in design-rules.md §6, hairline 1.25px, stroke=currentColor, 24x24",
     "vectors": "assets/vectors/ — globe-orthographic.svg and world-flat.svg, original geometry",
     "note": "v0.1.338. A rule may not mandate an asset the package does not ship: §5 required a semantic icon library for six versions and shipped none, so deliverables carried zero icons, and the cover rule banned imagery because there was no photo library rather than shipping vector geography that needs none."
   },

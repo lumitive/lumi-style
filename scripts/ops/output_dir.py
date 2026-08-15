@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resolve the directory a finished deliverable belongs in, per design-rules §7.
+"""Resolve the directory a finished deliverable belongs in, per design-rules §8.
 
 The rule is `Documents/LUMI-Style/` under the user's home directory, and the rule
 is the authority — it is written as a literal path precisely so that a model with
@@ -31,7 +31,7 @@ import os
 import pathlib
 import sys
 
-# The literal from references/design-rules.md §7, output axis. It is duplicated
+# The literal from references/design-rules.md §8, output axis. It is duplicated
 # here rather than parsed out of the prose because a checker that reads the rule
 # it enforces proves nothing; check_repo.py's output-default guard holds the two
 # together instead, and will fail if they ever disagree.

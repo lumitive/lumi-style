@@ -356,7 +356,7 @@ repo itself.)
    figure whose band was clipped by its own viewBox, because the script measures
    declared CSS and cannot see rendered geometry. Screenshot every figure page at
    the design viewport and look at it. See the browser checks in
-   `references/design-rules.md` §7.
+   `references/design-rules.md` §8.
 9. This repo holds style rules and templates only — never add client names,
    project figures, or engagement facts. This binds `CHANGELOG.md` hardest, since
    every entry summarizes a real engagement's review: record the lesson and the

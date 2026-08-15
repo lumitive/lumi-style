@@ -95,7 +95,7 @@ class Unmeasurable(Exception):
 SETTLE_MS = 350
 
 # The two page geometries every LUMI deliverable serves (SKILL.md, and
-# design-rules.md §7). Landscape is primary; portrait is a composition, not a
+# design-rules.md §8). Landscape is primary; portrait is a composition, not a
 # reflow, so it is measured separately rather than assumed to follow.
 GEOMETRIES = {
     "16x9":   (1280, 720),
@@ -109,7 +109,7 @@ GEOMETRIES = {
 }
 # EVERY geometry the rules name, plus the one off-design render. Until 0.1.390
 # this was ["16x9", "a4", "wide"] and the other two were unreachable without a
-# flag — including `laptop`, which design-rules.md §7 names explicitly and tells
+# flag — including `laptop`, which design-rules.md §8 names explicitly and tells
 # you what it catches ("a short laptop window (e.g. 1000x550)"), and `16x9-hd`,
 # which §7 also names ("checked at 1920x1080") and is the shape a deck is
 # actually projected at in most rooms.
@@ -513,7 +513,7 @@ PROBE = r"""
     }
 
     // ── does the drawing agree with its own numbers? ──────────────────────
-    // A mark that encodes a quantity declares it (design-rules §4 rule 9). Where
+    // A mark that encodes a quantity declares it (design-rules §4 rule 14). Where
     // it does, the drawing is checkable against it, and that is the only way a
     // checker can ever tell a bar chart from a picture of one: 48px means
     // nothing to a script until the markup says what it is 48px OF.
@@ -976,7 +976,7 @@ PROBE = r"""
       // back to a hard-coded 14. At 1920x1080 the page scales 1.5x and a
       // perfectly good one-line footer measured 22.5 against a threshold of
       // 22.4 — all 18 pages reported wrapped, by a tenth of a pixel, on the
-      // matrix point design-rules.md §7 names and nothing had ever run.
+      // matrix point design-rules.md §8 names and nothing had ever run.
       // A Range over the contents yields one client rect per line box, in
       // whatever space the element is drawn in, so the ratio is scale-free.
       footWrapped: !!footEl && [...footEl.children].some(e => {
@@ -2595,7 +2595,7 @@ def main(argv):
             # DEFAULT_GEOMETRIES alone would not have reached a deliverable,
             # because a deliverable declares its stage and took this branch.
             #
-            # design-rules.md §7 makes both landscape entries matrix points, not
+            # design-rules.md §8 makes both landscape entries matrix points, not
             # options: "16:9 landscape, 1280x720, CHECKED AT 1920x1080". The
             # short laptop window is named there too, and its stated rationale
             # is a slide one — "Slides use min-height:100svh, so an overflowing
@@ -2619,7 +2619,7 @@ def main(argv):
         dark = args.dark or ".dark." in path.name
         # Which matrix points this run covers, and which it is skipping. Printed
         # rather than assumed: "verified at one matrix point is not verified" is
-        # a rule in design-rules.md §7, and a report that does not say how many
+        # a rule in design-rules.md §8, and a report that does not say how many
         # points it visited cannot be read against it.
         skipped = [g for g in GEOMETRIES if g not in file_geometries]
         print(f"\n{path.name}: {len(file_geometries)} geometry point(s) — "

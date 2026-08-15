@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.456"
+  version: "0.1.457"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -78,7 +78,7 @@ directory** unless the user names another — the same place on macOS, Windows a
 Linux, and **ask before creating it**. An *export* still lands beside the
 document it was made from, so a deliverable's HTML and PDF stay together; that
 folder is shared, so **a filename carries the document's own name and version**.
-Exports otherwise follow the export axis in `references/design-rules.md` §7
+Exports otherwise follow the export axis in `references/design-rules.md` §8
 (PDF at the stage; rasters default 4K, floor 2K).
 
 **Repository language: English only (red line).** Chinese strings appear in the
@@ -218,7 +218,7 @@ been removed; they now apply at step 4 instead of framing step 0.
    map with its labels already placed (`--labels zh` for Chinese, `--states`
    for the data), and `python3 scripts/render/globe_svg.py` the rotating globe.
    These are two components, not two forms of one
-   (the split is recorded in `references/design-rules.md` §1d's figure
+   (the split is recorded in `references/design-rules.md` §1.2's figure
    vocabulary; the dated design history lives in specs/): the map is flat, labelled
    and state-driven; the globe rotates and carries `--marks`, its data as a
    JSON list of `{lon, lat, weight, label}`.
@@ -228,7 +228,7 @@ been removed; they now apply at step 4 instead of framing step 0.
    regions at a glance and only text identifies them; the map emits its own
    labels, so this is only work when you suppress them with `--labels none`. Never place the generated 110m map and the coarse
    `globe-orthographic.svg` mark in one view; they disagree about where a
-   coastline is (design-rules §1d). Text uses the `--tx*` ladder only; `--ln*` is rules and fills.
+   coastline is (design-rules §1.2). Text uses the `--tx*` ladder only; `--ln*` is rules and fills.
    **Use the role vocabulary** the token file declares — `.eyebrow`, `h2.t`,
    `.sup`, `.listhead`, `.gd`, `.cap .n`, `.band .k`, `.band .v` — because that
    is the contract the consistency audit checks against; rename one and it drops

@@ -310,7 +310,7 @@ someone types them.
 
 - `scripts/check/inspect_layout.py` defines a `laptop` geometry at 1000×550 and a
   `16x9-hd` at 1920×1080, and its default geometry list contains neither.
-- `../references/design-rules.md` §7 requires the short-laptop check by name and
+- `../references/design-rules.md` §8 requires the short-laptop check by name and
   states what it catches: an overflowing page pushing its footer below the fold
   silently.
 
