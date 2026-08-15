@@ -173,8 +173,15 @@ def cmd_close(a):
             if isinstance(value, (int, float)) and not isinstance(value, bool):
                 rec["thresholds"][mid] = value
             elif value is None and mid in row:
-                # measured and found absent is not the same as never measured
-                rec["thresholds"][mid] = "not_measured"
+                # Three states, not two. "n/a" means the metric does not apply
+                # to this document — a Chinese ban list on an English deck.
+                # "not_measured" means it applies and could not be run. The
+                # ledger suspects an instrument on the second and must not on
+                # the first, and collapsing them made three healthy metrics
+                # look broken the first time the ledger was run.
+                rec["thresholds"][mid] = (
+                    "n/a" if str(verdict).lower() in ("n/a", "na")
+                    else "not_measured")
         v = row.get("D16_visual_presence") or {}
         if isinstance(v.get("content_pages"), int):
             rec["content_pages"] = v["content_pages"]
