@@ -9,8 +9,8 @@
 ## Contents
 
 - [Machine metrics M1–M12 (scriptable; spot-check manually when no script)](#machine-metrics-m1m12-scriptable-spot-check-manually-when-no-script)
-- [Design diagnostics (`scripts/check/check_design.py` — reported, never gating, four named exceptions)](#design-diagnostics-scriptscheckcheck_designpy--reported-never-gating-four-named-exceptions)
-- [Human metrics H1–H6 (anchors 1–5 — **anchors must be written in the reviewer's language, not internal jargon**)](#human-metrics-h1h6-anchors-15--anchors-must-be-written-in-the-reviewers-language-not-internal-jargon)
+- [Design diagnostics (`scripts/check/check_design.py`)](#design-diagnostics-scriptscheckcheck_designpy)
+- [Human dimensions C1–C7 (tick evidence items; do not rate an impression)](#human-dimensions-c1c7-tick-evidence-items-do-not-rate-an-impression)
 - [Review protocol (the iteration engine)](#review-protocol-the-iteration-engine)
 - [Known genre distortions (never chase the score)](#known-genre-distortions-never-chase-the-score)
 
@@ -55,7 +55,7 @@ have no Han character next to their punctuation.
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame (e.g. "Topic: clause") |
 | M12 | Visible CJK in an English deliverable | =0 — **gates** | Chinese in text a reader sees, when the document declares English by `lang`, filename or `--lang`. Quoted as data (`<code>`, `<pre>`, backticks) is exempt |
 
-## Design diagnostics (`scripts/check/check_design.py` — reported, never gating, four named exceptions)
+## Design diagnostics (`scripts/check/check_design.py`)
 
 | id | Metric | Target | Predicate |
 |---|---|---|---|
@@ -227,25 +227,123 @@ sub-floor type sizes, four pages over the callout budget on 51.9% of pages, and
 two footer gaps — which is the reader's list, in numbers, before they had to read
 anything.
 
-## Human metrics H1–H6 (anchors 1–5 — **anchors must be written in the reviewer's language, not internal jargon**)
+## Human dimensions C1–C7 (tick evidence items; do not rate an impression)
 
-- **H1 Reader value**: 5 = after each page the reader knows what they got and what
-  to do next; 3 = most pages carry value, some merely state; 1 = the page talks to
-  itself.
-- **H2 Structural expression**: 5 = each page's layout best expresses its topic and
-  the page order best expresses the storyline; 3 = usable but some pages fight
-  their layout; 1 = a template forced onto the content.
-- **H3 Chart self-explanation**: 5 = every figure's message is clear without the
-  body text; 3 = most figures need the text; 1 = figures are decoration.
-- **H4 Honest-boundary disclosure**: 5 = every illustrative/proposal/not-built item
-  is labeled and findable in one place; 3 = disclosed but scattered; 1 = only the
-  built parts are shown.
-- **H5 Business readability**: 5 = a reader outside the project understands in one
-  pass, no glossary needed; 3 = pauses to look things up every few paragraphs;
-  1 = insiders only.
-- **H6 Narrative persuasion**: 5 = the reader arrives at the author's conclusion
-  naturally; 3 = evidence present but the reader assembles the causality; 1 = fact
-  list, no storyline.
+*Serves: **P-2**.* · id `ER-2`
+
+Each dimension scores 1–5, but **the score is arrived at by ticking binary
+evidence items**, not by forming an impression. Two measurements say why:
+fine-grained binary checklists agree with human judgement far better than
+holistic scoring does, and LLM judges are reliably fooled by fluent verbosity.
+So the items **count things**; they do not rate feelings.
+
+Three rules come before the list:
+
+**Only what a machine cannot decide is on it.** Items a gate already holds are
+struck through and name the gate. Asking a reviewer to re-check something already
+gated spends the scarcest resource in this process on nothing.
+
+**Scoring and release are different questions.** C1–C7 score quality. P-5 and
+P-6 are pass/fail and are decided at the pre-delivery gate, not here. The
+dividing line is **decidability**, not importance — every clause from P-1 to
+P-5 is a MUST. "Did it leak" is a decidable binary fact; "how well sourced is
+it" is a matter of degree.
+
+**Each item says whether it can run at the outline stage**, marked `[outline]`.
+Those are what a storyline review can check before the document exists.
+
+### C1 · Governing message (answer-first) · parent `GOAL`
+
+| Evidence item | Decided by |
+|---|---|
+| ① the governing statement can be quoted in one sentence from the first content page | human · `[outline]` |
+| ② the reader knows which question the evidence serves before it appears (SCQA or answer-first both qualify) | human · `[outline]` |
+| ③ the executive summary is one page and reads in two minutes | human |
+| ④ each summary point maps to a body section, in the same order (countable: N=N, order matches) | human · `[outline]` |
+| ⑤ no summary point states only a quantity ("there are three problems") without saying what they are | human · `[outline]` |
+
+### C2 · Storyline integrity (titles read as an argument) · parent `GOAL` · whole dimension runs at outline stage
+
+| Evidence item | Decided by |
+|---|---|
+| ① title read-through: the titles in order read as an argument with no gap, repeat or jump | human · `[outline]` |
+| ② topic-label titles ("Market overview") in the argument body: count is zero | human · `[outline]` |
+| ③ each group is 2–5 claims of one kind at one level, and the reviewer can state the ordering logic | human · `[outline]` |
+| ④ MECE spot-check: try to name an overlap or a gap in any group; record found / not-found | human · `[outline]` |
+| ~~⑤ rendered titles fit two lines~~ | **held, by a better measure**: `reserve_overspent` asks whether a title overruns the height reserved for it. **Counting lines is the measure that folded every title in half**, and it does not come back |
+
+### C3 · Page argument (vertical logic) · parent `P-2` + `P-4`
+
+| Evidence item | Decided by |
+|---|---|
+| ① one claim per page: no second independent conclusion can be stated | human |
+| ② the title's assertion, including any number in it, is verifiable from evidence on that page | human (**the hold on figure-text hallucination**; C3 asks about the same page, C4 about the outside source) |
+| ③ so-what test: every element can be tied to the title in one sentence; orphan elements count zero | human |
+| ④ the figure form matches the comparison the title makes | temporarily human → machine once the shape vocabulary lands |
+| ⑤ a non-data figure's family semantics hold in the content (a funnel decreases, a 2×2's axes are independent) | temporarily human → machine once the shape vocabulary lands |
+| ⑥ **each figure reads without the body text**: the title states the conclusion, axes and units are present, the legend is legible, magnitudes are stated | human |
+
+### C4 · Evidence and sourcing discipline · parent `P-2`
+
+| Evidence item | Decided by |
+|---|---|
+| ① the source line names a dataset or report, not "analysis" | human (existence is held by D6; **whether it names anything is not machine-decidable**) |
+| ~~② one quantity, one value across the document~~ | **to build**: cross-page number consistency. **Nothing checks this today**, and it is the most direct hold on figure-text hallucination |
+| ③ estimates and forecasts are visibly distinguished from actuals, with the key assumption stated where the estimate appears | human |
+| ~~④ share of argument titles carrying a number~~ | **held**: M1 (reported) |
+| ⑤ limits and boundaries appear where the reader meets them, not only in an appendix | human |
+
+### C5 · Type completeness · parent `GOAL` · declarable, never gating
+
+Completeness is **reported**, and the document may **declare** a deliberate gap.
+That third option is what every regulator that mandates structure actually
+chose: the requirement is that an absence be **declared**, not that the section
+exist. A declaration is a reader-visible scope note carrying `data-omitted`:
+
+```html
+<p class="scope-note" data-omitted="competitive landscape">This report excludes
+competitive landscape analysis: it was commissioned separately.</p>
+```
+
+**Reader-visible is the point.** Every precedent prints the declaration for the
+reader, and that is where its effect comes from; a marker only the checker can
+see would do nothing but silence the checker.
+
+**Existence may be mandated; naming almost never is.** A checker that decides
+whether a section exists by grepping headings would be enforcing the one thing
+those standards explicitly decline to enforce.
+
+| Evidence item | Decided by |
+|---|---|
+| ① checked against the typical structure for that storyline | human · `[outline]` · report only |
+| ② supporting material is in an appendix; the body has no padding | human · report only |
+| ③ status documents: every red or amber item is paired with a specific ask | human · `[outline]` · report only |
+| ④ the ending is a next step with an owner and a date, not a restatement | human · `[outline]` · report only |
+| ~~⑤ navigation exists (page numbers, agenda)~~ | **half held**: page numbers by D6; **agenda and tracker existence is checked by nothing today** — mechanisable, not built |
+
+### C6 · Actionability and decision focus · parent `GOAL`
+
+| Evidence item | Decided by |
+|---|---|
+| ① every recommendation names an actor, an action and a time or magnitude | human · `[outline]` |
+| ② the document says what it asks of the reader (approve / decide / fund / note) | human · `[outline]` |
+| ③ the main risk or counter-argument is named and answered | human |
+| ④ recommendations carry a success measure or checkpoint | human |
+| ⑤ **write down one question** a decision-maker would certainly ask that the document does not answer; if none can be written, this passes | human |
+
+### C7 · Professional finish and reader efficiency · parent `P-3` + `P-1` + `GOAL`
+
+It is the only dimension that looks at the document from the reader's time
+rather than from the argument, which is why it is separate. Reader efficiency
+belongs to the product's purpose, hence `GOAL` among its parents.
+
+| Evidence item | Decided by |
+|---|---|
+| ① any page is understandable in about sixty seconds (time five sampled pages) | human · sampled |
+| ② terminology is stable: each key concept has one name throughout (check three) | human · sampled |
+| ~~③ placeholders and draft markers~~ | **held**: D14 (gates) |
+| ~~④ layout consistency (≤2 typefaces, restrained palette, alignment)~~ | **half held**: palette by D4 and D20; **there is no font-count check** — mechanisable, not built |
+| ~~⑤ plain-language baseline~~ | **held**: M4, M8, M9. Register as a whole goes to the judge-finding layer |
 
 ## Review protocol (the iteration engine)
 
@@ -278,8 +376,9 @@ anything.
    verified cannot be self-scored above 3 in the round that fixes it.** The
    author already believed it was better than that and was wrong, so the next
    number needs evidence from a reader, not from the fix. Scoring is not a
-   summary of effort spent. (Field-tested twice: H2 was self-scored 4 while four
-   of a reader's seven defects sat in H2, and H3 was self-scored 4 in the round
+   summary of effort spent. (Field-tested twice under the previous dimension set H1–H6, which C1–C7
+   replaced: H2 — now C2 and C3 — was self-scored 4 while four of a reader's
+   seven defects sat in it, and H3 — now C3 — was self-scored 4 in the round
    that shipped a clipped figure.)
 4. The retrospective produces one of three outcomes: a rule revision (CHANGELOG +
    version bump) / an anchor revision (anchors can be wrong too) / a recorded

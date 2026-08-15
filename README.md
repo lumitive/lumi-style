@@ -154,7 +154,7 @@ either reference.
 
 ## Continuous-iteration protocol
 
-1. Every output ships with an H1–H6 self-score (**never a 5 before a reader has
+1. Every output ships with an C1–C7 self-score (**never a 5 before a reader has
    scored it**);
 2. Readers score; any dimension diverging ≥2 points **forces a retrospective**;
 3. Retrospectives produce rule revisions → `CHANGELOG.md` + version bump;

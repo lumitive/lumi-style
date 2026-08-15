@@ -1,5 +1,50 @@
 # Changelog
 
+## 0.1.463 — H1–H6 becomes C1–C7, scored by ticking evidence rather than by forming an impression
+
+**The rubric's human half is replaced.** Six dimensions written as anchors a
+reviewer read and rated are now seven dimensions scored by **ticking binary
+evidence items**. Two measurements decided the form: fine-grained binary
+checklists agree with human judgement far better than holistic scoring, and LLM
+judges are reliably fooled by fluent verbosity. The items count things; they do
+not rate feelings.
+
+**Only what a machine cannot decide is on the list.** Items a gate already holds
+are struck through and name the gate — asking a reviewer to re-check something
+already gated spends the scarcest resource in this process on nothing. Each item
+also says whether it can run at the **outline stage**, which is what a storyline
+review can check before the document exists.
+
+**Scoring and release are separated, and the dividing line is decidability
+rather than importance.** C1–C7 score quality; P-5 and P-6 are pass/fail at the
+pre-delivery gate. Every clause from P-1 to P-5 is a MUST — what differs is that
+"did it leak" is a decidable binary fact while "how well sourced is it" is a
+matter of degree.
+
+**One evidence item is restored that the earlier mapping lost.** Old H3 read
+"every figure's message is clear **without the body text**", and the three items
+it was mapped onto cover form-fit, family semantics and sourcing — none of which
+asks that. Verified in code: `check_design.py` has no axis, unit or legend check,
+and `design-rules.md` does not contain those words. It returns as C3-⑥.
+
+**Completeness gains its third option.** It reports, and the document may
+**declare** a gap with a reader-visible scope note carrying `data-omitted`.
+Reader-visible is the whole point — every precedent prints the declaration for
+the reader — and a checker that decided section existence by grepping headings
+would be enforcing the one thing those standards decline to enforce.
+
+**Two stale numbers went with it.** The design-diagnostics heading said "four
+named exceptions" while the table gates five (D12, D14, D15, D19, D20); the
+count is gone rather than corrected. And `H1–H6` is re-flowed out of `SKILL.md`,
+`README.md`, `AGENTS.md` and the core prompt — the two places it survives are
+field-test anecdotes, which now say which dimension replaced it.
+
+**One thing this release caught in its own draft**: a CJK character in an
+English rule file, from a keyboard slip. The english-only red line found it.
+
+This is P3.1 with P0.4 folded in, of
+`specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
 ## 0.1.462 — a trace whose verdicts the measured agent cannot write, and which opens before the build rather than after
 
 **`scripts/ops/trace.py`.** Every claim this repository has made about its own
