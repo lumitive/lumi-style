@@ -41,6 +41,42 @@ _SCRIPTS_BY_KIND = {
 GENRES = ("sales", "marketing", "consulting", "internal", "training")
 
 
+# THE RULE TIER. `genre` was carrying two jobs at once: which thresholds and
+# prose rules apply, and which story the document tells. Those are different
+# questions — a market analysis and a status report are the same tier and
+# different stories — and one field answering both is why five scripts once
+# disagreed about what a genre was.
+#
+# The tier is derived from what actually keys on genre today, not invented:
+# check_prose's DASH_BANNED exempts `internal`, and inspect_layout's
+# VISUAL_SHARE_TARGET puts `training` at 30 where everything else is 50. Three
+# tiers, and the `genre tiers` guard holds this table to those two.
+TIERS = {"sales": "sales", "marketing": "sales", "consulting": "sales",
+         "internal": "internal", "training": "training"}
+
+
+# THE STORYLINE VOCABULARY — the narrative skeleton, the other half of the
+# split. It answers "what shape is the argument", never "which rules apply".
+#
+# **The accepted-reference obligation hangs off the TIER, not off this.** Three
+# tiers means three reference documents to accumulate, and adding a storyline
+# adds none — the split does not multiply the corpus requirement, which is the
+# first thing every reader assumes it does.
+STORYLINES = ("market-analysis", "gtm", "status-report", "due-diligence",
+              "product-intro", "training-curriculum")
+
+
+def tier_of(genre: str) -> str:
+    """-> the rule tier for `genre`; raises KeyError loudly on an unknown one.
+
+    Loudly, for the reason the checker map is loud: a genre that silently
+    resolved to a default tier would grade a document against rules that are
+    not its own and report it green.
+    """
+    return TIERS[genre]
+
+
+
 def checker_path(kind: str) -> pathlib.Path:
     """-> absolute path of the checker for `kind`; raises KeyError on an
     unknown kind, loudly, because a misspelled kind that silently resolved

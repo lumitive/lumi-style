@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.1.465 — genre stops answering two questions, and the tier is derived from behaviour rather than asserted
+
+**`genre` was carrying two jobs**: which thresholds and prose rules apply, and
+what shape the argument has. A market analysis and a status report are the same
+tier and different stories, and one field answering both is why five scripts
+once held five different genre lists.
+
+**The split.** `genre` keeps the rule tier. A new `storyline` axis carries the
+narrative skeleton, with a closed vocabulary in the registry and in the trace
+schema — a trace naming a storyline the registry does not define is refused,
+because a closed schema that accepts anything is not closed.
+
+**The tier table is derived, not invented.** Three tiers, and each is a claim
+about code that already exists: `internal` is the tier `check_prose`'s
+`DASH_BANNED` leaves exempt, and `training` is the tier `inspect_layout`'s
+`VISUAL_SHARE_TARGET` puts at 30 where everything else is 50.
+
+**`two-axis vocabulary` guard** holds the table to those two facts. Change
+`DASH_BANNED` or `VISUAL_SHARE_TARGET` without changing `TIERS` and it fails —
+otherwise the tier becomes a label with nothing behind it, which is exactly the
+state `genre` was in before the split. Deliberate red both ways, plus a test
+that an empty storyline vocabulary fails rather than passing as decorative.
+
+**The obligation that worried everyone does not multiply.** Accepted references
+hang off the **tier**, so there are three to accumulate. Six storylines add
+none, and `tier_of()` raises loudly rather than defaulting — a genre resolving
+to a default tier would grade a document against rules that are not its own and
+report it green.
+
+This is P2.2 of `specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
 ## 0.1.464 — the first check that asks whether a document contradicts itself, and the version of it that did not work
 
 **M13 · one quantity, one value.** Until now a deliverable could state
