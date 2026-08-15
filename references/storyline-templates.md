@@ -37,6 +37,47 @@ two decks side by side read as one document.)
 11. **Feedback page** — embedded scoring table; readers score right after reading,
     no separate file.
 
+## Template 2 · Consulting / client documents: PwC frame, McKinsey punch
+
+- **Titles**: the shared title contract below, in its fullest form — "Master data
+  ledger: codes come only from the client's list — the system never derives its
+  own";
+- **Opening**: scope, method, and findings summary + the one decision the client
+  must make;
+- **Per-section scope lines** on key sections (sample size / data version /
+  recompute-on-update);
+- **Charts**: every figure has a conclusion-style title and a source line;
+- **Closing statement**: the document's single build-status declaration section;
+  when other passages conflict with it, it wins.
+
+## Template 3 · Internal analysis documents
+
+- Conclusion first; explicit so-what lines are allowed here (see discipline below);
+- Three claim classes labeled explicitly: measured (with sample size and source) /
+  build-time assertion (re-runnable) / inference (labeled as such);
+- "What is not built" is a single consolidated section, never scattered.
+
+## Template 4 · Training materials
+
+For enabling a team to *do* something — sell, operate, adjudicate — rather than
+to decide something. (Added at the owner's directive, 2026-08-09, from a
+training deck reviewed as the reference.)
+
+- **Arc**: what the learner will be able to do and why it matters → the concept,
+  one page per idea → the worked example (a real dialogue, a real screen, a real
+  document — concrete beats mechanism) → the practice or self-check → the
+  reference pages a learner returns to (glossary as `dl.gloss`, the swap list,
+  the graded ladder);
+- **The swap is this genre's workhorse**: the sentence a person reaches for
+  against the one that survives the room;
+- **Sourcing follows the consulting rule**: a claim a trainee will repeat to a
+  customer carries its source;
+- **Checks run with `--genre training`**; the em-dash rule binds as it does for
+  sales, because training material is quoted onward by its readers;
+- **Geometry**: A4 portrait is the primary geometry — a training document is
+  printed, annotated and bound (`design-rules.md` §7). The 16:9 composition is
+  still built and verified as the projection edition.
+
 ## Cover and closing pages (every deck scenario)
 
 A deck opens with a **cover** and ends with a **closing page**; the content arc
@@ -123,47 +164,6 @@ prompt to ask whether the argument has an unmarked seam, and the author answers
 it — in the page structure or in the delivery note — never a checker. Read as a
 quota, the same number would force openers where the argument has no seam and
 manufacture the uniformity the parallel-structure rule exists to suppress.
-
-## Template 2 · Consulting / client documents: PwC frame, McKinsey punch
-
-- **Titles**: the shared title contract below, in its fullest form — "Master data
-  ledger: codes come only from the client's list — the system never derives its
-  own";
-- **Opening**: scope, method, and findings summary + the one decision the client
-  must make;
-- **Per-section scope lines** on key sections (sample size / data version /
-  recompute-on-update);
-- **Charts**: every figure has a conclusion-style title and a source line;
-- **Closing statement**: the document's single build-status declaration section;
-  when other passages conflict with it, it wins.
-
-## Template 3 · Internal analysis documents
-
-- Conclusion first; explicit so-what lines are allowed here (see discipline below);
-- Three claim classes labeled explicitly: measured (with sample size and source) /
-  build-time assertion (re-runnable) / inference (labeled as such);
-- "What is not built" is a single consolidated section, never scattered.
-
-## Template 4 · Training materials
-
-For enabling a team to *do* something — sell, operate, adjudicate — rather than
-to decide something. (Added at the owner's directive, 2026-08-09, from a
-training deck reviewed as the reference.)
-
-- **Arc**: what the learner will be able to do and why it matters → the concept,
-  one page per idea → the worked example (a real dialogue, a real screen, a real
-  document — concrete beats mechanism) → the practice or self-check → the
-  reference pages a learner returns to (glossary as `dl.gloss`, the swap list,
-  the graded ladder);
-- **The swap is this genre's workhorse**: the sentence a person reaches for
-  against the one that survives the room;
-- **Sourcing follows the consulting rule**: a claim a trainee will repeat to a
-  customer carries its source;
-- **Checks run with `--genre training`**; the em-dash rule binds as it does for
-  sales, because training material is quoted onward by its readers;
-- **Geometry**: A4 portrait is the primary geometry — a training document is
-  printed, annotated and bound (`design-rules.md` §7). The 16:9 composition is
-  still built and verified as the projection edition.
 
 ## Shared discipline
 

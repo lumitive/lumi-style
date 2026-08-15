@@ -25,8 +25,14 @@ in the CHANGELOG entry.
   a dangling citation must go red before this commit is written.
 - **P0.3** `storyline-templates.md`: the shared apparatus currently sits between
   Template 1 and Template 2. Move it ahead of the templates.
-- **P0.4** `eval-rubric.md`: three gating surfaces are described in three places
-  in three vocabularies. Collapse to one description, cross-referenced.
+- ~~**P0.4** `eval-rubric.md`: collapse the three gating descriptions.~~
+  **Moved into P3.1 while executing P0.** Two reasons, both found by doing the
+  work rather than by planning it: collapsing three prose descriptions is
+  **rewording, not a move**, and P0's whole safety property is that its commits
+  are content-frozen and prove it — mixing the two is on this repository's own
+  do-not-do list. And P3.1 rewrites that file anyway when H1–H6 becomes C1–C7,
+  so doing it here would edit the same prose twice and invite a conflict
+  between the two edits.
 - **P0.5** Stable rule IDs. Each rule family gets an ID that does not move when
   sections do — this is what makes the next reorder cheap and what D1's parent
   declarations attach to.

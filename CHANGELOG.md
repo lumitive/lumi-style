@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.1.458 — the four templates now sit together, and the plan item that would have edited the same prose twice was moved out of P0
+
+**The move.** `storyline-templates.md` ran Template 1, cover-and-closing,
+part-openers, Template 2, Template 3, Template 4, shared discipline — two
+universal sections wedged between the first template and the rest. The four
+templates are now adjacent and the three universal sections follow them.
+Content-frozen, proved the same way as 0.1.457: the multiset of non-heading
+lines is identical.
+
+The plan had said "move the shared apparatus ahead of the templates". Reading
+the file changed the answer: an agent arrives knowing its scenario, so the four
+templates being adjacent is what makes the file findable, and material that
+applies to all of them reads better after them than before. Recorded here
+because the plan is the artefact that was wrong, not the file.
+
+**P0.4 is withdrawn from P0 and folded into P3.1**, for two reasons found by
+executing rather than by planning. Collapsing `eval-rubric.md`'s three
+descriptions of what gates is **rewording**, and P0's entire safety property is
+that its commits are content-frozen and prove it — mixing the two is on this
+repository's own do-not-do list. And P3.1 rewrites that file anyway when H1–H6
+becomes C1–C7; doing it now would edit the same prose twice and put the two
+edits in conflict.
+
+**The evidence file for 0.1.457 gained its `spec` field.** The gate asks any
+release changing more than 150 lines of `scripts/`, `references/` or `tokens/`
+to name the spec it implements, and this refactor has one.
+
 ## 0.1.457 — the reference file a person could not read in order: five sections moved, nine chart rules renumbered, and the citation guard that should have existed for it
 
 **The reorder (GAP-007's check, first half).** `design-rules.md` ran its sections
