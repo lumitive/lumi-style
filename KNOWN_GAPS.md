@@ -70,17 +70,28 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-010 · The globe and map figure grammar lives as comments in a token file
 
-- status: open
+- status: fixed
 - opened: 0.1.480
-- surface: tokens/region-palette.css, references/design-rules.md
+- closed: 0.1.482
+- surface: tokens/region-palette.css, references/design-rules.md §1.2
 - symptom: how a globe or region map is composed — what the graticule is for,
-  when a region carries a label, how the marks relate to the coastline — is
-  written as comment prose inside `region-palette.css`. A token file is read by
-  the build, not by a person forming a judgement, and design prose there is
-  invisible to every reader of `references/` and to the `principle trace` guard.
-- check: move the grammar into `design-rules.md` §1.2 (the mark and the map),
-  leaving the token file with the values and a pointer. It is a prose move like
-  GAP-007's, content-frozen, and the same multiset proof applies.
+  why a bloc is quieter on the globe than on the map, what a label on a sphere
+  cannot rely on — was comment prose inside a generated token file. Half that
+  file was prose: **7086 characters of it against 14010 total.** A token file is
+  read by the build, not by a person forming a judgement, so none of it was
+  visible to a reader of `references/` or to the `principle trace` guard.
+- check: eighteen grammar blocks moved into `design-rules.md` §1.2, and the
+  generator now emits a one-line label per rule plus one pointer at the top.
+  The token file's prose fell from 7086 characters to 3944, and what remains is
+  either the generated-file banner or a note about the CSS mechanics at the
+  site that needs it.
+- **the proof is sentence conservation, not a byte diff.** GAP-007's moves were
+  content-frozen and provable by comparing the multiset of lines; this one
+  crosses formats, where a line multiset cannot survive. So the check is that
+  every sentence does: **41 source sentences, 39 verbatim, 2 differing only in
+  case** (the CSS comments shouted two headings in capitals), **0 missing.**
+  Two sentences had been reworded in the first draft and were restored — a move
+  that rewords is not a move, and the measurement is what caught it.
 
 ## GAP-009 · The shape library's relation classification is a third unclassified
 
