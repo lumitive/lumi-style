@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.1.488 — five items the reviewer could not read were counted as document failures
+
+**The sheet was used on a real document for the first time, and most of what it
+measured was itself.** Of the marks that came back, **five said the item could
+not be understood** — and with three states there was nowhere to put that, so
+they landed in `否`, which is indistinguishable from the document failing.
+**Two of them dragged a dimension to 1 that the document had not earned.**
+
+**A fourth state.** `看不懂` leaves the denominator and does not score: an item
+nobody can read is a defect in the item. The count is reported, because a
+dimension scored on two of its five items is a weaker measurement than one
+scored on five and the reader of the score should be told.
+
+**The five items are rewritten, and all seven dimension names with them.** The
+names were the field's own vocabulary — "governing message", "actionability",
+"type completeness" — and the reviewer reported two of them unreadable in a
+sheet whose own rule says a term is explained where it appears. They are now
+**questions in the words a reader uses**: does the reader see the conclusion
+first; do the titles read as one argument; does each page hold one claim.
+A noun phrase makes the reviewer translate before they can answer. `MECE 抽查（相互独立、完全穷尽）` is
+rewritten too, and for a better reason than readability: the reviewer's
+objection was that **exhaustiveness cannot be shown**, so the item asked for
+something nobody can do. It now asks only for the half that is doable — find one
+overlap or one gap — and says that not finding one is not proof there is none.
+
+**The sheet no longer asks the reviewer to compute anything.** It had a
+`satisfied ÷ applicable = ____` line under a table that already held the
+answers, and every row came back with satisfied greater than applicable, because
+a "Yes" written in the not-applicable column is a perfectly reasonable way to
+say "yes, it does not apply". The table is marked; the score is computed here.
+That is the same rule as machine-written verdicts, applied everywhere in this
+package except, until now, the one form a person fills in.
+
+**What the run did produce, and it is the part worth keeping**: four defects in
+the document itself, each specific enough to fix — a title mismatch between the
+agenda page and the part openers, source lines with no metadata pointer,
+limitations not visible where a reader meets them, and supporting material that
+never reached an appendix. **The prose reasons were more useful than the
+numbers**, which is now said on the sheet.
+
+**A1's scores are not recorded.** Two dimensions carry unreadable items, so the
+numbers would be partly a measurement of this sheet, and putting that in
+`reviews/scores.json` would file noise as data.
+
 ## 0.1.487 — a checkbox with two states called an inapplicable item a failure, and nothing said how ticks became a score
 
 **The owner read the sheet and could not tell how to answer it.** The analysis
