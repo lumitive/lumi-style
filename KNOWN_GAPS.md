@@ -82,6 +82,15 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 - check: classify the remaining 70 by looking at their previews, which is the
   step whose absence produced both wrong curations. Convention 15 named it
   before this happened; the previews were rendered and never opened.
+- **deferred by the owner, 2026-08-16.** A review sheet was built for exactly
+  this (`_refactor/assets-staging/GAP-009-待分类审阅.html`, the 70 first and the
+  136 classified ones after them as a reference) and she chose to pass for now.
+  Recorded so a later session reads this as a decision rather than as something
+  forgotten. **The library is usable meanwhile**: all 206 ship, and an
+  unclassified shape can still be referenced — what it lacks is a relation, so
+  selection-by-relation will not surface it. **Nobody should classify these from
+  the name or the tag**; that is precisely what produced two wrong curations,
+  and an unclassified shape is better than a mislabelled one.
 
 ## GAP-008 · P-1 is stated wider than anything checks it
 
