@@ -1,5 +1,68 @@
 # Changelog
 
+## 0.1.495 — a comparison may now be a figure, and the proposal is rebuilt with nine shape families and no tables at all
+
+**The rule change first, because the deliverable follows it and not the other
+way round.** §4 read *"comparisons always use tables"*. The owner directed that
+tables be replaced by figures, and this does not delete the rule — it keeps the
+reason and drops the form. A table was the rule because it is precise and cannot
+distort. So: **a comparison may be a table or a figure, and either way the reader
+must be able to read the values off it.** A figure qualifies when it carries the
+values a table would have carried, labelled on the marks rather than implied by
+their size. A comparison drawn as unlabelled geometry is decoration wearing a
+table's job, and it is worse than the table it replaced.
+
+**The A2UI proposal is rebuilt.** It now carries **12 shape references across 9
+distinct library units and no tables at all**, where two releases ago it carried
+none of either. Each page's figure comes from a different family and each is
+composed with that page's own words and numbers, placed against coordinates
+measured off a rendered grid:
+
+- the five wire messages become a **two-out-one-back arrow figure**, which says
+  in its geometry what the table said in a column: the return path is the narrow
+  one, and it is the only place user intent enters;
+- three published versions become a **staircase** with the labels in an aligned
+  band beneath it, because the shape has seven treads and no room to letter on;
+- the renderer decision becomes a **four-step chain**, each step forced by the
+  one before it;
+- five seams become **Harvey balls**, four filled and one empty, and the empty
+  one is the only new code the proposal asks for;
+- five protocols become **five blocks under one question**, each labelled with
+  its own versioning scheme;
+- what is left out becomes **concentric scope rings**;
+- the two renderer options become a **swap ladder**, which is the shipped LUMI
+  pattern for exactly this shape of argument;
+- and the three asks keep the **flow band with a lime rule** under the single
+  one that gates the release.
+
+**All three measurements that were short at 0.1.494 now meet their targets.**
+`visual_share_median` 28 → 43 → **50** against a target of 50. Layouts **3 → 6**
+distinct with the heaviest falling from 53.8% to **30.8%**, reassigned from the
+selection table rather than by taste — a centerpiece wider than 3:1 goes to
+`stack`, two parallel items to `columns-2`, load-bearing qualifications to
+`sidebar-notes`. Tables **6 → 0**. `inspect_layout --deliverable` exits 0, and the
+document's design gates — D12, D14, D15, D19, D20, D21, D22, D24, D25 — all
+report ok. The release still carries the standing conformance-freshness waiver,
+which concerns the board rather than this document.
+
+**A library defect found by using it.** Seven of the 206 units carry an
+invisible `<rect class="BoundingBox">` whose x has overflowed to about -2^31 —
+what an export writes when an arc has a zero or full sweep. It draws nothing and
+the viewBox crops it, so it is invisible in the preview; it is not invisible to
+`getBBox`, and the rendered-geometry check correctly reported a figure as
+drawing 3.6 million units outside its own frame. Those rects are LibreOffice
+layout scaffolding and are now stripped at embed time, which removes a defect
+and a large share of the sprite's bytes together.
+
+**Four composition facts, each learned by watching a page fail.** A figure whose
+aspect is wider than 3:1 blows out the grid column it sits in. A `.span` child
+does not rescue it: `split` defines two rows, so a third child lands in an
+implicit row that overflows, and `stack` does not define `.span` at all. A
+`<use>` of a symbol whose viewBox has a non-zero origin renders shifted off
+frame unless it declares `x`/`y`/`width`/`height`. And a `fill=` attribute on a
+`<text>` loses to CSS, so labels take the stylesheet's colour unless written as
+`style="fill:"`. All four are in §4.2 where an author meets them.
+
 ## 0.1.494 — embedding a shape no longer imports its hex fallbacks, and four composed figures land in a real document
 
 Found by composing four figures on one page-set. Every unit in the library
