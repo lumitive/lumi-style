@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.1.474 — the release flow becomes a tool, because the rule it broke had already been written down
+
+**`scripts/ops/release.py`.** The release flow was six to eight commands run by
+hand, and chaining them in a shell put a commit behind a pipe:
+
+    python3 scripts/preflight.py 2>&1 | tail -2 && git commit ...
+
+`&&` reads the exit status of the **last stage of a pipeline**, and `tail`
+always succeeds. Preflight failed, the chain proceeded, and a red release was
+committed — **twice in one session, after the lesson had already been recorded
+in a previous one**.
+
+A rule that has been written down and then broken does not need writing down
+more firmly. It needs a tool that holds it, which is exactly why
+`check_evidence.py` executes the command and writes the result itself: a human
+typing "pass" is not evidence. So this stamps, regenerates, gathers evidence,
+runs preflight and commits — **and refuses to commit when preflight fails, with
+no flag to override it**. Nothing is piped anywhere; every exit code is read
+from the process that produced it.
+
+Two smaller things it removes. The commit subject is taken **from** the newest
+CHANGELOG heading rather than typed beside it, so `check_commit_convention`
+cannot be violated by a typo. And a stamp it cannot find stops the release
+rather than being guessed at.
+
+**A convention, for the other failure this session kept producing.** Six first
+implementations were wrong in the same way: each encoded an assumption about the
+material — that a label precedes its number in English, that a figure is
+`<figure>`, that a summary keeps its distinctive word — and reading the code
+could not find any of them, because reading uses the model that produced them.
+`CLAUDE.md` convention 15 now says: **look at a real instance before writing a
+pattern that keys on its shape, and run the planted failure first rather than
+last.** Five of the six would have died in minutes.
+
+Both conventions and this tool belong to
+`specs/2026-08-15-principles-and-evals-refactor-design.md`, which is the
+refactor whose execution produced the two failures they answer.
+
+**And this script's own first run found a bug in it**: re-running after
+writing a waiver destroyed the waiver, because `--init` rebuilds the
+evidence file from the diff. A waiver records that somebody looked at an
+unconfirmed thing; losing it loses the only evidence of that. Waivers are
+now carried across.
+
 ## 0.1.473 — the shape pipeline's last mile, and the one step in it that is a judgement rather than a script
 
 **`scripts/build/embed_shapes.py`.** A deliverable is one self-contained file

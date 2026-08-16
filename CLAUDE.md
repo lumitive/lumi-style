@@ -408,3 +408,28 @@ repo itself.)
     entry was corrected at 0.1.452, and the capability was BUILT at 0.1.454 —
     which is the order these two things go in. A capability sentence cites the
     function that implements it or it does not ship.
+
+15. **Look at a real instance before writing a pattern that keys on its shape,
+    and run the planted failure FIRST rather than last.** Six checks in the
+    0.1.457–0.1.473 run were wrong on their first implementation, and every one
+    encoded an assumption about the material rather than a mistake in the logic:
+    that a rule id should say where the rule is; that a summary keeps its
+    distinguishing word; that in English the label precedes the number; that a
+    figure element is `<figure>` when this package uses `div.fig`; that a phone
+    number appears in prose when the scan covered attributes too. **Reading the
+    code cannot find these, because reading uses the model that produced them.**
+    One `grep` at a real fixture costs seconds and checks the model against the
+    material instead. Convention 11 already requires a deliberate-red run; what
+    changes here is *when*: planted first it kills a wrong model in minutes,
+    planted last it confirms code that has already grown around one. **A check
+    that has never fired on a real artifact is not a check.**
+
+16. **A verification command is never piped, and a commit is never chained to
+    one.** `preflight.py | tail && git commit` reads `tail`'s exit status, so a
+    red preflight was committed twice in one session — after the same lesson had
+    already been recorded in an earlier one. A rule written down and then broken
+    does not need writing more firmly; it needs a tool that holds it.
+    **`scripts/ops/release.py` performs the whole flow and refuses to commit
+    when preflight fails, with no override flag**, on the same reasoning that
+    makes `check_evidence.py` execute its own commands rather than accept a
+    typed verdict.
