@@ -1,5 +1,48 @@
 # Changelog
 
+## 0.1.494 — embedding a shape no longer imports its hex fallbacks, and four composed figures land in a real document
+
+Found by composing four figures on one page-set. Every unit in the library
+ships its colours as `var(--acc-4, #889A82)` so that a shape renders correctly
+when opened on its own. In a deliverable the token block is always present, so
+the fallback can never fire — but it arrives in the file as a hex literal, and
+`D4_palette_literals` counts hex literals. A document that had none reported two
+the moment four shapes were embedded.
+
+The fallback is stripped at embed time rather than D4 being loosened: the
+library keeps its fallbacks for standalone use, and the deliverable gets the
+variable alone. Loosening the check would have made every future literal
+invisible in exchange for this one.
+
+**Where the redesign stands, stated as measurements rather than as progress.**
+The A2UI proposal now references four library shapes where it referenced none,
+each composed with the page's own words and numbers placed against measured
+geometry, one of them carrying a lime rule under the single decision that gates
+the release. The document's own gates
+— D12, D14, D15, D19, D20, D21, D22, D24, D25 — pass, and
+`inspect_layout --deliverable` exits 0. The release still carries the standing
+conformance-freshness waiver, which is about the board and not about this
+document; claiming a clean sweep beside a waiver is the
+sentence 0.1.415 taught this repository not to write, and the evidence gate
+caught this entry writing it. It matches the phrase literally, so it also caught
+the first correction quoting the phrase in order to disown it — blunt, and
+right about the file it reads.
+
+Three things are **not** yet where they should be, and naming them is the point
+of writing this down: `visual_share_median` reads 28 against a target of 50;
+the document draws on 3 of the 16 layouts with one of them carrying 53.8%; and
+all four shapes come from a single family, so the figure vocabulary is monotone
+in exactly the way D5 exists to notice. None of those is a gate and all three
+are real.
+
+Two composition facts learned the hard way, both now in §4.2's territory and
+worth the sentence here: a figure whose aspect is wider than 3:1 blows out the
+grid column it is placed in — the selection table already says such a
+centerpiece belongs in `stack`, and the page that ignored it collided until the
+figure moved to the main column. And a `.span` child does not help: `split`
+defines two grid rows, so a third child lands in an implicit row that overflows,
+and `stack` does not define `.span` at all.
+
 ## 0.1.493 — imagery is allowed and gated, and a library shape becomes a starting geometry rather than a finished figure
 
 Two owner directions, taken together because they are the same instruction: the
