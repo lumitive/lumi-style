@@ -198,6 +198,100 @@ has not been done; until it is, this rule is what keeps the disagreement out of
 the reader's eye.
 
 
+#### The figure grammar for the globe and the region map
+
+*Moved here at 0.1.482 from comments inside `tokens/region-palette.css`. A token
+file is read by the build, not by a person forming a judgement, so design prose
+there is invisible to every reader of `references/` and to the `principle trace`
+guard. The values stay in the token file; the reasoning is here.*
+
+**The plate and the light.** The plate, with the shadow that lifts the globe off
+the page. A flat filled disc reads as a circle printed on the paper; a shadow
+under it reads as a sphere in front of it, and it costs one declaration against
+a lighting model. Scoped to the plate so the marks and the land are not smeared
+by it. Night is a lighting condition laid over the geography, so it is a wash
+rather than a fill and it takes no pointer events — a reader aiming at a mark in
+the dark must still hit the mark.
+
+**A line you can name is not scaffolding.** The equator and the tropics are
+NAMED lines, not graticule: a reader can point at them, so they are gold, drawn
+well above the grid, and the tropics are dashed to say they are a pair. At 3 and
+2 they read as heavier graticule; the weight is what separates a line you can
+name from a line that is scaffolding.
+
+**The land, in three weights.** Every land line used to be one weight, so a
+coastline and a provincial border looked alike and the eye had nothing to group
+by. A reader asked to compare where one bloc sits against another needs the
+continents to read as shapes first, and that is what a hierarchy of line is for.
+The FILLS carry no stroke at all now; all linework is here.
+
+- **A coast** is a continent's edge, and it is the heaviest line on the figure
+  after the data. This is also what puts Oceania back: an island coast is a
+  coast whether or not the island is in a bloc, and 0.1.405's outline-only rule
+  had left Papua New Guinea, Fiji, the Solomons and Vanuatu as 1.2px hairlines.
+- **Where one trade bloc meets another.** Heavier than a border inside a bloc
+  and lighter than a coast, which is the order of the question a reader is
+  asking.
+- **A border between two countries in the SAME bloc.** Present, because the
+  countries are real; faint, because the figure is not about them.
+
+**A bloc on the globe is quieter than the same bloc on a map.** The flat map is
+a choropleth and the fill IS the subject; the globe is a field of marks and the
+fill is where they sit. At full strength the eight hues buried the marks —
+Australia read hotter than the datum on top of it — so the globe takes the same
+hue at reduced strength and keeps one palette across both figures rather than
+minting a second set of colours that would have to be kept in step.
+
+**A bloc's FULL membership, outlined when a reader selects it.** No fill: the countries
+underneath keep their own bloc's colour, which is the point — the outline says
+'these too' without claiming they stopped belonging where they were.
+
+**Labels, and what a label on a sphere cannot rely on.** The globe's own layers.
+A city is a NAME on the sphere and a bloc label is an identifier over a fill, so
+both are set in the utility face at a weight that survives being drawn over land
+— and both carry a halo, because a label on a globe has no white box to sit in
+the way a map label does. paint-order puts the stroke behind the glyph so the
+halo never eats the letterform.
+
+Region labels, set in the ink the contrast floor is computed against:
+`selftest()` asserts every fill carries INK_LIGHT / INK_DARK at 4.5:1 or better,
+and `--nw` is those two values. A label in any other colour is outside the
+floor's guarantee.
+
+The two tspans a label can carry. Both have existed as CLASSES since labels
+shipped and neither had a rule, so a value and a membership count set
+identically to the bloc name beside them — the same class-with-no-rendering
+defect the 0.1.396 audit found on the globe's hover state, one file away. The
+people count recedes: the reader is identifying a bloc, and the magnitude is
+context for the identification rather than the point of it. Same relationship
+`.rg-label-v` has to `.rg-label`.
+
+**Size is set by the emitter, not by CSS.** No font-size here: the emitter sets
+it as an attribute scaled to the frame's R, because a fixed pixel size inside a
+2R-unit viewBox renders at whatever the layout divides it to — 13px became ~7 at
+a typical figure width. CSS would override the attribute, so CSS stays silent
+about size.
+
+**A signal is one code in transit**: the dot is where, the text is what. The halo
+is the same one city names carry — a label on a sphere has no white box to sit
+in.
+
+**Interaction has to be visible or it does not exist.** Hover and keyboard
+focus. The runtime has toggled is-hover since the globe shipped and no
+stylesheet anywhere defined it, so hovering worked and showed nothing; and the
+first delivered demo set outline:none on a tabindex='0' element with no
+:focus-visible to replace it. Both affordances ship here so no document
+re-decides them. Not inside any media query, per the media-only-rules guard.
+
+The globe's points need their own hover rule. 0.1.393 shipped the region one and
+the globe kept toggling is-hover on marks and nodes against no CSS at all — the
+same defect, moved rather than closed. A mark grows; a node takes the accent so
+it reads as selected.
+
+The drag affordance. The arcball has worked since the globe shipped and nothing
+ever said so: no cursor, no chrome, no hint. A figure that can be turned should
+look like it.
+
 ## 2 · Typography: two voices, never mixed
 
 *Serves: **P-1**.* · id `DR-4`

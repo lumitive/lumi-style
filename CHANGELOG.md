@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.1.482 — the figure grammar moves out of the token file, and the proof changes shape with it
+
+**GAP-010 closes.** How a globe or region map is composed — what the graticule
+is for, why a bloc is quieter on the globe than on the flat map, what a label on
+a sphere cannot rely on — was comment prose inside a generated token file.
+**Half that file was prose: 7086 characters against 14010.** A token file is
+read by the build, not by a person forming a judgement, so none of it reached a
+reader of `references/` or the `principle trace` guard.
+
+Eighteen grammar blocks are now `design-rules.md` §1.2. The generator emits a
+one-line label per rule and one pointer at the top; the token file's prose fell
+to 3944 characters, and what stays is the generated-file banner and notes about
+CSS mechanics at the site that needs them.
+
+**The proof had to change shape, and saying so is the point.** GAP-007's moves
+were content-frozen and provable by comparing the multiset of non-heading lines.
+This one crosses formats — CSS comment to markdown — where a line multiset
+cannot survive. So the measurement is sentence conservation instead: **41 source
+sentences, 39 verbatim, 2 differing only in case** (the CSS comments shouted two
+headings in capitals), **0 missing**.
+
+This is GAP-010, opened by 0.1.480's closure of GAP-006 rather than folded into
+it, and it belongs to the same refactor as the rest:
+`specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
+**And it caught me.** The first draft had reworded two sentences into headings —
+"A bloc's FULL membership, outlined when a reader selects it" became "Selecting
+a bloc outlines its full membership". Both are restored verbatim. **A move that
+rewords is not a move**, and the difference is only visible if the proof is run
+rather than assumed.
+
 ## 0.1.481 — the two halves of P-1 that nothing held, and a verdict that had been hard-coded to pass
 
 **GAP-008 closes.** P-1 says the brand pack is the single source of visual
