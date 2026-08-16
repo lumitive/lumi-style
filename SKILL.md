@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.488"
+  version: "0.1.489"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -282,7 +282,7 @@ been removed; they now apply at step 4 instead of framing step 0.
    over-design as a finding, not a virtue — then the
    **mandatory de-AI-flavor pass** — `references/writing-rules.md` §6, including
    its two-pass audit; for Chinese translated from English also §6b
-   de-translationese — then the C1–C7 self-score per
+   de-translationese — then the C1–C8 self-score per
    [`references/eval-rubric.md`](references/eval-rubric.md);
    **never self-score 5 before a reader has scored it, and give the reason for
    every score**.

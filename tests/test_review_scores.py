@@ -1,4 +1,4 @@
-"""Tests for review_scores.validate — the schema keeper of the C1-C7 score
+"""Tests for review_scores.validate — the schema keeper of the C1-C8 score
 store, including proof that it can fail (a validator that cannot fail is this
 repository's most-shipped defect family).
 """
@@ -23,7 +23,7 @@ def test_wrong_dimensions_short_circuit():
     store = _store()
     store["dimensions"] = ["C1"]
     errors = review_scores.validate(store)
-    assert len(errors) == 1 and "C1-C7" in errors[0]
+    assert len(errors) == 1 and "C1-C8" in errors[0]
 
 
 def test_free_text_key_is_refused():
@@ -38,8 +38,8 @@ def test_free_text_key_is_refused():
 def test_self_five_without_reader_is_refused():
     store = _store()
     rec = copy.deepcopy(store["reviews"][0])
-    rec["self"] = dict.fromkeys(["C1", "C2", "C3", "C4", "C5", "C6", "C7"], 5)
-    rec["reader"] = dict.fromkeys(["C1", "C2", "C3", "C4", "C5", "C6", "C7"])
+    rec["self"] = dict.fromkeys(["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"], 5)
+    rec["reader"] = dict.fromkeys(["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"])
     store["reviews"].append(rec)
     errors = review_scores.validate(store)
     assert any("never self-score 5" in e for e in errors)

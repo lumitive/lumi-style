@@ -37,7 +37,7 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-011 · C3 is two dimensions sharing one name
 
-- status: open
+- status: fixed
 - opened: 0.1.487
 - surface: references/eval-rubric.md C3, scripts/lib/rubric_items.py
 - symptom: C3's six evidence items address four different objects — the page's
@@ -55,6 +55,8 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   patched. The conditional-item work at 0.1.487 makes the present state
   survivable: those three items are marked not-applicable on a text page instead
   of counting against it.
+- closed: 0.1.489
+- resolution: **split**, by owner ruling. C3 keeps the three page-argument items; the three figure items become **C8 · Figure quality**, and a document with no figures scores C8 `n/a` rather than 1. The numbering does not shift — C4 through C7 keep their meanings, because a dimension id is a name and not an address and renumbering would leave every recorded score ambiguous. `reviews/scores.json` moves to schema 3; no schema-2 record had been written, so nothing was migrated.
 
 ## GAP-006 · Rules whose only home is outside references/, and a subset claim that is false
 

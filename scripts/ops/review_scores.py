@@ -72,9 +72,9 @@ def validate(store) -> list[str]:
     errors = []
     dims = store.get("dimensions")
     outcomes = set(store.get("outcomes") or [])
-    if dims != ["C1", "C2", "C3", "C4", "C5", "C6", "C7"]:
+    if dims != ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]:
         return [f"reviews/scores.json declares dimensions {dims!r}; the rubric "
-                f"defines C1-C7 and the store may not disagree with it"]
+                f"defines C1-C8 and the store may not disagree with it"]
     releases = set(re.findall(r"^##\s+(\d+\.\d+\.\d+)", CHANGELOG.read_text(
         encoding="utf-8"), re.M))
 
@@ -82,7 +82,7 @@ def validate(store) -> list[str]:
     for i, rec in enumerate(store.get("reviews", [])):
         where = f"reviews[{i}]"
         # A schema-1 record is history: it was scored against H1-H6 before
-        # C1-C7 replaced them, and it is kept verbatim rather than back-filled.
+        # C1-C8 replaced them, and it is kept verbatim rather than back-filled.
         # Inventing a corpus id for a document nobody can re-measure would put a
         # fabricated join key into the evidence, which is worse than a gap.
         legacy = rec.get("schema") == 1
@@ -122,7 +122,7 @@ def validate(store) -> list[str]:
             scores = rec.get(side)
             if not isinstance(scores, dict) or set(scores) != set(expected):
                 errors.append(f"{where}.{side} must carry exactly "
-                              f"{'H1-H6 (schema 1, history)' if legacy else 'C1-C7'}")
+                              f"{'H1-H6 (schema 1, history)' if legacy else 'C1-C8'}")
                 continue
             for dim, val in scores.items():
                 if val is None:
