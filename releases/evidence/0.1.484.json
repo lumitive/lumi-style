@@ -1,0 +1,15 @@
+{
+ "version": "0.1.484",
+ "diff_base": "ca219c84db43a0461c21dd4847ee4419f82bcaf0",
+ "spec": "",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Still unconfirmed and still named: the board predates this refactor, and refreshing it drives real agents with credentials this repository does not hold."
+  }
+ ]
+}

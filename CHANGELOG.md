@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.1.484 — M13 said "reported" in its target and failed the run in its verdict, for two releases
+
+**The rule text and the code disagreed, and the code was wrong.** M13's target
+string has read `=0 (reported)` since it shipped, the rubric describes it as
+reported, and 0.1.464's entry says "reported, never gating, and deliberately
+narrow" with the reason: a quantity legitimately changes, and **a gate here
+would have an author edit correct prose to silence it**. Its verdict was
+computed all along, so a document with one flagged contradiction exited
+non-zero.
+
+The verdict is now hard-coded `True`, which is how M1 — the other genuinely
+reported prose metric — has always expressed the same thing. A test reads the
+row out of the source and asserts it.
+
+**Found while updating a deliverable, not by reading the checker.** The E1
+rebuild needed the current count of prose metrics that block a run, and getting
+that number honestly meant reading all thirteen verdict expressions rather than
+trusting the target strings. Twelve could fail; the rule text says eleven should.
+
+**One correction to my own earlier reporting**: `check_prose` and
+`check_design` express gating differently. In the design checker a metric gates
+only if its target carries `(gates)`; in the prose checker **any** FAIL row
+exits non-zero, and `(gates)` on M12 is emphasis rather than mechanism. A count
+taken from the design convention and applied to the prose checker is wrong, and
+I had taken one.
+
 ## 0.1.483 — the new font check fired on both accepted deliverables, and it was the check that was wrong
 
 **D23 counted an `@font-face` declaration as a third typeface.** A face block

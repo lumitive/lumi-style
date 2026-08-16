@@ -721,8 +721,14 @@ def grade(r):
         ("M4_banned_hits", r["M4_banned_hits"], "=0", r["M4_banned_hits"] == 0, False),
         # Reported, never gating: a quantity legitimately changes, and a gate
         # here would make an author edit correct prose to silence it.
+        # REPORTED, and the verdict is hard-coded True for the same reason M1's
+        # is: a quantity legitimately changes, and a gate here would have an
+        # author edit correct prose to silence it. The target string said
+        # "(reported)" from the start while the verdict was computed, so a
+        # contradiction exited non-zero — the rule text and the code disagreed
+        # for two releases, and the code was the half that was wrong.
         ("M13_quantity_conflicts", r["M13_quantity_conflicts"], "=0 (reported)",
-         r["M13_quantity_conflicts"] == 0, False),
+         True, False),
         # The Chinese pair. n/a on any document that is not Chinese — not "ok",
         # because a metric that passes on a document it never looked at is the
         # reassuring line this package keeps removing.
