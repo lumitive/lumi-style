@@ -110,3 +110,37 @@ def test_a_dimension_where_nothing_applies_is_not_a_one():
 def test_every_conditional_item_exists_in_the_rubric():
     live = {(d, m) for d, _t, rows in ss.items() for m, _e in rows}
     assert set(ss.CONDITION) <= live
+
+
+def test_an_item_nobody_can_read_leaves_the_denominator():
+    """The fourth state exists because five items were marked unreadable on the
+    first real use, and two of them dragged a dimension to 1 that the document
+    had not earned. An item nobody can read is a defect in the item."""
+    assert ss.score(0, 3, unclear=2) == 1, "one real judgement remains"
+    assert ss.score(2, 4, unclear=1) == 3
+    assert ss.score(0, 2, unclear=2) is None, "nothing readable left to score on"
+
+
+def test_the_sheet_asks_the_reviewer_to_compute_nothing(tmp_path):
+    """The first version asked for a count and a division whose quotient was not
+    the score, and every row came back with satisfied greater than applicable."""
+    doc = tmp_path / "deck.en.html"
+    doc.write_text("<html></html>", encoding="utf-8")
+    sys.path.insert(0, str(ROOT / "scripts" / "ops"))
+    import scoring_sheet
+    text = scoring_sheet.sheet([str(doc)], ["A1"])
+    assert "÷ 适用 ____" not in text
+    assert "____ 分" not in text
+    assert "分数我来算" in text or "分数我算" in text
+
+
+def test_every_item_offers_the_unreadable_column(tmp_path):
+    doc = tmp_path / "deck.en.html"
+    doc.write_text("<html></html>", encoding="utf-8")
+    sys.path.insert(0, str(ROOT / "scripts" / "ops"))
+    import scoring_sheet
+    text = scoring_sheet.sheet([str(doc)], ["A1"])
+    rows = [ln for ln in text.splitlines()
+            if ln.startswith("| ") and ln.count("☐") ]
+    assert rows, "no evidence rows found"
+    assert all(ln.count("☐") == 4 for ln in rows), "an item is missing a state"
