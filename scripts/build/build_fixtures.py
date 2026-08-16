@@ -536,7 +536,16 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     if i not in (3, 4):
         lead = f'<div class="lead"><div class="v">{i * 7}</div>' \
                f'<p class="g">Units returned per avoided visit, illustrative</p></div>'
-    if broken and i == 16:
+    if broken and i == 12:
+        # D24 and D25: a linked image with no terms named. Both gates need a
+        # fixture that FAILS them or the suite cannot tell them from a metric
+        # rewritten to return ok — which is what check_fixtures says out loud.
+        # One page carries both defects because they are one mistake: an image
+        # pasted in from a search result, still pointing at its host and still
+        # unattributed.
+        lead = ('<div class="lead"><img src="https://example.org/plate.png" '
+                'alt="a linked plate"></div>')
+    elif broken and i == 16:
         # D16: a page with no visual block at all — no figure, no band, no
         # lead, no comparison pattern; prose, a list and a callout. The static
         # half of the visual-share directive reports it as prose-only.

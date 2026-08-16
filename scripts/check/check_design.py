@@ -1111,6 +1111,8 @@ def measure(path):
         "D18_detail": (d18 or {}).get("unlabelled"),
         "D20_palette_fidelity": d20_palette_fidelity(resolved, palette),
         "D21_data_contract": d21_data_contract(raw),
+        "D24_images_embedded": d24_images_embedded(raw),
+        "D25_image_provenance": d25_image_provenance(raw),
         "D23_font_count": d23_font_count(
             raw, (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")),
     }
@@ -1189,6 +1191,50 @@ def d23_font_count(raw, token_css):
             "ceiling": len(declared) or None,
             "over": sorted(used) if declared and len(used) > len(declared) else [],
             "literal_stacks": literal}
+
+
+
+# An <img src> or an SVG <image href> pointing anywhere but at an embedded
+# payload. `data:` is the only self-contained form; everything else is a request
+# to a host at read time.
+_RASTER = re.compile(r"<(?:img|image)\b[^>]*?(?:src|href|xlink:href)\s*=\s*"
+                     r"[\"']([^\"']+)[\"']", re.I)
+_CSS_URL = re.compile(r"url\(\s*[\"']?(?!data:)([a-z]+:|//)[^)]*\)", re.I)
+# The licence has to be NAMED, not gestured at. A colophon saying "images
+# licensed appropriately" is the sentence that gets written when nobody checked.
+_LICENCE = re.compile(
+    r"\b(public domain|CC0|CC[ -]BY(?:[ -]SA|[ -]NC|[ -]ND)?(?:[ -]\d\.\d)?"
+    r"|Unsplash|licen[cs]ed under|used under|own work|screenshot of)\b", re.I)
+
+
+def d24_images_embedded(raw):
+    """-> {rasters, external:[...]} — every image ships inside the file.
+
+    A deliverable is one self-contained HTML file. A linked image is a page that
+    breaks the first time it is read offline, and it reports the reader to
+    whichever host is serving it. `data:` is the only form that is neither.
+    """
+    srcs = [m.group(1).strip() for m in _RASTER.finditer(raw)]
+    external = [u[:60] for u in srcs if not u.lower().startswith("data:")
+                and not u.startswith("#")]
+    external += [m.group(0)[:60] for m in _CSS_URL.finditer(raw)]
+    return {"rasters": len(srcs), "external": external}
+
+
+def d25_image_provenance(raw):
+    """-> {rasters, licence_named} — an image on the page names its terms.
+
+    Not a lawyer's check and not trying to be: it asks whether the document says
+    anywhere, in words a person wrote, where its images came from and under what
+    terms. A deck that ships a photograph and says nothing about it is the
+    commercial risk D12 exists for, arriving through a different door.
+    """
+    n = len(_RASTER.findall(raw))
+    # A document with no images has nothing to name, and it must PASS rather
+    # than read `n/a` — check_design treats an unmeasurable gate as a failure on
+    # purpose, and applying that to an optional element would fail every
+    # text-and-vector deliverable this package has ever produced.
+    return {"rasters": n, "licence_named": bool(_LICENCE.search(raw)) if n else True}
 
 
 def d21_data_contract(raw):
@@ -1344,6 +1390,16 @@ def grade(r):
                  f"{fc['used']} used, ceiling {fc['ceiling']}" if fc else None,
                  "<= what tokens/ declares (reported)",
                  not (fc and (fc["over"] or fc["literal_stacks"])), fc is None))
+    im = r["D24_images_embedded"]
+    rows.append(("D24_images_embedded", len(im["external"]) if im else None,
+                 "=0 (gates)", not (im and im["external"]), im is None))
+    pv = r["D25_image_provenance"]
+    rows.append(("D25_image_provenance",
+                 ("no images" if pv and not pv["rasters"] else
+                  f"{pv['rasters']} image(s), terms named") if pv and pv["licence_named"]
+                 else (f"{pv['rasters']} image(s), no terms named" if pv else None),
+                 "every image names its terms (gates)",
+                 bool(pv and pv["licence_named"]), pv is None))
     dc = r["D21_data_contract"]
     rows.append(("D21_data_contract",
                  len(dc["mismatches"]) if dc else None, "=0 (gates)",

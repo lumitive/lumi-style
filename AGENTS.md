@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.492.** This file restates part of `references/`; where they
+> **lumi-style 0.1.493.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -93,7 +93,12 @@ facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
    Embed the vendored assets rather than improvising: `scripts/build/embed_font.py`,
    `scripts/build/embed_icons.py`, `scripts/build/embed_shapes.py` (the shape
    library — pick by the RELATION in the content, never by how the shape looks;
-   `assets/shapes/tags.json` records it), `assets/vectors/`. **The palette is not yours
+   `assets/shapes/tags.json` records it), `assets/vectors/`. **A shape is a starting geometry**: compose this
+   page's words and numbers onto it (design-rules §4.2), layer and retint within
+   the accent ladder, and give every `<use>` explicit `x`/`y`/`width`/`height`.
+   **Imagery is allowed under §9** — evidence not atmosphere, embedded as a
+   `data:` URI (D24 gates), terms named (D25 gates), tinted into the palette,
+   and never under body text. **The palette is not yours
    to choose either: copy the token block out of `tokens/lumi-theme.css`** — the
    scaffold does it for you. Sizes you may set, colours you may not, and
    `check_design.py`'s D20 fails a document whose colour tokens disagree with
@@ -201,7 +206,7 @@ two-pass audit; §6b de-translationese when the Chinese was translated from
 English), and only then the pre-delivery checklist in the rubric. Measure both
 halves rather than reading them: `python3 scripts/check/check_prose.py <file>` for
 English prose, and `python3 scripts/check/check_design.py <file>` for any HTML
-deliverable. **D12, D14, D15, D19, D20, D21 and D22 gate; every other D-metric is reported for you
+deliverable. **D12, D14, D15, D19, D20, D21, D22, D24 and D25 gate; every other D-metric is reported for you
 to judge** — a page is done when a human reads it as intentional, and a threshold
 satisfiable without improving the page ends the looking. (This line claimed
 "D1–D4 and D6 gate" for eight releases, naming four metrics that never did and

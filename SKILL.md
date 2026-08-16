@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.492"
+  version: "0.1.493"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -220,7 +220,19 @@ been removed; they now apply at step 4 instead of framing step 0.
    of the 206 units, and §4.1 is the rule. This line omitted the shape library
    for the releases in which it existed, and the consequence was measured: three
    shipped deliverables referenced **none** of the 206 shapes, because an agent
-   following this file had no path to them. **For a world figure that states data, generate it rather than
+   following this file had no path to them. **A shape is a starting geometry,
+   not a finished figure**: 192 of the 206 units carry no text, so composing this
+   page's own words and numbers onto them is the work — §4.2, which also carries
+   the two traps that do not announce themselves (a `<use>` of a non-zero-origin
+   viewBox renders shifted off frame unless it declares `x`/`y`/`width`/`height`;
+   a `fill=` attribute on a `<text>` loses to CSS, so labels use `style="fill:"`).
+   Layering, recolouring within the accent ladder, and transforming are all in
+   scope where the relation survives the transform.
+   **Imagery is allowed and governed by §9**: an image carries an argument or it
+   is not on the page; it ships as a `data:` URI and never a link (**D24 gates**);
+   it names its source and terms (**D25 gates**); it is tinted into the palette;
+   and text never sits on raw photography. The stock tells — the handshake, the
+   glass tower, the team around a laptop — are banned by name. **For a world figure that states data, generate it rather than
    drawing it**: `python3 scripts/render/regionmap_svg.py` emits the flat trade-region
    map with its labels already placed (`--labels zh` for Chinese, `--states`
    for the data), and `python3 scripts/render/globe_svg.py` the rotating globe.

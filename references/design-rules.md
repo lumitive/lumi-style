@@ -544,9 +544,11 @@ look like it.
 
 - Generous whitespace is part of the design; content distributes across the full
   page height (never crowds the top half);
-- The full-bleed block skeleton (single title + single CTA) is usable, but the
-  centerpiece is a chart/diagram/directional gradient — without a professional
-  photo library, never set text directly on imagery;
+- The full-bleed block skeleton (single title + single CTA) is usable. The
+  centerpiece is a chart, a diagram, a composed shape or — since 0.1.493 — a
+  **sourced photograph treated to §9's rules**. The old clause read "without a
+  professional photo library, never set text directly on imagery", which was a
+  condition and was read as a ban; §9 is the condition being met;
 - Navigation preserves traceability (documents are not landing pages): long
   documents keep a table of contents; decks use a narrative rail; **the footer
   carries the source line and the page number as `N / total`.** A bare page
@@ -756,6 +758,46 @@ machinery: D19 already fails a reference that resolves to no symbol, so the
 pipeline's correctness is checked by a gate that has been running for releases;
 and only the recoloured library is a source, so original-palette geometry has no
 path into a deliverable at all.
+
+
+### 4.2 · Composing a shape: layer it, recolour it, transform it, label it
+
+*Serves: **P-4**.* · id `DR-14`
+
+A shape from the library is a **starting geometry, not a finished figure**. 192
+of the 206 units carry no text at all, so the words and the numbers are the
+document's job — and that is the capability, not a gap. A shape dropped in
+unlabelled is decoration, and decoration on an argument page is a finding.
+
+**Label it against measured coordinates, never assumed ones.** Render the unit
+once with a coordinate grid over it, read where its segments actually fall, and
+place the text there. The alternative is placing labels by eye on a geometry you
+have not seen, which is how the figure ends up saying something the drawing does
+not.
+
+**Two traps that do not announce themselves**, both found the first time this
+was done for real:
+
+- A `<use>` of a symbol whose viewBox has a **non-zero origin** — which is most
+  of this library, the units having been extracted at their source coordinates —
+  renders **shifted**, and with a large enough offset renders entirely outside
+  the visible box. It does not error. Give the `<use>` explicit `x`, `y`,
+  `width` and `height` matching the symbol's viewBox.
+- A `fill="…"` **presentation attribute** on a `<text>` loses to any CSS rule
+  that styles figure text, so a label written that way silently takes the
+  stylesheet's colour rather than the one you chose. Use `style="fill:…"`.
+
+**Layering, recolouring and transforming are all in scope.** Two units may be
+composed on one canvas; a unit may be tinted to a different token to separate a
+series; a unit may be scaled, mirrored or rotated where the relation survives
+the transform. What may not change is the relation: a funnel that is mirrored is
+still a funnel and still has to decrease, and a transform that makes a shape
+mean something it did not is the same defect as choosing the wrong shape.
+
+**Recolour within the ladder.** The library ships bound to `--acc-2` through
+`--acc-5` with `--on-acc` for text on top and `--lime` reserved for the event
+green. Retinting a unit means moving it along that ladder, never introducing a
+colour — §1 is unchanged by any of this, and D20 gates it.
 
 ## 5 · The commercial footer
 
@@ -1212,3 +1254,56 @@ A layout is verified only across the **matrix**, not at a point:
   three geometry probes above passed clean on a document that was visibly broken,
   and D8 and D9 were both confirmed by running them against the deck that
   prompted them: 10 missing support lines, 0 layouts.
+
+## 9 · Imagery: a photograph is evidence or it is not on the page
+
+*Serves: **P-4** + **P-1**.* · id `DR-15`
+
+Opened at 0.1.493 on the owner's direction. Until then this package shipped no
+photo library, and the absence had hardened into a ban applied to every kind of
+image — the failure convention 5 exists to prevent, recorded there in those
+words. What follows is the condition the old clause was waiting for.
+
+**An image earns its place by carrying an argument the page cannot make
+otherwise.** A photograph of the thing being discussed, a screenshot of the
+artifact under review, a map or a document image the reader is asked to look at.
+A photograph chosen to make a page feel professional is decoration, and this
+document's own history says decoration is where these decks go wrong. The
+question is the same one §6 asks of icons: *what does the reader now know that
+they did not?*
+
+**Four rules, and every one of them is checkable.**
+
+1. **Embedded, never linked.** A deliverable is one self-contained file. A
+   `src` pointing at a host is a page that breaks the first time it is read on a
+   plane, and it also tells that host who is reading. Rasters ship as `data:`
+   URIs. **D24 gates this.**
+2. **Sourced and licensed, on the page.** Every image names its origin and the
+   terms it is used under, in the colophon at minimum and in the figure's source
+   line where the image is the evidence. Public domain and CC0 are the default;
+   anything else needs the licence named. **D25 gates this.**
+3. **Treated into the palette.** A full-colour photograph beside this palette
+   reads as a foreign object. Tint it into the accent ladder — duotone against
+   `--acc-5` and `--acc-2` is the house treatment — or place it as a mono plate.
+   §1 does not bend for imagery: the page still carries one colour with one
+   meaning.
+4. **Text does not sit on an untreated image.** Set text on a treated plate with
+   a measured contrast floor, or beside the image, never on raw photography.
+   This is the surviving half of the old clause and it survives on its merits.
+
+**Where imagery belongs**: the cover, a part opener, a full-bleed evidence page,
+or inside a `.fig` as the figure itself. **Where it does not**: behind body copy,
+behind a table, or as a repeating texture. The ground is the brand's texture and
+there is one of it.
+
+**The stock-photograph tells**, banned by name because they are how a deck
+announces it was assembled rather than written: the handshake, the glass tower
+at dusk, the diverse team around a laptop, the lone figure at a whiteboard, the
+abstract network of glowing dots. If the image would fit any deck about any
+subject, it is not evidence.
+
+**Weight is a reader's problem.** An embedded raster is base64 and grows the
+file by a third over its bytes. Downscale to the size it is actually rendered
+at, and prefer a vector when the content is a diagram — a diagram embedded as a
+photograph of a diagram is a defect, not a shortcut.
+

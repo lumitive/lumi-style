@@ -114,14 +114,15 @@ gated. `SKILL.md` rule 4 is why the rest only report: a page is done when a huma
 reads it as intentional, and a metric that can be satisfied without improving the
 page ends the looking rather than directing it.
 
-**Seven exceptions, and none is a design judgement.** D12 is a commercial
+**Nine exceptions, and none is a design judgement.** D12 is a commercial
 requirement on the artifact, D14 asks whether the document is finished, D15
 asks whether the footer cites something a reader can open, D19 asks whether
 every reference in the document resolves inside it, D20 asks whether the
 colour tokens it declares are the ones this package ships, and D21 asks
 whether a figure that declared the data it draws agrees with its own
 numbers, and D22 whether every page's layout is one the tokens
-define — all decidable, in the way "does this page read as intentional" is not. **D15 is the second instance of
+define, D24 asks whether every image ships inside the file, and D25 asks
+whether it names the terms it is used under — all decidable, in the way "does this page read as intentional" is not. **D15 is the second instance of
 one defect:** `.foot .src` was removed from `tokens/` in 0.1.366 after the first
 deliverable to meet it filled every client page with a build path, and a second
 put one back — in Chinese, on almost every content page — while D6, D12 and D14
@@ -403,6 +404,8 @@ conditional-item rule applied one level up.
 | ① the figure form matches the comparison the title makes | temporarily human → machine once the shape vocabulary lands |
 | ② a non-data figure's family semantics hold in the content (a funnel decreases, a 2×2's axes are independent) | temporarily human → machine once the shape vocabulary lands |
 | ③ **each figure reads without the body text**: the title states the conclusion, axes and units are present, the legend is legible, magnitudes are stated | human |
+| ④ a library shape is **composed, not dropped in**: it carries this page's own words and numbers, placed against the geometry rather than beside it | human (§4.2) |
+| ⑤ an image on the page is **evidence rather than atmosphere**, treated into the palette, and not one of the stock tells §9 names | human · `[outline]` cannot run |
 
 ## Review protocol (the iteration engine)
 
