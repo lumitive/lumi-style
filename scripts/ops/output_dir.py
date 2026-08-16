@@ -151,3 +151,28 @@ def main(argv):
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
+
+def next_run_name(stem: str, version: str, *, suffix: str = ".en.html",
+                  outdir: pathlib.Path | None = None) -> pathlib.Path:
+    """-> the path for the NEXT build of `stem` at `version`, run number included.
+
+    Two builds of one version used to land on the same filename, so the second
+    silently replaced the first and "the 0.1.483 build" named whichever one ran
+    last. A reader comparing two generations could tell them apart only by the
+    file timestamp, which is not something a document carries.
+
+    The name is `<stem>.<version>.r<n>.<suffix>` with `n` the lowest number not
+    already on disk. `.en.` stays inside the suffix so the language convention
+    the checkers read still applies, and the run number sorts after the version
+    so a directory listing groups builds of one version together.
+
+    The counter is the FILESYSTEM, not a stored integer: a run number kept in a
+    file drifts from the files it numbers the moment one is deleted or copied,
+    and the question being answered — what is the next unused name — is exactly
+    what the directory already knows.
+    """
+    outdir = outdir or output_dir()
+    n = 1
+    while (outdir / f"{stem}.{version}.r{n}{suffix}").exists():
+        n += 1
+    return outdir / f"{stem}.{version}.r{n}{suffix}"

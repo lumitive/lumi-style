@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.1.485 — a build gets a run number, and the scoring sheet is built from the rubric rather than typed beside it
+
+**Two builds of one version used to land on the same filename.** The second
+replaced the first silently, so "the 0.1.483 build" named whichever ran last and
+the only way to tell two generations apart was the file timestamp — which is not
+something a document carries. `output_dir.next_run_name()` returns
+`<stem>.<version>.r<n>.<suffix>`, with `.en.` still inside the suffix so the
+language convention the checkers read off a filename keeps working.
+
+**The counter is the directory, not a stored integer.** A saved counter drifts
+from the files it numbers the moment one is deleted or copied, and the question
+being answered — what is the next unused name — is what the directory already
+knows. A test deletes `r1` and asserts `r1` comes back.
+
+**`scripts/ops/scoring_sheet.py`** emits a blind C1–C7 sheet whose evidence
+items are **read out of `references/eval-rubric.md`** rather than restated, so a
+sheet cannot describe a rubric that no longer exists — the previous sheet
+outlived H1–H6 by two releases. Struck items are omitted, because asking a
+reviewer to re-check something a gate already holds spends the scarcest resource
+in this process on nothing.
+
+**No mechanical number appears on it**, and the sheet says why: a reader who has
+seen the machine's answer is no longer an independent measurement, and the
+agreement study exists only because that independence does.
+
+This is part of E1's execution, recorded under
+`specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
 ## 0.1.484 — M13 said "reported" in its target and failed the run in its verdict, for two releases
 
 **The rule text and the code disagreed, and the code was wrong.** M13's target
