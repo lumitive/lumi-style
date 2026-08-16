@@ -60,23 +60,27 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-009 · The shape library is built, curated by nobody, and ingested nowhere
 
-- status: open
+- status: fixed
 - opened: 0.1.473
-- surface: assets/shapes/ (absent), scripts/build/embed_shapes.py,
+- closed: 0.1.475
+- surface: assets/shapes/, scripts/build/embed_shapes.py,
   references/design-rules.md §4.1
-- symptom: 206 figure units are extracted, recoloured to bind design tokens and
-  verified, in a staging area outside this repository. The selection rule, the
-  embedding tool and D19's coverage of it all ship. **What has not happened is
-  curation**, and it is not a mechanical step: deciding which families' relation
-  semantics serve §4's chart rules is a judgement about the design language, and
-  ingesting the library without it would put a second figure vocabulary in
-  competition with the chart rules — the state this package has spent releases
-  leaving. Vendoring several megabytes of third-party geometry into the tree is
-  also a decision with consequences the owner should make rather than inherit.
-- check: curate against the §4.1 rule, ingest the survivors with `tags.json`
-  carrying relation / family / slots, and record provenance in the library's
-  own SOURCE.md before anything is committed. `embed_shapes.py` refuses to run
-  against an absent library and says why, so the gap is loud rather than latent.
+- symptom: 206 figure units were extracted, recoloured and verified in a staging
+  area outside this repository, with the selection rule and the embedding tool
+  shipped but no curation done — and curation is a judgement about the design
+  language rather than a mechanical step.
+- check: curated by the §4.1 rule applied mechanically — a unit is in if it
+  carries an explicit relation tag (composition, order, process, hierarchy,
+  degree, correlation). **68 of 206 are in**; the other 138 draw no relation and
+  are page furniture, single-primitive fragments and label art. Provenance and
+  the rule are in `assets/shapes/SOURCE.md`; `tags.json` carries each shape's
+  relation, family words and slot count.
+- what is left, and it is small: **two units were set aside for a person rather
+  than dropped silently** — `p124-process-objectives-01` and
+  `p109-change-vision-01` are large enough to be real diagrams and carry no
+  relation tag. Their slide labels suggest what they are, but a slide label is
+  OCR'd text rather than a taxonomy, and reading it as evidence is how a
+  curation becomes arbitrary. They stay out until someone looks at them.
 
 ## GAP-008 · P-1 is stated wider than anything checks it
 

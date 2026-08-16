@@ -1,0 +1,748 @@
+{
+ "$comment": "Curated from the raw extraction by ONE rule, stated in references/design-rules.md §4.1: a shape enters only if the relation it encodes serves the chart rules. 206 units were extracted; 68 carry an explicit relation tag and are here. The other 138 are page furniture, single-primitive fragments and label art — they draw no relation, so they would have been a second figure vocabulary rather than a figure library.",
+ "schema": 1,
+ "relations": [
+  "composition",
+  "correlation",
+  "degree",
+  "hierarchy",
+  "order",
+  "process"
+ ],
+ "shapes": {
+  "p005-2x2-cubed-01": {
+   "relation": [
+    "composition"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 48,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p006-2x2-tower-01": {
+   "relation": [
+    "composition",
+    "hierarchy"
+   ],
+   "family": [],
+   "slots": 6,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p006-2x2-tower-02": {
+   "relation": [
+    "composition",
+    "hierarchy"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p009-arrow-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p010-cubes1-3d-01": {
+   "relation": [
+    "composition"
+   ],
+   "family": [],
+   "slots": 4,
+   "primitives": 24,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p010-cubes1-3d-02": {
+   "relation": [
+    "composition"
+   ],
+   "family": [],
+   "slots": 24,
+   "primitives": 144,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p011-cubes2-3d-01": {
+   "relation": [
+    "composition"
+   ],
+   "family": [],
+   "slots": 21,
+   "primitives": 126,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p011-cubes2-3d-02": {
+   "relation": [
+    "composition"
+   ],
+   "family": [],
+   "slots": 4,
+   "primitives": 24,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p013-cutout-3d-01": {
+   "relation": [
+    "composition"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p015-joint-01": {
+   "relation": [
+    "correlation"
+   ],
+   "family": [],
+   "slots": 13,
+   "primitives": 13,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p016-level-separate-4-01": {
+   "relation": [
+    "composition",
+    "hierarchy"
+   ],
+   "family": [],
+   "slots": 11,
+   "primitives": 22,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p017-linear-a-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 4,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p018-linear-b-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 4,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p019-linear-c-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p019-linear-c-3d-02": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p020-linear-d-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 3,
+   "primitives": 3,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p021-linear-e-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 5,
+   "primitives": 5,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p022-linear-g-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 3,
+   "primitives": 3,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p023-linear-i-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p024-linear-j-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 4,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p025-linear-n-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 14,
+   "primitives": 14,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p026-linear-p-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 6,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p027-linear-q-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p028-linear-q-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p030-perspective-3d-01": {
+   "relation": [
+    "composition"
+   ],
+   "family": [],
+   "slots": 40,
+   "primitives": 7160,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p031-propeller-3d-01": {
+   "relation": [
+    "correlation",
+    "hierarchy"
+   ],
+   "family": [],
+   "slots": 4,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p032-rings-3d-01": {
+   "relation": [
+    "composition",
+    "process"
+   ],
+   "family": [],
+   "slots": 19,
+   "primitives": 19,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p032-rings-3d-02": {
+   "relation": [
+    "composition",
+    "process"
+   ],
+   "family": [],
+   "slots": 4,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p033-scale-01": {
+   "relation": [
+    "degree"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p034-scales-01": {
+   "relation": [
+    "degree"
+   ],
+   "family": [],
+   "slots": 10,
+   "primitives": 14,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p036-spiral1-3d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 381,
+   "primitives": 456,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p037-spiral-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 17,
+   "primitives": 17,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p037-spiral-02": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 9,
+   "primitives": 9,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p037-spiral-03": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 15,
+   "primitives": 15,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p039-staircase-01": {
+   "relation": [
+    "order"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p041-wire-cubes-01": {
+   "relation": [
+    "composition"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 11,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p042-arrows-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 6,
+   "primitives": 12,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p042-arrows-02": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p042-arrows-03": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p043-level-1-01": {
+   "relation": [
+    "composition",
+    "hierarchy"
+   ],
+   "family": [],
+   "slots": 3,
+   "primitives": 52,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p044-level-2-01": {
+   "relation": [
+    "composition",
+    "hierarchy"
+   ],
+   "family": [],
+   "slots": 5,
+   "primitives": 64,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p045-level-3-01": {
+   "relation": [
+    "composition",
+    "hierarchy"
+   ],
+   "family": [],
+   "slots": 7,
+   "primitives": 74,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p046-level-4-01": {
+   "relation": [
+    "composition",
+    "hierarchy"
+   ],
+   "family": [],
+   "slots": 9,
+   "primitives": 88,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p047-level-5-01": {
+   "relation": [
+    "composition",
+    "hierarchy"
+   ],
+   "family": [],
+   "slots": 11,
+   "primitives": 110,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p048-level-6-01": {
+   "relation": [
+    "composition",
+    "hierarchy"
+   ],
+   "family": [],
+   "slots": 13,
+   "primitives": 144,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p072-ring-01": {
+   "relation": [
+    "composition",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 14,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p075-cutout-01": {
+   "relation": [
+    "composition"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p076-linear-a-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 3,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p077-linear-b-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 4,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p078-linear-c-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p079-linear-d-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 3,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p080-linear-e-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p081-linear-f-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p082-linear-g-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 3,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p083-linear-h-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 4,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p084-linear-i-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p085-linear-j-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p086-linear-k-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 2,
+   "primitives": 7,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p087-linear-n-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 14,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p088-linear-p-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p089-linear-q-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p090-propeller-01": {
+   "relation": [
+    "correlation",
+    "hierarchy"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p113-restructuring-framework-01": {
+   "relation": [
+    "composition",
+    "process"
+   ],
+   "family": [],
+   "slots": 7,
+   "primitives": 14,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p127-2x2-cubed-01": {
+   "relation": [
+    "composition"
+   ],
+   "family": [],
+   "slots": 12,
+   "primitives": 24,
+   "decoration_risk": false,
+   "three_d": true
+  },
+  "p129-2x2-tower-01": {
+   "relation": [
+    "composition",
+    "hierarchy"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 29,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p149-arrows-01": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p149-arrows-02": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": false
+  },
+  "p149-arrows-03": {
+   "relation": [
+    "order",
+    "process"
+   ],
+   "family": [],
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false
+  }
+ }
+}
