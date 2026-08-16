@@ -1,5 +1,75 @@
 # Changelog
 
+## 0.1.493 — imagery is allowed and gated, and a library shape becomes a starting geometry rather than a finished figure
+
+Two owner directions, taken together because they are the same instruction: the
+rules that limit what a page can be made of are lifted, and what replaces them
+is a condition rather than an absence.
+
+**Imagery — `design-rules.md` §9, `DR-15`.** The old clause read *"without a
+professional photo library, never set text directly on imagery"*. That is a
+CONDITION, and it had hardened into a ban applied to every kind of image — which
+is convention 5's failure, recorded in convention 5's own words about this same
+sentence. §9 is the condition being met. An image carries an argument the page
+cannot make otherwise, or it is not on the page; the test is §6's test for icons,
+*what does the reader now know that they did not*. Four rules, all checkable:
+embedded as a `data:` URI and never linked; source and terms named on the page;
+tinted into the accent ladder so it is not a foreign object beside the palette;
+and text never on raw photography — the surviving half of the old clause, kept on
+its merits. The stock tells are banned by name — the handshake, the glass tower
+at dusk, the team around a laptop, the lone figure at a whiteboard, the abstract
+network of glowing dots — because an image that would fit any deck about any
+subject is not evidence.
+
+**Two new gates make that safe rather than hopeful.** **D24** fails any `<img>`,
+SVG `<image>` or CSS `url()` pointing anywhere but at an embedded payload: a
+deliverable is one self-contained file, and a linked image breaks the first time
+it is read offline while telling its host who is reading. **D25** fails an image
+whose terms are not named in words a person wrote — "all imagery used
+appropriately" is the sentence that gets written when nobody checked, and it does
+not pass. A document with no images passes D25 and says "no images" rather than
+reading `n/a`, because `check_design` treats an unmeasurable gate as a failure on
+purpose and applying that to an optional element would fail every text-and-vector
+deliverable this package has produced.
+
+**Composition — §4.2, `DR-14`.** A shape from the library is a starting geometry.
+192 of its 206 units carry no text, so composing this page's own words and
+numbers onto them is the work and not a gap in the library — the opposite
+conclusion was drawn one release ago and was wrong. Labels go against measured
+coordinates: render the unit once under a coordinate grid, read where its
+segments actually fall, place the text there. Layering, retinting within the
+accent ladder, and transforming are all in scope, with one limit — the relation
+has to survive the transform, and a transform that makes a shape mean something
+it did not is the same defect as choosing the wrong shape.
+
+The two traps from the first real use are written down where an author meets
+them: a `<use>` of a symbol whose viewBox has a **non-zero origin** renders
+shifted, and far enough off renders outside the visible box entirely, unless the
+`<use>` declares `x`, `y`, `width` and `height`; and a `fill=` presentation
+attribute on a `<text>` **loses to any CSS rule** that styles figure text, so a
+label written that way silently takes the stylesheet's colour.
+
+C8 gains two evidence items — whether a shape was composed or dropped in, and
+whether an image is evidence or atmosphere — and the reviewer's sheet carries
+both in the language she reads.
+
+**The `gating claims` guard earned its keep during this release.** Adding two
+gates turned four prose sites red within seconds of the metrics landing —
+`AGENTS.md`, `CLAUDE.md`, `references/brand.md` and `references/eval-rubric.md`
+all enumerated seven. That is the drift class this repository has shipped
+twenty-six fixes for, caught before the commit rather than four releases later.
+The fifth site, `design-rules.md`, stayed silent because it took the
+`AUTHORITY_NAMED` form one release ago and no longer counts.
+
+Both gates were planted red on a real fixture first, four ways: a linked `<img>`,
+a CSS `url()` to a CDN, an embedded image with no terms, and an embedded image
+with terms named. Twenty tests, including that a vague gesture at licensing does
+not pass and that each gate's row declares `(gates)` in its own target string.
+
+Phase 0 of `specs/2026-08-17-rebuild-deliverables-to-current-standard-design.md`
+continues here: the rules a document is rebuilt against are settled before the
+document is rebuilt, which is convention 7's direction of authority.
+
 ## 0.1.492 — the shape sprite was being injected into a stylesheet comment, so every shape in every document resolved to nothing
 
 Found by building one. `embed_shapes.py` inserted its sprite after the first

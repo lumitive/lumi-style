@@ -142,7 +142,7 @@ than passed. **D20 is the one that looks the other way**: every COLOUR token the
 document declares that `tokens/` also defines must carry the shipped value,
 because a document can be perfectly consistent with a palette of its own
 invention and that is a different design language. Sizes are exempt by the same
-logic that withdrew the type floor at 0.1.340. Seven of its metrics **gate**, and none is a
+logic that withdrew the type floor at 0.1.340. Nine of its metrics **gate**, and none is a
 design judgement: **D12** (handling terms and origin on every page) is a
 commercial requirement on the artifact, **D14** (no `[TO FILL]`, `[TBD]` or
 `{{…}}` reaching the reader) asks whether the document is finished, **D15**
@@ -153,7 +153,9 @@ mark with no runtime) asks whether the markup can render itself, and **D20**
 palette is LUMI's at all, and **D21** (a figure that declares the
 data it draws is held to it) asks whether the drawing agrees with its own
 numbers, and **D22** (every page's layout is one `tokens/` defines) asks
-whether the page structure is the brand's at all. All seven are
+whether the page structure is the brand's at all, and **D24** (every image ships
+inside the file) and **D25** (every image names its terms) are what made lifting
+the imagery restriction safe rather than a hope. All nine are
 decidable in the way "does this page read as intentional" is not. The list is
 `check_design.py`'s to change: a row whose target says `(gates)` gates, and the
 `gating claims` guard holds this sentence to it.
