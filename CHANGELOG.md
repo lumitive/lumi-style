@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.1.492 — the shape sprite was being injected into a stylesheet comment, so every shape in every document resolved to nothing
+
+Found by building one. `embed_shapes.py` inserted its sprite after the first
+match of `<body[^>]*>` in the file. A deliverable's preamble explains the
+one-geometry rule in a CSS comment inside its `<style>` block, and that comment
+contains the literal text `` `<body data-geometry="landscape">` `` — several
+hundred characters ahead of the real tag. **So the sprite went inside a
+stylesheet comment**, the browser never parsed it, and every `<use href="#shape-…">`
+in the document resolved to nothing and rendered as blank space.
+
+**Three checks said the document was correct while it was blank.**
+`embed_shapes.py --check` said the sprite was current, `--list` named the shape,
+and D19 confirmed every reference resolved — all three read the file, and the
+file was fine. Only a screenshot showed the empty space. That is convention 8's
+case in its purest form so far: a metric that passes is not a verified document,
+and the eye is not a slower version of the checks but a different instrument.
+
+The injector now computes comment, `<style>` and `<script>` spans first and
+takes the first `<body>` outside all of them, raising rather than guessing when
+there is none. Eight tests, including the dangerous middle case — a decoy and no
+real tag, where silently injecting into the comment IS the bug — and one that
+anchors on `new_deck.preamble()` itself, so if the scaffold ever stops quoting a
+`<body>` the test says the real-world case is gone instead of passing on a decoy
+that no longer exists.
+
+**A second finding from the same page, kept because it will recur.** A `<use>`
+of a symbol whose viewBox has a non-zero origin — which is most of this library,
+the units being extracted at their source coordinates — renders **shifted off
+frame** unless the `<use>` carries explicit `x`, `y`, `width` and `height`. It
+does not fail; it draws in the wrong place, and with a tall enough offset it
+draws entirely outside the visible box. And a `fill="…"` presentation attribute
+on a `<text>` loses to any CSS rule that styles figure text, so a label written
+that way silently takes the stylesheet's colour: labels use `style="fill:…"`.
+
+The first working use of the shape library in a deliverable is on page 5 of the
+A2UI proposal: `p052-flow-3-title-01`, a three-segment chevron, labelled
+AGENT / WIRE / CLIENT at the segment centres measured off a rendered coordinate
+grid rather than assumed. **The labels are the point** — the library ships
+geometry, and 192 of its 206 units carry no text at all, so composing the words
+and numbers onto the shape is the document's job and not a gap in the library.
+
 ## 0.1.491 — the entry points had no path to the shape library, which is why three deliverables used none of its 206 units
 
 The owner rebuilt a deliverable and reported it was almost identical to the

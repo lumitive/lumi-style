@@ -1,0 +1,15 @@
+{
+ "version": "0.1.492",
+ "diff_base": "c40bbc188b3e03617645870bf9197dd08b11e29a",
+ "spec": "specs/2026-08-17-rebuild-deliverables-to-current-standard-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs; 0.1.492 fixes the sprite injection point in embed_shapes.py and no conformance task references shapes. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have."
+  }
+ ]
+}

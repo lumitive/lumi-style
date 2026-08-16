@@ -70,6 +70,38 @@ def build_sprite(ids) -> str:
     return SPRITE_OPEN + "".join(symbol_for(i) for i in ids) + SPRITE_CLOSE
 
 
+SKIP_RE = re.compile(
+    r"<!--.*?-->|<style\b.*?</style>|<script\b.*?</script>", re.S | re.I)
+
+
+def _after_body(html: str, sprite: str) -> str:
+    """Insert the sprite after the document's REAL <body>, never a quoted one.
+
+    The first version matched `(<body[^>]*>)` and injected after the first hit.
+    A deliverable's preamble explains the geometry rule in a CSS comment inside
+    its `<style>` block, and that comment contains the literal text
+    `<body data-geometry="landscape">` — hundreds of characters ahead of the
+    real tag. So the sprite was injected into a stylesheet comment, the browser
+    never saw it, and every `<use>` in the document resolved to nothing.
+
+    It rendered as blank space on the page while `--check`, `--list` and D19 all
+    reported the document correct — all three read the file, and the file was
+    fine. It took a screenshot to see it, which is convention 8 exactly.
+
+    So: comment, `<style>` and `<script>` spans are computed first, and any
+    `<body` inside one of them is not the document's body.
+    """
+    skip = [m.span() for m in SKIP_RE.finditer(html)]
+    for m in re.finditer(r"<body[^>]*>", html):
+        if any(a <= m.start() < b for a, b in skip):
+            continue
+        return html[:m.end()] + "\n" + sprite + html[m.end():]
+    raise ValueError(
+        "no <body> outside a comment, <style> or <script> — the sprite has "
+        "nowhere to go, and injecting it into one of those is how this failed "
+        "silently before")
+
+
 def apply(html: str) -> str:
     ids = referenced(html)
     sprite = build_sprite(ids) if ids else ""
@@ -77,8 +109,7 @@ def apply(html: str) -> str:
         return SPRITE_RE.sub(lambda _m: sprite, html, count=1)
     if not sprite:
         return html
-    return re.sub(r"(<body[^>]*>)", lambda m: m.group(1) + "\n" + sprite,
-                  html, count=1)
+    return _after_body(html, sprite)
 
 
 def main():
