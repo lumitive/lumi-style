@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.479"
+  version: "0.1.480"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -331,6 +331,8 @@ been removed; they now apply at step 4 instead of framing step 0.
    revision (CHANGELOG + version bump) — this is the skill's iteration engine.
 
 ## Debug mode (on request only)
+
+> Source: [`references/operating-rules.md`](references/operating-rules.md) §1. That file is where the operating rules are true; this is a restatement.
 
 When the user's request says **"debug mode"**, write an execution log beside
 the deliverable — `<stem>.debug.json` in the same folder — through
