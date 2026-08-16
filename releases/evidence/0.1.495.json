@@ -1,0 +1,24 @@
+{
+  "version": "0.1.495",
+  "diff_base": "ef65878794bd294e9a89aec3a6f0e5eaa2fd863a",
+  "spec": "specs/2026-08-17-rebuild-deliverables-to-current-standard-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "2c6c1061cb8125b722b487291b019ed0f35c5d8b0856a4ac2ba4a74b980ff378",
+      "date": "2026-08-17"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board reports CLI-agent conformance runs; 0.1.495 makes the comparison rule conditional and rebuilds a deliverable, and no conformance task exercises either. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have."
+    }
+  ]
+}

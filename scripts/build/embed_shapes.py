@@ -43,6 +43,7 @@ SPRITE_RE = re.compile(
 # Hex fallbacks inside var() are dead weight in a deliverable, where
 # the token block always defines them.
 _FALLBACK = re.compile(r"var\(\s*(--[\w-]+)\s*,\s*[^)]*\)")
+_BBOX_RECT = re.compile(r'<rect[^>]*class="BoundingBox"[^>]*/>\s*')
 USE_RE = re.compile(r'<use[^>]+href="#shape-([\w-]+)"')
 
 
@@ -73,6 +74,15 @@ def symbol_for(shape_id: str) -> str:
     # its fallbacks for standalone use, and the deliverable gets the variable
     # alone. Found the first time four shapes were embedded at once.
     body = _FALLBACK.sub(r"var(\1)", body)
+    # LibreOffice emits an invisible `<rect class="BoundingBox" fill="none"
+    # stroke="none">` beside each shape as layout scaffolding. It draws nothing
+    # — and in 7 of the 206 units its x has overflowed to about -2^31, which is
+    # what an export writes when an arc has a zero or full sweep. Invisible in
+    # the preview, because the viewBox crops it. NOT invisible to getBBox: the
+    # rendered-geometry check reported the figure as drawing 3.6 million units
+    # outside its own frame, and it was right. Dropping them removes a defect
+    # and a third of the sprite's bytes at once.
+    body = _BBOX_RECT.sub("", body)
     return f'<symbol id="shape-{shape_id}"{box}>{body.strip()}</symbol>'
 
 

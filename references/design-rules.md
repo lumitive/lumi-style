@@ -536,9 +536,9 @@ look like it.
   `inspect_layout.py` reports each page's rendered share against the target;
   both are review triggers, never floors, because the withdrawn 82% fill floor
   is the standing record of what a floor here does. The reconciliation with §4
-  stands in both directions: comparisons still take tables, a table is still for
-  values and never for what a chart says better, and a table page still wants
-  its visual weight from a figure or a band beside it. Vary the figure form page
+  stands in both directions: a comparison may take a table or a labelled figure
+  (§4), a table is still for values and never for what a chart says better, and
+  a table page still wants its visual weight from a figure or a band beside it. Vary the figure form page
   to page as §4's form selection directs — from the content, never for variety's
   own sake.
 
@@ -726,8 +726,16 @@ a reader more than the table would.
 Form selection: one number is the story → stat callout (big figure + small label,
 data voice); composition/trend → segmented bars / tick bands; a bridge between
 two numbers → waterfall; concept relations → icon-led flow diagram; time
-commitments → milestone timeline; **comparisons always use tables** (columns =
-options, rows = dimensions). Illustrative values must be labeled.
+commitments → milestone timeline; **a comparison may be a table or a figure, and the
+condition is the same either way: the reader must be able to read the values
+off it.** A table was the rule here through 0.1.494 for a good reason — it is
+precise and it cannot distort — and the reason survives rather than the rule.
+A figure qualifies when it carries the values a table would have carried:
+labelled on the marks, not implied by their size. A comparison drawn as
+unlabelled geometry is decoration wearing a table's job, and it is worse than
+the table it replaced. Columns = options, rows = dimensions is still the right
+default when the values are the point and there are more than a handful.
+Illustrative values must be labeled.
 
 ### 4.1 · Choosing a figure from the shape library
 
