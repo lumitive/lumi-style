@@ -8,8 +8,6 @@ form and no adaptable one.
     lumivate/globe-field.svg       THE FIELD GLOBE — the default cover/closing mark
     lumivate/globe-cover.svg       the plain cover globe, light edition
     lumivate/globe-cover.dark.svg  the plain cover globe, dark edition
-    lumivate/globe-mark.svg        the small mark, 64px and up
-    lumivate/globe-mark-small.svg  the small mark, 16-48px
 
 **The field globe is the mark a deliverable embeds on its cover and closing**
 (owner directive, 0.1.442 review — a document shipped a fresh anonymous render

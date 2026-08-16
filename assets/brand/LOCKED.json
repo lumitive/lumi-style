@@ -1,18 +1,16 @@
 {
-  "component": "LUMI-Globe-Field",
-  "owner": "LUMIVATE",
-  "locked_at": "0.1.405",
-  "why": "0.1.443: the owner named the FIELD globe the default cover/closing mark (0.1.442 review, BUG#1 \u2014 a deliverable shipped a fresh render instead of the brand), so the field edition is vendored and locked, and the cover pair joins the lock: both had been unlocked since the lock existed, which made 'locked' a word in a README for the two files a deliverable actually embeds. Re-hashed once in the same release: the vendored file's own comments cited the pre-drawer script paths (globe_svg and build_region_palette at the scripts root), which the script-path guard rightly refused; the citations were updated to the current drawers, pixels untouched.",
-  "files": {
-    "assets/brand/lumivate/globe-mark-small.svg": "282f78967678387b550db2b464b2586397b540603f1f757b95cf084e7b04eb0c",
-    "assets/brand/lumivate/globe-mark.svg": "5a3bd1f8c97e6bb1b0e29d765d8bf08ebc64f837e48d8cfe67886738b8eeef68",
-    "assets/geo/projection.js": "e8baadee739820af14190c1c06d75cd89e65af3138ea62856a83eb26ef608971",
-    "assets/globe/globe.js": "fd4eb0334e42411cc3a243cfac1295bf97e9187448641a1cb403b0a16ceaf969",
-    "assets/globe/render-svg.js": "ff8b9156a6d7444742f7b04d02839d4f2a3e02721212885e3a36fbc9b4502146",
-    "scripts/build/build_brand.py": "68588b0330f8cbbdc464b74e02bb43ce0aadf6df277991f403d59c4dfe2431aa",
-    "scripts/render/globe_svg.py": "966fb7a675d436875c741e97c7593246bb972fb30be23c0e23cabc34b6aeeda0",
-    "assets/brand/lumivate/globe-field.svg": "653c9975f1d59b94d0cac2e99ccb9d3a2e830077a8131a5b08108c917b091514",
-    "assets/brand/lumivate/globe-cover.svg": "f24ec74d78e9cefc2d1d34f26b8fc1f98c6c8c0efce1c86e7a80c01041491005",
-    "assets/brand/lumivate/globe-cover.dark.svg": "d7de1d525d0448edaede4a913128c2b3f0f8e5a19c66ad4f981cd577d1be0ffa"
-  }
+ "component": "LUMI-Globe-Field",
+ "owner": "LUMIVATE",
+ "locked_at": "0.1.405",
+ "why": "0.1.443: the owner named the FIELD globe the default cover/closing mark (0.1.442 review, BUG#1 — a deliverable shipped a fresh render instead of the brand), so the field edition is vendored and locked, and the cover pair joins the lock: both had been unlocked since the lock existed, which made 'locked' a word in a README for the two files a deliverable actually embeds. Re-hashed once in the same release: the vendored file's own comments cited the pre-drawer script paths (globe_svg and build_region_palette at the scripts root), which the script-path guard rightly refused; the citations were updated to the current drawers, pixels untouched. 0.1.477: the owner withdrew globe-mark.svg and globe-mark-small.svg as no longer fit for purpose. They are deleted and the generator no longer emits them; the FIELD globe and the cover pair are untouched, which is what this lock exists to protect. The lock is re-stamped rather than bypassed, because a lock that can be edited around protects nothing — the record of what changed and why is the whole mechanism.",
+ "files": {
+  "assets/geo/projection.js": "e8baadee739820af14190c1c06d75cd89e65af3138ea62856a83eb26ef608971",
+  "assets/globe/globe.js": "fd4eb0334e42411cc3a243cfac1295bf97e9187448641a1cb403b0a16ceaf969",
+  "assets/globe/render-svg.js": "ff8b9156a6d7444742f7b04d02839d4f2a3e02721212885e3a36fbc9b4502146",
+  "scripts/build/build_brand.py": "9a4a0119d60abbe0103d4aa2a61c4cac972cc0e8fdac4b5d93513b7f4fdcb4ee",
+  "scripts/render/globe_svg.py": "966fb7a675d436875c741e97c7593246bb972fb30be23c0e23cabc34b6aeeda0",
+  "assets/brand/lumivate/globe-field.svg": "653c9975f1d59b94d0cac2e99ccb9d3a2e830077a8131a5b08108c917b091514",
+  "assets/brand/lumivate/globe-cover.svg": "f24ec74d78e9cefc2d1d34f26b8fc1f98c6c8c0efce1c86e7a80c01041491005",
+  "assets/brand/lumivate/globe-cover.dark.svg": "d7de1d525d0448edaede4a913128c2b3f0f8e5a19c66ad4f981cd577d1be0ffa"
+ }
 }

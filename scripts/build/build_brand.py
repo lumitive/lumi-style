@@ -17,8 +17,6 @@ read as a planet rather than a circle with texture on it.
 
 Two sizes, because one does not serve both ends:
 
-    globe-mark.svg        coastline, graticule and axis, for 64px and up
-    globe-mark-small.svg  coastline and axis, no graticule, for 16-48px
 
 The small one is not the large one scaled down. Below about 48px a 15-degree
 graticule falls closer together than the pixels and turns to moire, so it is
@@ -231,7 +229,10 @@ def build_cover(dark=False):
     return svg.rstrip() + "\n"
 
 
-TARGETS = {"globe-mark.svg": False, "globe-mark-small.svg": True}
+# The small marks were withdrawn at 0.1.477: the owner judged them no longer
+# fit for purpose. The cover pair below is unaffected — it is a different
+# drawing at a different size, and the field globe remains the default mark.
+TARGETS: dict[str, bool] = {}
 COVER_TARGETS = {"globe-cover.svg": False, "globe-cover.dark.svg": True}
 
 
