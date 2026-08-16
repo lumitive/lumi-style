@@ -1,0 +1,15 @@
+{
+ "version": "0.1.479",
+ "diff_base": "da3448720186ef12107313d245cdccb1af6d5df5",
+ "spec": "",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Still unconfirmed and still named: the board predates this refactor, and refreshing it drives real agents with credentials this repository does not hold. Whether each agent follows the changed skill is UNKNOWN rather than passing."
+  }
+ ]
+}

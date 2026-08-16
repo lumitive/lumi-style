@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.1.479 — the fix that was reported and not made, and twenty-four rounds of proving the other one
+
+**Correction to 0.1.476.** That entry said the release tool's stamp positions
+"are now a shared `TOKEN_STAMPS` constant". **Half of that was true and the half
+that mattered was not.** The constant was created and `check_versions` reads it;
+`release.py` was never wired to it and still carried its own eight-row table.
+The claim was written from the intention rather than from the code, which is
+exactly what convention 14 forbids, and it was found by the owner asking whether
+the fix was real.
+
+**Now it is.** `release.py` derives its stamp positions from `ENTRY_STAMP` and
+`TOKEN_STAMPS` — the guards' own authority on the same fact — and replaces the
+literal version string rather than carrying per-file patterns it cannot invert.
+Eight positions, derived, matching the eight that were hand-listed.
+
+**A test now holds it, because a note did not.** `test_release_tool.py` fails if
+that file names a stamped path as a bare literal anywhere in it. Its own first
+version scanned only from `stamped_files()` downward and a probe inserting the
+table **above** that point passed — a test with a blind spot certifies the
+region it does not look at. Rewritten to scan the whole file, then red-tested
+from three positions: before, after, and at the end.
+
+**The second finding, verified across every stamp rather than the one that
+failed.** `references/PRINCIPLES.md` carried a version from 0.1.459 and sat in
+no table, so a stamp naming a real EARLIER release passed silently while only a
+stamp naming a version that does not exist was caught. Registered at 0.1.476 —
+and this release checks **all eight declared positions, three ways each**: a
+stale-but-real version, a version that does not exist, and the stamp line
+deleted outright. **Twenty-four rounds, twenty-four reds, and the untouched tree
+green.** That matrix is what makes the table's completeness a measurement rather
+than a claim.
+
 ## 0.1.478 — the last seventy shapes are classified by the only method that has not been wrong here: looking at them
 
 **GAP-009 closes.** 70 of the 206 shapes carried no relation, so a third of the

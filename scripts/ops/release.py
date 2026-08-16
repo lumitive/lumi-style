@@ -37,19 +37,37 @@ import sys
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if (p / "SKILL.md").exists())
 
-# Where the version is hand-stamped. `check_versions` and `check_version_citations`
-# are the authority on this list; this table is the writer's side of the same
-# fact, and a stamp missing here fails there rather than shipping stale.
-STAMPS = [
-    ("SKILL.md", 'version: "{old}"', 'version: "{new}"'),
-    ("AGENTS.md", "**lumi-style {old}.**", "**lumi-style {new}.**"),
-    ("prompts/lumi-style-core.md", "**{old}** snapshot", "**{new}** snapshot"),
-    ("tokens/lumi-theme.css", "v{old} (", "v{new} ("),
-    ("tokens/lumi-layouts.css", "v{old} (", "v{new} ("),
-    ("tokens/design-tokens.json", "v{old} (", "v{new} ("),
-    ("conformance/CONFORMANCE.md", "skill {old}", "skill {new}"),
-    ("references/PRINCIPLES.md", "lumi-style {old}.", "lumi-style {new}."),
-]
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+from check_repo import ENTRY_STAMP, TOKEN_STAMPS  # noqa: E402 — after the bootstrap
+
+
+# WHERE THE STAMPS ARE IS NOT DECLARED HERE. It is read out of check_repo's
+# ENTRY_STAMP and TOKEN_STAMPS, which are the guards' own authority on the same
+# fact. The first version of this file carried its own eight-row table, and the
+# review that found it put the point exactly: fixing a drift problem by adding a
+# third copy of the thing that drifts is the defect arriving through the door
+# marked "release tooling". A test asserts this file declares no stamp table.
+#
+# The replacement is a literal swap of the old version string for the new one,
+# first occurrence only — the patterns in ENTRY_STAMP are regexes and cannot be
+# inverted into a replacement. The header stamp is the first occurrence in every
+# stamped file; historical notes inside tokens/ name OLDER versions and are not
+# touched. check_versions and check_version_citations verify the result, which
+# is what they exist for, so a miss fails the release rather than shipping.
+def stamped_files() -> list[str]:
+    return sorted(set(ENTRY_STAMP) | {name for name, _pattern in TOKEN_STAMPS})
+
 
 GENERATORS = [
     ["python3", "scripts/build/build_entrypoints.py"],
@@ -82,19 +100,17 @@ def newest_changelog_heading() -> tuple[str, str]:
 
 def stamp(old: str, new: str, dry: bool) -> list[str]:
     touched = []
-    for name, before, after in STAMPS:
+    for name in stamped_files():
         path = ROOT / name
         if not path.exists():
-            sys.exit(f"{name} is missing — the stamp table and the tree disagree")
+            sys.exit(f"{name} is declared as a stamp position and does not exist")
         text = path.read_text(encoding="utf-8")
-        needle = before.format(old=old, new=new)
-        if needle not in text:
-            sys.exit(f"{name}: no stamp reading {needle!r}. Either it was already "
-                     f"bumped or the stamp moved; the version guards will say "
-                     f"which, and this refuses to guess.")
+        if old not in text:
+            sys.exit(f"{name}: no occurrence of {old!r}. Either it was already "
+                     f"bumped or the stamp moved; the version guards say which, "
+                     f"and this refuses to guess.")
         if not dry:
-            path.write_text(text.replace(needle, after.format(old=old, new=new), 1),
-                            encoding="utf-8")
+            path.write_text(text.replace(old, new, 1), encoding="utf-8")
         touched.append(name)
     return touched
 
