@@ -26,7 +26,7 @@ import lock as brand_lock
 REAL_SCRIPTS = next(p for p in pathlib.Path(check_repo.__file__).resolve().parents
                     if p.name == "scripts")
 
-DIMS = ["C1", "C2", "C3", "C4", "C5", "C6", "C7"]
+DIMS = ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]
 
 
 # check_media_only_rules — no class styled only inside a @media block.

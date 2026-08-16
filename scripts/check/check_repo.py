@@ -2425,7 +2425,7 @@ def check_scoring_sheet_parity():
     which would make the emergency-merge path run the pull request's own
     copy of the file being checked.
 
-    The last sheet described H1-H6 for two releases after C1-C7 replaced them.
+    The last sheet described H1-H6 for two releases after C1-C8 replaced them.
     Nothing caught it, because nothing held the sheet to the rubric.
     """
     import importlib.util
@@ -2456,9 +2456,26 @@ def check_scoring_sheet_parity():
     for key in sorted(set(mod.WORDING) - rubric_items):
         errors.append(f"{key[0]}-{key[1]} has a wording and is not in the rubric "
                       f"— the sheet describes an item that no longer exists")
+    # Since 0.1.489 the sheet asks the reviewer for a rating and a sentence per
+    # DIMENSION rather than a tick per item, so the per-dimension prose is now
+    # the instrument. Each of the three tables answers one of the three things
+    # the owner reported missing, and a dimension short of any of them prints a
+    # question that does not say what it is for — which is the defect that
+    # forced this rewrite, arriving back through a table nobody held.
     for did in sorted({d for d, _ in rubric_items}):
         if did not in mod.DIM_TITLE:
             errors.append(f"{did} has no dimension title in the sheet")
+        for table, what in ((mod.PURPOSE, "what it protects against"),
+                            (mod.WHERE, "where to look"),
+                            (mod.EXAMPLE, "how to answer it")):
+            if not table.get(did):
+                errors.append(f"{did} does not say {what} — the sheet would ask "
+                              f"a question that never states its purpose")
+    for did in sorted(set(mod.PURPOSE) | set(mod.WHERE) | set(mod.EXAMPLE)
+                      | set(mod.DIMENSION_NA)):
+        if did not in mod.DIM_TITLE:
+            errors.append(f"{did} carries sheet prose and is not a dimension — "
+                          f"the sheet would describe a dimension that is gone")
     return errors
 
 def check_shape_library():
@@ -2880,7 +2897,6 @@ CHECKS = (
     ("two-axis vocabulary", check_two_axis_vocabulary),
     ("brand registry", check_brand_registry),
     ("shape library", check_shape_library),
-    ("scoring sheet parity", check_scoring_sheet_parity),
     ("scoring sheet parity", check_scoring_sheet_parity),
     ("metric id ranges", check_metric_id_ranges),
     ("gating claims", check_gating_claims),

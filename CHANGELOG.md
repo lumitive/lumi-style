@@ -1,5 +1,60 @@
 # Changelog
 
+## 0.1.489 — C3 splits into C3 and C8 on the owner's ruling, and the scoring sheet stops handing a machine's checklist to a human
+
+**GAP-011, closed by owner ruling: split.** C3 carried six evidence items about
+four different objects — the page's single claim, its title's assertion, its
+elements' relevance, and its figures — so a text-only page could satisfy at most
+three of six and scored 3 on a dimension it may have been answering perfectly.
+The three figure items become **C8 · Figure quality**, and a document with no
+figures scores C8 `n/a` rather than 1.
+
+**The numbering does not shift.** C4 through C7 keep their meanings and the new
+dimension is C8, because a dimension id is a name and not an address —
+renumbering would leave the recorded scores ambiguous about which dimension they
+measured. This is the frozen-rule-id rule applied to the dimension set.
+`reviews/scores.json` moves to schema 3; no schema-2 record had ever been
+written, so nothing was migrated and nothing was back-filled.
+
+**The scoring sheet was built on a misread of its own evidence, and this
+corrects it.** The rubric justified ticking binary items by citing a measurement
+that fine-grained binary checklists agree with human judgement far better than
+holistic scoring does. **That is a finding about building an automated judge. In
+the study the humans were the reference — the humans were not ticking
+checklists.** Handing the checklist to the reviewer inverted it: it made her
+slower without making the measurement more accurate, because the reviewer IS the
+accuracy the checklist approximates.
+
+So the instrument now splits by who is answering. A machine judge ticks the
+items; **the human gives one 1–5 rating and one sentence per dimension** — eight
+answers instead of fifty-eight. Each dimension states, on the sheet, **what it
+protects against**, **where to look** (an instruction that ends in a finite
+amount of reading — "sample three pages", never "read the document"), and **an
+example answer including its number**, because "give a rating and a sentence" is
+an instruction and an example is a demonstration. The evidence items still ship,
+folded, marked as prompts to consult when stuck rather than rows to fill.
+
+The three additions are what the owner reported missing after filling the
+previous sheet in: a question that does not say what it is for cannot tell her
+whether it is hard because the document is bad or because she has misread the
+question. The "I cannot read this question" answer (`看不懂`) survives in
+place of a rating, and it is
+now printed on every dimension rather than once in the header — that is where a
+reviewer is standing when they get stuck.
+
+The `scoring sheet parity` guard grew two branches: every dimension must carry
+all three prose fields, and no prose field may name a dimension that is gone.
+**Deliberate-red, three ways**: a missing PURPOSE, a missing EXAMPLE, and a
+`DIMENSION_NA` entry for a dimension that does not exist — each failed with the
+dimension named. Two tests that asserted the old checkbox layout were rewritten
+against the properties they protected rather than deleted: no arithmetic is
+asked for anywhere, and the unreadable answer appears on every dimension.
+
+Both changes fall under `specs/2026-08-15-principles-and-evals-refactor-design.md`
+(decision D8, the C-dimension set), which is amended by this release rather than
+re-litigated: the design was right that the dimensions are ticked from evidence
+items, and wrong about who does the ticking.
+
 ## 0.1.488 — five items the reviewer could not read were counted as document failures
 
 **The sheet was used on a real document for the first time, and most of what it

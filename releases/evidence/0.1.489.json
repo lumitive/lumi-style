@@ -1,0 +1,15 @@
+{
+ "version": "0.1.489",
+ "diff_base": "cc48bc87def72a0ce185a97ff3c2701bb7865f0d",
+ "spec": "specs/2026-08-15-principles-and-evals-refactor-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent runs and is unchanged by this release: 0.1.489 touches the human scoring instrument and the C-dimension set, neither of which any conformance task exercises. Stale since 0.1.470 and tracked there; refreshing it needs live agent runs and API keys, which CI does not have."
+  }
+ ]
+}

@@ -1,6 +1,6 @@
 {
- "$comment": "The iteration engine's memory. references/eval-rubric.md defines six human dimensions and a protocol where a divergence of two forces a retrospective, and until 0.1.390 not one score was stored: every number in the record was a sentence inside a release note, so no dimension could be read over time and the loop had no way to show whether it was working. THE SCHEMA HAS NO FREE-TEXT FIELD, deliberately. A scores file is exactly the shape that breaks red line 9 — a 'notes' column is where a client name arrives — so the guard is not optional and there is nowhere for prose to go. Reasons belong in CHANGELOG.md, which is already written under that red line. A null score means not scored in that round, never zero. Schema 2 (0.1.468): dimensions are C1-C7, and `corpus_id` is REQUIRED on every new record — the agreement study joins machine readings to human scores on it, and the two schema-1 records have none, which is why that study has never had a single joinable row. Schema-1 records are kept verbatim and carry \"schema\": 1; they are history and are not back-filled, because inventing a corpus id for a document nobody can re-measure would put a fabricated join key in the evidence.",
- "schema": 2,
+ "$comment": "The iteration engine's memory. references/eval-rubric.md defines six human dimensions and a protocol where a divergence of two forces a retrospective, and until 0.1.390 not one score was stored: every number in the record was a sentence inside a release note, so no dimension could be read over time and the loop had no way to show whether it was working. THE SCHEMA HAS NO FREE-TEXT FIELD, deliberately. A scores file is exactly the shape that breaks red line 9 — a 'notes' column is where a client name arrives — so the guard is not optional and there is nowhere for prose to go. Reasons belong in CHANGELOG.md, which is already written under that red line. A null score means not scored in that round, never zero. Schema 2 (0.1.468): dimensions are C1-C7, and `corpus_id` is REQUIRED on every new record — the agreement study joins machine readings to human scores on it, and the two schema-1 records have none, which is why that study has never had a single joinable row. Schema-1 records are kept verbatim and carry \"schema\": 1; they are history and are not back-filled, because inventing a corpus id for a document nobody can re-measure would put a fabricated join key in the evidence. Schema 3 splits C3's figure items into C8 (GAP-011, owner ruling at 0.1.489); no schema-2 record had been written, so nothing was migrated and nothing was back-filled.",
+ "schema": 3,
  "dimensions": [
   "C1",
   "C2",
@@ -8,7 +8,8 @@
   "C4",
   "C5",
   "C6",
-  "C7"
+  "C7",
+  "C8"
  ],
  "outcomes": [
   "rule-revision",

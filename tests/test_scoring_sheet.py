@@ -1,6 +1,6 @@
 """The sheet is in the reviewer's language, and it cannot outlive its rubric.
 
-The last sheet described H1-H6 for two releases after C1-C7 replaced them,
+The last sheet described H1-H6 for two releases after C1-C8 replaced them,
 because nothing held it to the rubric. The wording table is the price of writing
 in the reviewer's language; the parity guard is the price of the wording table.
 """
@@ -15,6 +15,18 @@ import check_repo  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "scripts" / "lib"))
 import rubric_items as ss  # noqa: E402
+
+
+def _sheet(tmp_path):
+    doc = tmp_path / "deck.en.html"
+    doc.write_text("<html></html>", encoding="utf-8")
+    sys.path.insert(0, str(ROOT / "scripts" / "ops"))
+    import scoring_sheet
+    return scoring_sheet.sheet([str(doc)], ["A1"])
+
+
+def _dimensions():
+    return [d for d, _t, _r in ss.items()]
 
 
 def test_the_live_wording_matches_the_live_rubric():
@@ -123,24 +135,53 @@ def test_an_item_nobody_can_read_leaves_the_denominator():
 
 def test_the_sheet_asks_the_reviewer_to_compute_nothing(tmp_path):
     """The first version asked for a count and a division whose quotient was not
-    the score, and every row came back with satisfied greater than applicable."""
-    doc = tmp_path / "deck.en.html"
-    doc.write_text("<html></html>", encoding="utf-8")
-    sys.path.insert(0, str(ROOT / "scripts" / "ops"))
-    import scoring_sheet
-    text = scoring_sheet.sheet([str(doc)], ["A1"])
-    assert "÷ 适用 ____" not in text
-    assert "____ 分" not in text
-    assert "分数我来算" in text or "分数我算" in text
+    the score, and every row came back with satisfied greater than applicable.
+
+    The instrument changed shape at 0.1.489 — the reviewer now gives one rating
+    per dimension instead of ticking items — so the assertion is written against
+    the property rather than the old layout: no arithmetic is asked for anywhere.
+    """
+    text = _sheet(tmp_path)
+    for arithmetic in ("÷", "满足数", "适用数", "分母"):
+        assert arithmetic not in text, f"the sheet asks for {arithmetic}"
 
 
-def test_every_item_offers_the_unreadable_column(tmp_path):
-    doc = tmp_path / "deck.en.html"
-    doc.write_text("<html></html>", encoding="utf-8")
-    sys.path.insert(0, str(ROOT / "scripts" / "ops"))
-    import scoring_sheet
-    text = scoring_sheet.sheet([str(doc)], ["A1"])
-    rows = [ln for ln in text.splitlines()
-            if ln.startswith("| ") and ln.count("☐") ]
-    assert rows, "no evidence rows found"
-    assert all(ln.count("☐") == 4 for ln in rows), "an item is missing a state"
+def test_every_dimension_offers_the_unreadable_answer(tmp_path):
+    """A reviewer who cannot read a question must have somewhere to put that.
+
+    Without it, "I did not understand this" lands in the same place as "the
+    document failed", and on the first real use five such answers were recorded
+    as failures — two of them dragging a dimension to 1 the document had not
+    earned. The escape used to be a fourth column per item; it is now a legal
+    answer in place of the rating, and it must appear on EVERY dimension rather
+    than once in the header, because that is where the reviewer is when they get
+    stuck.
+    """
+    text = _sheet(tmp_path)
+    slots = [ln for ln in text.splitlines() if ln.startswith("**分数**")]
+    assert len(slots) == len(_dimensions()), "a dimension has no rating slot"
+    for ln in slots:
+        assert "看不懂" in ln, f"no unreadable answer offered: {ln}"
+        assert "不适用" in ln, f"no inapplicable answer offered: {ln}"
+
+
+def test_each_dimension_states_its_purpose_and_shows_an_answer(tmp_path):
+    """The three things the owner reported missing, asserted on the artifact.
+
+    The parity guard holds the TABLES to the dimension set; this holds the
+    RENDERED SHEET to the tables, which is a different failure — a table can be
+    complete and the template can still not print it.
+    """
+    text = _sheet(tmp_path)
+    for label in ("**这一条防的是**", "**看哪里**", "**这样答就够**"):
+        assert text.count(label) == len(_dimensions()), \
+            f"{label} does not appear once per dimension"
+
+
+def test_the_items_are_a_hint_and_not_a_form(tmp_path):
+    """The evidence items still ship — they are what each dimension MEANS — but
+    they may not be presented as rows to fill in. Handing a human the machine
+    judge's checklist is the mistake 0.1.489 corrected."""
+    text = _sheet(tmp_path)
+    assert "☐" not in text, "the sheet still offers boxes to tick"
+    assert "不用逐条回答" in text, "the items are not marked as optional prompts"
