@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.1.483 — the new font check fired on both accepted deliverables, and it was the check that was wrong
+
+**D23 counted an `@font-face` declaration as a third typeface.** A face block
+*declares* a face; it does not use one. Both accepted deliverables —
+`signal-radar-ops-guide` and `adopting-lumi-style` — use exactly the two voices
+the tokens define, and the check reported three on each.
+
+**It was found by running the new metrics against real work before believing
+them.** The E1 baseline step measures existing deliverables under the changed
+rule set, and the first thing it produced was a defect in the newest check
+rather than a finding about the documents. A reported metric that fires on
+correct work teaches an author to ignore the reported section, and a gating one
+would have had them edit the document to silence it — which is the failure this
+repository has shipped before and now tests for by default.
+
+Both documents now read 2 used against a ceiling of 2, and the false-positive
+case is a test.
+
 ## 0.1.482 — the figure grammar moves out of the token file, and the proof changes shape with it
 
 **GAP-010 closes.** How a globe or region map is composed — what the graticule

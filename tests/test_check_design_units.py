@@ -454,3 +454,18 @@ def test_d23_moves_with_the_tokens():
              '.c{font-family:var(--serif)}</style>')
     r = check_design.d23_font_count(three, tokens)
     assert r["ceiling"] == 3 and not r["over"]
+
+
+def test_d23_does_not_count_a_font_face_declaration_as_a_third_voice():
+    """An @font-face block declares a face; it does not use one.
+
+    The first version counted `font-family: 'D-DIN'` inside the declaration and
+    fired on both accepted deliverables, each of which uses exactly the two
+    voices the tokens define. Found by running the new check against real work
+    before believing it.
+    """
+    tokens = "--din: 'D-DIN', sans-serif;\n--mono: 'IBM Plex Mono', monospace;"
+    doc = ("<style>@font-face{font-family:'D-DIN';src:url(x)}"
+           ".a{font-family:var(--din)}.b{font-family:var(--mono)}</style>")
+    r = check_design.d23_font_count(doc, tokens)
+    assert r["used"] == 2 and not r["over"], r

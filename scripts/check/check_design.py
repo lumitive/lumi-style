@@ -1159,11 +1159,20 @@ _FONT_VAR = re.compile(r"--([\w-]*(?:din|mono|serif|sans|face|font)[\w-]*)\s*:\s
 _FONT_USE = re.compile(r"font-family\s*:\s*([^;}]+)", re.I)
 
 
+# An `@font-face` block DECLARES a face; it does not use one. The first version
+# counted `font-family: 'D-DIN'` inside the face declaration as a third
+# typeface, and fired on both accepted deliverables — each of which uses exactly
+# the two voices the tokens define. A check that would have an author edit
+# correct work to silence it is worse than no check, and this one was caught by
+# running it against real deliverables before it was believed.
+_AT_FACE = re.compile(r"@font-face\s*\{[^}]*\}", re.I | re.S)
+
+
 def d23_font_count(raw, token_css):
     """Distinct font stacks the document uses, against what tokens/ declares."""
     declared = {m.group(1).lower() for m in _FONT_VAR.finditer(token_css)}
     used = set()
-    for m in _FONT_USE.finditer(raw):
+    for m in _FONT_USE.finditer(_AT_FACE.sub(" ", raw)):
         value = m.group(1).strip().lower()
         var = re.match(r"var\(\s*--([\w-]+)", value)
         used.add(var.group(1) if var else value.split(",")[0].strip(" '\""))
