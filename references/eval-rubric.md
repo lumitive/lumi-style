@@ -243,6 +243,15 @@ fine-grained binary checklists agree with human judgement far better than
 holistic scoring does, and LLM judges are reliably fooled by fluent verbosity.
 So the items **count things**; they do not rate feelings.
 
+**The items are written in the reviewer's language, not in internal jargon.**
+This rule predates C1–C7 — it was attached to the H anchors and was lost when
+those were replaced, which is the second time a rule has gone missing inside a
+dimension migration. It matters more now, not less: an anchor was a sentence a
+reviewer read once, and an evidence item is a line they tick thirty-six times.
+`scripts/ops/scoring_sheet.py` emits the sheet in the reviewer's language, and a
+parity guard holds its wording to the items here so the sheet cannot describe a
+rubric that has moved.
+
 Three rules come before the list:
 
 **Only what a machine cannot decide is on it.** Items a gate already holds are

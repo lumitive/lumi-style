@@ -293,6 +293,17 @@ COUNTING_NOUN = re.compile(
     r"question|tier|level|round|week|day|lane|slot|stage|band|point|task|"
     r"chapter|appendix|annex|figure|table|note|clause|site|zone|batch)s?"
     r"\s*(?:no\.?|number)?\s*$", re.I)
+# The Chinese half. A measure word follows the number in Chinese — "1–5 分",
+# "2–5 条", "3–4 页" — where English puts the counting noun in front, so the
+# pattern above could never match a Chinese enumeration and the label path had
+# no Chinese route at all. What saved most cases was the short-block fallback,
+# which meant the SAME phrase was a label in a short block and an unsourced
+# range in a long one: `check_prose.py` on this package's own Chinese scoring
+# sheet failed M6 three times on "1–5 分" and "2–5 条". M6 fails the run, so
+# every long Chinese block naming a scale or a group size was a blocked build.
+COUNTING_NOUN_ZH = re.compile(
+    r"^\s*(?:分|条|页|个|项|步|层|级|组|类|章|节|行|列|段|次|轮|周|天|人|名|种|"
+    r"张|份|块|台|套|批|轮次)")
 # A cell whose entire content is a dash means "no value" — the standard
 # typographic convention in a table, not a dash in prose. M9 bans the AI-flavor
 # tell of em-dashes in sentences; it counted `<td>—</td>` and failed a
@@ -602,7 +613,9 @@ def measure(path, genre, lang=None):
                 short = len(block.strip()) <= 40
                 for m in NUMERIC_RANGE.finditer(block):
                     labelled = not quantitative and (
-                        bool(COUNTING_NOUN.search(block[:m.start()])) or short)
+                        bool(COUNTING_NOUN.search(block[:m.start()]))
+                        or bool(COUNTING_NOUN_ZH.match(block[m.end():]))
+                        or short)
                     target = m6_labels if labelled else m6_missing
                     target.append(block[:90])
     m2_rate = 100.0 * sourced / figures if figures else None

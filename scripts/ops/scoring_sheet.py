@@ -1,20 +1,16 @@
 #!/usr/bin/env python3
-"""Emit a blind scoring sheet for C1–C7, built from the rubric's own items.
+"""Emit a blind scoring sheet for C1–C7, in the language the reviewer reads.
 
-**Blind means no mechanical number appears on it.** A reader who has seen the
+**Blind means no mechanical number appears on it.** Someone who has seen the
 machine's answer is no longer an independent measurement, and the agreement
-study — the whole reason a human score is recorded at all — is worth nothing
-without that independence.
+study — the only reason a human score is recorded at all — exists because that
+independence does. A test asserts the sheet leaks no metric id, no percentage
+and no verdict.
 
-The items are read out of `references/eval-rubric.md` rather than restated
-here, so a sheet cannot describe a rubric that no longer exists. Struck items
-are omitted: they name a gate that already holds them, and asking a reviewer to
-re-check something a gate holds spends the scarcest resource in this process on
-nothing.
-
-Each dimension is scored 1–5, **and the score is arrived at by ticking the
-evidence items rather than by forming an impression** — that ordering is the
-finding the rubric is built on, not a formatting preference.
+The items come from `scripts/lib/rubric_items.py`, which reads the set out of
+the rubric and holds the wording beside it. A sheet carrying its own item list
+outlives the rubric: the previous one described H1–H6 for two releases after
+C1–C7 replaced them.
 
 Usage
   scoring_sheet.py deck-a.en.html deck-b.en.html > sheet.md
@@ -24,75 +20,60 @@ from __future__ import annotations
 
 import argparse
 import pathlib
-import re
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
 import sys
+import sys as _bs_sys  # noqa: E402
 
-ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
-            if (p / "SKILL.md").exists())
-RUBRIC = ROOT / "references" / "eval-rubric.md"
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
-
-def dimensions():
-    """-> [(id, title, [item, ...])] read out of the rubric, struck items dropped."""
-    text = RUBRIC.read_text(encoding="utf-8")
-    section = text[text.index("## Human dimensions"):text.index("### 7.3")] \
-        if "### 7.3" in text else text[text.index("## Human dimensions"):]
-    out = []
-    for m in re.finditer(r"^### (C\d) · ([^\n·]+)(?:·[^\n]*)?$(.*?)(?=^### C\d|\Z)",
-                         section, re.M | re.S):
-        items = []
-        for row in re.finditer(r"^\| (①|②|③|④|⑤|⑥|⑦|⑧) (.+?) \|", m.group(3), re.M):
-            body = re.sub(r"\*\*|`|\[outline\]|·", "", row.group(2)).strip(" ·")
-            items.append(f"{row.group(1)} {body}")
-        if items:
-            out.append((m.group(1), m.group(2).strip(), items))
-    return out
+from rubric_items import DIM_TITLE, WORDING, items  # noqa: E402
 
 
 def sheet(files, corpus_ids):
     lines = [
-        "# Blind scoring sheet · C1–C7",
+        "# 打分清单 · C1–C7",
         "",
-        "Open each document in a browser and score each dimension **1–5**, "
-        "arriving at the number by ticking the evidence items rather than by "
-        "forming an impression.",
+        "在浏览器里打开每份文档，逐条勾选证据项，**再由勾出来的结果给出一到五分**。",
+        "顺序是这样定的：先勾条目、后给分，不是先有印象再补理由。",
         "",
-        "**No mechanical number appears here on purpose.** A reader who has seen "
-        "the machine's answer is no longer an independent measurement, and the "
-        "agreement study is worth nothing without that independence — so do not "
-        "open the checker output before scoring.",
+        "**这份清单上不出现任何机器测出的数字。** 看过机器答案的人，"
+        "就不再是一次独立的测量；而把人的分数记下来的全部意义，正在于它独立于机器。"
+        "所以打分之前不要打开检查器的输出。",
         "",
-        "Items a gate already holds are not listed: re-checking those spends your "
-        "time on something already decided.",
+        "**已经被 gate（硬性拦住发布的检查）守住的条目不列在这里。** "
+        "让你去复核一件机器已经拦住的事，是把这个流程里最稀缺的资源花在已经定了的事情上。",
         "",
-        "**A note on the protocol** (`references/eval-rubric.md`): a dimension a "
-        "reader marked down cannot be self-scored above 3 in the round that fixes "
-        "it, and a divergence of two points between the self-score and yours "
-        "forces a retrospective.",
+        "**协议里的两条**（`references/eval-rubric.md`）：读者打低的维度，"
+        "在修它的那一轮自评不得高于三分；自评与你的分相差两分，触发一次复盘。",
         "",
     ]
-    dims = dimensions()
+    dims = items()
     for path, cid in zip(files, corpus_ids):
         p = pathlib.Path(path)
-        lines += [f"## {cid} · {p.stem}", "",
-                  f"`file://{p.resolve()}`", ""]
-        for did, title, items in dims:
-            lines.append(f"### {did} · {title}")
-            lines.append("")
-            for it in items:
-                lines.append(f"- [ ] {it}")
-            lines += ["", "**分数 1–5**: ____   **一句理由**: ", ""]
-        lines.append("---")
-        lines.append("")
+        lines += [f"## {cid} · {p.stem}", "", f"`file://{p.resolve()}`", ""]
+        for did, title, rows in dims:
+            lines += [f"### {did} · {DIM_TITLE.get(did, title)}", ""]
+            for marker, english in rows:
+                lines.append(f"- [ ] {WORDING.get((did, marker), english)}")
+            lines += ["", "**分数（一到五）**：____　　**一句理由**：", ""]
+        lines += ["---", ""]
     lines += [
-        "## When you are done",
+        "## 打完之后",
         "",
-        "Give the scores back in any form — the table, a list, or just "
-        "`C1=4 C2=3 …` per document. They are transcribed into "
-        "`reviews/scores.json` with the corpus id above, which is the key the "
-        "agreement study joins on; **a record without one cannot be compared to "
-        "anything**, and the two records that predate that rule are why the study "
-        "has never had a joinable row.",
+        "分数回给我时用什么形式都行 —— 勾好的清单、一段话，或者直接按维度写下来。",
+        "我会把它转写进 `reviews/scores.json`，并带上上面的 corpus id。",
+        "",
+        "**那个 id 是 agreement study（一致性研究：比对机器指标与人的打分是否吻合）"
+        "用来做关联的键。** 没有它的记录无法和任何东西比较 —— "
+        "现有两条旧记录正是因为缺它，那个研究至今一行可关联的数据都没有。",
         "",
     ]
     return "\n".join(lines)

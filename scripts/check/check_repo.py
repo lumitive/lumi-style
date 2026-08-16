@@ -48,6 +48,11 @@ CJK_ALLOWED = {
     "SKILL.md",
     "prompts/lumi-style-core.md",
     "references/writing-rules.md",
+    # The reviewer-facing wording of the C1-C7 evidence items. Rule DATA in the
+    # same sense as the Chinese ban list above: eval-rubric.md requires the
+    # items to be written in the reviewer's language, so the sheet's text is
+    # part of the rule rather than repository prose.
+    "scripts/lib/rubric_items.py",
 }
 CJK = re.compile(r"[㐀-䶿一-鿿豈-﫿]")
 
@@ -2227,7 +2232,7 @@ SIBLING_MODULES = (
     "geo_projection", "geo_frame", "globe_svg", "regionmap_svg", "sea_route",
     "color_math", "css_tokens", "lock", "deliverable_registry",
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
-    "trace_schema",
+    "trace_schema", "rubric_items",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
@@ -2406,6 +2411,49 @@ def _metric_ids(prefix: str) -> tuple[set[str], set[str]]:
             gating.add(match.group(1))
     return ids, gating
 
+
+def check_scoring_sheet_parity():
+    """The sheet's reviewer-language wording covers exactly the rubric's items.
+
+    `eval-rubric.md` requires the items to be written in the reviewer's
+    language, so the sheet carries its own wording — and a second wording of the
+    same list is this repository's oldest defect shape. The parity is the price
+    of the translation: an item with no wording, or a wording naming an item
+    that is gone, fails here.
+
+    It lives in scripts/lib/ so this guard need not reach into scripts/ops/,
+    which would make the emergency-merge path run the pull request's own
+    copy of the file being checked.
+
+    The last sheet described H1-H6 for two releases after C1-C7 replaced them.
+    Nothing caught it, because nothing held the sheet to the rubric.
+    """
+    import importlib.util
+    path = ROOT / "scripts" / "lib" / "rubric_items.py"
+    if not path.exists():
+        return ["scripts/lib/rubric_items.py is missing"]
+    spec = importlib.util.spec_from_file_location("_rubric_items", path)
+    if spec is None or spec.loader is None:
+        return ["scripts/lib/rubric_items.py cannot be loaded"]
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    rubric_items = {(did, item.split()[0])
+                    for did, _t, items in mod.dimensions() for item in items}
+    if not rubric_items:
+        return ["the rubric yielded no evidence items — the guard would pass "
+                "vacuously, and the sheet would be empty"]
+    errors = []
+    for key in sorted(rubric_items - set(mod.WORDING)):
+        errors.append(f"{key[0]}-{key[1]} is in the rubric and has no wording in "
+                      f"rubric_items.py — a reviewer would get the English row")
+    for key in sorted(set(mod.WORDING) - rubric_items):
+        errors.append(f"{key[0]}-{key[1]} has a wording and is not in the rubric "
+                      f"— the sheet describes an item that no longer exists")
+    for did in sorted({d for d, _ in rubric_items}):
+        if did not in mod.DIM_TITLE:
+            errors.append(f"{did} has no dimension title in the sheet")
+    return errors
 
 def check_shape_library():
     """The shape library's manifest and its files are the same set, and every
@@ -2826,6 +2874,8 @@ CHECKS = (
     ("two-axis vocabulary", check_two_axis_vocabulary),
     ("brand registry", check_brand_registry),
     ("shape library", check_shape_library),
+    ("scoring sheet parity", check_scoring_sheet_parity),
+    ("scoring sheet parity", check_scoring_sheet_parity),
     ("metric id ranges", check_metric_id_ranges),
     ("gating claims", check_gating_claims),
     ("version stamps", check_versions),
