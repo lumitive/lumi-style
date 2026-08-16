@@ -37,7 +37,7 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-012 · `visual_absent` cannot see a table, and five of six flagged pages are tables
 
-- status: open
+- status: fixed
 - opened: 0.1.489
 - surface: scripts/check/inspect_layout.py, the `VIS` selector list in the page probe
 - symptom: the gate reads visual presence from a CLASS LIST —
@@ -60,10 +60,24 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   two documents.
 - check: once ruled, the probe reads the ruling, and a synthetic fixture with a
   table-only page asserts the chosen verdict in both directions.
+- closed: 0.1.491
+- resolution: **the rules had already ruled it; no owner decision was needed.**
+  `references/design-rules.md:539` reads "comparisons still take tables, a table
+  is still for values and never for what a chart says better, and **a table page
+  still wants its visual weight from a figure or a band beside it**". So
+  `visual_absent` agrees with §4: a table alone is not the page's visual weight,
+  and the five flagged table pages are owed a figure or band BESIDE the table —
+  never a shape replacing it. The probe is not widened. What this gap actually
+  found is that the rule was written and the deliverable did not follow it,
+  which is a document defect and is fixed in the rebuild.
+- the class-vocabulary worry that opened this entry was mistaken and is recorded
+  so nobody re-opens it: the eight selectors are not in `tokens/lumi-theme.css`,
+  but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
+  classes, and the scaffold is what a deliverable is built from.
 
 ## GAP-013 · the storyline vocabulary has no entry for a proposal
 
-- status: open
+- status: fixed
 - opened: 0.1.489
 - surface: scripts/lib/deliverable_registry.py `STORYLINES`
 - symptom: opening a trace for an internal design proposal that recommends a
@@ -77,6 +91,19 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   is a narrative skeleton, so a vocabulary entry without a template is a name
   with nothing behind it — or rule that a proposal IS one of the existing six
   and say which in the templates file.
+- closed: 0.1.491
+- resolution: **`proposal` added, template first.** Template 5 in
+  `references/storyline-templates.md` carries the skeleton; the tuple in
+  `scripts/lib/deliverable_registry.py` follows it.
+- what closing it turned up is larger than the gap: **not one of the six
+  existing storyline names appeared anywhere in `references/`.** The vocabulary
+  was a closed enum in code with no prose behind it, so an author had nothing to
+  choose from. A roster now names all seven with the shape of argument each
+  makes, and the `storyline vocabulary` guard holds the roster and the tuple to
+  each other in both directions. Five of the seven still have only a one-line
+  shape rather than a full skeleton; that is stated in the roster and queued as
+  a backlog item, not hidden.
+
 
 ## GAP-011 · C3 is two dimensions sharing one name
 

@@ -1,0 +1,24 @@
+{
+  "version": "0.1.491",
+  "diff_base": "a8410ed6195189645a5cd0ae0fd25dbf1131a3b8",
+  "spec": "specs/2026-08-17-rebuild-deliverables-to-current-standard-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "2c6c1061cb8125b722b487291b019ed0f35c5d8b0856a4ac2ba4a74b980ff378",
+      "date": "2026-08-17"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board reports CLI-agent conformance runs and is untouched by this release: 0.1.491 adds a storyline to the vocabulary, names embed_shapes.py in two entry points, and closes two ledger entries. No conformance task exercises any of them. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have."
+    }
+  ]
+}

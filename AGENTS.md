@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.490.** This file restates part of `references/`; where they
+> **lumi-style 0.1.491.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -91,7 +91,9 @@ facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
    grid is a layout error, so draw what the content actually is. Under a figure
    goes the number, its conclusion name and the source line, and nothing else.
    Embed the vendored assets rather than improvising: `scripts/build/embed_font.py`,
-   `scripts/build/embed_icons.py`, `assets/vectors/`. **The palette is not yours
+   `scripts/build/embed_icons.py`, `scripts/build/embed_shapes.py` (the shape
+   library — pick by the RELATION in the content, never by how the shape looks;
+   `assets/shapes/tags.json` records it), `assets/vectors/`. **The palette is not yours
    to choose either: copy the token block out of `tokens/lumi-theme.css`** — the
    scaffold does it for you. Sizes you may set, colours you may not, and
    `check_design.py`'s D20 fails a document whose colour tokens disagree with

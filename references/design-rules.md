@@ -777,8 +777,12 @@ marker is the standard rendering, not part of the gate: D12 gates on the terms
 being present, and a page whose terms arrive without the icon has a style
 defect, not a compliance one.
 
-**This is one of the five checks in `check_design.py` that fail the run** (D12,
-with D14, D15, D19, D20, D21 and D22).
+**This is one of the checks in `check_design.py` that fail the run.** Which
+ones is not written here: a row whose target carries `(gates)` gates, that
+string is the authority, and the `gating claims` guard holds this file to it.
+The sentence used to say "one of the five" and then list seven, which is
+convention 13's case in one line — a count in prose rots, a sentence naming its
+authority cannot.
 Everything else there reports, because a page is done when a human reads it as
 intentional and a threshold satisfiable without improving the page ends the
 looking. This is different in kind: not a judgement about whether a page is well

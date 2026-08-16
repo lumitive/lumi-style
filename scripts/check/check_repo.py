@@ -2361,12 +2361,21 @@ METRIC_AUTHORITIES = {
 # today reads "five" the day a gate is added, and a pattern keyed on the number
 # would need editing at exactly the moment the guard is supposed to fire — which
 # is how a guard becomes a formality. Every count here is `\w+`.
+# A site may declare this instead of a pattern: the prose names
+# check_design.py as the authority and enumerates nothing.
+AUTHORITY_NAMED = "<authority-named>"
+
 GATING_CLAIM_SITES: dict[str, str] = {
     "AGENTS.md": r"\*\*((?:D\d+(?:,? (?:and )?)?)+) gate; every other D-metric",
     "CLAUDE.md": r"\w+ of its metrics \*\*gate\*\*(.*?)All \w+ are",
     "references/eval-rubric.md": r"\*\*\w+ exceptions.*?\*\*(.*?)— all decidable",
-    "references/design-rules.md": r"\w+ checks in `check_design\.py` that fail "
-                                  r"the run\*\* \(([^)]*)\)",
+    # AUTHORITY_NAMED: this site stopped enumerating and now points at the
+    # `(gates)` target string instead. Convention 13's preferred outcome — a
+    # sentence that names its authority cannot rot — but the entry STAYS, and
+    # the guard now checks the opposite thing: that no id list has grown back
+    # into the sentence. Dropping the entry would leave the site unwatched,
+    # which is how it rotted the first two times.
+    "references/design-rules.md": AUTHORITY_NAMED,
     "references/brand.md": r"only ((?:D\d+/?)+) gate",
 }
 
@@ -2715,7 +2724,24 @@ def check_gating_claims():
         if not path.exists():
             errors.append(f"{name} is a declared gating-claim site and does not exist")
             continue
-        found = re.search(pattern, path.read_text(encoding="utf-8"), re.S)
+        text = path.read_text(encoding="utf-8")
+        if pattern is AUTHORITY_NAMED:
+            # The claim is delegated, so the failure to look for is the list
+            # coming back. Anchored on the same sentence: three or more metric
+            # ids inside one paragraph of it is an enumeration by any reading.
+            para = re.search(r"[^\n]*checks in `check_design\.py` that fail the "
+                             r"run[^\n]*(?:\n[^\n]+)*", text)
+            if not para:
+                errors.append(
+                    f"{name}: declared as naming check_design.py as the "
+                    f"authority, and the sentence that does so is gone")
+            elif len(set(re.findall(r"\bD\d+\b", para.group(0)))) >= 3:
+                errors.append(
+                    f"{name}: names the authority AND enumerates the gates "
+                    f"again — that list is what rotted twice. Keep one or the "
+                    f"other, and this site is declared as the authority form")
+            continue
+        found = re.search(pattern, text, re.S)
         if not found:
             errors.append(
                 f"{name}: the declared gating claim no longer matches its pattern. "
@@ -2727,6 +2753,59 @@ def check_gating_claims():
             errors.append(
                 f"{name}: names {', '.join(sorted(claimed, key=lambda x: int(x[1:]))) or '(none)'}"
                 f" as the design checks that gate; check_design.py gates on {truth}")
+    return errors
+
+
+def check_storyline_vocabulary():
+    """The storyline names in code and the roster in the rules are one list.
+
+    Written after the closing of GAP-013 turned up something larger than the gap:
+    `STORYLINES` had been a closed tuple since the two-axis split shipped, and
+    **not one of its six names appeared anywhere in `references/`**. An author
+    choosing a storyline had nothing to read; a name with no prose behind it
+    means whatever the last person to type it assumed, which is how a closed
+    vocabulary becomes a private convention.
+
+    The roster is the prose side and the tuple is the code side — the parity
+    pattern this repository already uses for the ban list and the metric ids,
+    with code as one side so the guard cannot drift with the document.
+
+    It deliberately does NOT require a full narrative skeleton per name: five of
+    the seven have only a one-line shape, that is recorded in the roster itself,
+    and a guard demanding templates would have blocked the release that made the
+    vocabulary readable at all.
+    """
+    registry = ROOT / "scripts" / "lib" / "deliverable_registry.py"
+    templates = ROOT / "references" / "storyline-templates.md"
+    for path in (registry, templates):
+        if not path.exists():
+            return [f"{path.relative_to(ROOT)} is missing"]
+
+    m = re.search(r"^STORYLINES = \(([^)]*)\)", registry.read_text(encoding="utf-8"),
+                  re.M | re.S)
+    if not m:
+        return ["deliverable_registry.py declares no STORYLINES tuple"]
+    code = set(re.findall(r'"([a-z-]+)"', m.group(1)))
+    if not code:
+        return ["the STORYLINES tuple parsed empty — the guard would pass "
+                "vacuously, which is the failure mode it exists to prevent"]
+
+    text = templates.read_text(encoding="utf-8")
+    start = text.find("## The storyline vocabulary")
+    if start < 0:
+        return ["references/storyline-templates.md carries no storyline roster; "
+                "the vocabulary would again be readable only in code"]
+    end = text.find("\n## ", start + 5)
+    roster = set(re.findall(r"^\| `([a-z-]+)` \|",
+                            text[start:end if end > 0 else len(text)], re.M))
+
+    errors = []
+    for name in sorted(code - roster):
+        errors.append(f"storyline {name!r} is in STORYLINES and not in the "
+                      f"roster — an author has no way to know it exists")
+    for name in sorted(roster - code):
+        errors.append(f"storyline {name!r} is in the roster and not in "
+                      f"STORYLINES — trace.py would refuse a name the rules offer")
     return errors
 
 
@@ -2894,6 +2973,7 @@ def check_genre_vocabulary():
 
 CHECKS = (
     ("genre vocabulary", check_genre_vocabulary),
+    ("storyline vocabulary", check_storyline_vocabulary),
     ("two-axis vocabulary", check_two_axis_vocabulary),
     ("brand registry", check_brand_registry),
     ("shape library", check_shape_library),

@@ -5,6 +5,39 @@
 > Four narrative skeletons for four output scenarios, plus the shared
 > discipline. (Repository language: English only — red line.)
 
+## The storyline vocabulary
+
+*Serves: **P-2**.* · id `ST-6`
+
+A **storyline** answers "what shape is the argument"; a **genre** answers "which
+rules bind". They are separate axes and a document carries one of each — a
+proposal can be internal analysis or consulting, and that choice decides the
+rules, not the shape.
+
+This roster exists because of what 0.1.491 found while closing GAP-013:
+`STORYLINES` had been a closed tuple in `scripts/lib/deliverable_registry.py`
+since the split shipped, and **not one of its six names appeared anywhere in
+`references/`.** A vocabulary an author cannot read is a vocabulary they cannot
+choose from, and a name with no prose behind it means whatever the last person
+to type it assumed. The `storyline vocabulary` guard now holds this list and
+that tuple to each other.
+
+| storyline | the shape of the argument | full skeleton |
+|---|---|---|
+| `market-analysis` | the market is this, it is moving that way, and here is what that means for us | — |
+| `gtm` | who we sell to, through what motion, and what has to be true for it to work | — |
+| `status-report` | what was planned, what happened, what is off track, and what is being done about it | — |
+| `due-diligence` | what we examined, what we found, and what would change the answer | — |
+| `product-intro` | what it does, who it is for, and what it deliberately does not do | — |
+| `training-curriculum` | what the reader will be able to do, taught one idea at a time | Template 4 |
+| `proposal` | here is a decision, here is what I recommend, what it costs, and what blocks it | Template 5 |
+
+**Five of the seven have no full skeleton yet**, and that is recorded rather
+than hidden: the templates above are organised by genre, which is the older
+axis. Writing the missing five is `backlog/ideas-prd.md` work and not a
+prerequisite for using the name — a one-line shape is enough to choose with, and
+it is more than the six had before.
+
 ## Template 1 · Sales / marketing material: Value & Future
 
 > Lesson provenance: a sales deck built around "honesty boundaries" as its spine
@@ -79,6 +112,37 @@ training deck reviewed as the reference.)
 - **Geometry**: A4 portrait is the primary geometry — a training document is
   printed, annotated and bound (`design-rules.md` §7). The 16:9 composition is
   still built and verified as the projection edition.
+
+## Template 5 · Proposal · storyline `proposal`
+
+Added at 0.1.491 because a real document could not be traced: an internal design
+proposal recommending an adoption decision matched none of the six storyline
+names, and `trace.py open` refused it (GAP-013). The refusal was the schema
+working; the gap was that a whole document type had no skeleton. A vocabulary
+entry without a template here is a name with nothing behind it, so the template
+comes first and the tuple follows it.
+
+**It is a storyline, not a genre.** A proposal can be internal analysis or
+consulting; that axis decides which rules bind. This one decides the shape of
+the argument, and the shape is: *here is a decision, here is what I recommend,
+here is what it costs, and here is the one thing that blocks it.*
+
+- **The recommendation is the first content page**, stated as a decision someone
+  can take or refuse — not "options for consideration". Everything after it is
+  support, which is the answer-first rule doing its ordinary work;
+- **What the proposal deliberately leaves out** is a single consolidated
+  section, borrowed from Template 3 for the same reason: an omission scattered
+  through the document reads as an oversight, and an omission stated once reads
+  as a decision;
+- **The strongest objection is named and answered on its own page.** A proposal
+  that answers no objection has not been reviewed, it has been written;
+- **Sequencing separates the cheap steps from the expensive ones**, so a reader
+  can approve part of it;
+- **The closing names which decisions block the release and which do not.**
+  Where a proposal carries several, exactly one is usually load-bearing and
+  saying which is the most useful sentence in the document;
+- Claim classes are labelled as in Template 3 when the genre is internal
+  analysis: measured / build-time assertion / inference.
 
 ## Cover and closing pages (every deck scenario)
 
