@@ -199,7 +199,8 @@ Actions incident blocks merging for everyone. Do not wait it out by polling.
 - `references/writing-rules.md` — output-language default, terminology red lines, banned phrases, punctuation, number discipline, the LUMI voice
 - `references/storyline-templates.md` — narrative skeletons per scenario (sales / consulting / internal analysis / training), cover & closing templates, the pre-delivery critic gate
 - `references/design-rules.md` — color semantics, typography, chart rules, semantic icons, layout guards, verification matrix
-- `references/eval-rubric.md` — the M / D / H scoring rubric and the review protocol (the iteration engine)
+- `references/eval-rubric.md` — the M / D / C scoring rubric and the review protocol (the iteration engine)
+- `references/operating-rules.md` — how the work is done rather than what a deliverable is: the debug-log contract, the parallel-build protocol and its merge gate, questions-come-once, scaffold-never-fixture, and generate-a-world-figure-rather-than-draw-it. It exists because those five had their only home in an entry point, and an entry point is a restatement by design — a rule living only there has no source for its restatements to be checked against
 - `references/eval-inventory.md` — **generated** (`scripts/build/build_eval_inventory.py`, `--check` in CI): every quantitative constraint extracted from the checkers, with its tier and whether any reference file states it
 
 `tokens/lumi-theme.css` and `tokens/design-tokens.json` are the authority for
@@ -213,7 +214,7 @@ Three entry points load these rules, and each restates part of them:
 
 - `SKILL.md` — Claude Code entry; reads `references/` and `tokens/` on demand
 - `AGENTS.md` — Codex entry; summarizes the load order and the six red lines inline
-- `prompts/lumi-style-core.md` — **self-contained** single file for Kimi/DeepSeek (a strict subset of `references/`), so any substantive rule change must be re-flowed into it by hand
+- `prompts/lumi-style-core.md` — **self-contained** single file for Kimi/DeepSeek. It was described as "a strict subset of `references/`" and that has been false since it grew rules of its own (never name a region by its colour in prose; the prompt-tier debug degradation format). It is a **derived restatement that may carry prompt-tier-only rules**, and those are the second thing to check when the two disagree, so any substantive rule change must be re-flowed into it by hand
 
 `adapters/platforms.json` is the **platform registry** — the single source of
 install paths, capability tiers and entry files for every platform this package

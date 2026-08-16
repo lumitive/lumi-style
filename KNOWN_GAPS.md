@@ -37,26 +37,50 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-006 · Rules whose only home is outside references/, and a subset claim that is false
 
-- status: open
+- status: fixed
 - opened: 0.1.456
-- surface: SKILL.md, AGENTS.md, prompts/lumi-style-core.md, tokens/lumi-layouts.css,
-  tokens/region-palette.css, assets/brand/README.md, CLAUDE.md
-- symptom: a full sweep found whole rule families stated nowhere in
-  references/ — the entire debug-mode contract (references/ contains no
-  occurrence of "debug"), the parallel-build protocol including the merge gate,
-  the questions-come-once rule, the colophon-placement rule, the
+- closed: 0.1.480
+- surface: references/operating-rules.md, SKILL.md, AGENTS.md,
+  prompts/lumi-style-core.md, CLAUDE.md
+- symptom: whole rule families were stated nowhere in `references/` — the
+  debug-mode contract, the parallel-build protocol and its merge gate, the
+  questions-come-once rule, the colophon-placement rule, the
   scaffold-never-fixture rule, the world-figure generation rule, the
-  capability-tier rule that an agent unable to run the checks may not call a
-  deliverable verified, and the whole globe/map figure grammar living as
-  comments in region-palette.css. CLAUDE.md's architecture section calls
-  prompts/lumi-style-core.md "a strict subset of references/", and with
-  core-only rules on record (never name a region by its colour in prose;
-  the prompt-tier debug degradation format) that claim is false today.
-- check: each family either moves into a reference file with the entry points
-  restating it, or the architecture statement is amended to name entry-point
-  rules as a legitimate second home. Either is a decision; the current state is
-  neither. The generated references/eval-inventory.md covers the NUMERIC half
-  of this gap already — the remaining half is prose rules.
+  capability-tier rule, and the globe/map figure grammar living as comments in
+  `region-palette.css`. And `CLAUDE.md` called `prompts/lumi-style-core.md` "a
+  strict subset of `references/`" while that file carried rules of its own.
+- check: **two of the families were homed by this refactor's other work before
+  this entry was reached** — the capability-tier rule is now P-2's closing
+  sentence in `PRINCIPLES.md`, and colophon placement is in
+  `storyline-templates.md`. The remaining five share a category the original
+  entry did not name: **they are all rules about how the agent works, not about
+  what a deliverable is**, which is why none of them fitted the five existing
+  reference files. `references/operating-rules.md` is their home, under P-2
+  because each answers the same question — what makes the result trustworthy
+  rather than merely finished.
+- the false claim is corrected rather than made true: the core prompt is now
+  described as **a derived restatement that may carry prompt-tier-only rules**,
+  and those are named. Making it a strict subset would have meant deleting rules
+  that exist because a prompt-tier agent has no tools, which is a worse answer
+  than an accurate sentence.
+- what is NOT closed by this: the globe/map figure grammar is still comments in
+  `tokens/region-palette.css`. It is design prose in a token file, which is the
+  same defect one file along, and it is recorded as **GAP-010** rather than
+  quietly folded into a closure.
+
+## GAP-010 · The globe and map figure grammar lives as comments in a token file
+
+- status: open
+- opened: 0.1.480
+- surface: tokens/region-palette.css, references/design-rules.md
+- symptom: how a globe or region map is composed — what the graticule is for,
+  when a region carries a label, how the marks relate to the coastline — is
+  written as comment prose inside `region-palette.css`. A token file is read by
+  the build, not by a person forming a judgement, and design prose there is
+  invisible to every reader of `references/` and to the `principle trace` guard.
+- check: move the grammar into `design-rules.md` §1.2 (the mark and the map),
+  leaving the token file with the values and a pointer. It is a prose move like
+  GAP-007's, content-frozen, and the same multiset proof applies.
 
 ## GAP-009 · The shape library's relation classification is a third unclassified
 
@@ -109,25 +133,32 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-007 · The reference files read as accretion, not as documents
 
-- status: open
+- status: fixed
 - opened: 0.1.456
+- closed: 0.1.480
 - surface: references/design-rules.md, references/storyline-templates.md,
   references/eval-rubric.md
-- symptom: the owner read the rule set end to end and said a person cannot
-  form a correct judgement from it, and the skeletons agree with her:
-  design-rules' section order is 1, 1c, 1d, 2, 3, 4, 4b, 5, 7, 6 — section 6
-  is physically after section 7 — and its §4 numbers rules 1-5, 6, 7, 7b, 7c,
-  7d, 7e, 8, 8b; storyline-templates wedges its shared apparatus between
-  Template 1 and Template 2; eval-rubric describes three gating surfaces in
-  three places with three vocabularies. The cause is structural: convention 2
-  admits rules only from per-defect retrospectives, so every rule lands as a
-  patch at the site of its wound, and no structural release has ever run.
-- check: a structural release that reorders without rewording — content-frozen,
-  diffable as pure moves, with the parity guards as the safety net — and a
-  re-flow of every §-citation that the reordering breaks (SKILL.md and the
-  checkers cite sections by number). Not begun; recorded so the next reader of
-  these files knows the disorder is known, measured, and scheduled rather than
-  invisible.
+- symptom: the owner read the rule set end to end and said a person cannot form
+  a correct judgement from it, and the skeletons agreed: design-rules ran
+  1, 1c, 1d, 2, 3, 4, 4b, 5, **7, 6** with its chart rules numbered 1-5, 6, 7,
+  7b, 7c, 7d, 7e, 8, 8b; storyline-templates wedged its shared apparatus between
+  Template 1 and Template 2; eval-rubric described three gating surfaces in
+  three places with three vocabularies.
+- check: **each of the four symptoms measured against the files, not recalled.**
+  design-rules' top-level sections now read 1 2 3 4 5 6 7 8 and its chart rules
+  6..14 after the inline 1-5 (0.1.457, content-frozen — the multiset of
+  non-heading lines was identical before and after, and the same proof was run
+  for storyline-templates at 0.1.458, whose four templates are now adjacent with
+  the three universal sections following them). eval-rubric carries one gating
+  notation in its target columns and **one** paragraph explaining what gates;
+  the two other appearances of `(gates)` are quoting `check_design.grade()`'s
+  own target string where that format is being discussed, which is a citation
+  rather than a second vocabulary.
+- what the reorder produced that the entry did not anticipate: the citation
+  re-flow found **twenty-one live citations pointing at moved sections while all
+  twenty-nine guards stayed green**, because `check_links` only sees markdown
+  link syntax. The `section citations` guard was built for it and is the
+  durable half of this closure — the next reorder cannot repeat this.
 
 ## GAP-004 · The Evals thresholds are gameable and calibrated on two documents
 

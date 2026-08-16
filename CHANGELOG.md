@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.1.480 — two ledger entries close, and the five rules that had no source get one
+
+**GAP-007 closes, measured rather than recalled.** Each of the four symptoms it
+named was checked against the files: `design-rules.md`'s top-level sections read
+1–8 with its chart rules 6..14 after the inline 1–5; `storyline-templates.md`
+has its four templates adjacent; `eval-rubric.md` carries one gating notation
+and one paragraph explaining what gates — the two other appearances of
+`(gates)` quote `check_design.grade()`'s own target string where that format is
+being discussed, which is a citation rather than a second vocabulary. The
+durable half of the closure is the `section citations` guard, built when the
+re-flow found twenty-one live citations pointing at moved sections while all
+twenty-nine guards stayed green.
+
+**GAP-006 closes with a distinction it had not made.** Two of its families were
+already homed by this refactor's other work — the capability-tier rule is P-2's
+closing sentence, colophon placement is in `storyline-templates.md`. The
+remaining five share a category: **they are rules about how the agent works, not
+about what a deliverable is**, which is why none of them fitted the five
+existing reference files. `references/operating-rules.md` is their home: the
+debug-log contract, the parallel-build protocol and its merge gate,
+questions-come-once, scaffold-never-fixture, and generate-a-world-figure-rather-
+than-draw-it. It serves **P-2**, because each answers one question — what makes
+the result trustworthy rather than merely finished.
+
+**Why they needed a home at all**, since the entry points already stated them:
+an entry point is a hand-written restatement by design. A rule whose only home
+is one has no source — the restatements have nothing to be checked against, and
+the rule means whatever the last edit of that file left behind.
+
+**The false claim is corrected rather than made true.** `CLAUDE.md` called the
+core prompt "a strict subset of `references/`" while it carried rules of its
+own. It is now described as a derived restatement that may carry
+prompt-tier-only rules, and those are named. Making the claim true would have
+meant deleting rules that exist because a prompt-tier agent has no tools — a
+worse answer than an accurate sentence.
+
+**GAP-010 opens for the residue rather than folding it into a closure.** The
+globe and map figure grammar is still comment prose inside
+`tokens/region-palette.css` — design rules in a token file, invisible to every
+reader of `references/` and to the `principle trace` guard. It is the same
+defect one file along, and it is recorded as its own entry.
+
 ## 0.1.479 — the fix that was reported and not made, and twenty-four rounds of proving the other one
 
 **Correction to 0.1.476.** That entry said the release tool's stamp positions
