@@ -35,6 +35,27 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   recorded via report --record (history rows pin skill 0.1.433); the
   scoreboard renders the current-skill runs and names the superseded ones.
 
+## GAP-011 · C3 is two dimensions sharing one name
+
+- status: open
+- opened: 0.1.487
+- surface: references/eval-rubric.md C3, scripts/lib/rubric_items.py
+- symptom: C3's six evidence items address four different objects — the page's
+  single claim, its title's assertion, its elements' relevance, and the figures
+  on it. Three of the six apply only to a page carrying a figure, so **a
+  text-only page can satisfy at most three of six** and scores 3 on a dimension
+  it may be answering perfectly. The owner found it by trying to fill the sheet
+  in: the items read as choices from different dimensions, so it was unclear
+  what a tick meant.
+- check: either split C3 into page-argument and figure-quality — which changes
+  the dimension set from seven to eight and needs another `scores.json` schema
+  version — or keep one dimension and say in the rubric why a figure item and a
+  page-argument item belong to one number. **Both are decisions for the owner**;
+  the current state is neither, which is why this is recorded rather than
+  patched. The conditional-item work at 0.1.487 makes the present state
+  survivable: those three items are marked not-applicable on a text page instead
+  of counting against it.
+
 ## GAP-006 · Rules whose only home is outside references/, and a subset claim that is false
 
 - status: fixed

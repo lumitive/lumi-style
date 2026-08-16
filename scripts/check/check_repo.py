@@ -2447,6 +2447,12 @@ def check_scoring_sheet_parity():
     for key in sorted(rubric_items - set(mod.WORDING)):
         errors.append(f"{key[0]}-{key[1]} is in the rubric and has no wording in "
                       f"rubric_items.py — a reviewer would get the English row")
+    # A condition is a second list keyed the same way, and drifts the same way:
+    # a condition left behind for a withdrawn item would print a caveat about
+    # something the sheet no longer asks.
+    for key in sorted(set(getattr(mod, "CONDITION", {})) - rubric_items):
+        errors.append(f"{key[0]}-{key[1]} has a condition and is not in the "
+                      f"rubric — the sheet would caveat an item it no longer asks")
     for key in sorted(set(mod.WORDING) - rubric_items):
         errors.append(f"{key[0]}-{key[1]} has a wording and is not in the rubric "
                       f"— the sheet describes an item that no longer exists")

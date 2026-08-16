@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.1.487 — a checkbox with two states called an inapplicable item a failure, and nothing said how ticks became a score
+
+**The owner read the sheet and could not tell how to answer it.** The analysis
+agreed with her, and found three separate faults rather than one.
+
+**Ten of the twenty-nine items are conditional and the sheet had two states.**
+Three of C1's five ask about an executive summary; three of C3's six only apply
+to a page carrying a figure. With tick-or-not-tick, **a document with no
+executive summary could reach at most two of C1's five** and nothing said the
+other three were never in play — an inapplicable item read exactly like a failed
+one. Items now carry three states — yes, no, and **not applicable** — and each
+conditional item **prints its condition**, so the third state is a judgement the
+reviewer makes rather than a box they quietly skip.
+
+**Nothing said how ticks became a score.** The sheet said "arrive at the number
+by ticking the items" and stopped there, so the same ticks could produce
+different numbers on two readings — and an agreement study built on that is
+measuring the reviewer's mood. The rule is now written down: **satisfied ÷
+applicable**, inapplicable items out of the denominator, mapped through a stated
+band table; a dimension where nothing applies is **not scored** rather than
+scored 1.
+
+**Its assumption is printed, not buried**: items inside one dimension weigh
+equally. That is unlikely to be exactly true, and the sheet says it is the first
+thing to overturn if the scores stop matching what a reader feels.
+
+**`CONDITION` joins `WORDING` under the parity guard**, because a condition is a
+second list keyed the same way and drifts the same way — a caveat left behind
+for a withdrawn item would ask about something the sheet no longer asks.
+
+**One fault is left open on purpose.** C3 carries six items about **four
+different objects** — the page's claim, its title, its elements, and its
+figures — so it is two dimensions sharing a name, and a text-only page tops out
+at three of six. Splitting it changes the dimension set and the score schema,
+which is the owner's decision and not a formatting one. Recorded rather than
+quietly patched.
+
 ## 0.1.486 — the sheet is written in the reviewer's language, and the rule requiring that is put back
 
 **A rule was deleted at 0.1.463 and its absence surfaced here.** The old H

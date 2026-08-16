@@ -111,3 +111,45 @@ def dimensions(rubric: pathlib.Path | None = None):
     """
     return [(did, title, [f"{marker} {english}" for marker, english in rows])
             for did, title, rows in items(rubric)]
+
+# When an item may honestly be marked 不适用. Without this, a checkbox has two
+# states and an inapplicable item reads exactly like a failed one: a document
+# with no executive summary could tick at most two of C1's five, and nothing on
+# the sheet said the other three were never in play. Three of C3's six only
+# apply to a page carrying a figure.
+#
+# The condition is printed ON the item, so 不适用 is a judgement the reviewer
+# makes rather than a box they quietly skip.
+CONDITION = {
+    ("C1", "③"): "文档有执行摘要时",
+    ("C1", "④"): "文档有执行摘要时",
+    ("C1", "⑤"): "文档有执行摘要时",
+    ("C3", "④"): "该页有图形时",
+    ("C3", "⑤"): "有非数据图形时",
+    ("C3", "⑥"): "该页有图形时",
+    ("C4", "③"): "文档含估计值或预测时",
+    ("C5", "③"): "状态类文档",
+    ("C6", "③"): "文档含建议时",
+    ("C6", "④"): "文档含建议时",
+}
+
+# 满足数 ÷ 适用数 -> 分数. Written down because the sheet said "score from the
+# ticks" and never said how, so the same ticks could produce different numbers
+# on two readings — and an agreement study built on that is measuring the
+# reviewer's mood.
+#
+# THE ASSUMPTION, stated rather than hidden: items inside one dimension weigh
+# equally. That is unlikely to be exactly true and it is the thing to overturn
+# first if the scores stop matching what a reader feels.
+BANDS = ((1.0, 5), (0.75, 4), (0.5, 3), (0.25, 2), (0.0, 1))
+
+
+def score(met: int, applicable: int):
+    """-> 1-5, or None when nothing in the dimension applied to this document."""
+    if applicable <= 0:
+        return None
+    ratio = met / applicable
+    for floor, band in BANDS:
+        if ratio >= floor:
+            return band
+    return 1

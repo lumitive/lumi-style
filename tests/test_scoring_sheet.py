@@ -74,3 +74,39 @@ def test_every_item_reaches_the_sheet_in_the_reviewers_language(tmp_path):
     text = scoring_sheet.sheet([str(doc)], ["A1"])
     for (_did, _marker), wording in ss.WORDING.items():
         assert wording in text, f"missing from the sheet: {wording[:30]}"
+
+
+def test_a_condition_for_a_withdrawn_item_fails(tmp_path, monkeypatch):
+    """A condition is a second list keyed like the wording, and drifts alike."""
+    tree = _tree(tmp_path)
+    src = (tree / "scripts" / "lib" / "rubric_items.py").read_text(encoding="utf-8")
+    src = src.replace("CONDITION = {", 'CONDITION = {\n    ("C9", "①"): "x",', 1)
+    (tree / "scripts" / "lib" / "rubric_items.py").write_text(src, encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    assert any("has a condition" in e for e in check_repo.check_scoring_sheet_parity())
+
+
+def test_the_score_is_computed_from_the_ticks_not_chosen():
+    """The sheet said "score from the ticks" and never said how, so the same
+    ticks could produce different numbers on two readings — and an agreement
+    study built on that measures the reviewer's mood."""
+    assert ss.score(5, 5) == 5
+    assert ss.score(4, 5) == 4
+    assert ss.score(1, 5) == 1
+    assert ss.score(0, 5) == 1
+
+
+def test_inapplicable_items_leave_the_denominator():
+    """A document with no executive summary could tick at most two of C1's five.
+    Without the third state that reads as a failure; with it, the dimension is
+    scored on what applied."""
+    assert ss.score(2, 2) == 5, "two of two applicable items met is a five"
+
+
+def test_a_dimension_where_nothing_applies_is_not_a_one():
+    assert ss.score(0, 0) is None
+
+
+def test_every_conditional_item_exists_in_the_rubric():
+    live = {(d, m) for d, _t, rows in ss.items() for m, _e in rows}
+    assert set(ss.CONDITION) <= live
