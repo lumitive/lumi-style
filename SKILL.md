@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.490"
+  version: "0.1.491"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -212,8 +212,15 @@ been removed; they now apply at step 4 instead of framing step 0.
    the content**: §3's table is a reference of what has worked, not a lookup, and
    a page that wants something not in it should get it. **Embed the vendored
    assets rather than improvising**: `scripts/build/embed_font.py` for the display face,
-   `scripts/build/embed_icons.py` for the icon library, `assets/vectors/` for the globe
-   and trade map. **For a world figure that states data, generate it rather than
+   `scripts/build/embed_icons.py` for the icon library,
+   `scripts/build/embed_shapes.py` for the shape library, `assets/vectors/` for
+   the globe and trade map. **Choose a shape by the RELATION the content has**
+   — composition, order, process, hierarchy, degree, correlation — and never by
+   how the shape looks; `assets/shapes/tags.json` carries that relation for each
+   of the 206 units, and §4.1 is the rule. This line omitted the shape library
+   for the releases in which it existed, and the consequence was measured: three
+   shipped deliverables referenced **none** of the 206 shapes, because an agent
+   following this file had no path to them. **For a world figure that states data, generate it rather than
    drawing it**: `python3 scripts/render/regionmap_svg.py` emits the flat trade-region
    map with its labels already placed (`--labels zh` for Chinese, `--states`
    for the data), and `python3 scripts/render/globe_svg.py` the rotating globe.

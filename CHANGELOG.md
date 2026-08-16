@@ -1,5 +1,65 @@
 # Changelog
 
+## 0.1.491 — the entry points had no path to the shape library, which is why three deliverables used none of its 206 units
+
+The owner rebuilt a deliverable and reported it was almost identical to the
+previous one. It was: stripped of version numbers, the rebuild differed from its
+predecessor by **two lines**, used **none of the 206 shapes**, and drew on 4 of
+the 16 layouts. The build was honest — a source script was re-run, not an output
+patched — and that is the point. **A recipe written before the refactor
+reproduces the document it was written for**, and re-running it proves only that
+nothing broke.
+
+**The root cause is in this package, not in the document.** `SKILL.md` and
+`AGENTS.md` both carry the instruction to embed the vendored assets rather than
+improvising, and both list the font, the icons and `assets/vectors/` — **neither
+names `embed_shapes.py`**. Only `references/operating-rules.md` and
+`design-rules.md` do. An agent following an entry point had no path to the shape
+library at all, so zero usage across three deliverables was the guaranteed
+outcome rather than an oversight. Both entry points now name it, and both carry
+the selection rule with it: choose by the RELATION the content has, never by how
+the shape looks.
+
+**GAP-012 closes without an owner decision, because the rules had already made
+it.** `design-rules.md:539` says comparisons still take tables and *"a table
+page still wants its visual weight from a figure or a band beside it"*. So
+`visual_absent` and §4 agree: the five flagged table pages are owed a figure or
+band **beside** the table, never a shape replacing it. The probe is not widened.
+The class-vocabulary worry that opened the entry was mistaken and is recorded so
+it is not re-opened — the eight selectors are absent from `tokens/` but all
+eight are defined in `new_deck.py`'s preamble, which is what a deliverable is
+built from.
+
+**GAP-013 closes, and closing it found something larger.** `proposal` is added
+as a storyline, template first: a name in the tuple with no skeleton in the
+rules is a label with nothing behind it. But **not one of the six existing
+storyline names appeared anywhere in `references/`** — the axis had been a
+closed enum in code since the two-axis split shipped, so an author choosing a
+storyline had nothing to read and the name meant whatever the last person to
+type it assumed. A roster now names all seven with the shape of argument each
+makes. Five still carry a one-line shape rather than a full skeleton; that is
+stated in the roster and queued as IDEA-10, because writing five skeletons with
+no document to write them against is the speculative rule-making convention 2
+forbids.
+
+Two guards, both planted red before being believed. The new **`storyline
+vocabulary`** guard holds the roster and the tuple to each other in both
+directions — a name only in code fails, a name only in the rules fails — with
+synthetic-tree tests including the vacuous-pass case an empty tuple would
+create. The **`gating claims`** guard grew an `AUTHORITY_NAMED` form: a site may
+stop enumerating and point at `check_design.py`'s `(gates)` target string
+instead, and the guard then checks the opposite thing — that a list has not
+grown back into the sentence. `design-rules.md` was the first site to take it,
+because it said "one of the five checks" and then listed seven. Convention 13
+says delete the number rather than correct it; the entry stays so the site stays
+watched, which is how it rotted the first two times.
+
+This is phase 0 of
+`specs/2026-08-17-rebuild-deliverables-to-current-standard-design.md`, which
+records why the entry points are fixed before any document is rebuilt: doing it
+the other way produces a document that again uses nothing, with the cause still
+sitting in the file the next agent reads.
+
 ## 0.1.490 — a real build through the checks: one document defect, one checker false positive, and two closed vocabularies that had no name for this document
 
 The first deliverable built end-to-end since the refactor, run through every

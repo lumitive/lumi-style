@@ -422,6 +422,26 @@ be uncomfortable. That is the value. Do not report a mean without the spread.
 
 ---
 
+## IDEA-10 · Five storylines have a name and no skeleton
+
+**Problem.** `references/storyline-templates.md`'s roster names seven
+storylines; only `training-curriculum` (Template 4) and `proposal` (Template 5)
+carry a full narrative skeleton. The other five — `market-analysis`, `gtm`,
+`status-report`, `due-diligence`, `product-intro` — carry one line each saying
+what shape of argument they are. That is enough to choose with, and it is not
+enough to build from.
+
+**Evidence.** 0.1.491 found that none of the six original storyline names
+appeared anywhere in `references/` at all: the axis was a closed tuple in
+`scripts/lib/deliverable_registry.py` with no prose behind it. The roster fixed
+the readability half. The skeletons are the other half, and writing five at once
+without a document to write each against is exactly the speculative rule-making
+convention 2 forbids.
+
+**What would close it.** A skeleton written when a real document of that
+storyline is built, one at a time, the way Template 5 was written from an actual
+proposal that could not open a trace. Not a batch.
+
 ## IDEA-9 · The fixture's reserved domain doubles as a deliverable placeholder
 
 **Problem.** `fixtures/deck-pass.en.html` carries `www.example.org` as its

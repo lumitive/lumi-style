@@ -62,8 +62,14 @@ TIERS = {"sales": "sales", "marketing": "sales", "consulting": "sales",
 # tiers means three reference documents to accumulate, and adding a storyline
 # adds none — the split does not multiply the corpus requirement, which is the
 # first thing every reader assumes it does.
+# `proposal` was added at 0.1.491 from GAP-013: a real internal design proposal
+# could not open a trace because no name covered "here is a decision, here is
+# what I recommend and why". Its skeleton is Template 5 in
+# `references/storyline-templates.md`, and the `storyline templates` guard holds
+# this tuple and that file to each other — a name here with no template there is
+# a label with no shape behind it.
 STORYLINES = ("market-analysis", "gtm", "status-report", "due-diligence",
-              "product-intro", "training-curriculum")
+              "product-intro", "training-curriculum", "proposal")
 
 
 def tier_of(genre: str) -> str:
