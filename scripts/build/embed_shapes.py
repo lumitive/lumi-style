@@ -40,6 +40,9 @@ SPRITE_OPEN = '<svg id="lumi-shape-sprite" aria-hidden="true" style="display:non
 SPRITE_CLOSE = "</svg>"
 SPRITE_RE = re.compile(
     re.escape(SPRITE_OPEN) + r".*?" + re.escape(SPRITE_CLOSE), re.S)
+# Hex fallbacks inside var() are dead weight in a deliverable, where
+# the token block always defines them.
+_FALLBACK = re.compile(r"var\(\s*(--[\w-]+)\s*,\s*[^)]*\)")
 USE_RE = re.compile(r'<use[^>]+href="#shape-([\w-]+)"')
 
 
@@ -63,6 +66,13 @@ def symbol_for(shape_id: str) -> str:
     view = re.search(r'viewBox="([^"]+)"', svg)
     body = re.sub(r"^.*?<svg[^>]*>|</svg>\s*$", "", svg, flags=re.S)
     box = f' viewBox="{view.group(1)}"' if view else ""
+    # The library ships `var(--acc-4, #889A82)` so a unit renders standalone.
+    # A deliverable always carries the token block, so the fallback can never
+    # fire — and it lands in the document as a hex literal, which is exactly
+    # what D4 counts. Strip it here rather than loosening D4: the library keeps
+    # its fallbacks for standalone use, and the deliverable gets the variable
+    # alone. Found the first time four shapes were embedded at once.
+    body = _FALLBACK.sub(r"var(\1)", body)
     return f'<symbol id="shape-{shape_id}"{box}>{body.strip()}</symbol>'
 
 

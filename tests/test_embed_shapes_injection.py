@@ -72,3 +72,26 @@ def test_the_real_deliverable_shape_is_covered():
                      for a, b in (s.span() for s in embed_shapes.SKIP_RE.finditer(pre)))]
     assert quoted, ("the scaffold no longer quotes a <body> tag inside a comment "
                     "or style block; this guard's real-world case is gone")
+
+
+def test_hex_fallbacks_are_stripped_from_the_embedded_symbol(tmp_path):
+    """The library ships `var(--acc-4, #889A82)` so a unit renders standalone.
+
+    A deliverable always carries the token block, so the fallback can never fire
+    — and it lands in the document as a hex literal, which is what D4 counts.
+    Four shapes embedded at once put two literals into a document that had none.
+    """
+    lib = tmp_path / "shapes"
+    lib.mkdir()
+    (lib / "z.svg").write_text(
+        '<svg viewBox="0 0 10 10"><rect fill="var(--acc-4, #889A82)" '
+        'stroke="var(--on-acc,#F0F0FA)" width="4" height="4"/></svg>',
+        encoding="utf-8")
+    original = embed_shapes.LIBRARY
+    embed_shapes.LIBRARY = lib
+    try:
+        sym = embed_shapes.symbol_for("z")
+    finally:
+        embed_shapes.LIBRARY = original
+    assert "#889A82" not in sym and "#F0F0FA" not in sym, sym
+    assert "var(--acc-4)" in sym and "var(--on-acc)" in sym, sym

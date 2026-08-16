@@ -1,0 +1,15 @@
+{
+ "version": "0.1.494",
+ "diff_base": "a493e65c58648dc0acbe348d44db43976a055ebf",
+ "spec": "specs/2026-08-17-rebuild-deliverables-to-current-standard-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs; 0.1.494 strips hex fallbacks at shape-embed time and no conformance task embeds a shape. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have."
+  }
+ ]
+}
