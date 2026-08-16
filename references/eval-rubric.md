@@ -77,6 +77,8 @@ have no Han character next to their punctuation.
 | D16 | Visual presence and share | reported | content pages carrying no visual block (static half, `check_design.py`); rendered visual area against the genre's target — ~50% sales/marketing/consulting, ~30% training (`inspect_layout.py`). Pages declaring `data-role="apparatus"` are exempt, up to a ceiling of one content page in five |
 | D17 | Export weight | reported | blend modes, filters and vector nodes: what the document will cost a reader who opens the PDF |
 | D18 | Region labels | reported | every coloured region on a map carries its name or a legend entry — the one place hue encodes identity, and the condition under which it may |
+| D22 | Layout vocabulary | =0 — **gates** | a page whose layout class is not one `tokens/` defines. D9 collected these and its verdict was hard-coded to pass, so an invented layout was caught by nothing (GAP-008) |
+| D23 | Font count | reported | distinct font stacks against **what `tokens/` declares** — the ceiling is derived, not a literal, so it moves if a third voice is ever added |
 | D21 | Data contract | =0 — **gates** | a figure that DECLARES the data it draws is held to it: every declared series and value must appear on the drawing. Opt-in — a figure declaring nothing is not failed — but a declaration that contradicts the drawing is a false contract, which is worse than none |
 | D20 | Palette fidelity | =0 — **gates** | every colour token the document declares that `tokens/lumi-theme.css` also defines carries the shipped value. Sizes are the document's to choose (0.1.340 withdrew the type floor); a colour is not, because one colour means one thing |
 | D19 | Vocabulary resolves | =0 — **gates** | every reference in the document resolves inside it: an icon `<use>` with no `<symbol>`, a block class used without the children `tokens/` renders it through, a part opener with no `opener` class, a `data-globe` mark with no runtime. All render as valid markup and empty space |
@@ -112,13 +114,14 @@ gated. `SKILL.md` rule 4 is why the rest only report: a page is done when a huma
 reads it as intentional, and a metric that can be satisfied without improving the
 page ends the looking rather than directing it.
 
-**Six exceptions, and none is a design judgement.** D12 is a commercial
+**Seven exceptions, and none is a design judgement.** D12 is a commercial
 requirement on the artifact, D14 asks whether the document is finished, D15
 asks whether the footer cites something a reader can open, D19 asks whether
 every reference in the document resolves inside it, D20 asks whether the
 colour tokens it declares are the ones this package ships, and D21 asks
 whether a figure that declared the data it draws agrees with its own
-numbers — all decidable, in the way "does this page read as intentional" is not. **D15 is the second instance of
+numbers, and D22 whether every page's layout is one the tokens
+define — all decidable, in the way "does this page read as intentional" is not. **D15 is the second instance of
 one defect:** `.foot .src` was removed from `tokens/` in 0.1.366 after the first
 deliverable to meet it filled every client page with a build path, and a second
 put one back — in Chinese, on almost every content page — while D6, D12 and D14

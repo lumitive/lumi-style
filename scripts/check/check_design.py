@@ -1103,6 +1103,8 @@ def measure(path):
         "D18_detail": (d18 or {}).get("unlabelled"),
         "D20_palette_fidelity": d20_palette_fidelity(resolved, palette),
         "D21_data_contract": d21_data_contract(raw),
+        "D23_font_count": d23_font_count(
+            raw, (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")),
     }
 
 
@@ -1130,6 +1132,46 @@ _FDATA = re.compile(
 # real fixture. Rather than guess again, the scan starts at each declaration
 # and walks BACK to the nearest figure container, which works for both.
 _FIG_OPEN = re.compile(r'<figure\b|<div[^>]*class="[^"]*\bfig\b[^"]*"', re.I)
+
+
+# --- D22 / D23: the two halves of P-1 that nothing held --------------------
+# P-1 says the brand pack is the single source of visual identity. What was
+# actually held was the palette. Typography and layout were not, and the gap was
+# recorded as GAP-008 rather than left to read as coverage.
+#
+# D9 already collected pages whose layout class is not one the tokens define —
+# and then its verdict was hard-coded to pass, so an invented layout was
+# gathered into a list nothing read. That is the failure mode this repository
+# calls a check that has only ever been seen passing.
+def d22_layout_vocabulary(r):
+    """Pages claiming a layout `tokens/` does not define."""
+    v = r.get("D9_layout_variety") or {}
+    return {"unknown": [pid for pid, names in (v.get("unknown") or [])],
+            "detail": v.get("unknown") or []}
+
+
+# The ceiling is DERIVED: it is the number of font families `tokens/` declares,
+# not a number chosen here. design-rules §2 says two voices and the tokens
+# declare exactly two; if a third is ever added the ceiling moves with it, and
+# a rule that counted to a literal 2 would then be wrong in the quiet way.
+_FONT_VAR = re.compile(r"--([\w-]*(?:din|mono|serif|sans|face|font)[\w-]*)\s*:\s*[^;]*",
+                       re.I)
+_FONT_USE = re.compile(r"font-family\s*:\s*([^;}]+)", re.I)
+
+
+def d23_font_count(raw, token_css):
+    """Distinct font stacks the document uses, against what tokens/ declares."""
+    declared = {m.group(1).lower() for m in _FONT_VAR.finditer(token_css)}
+    used = set()
+    for m in _FONT_USE.finditer(raw):
+        value = m.group(1).strip().lower()
+        var = re.match(r"var\(\s*--([\w-]+)", value)
+        used.add(var.group(1) if var else value.split(",")[0].strip(" '\""))
+    literal = sorted(u for u in used if u not in declared)
+    return {"declared": len(declared), "used": len(used),
+            "ceiling": len(declared) or None,
+            "over": sorted(used) if declared and len(used) > len(declared) else [],
+            "literal_stacks": literal}
 
 
 def d21_data_contract(raw):
@@ -1277,6 +1319,14 @@ def grade(r):
     rows.append(("D20_palette_fidelity",
                  len(pf["differs"]) if "differs" in pf else None, "=0 (gates)",
                  not pf.get("differs"), "unreadable" in pf))
+    lv = d22_layout_vocabulary(r)
+    rows.append(("D22_layout_vocabulary", len(lv["unknown"]) or 0, "=0 (gates)",
+                 not lv["unknown"], r.get("D9_layout_variety") is None))
+    fc = r["D23_font_count"]
+    rows.append(("D23_font_count",
+                 f"{fc['used']} used, ceiling {fc['ceiling']}" if fc else None,
+                 "<= what tokens/ declares (reported)",
+                 not (fc and (fc["over"] or fc["literal_stacks"])), fc is None))
     dc = r["D21_data_contract"]
     rows.append(("D21_data_contract",
                  len(dc["mismatches"]) if dc else None, "=0 (gates)",

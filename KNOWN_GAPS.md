@@ -114,22 +114,33 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-008 · P-1 is stated wider than anything checks it
 
-- status: open
+- status: fixed
 - opened: 0.1.460
+- closed: 0.1.481
 - surface: references/design-rules.md §1-§2, scripts/check/check_design.py
 - symptom: P-1 says the brand pack is the single source of visual and verbal
-  identity and a deliverable does not improvise. What is actually held: the
-  palette (D20 gate, D4, D13, D1, token parity) and the region hues. Typography
-  and layout are only partly covered — **an agent inventing a seventeenth page
-  layout is caught by nothing**, and `check_design.py` has no font-count check
-  at all (verified in code, not assumed). The clause is not wrong; the wording
-  of a principle should be wider than the checks of the day. It is recorded so
-  the gap is not read as coverage.
-- check: a layout-vocabulary check that grades a page's structure against the
-  layouts `tokens/` defines rather than against class names invented by whatever
-  document a probe was written against, plus the font-count check C7-④ names.
-  Neither is built. Until they are, P-1's landing table entry in the refactor
-  spec is the honest statement of what holds.
+  identity. What was held was the palette. **Typography had no check at all**
+  (verified: `check_design.py` contained no occurrence of `font-family`), and
+  **layout was collected but not judged** — D9 gathered every page whose layout
+  class the tokens do not define into an `unknown` list, and then its verdict
+  was hard-coded to `True`. An agent inventing a seventeenth layout was caught
+  by nothing.
+- check: **D22 layout vocabulary (gates)** — a page claiming a layout `tokens/`
+  does not define fails, on the same reasoning as D19: it is decidable, not a
+  judgement about design. **D23 font count (reported)** — distinct font stacks
+  against what the tokens declare, and **the ceiling is derived rather than
+  written**: design-rules says two voices and the tokens declare two, so a
+  literal `2` here would be quietly wrong the day a third is added. A test
+  proves the ceiling moves with the tokens.
+- the failing subject was already in the tree: `deck-degenerate` has fourteen
+  pages carrying no layout class at all, and D9 had been collecting them for
+  releases while reporting the run clean. **The evidence of the hole was sitting
+  inside the fixture the whole time**, which is what a verdict hard-coded to
+  pass does — it is the shape this repository calls a check that has only ever
+  been seen passing.
+- what remains under P-1 and is honestly not covered: whether a page's
+  composition is *good*. That is a judgement, it belongs to C7 and to the eye,
+  and no metric here claims it.
 
 ## GAP-007 · The reference files read as accretion, not as documents
 

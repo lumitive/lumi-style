@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.1.481 — the two halves of P-1 that nothing held, and a verdict that had been hard-coded to pass
+
+**GAP-008 closes.** P-1 says the brand pack is the single source of visual
+identity; what was actually held was the palette.
+
+**D22 · layout vocabulary (gates).** A page claiming a layout `tokens/` does not
+define now fails, on the same reasoning as D19 — it is decidable rather than a
+judgement about design. **D9 had been collecting exactly this for releases**:
+every page whose layout class the tokens do not define went into an `unknown`
+list, and then the verdict was hard-coded to `True`. The list was read by
+nothing.
+
+**The failing subject was already in the tree.** `deck-degenerate` carries
+fourteen pages with no layout class at all, and the suite reported it clean on
+that metric the whole time. Nothing had to be planted — which is the clearest
+possible statement of what a verdict hard-coded to pass costs.
+
+**D23 · font count (reported).** Distinct font stacks against what the tokens
+declare, and **the ceiling is derived, not written**: design-rules says two
+voices and the tokens declare two, so a literal `2` in the checker would be
+quietly wrong the day a third is added. A test asserts the ceiling moves with
+the tokens rather than with the code.
+
+**What is honestly still not covered under P-1**, recorded in the closure rather
+than implied away: whether a page's composition is any *good*. That is a
+judgement, it belongs to C7 and to the eye, and no metric here claims it.
+
+Adding a seventh gate went red in five files at once — `AGENTS.md`,
+`CLAUDE.md`, `brand.md`, `design-rules.md` and the rubric — and the same guard
+caught the re-wording breaking the pattern it keys on, which is the failure mode
+where a claim quietly stops being checked.
+
 ## 0.1.480 — two ledger entries close, and the five rules that had no source get one
 
 **GAP-007 closes, measured rather than recalled.** Each of the four symptoms it

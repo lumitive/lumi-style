@@ -387,7 +387,8 @@ def test_the_gate_set_is_the_set_of_rows_declaring_a_gate():
                 if "(gates)" in target}
     assert declared == {"D12_commercial_footer", "D14_placeholders",
                         "D15_footer_path", "D19_vocabulary",
-                        "D20_palette_fidelity", "D21_data_contract"}
+                        "D20_palette_fidelity", "D21_data_contract",
+                        "D22_layout_vocabulary"}
 
 
 def test_a_document_failing_only_a_gate_metric_exits_one(tmp_path, capsys):
@@ -418,3 +419,38 @@ def test_a_document_failing_only_a_gate_metric_exits_one(tmp_path, capsys):
                   "D15_footer_path", "D19_vocabulary"):
         assert f"FAIL  {other}" not in printed, "only D20 may fail here"
     assert code == 1, "a document failing only D20 must not exit 0"
+
+
+def test_d22_catches_a_layout_the_tokens_do_not_define():
+    """D9 collected these for releases and its verdict was hard-coded to pass,
+    so an agent inventing a seventeenth layout was caught by nothing."""
+    page = ('<section class="page" id="p1"><div class="body editorial-hero">'
+            '<h2>t</h2></div></section>')
+    r = {"D9_layout_variety": check_design.d9_layout_variety(page)}
+    assert check_design.d22_layout_vocabulary(r)["unknown"] == ["p1"]
+
+
+def test_d22_accepts_a_layout_the_tokens_define():
+    page = ('<section class="page" id="p1"><div class="body split">'
+            '<h2>t</h2></div></section>')
+    r = {"D9_layout_variety": check_design.d9_layout_variety(page)}
+    assert check_design.d22_layout_vocabulary(r)["unknown"] == []
+
+
+def test_d23_ceiling_is_derived_from_the_tokens_not_written_here():
+    """design-rules says two voices and the tokens declare two. A literal 2
+    would be quietly wrong the day a third is added."""
+    tokens = "--din: 'D-DIN', sans-serif;\n--mono: 'IBM Plex Mono', monospace;"
+    r = check_design.d23_font_count('<style>.a{font-family:var(--din)}</style>', tokens)
+    assert r["ceiling"] == 2 and r["declared"] == 2
+    three = ('<style>.a{font-family:var(--din)}.b{font-family:var(--mono)}'
+             '.c{font-family:"Comic Sans MS",cursive}</style>')
+    assert check_design.d23_font_count(three, tokens)["over"]
+
+
+def test_d23_moves_with_the_tokens():
+    tokens = ("--din: 'D-DIN';\n--mono: 'IBM Plex Mono';\n--serif: 'Source Serif';")
+    three = ('<style>.a{font-family:var(--din)}.b{font-family:var(--mono)}'
+             '.c{font-family:var(--serif)}</style>')
+    r = check_design.d23_font_count(three, tokens)
+    assert r["ceiling"] == 3 and not r["over"]
