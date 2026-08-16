@@ -492,3 +492,63 @@ def test_brand_registry_empty_fails_rather_than_passing(tmp_path, monkeypatch):
     (tmp_path / "brands" / "registry.json").write_text('{"brands": {}}', encoding="utf-8")
     monkeypatch.setattr(check_repo, "ROOT", tmp_path)
     assert any("vacuously" in e for e in check_repo.check_brand_registry())
+
+
+# check_shape_library — the manifest and the files are one set, and shapes draw.
+
+def _shape_tree(tmp_path, files=("a", "b"), described=None, relation_from="tag",
+                geometry=True):
+    lib = tmp_path / "assets" / "shapes"
+    lib.mkdir(parents=True)
+    body = '<path d="M0 0h10v10H0z"/>' if geometry else "<title>nothing</title>"
+    for f in files:
+        (lib / f"{f}.svg").write_text(f'<svg viewBox="0 0 10 10">{body}</svg>',
+                                      encoding="utf-8")
+    described = files if described is None else described
+    (lib / "tags.json").write_text(json.dumps({
+        "schema": 3,
+        "shapes": {f: {"family": f, "relation": [], "relation_from": relation_from}
+                   for f in described}}), encoding="utf-8")
+    return tmp_path
+
+
+def test_shape_library_complete_tree_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _shape_tree(tmp_path))
+    assert check_repo.check_shape_library() == []
+
+
+def test_shape_library_absent_is_a_legal_state(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    assert check_repo.check_shape_library() == []
+
+
+def test_shape_library_undescribed_file_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _shape_tree(tmp_path, files=("a", "b"), described=("a",)))
+    assert any("does not describe it" in e for e in check_repo.check_shape_library())
+
+
+def test_shape_library_dangling_manifest_entry_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _shape_tree(tmp_path, files=("a",), described=("a", "gone")))
+    assert any("not shipped" in e for e in check_repo.check_shape_library())
+
+
+def test_shape_library_shape_without_geometry_fails(tmp_path, monkeypatch):
+    """A file can exist, parse, and render as an empty frame."""
+    monkeypatch.setattr(check_repo, "ROOT", _shape_tree(tmp_path, geometry=False))
+    assert any("carries no geometry" in e for e in check_repo.check_shape_library())
+
+
+def test_shape_library_unclassified_is_not_a_failure(tmp_path, monkeypatch):
+    """Marking a shape unclassified is the alternative to guessing, and two
+    curations of this library were wrong because a name was read as one."""
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _shape_tree(tmp_path, relation_from="unclassified"))
+    assert check_repo.check_shape_library() == []
+
+
+def test_shape_library_invented_relation_source_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _shape_tree(tmp_path, relation_from="guessed"))
+    assert any("relation_from" in e for e in check_repo.check_shape_library())

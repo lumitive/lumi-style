@@ -1,52 +1,61 @@
-# Shape library — provenance and the rule that selected it
+# Shape library — provenance, and why nothing was excluded
 
 ## Where it comes from
 
 Extracted from a commercial consulting slide template (159 pages) whose licence
-the owner settled on 2026-08-14: purchased, and free to use. One clarification
-belongs here because it has confused a reader once already — the confidentiality
-notice on the template's first page is **sample body text of the template**, of
-a kind with "EXHIBIT TITLE" and "Source:", and is not a licence term for the
-asset.
+the owner settled on 2026-08-14: purchased, and free to use. One clarification,
+because it has confused a reader once — the confidentiality notice on the
+template's first page is **sample body text of the template**, of a kind with
+"EXHIBIT TITLE" and "Source:", not a licence term for the asset.
 
-Extraction was three-route: structured SVG export where it kept the geometry,
-a PDF intermediate where it did not, and a flattened path for the pages built
-from true 3D extrusions, which no vectoriser reaches. Every unit was then
-recoloured so its fills and strokes bind **design tokens** rather than literal
-colours, which is why they are correct on both the light and the dark canvas
-and why D20 cannot fail on them.
+Extraction was three-route: structured SVG export where it kept the geometry, a
+PDF intermediate where it did not, and a flattened path for the pages built from
+true 3D extrusions, which no vectoriser reaches. Every unit was then recoloured
+so its fills and strokes bind **design tokens** rather than literal colours,
+which is why they are correct on both canvases and why D20 cannot fail on them.
 
-## What selected these 68 out of 206
+## Why the library is complete
 
-One rule, from `references/design-rules.md` §4.1:
+All 206 units are here. Two earlier attempts curated by page name, and **both
+units sampled against the rendered preview were classified wrong**: `box` is a
+2×2 quadrant grid with a four-arrow cycle through it, not a text box, and
+`surround` is a large directional arrow. A name does not tell you what a drawing
+is, and neither does a tag that was never applied — 138 units carry no relation
+tag at all, and among them are the `flow-2` … `flow-6` and `cycle-2` … `cycle-8`
+families, which are the most useful thing a shape library holds: one relation at
+several arities, so the choice is "how many steps do I have".
 
-> **A shape enters the library only if the relation it encodes serves the chart
-> rules.**
+The rule that follows: **an absent shape cannot be chosen by anything, while an
+unclassified one merely carries no recommendation.** So nothing is excluded, and
+`relation` is guidance rather than an entry fee.
 
-Applied mechanically: a unit is here if it carries an explicit relation tag —
-composition, order, process, hierarchy, degree or correlation. The other 138 are
-page furniture (source lines, footnote blocks), single-primitive fragments, and
-label art. **They draw no relation**, so ingesting them would have produced a
-second figure vocabulary standing next to §4 rather than a figure library
-serving it — the state this package spent releases leaving.
+## Choosing one
 
-Two units were set aside for a person rather than dropped silently:
-`p124-process-objectives-01` and `p109-change-vision-01` are large enough to be
-real diagrams (146 and 54 primitives) and carry no relation tag. Their slide
-labels suggest process and vision diagrams, but a slide label is OCR'd text, not
-a taxonomy — the 134 "families" that text produced are noise, and reading them
-as evidence is how a curation becomes arbitrary.
+`tags.json` carries, per shape: `family` (the template's own page name),
+`relation`, `relation_from`, `slots`, `primitives`, `decoration_risk`, `three_d`
+and `preview`.
+
+- **Choose by the relation the content has**, never by how a shape looks. A
+  funnel whose values do not decrease and a 2×2 whose axes are not independent
+  are drawings asserting something the data does not.
+- **`relation_from: unclassified` means nobody has classified it, not that it is
+  unusable.** 70 units are in that state. Look at the preview.
+- **`decoration_risk: true` marks a metaphor family.** Each can carry an
+  argument and most get reached for because they fill a page — P-4 says a figure
+  carrying no argument violates the clause rather than satisfying it.
 
 ## How a shape reaches a deliverable
 
 Only through `scripts/build/embed_shapes.py`, which emits a sprite of the
 symbols a document actually referenced. Nothing else has a path in, so
 original-palette geometry cannot reach a reader by accident, and D19 already
-fails a reference that resolves to no symbol.
+fails a reference resolving to no symbol. A deliverable using two shapes carries
+about 37 KB; the library is 2.8 MB, which is the whole reason the embed is
+selective.
 
-## Choosing one
+## Previews
 
-`tags.json` carries each shape's relation, its family words, its slot count and
-whether it is a metaphor. **Choose by the relation the content has**, never by
-how a shape looks: a funnel whose values do not decrease and a 2×2 whose axes
-are not independent are drawings asserting something the data does not.
+2560px renders of every unit live with the raw material outside this repository
+(`_refactor/assets-staging/previews-2k/`, plus 30 vector-3D renders). `tags.json`
+names each shape's preview path so a person can look before choosing — which is
+the step whose absence produced two wrong curations.

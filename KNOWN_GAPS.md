@@ -58,29 +58,30 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   neither. The generated references/eval-inventory.md covers the NUMERIC half
   of this gap already — the remaining half is prose rules.
 
-## GAP-009 · The shape library is built, curated by nobody, and ingested nowhere
+## GAP-009 · The shape library's relation classification is a third unclassified
 
-- status: fixed
+- status: open
 - opened: 0.1.473
-- closed: 0.1.475
-- surface: assets/shapes/, scripts/build/embed_shapes.py,
-  references/design-rules.md §4.1
-- symptom: 206 figure units were extracted, recoloured and verified in a staging
-  area outside this repository, with the selection rule and the embedding tool
-  shipped but no curation done — and curation is a judgement about the design
-  language rather than a mechanical step.
-- check: curated by the §4.1 rule applied mechanically — a unit is in if it
-  carries an explicit relation tag (composition, order, process, hierarchy,
-  degree, correlation). **68 of 206 are in**; the other 138 draw no relation and
-  are page furniture, single-primitive fragments and label art. Provenance and
-  the rule are in `assets/shapes/SOURCE.md`; `tags.json` carries each shape's
-  relation, family words and slot count.
-- what is left, and it is small: **two units were set aside for a person rather
-  than dropped silently** — `p124-process-objectives-01` and
-  `p109-change-vision-01` are large enough to be real diagrams and carry no
-  relation tag. Their slide labels suggest what they are, but a slide label is
-  OCR'd text rather than a taxonomy, and reading it as evidence is how a
-  curation becomes arbitrary. They stay out until someone looks at them.
+- surface: assets/shapes/tags.json
+- symptom: the library is complete — all 206 units ship — but **70 of them carry
+  `relation_from: unclassified`**: the extraction tagged 68, the template's own
+  page names named another 68, and the rest is neither. They are usable and a
+  person can look at the preview; what they lack is the machine-readable
+  relation that makes "choose by the relation the content has" checkable.
+- history, because it is the point: this entry was closed at 0.1.475 with a
+  curated 68 of 206, on the rule that a shape enters only if its relation serves
+  the chart rules. **That curation was wrong twice over.** The relation tags are
+  sparse rather than authoritative, so it dropped the `flow-2`…`flow-6` and
+  `cycle-2`…`cycle-8` families — one relation at several arities, which is the
+  most useful thing a shape library holds. And the exclusions were made from
+  page names: of the two checked against the rendered preview, **both were
+  wrong** — `box` is a 2×2 grid with a four-arrow cycle and `surround` is a
+  large directional arrow, neither a text box. Reopened, and the library is now
+  complete: an absent shape cannot be chosen, an unclassified one merely carries
+  no recommendation.
+- check: classify the remaining 70 by looking at their previews, which is the
+  step whose absence produced both wrong curations. Convention 15 named it
+  before this happened; the previews were rendered and never opened.
 
 ## GAP-008 · P-1 is stated wider than anything checks it
 
