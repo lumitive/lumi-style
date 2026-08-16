@@ -1,10 +1,12 @@
 {
- "$comment": "The complete extracted library — all 206 units, nothing excluded. Two earlier curations excluded units by their page name, and both samples checked against the rendered preview were wrong: `box` is a 2x2 quadrant grid with a four-arrow cycle, not a text box, and `surround` is a large directional arrow. A name does not tell you what a drawing is. An absent shape cannot be chosen by anything, while an unclassified one merely carries no recommendation — so the library is complete and `relation` is guidance rather than an entry fee. `relation_from` says how each was reached: `tag` from the extraction's semantics, `page-name` from the template's own page title, `unclassified` where neither answered and a person has not yet looked.",
+ "$comment": "The complete extracted library — all 206 units, nothing excluded. Two earlier curations excluded units by their page name, and both samples checked against the rendered preview were wrong: `box` is a 2x2 quadrant grid with a four-arrow cycle, not a text box, and `surround` is a large directional arrow. A name does not tell you what a drawing is. An absent shape cannot be chosen by anything, while an unclassified one merely carries no recommendation — so the library is complete and `relation` is guidance rather than an entry fee. `relation_from` says how each was reached: `tag` from the extraction's semantics, `page-name` from the template's own page title, `looked-at` where the rendered preview was opened and the shape classified from what it draws — which is the only method here that has never been wrong. Two categories exist beyond the relations: `element` is a basic form that asserts no relation by itself (a plain block, a single circle), and `apparatus` serves the document rather than the argument (legend swatches, the illustrative/draft disclosure stamps). Neither is a reject: an element composes into figures, and the disclosure stamps are what C4-③ asks for.",
  "schema": 3,
  "relations": [
+  "apparatus",
   "composition",
   "correlation",
   "degree",
+  "element",
   "geography",
   "hierarchy",
   "metaphor",
@@ -14,33 +16,42 @@
  "shapes": {
   "p002-page2-01": {
    "family": "page2",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "apparatus"
+   ],
+   "relation_from": "looked-at",
    "slots": 40,
    "primitives": 404,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p002-page2-01.png"
+   "preview": "previews/p002-page2-01.png",
+   "note": "样式键：色板、勾叉、气泡、爆炸标"
   },
   "p002-page2-02": {
    "family": "page2",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 4,
    "primitives": 7,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p002-page2-02.png"
+   "preview": "previews/p002-page2-02.png",
+   "note": "箭头指向楔形，方向"
   },
   "p003-page3-01": {
    "family": "page3",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p003-page3-01.png"
+   "preview": "previews/p003-page3-01.png",
+   "note": "大号 3D 右向箭头"
   },
   "p005-2x2-cubed-01": {
    "family": "2x2-cubed",
@@ -82,23 +93,29 @@
   },
   "p007-price-01": {
    "family": "price",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 11,
    "primitives": 11,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p007-price-01.png"
+   "preview": "previews/p007-price-01.png",
+   "note": "五个方块一排，一个抬起——对比/强调"
   },
   "p008-strategy-01": {
    "family": "strategy",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "correlation"
+   ],
+   "relation_from": "looked-at",
    "slots": 14,
    "primitives": 14,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p008-strategy-01.png"
+   "preview": "previews/p008-strategy-01.png",
+   "note": "六边形全对角线，网络"
   },
   "p009-arrow-3d-01": {
    "family": "arrow-3d",
@@ -163,23 +180,29 @@
   },
   "p012-footnotesource-01": {
    "family": "footnotesource",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 27,
    "primitives": 162,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p012-footnotesource-01.png"
+   "preview": "previews/p012-footnotesource-01.png",
+   "note": "3×3×3 立方体（页名说是脚注，其实不是）"
   },
   "p012-footnotesource-02": {
    "family": "footnotesource",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 27,
    "primitives": 162,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p012-footnotesource-02.png"
+   "preview": "previews/p012-footnotesource-02.png",
+   "note": "同一立方体，块被抽出——部分与整体"
   },
   "p013-cutout-3d-01": {
    "family": "cutout-3d",
@@ -195,53 +218,68 @@
   },
   "p014-new-entrant-01": {
    "family": "new-entrant",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p014-new-entrant-01.png"
+   "preview": "previews/p014-new-entrant-01.png",
+   "note": "方块带下行箭头"
   },
   "p014-new-entrant-02": {
    "family": "new-entrant",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p014-new-entrant-02.png"
+   "preview": "previews/p014-new-entrant-02.png",
+   "note": "方块带右楔"
   },
   "p014-new-entrant-03": {
    "family": "new-entrant",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p014-new-entrant-03.png"
+   "preview": "previews/p014-new-entrant-03.png",
+   "note": "方块带左缺口"
   },
   "p014-new-entrant-04": {
    "family": "new-entrant",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "element"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p014-new-entrant-04.png"
+   "preview": "previews/p014-new-entrant-04.png",
+   "note": "3D 素方块"
   },
   "p014-new-entrant-05": {
    "family": "new-entrant",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p014-new-entrant-05.png"
+   "preview": "previews/p014-new-entrant-05.png",
+   "note": "方块带上行箭头"
   },
   "p015-joint-01": {
    "family": "joint",
@@ -439,13 +477,16 @@
   },
   "p029-implement-01": {
    "family": "implement",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 6,
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p029-implement-01.png"
+   "preview": "previews/p029-implement-01.png",
+   "note": "三椭圆交叠"
   },
   "p030-perspective-3d-01": {
    "family": "perspective-3d",
@@ -524,13 +565,16 @@
   },
   "p035-sizes-in-01": {
    "family": "sizes-in",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 6,
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p035-sizes-in-01.png"
+   "preview": "previews/p035-sizes-in-01.png",
+   "note": "同心圆递增，尺度"
   },
   "p036-spiral1-3d-01": {
    "family": "spiral1-3d",
@@ -1420,13 +1464,16 @@
   },
   "p094-at-work-01": {
    "family": "at-work",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "looked-at",
    "slots": 5,
    "primitives": 10,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p094-at-work-01.png"
+   "preview": "previews/p094-at-work-01.png",
+   "note": "十字与箭头交汇"
   },
   "p095-coupled-horiz-01": {
    "family": "coupled-horiz",
@@ -1454,63 +1501,81 @@
   },
   "p097-focused-01": {
    "family": "focused",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "looked-at",
    "slots": 5,
    "primitives": 12,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p097-focused-01.png"
+   "preview": "previews/p097-focused-01.png",
+   "note": "四箭头向中心汇聚"
   },
   "p098-new-entrant-01": {
    "family": "new-entrant",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p098-new-entrant-01.png"
+   "preview": "previews/p098-new-entrant-01.png",
+   "note": "下行箭头（平面）"
   },
   "p098-new-entrant-02": {
    "family": "new-entrant",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p098-new-entrant-02.png"
+   "preview": "previews/p098-new-entrant-02.png",
+   "note": "右向雪佛龙"
   },
   "p098-new-entrant-03": {
    "family": "new-entrant",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p098-new-entrant-03.png"
+   "preview": "previews/p098-new-entrant-03.png",
+   "note": "左向雪佛龙"
   },
   "p098-new-entrant-04": {
    "family": "new-entrant",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "element"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p098-new-entrant-04.png"
+   "preview": "previews/p098-new-entrant-04.png",
+   "note": "素矩形容器"
   },
   "p098-new-entrant-05": {
    "family": "new-entrant",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p098-new-entrant-05.png"
+   "preview": "previews/p098-new-entrant-05.png",
+   "note": "上行箭头"
   },
   "p099-parallel-01": {
    "family": "parallel",
@@ -1658,43 +1723,55 @@
   },
   "p105-customer-01": {
    "family": "customer",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "correlation"
+   ],
+   "relation_from": "looked-at",
    "slots": 13,
    "primitives": 28,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p105-customer-01.png"
+   "preview": "previews/p105-customer-01.png",
+   "note": "五节点关系网（客户/分销/供应/竞争）"
   },
   "p106-skills-01": {
    "family": "skills",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "correlation"
+   ],
+   "relation_from": "looked-at",
    "slots": 16,
    "primitives": 30,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p106-skills-01.png"
+   "preview": "previews/p106-skills-01.png",
+   "note": "7S 型节点网"
   },
   "p107-the-way-managerscollectively-behave-with-01": {
    "family": "the-way-managerscollectively-behave-with",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "correlation"
+   ],
+   "relation_from": "looked-at",
    "slots": 11,
    "primitives": 30,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p107-the-way-managerscollectively-behave-with-01.png"
+   "preview": "previews/p107-the-way-managerscollectively-behave-with-01.png",
+   "note": "节点与聚类"
   },
   "p108-competitive-position-01": {
    "family": "competitive-position",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 11,
    "primitives": 20,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p108-competitive-position-01.png"
+   "preview": "previews/p108-competitive-position-01.png",
+   "note": "3×3 网格"
   },
   "p109-change-vision-01": {
    "family": "change-vision",
@@ -1722,43 +1799,55 @@
   },
   "p111-natural-owner-01": {
    "family": "natural-owner",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "element"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p111-natural-owner-01.png"
+   "preview": "previews/p111-natural-owner-01.png",
+   "note": "带小缺口的横条"
   },
   "p111-natural-owner-02": {
    "family": "natural-owner",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 7,
    "primitives": 13,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p111-natural-owner-02.png"
+   "preview": "previews/p111-natural-owner-02.png",
+   "note": "2×3 决策矩阵"
   },
   "p111-natural-owner-03": {
    "family": "natural-owner",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 2,
    "primitives": 3,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p111-natural-owner-03.png"
+   "preview": "previews/p111-natural-owner-03.png",
+   "note": "方块带右小箭头"
   },
   "p112-business-strategy-01": {
    "family": "business-strategy",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "metaphor"
+   ],
+   "relation_from": "looked-at",
    "slots": 9,
    "primitives": 18,
-   "decoration_risk": false,
+   "decoration_risk": true,
    "three_d": false,
-   "preview": "previews/p112-business-strategy-01.png"
+   "preview": "previews/p112-business-strategy-01.png",
+   "note": "拼图块与箭头"
   },
   "p113-restructuring-framework-01": {
    "family": "restructuring-framework",
@@ -1775,43 +1864,55 @@
   },
   "p114-benefit-01": {
    "family": "benefit",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 6,
    "primitives": 12,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p114-benefit-01.png"
+   "preview": "previews/p114-benefit-01.png",
+   "note": "对角二分方块带双向箭头，权衡"
   },
   "p115-appraise-performanceand-prospects-01": {
    "family": "appraise-performanceand-prospects",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "looked-at",
    "slots": 9,
    "primitives": 17,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p115-appraise-performanceand-prospects-01.png"
+   "preview": "previews/p115-appraise-performanceand-prospects-01.png",
+   "note": "箭头环"
   },
   "p116-3-01": {
    "family": "3",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 14,
    "primitives": 28,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p116-3-01.png"
+   "preview": "previews/p116-3-01.png",
+   "note": "分层 2×2 板（3D 层）"
   },
   "p116-3-02": {
    "family": "3",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 3,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p116-3-02.png"
+   "preview": "previews/p116-3-02.png",
+   "note": "竖直双向箭头"
   },
   "p117-stage-1-01": {
    "family": "stage-1",
@@ -1827,33 +1928,42 @@
   },
   "p118-selling-margin-contributionsales-01": {
    "family": "selling-margin-contributionsales",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "hierarchy"
+   ],
+   "relation_from": "looked-at",
    "slots": 23,
    "primitives": 31,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p118-selling-margin-contributionsales-01.png"
+   "preview": "previews/p118-selling-margin-contributionsales-01.png",
+   "note": "树状分支/组织图"
   },
   "p119-maximizeshareholdervalue-01": {
    "family": "maximizeshareholdervalue",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "hierarchy"
+   ],
+   "relation_from": "looked-at",
    "slots": 9,
    "primitives": 15,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p119-maximizeshareholdervalue-01.png"
+   "preview": "previews/p119-maximizeshareholdervalue-01.png",
+   "note": "中心加五颗卫星，轮辐"
   },
   "p120-real-01": {
    "family": "real",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "hierarchy"
+   ],
+   "relation_from": "looked-at",
    "slots": 10,
    "primitives": 13,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p120-real-01.png"
+   "preview": "previews/p120-real-01.png",
+   "note": "括号树/谱系"
   },
   "p121-gantt10-01": {
    "family": "gantt10",
@@ -1869,13 +1979,16 @@
   },
   "p122-page122-01": {
    "family": "page122",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 24,
    "primitives": 43,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p122-page122-01.png"
+   "preview": "previews/p122-page122-01.png",
+   "note": "列网格带标注，时间/甘特形"
   },
   "p123-left-to-right-01": {
    "family": "left-to-right",
@@ -2024,193 +2137,251 @@
   },
   "p135-label-1-01": {
    "family": "label-1",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order",
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 21,
    "primitives": 21,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p135-label-1-01.png"
+   "preview": "previews/p135-label-1-01.png",
+   "note": "堆叠面积随时间"
   },
   "p136-label-1-01": {
    "family": "label-1",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 6,
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p136-label-1-01.png"
+   "preview": "previews/p136-label-1-01.png",
+   "note": "排序横条"
   },
   "p137-label-1-01": {
    "family": "label-1",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 6,
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p137-label-1-01.png"
+   "preview": "previews/p137-label-1-01.png",
+   "note": "排序横条"
   },
   "p137-label-1-02": {
    "family": "label-1",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 11,
    "primitives": 11,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p137-label-1-02.png"
+   "preview": "previews/p137-label-1-02.png",
+   "note": "排序横条"
   },
   "p138-label-1-01": {
    "family": "label-1",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 16,
    "primitives": 16,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p138-label-1-01.png"
+   "preview": "previews/p138-label-1-01.png",
+   "note": "分组横条，三序列"
   },
   "p139-label-1-01": {
    "family": "label-1",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 33,
    "primitives": 33,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p139-label-1-01.png"
+   "preview": "previews/p139-label-1-01.png",
+   "note": "堆叠横条"
   },
   "p140-label-1-01": {
    "family": "label-1",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 28,
    "primitives": 28,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p140-label-1-01.png"
+   "preview": "previews/p140-label-1-01.png",
+   "note": "堆叠横条"
   },
   "p141-titleunit-of-measure-01": {
    "family": "titleunit-of-measure",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "correlation"
+   ],
+   "relation_from": "looked-at",
    "slots": 16,
    "primitives": 16,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p141-titleunit-of-measure-01.png"
+   "preview": "previews/p141-titleunit-of-measure-01.png",
+   "note": "散点带气泡"
   },
   "p141-titleunit-of-measure-02": {
    "family": "titleunit-of-measure",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "element"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p141-titleunit-of-measure-02.png"
+   "preview": "previews/p141-titleunit-of-measure-02.png",
+   "note": "单圆（饼底）"
   },
   "p141-titleunit-of-measure-03": {
    "family": "titleunit-of-measure",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "element"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p141-titleunit-of-measure-03.png"
+   "preview": "previews/p141-titleunit-of-measure-03.png",
+   "note": "单圆"
   },
   "p141-titleunit-of-measure-04": {
    "family": "titleunit-of-measure",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 2,
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p141-titleunit-of-measure-04.png"
+   "preview": "previews/p141-titleunit-of-measure-04.png",
+   "note": "双圆交叠，韦恩"
   },
   "p141-titleunit-of-measure-05": {
    "family": "titleunit-of-measure",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "element"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p141-titleunit-of-measure-05.png"
+   "preview": "previews/p141-titleunit-of-measure-05.png",
+   "note": "单圆"
   },
   "p142-label-1-01": {
    "family": "label-1",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "looked-at",
    "slots": 10,
    "primitives": 10,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p142-label-1-01.png"
+   "preview": "previews/p142-label-1-01.png",
+   "note": "递增柱"
   },
   "p144-label-1-01": {
    "family": "label-1",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 24,
    "primitives": 24,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p144-label-1-01.png"
+   "preview": "previews/p144-label-1-01.png",
+   "note": "分组柱递增"
   },
   "p145-label-1-01": {
    "family": "label-1",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 40,
    "primitives": 40,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p145-label-1-01.png"
+   "preview": "previews/p145-label-1-01.png",
+   "note": "堆叠柱递增"
   },
   "p146-label-1-01": {
    "family": "label-1",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 41,
    "primitives": 41,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p146-label-1-01.png"
+   "preview": "previews/p146-label-1-01.png",
+   "note": "五根等高堆叠柱"
   },
   "p147-titleunit-of-measure-01": {
    "family": "titleunit-of-measure",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 7,
    "primitives": 7,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p147-titleunit-of-measure-01.png"
+   "preview": "previews/p147-titleunit-of-measure-01.png",
+   "note": "饼图分块"
   },
   "p147-titleunit-of-measure-02": {
    "family": "titleunit-of-measure",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "looked-at",
    "slots": 6,
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p147-titleunit-of-measure-02.png"
+   "preview": "previews/p147-titleunit-of-measure-02.png",
+   "note": "单根堆叠柱"
   },
   "p148-titleunit-of-measure-01": {
    "family": "titleunit-of-measure",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 14,
    "primitives": 14,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p148-titleunit-of-measure-01.png"
+   "preview": "previews/p148-titleunit-of-measure-01.png",
+   "note": "直方图"
   },
   "p149-arrows-01": {
    "family": "arrows",
@@ -2253,143 +2424,185 @@
   },
   "p153-legendlegendlegend-01": {
    "family": "legendlegendlegend",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "apparatus"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p153-legendlegendlegend-01.png"
+   "preview": "previews/p153-legendlegendlegend-01.png",
+   "note": "三色图例块"
   },
   "p155-page155-01": {
    "family": "page155",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "element"
+   ],
+   "relation_from": "looked-at",
    "slots": 2,
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p155-page155-01.png"
+   "preview": "previews/p155-page155-01.png",
+   "note": "两根深色斜条"
   },
   "p156-very-attractiveaveragevery-unattractive-01": {
    "family": "very-attractiveaveragevery-unattractive",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 18,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-01.png"
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-01.png",
+   "note": "哈维球，程度刻度"
   },
   "p156-very-attractiveaveragevery-unattractive-02": {
    "family": "very-attractiveaveragevery-unattractive",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 10,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-02.png"
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-02.png",
+   "note": "哈维球，程度刻度"
   },
   "p156-very-attractiveaveragevery-unattractive-03": {
    "family": "very-attractiveaveragevery-unattractive",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 18,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-03.png"
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-03.png",
+   "note": "哈维球，程度刻度"
   },
   "p156-very-attractiveaveragevery-unattractive-04": {
    "family": "very-attractiveaveragevery-unattractive",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 18,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-04.png"
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-04.png",
+   "note": "哈维球，程度刻度"
   },
   "p156-very-attractiveaveragevery-unattractive-05": {
    "family": "very-attractiveaveragevery-unattractive",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-05.png"
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-05.png",
+   "note": "哈维球，程度刻度"
   },
   "p156-very-attractiveaveragevery-unattractive-06": {
    "family": "very-attractiveaveragevery-unattractive",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 4,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-06.png"
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-06.png",
+   "note": "哈维球，程度刻度"
   },
   "p156-very-attractiveaveragevery-unattractive-07": {
    "family": "very-attractiveaveragevery-unattractive",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 4,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-07.png"
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-07.png",
+   "note": "哈维球，程度刻度"
   },
   "p156-very-attractiveaveragevery-unattractive-08": {
    "family": "very-attractiveaveragevery-unattractive",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 4,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-08.png"
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-08.png",
+   "note": "哈维球，程度刻度"
   },
   "p156-very-attractiveaveragevery-unattractive-09": {
    "family": "very-attractiveaveragevery-unattractive",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 10,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-09.png"
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-09.png",
+   "note": "哈维球，程度刻度"
   },
   "p156-very-attractiveaveragevery-unattractive-10": {
    "family": "very-attractiveaveragevery-unattractive",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "degree"
+   ],
+   "relation_from": "looked-at",
    "slots": 1,
    "primitives": 4,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-10.png"
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-10.png",
+   "note": "哈维球，程度刻度"
   },
   "p157-illustrative-01": {
    "family": "illustrative",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "apparatus"
+   ],
+   "relation_from": "looked-at",
    "slots": 8,
    "primitives": 16,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p157-illustrative-01.png"
+   "preview": "previews/p157-illustrative-01.png",
+   "note": "示意/初稿/仅供讨论 标注戳——C4-③ 的诚实边界标记"
   },
   "p158-disguised-client-example-01": {
    "family": "disguised-client-example",
-   "relation": [],
-   "relation_from": "unclassified",
+   "relation": [
+    "apparatus"
+   ],
+   "relation_from": "looked-at",
    "slots": 16,
    "primitives": 32,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p158-disguised-client-example-01.png"
+   "preview": "previews/p158-disguised-client-example-01.png",
+   "note": "整套披露标注戳"
   },
   "p159-world-map-01": {
    "family": "world-map",

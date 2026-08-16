@@ -2447,7 +2447,10 @@ def check_shape_library():
                       f"does not describe it")
     for dangling in sorted(set(shapes) - files):
         errors.append(f"tags.json describes {dangling}, which is not shipped")
-    LEGAL = {"tag", "page-name", "unclassified"}
+    # `looked-at` is the strongest of the four and the only one that has never
+    # been wrong here: somebody opened the rendered preview. `unclassified`
+    # stays legal because marking one is the alternative to guessing.
+    LEGAL = {"tag", "page-name", "looked-at", "unclassified"}
     for name, rec in sorted(shapes.items()):
         if rec.get("relation_from") not in LEGAL:
             errors.append(f"{name}: relation_from {rec.get('relation_from')!r} is "
