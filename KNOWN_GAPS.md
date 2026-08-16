@@ -35,6 +35,49 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   recorded via report --record (history rows pin skill 0.1.433); the
   scoreboard renders the current-skill runs and names the superseded ones.
 
+## GAP-012 · `visual_absent` cannot see a table, and five of six flagged pages are tables
+
+- status: open
+- opened: 0.1.489
+- surface: scripts/check/inspect_layout.py, the `VIS` selector list in the page probe
+- symptom: the gate reads visual presence from a CLASS LIST —
+  `.fig, .band, .lead, .swaps, .vows, .duo, .grades, .field` — so a page whose
+  argument is carried by a ruled comparison table with a highlighted row counts
+  as carrying **nothing visual at all**. A 15-page internal proposal failed the
+  gate on 6 of 11 content pages; **five of the six carry substantial tables**
+  and one (p12) is genuinely empty. Screenshots of both are in
+  `_layout/…0.1.489.r2…-p8.png` and `-p12.png`: the gate is right about p12 and
+  is measuring a vocabulary rather than the page on p8.
+- why it is not simply widened: whether a table is visual is a **design-language
+  decision, not a bug**. Counting tables makes the gate weaker — 0.1.339's fill
+  floor was met by stretching table rows, which is exactly this move — and not
+  counting them fails every table-driven analytical document. The owner decides
+  which, and the decision belongs in `references/design-rules.md` before it
+  belongs in the probe.
+- this is the hazard CLAUDE.md names: a probe keying on class names asserts a
+  vocabulary, and that vocabulary has to ship in `tokens/` or it is borrowed
+  from whatever document the probe was developed against. It was calibrated on
+  two documents.
+- check: once ruled, the probe reads the ruling, and a synthetic fixture with a
+  table-only page asserts the chosen verdict in both directions.
+
+## GAP-013 · the storyline vocabulary has no entry for a proposal
+
+- status: open
+- opened: 0.1.489
+- surface: scripts/lib/deliverable_registry.py `STORYLINES`
+- symptom: opening a trace for an internal design proposal that recommends a
+  decision was refused — the closed vocabulary is `market-analysis`, `gtm`,
+  `status-report`, `due-diligence`, `product-intro`, `training-curriculum`, and
+  none of them is "here is a decision, here is what I recommend and why". The
+  refusal is the schema working; the gap is that a real document type has no
+  name, so its trace cannot be opened at all.
+- check: either add a `proposal` / `recommendation` skeleton to
+  `references/storyline-templates.md` and the vocabulary together — a storyline
+  is a narrative skeleton, so a vocabulary entry without a template is a name
+  with nothing behind it — or rule that a proposal IS one of the existing six
+  and say which in the templates file.
+
 ## GAP-011 · C3 is two dimensions sharing one name
 
 - status: fixed

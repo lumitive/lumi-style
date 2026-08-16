@@ -1025,7 +1025,6 @@ def d6_footer(raw):
     missing_src, missing_total = [], []
     for i, body in enumerate(pages):
         text = _block_text(body, "foot")
-        pass  # provenance is a document-level question now; see below
         if not re.search(r"\b\w+\s*/\s*\d+\b", text):
             missing_total.append(i)
     # Provenance is stated once for the document, not on every page. 0.1.344
@@ -1035,8 +1034,17 @@ def d6_footer(raw):
     # handling terms that a commercial document does need. The obligation did not
     # go away — it moved to where it is read once, on the cover and the closing.
     # So this asks the document, and D12 asks every page for its terms.
+    # The vocabulary is deliberately wider than it looks necessary. A document
+    # whose colophon read "every claim traces to the research report of
+    # 2026-08-11" was reported as missing its provenance on all fifteen pages,
+    # because "traces to" was not on the list — a checker failing a document
+    # that does the right thing in words the checker did not anticipate. That
+    # failure direction is the dangerous one: the cheapest way to clear it is to
+    # edit correct prose until a pattern matches, which is the checker writing
+    # the document.
     doc_text = _block_text(raw, "colophon").lower()
-    if not re.search(r"source|derived from|based on|provenance", doc_text):
+    if not re.search(r"source|derives? from|derived from|based on|provenance"
+                     r"|traces? (?:back )?to|drawn from|comes from", doc_text):
         missing_src = list(range(len(pages)))
     return {"pages": len(pages), "missing_source": missing_src,
             "missing_total": missing_total}

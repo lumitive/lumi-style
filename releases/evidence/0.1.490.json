@@ -1,0 +1,15 @@
+{
+ "version": "0.1.490",
+ "diff_base": "bd02096c29202dfd3f816cf653d7e94adac00668",
+ "spec": "",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs and is unchanged by this release: 0.1.490 fixes one checker pattern and opens two ledger entries, and no conformance task exercises either. Stale since 0.1.470 and tracked there; refreshing it needs live agent runs and API keys, which CI does not have."
+  }
+ ]
+}

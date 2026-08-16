@@ -1,5 +1,64 @@
 # Changelog
 
+## 0.1.490 — a real build through the checks: one document defect, one checker false positive, and two closed vocabularies that had no name for this document
+
+The first deliverable built end-to-end since the refactor, run through every
+check. It was entered on **path B** — materials supplied, no discussion — and
+that is what its trace records, because the four-beat discussion path opens with
+the user's own free statement and simulating it would write `entry_path=A` for a
+conversation that did not happen. That falsehood is precisely what the trace
+exists to prevent.
+
+Four findings, and the useful part is that they are of four different kinds.
+
+**A defect in the document, caught by a metric added two releases ago.**
+`D23_font_count` reported three typefaces against a ceiling of two. The third
+was `font-family: var(--body)` on the figure footnote class — **a custom
+property nothing defines**, in `tokens/` or in the document, so every footnote
+inside every figure fell back to the browser's default face. Fixed at source.
+
+**A false positive in a checker, caught by the document.** `D6_footer` reported
+all fifteen pages missing their provenance. The colophon read *"every claim
+traces to the research report of 2026-08-11"* — provenance stated in plain
+English, in a phrase the pattern did not list. The failure direction matters:
+the cheapest way to clear it is to edit correct prose until the pattern matches,
+which is the checker writing the document. The vocabulary was widened, with a
+test asserting **both** directions — nine phrasings recognised, three colophons
+with no provenance still failing — because widening a pattern is the move that
+quietly disables a check. The test caught its own first draft, which had
+`derives from` and not `derive from`.
+
+**A gate that is right and wrong on the same run — GAP-012.** `visual_absent`
+fired on 6 of 11 content pages. It reads visual presence from a class list, so a
+page whose argument is carried by a ruled comparison table with a highlighted
+row counts as carrying nothing visual at all. Screenshots of two flagged pages
+settle it: one is genuinely empty and the gate is right; the other is a
+well-formed comparison table and the gate is measuring a vocabulary rather than
+the page. **Five of the six are tables, so this single question decides whether
+the document ships.** It is not widened here, because whether a table is visual
+is a design-language decision and not a bug — counting tables makes the gate
+weaker in exactly the way 0.1.339's fill floor was gamed by stretching table
+rows. It goes to the owner with the evidence.
+
+**A closed vocabulary with no name for a real document type — GAP-013.** The
+trace refused to open: the storyline vocabulary has no entry for "here is a
+decision, here is what I recommend and why". The refusal is the schema working;
+the gap is that the document cannot be traced at all. A vocabulary entry needs a
+narrative skeleton behind it, so this is a `storyline-templates.md` change and
+not a tuple edit.
+
+Both gaps are the same shape, and it is the one `CLAUDE.md` names: a probe that
+keys on class names is asserting a vocabulary, and a closed enum is asserting a
+taxonomy. Each was calibrated against the documents that existed when it was
+written. A third document found the edge of both on its first run — which is the
+argument for building documents rather than reasoning about them.
+
+The build also needed two path repairs in its own source: `scripts/` was
+reorganised into `lib/ ops/ check/ build/ render/` during this refactor, and a
+source script written before it imported `new_deck` and shelled out to
+`scripts/globe_svg.py`. Its output now carries a run number as well as a
+version, through `output_dir.next_run_name`.
+
 ## 0.1.489 — C3 splits into C3 and C8 on the owner's ruling, and the scoring sheet stops handing a machine's checklist to a human
 
 **GAP-011, closed by owner ruling: split.** C3 carried six evidence items about
