@@ -1,5 +1,56 @@
 # Changelog
 
+## 0.1.486 — the sheet is written in the reviewer's language, and the rule requiring that is put back
+
+**A rule was deleted at 0.1.463 and its absence surfaced here.** The old H
+section's heading carried "anchors must be written in the reviewer's language,
+not internal jargon", and replacing that heading with C1–C7 took the rule with
+it. **That is the second rule lost inside a dimension migration** — the first
+was old H3's "clear without the body text", restored as C3-⑥ at 0.1.463 itself.
+
+The rule is back in the C section, and it matters more now rather than less: an
+anchor was a sentence a reviewer read once, and an evidence item is a line they
+tick twenty-nine times.
+
+**`scripts/ops/scoring_sheet.py` emits the sheet in the reviewer's language**,
+with the wording table and the rubric parser in `scripts/lib/rubric_items.py`.
+The items are parsed out of `eval-rubric.md` and never restated; the wording is
+a translation of them, which makes it rule DATA of the same kind as
+`check_prose.py`'s Chinese ban list — and why that file, not the CLI, is on the
+english-only allowlist. **Repository prose stays English; what a reviewer reads
+does not.**
+
+**`scoring sheet parity` guard.** A translation is a second copy, and a second
+copy of anything is this repository's oldest defect. The guard fails on an item
+with no wording and on a wording naming an item that is gone. **The last sheet
+described H1–H6 for two releases after they were replaced**, and nothing caught
+it because nothing held the sheet to the rubric.
+
+**Where the shared definition lives was decided by a test, not by taste.** The
+first version had `check_repo` load the wording out of `scripts/ops/`, and the
+emergency-closure test failed it: an emergency merge would then run the pull
+request's own copy of the file being checked. It moved to `scripts/lib/`, which
+is where `trace_schema.py` went for the same reason and for the same test.
+
+The sheet also states its own discipline in that language: no mechanical number
+appears on it, because a reader who has seen the machine's answer is no longer
+an independent measurement.
+
+**Writing it in Chinese found a gating defect in M6.** The metric decides that a
+range is an enumeration label rather than an unsourced measurement by looking
+for a counting noun BEFORE the number — which is where English puts it. Chinese
+puts the measure word after, so the number leads and the counter follows it. So no Chinese enumeration
+could match, and what saved most cases was the short-block fallback — meaning
+**the same phrase was a label in a short block and an unsourced range in a long
+one**. M6 fails the run, so every long Chinese block naming a scale or a group
+size was a blocked build, in one of this package's two output languages.
+
+The Chinese measure words now match after the number, and a real unsourced range
+is still caught. This is part of E1's execution, under
+`specs/2026-08-15-principles-and-evals-refactor-design.md`. **It was found by running the package's own checkers over a
+document the package had just written in Chinese** — the first time that had
+happened.
+
 ## 0.1.485 — a build gets a run number, and the scoring sheet is built from the rubric rather than typed beside it
 
 **Two builds of one version used to land on the same filename.** The second

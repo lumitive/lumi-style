@@ -1,0 +1,15 @@
+{
+ "version": "0.1.486",
+ "diff_base": "a997d85054312cd8897e311156854cd95f2acfee",
+ "spec": "specs/2026-08-15-principles-and-evals-refactor-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Still unconfirmed and still named: the board predates this refactor, and refreshing it drives real agents with credentials this repository does not hold."
+  }
+ ]
+}
