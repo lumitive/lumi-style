@@ -1,0 +1,15 @@
+{
+ "version": "0.1.474",
+ "diff_base": "eba35d4edb5ecd8c518245454a815b4838a508d6",
+ "spec": "specs/2026-08-15-principles-and-evals-refactor-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Still unconfirmed and still named: the board predates this refactor, and refreshing it drives real agents with credentials this repository does not hold. Whether each agent follows the changed skill is UNKNOWN rather than passing."
+  }
+ ]
+}
