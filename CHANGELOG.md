@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.1.475 — the shape library is curated and ingested: 68 of 206, by one rule applied mechanically
+
+**GAP-009 closes.** 206 figure units were extracted, recoloured to bind design
+tokens and verified; what had not happened was curation, and it is a judgement
+about the design language rather than a script. It is now done, by the rule
+`design-rules.md` §4.1 already stated: **a shape enters only if the relation it
+encodes serves the chart rules.**
+
+Applied mechanically: a unit is in if it carries an explicit relation tag —
+composition (24), order (39), process (42), hierarchy (12), correlation (3),
+degree (2). **68 are in; the other 138 draw no relation** and are page
+furniture, single-primitive fragments and label art. Ingesting them would have
+produced a second figure vocabulary standing next to §4 rather than a library
+serving it.
+
+**The obvious basis for curation was noise, and using it would have been
+arbitrary.** The extraction carries a `family_label` per unit, and it looks like
+a taxonomy — 134 distinct values. It is OCR'd slide text: "Label 1",
+"New entrant", and a CJK source-line label. Curating by it would have grouped a source-line
+template with a hierarchy diagram. The relation tags are the real basis, and
+checking that before writing the selection was what stopped it.
+
+**Two units were set aside for a person rather than dropped silently.**
+`p124-process-objectives-01` and `p109-change-vision-01` are large enough to be
+real diagrams and carry no relation tag; their slide labels suggest what they
+are, and a slide label is exactly the evidence just shown to be noise. They
+stay out until someone looks.
+
+**The selectivity is worth its number.** A deliverable referencing two shapes
+embeds 37 KB. The library is 1852 KB. Inlining it would have put fifty times the
+geometry a document uses into every document, which is the reason
+`embed_shapes.py` exists and the reason it emits only what was referenced.
+
+`assets/shapes/SOURCE.md` records provenance, the licence position and the
+selection rule; `tags.json` carries relation, family words, slot count and the
+metaphor flag for each shape.
+
+This closes T2 of
+`specs/2026-08-15-principles-and-evals-refactor-design.md`.
+
 ## 0.1.474 — the release flow becomes a tool, because the rule it broke had already been written down
 
 **`scripts/ops/release.py`.** The release flow was six to eight commands run by
