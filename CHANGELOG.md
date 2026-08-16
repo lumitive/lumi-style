@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.1.477 — the two small globe marks are withdrawn, and the lock they sat under is re-stamped rather than bypassed
+
+**`globe-mark.svg` and `globe-mark-small.svg` are deleted** — the owner judged
+them no longer fit for purpose. `build_brand.py` no longer emits them, the brand
+README no longer lists them, and `LOCKED.json` no longer carries their hashes.
+
+**What is deliberately untouched**: the field globe (`globe-field.svg`, the
+default cover and closing mark), the cover pair, and `assets/vectors/`. That
+last one matters — it was checked before anything was deleted, and it is not a
+few stale drawings but the data behind `check_globe.py`, `build_brand.py`,
+`build_region_palette.py`, D18's region labels and the `data-globe` runtime
+D19 resolves. Removing it would have been a capability withdrawal rather than a
+cleanup, so the scope was confirmed first and narrowed to the two marks.
+
+**The brand lock fired, which is the mechanism working.** `build_brand.py` is
+itself a locked file, so editing it failed the `brand lock` guard. The lock is
+**re-stamped with the reason recorded in its own `why` field**, not edited
+around: a lock that can be worked past protects nothing, and the record of what
+changed and why is the entire point of having one.
+
 ## 0.1.476 — the shape library is complete, because both curations of it were wrong
 
 **All 206 units ship.** 0.1.475 shipped 68 of them, curated by the rule that a
