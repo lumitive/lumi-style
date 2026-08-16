@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.1.478 — the last seventy shapes are classified by the only method that has not been wrong here: looking at them
+
+**GAP-009 closes.** 70 of the 206 shapes carried no relation, so a third of the
+library could not be reached by selection-by-relation — usable, but not findable
+by the thing that finds shapes. All 70 are now classified, and `relation_from`
+records how: **`looked-at`**, meaning the rendered preview was opened and the
+shape classified from what it draws.
+
+**Two earlier attempts classified from the tags and from the page names, and
+both were wrong.** The extraction's tags are sparse, and going by them dropped
+the `flow-2` … `flow-6` and `cycle-2` … `cycle-8` families. The names lie
+outright: `box` is a 2×2 grid with a four-arrow cycle through it, `surround` is
+a large directional arrow, and **`p012-footnotesource` is a 3×3×3 cube**. Three
+attempts, and the one that worked is the one where somebody looked.
+
+**What looking found that no name would have.** Two of the six contact sheets
+are almost entirely **chart primitives** — sorted bars, stacked areas over time,
+grouped columns, pie, histogram, scatter, Harvey balls — which is Zelazny's
+comparison set in drawable form, and none of it was tagged. And
+`p157-illustrative` and `p158-disguised-client-example` are a set of
+**"illustrative / preliminary draft / for discussion only" stamps**: exactly
+what C4-③ asks a document to carry where an estimate appears, sitting unlabelled
+in a library nobody had opened.
+
+**Two categories were added rather than forcing everything into a relation.**
+`element` is a basic form that asserts no relation by itself — a plain block, a
+single circle — and composes into figures. `apparatus` serves the document
+rather than the argument: legend swatches, the disclosure stamps. **Neither is a
+reject**, and inventing a relation for either would have been the same mistake
+one level along.
+
+The `shape library` guard accepts `looked-at` alongside the other three, and
+`unclassified` stays legal because marking one is the alternative to guessing.
+
 ## 0.1.477 — the two small globe marks are withdrawn, and the lock they sat under is re-stamped rather than bypassed
 
 **`globe-mark.svg` and `globe-mark-small.svg` are deleted** — the owner judged

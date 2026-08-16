@@ -60,37 +60,33 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-009 · The shape library's relation classification is a third unclassified
 
-- status: open
+- status: fixed
 - opened: 0.1.473
+- closed: 0.1.478
 - surface: assets/shapes/tags.json
-- symptom: the library is complete — all 206 units ship — but **70 of them carry
-  `relation_from: unclassified`**: the extraction tagged 68, the template's own
-  page names named another 68, and the rest is neither. They are usable and a
-  person can look at the preview; what they lack is the machine-readable
-  relation that makes "choose by the relation the content has" checkable.
-- history, because it is the point: this entry was closed at 0.1.475 with a
-  curated 68 of 206, on the rule that a shape enters only if its relation serves
-  the chart rules. **That curation was wrong twice over.** The relation tags are
-  sparse rather than authoritative, so it dropped the `flow-2`…`flow-6` and
-  `cycle-2`…`cycle-8` families — one relation at several arities, which is the
-  most useful thing a shape library holds. And the exclusions were made from
-  page names: of the two checked against the rendered preview, **both were
-  wrong** — `box` is a 2×2 grid with a four-arrow cycle and `surround` is a
-  large directional arrow, neither a text box. Reopened, and the library is now
-  complete: an absent shape cannot be chosen, an unclassified one merely carries
-  no recommendation.
-- check: classify the remaining 70 by looking at their previews, which is the
-  step whose absence produced both wrong curations. Convention 15 named it
-  before this happened; the previews were rendered and never opened.
-- **deferred by the owner, 2026-08-16.** A review sheet was built for exactly
-  this (`_refactor/assets-staging/GAP-009-待分类审阅.html`, the 70 first and the
-  136 classified ones after them as a reference) and she chose to pass for now.
-  Recorded so a later session reads this as a decision rather than as something
-  forgotten. **The library is usable meanwhile**: all 206 ship, and an
-  unclassified shape can still be referenced — what it lacks is a relation, so
-  selection-by-relation will not surface it. **Nobody should classify these from
-  the name or the tag**; that is precisely what produced two wrong curations,
-  and an unclassified shape is better than a mislabelled one.
+- symptom: the library shipped complete — all 206 units — but 70 carried
+  `relation_from: unclassified`, so a third of it could not be reached by
+  selection-by-relation. Usable, but not findable by the thing that finds
+  shapes.
+- check: all 70 are classified, and by the one method that has not been wrong
+  here — **the rendered previews were opened and each shape classified from what
+  it draws**. Contact sheets of twelve at a time; `relation_from: looked-at`.
+  Two earlier attempts classified from the extraction's tags and from the page
+  names, and both were wrong: the tags are sparse (they dropped the `flow-2`…
+  `flow-6` and `cycle-2`…`cycle-8` families), and the names lie — `box` is a 2×2
+  grid with a four-arrow cycle, `surround` is a large directional arrow, and
+  `p012-footnotesource` is a 3×3×3 cube.
+- what looking found that no name would have: the fourth and fifth sheets are
+  almost entirely **chart primitives** — sorted bars, stacked areas over time,
+  grouped columns, pie, histogram, scatter, Harvey balls — which is Zelazny's
+  comparison set in drawable form. And `p157-illustrative` / `p158-disguised-
+  client-example` are a set of **"illustrative / preliminary draft / for
+  discussion only" stamps**, which is exactly what C4-③ asks a document to carry
+  where an estimate appears.
+- two categories were added rather than forcing everything into a relation:
+  **`element`** is a basic form asserting no relation by itself (a plain block, a
+  single circle) and **`apparatus`** serves the document rather than the argument
+  (legend swatches, the disclosure stamps). Neither is a reject.
 
 ## GAP-008 · P-1 is stated wider than anything checks it
 
