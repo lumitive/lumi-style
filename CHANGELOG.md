@@ -1,5 +1,58 @@
 # Changelog
 
+## 0.1.476 — the shape library is complete, because both curations of it were wrong
+
+**All 206 units ship.** 0.1.475 shipped 68 of them, curated by the rule that a
+shape enters only if its relation serves the chart rules. The rule is right and
+the application was wrong, twice over.
+
+**The relation tags are sparse, not authoritative.** 138 units carry none, and
+among them are `flow-2` … `flow-6` and `cycle-2` … `cycle-8` — one relation at
+several arities, which is the most useful thing a shape library holds, because
+the real question at the point of choosing is "how many steps do I have". The
+curation dropped all of them.
+
+**The exclusions were made from page names, and the two checked against a
+rendered preview were both wrong.** `box` is a 2×2 quadrant grid with a
+four-arrow cycle through it, not a text box. `surround` is a large directional
+arrow. **A name does not tell you what a drawing is** — and the 2560px preview
+of every unit had been rendered days earlier and never opened. Convention 15
+says to look at a real instance before writing a rule that keys on its shape;
+this is the third time in this run that not doing so produced a wrong model, and
+the first time it discarded work rather than shipping a broken check.
+
+**So nothing is excluded.** An absent shape cannot be chosen by anything, while
+an unclassified one merely carries no recommendation. `tags.json` gives each
+shape its family, relation, `relation_from` (`tag` / `page-name` /
+`unclassified`), slot count, metaphor flag and preview path. 68 classified from
+the extraction's own semantics, 68 from the template's page titles, **70 left
+unclassified and marked as such** rather than guessed at.
+
+**The extraction audit was run, and so was a new one for the ingestion.**
+`assets-staging/tools/verify_all.py` follows geometry from source page to
+rendered pixel across six checks — coverage, conservation, route choice,
+recolour drift, rendered ink, 3D validity — and passes on all 206. It had never
+been run against this ingestion. A second check confirms the copy: 206 files,
+byte-identical to the staging library, manifest and files the same set, every
+tree parses. The half that can live in this repository is now the **`shape
+library` guard**: manifest and files are one set, `relation_from` is one of
+three legal values, and **no shipped shape is an empty frame** — a file can
+exist, parse and render as nothing, which this library produced twice during
+extraction. Deliberate-red both ways.
+
+**GAP-009 reopens**, narrowed to those 70: they need a person to look at the
+preview, which is the step whose absence caused both wrong curations.
+
+**Two version-stamp findings, from re-reviewing the release tool.**
+`references/PRINCIPLES.md` has carried a version stamp since 0.1.459 and was
+**never added to `ENTRY_STAMP`**, which `CLAUDE.md` requires — so a stamp naming
+a real earlier release passed silently, and only a stamp naming a version that
+does not exist was caught. Verified by planting both. It is registered now.
+And `release.py`'s own stamp table was a **third copy** of where the stamps
+live; the token positions are now a shared `TOKEN_STAMPS` constant, because a
+second list of stamp positions arriving through the door marked "release
+tooling" is this repository's own worst defect class.
+
 ## 0.1.475 — the shape library is curated and ingested: 68 of 206, by one rule applied mechanically
 
 **GAP-009 closes.** 206 figure units were extracted, recoloured to bind design

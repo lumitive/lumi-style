@@ -151,11 +151,7 @@ def check_versions():
         )
 
     token_versions = {}
-    for name, pattern in (
-        ("tokens/lumi-theme.css", r"LUMI visual theme\s*·\s*v(\d+\.\d+\.\d+)"),
-        ("tokens/design-tokens.json", r"LUMI design tokens v(\d+\.\d+\.\d+)"),
-        ("tokens/lumi-layouts.css", r"LUMI page layouts\s*·\s*v(\d+\.\d+\.\d+)"),
-    ):
+    for name, pattern in TOKEN_STAMPS:
         text = (ROOT / name).read_text(encoding="utf-8")
         found = re.search(pattern, text)
         if not found:
@@ -1338,6 +1334,17 @@ PLATFORMS = ROOT / "adapters" / "platforms.json"
 # sentence explaining that it used to be unstamped. A file that merely mentions
 # the current version is not a file that declares it. An entry point with no
 # pattern here fails rather than being skipped.
+# Where the token files carry the version. A module constant rather than a
+# literal inside check_versions, because scripts/ops/release.py writes these
+# stamps and must not carry its own copy of where they are — a second list of
+# stamp positions is this repository's own worst defect class, arriving through
+# the door marked "release tooling".
+TOKEN_STAMPS = (
+    ("tokens/lumi-theme.css", r"LUMI visual theme\s*·\s*v(\d+\.\d+\.\d+)"),
+    ("tokens/design-tokens.json", r"LUMI design tokens v(\d+\.\d+\.\d+)"),
+    ("tokens/lumi-layouts.css", r"LUMI page layouts\s*·\s*v(\d+\.\d+\.\d+)"),
+)
+
 ENTRY_STAMP = {
     "SKILL.md": r'^\s*version:\s*"{v}"',
     "AGENTS.md": r"\*\*lumi-style {v}\.?\*\*",
@@ -1347,6 +1354,12 @@ ENTRY_STAMP = {
     # there, which by construction cannot see staleness — a stale stamp names a
     # real release and stays legal forever. This is the check that sees it.
     "conformance/CONFORMANCE.md": r"skill {v}",
+    # The constitution carries a stamp too, and from 0.1.459 to 0.1.475 it was
+    # not declared here. The citation guard caught a stamp naming a version that
+    # does not exist, and nothing caught one naming a real EARLIER release —
+    # which is exactly the staleness this table exists to see, and exactly what
+    # CLAUDE.md says happens to a stamp with no declared position.
+    "references/PRINCIPLES.md": r"\*\*lumi-style {v}\.?\*\*",
 }
 
 # A version string may name something other than a release only with a reason.
@@ -2394,6 +2407,59 @@ def _metric_ids(prefix: str) -> tuple[set[str], set[str]]:
     return ids, gating
 
 
+def check_shape_library():
+    """The shape library's manifest and its files are the same set, and every
+    shape actually draws something.
+
+    Counting files proves nothing: a file can exist, parse, and render as an
+    empty frame — a defect this library produced twice during extraction. The
+    staging area has a six-check audit that follows geometry from the source
+    page to the rendered pixel; what THIS checks is the half that lives here —
+    that the ingestion is complete, that the manifest describes exactly the
+    files present, and that no shipped shape is an empty tree.
+
+    It also holds `relation_from` to its three legal values. `unclassified` is
+    one of them and is not a failure: 70 units are in that state, they are
+    usable, and marking them is the alternative to guessing — two curations of
+    this library were wrong precisely because a name was read as a
+    classification.
+    """
+    lib = ROOT / "assets" / "shapes"
+    if not lib.exists():
+        return []                    # not ingested is a legal state
+    manifest = lib / "tags.json"
+    if not manifest.exists():
+        return ["assets/shapes/ exists with no tags.json — a library with no "
+                "manifest cannot be chosen from"]
+    try:
+        doc = json.loads(manifest.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"assets/shapes/tags.json does not parse: {exc}"]
+
+    shapes = doc.get("shapes") or {}
+    if not shapes:
+        return ["assets/shapes/tags.json names no shapes — the guard would pass "
+                "vacuously"]
+    files = {p.stem for p in lib.glob("*.svg")}
+    errors = []
+    for missing in sorted(files - set(shapes)):
+        errors.append(f"assets/shapes/{missing}.svg is shipped and the manifest "
+                      f"does not describe it")
+    for dangling in sorted(set(shapes) - files):
+        errors.append(f"tags.json describes {dangling}, which is not shipped")
+    LEGAL = {"tag", "page-name", "unclassified"}
+    for name, rec in sorted(shapes.items()):
+        if rec.get("relation_from") not in LEGAL:
+            errors.append(f"{name}: relation_from {rec.get('relation_from')!r} is "
+                          f"not one of {sorted(LEGAL)}")
+    for path in sorted(lib.glob("*.svg")):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if not re.search(r"<(path|rect|circle|ellipse|polygon|polyline|line)\b", text):
+            errors.append(f"{rel(path)} carries no geometry — a shape that "
+                          f"renders as an empty frame is the defect the "
+                          f"extraction audit exists to catch")
+    return errors
+
 def check_brand_registry():
     """The brand registry names brands whose assets exist, and it stays thin.
 
@@ -2756,6 +2822,7 @@ CHECKS = (
     ("genre vocabulary", check_genre_vocabulary),
     ("two-axis vocabulary", check_two_axis_vocabulary),
     ("brand registry", check_brand_registry),
+    ("shape library", check_shape_library),
     ("metric id ranges", check_metric_id_ranges),
     ("gating claims", check_gating_claims),
     ("version stamps", check_versions),

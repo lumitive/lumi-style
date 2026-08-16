@@ -1,748 +1,2407 @@
 {
- "$comment": "Curated from the raw extraction by ONE rule, stated in references/design-rules.md §4.1: a shape enters only if the relation it encodes serves the chart rules. 206 units were extracted; 68 carry an explicit relation tag and are here. The other 138 are page furniture, single-primitive fragments and label art — they draw no relation, so they would have been a second figure vocabulary rather than a figure library.",
- "schema": 1,
+ "$comment": "The complete extracted library — all 206 units, nothing excluded. Two earlier curations excluded units by their page name, and both samples checked against the rendered preview were wrong: `box` is a 2x2 quadrant grid with a four-arrow cycle, not a text box, and `surround` is a large directional arrow. A name does not tell you what a drawing is. An absent shape cannot be chosen by anything, while an unclassified one merely carries no recommendation — so the library is complete and `relation` is guidance rather than an entry fee. `relation_from` says how each was reached: `tag` from the extraction's semantics, `page-name` from the template's own page title, `unclassified` where neither answered and a person has not yet looked.",
+ "schema": 3,
  "relations": [
   "composition",
   "correlation",
   "degree",
+  "geography",
   "hierarchy",
+  "metaphor",
   "order",
   "process"
  ],
  "shapes": {
+  "p002-page2-01": {
+   "family": "page2",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 40,
+   "primitives": 404,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p002-page2-01.png"
+  },
+  "p002-page2-02": {
+   "family": "page2",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 4,
+   "primitives": 7,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p002-page2-02.png"
+  },
+  "p003-page3-01": {
+   "family": "page3",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p003-page3-01.png"
+  },
   "p005-2x2-cubed-01": {
+   "family": "2x2-cubed",
    "relation": [
     "composition"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 1,
    "primitives": 48,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": true,
+   "preview": "previews/p005-2x2-cubed-01.png"
   },
   "p006-2x2-tower-01": {
+   "family": "2x2-tower",
    "relation": [
     "composition",
     "hierarchy"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 6,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p006-2x2-tower-01.png"
   },
   "p006-2x2-tower-02": {
+   "family": "2x2-tower",
    "relation": [
     "composition",
     "hierarchy"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p006-2x2-tower-02.png"
   },
-  "p009-arrow-3d-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 1,
-   "primitives": 1,
-   "decoration_risk": false,
-   "three_d": false
-  },
-  "p010-cubes1-3d-01": {
-   "relation": [
-    "composition"
-   ],
-   "family": [],
-   "slots": 4,
-   "primitives": 24,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p010-cubes1-3d-02": {
-   "relation": [
-    "composition"
-   ],
-   "family": [],
-   "slots": 24,
-   "primitives": 144,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p011-cubes2-3d-01": {
-   "relation": [
-    "composition"
-   ],
-   "family": [],
-   "slots": 21,
-   "primitives": 126,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p011-cubes2-3d-02": {
-   "relation": [
-    "composition"
-   ],
-   "family": [],
-   "slots": 4,
-   "primitives": 24,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p013-cutout-3d-01": {
-   "relation": [
-    "composition"
-   ],
-   "family": [],
-   "slots": 1,
-   "primitives": 1,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p015-joint-01": {
-   "relation": [
-    "correlation"
-   ],
-   "family": [],
-   "slots": 13,
-   "primitives": 13,
-   "decoration_risk": false,
-   "three_d": false
-  },
-  "p016-level-separate-4-01": {
-   "relation": [
-    "composition",
-    "hierarchy"
-   ],
-   "family": [],
+  "p007-price-01": {
+   "family": "price",
+   "relation": [],
+   "relation_from": "unclassified",
    "slots": 11,
-   "primitives": 22,
+   "primitives": 11,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p007-price-01.png"
   },
-  "p017-linear-a-3d-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 4,
-   "primitives": 4,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p018-linear-b-3d-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 4,
-   "primitives": 4,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p019-linear-c-3d-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 1,
-   "primitives": 1,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p019-linear-c-3d-02": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 1,
-   "primitives": 1,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p020-linear-d-3d-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 3,
-   "primitives": 3,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p021-linear-e-3d-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 5,
-   "primitives": 5,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p022-linear-g-3d-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 3,
-   "primitives": 3,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p023-linear-i-3d-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 1,
-   "primitives": 1,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p024-linear-j-3d-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 4,
-   "primitives": 4,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p025-linear-n-3d-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
+  "p008-strategy-01": {
+   "family": "strategy",
+   "relation": [],
+   "relation_from": "unclassified",
    "slots": 14,
    "primitives": 14,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": false,
+   "preview": "previews/p008-strategy-01.png"
   },
-  "p026-linear-p-3d-01": {
+  "p009-arrow-3d-01": {
+   "family": "arrow-3d",
    "relation": [
     "order",
     "process"
    ],
-   "family": [],
-   "slots": 6,
-   "primitives": 6,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p027-linear-q-3d-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": false,
+   "preview": "previews/p009-arrow-3d-01.png"
   },
-  "p028-linear-q-3d-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 1,
-   "primitives": 1,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p030-perspective-3d-01": {
+  "p010-cubes1-3d-01": {
+   "family": "cubes1-3d",
    "relation": [
     "composition"
    ],
-   "family": [],
+   "relation_from": "tag",
+   "slots": 4,
+   "primitives": 24,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p010-cubes1-3d-01.png"
+  },
+  "p010-cubes1-3d-02": {
+   "family": "cubes1-3d",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "tag",
+   "slots": 24,
+   "primitives": 144,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p010-cubes1-3d-02.png"
+  },
+  "p011-cubes2-3d-01": {
+   "family": "cubes2-3d",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "tag",
+   "slots": 21,
+   "primitives": 126,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p011-cubes2-3d-01.png"
+  },
+  "p011-cubes2-3d-02": {
+   "family": "cubes2-3d",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "tag",
+   "slots": 4,
+   "primitives": 24,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p011-cubes2-3d-02.png"
+  },
+  "p012-footnotesource-01": {
+   "family": "footnotesource",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 27,
+   "primitives": 162,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p012-footnotesource-01.png"
+  },
+  "p012-footnotesource-02": {
+   "family": "footnotesource",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 27,
+   "primitives": 162,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p012-footnotesource-02.png"
+  },
+  "p013-cutout-3d-01": {
+   "family": "cutout-3d",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p013-cutout-3d-01.png"
+  },
+  "p014-new-entrant-01": {
+   "family": "new-entrant",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p014-new-entrant-01.png"
+  },
+  "p014-new-entrant-02": {
+   "family": "new-entrant",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p014-new-entrant-02.png"
+  },
+  "p014-new-entrant-03": {
+   "family": "new-entrant",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p014-new-entrant-03.png"
+  },
+  "p014-new-entrant-04": {
+   "family": "new-entrant",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p014-new-entrant-04.png"
+  },
+  "p014-new-entrant-05": {
+   "family": "new-entrant",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p014-new-entrant-05.png"
+  },
+  "p015-joint-01": {
+   "family": "joint",
+   "relation": [
+    "correlation"
+   ],
+   "relation_from": "tag",
+   "slots": 13,
+   "primitives": 13,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p015-joint-01.png"
+  },
+  "p016-level-separate-4-01": {
+   "family": "level-separate-4",
+   "relation": [
+    "composition",
+    "hierarchy"
+   ],
+   "relation_from": "tag",
+   "slots": 11,
+   "primitives": 22,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p016-level-separate-4-01.png"
+  },
+  "p017-linear-a-3d-01": {
+   "family": "linear-a-3d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 4,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p017-linear-a-3d-01.png"
+  },
+  "p018-linear-b-3d-01": {
+   "family": "linear-b-3d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 4,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p018-linear-b-3d-01.png"
+  },
+  "p019-linear-c-3d-01": {
+   "family": "linear-c-3d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p019-linear-c-3d-01.png"
+  },
+  "p019-linear-c-3d-02": {
+   "family": "linear-c-3d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p019-linear-c-3d-02.png"
+  },
+  "p020-linear-d-3d-01": {
+   "family": "linear-d-3d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 3,
+   "primitives": 3,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p020-linear-d-3d-01.png"
+  },
+  "p021-linear-e-3d-01": {
+   "family": "linear-e-3d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 5,
+   "primitives": 5,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p021-linear-e-3d-01.png"
+  },
+  "p022-linear-g-3d-01": {
+   "family": "linear-g-3d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 3,
+   "primitives": 3,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p022-linear-g-3d-01.png"
+  },
+  "p023-linear-i-3d-01": {
+   "family": "linear-i-3d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p023-linear-i-3d-01.png"
+  },
+  "p024-linear-j-3d-01": {
+   "family": "linear-j-3d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 4,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p024-linear-j-3d-01.png"
+  },
+  "p025-linear-n-3d-01": {
+   "family": "linear-n-3d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 14,
+   "primitives": 14,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p025-linear-n-3d-01.png"
+  },
+  "p026-linear-p-3d-01": {
+   "family": "linear-p-3d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 6,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p026-linear-p-3d-01.png"
+  },
+  "p027-linear-q-3d-01": {
+   "family": "linear-q-3d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p027-linear-q-3d-01.png"
+  },
+  "p028-linear-q-3d-01": {
+   "family": "linear-q-3d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p028-linear-q-3d-01.png"
+  },
+  "p029-implement-01": {
+   "family": "implement",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 6,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p029-implement-01.png"
+  },
+  "p030-perspective-3d-01": {
+   "family": "perspective-3d",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "tag",
    "slots": 40,
    "primitives": 7160,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": true,
+   "preview": "previews/p030-perspective-3d-01.png"
   },
   "p031-propeller-3d-01": {
+   "family": "propeller-3d",
    "relation": [
     "correlation",
     "hierarchy"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 4,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p031-propeller-3d-01.png"
   },
   "p032-rings-3d-01": {
+   "family": "rings-3d",
    "relation": [
     "composition",
     "process"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 19,
    "primitives": 19,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p032-rings-3d-01.png"
   },
   "p032-rings-3d-02": {
+   "family": "rings-3d",
    "relation": [
     "composition",
     "process"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 4,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p032-rings-3d-02.png"
   },
   "p033-scale-01": {
+   "family": "scale",
    "relation": [
     "degree"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p033-scale-01.png"
   },
   "p034-scales-01": {
+   "family": "scales",
    "relation": [
     "degree"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 10,
    "primitives": 14,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p034-scales-01.png"
+  },
+  "p035-sizes-in-01": {
+   "family": "sizes-in",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 6,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p035-sizes-in-01.png"
   },
   "p036-spiral1-3d-01": {
+   "family": "spiral1-3d",
    "relation": [
     "order",
     "process"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 381,
    "primitives": 456,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p036-spiral1-3d-01.png"
   },
   "p037-spiral-01": {
+   "family": "spiral",
    "relation": [
     "order",
     "process"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 17,
    "primitives": 17,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p037-spiral-01.png"
   },
   "p037-spiral-02": {
+   "family": "spiral",
    "relation": [
     "order",
     "process"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 9,
    "primitives": 9,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p037-spiral-02.png"
   },
   "p037-spiral-03": {
+   "family": "spiral",
    "relation": [
     "order",
     "process"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 15,
    "primitives": 15,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p037-spiral-03.png"
+  },
+  "p038-spotlight-01": {
+   "family": "spotlight",
+   "relation": [
+    "metaphor"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": true,
+   "three_d": false,
+   "preview": "previews/p038-spotlight-01.png"
+  },
+  "p038-spotlight-02": {
+   "family": "spotlight",
+   "relation": [
+    "metaphor"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": true,
+   "three_d": false,
+   "preview": "previews/p038-spotlight-02.png"
+  },
+  "p038-spotlight-03": {
+   "family": "spotlight",
+   "relation": [
+    "metaphor"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": true,
+   "three_d": false,
+   "preview": "previews/p038-spotlight-03.png"
+  },
+  "p038-spotlight-04": {
+   "family": "spotlight",
+   "relation": [
+    "metaphor"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": true,
+   "three_d": false,
+   "preview": "previews/p038-spotlight-04.png"
+  },
+  "p038-spotlight-05": {
+   "family": "spotlight",
+   "relation": [
+    "metaphor"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": true,
+   "three_d": false,
+   "preview": "previews/p038-spotlight-05.png"
   },
   "p039-staircase-01": {
+   "family": "staircase",
    "relation": [
     "order"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p039-staircase-01.png"
+  },
+  "p040-stars-3d-01": {
+   "family": "stars-3d",
+   "relation": [
+    "metaphor"
+   ],
+   "relation_from": "page-name",
+   "slots": 37,
+   "primitives": 37,
+   "decoration_risk": true,
+   "three_d": false,
+   "preview": "previews/p040-stars-3d-01.png"
+  },
+  "p040-stars-3d-02": {
+   "family": "stars-3d",
+   "relation": [
+    "metaphor"
+   ],
+   "relation_from": "page-name",
+   "slots": 59,
+   "primitives": 59,
+   "decoration_risk": true,
+   "three_d": false,
+   "preview": "previews/p040-stars-3d-02.png"
   },
   "p041-wire-cubes-01": {
+   "family": "wire-cubes",
    "relation": [
     "composition"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 1,
    "primitives": 11,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": true,
+   "preview": "previews/p041-wire-cubes-01.png"
   },
   "p042-arrows-01": {
+   "family": "arrows",
    "relation": [
     "order",
     "process"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 6,
    "primitives": 12,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p042-arrows-01.png"
   },
   "p042-arrows-02": {
+   "family": "arrows",
    "relation": [
     "order",
     "process"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p042-arrows-02.png"
   },
   "p042-arrows-03": {
+   "family": "arrows",
    "relation": [
     "order",
     "process"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p042-arrows-03.png"
   },
   "p043-level-1-01": {
+   "family": "level-1",
    "relation": [
     "composition",
     "hierarchy"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 3,
    "primitives": 52,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p043-level-1-01.png"
   },
   "p044-level-2-01": {
+   "family": "level-2",
    "relation": [
     "composition",
     "hierarchy"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 5,
    "primitives": 64,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p044-level-2-01.png"
   },
   "p045-level-3-01": {
+   "family": "level-3",
    "relation": [
     "composition",
     "hierarchy"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 7,
    "primitives": 74,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p045-level-3-01.png"
   },
   "p046-level-4-01": {
+   "family": "level-4",
    "relation": [
     "composition",
     "hierarchy"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 9,
    "primitives": 88,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p046-level-4-01.png"
   },
   "p047-level-5-01": {
+   "family": "level-5",
    "relation": [
     "composition",
     "hierarchy"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 11,
    "primitives": 110,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p047-level-5-01.png"
   },
   "p048-level-6-01": {
+   "family": "level-6",
    "relation": [
     "composition",
     "hierarchy"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 13,
    "primitives": 144,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p048-level-6-01.png"
   },
-  "p072-ring-01": {
+  "p049-flow-2-01": {
+   "family": "flow-2",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 2,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p049-flow-2-01.png"
+  },
+  "p050-flow-2-title-01": {
+   "family": "flow-2-title",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 2,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p050-flow-2-title-01.png"
+  },
+  "p051-flow-3-01": {
+   "family": "flow-3",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 3,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p051-flow-3-01.png"
+  },
+  "p052-flow-3-title-01": {
+   "family": "flow-3-title",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 3,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p052-flow-3-title-01.png"
+  },
+  "p053-flow-4-01": {
+   "family": "flow-4",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 4,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p053-flow-4-01.png"
+  },
+  "p054-flow-4-title-01": {
+   "family": "flow-4-title",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 4,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p054-flow-4-title-01.png"
+  },
+  "p055-flow-5-01": {
+   "family": "flow-5",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 5,
+   "primitives": 10,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p055-flow-5-01.png"
+  },
+  "p056-flow-5-title-01": {
+   "family": "flow-5-title",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 5,
+   "primitives": 10,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p056-flow-5-title-01.png"
+  },
+  "p057-flow-6-01": {
+   "family": "flow-6",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 6,
+   "primitives": 12,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p057-flow-6-01.png"
+  },
+  "p058-flow-6-title-01": {
+   "family": "flow-6-title",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 6,
+   "primitives": 12,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p058-flow-6-title-01.png"
+  },
+  "p059-blades-01": {
+   "family": "blades",
+   "relation": [
+    "metaphor"
+   ],
+   "relation_from": "page-name",
+   "slots": 2,
+   "primitives": 10,
+   "decoration_risk": true,
+   "three_d": false,
+   "preview": "previews/p059-blades-01.png"
+  },
+  "p060-box-01": {
+   "family": "box",
    "relation": [
     "composition",
     "process"
    ],
-   "family": [],
-   "slots": 1,
-   "primitives": 14,
+   "relation_from": "page-name",
+   "slots": 2,
+   "primitives": 24,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p060-box-01.png"
   },
-  "p075-cutout-01": {
+  "p061-box-01": {
+   "family": "box",
    "relation": [
-    "composition"
+    "composition",
+    "process"
    ],
-   "family": [],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p061-box-01.png"
+  },
+  "p061-box-02": {
+   "family": "box",
+   "relation": [
+    "composition",
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p061-box-02.png"
+  },
+  "p061-box-03": {
+   "family": "box",
+   "relation": [
+    "composition",
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p061-box-03.png"
+  },
+  "p061-box-04": {
+   "family": "box",
+   "relation": [
+    "composition",
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p061-box-04.png"
+  },
+  "p062-cycle-1-01": {
+   "family": "cycle-1",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": false,
+   "preview": "previews/p062-cycle-1-01.png"
   },
-  "p076-linear-a-01": {
+  "p063-cycle-2-01": {
+   "family": "cycle-2",
    "relation": [
-    "order",
     "process"
    ],
-   "family": [],
-   "slots": 3,
-   "primitives": 6,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p077-linear-b-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 4,
-   "primitives": 8,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p078-linear-c-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
+   "relation_from": "page-name",
    "slots": 1,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": false,
+   "preview": "previews/p063-cycle-2-01.png"
   },
-  "p079-linear-d-01": {
+  "p064-cycle-3-01": {
+   "family": "cycle-3",
    "relation": [
-    "order",
     "process"
    ],
-   "family": [],
+   "relation_from": "page-name",
    "slots": 3,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": false,
+   "preview": "previews/p064-cycle-3-01.png"
   },
-  "p080-linear-e-01": {
+  "p065-cycle-4-01": {
+   "family": "cycle-4",
    "relation": [
-    "order",
     "process"
    ],
-   "family": [],
+   "relation_from": "page-name",
    "slots": 1,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": false,
+   "preview": "previews/p065-cycle-4-01.png"
   },
-  "p081-linear-f-01": {
+  "p066-cycle-5-01": {
+   "family": "cycle-5",
    "relation": [
-    "order",
     "process"
    ],
-   "family": [],
+   "relation_from": "page-name",
    "slots": 1,
-   "primitives": 1,
+   "primitives": 10,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": false,
+   "preview": "previews/p066-cycle-5-01.png"
   },
-  "p082-linear-g-01": {
+  "p067-cycle-6-01": {
+   "family": "cycle-6",
    "relation": [
-    "order",
     "process"
    ],
-   "family": [],
-   "slots": 3,
-   "primitives": 6,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p083-linear-h-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 4,
-   "primitives": 8,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p084-linear-i-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
+   "relation_from": "page-name",
    "slots": 1,
-   "primitives": 1,
+   "primitives": 12,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": false,
+   "preview": "previews/p067-cycle-6-01.png"
   },
-  "p085-linear-j-01": {
+  "p068-cycle-7-01": {
+   "family": "cycle-7",
    "relation": [
-    "order",
     "process"
    ],
-   "family": [],
-   "slots": 1,
-   "primitives": 8,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p086-linear-k-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
-   "slots": 2,
-   "primitives": 7,
-   "decoration_risk": false,
-   "three_d": true
-  },
-  "p087-linear-n-01": {
-   "relation": [
-    "order",
-    "process"
-   ],
-   "family": [],
+   "relation_from": "page-name",
    "slots": 1,
    "primitives": 14,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": false,
+   "preview": "previews/p068-cycle-7-01.png"
   },
-  "p088-linear-p-01": {
+  "p069-cycle-8-01": {
+   "family": "cycle-8",
    "relation": [
-    "order",
     "process"
    ],
-   "family": [],
+   "relation_from": "page-name",
    "slots": 1,
-   "primitives": 6,
+   "primitives": 16,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": false,
+   "preview": "previews/p069-cycle-8-01.png"
   },
-  "p089-linear-q-01": {
+  "p070-incoming-01": {
+   "family": "incoming",
    "relation": [
-    "order",
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 12,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p070-incoming-01.png"
+  },
+  "p071-ribbon-01": {
+   "family": "ribbon",
+   "relation": [
+    "metaphor"
+   ],
+   "relation_from": "page-name",
+   "slots": 7,
+   "primitives": 14,
+   "decoration_risk": true,
+   "three_d": false,
+   "preview": "previews/p071-ribbon-01.png"
+  },
+  "p072-ring-01": {
+   "family": "ring",
+   "relation": [
+    "composition",
     "process"
    ],
-   "family": [],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 14,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p072-ring-01.png"
+  },
+  "p073-upon-2-01": {
+   "family": "upon-2",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p073-upon-2-01.png"
+  },
+  "p074-continuous-01": {
+   "family": "continuous",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 8,
+   "primitives": 16,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p074-continuous-01.png"
+  },
+  "p075-cutout-01": {
+   "family": "cutout",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "tag",
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": true,
+   "preview": "previews/p075-cutout-01.png"
+  },
+  "p076-linear-a-01": {
+   "family": "linear-a",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 3,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p076-linear-a-01.png"
+  },
+  "p077-linear-b-01": {
+   "family": "linear-b",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 4,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p077-linear-b-01.png"
+  },
+  "p078-linear-c-01": {
+   "family": "linear-c",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p078-linear-c-01.png"
+  },
+  "p079-linear-d-01": {
+   "family": "linear-d",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 3,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p079-linear-d-01.png"
+  },
+  "p080-linear-e-01": {
+   "family": "linear-e",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p080-linear-e-01.png"
+  },
+  "p081-linear-f-01": {
+   "family": "linear-f",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p081-linear-f-01.png"
+  },
+  "p082-linear-g-01": {
+   "family": "linear-g",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 3,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p082-linear-g-01.png"
+  },
+  "p083-linear-h-01": {
+   "family": "linear-h",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 4,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p083-linear-h-01.png"
+  },
+  "p084-linear-i-01": {
+   "family": "linear-i",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p084-linear-i-01.png"
+  },
+  "p085-linear-j-01": {
+   "family": "linear-j",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p085-linear-j-01.png"
+  },
+  "p086-linear-k-01": {
+   "family": "linear-k",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 2,
+   "primitives": 7,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p086-linear-k-01.png"
+  },
+  "p087-linear-n-01": {
+   "family": "linear-n",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 14,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p087-linear-n-01.png"
+  },
+  "p088-linear-p-01": {
+   "family": "linear-p",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p088-linear-p-01.png"
+  },
+  "p089-linear-q-01": {
+   "family": "linear-q",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": true,
+   "preview": "previews/p089-linear-q-01.png"
   },
   "p090-propeller-01": {
+   "family": "propeller",
    "relation": [
     "correlation",
     "hierarchy"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 1,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p090-propeller-01.png"
+  },
+  "p091-step-5-01": {
+   "family": "step-5",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 5,
+   "primitives": 10,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p091-step-5-01.png"
+  },
+  "p092-2-on-1-01": {
+   "family": "2-on-1",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 3,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p092-2-on-1-01.png"
+  },
+  "p093-against-01": {
+   "family": "against",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 3,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p093-against-01.png"
+  },
+  "p093-against-02": {
+   "family": "against",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 3,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p093-against-02.png"
+  },
+  "p094-at-work-01": {
+   "family": "at-work",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 5,
+   "primitives": 10,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p094-at-work-01.png"
+  },
+  "p095-coupled-horiz-01": {
+   "family": "coupled-horiz",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 2,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p095-coupled-horiz-01.png"
+  },
+  "p096-coupled-vert-01": {
+   "family": "coupled-vert",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 2,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p096-coupled-vert-01.png"
+  },
+  "p097-focused-01": {
+   "family": "focused",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 5,
+   "primitives": 12,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p097-focused-01.png"
+  },
+  "p098-new-entrant-01": {
+   "family": "new-entrant",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p098-new-entrant-01.png"
+  },
+  "p098-new-entrant-02": {
+   "family": "new-entrant",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p098-new-entrant-02.png"
+  },
+  "p098-new-entrant-03": {
+   "family": "new-entrant",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p098-new-entrant-03.png"
+  },
+  "p098-new-entrant-04": {
+   "family": "new-entrant",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p098-new-entrant-04.png"
+  },
+  "p098-new-entrant-05": {
+   "family": "new-entrant",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p098-new-entrant-05.png"
+  },
+  "p099-parallel-01": {
+   "family": "parallel",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p099-parallel-01.png"
+  },
+  "p100-split-01": {
+   "family": "split",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 15,
+   "primitives": 30,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p100-split-01.png"
+  },
+  "p101-surround-01": {
+   "family": "surround",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p101-surround-01.png"
+  },
+  "p101-surround-02": {
+   "family": "surround",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 5,
+   "primitives": 10,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p101-surround-02.png"
+  },
+  "p101-surround-03": {
+   "family": "surround",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p101-surround-03.png"
+  },
+  "p101-surround-04": {
+   "family": "surround",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p101-surround-04.png"
+  },
+  "p101-surround-05": {
+   "family": "surround",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p101-surround-05.png"
+  },
+  "p102-twisted-01": {
+   "family": "twisted",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 2,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p102-twisted-01.png"
+  },
+  "p103-up-away-01": {
+   "family": "up-away",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p103-up-away-01.png"
+  },
+  "p103-up-away-02": {
+   "family": "up-away",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p103-up-away-02.png"
+  },
+  "p104-up-down-01": {
+   "family": "up-down",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p104-up-down-01.png"
+  },
+  "p104-up-down-02": {
+   "family": "up-down",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p104-up-down-02.png"
+  },
+  "p105-customer-01": {
+   "family": "customer",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 13,
+   "primitives": 28,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p105-customer-01.png"
+  },
+  "p106-skills-01": {
+   "family": "skills",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 16,
+   "primitives": 30,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p106-skills-01.png"
+  },
+  "p107-the-way-managerscollectively-behave-with-01": {
+   "family": "the-way-managerscollectively-behave-with",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 11,
+   "primitives": 30,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p107-the-way-managerscollectively-behave-with-01.png"
+  },
+  "p108-competitive-position-01": {
+   "family": "competitive-position",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 11,
+   "primitives": 20,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p108-competitive-position-01.png"
+  },
+  "p109-change-vision-01": {
+   "family": "change-vision",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 23,
+   "primitives": 54,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p109-change-vision-01.png"
+  },
+  "p110-delta-p-01": {
+   "family": "delta-p",
+   "relation": [
+    "metaphor"
+   ],
+   "relation_from": "page-name",
+   "slots": 19,
+   "primitives": 38,
+   "decoration_risk": true,
+   "three_d": false,
+   "preview": "previews/p110-delta-p-01.png"
+  },
+  "p111-natural-owner-01": {
+   "family": "natural-owner",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p111-natural-owner-01.png"
+  },
+  "p111-natural-owner-02": {
+   "family": "natural-owner",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 7,
+   "primitives": 13,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p111-natural-owner-02.png"
+  },
+  "p111-natural-owner-03": {
+   "family": "natural-owner",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 2,
+   "primitives": 3,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p111-natural-owner-03.png"
+  },
+  "p112-business-strategy-01": {
+   "family": "business-strategy",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 9,
+   "primitives": 18,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p112-business-strategy-01.png"
   },
   "p113-restructuring-framework-01": {
+   "family": "restructuring-framework",
    "relation": [
     "composition",
     "process"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 7,
    "primitives": 14,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p113-restructuring-framework-01.png"
   },
-  "p127-2x2-cubed-01": {
+  "p114-benefit-01": {
+   "family": "benefit",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 6,
+   "primitives": 12,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p114-benefit-01.png"
+  },
+  "p115-appraise-performanceand-prospects-01": {
+   "family": "appraise-performanceand-prospects",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 9,
+   "primitives": 17,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p115-appraise-performanceand-prospects-01.png"
+  },
+  "p116-3-01": {
+   "family": "3",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 14,
+   "primitives": 28,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p116-3-01.png"
+  },
+  "p116-3-02": {
+   "family": "3",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 3,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p116-3-02.png"
+  },
+  "p117-stage-1-01": {
+   "family": "stage-1",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 5,
+   "primitives": 9,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p117-stage-1-01.png"
+  },
+  "p118-selling-margin-contributionsales-01": {
+   "family": "selling-margin-contributionsales",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 23,
+   "primitives": 31,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p118-selling-margin-contributionsales-01.png"
+  },
+  "p119-maximizeshareholdervalue-01": {
+   "family": "maximizeshareholdervalue",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 9,
+   "primitives": 15,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p119-maximizeshareholdervalue-01.png"
+  },
+  "p120-real-01": {
+   "family": "real",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 10,
+   "primitives": 13,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p120-real-01.png"
+  },
+  "p121-gantt10-01": {
+   "family": "gantt10",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 23,
+   "primitives": 39,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p121-gantt10-01.png"
+  },
+  "p122-page122-01": {
+   "family": "page122",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 24,
+   "primitives": 43,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p122-page122-01.png"
+  },
+  "p123-left-to-right-01": {
+   "family": "left-to-right",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 5,
+   "primitives": 10,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p123-left-to-right-01.png"
+  },
+  "p124-process-objectives-01": {
+   "family": "process-objectives",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
+   "slots": 139,
+   "primitives": 146,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p124-process-objectives-01.png"
+  },
+  "p125-top-down-01": {
+   "family": "top-down",
+   "relation": [
+    "order"
+   ],
+   "relation_from": "page-name",
+   "slots": 8,
+   "primitives": 16,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p125-top-down-01.png"
+  },
+  "p126-2x2-01": {
+   "family": "2x2",
    "relation": [
     "composition"
    ],
-   "family": [],
+   "relation_from": "page-name",
+   "slots": 3,
+   "primitives": 10,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p126-2x2-01.png"
+  },
+  "p127-2x2-cubed-01": {
+   "family": "2x2-cubed",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "tag",
    "slots": 12,
    "primitives": 24,
    "decoration_risk": false,
-   "three_d": true
+   "three_d": true,
+   "preview": "previews/p127-2x2-cubed-01.png"
+  },
+  "p128-2x2-extended-01": {
+   "family": "2x2-extended",
+   "relation": [
+    "composition"
+   ],
+   "relation_from": "page-name",
+   "slots": 10,
+   "primitives": 16,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p128-2x2-extended-01.png"
   },
   "p129-2x2-tower-01": {
+   "family": "2x2-tower",
    "relation": [
     "composition",
     "hierarchy"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 1,
    "primitives": 29,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p129-2x2-tower-01.png"
   },
-  "p149-arrows-01": {
+  "p130-3x3-01": {
+   "family": "3x3",
    "relation": [
-    "order",
-    "process"
+    "composition"
    ],
-   "family": [],
-   "slots": 1,
-   "primitives": 2,
+   "relation_from": "page-name",
+   "slots": 11,
+   "primitives": 20,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p130-3x3-01.png"
   },
-  "p149-arrows-02": {
+  "p131-3x3-extended-01": {
+   "family": "3x3-extended",
    "relation": [
-    "order",
+    "composition"
+   ],
+   "relation_from": "page-name",
+   "slots": 16,
+   "primitives": 28,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p131-3x3-extended-01.png"
+  },
+  "p132-diffraction-01": {
+   "family": "diffraction",
+   "relation": [
+    "metaphor"
+   ],
+   "relation_from": "page-name",
+   "slots": 10,
+   "primitives": 17,
+   "decoration_risk": true,
+   "three_d": false,
+   "preview": "previews/p132-diffraction-01.png"
+  },
+  "p133-flow-down-01": {
+   "family": "flow-down",
+   "relation": [
     "process"
    ],
-   "family": [],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p133-flow-down-01.png"
+  },
+  "p134-pass-through-01": {
+   "family": "pass-through",
+   "relation": [
+    "process"
+   ],
+   "relation_from": "page-name",
    "slots": 1,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p134-pass-through-01.png"
   },
-  "p149-arrows-03": {
+  "p135-label-1-01": {
+   "family": "label-1",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 21,
+   "primitives": 21,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p135-label-1-01.png"
+  },
+  "p136-label-1-01": {
+   "family": "label-1",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 6,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p136-label-1-01.png"
+  },
+  "p137-label-1-01": {
+   "family": "label-1",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 6,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p137-label-1-01.png"
+  },
+  "p137-label-1-02": {
+   "family": "label-1",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 11,
+   "primitives": 11,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p137-label-1-02.png"
+  },
+  "p138-label-1-01": {
+   "family": "label-1",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 16,
+   "primitives": 16,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p138-label-1-01.png"
+  },
+  "p139-label-1-01": {
+   "family": "label-1",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 33,
+   "primitives": 33,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p139-label-1-01.png"
+  },
+  "p140-label-1-01": {
+   "family": "label-1",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 28,
+   "primitives": 28,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p140-label-1-01.png"
+  },
+  "p141-titleunit-of-measure-01": {
+   "family": "titleunit-of-measure",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 16,
+   "primitives": 16,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p141-titleunit-of-measure-01.png"
+  },
+  "p141-titleunit-of-measure-02": {
+   "family": "titleunit-of-measure",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p141-titleunit-of-measure-02.png"
+  },
+  "p141-titleunit-of-measure-03": {
+   "family": "titleunit-of-measure",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p141-titleunit-of-measure-03.png"
+  },
+  "p141-titleunit-of-measure-04": {
+   "family": "titleunit-of-measure",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 2,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p141-titleunit-of-measure-04.png"
+  },
+  "p141-titleunit-of-measure-05": {
+   "family": "titleunit-of-measure",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 1,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p141-titleunit-of-measure-05.png"
+  },
+  "p142-label-1-01": {
+   "family": "label-1",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 10,
+   "primitives": 10,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p142-label-1-01.png"
+  },
+  "p144-label-1-01": {
+   "family": "label-1",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 24,
+   "primitives": 24,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p144-label-1-01.png"
+  },
+  "p145-label-1-01": {
+   "family": "label-1",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 40,
+   "primitives": 40,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p145-label-1-01.png"
+  },
+  "p146-label-1-01": {
+   "family": "label-1",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 41,
+   "primitives": 41,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p146-label-1-01.png"
+  },
+  "p147-titleunit-of-measure-01": {
+   "family": "titleunit-of-measure",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 7,
+   "primitives": 7,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p147-titleunit-of-measure-01.png"
+  },
+  "p147-titleunit-of-measure-02": {
+   "family": "titleunit-of-measure",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 6,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p147-titleunit-of-measure-02.png"
+  },
+  "p148-titleunit-of-measure-01": {
+   "family": "titleunit-of-measure",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 14,
+   "primitives": 14,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p148-titleunit-of-measure-01.png"
+  },
+  "p149-arrows-01": {
+   "family": "arrows",
    "relation": [
     "order",
     "process"
    ],
-   "family": [],
+   "relation_from": "tag",
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false
+   "three_d": false,
+   "preview": "previews/p149-arrows-01.png"
+  },
+  "p149-arrows-02": {
+   "family": "arrows",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 8,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p149-arrows-02.png"
+  },
+  "p149-arrows-03": {
+   "family": "arrows",
+   "relation": [
+    "order",
+    "process"
+   ],
+   "relation_from": "tag",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p149-arrows-03.png"
+  },
+  "p153-legendlegendlegend-01": {
+   "family": "legendlegendlegend",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p153-legendlegendlegend-01.png"
+  },
+  "p155-page155-01": {
+   "family": "page155",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 2,
+   "primitives": 6,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p155-page155-01.png"
+  },
+  "p156-very-attractiveaveragevery-unattractive-01": {
+   "family": "very-attractiveaveragevery-unattractive",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 18,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-01.png"
+  },
+  "p156-very-attractiveaveragevery-unattractive-02": {
+   "family": "very-attractiveaveragevery-unattractive",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 10,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-02.png"
+  },
+  "p156-very-attractiveaveragevery-unattractive-03": {
+   "family": "very-attractiveaveragevery-unattractive",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 18,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-03.png"
+  },
+  "p156-very-attractiveaveragevery-unattractive-04": {
+   "family": "very-attractiveaveragevery-unattractive",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 18,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-04.png"
+  },
+  "p156-very-attractiveaveragevery-unattractive-05": {
+   "family": "very-attractiveaveragevery-unattractive",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 2,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-05.png"
+  },
+  "p156-very-attractiveaveragevery-unattractive-06": {
+   "family": "very-attractiveaveragevery-unattractive",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-06.png"
+  },
+  "p156-very-attractiveaveragevery-unattractive-07": {
+   "family": "very-attractiveaveragevery-unattractive",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-07.png"
+  },
+  "p156-very-attractiveaveragevery-unattractive-08": {
+   "family": "very-attractiveaveragevery-unattractive",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-08.png"
+  },
+  "p156-very-attractiveaveragevery-unattractive-09": {
+   "family": "very-attractiveaveragevery-unattractive",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 10,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-09.png"
+  },
+  "p156-very-attractiveaveragevery-unattractive-10": {
+   "family": "very-attractiveaveragevery-unattractive",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 1,
+   "primitives": 4,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p156-very-attractiveaveragevery-unattractive-10.png"
+  },
+  "p157-illustrative-01": {
+   "family": "illustrative",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 8,
+   "primitives": 16,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p157-illustrative-01.png"
+  },
+  "p158-disguised-client-example-01": {
+   "family": "disguised-client-example",
+   "relation": [],
+   "relation_from": "unclassified",
+   "slots": 16,
+   "primitives": 32,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p158-disguised-client-example-01.png"
+  },
+  "p159-world-map-01": {
+   "family": "world-map",
+   "relation": [
+    "geography"
+   ],
+   "relation_from": "page-name",
+   "slots": 1,
+   "primitives": 10,
+   "decoration_risk": false,
+   "three_d": false,
+   "preview": "previews/p159-world-map-01.png"
   }
  }
 }
