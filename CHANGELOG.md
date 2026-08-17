@@ -1,5 +1,53 @@
 # Changelog
 
+## 0.1.503 — an instrument nobody can find is an instrument nobody runs, and the board stopped naming a version it never measured
+
+R6, and all three findings are the same shape: something true, recorded
+somewhere no one reads it.
+
+**Four evals instruments were referenced by no entry point.** `trace.py`,
+`ledger.py`, `judge_findings.py` and `scoring_sheet.py` are the whole
+measurement half of the refactor, and `SKILL.md`, `AGENTS.md` and
+`prompts/lumi-style-core.md` named none of them — so every one was opt-in for
+whoever happened to remember. Both tool-capable entry points now name them,
+with what each is for. The prompt tier still names none, and that is correct
+rather than an omission: it runs no scripts, and a rule that told it to would
+be prescribing a capability the tier does not have.
+
+**The conformance board advertised a version it had never measured anything
+at.** Its header read `skill 0.1.502` over a table rendering runs from
+`0.1.454`. That is exactly the claim `built_version` exists to stop a *cell*
+from making, made by the page the cells sit on. The header now carries both and
+the distance between them — *"skill 0.1.503 · newest run 0.1.454 · 48 releases
+behind"* — counted in CHANGELOG headings, because the distance that matters is
+how many rule revisions have landed since, not how far apart two integers are.
+
+**The word `skill` stays, and stays first.** The obvious edit was to write
+`instrument 0.1.503`, which reads better and would have reddened CI the first
+time anyone regenerated the board: that line is this file's version stamp and
+`check_version_citations` matches `skill {v}` on it. Caught by checking the
+pattern against both header forms before shipping, not after — a cosmetic edit
+laying a trap in a guard two files away is the coupling this repository keeps
+paying for.
+
+**C8-① and C8-② stop promising a condition that was met.** Both rows read
+*"temporarily human → machine once the shape vocabulary lands"*. It landed —
+206 units, `embed_shapes.py`, `assets/shapes/tags.json` — and the rows sat
+unchanged for twenty-four releases. They now state the reason instead:
+deciding whether a figure's form matches the comparison its **title** makes
+needs the claim, and no checker can read a claim out of markup. The shape
+vocabulary made the *form* machine-readable and left the *claim* where it was.
+D21 already holds a figure to data it declares; a figure that declares none is
+outside what a machine can say about it.
+
+**`check_stale_promises` is structurally blind to this**, and that is recorded
+rather than patched. It compares against shipped release numbers, and a promise
+naming a *state* has no version to compare. **IDEA-11** carries the two ways to
+close it and the argument for the cheap one — require the conditional form to
+name a version, which makes the existing guard sufficient — over a
+phrase-trigger guard, which is FM-01 in the making by AG-1's own reasoning. Not
+built here: it is a convention change and wants a second instance behind it.
+
 ## 0.1.502 — on entry path B, completeness had no instrument at all
 
 R5. `references/eval-rubric.md` has specified a reader-visible scope note

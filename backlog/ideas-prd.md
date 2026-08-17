@@ -504,3 +504,26 @@ Two findings were small enough to fix in place rather than propose:
 - **The `--deliverable` help text listed eight findings after a ninth shipped.**
   Fixed in the same release, and it is the reason item 3 ranks where it does: the
   help text is documentation, and nothing compares documentation to behavior.
+
+## IDEA-11 · A promise conditional on a state, not on a version
+
+`check_stale_promises` catches a note that names a release which has already
+shipped. It cannot catch one that names a **condition**, and the rubric carried
+two rows reading *"temporarily human → machine once the shape vocabulary
+lands"* for twenty-four releases after the shape vocabulary landed. The
+citation guard is structurally blind to this: there is no version to compare.
+
+Two ways to close it, and the cheap one is not a guard:
+
+1. **Require the conditional form to name a version.** A row saying
+   "temporarily human → machine at 0.1.5xx" is checkable by the guard that
+   already exists. This is a prose rule for `eval-rubric.md`'s conditional-item
+   convention, costs nothing, and converts an invisible promise into a visible
+   one by construction.
+2. A phrase-trigger guard over "once … lands" and its cousins. Brittle by the
+   same reasoning that declined AG-1: deciding what prose constitutes a promise
+   is FM-01 in the making.
+
+Recorded rather than built, because option 1 is a convention change and belongs
+in a retrospective with a second instance behind it. The first instance is
+fixed in 0.1.503, which stated the reason instead of the condition.
