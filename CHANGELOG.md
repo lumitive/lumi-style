@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.1.500 — a build now records what drove it, so "unknown" stops reading as "current"
+
+R3, and the mechanism the owner's entry-path ruling was missing. §6 said both
+paths are held to the current rules; nothing could tell whether one was.
+
+**The hole, stated exactly.** A trace's `skill_version` is read from `SKILL.md`
+when the trace opens. It therefore always equals the current version and
+**cannot be stale by construction**. A build replaying a recipe frozen at
+0.1.457 opened a trace stamped with today's version, cleared the checks those
+two checkers know how to fail, closed with machine-written verdicts, and left a
+record indistinguishable from a document built to the current constitution.
+Measured, not supposed.
+
+**`trace.py open --recipe <path>`** now fingerprints the bytes the build was
+actually driven by and reads the version stamp that recipe carries. Taken at
+open, from what the build was given — computing it later would fingerprint
+whatever the recipe had since become, which is the mistake `asked_fingerprint`
+exists to avoid one domain over.
+
+**Reused, not invented.** `run_conformance.py` has implemented these semantics
+for a different subject since 0.1.435: hash the material that can change a
+verdict, read the artifact's own colophon, and mark a cell whose hash no longer
+matches rather than reporting an answer to a question nobody is asking. Both
+now call one `scripts/lib/fingerprint.py`. A second sha256-of-sorted-json would
+have been the `no shadow math` guard's territory, and a fingerprint that
+differed between callers is worse than none — both sides would report matches.
+
+**Ledger 2b reports four answers where there was one**, and the fourth is the
+point: **current**, **stale** (the recipe names an older version than the rules
+that graded it), **none** (no recipe — what path A looks like), and
+**unknown** — a recipe carrying no version stamp at all. **Unknown is not
+current.** A recipe that never said which rules it was written against has not
+told anyone it followed them, and this is not a hypothetical shape: the first
+real recipe measured here carries no stamp, because it reads its version out of
+`SKILL.md` at build time. It has no vintage of its own, and now that is
+something the ledger says instead of something nobody could ask.
+
+**Two prose facts corrected while they were in hand.** `check_trace_schema`'s
+docstring said *"the repository ships none"* for three releases after a real
+build's trace was committed, which is this file's own drift class occurring
+inside the guard that exists to catch it — and its claim that *"the synthetic
+tests are what prove this can fail"* pointed at tests of the **library** until
+0.1.497 gave the guard tests of its own. The stored trace was migrated to the
+widened schema with both new fields null, which is the honest value: that build
+named no recipe.
+
 ## 0.1.499 — the scaffold reaches the shape library, and a trace can no longer contradict its own document
 
 R2 of the delivery-completion plan: entry path B *is* the template path, and its

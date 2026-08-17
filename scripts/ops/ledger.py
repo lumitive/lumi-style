@@ -120,6 +120,41 @@ def ledger_signals(traces):
     return refusals, yields, abandoned
 
 
+
+def ledger_recipes(traces):
+    """-> rows saying whether each build's recipe was current, old, or unknown.
+
+    A trace's `skill_version` is read from SKILL.md when the trace opens, so it
+    always equals HEAD and can never be stale. That is why a replay of a frozen
+    recipe used to produce a record indistinguishable from a build made to the
+    current constitution: measured, not supposed. `recipe_version` is the
+    recipe's OWN stamp, and the three states it produces are different answers,
+    not one answer with shades:
+
+      · `current`  — the recipe names the version that graded it;
+      · `stale`    — it names an older one, so the build reproduced rules that
+                     have since moved, and the entry-path B ruling applies;
+      · `unknown`  — it names none. **This is not `current`.** A recipe that
+                     never said which rules it was written against has not told
+                     us it followed them, and the first real recipe measured
+                     here was exactly this case.
+      · `none`     — no recipe was given, which is what path A looks like.
+    """
+    rows = []
+    for t in traces:
+        rv, sv = t.get("recipe_version"), t.get("skill_version")
+        if not t.get("recipe_hash"):
+            state = "none"
+        elif rv is None:
+            state = "unknown"
+        elif rv == sv:
+            state = "current"
+        else:
+            state = "stale"
+        rows.append({"trace_id": t["trace_id"], "entry_path": t.get("entry_path"),
+                     "state": state, "recipe_version": rv, "skill_version": sv})
+    return rows
+
 def candidates(traces):
     """Drafts, ordered instrument-first. Each carries the evidence it rests on."""
     drafts = []
@@ -189,6 +224,7 @@ def main():
     if a.json:
         print(json.dumps({"traces": len(traces), "failing": ledger_failing(traces),
                           "instruments": ledger_instruments(traces),
+                          "recipes": ledger_recipes(traces),
                           "candidates": candidates(traces),
                           "board": board(traces)}, indent=1, ensure_ascii=False))
         return
@@ -228,6 +264,30 @@ def main():
     for mid, why, count in ledger_instruments(traces):
         print(f"       {mid}: {why} ({count})")
     print("  (none)" if not ledger_instruments(traces) else "")
+
+    print("LEDGER 2b · was the recipe written against these rules?")
+    recipes = ledger_recipes(traces)
+    order = ("stale", "unknown", "current", "none")
+    tally = {s: [r for r in recipes if r["state"] == s] for s in order}
+    for state in order:
+        rows_s = tally[state]
+        if not rows_s:
+            continue
+        if state == "stale":
+            print(f"       {len(rows_s)} build(s) STALE — the recipe names an "
+                  f"older version than the rules that graded it")
+            for r in rows_s[:5]:
+                print(f"         {r['trace_id']}  path {r['entry_path']}  "
+                      f"recipe {r['recipe_version']} vs rules {r['skill_version']}")
+        elif state == "unknown":
+            print(f"       {len(rows_s)} build(s) UNKNOWN — the recipe carries "
+                  f"no version stamp, so it never said which rules it followed. "
+                  f"That is not the same as current.")
+        elif state == "current":
+            print(f"       {len(rows_s)} build(s) current")
+        else:
+            print(f"       {len(rows_s)} build(s) had no recipe (path A looks "
+                  f"like this)")
 
     refusals, yields, abandoned = ledger_signals(traces)
     print("LEDGER 3 · what the constitution recorded")

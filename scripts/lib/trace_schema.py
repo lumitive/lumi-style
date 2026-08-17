@@ -59,6 +59,13 @@ FIELDS: dict[str, object] = {
     "trace_id": str, "opened_at": str, "closed_at": (str, type(None)),
     "source": str, "skill_version": str, "genre": str, "storyline": str,
     "entry_path": str, "outline_reviewed": bool,
+    # WHAT THE BUILD WAS DRIVEN BY, and what version that thing was written
+    # against. `skill_version` is read from SKILL.md at open, so it always
+    # equals HEAD and can never be stale — which is why a replay of a frozen
+    # recipe used to produce a record indistinguishable from a current build.
+    # Both are None on a build with no recipe to point at (a path-A document
+    # composed from a conversation), and None is not "current".
+    "recipe_hash": (str, type(None)), "recipe_version": (str, type(None)),
     "titles_changed_after_approval": int, "geometry": (str, type(None)),
     "model": (str, type(None)), "effort": (str, type(None)),
     "agent": (str, type(None)), "pages": int, "content_pages": int,

@@ -1,0 +1,15 @@
+{
+ "version": "0.1.500",
+ "diff_base": "40d7479dc8f5cb2ff6b0d61e5c907733728e739d",
+ "spec": "waived: no spec — R3 of the delivery-completion plan: a build records the recipe that drove it, so the entry-path B ruling becomes checkable. The case is the owner's ruling plus the measured rebuild, not a design record.",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs. 0.1.500 adds a recipe fingerprint to the trace and a ledger row that reads it; no conformance task exercises either. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.500 is unknown, not passing."
+  }
+ ]
+}

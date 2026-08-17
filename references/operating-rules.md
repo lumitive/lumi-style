@@ -133,6 +133,19 @@ its recipe was written against has not established that it followed them.
 behind its own evidence base while every gate reported green, and a second
 rebuild that differed from its predecessor by two lines.*
 
+**So a path-B build names its recipe, and the trace fingerprints it.**
+`trace.py open --recipe <path>` records the bytes the build was actually driven
+by and the version stamp that recipe carries. This exists because a trace's
+`skill_version` is read from `SKILL.md` when the trace opens — it always equals
+the current version and *cannot* be stale — so without the recipe's own vintage
+a replay of a frozen script produces a record indistinguishable from a build
+made to today's rules. The ledger reads three different answers where there
+used to be one: **current**, **stale** (the recipe names an older version than
+the rules that graded it), and **unknown** — a recipe carrying no stamp at all.
+**Unknown is not current.** A recipe that never said which rules it was written
+against has not told anyone it followed them, and the first real recipe
+measured was exactly that case.
+
 **Timing starts when the storyline is agreed.** Discussion and outline are not
 counted against it. Charging a user for the thinking they were asked to do
 would push every build back toward path B, which is the opposite of what the

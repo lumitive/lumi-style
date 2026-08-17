@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.499.** This file restates part of `references/`; where they
+> **lumi-style 0.1.500.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -31,8 +31,12 @@ starts from a recipe and is what most real builds use. **Both are held to the
 current rules, gates and evals: re-running a recipe shows that nothing broke,
 and nothing about what the rules gained since it was written.** Timing starts
 at storyline agreement; the discussion is not charged against it. Open the
-trace then (`scripts/ops/trace.py open --entry-path A|B …`) and close it after
-the checks — `trace.py close` transcribes verdicts and does not accept them.
+trace then (`scripts/ops/trace.py open --entry-path A|B --recipe <path> …`)
+and close it after the checks — `trace.py close` transcribes verdicts and does
+not accept them. **`--recipe` is what makes the ruling checkable**: a trace's
+`skill_version` is read at open and can never be stale, so without the recipe's
+own stamp a replay is indistinguishable from a current build. `ledger.py`
+reports current, stale, or **unknown**, and unknown is not current.
 
 **Study the input first; questions come once or not at all.** Read everything
 the user supplied and work from the reader's side of the deliverable — the

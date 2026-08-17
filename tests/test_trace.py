@@ -209,3 +209,93 @@ def test_the_trace_vocabularies_are_the_registry_s_own_objects():
     assert trace_schema.ENUMS["genre"] is reg.GENRES
     assert trace_schema.ENUMS["storyline"] is reg.STORYLINES
     assert set(reg.STAGE_OF.values()) <= set(trace_schema.ENUMS["geometry"])
+
+
+# The recipe fingerprint: what a path-B build was actually driven by, and what
+# version that thing was written against. A trace's skill_version is read from
+# SKILL.md at open, so it always equals HEAD and can never be stale — which is
+# why a replay of a frozen recipe used to be indistinguishable from a build
+# made to the current rules.
+
+def _ledger_states(tmp_path):
+    sys.path.insert(0, str(ROOT / "scripts" / "ops"))
+    import importlib.util as _iu
+    spec = _iu.spec_from_file_location("lumi_ledger", ROOT / "scripts" / "ops" / "ledger.py")
+    assert spec is not None and spec.loader is not None
+    mod = _iu.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _open_with(recipe=None, geometry="16x9"):
+    cmd = [sys.executable, str(TRACE_PY), "open", "--genre", "internal",
+           "--storyline", "proposal", "--entry-path", "B", "--source", "build",
+           "--geometry", geometry]
+    if recipe is not None:
+        cmd += ["--recipe", str(recipe)]
+    p = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
+    return p
+
+
+def test_a_recipe_is_fingerprinted_and_its_own_version_is_read(tmp_path):
+    r = tmp_path / "assemble.py"
+    r.write_text("# built with lumi-style 0.1.457\nprint('x')\n")
+    tid = _open_with(r).stdout.strip()
+    try:
+        rec = json.loads((ROOT / "evals" / "traces" / f"{tid}.json").read_text())
+        assert rec["recipe_hash"] and len(rec["recipe_hash"]) == 12
+        assert rec["recipe_version"] == "0.1.457"
+        assert rec["skill_version"] != "0.1.457", (
+            "the trace's own version is HEAD; that is the whole reason the "
+            "recipe needs a separate one")
+    finally:
+        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+
+
+def test_an_unstamped_recipe_reads_unknown_and_not_current(tmp_path):
+    """A recipe that never said which rules it followed has not told us it
+    followed them. The first real recipe measured was exactly this case."""
+    r = tmp_path / "assemble.py"
+    r.write_text("print('no stamp anywhere')\n")
+    tid = _open_with(r).stdout.strip()
+    try:
+        rec = json.loads((ROOT / "evals" / "traces" / f"{tid}.json").read_text())
+        assert rec["recipe_hash"] and rec["recipe_version"] is None
+        ledger = _ledger_states(tmp_path)
+        state = ledger.ledger_recipes([rec])[0]["state"]
+        assert state == "unknown"
+    finally:
+        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+
+
+def test_the_ledger_tells_the_four_states_apart(tmp_path):
+    ledger = _ledger_states(tmp_path)
+    rows = ledger.ledger_recipes([
+        {"trace_id": "t-000000000001", "entry_path": "B", "skill_version": "0.1.499",
+         "recipe_hash": "abc", "recipe_version": "0.1.457"},
+        {"trace_id": "t-000000000002", "entry_path": "B", "skill_version": "0.1.499",
+         "recipe_hash": "abc", "recipe_version": None},
+        {"trace_id": "t-000000000003", "entry_path": "B", "skill_version": "0.1.499",
+         "recipe_hash": "abc", "recipe_version": "0.1.499"},
+        {"trace_id": "t-000000000004", "entry_path": "A", "skill_version": "0.1.499",
+         "recipe_hash": None, "recipe_version": None},
+    ])
+    assert [r["state"] for r in rows] == ["stale", "unknown", "current", "none"]
+
+
+def test_a_recipe_path_that_does_not_exist_is_refused(tmp_path):
+    p = _open_with(tmp_path / "gone.py")
+    assert p.returncode != 0
+    assert "not a file" in p.stderr
+
+
+def test_the_digest_is_the_one_run_conformance_uses():
+    """One implementation. A fingerprint that differed between callers would be
+    worse than none, because both sides would report matches."""
+    sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+    sys.path.insert(0, str(ROOT / "scripts" / "ops"))
+    import fingerprint
+    import run_conformance
+    task = {"prompt": "p", "deliverable": "d", "score": 1, "require": [],
+            "answers": None, "input": None, "genre": "internal"}
+    assert run_conformance.task_fingerprint(task) == fingerprint.material_hash(task)
