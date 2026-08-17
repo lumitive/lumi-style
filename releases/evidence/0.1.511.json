@@ -1,0 +1,15 @@
+{
+ "version": "0.1.511",
+ "diff_base": "b1a03e20c2e3fe2a498c6aca2f740019c3f9eca1",
+ "spec": "waived: no spec — Release 2 of the ten-round autopsy: the sentence splitter measured source lines, not sentences, and the floor was recalibrated on the honest instrument. The case is the autopsy plus the side-by-side table in this entry's own lineage.",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs. 0.1.511 fixes the prose splitter; no conformance task exercises it. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.511 is unknown, not passing."
+  }
+ ]
+}
