@@ -15,8 +15,20 @@ about two has told you exactly where to look; its rho has told you nothing.
 
 **The reader scores blind.** `--sheet` prints a scoring form carrying no
 mechanical number, because a reader who has seen the machine's answer is no
-longer an independent measurement. Scores go into `reviews/scores.json` through
-the schema that already exists, and this reads them back.
+longer an independent measurement. The form itself comes from
+`scripts/ops/scoring_sheet.py`'s source (`scripts/lib/rubric_items.py`, which
+reads the dimension set out of the rubric) — a second dimension list lived here
+once and outlived the rubric, offering C1-C7 after C8 shipped, so a reader who
+filled it produced a record `review_scores.py` rejects. Scores go into
+`reviews/scores.json` through the schema that already exists, and this reads
+them back.
+
+**The join key is a corpus id, never a filename.** The measurement cache is
+keyed by filename; a reader record carries `corpus_id` (the id shape
+`review_scores.py` validates), because a filename in that tracked file would be
+an engagement fact. The gitignored `evals/corpus.local.json` maps the ids to
+paths, and this script resolves filenames to ids through it — when that map is
+absent the study says it could not join, rather than printing an empty success.
 
     python3 scripts/ops/eval_agreement.py --sheet            # blind form, for a person
     python3 scripts/ops/eval_agreement.py --measure          # the machine half, cached
@@ -37,6 +49,7 @@ import pathlib as _bs_pathlib  # noqa: E402
 import subprocess
 import sys
 import sys as _bs_sys  # noqa: E402
+from collections import Counter
 
 _SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
                      if p.name == "scripts")
@@ -46,6 +59,9 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
+
+import scoring_sheet  # noqa: E402
+from review_scores import DOCUMENT_ID  # noqa: E402
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if p.name == "scripts").parent
@@ -94,8 +110,27 @@ def measure_all(paths: list[pathlib.Path]) -> dict:
     return {pathlib.Path(r["file"]).name: r for r in reports}
 
 
+def corpus_ids_by_name() -> dict[str, str] | None:
+    """-> {filename: corpus id} from evals/corpus.local.json, or None if absent.
+
+    The map is gitignored on purpose — a path to a real deliverable is an
+    engagement fact — so its absence is a normal state on any machine but the
+    operator's, and the caller must SAY the join was impossible rather than
+    let it read as an empty result.
+    """
+    if not LOCAL_CORPUS.exists():
+        return None
+    local = json.loads(LOCAL_CORPUS.read_text(encoding="utf-8"))
+    return {pathlib.Path(v).expanduser().name: k for k, v in local.items()}
+
+
 def read_scores() -> dict:
-    """-> {document key: {H1..H6}} from the reader side of reviews/scores.json.
+    """-> {corpus id: {C1..C8}} from the reader side of reviews/scores.json.
+
+    Keyed by `corpus_id` — the field review_scores.py requires on a schema-3
+    record for exactly this join — with `document` accepted as a fallback when
+    it carries the same id shape. A record with neither (the legacy schema-1
+    history) names no document and cannot enter the study.
 
     The SELF side is deliberately ignored. An agent scoring its own output is
     not a measurement of quality, and debug mode's self-scores are written to an
@@ -108,35 +143,60 @@ def read_scores() -> dict:
         return {}
     out = {}
     for record in store.get("reviews", []):
-        key = record.get("document")
-        if key and record.get("reader"):
-            out[key] = record["reader"]
+        key = record.get("corpus_id") or record.get("document")
+        if key and DOCUMENT_ID.fullmatch(str(key)) and record.get("reader"):
+            out[str(key)] = record["reader"]
     return out
 
 
-def study(measured: dict, scored: dict) -> list[dict]:
-    """One row per (metric, document) where a bar and a reader both spoke."""
+def study(measured: dict, scored: dict, ids_by_name: dict) -> dict:
+    """-> {"rows": ..., "unjoinable": ..., "left_out": ...}.
+
+    `rows` is one per (metric, document) where a bar and a reader both spoke.
+    The join runs filename -> corpus id (through `ids_by_name`, from the local
+    corpus map) -> reader record; comparing the filename to the id directly is
+    the disjoint-by-schema join this function shipped with, under which no
+    input the schema permits could ever produce a row.
+
+    `unjoinable` names the measured filenames the map gives no id, and
+    `left_out` counts the verdicts with no pass/miss to compare ("no bar",
+    "too few pages", "not measured") per metric. Both are reported rather than
+    dropped, because a study that silently thins its own input reads exactly
+    like a clean one.
+    """
     table = json.loads((ROOT / "evals" / "thresholds.json").read_text(encoding="utf-8"))
     rows = []
+    unjoinable = []
+    left_out: dict[str, Counter] = {}
     for name, report in sorted(measured.items()):
-        reader = scored.get(name)
+        cid = ids_by_name.get(name)
+        if cid is None:
+            unjoinable.append(name)
+            continue
+        reader = scored.get(cid)
         if not reader:
             continue
         for entry in report.get("scores", []):
             metric = entry["metric"]
             dim = PREDICTS.get(metric)
-            human = reader.get(dim) if dim else None
-            if entry["verdict"] not in ("ok", "MISS") or human is None:
+            if dim is None:
+                continue                      # claims no dimension: not under test
+            if entry["verdict"] not in ("ok", "MISS"):
+                left_out.setdefault(metric, Counter())[entry["verdict"]] += 1
+                continue
+            human = reader.get(dim)
+            if human is None:
                 continue
             spec = table["metrics"][metric]
             rows.append({
-                "document": name, "metric": metric, "dimension": dim,
+                "document": name, "corpus_id": cid, "metric": metric,
+                "dimension": dim,
                 "machine": entry["verdict"], "value": entry["value"],
                 "bar": entry["bar"], "direction": spec["direction"],
                 "human": human,
                 "agree": (entry["verdict"] == "ok") == (human >= ACCEPTABLE_FROM),
             })
-    return rows
+    return {"rows": rows, "unjoinable": unjoinable, "left_out": left_out}
 
 
 def main(argv=None) -> int:
@@ -147,12 +207,12 @@ def main(argv=None) -> int:
                     help="run the machine half and cache it")
     ap.add_argument("--report", action="store_true",
                     help="print the standing state and exit 0. This is the mode "
-                         "CI runs: the study's blocker today is that no record "
-                         "carries a corpus id, which is an open ledger entry, "
-                         "and a release does not gate on a known gap — it "
-                         "records it. Without --report, no joinable row is an "
-                         "error, because a study nobody can run should be loud "
-                         "when someone runs it.")
+                         "CI runs: the measurement cache and the corpus map are "
+                         "gitignored operator files, so on a runner the honest "
+                         "output is what is missing, never a failure. Without "
+                         "--report, no joinable row is an error, because a "
+                         "study nobody can run should be loud when someone "
+                         "runs it.")
     ap.add_argument("files", nargs="*", type=pathlib.Path)
     args = ap.parse_args(argv)
 
@@ -164,57 +224,81 @@ def main(argv=None) -> int:
     if args.measure:
         if not paths:
             ap.error("name the documents, or record them in evals/corpus.local.json")
-        measured = measure_all([p for p in paths if p.exists()])
+        found = [p for p in paths if p.exists()]
+        for p in paths:
+            if not p.exists():
+                print(f"note  named but not found, so not measured: {p}")
+        if not found:
+            print(f"FAIL  none of the {len(paths)} named document(s) exist on "
+                  f"this machine. Nothing was measured, and a check nobody ran "
+                  f"must not read like a check that found nothing; the cache "
+                  f"was left as it was.")
+            return 1
+        measured = measure_all(found)
+        if not measured:
+            print("FAIL  eval_corpus returned no report, so there is nothing "
+                  "to cache; the cache was left as it was.")
+            return 1
         CACHE.write_text(json.dumps(measured, indent=2) + "\n", encoding="utf-8")
-        print(f"measured {len(measured)} document(s) -> "
+        print(f"measured {len(measured)} of {len(paths)} named document(s) -> "
               f"{CACHE.relative_to(ROOT)} (gitignored)")
         return 0
 
     if args.sheet:
-        names = sorted(json.loads(CACHE.read_text(encoding="utf-8"))
-                       ) if CACHE.exists() else [p.name for p in paths]
-        print("# Blind scoring sheet\n")
-        print("Score each document 1-5 on each dimension, against the anchors in")
-        print("references/eval-rubric.md. **No mechanical number appears here on")
-        print("purpose** — a reader who has seen the machine's answer is no longer")
-        print("an independent measurement, and this study is worth nothing without")
-        print("that independence.\n")
-        print("Put the results in reviews/scores.json (reader side), one record per")
-        print("document, and then run this script with no flags.\n")
-        for name in names:
-            print(f"## {name}\n")
-            for dim, anchor in (("C1", "governing message"),
-                                ("C2", "storyline integrity"),
-                                ("C3", "page argument"),
-                                ("C4", "evidence and sourcing"),
-                                ("C5", "type completeness"),
-                                ("C6", "actionability"),
-                                ("C7", "finish and reader efficiency")):
-                print(f"- {dim} {anchor:28} ___   because:")
-            print()
+        # No dimension list lives here. The sheet is rendered by
+        # scoring_sheet.py from scripts/lib/rubric_items.py, which reads the
+        # dimension set out of the rubric — the hardcoded list this branch
+        # used to carry stopped at C7 after C8 shipped, and a reader who
+        # filled it produced a record review_scores.py rejects.
+        if not paths:
+            print("FAIL  --sheet needs the documents: name them as arguments, "
+                  "or record them in evals/corpus.local.json. The form itself "
+                  "is scripts/ops/scoring_sheet.py's, generated from the "
+                  "rubric.")
+            return 1
+        known_ids = corpus_ids_by_name() or {}
+        ids = [known_ids.get(p.name, f"A{i}")
+               for i, p in enumerate(paths, start=1)]
+        print(scoring_sheet.sheet([str(p) for p in paths], ids))
         return 0
 
     if not CACHE.exists():
         if args.report:
             print("note  agreement study: no cached measurement on this machine. "
                   "The study is a local operator step; `--measure` builds the "
-                  "cache. Standing blocker: reviews/scores.json carries no "
-                  "corpus id, so there is nothing to join to.")
+                  "cache, and the gitignored evals/corpus.local.json supplies "
+                  "the filename-to-corpus-id join.")
             return 0
         print("FAIL  no cached measurement. Run with --measure first.")
         return 1
     measured = json.loads(CACHE.read_text(encoding="utf-8"))
     scored = read_scores()
     if not scored:
-        print(f"note  no reader scores name a document, so nothing can be "
+        print(f"note  no reader record carries a corpus id, so nothing can be "
               f"compared. {len(measured)} document(s) are measured and waiting; "
               f"`--sheet` prints the form.")
         return 0 if args.report else 1
 
-    rows = study(measured, scored)
+    ids_by_name = corpus_ids_by_name()
+    if ids_by_name is None:
+        # Not an empty result: the join itself was impossible, and saying so
+        # is the difference between "the study found nothing" and "nobody
+        # could run the study".
+        print(f"{'note' if args.report else 'FAIL'}  the study could not join: "
+              f"evals/corpus.local.json is absent on this machine, so no "
+              f"measured filename resolves to a corpus id. No comparison was "
+              f"made.")
+        return 0 if args.report else 1
+
+    result = study(measured, scored, ids_by_name)
+    rows = result["rows"]
+    for name in result["unjoinable"]:
+        print(f"note  measured, but {LOCAL_CORPUS.name} gives it no corpus id, "
+              f"so it cannot join a reader score: {name}")
     if not rows:
-        print("note  measured documents and scored documents do not overlap")
-        return 1
+        print("note  measured documents and scored documents do not overlap; "
+              "no (metric, document) pair had both a bar and a reader")
+        return 0 if args.report else 1
 
     print(f"# Agreement: {len(rows)} (metric, document) pair(s) where a bar and "
           f"a reader both spoke\n")
@@ -227,10 +311,17 @@ def main(argv=None) -> int:
             if r["agree"]:
                 continue
             said = "cleared the bar" if r["machine"] == "ok" else "missed the bar"
-            print(f"   DISAGREES  {r['document']}: machine {said} "
+            print(f"   DISAGREES  {r['corpus_id']} ({r['document']}): machine {said} "
                   f"({r['value']} {'<=' if r['direction'] == 'ceiling' else '>='} "
                   f"{r['bar']}), reader scored {r['dimension']}={r['human']}")
         print()
+
+    for metric in sorted(result["left_out"]):
+        drops = result["left_out"][metric]
+        detail = ", ".join(f"{n} x {v!r}" for v, n in sorted(drops.items()))
+        print(f"note  {metric}: left out of the study with no pass/miss to "
+              f"compare — {detail}. Reported so a thin study cannot read like "
+              f"a clean one; this does not gate.")
 
     total = sum(1 for r in rows if r["agree"])
     print(f"{total} of {len(rows)} agree. **This is a disagreement list, not a "
