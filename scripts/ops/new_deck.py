@@ -130,6 +130,42 @@ SCAFFOLDED = ("sales", "consulting", "internal", "training")
 GENRES = SCAFFOLDED
 
 
+
+def genre_card(genre: str) -> str:
+    """The genre-conditional contract, as a comment the author reads at write
+    time instead of discovering at check time.
+
+    Ten rounds of one build were autopsied and two or three of them were
+    exactly this: constraints that existed, enforced by checkers, knowable
+    before the first word — the dash ban for the genre, the title-frame
+    taxonomy, the colophon's provenance vocabulary — and discoverable only by
+    failing them, because each lived inside the checker that fires on it.
+    Every value below is IMPORTED from its checker. A card that retyped them
+    would be the twenty-seventh copy-drift fix waiting to happen.
+    """
+    import check_design
+    import check_prose
+    dashes = ("em/en dashes are BANNED in this genre (M9 gates at 0; only a "
+              "digit-digit range like 2026-08 is exempt — C1-C8 is not)"
+              if genre in check_prose.DASH_BANNED else
+              "em dashes allowed (internal analysis exemption)")
+    return f"""<!-- THE CONTRACT FOR genre={genre} — read before writing, not after failing.
+  words   · {dashes}
+          · quoted rule-data (banned-phrase examples, decoy markup) belongs in
+            FIGURE INK: text inside <svg> is invisible to M4/M9 by design;
+            the same phrase in HTML prose fails the run
+  titles  · M11 counts syntactic frames {check_prose.TITLE_FRAMES} — no one
+            frame may carry more than 60% of the titles
+  colophon· D6 accepts these provenance words: {", ".join(check_design.D6_PROVENANCE)}
+  roles   · every page role is defined by the pages this scaffold emits —
+            compose FROM them (the closing title is the closing's h2, not a
+            second cover h1); a role rewritten from memory drops out of the
+            audit instead of failing it
+  checks  · one command runs the whole stack and ends in one block:
+            python3 scripts/ops/check_deliverable.py <file>
+            read that block whole; fix everything it names in one pass -->"""
+
+
 def preamble(genre, geometry, storyline=None):
     """Everything before the first page: the token block AND the sprite.
 
@@ -163,7 +199,7 @@ def preamble(genre, geometry, storyline=None):
             # from the headings would make the report a measurement of the
             # guess.
             + (f' data-storyline="{storyline}"' if storyline else "")
-            + '>\n' + sprite)
+            + '>\n' + genre_card(genre) + '\n' + sprite)
 
 
 def ground(src):

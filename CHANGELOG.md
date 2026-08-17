@@ -1,5 +1,48 @@
 # Changelog
 
+## 0.1.512 — the genre's contract rides in the scaffold, and one rule stops having three genre sets
+
+Release 3 of the ten-round autopsy, closing the cause the first two could not:
+constraints that existed, were enforced, and were knowable before the first
+word — discoverable only by failing them, because each lived inside the
+checker that fires on it.
+
+**The scaffold now emits the contract.** `new_deck.py` writes a comment block
+straight after `<body>`: the genre's dash policy, the five title frames M11
+counts, the nine provenance words D6 accepts, the figure-ink rule for quoted
+tells, the pointer at the scaffold's own pages as the role reference, and the
+one command that runs the whole gate stack. **Every value is imported from the
+checker that enforces it** — the tests assert identity with `DASH_BANNED`,
+`TITLE_FRAMES` and `D6_PROVENANCE`, not resemblance, because a card that
+retyped them would be the twenty-seventh copy-drift fix waiting to happen. And
+the card is proven harmless to its own carrier: a test runs the prose checker
+over the scaffold and asserts the card's quoted dashes and phrases fire
+nothing.
+
+**Two vocabularies stop being code-only.** M11's frame taxonomy lived inside a
+closure in `measure()` — an author varying their titles had no way to learn
+what counted as "one frame" short of reading the function. It is
+`TITLE_FRAMES` at module level now, named in eval-rubric's M11 row and in
+storyline-templates' vary-the-frame passage. D6's provenance regex becomes
+`D6_PROVENANCE`, stated in design-rules beside the obligation it serves, under
+the same sentence writing-rules already gives the M2/M6 markers: the list is
+the contract.
+
+**One rule, three genre sets, resolved.** Writing-rules said the dash ban
+covers sales/marketing/training; eval-rubric said sales/marketing; the checker
+enforced four genres including consulting, and its comment recorded the
+conflict instead of resolving it. All three now state the same fact — every
+genre but internal analysis — and the prose names what it failed to say for
+fifty releases. The letter-digit range trap (a C1-to-C8 style span is not the
+digit-digit data exemption) is written where an author meets it.
+
+**And the figure-ink rule is a rule now.** The checkers strip `<svg>` before
+measuring, on purpose — text drawn inside a figure is the figure's ink. That
+load-bearing behaviour was documented nowhere: the A4 handbook's ban-list
+figure passed on it, and a product deck quoted three filler phrases in a swap
+block and failed on all three until they moved into the drawing. Writing-rules
+§2 states it, with both cases.
+
 ## 0.1.511 — the sentence splitter stops reading a source-line wrap as a full stop, and the 0.50 floor survives the honest instrument
 
 Release 2 of the ten-round autopsy, built in a parallel worktree.

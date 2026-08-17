@@ -103,6 +103,15 @@ misses.
 8. **Closing filler** — "It's worth noting that" · "Undeniably" · "In conclusion"
    as filler · "Let's embark" · adjective stacks in place of numbers.
 
+**Quoting a banned phrase as an example puts it in figure ink, never in HTML
+prose.** The checkers strip `<svg>` before measuring, on purpose — text drawn
+inside a figure is the figure's ink, not the document's prose — so an example
+of the tell lives inside the drawing that discusses it, struck through, and the
+same string typed into a paragraph fails M4 as a hit. This is how the rules
+can show what they ban: the A4 handbook's ban-list figure carries one struck
+sample per group and passes, and a product deck that quoted three filler
+phrases in a swap block failed on all three until they moved into the figure.
+
 Attribution: groups 1–7 are adapted from the `humanizer` skill
 (github.com/blader/humanizer, MIT) — see `NOTICE`. Rules were adapted, not copied
 wholesale: entries that conflict with LUMI's fact discipline were dropped, and
@@ -244,12 +253,17 @@ LUMI's own seed survives as group 8.
 
 **Structural moves** (these catch what a banned-word list cannot)
 
-8. **[en-output] No em dashes or en dashes in sales/marketing or training
-   deliverables.** Use a period, comma, colon, or parentheses. The dash is the
-   single most recognized tell in English AI prose, and it is usually hiding a
-   sentence that wants to be two. Training material binds because its readers
-   quote it onward. (This does not bind internal analysis documents or this
-   repository's own rule prose.)
+8. **[en-output] No em dashes or en dashes in sales, marketing, consulting or
+   training deliverables — internal analysis alone is exempt.** Use a period,
+   comma, colon, or parentheses. The dash is the single most recognized tell in
+   English AI prose, and it is usually hiding a sentence that wants to be two.
+   Training material binds because its readers quote it onward; consulting
+   binds like sales, which this sentence failed to say for fifty releases while
+   the checker enforced it — three statements of one rule carried three
+   different genre sets until 0.1.512. A digit-to-digit range (2026-08) is
+   data and exempt; a letter-digit range (a C1-C8 style span) is not, so write
+   it "C1 to C8" in prose. (This does not bind this repository's own rule
+   prose.)
 9. **Break the rule of three.** Do not force ideas into triplets. When a list has
    exactly three items in every instance across a document, rewrite some as pairs
    or as integrated prose.

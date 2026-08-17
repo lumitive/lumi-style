@@ -146,6 +146,13 @@ the rules that graded it), and **unknown** — a recipe carrying no stamp at all
 against has not told anyone it followed them, and the first real recipe
 measured was exactly that case.
 
+**One build, the whole instrument read, one fix pass.** The pre-delivery
+stack answers as a single block (`check_deliverable.py`), and the block is read
+whole before anything is edited: a ten-round build was autopsied and at least
+three rounds were failures met in installments — present in the first report,
+discovered in the third — because the reports were grepped instead of read.
+Output that has been filtered has not been read.
+
 **Timing starts when the storyline is agreed.** Discussion and outline are not
 counted against it. Charging a user for the thinking they were asked to do
 would push every build back toward path B, which is the opposite of what the
