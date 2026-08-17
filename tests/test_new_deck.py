@@ -95,3 +95,69 @@ def test_the_display_face_rides_along():
 def test_the_geometry_is_declared(geometry):
     html = scaffold("--geometry", geometry, "--pages", "1")
     assert f'data-geometry="{geometry}"' in html
+
+
+# The scaffold reaches the shape library. Three shipped deliverables referenced
+# NONE of its 206 units, and the rebuild spec's D1 calls that guaranteed rather
+# than accidental: an agent following the entry points had no path to it, and
+# `new_deck.py` did not import `embed_shapes` at all.
+
+def test_the_scaffold_references_a_library_shape():
+    html = scaffold()
+    assert 'href="#shape-' in html
+
+
+def test_the_sprite_is_built_so_the_reference_resolves():
+    """D19 refuses a reference that resolves to nothing, and a scaffold that
+    shipped one would hand every author a document already failing a gate."""
+    html = scaffold()
+    used = set(re.findall(r'href="#(shape-[\w-]+)"', html))
+    defined = set(re.findall(r'id="(shape-[\w-]+)"', html))
+    assert used and used <= defined
+
+
+def test_the_use_declares_its_box_because_no_unit_has_a_zero_origin():
+    """All 206 units have a non-zero viewBox origin, so a bare <use> renders
+    shifted off frame. This is the one mechanic the worked example exists to
+    show, and it is the one a reader cannot see is missing."""
+    m = re.search(r'<use href="#shape-[\w-]+"[^>]*>', scaffold())
+    assert m
+    for attr in ("x=", "y=", "width=", "height="):
+        assert attr in m.group(0)
+
+
+def test_shape_labels_use_style_fill_because_the_attribute_loses_to_css():
+    assert 'style="fill:' in scaffold()
+
+
+def test_the_worked_example_s_labels_are_slots_d14_knows():
+    """Furniture the placeholder list has not learned is furniture that ships."""
+    html = scaffold()
+    for slot in ("the step this end names", "and the step it leads to"):
+        assert slot in html
+        assert slot in check_design.AUTHOR_FILL
+
+
+# --storyline seeds the agenda as a checklist, and says so when there is none.
+
+def test_a_storyline_with_a_checklist_seeds_the_agenda():
+    html = scaffold("--storyline", "gtm")
+    assert "target segment" in html and "positioning" in html
+
+
+def test_a_storyline_without_a_checklist_says_so_rather_than_seeding_nothing():
+    """`proposal` shipped for eight releases looking like a storyline whose
+    sections were all present, because absence printed as silence."""
+    html = scaffold("--storyline", "proposal")
+    assert "no typical-section checklist exists for proposal" in html
+
+
+def test_the_geometry_choices_are_the_registry_s_compositions():
+    import deliverable_registry as reg
+    assert reg.COMPOSITIONS == ("landscape", "portrait")
+    assert set(reg.STAGE_OF) == set(reg.COMPOSITIONS)
+
+
+@pytest.mark.parametrize("storyline", ["market-analysis", "gtm", "proposal"])
+def test_every_storyline_produces_a_scaffold(storyline):
+    assert scaffold("--storyline", storyline).count("<section") > 5

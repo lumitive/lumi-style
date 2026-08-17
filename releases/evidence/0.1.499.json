@@ -1,0 +1,15 @@
+{
+ "version": "0.1.499",
+ "diff_base": "4d9d2aef3074f1c8b56157912d3c350a3898de04",
+ "spec": "waived: no spec — R2 of the delivery-completion plan: the scaffold reaches the shape library and the trace can no longer contradict its own document. The case is the rebuild spec's D1 finding plus the pre-merge review, not a design record.",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs. 0.1.499 changes the scaffold generator and the trace tool; no conformance task exercises either. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.499 is unknown, not passing."
+  }
+ ]
+}

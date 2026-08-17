@@ -66,8 +66,10 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
+import deliverable_registry  # noqa: E402
 import embed_font  # noqa: E402
 import embed_globe  # noqa: E402
+import embed_shapes  # noqa: E402
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if p.name == "scripts").parent
@@ -189,6 +191,38 @@ def foot(n, total):
 # is added there, its example belongs here in the same release.
 ARROW = '<span class="arw">&#8594;</span>'
 
+
+# ONE worked example of the shape library's mechanics, on the first content
+# page. The scaffold used to hand an author an empty `.fig` with a comment in
+# it, and three shipped deliverables referenced NONE of the 206 units — the
+# rebuild spec's D1 calls that guaranteed rather than accidental, because an
+# agent following the entry points had no path to the library.
+#
+# It teaches the MECHANICS, not the choice. Which shape a page wants is decided
+# by the RELATION in its content (design-rules.md §4.1) and this file cannot
+# know that; the library was mis-curated twice by reading names as
+# classifications, so a scaffold that prescribed a shape would be the same
+# mistake with a friendlier face. What it does show is the part that has no
+# judgement in it and bites every time:
+#
+#   · EVERY unit in the library has a non-zero viewBox origin — all 206, not
+#     some — so a bare `<use href="#shape-…">` renders shifted off frame. The
+#     x/y/width/height below are not decoration.
+#   · a `fill=` attribute on `<text>` loses to CSS, so a label written that way
+#     silently takes the stylesheet's colour. `style="fill:"` is the form.
+#   · the sprite is BUILT at emit time by embed_shapes.apply(), never pasted.
+SCAFFOLD_SHAPE = "p009-arrow-3d-01"          # relation: order · process
+SHAPE_FIGURE = f'''<svg viewBox="0 0 640 300" role="img"
+        aria-label="A worked example: replace the shape and both labels">
+        <use href="#shape-{SCAFFOLD_SHAPE}" x="0" y="0" width="640" height="239"/>
+        <text x="16" y="278" class="flbl" style="fill:var(--tx2)">the step this end names</text>
+        <text x="624" y="278" text-anchor="end" class="flbl" style="fill:var(--tx2)">and the step it leads to</text>
+      </svg>'''
+FIG_PLACEHOLDER = ("<!-- draw what the content IS: a flow, a timeline, a bridge,"
+                   " a table. Shapes carry semantics; dashed means not built."
+                   " embed_shapes.py --list names every unit the library ships."
+                   " -->")
+
 SAMPLES = [
     '      <p class="listhead">A heading over a block</p>\n'
     # `.gd` is the standard callout, NOT the tier-1 one: D3 budgets `.key` and
@@ -240,8 +274,17 @@ SAMPLES = [
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--genre", choices=GENRES, default="internal")
-    ap.add_argument("--geometry", choices=("landscape", "portrait"),
+    # The composition vocabulary is IMPORTED, not retyped. It used to be a
+    # literal pair here while the trace declared (16x9, a4, laptop) and
+    # inspect_layout declared five viewports — three lists for one word, with
+    # no guard between any pair.
+    ap.add_argument("--geometry", choices=deliverable_registry.COMPOSITIONS,
                     default="landscape")
+    ap.add_argument("--storyline", choices=deliverable_registry.STORYLINES,
+                    help="seed the agenda from this storyline's typical "
+                         "sections. A CHECKLIST, never a template: the rows "
+                         "are furniture to replace, and a storyline with no "
+                         "checklist says so rather than emitting nothing.")
     ap.add_argument("--pages", type=int, default=6,
                     help="content pages, not counting cover, agenda, the part "
                          "openers and the closing")
@@ -285,6 +328,27 @@ def main(argv):
         f'&#183; its subject</p>\n'
         f'          <p class="gq">what these pages establish</p></div>\n'
         for q in parts)
+    # A storyline seeds the agenda with the sections it typically carries — as
+    # FURNITURE TO REPLACE, which is what everything else the scaffold emits
+    # is. The registry's own comment is the constraint: this is a checklist
+    # applied at the end, never a template to start from, so the rows are
+    # marked with the storyline they came from and carry no argument.
+    if args.storyline:
+        sections = deliverable_registry.TYPICAL_SECTIONS.get(args.storyline, ())
+        if sections:
+            rows += "".join(
+                f'        <div class="gr g4"><i></i><p class="gn">{s}</p>\n'
+                f'          <p class="gq">a title naming its subject and '
+                f'carrying a fact</p></div>\n' for s in sections)
+        else:
+            # A storyline with no checklist SAYS SO. Emitting nothing here is
+            # how `proposal` shipped for eight releases looking like a
+            # storyline whose sections were all present.
+            rows += (f'        <div class="gr g4"><i></i><p class="gn">'
+                     f'no typical-section checklist exists for '
+                     f'{args.storyline}</p>\n'
+                     f'          <p class="gq">completeness is yours to '
+                     f'establish at the storyline review</p></div>\n')
     out.append(f'''<section class="page" id="agenda">
   {g}
   <div class="body stack">
@@ -321,6 +385,7 @@ def main(argv):
         count = per if pi < len(parts) - 1 else args.pages - per * (len(parts) - 1)
         for i in range(count):
             block = SAMPLES[(pi * per + i) % len(SAMPLES)]
+            figure = SHAPE_FIGURE if (pi == 0 and i == 0) else FIG_PLACEHOLDER
             out.append(f'''<section class="page" id="p{n}">
   {g}
   <div class="body split">
@@ -333,8 +398,7 @@ def main(argv):
 {block}
     </div>
     <div class="fill">
-      <div class="fig"><!-- draw what the content IS: a flow, a timeline, a
-        bridge, a table. Shapes carry semantics; dashed means not built. -->
+      <div class="fig">{figure}
       <div class="cap"><span class="n">Figure {n - 2}</span> A title stating a
       conclusion <span class="srcline">Where this came from</span></div></div>
     </div>
@@ -392,7 +456,8 @@ def main(argv):
     # (owner directive): a still field globe is the fallback, not the design.
     out.append(embed_globe.build())
     out.append("</body></html>")
-    print("\n".join(out))
+    # BUILT, never pasted — the same rule the globe runtime above follows.
+    print(embed_shapes.apply("\n".join(out)))
     print(f"<!-- scaffold: {total} pages, standard order. Every icon reference "
           f"resolves, every block carries its contract, and each opener carries "
           f"its class. check_design.py's D19 holds all three. -->", file=sys.stderr)

@@ -1,5 +1,63 @@
 # Changelog
 
+## 0.1.499 — the scaffold reaches the shape library, and a trace can no longer contradict its own document
+
+R2 of the delivery-completion plan: entry path B *is* the template path, and its
+only tool was handing authors a document the current rules could not be met from.
+
+**`new_deck.py` did not import `embed_shapes` at all.** Three shipped
+deliverables referenced **none** of the 206 units, and the rebuild spec's D1
+calls that guaranteed rather than accidental — an agent following the entry
+points had no path to the library, and the scaffold's `.fig` was an empty
+comment. It now emits **one worked example** and builds the sprite for it, the
+same way the globe runtime is built rather than harvested.
+
+It teaches the **mechanics, not the choice.** Which shape a page wants follows
+the relation in its content (§4.1) and no scaffold can know that; the library
+was mis-curated twice by reading names as classifications, so prescribing a
+shape would be that mistake with a friendlier face. What the example does show
+is the part with no judgement in it — and one measurement made the case:
+**all 206 units have a non-zero viewBox origin. Not most. Every one.** So §4.2's
+warning that a bare `<use>` renders shifted off frame is not an edge case an
+author might meet, it is the condition every single time, and the `x`/`y`/
+`width`/`height` in the example are load-bearing. The labels are written
+`style="fill:"` for the same reason: a `fill=` attribute loses to CSS silently.
+Both label strings joined `AUTHOR_FILL`, so a figure shipped with them fails
+D14 — furniture the placeholder list has not learned is furniture that ships.
+
+**A trace could contradict its own deliverable and nothing could see it.** The
+word `geometry` named three unrelated vocabularies with no guard between any
+pair: the composition a body declares (`landscape`/`portrait`, what `tokens/`
+styles), the stage a trace records (`16x9`/`a4`/`laptop`), and
+`inspect_layout.py`'s viewport matrix — which is a test matrix and rightly its
+own list. The map between the first two is now declared once, in
+`deliverable_registry.py`, and `trace.py close` refuses a trace whose stage
+disagrees with the body it is closing over. Deliberate red: an `a4` trace
+against a `landscape` document is refused by name; a `16x9` one closes.
+
+**Two vocabulary copies deleted rather than checked.** `trace_schema`'s
+`ENUMS["genre"]` was a **sixth literal copy** of the genre list, and
+`check_genre_vocabulary` inspects a fixed seven-file list that does not include
+it — so adding a genre would have left the newest genre the only one that could
+not be traced, with every guard green. It now shares the registry's tuple, as
+`storyline` already did, and the geometry enum is derived from the same map.
+Preferring impossible to checked is convention 13's spirit one level up.
+
+**`--storyline` seeds the agenda from the storyline's typical sections** — as
+furniture to replace, never as a template, which is the registry's own
+constraint. A storyline with **no** checklist now says so on the page:
+`proposal` shipped for eight releases looking like a storyline whose sections
+were all present, because absence printed as silence. That is the same defect
+`check_outline.py` carried until 0.1.497, in the other tool.
+
+**One thing deliberately not done.** The plan called for raising the scaffold
+from 4 layouts to 6. Declined for now and recorded here rather than silently
+dropped: the "≥6 distinct layouts, heaviest under 40%" bar is a criterion for a
+**deliverable**, not for a starting point, and the layouts expect different
+children — `split` defines two rows, `stack` defines no `.span` — so cycling
+them mechanically produces pages that overflow. The benefit is indirect and the
+breakage is real. It belongs with a composition pass, not with a generator.
+
 ## 0.1.498 — the two entry paths get a home, unshipped work gets a number, and the quote-parity guard is declined on evidence
 
 **Entry path B had no definition.** Its only statement anywhere was a

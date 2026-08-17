@@ -31,16 +31,25 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 from deliverable_registry import (  # noqa: E402 — after the bootstrap
+    GENRES,  # one axis, one definition
+    STAGE_OF,  # composition -> stage, so a trace cannot contradict a body
     STORYLINES,  # the other axis, one definition
 )
 
 ENUMS = {
     "source": ("build", "conformance", "fixture"),
     "storyline": STORYLINES,
-    "genre": ("sales", "marketing", "consulting", "internal", "training"),
+    # IMPORTED, not retyped. This was a sixth literal copy of the genre
+    # vocabulary and `check_genre_vocabulary` inspected a fixed seven-file list
+    # that did not include this one — so adding a genre would have left the
+    # newest genre the only one that could not be traced. Sharing the tuple
+    # makes the drift impossible instead of checked.
+    "genre": GENRES,
     "entry_path": ("A", "B"),
     "stage": ("discussion", "outline", "build", "checks"),
-    "geometry": ("16x9", "a4", "laptop"),
+    # Every stage a composition maps to, plus the ones that belong to no
+    # composition. Derived, so a new composition cannot become untraceable.
+    "geometry": tuple(dict.fromkeys((*STAGE_OF.values(), "laptop"))),
 }
 PHASES = ENUMS["stage"]
 CLAUSE = re.compile(r"^P-[1-9]\d*$")
