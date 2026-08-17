@@ -414,7 +414,14 @@ def _pages_and_blocks(raw_nostrip):
     out = []
     for page in pages:
         text = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", page)))
-        chunks = html.unescape(re.sub(r"<[^>]+>", " ", BLOCK_END.sub(".\n", page)))
+        # A newline in the source is editor wrap, not structure: flatten it
+        # BEFORE the boundary injection so the only "\n" left is the one
+        # BLOCK_END writes, and "block" means the same thing here as it does
+        # to the sentence splitter. Until this ran first, a paragraph
+        # soft-wrapped across source lines was several "blocks", so a range's
+        # block window was whatever line the editor broke.
+        chunks = html.unescape(re.sub(r"<[^>]+>", " ",
+                                      BLOCK_END.sub(".\n", re.sub(r"\s+", " ", page))))
         blocks = [re.sub(r"\s+", " ", b).strip()
                   for b in chunks.split("\n") if b.strip()]
         out.append((text, blocks))
@@ -482,8 +489,21 @@ def extract(path):
         windows = [(re.sub(r"\s+", " ", body),
                     [re.sub(r"\s+", " ", b).strip()
                      for b in re.split(r"\n\s*\n", body) if b.strip()])]
+        # Markdown's block boundaries are the blank line and the list item —
+        # the same role </p> and </li> play in the HTML branch, so they get
+        # the same injected punctuation. A single newline inside a paragraph
+        # is editor wrap and becomes a space in the collapse below.
+        body = re.sub(r"(\S)[ \t]*\n(?=[ \t]*(?:[-*+]|\d+\.)[ \t])", r"\1.\n", body)
+        body = re.sub(r"(\S)[ \t]*\n\s*\n\s*", r"\1.\n", body)
 
-    body = re.sub(r"[ \t]+", " ", body)
+    # Every newline left is source formatting, never a boundary: the block
+    # boundaries above carry their own ".", and the sentence splitter reads
+    # only punctuation. Collapsing "[ \t]+" while leaving "\n" alone made a
+    # physical newline a sentence boundary, so M8 measured source-line
+    # lengths — a 45-word sentence soft-wrapped inside one <p> counted as
+    # three short fragments, and authors kept long sentences on one physical
+    # line to be measured honestly.
+    body = re.sub(r"\s+", " ", body)
     return body, [t for t in titles if t], enums, windows
 
 
@@ -501,7 +521,7 @@ def _markdown_lists(raw):
 
 def sentences(text):
     out = []
-    for part in re.split(r"(?<=[.!?])\s+|\n+", text):
+    for part in re.split(r"(?<=[.!?])\s+", text):
         # Count digits as words: a numbers-first house style otherwise reads as
         # systematically shorter than it is.
         words = re.findall(r"[A-Za-z0-9][A-Za-z0-9'%$-]*", part)
@@ -753,9 +773,11 @@ def grade(r):
          r["M8_overlong_share"] <= 8.0, thin_rhythm),
         # 0.50, raised from 0.35 at 0.1.508 — measured first, not assumed. The
         # refactor's own research note argued 0.35 has no discriminating power,
-        # and the floor was replayed against the rebuilt corpus before moving:
-        # three real documents sit 0.593-0.687 and the degenerate fixture at
-        # 0.347, so the old floor separated nothing real from anything.
+        # and the floor was replayed against the rebuilt corpus before moving.
+        # Re-measured again when the splitter stopped treating a source-line
+        # wrap as a sentence boundary: real documents sit 0.639-0.854 and the
+        # degenerate fixture at 0.332, so the fix widened the separation the
+        # floor relies on rather than moving it.
         ("M8_length_cv", r["M8_length_cv"], ">=0.50", r["M8_length_cv"] >= 0.50, thin_rhythm),
         ("M9_dashes", r["M9_dashes"], "=0", r["M9_dashes"] == 0, r["M9_dashes"] is None),
         # M6 first of the three: the most decidable predicate. A range figure

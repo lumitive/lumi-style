@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.1.511 — the sentence splitter stops reading a source-line wrap as a full stop, and the 0.50 floor survives the honest instrument
+
+Release 2 of the ten-round autopsy, built in a parallel worktree.
+
+**M8 was measuring source lines, not sentences.** The extractor collapsed
+spaces and tabs but left newlines standing, and the splitter treated `\n` as a
+boundary — so a 45-word sentence soft-wrapped across three source lines inside
+one `<p>` counted as three short fragments, and an author who wanted a long
+sentence measured honestly had to keep it on one physical line. That is
+compliance with the instrument rather than with the rule, and it cost two of
+the ten rounds. Block boundaries now do all the separating: the `.` injected
+at `</p>`/`</li>` in HTML, the blank line and list item given the same
+treatment in markdown, and every remaining newline is editor formatting that
+becomes a space. The block windows M2 and M6 read are flattened the same way,
+so "its block" stops meaning "its source line" there too.
+
+**The 0.50 floor was recalibrated, not presumed.** Old and new splitters ran
+side by side over the three fixtures and four rebuilt deliverables: every real
+document ROSE — 0.639 to 0.854, from 0.593 to 0.711 — because un-chopping the
+fragments restores the long tail the old instrument was amputating, and the
+degenerate fixture fell to 0.332. The separation the floor relies on widened
+from 0.246 to 0.307, so the number stands and only its cited measurements
+moved. Deliberate red, planted first: the wrapped 45-word sentence read
+`[15, 15, 15]` and the wrapped markdown paragraph `[7, 7]` before the fix,
+beside the invariant — proven on both sides of the change — that two `<p>`
+blocks stay two sentences. No fixture verdict flipped; M8 stays graded, never
+gating.
+
 ## 0.1.510 — every pre-delivery instrument in one command, after a ten-round build was autopsied
 
 **The case is measured, not felt.** A fifteen-page product deck took ten

@@ -87,13 +87,63 @@ def test_m6_a_sourced_range_is_never_counted(tmp_path):
     assert _measure(tmp_path, s)["M6_unsourced_ranges"] == 0
 
 
+# M8's splitter measures sentences, not source lines. Until this fix, a
+# physical newline was a sentence boundary, so a long sentence soft-wrapped
+# across source lines inside one <p> counted as several short fragments — an
+# author had to keep every long sentence on ONE physical line to be measured
+# honestly, which is compliance with the instrument rather than the rule.
+
+def _lengths(tmp_path, name, content):
+    path = tmp_path / name
+    path.write_text(content, encoding="utf-8")
+    return check_prose.sentences(check_prose.extract(path)[0])
+
+
+def test_m8_a_wrapped_sentence_is_one_sentence(tmp_path):
+    # 45 words, soft-wrapped across three source lines inside one <p>. The
+    # wrap is editor formatting, not punctuation; it must not split.
+    words = " ".join(f"word{i}" for i in range(45))
+    parts = words.split(" ")
+    wrapped = " ".join(parts[:15]) + "\n" + " ".join(parts[15:30]) + "\n" + " ".join(parts[30:]) + "."
+    lengths = _lengths(
+        tmp_path, "doc.en.html",
+        f"<html lang='en'><body><section class='page'><p>{wrapped}</p>"
+        f"</section></body></html>")
+    assert lengths == [45], f"one 45-word sentence, got {lengths}"
+
+
+def test_m8_block_boundaries_still_split(tmp_path):
+    # Two <p> blocks with no terminal punctuation are still two sentences:
+    # the injected block boundary, not the newline, is what separates them.
+    lengths = _lengths(
+        tmp_path, "doc.en.html",
+        "<html lang='en'><body><section class='page'>"
+        "<p>four words here now</p><p>four more words here</p>"
+        "</section></body></html>")
+    assert lengths == [4, 4], f"two 4-word sentences, got {lengths}"
+
+
+def test_m8_markdown_blank_line_splits_wrap_does_not(tmp_path):
+    # A blank line is a paragraph boundary; a single newline is a soft wrap.
+    lengths = _lengths(
+        tmp_path, "doc.md",
+        "one paragraph of five words\n\nanother paragraph of five words\n")
+    assert lengths == [5, 5], f"two paragraphs, got {lengths}"
+    lengths = _lengths(
+        tmp_path, "doc.md",
+        "a single sentence wrapped by the editor\nacross two source lines with no break\n")
+    assert lengths == [14], f"one wrapped sentence, got {lengths}"
+
+
 def test_m8_cv_floor_is_050_and_a_035_rhythm_now_fails():
     FIXTURES = pathlib.Path(__file__).resolve().parents[1] / "fixtures"
     """The floor moved 0.35 -> 0.50 at 0.1.508, replayed against the rebuilt
-    corpus first: real documents sit 0.593-0.687 and the degenerate fixture at
-    0.347, so 0.35 separated nothing real from anything. A document whose
-    rhythm sits between the two floors is the case the raise exists to catch —
-    uniform enough to read machine-made, and green under the old number."""
+    corpus first, and re-measured after the splitter stopped reading a
+    source-line wrap as a sentence boundary: real documents sit 0.639-0.854
+    and the degenerate fixture at 0.332, so 0.35 separated nothing real from
+    anything. A document whose rhythm sits between the two floors is the case
+    the raise exists to catch — uniform enough to read machine-made, and green
+    under the old number."""
     import contextlib
     import io
     import json
