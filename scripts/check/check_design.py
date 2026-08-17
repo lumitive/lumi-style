@@ -879,6 +879,13 @@ AUTHOR_FILL = (
     "What it means in this document, one sentence.",
     "A title naming its subject and carrying a fact",
     "The support line, one sentence and not a summary.",
+    # The scaffold's worked shape example (0.1.499). Its two labels are
+    # furniture like every other string here: a figure shipped with them is a
+    # figure whose author never composed it with the page's own words, which is
+    # §4.2's whole point — a library shape is a starting geometry, not a
+    # finished figure.
+    "the step this end names",
+    "and the step it leads to",
     # The colophon's provenance clause (0.1.450). The scaffold's colophon read
     # "Built with lumi-style VERSION." and stopped there — which trips D6, the
     # check that asks the DOCUMENT where its numbers came from, on every page

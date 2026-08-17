@@ -159,3 +159,53 @@ def test_a_silent_checker_leaves_a_not_measured_marker(tmp_path):
         assert rec["gates"], "the prose half still ran and must still be recorded"
     finally:
         (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+
+
+# A trace that contradicts its own deliverable is worse than no trace. Until
+# 0.1.499 the word `geometry` named three unrelated vocabularies — the body's
+# composition (landscape/portrait), the trace's stage (16x9/a4/laptop) and
+# inspect_layout's viewport matrix — and nothing connected any pair.
+
+def _open(tmp_path, geometry):
+    return subprocess.run(
+        [sys.executable, str(TRACE_PY), "open", "--genre", "internal",
+         "--storyline", "proposal", "--entry-path", "B", "--source", "build",
+         "--geometry", geometry],
+        capture_output=True, text=True, cwd=ROOT, check=True).stdout.strip()
+
+
+def _close(tid, doc):
+    return subprocess.run(
+        [sys.executable, str(TRACE_PY), "close", "--id", tid,
+         "--deliverable", str(doc)], capture_output=True, text=True, cwd=ROOT)
+
+
+def test_a_trace_whose_stage_contradicts_the_document_is_refused(tmp_path):
+    tid = _open(tmp_path, "a4")
+    try:
+        p = _close(tid, ROOT / "fixtures" / "deck-pass.en.html")
+        assert p.returncode != 0
+        assert "landscape" in p.stderr and "a4" in p.stderr
+    finally:
+        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+
+
+def test_a_trace_whose_stage_agrees_closes(tmp_path):
+    tid = _open(tmp_path, "16x9")
+    try:
+        p = _close(tid, ROOT / "fixtures" / "deck-pass.en.html")
+        assert p.returncode == 0, p.stderr
+    finally:
+        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+
+
+def test_the_trace_vocabularies_are_the_registry_s_own_objects():
+    """Not equal by luck — the same object. `genre` was a sixth literal copy
+    that no guard covered, so a new genre would have been the only one that
+    could not be traced."""
+    sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+    import deliverable_registry as reg
+    import trace_schema
+    assert trace_schema.ENUMS["genre"] is reg.GENRES
+    assert trace_schema.ENUMS["storyline"] is reg.STORYLINES
+    assert set(reg.STAGE_OF.values()) <= set(trace_schema.ENUMS["geometry"])

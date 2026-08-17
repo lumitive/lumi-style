@@ -66,6 +66,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 # The closed vocabulary lives in scripts/lib/trace_schema.py — one definition,
 # read by this writer and by check_repo.py's guard.
+from deliverable_registry import STAGE_OF  # noqa: E402
 from trace_schema import ENUMS, FIELDS, PHASES, validate  # noqa: E402
 
 
@@ -175,6 +176,25 @@ def cmd_close(a):
     for k in ("input_tokens", "output_tokens"):
         if getattr(a, k) is not None:
             rec[k] = getattr(a, k)
+
+    # THE TRACE MUST NOT CONTRADICT THE DOCUMENT. A trace recording `a4`
+    # beside a body declaring `landscape` describes two different documents,
+    # and until 0.1.499 nothing could see it: the word `geometry` named three
+    # unrelated vocabularies and no code connected any pair. The map is
+    # declared once in the registry; this reads it.
+    try:
+        raw = pathlib.Path(a.deliverable).read_text(encoding="utf-8")
+    except OSError:
+        raw = ""
+    m = re.search(r'data-geometry="([a-z0-9-]+)"', raw)
+    if m and rec.get("geometry"):
+        expected = STAGE_OF.get(m.group(1))
+        if expected and expected != rec["geometry"]:
+            sys.exit(f"the document declares data-geometry={m.group(1)!r}, whose "
+                     f"stage is {expected!r}, and this trace was opened as "
+                     f"{rec['geometry']!r}. One of the two is wrong, and a trace "
+                     f"that disagrees with its own deliverable is worse than no "
+                     f"trace.")
 
     # Verdicts are transcribed from the checkers, never supplied.
     prose, prose_spoke = _checker_json(

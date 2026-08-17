@@ -99,6 +99,24 @@ def checker_path(kind: str) -> pathlib.Path:
 def kinds() -> tuple[str, ...]:
     return tuple(_SCRIPTS_BY_KIND)
 
+# --- geometry: three vocabularies for one word, and the map between two -------
+#
+# The word `geometry` names three different things in this package, and until
+# 0.1.499 nothing connected any pair of them:
+#
+#   · the COMPOSITION a document declares — `<body data-geometry="landscape">`,
+#     which is what `tokens/` styles and `check_design.py` grades;
+#   · the STAGE a build trace records — `trace_schema.ENUMS["geometry"]`;
+#   · the VIEWPORTS `inspect_layout.py` renders at, which is a test matrix and
+#     not a property of the document at all.
+#
+# The third is rightly its own list. The first two describe the same document
+# and could disagree without anything noticing: a trace reading `a4` beside a
+# body reading `landscape` was a contradiction no code could see. So the map
+# between them is declared ONCE, here, and both sides derive from it.
+COMPOSITIONS = ("landscape", "portrait")
+STAGE_OF = {"landscape": "16x9", "portrait": "a4"}
+
 # The sections a storyline typically carries. This is a CHECKLIST APPLIED AT
 # THE END, never a template to start from — the evidence against template-first
 # work is why the pipeline was turned around, and a list like this used as a
