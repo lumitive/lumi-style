@@ -1,0 +1,15 @@
+{
+ "version": "0.1.498",
+ "diff_base": "2893a1ef281e26ef5a2c39efd3c57d9410ea2222",
+ "spec": "waived: no spec — R1 of the delivery-completion plan: the entry paths get a home in references/, unshipped work gets a counter, and one planned guard is declined on evidence. The case is the owner's ruling plus the pre-merge review, not a design record.",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs. 0.1.498 gives the two entry paths a home in references/, adds an unshipped-release counter and declines one planned guard; no conformance task exercises any of them. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.498 is unknown, not passing."
+  }
+ ]
+}

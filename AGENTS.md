@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.497.** This file restates part of `references/`; where they
+> **lumi-style 0.1.498.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -21,6 +21,18 @@ means two things is a defect.
 lines and the craft rules to make it clear. Starting inside the constraints and
 decorating outward is measurably how you get work that is correct and lifeless:
 through 0.1.344 this rule set ran 272 restricting lines against 12 inviting ones.
+
+**Two entry paths, and the build records which** (`references/operating-rules.md`
+§6 is where this is true). **Path A** is a discussion in four beats whose order
+cannot be reversed — free statement, questions, advice, **storyline review** —
+and beat 4, the review of titles and order before anything is built, is the
+only defence completeness has, because C5 reports and never gates. **Path B**
+starts from a recipe and is what most real builds use. **Both are held to the
+current rules, gates and evals: re-running a recipe shows that nothing broke,
+and nothing about what the rules gained since it was written.** Timing starts
+at storyline agreement; the discussion is not charged against it. Open the
+trace then (`scripts/ops/trace.py open --entry-path A|B …`) and close it after
+the checks — `trace.py close` transcribes verdicts and does not accept them.
 
 **Study the input first; questions come once or not at all.** Read everything
 the user supplied and work from the reader's side of the deliverable — the

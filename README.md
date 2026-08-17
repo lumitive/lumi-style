@@ -78,13 +78,17 @@ references/storyline-templates.md narrative skeletons: sales (value & future) ·
                                   internal analysis · training + shared discipline
 references/design-rules.md        design language: color semantics · dual-voice typography ·
                                   five chart iron rules · semantic icons · layout
-references/eval-rubric.md         the M / D / H eval rubric + the review protocol
+references/PRINCIPLES.md          the constitution: six clauses every rule family declares a parent in
+references/operating-rules.md     how the work is done: the debug log · parallel building · the two
+                                  entry paths and the four-beat storyline review · scaffold-not-fixture
+references/eval-rubric.md         the C1–C8 eval rubric + the review protocol
 references/eval-inventory.md      GENERATED: every quantitative constraint, extracted from the checkers
 tokens/                           design tokens (CSS + JSON): two ladders · palette · type · scale
 assets/brand                      LUMIVATE's locked marks — the field globe is the
                                   default cover/closing mark, embedded live
 assets/fonts                      D-DIN, vendored (SIL OFL) — embed, never link
 assets/icons                      vendored Lucide library (ISC) + the reserved bindings, currentColor
+assets/shapes                     the vector shape library, tagged by the RELATION each shape carries
 assets/vectors                    orthographic globe · flat trade map, generated from lat/lon
 assets/vectors/world-110m.json    Natural Earth 110m as a shared-arc topology (public domain)
 assets/vectors/regions.json       trade-region registry, node point layer, bilingual names

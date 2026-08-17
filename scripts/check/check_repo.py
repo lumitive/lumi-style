@@ -245,7 +245,7 @@ FROZEN_RULE_IDS = (
     "BR-1", "BR-2", "BR-3", "BR-4", "BR-5", "BR-6",
     "DR-1", "DR-2", "DR-3", "DR-4", "DR-5", "DR-6", "DR-7", "DR-8", "DR-9", "DR-10", "DR-11",
     "WR-1", "WR-2", "WR-3", "WR-4", "WR-5", "WR-6", "WR-7", "WR-8", "WR-9",
-    "ST-1", "ER-1", "OR-1",
+    "ST-1", "ER-1", "OR-1", "OR-2",
 )
 
 def check_trace_schema():
@@ -442,14 +442,20 @@ def check_principle_trace():
             if got.group(1) not in valid:
                 errors.append(f"{rel(ref)}:{i + 1}: §{m.group(1)} serves "
                               f"{got.group(1)}, which PRINCIPLES.md does not define")
-    for m in re.finditer(r"\*Serves: \*\*(P-\d+|GOAL)\*", "".join(
-            (ROOT / "references" / f).read_text(encoding="utf-8")
-            for f in ("storyline-templates.md", "eval-rubric.md")
-            if (ROOT / "references" / f).exists())):
-        declared_any = True
-        if m.group(1) not in valid:
-            errors.append(f"a file-level declaration names {m.group(1)}, "
-                          f"which PRINCIPLES.md does not define")
+    # EVERY reference file's declarations, not two named ones. The hard-coded
+    # pair meant a file-level `*Serves: **P-99**` in operating-rules.md — a
+    # clause that does not exist — passed, while the identical plant in
+    # eval-rubric.md failed. A guard with a file list is a guard that stops
+    # covering the next file somebody adds.
+    for ref in sorted((ROOT / "references").glob("*.md")):
+        if ref.name in ("PRINCIPLES.md", "eval-inventory.md"):
+            continue
+        for m in re.finditer(r"\*Serves: \*\*([A-Za-z0-9-]+)\*\*",
+                             ref.read_text(encoding="utf-8")):
+            declared_any = True
+            if m.group(1) not in valid:
+                errors.append(f"{rel(ref)}: a declaration names {m.group(1)}, "
+                              f"which PRINCIPLES.md does not define")
     if not declared_any:
         errors.append("no rule family declares a parent — the guard would pass vacuously")
     return errors
@@ -2232,7 +2238,7 @@ SIBLING_MODULES = (
     "geo_projection", "geo_frame", "globe_svg", "regionmap_svg", "sea_route",
     "color_math", "css_tokens", "lock", "deliverable_registry",
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
-    "trace_schema", "rubric_items",
+    "trace_schema", "rubric_items", "shipping",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.

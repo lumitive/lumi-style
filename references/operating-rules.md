@@ -68,7 +68,7 @@ the deliverable and carry on. A second round of questions costs the user more
 than a stated assumption they can correct, and an agent that asks continuously
 has moved its own uncertainty onto them.
 
-This is the second beat of the discussion entry path, and the questions
+This is the second beat of the discussion entry path (§6), and the questions
 themselves are bounded by the form/content line: they may ask about structure
 and evidence, and may not decide the conclusion.
 
@@ -91,6 +91,52 @@ the flat trade-region map with its labels already placed, and `globe_svg.py`
 the rotating globe. A hand-drawn coastline is a coastline nobody checked, and
 a figure that states data must be the data — which is what D21's contract asks
 of any figure that declares what it draws.
+
+## 6 · One pipeline, two entry paths
+
+*Serves: **GOAL**.* · id `OR-2`
+
+A document reaches the pipeline one of two ways, and the trace records which.
+
+**Entry path A — discussion.** Four beats, and the order cannot be reversed:
+
+1. **Free statement.** The user speaks first and the agent does not interrupt.
+   Asking first anchors them: it turns their problem into our question.
+2. **Segmented questioning.** The agent leads, and every question passes the
+   form/content line — it may ask about structure and evidence, and may not
+   decide the conclusion. §3 is where that beat is written in full.
+3. **Advice.** The agent proposes: the argument, the shape, what earns a page.
+4. **Storyline review.** Titles, order, and the logic joining them, agreed
+   before anything is built. `check_outline.py` is the machine half of this
+   beat; the argument itself stays a person's.
+
+**Beat 4 is the only defence completeness has, and that has to be said plainly.**
+C5 reports and never gates, on evidence — a completeness gate is worth
+defeating, and structural compliance does not predict quality. So a section
+nobody noticed was missing is caught at beat 4 or it is not caught at all. Skip
+the beat and completeness has zero defence. The trace records
+`outline_reviewed` so that skipping it is a countable fact rather than an
+invisible choice.
+
+**Entry path B — template.** A document built from a recipe rather than from a
+conversation: a scaffold, a previous build's source, an agreed structure carried
+forward. It is legitimate, it is faster, and it is what most real builds use.
+
+**Both paths are held to the current constitution, rules and evals. A recipe is
+not a licence to reproduce the document it was written for.** Re-running a
+source script demonstrates that nothing broke; it demonstrates nothing about
+the capability added since it was written. Path B therefore owes the same
+things path A owes — the current rule set, the current gates, a storyline
+somebody stands behind — and a build that cannot say which version of the rules
+its recipe was written against has not established that it followed them.
+*Owner ruling; the case is a rebuild whose argument was two research rounds
+behind its own evidence base while every gate reported green, and a second
+rebuild that differed from its predecessor by two lines.*
+
+**Timing starts when the storyline is agreed.** Discussion and outline are not
+counted against it. Charging a user for the thinking they were asked to do
+would push every build back toward path B, which is the opposite of what the
+measurement is for.
 
 ---
 
