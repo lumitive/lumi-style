@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.1.505 — D9 could be satisfied by renaming a class, and the fix was found by trying to satisfy it
+
+**Found by attempting the rebuild honestly.** The rebuild spec asks a document
+for **≥6 distinct layouts with the heaviest under 40%**. A 30-page A4 handbook
+sat at 3 layouts and 78.6%, so its content pages were reassigned across
+`split`, `split-wide`, `split-narrow` and `sidebar-notes` by what each page
+actually holds — text weight, a figure that carries the page, a load-bearing
+qualification. D9 went from **3 layouts / 78.6%** to **6 / 25.0%**, the gates
+stayed green, and `inspect_layout --deliverable` exited 0.
+
+**Then the contact sheet.** The pages were unchanged. In portrait,
+`tokens/lumi-layouts.css` collapses those four to a single grid —
+`1fr / auto auto 1fr` — so all four render identically, and the reassignment
+had bought a number and nothing else. **D9 counted declared class names, so a
+document could double its layout variety by editing strings.** That is a metric
+satisfied instead of met, which is the failure this package's opening
+provenance note is about, arriving in the metric rather than in the design.
+
+The reassignment was reverted rather than shipped.
+
+**D9 now counts what the geometry distinguishes**, derived from the
+document's own stylesheet rather than hard-coded: a rule that sets a grid for
+several `.body.<name>` selectors at once is the statement that those names are
+one layout there. The renamed build and the original now both report **3
+layouts at 78.6%** — which is the truth, and the criterion is unmet for that
+document until its pages are actually recomposed.
+
+**The same comment has now cost four defects.** The token block explains the
+geometry rule with a line containing a literal
+`<body data-geometry="landscape">`, hundreds of characters ahead of the real
+tag, in **every** deliverable. `embed_shapes.py` injected the sprite after it
+at 0.1.492 and shipped a document where every `<use>` resolved to nothing.
+D9's lookup read its `landscape` on a portrait document here — written while
+reading the comment describing the first one. So the skip is a shared
+`scripts/lib/markup.py` now instead of a warning: `body_attr` computes comment,
+`<style>` and `<script>` spans first, and `embed_shapes.py` calls it too, so
+there is one implementation rather than one implementation and one description.
+
+**And a two-minute hang worth recording.** The first version of the
+equivalence scan used `([^{}]*)\{([^{}]*grid-template-columns[^{}]*)\}`, which
+backtracks catastrophically on a 680KB document. It reads the CSS linearly now.
+A pattern that is correct on a fixture and quadratic on a deliverable is not a
+correct pattern.
+
 ## 0.1.504 — the shape manifest described 206 files nobody had, in a language this repository does not use
 
 Found while preparing R7's rebuilds, by trying to follow the rule that says to

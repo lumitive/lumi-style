@@ -2331,7 +2331,7 @@ SIBLING_MODULES = (
     "geo_projection", "geo_frame", "globe_svg", "regionmap_svg", "sea_route",
     "color_math", "css_tokens", "lock", "deliverable_registry",
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
-    "trace_schema", "rubric_items", "shipping", "fingerprint",
+    "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
