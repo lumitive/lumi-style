@@ -1,0 +1,15 @@
+{
+ "version": "0.1.501",
+ "diff_base": "c9c196fb9c7cfc4fb040f1c5258c26ca8e5a4eaa",
+ "spec": "waived: no spec — R4 of the delivery-completion plan: no trace field is write-only, and the four-beat design's own falsification data finally has a reader. The case is the planted-red run, not a design record.",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs. 0.1.501 adds a repository guard over write-only trace fields and two ledger rows; no conformance task exercises any of them. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.501 is unknown, not passing."
+  }
+ ]
+}

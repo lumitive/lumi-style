@@ -332,7 +332,7 @@ def main():
     c.add_argument("--phase", nargs=2, action="append", metavar=("PHASE", "SECONDS"),
                    type=str)
     c.add_argument("--model")
-    c.add_argument("--effort")
+    c.add_argument("--effort", choices=ENUMS["effort"])
     c.add_argument("--agent")
     c.add_argument("--corpus-id", dest="corpus_id")
     c.add_argument("--input-tokens", type=int, dest="input_tokens")

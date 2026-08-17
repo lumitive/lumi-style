@@ -46,6 +46,11 @@ ENUMS = {
     # makes the drift impossible instead of checked.
     "genre": GENRES,
     "entry_path": ("A", "B"),
+    # The reasoning tier a build ran at. Closed, because K1's model matrix is
+    # two model tiers by THREE effort levels and a free-string column cannot be
+    # grouped. `model` deliberately stays free text one line up: model names
+    # rot, and an enum of them is a maintenance tax with no defect behind it.
+    "effort": ("low", "medium", "high"),
     "stage": ("discussion", "outline", "build", "checks"),
     # Every stage a composition maps to, plus the ones that belong to no
     # composition. Derived, so a new composition cannot become untraceable.
@@ -70,7 +75,11 @@ FIELDS: dict[str, object] = {
     "model": (str, type(None)), "effort": (str, type(None)),
     "agent": (str, type(None)), "pages": int, "content_pages": int,
     "phase_seconds": dict, "input_tokens": (int, type(None)),
-    "output_tokens": (int, type(None)), "cost_usd": (float, int, type(None)),
+    # `cost_usd` was here and is gone. It is tokens times a price, and a
+    # stored derivation goes stale the day the price does — while the tokens
+    # it derives from are right there. Prefer deleting the number: the board
+    # computes cost at report time from a dated price table when one exists.
+    "output_tokens": (int, type(None)),
     "gates": dict, "graded": dict, "thresholds": dict,
     "principle_yields": list, "refused_to_emit": (dict, type(None)),
     "corpus_id": (str, type(None)), "review_ref": (str, type(None)),

@@ -108,6 +108,32 @@ def ledger_instruments(traces):
     return suspects
 
 
+def ledger_beats(traces):
+    """-> what the storyline review beat actually did, counted.
+
+    The four-beat design says beat 4 is the ONLY defence completeness has, and
+    that the trace records `outline_reviewed` so that skipping it is a
+    countable fact rather than an invisible choice. It was recorded and never
+    counted: both this field and `titles_changed_after_approval` were written
+    faithfully by `trace.py` and read by nothing, for the whole life of the
+    design they exist to falsify.
+
+    `titles_changed_after_approval` is the sharper of the two. A review that is
+    agreed and then quietly departed from is not a review, and the number says
+    how far the built document walked from the storyline somebody approved.
+    """
+    reviewed = [t for t in traces if t.get("outline_reviewed")]
+    drifted = [t for t in traces
+               if (t.get("titles_changed_after_approval") or 0) > 0]
+    linked = [t for t in traces if t.get("review_ref")]
+    by_path = collections.Counter(t.get("entry_path") or "?" for t in traces)
+    return {"total": len(traces), "reviewed": len(reviewed),
+            "drifted": len(drifted), "review_linked": len(linked),
+            "titles_moved": sum(t.get("titles_changed_after_approval") or 0
+                                for t in traces),
+            "by_entry_path": dict(by_path)}
+
+
 def ledger_signals(traces):
     """Signals the constitution put here on purpose: refusals, and who yields."""
     refusals = [(t["trace_id"], t["refused_to_emit"]) for t in traces
@@ -201,6 +227,11 @@ def board(traces):
         out = t.get("output_tokens")
         if not pages or out is None:
             continue
+        # Input tokens are most of the bill on a long context and were recorded
+        # and read by nothing. Reported beside output rather than folded into
+        # it: the two move for different reasons, and a single total hides
+        # which one a change moved.
+        inp = t.get("input_tokens")
         phases = t.get("phase_seconds") or {}
         # discussion and outline are not charged: the thinking a user was asked
         # to do is not the pipeline's cost, and counting it would push everyone
@@ -209,6 +240,8 @@ def board(traces):
         rows.append({"trace_id": t["trace_id"], "model": t.get("model"),
                      "effort": t.get("effort"), "content_pages": pages,
                      "tokens_per_page": round(out / pages, 1),
+                     "input_tokens": inp,
+                     "opened_at": t.get("opened_at"),
                      "charged_seconds": charged})
     return rows
 
@@ -225,6 +258,7 @@ def main():
         print(json.dumps({"traces": len(traces), "failing": ledger_failing(traces),
                           "instruments": ledger_instruments(traces),
                           "recipes": ledger_recipes(traces),
+                          "beats": ledger_beats(traces),
                           "candidates": candidates(traces),
                           "board": board(traces)}, indent=1, ensure_ascii=False))
         return
@@ -246,7 +280,9 @@ def main():
             print(f"  {r['tokens_per_page']:>9.1f} tokens/page  "
                   f"{r['charged_seconds']:>5}s charged  "
                   f"{r['content_pages']:>3} pages  "
-                  f"{r.get('model') or '?'}/{r.get('effort') or '?'}")
+                  f"{r.get('model') or '?'}/{r.get('effort') or '?'}  "
+                  f"in={r.get('input_tokens') if r.get('input_tokens') is not None else '?'}"
+                  f"  opened {(r.get('opened_at') or '?')[:10]}")
         if rows:
             med = statistics.median(r["tokens_per_page"] for r in rows)
             print(f"\n  median {med:.1f} tokens per content page. Discussion and "
@@ -288,6 +324,18 @@ def main():
         else:
             print(f"       {len(rows_s)} build(s) had no recipe (path A looks "
                   f"like this)")
+
+    beats = ledger_beats(traces)
+    print("LEDGER 2c · did the storyline review happen, and did it hold?")
+    print(f"       {beats['reviewed']} of {beats['total']} build(s) record a "
+          f"reviewed outline — beat 4 is the only defence completeness has, so "
+          f"the rest had none")
+    print(f"       {beats['drifted']} build(s) changed titles after approval "
+          f"({beats['titles_moved']} title(s) in total) — a review agreed and "
+          f"then departed from is not a review")
+    print(f"       {beats['review_linked']} build(s) carry a reader review "
+          f"reference; entry paths: "
+          f"{', '.join(f'{k}={v}' for k, v in sorted(beats['by_entry_path'].items()))}")
 
     refusals, yields, abandoned = ledger_signals(traces)
     print("LEDGER 3 · what the constitution recorded")

@@ -86,3 +86,39 @@ def test_an_unclosed_trace_is_an_abandoned_build_and_not_on_the_board():
     _r, _y, abandoned = ledger.ledger_signals([t])
     assert abandoned == [t["trace_id"]]
     assert ledger.board([t]) == []
+
+
+# The four-beat design's own falsification data was recorded and never read.
+# `outline_reviewed` exists so that skipping beat 4 — the only defence
+# completeness has — is a countable fact rather than an invisible choice, and
+# nothing counted it. `titles_changed_after_approval` is the sharper of the
+# two: a review agreed and then departed from is not a review.
+
+def _t(**kw):
+    base = {"trace_id": "t-000000000001", "entry_path": "B",
+            "outline_reviewed": False, "titles_changed_after_approval": 0,
+            "review_ref": None}
+    base.update(kw)
+    return base
+
+
+def test_beats_counts_the_reviews_that_happened():
+    rows = ledger.ledger_beats([_t(outline_reviewed=True), _t(), _t()])
+    assert rows["total"] == 3 and rows["reviewed"] == 1
+
+
+def test_beats_counts_titles_that_moved_after_approval():
+    rows = ledger.ledger_beats([
+        _t(outline_reviewed=True, titles_changed_after_approval=4),
+        _t(outline_reviewed=True)])
+    assert rows["drifted"] == 1 and rows["titles_moved"] == 4
+
+
+def test_beats_splits_by_entry_path():
+    rows = ledger.ledger_beats([_t(entry_path="A"), _t(entry_path="B"),
+                                _t(entry_path="B")])
+    assert rows["by_entry_path"] == {"A": 1, "B": 2}
+
+
+def test_beats_on_no_traces_reports_zero_rather_than_failing():
+    assert ledger.ledger_beats([])["total"] == 0
