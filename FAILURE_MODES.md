@@ -254,3 +254,28 @@ Declined 0.1.417. The input is this repository's own tracked workflow;
 splitting the commands would make preflight run something other than what CI
 runs — the one failure that file exists to prevent. Kept with a targeted
 `noqa: S602` pointing at the in-file justification.
+
+## AG-7 · A quote-parity guard over the entry points
+
+Declined 0.1.498, and declined on evidence rather than on effort. The P1 plan
+named it and it then vanished with no record, which is why it is here: an
+undocumented decline gets re-argued.
+
+**There is nothing for it to bind.** A quote-parity guard holds a verbatim
+quotation in a restatement against its source. Looked at the real material
+before writing the pattern, per convention 15: every blockquote in `SKILL.md`,
+`AGENTS.md` and `prompts/lumi-style-core.md` is apparatus — a version stamp, a
+usage note, a pointer at the file that owns a rule — and not one is a verbatim
+quotation of `references/` prose. The entry points RESTATE by design; that is
+what an entry point is for, and it is why `check_red_line_parity` had to derive
+anchor terms instead of comparing text.
+
+Building it anyway would produce a guard with an empty subject set, which is
+FM-01 by construction: it would run green forever and be counted as covering
+the drift between entry points and `references/`. That drift is real, it is
+this repository's dominant defect class, and the honest position is that it
+stays a reading task for the reviewer — as `check_repo.py`'s own docstring
+already says.
+
+If an entry point ever does quote a rule verbatim, this becomes buildable and
+should be rebuilt.

@@ -49,6 +49,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
+import shipping  # noqa: E402 — after the bootstrap
 from check_repo import ENTRY_STAMP, TOKEN_STAMPS  # noqa: E402 — after the bootstrap
 
 
@@ -195,11 +196,23 @@ def main():
               "failures and run this again.")
         sys.exit(1)
 
+    # Convention 12 says to sweep restated claims before committing, and for a
+    # long time the only thing holding that was the sentence saying so. It is
+    # the defect class this repository has fixed twenty-six times, and a rule
+    # written down and then not followed does not need writing more firmly — it
+    # needs a tool that holds it. REPORTED, never gating: the sweep's own
+    # contract is that it reports and never fails, and turning it into a gate
+    # here would quietly overrule that.
+    print("\n5. restated claims — read the ones touching what you changed")
+    sweep = run(["python3", "scripts/check/claim_sweep.py"])
+    tail = "\n".join((sweep.stdout or "").strip().splitlines()[-2:])
+    print("   " + tail.replace("\n", "\n   "))
+
     if a.dry_run:
         print("\n--dry-run: stopping before the commit.")
         return
 
-    print("\n5. commit")
+    print("\n6. commit")
     run(["git", "add", "-A"], capture=False)
     subject = f"{new} — {heading_summary}"
     proc = run(["git", "commit", "-m", subject, "-m",
@@ -207,6 +220,12 @@ def main():
     if proc.returncode != 0:
         sys.exit(f"   git commit failed:\n{proc.stdout}{proc.stderr}")
     print(f"   committed: {subject[:80]}")
+
+    # The last thing a release says is how much finished work has still not
+    # left this machine. Forty releases once accumulated on an unpushed branch
+    # while every local check stayed green, and nothing asked.
+    print()
+    shipping.report()
 
 
 if __name__ == "__main__":

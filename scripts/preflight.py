@@ -32,10 +32,24 @@ import datetime
 import hashlib
 import json
 import pathlib
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
 import re
 import subprocess
 import sys
+import sys as _bs_sys  # noqa: E402
 import time
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import shipping  # noqa: E402 — after the bootstrap
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 WORKFLOW = ROOT / ".github/workflows/ci.yml"
@@ -179,6 +193,8 @@ def main(argv):
         print(f"{len(failed)} of {len(cmds)} steps failed. CI will fail the same way.")
         return 1
     print(f"all {len(cmds)} steps pass. This is what CI runs, so CI passes.")
+    # Green is not shipped. Say how much finished work is still only here.
+    shipping.report()
     return 0
 
 

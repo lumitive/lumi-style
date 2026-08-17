@@ -1,5 +1,74 @@
 # Changelog
 
+## 0.1.498 — the two entry paths get a home, unshipped work gets a number, and the quote-parity guard is declined on evidence
+
+**Entry path B had no definition.** Its only statement anywhere was a
+subordinate clause in a design record — *"entry B is the template path that
+exists today"* — and a spec is not a source of rules. Path A fared little
+better: beat 2 lived in `references/operating-rules.md` and beats 1, 3 and 4
+existed only in specs. Neither path was named in any entry point, so the rule
+the owner had just ruled on had nowhere to be true.
+
+`references/operating-rules.md` §6 is now that home, id `OR-2`, and it carries
+both paths, the four beats in order, and the sentence the ruling turns on:
+**both paths are held to the current constitution, rules and evals — a recipe
+is not a licence to reproduce the document it was written for.** Re-running a
+source script demonstrates that nothing broke and demonstrates nothing about
+what the rules gained since it was written. The case is on record: a rebuild
+whose argument sat two research rounds behind its own evidence base while every
+gate reported green, and a second that differed from its predecessor by two
+lines. Re-flowed by hand into all three entry points, at each one's capability
+tier — the prompt tier gets the four beats and not the trace commands, because
+it has no tools to run.
+
+**Unshipped work is now a number somebody sees.** Forty releases accumulated on
+a branch that was never pushed, had no pull request and had never been seen by
+CI, while every local check stayed green. Nothing in the repository could say
+otherwise because nothing asked. `scripts/lib/shipping.py` asks, and both
+`release.py` and `preflight.py` print the answer.
+
+It counts **versions, never commits**, and the distinction is the whole design.
+This repository lands a multi-release branch with `gh pr merge --rebase` —
+merge commits are disabled and squashing is forbidden — and a rebase gives every
+commit a new hash. A counter asking `origin/main..HEAD` would report the entire
+branch as unshipped *immediately after shipping it*. Commit subjects survive a
+rebase, which is the same property `check_evidence.py` already leans on to
+re-resolve a dangling diff base. The test asserts the trap is real before
+asserting the count is right: `rev-list --count` reads 2 where the counter
+correctly reads 0. **Reported, never gating** — the problem was never that
+somebody chose to wait, it was that nobody was told how long they had waited.
+
+**`claim_sweep.py` now runs inside `release.py`.** Convention 12 says to sweep
+restated claims before committing and the only thing holding that was the
+sentence saying so — for the defect class twenty-six of this repository's
+releases exist to fix. Same reasoning as refusing to commit on a red preflight:
+a rule written down and then not followed needs a tool that holds it, not firmer
+wording. It reports and does not gate, because the sweep's own contract is that
+it reports and never fails, and promoting it here would quietly overrule that.
+
+**The quote-parity guard is declined, as AG-7, on evidence.** It was named in
+the P1 plan and then vanished with no record — which is the thing being fixed,
+since an undocumented decline gets re-argued. Looked at the material before
+writing the pattern, per convention 15: every blockquote in the three entry
+points is apparatus — a version stamp, a usage note, a pointer at the file that
+owns a rule — and **not one is a verbatim quotation of `references/` prose.**
+The entry points restate by design. A guard with an empty subject set is FM-01
+by construction: green forever, and counted as covering a drift it never
+touched. If an entry point ever does quote a rule verbatim, this becomes
+buildable and should be rebuilt.
+
+**Two guards widened, one of them by the same reasoning.**
+`check_principle_trace` validated file-level `*Serves:` declarations in **two
+hard-coded filenames**, so a clause that does not exist passed in
+`operating-rules.md` and failed in `eval-rubric.md`. It now reads every
+reference file. Deliberate red, planted first: `*Serves: **P-99**` on the new
+§6 fails both the section-level and the file-level arm.
+
+**A drift sweep of `README.md`**, which independently restates the file map:
+`references/PRINCIPLES.md` and `references/operating-rules.md` were absent from
+it entirely, `assets/shapes` was absent, and it advertised *"the M / D / H eval
+rubric"* eleven lines above its own protocol section describing C1–C8.
+
 ## 0.1.497 — five checks reported ok where they could not run, and one guard had no test of its own
 
 **Found by a review of the whole refactor, run before merging it.** Three
