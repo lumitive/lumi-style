@@ -760,6 +760,15 @@ mostly used because it fills a page. Reaching for one is a moment to check
 P-4 — a figure that carries no argument violates that clause rather than
 satisfying it.
 
+**Look at the unit before you use it, and the unit is the SVG.** `relation`
+narrows the field; it does not tell you what the geometry actually draws, and
+this library has been curated wrongly twice by reading a name as a
+classification. `embed_shapes.py --list` names what a document references and
+`assets/shapes/<id>.svg` opens in any browser — that is the whole check, and it
+is one the package can honour, because it ships the file. The manifest used to
+carry a `preview` path for every unit and the package shipped none of them, so
+the discipline pointed at 206 files nobody had.
+
 **Shapes reach a deliverable through `scripts/build/embed_shapes.py`**, which
 emits only the symbols the document referenced. Two things follow without new
 machinery: D19 already fails a reference that resolves to no symbol, so the

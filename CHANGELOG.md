@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.1.504 — the shape manifest described 206 files nobody had, in a language this repository does not use
+
+Found while preparing R7's rebuilds, by trying to follow the rule that says to
+look at a shape before using it.
+
+**The `preview` path was dangling on all 206 records.**
+`assets/shapes/previews/` is empty, `.gitignore` excludes `*.png`, and no code
+has ever read the field. The rebuild spec's own discipline — *"verified against
+its rendered preview before use"* — pointed at files that existed on nobody's
+machine, which is the shape-library defect in miniature and it survived the
+release that fixed the library. The previews do exist, in the extraction
+staging area outside this repository, at 18MB against 13MB of current assets;
+shipping them would more than double the package's asset weight to satisfy a
+rule that has a cheaper honest form.
+
+**So §4.1 states a check the package can honour.** `embed_shapes.py --list`
+names what a document references and `assets/shapes/<id>.svg` opens in any
+browser. That is the whole check, it is one the package ships the file for, and
+it keeps the discipline the rule exists for: `relation` narrows the field and
+does not tell you what the geometry draws, which is how this library was
+curated wrongly twice.
+
+**Seventy records were written in Chinese.** Descriptions of geometry —
+*"stacked columns rising"*, *"a centre with five satellites, hub and spoke"* —
+in a repository whose first maintenance red line is that it is written in
+English, and not rule data for Chinese output by any reading. All seventy are
+translated.
+
+**Both were invisible for the same reason, and it is a lesson this repository
+had already learned once.** `check_english_only` scanned markdown; `check_stale_promises`
+says in its own docstring that it was widened to registry JSON because *"every
+text scan in this file globs `*.md`"* — and that was not carried across.
+English-only now reads tracked JSON manifests too, and `check_shape_library`
+refuses a manifest field pointing at a file the package does not ship.
+
+**Two things the planted red taught that reading would not have.** The
+dangling-path guard's first version matched any value containing a slash and
+read a *note* — "illustrative / draft / for discussion only stamps" — as a
+filename; convention 15, in one run against the real manifest. And the
+English-only widening was first written as a text scan, which misses
+`样式` — valid JSON for the same characters, with no CJK byte in the
+file. It parses the document and walks the values now, so an escaped string
+cannot hide.
+
+**Four manifests are allowlisted, each with its reason in the code.** The three
+plugin artifacts carry the skill's own trigger phrase, which is the string a
+Chinese-speaking user types; the geography registries carry the `z` field that
+`regionmap_svg.py --labels zh` renders onto a Chinese map. Deleting those would
+not make the repository more English — it would make the Chinese map wrong.
+
 ## 0.1.503 — an instrument nobody can find is an instrument nobody runs, and the board stopped naming a version it never measured
 
 R6, and all three findings are the same shape: something true, recorded
