@@ -134,13 +134,14 @@ TYPICAL_SECTIONS = {
                       "next checkpoint"),
     "due-diligence": ("scope and method", "findings", "quantified exposure",
                       "limitations", "recommendation"),
-    # Extended from five to seven at the first blind review: the deck built
-    # from the five words alone satisfied each word and scored 1 on
-    # completeness — "overview" (the page the reader must remember) and
-    # "get started" (link, install, first command, feedback channel) are the
-    # substance the old words let an author skip. Template 6 is the skeleton.
-    "product-intro": ("overview", "problem", "what it does",
-                      "evidence it works", "get started", "next step"),
+    # Rewritten to the reader's arc at the second blind review (D16): the
+    # first revision had every part present and still scored 1 on first
+    # impression, because the parts were ordered the way the package explains
+    # itself. What→Why→How→Value is the consultant's order — 是什么、为什么
+    # （痛点）、怎么做、对企业的核心价值 — and Template 6 is the skeleton.
+    "product-intro": ("what it is", "why it exists", "how it works",
+                      "evidence it works", "core value", "get started",
+                      "next step"),
     "training-curriculum": ("objective", "prerequisites", "modules",
                             "practice", "assessment"),
 }

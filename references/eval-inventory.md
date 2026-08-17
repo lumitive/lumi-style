@@ -21,6 +21,7 @@ the hidden-constraint condition this inventory exists to surface.
 | check_prose | M11_title_uniformity | `<=60%` | graded |
 | check_prose | M12_visible_cjk | `=0 (gates)` | gate |
 | check_prose | M13_quantity_conflicts | `=0 (reported)` | reported |
+| check_prose | M14_parallel_frames | `=0 (reported)` | reported |
 | check_prose | M1_assertive_titles | `>=70% (reported)` | reported |
 | check_prose | M2_number_sourcing | `>=90%` | graded |
 | check_prose | M4_banned_hits | `=0` | graded |
@@ -47,6 +48,9 @@ the hidden-constraint condition this inventory exists to surface.
 | check_design | D24_images_embedded | `=0 (gates)` | gate |
 | check_design | D25_image_provenance | `every image names its terms (gates)` | gate |
 | check_design | D26_declared_scope | `every declaration is one a reader meets` | graded |
+| check_design | D27_agenda_mirror | `=0 (gates)` | gate |
+| check_design | D28_takeaway | `reported` | reported |
+| check_design | D29_figure_numbers | `reported` | reported |
 | check_design | D2_type_scale | `reported` | reported |
 | check_design | D3_tier1_page_share | `<=33.0%` | graded |
 | check_design | D3_tier1_per_page | `<=1 per page` | graded |

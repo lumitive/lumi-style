@@ -22,7 +22,8 @@
      "M8_length_cv": "ok",
      "M8_overlong_share": "ok",
      "M9_dashes": "ok",
-     "M13_quantity_conflicts": "ok"
+     "M13_quantity_conflicts": "ok",
+     "M14_parallel_frames": "ok"
     },
     "forbid_verdicts": [
      "n/a"
@@ -61,7 +62,10 @@
      "D24_images_embedded": "ok",
      "D25_image_provenance": "ok",
      "D23_font_count": "ok",
-     "D26_declared_scope": "ok"
+     "D26_declared_scope": "ok",
+     "D27_agenda_mirror": "ok",
+     "D28_takeaway": "ok",
+     "D29_figure_numbers": "ok"
     },
     "contains": {
      "D10_label_icons": [
@@ -116,7 +120,8 @@
      "M8_length_cv": "ok",
      "M8_overlong_share": "ok",
      "M9_dashes": "FAIL",
-     "M13_quantity_conflicts": "ok"
+     "M13_quantity_conflicts": "ok",
+     "M14_parallel_frames": "ok"
     },
     "contains": {
      "M4_banned_hits": [
@@ -159,7 +164,10 @@
      "D24_images_embedded": "FAIL",
      "D25_image_provenance": "FAIL",
      "D23_font_count": "ok",
-     "D26_declared_scope": "FAIL"
+     "D26_declared_scope": "FAIL",
+     "D27_agenda_mirror": "ok",
+     "D28_takeaway": "ok",
+     "D29_figure_numbers": "ok"
     },
     "contains": {
      "D16_visual_presence": [
@@ -189,7 +197,8 @@
      "M8_length_cv": "ok",
      "M8_overlong_share": "ok",
      "M9_dashes": "FAIL",
-     "M13_quantity_conflicts": "ok"
+     "M13_quantity_conflicts": "ok",
+     "M14_parallel_frames": "ok"
     }
    },
    "prose@internal": {
@@ -211,7 +220,8 @@
      "M8_length_cv": "ok",
      "M8_overlong_share": "ok",
      "M9_dashes": "n/a",
-     "M13_quantity_conflicts": "ok"
+     "M13_quantity_conflicts": "ok",
+     "M14_parallel_frames": "ok"
     }
    },
    "layout": {
@@ -258,7 +268,8 @@
      "M8_length_cv": "FAIL",
      "M8_overlong_share": "FAIL",
      "M9_dashes": "ok",
-     "M13_quantity_conflicts": "ok"
+     "M13_quantity_conflicts": "ok",
+     "M14_parallel_frames": "ok"
     }
    },
    "design": {
@@ -290,7 +301,10 @@
      "D24_images_embedded": "ok",
      "D25_image_provenance": "ok",
      "D23_font_count": "ok",
-     "D26_declared_scope": "ok"
+     "D26_declared_scope": "ok",
+     "D27_agenda_mirror": "FAIL",
+     "D28_takeaway": "ok",
+     "D29_figure_numbers": "ok"
     }
    },
    "layout": {
@@ -334,7 +348,8 @@
      "M8_length_cv": "n/a",
      "M8_overlong_share": "n/a",
      "M9_dashes": "ok",
-     "M13_quantity_conflicts": "ok"
+     "M13_quantity_conflicts": "ok",
+     "M14_parallel_frames": "ok"
     }
    }
   },
@@ -355,7 +370,8 @@
      "M8_length_cv": "n/a",
      "M8_overlong_share": "n/a",
      "M9_dashes": "ok",
-     "M13_quantity_conflicts": "ok"
+     "M13_quantity_conflicts": "ok",
+     "M14_parallel_frames": "ok"
     }
    }
   }

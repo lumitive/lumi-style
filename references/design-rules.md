@@ -810,6 +810,17 @@ of the 206 units carry no text at all, so the words and the numbers are the
 document's job — and that is the capability, not a gap. A shape dropped in
 unlabelled is decoration, and decoration on an argument page is a finding.
 
+**The page's numbers go into the geometry, not beside it.** In the external
+genres a figure earns its place by carrying the numbers the page states —
+lengths, fills, step heights, counts drawn to the values — so that the reader
+takes the quantity from the drawing and the insight from the composition. A
+library shape composed with words alone is still an icon wearing labels: the
+first blind-reviewed product deck shipped a staircase carrying six step names
+on a page claiming 206 units and 16 layouts, and the reviewer's verdict was
+`没有把数字和矢量图结合` = `没有洞察` — no number in the geometry, no insight
+in the figure. `check_design.py` D29 reports every figure page whose SVG text
+carries none of the page's own stated values. (Reader review D16, C8.)
+
 **Label it against measured coordinates, never assumed ones.** Render the unit
 once with a coordinate grid over it, read where its segments actually fall, and
 place the text there. The alternative is placing labels by eye on a geometry you

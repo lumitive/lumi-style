@@ -248,7 +248,7 @@ def cmd_close(a):
         if not spoke:
             # A checker that could not speak is recorded PER CHECKER. The old
             # code marked `_checkers` only when BOTH failed, so one broken
-            # checker left a trace that looked complete: nine design gates
+            # checker left a trace that looked complete: every design gate
             # simply absent, and absence reads as "nothing to say" to every
             # consumer. ledger.py's second ledger hunts `not_measured` to
             # suspect an instrument, so this line is what lets it work at all.

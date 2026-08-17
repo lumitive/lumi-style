@@ -228,7 +228,35 @@ Shipped instances: 0.1.508's product-intro deck (first blind C-review: five of
 eight dimensions diverged >=2, reader 1s on completeness, actionability and
 figures while every gate reported green; the agreement study's first real rows
 said it in one line — the machine cleared its bars and the reader judged
-something no metric sees).
+something no metric sees). 0.1.513's r11 revision of the same deck (second
+blind review, D16: every gate green again, reader 1s on first-impression and
+figures and a below-scale 0 on actionability — and this time the agreement
+study could locate the blind spot precisely: no metric even claimed to
+predict C1, C6 or C8; D27/D28/D29 exist because of this row).
+
+## FM-17 · The builder's-eye narrative
+
+- detection: a customer-facing document whose page order and titles walk the
+  *mechanism* (what the thing is made of, in the order the maker understands
+  it) rather than the reader's arc (what it is → why it exists, in the
+  reader's pain → how it works → what it is worth to them). The tell is
+  reviewable in one pass: read the titles alone and ask whose story they
+  tell — the package's or the client's. A second tell: patch-fixing a failed
+  review by adding the named missing parts, which satisfies each part and
+  leaves the arc unbuilt (r11 added every page D15 asked for and D16 scored
+  first-impression LOWER)
+- prevention: Template 6's What→Why→How→Value arc is the page order, not a
+  content checklist; the agenda is derived from the titles (D27 gates the
+  mirror); the outline beat reads the titles as one paragraph and asks whose
+  story they tell before any page is built; and the per-page takeaway (D28)
+  forces every page to say what the reader keeps, which cannot be written
+  from inside the mechanism
+
+Shipped instances: D15 (C3 `论点只复述机制、没有业务价值判断` — the first
+naming), D16 (C1=1 with the agenda-mirror bug as its opening finding, C5's
+`缺的是层层推进、逐渐引导的咨询叙事逻辑`, C7's `每页顺畅，整体不行` — the
+same document after a parts-complete revision, which is what proves the mode
+is about the arc and not the parts).
 
 # Abandoned gates
 

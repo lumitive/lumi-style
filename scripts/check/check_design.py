@@ -508,6 +508,150 @@ def d16_visual_presence(raw):
             "apparatus": sorted(apparatus), "apparatus_share": share}
 
 
+
+def _flat_text(fragment: str) -> str:
+    """Visible text of a markup fragment, whitespace collapsed."""
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", fragment)).strip()
+
+
+def _norm_line(s: str) -> str:
+    """Case- and punctuation-blind form for the agenda-title comparison."""
+    return " ".join(re.sub(r"[^a-z0-9\u4e00-\u9fff ]+", " ", s.lower()).split())
+
+
+def d27_agenda_mirror(raw):
+    """Every claim line on the agenda is a line the deck's own titles say.
+
+    **This gates.** D16's reader opened her review with it: the agenda's part
+    titles matched no opener and its items matched no page title, because the
+    author had written the agenda a second time in fresh words. An agenda is a
+    quotation of the document, not a paraphrase of it — the discipline in
+    references/storyline-templates.md says derive it from the titles, and this
+    is the checkable half. A line is compared normalized (case and punctuation
+    blind), and it passes when it contains a title or a title contains it, so
+    an agenda row may add its part letter or trim a subtitle without failing.
+    A document with no agenda page owes nothing here (n/a).
+    """
+    pages = _pages(raw)
+    agenda = None
+    for _cls, pid, body in pages:
+        if pid == "agenda" or re.search(
+                r'class="(?:[^"]*\s)?eyebrow(?:\s[^"]*)?"[^>]*>.{0,120}?agenda',
+                body, re.S | re.I):
+            agenda = body
+            break
+    if agenda is None:
+        return None
+    titles = []
+    for _cls, _pid, body in pages:
+        if body is agenda:
+            continue
+        for m in re.finditer(r"<h[123][^>]*>(.*?)</h[123]>", body, re.S | re.I):
+            titles.append(_flat_text(m.group(1)))
+        # Openers title with .openclaim, not a heading — read a real instance
+        # before keying on a shape (convention 15).
+        for m in re.finditer(
+                r'class="(?:[^"]*\s)?openclaim(?:\s[^"]*)?"[^>]*>(.*?)</',
+                body, re.S | re.I):
+            titles.append(_flat_text(m.group(1)))
+    tnorm = [_norm_line(t) for t in titles if t]
+    lines = []
+    for m in re.finditer(
+            r'class="(?:[^"]*\s)?(?:gn|listhead)(?:\s[^"]*)?"[^>]*>(.*?)</p>',
+            agenda, re.S | re.I):
+        lines.append(_flat_text(m.group(1)))
+    for m in re.finditer(r"<li[^>]*>(.*?)</li>", agenda, re.S | re.I):
+        lines.append(_flat_text(m.group(1)))
+    orphans = []
+    for ln in lines:
+        n = _norm_line(ln)
+        if not n:
+            continue
+        if not any(n in t or t in n for t in tnorm):
+            orphans.append(ln[:80])
+    return {"lines": len(lines), "titles": len(tnorm), "orphans": orphans}
+
+
+# The genres whose reader is outside the building. Written here rather than
+# imported because check_prose's DASH_BANNED answers a different question
+# (which genres ban a dash) and borrowing it would couple two rules that have
+# already diverged once.
+EXTERNAL_GENRES = ("sales", "marketing", "consulting")
+
+
+def d28_takeaway(raw):
+    """External-genre content pages that end with nothing a reader can quote.
+
+    Reported this release, on the new-gate caution — the role is new and a
+    floor on day one would be satisfied by pasting a sentence, which is the
+    withdrawn fill-floor mistake in prose form. D16's reader: "客户每页记住的
+    要点和想尝试的冲动" — a page that leaves no line behind leaves nothing
+    behind. The genre is the document's own data-genre declaration; a document
+    that does not declare an external genre owes nothing here (n/a).
+    """
+    genre = markup.body_attr(raw, "data-genre")
+    if genre not in EXTERNAL_GENRES:
+        return None
+    pages = _pages(raw)
+    if not pages:
+        return None
+    apparatus = set(re.findall(
+        r'<section[^>]*id="([^"]*)"[^>]*data-role="apparatus"', raw))
+    apparatus |= set(re.findall(
+        r'<section[^>]*data-role="apparatus"[^>]*id="([^"]*)"', raw))
+    missing, content = [], 0
+    for cls, pid, body in pages:
+        if ("cover" in cls or "closing" in cls or "opener" in cls
+                or pid in apparatus or pid == "agenda"):
+            continue
+        content += 1
+        if not re.search(r'class="(?:[^"]*\s)?take(?:\s[^"]*)?"', body):
+            missing.append(pid)
+    return {"content_pages": content, "missing": missing}
+
+
+_NUM_TOKEN = re.compile(r"\d[\d,.]*%?")
+
+
+def d29_figure_numbers(raw):
+    """A page that states numbers and draws a figure that carries none of them.
+
+    Reported. D16's reader called the miss by name: 没有把数字和矢量图结合 =
+    没有洞察. The decidable proxy: collect the numeric tokens the page itself
+    states (title and stat band), and ask whether any of them appears inside
+    the figure's own SVG text. Step indices in a figure do not satisfy a page
+    claiming 206 units — the match is on the page's stated values, not on the
+    presence of digits.
+    """
+    pages = _pages(raw)
+    if not pages:
+        return None
+    naked, with_figs = [], 0
+    for cls, pid, body in pages:
+        if "cover" in cls or "closing" in cls or "opener" in cls:
+            continue
+        if not re.search(r'class="(?:[^"]*\s)?fig(?:\s[^"]*)?"', body):
+            continue
+        with_figs += 1
+        stated = set()
+        for m in re.finditer(r"<h2[^>]*>(.*?)</h2>", body, re.S | re.I):
+            stated.update(_NUM_TOKEN.findall(_flat_text(m.group(1))))
+        for m in re.finditer(
+                r'class="(?:[^"]*\s)?v(?:\s[^"]*)?"[^>]*>(.*?)</div>',
+                body, re.S | re.I):
+            stated.update(_NUM_TOKEN.findall(_flat_text(m.group(1))))
+        stated = {s.rstrip(",.") for s in stated}
+        if not stated:
+            continue
+        drawn = set()
+        for m in re.finditer(r"<text[^>]*>(.*?)</text>", body, re.S | re.I):
+            drawn.update(_NUM_TOKEN.findall(_flat_text(m.group(1))))
+        drawn = {s.rstrip(",.") for s in drawn}
+        if not (stated & drawn):
+            naked.append(pid)
+    return {"pages_with_figs": with_figs, "naked": naked}
+
+
 def d17_export_weight(raw, css):
     """What this document will cost the reader when it is exported.
 
@@ -1191,6 +1335,12 @@ def measure(path):
         "D24_images_embedded": d24_images_embedded(raw),
         "D25_image_provenance": d25_image_provenance(raw),
         "D26_declared_scope": d26_declared_scope(raw, _storyline_of(raw)),
+        "D27_agenda_mirror": (d27 := d27_agenda_mirror(raw)),
+        "D27_detail": (d27 or {}).get("orphans"),
+        "D28_takeaway": (d28 := d28_takeaway(raw)),
+        "D28_detail": (d28 or {}).get("missing"),
+        "D29_figure_numbers": (d29 := d29_figure_numbers(raw)),
+        "D29_detail": (d29 or {}).get("naked"),
         "D23_font_count": d23_font_count(
             raw, (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")),
     }
@@ -1596,6 +1746,24 @@ def grade(r):
     rows.append(("D17_export_weight",
                  f"{len(ew['blend_modes'])} blend modes, {ew['vector_nodes']} nodes",
                  "reported", True, False))
+    am = r["D27_agenda_mirror"]
+    # "No agenda page" is a MEASURED absence and passes — a deck without an
+    # agenda owes no mirror. n/a here would trip the blind-gates rule, which
+    # is for a gate that could not look, not for one that looked and found
+    # nothing to hold.
+    rows.append(("D27_agenda_mirror",
+                 len(am["orphans"]) if am else "no agenda page", "=0 (gates)",
+                 am is None or not am["orphans"], False))
+    tk = r["D28_takeaway"]
+    rows.append(("D28_takeaway",
+                 f"{len(tk['missing'])} of {tk['content_pages']} content pages "
+                 f"without a takeaway" if tk else None,
+                 "reported", True, tk is None))
+    fn = r["D29_figure_numbers"]
+    rows.append(("D29_figure_numbers",
+                 f"{len(fn['naked'])} of {fn['pages_with_figs']} figure pages "
+                 f"carry none of the page's numbers" if fn else None,
+                 "reported", True, fn is None))
     vp = r["D16_visual_presence"]
     rows.append(("D16_visual_presence",
                  f"{len(vp['prose_only'])} of {vp['content_pages']} content pages "

@@ -8,13 +8,13 @@
 
 ## Contents
 
-- [Machine metrics M1–M13 (scriptable; spot-check manually when no script)](#machine-metrics-m1m13-scriptable-spot-check-manually-when-no-script)
+- [Machine metrics M1–M14 (scriptable; spot-check manually when no script)](#machine-metrics-m1m14-scriptable-spot-check-manually-when-no-script)
 - [Design diagnostics (`scripts/check/check_design.py`)](#design-diagnostics-scriptscheckcheck_designpy)
 - [Human dimensions C1–C8 (the machine ticks items; the human rates and says why)](#human-dimensions-c1c8-the-machine-ticks-items-the-human-rates-and-says-why)
 - [Review protocol (the iteration engine)](#review-protocol-the-iteration-engine)
 - [Known genre distortions (never chase the score)](#known-genre-distortions-never-chase-the-score)
 
-## Machine metrics M1–M13 (scriptable; spot-check manually when no script)
+## Machine metrics M1–M14 (scriptable; spot-check manually when no script)
 
 **Ten of the twelve have code.** `check_prose.py` implements M1, M2, M4, M5, M6,
 M8, M9, M10, M11 and M12. Until 0.1.390 the parenthesis in this heading carried
@@ -122,7 +122,8 @@ colour tokens it declares are the ones this package ships, and D21 asks
 whether a figure that declared the data it draws agrees with its own
 numbers, and D22 whether every page's layout is one the tokens
 define, D24 asks whether every image ships inside the file, and D25 asks
-whether it names the terms it is used under — all decidable, in the way "does this page read as intentional" is not. **D15 is the second instance of
+whether it names the terms it is used under, and D27 asks whether every
+agenda line quotes a title the document actually carries — all decidable, in the way "does this page read as intentional" is not. **D15 is the second instance of
 one defect:** `.foot .src` was removed from `tokens/` in 0.1.366 after the first
 deliverable to meet it filled every client page with a build path, and a second
 put one back — in Chinese, on almost every content page — while D6, D12 and D14

@@ -155,7 +155,9 @@ data it draws is held to it) asks whether the drawing agrees with its own
 numbers, and **D22** (every page's layout is one `tokens/` defines) asks
 whether the page structure is the brand's at all, and **D24** (every image ships
 inside the file) and **D25** (every image names its terms) are what made lifting
-the imagery restriction safe rather than a hope. All nine are
+the imagery restriction safe rather than a hope, and **D27** (every agenda
+line quotes a title the document actually carries) asks whether the agenda is
+the document's own story or a second one. All ten are
 decidable in the way "does this page read as intentional" is not. The list is
 `check_design.py`'s to change: a row whose target says `(gates)` gates, and the
 `gating claims` guard holds this sentence to it.

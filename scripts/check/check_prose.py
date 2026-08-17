@@ -662,6 +662,8 @@ def measure(path, genre, lang=None):
         "genre": genre,
         "language": language, "language_from": where,
         "M13_quantity_conflicts": len(quantity_conflicts(body)),
+        "M14_parallel_frames": len(m14 := m14_parallel_frames(raw)),
+        "M14_detail": [f"{pre} \u00d7{n}" for pre, n in m14][:8],
         "M13_detail": [f"{lab}: " + " vs ".join(f"{v}{u}" for v, u in vals)
                        for lab, vals in quantity_conflicts(body)][:8],
         "M12_visible_cjk": None if cjk is None else len(cjk),
@@ -756,6 +758,39 @@ def quantity_conflicts(text):
     return sorted(out)
 
 
+
+# --- M14: the templated parallel frame ---------------------------------------
+# D16's reader quoted two sibling summaries — "Worth your attention if …" /
+# "Worth your attention before …" — and called them AI at sight. The tell is
+# not either sentence; it is the FRAME: sibling blocks of the same role opening
+# with the same words and differing only in the slot. Parallelism is a
+# legitimate device, so this REPORTS and never gates: it counts same-role
+# texts sharing a leading prefix of three or more words, and a writer decides
+# whether the echo is rhetoric or a template.
+_M14_ROLES = ("gq", "gd", "sup", "vw", "listhead", "take")
+_M14_PREFIX_WORDS = 3
+
+
+def m14_parallel_frames(raw: str) -> list[tuple[str, int]]:
+    """[(prefix, count)] for every same-role prefix echoed 2+ times."""
+    body = re.sub(r"<(script|style|svg)\b.*?</\1>", " ", raw, flags=re.S | re.I)
+    echoes = []
+    for role in _M14_ROLES:
+        texts = [re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", m.group(1))).strip()
+                 for m in re.finditer(
+                     rf'class="(?:[^"]*\s)?{role}(?:\s[^"]*)?"[^>]*>(.*?)</',
+                     body, re.S | re.I)]
+        seen: dict[str, int] = {}
+        for text in texts:
+            words = text.lower().split()
+            if len(words) < _M14_PREFIX_WORDS + 1:
+                continue
+            prefix = " ".join(words[:_M14_PREFIX_WORDS])
+            seen[prefix] = seen.get(prefix, 0) + 1
+        echoes += [(f"{role}: {pre} …", n) for pre, n in seen.items() if n >= 2]
+    return sorted(echoes)
+
+
 def grade(r):
     """[(metric, value, target, verdict)] — verdict is ok / FAIL / n/a."""
     thin_rhythm = r["sentences"] < MIN_SENTENCES
@@ -774,6 +809,10 @@ def grade(r):
         # contradiction exited non-zero — the rule text and the code disagreed
         # for two releases, and the code was the half that was wrong.
         ("M13_quantity_conflicts", r["M13_quantity_conflicts"], "=0 (reported)",
+         True, False),
+        # REPORTED for M13's reason: parallelism is sometimes rhetoric, and a
+        # gate would have an author break a legitimate anaphora to go green.
+        ("M14_parallel_frames", r["M14_parallel_frames"], "=0 (reported)",
          True, False),
         # The Chinese pair. n/a on any document that is not Chinese — not "ok",
         # because a metric that passes on a document it never looked at is the

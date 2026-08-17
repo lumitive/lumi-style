@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.513"
+  version: "0.1.514"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -138,7 +138,12 @@ current, stale, or **unknown** — and unknown is not current.
    pick the scenario: sales/marketing · consulting/client document · internal
    analysis · training material — four different narrative skeletons. Read
    [`references/storyline-templates.md`](references/storyline-templates.md) and
-   choose before writing. **Work in parallel where the platform allows** —
+   choose before writing. Its deck-wide disciplines bind every scenario: the
+   agenda is **derived from the page titles** (D27 gates the mirror — an
+   agenda paraphrased in fresh words fails the document), every external
+   content page closes with one **`.take` takeaway line** (D28 reports the
+   coverage), and a customer-facing product deck walks **What → Why → How →
+   Value** in the reader's order (Template 6). **Work in parallel where the platform allows** —
    pages are independent once the storyline is fixed — and the parallel form
    has a protocol, proven on real builds (owner target: a 30-page document in
    under ten minutes end-to-end):
@@ -189,7 +194,11 @@ current, stale, or **unknown** — and unknown is not current.
    **comparisons always use tables**. Ask what the content *is* and draw that: a
    sequence is a flow, a duration is a timeline, a pair of alternatives is a swap,
    a ranking is a ladder, a two-by-two is a two-by-two.
-   **A figure title states a conclusion, not a label.** "Sources feeding the
+   **A figure title states a conclusion, not a label.** **The page's numbers
+   go into the geometry, not beside it** — in the external genres a figure
+   carries the values the page states (D29 reports the page that states
+   numbers and draws none), because a shape composed with words alone is an
+   icon wearing labels. "Sources feeding the
    radar" is a label; "every narrowing step names its criterion" is what a reader
    carries away. Every figure gets a source line, and its number and name go
    below it.
