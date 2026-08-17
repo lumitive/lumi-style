@@ -2971,7 +2971,44 @@ def check_genre_vocabulary():
     return errors
 
 
+def check_assets_tracked():
+    """Every asset this package ships is in version control.
+
+    `.gitignore` carries a blanket `*.svg`/`*.png`/`*.woff2` rule to keep a
+    deliverable's renders out, and an exception block below it re-admits the
+    design language's own assets. That block's own comment says "this is the
+    fourth directory to need saying so" — and `assets/shapes/` became the fifth
+    without being added, so all 206 units of the shape library were never
+    committed. CI found it on a fresh clone; nothing local could have.
+
+    Nothing local could have because every asset guard reads the WORKING TREE.
+    `check_shape_library` globs `assets/shapes/*.svg`, finds 206 files, and
+    passes — the files are right there. A guard that reads the filesystem is
+    structurally blind to the difference between "shipped" and "present on the
+    author's machine", and that is the whole defect class.
+
+    So this one asks git instead. A dotfile is exempt: `.DS_Store` is the
+    platform's litter, not the package's material.
+    """
+    if not (ROOT / ".git").exists():
+        return []                    # a tarball checkout has nothing to assert
+    p = subprocess.run(["git", "ls-files", "-o", "-i", "--exclude-standard",
+                        "assets/"],
+                       cwd=ROOT, capture_output=True, text=True)
+    if p.returncode != 0:
+        return []
+    errors = []
+    for path in sorted(p.stdout.split()):
+        if pathlib.Path(path).name.startswith("."):
+            continue
+        errors.append(
+            f"{path} is on disk and .gitignore excludes it — an asset the "
+            f"package ships may not be one `git add -f` away from existing")
+    return errors
+
+
 CHECKS = (
+    ("assets tracked", check_assets_tracked),
     ("genre vocabulary", check_genre_vocabulary),
     ("storyline vocabulary", check_storyline_vocabulary),
     ("two-axis vocabulary", check_two_axis_vocabulary),

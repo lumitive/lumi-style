@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="11043.16 4407.16 7555.68 5665.68" shape-rendering="geometricPrecision" width="1024" height="767.85" preserveAspectRatio="xMidYMid meet"><g class="com.sun.star.drawing.CustomShape">
+       <g id="id1665">
+        <rect class="BoundingBox" stroke="none" fill="none" x="13065" y="7120" width="5263" height="2692" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 18304,7768 L 15614,7768 13740,9582 13991,9793 13083,9793 13083,8946 13365,9246 15504,7138 18309,7142 18304,7768 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 18304,7768 L 15614,7768 13740,9582 13991,9793 13083,9793 13083,8946 13365,9246 15504,7138 18309,7142 18304,7768 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1666">
+        <rect class="BoundingBox" stroke="none" fill="none" x="12188" y="5953" width="6150" height="3006" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 18305,6584 L 15086,6584 12863,8728 13083,8940 12206,8940 12206,8092 12488,8366 14922,5975 18319,5971 18305,6584 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 18305,6584 L 15086,6584 12863,8728 13083,8940 12206,8940 12206,8092 12488,8366 14922,5975 18319,5971 18305,6584 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1667">
+        <rect class="BoundingBox" stroke="none" fill="none" x="11305" y="4669" width="7023" height="3433" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 18304,5300 L 14582,5300 11980,7871 12200,8083 11323,8083 11323,7236 11605,7509 14498,4687 18309,4704 18304,5300 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 18304,5300 L 14582,5300 11980,7871 12200,8083 11323,8083 11323,7236 11605,7509 14498,4687 18309,4704 18304,5300 Z " />
+       </g>
+      </g>
+      </svg>

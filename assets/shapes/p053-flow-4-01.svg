@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="1309.56 2320.56 22232.88 4187.88" shape-rendering="geometricPrecision" width="1024" height="192.89" preserveAspectRatio="xMidYMid meet"><g class="Group">
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1166">
+         <rect class="BoundingBox" stroke="none" fill="none" x="2120" y="3131" width="5522" height="2568" />
+         <path fill="var(--acc-4, #889A82)" stroke="none" d="M 2133,3144 L 7170,3144 7628,4414 7170,5685 2133,5685 2133,4414 2133,3144 2133,3144 Z " />
+         <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="round" d="M 2133,3144 L 7170,3144 7628,4414 7170,5685 2133,5685 2133,4414 2133,3144 2133,3144 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1167">
+         <rect class="BoundingBox" stroke="none" fill="none" x="2274" y="3284" width="4896" height="2188" />
+         </g>
+       </g>
+      </g>
+      <g class="Group">
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1168">
+         <rect class="BoundingBox" stroke="none" fill="none" x="7152" y="3131" width="5527" height="2568" />
+         <path fill="var(--acc-4, #889A82)" stroke="none" d="M 7165,3144 L 12206,3144 12665,4414 12206,5685 7165,5685 7623,4414 7165,3144 7165,3144 Z " />
+         <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="round" d="M 7165,3144 L 12206,3144 12665,4414 12206,5685 7165,5685 7623,4414 7165,3144 7165,3144 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1169">
+         <rect class="BoundingBox" stroke="none" fill="none" x="7765" y="3284" width="4446" height="2188" />
+         </g>
+       </g>
+      </g>
+      <g class="Group">
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1171">
+         <rect class="BoundingBox" stroke="none" fill="none" x="12173" y="3131" width="5528" height="2568" />
+         <path fill="var(--acc-4, #889A82)" stroke="none" d="M 12187,3144 L 17228,3144 17687,4414 17228,5685 12187,5685 12645,4414 12187,3144 12187,3144 Z " />
+         <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="round" d="M 12187,3144 L 17228,3144 17687,4414 17228,5685 12187,5685 12645,4414 12187,3144 12187,3144 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1172">
+         <rect class="BoundingBox" stroke="none" fill="none" x="12787" y="3284" width="4446" height="2188" />
+         </g>
+       </g>
+      </g>
+      <g class="Group">
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1173">
+         <rect class="BoundingBox" stroke="none" fill="none" x="17211" y="3131" width="5522" height="2568" />
+         <path fill="var(--acc-4, #889A82)" stroke="none" d="M 17224,3144 L 22260,3144 22719,4414 22260,5685 17224,5685 17682,4414 17224,3144 17224,3144 Z " />
+         <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="round" d="M 17224,3144 L 22260,3144 22719,4414 22260,5685 17224,5685 17682,4414 17224,3144 17224,3144 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1174">
+         <rect class="BoundingBox" stroke="none" fill="none" x="17824" y="3284" width="4441" height="2188" />
+         </g>
+       </g>
+      </g>
+      </svg>

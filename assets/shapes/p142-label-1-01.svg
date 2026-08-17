@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="169.87 105.03 398.49 314.16" shape-rendering="geometricPrecision" width="1024" height="807.30" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#clip-1)">
+<path fill-rule="evenodd" fill="var(--acc-4, #889A82)" fill-opacity="1" d="M 196.128906 309.121094 L 248.550781 309.121094 L 248.550781 403.433594 L 196.128906 403.433594 Z M 196.128906 309.121094 " />
+</g>
+<g clip-path="url(#clip-2)">
+<path fill="none" stroke-width="0.74998" stroke-linecap="round" stroke-linejoin="round" stroke="var(--on-acc, #F0F0FA)" stroke-opacity="1" stroke-miterlimit="10" d="M 196.128856 219.656532 L 248.627166 219.656532 L 248.627166 125.206517 L 196.128856 125.206517 Z M 196.128856 219.656532 " transform="matrix(0.998544, 0, 0, -0.998544, 0.285604, 528.457816)" />
+</g>
+<g clip-path="url(#clip-3)">
+<path fill-rule="evenodd" fill="var(--acc-4, #889A82)" fill-opacity="1" d="M 269.523438 261.964844 L 321.945312 261.964844 L 321.945312 403.433594 L 269.523438 403.433594 Z M 269.523438 261.964844 " />
+</g>
+<g clip-path="url(#clip-4)">
+<path fill="none" stroke-width="0.74998" stroke-linecap="round" stroke-linejoin="round" stroke="var(--on-acc, #F0F0FA)" stroke-opacity="1" stroke-miterlimit="10" d="M 269.630402 266.881539 L 322.128712 266.881539 L 322.128712 125.206517 L 269.630402 125.206517 Z M 269.630402 266.881539 " transform="matrix(0.998544, 0, 0, -0.998544, 0.285604, 528.457816)" />
+</g>
+<g clip-path="url(#clip-5)">
+<path fill-rule="evenodd" fill="var(--acc-4, #889A82)" fill-opacity="1" d="M 342.890625 214.070312 L 395.339844 214.070312 L 395.339844 403.433594 L 342.890625 403.433594 Z M 342.890625 214.070312 " />
+</g>
+<g clip-path="url(#clip-6)">
+<path fill="none" stroke-width="0.74998" stroke-linecap="round" stroke-linejoin="round" stroke="var(--on-acc, #F0F0FA)" stroke-opacity="1" stroke-miterlimit="10" d="M 343.104564 314.845904 L 395.630258 314.845904 L 395.630258 125.206517 L 343.104564 125.206517 Z M 343.104564 314.845904 " transform="matrix(0.998544, 0, 0, -0.998544, 0.285604, 528.457816)" />
+</g>
+<g clip-path="url(#clip-7)">
+<path fill-rule="evenodd" fill="var(--acc-4, #889A82)" fill-opacity="1" d="M 416.285156 166.945312 L 468.707031 166.945312 L 468.707031 403.433594 L 416.285156 403.433594 Z M 416.285156 166.945312 " />
+</g>
+<g clip-path="url(#clip-8)">
+<path fill="none" stroke-width="0.74998" stroke-linecap="round" stroke-linejoin="round" stroke="var(--on-acc, #F0F0FA)" stroke-opacity="1" stroke-miterlimit="10" d="M 416.60611 362.039616 L 469.10442 362.039616 L 469.10442 125.206517 L 416.60611 125.206517 Z M 416.60611 362.039616 " transform="matrix(0.998544, 0, 0, -0.998544, 0.285604, 528.457816)" />
+</g>
+<g clip-path="url(#clip-9)">
+<path fill-rule="evenodd" fill="var(--acc-4, #889A82)" fill-opacity="1" stroke-width="0.74998" stroke-linecap="round" stroke-linejoin="round" stroke="var(--on-acc, #F0F0FA)" stroke-opacity="1" stroke-miterlimit="10" d="M 490.111568 409.264623 L 542.609878 409.264623 L 542.609878 125.206517 L 490.111568 125.206517 Z M 490.111568 409.264623 " transform="matrix(0.998544, 0, 0, -0.998544, 0.285604, 528.457816)" />
+</g>
+<path fill="none" stroke-width="2.24994" stroke-linecap="round" stroke-linejoin="round" stroke="var(--on-acc, #F0F0FA)" stroke-opacity="1" stroke-miterlimit="10" d="M 185.613546 125.206517 L 553.125187 125.206517 " transform="matrix(0.998544, 0, 0, -0.998544, 0.285604, 528.457816)" />
+</svg>

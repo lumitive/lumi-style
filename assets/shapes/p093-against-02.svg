@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="6334.72 8165.72 7540.56 5630.56" shape-rendering="geometricPrecision" width="1024" height="764.62" preserveAspectRatio="xMidYMid meet"><g class="com.sun.star.drawing.CustomShape">
+       <g id="id1662">
+        <rect class="BoundingBox" stroke="none" fill="none" x="6596" y="8427" width="5259" height="2640" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 6614,10471 L 9305,10471 11179,8658 10928,8445 11836,8445 11836,9292 11553,8990 9431,11048 6614,11048 6614,10471 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 6614,10471 L 9305,10471 11179,8658 10928,8445 11836,8445 11836,9292 11553,8990 9431,11048 6614,11048 6614,10471 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1663">
+        <rect class="BoundingBox" stroke="none" fill="none" x="6597" y="9281" width="6136" height="2993" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 6615,11654 L 9834,11654 12056,9510 11840,9299 12714,9299 12714,10146 12431,9876 10019,12255 6615,12255 6615,11654 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 6615,11654 L 9834,11654 12056,9510 11840,9299 12714,9299 12714,10146 12431,9876 10019,12255 6615,12255 6615,11654 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1664">
+        <rect class="BoundingBox" stroke="none" fill="none" x="6597" y="10138" width="7018" height="3398" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 6615,12939 L 10341,12939 12938,10367 12718,10156 13596,10156 13596,11002 13313,10733 10464,13517 6615,13517 6615,12939 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 6615,12939 L 10341,12939 12938,10367 12718,10156 13596,10156 13596,11002 13313,10733 10464,13517 6615,13517 6615,12939 Z " />
+       </g>
+      </g>
+      </svg>

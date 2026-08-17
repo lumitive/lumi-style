@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="8813.68 7385.68 7406.64 5112.64" shape-rendering="geometricPrecision" width="1024" height="706.84" preserveAspectRatio="xMidYMid meet"><g class="com.sun.star.drawing.CustomShape">
+       <g id="id1722">
+        <rect class="BoundingBox" stroke="none" fill="none" x="9070" y="7642" width="6895" height="4601" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 12517,12224 L 9088,12224 9088,7660 15946,7660 15946,12224 12517,12224 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="miter" d="M 12517,12224 L 9088,12224 9088,7660 15946,7660 15946,12224 12517,12224 Z " />
+        <text class="SVGTextShape"><tspan class="TextParagraph"><tspan class="TextPosition" x="11062" y="9829"><tspan font-family="Arial, sans-serif" font-size="564px" font-weight="400" lengthAdjust="spacingAndGlyphs" textLength="2159" fill="var(--tx1, #2B2E33)" stroke="none" style="white-space: pre">Industry </tspan></tspan></tspan><tspan class="TextParagraph"><tspan class="TextPosition" x="11062" y="10506"><tspan font-family="Arial, sans-serif" font-size="564px" font-weight="400" lengthAdjust="spacingAndGlyphs" textLength="2910" fill="var(--tx1, #2B2E33)" stroke="none" style="white-space: pre">competitors</tspan></tspan></tspan></text>
+       </g>
+      </g>
+      </svg>

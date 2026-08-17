@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="11469.40 3439.40 11200.20 11518.20" shape-rendering="geometricPrecision" width="1024" height="1053.07" preserveAspectRatio="xMidYMid meet"><g class="com.sun.star.drawing.CustomShape">
+       <g id="id390">
+        <rect class="BoundingBox" stroke="none" fill="none" x="11864" y="9568" width="4811" height="4996" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 11896,14531 L 11896,10786 13082,9600 16642,9600 16642,13344 15455,14531 11896,14531 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 11896,14531 L 11896,10786 13082,9600 16642,9600 16642,13344 15455,14531 11896,14531 Z " />
+        <path fill="var(--acc-3, #ABB7A6)" stroke="none" d="M 11896,10786 L 13082,9600 16642,9600 15455,10786 11896,10786 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 11896,10786 L 13082,9600 16642,9600 15455,10786 11896,10786 Z " />
+        <path fill="var(--acc-5, #48633E)" stroke="none" d="M 15455,14531 L 15455,10786 16642,9600 16642,13344 15455,14531 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 15455,14531 L 15455,10786 16642,9600 16642,13344 15455,14531 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id391">
+        <rect class="BoundingBox" stroke="none" fill="none" x="15414" y="9568" width="4811" height="4996" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 15446,14531 L 15446,10786 16632,9600 20192,9600 20192,13344 19005,14531 15446,14531 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 15446,14531 L 15446,10786 16632,9600 20192,9600 20192,13344 19005,14531 15446,14531 Z " />
+        <path fill="var(--acc-3, #ABB7A6)" stroke="none" d="M 15446,10786 L 16632,9600 20192,9600 19005,10786 15446,10786 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 15446,10786 L 16632,9600 20192,9600 19005,10786 15446,10786 Z " />
+        <path fill="var(--acc-5, #48633E)" stroke="none" d="M 19005,14531 L 19005,10786 20192,9600 20192,13344 19005,14531 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 19005,14531 L 19005,10786 20192,9600 20192,13344 19005,14531 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id392">
+        <rect class="BoundingBox" stroke="none" fill="none" x="11864" y="5824" width="4811" height="4996" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 11896,10787 L 11896,7042 13082,5856 16642,5856 16642,9600 15455,10787 11896,10787 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 11896,10787 L 11896,7042 13082,5856 16642,5856 16642,9600 15455,10787 11896,10787 Z " />
+        <path fill="var(--acc-3, #ABB7A6)" stroke="none" d="M 11896,7042 L 13082,5856 16642,5856 15455,7042 11896,7042 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 11896,7042 L 13082,5856 16642,5856 15455,7042 11896,7042 Z " />
+        <path fill="var(--acc-5, #48633E)" stroke="none" d="M 15455,10787 L 15455,7042 16642,5856 16642,9600 15455,10787 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 15455,10787 L 15455,7042 16642,5856 16642,9600 15455,10787 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id393">
+        <rect class="BoundingBox" stroke="none" fill="none" x="15511" y="3834" width="6765" height="7025" />
+        <path fill="var(--lime, #B8FF00)" fill-opacity="1" stroke="none" d="M 15543,10826 L 15543,5541 17218,3866 22243,3866 22243,9151 20568,10826 15543,10826 Z " />
+        <path fill="none" stroke="var(--lime, #B8FF00)" stroke-width="26" stroke-linejoin="miter" stroke-dasharray="104,78" d="M 15543,10826 L 15543,5541 17218,3866 22243,3866 22243,9151 20568,10826 15543,10826 Z " />
+        <path fill="var(--acc-5, #48633E)" fill-opacity="1" stroke="none" d="M 15543,5541 L 17218,3866 22243,3866 20568,5541 15543,5541 Z " />
+        <path fill="none" stroke="var(--lime, #B8FF00)" stroke-width="26" stroke-linejoin="miter" stroke-dasharray="104,78" d="M 15543,5541 L 17218,3866 22243,3866 20568,5541 15543,5541 Z " />
+        <path fill="var(--acc-5, #48633E)" fill-opacity="1" stroke="none" d="M 20568,10826 L 20568,5541 22243,3866 22243,9151 20568,10826 Z " />
+        <path fill="none" stroke="var(--lime, #B8FF00)" stroke-width="26" stroke-linejoin="miter" stroke-dasharray="104,78" d="M 20568,10826 L 20568,5541 22243,3866 22243,9151 20568,10826 Z " />
+       </g>
+      </g>
+      </svg>

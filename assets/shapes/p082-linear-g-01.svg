@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="2382.20 2440.20 20055.60 8334.60" shape-rendering="geometricPrecision" width="1024" height="425.55" preserveAspectRatio="xMidYMid meet"><g class="com.sun.star.drawing.CustomShape">
+       <g id="id1546">
+        <rect class="BoundingBox" stroke="none" fill="none" x="12536" y="3165" width="9178" height="6458" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 12554,3814 L 19785,3814 19785,3183 21695,6413 19785,9604 19785,8972 12554,8972 12554,6413 12554,3814 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 12554,3814 L 19785,3814 19785,3183 21695,6413 19785,9604 19785,8972 12554,8972 12554,6413 12554,3814 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1547">
+        <rect class="BoundingBox" stroke="none" fill="none" x="7011" y="3787" width="7348" height="6100" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 7029,4706 L 12511,4706 12511,3805 14340,6816 12511,9868 12511,8966 7029,8966 7029,6816 7029,4706 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 7029,4706 L 12511,4706 12511,3805 14340,6816 12511,9868 12511,8966 7029,8966 7029,6816 7029,4706 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1548">
+        <rect class="BoundingBox" stroke="none" fill="none" x="3107" y="4699" width="5523" height="5352" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 3125,5777 L 7030,5777 7030,4717 8611,7394 7030,10032 7030,8967 3125,8967 3125,7394 3125,5777 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 3125,5777 L 7030,5777 7030,4717 8611,7394 7030,10032 7030,8967 3125,8967 3125,7394 3125,5777 Z " />
+       </g>
+      </g>
+      </svg>

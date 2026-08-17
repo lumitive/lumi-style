@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="18900.76 7910.76 484.48 3705.48" shape-rendering="geometricPrecision" width="1024" height="7831.93" preserveAspectRatio="xMidYMid meet"><g class="com.sun.star.drawing.LineShape">
+       <g id="id2081">
+        <rect class="BoundingBox" stroke="none" fill="none" x="19038" y="8048" width="211" height="3432" />
+        <path fill="none" stroke="var(--acc-2, #CFD6CD)" stroke-width="35" stroke-linejoin="miter" d="M 19143,8384 L 19143,11143 " />
+        <path fill="var(--acc-2, #CFD6CD)" stroke="none" d="M 19143,8048 L 19248,8398 19038,8398 19143,8048 Z " />
+        <path fill="var(--acc-2, #CFD6CD)" stroke="none" d="M 19143,11479 L 19038,11129 19248,11129 19143,11479 Z " />
+       </g>
+      </g>
+      </svg>
