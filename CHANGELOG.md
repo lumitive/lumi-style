@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.1.501 — the four-beat design's own falsification data was recorded and never read
+
+R4. The guard was planted first, and what it found was worse than the field it
+was written for.
+
+**`check_trace_field_readers`** asks a small question of the closed trace
+schema: does anything outside the writer read this field? A field nobody reads
+is not absent — it is worse, because it looks like coverage. The case that
+prompted it was `entry_path`: the owner ruled that entry path B is held to the
+current constitution, `trace.py` wrote the field faithfully, and `ledger.py`
+read eleven fields and never that one. **A rule with no consumer cannot be
+true or false about anything.** (0.1.500 gave `entry_path` its reader, so the
+planted red found the rest.)
+
+**Six fields were write-only, and two of them are the four-beat design's own
+evidence.** `outline_reviewed` exists, in the design record's own words, so
+that skipping beat 4 is *"a countable fact rather than an invisible choice"* —
+and nothing counted it, for the whole life of the design it exists to falsify.
+`titles_changed_after_approval` is the sharper of the two: a storyline review
+that is agreed and then quietly departed from is not a review, and that number
+says how far the built document walked from what somebody approved. **Ledger 2c
+now reports both**, split by entry path, which is the comparison K2's
+self-falsifying clause needs.
+
+`input_tokens` — most of the bill on a long context — and `opened_at` were also
+unread; both now appear on the efficiency board, input beside output rather
+than folded into it, because the two move for different reasons and one total
+hides which.
+
+**`cost_usd` is deleted rather than given a reader.** It is tokens times a
+price: a stored derivation that goes stale the day the price does, while the
+tokens it derives from sit in the same record. Prefer deleting the number. The
+board can compute cost at report time from a dated table when there is one.
+
+**`effort` becomes a closed vocabulary** (low/medium/high), because K1's model
+matrix is two model tiers by three effort levels and a free-string column
+cannot be grouped. `model` deliberately stays free text one line above it:
+model names rot, and an enum of them is a maintenance tax with no defect
+behind it.
+
+Deliberate red: the guard went red on all six before any of them had a reader,
+and its synthetic-tree tests include the case that would make it vacuous —
+counting `trace.py` itself as a reader, which every field would pass.
+
 ## 0.1.500 — a build now records what drove it, so "unknown" stops reading as "current"
 
 R3, and the mechanism the owner's entry-path ruling was missing. §6 said both

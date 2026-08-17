@@ -241,3 +241,54 @@ def test_trace_schema_guard_fails_on_a_stored_trace_that_does_not_parse(
 def test_trace_schema_guard_no_traces_is_a_legal_state(tmp_path, monkeypatch):
     monkeypatch.setattr(check_repo, "ROOT", _trace_repo(tmp_path, {}))
     assert check_repo.check_trace_schema() == []
+
+
+# check_trace_field_readers — a field nobody reads is worse than an absent one,
+# because it looks like coverage. `entry_path` was the case: the owner ruled
+# that entry path B is held to the current constitution, trace.py wrote the
+# field faithfully, and ledger.py read eleven fields and never that one. The
+# rule had no consumer, so it could not be true or false about anything.
+
+def _field_repo(tmp_path, fields, reader_text):
+    schema = ("FIELDS = {" + ", ".join(f'"{f}": str' for f in fields) + "}\n")
+    return _repo(tmp_path, {"scripts/lib/trace_schema.py": schema,
+                            "scripts/ops/trace.py": "# the writer\n",
+                            "scripts/ops/ledger.py": reader_text})
+
+
+def test_field_readers_every_field_read_passes(tmp_path, monkeypatch):
+    import trace_schema
+    monkeypatch.setattr(trace_schema, "FIELDS", {"alpha": str, "beta": str})
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _field_repo(tmp_path, ["alpha", "beta"],
+                                    'x = rec["alpha"] + rec["beta"]\n'))
+    assert check_repo.check_trace_field_readers() == []
+
+
+def test_field_readers_a_write_only_field_fails_by_name(tmp_path, monkeypatch):
+    import trace_schema
+    monkeypatch.setattr(trace_schema, "FIELDS", {"alpha": str, "entry_path": str})
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _field_repo(tmp_path, ["alpha", "entry_path"],
+                                    'x = rec["alpha"]\n'))
+    errors = check_repo.check_trace_field_readers()
+    assert any("entry_path" in e for e in errors)
+    assert not any("'alpha'" in e for e in errors)
+
+
+def test_field_readers_the_writer_itself_is_not_a_reader(tmp_path, monkeypatch):
+    """trace.py writes every field; counting it would make the guard vacuous."""
+    import trace_schema
+    monkeypatch.setattr(trace_schema, "FIELDS", {"solo": str})
+    root = _repo(tmp_path, {"scripts/lib/trace_schema.py": 'FIELDS = {"solo": str}\n',
+                            "scripts/ops/trace.py": 'rec["solo"] = 1\n',
+                            "scripts/ops/ledger.py": "# reads nothing\n"})
+    monkeypatch.setattr(check_repo, "ROOT", root)
+    assert any("solo" in e for e in check_repo.check_trace_field_readers())
+
+
+def test_field_readers_empty_schema_is_not_a_vacuous_pass(tmp_path, monkeypatch):
+    import trace_schema
+    monkeypatch.setattr(trace_schema, "FIELDS", {})
+    monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, {"a.py": "x=1\n"}))
+    assert check_repo.check_trace_field_readers()

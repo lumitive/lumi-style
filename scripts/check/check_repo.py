@@ -3064,6 +3064,38 @@ def check_assets_tracked():
     return errors
 
 
+
+def check_trace_field_readers():
+    """No field the trace schema declares is write-only.
+
+    A field nobody reads is a fact nobody uses, and it is worse than an absent
+    one: it looks like coverage. `entry_path` was the case that made this
+    guard — the owner ruled that entry path B is held to the current
+    constitution, `trace.py` wrote the field faithfully, and `ledger.py` read
+    eleven fields and never that one. The rule had no consumer, so it could
+    not be true or false about anything.
+
+    A reader is any mention outside the schema and the writer. That is a loose
+    definition on purpose: a tighter one (an actual subscript) would miss
+    `rec.get(k)` in a loop, and this guard's job is to catch a field with NO
+    downstream at all, not to grade how it is used.
+    """
+    fields = getattr(trace_schema, "FIELDS", None)
+    if not fields:
+        return ["trace_schema declares no FIELDS — the guard would pass vacuously"]
+    written_by = {"scripts/lib/trace_schema.py", "scripts/ops/trace.py"}
+    corpus = []
+    for path in sorted((ROOT / "scripts").rglob("*.py")):
+        if rel(path) in written_by:
+            continue
+        corpus.append(path.read_text(encoding="utf-8"))
+    blob = "\n".join(corpus)
+    unread = [f for f in fields if f not in blob]
+    return [f"trace field {f!r} is declared and nothing outside trace.py reads "
+            f"it — a field with no consumer is not coverage, it is a fact "
+            f"nobody uses" for f in sorted(unread)]
+
+
 CHECKS = (
     ("assets tracked", check_assets_tracked),
     ("genre vocabulary", check_genre_vocabulary),
@@ -3084,6 +3116,7 @@ CHECKS = (
     ("red line parity", check_red_line_parity),
     ("rule ids", check_rule_ids),
     ("trace schema", check_trace_schema),
+    ("trace field readers", check_trace_field_readers),
     ("stale promises", check_stale_promises),
     ("platform manifest", check_platform_manifest),
     ("retired values", check_retired_values),
