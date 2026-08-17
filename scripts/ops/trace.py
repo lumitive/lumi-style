@@ -69,6 +69,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # The closed vocabulary lives in scripts/lib/trace_schema.py — one definition,
 # read by this writer and by check_repo.py's guard.
 import fingerprint  # noqa: E402
+import markup  # noqa: E402
 from deliverable_registry import STAGE_OF  # noqa: E402
 from trace_schema import ENUMS, FIELDS, PHASES, validate  # noqa: E402
 
@@ -237,11 +238,17 @@ def cmd_close(a):
         raw = pathlib.Path(a.deliverable).read_text(encoding="utf-8")
     except OSError:
         raw = ""
-    m = re.search(r'data-geometry="([a-z0-9-]+)"', raw)
-    if m and rec.get("geometry"):
-        expected = STAGE_OF.get(m.group(1))
+    # THE REAL <body>, via the shared helper. This line originally used the
+    # first regex match and was caught, in its first run against a real
+    # portrait document, reading `landscape` out of the stylesheet's own
+    # comment — the FIFTH defect from that one sentence, written before
+    # markup.py existed to hold the lesson. The cross-check refused a correct
+    # trace, which is the exact inversion of what it is for.
+    declared = markup.body_attr(raw, "data-geometry") if raw else None
+    if declared and rec.get("geometry"):
+        expected = STAGE_OF.get(declared)
         if expected and expected != rec["geometry"]:
-            sys.exit(f"the document declares data-geometry={m.group(1)!r}, whose "
+            sys.exit(f"the document declares data-geometry={declared!r}, whose "
                      f"stage is {expected!r}, and this trace was opened as "
                      f"{rec['geometry']!r}. One of the two is wrong, and a trace "
                      f"that disagrees with its own deliverable is worse than no "

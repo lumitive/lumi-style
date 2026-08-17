@@ -1,0 +1,24 @@
+{
+  "version": "0.1.507",
+  "diff_base": "d0cbb3625d644868659633b47fb2d0c2b0601dca",
+  "spec": "specs/2026-08-17-rebuild-deliverables-to-current-standard-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "7513ead12ce77349d71f02fe695125c468d11f0c1b0a95d60a1d322dbfc6e487",
+      "date": "2026-08-17"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board reports CLI-agent conformance runs. 0.1.507 rebuilds two deliverables outside the repo and fixes two checker defects the rebuild surfaced; no conformance task exercises them. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.507 is unknown, not passing."
+    }
+  ]
+}

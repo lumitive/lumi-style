@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.506"
+  version: "0.1.507"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -234,7 +234,10 @@ current, stale, or **unknown** — and unknown is not current.
    location where it means an instruction is a rule waiting to be read the
    generous way, not because it is known to have been.* **Choose a page layout for
    the content**: §3's table is a reference of what has worked, not a lookup, and
-   a page that wants something not in it should get it. **Embed the vendored
+   a page that wants something not in it should get it. **On portrait the split
+   family renders as one composition** — variety there comes from the vertical
+   and composite families, chosen from the content and checked on the rendered
+   page (§3's portrait note carries the two cautions). **Embed the vendored
    assets rather than improvising**: `scripts/build/embed_font.py` for the display face,
    `scripts/build/embed_icons.py` for the icon library,
    `scripts/build/embed_shapes.py` for the shape library, `assets/vectors/` for

@@ -571,6 +571,23 @@ look like it.
   strikethrough leftovers, and "this section moved on <date>" asides belong in
   the working ledger, never in a formal deliverable — keep the design rationale,
   drop the revision story.
+- **On portrait, the split family is ONE composition, and variety comes from
+  the vertical and composite families.** `tokens/` deliberately collapses
+  `split`, `split-wide`, `split-narrow` and `sidebar-notes` to a single grid on
+  the sheet, so choosing among them changes nothing a reader sees — D9 counts
+  them as one there. Distinct portrait composition lives in `stack`,
+  `hero-band`, `band-hero`, `columns-2`, `quad`, `thirds-v`, `rail` and
+  `diagonal-flow`, chosen from the content: a strip of measured numbers over a
+  dominant block is `band-hero`; a dominant figure anchored by a thin strip is
+  `hero-band`; four parallel items are `quad`; an ordered sequence that steps
+  is `diagonal-flow`. Two cautions, both watched on rendered pages rather than
+  guessed: **content volume is part of "choose from the content"** — a thin
+  list under a 1fr hero row opens a dead band, and the fix is a second content
+  block from the page's own facts, never a stretched one; and **portrait
+  `columns-2` centers each cell independently**, so it suits near-equal columns
+  and misaligns unequal ones. (Two real rebuilds, 64 pages: every conversion
+  was verified on its rendered PNG, and three that read well in markup were
+  reverted after looking.)
 
 ## 4 · Five chart iron rules + form selection
 
@@ -815,6 +832,13 @@ mean something it did not is the same defect as choosing the wrong shape.
 `--acc-5` with `--on-acc` for text on top and `--lime` reserved for the event
 green. Retinting a unit means moving it along that ladder, never introducing a
 colour — §1 is unchanged by any of this, and D20 gates it.
+- **A label on a library shape is sized in the shape's own units, not the
+  token ladder's pixels.** A unit's viewBox can run thousands of units across
+  (flow-5 is ~32 units per rendered pixel), so a token 11px text class renders
+  invisibly small inside it. Scale the font size by the viewBox-to-cell ratio,
+  the same arithmetic the `x`/`y`/`width`/`height` rule already forces.
+  (Found composing the first library shape into a rebuilt operations guide.)
+
 
 ## 5 · The commercial footer
 
