@@ -6,6 +6,7 @@ before the build rather than after, and no free text — are properties of the
 code rather than of whoever runs it.
 """
 import json
+import os
 import pathlib
 import subprocess
 import sys
@@ -98,3 +99,63 @@ def test_open_then_close_round_trip(tmp_path, monkeypatch):
         assert trace.validate(rec) == []
     finally:
         stored.unlink(missing_ok=True)
+
+
+# A checker that could not speak must not be recorded as a checker with nothing
+# to say. `_checker_json` discarded the return code and returned None on a parse
+# error, and `close` skipped a falsy report — so `[]` (an honest empty report)
+# and a crash were the same value. One broken checker then left a trace whose
+# nine design gates were simply absent, and absence reads as "fine" to every
+# consumer, including the ledger built to notice a broken instrument.
+
+import importlib.util  # noqa: E402 — the module name collides with stdlib trace
+
+_spec = importlib.util.spec_from_file_location("lumi_trace", TRACE_PY)
+assert _spec is not None and _spec.loader is not None, TRACE_PY
+_trace_tool = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_trace_tool)
+
+
+def test_a_checker_that_emits_prose_before_its_json_is_recorded_as_silent(tmp_path):
+    """The real trigger: check_design prints its blind-gate warning with a bare
+    print() that --json does not suppress, so a deck built with div.page emits
+    prose in front of the JSON. The checker is doing its job; the transcriber
+    used to throw the signal away."""
+    src = (ROOT / "fixtures" / "deck-pass.en.html").read_text(encoding="utf-8")
+    doc = tmp_path / "divpage.html"
+    doc.write_text(src.replace('<section class="page', '<div class="page')
+                      .replace("</section>", "</div>"), encoding="utf-8")
+    parsed, spoke = _trace_tool._checker_json("check_design.py", doc)
+    assert spoke is False
+    assert parsed is None
+
+
+def test_a_healthy_deliverable_is_recorded_as_having_spoken():
+    parsed, spoke = _trace_tool._checker_json(
+        "check_design.py", ROOT / "fixtures" / "deck-pass.en.html")
+    assert spoke is True
+    assert parsed
+
+
+def test_a_silent_checker_leaves_a_not_measured_marker(tmp_path):
+    """End to end: open, close against a document one checker cannot read, and
+    assert the trace SAYS the design half did not run."""
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    src = (ROOT / "fixtures" / "deck-pass.en.html").read_text(encoding="utf-8")
+    doc = tmp_path / "divpage.html"
+    doc.write_text(src.replace('<section class="page', '<div class="page')
+                      .replace("</section>", "</div>"), encoding="utf-8")
+    tid = subprocess.run(
+        [sys.executable, str(TRACE_PY), "open", "--genre", "internal",
+         "--storyline", "proposal", "--entry-path", "B", "--source", "build"],
+        capture_output=True, text=True, env=env, cwd=ROOT).stdout.strip()
+    try:
+        subprocess.run([sys.executable, str(TRACE_PY), "close", "--id", tid,
+                        "--deliverable", str(doc)],
+                       capture_output=True, text=True, env=env, cwd=ROOT, check=True)
+        rec = json.loads((ROOT / "evals" / "traces" / f"{tid}.json")
+                         .read_text(encoding="utf-8"))
+        assert rec["thresholds"].get("_checker_design") == "not_measured"
+        assert rec["gates"], "the prose half still ran and must still be recorded"
+    finally:
+        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)

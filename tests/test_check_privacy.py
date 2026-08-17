@@ -95,3 +95,48 @@ def test_clean_fixtures_report_nothing_at_layer_two():
         raw = (ROOT / "fixtures" / name).read_text(encoding="utf-8")
         _l1, l2 = cp.scan(raw, [])
         assert l2 == [], f"{name} produced layer-2 noise: {l2[:3]}"
+
+
+# The term half must fail LOUDLY when it could not run — including the shape
+# nobody thought of. `load_terms` grew a "missing" status; the verdict
+# expression and the exit ladder both still asked about "not_attempted" by
+# hand, so a typo in --terms scored BETTER than omitting the flag: exit 0,
+# verdict "ok", on the one gating half of layer 1.
+
+def _run(*args):
+    p = subprocess.run([sys.executable,
+                        str(ROOT / "scripts" / "check" / "check_privacy.py"),
+                        str(ROOT / "fixtures" / "deck-pass.en.html"), *args],
+                       capture_output=True, text=True)
+    return p.returncode, p.stdout
+
+
+def test_terms_file_that_does_not_exist_fails_rather_than_passing():
+    code, out = _run("--terms", "/nonexistent/typo.txt", "--json")
+    assert code == 1, "a typo in --terms must not be scored better than no --terms"
+    assert '"verdict": "missing"' in out
+
+
+def test_no_terms_at_all_still_fails():
+    code, out = _run("--json")
+    assert code == 1
+    assert '"verdict": "not_attempted"' in out
+
+
+def test_a_real_terms_file_with_no_hits_passes(tmp_path):
+    lst = tmp_path / "terms.txt"
+    lst.write_text("a-term-that-appears-nowhere\n")
+    code, out = _run("--terms", str(lst), "--json")
+    assert code == 0
+    assert '"verdict": "ok"' in out
+
+
+def test_every_did_not_run_status_load_terms_can_return_is_handled():
+    """A seventh status added to load_terms must not default to a pass.
+
+    This is the parity half: the statuses that mean "did not run" are named
+    once, and this asserts the namer covers what the loader can produce.
+    """
+    import check_privacy as cp
+    produced = {"not_attempted", "missing", "loaded"}
+    assert set(cp.DID_NOT_RUN) | {"loaded"} == produced

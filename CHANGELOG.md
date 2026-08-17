@@ -1,5 +1,83 @@
 # Changelog
 
+## 0.1.497 — five checks reported ok where they could not run, and one guard had no test of its own
+
+**Found by a review of the whole refactor, run before merging it.** Three
+reviewers worked the diff independently; two of them verified by *mutation* —
+replacing a guard's body with `return []` and watching whether the suite
+noticed — rather than by reading, which is convention 15's point that reading
+uses the same model that produced the code.
+
+**One defect wearing five sets of clothes.** This repository is careful about
+the distinction at the point of MEASUREMENT: `n/a` means the metric does not
+apply, `not_measured` means it applies and could not be run, and the comment
+explaining why they must not collapse is three releases old. Every one of these
+five threw the distinction away one level up, at the point of CONSUMPTION.
+
+- **`check_privacy.py`: a typo in `--terms` scored better than omitting the
+  flag.** `load_terms` grew a `missing` status; the verdict expression and the
+  exit ladder both still asked about `not_attempted` by name. Verified before
+  the fix: `--terms /nonexistent/path` exited **0** with `"verdict": "ok"`,
+  while passing no `--terms` at all correctly exited 1. The out-of-bounds list
+  is engagement data living outside this repository, so a moved or stale path
+  is the *expected* failure, and it turned the one gating half of layer 1
+  green. The statuses that mean "did not run" are now named once, with a test
+  asserting the namer covers everything the loader can produce.
+- **`trace.py`: a checker that could not speak was recorded as a checker with
+  nothing to say.** `_checker_json` discarded the return code and returned
+  `None` on a parse error; `close` skipped any falsy report, so `[]` and a
+  crash were one value. The `not_measured` marker fired only when BOTH checkers
+  failed. Verified: closing a trace against an unreadable path exited 0 with
+  zero gates recorded, and the record passed schema validation. The trigger is
+  already in the tree — `check_design.py` prints its blind-gate warning with a
+  bare `print()` that `--json` does not suppress, so a deck using `div.page`
+  emits prose in front of its JSON. Now recorded **per checker**, which is what
+  lets `ledger.py`'s second ledger — the one built to notice a broken
+  instrument — work at all.
+- **`check_outline.py`: the newest storyline shipped with its gate disarmed.**
+  The gating declared-omission check sat inside `if expected:`, and `proposal`
+  is the one storyline in `STORYLINES` with no `TYPICAL_SECTIONS` row. Verified:
+  the same outline, one word changed, exited **1** under `market-analysis` and
+  **0** under `proposal`. The gate now runs for every storyline — whether a
+  stated omission carries a reason is a fact about the outline, not about the
+  checklist — and a storyline with no checklist reports `not_measured` rather
+  than printing nothing.
+- **`D24_images_embedded` could not see a relative image.** `_CSS_URL` required
+  a scheme or `//` after its `(?!data:)` lookahead, so `url(assets/cover.jpg)`
+  matched nothing and passed. That is how a person writes a cover background,
+  and it renders correctly on the author's machine because the asset sits
+  beside the HTML — so opening the deliverable in its delivery medium does not
+  catch it either. The reader receives one HTML file and a blank cover. The
+  url() target is now decided in code rather than by a lookahead, after the
+  first fix was bypassed by `url( #clip )`: an optional quote class let the
+  engine backtrack past the guard, which is not something a lookahead should be
+  asked to arbitrate.
+- **`check_shape_library` asked the filesystem.** 0.1.496 fixed *the files are
+  ignored*; *the directory is gone* was still a pass, because the guard bailed
+  on a missing library as an un-ingested one. It now compares the manifest
+  against what git TRACKS, and an absent library fails while
+  `scripts/build/embed_shapes.py` ships to read it — a build step whose input is
+  missing is not an un-ingested library. `assets tracked` keeps its own job and
+  its docstring now says which side it is on: it fires on the author's machine,
+  before the commit, and is quiet in a clone by construction. Neither is the
+  other's substitute.
+
+**And the guard that had no test of its own.** `check_trace_schema` survived
+having its body replaced with `return []` while all 593 tests passed. Its
+docstring says *"the synthetic tests are what prove this can fail"* and the
+entry that introduced it said the same — but that deliberate-red was run
+against `trace_schema.validate`, the **library**. The guard's own layer — the
+directory walk, the JSON parse, the vacuity floor — had never executed under
+test. That is FM-01 recorded as prevented in the entry that introduced it, and
+it is the strongest argument in this repository's history for planting the red
+first. It now has four synthetic-tree tests, and the same mutation kills two of
+them.
+
+**Deliberate-red, planted first, in every case:** each of the five was
+reproduced as a failing command before a line was changed, and the shape-library
+fix was proved by untracking the library — the fresh-clone condition — and
+watching the guard go red where the glob version had been green.
+
 ## 0.1.496 — the shape library was never in version control, and every asset guard was reading the wrong thing
 
 **Found by CI, on the first run it was ever given.** Forty releases had

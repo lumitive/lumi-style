@@ -1199,12 +1199,30 @@ def d23_font_count(raw, token_css):
 # to a host at read time.
 _RASTER = re.compile(r"<(?:img|image)\b[^>]*?(?:src|href|xlink:href)\s*=\s*"
                      r"[\"']([^\"']+)[\"']", re.I)
-_CSS_URL = re.compile(r"url\(\s*[\"']?(?!data:)([a-z]+:|//)[^)]*\)", re.I)
+# Any CSS url() that is not a `data:` payload and not a same-document fragment.
+# The first version required a scheme or `//` AFTER the (?!data:) lookahead, so
+# a RELATIVE url — `url(assets/cover.jpg)`, which is how a person naturally
+# writes a cover background — matched nothing and passed. It also renders
+# correctly on the author's machine, because the file sits beside the HTML, so
+# opening the deliverable over file:// does not catch it either. The reader
+# receives one HTML file and a blank cover. CLAUDE.md credits D24 with making
+# the imagery lift "safe rather than a hope"; this is the hole in it.
+_CSS_URL = re.compile(r"url\(([^)]*)\)", re.I)
 # The licence has to be NAMED, not gestured at. A colophon saying "images
 # licensed appropriately" is the sentence that gets written when nobody checked.
 _LICENCE = re.compile(
     r"\b(public domain|CC0|CC[ -]BY(?:[ -]SA|[ -]NC|[ -]ND)?(?:[ -]\d\.\d)?"
     r"|Unsplash|licen[cs]ed under|used under|own work|screenshot of)\b", re.I)
+
+
+def _is_embedded(url: str) -> bool:
+    """Does this reference ship inside the file? `data:` is the only payload
+    form; `#` is a same-document fragment and never leaves. Everything else —
+    absolute, protocol-relative, or RELATIVE — is a request to a host at read
+    time, and a relative one is the easiest of the three to write by accident.
+    """
+    u = url.strip().strip("\"'").strip()
+    return not u or u.lower().startswith("data:") or u.startswith("#")
 
 
 def d24_images_embedded(raw):
@@ -1215,9 +1233,15 @@ def d24_images_embedded(raw):
     whichever host is serving it. `data:` is the only form that is neither.
     """
     srcs = [m.group(1).strip() for m in _RASTER.finditer(raw)]
-    external = [u[:60] for u in srcs if not u.lower().startswith("data:")
-                and not u.startswith("#")]
-    external += [m.group(0)[:60] for m in _CSS_URL.finditer(raw)]
+    external = [u[:60] for u in srcs if not _is_embedded(u)]
+    # The url() target is decided in code rather than by a lookahead. The
+    # regex version was bypassed by `url( #clip )` — an optional quote class
+    # let the engine backtrack past the guard — and getting a self-contained
+    # payload confused with a same-document fragment is the kind of thing a
+    # lookahead should not be asked to arbitrate.
+    external += [f"url({m.group(1).strip()})"[:60]
+                 for m in _CSS_URL.finditer(raw)
+                 if not _is_embedded(m.group(1))]
     return {"rasters": len(srcs), "external": external}
 
 

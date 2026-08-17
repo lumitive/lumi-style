@@ -113,6 +113,15 @@ def reader_text(raw: str) -> str:
     return _html.unescape(TAG.sub(" ", raw))
 
 
+# The statuses in which the term half DID NOT RUN. Named once, because the
+# verdict expression and the exit ladder both consulted `not_attempted` by hand
+# and `missing` was added to `load_terms` without either learning about it: a
+# typo in --terms scored BETTER than omitting the flag, exiting 0 with verdict
+# "ok". The list is engagement data living outside this repository, so a moved
+# or stale path is the expected failure rather than an exotic one.
+DID_NOT_RUN = ("not_attempted", "missing")
+
+
 def load_terms(path: pathlib.Path | None):
     """-> (terms, status). Terms are held as strings for one run and written
     nowhere. `status` is 'not_attempted' when no list was supplied."""
@@ -180,12 +189,10 @@ def main():
                       "is sensitive is a judgement, and it belongs to the "
                       "pre-delivery step",
             "verdict": "FAIL" if layer1 else
-                       ("not_attempted" if status == "not_attempted" else "ok"),
+                       (status if status in DID_NOT_RUN else "ok"),
         }
         reports.append(report)
-        if layer1:
-            worst = max(worst, 1)
-        elif status == "not_attempted":
+        if layer1 or status in DID_NOT_RUN:
             worst = max(worst, 1)
 
     if a.json:
