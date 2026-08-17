@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.1.509 — the agreement study can finally produce a row, and its silences say why
+
+Built in a parallel worktree against the pre-merge review's findings, and landed
+now because the owner is about to produce the study's first real row: a blind
+C1–C8 score of a deck built for exactly that purpose.
+
+**The study's join was disjoint by schema.** The measurement cache is keyed by
+filename; a reader record by the corpus id `review_scores.py` validates — and a
+corpus id can never equal a filename, so `study()` returned empty for every
+input the schema permits while CI's `--report` exited 0 on empty by design.
+`review_scores.py` had required `corpus_id` *for this join* since the field
+existed, and `eval_agreement.py` never read it. The join now runs filename →
+corpus id (through the gitignored corpus registry) → reader record, and when
+the registry is absent the study **says it could not join** rather than
+printing an empty success — absence stated, never implied.
+
+**Two adjacent silences closed the same way.** `--measure` could measure
+nothing and exit 0, writing an empty cache over a good one; it now names what
+it could not find, reports how many of how many resolved, and exits non-zero
+when nothing was measured. And the verdicts with no pass/miss to compare —
+`no bar`, `too few pages`, `not measured` — are counted and printed per metric
+instead of vanishing, reported and not gating.
+
+**The `--sheet` dimension list is deleted, not corrected.** It stopped at C7
+after C8 shipped, so a reader who filled it produced a record the validator
+rejects. The sheet is rendered from `rubric_items.py` — the same source
+`scoring_sheet.py` uses — because a second copy is the drift class this
+repository keeps paying for. Deliberate red: the disjoint join is reproduced in
+the tests with valid inputs that still yield nothing under the old join, beside
+the joined row, the stated absences, and the C8-bearing sheet.
+
 ## 0.1.508 — the sentence-rhythm floor moves to 0.50, replayed against the rebuilt corpus before moving
 
 The refactor's research note called this change ready a week ago — code and

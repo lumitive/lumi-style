@@ -1,0 +1,15 @@
+{
+ "version": "0.1.509",
+ "diff_base": "ac7c202b571e02ff99bcbb8e4246feef6a0f4345",
+ "spec": "waived: no spec — the agreement study's join keys were disjoint by schema, found by the pre-merge review and landed now because the owner's first blind C-score is about to need the join. The case is the review plus review_scores.py's own stated purpose for corpus_id.",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs. 0.1.509 repairs the agreement study's join; no conformance task exercises it. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.509 is unknown, not passing."
+  }
+ ]
+}
