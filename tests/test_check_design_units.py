@@ -523,3 +523,17 @@ def test_d9_reads_the_geometry_from_the_real_body_not_a_comment():
     doc = _layout_doc("portrait", ["split", "sidebar-notes"]).replace(
         "<style>", '<style>\n/* say so with <body data-geometry="landscape"> */\n', 1)
     assert check_design.d9_layout_variety(doc)["distinct"] == 1
+
+
+# d4 — the declared trademark-mark exemption (second blind review's
+# get-started spec). Red and green, per FM-01.
+
+def test_d4_undeclared_logo_hexes_still_fail():
+    raw = '<html><body><svg><path fill="#D97757"/></svg></body></html>'
+    assert check_design.d4_palette(raw) == ["#D97757"]
+
+
+def test_d4_a_declared_mark_keeps_its_owners_colours():
+    raw = ('<html><body><svg data-mark="trademark">'
+           '<path fill="#D97757"/></svg></body></html>')
+    assert check_design.d4_palette(raw) == []

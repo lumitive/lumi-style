@@ -37,6 +37,16 @@
 in the document for you. A document may set its own SIZES — design per page —
 but a colour token that disagrees with the shipped value is a different design
 language under the same variable names, and `check_design.py`'s D20 fails it.
+
+**One declared exception: a trademark mark keeps its owner's colours.** A
+platform logo on a get-started page is someone else's identity: recolouring
+it into this palette would falsify the mark, and redrawing it in tokens would
+fabricate one. Declare it — `data-mark` on the `<svg>` — and D4's literal
+scan excises the element; an undeclared logo's hexes still fail, so the
+exemption is auditable on the element rather than inferred from its looks.
+Marks come from `assets/logos/` with their provenance in its SOURCES.md; a
+platform whose official vector is not shipped gets its name set in type,
+never a redrawn imitation.
 *Provenance: the rule set said where the tokens are and never that the values
 were fixed. Found while diagnosing runs that invented palettes — which turned
 out to be a harness fault rather than a reading of this rule, so the correction

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.515 — a trademark mark keeps its owner's colours, and declares itself to say so
+
+The r12 rebuild put four official platform marks on the get-started page
+(0.1.514's shop-window spec) and D4 flagged their seven hexes — a true
+conflict between two written rules, not a false positive: the palette-literal
+scan exists so no author smuggles in a colour, and the marks rule exists
+because recolouring a trademark falsifies it while redrawing it in tokens
+fabricates one. Resolution, declared rather than inferred: an `<svg>`
+carrying **`data-mark`** is excised from D4's literal scan; an undeclared
+logo's hexes still fail. Deliberate red first: the same hex fails undeclared
+and passes declared, in `tests/test_check_design_units.py`. Rule prose in
+design-rules §1 beside the palette contract it excepts. The build that hit
+this is the documented case, one command away from being re-hit by anyone
+following 0.1.514's get-started spec — which is why it ships now rather than
+waiting for a second document.
+
+
 ## 0.1.514 — the second blind review: the parts were all present, and the arc still was not
 
 **The engine's second cycle, on the revised deck (corpus D16), and the row

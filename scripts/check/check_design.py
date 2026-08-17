@@ -380,6 +380,16 @@ def d3_callouts(raw):
 
 
 def d4_palette(raw):
+    # A DECLARED trademark mark keeps its owner's colours: an <svg> carrying
+    # data-mark (the get-started page's platform logos) is excised before the
+    # literal scan, because recolouring a trademark into the palette would
+    # falsify the mark and drawing it in tokens would fabricate one. The
+    # exemption is declared on the element, never inferred — an undeclared
+    # logo's hexes still fail, which is what keeps this from becoming the
+    # escape hatch that empties the metric. (Second blind review's get-started
+    # spec is the documented case.)
+    raw = re.sub(r"<svg\b[^>]*\bdata-mark\b.*?</svg>", " ", raw,
+                 flags=re.S | re.I)
     stripped = css_tokens.strip_comments(raw, " ")
     for bodies in token_block_bodies(css_of(raw)).values():
         for body in bodies:
