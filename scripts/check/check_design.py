@@ -80,6 +80,9 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import color_math  # noqa: E402 — after the bootstrap, deliberately
 import css_tokens  # noqa: E402 — after the bootstrap, deliberately
+from deliverable_registry import (  # noqa: E402 — after the bootstrap
+    TYPICAL_SECTIONS,
+)
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if p.name == "scripts").parent
@@ -1120,6 +1123,7 @@ def measure(path):
         "D21_data_contract": d21_data_contract(raw),
         "D24_images_embedded": d24_images_embedded(raw),
         "D25_image_provenance": d25_image_provenance(raw),
+        "D26_declared_scope": d26_declared_scope(raw, _storyline_of(raw)),
         "D23_font_count": d23_font_count(
             raw, (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")),
     }
@@ -1251,6 +1255,61 @@ def d24_images_embedded(raw):
                  if not _is_embedded(m.group(1))]
     return {"rasters": len(srcs), "external": external}
 
+
+
+# A scope note is the DECLARED half of C5. The rubric specifies it and no
+# checker read it, so the only place an omission could be declared was an
+# outline file — an artifact the template path never produces. On path B,
+# completeness therefore had no instrument at all.
+_SCOPE_NOTE = re.compile(
+    r"<([a-z]+)\b([^>]*\bdata-omitted\s*=\s*[\"\']([^\"\']*)[\"\'][^>]*)>(.*?)</\1>",
+    re.I | re.S)
+_INVISIBLE = re.compile(
+    r"display\s*:\s*none|visibility\s*:\s*hidden|\bhidden\b|aria-hidden\s*=\s*"
+    r"[\"\']true[\"\']", re.I)
+
+
+def _storyline_of(raw):
+    """-> the storyline the document declares, or None.
+
+    Declared, never inferred. Guessing a storyline from the headings would make
+    the completeness report a measurement of the guess.
+    """
+    m = re.search(r'data-storyline="([a-z-]+)"', raw)
+    return m.group(1) if m else None
+
+
+def d26_declared_scope(raw, storyline=None):
+    """-> {storyline, missing, hidden, declared} — what the document leaves out.
+
+    REPORTED, never gating, and that is a decision with evidence behind it.
+    C5 is `declarable, never gating`: structural compliance does not predict
+    quality, and a completeness gate is worth defeating — an author who has to
+    clear it will write the heading and nothing under it. What IS decidable is
+    whether an absence was declared, and whether the declaration is one a
+    reader can see.
+
+    **Reader-visible is the whole mechanism.** A marker only the checker can
+    read would do nothing but silence the checker, so a `data-omitted` on a
+    hidden element is reported as loudly as a missing section.
+    """
+    declared, hidden = set(), []
+    for m in _SCOPE_NOTE.finditer(raw):
+        attrs, name, body = m.group(2), m.group(3).strip().lower(), m.group(4)
+        declared.add(name)
+        if _INVISIBLE.search(attrs) or not re.sub(r"<[^>]+>", "", body).strip():
+            hidden.append(name or "(unnamed)")
+    if not storyline:
+        return {"storyline": None, "missing": None, "hidden": hidden,
+                "declared": sorted(declared)}
+    expected = TYPICAL_SECTIONS.get(storyline)
+    if expected is None:
+        return {"storyline": storyline, "missing": None, "hidden": hidden,
+                "declared": sorted(declared)}
+    text = re.sub(r"<[^>]+>", " ", raw).lower()
+    missing = [s for s in expected if s not in text and s not in declared]
+    return {"storyline": storyline, "missing": missing, "hidden": hidden,
+            "declared": sorted(declared)}
 
 def d25_image_provenance(raw):
     """-> {rasters, licence_named} — an image on the page names its terms.
@@ -1431,6 +1490,23 @@ def grade(r):
                  else (f"{pv['rasters']} image(s), no terms named" if pv else None),
                  "every image names its terms (gates)",
                  bool(pv and pv["licence_named"]), pv is None))
+    ds = r["D26_declared_scope"]
+    if ds is None:
+        rows.append(("D26_declared_scope", None,
+                     "every declaration is one a reader meets", True, True))
+    elif ds["storyline"] is None:
+        rows.append(("D26_declared_scope", "no data-storyline declared",
+                     "every declaration is one a reader meets", True, False))
+    else:
+        miss, hid = ds["missing"], ds["hidden"]
+        detail = ("no checklist for this storyline" if miss is None else
+                  (f"{len(miss)} section(s) neither covered nor declared"
+                   if miss else "every typical section covered or declared"))
+        if hid:
+            detail += f"; {len(hid)} declaration(s) a reader cannot see"
+        rows.append(("D26_declared_scope", detail,
+                     "every declaration is one a reader meets", not hid, False))
+
     dc = r["D21_data_contract"]
     rows.append(("D21_data_contract",
                  len(dc["mismatches"]) if dc else None, "=0 (gates)",

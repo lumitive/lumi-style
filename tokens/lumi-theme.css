@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · v0.1.501 (2026-08-16)
+   LUMI visual theme · v0.1.502 (2026-08-16)
    Single source of truth for palette and typography. New documents reference
    this file or copy the token blocks verbatim (note the provenance when
    copying). Version lockstep: a deliverable's version = the lumi-style
@@ -332,3 +332,18 @@ body.dark {
    palette's strong tier sits at .20, under the portrait value itself, and
    body.dark's element-level definitions outrank this either way. */
 body[data-geometry="portrait"]:not(.dark) { --ground-strong: .23; }
+
+/* The scope note: the reader-visible half of a declared omission (C5, D26).
+   Reader-visible is the whole mechanism — a marker only the checker can see
+   would silence the checker and tell the reader nothing — so this renders as
+   record rather than as apparatus: below the waterline, in the support voice,
+   with the seal-red rule that marks a boundary the document is drawing around
+   itself. */
+.scope-note {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--tx2);
+  border-left: 2px solid var(--seal);
+  padding-left: 8px;
+  margin-top: 6px;
+}

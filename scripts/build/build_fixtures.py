@@ -536,6 +536,15 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     if i not in (3, 4):
         lead = f'<div class="lead"><div class="v">{i * 7}</div>' \
                f'<p class="g">Units returned per avoided visit, illustrative</p></div>'
+    if not broken and i == 13:
+        # The reference implementation of a declared omission: named, reasoned,
+        # and where a reader meets it. deck-broken carries the same declaration
+        # hidden, so the pair is what tells a working D26 from one rewritten to
+        # return ok.
+        lead = ('<div class="lead"><div class="v">91</div>'
+                '<p class="g">Units returned per avoided visit, illustrative</p>'
+                '<p class="scope-note" data-omitted="pricing">Pricing is set by '
+                'the commercial team and is out of scope here.</p></div>')
     if broken and i == 12:
         # D24 and D25: a linked image with no terms named. Both gates need a
         # fixture that FAILS them or the suite cannot tell them from a metric
@@ -545,6 +554,16 @@ def page(i: int, total: int, spec, broken: bool) -> str:
         # unattributed.
         lead = ('<div class="lead"><img src="https://example.org/plate.png" '
                 'alt="a linked plate"></div>')
+    elif broken and i == 13:
+        # D26: a scope note a reader cannot see. The rubric's whole argument
+        # for the scope note is that it is READER-VISIBLE — a marker only the
+        # checker can read would do nothing but silence the checker — so the
+        # failing case is a declaration hidden from the page, not a missing
+        # one. Without this the metric would only ever have been seen passing.
+        lead = ('<div class="lead"><div class="v">91</div>'
+                '<p class="g">Units returned per avoided visit, illustrative</p>'
+                '<p class="scope-note" style="display:none" '
+                'data-omitted="pricing">Pricing is set elsewhere.</p></div>')
     elif broken and i == 16:
         # D16: a page with no visual block at all — no figure, no band, no
         # lead, no comparison pattern; prose, a list and a callout. The static
@@ -717,7 +736,7 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
 .s-line {{ stroke: var(--ln1); }}
 .s-dash {{ stroke: var(--ln1); stroke-dasharray: 5 4; }}
 .colophon {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }}
-</style></head><body data-geometry="landscape" data-genre="sales">{SPRITE}{GROUND_DEFS}{body}</body></html>
+</style></head><body data-geometry="landscape" data-genre="sales" data-storyline="gtm">{SPRITE}{GROUND_DEFS}{body}</body></html>
 """
 
 

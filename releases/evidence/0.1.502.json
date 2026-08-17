@@ -1,0 +1,24 @@
+{
+  "version": "0.1.502",
+  "diff_base": "75faf8c121a2097c588203ec2598919581f99490",
+  "spec": "waived: no spec \u2014 R5 of the delivery-completion plan: D26 gives entry path B a completeness instrument, which the rubric specified and no checker read. The case is the rubric's own unimplemented clause, not a design record.",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "e9b38d242d9ee5ffa1b591b247f06aa6abcfd8334121453ab781bd962412c607",
+      "date": "2026-08-17"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board reports CLI-agent conformance runs. 0.1.502 adds a reported design metric and a token rendering; no conformance task exercises either. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.502 is unknown, not passing."
+    }
+  ]
+}
