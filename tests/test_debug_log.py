@@ -177,7 +177,7 @@ def test_an_attached_report_carrying_cjk_fails_validate(tmp_path, capsys):
 def test_assess_refuses_a_self_scored_five(tmp_path, capsys):
     path = _init(tmp_path)
     with pytest.raises(SystemExit):
-        debug_log.main(["assess", str(path), "--dim", "H1", "--score", "5",
+        debug_log.main(["assess", str(path), "--dim", "C1", "--score", "5",
                         "--reason", "perfect"])
     assert _read(path)["quality"] == {}, "the refusal must not have written"
 
@@ -185,7 +185,7 @@ def test_assess_refuses_a_self_scored_five(tmp_path, capsys):
 def test_assess_refuses_an_empty_reason(tmp_path, capsys):
     path = _init(tmp_path)
     with pytest.raises(SystemExit):
-        debug_log.main(["assess", str(path), "--dim", "H1", "--score", "4",
+        debug_log.main(["assess", str(path), "--dim", "C1", "--score", "4",
                         "--reason", "   "])
     assert _read(path)["quality"] == {}
 
@@ -195,7 +195,7 @@ def test_assess_refuses_an_empty_reason(tmp_path, capsys):
 def _worked(tmp_path):
     path = _init(tmp_path)
     _run(path, sys.executable, "-c", "print(1)")
-    debug_log.main(["assess", str(path), "--dim", "H1", "--score", "4",
+    debug_log.main(["assess", str(path), "--dim", "C1", "--score", "4",
                     "--reason", "holds"])
     return path
 
@@ -237,10 +237,10 @@ def test_validate_fails_cjk_content(tmp_path, capsys):
         {"command": "x", "exit_code": 0, "stdout_sha256": "a" * 64,
          "date": "whenever"}), id="unparseable-date"),
     pytest.param(lambda log: log["quality"].__setitem__(
-        "H2", {"score": 9, "reason": "great"}), id="score-out-of-range"),
+        "C2", {"score": 9, "reason": "great"}), id="score-out-of-range"),
     pytest.param(lambda log: log["quality"].__setitem__(
-        "H2", {"score": "5", "reason": "perfect"}), id="stringly-typed-five"),
-    pytest.param(lambda log: log["quality"].__setitem__("H3", "good"),
+        "C2", {"score": "5", "reason": "perfect"}), id="stringly-typed-five"),
+    pytest.param(lambda log: log["quality"].__setitem__("C3", "good"),
                  id="quality-not-an-object"),
     pytest.param(lambda log: log["steps"].append({"label": "x", "seconds": 3}),
                  id="step-without-provenance"),
@@ -261,7 +261,7 @@ def test_validate_names_the_right_problem_for_a_malformed_quality_entry(
         tmp_path, capsys):
     path = _worked(tmp_path)
     log = _read(path)
-    log["quality"]["H3"] = "good"
+    log["quality"]["C3"] = "good"
     path.write_text(json.dumps(log))
     debug_log.main(["validate", str(path)])
     out = capsys.readouterr().out

@@ -28,11 +28,11 @@ that tuple to each other.
 | `gtm` | who we sell to, through what motion, and what has to be true for it to work | — |
 | `status-report` | what was planned, what happened, what is off track, and what is being done about it | — |
 | `due-diligence` | what we examined, what we found, and what would change the answer | — |
-| `product-intro` | what it does, who it is for, and what it deliberately does not do | — |
+| `product-intro` | what it does, who it is for, and what it deliberately does not do | Template 6 |
 | `training-curriculum` | what the reader will be able to do, taught one idea at a time | Template 4 |
 | `proposal` | here is a decision, here is what I recommend, what it costs, and what blocks it | Template 5 |
 
-**Five of the seven have no full skeleton yet**, and that is recorded rather
+**Four of the seven have no full skeleton yet**, and that is recorded rather
 than hidden: the templates above are organised by genre, which is the older
 axis. Writing the missing five is `backlog/ideas-prd.md` work and not a
 prerequisite for using the name — a one-line shape is enough to choose with, and
@@ -143,6 +143,44 @@ here is what it costs, and here is the one thing that blocks it.*
   saying which is the most useful sentence in the document;
 - Claim classes are labelled as in Template 3 when the genre is internal
   analysis: measured / build-time assertion / inference.
+
+
+## Template 6 · Product introduction · storyline `product-intro`
+
+> Lesson provenance: the first product-intro built from the five-word checklist
+> alone passed every machine gate and came back from its blind review scored
+> **1 on completeness and 1 on actionability** — the reviewer could not find a
+> page saying what to remember, and "completely no action a reader could take."
+> The words of the checklist were satisfied; the substance each word stands for
+> was not. This skeleton is what the words stand for.
+
+An external product introduction answers **5W+1H** before it argues — What it
+is, Why it exists, Who it is for, When and Where it applies, How it is adopted
+— and the reader should be able to answer all six from the deck alone.
+
+1. **Overview** — the first-impression page, and the one the reader must
+   remember: what this is in one sentence, who it is for, and the one claim to
+   carry out of the room. If the reader retains a single page, it is this one.
+   Not the agenda: the agenda routes, the overview asserts.
+2. **Problem** — the pain in the reader's own terms, with one verifiable fact.
+3. **What it is** — the product's shape and parts; what it deliberately does
+   not do belongs here, not scattered.
+4. **Evidence** — measured, sourced, **and anchored**: every key number stands
+   beside what the reader should conclude from it (writing-rules §4 rule 0).
+5. **Get started** — four artifacts, and a page missing any of them is a
+   missing page, not a thin one: the repository or install link; the install
+   step per capability tier; the first command that produces something; and
+   the feedback channel. An adoption ask without the how is C6's 1-score.
+6. **The ask** — who does what by when. "Pick one document" names nobody and
+   no date; "your team runs one build this week and returns the score sheet"
+   is an ask.
+
+**Agenda rows state value, not contents.** A row that reads "the ban list, the
+rule set, the gates: pages 4 to 7" is a table of contents wearing an agenda's
+clothes — the row says what the part *establishes for the reader* and why they
+should care; page spans are apparatus and sit in the apparatus position.
+(Reader review D15: the contents-style rows read as machine-written, and the
+page ranges read as emphasis on the wrong thing.)
 
 ## Cover and closing pages (every deck scenario)
 

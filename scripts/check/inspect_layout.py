@@ -1055,11 +1055,24 @@ PROBE = r"""
       })(),
       // A figure's number and name are one line too: wrapped, the caption stops
       // reading as a label and starts reading as prose under the drawing.
-      capWrapped: [...s.querySelectorAll('.cap .n')].filter(e => {
-        const lh = parseFloat(getComputedStyle(e).lineHeight) || 14;
-        return e.getBoundingClientRect().height > lh * 1.6;
+      // Measured on the NAME — the text between the number span and the source
+      // line — with a Range, because the first version measured `.cap .n`,
+      // which is the two-word "Figure 5" span and cannot wrap: the check
+      // printed "all figure names hold one line" on every document ever run,
+      // including one whose reviewer called long captions this author's
+      // chronic defect. An instrument that measures the label of the thing
+      // instead of the thing has never measured anything.
+      capWrapped: [...s.querySelectorAll('.cap')].filter(cap => {
+        const n = cap.querySelector('.n'), src = cap.querySelector('.srcline');
+        const r = document.createRange();
+        if (n) r.setStartAfter(n); else r.setStart(cap, 0);
+        if (src) r.setEndBefore(src); else r.setEnd(cap, cap.childNodes.length);
+        const rects = [...r.getClientRects()].filter(b => b.width > 1 && b.height > 1);
+        if (!rects.length) return false;
+        const tops = rects.map(b => Math.round(b.top / 4));
+        return new Set(tops).size > 1;
       }).length,
-      capCount: s.querySelectorAll('.cap .n').length,
+      capCount: s.querySelectorAll('.cap').length,
       titleMissing: titleExpected && !anyTitle,
       hasGround: s.querySelectorAll('.ground').length,
       // The part opener. `.page.opener` is styled in lumi-layouts.css and named

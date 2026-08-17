@@ -134,8 +134,13 @@ TYPICAL_SECTIONS = {
                       "next checkpoint"),
     "due-diligence": ("scope and method", "findings", "quantified exposure",
                       "limitations", "recommendation"),
-    "product-intro": ("problem", "what it does", "evidence it works",
-                      "how to adopt", "next step"),
+    # Extended from five to seven at the first blind review: the deck built
+    # from the five words alone satisfied each word and scored 1 on
+    # completeness — "overview" (the page the reader must remember) and
+    # "get started" (link, install, first command, feedback channel) are the
+    # substance the old words let an author skip. Template 6 is the skeleton.
+    "product-intro": ("overview", "problem", "what it does",
+                      "evidence it works", "get started", "next step"),
     "training-curriculum": ("objective", "prerequisites", "modules",
                             "practice", "assessment"),
 }

@@ -435,7 +435,17 @@ conditional-item rule applied one level up.
 3. **Any dimension diverging ≥2 points forces a retrospective**: name the root
    cause (what the self-score missed / which rule is absent);
 3b. **A dimension where the reader found a defect the author claimed to have
-   verified cannot be self-scored above 3 in the round that fixes it.** The
+   verified cannot be self-scored above 3 in the round that fixes it.**
+
+3c. **A value dimension where the document fails at its job caps at 2, seen or
+   not.** The first blind C-review measured the shape this rule closes: the
+   builder SAW that the ask named no owner and no date, priced it at minus one
+   (self-scored 4), and the reader priced it as the document failing to do what
+   an external document exists to do (scored 1). On C1, C3, C5, C6 and C8 the
+   question is not "how many defects" but "is the value present" — an external
+   deck with no executable ask, no overview a reader can carry away, or figures
+   that decorate rather than argue has failed the dimension, and a builder's
+   self-score there starts from failure, not from perfection minus blemishes. The
    author already believed it was better than that and was wrong, so the next
    number needs evidence from a reader, not from the fix. Scoring is not a
    summary of effort spent. (Field-tested twice under the previous dimension set H1–H6, which C1–C8
@@ -445,7 +455,7 @@ conditional-item rule applied one level up.
 4. The retrospective produces one of three outcomes: a rule revision (CHANGELOG +
    version bump) / an anchor revision (anchors can be wrong too) / a recorded
    no-change with reasons. **Record the round in `reviews/scores.json`** — release,
-   genre, six self-scores, six reader scores, outcome — and read the series back
+   genre, the self-scores and reader scores across every dimension, outcome — and read the series back
    with `python3 scripts/ops/review_scores.py`. Until 0.1.390 this loop had no memory:
    every score lived as a sentence in a release note, so no dimension could be read
    over time and nobody could say whether the loop was working. The store carries

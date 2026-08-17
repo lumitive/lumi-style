@@ -5,7 +5,7 @@
     python3 scripts/ops/debug_log.py run <log> [--label <text>] -- <command...>
     python3 scripts/ops/debug_log.py step <log> --label <text> --seconds <s>
     python3 scripts/ops/debug_log.py attach <log> --kind design|prose|layout --json-file <f>
-    python3 scripts/ops/debug_log.py assess <log> --dim H1..H6 --score 1-4 --reason <text>
+    python3 scripts/ops/debug_log.py assess <log> --dim C1..C8 --score 1-4 --reason <text>
     python3 scripts/ops/debug_log.py error <log> --stage <text> --message <text>
     python3 scripts/ops/debug_log.py note <log> --text <text>
     python3 scripts/ops/debug_log.py validate <log>
@@ -77,7 +77,10 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import checker_report  # noqa: E402 — after the bootstrap
 
-DIMS = tuple(f"H{i}" for i in range(1, 7))
+# C1-C8, matching the store review_scores.py validates. This said H1-H6 for
+# forty-odd releases after C replaced H — the exact defect the scoring-sheet
+# parity guard was built for, alive in the one file that guard does not read.
+DIMS = tuple(f"C{i}" for i in range(1, 9))
 # CJK, Kana and Hangul. The narrow original covered Chinese only and the
 # docstring called it "English-only", which it is not and cannot be: a Latin
 # alphabet is not a language. This is the owner-language risk, stated as what

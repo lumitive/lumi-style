@@ -422,12 +422,12 @@ be uncomfortable. That is the value. Do not report a mean without the spread.
 
 ---
 
-## IDEA-10 · Five storylines have a name and no skeleton
+## IDEA-10 · Four storylines have a name and no skeleton
 
 **Problem.** `references/storyline-templates.md`'s roster names seven
 storylines; only `training-curriculum` (Template 4) and `proposal` (Template 5)
-carry a full narrative skeleton. The other five — `market-analysis`, `gtm`,
-`status-report`, `due-diligence`, `product-intro` — carry one line each saying
+carry a full narrative skeleton. The remaining four — `market-analysis`, `gtm`,
+`status-report`, `due-diligence` — carry one line each saying
 what shape of argument they are. That is enough to choose with, and it is not
 enough to build from.
 
@@ -440,7 +440,9 @@ convention 2 forbids.
 
 **What would close it.** A skeleton written when a real document of that
 storyline is built, one at a time, the way Template 5 was written from an actual
-proposal that could not open a trace. Not a batch.
+proposal that could not open a trace. Not a batch. (`product-intro` closed this
+way at 0.1.513: Template 6, written from the deck whose blind review scored 1
+on completeness precisely because the skeleton did not exist.)
 
 ## IDEA-9 · The fixture's reserved domain doubles as a deliverable placeholder
 
@@ -527,3 +529,21 @@ Two ways to close it, and the cheap one is not a guard:
 Recorded rather than built, because option 1 is a convention change and belongs
 in a retrospective with a second instance behind it. The first instance is
 fixed in 0.1.503, which stated the reason instead of the condition.
+
+## IDEA-12 · Noun-pile enumeration as an AI tell
+
+**Problem.** The first blind review flagged two agenda rows as machine-written
+— "the tell every model ships, the one rule set behind three entry points, the
+asset library, and the gates" — and the shape they share is a pile of noun
+phrases joined by commas, no verb, no claim. M4's ban list cannot see it
+(no phrase is banned; the STRUCTURE is the tell) and M10 counts triads, not
+piles.
+
+**Evidence.** One document, one reviewer, two instances on one page. The
+two-document promotion rule says this is not yet a rule; the C1/C2 anchor
+notes carry the examples so a second occurrence is recognized.
+
+**What would close it.** A second document flagged for the same shape promotes
+it: either a prose rule in writing-rules §5 (a list of nouns is a list, not a
+sentence — give the row a verb) or, if a mechanical form emerges, an M-series
+reported metric for verbless comma-runs above a length floor.

@@ -211,6 +211,25 @@ bars were demoted to reported.
 
 ---
 
+## FM-16 · Gate-clean, value-thin
+
+- detection: every machine gate green, and a human reviewer scores the value
+  dimensions (answer-first, page depth, completeness-for-purpose,
+  actionability, figure argument) at 1-2 — the divergence splits exactly along
+  what machines measure (defect absence) versus what readers measure (value
+  presence)
+- prevention: the storyline's full skeleton before building (a five-word
+  checklist satisfies its words and skips their substance); the judgment
+  anchor beside every key number; the value-dimension floor in the review
+  protocol (a document failing at its job caps the self-score at 2, seen or
+  not); and a reader review before any external document ships twice
+
+Shipped instances: 0.1.508's product-intro deck (first blind C-review: five of
+eight dimensions diverged >=2, reader 1s on completeness, actionability and
+figures while every gate reported green; the agreement study's first real rows
+said it in one line — the machine cleared its bars and the reader judged
+something no metric sees).
+
 # Abandoned gates
 
 Declined enforcement mechanisms, recorded with reasons so they are not

@@ -2,7 +2,7 @@
  "agent": "claude-code",
  "closed_at": "2026-08-17T13:52:30+00:00",
  "content_pages": 10,
- "corpus_id": null,
+ "corpus_id": "D15",
  "effort": null,
  "entry_path": "B",
  "gates": {
@@ -61,7 +61,7 @@
  "recipe_hash": "c9f53f27d203",
  "recipe_version": "0.1.508",
  "refused_to_emit": null,
- "review_ref": null,
+ "review_ref": "reviews/scores.json 0.1.508 D15",
  "skill_version": "0.1.508",
  "source": "build",
  "storyline": "product-intro",
