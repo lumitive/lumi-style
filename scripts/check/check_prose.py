@@ -751,7 +751,12 @@ def grade(r):
          (r["M5_zh_punctuation"] or 0) == 0, r["M5_zh_punctuation"] is None),
         ("M8_overlong_share", r["M8_overlong_share"], "<=8%",
          r["M8_overlong_share"] <= 8.0, thin_rhythm),
-        ("M8_length_cv", r["M8_length_cv"], ">=0.35", r["M8_length_cv"] >= 0.35, thin_rhythm),
+        # 0.50, raised from 0.35 at 0.1.508 — measured first, not assumed. The
+        # refactor's own research note argued 0.35 has no discriminating power,
+        # and the floor was replayed against the rebuilt corpus before moving:
+        # three real documents sit 0.593-0.687 and the degenerate fixture at
+        # 0.347, so the old floor separated nothing real from anything.
+        ("M8_length_cv", r["M8_length_cv"], ">=0.50", r["M8_length_cv"] >= 0.50, thin_rhythm),
         ("M9_dashes", r["M9_dashes"], "=0", r["M9_dashes"] == 0, r["M9_dashes"] is None),
         # M6 first of the three: the most decidable predicate. A range figure
         # must trace to ONE source or it may not appear (writing-rules section 4

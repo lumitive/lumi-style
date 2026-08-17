@@ -12,6 +12,8 @@ characters, and that proxy let go twice (FM-13): once for the short label it
 was written for, and once against a truthful 61-character sentence in a
 shipped deliverable whose author rewrote the sentence to satisfy it.
 """
+import pathlib
+
 import check_prose
 
 # Enough prose that `measure` has something to average; M6's window is the
@@ -83,3 +85,21 @@ def test_m6_a_sourced_range_is_never_counted(tmp_path):
     # The metric's actual subject: a range that names where it came from.
     s = "Throughput held at 40&#8211;60 units per shift (source: the meter log)."
     assert _measure(tmp_path, s)["M6_unsourced_ranges"] == 0
+
+
+def test_m8_cv_floor_is_050_and_a_035_rhythm_now_fails():
+    FIXTURES = pathlib.Path(__file__).resolve().parents[1] / "fixtures"
+    """The floor moved 0.35 -> 0.50 at 0.1.508, replayed against the rebuilt
+    corpus first: real documents sit 0.593-0.687 and the degenerate fixture at
+    0.347, so 0.35 separated nothing real from anything. A document whose
+    rhythm sits between the two floors is the case the raise exists to catch —
+    uniform enough to read machine-made, and green under the old number."""
+    import contextlib
+    import io
+    import json
+    with contextlib.redirect_stdout(io.StringIO()) as buf:
+        check_prose.main([str(FIXTURES / "deck-degenerate.en.html"), "--json"])
+    r = json.loads(buf.getvalue())[0]
+    assert r["M8_length_cv"] < 0.50
+    assert r["verdicts"]["M8_length_cv"] == "FAIL"
+    assert ">=0.50" in r["targets"]["M8_length_cv"]

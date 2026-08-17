@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.1.508 — the sentence-rhythm floor moves to 0.50, replayed against the rebuilt corpus before moving
+
+The refactor's research note called this change ready a week ago — code and
+verification done, replayable — and it then sat unshipped, which is the
+done-and-not-landed state this delivery run exists to end. It does not land on
+the note's word: **it lands on a measurement taken today, against documents that
+exist now.**
+
+**The case for the floor at all** is 0.1.336: "short sentences" read as a
+target drove sentence variance to zero, and M8 grew a second tail so uniform
+rhythm fails as machine-made. **The case for 0.50 over 0.35** is discriminating
+power, now measured rather than argued: the three rebuilt deliverables sit at
+**0.593, 0.627 and 0.687**; the degenerate fixture — built to fail everything —
+sits at **0.347**. A floor of 0.35 therefore separated nothing real from
+anything: every live document cleared it by half again, and the pathological
+case failed it by two hundredths. The rhythm the raise exists to catch is the
+band between the two numbers — uniform enough to read machine-made, green under
+the old floor.
+
+Every fixture sits on the same side of 0.50 as of 0.35, so no expected verdict
+flips; the deliberate red is the degenerate fixture itself, now failing by a
+margin instead of a rounding error. M8 stays **graded, never gating** — the
+floor says where the report turns red, not where a delivery stops.
+
 ## 0.1.507 — 64 pages recomposed for the sheet they are printed on, and the rules the work taught
 
 R7's remaining two rebuilds, done as composition rather than as renaming —

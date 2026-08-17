@@ -1,0 +1,15 @@
+{
+ "version": "0.1.508",
+ "diff_base": "0df2e53d5110bb5a1d65856337d6939d548d7c85",
+ "spec": "waived: no spec — the CV floor raise the refactor's research note prepared, landed on a fresh measurement against the rebuilt corpus rather than on the note's word. The case is 0.1.336's variance-to-zero regression plus today's readings.",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs. 0.1.508 raises one graded prose floor; no conformance task exercises it. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.508 is unknown, not passing."
+  }
+ ]
+}
