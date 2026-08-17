@@ -1,0 +1,24 @@
+{
+  "version": "0.1.514",
+  "diff_base": "a8aa13d8c99704de49c8a7a41c23920ed27a0861",
+  "spec": "waived: no spec \u2014 the second blind C-review's forced retrospective (C1, C6 and C8 diverged >=2). Every change carries the reviewer's own findings as its case, and the protocol is the design record, as at 0.1.513.",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "0f34fe6699df32f498b16b6dc951f5b342b261232ceab0513ed5229cf3260f19",
+      "date": "2026-08-18"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board reports CLI-agent conformance runs. 0.1.514 is a review retrospective (one gate, three reported instruments, one tell, a skeleton rewrite, four logo assets); no conformance task exercises it. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.514 is unknown, not passing."
+    }
+  ]
+}

@@ -88,6 +88,34 @@
     "C8": 1
    },
    "outcome": "rule-revision"
+  },
+  {
+   "release": "0.1.513",
+   "genre": "sales",
+   "storyline": "product-intro",
+   "corpus_id": "D16",
+   "document": "D16",
+   "self": {
+    "C1": 4,
+    "C2": 3,
+    "C3": 3,
+    "C4": 4,
+    "C5": 3,
+    "C6": 3,
+    "C7": 3,
+    "C8": 3
+   },
+   "reader": {
+    "C1": 1,
+    "C2": null,
+    "C3": 3,
+    "C4": null,
+    "C5": 3,
+    "C6": 1,
+    "C7": 3,
+    "C8": 1
+   },
+   "outcome": "rule-revision"
   }
  ]
 }

@@ -154,26 +154,52 @@ here is what it costs, and here is the one thing that blocks it.*
 > The words of the checklist were satisfied; the substance each word stands for
 > was not. This skeleton is what the words stand for.
 
-An external product introduction answers **5W+1H** before it argues — What it
-is, Why it exists, Who it is for, When and Where it applies, How it is adopted
-— and the reader should be able to answer all six from the deck alone.
+> Second lesson, one review later (D16): the pages above were all present and
+> the deck still scored 1 on first-impression — because a skeleton is not an
+> arc. The parts had been laid in the order the *package* explains itself, and
+> the reviewer asked for the order a *consultant* leads a client:
+> `是什么 → 为什么（初衷、痛点）→ 怎么做（方法、步骤、流程）→ 对企业的核心价值`.
+> The macro-narrative below is hers, and it is the template.
 
-1. **Overview** — the first-impression page, and the one the reader must
-   remember: what this is in one sentence, who it is for, and the one claim to
-   carry out of the room. If the reader retains a single page, it is this one.
-   Not the agenda: the agenda routes, the overview asserts.
-2. **Problem** — the pain in the reader's own terms, with one verifiable fact.
-3. **What it is** — the product's shape and parts; what it deliberately does
-   not do belongs here, not scattered.
-4. **Evidence** — measured, sourced, **and anchored**: every key number stands
-   beside what the reader should conclude from it (writing-rules §4 rule 0).
+An external product introduction is one argument told in the reader's
+direction, on the **What → Why → How → Value** arc, and it answers **5W+1H**
+along the way — Who it is for and When/Where it applies are woven in, not
+appendixed. The reader should be able to answer all six from the deck alone.
+
+1. **What** — the first-impression page, and the one the reader must remember:
+   what this is in one sentence, who it is for, and the one claim to carry out
+   of the room. Not the agenda: the agenda routes, this page asserts.
+2. **Why** — the product's reason to exist, in the reader's own terms: the
+   problem, the pain it costs, and one verifiable fact per pain. This is where
+   the deck earns the right to explain anything.
+3. **How** — the solution's shape and its working: the parts, the method, the
+   steps, the flow a user actually walks. What it deliberately does not do
+   belongs here, not scattered. Evidence pages sit inside How — measured,
+   sourced, **and anchored**: every key number stands beside what the reader
+   should conclude from it (writing-rules §4 rule 0).
+4. **Value** — the summing page: what adopting this is worth to the reader's
+   organisation, each value quantified from the evidence already shown, never
+   asserted fresh. The arc lands here; a deck that ends on mechanism has
+   stopped one page early.
 5. **Get started** — four artifacts, and a page missing any of them is a
    missing page, not a thin one: the repository or install link; the install
    step per capability tier; the first command that produces something; and
-   the feedback channel. An adoption ask without the how is C6's 1-score.
+   the feedback channel. (D16 raised the bar for this page's *form*: it is a
+   shop window, not a manual — platform marks, the repository address large,
+   one line on the constitution, and a glimpse of real output. See the
+   visual-identity note below.)
 6. **The ask** — who does what by when. "Pick one document" names nobody and
    no date; "your team runs one build this week and returns the score sheet"
    is an ask.
+
+**The get-started visual identity.** The page shows, not lists: the platform
+marks of the agents it names (official logo assets where the package ships
+them in `assets/logos/` — a platform whose mark is not shipped gets its name
+set in type, never a redrawn imitation), the repository address as the page's
+largest value, one sentence on the constitution (`references/PRINCIPLES.md` —
+what the skill refuses to do is part of what it is), and one or two thumbnails
+of pages the skill itself produced — from this deck or the scaffold, never
+from an engagement document (red line 9).
 
 **Agenda rows state value, not contents.** A row that reads "the ban list, the
 rule set, the gates: pages 4 to 7" is a table of contents wearing an agenda's
@@ -181,6 +207,26 @@ clothes — the row says what the part *establishes for the reader* and why they
 should care; page spans are apparatus and sit in the apparatus position.
 (Reader review D15: the contents-style rows read as machine-written, and the
 page ranges read as emphasis on the wrong thing.)
+
+## The agenda and the takeaway (every deck scenario)
+
+**The agenda quotes the document; it never paraphrases it.** Every claim line
+on the agenda — a part title, an item — is a line the deck's own titles say,
+verbatim or containing one, and the mechanical way to be right is to derive
+the agenda from the page titles at assembly rather than writing it twice.
+`check_design.py` D27 gates on this: an agenda line matching no title fails
+the document. (Reader review D16, opened with it as its first `严重 BUG`: the agenda's
+part titles matched no opener and its items matched no page — the author had
+written the deck's story a second time, in different words, and a reader
+holding the two against each other trusted neither.)
+
+**Every content page leaves one line behind.** In the external genres a
+content page closes with a `.take` — the takeaway a reader could quote in the
+elevator: what this page established and why it matters to them. It is a tier
+below the callout (`.key` interrupts to change a decision; `.take` closes),
+one per page, and `check_design.py` D28 reports the coverage. (Reader review
+D16, C6: a deck whose every gate was green read as `无感` — nothing asked to
+be remembered, so nothing was.)
 
 ## Cover and closing pages (every deck scenario)
 

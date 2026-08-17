@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.513 (2026-08-16)
+   LUMI page layouts · v0.1.514 (2026-08-16)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -423,6 +423,20 @@ svg .dash { stroke-dasharray: 4 3; }
   background: var(--acc-wash); padding: 13px 17px; margin: 0;
 }
 .red { border-left-color: var(--seal); background: var(--seal-wash); }
+
+/* The takeaway — the line a page leaves behind. One per content page in the
+   external genres (storyline-templates.md, common disciplines; check_design.py
+   D28 reports the coverage). A tier BELOW the callout on purpose: `.key` interrupts a page to
+   change a decision and is budgeted by D3; `.take` closes a page with the one
+   sentence its reader keeps, so it must be quiet enough to appear on every
+   page without competing with the tier-1 voice. Hairline top rule, no wash,
+   an accent lead-in glyph — quotable, not shouting. Born from a blind review:
+   the reader scored an entire deck 无感 because no page said what to keep. */
+.take {
+  font-size: 14.5px; line-height: 1.5; font-weight: 600; color: var(--tx1);
+  border-top: 1.5px solid var(--acc); padding: 10px 2px 0; margin: 14px 0 0;
+}
+.take::before { content: "\2192\00a0"; color: var(--acc); font-weight: 700; }
 
 /* Two blocks side by side inside one cell. Portrait collapses it to one column
    and had been the ONLY place it was declared, so at the design geometry `.duo`

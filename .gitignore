@@ -55,6 +55,9 @@ docs/
 # `assets tracked` guard in check_repo.py asks git rather than the filesystem,
 # so a sixth directory cannot be forgotten this quietly.
 !assets/shapes/*.svg
+# Official platform marks for the get-started page; provenance in SOURCES.md.
+!assets/logos/*.svg
+!assets/logos/SOURCES.md
 
 # Conformance run artifacts: renders, not records. The scoreboard is tracked;
 # the raw agent output lives with the run.

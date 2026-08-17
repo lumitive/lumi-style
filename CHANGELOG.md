@@ -1,5 +1,70 @@
 # Changelog
 
+## 0.1.514 — the second blind review: the parts were all present, and the arc still was not
+
+**The engine's second cycle, on the revised deck (corpus D16), and the row
+that locates the blind spot.** The owner blind-scored the r11 revision:
+reader C1=1, C2 unreadable-because-of-C1, C3=3, C4 unscored, C5=3, C6 marked
+**0** (below the scale — recorded as 1, whose anchor text is her own verdict
+that an external document failing at its job `就是失败，不是扣一分`; the raw
+marking is preserved here verbatim), C7=3, C8=1, beside the builder's sealed
+4/3/3/4/3/3/3/3. C5 moved 1→3 — the pages Template 6 demanded landed. C1
+moved 2→**1**: the revision that added every named part scored *lower* on
+first impression, which is the datum this whole entry hangs on. And this
+time the agreement study could say precisely where the machines were blind:
+its C3 proxies and the reader agreed at 3, while **no metric even claimed to
+predict C1, C6 or C8** — narrative, takeaway, figure insight. Instruments
+now exist for all three, each run red on the reviewed deck itself before it
+was trusted.
+
+**The root cause is one thing, recorded as FM-17 · the builder's-eye
+narrative.** Eight findings, one shape: the deck walks the *mechanism* in the
+maker's order, and the reviewer asked for the consultant's arc —
+`是什么 → 为什么（痛点）→ 怎么做 → 对企业的核心价值`. Patch-fixing D15's named
+gaps satisfied every part and left the arc unbuilt; that move is now FM-17's
+second detection tell. Template 6 is rewritten to the arc (her design, taken
+as the template), and `TYPICAL_SECTIONS["product-intro"]` follows it.
+
+**Her opening finding becomes a gate.** The r11 agenda's part titles matched
+no opener and its items matched no page title — the author had told the story
+twice in different words. New deck-wide discipline: the agenda quotes the
+document, derived from the page titles at assembly; **D27_agenda_mirror
+gates** (normalized containment, so a row may carry its part letter). Planted
+red first: 12 orphan lines on the reviewed deck, then a permanent red case in
+the degenerate fixture — 44 of 44 graded verdicts now have a failing fixture.
+"No agenda page" is a measured pass, not an n/a, so the blind-gates rule
+stays about instruments that could not look.
+
+**Two reported instruments for the other two blind dimensions.** Every
+external content page now closes with one quotable **`.take`** line (new
+token role, a tier below the callout so D3's budget is untouched);
+**D28_takeaway** reports coverage — the reviewed deck read 10 of 10 content
+pages without one, beside her C6 note that the deck read as `无感`. And the
+page's numbers go into the figure's geometry (design-rules §4.2):
+**D29_figure_numbers** reports every figure page whose SVG text carries none
+of the page's own stated values — the value-match matters, because the
+reviewed staircase carried step digits 1–6 on a page claiming 206 units, and
+digit-presence would have passed it. Both start reported on the new-gate
+caution; both are candidates to gate after r12 measures them on a real build.
+
+**One new AI tell, from her quotation.** "Worth your attention if… / Worth
+your attention before…" — the templated parallel frame, sibling blocks of one
+role differing only in the slot. Writing-rules §6 move 15 names it;
+**M14_parallel_frames** reports same-role siblings sharing a three-word
+opening (the reviewed deck read exactly one echo: hers). Reported, never
+gating — deliberate anaphora is rhetoric, and M13's reason applies verbatim.
+
+**The get-started page gets its shop-window spec, and the assets to honour
+it.** Official platform marks ship in `assets/logos/` (Claude, Cursor,
+Gemini, GitHub — fetched from each owner's own domain, provenance and the
+not-shipped list in SOURCES.md; OpenAI serves 403 to fetchers, DeepSeek and
+Kimi publish no vector, and those get typographic chips — never a redrawn
+imitation). Trademark marks keep their own colours; §9's tinting rule scopes
+to imagery. C1/C6/C8 anchor examples carry this review's real shapes, and the
+C4-unscored/C2-unreadable dimensions are stored as null per the validator's
+own rule.
+
+
 ## 0.1.513 — the first blind review: five dimensions diverge, and the divergence splits exactly where the machines stop
 
 **The evaluation engine's first real cycle, run end to end.** The owner

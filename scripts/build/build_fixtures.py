@@ -825,6 +825,16 @@ def build_degenerate() -> str:
     pages = "".join(_degenerate_page(i + 1, len(DEGENERATE_TITLES), t,
                                      2 if i < 6 else 0)
                     for i, t in enumerate(DEGENERATE_TITLES))
+    # D27_agenda_mirror: an agenda whose every line was written fresh rather
+    # than quoted from the titles. Both lines below match no title in the deck,
+    # which is exactly the defect the second blind review (D16) opened with.
+    pages = ('<section class="page" id="agenda">'
+             '<p class="eyebrow">Agenda</p>'
+             '<p class="listhead">A story the pages never tell</p>'
+             '<ul><li>An agenda line quoted from no title anywhere</li></ul>'
+             '<div class="foot"><div class="terms"><span class="conf">'
+             f'{TERMS}</span></div><span class="site">{SITE}</span></div>'
+             '</section>') + pages
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Degenerate fixture (fails on purpose)</title>

@@ -389,7 +389,7 @@ def test_the_gate_set_is_the_set_of_rows_declaring_a_gate():
                         "D15_footer_path", "D19_vocabulary",
                         "D20_palette_fidelity", "D21_data_contract",
                         "D22_layout_vocabulary", "D24_images_embedded",
-                        "D25_image_provenance"}
+                        "D25_image_provenance", "D27_agenda_mirror"}
 
 
 def test_a_document_failing_only_a_gate_metric_exits_one(tmp_path, capsys):

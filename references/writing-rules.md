@@ -288,6 +288,15 @@ LUMI's own seed survives as group 8.
 13. **Boldface carries meaning or comes out.** Mechanical bolding of every key
     phrase is emphasis inflation, and it makes a page look generated.
 14. One name per concept, never synonym cycling — see §1 term consistency.
+15. **No templated parallel frames.** Sibling blocks of the same role that open
+    with the same words and differ only in the filled slot — "Worth your
+    attention if your documents…" beside "Worth your attention before you
+    commit…" — read as a template stamped twice, whatever the sentences say.
+    Both quoted frames shipped side by side in one agenda and a reader called
+    them AI at sight (review D16). Parallelism used deliberately is rhetoric;
+    the tell is the frame with the swapped slot. `check_prose.py` M14 reports
+    same-role siblings sharing a three-word opening so a writer can decide
+    which one it is.
 
 **Two-pass audit (mandatory second look)**
 

@@ -221,12 +221,24 @@ Say "uncertain" plainly.
   slogan, or a section label is not a title — keep the evidence that earns it
   ("Codes, not words: same task, different criteria, 18× recall gap"). All titles
   concatenated must read as a complete argument; comparisons use tables, never
-  bullet pileups; write down the reader's question before writing each page; no
-  "so-what" labels on pages — the takeaway lives in the title.
+  bullet pileups; write down the reader's question before writing each page.
+  **Every content page in an external deck closes with one quotable takeaway
+  line** (the `.take` role): what this page established and why the reader
+  cares — a deck whose pages leave nothing behind reads as 无感 however clean
+  its prose. **The agenda quotes the document's own titles, verbatim or
+  containing one — never a paraphrase written twice.** **No templated parallel
+  frames**: sibling summaries opening with the same three words and differing
+  only in the slot ("Worth your attention if… / Worth your attention before…")
+  read as AI at sight. **A customer-facing product deck walks What → Why →
+  How → Value** — 是什么、为什么（痛点）、怎么做、对企业的核心价值 — in the
+  reader's order, not the mechanism's.
 
 ## 6 Five chart iron rules (for HTML/SVG output)
 
-Figure titles state conclusions; one accent color with all else grayscale
+Figure titles state conclusions; **the page's numbers go into the
+geometry, not beside it** — lengths, fills and step heights drawn to the
+values the page states, because a shape carrying words but none of the page's
+numbers is an icon wearing labels; one accent color with all else grayscale
 (warning color only for warnings) — **in figures the accent is the live green
 `#3E7A2E` light / `#7FC45A` dark**, because the text accent `#48633E` reads
 brown at figure scale; same meaning, two measured inks, one per medium;
@@ -431,6 +443,6 @@ quality), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.513** snapshot, cut 2026-08-17. It is self-contained by
+> This file is the **0.1.514** snapshot, cut 2026-08-17. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

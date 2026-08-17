@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.513.** This file restates part of `references/`; where they
+> **lumi-style 0.1.514.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -90,7 +90,10 @@ facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
    reach for. A field with nothing behind it is decoration and is checked for.
 1. `references/writing-rules.md` — wording red lines, banned phrases, punctuation,
    number discipline, LUMI voice, de-AI-flavor checklist. Non-negotiable.
-2. `references/storyline-templates.md` — pick the narrative skeleton by scenario
+2. `references/storyline-templates.md` — pick the narrative skeleton by scenario;
+   its deck-wide disciplines: the agenda is derived from the page titles (D27
+   gates), external content pages each close with a `.take` takeaway (D28
+   reports), and a product deck walks What → Why → How → Value (Template 6)
    (sales = value & future; consulting = PwC frame with assertive subtitles;
    internal analysis; training = enabling a team to do something). Do this before
    writing. A deck opens with a cover and ends with a closing page, each carrying
@@ -245,7 +248,7 @@ two-pass audit; §6b de-translationese when the Chinese was translated from
 English), and only then the pre-delivery checklist in the rubric. Measure both
 halves rather than reading them: `python3 scripts/check/check_prose.py <file>` for
 English prose, and `python3 scripts/check/check_design.py <file>` for any HTML
-deliverable. **D12, D14, D15, D19, D20, D21, D22, D24 and D25 gate; every other D-metric is reported for you
+deliverable. **D12, D14, D15, D19, D20, D21, D22, D24, D25 and D27 gate; every other D-metric is reported for you
 to judge** — a page is done when a human reads it as intentional, and a threshold
 satisfiable without improving the page ends the looking. (This line claimed
 "D1–D4 and D6 gate" for eight releases, naming four metrics that never did and
