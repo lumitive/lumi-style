@@ -258,11 +258,17 @@ def check_trace_schema():
     its releases fixing, and a schema guard that carried its own copy would be
     the purest instance of it.
 
-    An empty evals/traces/ is a legal state, not a vacuous pass: traces come
-    from real builds, and the repository ships none. What must not happen is a
-    stored trace carrying free text or a verdict nobody measured — red line 9
-    held by a schema instead of by good intentions. The synthetic tests are
-    what prove this can fail.
+    An empty evals/traces/ is a legal state, not a vacuous pass. **The
+    repository now ships one**, from the first real build to open a trace; the
+    sentence here said it shipped none for three releases after that stopped
+    being true, which is the drift this file exists to catch happening inside
+    the file that catches it. A trace is safe to ship because the schema is
+    closed — genre, storyline, machine-written verdicts and nothing a client
+    could be named in. What must not happen is a stored trace carrying free
+    text or a verdict nobody measured, which is red line 9 held by a schema
+    instead of by good intentions. The synthetic tests in
+    tests/test_check_repo_guards_wave4.py are what prove this can fail; for
+    two releases that claim pointed at tests of the LIBRARY instead.
     """
     if not trace_schema.FIELDS:
         return ["trace_schema defines no FIELDS — the guard would pass vacuously"]
@@ -2238,7 +2244,7 @@ SIBLING_MODULES = (
     "geo_projection", "geo_frame", "globe_svg", "regionmap_svg", "sea_route",
     "color_math", "css_tokens", "lock", "deliverable_registry",
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
-    "trace_schema", "rubric_items", "shipping",
+    "trace_schema", "rubric_items", "shipping", "fingerprint",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.

@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.499"
+  version: "0.1.500"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -110,8 +110,13 @@ source, a structure carried forward — and it is what most real builds use.
 shows that nothing broke, and shows nothing about what the rules gained since
 it was written.** Timing starts when the storyline is agreed; the discussion is
 not charged against it. Open the build's trace at that moment
-(`scripts/ops/trace.py open --entry-path A|B …`) and close it after the checks
-(`trace.py close`), which transcribes the verdicts rather than accepting them.
+(`scripts/ops/trace.py open --entry-path A|B --recipe <path> …`) and close it
+after the checks (`trace.py close`), which transcribes the verdicts rather than
+accepting them. **`--recipe` is how path B stays honest**: a trace's
+`skill_version` is read from SKILL.md at open, so it can never be stale, and
+without the recipe's own version stamp a replay of a frozen script is
+indistinguishable from a build made to today's rules. `ledger.py` reports
+current, stale, or **unknown** — and unknown is not current.
 
 0. **Read [`references/brand.md`](references/brand.md) and commit.** 上善若水 —
    what LUMI is, the field and the waterline, and the accelerators. This is the

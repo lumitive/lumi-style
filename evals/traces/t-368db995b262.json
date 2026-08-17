@@ -58,6 +58,8 @@
  "pages": 15,
  "phase_seconds": {},
  "principle_yields": [],
+ "recipe_hash": null,
+ "recipe_version": null,
  "refused_to_emit": null,
  "review_ref": null,
  "skill_version": "0.1.495",

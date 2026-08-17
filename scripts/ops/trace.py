@@ -66,6 +66,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 # The closed vocabulary lives in scripts/lib/trace_schema.py — one definition,
 # read by this writer and by check_repo.py's guard.
+import fingerprint  # noqa: E402
 from deliverable_registry import STAGE_OF  # noqa: E402
 from trace_schema import ENUMS, FIELDS, PHASES, validate  # noqa: E402
 
@@ -138,7 +139,18 @@ def cmd_open(a):
                outline_reviewed=False, titles_changed_after_approval=0,
                geometry=a.geometry, pages=0, content_pages=0, phase_seconds={},
                gates={}, graded={}, thresholds={},
-               principle_yields=[], refused_to_emit=None)
+               principle_yields=[], refused_to_emit=None,
+               recipe_hash=None, recipe_version=None)
+    # WHAT DROVE THIS BUILD, taken at open, from what the build was actually
+    # given. Computing it later would fingerprint whatever the recipe had
+    # become, which is the mistake `asked_fingerprint` exists to avoid one
+    # domain over.
+    if getattr(a, "recipe", None) is not None:
+        if not a.recipe.is_file():
+            sys.exit(f"--recipe {a.recipe} is not a file. A recipe nobody can "
+                     f"read is not a recipe this trace can vouch for.")
+        rec["recipe_hash"], rec["recipe_version"] = fingerprint.recipe_fingerprint(
+            a.recipe, genre=a.genre, storyline=a.storyline)
     errors = validate(rec)
     if errors:
         sys.exit("refusing to open an invalid trace:\n  " + "\n  ".join(errors))
@@ -285,6 +297,13 @@ def main():
     o = sub.add_parser("open", help="open a trace when the storyline is agreed")
     o.add_argument("--genre", choices=ENUMS["genre"], required=True)
     o.add_argument("--storyline", required=True)
+    o.add_argument("--recipe", type=pathlib.Path,
+                   help="the assemble script, outline or template this build "
+                        "is driven by. Its bytes are fingerprinted and its own "
+                        "version stamp is read, so a replay of a frozen recipe "
+                        "is distinguishable from a build made to the current "
+                        "rules. Omit it only when there is no recipe — a "
+                        "document composed from a conversation.")
     o.add_argument("--entry-path", dest="entry_path", choices=ENUMS["entry_path"],
                    required=True)
     o.add_argument("--source", choices=ENUMS["source"], default="build")

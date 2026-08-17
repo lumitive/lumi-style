@@ -71,6 +71,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
+import fingerprint  # noqa: E402
 from check_prose import GENRES  # noqa: E402
 from deliverable_registry import checker_path, kinds  # noqa: E402
 
@@ -371,9 +372,10 @@ def task_fingerprint(task: dict) -> str:
     material = {k: task.get(k) for k in
                 ("prompt", "deliverable", "score", "require", "answers", "input",
                  "genre")}
-    return hashlib.sha256(
-        json.dumps(material, sort_keys=True, ensure_ascii=False).encode()
-    ).hexdigest()[:12]
+    # One implementation, shared with trace.py. Two sha256-of-sorted-json is
+    # the `no shadow math` guard's territory, and a fingerprint that differs
+    # between callers is worse than none — both sides would report matches.
+    return fingerprint.material_hash(material)
 
 
 def asked_fingerprint(task_dir: pathlib.Path, task: dict) -> str:
@@ -841,13 +843,12 @@ def main(argv):
                 # colophon regex reads the "built with lumi-style X.Y.Z" line
                 # a LUMI deliverable carries; absent (markdown answers), the
                 # build vintage is honestly unknown.
-                built_m = re.search(r"lumi-style\s+(\d+\.\d+\.\d+)",
-                                    target.read_text(encoding="utf-8",
-                                                     errors="replace"))
+                built_v = fingerprint.version_in(
+                    target.read_text(encoding="utf-8", errors="replace"))
                 entry: dict[str, Any] = {"artifact": shown,
                                          "task_hash": asked_fingerprint(task_dir, task),
                                          "instrument_version": skill_version(),
-                                         "built_version": built_m.group(1) if built_m else None}
+                                         "built_version": built_v}
                 failed: list[str] = []
                 verdict_union: dict[str, Any] = {}
                 for kind in task["score"]:
