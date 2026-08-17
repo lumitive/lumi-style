@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.497"
+  version: "0.1.498"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -93,6 +93,25 @@ measurably how you get work that is correct and lifeless. Through 0.1.344 this
 skill ran 272 restricting lines against 12 inviting ones, and every release added
 more brakes because every release fixed a defect a reader had found. No brake has
 been removed; they now apply at step 4 instead of framing step 0.
+
+> Source: [`references/operating-rules.md`](references/operating-rules.md) §6.
+> That file is where the entry paths are true; this is a restatement.
+
+**A document reaches this workflow one of two ways, and the build records
+which.** **Path A** is a discussion in four beats whose order cannot be
+reversed: the user's free statement first and uninterrupted, then the agent's
+questions (step 1 below), then advice, then a **storyline review** — titles,
+order and the logic joining them, agreed before anything is built.
+**Beat 4 is the only defence completeness has**, because C5 reports and never
+gates; run `check_outline.py` on the outline and read the titles as one
+paragraph. **Path B** starts from a recipe — a scaffold, a previous build's
+source, a structure carried forward — and it is what most real builds use.
+**Both are held to the current rules, gates and evals: re-running a recipe
+shows that nothing broke, and shows nothing about what the rules gained since
+it was written.** Timing starts when the storyline is agreed; the discussion is
+not charged against it. Open the build's trace at that moment
+(`scripts/ops/trace.py open --entry-path A|B …`) and close it after the checks
+(`trace.py close`), which transcribes the verdicts rather than accepting them.
 
 0. **Read [`references/brand.md`](references/brand.md) and commit.** 上善若水 —
    what LUMI is, the field and the waterline, and the accelerators. This is the
