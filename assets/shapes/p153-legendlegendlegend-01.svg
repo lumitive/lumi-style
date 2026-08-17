@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="21187.08 281.08 1108.84 2400.84" shape-rendering="geometricPrecision" width="1024" height="2217.15" preserveAspectRatio="xMidYMid meet"><g class="Group">
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id2717">
+         <rect class="BoundingBox" stroke="none" fill="none" x="22468" y="287" width="2197" height="2346" />
+         <text class="SVGTextShape"><tspan class="TextParagraph"><tspan class="TextPosition" x="22468" y="851"><tspan font-family="Arial, sans-serif" font-size="564px" font-weight="400" lengthAdjust="spacingAndGlyphs" textLength="1879" fill="var(--tx1, #2B2E33)" stroke="none" style="white-space: pre">Legend</tspan></tspan></tspan><tspan class="TextParagraph"><tspan class="TextPosition" x="22468" y="1682"><tspan font-family="Arial, sans-serif" font-size="564px" font-weight="400" lengthAdjust="spacingAndGlyphs" textLength="1879" fill="var(--tx1, #2B2E33)" stroke="none" style="white-space: pre">Legend</tspan></tspan></tspan><tspan class="TextParagraph"><tspan class="TextPosition" x="22468" y="2513"><tspan font-family="Arial, sans-serif" font-size="564px" font-weight="400" lengthAdjust="spacingAndGlyphs" textLength="1879" fill="var(--tx1, #2B2E33)" stroke="none" style="white-space: pre">Legend</tspan></tspan></tspan></text>
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id2718">
+         <rect class="BoundingBox" stroke="none" fill="none" x="21263" y="357" width="958" height="539" />
+         <path fill="var(--acc-4, #889A82)" stroke="none" d="M 21742,882 L 21276,882 21276,370 22207,370 22207,882 21742,882 Z " />
+         <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 21742,882 L 21276,882 21276,370 22207,370 22207,882 21742,882 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id2719">
+         <rect class="BoundingBox" stroke="none" fill="none" x="21263" y="1212" width="958" height="538" />
+         <path fill="var(--acc-5, #48633E)" stroke="none" d="M 21742,1736 L 21276,1736 21276,1225 22207,1225 22207,1736 21742,1736 Z " />
+         <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 21742,1736 L 21276,1736 21276,1225 22207,1225 22207,1736 21742,1736 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id2720">
+         <rect class="BoundingBox" stroke="none" fill="none" x="21263" y="2068" width="958" height="539" />
+         <path fill="var(--lime, #B8FF00)" stroke="none" d="M 21742,2593 L 21276,2593 21276,2081 22207,2081 22207,2593 21742,2593 Z " />
+         <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 21742,2593 L 21276,2593 21276,2081 22207,2081 22207,2593 21742,2593 Z " />
+        </g>
+       </g>
+      </g>
+      </svg>

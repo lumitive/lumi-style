@@ -49,6 +49,12 @@ docs/
 # *.svg above is there to keep stray artwork out, not the package's own
 # generated vectors, and this is the fourth directory to need saying so.
 !assets/brand/**/*.svg
+# The shape library, and the fifth directory to need saying so — which is why
+# the saying is now a guard. All 206 units sat here untracked from extraction
+# until 0.1.496: on disk for every local check, absent from every clone. The
+# `assets tracked` guard in check_repo.py asks git rather than the filesystem,
+# so a sixth directory cannot be forgotten this quietly.
+!assets/shapes/*.svg
 
 # Conformance run artifacts: renders, not records. The scoreboard is tracked;
 # the raw agent output lives with the run.

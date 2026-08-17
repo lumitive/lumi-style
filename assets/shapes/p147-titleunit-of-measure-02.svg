@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="442.62 140.86 168.94 321.39" shape-rendering="geometricPrecision" width="1024" height="1948.05" preserveAspectRatio="xMidYMid meet"><g clip-path="url(#clip-1)">
+<path fill-rule="evenodd" fill="var(--acc-4, #889A82)" fill-opacity="1" d="M 475.757812 390.1875 L 577.683594 390.1875 L 577.683594 449.34375 L 475.757812 449.34375 Z M 475.757812 390.1875 " />
+</g>
+<g clip-path="url(#clip-2)">
+<path fill="none" stroke-width="0.74019" stroke-linecap="round" stroke-linejoin="round" stroke="var(--on-acc, #F0F0FA)" stroke-opacity="1" stroke-miterlimit="10" d="M 476.165482 138.471925 L 578.239878 138.471925 L 578.239878 79.22942 L 476.165482 79.22942 Z M 476.165482 138.471925 " transform="matrix(0.998544, 0, 0, -0.998544, 0.285604, 528.457816)" />
+</g>
+<path fill-rule="evenodd" fill="var(--acc-4, #889A82)" fill-opacity="1" stroke-width="0.74019" stroke-linecap="round" stroke-linejoin="round" stroke="var(--on-acc, #F0F0FA)" stroke-opacity="1" stroke-miterlimit="10" d="M 476.165482 197.714429 L 578.239878 197.714429 L 578.239878 138.471925 L 476.165482 138.471925 Z M 476.165482 197.714429 " transform="matrix(0.998544, 0, 0, -0.998544, 0.285604, 528.457816)" />
+<path fill-rule="evenodd" fill="var(--acc-4, #889A82)" fill-opacity="1" stroke-width="0.74019" stroke-linecap="round" stroke-linejoin="round" stroke="var(--on-acc, #F0F0FA)" stroke-opacity="1" stroke-miterlimit="10" d="M 476.165482 286.977203 L 578.239878 286.977203 L 578.239878 197.714429 L 476.165482 197.714429 Z M 476.165482 286.977203 " transform="matrix(0.998544, 0, 0, -0.998544, 0.285604, 528.457816)" />
+<path fill-rule="evenodd" fill="var(--acc-4, #889A82)" fill-opacity="1" stroke-width="0.74019" stroke-linecap="round" stroke-linejoin="round" stroke="var(--on-acc, #F0F0FA)" stroke-opacity="1" stroke-miterlimit="10" d="M 476.165482 376.24389 L 578.239878 376.24389 L 578.239878 286.977203 L 476.165482 286.977203 Z M 476.165482 376.24389 " transform="matrix(0.998544, 0, 0, -0.998544, 0.285604, 528.457816)" />
+<path fill="none" stroke-width="2.24905" stroke-linecap="round" stroke-linejoin="round" stroke="var(--on-acc, #F0F0FA)" stroke-opacity="1" stroke-miterlimit="10" d="M 455.897692 79.22942 L 599.243114 79.22942 " transform="matrix(0.998544, 0, 0, -0.998544, 0.285604, 528.457816)" />
+</svg>

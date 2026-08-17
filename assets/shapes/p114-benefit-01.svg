@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="7798.44 4477.44 9843.12 9601.12" shape-rendering="geometricPrecision" width="1024" height="998.82" preserveAspectRatio="xMidYMid meet"><g class="com.sun.star.drawing.CustomShape">
+       <g id="id2019">
+        <rect class="BoundingBox" stroke="none" fill="none" x="8268" y="4837" width="8953" height="8693" />
+        <path fill="var(--acc-5, #48633E)" stroke="none" d="M 12744,13511 L 8286,13511 8286,4855 17202,4855 17202,13511 12744,13511 Z " />
+        <path fill="none" stroke="var(--acc-5, #48633E)" stroke-width="35" stroke-linejoin="miter" d="M 12744,13511 L 8286,13511 8286,4855 17202,4855 17202,13511 12744,13511 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id2022">
+        <rect class="BoundingBox" stroke="none" fill="none" x="8249" y="4842" width="8994" height="8755" />
+        <path fill="var(--acc-3, #ABB7A6)" stroke="none" d="M 8267,13578 L 17224,13578 17224,4860 8267,13578 Z " />
+        <path fill="none" stroke="var(--ln1, #6E7175)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 8267,13578 L 17224,13578 17224,4860 8267,13578 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.LineShape">
+       <g id="id2025">
+        <rect class="BoundingBox" stroke="none" fill="none" x="11628" y="7810" width="2449" height="2554" />
+        <path fill="none" stroke="var(--acc-2, #CFD6CD)" stroke-width="212" stroke-linejoin="miter" d="M 12332,8544 L 13372,9629 " />
+        <path fill="var(--acc-2, #CFD6CD)" stroke="none" d="M 11628,7810 L 12591,8355 12132,8795 11628,7810 Z " />
+        <path fill="var(--acc-2, #CFD6CD)" stroke="none" d="M 14076,10363 L 13113,9818 13572,9378 14076,10363 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.LineShape">
+       <g id="id2026">
+        <rect class="BoundingBox" stroke="none" fill="none" x="8252" y="4859" width="8981" height="8722" />
+        <path fill="none" stroke="var(--acc-2, #CFD6CD)" stroke-width="71" stroke-linejoin="miter" d="M 8277,13554 L 17207,4885 " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.LineShape">
+       <g id="id2027">
+        <rect class="BoundingBox" stroke="none" fill="none" x="8268" y="13476" width="9010" height="239" />
+        <path fill="none" stroke="var(--acc-2, #CFD6CD)" stroke-width="79" stroke-linejoin="miter" d="M 8268,13595 L 16898,13595 " />
+        <path fill="var(--acc-2, #CFD6CD)" stroke="none" d="M 17277,13595 L 16882,13714 16882,13477 17277,13595 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.LineShape">
+       <g id="id2028">
+        <rect class="BoundingBox" stroke="none" fill="none" x="8162" y="4842" width="239" height="8759" />
+        <path fill="none" stroke="var(--acc-2, #CFD6CD)" stroke-width="79" stroke-linejoin="miter" d="M 8281,13600 L 8281,5221 " />
+        <path fill="var(--acc-2, #CFD6CD)" stroke="none" d="M 8281,4842 L 8400,5237 8163,5237 8281,4842 Z " />
+       </g>
+      </g>
+      </svg>

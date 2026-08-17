@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="7280.28 4968.28 10495.44 10116.44" shape-rendering="geometricPrecision" width="1024" height="987.02" preserveAspectRatio="xMidYMid meet"><g class="com.sun.star.drawing.CustomShape">
+       <g id="id1704">
+        <rect class="BoundingBox" stroke="none" fill="none" x="13418" y="5375" width="3970" height="3772" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 16318,8679 L 16318,9128 13436,9128 13436,6336 13993,6336 13993,8269 16969,5393 17369,5751 14410,8633 16318,8633 16318,9128 16318,8679 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 16318,8679 L 16318,9128 13436,9128 13436,6336 13993,6336 13993,8269 16969,5393 17369,5751 14410,8633 16318,8633 16318,9128 16318,8679 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1705">
+        <rect class="BoundingBox" stroke="none" fill="none" x="13418" y="10865" width="3988" height="3816" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 16318,11331 L 16318,10883 13436,10883 13436,13673 13993,13673 13993,11786 16970,14662 17387,14258 14457,11422 16318,11422 16318,10883 16318,11331 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 16318,11331 L 16318,10883 13436,10883 13436,13673 13993,13673 13993,11786 16970,14662 17387,14258 14457,11422 16318,11422 16318,10883 16318,11331 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1706">
+        <rect class="BoundingBox" stroke="none" fill="none" x="7651" y="10864" width="4022" height="3851" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 8748,11336 L 8748,10882 11654,10882 11654,13695 11090,13695 11090,11791 8091,14696 7669,14287 10621,11427 8748,11427 8748,10882 8748,11336 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 8748,11336 L 8748,10882 11654,10882 11654,13695 11090,13695 11090,11791 8091,14696 7669,14287 10621,11427 8748,11427 8748,10882 " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1707">
+        <rect class="BoundingBox" stroke="none" fill="none" x="7651" y="5339" width="4022" height="3807" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 8748,8672 L 8748,9127 11654,9127 11654,6312 11090,6312 11090,8262 8091,5357 7669,5766 10668,8626 8748,8626 8748,9127 8748,8672 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 8748,8672 L 8748,9127 11654,9127 11654,6312 11090,6312 11090,8262 8091,5357 7669,5766 10668,8626 8748,8626 8748,9127 " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1712">
+        <rect class="BoundingBox" stroke="none" fill="none" x="11614" y="9118" width="1793" height="1793" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 13388,10014 C 13388,10168 13347,10320 13270,10453 13193,10586 13082,10697 12949,10774 12816,10851 12664,10892 12510,10892 12356,10892 12204,10851 12071,10774 11938,10697 11827,10586 11750,10453 11673,10320 11632,10168 11632,10014 11632,9860 11673,9708 11750,9575 11827,9442 11938,9331 12071,9254 12204,9177 12356,9136 12510,9136 12664,9136 12816,9177 12949,9254 13082,9331 13193,9442 13270,9575 13347,9708 13388,9860 13388,10014 L 13388,10014 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="miter" d="M 13388,10014 C 13388,10168 13347,10320 13270,10453 13193,10586 13082,10697 12949,10774 12816,10851 12664,10892 12510,10892 12356,10892 12204,10851 12071,10774 11938,10697 11827,10586 11750,10453 11673,10320 11632,10168 11632,10014 11632,9860 11673,9708 11750,9575 11827,9442 11938,9331 12071,9254 12204,9177 12356,9136 12510,9136 12664,9136 12816,9177 12949,9254 13082,9331 13193,9442 13270,9575 13347,9708 13388,9860 13388,10014 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="miter" d="M 11632,10014 L 13388,10014 " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="miter" d="M 12510,9136 L 12510,10892 " />
+       </g>
+      </g>
+      </svg>

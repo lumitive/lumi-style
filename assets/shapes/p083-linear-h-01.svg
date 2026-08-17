@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="3279.40 2454.40 18268.20 9960.20" shape-rendering="geometricPrecision" width="1024" height="558.31" preserveAspectRatio="xMidYMid meet"><g class="com.sun.star.drawing.CustomShape">
+       <g id="id1555">
+        <rect class="BoundingBox" stroke="none" fill="none" x="6860" y="4753" width="14030" height="5343" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 6878,5578 L 19884,5578 19884,4771 20871,7424 19884,10077 19884,9306 6878,9306 6878,7424 6878,5578 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 6878,5578 L 19884,5578 19884,4771 20871,7424 19884,10077 19884,9306 6878,9306 6878,7424 6878,5578 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1556">
+        <rect class="BoundingBox" stroke="none" fill="none" x="4771" y="3113" width="6639" height="3243" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 4864,3131 L 11391,3131 8054,6337 4789,3131 4864,3131 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 4864,3131 L 11391,3131 8054,6337 4789,3131 4864,3131 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1557">
+        <rect class="BoundingBox" stroke="none" fill="none" x="4789" y="8549" width="6599" height="3208" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 4882,11738 L 11369,11738 8071,8567 4807,11738 4882,11738 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 4882,11738 L 11369,11738 8071,8567 4807,11738 4882,11738 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1558">
+        <rect class="BoundingBox" stroke="none" fill="none" x="3938" y="3681" width="3869" height="7520" />
+        <path fill="var(--acc-4, #889A82)" stroke="none" d="M 3956,11071 L 3956,3699 7788,7459 3956,11182 3956,11071 Z " />
+        <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 3956,11071 L 3956,3699 7788,7459 3956,11182 3956,11071 Z " />
+       </g>
+      </g>
+      </svg>

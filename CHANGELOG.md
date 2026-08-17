@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.1.496 — the shape library was never in version control, and every asset guard was reading the wrong thing
+
+**Found by CI, on the first run it was ever given.** Forty releases had
+accumulated on a branch that was never pushed, so no workflow had seen any of
+them. The first push put all forty in front of the checks at once, and `shape
+library` failed on a fresh clone with every one of its 206 units reported as
+described-but-not-shipped.
+
+`.gitignore` carries a blanket `*.svg` rule, which is there to keep a
+deliverable's renders out of a repository that ships rules. An exception block
+below it re-admits the design language's own assets, and that block's own
+comment reads *"this is the fourth directory to need saying so"*.
+`assets/shapes/` became the fifth and was never added. The library — extracted,
+tagged, recoloured, and reachable from both entry points since 0.1.491 —
+existed on one machine and in no clone.
+
+**No local check could have found it, and that is the more useful half.**
+`check_shape_library` globs `assets/shapes/*.svg`, finds 206 files, and passes.
+It is right about what it measures: the files are there. Every asset guard in
+this repository reads the working tree, and a working tree cannot distinguish
+*shipped* from *present on the author's machine*. Five directories have now
+needed the exception, which is four more than a comment can be trusted to hold.
+
+So `assets tracked` asks git rather than the filesystem: any non-dotfile under
+`assets/` that `.gitignore` excludes fails the release. A dotfile is exempt —
+`.DS_Store` is the platform's litter, not the package's material. A tarball
+checkout with no `.git` asserts nothing, since it has no index to ask.
+
+**The deliberate-red run was planted first and is unusually legible.** The guard
+was written while the library was still untracked, and in a single run it
+reported `FAIL assets tracked` on all 206 units beside `ok shape library`. Those
+two lines in one run are the entire argument for the new guard: the old one is
+not broken, it is looking at something else. Synthetic-tree tests cover the
+tracked tree, the ignored-asset tree, the dotfile exemption and the tarball
+case.
+
+One consequence worth stating plainly: **every deliverable this package has
+built with a library shape was reproducible only here.** Nothing shipped
+wrongly — the sprite embeds at build time from local files — but a second
+machine following the entry points would have found `embed_shapes.py` with
+nothing to embed.
+
 ## 0.1.495 — a comparison may now be a figure, and the proposal is rebuilt with nine shape families and no tables at all
 
 **The rule change first, because the deliverable follows it and not the other

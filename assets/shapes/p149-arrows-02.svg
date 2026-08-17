@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="16346.80 6605.80 4298.40 4228.40" shape-rendering="geometricPrecision" width="1024" height="1007.32" preserveAspectRatio="xMidYMid meet"><g class="Group">
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id2697">
+         <rect class="BoundingBox" stroke="none" fill="none" x="16493" y="7508" width="1635" height="2518" />
+         <path fill="var(--acc-4, #889A82)" stroke="none" d="M 16506,8104 L 16936,8104 16936,7541 18109,8766 16936,9992 16936,9428 16506,9428 16506,8104 Z " />
+         <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 16506,8104 L 16936,8104 16936,7541 18109,8766 16936,9992 16936,9428 16506,9428 16506,8104 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id2698">
+         <rect class="BoundingBox" stroke="none" fill="none" x="18865" y="7508" width="1635" height="2518" />
+         <path fill="var(--acc-4, #889A82)" stroke="none" d="M 20486,8104 L 20056,8104 20056,7541 18883,8766 20056,9992 20056,9428 20486,9428 20486,8104 Z " />
+         <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 20486,8104 L 20056,8104 20056,7541 18883,8766 20056,9992 20056,9428 20486,9428 20486,8104 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id2699">
+         <rect class="BoundingBox" stroke="none" fill="none" x="17170" y="6752" width="2599" height="1493" />
+         <path fill="var(--acc-4, #889A82)" stroke="none" d="M 19152,6765 L 19152,7156 19732,7156 18469,8226 17206,7156 17787,7156 17787,6765 19152,6765 Z " />
+         <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 19152,6765 L 19152,7156 19732,7156 18469,8226 17206,7156 17787,7156 17787,6765 19152,6765 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id2700">
+         <rect class="BoundingBox" stroke="none" fill="none" x="17170" y="9196" width="2599" height="1494" />
+         <path fill="var(--acc-4, #889A82)" stroke="none" d="M 19152,10675 L 19152,10284 19732,10284 18469,9214 17206,10284 17787,10284 17787,10675 19152,10675 Z " />
+         <path fill="none" stroke="var(--on-acc, #F0F0FA)" stroke-width="26" stroke-linejoin="miter" d="M 19152,10675 L 19152,10284 19732,10284 18469,9214 17206,10284 17787,10284 17787,10675 19152,10675 Z " />
+        </g>
+       </g>
+      </g>
+      </svg>

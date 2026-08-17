@@ -1,4 +1,7 @@
-"""Five check_repo guards proven able to pass AND to fail on synthetic trees.
+"""check_repo guards proven able to pass AND to fail on synthetic trees.
+
+How many is whatever this file covers today, never a number written here — a
+count in a docstring is the drift this repository has fixed twenty-six times.
 
 Same discipline as test_no_shadow_math.py: a guard tested only against the
 live repo cannot demonstrate that a rewritten `return []` would be noticed,
@@ -6,6 +9,7 @@ and this repo has shipped exactly that defect (CHANGELOG 0.1.390). Every
 guard here gets a passing tree and at least one failing tree per mode.
 """
 import json
+import subprocess
 
 import check_repo
 
@@ -552,3 +556,49 @@ def test_shape_library_invented_relation_source_fails(tmp_path, monkeypatch):
     monkeypatch.setattr(check_repo, "ROOT",
                         _shape_tree(tmp_path, relation_from="guessed"))
     assert any("relation_from" in e for e in check_repo.check_shape_library())
+
+
+# check_assets_tracked — an asset .gitignore excludes is not an asset that ships.
+#
+# This guard needs a real repository rather than a directory, because its whole
+# point is that it asks git instead of the filesystem. The shape library was on
+# disk for every local run and absent from every clone, and no filesystem guard
+# could tell those apart.
+
+
+def _asset_tree(tmp_path, ignore="", dotfile=False):
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / ".gitignore").write_text(ignore)
+    assets = tmp_path / "assets" / "shapes"
+    assets.mkdir(parents=True)
+    (assets / "p001-flow-01.svg").write_text("<svg/>")
+    if dotfile:
+        (tmp_path / "assets" / ".DS_Store").write_bytes(b"\x00")
+    subprocess.run(["git", "add", "-A"], cwd=tmp_path, check=True)
+    return tmp_path
+
+
+def test_assets_tracked_tracked_asset_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _asset_tree(tmp_path))
+    assert check_repo.check_assets_tracked() == []
+
+
+def test_assets_tracked_ignored_asset_fails_naming_the_path(tmp_path, monkeypatch):
+    """The live defect: a blanket *.svg rule with no exception for this dir."""
+    monkeypatch.setattr(check_repo, "ROOT", _asset_tree(tmp_path, ignore="*.svg\n"))
+    errors = check_repo.check_assets_tracked()
+    assert any("assets/shapes/p001-flow-01.svg" in e for e in errors)
+
+
+def test_assets_tracked_dotfile_litter_is_exempt(tmp_path, monkeypatch):
+    """.DS_Store is the platform's litter, not the package's material."""
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _asset_tree(tmp_path, ignore=".DS_Store\n", dotfile=True))
+    assert check_repo.check_assets_tracked() == []
+
+
+def test_assets_tracked_tarball_checkout_asserts_nothing(tmp_path, monkeypatch):
+    """No .git is a legal state; a tarball has no index to ask."""
+    (tmp_path / "assets").mkdir()
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    assert check_repo.check_assets_tracked() == []

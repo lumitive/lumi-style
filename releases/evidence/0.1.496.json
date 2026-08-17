@@ -1,0 +1,15 @@
+{
+ "version": "0.1.496",
+ "diff_base": "16dcf7ed4ba7603d8337bbe8ca63b3acb91c2048",
+ "spec": "",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs. 0.1.496 touches references/ only to move the version stamp, and adds a repository guard over asset tracking; no conformance task exercises either. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.496 is unknown, not passing."
+  }
+ ]
+}
