@@ -161,3 +161,50 @@ def test_the_geometry_choices_are_the_registry_s_compositions():
 @pytest.mark.parametrize("storyline", ["market-analysis", "gtm", "proposal"])
 def test_every_storyline_produces_a_scaffold(storyline):
     assert scaffold("--storyline", storyline).count("<section") > 5
+
+
+# The genre contract card: constraints an author needs at write time, imported
+# from the checkers that enforce them. A card that retyped a value would be the
+# twenty-seventh copy-drift fix waiting to happen, so the tests assert IDENTITY
+# with the enforcing constants, not resemblance.
+
+def test_the_card_names_every_title_frame_the_checker_counts():
+    import check_prose
+    html = scaffold("--genre", "sales")
+    for frame in check_prose.TITLE_FRAMES:
+        assert frame in html
+
+
+def test_the_card_names_every_provenance_word_d6_accepts():
+    html = scaffold("--genre", "sales")
+    for word in check_design.D6_PROVENANCE:
+        assert word in html
+
+
+def test_the_card_states_the_dash_policy_for_the_genre():
+    import check_prose
+    assert "internal" not in check_prose.DASH_BANNED, (
+        "the exemption the two cards below assert")
+    assert "BANNED" in scaffold("--genre", "sales")
+    assert "internal analysis exemption" in scaffold("--genre", "internal")
+
+
+def test_the_card_does_not_poison_the_scaffold_s_own_gates():
+    """The card quotes dash policy and provenance words inside an HTML comment;
+    if the prose extractor ever started reading comments, the scaffold would
+    fail M9 on its own contract card."""
+    import contextlib
+    import io
+    import json as _json
+    import pathlib as _pl
+    import tempfile
+    html = scaffold("--genre", "sales")
+    with tempfile.TemporaryDirectory() as d:
+        f = _pl.Path(d) / "s.html"
+        f.write_text(html, encoding="utf-8")
+        import check_prose
+        with contextlib.redirect_stdout(io.StringIO()) as buf:
+            check_prose.main([str(f), "--genre", "sales", "--json"])
+        r = _json.loads(buf.getvalue())[0]
+        assert r["verdicts"]["M9_dashes"] == "ok"
+        assert r["verdicts"]["M4_banned_hits"] == "ok"

@@ -280,6 +280,28 @@ GENRES = registry_genres
 # internal analysis, which also covers consulting. The two statements do
 # not agree on consulting and this list follows the rubric — 0.1.378's
 # recorded no-change said consulting inherits the sales ban.
+
+# M11's syntactic-frame taxonomy, NAMED at module level because a probe that
+# classifies is asserting a vocabulary and this one lived only inside a
+# closure: an author varying their titles had no way to learn what counted as
+# "one frame" short of reading measure()'s body — measured in a ten-round
+# build, where the frames were discovered from the failure rather than from
+# any rule. The scaffold's genre card prints these names; eval-rubric's M11
+# row cites them.
+TITLE_FRAMES = ("colon", "question", "number-led", "verb-led", "plain")
+
+
+def title_frame(t: str) -> str:
+    """-> which of TITLE_FRAMES this title is."""
+    return (
+        "colon" if ":" in t else
+        "question" if t.rstrip().endswith("?") else
+        "number-led" if re.match(r"^\s*[\d$]", t) else
+        "verb-led" if re.match(r"^\s*(?:[A-Z][a-z]+ing|How|Why|What|When)\b", t) else
+        "plain"
+    )
+
+
 DASH_BANNED = ("sales", "marketing", "consulting", "training")
 BLOCK_END = re.compile(r"</(?:p|li|h[1-6]|td|th|div|section|figcaption|blockquote)>", re.I)
 NUMERIC_RANGE = re.compile(r"\d\s*[–—]\s*\d")
@@ -575,16 +597,7 @@ def measure(path, genre, lang=None):
     triads = sum(1 for n in enums if n == 3)
     triad_rate = 100.0 * triads / len(enums) if enums else None
 
-    def frame(t):
-        return (
-            "colon" if ":" in t else
-            "question" if t.rstrip().endswith("?") else
-            "number-led" if re.match(r"^\s*[\d$]", t) else
-            "verb-led" if re.match(r"^\s*(?:[A-Z][a-z]+ing|How|Why|What|When)\b", t) else
-            "plain"
-        )
-
-    frames = [frame(t) for t in titles]
+    frames = [title_frame(t) for t in titles]
     uniformity = (100.0 * max(frames.count(f) for f in set(frames)) / len(frames)
                   if frames else None)
 

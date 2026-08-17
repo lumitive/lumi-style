@@ -1,0 +1,24 @@
+{
+  "version": "0.1.512",
+  "diff_base": "81c7d9cc11b9e0116aef27f5de570ab1bdef7e4f",
+  "spec": "waived: no spec \u2014 Release 3 of the ten-round autopsy: the genre contract rides in the scaffold, two checker vocabularies get names and homes, and the dash rule's three genre sets become one. The case is the autopsy.",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "7513ead12ce77349d71f02fe695125c468d11f0c1b0a95d60a1d322dbfc6e487",
+      "date": "2026-08-17"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board reports CLI-agent conformance runs. 0.1.512 changes the scaffold's emitted guidance and homes two vocabularies; no conformance task exercises either. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.512 is unknown, not passing."
+    }
+  ]
+}

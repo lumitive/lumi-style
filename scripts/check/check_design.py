@@ -1080,6 +1080,21 @@ def d10_label_icons(raw):
             "eyebrow_pages": with_icon}
 
 
+
+# The provenance vocabulary D6 accepts in a colophon, NAMED because it was an
+# inline regex nobody writing a colophon could find: a deck whose closing said
+# its numbers were "cited to" their entries failed on all fifteen pages, and
+# the author learned the accepted words from the checker's source. This is the
+# same discipline writing-rules gives the M2/M6 marker list ("this list is the
+# contract"); the scaffold's genre card prints these words.
+D6_PROVENANCE = ("source", "derives from", "derived from", "based on",
+                 "provenance", "traces to", "traces back to", "drawn from",
+                 "comes from")
+D6_PROVENANCE_RE = re.compile(
+    r"source|derives? from|derived from|based on|provenance"
+    r"|traces? (?:back )?to|drawn from|comes from")
+
+
 def d6_footer(raw):
     pages = re.findall(r'<section[^>]*class="[^"]*\bpage\b[^"]*"[^>]*>(.*?)</section>',
                        raw, re.S | re.I)
@@ -1106,8 +1121,7 @@ def d6_footer(raw):
     # edit correct prose until a pattern matches, which is the checker writing
     # the document.
     doc_text = _block_text(raw, "colophon").lower()
-    if not re.search(r"source|derives? from|derived from|based on|provenance"
-                     r"|traces? (?:back )?to|drawn from|comes from", doc_text):
+    if not D6_PROVENANCE_RE.search(doc_text):
         missing_src = list(range(len(pages)))
     return {"pages": len(pages), "missing_source": missing_src,
             "missing_total": missing_total}

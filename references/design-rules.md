@@ -656,6 +656,13 @@ auditing the claim rather than being sold to. Red line 1 is unchanged — no
 invented facts, and every number still traces — the obligation moved to where it
 is read once rather than skipped thirty times. *Reader-requested.*
 
+  **The accepted provenance words are the checker's `D6_PROVENANCE`** —
+  source · derives/derived from · based on · provenance · traces (back) to ·
+  drawn from · comes from — the same discipline as the M2/M6 marker list:
+  the list is the contract, and a colophon that gestures with a word off the
+  list ("cited to") reads as missing on every page at once, which is how a
+  fifteen-page deck failed D6 fifteen times in its first build.
+
 10. **A page states its source once (any genre).** §4 rule 4 asks every figure for a source
 line and the footer contract asks every page for one; on a single-figure page
 they are the same sentence twice. The figure's line wins — it is where a reader

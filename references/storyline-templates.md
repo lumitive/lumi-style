@@ -241,9 +241,12 @@ manufacture the uniformity the parallel-structure rule exists to suppress.
   PwC's structure carrying a McKinsey conclusion is what to reach for when a page
   needs a frame, but a document in which *every* title is a colon construction
   reads as generated — twenty identically-shaped headings is itself a tell. Vary
-  the frame: a plain assertion, a question the page answers, and a colon title all
-  satisfy the contract as long as the subject and the fact are there. M11 caps
-  one frame at 60% of titles.
+  the frame: a plain assertion, a question the page answers, a colon title, a
+  number-led title and a verb-led opening all satisfy the contract as long as
+  the subject and the fact are there — those five are exactly the frames the
+  checker counts (`TITLE_FRAMES` in check_prose.py), and M11 caps any one of
+  them at 60% of titles. The five were code-only until a ten-round build
+  discovered them from the failure instead of from any rule.
 - **Information floor**: a title that states only a contrast ("codes, not words"),
   only a slogan, or only a section label ("the end-state") is not a title.
   Contrast is a *lead-in*, never the whole title — keep the evidence that earns
