@@ -35,6 +35,21 @@ import sys
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if (p / "SKILL.md").exists())
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import markup  # noqa: E402 — after the bootstrap
+
 LIBRARY = ROOT / "assets" / "shapes"
 SPRITE_OPEN = '<svg id="lumi-shape-sprite" aria-hidden="true" style="display:none">'
 SPRITE_CLOSE = "</svg>"
@@ -111,10 +126,8 @@ def _after_body(html: str, sprite: str) -> str:
     So: comment, `<style>` and `<script>` spans are computed first, and any
     `<body` inside one of them is not the document's body.
     """
-    skip = [m.span() for m in SKIP_RE.finditer(html)]
-    for m in re.finditer(r"<body[^>]*>", html):
-        if any(a <= m.start() < b for a, b in skip):
-            continue
+    m = markup.body_tag(html)
+    if m is not None:
         return html[:m.end()] + "\n" + sprite + html[m.end():]
     raise ValueError(
         "no <body> outside a comment, <style> or <script> — the sprite has "

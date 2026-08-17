@@ -470,3 +470,56 @@ def test_d23_does_not_count_a_font_face_declaration_as_a_third_voice():
            ".a{font-family:var(--din)}.b{font-family:var(--mono)}</style>")
     r = check_design.d23_font_count(doc, tokens)
     assert r["used"] == 2 and not r["over"], r
+
+
+# D9 counted DECLARED class names. In portrait, tokens/ collapses split,
+# split-wide, split-narrow and sidebar-notes to one grid, so a document could
+# raise its distinct-layout count from three to six by editing class names and
+# changing nothing a reader sees. Measured on a real 30-page deliverable: the
+# renamed build and the original both report 3 layouts at 78.6% now, and both
+# reported 6 at 25.0% before. A metric satisfied instead of met is the failure
+# this package's own opening provenance note is about.
+
+_TOKENS = (
+    '<style>\n'
+    '.body.split { grid-template-columns: 1fr 1fr; }\n'
+    '.body.sidebar-notes { grid-template-columns: 1fr 300px; }\n'
+    'body[data-geometry="portrait"] .body.split,\n'
+    'body[data-geometry="portrait"] .body.sidebar-notes '
+    '{ grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; }\n'
+    '</style>')
+
+
+def _layout_doc(geometry, layouts):
+    pages = "".join(
+        f'<section class="page" id="p{i}"><div class="body {lay}">'
+        f'<div class="lede"></div></div></section>'
+        for i, lay in enumerate(layouts, 1))
+    return (f"<html><head>{_TOKENS}</head>"
+            f'<body data-geometry="{geometry}">{pages}</body></html>')
+
+
+def test_d9_counts_portrait_equivalents_as_one_layout():
+    r = check_design.d9_layout_variety(
+        _layout_doc("portrait", ["split", "sidebar-notes", "split", "sidebar-notes"]))
+    assert r["distinct"] == 1
+    assert r["top_share"] == 100.0
+
+
+def test_d9_keeps_them_distinct_where_the_geometry_does():
+    r = check_design.d9_layout_variety(
+        _layout_doc("landscape", ["split", "sidebar-notes", "split", "sidebar-notes"]))
+    assert r["distinct"] == 2
+
+
+def test_d9_names_what_it_merged_so_the_report_is_readable():
+    r = check_design.d9_layout_variety(_layout_doc("portrait", ["split", "sidebar-notes"]))
+    assert "split" in r["merged"]
+
+
+def test_d9_reads_the_geometry_from_the_real_body_not_a_comment():
+    """The stylesheet's own comment carries `<body data-geometry="landscape">`
+    on every deliverable, portrait ones included."""
+    doc = _layout_doc("portrait", ["split", "sidebar-notes"]).replace(
+        "<style>", '<style>\n/* say so with <body data-geometry="landscape"> */\n', 1)
+    assert check_design.d9_layout_variety(doc)["distinct"] == 1

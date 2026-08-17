@@ -1,0 +1,15 @@
+{
+ "version": "0.1.505",
+ "diff_base": "c9910651618ad3006b06de12377db4fccf9ad2de",
+ "spec": "waived: no spec — R7 finding: D9 counted declared class names, so a portrait document could double its layout variety by renaming. Found by attempting the rebuild spec's own criterion honestly and looking at the contact sheet.",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs. 0.1.505 changes how a reported design metric counts layouts and shares one markup helper between two scripts; no conformance task exercises either. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.505 is unknown, not passing."
+  }
+ ]
+}

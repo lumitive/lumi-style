@@ -80,6 +80,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import color_math  # noqa: E402 — after the bootstrap, deliberately
 import css_tokens  # noqa: E402 — after the bootstrap, deliberately
+import markup  # noqa: E402 — after the bootstrap
 from deliverable_registry import (  # noqa: E402 — after the bootstrap
     TYPICAL_SECTIONS,
 )
@@ -978,8 +979,57 @@ def d15_footer_path(raw):
     return {"pages": len(pages), "found": found}
 
 
+
+def _equivalent_layouts(raw):
+    """-> {name: canonical} for layouts this document's own CSS renders alike.
+
+    D9 counts declared class names. In portrait, `tokens/lumi-layouts.css`
+    collapses `split`, `split-wide`, `split-narrow` and `sidebar-notes` to one
+    grid — `1fr / auto auto 1fr` — so all four render identically and a
+    document can raise its distinct-layout count from three to six by editing
+    class names and changing nothing a reader sees. That is a metric satisfied
+    instead of met, which is the failure this package's own opening provenance
+    note is about.
+
+    Derived from the document's stylesheet rather than hard-coded: a rule that
+    sets a grid for several `.body.<name>` selectors at once is the statement
+    that those names are one layout at this geometry. Read from the document,
+    so a deliverable carrying an older token block is judged by the CSS it
+    actually ships.
+    """
+    # FROM THE REAL <body>. Anchoring on the string `<body` is not enough: the
+    # stylesheet's own comment about the geometry rule contains a literal
+    # `<body data-geometry="landscape">`, so on a portrait document the first
+    # match reads "landscape". markup.body_attr skips comments, styles and
+    # scripts first — the same skip embed_shapes needed at 0.1.492, shared now
+    # rather than described.
+    geometry = markup.body_attr(raw, "data-geometry")
+    if not geometry:
+        return {}
+    alias: dict[str, str] = {}
+    # Split on braces and walk. A regex with two unbounded classes around a
+    # literal backtracks catastrophically on a 680KB deliverable — it hung for
+    # two minutes on the first document it was pointed at, which is a good
+    # reason to scan linearly instead of writing a cleverer pattern.
+    chunks = raw.split("}")
+    for chunk in chunks:
+        head, _, body = chunk.rpartition("{")
+        if not head or "grid-template-columns" not in body:
+            continue
+        if f'data-geometry="{geometry}"' not in head:
+            continue
+        names = re.findall(r"\.body\.([a-z0-9-]+)", head)
+        if len(names) < 2:
+            continue
+        canonical = sorted(names)[0]
+        for n in names:
+            alias[n] = canonical
+    return alias
+
+
 def d9_layout_variety(raw):
     """One layout on 25 consecutive pages is what this metric exists to stop."""
+    alias = _equivalent_layouts(raw)
     used, unknown = [], []
     for cls, pid, body in _pages(raw):
         if "cover" in cls or "closing" in cls:
@@ -990,7 +1040,7 @@ def d9_layout_variety(raw):
         if layout is None:
             unknown.append((pid, " ".join(names) or "(none)"))
         else:
-            used.append(layout)
+            used.append(alias.get(layout, layout))
     if not used and not unknown:
         return None
     counts: dict[str, int] = {}
@@ -1004,6 +1054,9 @@ def d9_layout_variety(raw):
         "top_layout": max(counts, key=counts.__getitem__) if counts else None,
         "counts": dict(sorted(counts.items(), key=lambda kv: -kv[1])),
         "unknown": unknown,
+        # Named so a reader of the report can see WHY two class names counted
+        # as one, rather than wondering whether the metric is broken.
+        "merged": {k: v for k, v in sorted(alias.items()) if k != v},
     }
 
 
