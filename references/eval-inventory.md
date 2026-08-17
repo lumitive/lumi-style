@@ -27,7 +27,7 @@ the hidden-constraint condition this inventory exists to surface.
 | check_prose | M4zh_banned_hits | `=0` | graded |
 | check_prose | M5_zh_punctuation | `=0` | graded |
 | check_prose | M6_unsourced_ranges | `=0` | graded |
-| check_prose | M8_length_cv | `>=0.35` | graded |
+| check_prose | M8_length_cv | `>=0.50` | graded |
 | check_prose | M8_overlong_share | `<=8%` | graded |
 | check_prose | M9_dashes | `=0` | graded |
 | check_design | D10_label_icons | `reported` | reported |

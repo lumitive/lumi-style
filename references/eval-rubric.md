@@ -49,7 +49,7 @@ have no Han character next to their punctuation.
 | M5 | Punctuation violations (zh) | =0 | half-width punctuation adjacent to CJK (code/pre/formula exempt) |
 | M6 | Unsourced range figures | =0 | range-shaped numbers with no source marker in their own BLOCK; an enumeration label ("blocks 1–3") is reported, not counted (writing-rules §4 rule 6) |
 | M7 | Term mixing | =0 | old and new names of one concept co-occurring |
-| M8 | Sentence-rhythm health (two-tailed) | overlong ≤8% **and** length CV ≥0.35 (decks included — never waived) | share of sentences past the length threshold, **and** the coefficient of variation of sentence length |
+| M8 | Sentence-rhythm health (two-tailed) | overlong ≤8% **and** length CV ≥0.50 (decks included — never waived; floor raised from 0.35 at 0.1.508, measured against the rebuilt corpus first) | share of sentences past the length threshold, **and** the coefficient of variation of sentence length |
 | M9 | Em dashes in en sales/marketing | =0 | em/en dash characters outside code, data, and internal analysis documents |
 | M10 | Triad rate | ≤50% | share of enumerations (lists, appositive series) containing exactly three items |
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame (e.g. "Topic: clause") |
