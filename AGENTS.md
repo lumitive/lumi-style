@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.506.** This file restates part of `references/`; where they
+> **lumi-style 0.1.507.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -161,6 +161,12 @@ and takes up exactly as much room as the text that should have replaced it.
 provenance once for the document** (cover and closing), not on every page;
 consulting and internal analysis keep per-page sourcing. **One table per page** —
 two grids side by side share no axis and can never align.
+
+**On portrait, the split family is one composition** — `tokens/` collapses
+`split`/`split-wide`/`split-narrow`/`sidebar-notes` to a single grid on the
+sheet, and D9 counts them as one there; distinct portrait composition comes
+from the vertical and composite families, chosen from the content and checked
+on the rendered page (`references/design-rules.md` §3).
 
 **A page is a fixed box.** Landscape is a 1280×720 stage, A4 a 794×1123 sheet,
 each scaled to fit the window and letterboxed — never a box that takes the

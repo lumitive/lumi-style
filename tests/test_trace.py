@@ -413,3 +413,21 @@ def test_the_digest_is_the_one_run_conformance_uses():
     task = {"prompt": "p", "deliverable": "d", "score": 1, "require": [],
             "answers": None, "input": None, "genre": "internal"}
     assert run_conformance.task_fingerprint(task) == fingerprint.material_hash(task)
+
+
+def test_the_geometry_cross_check_reads_the_real_body_not_the_decoy(tmp_path):
+    """The stylesheet comment carries a literal <body data-geometry="landscape">
+    in every deliverable. The cross-check's first run against a real portrait
+    document read it and refused a correct trace — the fifth defect from that
+    one sentence."""
+    doc = tmp_path / "portrait.html"
+    doc.write_text(
+        '<html><head><style>/* declares with <body data-geometry="landscape"> */'
+        '</style></head><body data-geometry="portrait">'
+        '<section class="page"></section></body></html>', encoding="utf-8")
+    tid = _open(tmp_path, "a4")
+    try:
+        p = _close(tid, doc)
+        assert p.returncode == 0, p.stderr
+    finally:
+        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)

@@ -1205,8 +1205,8 @@ def close_shared_browser():
         _Shared.browser = _Shared.pw = None
 
 
-def aspect_report(url, dark=False):
-    """Does a landscape page hold 16:9 in a window that is not 16:9?
+def aspect_report(url, dark=False, geometry="16x9"):
+    """Does a page hold its DECLARED shape in a window that is not that shape?
 
     This exists because the page-height probe could not answer it and never
     could have. It sets the viewport to the design geometry and then measures
@@ -1216,8 +1216,15 @@ def aspect_report(url, dark=False):
     establishing the condition it verified, and a reader found 4:3 pages in a
     4:3 window while it reported success. **A probe that builds its own answer
     proves nothing.** So this one renders shapes nobody designed for.
+
+    The target follows the declaration. The first version hard-coded 16:9 and
+    told a portrait handbook that 30 of 30 pages "are not 16:9" — every one of
+    them holding A4's 0.707:1 exactly, which is what they owe. A report that
+    reads as failure on a correct document teaches its reader to skip the
+    section, and a skipped section is how the real failure ships.
     """
-    target = 16 / 9
+    w0, h0 = GEOMETRIES.get(geometry, GEOMETRIES["16x9"])
+    target = w0 / h0
     findings = []
     browser = shared_browser()
     for w, h in OFF_SHAPES:
@@ -2715,7 +2722,7 @@ def main(argv):
             continue
         # Off-shape by definition, so it is per file and not per geometry.
         try:
-            aspect = aspect_report(path.as_uri(), dark)
+            aspect = aspect_report(path.as_uri(), dark, geometry)
         except Unmeasurable as exc:
             unmeasured += 1
             aspect = None
@@ -2730,8 +2737,9 @@ def main(argv):
         else:
             with (redirect_stdout(io.StringIO()) if args.json
                   else contextlib.nullcontext()):
-                print(f"\n{path.name} — does a landscape page hold 16:9 in a window "
-                      f"that is not 16:9?")
+                shape = "16:9" if geometry.startswith("16x9") else "its declared shape"
+                print(f"\n{path.name} — does a {geometry} page hold {shape} in "
+                      f"a window that is not that shape?")
                 for f in aspect:
                     if f["unmeasurable"]:
                         unmeasured += 1
@@ -2741,12 +2749,14 @@ def main(argv):
                     if f["offAspect"]:
                         wf = f["worst"]
                         print(f"  ASPECT: window {f['window']:>10} — "
-                              f"{f['offAspect']} of {f['measured']} measured pages are "
-                              f"not 16:9, worst {wf['id']} at {wf['w']}x{wf['h']} "
+                              f"{f['offAspect']} of {f['measured']} measured pages "
+                              f"do not hold the declared {geometry} shape, "
+                              f"worst {wf['id']} at {wf['w']}x{wf['h']} "
                               f"({wf['aspect']}:1)")
                     elif f["measured"]:
                         print(f"  aspect: window {f['window']:>10} — "
-                              f"all {f['measured']} measured pages hold 16:9")
+                              f"all {f['measured']} measured pages hold the "
+                              f"declared {geometry} shape")
         results.append({"file": path.name, "aspect": aspect})
 
     # One verdict per finding across every geometry: a page that collides at A4

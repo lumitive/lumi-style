@@ -1,5 +1,57 @@
 # Changelog
 
+## 0.1.507 — 64 pages recomposed for the sheet they are printed on, and the rules the work taught
+
+R7's remaining two rebuilds, done as composition rather than as renaming —
+which is the distinction 0.1.505 made checkable.
+
+**Both documents now meet the rebuild spec's bar honestly.** `adopting-lumi-style`
+(30 pages, A4): 3 effective layouts at 78.6% → **8 at 39.3%**, eleven pages
+restructured child-by-child, every one verified on its rendered PNG, page order
+identical and **all 30 titles verbatim**. `signal-radar-ops-guide` (34 pages,
+A4, built by a parallel author against the same method): 4 effective layouts at
+56.2% → **8 at 37.5%**, one library shape composed in, order identical and
+**all 34 titles verbatim**. Both pass every design gate, both exit 0 from the
+rendered deliverable check, and both carry a closed trace whose recipe
+fingerprint reads **current** — the recipes were rewritten against these rules
+and now say so, which is what Ledger 2b exists to ask.
+
+**Three conversions were reverted after looking, and that is the method
+working.** Metrics stayed green through both states; the contact sheet decided.
+The lessons went into `references/design-rules.md` §3 rather than into memory:
+on portrait the split family is ONE composition and variety comes from the
+vertical and composite families; **content volume is part of "choose from the
+content"** — a thin list under a 1fr hero row opens a dead band, and the fix is
+a second content block from the page's own facts, never a stretched one;
+portrait `columns-2` centers cells independently, so it suits near-equal
+columns. §4.2 gains the label-scale rule: a token 11px class inside a
+thousands-of-units viewBox renders invisibly, so labels scale by the
+viewBox-to-cell ratio.
+
+**One deviation from the spec's checklist, stated rather than gamed.**
+`adopting-lumi-style` references zero library shapes. Its 22 figures are
+semantic flows with decision diamonds and dashed not-built states — already at
+the parity the library exists to raise documents to — and the one candidate
+match (Harvey balls on the prose-metric verdicts) would have encoded degree
+where the content is categorical. Forcing a unit in to satisfy "shapes
+referenced > 0" is the metric-satisfied-instead-of-met failure 0.1.505 just
+recorded. `check_privacy.py --terms` also remains owed: the out-of-bounds list
+is engagement data only the operator can supply.
+
+**The fifth defect from the same stylesheet sentence, caught by the first real
+use of the thing it broke.** `trace.py`'s geometry cross-check — built at
+0.1.499, before `markup.py` existed — read `data-geometry` by first match, so
+its first run against a real portrait document read the comment's `landscape`
+and **refused a correct trace**, the exact inversion of its job. It reads the
+real `<body>` now, through the shared helper, with the decoy in a test.
+
+**And the aspect probe held every page to 16:9, whatever the document
+declared.** On a portrait handbook it printed "30 of 30 measured pages are not
+16:9" — every one holding A4's 0.707:1 exactly, which is what they owe. A
+report that reads as failure on a correct document teaches its reader to skip
+the section, and a skipped section is how a real failure ships. The target now
+follows the declaration.
+
 ## 0.1.506 — a typed token count was a typed verdict, and the board now crosses model with effort
 
 R8, the code half of the model matrix (K1).
