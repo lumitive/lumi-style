@@ -11,7 +11,9 @@ Three rules the shape of this tool enforces:
 
 **The verdict fields are machine-written.** `--close` RUNS the checkers with
 `--json` and transcribes their output. There is no flag for supplying a verdict,
-in the same way `check_evidence.py`'s schema has no field for one.
+in the same way `check_evidence.py`'s schema has no field for one. The token
+counts are verdicts about the bill and follow the same rule: `--usage` reads
+the API's own usage dump, and there is no flag for typing a number.
 
 **A trace opens when the storyline is agreed, not when the deliverable is
 finished.** A trace written only at the end never records an abandoned build,
@@ -27,7 +29,7 @@ Usage
   trace.py open  --genre sales --storyline market-analysis --entry-path A
   trace.py yield --id T --clause P-1 --to P-2 --stage build
   trace.py refuse --id T --clauses P-1,P-5 --stage checks
-  trace.py close --id T --deliverable out.html [--input-tokens N --output-tokens N]
+  trace.py close --id T --deliverable out.html [--usage usage.json]
   trace.py validate                       # every stored record against the schema
 """
 from __future__ import annotations
@@ -175,6 +177,44 @@ def cmd_refuse(a):
           f"Record the reasoning in the debug log, not here.")
 
 
+def _read_usage(path):
+    """-> (input_tokens, output_tokens), read from a machine-emitted usage dump.
+
+    A typed token count is a typed verdict about the bill, so there is no flag
+    for one: the numbers come from the API's own usage JSON, unedited. Extra
+    keys are tolerated and ignored — a real usage dump carries more than these
+    two — but both token counts must be present and integral, and every
+    refusal names exactly what is wrong: "could not read" must never look
+    like "read, and there were no tokens".
+    """
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except OSError as e:
+        sys.exit(f"--usage: could not read {path} ({e.strerror or e}). A usage "
+                 f"file nobody can read is not a token count this trace can "
+                 f"vouch for.")
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as e:
+        sys.exit(f"--usage: {path} is not JSON (line {e.lineno}: {e.msg}). "
+                 f"Point it at the API's own usage dump, unedited.")
+    if not isinstance(data, dict):
+        sys.exit(f"--usage: {path} holds a JSON {type(data).__name__}, not the "
+                 f"usage object an API emits.")
+    counts = []
+    for key in ("input_tokens", "output_tokens"):
+        if key not in data:
+            sys.exit(f"--usage: {path} has no {key!r}. Both token counts are "
+                     f"required; a trace that records half the bill reads as a "
+                     f"cheaper build than the one that happened.")
+        value = data[key]
+        if isinstance(value, bool) or not isinstance(value, int):
+            sys.exit(f"--usage: {key!r} in {path} is {value!r} "
+                     f"({type(value).__name__}); an integer is required.")
+        counts.append(value)
+    return counts[0], counts[1]
+
+
 def cmd_close(a):
     rec = _load(a.id)
     rec["closed_at"] = _now()
@@ -185,9 +225,8 @@ def cmd_close(a):
     for k in ("model", "effort", "agent", "corpus_id"):
         if getattr(a, k, None) is not None:
             rec[k] = getattr(a, k)
-    for k in ("input_tokens", "output_tokens"):
-        if getattr(a, k) is not None:
-            rec[k] = getattr(a, k)
+    if a.usage is not None:
+        rec["input_tokens"], rec["output_tokens"] = _read_usage(a.usage)
 
     # THE TRACE MUST NOT CONTRADICT THE DOCUMENT. A trace recording `a4`
     # beside a body declaring `landscape` describes two different documents,
@@ -335,8 +374,11 @@ def main():
     c.add_argument("--effort", choices=ENUMS["effort"])
     c.add_argument("--agent")
     c.add_argument("--corpus-id", dest="corpus_id")
-    c.add_argument("--input-tokens", type=int, dest="input_tokens")
-    c.add_argument("--output-tokens", type=int, dest="output_tokens")
+    c.add_argument("--usage", type=pathlib.Path,
+                   help="a machine-emitted usage JSON (the API's own dump); "
+                        "input_tokens and output_tokens are read from it. "
+                        "There is no flag for typing a token count, for the "
+                        "same reason there is none for typing a verdict.")
     c.set_defaults(func=cmd_close)
 
     v = sub.add_parser("validate", help="check every stored trace against the schema")
