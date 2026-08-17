@@ -520,8 +520,47 @@ def write_board(record: dict) -> str:
     return f"wrote the board table into {path.relative_to(ROOT)}"
 
 
+
+def _board_run_version(record: dict) -> str | None:
+    """-> the skill version the rendered runs were produced at, from run_id."""
+    m = re.search(r"(\d+\.\d+\.\d+)", str(record.get("run_id") or ""))
+    return m.group(1) if m else None
+
+
+def _releases_between(older: str | None, newer: str | None) -> int | None:
+    """-> how many CHANGELOG headings separate two versions, or None.
+
+    Counted from the CHANGELOG rather than from arithmetic on the patch number,
+    because the distance that matters is how many rule revisions have landed
+    since — not how far apart two integers are.
+    """
+    if not older or not newer:
+        return None
+    try:
+        text = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    except OSError:
+        return None
+    versions = re.findall(r"^##\s+(\d+\.\d+\.\d+)", text, re.M)
+    if older not in versions or newer not in versions:
+        return None
+    return abs(versions.index(older) - versions.index(newer))
+
 def render(record: dict) -> str:
-    lines = [f"# LUMI style conformance · skill {record['version']}", "",
+    # THE HEADER CARRIES BOTH VERSIONS AND THE DISTANCE BETWEEN THEM. It used
+    # to name the instrument alone, so a board rendering runs from 0.1.454 sat
+    # under the words "skill 0.1.502" — a version it had never measured
+    # anything at. That is the same claim `built_version` exists to stop a cell
+    # from making, made by the page the cells sit on.
+    ran_at = _board_run_version(record)
+    behind = _releases_between(ran_at, record["version"])
+    # `skill <version>` STAYS, and stays first: it is this file's version stamp
+    # and check_version_citations matches `skill {v}` on it. Dropping the word
+    # for a better-reading "instrument" would have reddened CI the first time
+    # anyone regenerated the board — a trap laid by a cosmetic edit.
+    stamp = (f"skill {record['version']}" if behind is None or behind == 0 else
+             f"skill {record['version']} · newest run {ran_at} · "
+             f"{behind} release{'' if behind == 1 else 's'} behind")
+    lines = [f"# LUMI style conformance · {stamp}", "",
              f"Runs {record['run_id']} · {record['host']} · "
              f"{record['detected']} of {record['agents']} agents detected · "
              f"up to n={record['repeat']} per agent · "

@@ -401,8 +401,8 @@ conditional-item rule applied one level up.
 
 | Evidence item | Decided by |
 |---|---|
-| ① the figure form matches the comparison the title makes | temporarily human → machine once the shape vocabulary lands |
-| ② a non-data figure's family semantics hold in the content (a funnel decreases, a 2×2's axes are independent) | temporarily human → machine once the shape vocabulary lands |
+| ① the figure form matches the comparison the title makes | human — and here is why it stays that way: deciding this needs the comparison the TITLE makes, and no checker can read a claim out of markup. The shape vocabulary made the form machine-readable and left the claim where it was |
+| ② a non-data figure's family semantics hold in the content (a funnel decreases, a 2×2's axes are independent) | human — a funnel's decrease is a fact about the numbers a reader brings to it, not about the geometry; D21 holds a figure to data it DECLARES, and a figure that declares none is outside what a machine can say |
 | ③ **each figure reads without the body text**: the title states the conclusion, axes and units are present, the legend is legible, magnitudes are stated | human |
 | ④ a library shape is **composed, not dropped in**: it carries this page's own words and numbers, placed against the geometry rather than beside it | human (§4.2) |
 | ⑤ an image on the page is **evidence rather than atmosphere**, treated into the palette, and not one of the stock tells §9 names | human · `[outline]` cannot run |

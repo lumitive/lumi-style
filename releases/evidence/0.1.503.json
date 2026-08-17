@@ -1,0 +1,15 @@
+{
+ "version": "0.1.503",
+ "diff_base": "2ec535df34da590afb507084337ec36b2c0cb75c",
+ "spec": "waived: no spec — R6 of the delivery-completion plan: the evals instruments are named in the entry points, the conformance board stops advertising a version it never measured, and two expired conditional promises state their reason. The case is the pre-merge review, not a design record.",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs. 0.1.503 changes how the board's HEADER is written and names the evals instruments in the entry points; neither is exercised by a conformance task, and the header change only takes effect the next time an operator records real runs. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.503 is unknown, not passing."
+  }
+ ]
+}

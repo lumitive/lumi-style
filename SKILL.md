@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.502"
+  version: "0.1.503"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -372,6 +372,18 @@ current, stale, or **unknown** — and unknown is not current.
 6. **Review loop**: decks embed the scoring table as the final page; on receiving
    reviews, any dimension diverging ≥2 forces a retrospective that produces a rule
    revision (CHANGELOG + version bump) — this is the skill's iteration engine.
+   **The instruments it runs on are these, and they are named here because an
+   instrument nobody can find is an instrument nobody runs**: `python3
+   scripts/ops/scoring_sheet.py <file>` prints the blind C1–C8 sheet a reader
+   fills in — generated from the rubric, so it cannot drift from it — and
+   `scripts/ops/review_scores.py` stores what comes back, which needs a
+   `corpus_id` because the agreement study joins a machine reading to a human
+   score on the same document. `python3 scripts/ops/judge_findings.py` runs the
+   register pass that has to quote what it objects to; it reports and never
+   gates, because a judge that scored would be scoring fluency. `python3
+   scripts/ops/ledger.py` reads every closed trace and says which metric keeps
+   failing, which instrument is suspect, whether the recipe was written against
+   these rules, and whether the storyline review happened and held.
 
 ## Debug mode (on request only)
 
