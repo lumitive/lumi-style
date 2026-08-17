@@ -60,7 +60,8 @@
      "D22_layout_vocabulary": "ok",
      "D24_images_embedded": "ok",
      "D25_image_provenance": "ok",
-     "D23_font_count": "ok"
+     "D23_font_count": "ok",
+     "D26_declared_scope": "ok"
     },
     "contains": {
      "D10_label_icons": [
@@ -157,7 +158,8 @@
      "D22_layout_vocabulary": "ok",
      "D24_images_embedded": "FAIL",
      "D25_image_provenance": "FAIL",
-     "D23_font_count": "ok"
+     "D23_font_count": "ok",
+     "D26_declared_scope": "FAIL"
     },
     "contains": {
      "D16_visual_presence": [
@@ -287,7 +289,8 @@
      "D22_layout_vocabulary": "FAIL",
      "D24_images_embedded": "ok",
      "D25_image_provenance": "ok",
-     "D23_font_count": "ok"
+     "D23_font_count": "ok",
+     "D26_declared_scope": "ok"
     }
    },
    "layout": {

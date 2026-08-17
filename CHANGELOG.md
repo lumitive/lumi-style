@@ -1,5 +1,63 @@
 # Changelog
 
+## 0.1.502 — on entry path B, completeness had no instrument at all
+
+R5. `references/eval-rubric.md` has specified a reader-visible scope note
+carrying `data-omitted` since C5 was written, and **no checker read it.** So the
+only place an omission could be declared was an outline file — an artifact the
+template path never produces. `check_outline.py` is described in its own
+docstring as *"the only defence completeness has"*, and it consumes something
+path B has no step to produce. On that path the defence was not weak; it was
+absent, and it looked like nothing at all.
+
+**D26 · declared scope** reports two things and gates on neither:
+
+- which of a storyline's typical sections the document neither covers nor
+  declares;
+- and every `data-omitted` sitting on something a reader cannot see —
+  `display:none`, `visibility:hidden`, `hidden`, `aria-hidden`, or an empty
+  element. **Reader-visible is the whole mechanism.** A marker only the checker
+  can read would do nothing but silence the checker, which is why that case is
+  reported as loudly as a missing section.
+
+**Reported and not gating, on evidence rather than on nerve.** C5 is
+"declarable, never gating" because structural compliance does not predict
+quality and a completeness gate is worth defeating: an author who has to clear
+it writes the heading and puts nothing under it. What is decidable is whether
+an absence was *declared*, and whether the declaration is one a reader meets.
+
+**The storyline is declared, never inferred.** D26 reads `data-storyline` off
+the body; guessing it from the headings would make the report a measurement of
+the guess. `new_deck.py --storyline` now emits the attribute, so a scaffolded
+document is measurable from the first build. A document that declares nothing
+reads *"no data-storyline declared"* rather than passing.
+
+**`.scope-note` ships a rendering.** Convention 5 forbids a rule that mandates
+an asset the package does not ship, and a scope note that renders as nothing is
+a declaration no reader meets — the exact failure the metric exists to catch,
+arriving through the stylesheet.
+
+**A fixture pair, so the metric is seen firing rather than only passing.**
+`deck-pass` now carries the reference implementation of a declared omission —
+named, reasoned, and where a reader meets it. `deck-broken` carries the same
+declaration **hidden**, which is the failing case, and it is the failing case
+precisely because a hidden marker is the one thing that defeats the mechanism
+rather than merely lacking it.
+
+**And the fixture suite's own accounting was wrong about it.** `check_fixtures`
+sorts a metric into `graded` or `reported` by looking for the word *reported*
+in its target string — which conflates *does not gate* with *cannot fail*. D26
+is neither: it does not gate, and it fails on `deck-broken`. With the original
+wording the coverage note said the metric could not fail while a fixture was
+failing it. The target now states the property instead of the tier, and the
+count reads 43/43 graded verdicts with a failing fixture.
+
+**Found by running it on a real document rather than on the fixture.** The
+fixture declares no storyline, so the checklist branch never executed there and
+the metric passed its first run with an unbound name in the path nobody took.
+One scaffolded document with `--storyline gtm` raised it immediately. Convention
+15, again: the material checks the model in a way that reading the code cannot.
+
 ## 0.1.501 — the four-beat design's own falsification data was recorded and never read
 
 R4. The guard was planted first, and what it found was worse than the field it

@@ -130,7 +130,7 @@ SCAFFOLDED = ("sales", "consulting", "internal", "training")
 GENRES = SCAFFOLDED
 
 
-def preamble(genre, geometry):
+def preamble(genre, geometry, storyline=None):
     """Everything before the first page: the token block AND the sprite.
 
     Taken from the fixture rather than rebuilt, because the fixture is the
@@ -157,7 +157,13 @@ def preamble(genre, geometry):
     head = head.replace("</head>",
                         "<style>\n" + embed_font.css() + "\n</style></head>")
     return (head + f'\n<body class="deck" data-theme="light" '
-            f'data-geometry="{geometry}" data-genre="{genre}">\n' + sprite)
+            f'data-geometry="{geometry}" data-genre="{genre}"'
+            # DECLARED, never inferred. D26 reads this to say which sections
+            # the document neither covers nor declares; guessing a storyline
+            # from the headings would make the report a measurement of the
+            # guess.
+            + (f' data-storyline="{storyline}"' if storyline else "")
+            + '>\n' + sprite)
 
 
 def ground(src):
@@ -299,7 +305,7 @@ def main(argv):
     # cover, agenda, closing, + openers; training appends its reference page.
     apparatus = 1 if args.genre == "training" else 0
     total = args.pages + 3 + len(parts) + apparatus
-    out = [preamble(args.genre, args.geometry)]
+    out = [preamble(args.genre, args.geometry, args.storyline)]
 
     # The cover title carries TWO INKS: the claim in ink, the noun the deck is
     # about as lime on its own dark chip (`.subj`) — the same green the part
