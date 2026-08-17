@@ -62,6 +62,21 @@ TOP_KEYS = {"debug_log", "skill_version", "platform", "machine", "created",
             "deliverable", "steps", "commands", "checks", "quality", "errors",
             "notes"}
 CHECK_KINDS = ("design", "prose", "layout")
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import checker_report  # noqa: E402 — after the bootstrap
+
 DIMS = tuple(f"H{i}" for i in range(1, 7))
 # CJK, Kana and Hangul. The narrow original covered Chinese only and the
 # docstring called it "English-only", which it is not and cannot be: a Latin
@@ -84,33 +99,15 @@ def failing_verdicts(output: bytes):
     footer — the log knew something had failed and could not say what, which is
     the one thing it exists to say.
 
-    Two shapes, because the checkers have two. check_prose.py and
-    check_design.py print a LIST of per-file documents, each with its own
-    `verdicts`; inspect_layout.py prints one dict with `verdicts` at the top and
-    an `unmeasured` count beside it. `n/a` is not a failure — it means the
-    metric could not be graded, and inspect_layout distinguishes it on purpose.
+    The two report shapes and the non-ok extraction live in checker_report now
+    — one reader for the four scripts that need it, because four private
+    copies of a contract is how a sheet described H1-H6 for two releases after
+    C1-C8 replaced them.
     """
-    try:
-        doc = json.loads(output.decode("utf-8", "replace"))
-    except (ValueError, UnicodeDecodeError):
+    reports, spoke = checker_report.parse_report(output)
+    if not spoke:
         return None
-    found: list[str] = []
-    for report in (doc if isinstance(doc, list) else [doc]):
-        if not isinstance(report, dict):
-            continue
-        name = report.get("file", "")
-        # An UNMEASURABLE file has no verdicts at all and still exits nonzero.
-        # Saying so is the point; check_design drops such a file from the JSON
-        # entirely, so "nonzero with nothing failing" is a real answer.
-        if report.get("unmeasurable"):
-            found.append(f"{name}: unmeasurable — {report['unmeasurable']}")
-        for metric, verdict in (report.get("verdicts") or {}).items():
-            if verdict not in ("ok", "n/a"):
-                found.append(f"{name + ': ' if name else ''}{metric} {verdict}")
-        if report.get("unmeasured"):
-            found.append(f"{report['unmeasured']} check(s) could not be measured")
-    return found
-
+    return checker_report.findings(reports)
 
 def _now():
     return datetime.datetime.now(datetime.UTC).isoformat(timespec="seconds")

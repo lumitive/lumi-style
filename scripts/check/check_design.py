@@ -1650,11 +1650,21 @@ def main(argv):
         blind = sorted(n for n in gates if r["verdicts"][n] == "n/a")
         if blind:
             blind_gates += 1
-            print(f"\n  {len(blind)} gating metric(s) could not be measured on "
-                  f"{r['file']}: {', '.join(blind)}")
-            print("        this is not a pass. D12 and D15 need "
-                  "<section class=\"page\"> to find pages at all — check the "
-                  "page markup before reading anything else here")
+            # IN THE REPORT, not over it. This warning used to print even under
+            # --json, so the one document it fires on — div.page markup, the
+            # exact case it describes — emitted prose in front of the JSON and
+            # broke every machine consumer. trace.py read that as "the checker
+            # had nothing to say" and nine design gates vanished from a build
+            # record without a word (0.1.497 fixed the consumer; this is the
+            # root). A warning that corrupts the channel it travels on warns
+            # nobody.
+            r["blind_gates"] = blind
+            if not args.json:
+                print(f"\n  {len(blind)} gating metric(s) could not be measured on "
+                      f"{r['file']}: {', '.join(blind)}")
+                print("        this is not a pass. D12 and D15 need "
+                      "<section class=\"page\"> to find pages at all — check the "
+                      "page markup before reading anything else here")
         results.append(r)
 
     if args.json:

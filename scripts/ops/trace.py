@@ -39,7 +39,6 @@ import datetime as _dt
 import json
 import pathlib
 import re
-import subprocess
 import sys
 import uuid
 
@@ -68,6 +67,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 # The closed vocabulary lives in scripts/lib/trace_schema.py — one definition,
 # read by this writer and by check_repo.py's guard.
+import checker_report  # noqa: E402
 import fingerprint  # noqa: E402
 import markup  # noqa: E402
 from deliverable_registry import STAGE_OF  # noqa: E402
@@ -102,37 +102,17 @@ def _save(rec):
 
 def _checker_json(script, deliverable, extra=()):
     """-> (parsed, spoke). `spoke` is False when the checker could not be
-    transcribed at all.
-
-    The two states must not be one value. An HONEST empty report — a checker
-    that ran and had nothing to say — is `([], True)`. A checker that crashed,
-    timed out, or printed something that is not JSON is `(None, False)`, and
-    the caller has to record that rather than skip it.
-
-    This is not hypothetical. `check_design.py` prints its blind-gate warning
-    with a bare `print()` that `--json` does not suppress, so a deck built with
-    `div.page` instead of `section.page` — the exact case that warning exists
-    for — emits prose in front of its JSON. The checker does its job (exit 1,
-    UNMEASURABLE); the old version of this function returned None and `close`
-    read that as "nothing to say", so every design gate vanished from the trace
-    without a word. `ledger.py`'s second ledger looks for `not_measured` to
-    suspect an instrument, and absence is not `not_measured`, so the one
-    mechanism built to catch a broken checker could not see it.
+    transcribed at all — the distinction ledger 2 depends on. The running and
+    the parsing live in checker_report now, one implementation for the four
+    scripts that need them; what stays HERE is only the mapping from this
+    tool's script names to the registry's kinds.
     """
-    cmd = ["python3", str(ROOT / "scripts" / "check" / script),
-           str(deliverable), "--json", *extra]
-    try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
-    except subprocess.TimeoutExpired:
+    kind = {"check_prose.py": "prose", "check_design.py": "design"}[script]
+    genre = extra[1] if len(extra) >= 2 and extra[0] == "--genre" else None
+    run = checker_report.run_checker(kind, deliverable, genre=genre)
+    if not run["spoke"]:
         return None, False
-    try:
-        return json.loads(proc.stdout), True
-    except json.JSONDecodeError:
-        # A nonzero exit with unparseable stdout is a checker that failed to
-        # speak. Exit code alone is not the test: check_design exits 1 on a
-        # legitimate FAIL and its JSON is perfectly good.
-        return None, False
-
+    return run["reports"], True
 
 def cmd_open(a):
     rec: dict[str, object] = dict.fromkeys(FIELDS)

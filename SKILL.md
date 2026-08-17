@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.509"
+  version: "0.1.510"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -334,7 +334,15 @@ current, stale, or **unknown** — and unknown is not current.
    every score**.
 
    **Then measure rather than trust**, and this is where the gates live, because
-   they belong after the making rather than inside it. `python3
+   they belong after the making rather than inside it. **One command runs the
+   whole stack**: `python3 scripts/ops/check_deliverable.py <file> [--terms
+   <list>]` launches the rendered check first, runs every text instrument while
+   the browser works, and ends in one block naming every gating failure, every
+   graded finding and every check that could not be measured — read that block
+   whole, then fix everything it names in ONE pass. It exists because a
+   fifteen-page deck once took ten rounds, at least three of them from reading
+   the reports in installments. The individual instruments below remain for
+   targeted re-runs. `python3
    scripts/check/inspect_layout.py <file>` renders the pages and builds a contact sheet;
    its design judgements gate nothing but it **exits 1 when a check could not be
    measured**, and those lines come before every green one. Run it again with

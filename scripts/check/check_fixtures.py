@@ -51,6 +51,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 
+import checker_report  # noqa: E402
 from deliverable_registry import checker_path  # noqa: E402
 
 FIXTURES = ROOT / "fixtures"
@@ -84,9 +85,10 @@ def run(kind: str, args: list[str], path: pathlib.Path):
 
 
 def verdicts_of(report) -> dict:
-    if isinstance(report, list) and report:
-        report = report[0]
-    return (report or {}).get("verdicts", {}) or {}
+    # One reader for both checker JSON shapes — checker_report owns it now;
+    # this wrapper survives because every call site names the fixture idiom.
+    reports = report if isinstance(report, list) else [report or {}]
+    return checker_report.first_verdicts([r for r in reports if isinstance(r, dict)])
 
 
 def coverage_report(collected, skipped_kinds) -> list[str]:

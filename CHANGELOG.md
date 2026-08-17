@@ -1,5 +1,57 @@
 # Changelog
 
+## 0.1.510 — every pre-delivery instrument in one command, after a ten-round build was autopsied
+
+**The case is measured, not felt.** A fifteen-page product deck took ten
+build-check-fix rounds. The autopsy attributed at least three of them to
+nothing but partial reading — the author assembled the gate stack by hand,
+filtered each tool's output through grep and tail to protect their own
+context, and so met failures in installments: four findings present in the
+first report were discovered in the third round, and a role failure present in
+the seventh round's output was discovered in the ninth. One more round came
+from running the slow rendered check serially, only after the text checks were
+clean. The historical lineages are worse — one proposal carries twenty-three
+run numbers under the same workflow.
+
+**`check_deliverable.py` is the structural answer.** One command launches the
+rendered check first — the browser renders while the text instruments run —
+executes prose, design, privacy and layout, and ends in ONE block naming every
+gating failure, every graded finding, and every check that could not be
+measured. Nothing to grep, nothing to scroll past; the exit code is the
+strictest aggregation and a test asserts it cannot disagree with the block.
+On the deck that took ten rounds, the whole stack now answers in sixteen
+seconds, and its one finding is the operator-owed terms list. The planted red
+is the point made twice: the tri-failing document showed all four instrument
+families in a single block — and the first version of that red run was read
+through a pipe, which swallowed the exit code, in the release built to end
+partial reading. Convention 16 held where the eye did not.
+
+**Four private copies of the checker contract became one module.** How to
+invoke each kind (`--genre` for prose, `--deliverable --no-sheet` for layout)
+and how to read the two report shapes lived separately in
+`run_conformance.score_checks`, `check_fixtures.verdicts_of`,
+`debug_log.failing_verdicts` and `trace.py`'s `_checker_json`.
+`scripts/lib/checker_report.py` owns both facts now and all four import it.
+The distinction it must never lose is stated at the top: a checker that could
+not speak is not a checker with nothing to say.
+
+**And the root of 0.1.497's silent-transcription defect is closed.**
+`check_design.py` printed its blind-gate warning even under `--json`, so the
+one document the warning fires on — `div.page` markup, the exact case it
+describes — emitted prose over the JSON and broke every machine consumer.
+0.1.497 fixed the consumer; this fixes the channel: the warning now travels
+inside the report as `blind_gates`, and the regression test asserts the JSON
+stays parseable on the very document that used to corrupt it. A checker whose
+"empty report + nonzero exit" answer used to vanish from the driver's block is
+also named now — the tri-failing red run showed prose, privacy and layout and
+said nothing at all about design until that line existed.
+
+**`inspect_layout`'s last line now carries the whole verdict.** It used to
+print the not-measured count early and the gating summary last, so a run could
+end on "No gating finding fired" and still exit 1 — an operator who read the
+last line, or grepped for it, shipped past a check that never ran. Twice in
+one session. The last line of a verdict tool is the verdict, whole.
+
 ## 0.1.509 — the agreement study can finally produce a row, and its silences say why
 
 Built in a parallel worktree against the pre-merge review's findings, and landed

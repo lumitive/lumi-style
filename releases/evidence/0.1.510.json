@@ -1,0 +1,24 @@
+{
+  "version": "0.1.510",
+  "diff_base": "fc0a79ab2be349cc26dbbd851a932f29198be3de",
+  "spec": "waived: no spec \u2014 the ten-round autopsy's Release 1: one command for the whole pre-delivery stack, four checker-contract copies unified, the json channel and the final line fixed. The case is the autopsy in this release's own entry.",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "7513ead12ce77349d71f02fe695125c468d11f0c1b0a95d60a1d322dbfc6e487",
+      "date": "2026-08-17"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board reports CLI-agent conformance runs. 0.1.510 adds the deliverable driver and unifies the checker-report contract; no conformance task exercises them. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.510 is unknown, not passing."
+    }
+  ]
+}
