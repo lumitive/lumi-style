@@ -177,16 +177,34 @@ def review(text: str):
         declared = {o["section"] for o in omissions}
         missing = [s for s in expected
                    if s not in blob and s not in declared]
-        undeclared_reason = [o["section"] for o in omissions if not o["reason"]]
         findings.append({
             "check": "type completeness", "verdict": "note",
             "detail": missing or "every typical section is named or declared"})
-        if undeclared_reason:
-            findings.append({
-                "check": "declared omission", "verdict": "FAIL",
-                "detail": f"{undeclared_reason} declared without a reason; the "
-                          f"declaration is what separates a decision from a "
-                          f"gap, and a bare one does neither"})
+    else:
+        # A storyline with no checklist must SAY it has none. Nesting this
+        # whole block under `if expected:` meant `proposal` — admitted to
+        # STORYLINES at 0.1.491 and never given a TYPICAL_SECTIONS row —
+        # printed a clean report and exited 0 where every other storyline
+        # exited 1 on the same file. The docstring calls this beat "the only
+        # defence completeness has"; for the newest storyline it was no
+        # defence, and it looked like a pass.
+        findings.append({
+            "check": "type completeness", "verdict": "not_measured",
+            "detail": f"no typical-section checklist exists for "
+                      f"{storyline!r}, so completeness was not assessed — "
+                      f"a checklist nobody wrote is not a document with "
+                      f"nothing missing"})
+
+    # The declared-omission GATE is outside that branch on purpose: whether a
+    # stated omission carries a reason is a fact about the outline, not about
+    # the storyline's checklist, and it must hold for every storyline.
+    undeclared_reason = [o["section"] for o in omissions if not o["reason"]]
+    if undeclared_reason:
+        findings.append({
+            "check": "declared omission", "verdict": "FAIL",
+            "detail": f"{undeclared_reason} declared without a reason; the "
+                      f"declaration is what separates a decision from a "
+                      f"gap, and a bare one does neither"})
     return meta, groups, omissions, titles, findings
 
 
@@ -211,7 +229,11 @@ def main():
     print(f"{a.outline}  ({len(titles)} title(s), {len(groups)} group(s), "
           f"genre={meta.get('genre')}, storyline={meta.get('storyline')})\n")
     for f in findings:
-        mark = {"ok": "ok  ", "FAIL": "FAIL", "note": "note"}[f["verdict"]]
+        # `not_measured` prints as itself rather than as a pass. A dict lookup
+        # here would KeyError on a verdict tier nobody updated it for, which is
+        # the loud failure and the right one — but the tier has to be listed.
+        mark = {"ok": "ok  ", "FAIL": "FAIL", "note": "note",
+                "not_measured": "n/m "}[f["verdict"]]
         detail = f["detail"]
         if isinstance(detail, list):
             detail = ", ".join(detail) if detail else "—"

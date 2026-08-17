@@ -136,3 +136,108 @@ def test_waiver_covers_one_citation_not_the_file(tmp_path, monkeypatch):
                         ("threat.md", "scripts/hijack.py"), "illustration")
     errors = check_repo.check_script_paths()
     assert len(errors) == 1 and "also_gone" in errors[0]
+
+
+# check_shape_library asked the FILESYSTEM. It globbed assets/shapes/*.svg,
+# found 206 files, and passed while .gitignore excluded every one of them — the
+# library existed on one machine and in no clone. It now asks git, so these
+# trees are real repositories and the difference between "on disk" and
+# "shipped" is expressible.
+
+_TAGS = ('{"schema": 3, "shapes": {"p001-flow-01": '
+         '{"relation": "process", "relation_from": "looked-at"}}}')
+_SVG = '<svg viewBox="0 0 10 10"><rect width="10" height="10"/></svg>'
+_EMBEDDER = "LIBRARY = ROOT / 'assets' / 'shapes'\n"
+
+
+def _shape_repo(tmp_path, ignore="", embedder=True):
+    files = {"assets/shapes/tags.json": _TAGS,
+             "assets/shapes/p001-flow-01.svg": _SVG,
+             ".gitignore": ignore}
+    if embedder:
+        files["scripts/build/embed_shapes.py"] = _EMBEDDER
+    return _repo(tmp_path, files)
+
+
+def test_shape_library_tracked_library_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _shape_repo(tmp_path))
+    assert check_repo.check_shape_library() == []
+
+
+def test_shape_library_untracked_unit_is_not_shipped(tmp_path, monkeypatch):
+    """The live defect, in miniature: the file is on disk and git ignores it."""
+    # `git add -A` never stages it, because .gitignore excludes it. The file
+    # is on disk and in no clone — which is the whole defect, reproduced.
+    root = _shape_repo(tmp_path, ignore="*.svg\n")
+    monkeypatch.setattr(check_repo, "ROOT", root)
+    assert any("p001-flow-01" in e and "not shipped" in e
+               for e in check_repo.check_shape_library())
+
+
+def test_shape_library_deleted_library_fails_while_its_build_step_ships(
+        tmp_path, monkeypatch):
+    """`git rm -r assets/shapes` used to pass the whole of check_repo."""
+    root = _repo(tmp_path, {"scripts/build/embed_shapes.py": _EMBEDDER})
+    monkeypatch.setattr(check_repo, "ROOT", root)
+    assert any("does not exist" in e for e in check_repo.check_shape_library())
+
+
+def test_shape_library_absent_with_no_build_step_is_still_a_legal_state(
+        tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, {"README.md": "x\n"}))
+    assert check_repo.check_shape_library() == []
+
+
+# check_trace_schema had no test of its own. Its docstring and its CHANGELOG
+# entry both claimed "the synthetic tests are what prove this can fail" — but
+# that deliberate-red was run against trace_schema.validate, the LIBRARY. The
+# guard's own layer (the directory walk, the JSON parse, the vacuity floor)
+# survived being replaced with `return []` and the whole suite stayed green.
+# FM-01, recorded as prevented in the entry that introduced it.
+
+def _trace_repo(tmp_path, traces):
+    files = dict(traces)
+    return _repo(tmp_path, files)
+
+
+def _legal_trace():
+    import trace_schema
+    rec = dict.fromkeys(trace_schema.FIELDS)
+    rec.update(trace_id="t-0123456789ab", opened_at="2026-08-17T00:00:00+00:00",
+               closed_at=None, source="build", skill_version="0.1.497",
+               genre="internal", storyline="proposal", entry_path="B",
+               outline_reviewed=False, titles_changed_after_approval=0,
+               geometry="16x9", pages=0, content_pages=0, phase_seconds={},
+               gates={}, graded={}, thresholds={}, principle_yields=[],
+               refused_to_emit=None)
+    return rec
+
+
+def test_trace_schema_guard_passes_on_a_legal_stored_trace(tmp_path, monkeypatch):
+    import json as _json
+    monkeypatch.setattr(check_repo, "ROOT", _trace_repo(
+        tmp_path, {"evals/traces/t-0123456789ab.json": _json.dumps(_legal_trace())}))
+    assert check_repo.check_trace_schema() == []
+
+
+def test_trace_schema_guard_fails_on_a_stored_trace_carrying_free_text(
+        tmp_path, monkeypatch):
+    import json as _json
+    rec = _legal_trace()
+    rec["note"] = "the client asked for this in a hurry"
+    monkeypatch.setattr(check_repo, "ROOT", _trace_repo(
+        tmp_path, {"evals/traces/t-0123456789ab.json": _json.dumps(rec)}))
+    errors = check_repo.check_trace_schema()
+    assert errors and any("t-0123456789ab" in e for e in errors)
+
+
+def test_trace_schema_guard_fails_on_a_stored_trace_that_does_not_parse(
+        tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _trace_repo(
+        tmp_path, {"evals/traces/t-0123456789ab.json": "{not json"}))
+    assert check_repo.check_trace_schema()
+
+
+def test_trace_schema_guard_no_traces_is_a_legal_state(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _trace_repo(tmp_path, {}))
+    assert check_repo.check_trace_schema() == []

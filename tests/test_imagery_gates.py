@@ -89,3 +89,35 @@ def test_both_gate_and_say_so_in_their_target():
     for metric in ("D24_images_embedded", "D25_image_provenance"):
         i = src.index(f'rows.append(("{metric}"')
         assert "(gates)" in src[i:i + 400], f"{metric} does not declare that it gates"
+
+
+# D24 read the CSS `url()` form through a regex that required a scheme or `//`
+# after its `(?!data:)` lookahead, so a RELATIVE url matched nothing and passed.
+# That is how a person naturally writes a cover background, and it renders
+# correctly on the author's machine because the asset sits beside the HTML — so
+# opening the deliverable over file:// does not catch it either. The reader
+# receives one HTML file and a blank cover.
+
+@pytest.mark.parametrize("markup", [
+    "background-image:url(assets/cover.jpg)",
+    'background-image:url("assets/cover.jpg")',
+    "background-image:url('../a.png')",
+    "background-image:url(https://cdn.example.org/a.jpg)",
+    "background-image:url(//cdn.example.org/a.jpg)",
+    '<img src="assets/cover.jpg">',
+])
+def test_an_image_that_does_not_ship_inside_the_file_is_reported(markup):
+    assert check_design.d24_images_embedded(markup)["external"]
+
+
+@pytest.mark.parametrize("markup", [
+    "background-image:url(data:image/png;base64,AAAA)",
+    '<img src="data:image/png;base64,AAAA">',
+    "fill:url(#grad-1)",
+    "clip-path:url( #clip )",
+    'mask:url( "#m" )',
+])
+def test_an_embedded_payload_or_a_same_document_fragment_is_not_reported(markup):
+    """A false positive here would fail every figure this package draws:
+    `url(#grad)` is how an SVG references its own gradient."""
+    assert check_design.d24_images_embedded(markup)["external"] == []

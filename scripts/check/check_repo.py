@@ -2505,8 +2505,19 @@ def check_shape_library():
     classification.
     """
     lib = ROOT / "assets" / "shapes"
+    # `not ingested` was a legal state when nothing shipped that reads the
+    # library. `embed_shapes.py` does — it is the build step SKILL.md and
+    # AGENTS.md tell an author to run — so its presence is the claim that the
+    # library ships, and the claim is what makes an absent directory a failure
+    # rather than a legal state. Without this, `git rm -r assets/shapes` passed
+    # the whole of check_repo.
+    embedder = ROOT / "scripts" / "build" / "embed_shapes.py"
     if not lib.exists():
-        return []                    # not ingested is a legal state
+        if embedder.exists():
+            return ["assets/shapes/ does not exist, and "
+                    "scripts/build/embed_shapes.py ships to read it — a build "
+                    "step whose input is missing is not an un-ingested library"]
+        return []
     manifest = lib / "tags.json"
     if not manifest.exists():
         return ["assets/shapes/ exists with no tags.json — a library with no "
@@ -2520,7 +2531,14 @@ def check_shape_library():
     if not shapes:
         return ["assets/shapes/tags.json names no shapes — the guard would pass "
                 "vacuously"]
-    files = {p.stem for p in lib.glob("*.svg")}
+    # ASK GIT, NOT THE FILESYSTEM. The glob version found 206 files and passed
+    # while `.gitignore` excluded every one of them, so the library existed on
+    # one machine and in no clone — the defect 0.1.496 fixed and this guard
+    # could not see. A working tree cannot tell `shipped` from `present here`.
+    # A tarball checkout has no index to ask and falls back to the glob.
+    files = _tracked_stems("assets/shapes")
+    if files is None:
+        files = {p.stem for p in lib.glob("*.svg")}
     errors = []
     for missing in sorted(files - set(shapes)):
         errors.append(f"assets/shapes/{missing}.svg is shipped and the manifest "
@@ -2971,6 +2989,21 @@ def check_genre_vocabulary():
     return errors
 
 
+def _tracked_stems(reldir, suffix=".svg"):
+    """-> {stem} for files git TRACKS under `reldir`, or None with no git.
+
+    None is not an empty set: a tarball checkout has no index to ask, and a
+    caller that conflated the two would report every shipped file missing.
+    """
+    if not (ROOT / ".git").exists():
+        return None
+    p = subprocess.run(["git", "ls-files", "-z", "--", f"{reldir}/*{suffix}"],
+                       cwd=ROOT, capture_output=True, text=True)
+    if p.returncode != 0:
+        return None
+    return {pathlib.PurePosixPath(f).stem for f in p.stdout.split("\0") if f}
+
+
 def check_assets_tracked():
     """Every asset this package ships is in version control.
 
@@ -2989,16 +3022,28 @@ def check_assets_tracked():
 
     So this one asks git instead. A dotfile is exempt: `.DS_Store` is the
     platform's litter, not the package's material.
+
+    **It fires on the author's machine, and that is where it has to fire.** In a
+    clone there are no ignored files to list, so this guard is quiet there by
+    construction — it is a pre-commit hold, not a post-merge one. The clone-side
+    half of the same question is `check_shape_library`, which compares the
+    manifest against what git TRACKS and so fails in CI when the library stops
+    shipping. Neither is the other's substitute.
     """
     if not (ROOT / ".git").exists():
         return []                    # a tarball checkout has nothing to assert
-    p = subprocess.run(["git", "ls-files", "-o", "-i", "--exclude-standard",
-                        "assets/"],
+    p = subprocess.run(["git", "ls-files", "-o", "-i", "-z",
+                        "--exclude-standard", "assets/"],
                        cwd=ROOT, capture_output=True, text=True)
     if p.returncode != 0:
-        return []
+        # A repository that has git and cannot be asked is not a repository
+        # with nothing to report. Returning [] here would rebuild the exact
+        # blind spot this guard exists to close, one level down.
+        return [f"could not ask git which assets are ignored "
+                f"(git ls-files exited {p.returncode}) — this guard did not "
+                f"run, which is not the same as finding nothing"]
     errors = []
-    for path in sorted(p.stdout.split()):
+    for path in sorted(f for f in p.stdout.split("\0") if f):
         if pathlib.Path(path).name.startswith("."):
             continue
         errors.append(

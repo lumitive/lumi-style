@@ -1,0 +1,15 @@
+{
+ "version": "0.1.497",
+ "diff_base": "71b3c959f2743f207e63a5c8c9823bfa5122c932",
+ "spec": "waived: no spec — this release closes five defects found by the pre-merge review of the refactor itself, each reproduced as a failing command before it was changed. The case is the review, not a design record.",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs. 0.1.497 fixes five checkers and adds tests; no conformance task exercises any of them. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.497 is unknown, not passing."
+  }
+ ]
+}

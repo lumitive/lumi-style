@@ -96,14 +96,37 @@ def _save(rec):
 
 
 def _checker_json(script, deliverable, extra=()):
-    """Run a checker with --json and return its parsed output, or None."""
+    """-> (parsed, spoke). `spoke` is False when the checker could not be
+    transcribed at all.
+
+    The two states must not be one value. An HONEST empty report — a checker
+    that ran and had nothing to say — is `([], True)`. A checker that crashed,
+    timed out, or printed something that is not JSON is `(None, False)`, and
+    the caller has to record that rather than skip it.
+
+    This is not hypothetical. `check_design.py` prints its blind-gate warning
+    with a bare `print()` that `--json` does not suppress, so a deck built with
+    `div.page` instead of `section.page` — the exact case that warning exists
+    for — emits prose in front of its JSON. The checker does its job (exit 1,
+    UNMEASURABLE); the old version of this function returned None and `close`
+    read that as "nothing to say", so every design gate vanished from the trace
+    without a word. `ledger.py`'s second ledger looks for `not_measured` to
+    suspect an instrument, and absence is not `not_measured`, so the one
+    mechanism built to catch a broken checker could not see it.
+    """
     cmd = ["python3", str(ROOT / "scripts" / "check" / script),
            str(deliverable), "--json", *extra]
-    proc = subprocess.run(cmd, capture_output=True, text=True)
     try:
-        return json.loads(proc.stdout)
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+    except subprocess.TimeoutExpired:
+        return None, False
+    try:
+        return json.loads(proc.stdout), True
     except json.JSONDecodeError:
-        return None
+        # A nonzero exit with unparseable stdout is a checker that failed to
+        # speak. Exit code alone is not the test: check_design exits 1 on a
+        # legitimate FAIL and its JSON is perfectly good.
+        return None, False
 
 
 def cmd_open(a):
@@ -154,14 +177,25 @@ def cmd_close(a):
             rec[k] = getattr(a, k)
 
     # Verdicts are transcribed from the checkers, never supplied.
-    prose = _checker_json("check_prose.py", a.deliverable,
-                          ["--genre", rec["genre"]] if rec["genre"] else [])
-    design = _checker_json("check_design.py", a.deliverable)
+    prose, prose_spoke = _checker_json(
+        "check_prose.py", a.deliverable,
+        ["--genre", rec["genre"]] if rec["genre"] else [])
+    design, design_spoke = _checker_json("check_design.py", a.deliverable)
     # Both checkers emit a LIST of one dict per file, carrying `verdicts`
     # (id -> ok/fail/n-a) and `targets` (id -> the target string, in which
     # "(gates)" is what marks a gate). The numeric readings are top-level keys
     # under the same id. Nothing here interprets a result; it transcribes.
-    for report in (prose, design):
+    for name, report, spoke in (("prose", prose, prose_spoke),
+                                ("design", design, design_spoke)):
+        if not spoke:
+            # A checker that could not speak is recorded PER CHECKER. The old
+            # code marked `_checkers` only when BOTH failed, so one broken
+            # checker left a trace that looked complete: nine design gates
+            # simply absent, and absence reads as "nothing to say" to every
+            # consumer. ledger.py's second ledger hunts `not_measured` to
+            # suspect an instrument, so this line is what lets it work at all.
+            rec["thresholds"][f"_checker_{name}"] = "not_measured"
+            continue
         if not report:
             continue
         row = report[0] if isinstance(report, list) else report
@@ -188,8 +222,11 @@ def cmd_close(a):
         d = row.get("D12_commercial_footer") or {}
         if isinstance(d.get("pages"), int):
             rec["pages"] = d["pages"]
-    if not prose and not design:
-        # not measured is not zero, and it is not a pass either
+    if not rec["gates"] and not rec["graded"]:
+        # not measured is not zero, and it is not a pass either. This now fires
+        # on the shape the old condition missed too: both checkers ran, both
+        # returned an honest empty report, and the trace records a build that
+        # was never graded.
         rec["thresholds"]["_checkers"] = "not_measured"
     _fail_if_invalid(rec)
     _save(rec)
