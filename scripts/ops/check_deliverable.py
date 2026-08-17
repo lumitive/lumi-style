@@ -130,6 +130,24 @@ def verdict_block(runs: dict) -> tuple[list[str], list[str], list[str], int]:
             if report.get("unmeasured"):
                 silent.append(f"{kind}: {report['unmeasured']} rendered "
                               f"check(s) could not be measured")
+            # Reported layout findings that used to live only in the report
+            # prose — the reviewer called wrapped captions this author's
+            # chronic defect, and the instrument's line never reached the one
+            # block anyone reads. The page rows live one level down, inside
+            # each per-geometry result — the first version read a top-level
+            # `pages` that does not exist, and its own planted red caught it:
+            # the r10 deck's two wrapped captions never surfaced.
+            geo_rows = report.get("results") or [report]
+            seen_wrap: dict[str, bool] = {}
+            for geo in geo_rows:
+                for pg in geo.get("pages") or []:
+                    if pg.get("capWrapped"):
+                        seen_wrap[pg.get("id", "?")] = True
+            if seen_wrap:
+                graded.append(f"{kind}: {len(seen_wrap)} figure caption(s) "
+                              f"wrap to a second line "
+                              f"({', '.join(sorted(seen_wrap))}) — shorten "
+                              f"the name, never the type")
             for m in report.get("blind_gates") or []:
                 silent.append(f"{kind}: gating metric {m} could not be "
                               f"measured (this is not a pass)")

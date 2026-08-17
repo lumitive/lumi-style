@@ -136,6 +136,17 @@ LUMI's own seed survives as group 8.
 
 *Serves: **P-2**.* · id `WR-5`
 
+0. **[external genres] A key number carries its judgment anchor.** A sourced,
+   correct number is half the obligation; the other half is what the reader is
+   supposed to feel about it and why — a benchmark, a comparison, or the
+   implication spelled out. The first blind review put it exactly: a deck
+   said "181 releases came from this loop" and the reviewer asked *is that Wow,
+   or AAA-bad, or nothing?* — and "went from 28 to 50 in visual share" without
+   saying what that buys the reader. In sales, marketing and consulting
+   material, a stat band or centerpiece number with no anchor beside it is an
+   unfinished sentence. (Reader review D15, divergence ≥2 on C4's dimension
+   pair; the retrospective's rule outcome.)
+
 1. **Every number carries its source** or its derivation; a range figure must trace
    to a single source or it may not appear.
 2. **Illustrative values must be labeled** (illustrative / mock UI / proposal value /

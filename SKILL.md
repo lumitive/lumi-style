@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.512"
+  version: "0.1.513"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -129,7 +129,12 @@ current, stale, or **unknown** — and unknown is not current.
    when a required input is missing or two requirements conflict, batch every
    question into a single round before generation begins; otherwise state the
    assumptions in the delivery note and proceed — one clear prompt should
-   normally produce a finished document without a follow-up interview. Then
+   normally produce a finished document without a follow-up interview. **For an external document, the value pass comes before the build**: answer
+   5W+1H for the document as a whole (what, why, who, when, where, how — the
+   reader should recover all six from the deck alone), give every key number
+   its judgment anchor, and write the ask as who-does-what-by-when. The first
+   blind review scored a gate-clean deck 1 on completeness and 1 on
+   actionability for skipping exactly this pass (FM-16). Then
    pick the scenario: sales/marketing · consulting/client document · internal
    analysis · training material — four different narrative skeletons. Read
    [`references/storyline-templates.md`](references/storyline-templates.md) and

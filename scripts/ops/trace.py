@@ -298,6 +298,22 @@ def _fail_if_invalid(rec):
         sys.exit("refusing to write an invalid trace:\n  " + "\n  ".join(errors))
 
 
+
+def cmd_annotate(a):
+    """Link fields only. `corpus_id` and `review_ref` join a build to the
+    measurement corpus and to the review that scored it — they are addresses,
+    not verdicts, which is why this subcommand may write them after close and
+    the verdict fields still have no flag anywhere.
+    """
+    rec = _load(a.id)
+    if a.corpus_id:
+        rec["corpus_id"] = a.corpus_id
+    if a.review_ref:
+        rec["review_ref"] = a.review_ref
+    _fail_if_invalid(rec)
+    _save(rec)
+    print(f"{a.id}: corpus_id={rec['corpus_id']} review_ref={rec['review_ref']}")
+
 def cmd_validate(_a):
     if not TRACES.exists():
         print("no traces yet")
@@ -367,6 +383,13 @@ def main():
                         "There is no flag for typing a token count, for the "
                         "same reason there is none for typing a verdict.")
     c.set_defaults(func=cmd_close)
+
+    an = sub.add_parser("annotate", help="link a closed trace to its corpus "
+                        "id and review — addresses, never verdicts")
+    an.add_argument("--id", required=True)
+    an.add_argument("--corpus-id", dest="corpus_id")
+    an.add_argument("--review-ref", dest="review_ref")
+    an.set_defaults(func=cmd_annotate)
 
     v = sub.add_parser("validate", help="check every stored trace against the schema")
     v.set_defaults(func=cmd_validate)

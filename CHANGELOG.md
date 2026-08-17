@@ -1,5 +1,66 @@
 # Changelog
 
+## 0.1.513 — the first blind review: five dimensions diverge, and the divergence splits exactly where the machines stop
+
+**The evaluation engine's first real cycle, run end to end.** The owner
+blind-scored the product-intro deck (corpus D15) against the C1–C8 sheet:
+reader 2/3/2/3/1/1/3/1 beside the builder's sealed 4/4/4/4/4/4/4/3 — **five
+dimensions diverged ≥2**, each one forcing this retrospective. The record is
+the store's first schema-3 row, and the agreement study produced its first
+real finding in one sentence: *the machine cleared its bars (visual share 54.5
+against a floor of 50) and the reader judged something no metric sees.*
+
+**The divergence is not noise; it has a shape.** Sort the dimensions by what
+they measure and the split is clean: on defect-absence (finish, sourcing,
+title mechanics) reader and builder sat one point apart; on value-presence
+(answer-first, page depth, completeness-for-purpose, actionability, figure
+argument) they sat two to three apart, every time in the same direction. The
+gates are all defect-shaped. The deck was built through ten rounds of
+gate-fixing and zero rounds of value review, and the self-score inherited the
+instruments' blindness. Recorded as **FM-16 · gate-clean, value-thin**.
+
+**The sharpest single datum**: the builder's sealed C6 note said the ask
+"names no owner or date" — the exact defect the reviewer named — and priced it
+at minus one. The reviewer priced it as the document failing at an external
+document's job, and scored 1. So the protocol gains **3c**: a value dimension
+where the document fails at its job caps the self-score at 2, seen or not.
+The sheet's C3/C6/C8 anchor examples now carry this review's real shapes.
+
+**Template 6 · product-intro, written from the document that lacked it.** The
+reader's 1 on completeness and 1 on actionability were the documented case
+IDEA-10's entry was waiting for: the deck was derived from a five-word
+checklist, satisfied each word, and skipped the substance — no overview page a
+reader could carry away, no get-started page with the four artifacts (link,
+per-tier install, first command, feedback channel), an ask naming nobody and
+no date. The skeleton now states all of it, 5W+1H first, and
+`TYPICAL_SECTIONS` grows `overview` and `get started`. Four storylines remain
+skeletonless, one at a time by design.
+
+**Two rules from the review's own words.** Number discipline rule 0: in
+external genres a key number carries its judgment anchor — the deck said "181
+releases came from this loop" and the reviewer asked *is that Wow, or bad, or
+nothing?*, which is the whole rule in one question. And agenda rows state
+value, not contents — a row reading "the ban list, the rule set, the gates:
+pages 4 to 7" is a table of contents wearing an agenda's clothes.
+
+**The chronic defect had a broken instrument behind it.** The reviewer called
+long figure captions "your chronic defect" (`你有一个通病`, her words as data). The
+caption-wrap probe existed — and measured `.cap .n`, the two-word "Figure 5"
+span, which cannot wrap: it printed "all figure names hold one line" on every
+document ever run. It measures the NAME now, via a Range between the number
+and the source line, and the reviewed deck immediately reads **2 of 7 captions
+wrapped** where it read zero. The driver surfaces the finding into its one
+block — where the first version read a nonexistent top level and its own
+planted red caught it — so the defect reaches the eye every round instead of
+living in report prose nobody grepped for.
+
+**Loose ends closed in the same pass**: `trace.py annotate` writes the two
+link fields nothing could write (`corpus_id`, `review_ref` — addresses, never
+verdicts); `debug_log.py` scores C1–C8 after saying H1–H6 for forty-odd
+releases; the protocol's "six self-scores" stale count is gone; the noun-pile
+enumeration tell is parked as IDEA-12 under the two-document promotion rule,
+with the reviewer's two examples as anchors.
+
 ## 0.1.512 — the genre's contract rides in the scaffold, and one rule stops having three genre sets
 
 Release 3 of the ten-round autopsy, closing the cause the first two could not:

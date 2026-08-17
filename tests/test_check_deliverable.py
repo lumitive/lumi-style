@@ -89,3 +89,24 @@ def test_findings_treats_na_as_not_a_failure():
     rows = checker_report.findings([{"file": "x.html",
                                      "verdicts": {"a": "ok", "b": "n/a", "c": "FAIL"}}])
     assert rows == ["x.html: c FAIL"]
+
+
+def test_layout_caption_wrap_reaches_the_block(tmp_path):
+    """The reviewer called wrapped captions the author's chronic defect; the
+    instrument reported them in prose nobody read. The driver must surface
+    them from the per-geometry page rows (the first version read a top-level
+    `pages` that does not exist, and the planted red on the reviewed deck
+    caught it)."""
+    fake_layout = {"kind": "layout", "exit": 0, "spoke": True, "reports": [{
+        "results": [{"geometry": "16x9",
+                     "pages": [{"id": "p7", "capWrapped": 1, "capCount": 1},
+                               {"id": "p10", "capWrapped": 1, "capCount": 1}]}],
+        "verdicts": {}, "unmeasured": 0}]}
+    sys.path.insert(0, str(ROOT / "scripts" / "ops"))
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("drv", DRIVER)
+    assert spec is not None and spec.loader is not None
+    drv = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(drv)
+    gating, graded, silent, worst = drv.verdict_block({"layout": fake_layout})
+    assert any("caption" in g and "p7" in g and "p10" in g for g in graded)

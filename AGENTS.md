@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.512.** This file restates part of `references/`; where they
+> **lumi-style 0.1.513.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -37,6 +37,13 @@ not accept them. **`--recipe` is what makes the ruling checkable**: a trace's
 `skill_version` is read at open and can never be stale, so without the recipe's
 own stamp a replay is indistinguishable from a current build. `ledger.py`
 reports current, stale, or **unknown**, and unknown is not current.
+
+**External documents get a value pass before the build**: 5W+1H answered for
+the document, a judgment anchor beside every key number (is 181 a lot? the
+deck says, or the number is unfinished), and an ask naming who does what by
+when. A gate-clean deck scored 1 on completeness and actionability for
+skipping this (FM-16); the machine gates measure defect-absence and cannot
+see value-absence.
 
 **Study the input first; questions come once or not at all.** Read everything
 the user supplied and work from the reader's side of the deliverable — the

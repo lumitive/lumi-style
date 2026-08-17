@@ -134,7 +134,7 @@ different ways.
 
 | constant | value | comment | stated in references/ |
 |---|---|---|---|
-| DIMS | `tuple(f"H{i}" for i in range(1, 7))` |  | (not searched: too short) |
+| DIMS | `tuple(f"C{i}" for i in range(1, 9))` |  | (not searched: too short) |
 | ERROR_TAIL_LINES | `20` |  | (not searched: too short) |
 
 ### scripts/build/build_region_palette.py

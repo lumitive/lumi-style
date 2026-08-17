@@ -436,3 +436,21 @@ def test_the_geometry_cross_check_reads_the_real_body_not_the_decoy(tmp_path):
         assert p.returncode == 0, p.stderr
     finally:
         (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+
+
+def test_annotate_writes_the_link_fields_and_only_those(tmp_path):
+    """corpus_id and review_ref are addresses, not verdicts — the one pair
+    annotate may write after close, because the verdict fields still have no
+    flag anywhere."""
+    tid = _open(tmp_path, "16x9")
+    try:
+        p = subprocess.run(
+            [sys.executable, str(TRACE_PY), "annotate", "--id", tid,
+             "--corpus-id", "D15", "--review-ref", "reviews/scores.json 0.1.508 D15"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert p.returncode == 0, p.stderr
+        rec = json.loads((ROOT / "evals" / "traces" / f"{tid}.json").read_text())
+        assert rec["corpus_id"] == "D15"
+        assert rec["review_ref"].startswith("reviews/scores.json")
+    finally:
+        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
