@@ -292,3 +292,52 @@ def test_field_readers_empty_schema_is_not_a_vacuous_pass(tmp_path, monkeypatch)
     monkeypatch.setattr(trace_schema, "FIELDS", {})
     monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, {"a.py": "x=1\n"}))
     assert check_repo.check_trace_field_readers()
+
+
+# The shape manifest described 206 files that existed on nobody's machine, and
+# 70 of its records were written in a language the repository's first red line
+# forbids. Both were invisible: one guard read only the SVGs, the other read
+# only markdown.
+
+def test_shape_library_a_manifest_path_the_package_does_not_ship_fails(
+        tmp_path, monkeypatch):
+    tags = ('{"schema": 3, "shapes": {"p001-flow-01": {"relation": "process", '
+            '"relation_from": "looked-at", "preview": "previews/p001-flow-01.png"}}}')
+    root = _repo(tmp_path, {"assets/shapes/tags.json": tags,
+                            "assets/shapes/p001-flow-01.svg": _SVG,
+                            "scripts/build/embed_shapes.py": _EMBEDDER})
+    monkeypatch.setattr(check_repo, "ROOT", root)
+    assert any("does not ship" in e for e in check_repo.check_shape_library())
+
+
+def test_shape_library_a_note_containing_a_slash_is_not_a_path(
+        tmp_path, monkeypatch):
+    """The first version of this matched on the slash alone and read a note —
+    'illustrative / draft / for discussion only' — as a filename."""
+    tags = ('{"schema": 3, "shapes": {"p001-flow-01": {"relation": "process", '
+            '"relation_from": "looked-at", '
+            '"note": "illustrative / draft / for discussion only stamps"}}}')
+    root = _repo(tmp_path, {"assets/shapes/tags.json": tags,
+                            "assets/shapes/p001-flow-01.svg": _SVG,
+                            "scripts/build/embed_shapes.py": _EMBEDDER})
+    monkeypatch.setattr(check_repo, "ROOT", root)
+    assert check_repo.check_shape_library() == []
+
+
+def test_english_only_reaches_a_tracked_json_manifest(tmp_path, monkeypatch):
+    """`check_stale_promises` learned this one guard over and the lesson was
+    not carried across: every text scan here globbed *.md."""
+    root = _repo(tmp_path, {"assets/shapes/tags.json":
+                            '{"shapes": {"a": {"note": "\\u6837\\u5f0f\\u952e"}}}'})
+    monkeypatch.setattr(check_repo, "ROOT", root)
+    assert any("tags.json" in e for e in check_repo.check_english_only())
+
+
+def test_english_only_leaves_an_allowlisted_manifest_alone(tmp_path, monkeypatch):
+    """A bilingual geography registry's `z` field is the string a Chinese
+    reader sees on the map. Deleting it would not make the repo more English;
+    it would make the Chinese map wrong."""
+    root = _repo(tmp_path, {"assets/vectors/regions.json":
+                            '{"regions":[{"n":"North America","z":"\\u5317\\u7f8e"}]}'})
+    monkeypatch.setattr(check_repo, "ROOT", root)
+    assert check_repo.check_english_only() == []

@@ -45,6 +45,23 @@ ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
 # Anywhere else it breaks the English-only repository red line.
 CJK_ALLOWED = {
     "AGENTS.md",
+    # The skill's own trigger phrase, "按 LUMI 风格", so a Chinese-speaking user
+    # can invoke it. Rule DATA in the strictest sense: it is the string a user
+    # types. These three are GENERATED from SKILL.md's description, so the
+    # phrase has one origin and three restatements — allowing the artifacts
+    # without allowing the source would fail the file nobody can edit.
+    ".claude-plugin/marketplace.json",
+    ".claude-plugin/plugin.json",
+    ".well-known/skills/index.json",
+    # The geography registries' bilingual names. Every `z` field is what
+    # `regionmap_svg.py --labels zh` and the globe render onto a Chinese map,
+    # so they are rule data for Chinese-language output in the most literal
+    # sense the red line allows: the string a Chinese reader sees on the
+    # figure. Deleting them would not make the repository more English; it
+    # would make the Chinese map wrong.
+    "assets/vectors/regions-trade.json",
+    "assets/vectors/regions.json",
+    "assets/vectors/world-110m.json",
     "SKILL.md",
     "prompts/lumi-style-core.md",
     "references/writing-rules.md",
@@ -193,6 +210,41 @@ def _strip_code(line, in_fence):
     return re.sub(r"`[^`]*`", " ", line), in_fence
 
 
+
+def _json_manifests():
+    """-> the tracked .json files this repository writes by hand or generates.
+
+    Tracked, so a local scratch file is not scanned; and json only, because the
+    prose globs already cover markdown. Traces are excluded: `evals/traces/`
+    is machine-written against a closed schema that has nowhere to put prose.
+    """
+    if not (ROOT / ".git").exists():
+        return []
+    p = subprocess.run(["git", "ls-files", "-z", "--", "*.json"],
+                       cwd=ROOT, capture_output=True, text=True)
+    if p.returncode != 0:
+        return []
+    out = []
+    for f in p.stdout.split("\0"):
+        if not f or f.startswith("evals/traces/"):
+            continue
+        out.append(ROOT / f)
+    return sorted(out)
+
+
+
+def _walk_strings(node, where="$"):
+    """-> (key path, string) for every string value anywhere in a JSON tree."""
+    if isinstance(node, str):
+        yield where, node
+    elif isinstance(node, dict):
+        for k, v in node.items():
+            yield from _walk_strings(v, f"{where}.{k}")
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            yield from _walk_strings(v, f"{where}[{i}]")
+
+
 def check_english_only():
     """Repository language is English. CJK appears only as quoted data.
 
@@ -205,6 +257,32 @@ def check_english_only():
     English, so the file stays readable on a platform that renders CJK poorly.
     """
     errors = []
+    # TRACKED JSON MANIFESTS TOO, not markdown alone. `check_stale_promises`
+    # learned this one guard over — "every text scan in this file globs *.md",
+    # so a registry promised work that had already landed, unread — and the
+    # lesson was not carried across. `assets/shapes/tags.json` carried 70
+    # Chinese descriptions of shapes in a repository whose first red line is
+    # that it is written in English. Not rule data for Chinese output: notes
+    # about geometry, in a tracked file, invisible to the guard that exists to
+    # find exactly that.
+    for path in _json_manifests():
+        if rel(path) in CJK_ALLOWED:
+            continue
+        # PARSED, not scanned. A raw text scan misses `\u6837\u5f0f` — valid
+        # JSON for the same characters, with no CJK byte in the file — which is
+        # how a manifest could hold Chinese prose and read as English to the
+        # guard. Line numbers are lost and the key path replaces them; for a
+        # manifest that is the more useful address anyway.
+        try:
+            doc = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue                      # the parse guards report their own
+        for where, value in _walk_strings(doc):
+            if CJK.search(value):
+                errors.append(
+                    f"{rel(path)}: CJK at {where} — a manifest is not rule "
+                    f"data for Chinese output; the repository language is "
+                    f"English.")
     for path in md_files():
         name = rel(path)
         if name in CJK_ALLOWED:
@@ -1572,6 +1650,15 @@ def check_stale_promises():
     scanned = (list(md_files()) + [PLATFORMS]
                + [ROOT / p for p in (".cursor/rules/lumi-style.mdc",
                                      ".well-known/skills/index.json",
+    # The geography registries' bilingual names. Every `z` field is what
+    # `regionmap_svg.py --labels zh` and the globe render onto a Chinese map,
+    # so they are rule data for Chinese-language output in the most literal
+    # sense the red line allows: the string a Chinese reader sees on the
+    # figure. Deleting them would not make the repository more English; it
+    # would make the Chinese map wrong.
+    "assets/vectors/regions-trade.json",
+    "assets/vectors/regions.json",
+    "assets/vectors/world-110m.json",
                                      ".claude-plugin/plugin.json",
                                      ".claude-plugin/marketplace.json")])
     scanned = [p for p in scanned if p.exists()]
@@ -2557,6 +2644,29 @@ def check_shape_library():
                       f"does not describe it")
     for dangling in sorted(set(shapes) - files):
         errors.append(f"tags.json describes {dangling}, which is not shipped")
+    # A MANIFEST FIELD MAY NOT POINT AT A FILE THE PACKAGE DOES NOT SHIP.
+    # Every one of the 206 records carried `"preview": "previews/<id>.png"`,
+    # `assets/shapes/previews/` was empty, and `.gitignore` excluded *.png
+    # anyway — so the manifest described 206 files that existed on nobody's
+    # machine. The rebuild spec's own discipline ("open the preview before
+    # using a shape") pointed at them. This is the shape-library defect in
+    # miniature, and it survived the release that fixed the library.
+    # A path, not "any string with a slash in it". The first version of this
+    # matched on the slash alone and read a NOTE — "illustrative / draft / for
+    # discussion only stamps" — as a filename. Convention 15 in one line: the
+    # pattern was written from the shape of the idea instead of from the
+    # material, and one run against the real manifest said so.
+    path_like = re.compile(r"^[\w.][\w./-]*\.(?:png|svg|jpe?g|webp|json)$")
+    for sid, rec in sorted(shapes.items()):
+        for key, value in sorted(rec.items()):
+            if not isinstance(value, str) or not path_like.match(value):
+                continue
+            if not (lib / value).exists():
+                errors.append(
+                    f"tags.json: {sid}.{key} points at {value!r}, which the "
+                    f"package does not ship — a manifest describing a file "
+                    f"nobody has is the library defect in miniature")
+
     # `looked-at` is the strongest of the four and the only one that has never
     # been wrong here: somebody opened the rendered preview. `unclassified`
     # stays legal because marking one is the alternative to guessing.

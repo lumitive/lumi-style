@@ -1,0 +1,24 @@
+{
+  "version": "0.1.504",
+  "diff_base": "29cf55cb8bd8c838e77148a3426ee40aa8568440",
+  "spec": "waived: no spec \u2014 R7 preparation: the shape manifest stops describing files the package does not ship and stops doing it in Chinese, and both guards that missed it are widened. The case is trying to follow the rule while preparing the rebuilds.",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "e9b38d242d9ee5ffa1b591b247f06aa6abcfd8334121453ab781bd962412c607",
+      "date": "2026-08-17"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board reports CLI-agent conformance runs. 0.1.504 cleans the shape manifest and widens two repository guards; no conformance task exercises any of them. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.504 is unknown, not passing."
+    }
+  ]
+}

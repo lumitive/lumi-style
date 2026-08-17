@@ -24,8 +24,7 @@
    "primitives": 404,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p002-page2-01.png",
-   "note": "样式键：色板、勾叉、气泡、爆炸标"
+   "note": "style key: colour swatches, ticks and crosses, speech bubbles, burst marks"
   },
   "p002-page2-02": {
    "family": "page2",
@@ -37,8 +36,7 @@
    "primitives": 7,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p002-page2-02.png",
-   "note": "箭头指向楔形，方向"
+   "note": "arrow into a wedge, direction"
   },
   "p003-page3-01": {
    "family": "page3",
@@ -50,8 +48,7 @@
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p003-page3-01.png",
-   "note": "大号 3D 右向箭头"
+   "note": "large 3D arrow pointing right"
   },
   "p005-2x2-cubed-01": {
    "family": "2x2-cubed",
@@ -62,8 +59,7 @@
    "slots": 1,
    "primitives": 48,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p005-2x2-cubed-01.png"
+   "three_d": true
   },
   "p006-2x2-tower-01": {
    "family": "2x2-tower",
@@ -75,8 +71,7 @@
    "slots": 6,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p006-2x2-tower-01.png"
+   "three_d": false
   },
   "p006-2x2-tower-02": {
    "family": "2x2-tower",
@@ -88,8 +83,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p006-2x2-tower-02.png"
+   "three_d": false
   },
   "p007-price-01": {
    "family": "price",
@@ -101,8 +95,7 @@
    "primitives": 11,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p007-price-01.png",
-   "note": "五个方块一排，一个抬起——对比/强调"
+   "note": "five blocks in a row, one raised — contrast or emphasis"
   },
   "p008-strategy-01": {
    "family": "strategy",
@@ -114,8 +107,7 @@
    "primitives": 14,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p008-strategy-01.png",
-   "note": "六边形全对角线，网络"
+   "note": "hexagon with every diagonal, a network"
   },
   "p009-arrow-3d-01": {
    "family": "arrow-3d",
@@ -127,8 +119,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p009-arrow-3d-01.png"
+   "three_d": false
   },
   "p010-cubes1-3d-01": {
    "family": "cubes1-3d",
@@ -139,8 +130,7 @@
    "slots": 4,
    "primitives": 24,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p010-cubes1-3d-01.png"
+   "three_d": true
   },
   "p010-cubes1-3d-02": {
    "family": "cubes1-3d",
@@ -151,8 +141,7 @@
    "slots": 24,
    "primitives": 144,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p010-cubes1-3d-02.png"
+   "three_d": true
   },
   "p011-cubes2-3d-01": {
    "family": "cubes2-3d",
@@ -163,8 +152,7 @@
    "slots": 21,
    "primitives": 126,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p011-cubes2-3d-01.png"
+   "three_d": true
   },
   "p011-cubes2-3d-02": {
    "family": "cubes2-3d",
@@ -175,8 +163,7 @@
    "slots": 4,
    "primitives": 24,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p011-cubes2-3d-02.png"
+   "three_d": true
   },
   "p012-footnotesource-01": {
    "family": "footnotesource",
@@ -188,8 +175,7 @@
    "primitives": 162,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p012-footnotesource-01.png",
-   "note": "3×3×3 立方体（页名说是脚注，其实不是）"
+   "note": "3x3x3 cube (the page name says footnote; it is not one)"
   },
   "p012-footnotesource-02": {
    "family": "footnotesource",
@@ -201,8 +187,7 @@
    "primitives": 162,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p012-footnotesource-02.png",
-   "note": "同一立方体，块被抽出——部分与整体"
+   "note": "the same cube with a block pulled out — part and whole"
   },
   "p013-cutout-3d-01": {
    "family": "cutout-3d",
@@ -213,8 +198,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p013-cutout-3d-01.png"
+   "three_d": true
   },
   "p014-new-entrant-01": {
    "family": "new-entrant",
@@ -226,8 +210,7 @@
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p014-new-entrant-01.png",
-   "note": "方块带下行箭头"
+   "note": "block with a downward arrow"
   },
   "p014-new-entrant-02": {
    "family": "new-entrant",
@@ -239,8 +222,7 @@
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p014-new-entrant-02.png",
-   "note": "方块带右楔"
+   "note": "block with a wedge to the right"
   },
   "p014-new-entrant-03": {
    "family": "new-entrant",
@@ -252,8 +234,7 @@
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p014-new-entrant-03.png",
-   "note": "方块带左缺口"
+   "note": "block with a notch on the left"
   },
   "p014-new-entrant-04": {
    "family": "new-entrant",
@@ -265,8 +246,7 @@
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p014-new-entrant-04.png",
-   "note": "3D 素方块"
+   "note": "plain 3D block"
   },
   "p014-new-entrant-05": {
    "family": "new-entrant",
@@ -278,8 +258,7 @@
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p014-new-entrant-05.png",
-   "note": "方块带上行箭头"
+   "note": "block with an upward arrow"
   },
   "p015-joint-01": {
    "family": "joint",
@@ -290,8 +269,7 @@
    "slots": 13,
    "primitives": 13,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p015-joint-01.png"
+   "three_d": false
   },
   "p016-level-separate-4-01": {
    "family": "level-separate-4",
@@ -303,8 +281,7 @@
    "slots": 11,
    "primitives": 22,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p016-level-separate-4-01.png"
+   "three_d": false
   },
   "p017-linear-a-3d-01": {
    "family": "linear-a-3d",
@@ -316,8 +293,7 @@
    "slots": 4,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p017-linear-a-3d-01.png"
+   "three_d": true
   },
   "p018-linear-b-3d-01": {
    "family": "linear-b-3d",
@@ -329,8 +305,7 @@
    "slots": 4,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p018-linear-b-3d-01.png"
+   "three_d": true
   },
   "p019-linear-c-3d-01": {
    "family": "linear-c-3d",
@@ -342,8 +317,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p019-linear-c-3d-01.png"
+   "three_d": true
   },
   "p019-linear-c-3d-02": {
    "family": "linear-c-3d",
@@ -355,8 +329,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p019-linear-c-3d-02.png"
+   "three_d": true
   },
   "p020-linear-d-3d-01": {
    "family": "linear-d-3d",
@@ -368,8 +341,7 @@
    "slots": 3,
    "primitives": 3,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p020-linear-d-3d-01.png"
+   "three_d": true
   },
   "p021-linear-e-3d-01": {
    "family": "linear-e-3d",
@@ -381,8 +353,7 @@
    "slots": 5,
    "primitives": 5,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p021-linear-e-3d-01.png"
+   "three_d": true
   },
   "p022-linear-g-3d-01": {
    "family": "linear-g-3d",
@@ -394,8 +365,7 @@
    "slots": 3,
    "primitives": 3,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p022-linear-g-3d-01.png"
+   "three_d": true
   },
   "p023-linear-i-3d-01": {
    "family": "linear-i-3d",
@@ -407,8 +377,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p023-linear-i-3d-01.png"
+   "three_d": true
   },
   "p024-linear-j-3d-01": {
    "family": "linear-j-3d",
@@ -420,8 +389,7 @@
    "slots": 4,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p024-linear-j-3d-01.png"
+   "three_d": true
   },
   "p025-linear-n-3d-01": {
    "family": "linear-n-3d",
@@ -433,8 +401,7 @@
    "slots": 14,
    "primitives": 14,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p025-linear-n-3d-01.png"
+   "three_d": true
   },
   "p026-linear-p-3d-01": {
    "family": "linear-p-3d",
@@ -446,8 +413,7 @@
    "slots": 6,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p026-linear-p-3d-01.png"
+   "three_d": true
   },
   "p027-linear-q-3d-01": {
    "family": "linear-q-3d",
@@ -459,8 +425,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p027-linear-q-3d-01.png"
+   "three_d": true
   },
   "p028-linear-q-3d-01": {
    "family": "linear-q-3d",
@@ -472,8 +437,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p028-linear-q-3d-01.png"
+   "three_d": true
   },
   "p029-implement-01": {
    "family": "implement",
@@ -485,8 +449,7 @@
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p029-implement-01.png",
-   "note": "三椭圆交叠"
+   "note": "three overlapping ellipses"
   },
   "p030-perspective-3d-01": {
    "family": "perspective-3d",
@@ -497,8 +460,7 @@
    "slots": 40,
    "primitives": 7160,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p030-perspective-3d-01.png"
+   "three_d": true
   },
   "p031-propeller-3d-01": {
    "family": "propeller-3d",
@@ -510,8 +472,7 @@
    "slots": 4,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p031-propeller-3d-01.png"
+   "three_d": false
   },
   "p032-rings-3d-01": {
    "family": "rings-3d",
@@ -523,8 +484,7 @@
    "slots": 19,
    "primitives": 19,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p032-rings-3d-01.png"
+   "three_d": false
   },
   "p032-rings-3d-02": {
    "family": "rings-3d",
@@ -536,8 +496,7 @@
    "slots": 4,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p032-rings-3d-02.png"
+   "three_d": false
   },
   "p033-scale-01": {
    "family": "scale",
@@ -548,8 +507,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p033-scale-01.png"
+   "three_d": false
   },
   "p034-scales-01": {
    "family": "scales",
@@ -560,8 +518,7 @@
    "slots": 10,
    "primitives": 14,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p034-scales-01.png"
+   "three_d": false
   },
   "p035-sizes-in-01": {
    "family": "sizes-in",
@@ -573,8 +530,7 @@
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p035-sizes-in-01.png",
-   "note": "同心圆递增，尺度"
+   "note": "concentric circles increasing, scale"
   },
   "p036-spiral1-3d-01": {
    "family": "spiral1-3d",
@@ -586,8 +542,7 @@
    "slots": 381,
    "primitives": 456,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p036-spiral1-3d-01.png"
+   "three_d": false
   },
   "p037-spiral-01": {
    "family": "spiral",
@@ -599,8 +554,7 @@
    "slots": 17,
    "primitives": 17,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p037-spiral-01.png"
+   "three_d": false
   },
   "p037-spiral-02": {
    "family": "spiral",
@@ -612,8 +566,7 @@
    "slots": 9,
    "primitives": 9,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p037-spiral-02.png"
+   "three_d": false
   },
   "p037-spiral-03": {
    "family": "spiral",
@@ -625,8 +578,7 @@
    "slots": 15,
    "primitives": 15,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p037-spiral-03.png"
+   "three_d": false
   },
   "p038-spotlight-01": {
    "family": "spotlight",
@@ -637,8 +589,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": true,
-   "three_d": false,
-   "preview": "previews/p038-spotlight-01.png"
+   "three_d": false
   },
   "p038-spotlight-02": {
    "family": "spotlight",
@@ -649,8 +600,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": true,
-   "three_d": false,
-   "preview": "previews/p038-spotlight-02.png"
+   "three_d": false
   },
   "p038-spotlight-03": {
    "family": "spotlight",
@@ -661,8 +611,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": true,
-   "three_d": false,
-   "preview": "previews/p038-spotlight-03.png"
+   "three_d": false
   },
   "p038-spotlight-04": {
    "family": "spotlight",
@@ -673,8 +622,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": true,
-   "three_d": false,
-   "preview": "previews/p038-spotlight-04.png"
+   "three_d": false
   },
   "p038-spotlight-05": {
    "family": "spotlight",
@@ -685,8 +633,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": true,
-   "three_d": false,
-   "preview": "previews/p038-spotlight-05.png"
+   "three_d": false
   },
   "p039-staircase-01": {
    "family": "staircase",
@@ -697,8 +644,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p039-staircase-01.png"
+   "three_d": false
   },
   "p040-stars-3d-01": {
    "family": "stars-3d",
@@ -709,8 +655,7 @@
    "slots": 37,
    "primitives": 37,
    "decoration_risk": true,
-   "three_d": false,
-   "preview": "previews/p040-stars-3d-01.png"
+   "three_d": false
   },
   "p040-stars-3d-02": {
    "family": "stars-3d",
@@ -721,8 +666,7 @@
    "slots": 59,
    "primitives": 59,
    "decoration_risk": true,
-   "three_d": false,
-   "preview": "previews/p040-stars-3d-02.png"
+   "three_d": false
   },
   "p041-wire-cubes-01": {
    "family": "wire-cubes",
@@ -733,8 +677,7 @@
    "slots": 1,
    "primitives": 11,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p041-wire-cubes-01.png"
+   "three_d": true
   },
   "p042-arrows-01": {
    "family": "arrows",
@@ -746,8 +689,7 @@
    "slots": 6,
    "primitives": 12,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p042-arrows-01.png"
+   "three_d": false
   },
   "p042-arrows-02": {
    "family": "arrows",
@@ -759,8 +701,7 @@
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p042-arrows-02.png"
+   "three_d": false
   },
   "p042-arrows-03": {
    "family": "arrows",
@@ -772,8 +713,7 @@
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p042-arrows-03.png"
+   "three_d": false
   },
   "p043-level-1-01": {
    "family": "level-1",
@@ -785,8 +725,7 @@
    "slots": 3,
    "primitives": 52,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p043-level-1-01.png"
+   "three_d": false
   },
   "p044-level-2-01": {
    "family": "level-2",
@@ -798,8 +737,7 @@
    "slots": 5,
    "primitives": 64,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p044-level-2-01.png"
+   "three_d": false
   },
   "p045-level-3-01": {
    "family": "level-3",
@@ -811,8 +749,7 @@
    "slots": 7,
    "primitives": 74,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p045-level-3-01.png"
+   "three_d": false
   },
   "p046-level-4-01": {
    "family": "level-4",
@@ -824,8 +761,7 @@
    "slots": 9,
    "primitives": 88,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p046-level-4-01.png"
+   "three_d": false
   },
   "p047-level-5-01": {
    "family": "level-5",
@@ -837,8 +773,7 @@
    "slots": 11,
    "primitives": 110,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p047-level-5-01.png"
+   "three_d": false
   },
   "p048-level-6-01": {
    "family": "level-6",
@@ -850,8 +785,7 @@
    "slots": 13,
    "primitives": 144,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p048-level-6-01.png"
+   "three_d": false
   },
   "p049-flow-2-01": {
    "family": "flow-2",
@@ -862,8 +796,7 @@
    "slots": 2,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p049-flow-2-01.png"
+   "three_d": false
   },
   "p050-flow-2-title-01": {
    "family": "flow-2-title",
@@ -874,8 +807,7 @@
    "slots": 2,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p050-flow-2-title-01.png"
+   "three_d": false
   },
   "p051-flow-3-01": {
    "family": "flow-3",
@@ -886,8 +818,7 @@
    "slots": 3,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p051-flow-3-01.png"
+   "three_d": false
   },
   "p052-flow-3-title-01": {
    "family": "flow-3-title",
@@ -898,8 +829,7 @@
    "slots": 3,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p052-flow-3-title-01.png"
+   "three_d": false
   },
   "p053-flow-4-01": {
    "family": "flow-4",
@@ -910,8 +840,7 @@
    "slots": 4,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p053-flow-4-01.png"
+   "three_d": false
   },
   "p054-flow-4-title-01": {
    "family": "flow-4-title",
@@ -922,8 +851,7 @@
    "slots": 4,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p054-flow-4-title-01.png"
+   "three_d": false
   },
   "p055-flow-5-01": {
    "family": "flow-5",
@@ -934,8 +862,7 @@
    "slots": 5,
    "primitives": 10,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p055-flow-5-01.png"
+   "three_d": false
   },
   "p056-flow-5-title-01": {
    "family": "flow-5-title",
@@ -946,8 +873,7 @@
    "slots": 5,
    "primitives": 10,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p056-flow-5-title-01.png"
+   "three_d": false
   },
   "p057-flow-6-01": {
    "family": "flow-6",
@@ -958,8 +884,7 @@
    "slots": 6,
    "primitives": 12,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p057-flow-6-01.png"
+   "three_d": false
   },
   "p058-flow-6-title-01": {
    "family": "flow-6-title",
@@ -970,8 +895,7 @@
    "slots": 6,
    "primitives": 12,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p058-flow-6-title-01.png"
+   "three_d": false
   },
   "p059-blades-01": {
    "family": "blades",
@@ -982,8 +906,7 @@
    "slots": 2,
    "primitives": 10,
    "decoration_risk": true,
-   "three_d": false,
-   "preview": "previews/p059-blades-01.png"
+   "three_d": false
   },
   "p060-box-01": {
    "family": "box",
@@ -995,8 +918,7 @@
    "slots": 2,
    "primitives": 24,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p060-box-01.png"
+   "three_d": false
   },
   "p061-box-01": {
    "family": "box",
@@ -1008,8 +930,7 @@
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p061-box-01.png"
+   "three_d": false
   },
   "p061-box-02": {
    "family": "box",
@@ -1021,8 +942,7 @@
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p061-box-02.png"
+   "three_d": false
   },
   "p061-box-03": {
    "family": "box",
@@ -1034,8 +954,7 @@
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p061-box-03.png"
+   "three_d": false
   },
   "p061-box-04": {
    "family": "box",
@@ -1047,8 +966,7 @@
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p061-box-04.png"
+   "three_d": false
   },
   "p062-cycle-1-01": {
    "family": "cycle-1",
@@ -1059,8 +977,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p062-cycle-1-01.png"
+   "three_d": false
   },
   "p063-cycle-2-01": {
    "family": "cycle-2",
@@ -1071,8 +988,7 @@
    "slots": 1,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p063-cycle-2-01.png"
+   "three_d": false
   },
   "p064-cycle-3-01": {
    "family": "cycle-3",
@@ -1083,8 +999,7 @@
    "slots": 3,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p064-cycle-3-01.png"
+   "three_d": false
   },
   "p065-cycle-4-01": {
    "family": "cycle-4",
@@ -1095,8 +1010,7 @@
    "slots": 1,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p065-cycle-4-01.png"
+   "three_d": false
   },
   "p066-cycle-5-01": {
    "family": "cycle-5",
@@ -1107,8 +1021,7 @@
    "slots": 1,
    "primitives": 10,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p066-cycle-5-01.png"
+   "three_d": false
   },
   "p067-cycle-6-01": {
    "family": "cycle-6",
@@ -1119,8 +1032,7 @@
    "slots": 1,
    "primitives": 12,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p067-cycle-6-01.png"
+   "three_d": false
   },
   "p068-cycle-7-01": {
    "family": "cycle-7",
@@ -1131,8 +1043,7 @@
    "slots": 1,
    "primitives": 14,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p068-cycle-7-01.png"
+   "three_d": false
   },
   "p069-cycle-8-01": {
    "family": "cycle-8",
@@ -1143,8 +1054,7 @@
    "slots": 1,
    "primitives": 16,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p069-cycle-8-01.png"
+   "three_d": false
   },
   "p070-incoming-01": {
    "family": "incoming",
@@ -1155,8 +1065,7 @@
    "slots": 1,
    "primitives": 12,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p070-incoming-01.png"
+   "three_d": false
   },
   "p071-ribbon-01": {
    "family": "ribbon",
@@ -1167,8 +1076,7 @@
    "slots": 7,
    "primitives": 14,
    "decoration_risk": true,
-   "three_d": false,
-   "preview": "previews/p071-ribbon-01.png"
+   "three_d": false
   },
   "p072-ring-01": {
    "family": "ring",
@@ -1180,8 +1088,7 @@
    "slots": 1,
    "primitives": 14,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p072-ring-01.png"
+   "three_d": false
   },
   "p073-upon-2-01": {
    "family": "upon-2",
@@ -1192,8 +1099,7 @@
    "slots": 1,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p073-upon-2-01.png"
+   "three_d": false
   },
   "p074-continuous-01": {
    "family": "continuous",
@@ -1204,8 +1110,7 @@
    "slots": 8,
    "primitives": 16,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p074-continuous-01.png"
+   "three_d": false
   },
   "p075-cutout-01": {
    "family": "cutout",
@@ -1216,8 +1121,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p075-cutout-01.png"
+   "three_d": true
   },
   "p076-linear-a-01": {
    "family": "linear-a",
@@ -1229,8 +1133,7 @@
    "slots": 3,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p076-linear-a-01.png"
+   "three_d": true
   },
   "p077-linear-b-01": {
    "family": "linear-b",
@@ -1242,8 +1145,7 @@
    "slots": 4,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p077-linear-b-01.png"
+   "three_d": true
   },
   "p078-linear-c-01": {
    "family": "linear-c",
@@ -1255,8 +1157,7 @@
    "slots": 1,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p078-linear-c-01.png"
+   "three_d": true
   },
   "p079-linear-d-01": {
    "family": "linear-d",
@@ -1268,8 +1169,7 @@
    "slots": 3,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p079-linear-d-01.png"
+   "three_d": true
   },
   "p080-linear-e-01": {
    "family": "linear-e",
@@ -1281,8 +1181,7 @@
    "slots": 1,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p080-linear-e-01.png"
+   "three_d": true
   },
   "p081-linear-f-01": {
    "family": "linear-f",
@@ -1294,8 +1193,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p081-linear-f-01.png"
+   "three_d": true
   },
   "p082-linear-g-01": {
    "family": "linear-g",
@@ -1307,8 +1205,7 @@
    "slots": 3,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p082-linear-g-01.png"
+   "three_d": true
   },
   "p083-linear-h-01": {
    "family": "linear-h",
@@ -1320,8 +1217,7 @@
    "slots": 4,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p083-linear-h-01.png"
+   "three_d": true
   },
   "p084-linear-i-01": {
    "family": "linear-i",
@@ -1333,8 +1229,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p084-linear-i-01.png"
+   "three_d": true
   },
   "p085-linear-j-01": {
    "family": "linear-j",
@@ -1346,8 +1241,7 @@
    "slots": 1,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p085-linear-j-01.png"
+   "three_d": true
   },
   "p086-linear-k-01": {
    "family": "linear-k",
@@ -1359,8 +1253,7 @@
    "slots": 2,
    "primitives": 7,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p086-linear-k-01.png"
+   "three_d": true
   },
   "p087-linear-n-01": {
    "family": "linear-n",
@@ -1372,8 +1265,7 @@
    "slots": 1,
    "primitives": 14,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p087-linear-n-01.png"
+   "three_d": true
   },
   "p088-linear-p-01": {
    "family": "linear-p",
@@ -1385,8 +1277,7 @@
    "slots": 1,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p088-linear-p-01.png"
+   "three_d": true
   },
   "p089-linear-q-01": {
    "family": "linear-q",
@@ -1398,8 +1289,7 @@
    "slots": 1,
    "primitives": 1,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p089-linear-q-01.png"
+   "three_d": true
   },
   "p090-propeller-01": {
    "family": "propeller",
@@ -1411,8 +1301,7 @@
    "slots": 1,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p090-propeller-01.png"
+   "three_d": false
   },
   "p091-step-5-01": {
    "family": "step-5",
@@ -1423,8 +1312,7 @@
    "slots": 5,
    "primitives": 10,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p091-step-5-01.png"
+   "three_d": false
   },
   "p092-2-on-1-01": {
    "family": "2-on-1",
@@ -1435,8 +1323,7 @@
    "slots": 3,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p092-2-on-1-01.png"
+   "three_d": false
   },
   "p093-against-01": {
    "family": "against",
@@ -1447,8 +1334,7 @@
    "slots": 3,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p093-against-01.png"
+   "three_d": false
   },
   "p093-against-02": {
    "family": "against",
@@ -1459,8 +1345,7 @@
    "slots": 3,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p093-against-02.png"
+   "three_d": false
   },
   "p094-at-work-01": {
    "family": "at-work",
@@ -1472,8 +1357,7 @@
    "primitives": 10,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p094-at-work-01.png",
-   "note": "十字与箭头交汇"
+   "note": "a cross and arrows meeting"
   },
   "p095-coupled-horiz-01": {
    "family": "coupled-horiz",
@@ -1484,8 +1368,7 @@
    "slots": 2,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p095-coupled-horiz-01.png"
+   "three_d": false
   },
   "p096-coupled-vert-01": {
    "family": "coupled-vert",
@@ -1496,8 +1379,7 @@
    "slots": 2,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p096-coupled-vert-01.png"
+   "three_d": false
   },
   "p097-focused-01": {
    "family": "focused",
@@ -1509,8 +1391,7 @@
    "primitives": 12,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p097-focused-01.png",
-   "note": "四箭头向中心汇聚"
+   "note": "four arrows converging on the centre"
   },
   "p098-new-entrant-01": {
    "family": "new-entrant",
@@ -1522,8 +1403,7 @@
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p098-new-entrant-01.png",
-   "note": "下行箭头（平面）"
+   "note": "downward arrow, flat"
   },
   "p098-new-entrant-02": {
    "family": "new-entrant",
@@ -1535,8 +1415,7 @@
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p098-new-entrant-02.png",
-   "note": "右向雪佛龙"
+   "note": "chevron pointing right"
   },
   "p098-new-entrant-03": {
    "family": "new-entrant",
@@ -1548,8 +1427,7 @@
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p098-new-entrant-03.png",
-   "note": "左向雪佛龙"
+   "note": "chevron pointing left"
   },
   "p098-new-entrant-04": {
    "family": "new-entrant",
@@ -1561,8 +1439,7 @@
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p098-new-entrant-04.png",
-   "note": "素矩形容器"
+   "note": "plain rectangular container"
   },
   "p098-new-entrant-05": {
    "family": "new-entrant",
@@ -1574,8 +1451,7 @@
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p098-new-entrant-05.png",
-   "note": "上行箭头"
+   "note": "upward arrow"
   },
   "p099-parallel-01": {
    "family": "parallel",
@@ -1586,8 +1462,7 @@
    "slots": 1,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p099-parallel-01.png"
+   "three_d": false
   },
   "p100-split-01": {
    "family": "split",
@@ -1598,8 +1473,7 @@
    "slots": 15,
    "primitives": 30,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p100-split-01.png"
+   "three_d": false
   },
   "p101-surround-01": {
    "family": "surround",
@@ -1610,8 +1484,7 @@
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p101-surround-01.png"
+   "three_d": false
   },
   "p101-surround-02": {
    "family": "surround",
@@ -1622,8 +1495,7 @@
    "slots": 5,
    "primitives": 10,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p101-surround-02.png"
+   "three_d": false
   },
   "p101-surround-03": {
    "family": "surround",
@@ -1634,8 +1506,7 @@
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p101-surround-03.png"
+   "three_d": false
   },
   "p101-surround-04": {
    "family": "surround",
@@ -1646,8 +1517,7 @@
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p101-surround-04.png"
+   "three_d": false
   },
   "p101-surround-05": {
    "family": "surround",
@@ -1658,8 +1528,7 @@
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p101-surround-05.png"
+   "three_d": false
   },
   "p102-twisted-01": {
    "family": "twisted",
@@ -1670,8 +1539,7 @@
    "slots": 2,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p102-twisted-01.png"
+   "three_d": false
   },
   "p103-up-away-01": {
    "family": "up-away",
@@ -1682,8 +1550,7 @@
    "slots": 1,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p103-up-away-01.png"
+   "three_d": false
   },
   "p103-up-away-02": {
    "family": "up-away",
@@ -1694,8 +1561,7 @@
    "slots": 1,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p103-up-away-02.png"
+   "three_d": false
   },
   "p104-up-down-01": {
    "family": "up-down",
@@ -1706,8 +1572,7 @@
    "slots": 1,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p104-up-down-01.png"
+   "three_d": false
   },
   "p104-up-down-02": {
    "family": "up-down",
@@ -1718,8 +1583,7 @@
    "slots": 1,
    "primitives": 4,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p104-up-down-02.png"
+   "three_d": false
   },
   "p105-customer-01": {
    "family": "customer",
@@ -1731,8 +1595,7 @@
    "primitives": 28,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p105-customer-01.png",
-   "note": "五节点关系网（客户/分销/供应/竞争）"
+   "note": "five-node relationship web (customer, distribution, supply, competition)"
   },
   "p106-skills-01": {
    "family": "skills",
@@ -1744,8 +1607,7 @@
    "primitives": 30,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p106-skills-01.png",
-   "note": "7S 型节点网"
+   "note": "7S-shaped node web"
   },
   "p107-the-way-managerscollectively-behave-with-01": {
    "family": "the-way-managerscollectively-behave-with",
@@ -1757,8 +1619,7 @@
    "primitives": 30,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p107-the-way-managerscollectively-behave-with-01.png",
-   "note": "节点与聚类"
+   "note": "nodes and clusters"
   },
   "p108-competitive-position-01": {
    "family": "competitive-position",
@@ -1770,8 +1631,7 @@
    "primitives": 20,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p108-competitive-position-01.png",
-   "note": "3×3 网格"
+   "note": "3x3 grid"
   },
   "p109-change-vision-01": {
    "family": "change-vision",
@@ -1782,8 +1642,7 @@
    "slots": 23,
    "primitives": 54,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p109-change-vision-01.png"
+   "three_d": false
   },
   "p110-delta-p-01": {
    "family": "delta-p",
@@ -1794,8 +1653,7 @@
    "slots": 19,
    "primitives": 38,
    "decoration_risk": true,
-   "three_d": false,
-   "preview": "previews/p110-delta-p-01.png"
+   "three_d": false
   },
   "p111-natural-owner-01": {
    "family": "natural-owner",
@@ -1807,8 +1665,7 @@
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p111-natural-owner-01.png",
-   "note": "带小缺口的横条"
+   "note": "horizontal bar with a small notch"
   },
   "p111-natural-owner-02": {
    "family": "natural-owner",
@@ -1820,8 +1677,7 @@
    "primitives": 13,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p111-natural-owner-02.png",
-   "note": "2×3 决策矩阵"
+   "note": "2x3 decision matrix"
   },
   "p111-natural-owner-03": {
    "family": "natural-owner",
@@ -1833,8 +1689,7 @@
    "primitives": 3,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p111-natural-owner-03.png",
-   "note": "方块带右小箭头"
+   "note": "block with a small arrow to the right"
   },
   "p112-business-strategy-01": {
    "family": "business-strategy",
@@ -1846,8 +1701,7 @@
    "primitives": 18,
    "decoration_risk": true,
    "three_d": false,
-   "preview": "previews/p112-business-strategy-01.png",
-   "note": "拼图块与箭头"
+   "note": "puzzle pieces and an arrow"
   },
   "p113-restructuring-framework-01": {
    "family": "restructuring-framework",
@@ -1859,8 +1713,7 @@
    "slots": 7,
    "primitives": 14,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p113-restructuring-framework-01.png"
+   "three_d": false
   },
   "p114-benefit-01": {
    "family": "benefit",
@@ -1872,8 +1725,7 @@
    "primitives": 12,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p114-benefit-01.png",
-   "note": "对角二分方块带双向箭头，权衡"
+   "note": "block split on the diagonal with a two-way arrow, a trade-off"
   },
   "p115-appraise-performanceand-prospects-01": {
    "family": "appraise-performanceand-prospects",
@@ -1885,8 +1737,7 @@
    "primitives": 17,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p115-appraise-performanceand-prospects-01.png",
-   "note": "箭头环"
+   "note": "ring of arrows"
   },
   "p116-3-01": {
    "family": "3",
@@ -1898,8 +1749,7 @@
    "primitives": 28,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p116-3-01.png",
-   "note": "分层 2×2 板（3D 层）"
+   "note": "layered 2x2 boards, 3D tiers"
   },
   "p116-3-02": {
    "family": "3",
@@ -1911,8 +1761,7 @@
    "primitives": 3,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p116-3-02.png",
-   "note": "竖直双向箭头"
+   "note": "vertical two-way arrow"
   },
   "p117-stage-1-01": {
    "family": "stage-1",
@@ -1923,8 +1772,7 @@
    "slots": 5,
    "primitives": 9,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p117-stage-1-01.png"
+   "three_d": false
   },
   "p118-selling-margin-contributionsales-01": {
    "family": "selling-margin-contributionsales",
@@ -1936,8 +1784,7 @@
    "primitives": 31,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p118-selling-margin-contributionsales-01.png",
-   "note": "树状分支/组织图"
+   "note": "branching tree or org chart"
   },
   "p119-maximizeshareholdervalue-01": {
    "family": "maximizeshareholdervalue",
@@ -1949,8 +1796,7 @@
    "primitives": 15,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p119-maximizeshareholdervalue-01.png",
-   "note": "中心加五颗卫星，轮辐"
+   "note": "a centre with five satellites, hub and spoke"
   },
   "p120-real-01": {
    "family": "real",
@@ -1962,8 +1808,7 @@
    "primitives": 13,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p120-real-01.png",
-   "note": "括号树/谱系"
+   "note": "bracket tree or lineage"
   },
   "p121-gantt10-01": {
    "family": "gantt10",
@@ -1974,8 +1819,7 @@
    "slots": 23,
    "primitives": 39,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p121-gantt10-01.png"
+   "three_d": false
   },
   "p122-page122-01": {
    "family": "page122",
@@ -1987,8 +1831,7 @@
    "primitives": 43,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p122-page122-01.png",
-   "note": "列网格带标注，时间/甘特形"
+   "note": "column grid with callouts, a time or Gantt shape"
   },
   "p123-left-to-right-01": {
    "family": "left-to-right",
@@ -1999,8 +1842,7 @@
    "slots": 5,
    "primitives": 10,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p123-left-to-right-01.png"
+   "three_d": false
   },
   "p124-process-objectives-01": {
    "family": "process-objectives",
@@ -2011,8 +1853,7 @@
    "slots": 139,
    "primitives": 146,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p124-process-objectives-01.png"
+   "three_d": false
   },
   "p125-top-down-01": {
    "family": "top-down",
@@ -2023,8 +1864,7 @@
    "slots": 8,
    "primitives": 16,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p125-top-down-01.png"
+   "three_d": false
   },
   "p126-2x2-01": {
    "family": "2x2",
@@ -2035,8 +1875,7 @@
    "slots": 3,
    "primitives": 10,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p126-2x2-01.png"
+   "three_d": false
   },
   "p127-2x2-cubed-01": {
    "family": "2x2-cubed",
@@ -2047,8 +1886,7 @@
    "slots": 12,
    "primitives": 24,
    "decoration_risk": false,
-   "three_d": true,
-   "preview": "previews/p127-2x2-cubed-01.png"
+   "three_d": true
   },
   "p128-2x2-extended-01": {
    "family": "2x2-extended",
@@ -2059,8 +1897,7 @@
    "slots": 10,
    "primitives": 16,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p128-2x2-extended-01.png"
+   "three_d": false
   },
   "p129-2x2-tower-01": {
    "family": "2x2-tower",
@@ -2072,8 +1909,7 @@
    "slots": 1,
    "primitives": 29,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p129-2x2-tower-01.png"
+   "three_d": false
   },
   "p130-3x3-01": {
    "family": "3x3",
@@ -2084,8 +1920,7 @@
    "slots": 11,
    "primitives": 20,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p130-3x3-01.png"
+   "three_d": false
   },
   "p131-3x3-extended-01": {
    "family": "3x3-extended",
@@ -2096,8 +1931,7 @@
    "slots": 16,
    "primitives": 28,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p131-3x3-extended-01.png"
+   "three_d": false
   },
   "p132-diffraction-01": {
    "family": "diffraction",
@@ -2108,8 +1942,7 @@
    "slots": 10,
    "primitives": 17,
    "decoration_risk": true,
-   "three_d": false,
-   "preview": "previews/p132-diffraction-01.png"
+   "three_d": false
   },
   "p133-flow-down-01": {
    "family": "flow-down",
@@ -2120,8 +1953,7 @@
    "slots": 1,
    "primitives": 6,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p133-flow-down-01.png"
+   "three_d": false
   },
   "p134-pass-through-01": {
    "family": "pass-through",
@@ -2132,8 +1964,7 @@
    "slots": 1,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p134-pass-through-01.png"
+   "three_d": false
   },
   "p135-label-1-01": {
    "family": "label-1",
@@ -2146,8 +1977,7 @@
    "primitives": 21,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p135-label-1-01.png",
-   "note": "堆叠面积随时间"
+   "note": "stacked areas over time"
   },
   "p136-label-1-01": {
    "family": "label-1",
@@ -2159,8 +1989,7 @@
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p136-label-1-01.png",
-   "note": "排序横条"
+   "note": "ranked horizontal bars"
   },
   "p137-label-1-01": {
    "family": "label-1",
@@ -2172,8 +2001,7 @@
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p137-label-1-01.png",
-   "note": "排序横条"
+   "note": "ranked horizontal bars"
   },
   "p137-label-1-02": {
    "family": "label-1",
@@ -2185,8 +2013,7 @@
    "primitives": 11,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p137-label-1-02.png",
-   "note": "排序横条"
+   "note": "ranked horizontal bars"
   },
   "p138-label-1-01": {
    "family": "label-1",
@@ -2198,8 +2025,7 @@
    "primitives": 16,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p138-label-1-01.png",
-   "note": "分组横条，三序列"
+   "note": "grouped horizontal bars, three series"
   },
   "p139-label-1-01": {
    "family": "label-1",
@@ -2211,8 +2037,7 @@
    "primitives": 33,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p139-label-1-01.png",
-   "note": "堆叠横条"
+   "note": "stacked horizontal bars"
   },
   "p140-label-1-01": {
    "family": "label-1",
@@ -2224,8 +2049,7 @@
    "primitives": 28,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p140-label-1-01.png",
-   "note": "堆叠横条"
+   "note": "stacked horizontal bars"
   },
   "p141-titleunit-of-measure-01": {
    "family": "titleunit-of-measure",
@@ -2237,8 +2061,7 @@
    "primitives": 16,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p141-titleunit-of-measure-01.png",
-   "note": "散点带气泡"
+   "note": "scatter with bubbles"
   },
   "p141-titleunit-of-measure-02": {
    "family": "titleunit-of-measure",
@@ -2250,8 +2073,7 @@
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p141-titleunit-of-measure-02.png",
-   "note": "单圆（饼底）"
+   "note": "one circle, the base of a pie"
   },
   "p141-titleunit-of-measure-03": {
    "family": "titleunit-of-measure",
@@ -2263,8 +2085,7 @@
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p141-titleunit-of-measure-03.png",
-   "note": "单圆"
+   "note": "one circle"
   },
   "p141-titleunit-of-measure-04": {
    "family": "titleunit-of-measure",
@@ -2276,8 +2097,7 @@
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p141-titleunit-of-measure-04.png",
-   "note": "双圆交叠，韦恩"
+   "note": "two overlapping circles, a Venn"
   },
   "p141-titleunit-of-measure-05": {
    "family": "titleunit-of-measure",
@@ -2289,8 +2109,7 @@
    "primitives": 1,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p141-titleunit-of-measure-05.png",
-   "note": "单圆"
+   "note": "one circle"
   },
   "p142-label-1-01": {
    "family": "label-1",
@@ -2302,8 +2121,7 @@
    "primitives": 10,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p142-label-1-01.png",
-   "note": "递增柱"
+   "note": "rising columns"
   },
   "p144-label-1-01": {
    "family": "label-1",
@@ -2315,8 +2133,7 @@
    "primitives": 24,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p144-label-1-01.png",
-   "note": "分组柱递增"
+   "note": "grouped columns rising"
   },
   "p145-label-1-01": {
    "family": "label-1",
@@ -2328,8 +2145,7 @@
    "primitives": 40,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p145-label-1-01.png",
-   "note": "堆叠柱递增"
+   "note": "stacked columns rising"
   },
   "p146-label-1-01": {
    "family": "label-1",
@@ -2341,8 +2157,7 @@
    "primitives": 41,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p146-label-1-01.png",
-   "note": "五根等高堆叠柱"
+   "note": "five stacked columns of equal height"
   },
   "p147-titleunit-of-measure-01": {
    "family": "titleunit-of-measure",
@@ -2354,8 +2169,7 @@
    "primitives": 7,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p147-titleunit-of-measure-01.png",
-   "note": "饼图分块"
+   "note": "pie segments"
   },
   "p147-titleunit-of-measure-02": {
    "family": "titleunit-of-measure",
@@ -2367,8 +2181,7 @@
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p147-titleunit-of-measure-02.png",
-   "note": "单根堆叠柱"
+   "note": "one stacked column"
   },
   "p148-titleunit-of-measure-01": {
    "family": "titleunit-of-measure",
@@ -2380,8 +2193,7 @@
    "primitives": 14,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p148-titleunit-of-measure-01.png",
-   "note": "直方图"
+   "note": "histogram"
   },
   "p149-arrows-01": {
    "family": "arrows",
@@ -2393,8 +2205,7 @@
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p149-arrows-01.png"
+   "three_d": false
   },
   "p149-arrows-02": {
    "family": "arrows",
@@ -2406,8 +2217,7 @@
    "slots": 1,
    "primitives": 8,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p149-arrows-02.png"
+   "three_d": false
   },
   "p149-arrows-03": {
    "family": "arrows",
@@ -2419,8 +2229,7 @@
    "slots": 1,
    "primitives": 2,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p149-arrows-03.png"
+   "three_d": false
   },
   "p153-legendlegendlegend-01": {
    "family": "legendlegendlegend",
@@ -2432,8 +2241,7 @@
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p153-legendlegendlegend-01.png",
-   "note": "三色图例块"
+   "note": "three-colour legend blocks"
   },
   "p155-page155-01": {
    "family": "page155",
@@ -2445,8 +2253,7 @@
    "primitives": 6,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p155-page155-01.png",
-   "note": "两根深色斜条"
+   "note": "two dark diagonal bars"
   },
   "p156-very-attractiveaveragevery-unattractive-01": {
    "family": "very-attractiveaveragevery-unattractive",
@@ -2458,8 +2265,7 @@
    "primitives": 18,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-01.png",
-   "note": "哈维球，程度刻度"
+   "note": "Harvey ball, degree scale"
   },
   "p156-very-attractiveaveragevery-unattractive-02": {
    "family": "very-attractiveaveragevery-unattractive",
@@ -2471,8 +2277,7 @@
    "primitives": 10,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-02.png",
-   "note": "哈维球，程度刻度"
+   "note": "Harvey ball, degree scale"
   },
   "p156-very-attractiveaveragevery-unattractive-03": {
    "family": "very-attractiveaveragevery-unattractive",
@@ -2484,8 +2289,7 @@
    "primitives": 18,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-03.png",
-   "note": "哈维球，程度刻度"
+   "note": "Harvey ball, degree scale"
   },
   "p156-very-attractiveaveragevery-unattractive-04": {
    "family": "very-attractiveaveragevery-unattractive",
@@ -2497,8 +2301,7 @@
    "primitives": 18,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-04.png",
-   "note": "哈维球，程度刻度"
+   "note": "Harvey ball, degree scale"
   },
   "p156-very-attractiveaveragevery-unattractive-05": {
    "family": "very-attractiveaveragevery-unattractive",
@@ -2510,8 +2313,7 @@
    "primitives": 2,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-05.png",
-   "note": "哈维球，程度刻度"
+   "note": "Harvey ball, degree scale"
   },
   "p156-very-attractiveaveragevery-unattractive-06": {
    "family": "very-attractiveaveragevery-unattractive",
@@ -2523,8 +2325,7 @@
    "primitives": 4,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-06.png",
-   "note": "哈维球，程度刻度"
+   "note": "Harvey ball, degree scale"
   },
   "p156-very-attractiveaveragevery-unattractive-07": {
    "family": "very-attractiveaveragevery-unattractive",
@@ -2536,8 +2337,7 @@
    "primitives": 4,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-07.png",
-   "note": "哈维球，程度刻度"
+   "note": "Harvey ball, degree scale"
   },
   "p156-very-attractiveaveragevery-unattractive-08": {
    "family": "very-attractiveaveragevery-unattractive",
@@ -2549,8 +2349,7 @@
    "primitives": 4,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-08.png",
-   "note": "哈维球，程度刻度"
+   "note": "Harvey ball, degree scale"
   },
   "p156-very-attractiveaveragevery-unattractive-09": {
    "family": "very-attractiveaveragevery-unattractive",
@@ -2562,8 +2361,7 @@
    "primitives": 10,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-09.png",
-   "note": "哈维球，程度刻度"
+   "note": "Harvey ball, degree scale"
   },
   "p156-very-attractiveaveragevery-unattractive-10": {
    "family": "very-attractiveaveragevery-unattractive",
@@ -2575,8 +2373,7 @@
    "primitives": 4,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p156-very-attractiveaveragevery-unattractive-10.png",
-   "note": "哈维球，程度刻度"
+   "note": "Harvey ball, degree scale"
   },
   "p157-illustrative-01": {
    "family": "illustrative",
@@ -2588,8 +2385,7 @@
    "primitives": 16,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p157-illustrative-01.png",
-   "note": "示意/初稿/仅供讨论 标注戳——C4-③ 的诚实边界标记"
+   "note": "illustrative / draft / for discussion only stamps — C4's honest-boundary marker"
   },
   "p158-disguised-client-example-01": {
    "family": "disguised-client-example",
@@ -2601,8 +2397,7 @@
    "primitives": 32,
    "decoration_risk": false,
    "three_d": false,
-   "preview": "previews/p158-disguised-client-example-01.png",
-   "note": "整套披露标注戳"
+   "note": "the full set of disclosure stamps"
   },
   "p159-world-map-01": {
    "family": "world-map",
@@ -2613,8 +2408,7 @@
    "slots": 1,
    "primitives": 10,
    "decoration_risk": false,
-   "three_d": false,
-   "preview": "previews/p159-world-map-01.png"
+   "three_d": false
   }
  }
 }
