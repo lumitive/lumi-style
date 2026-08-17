@@ -71,9 +71,10 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
+import checker_report  # noqa: E402
 import fingerprint  # noqa: E402
 from check_prose import GENRES  # noqa: E402
-from deliverable_registry import checker_path, kinds  # noqa: E402
+from deliverable_registry import kinds  # noqa: E402
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if p.name == "scripts").parent
@@ -429,37 +430,16 @@ def score_checks(kind: str, path: pathlib.Path, genre: str | None = None) -> dic
     analysis. The task said what it was and nothing carried the word to the
     checker.
     """
-    argv = [sys.executable, str(checker_path(kind)), str(path), "--json"]
-    if kind == "prose" and genre:
-        argv += ["--genre", genre]
-    if kind == "layout":
-        # `--deliverable` is the point: without it `inspect_layout.py` gates on
-        # nothing and every artifact scores the same. `--no-sheet` because the
-        # contact sheet is for a person to look at and nobody is watching a
-        # harness run; the numbers are what this reads.
-        argv += ["--deliverable", "--no-sheet"]
-    proc = subprocess.run(argv, capture_output=True, text=True)
-    try:
-        report = json.loads(proc.stdout)
-    except json.JSONDecodeError:
-        return {"exit": proc.returncode, "verdicts": {}, "unparseable": True}
-    # An empty list is valid JSON and survived the `isinstance(report, list) and
-    # report` guard as `[]`, which then hit `[].get` and crashed the run. A
-    # checker that graded nothing has not scored the artifact; say so rather
-    # than raising into the operator's face halfway through a scoreboard.
-    if isinstance(report, list):
-        if not report:
-            return {"exit": proc.returncode, "verdicts": {}, "unparseable": True}
-        report = report[0]
-    if not isinstance(report, dict):
-        return {"exit": proc.returncode, "verdicts": {}, "unparseable": True}
-    verdicts = report.get("verdicts", {})
-    if not verdicts:
-        # A checker that emitted a report and graded nothing has not scored the
-        # artifact. A `deliverable` glob matching a directory produced exactly
-        # this and read as a pass.
-        return {"exit": proc.returncode, "verdicts": {}, "unparseable": True}
-    return {"exit": proc.returncode, "verdicts": verdicts}
+    # Invocation and parsing live in checker_report — one implementation for
+    # the four scripts that need them. The POLICY stays here: a checker that
+    # graded nothing has not scored the artifact (a `deliverable` glob matching
+    # a directory produced exactly that and read as a pass), so an empty or
+    # silent report is `unparseable` to this scoreboard.
+    run = checker_report.run_checker(kind, path, genre=genre)
+    verdicts = checker_report.first_verdicts(run["reports"])
+    if not run["spoke"] or not verdicts:
+        return {"exit": run["exit"], "verdicts": {}, "unparseable": True}
+    return {"exit": run["exit"], "verdicts": verdicts}
 
 
 def score_recall(task: dict, text: str) -> dict:

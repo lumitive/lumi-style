@@ -2776,19 +2776,31 @@ def main(argv):
                           "verdicts": {k: v for k, (v, _) in folded.items()}},
                          indent=2))
     else:
-        if unmeasured:
-            print(f"\n{unmeasured} check(s) could not be measured. A check that did not "
-                  f"run is not a check that passed — exit 1.")
+        # ONE final line carrying BOTH facts. These used to be two prints: the
+        # not-measured count first, the gating summary last — so a run could
+        # end on "No gating finding fired" and still exit 1, and an operator
+        # who read the last line (or grepped for it) shipped past a check that
+        # never ran. Twice in one session. The last line of a verdict tool is
+        # the verdict, whole.
         if args.deliverable:
             if failing:
                 print(f"\nNOT SHIPPABLE: {len(failing)} of {len(folded)} gating "
-                      f"findings fired — " + ", ".join(sorted(failing)))
+                      f"findings fired — " + ", ".join(sorted(failing))
+                      + (f" · and {unmeasured} check(s) could not be measured"
+                         if unmeasured else ""))
+            elif unmeasured:
+                print(f"\nNOT SHIPPABLE: 0 gating findings fired, but "
+                      f"{unmeasured} check(s) could not be measured — a check "
+                      f"that did not run is not a check that passed. Exit 1.")
             else:
                 na = sorted(k for k, v in folded.items() if v[0] == "n/a")
                 print("\nNo gating finding fired"
                       + (f" ({len(na)} had nothing to grade: {', '.join(na)})" if na else "")
                       + ". That is geometry and consistency, not a verdict on the "
                         "design — look at the contact sheet.")
+        elif unmeasured:
+            print(f"\n{unmeasured} check(s) could not be measured. A check that did not "
+                  f"run is not a check that passed — exit 1.")
     if args.deliverable and failing:
         return 1
     return 1 if unmeasured else 0

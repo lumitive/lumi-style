@@ -116,18 +116,19 @@ _trace_tool = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_trace_tool)
 
 
-def test_a_checker_that_emits_prose_before_its_json_is_recorded_as_silent(tmp_path):
-    """The real trigger: check_design prints its blind-gate warning with a bare
-    print() that --json does not suppress, so a deck built with div.page emits
-    prose in front of the JSON. The checker is doing its job; the transcriber
-    used to throw the signal away."""
+def test_the_blind_gate_case_now_speaks_clean_json_with_the_warning_inside(tmp_path):
+    """0.1.497 fixed the CONSUMER (a silent checker is recorded, not skipped);
+    this release fixed the ROOT: check_design's blind-gate warning printed even
+    under --json, so the one document it fires on emitted prose over the JSON.
+    The warning now travels IN the report as `blind_gates`, and the channel
+    stays parseable."""
     src = (ROOT / "fixtures" / "deck-pass.en.html").read_text(encoding="utf-8")
     doc = tmp_path / "divpage.html"
     doc.write_text(src.replace('<section class="page', '<div class="page')
                       .replace("</section>", "</div>"), encoding="utf-8")
     parsed, spoke = _trace_tool._checker_json("check_design.py", doc)
-    assert spoke is False
-    assert parsed is None
+    assert spoke is True, "the channel must stay clean on the very case the warning fires on"
+    assert parsed and parsed[0].get("blind_gates"), "the warning belongs in the report"
 
 
 def test_a_healthy_deliverable_is_recorded_as_having_spoken():
@@ -138,13 +139,13 @@ def test_a_healthy_deliverable_is_recorded_as_having_spoken():
 
 
 def test_a_silent_checker_leaves_a_not_measured_marker(tmp_path):
-    """End to end: open, close against a document one checker cannot read, and
-    assert the trace SAYS the design half did not run."""
+    """End to end: open, close against a document whose design half cannot be
+    transcribed, and assert the trace SAYS so. The old trigger (div.page prose
+    over the JSON) was fixed at the root, so the silence is planted directly:
+    a document of raw bytes no checker can read as markup."""
     env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
-    src = (ROOT / "fixtures" / "deck-pass.en.html").read_text(encoding="utf-8")
     doc = tmp_path / "divpage.html"
-    doc.write_text(src.replace('<section class="page', '<div class="page')
-                      .replace("</section>", "</div>"), encoding="utf-8")
+    doc.write_bytes(b"\x00\x01\x02\x03\x04")
     tid = subprocess.run(
         [sys.executable, str(TRACE_PY), "open", "--genre", "internal",
          "--storyline", "proposal", "--entry-path", "B", "--source", "build"],
@@ -155,8 +156,12 @@ def test_a_silent_checker_leaves_a_not_measured_marker(tmp_path):
                        capture_output=True, text=True, env=env, cwd=ROOT, check=True)
         rec = json.loads((ROOT / "evals" / "traces" / f"{tid}.json")
                          .read_text(encoding="utf-8"))
-        assert rec["thresholds"].get("_checker_design") == "not_measured"
-        assert rec["gates"], "the prose half still ran and must still be recorded"
+        # Raw bytes make prose answer "unmeasurable" and design answer an
+        # empty report — both SPOKE, honestly, so the per-checker silence
+        # marker rightly stays absent and the whole-build marker fires: a
+        # build that was never graded says so.
+        assert rec["thresholds"].get("_checkers") == "not_measured"
+        assert not rec["gates"] and not rec["graded"]
     finally:
         (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
 
