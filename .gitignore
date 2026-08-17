@@ -77,3 +77,7 @@ backlog/*.html
 # (red line 9: no engagement facts in a tracked file).
 evals/corpus.local.json
 evals/measured.local.json
+# The board's price table: tokens ship in traces, prices are one operator
+# machine's dated fact, and a committed price is a stored derivation waiting
+# to go stale (the reason cost_usd left the trace schema).
+evals/prices.local.json

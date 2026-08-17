@@ -1,0 +1,15 @@
+{
+ "version": "0.1.506",
+ "diff_base": "1b12c4fd1a22a670e0ae39ce541bc6953e97d8cb",
+ "spec": "waived: no spec — R8 of the delivery-completion plan, the code half of K1's model matrix: a typed token count was a typed verdict, and the board crosses model with effort. The case is specs/2026-08-15-principles-and-evals-refactor-plan.md P4, built now that R4 gave effort a closed vocabulary.",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board reports CLI-agent conformance runs. 0.1.506 changes the trace CLI's usage input and the ledger's matrix rendering; no conformance task exercises either. Stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent still follows the skill at 0.1.506 is unknown, not passing."
+  }
+ ]
+}

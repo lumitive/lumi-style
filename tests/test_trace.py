@@ -289,6 +289,120 @@ def test_a_recipe_path_that_does_not_exist_is_refused(tmp_path):
     assert "not a file" in p.stderr
 
 
+# Token counts are machine-written too. `close` used to take
+# `--input-tokens N --output-tokens N` — numbers typed by the agent being
+# measured, which is the exact shape `check_evidence.py` was built to end.
+# A typed token count is a typed verdict about the bill, so `close` now reads
+# the API's own usage dump via --usage and the typed flags are gone.
+
+def _close_with(tid, doc, *extra):
+    return subprocess.run(
+        [sys.executable, str(TRACE_PY), "close", "--id", tid,
+         "--deliverable", str(doc), *extra],
+        capture_output=True, text=True, cwd=ROOT)
+
+
+def test_close_reads_the_tokens_from_a_machine_emitted_usage_file(tmp_path):
+    """Happy path, end to end: the stored trace carries the dump's integers,
+    and the dump's extra keys (an API reports more than two numbers) are
+    tolerated rather than refused."""
+    usage = tmp_path / "usage.json"
+    usage.write_text(json.dumps({"input_tokens": 41000, "output_tokens": 9000,
+                                 "service_tier": "standard",
+                                 "cache_read_input_tokens": 12000}),
+                     encoding="utf-8")
+    tid = _open(tmp_path, "16x9")
+    stored = ROOT / "evals" / "traces" / f"{tid}.json"
+    try:
+        p = _close_with(tid, ROOT / "fixtures" / "deck-pass.en.html",
+                        "--usage", str(usage))
+        assert p.returncode == 0, p.stderr
+        rec = json.loads(stored.read_text(encoding="utf-8"))
+        assert rec["input_tokens"] == 41000
+        assert rec["output_tokens"] == 9000
+    finally:
+        stored.unlink(missing_ok=True)
+
+
+def test_a_usage_file_that_is_not_json_is_refused_not_crashed_on(tmp_path):
+    usage = tmp_path / "usage.json"
+    usage.write_text("not json {", encoding="utf-8")
+    tid = _open(tmp_path, "16x9")
+    stored = ROOT / "evals" / "traces" / f"{tid}.json"
+    try:
+        p = _close_with(tid, ROOT / "fixtures" / "deck-pass.en.html",
+                        "--usage", str(usage))
+        assert p.returncode != 0
+        assert "Traceback" not in p.stderr, "a refusal, not a crash"
+        assert "not JSON" in p.stderr, "the message names what is wrong"
+        rec = json.loads(stored.read_text(encoding="utf-8"))
+        assert rec["closed_at"] is None, "a refused close leaves the trace open"
+    finally:
+        stored.unlink(missing_ok=True)
+
+
+def test_a_usage_file_missing_a_token_key_is_refused(tmp_path):
+    """The defect this test exists to catch: a permissive reader that stores
+    None for a key the dump never had, closing a trace that quietly says
+    nothing where the bill should be."""
+    usage = tmp_path / "usage.json"
+    usage.write_text(json.dumps({"input_tokens": 41000}), encoding="utf-8")
+    tid = _open(tmp_path, "16x9")
+    stored = ROOT / "evals" / "traces" / f"{tid}.json"
+    try:
+        p = _close_with(tid, ROOT / "fixtures" / "deck-pass.en.html",
+                        "--usage", str(usage))
+        assert p.returncode != 0
+        assert "output_tokens" in p.stderr, "the message names the missing key"
+        rec = json.loads(stored.read_text(encoding="utf-8"))
+        assert rec["closed_at"] is None
+    finally:
+        stored.unlink(missing_ok=True)
+
+
+def test_a_usage_file_with_a_non_integer_count_is_refused(tmp_path):
+    usage = tmp_path / "usage.json"
+    usage.write_text(json.dumps({"input_tokens": "41000",
+                                 "output_tokens": 9000}), encoding="utf-8")
+    tid = _open(tmp_path, "16x9")
+    stored = ROOT / "evals" / "traces" / f"{tid}.json"
+    try:
+        p = _close_with(tid, ROOT / "fixtures" / "deck-pass.en.html",
+                        "--usage", str(usage))
+        assert p.returncode != 0
+        assert "Traceback" not in p.stderr
+        assert "input_tokens" in p.stderr
+    finally:
+        stored.unlink(missing_ok=True)
+
+
+def test_a_usage_file_that_does_not_exist_is_refused(tmp_path):
+    tid = _open(tmp_path, "16x9")
+    stored = ROOT / "evals" / "traces" / f"{tid}.json"
+    try:
+        p = _close_with(tid, ROOT / "fixtures" / "deck-pass.en.html",
+                        "--usage", str(tmp_path / "gone.json"))
+        assert p.returncode != 0
+        assert "Traceback" not in p.stderr
+        assert "gone.json" in p.stderr, "the message names the file it could not read"
+    finally:
+        stored.unlink(missing_ok=True)
+
+
+def test_the_typed_token_flags_are_gone(tmp_path):
+    """argparse itself refuses --input-tokens: the flag does not exist, in the
+    same way there has never been a flag for a verdict."""
+    p = _close_with("t-000000000000", "x.html", "--input-tokens", "5")
+    assert p.returncode != 0
+    assert "--input-tokens" in p.stderr, "refused as unrecognized, not misparsed"
+    helptext = subprocess.run(
+        [sys.executable, str(TRACE_PY), "close", "--help"],
+        capture_output=True, text=True).stdout
+    assert "--input-tokens" not in helptext
+    assert "--output-tokens" not in helptext
+    assert "--usage" in helptext
+
+
 def test_the_digest_is_the_one_run_conformance_uses():
     """One implementation. A fingerprint that differed between callers would be
     worse than none, because both sides would report matches."""

@@ -88,6 +88,113 @@ def test_an_unclosed_trace_is_an_abandoned_build_and_not_on_the_board():
     assert ledger.board([t]) == []
 
 
+# The model × effort matrix (K1): quality and cost columns produced together.
+# The board's quality line is the matrix's quality line — one implementation —
+# and cost exists only at render time, computed from a local dated price
+# table, because `cost_usd` was deleted from the schema for going stale the
+# day the price does.
+
+def test_matrix_groups_by_model_and_effort():
+    traces = [_trace("t-000000000001", model="opus-5", effort="high"),
+              _trace("t-000000000002", model="opus-5", effort="low"),
+              _trace("t-000000000003", model="sonnet-5", effort="high")]
+    _models, _efforts, cells = ledger.matrix(traces)
+    assert set(cells) == {("opus-5", "high"), ("opus-5", "low"),
+                          ("sonnet-5", "high")}
+
+
+def test_matrix_effort_columns_are_the_schema_s_own_plus_unknown():
+    """Read from trace_schema.ENUMS, never retyped — a retyped effort list is
+    the sixth-literal-copy defect the genre vocabulary already had."""
+    sys.path.insert(0, str(ROOT / "scripts" / "lib"))
+    import trace_schema
+    _models, efforts, _cells = ledger.matrix([_trace(model="m", effort="low")])
+    assert efforts == (*trace_schema.ENUMS["effort"], "?")
+
+
+def test_matrix_cell_is_the_median_of_tokens_per_page():
+    traces = [
+        _trace("t-000000000001", model="m", effort="low",
+               content_pages=10, output_tokens=100),   # 10.0 t/p
+        _trace("t-000000000002", model="m", effort="low",
+               content_pages=10, output_tokens=200),   # 20.0 t/p
+        _trace("t-000000000003", model="m", effort="low",
+               content_pages=10, output_tokens=400),   # 40.0 t/p
+    ]
+    _m, _e, cells = ledger.matrix(traces)
+    rows = cells[("m", "low")]
+    assert len(rows) == 3
+    import statistics
+    assert statistics.median(r["tokens_per_page"] for r in rows) == 20.0
+
+
+def test_a_run_with_a_failing_gate_is_not_in_the_matrix():
+    """The board's line holds here too: a thin deck must not set the median."""
+    good = _trace("t-000000000001", model="m", effort="low")
+    bad = _trace("t-000000000002", model="m", effort="low",
+                 gates={"D14_placeholders": "FAIL"}, output_tokens=100)
+    _m, _e, cells = ledger.matrix([good, bad])
+    assert [r["trace_id"] for r in cells[("m", "low")]] == ["t-000000000001"]
+
+
+def test_a_run_with_no_model_or_effort_groups_under_question_mark():
+    _m, _e, cells = ledger.matrix([_trace()])
+    assert set(cells) == {("?", "?")}
+
+
+def test_rendering_prints_an_em_dash_for_an_empty_cell():
+    lines = ledger.render_matrix([_trace(model="opus-5", effort="low")],
+                                 prices=None)
+    row = next(ln for ln in lines if ln.strip().startswith("opus-5"))
+    assert "—" in row, "an empty cell is drawn, not skipped"
+
+
+def test_rendering_states_price_absence_rather_than_implying_it():
+    lines = ledger.render_matrix([_trace(model="opus-5", effort="low")],
+                                 prices=None)
+    assert any("prices.local.json" in ln and "not computed" in ln
+               for ln in lines)
+
+
+def test_rendering_computes_cost_at_report_time_from_a_dated_price_table():
+    t = _trace(model="opus-5", effort="low", content_pages=10,
+               output_tokens=100_000, input_tokens=1_000_000)
+    prices = {"opus-5": {"input_per_mtok": 15.0, "output_per_mtok": 75.0,
+                         "date": "2026-08-15"}}
+    lines = ledger.render_matrix([t], prices=prices)
+    joined = "\n".join(lines)
+    # (1.0 mtok × $15) + (0.1 mtok × $75) = $22.50, over 10 content pages
+    assert "2.25" in joined
+    assert "2026-08-15" in joined, "the cost is labelled with the price date"
+
+
+def test_a_model_with_no_price_row_is_stated_not_skipped():
+    t = _trace(model="mystery-model", effort="low")
+    prices = {"opus-5": {"input_per_mtok": 15.0, "output_per_mtok": 75.0,
+                         "date": "2026-08-15"}}
+    lines = ledger.render_matrix([t], prices=prices)
+    assert any("mystery-model" in ln and "no price" in ln for ln in lines)
+
+
+def test_a_run_without_input_tokens_counts_for_tokens_but_not_for_cost():
+    """Input tokens are most of the bill; a cost computed without them would
+    understate silently. Such a run stays in the token median and is excluded
+    from the cost one, with its own n saying so."""
+    with_in = _trace("t-000000000001", model="m", effort="low",
+                     content_pages=10, output_tokens=100_000,
+                     input_tokens=1_000_000)
+    without = _trace("t-000000000002", model="m", effort="low",
+                     content_pages=10, output_tokens=100_000)
+    _m, _e, cells = ledger.matrix([with_in, without])
+    rows = cells[("m", "low")]
+    assert len(rows) == 2
+    price = {"input_per_mtok": 15.0, "output_per_mtok": 75.0,
+             "date": "2026-08-15"}
+    med, n = ledger.cell_cost(rows, price)
+    assert n == 1
+    assert med == 2.25
+
+
 # The four-beat design's own falsification data was recorded and never read.
 # `outline_reviewed` exists so that skipping beat 4 — the only defence
 # completeness has — is a countable fact rather than an invisible choice, and

@@ -1,5 +1,48 @@
 # Changelog
 
+## 0.1.506 — a typed token count was a typed verdict, and the board now crosses model with effort
+
+R8, the code half of the model matrix (K1).
+
+**`trace.py close` no longer takes a typed token count.** The doctrine at the
+top of the file — the verdict fields are machine-written, there is no flag for
+supplying one — stopped one line short of the bill: `--input-tokens N
+--output-tokens N` were numbers typed by the agent being measured, which is the
+exact shape `check_evidence.py` was built to end. Both flags are gone; `close
+--usage <path>` reads the API's own usage dump, tolerates the extra keys a real
+dump carries, and refuses — naming exactly what is wrong — a file it cannot
+read, a file that is not JSON, a missing token key, and a non-integer count. A
+refused close exits before the checkers run and leaves the trace open, rather
+than closing a record that reads as a cheaper build than the one that happened.
+
+**The planted red ran first, and fired twice.** Before any wiring, the parser
+*accepted* `--input-tokens 5` — the test failed at the trace lookup, not at the
+flag, which is the defect stated by the tool itself. Then `--usage` was wired
+permissively on purpose: that reader closed a trace with exit 0 against a usage
+file carrying no `output_tokens` at all, and answered malformed JSON with a
+traceback instead of a refusal. The tests assert the difference — a refusal
+names what is wrong, and `Traceback` may not appear in one.
+
+**`ledger.py --board` now ends in the model × effort matrix: quality and cost
+columns produced together.** Rows are models; columns are the schema's effort
+vocabulary in its own order plus `?` — imported from `trace_schema.ENUMS`,
+never retyped, the sixth-literal-copy hazard the genre enum already grew once.
+A cell is the median output tokens per content page with its n; qualification
+is `board()`'s own, one implementation of the quality line, so a thin deck that
+cannot be on the board cannot set a median here either. An empty cell is drawn
+as an em dash rather than skipped.
+
+**Cost exists only at render time.** `cost_usd` left the schema at 0.1.501
+because a stored derivation goes stale the day the price does; the matrix holds
+that line by computing cost per content page from `evals/prices.local.json` —
+untracked, beside the other two `.local.json` entries, because a price is one
+operator machine's dated fact — and labelling every cost row with the table's
+own price date. A model with no price row is said in words; a run that never
+recorded input tokens stays in the token median and is excluded from the cost
+one rather than counted at zero, since input is most of the bill and an
+understated cost flatters the run. When there is no price table at all, the
+board says cost is not computed and why — absence stated, never implied.
+
 ## 0.1.505 — D9 could be satisfied by renaming a class, and the fix was found by trying to satisfy it
 
 **Found by attempting the rebuild honestly.** The rebuild spec asks a document
