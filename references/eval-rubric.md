@@ -472,6 +472,33 @@ conditional-item rule applied one level up.
    that reasoning, having diagnosed all three of its findings on one deck and
    watched a second deck produce none.
 
+## Benchmark-anchored review (the primary acceptance for external documents)
+
+The blind score sheet stays as the RECORD (steps 1–4 above feed
+`reviews/scores.json` and the agreement study); it stopped being the primary
+acceptance after two full cycles on one deck failed to converge — the sheet
+localises defects and cannot say what better looks like, so each rebuild
+satisfied the previous round's findings and missed the standard again. The
+acceptance that converges is comparative:
+
+- **Side-by-side, page against reference.** Each content page is reviewed
+  beside a named reference page (an exemplar from `references/exemplars/`
+  once that library ships, or the owner's chosen benchmark), and the owner's
+  verdict per page is *better / worse / why*, one line. A page has a
+  standard to clear, not a defect list to empty.
+- **One page calibrates before any full build.** The first page iterates
+  until the owner says it has reached the standard; what changed on the way
+  is written down and becomes the rule the remaining pages are built under.
+  Full rebuilds precede calibration nowhere — that order cost two rebuild
+  rounds on the same deck.
+- **Review evidence answers with an artifact, never a tick.** Every evidence
+  item above that says "check" or "sample" produces the thing itself — the
+  titles pasted in order, the page numbers actually sampled, the reference
+  page named. The behavioural record on checklists is one-directional:
+  items answerable by judgement misreport about five times as often as items
+  that leave an object behind, and a review that leaves objects cannot rot
+  into ticking.
+
 ## Known genre distortions (never chase the score)
 
 Figure fragments concatenate into false run-ons when a deck is parsed as prose, so

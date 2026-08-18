@@ -103,6 +103,7 @@ def parse(text: str):
     meta: dict[str, str] = {}
     groups: list[tuple[str, list[str]]] = []
     omissions: list[dict[str, str]] = []
+    analyses: list[dict[str, object]] = []
     current: tuple[str, list[str]] | None = None
     for raw in text.splitlines():
         line = raw.strip()
@@ -111,6 +112,14 @@ def parse(text: str):
         m = re.match(r"^(genre|storyline)\s*:\s*(\S+)", line, re.I)
         if m:
             meta[m.group(1).lower()] = m.group(2)
+            continue
+        m = re.match(r"^analysis\s*:\s*(\S+)(.*)$", line, re.I)
+        if m:
+            analyses.append({"move": m.group(1).strip().lower(),
+                             "rest": m.group(2).strip(),
+                             "after_title": (current[1][-1]
+                                             if current and current[1]
+                                             else None)})
             continue
         m = re.match(r"^omitted\s*:\s*(.+)$", line, re.I)
         if m:
@@ -128,7 +137,7 @@ def parse(text: str):
                 current = ("(ungrouped)", [])
                 groups.append(current)
             current[1].append(line[2:].strip())
-    return meta, groups, omissions
+    return meta, groups, omissions, analyses
 
 
 def is_label(title: str) -> bool:
@@ -137,8 +146,11 @@ def is_label(title: str) -> bool:
                 or QUESTION.search(title))
 
 
+ANALYTICAL_MOVES = ("compare", "decompose", "position", "correlate", "bridge")
+
+
 def review(text: str):
-    meta, groups, omissions = parse(text)
+    meta, groups, omissions, analyses = parse(text)
     titles = [t for _h, ts in groups for t in ts]
     findings: list[dict[str, object]] = []
 
@@ -194,6 +206,29 @@ def review(text: str):
                       f"{storyline!r}, so completeness was not assessed — "
                       f"a checklist nobody wrote is not a document with "
                       f"nothing missing"})
+
+    # Analysis declarations (analysis-rules.md AR-3): REPORTED coverage,
+    # never a content judgement. "analysis: <move> | finding … | implication …"
+    # after a title declares which analytical move produced it. The moves come
+    # from AR-1's five; a declared move outside them is a vocabulary fact and
+    # does FAIL — same reasoning as the genre vocabulary above. Coverage
+    # itself is a note: the benchmark review, not this script, asks whether
+    # the declared analysis is real.
+    bad_moves = [str(a["move"]) for a in analyses
+                 if a["move"] not in ANALYTICAL_MOVES]
+    if bad_moves:
+        findings.append({
+            "check": "analysis vocabulary", "verdict": "FAIL",
+            "detail": f"{bad_moves} not in {list(ANALYTICAL_MOVES)} — the "
+                      f"five moves are analysis-rules.md AR-1's"})
+    declared_n = sum(1 for a in analyses if a["move"] in ANALYTICAL_MOVES)
+    findings.append({
+        "check": "analysis coverage", "verdict": "note",
+        "detail": f"{declared_n} of {len(titles)} titles declare the "
+                  f"analytical move that produced them"
+                  + ("" if declared_n else " — a deck of findings starts "
+                     "here, and zero declarations reads as display, "
+                     "not analysis")})
 
     # The declared-omission GATE is outside that branch on purpose: whether a
     # stated omission carries a reason is a fact about the outline, not about

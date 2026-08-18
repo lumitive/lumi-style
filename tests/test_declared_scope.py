@@ -30,7 +30,7 @@ def _scope(html):
 
 def test_a_section_neither_covered_nor_declared_is_reported():
     r = _scope(GTM.format(extra=""))
-    assert "target segment" in r["missing"]
+    assert "target customer" in r["missing"]
 
 
 def test_a_declared_section_is_not_reported_missing():

@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.515"
+  version: "0.1.516"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -125,11 +125,14 @@ current, stale, or **unknown** — and unknown is not current.
 1. **Study the input, then pick the scenario.** Read everything the user
    supplied before designing anything, and work from the reader's side — the
    first-principles question: what does this reader need to do differently
-   after reading, and which of the supplied facts earn a page for that. **Questions come once or not at all**:
-   when a required input is missing or two requirements conflict, batch every
-   question into a single round before generation begins; otherwise state the
-   assumptions in the delivery note and proceed — one clear prompt should
-   normally produce a finished document without a follow-up interview. **For an external document, the value pass comes before the build**: answer
+   after reading, and which of the supplied facts earn a page for that. **Questioning is segmented, and the segments are the user's**: let the
+   user state everything freely first, then ask follow-ups grouped by the
+   topics THEY raised — segment-by-segment follow-up roughly doubles the
+   core detail recovered versus one batched round (the batched form shipped
+   here for six releases against the research that had already falsified
+   it). Questions may probe structure and evidence and may never decide the
+   user's conclusions for them. When nothing needs asking, state the
+   assumptions in the delivery note and proceed. **For an external document, the value pass comes before the build**: answer
    5W+1H for the document as a whole (what, why, who, when, where, how — the
    reader should recover all six from the deck alone), give every key number
    its judgment anchor, and write the ask as who-does-what-by-when. The first
@@ -177,6 +180,21 @@ current, stale, or **unknown** — and unknown is not current.
 
    When the expected end-to-end time still passes ten minutes — a serial
    platform, or a document far past thirty pages — say so before starting.
+1b. **The analysis beat — facts become findings before any page is
+   written.** Read [`references/analysis-rules.md`](references/analysis-rules.md)
+   and, for every content section of the agreed storyline, apply one of the
+   five analytical moves (compare · decompose · position · correlate ·
+   bridge) and record in the outline:
+   `analysis: <move> | finding: <the page title> | implication: <the take>`.
+   Pick the figure at the same time — the ghost deck: the framework from
+   [`assets/frameworks.json`](assets/frameworks.json) (question → framework
+   → shape) or a chart form from design-rules §4, so every page knows what
+   it will draw before anything is composed. `check_outline.py` reports
+   declaration coverage and the move vocabulary; whether the analysis is
+   REAL stays with the benchmark review. A deck that skips this beat renders
+   fine and reads as display — both blind reviews scored exactly that shape
+   1 on insight.
+
 2. **Write and review** under
    [`references/writing-rules.md`](references/writing-rules.md) (terminology red
    lines / banned phrases / punctuation / number discipline / the LUMI voice /

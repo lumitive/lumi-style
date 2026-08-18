@@ -7,6 +7,17 @@
 cross-platform skill.** Built on the [Agent Skills](https://agentskills.io)
 standard, so it loads on any agent that implements it.
 
+> **LUMI Style lets you use the AI agents and general models you already
+> have to produce market documents at a consulting practitioner's standard —
+> branded design, a complete and original narrative, and analysis you can
+> re-run.** It listens before it asks, asks before it advises, and the
+> judgement stays yours.
+>
+> *(This fenced block is the single source of the customer-facing sentence;
+> external material quotes it and never rewrites it. The agent-routing
+> `description` in SKILL.md stays functional and is a different sentence on
+> purpose.)*
+
 Every rule traces to a real delivery iteration or a reader review — nothing here
 was written from thin air.
 

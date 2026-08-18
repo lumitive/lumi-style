@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.515.** This file restates part of `references/`; where they
+> **lumi-style 0.1.516.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -45,13 +45,15 @@ when. A gate-clean deck scored 1 on completeness and actionability for
 skipping this (FM-16); the machine gates measure defect-absence and cannot
 see value-absence.
 
-**Study the input first; questions come once or not at all.** Read everything
-the user supplied and work from the reader's side of the deliverable — the
-first-principles question is what this reader does differently after reading. When a
-required input is missing or two requirements conflict, batch every question
-into one round before generating; otherwise state your assumptions in the
-delivery note and proceed — one clear prompt should normally produce a finished
-document. Write a finished document to `Documents/LUMI-Style/` under the user's
+**Study the input first; questioning is segmented, and the segments are the
+user's.** Read everything the user supplied and work from the reader's side of
+the deliverable — the first-principles question is what this reader does
+differently after reading. Let the user state everything freely, then follow
+up grouped by the topics THEY raised (segmented follow-up roughly doubles the
+core detail recovered versus one batched round); never decide the user's
+conclusions for them. When nothing needs asking, state your assumptions in
+the delivery note and proceed — one clear prompt should normally produce a
+finished document. Write a finished document to `Documents/LUMI-Style/` under the user's
 home directory unless the user names another, and **ask before creating that
 folder**; an export lands beside the document it was made from, and because the
 folder is shared, a filename carries the document's own name and version. Run independent pages in parallel where your platform allows —
@@ -90,7 +92,13 @@ facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
    reach for. A field with nothing behind it is decoration and is checked for.
 1. `references/writing-rules.md` — wording red lines, banned phrases, punctuation,
    number discipline, LUMI voice, de-AI-flavor checklist. Non-negotiable.
-2. `references/storyline-templates.md` — pick the narrative skeleton by scenario;
+2. `references/storyline-templates.md` — pick the narrative skeleton by scenario,
+   then run the ANALYSIS BEAT (`references/analysis-rules.md`): every content
+   section declares its analytical move (compare · decompose · position ·
+   correlate · bridge) with the finding as the title and the implication as
+   the `.take`; figures come from `assets/frameworks.json`'s question →
+   framework → shape chain; the register comes from writing-rules' per-genre
+   profiles (market language for sales, operator's procedure for training);
    its deck-wide disciplines: the agenda is derived from the page titles (D27
    gates), external content pages each close with a `.take` takeaway (D28
    reports), and a product deck walks What → Why → How → Value (Template 6)

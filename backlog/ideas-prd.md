@@ -438,11 +438,20 @@ the readability half. The skeletons are the other half, and writing five at once
 without a document to write each against is exactly the speculative rule-making
 convention 2 forbids.
 
-**What would close it.** A skeleton written when a real document of that
-storyline is built, one at a time, the way Template 5 was written from an actual
-proposal that could not open a trace. Not a batch. (`product-intro` closed this
-way at 0.1.513: Template 6, written from the deck whose blind review scored 1
-on completeness precisely because the skeleton did not exist.)
+**Closed at 0.1.516 — all four, as Templates 7–10, by owner decision.** The
+close condition above said one at a time from real documents, written to
+prevent speculative invention; the analysis-engine retrospective found the
+four structures were never speculative — the 2026-08 consulting-standards
+research had already documented each one section by section (market analysis
+7 sections with the TAM/SAM/SOM double-count; GTM's 6 decisions; the status
+report's 8 elements with an ask per risk; due diligence with the red-flag
+matrix), and the skeletons then sat in this backlog for four releases while
+their research was already paid for. C5 reports and never gates, so a
+section name the industry uses and a given document does not need costs a
+reported line and a declared omission, not a gate. (`product-intro` closed
+the one-at-a-time way at 0.1.513: Template 6, from the deck whose blind
+review scored 1 on completeness precisely because the skeleton did not
+exist.)
 
 ## IDEA-9 · The fixture's reserved domain doubles as a deliverable placeholder
 

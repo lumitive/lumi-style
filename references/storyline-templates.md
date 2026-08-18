@@ -24,19 +24,21 @@ that tuple to each other.
 
 | storyline | the shape of the argument | full skeleton |
 |---|---|---|
-| `market-analysis` | the market is this, it is moving that way, and here is what that means for us | — |
-| `gtm` | who we sell to, through what motion, and what has to be true for it to work | — |
-| `status-report` | what was planned, what happened, what is off track, and what is being done about it | — |
-| `due-diligence` | what we examined, what we found, and what would change the answer | — |
+| `market-analysis` | the market is this, it is moving that way, and here is what that means for us | Template 7 |
+| `gtm` | who we sell to, through what motion, and what has to be true for it to work | Template 8 |
+| `status-report` | what was planned, what happened, what is off track, and what is being done about it | Template 9 |
+| `due-diligence` | what we examined, what we found, and what would change the answer | Template 10 |
 | `product-intro` | what it does, who it is for, and what it deliberately does not do | Template 6 |
 | `training-curriculum` | what the reader will be able to do, taught one idea at a time | Template 4 |
 | `proposal` | here is a decision, here is what I recommend, what it costs, and what blocks it | Template 5 |
 
-**Four of the seven have no full skeleton yet**, and that is recorded rather
-than hidden: the templates above are organised by genre, which is the older
-axis. Writing the missing five is `backlog/ideas-prd.md` work and not a
-prerequisite for using the name — a one-line shape is enough to choose with, and
-it is more than the six had before.
+All seven now carry a full skeleton. Templates 7–10 were written from the
+2026-08 consulting-standards research, which had already documented each
+structure section by section before they sat in a backlog for four releases —
+the analysis-engine retrospective is what moved them (IDEA-10 closes with
+them). The section names below are the industry-typical ones; C5 reports
+against them and never gates, and an outline departs from any of them by
+declaring the omission.
 
 ## Template 1 · Sales / marketing material: Value & Future
 
@@ -227,6 +229,81 @@ below the callout (`.key` interrupts to change a decision; `.take` closes),
 one per page, and `check_design.py` D28 reports the coverage. (Reader review
 D16, C6: a deck whose every gate was green read as `无感` — nothing asked to
 be remembered, so nothing was.)
+
+## Template 7 · Market analysis · storyline `market-analysis`
+
+The reader is deciding whether and where to play. Seven sections, in the
+order a sizing has to be believed before an implication can be:
+
+1. **Market definition** — the scope, drawn: what is in, what is out, and why
+   the line sits there. A sizing with no boundary is a number with no noun.
+2. **Sizing** — TAM/SAM/SOM, computed **both top-down and bottom-up**, and
+   the two reconciled: a sizing that only ever ran one direction has no check
+   on itself. The reconciliation gap is stated, not hidden.
+3. **Customer segments** — decomposed (AR-1) so the segments are MECE, each
+   with the measure that matters, and the segment carrying the story named.
+4. **Competitive landscape** — positioned (AR-1): the players on two axes
+   the reader cares about, read by quadrant, never a logo zoo.
+5. **Customer decision journey** — how buying actually happens, and where in
+   it the contest is won.
+6. **Growth drivers, trends and risks** — correlated (AR-1): what moves
+   demand, with direction of causation stated or plainly unknown.
+7. **Strategic implication** — the so-what for THIS reader: where to play,
+   how to win, what to watch. A market analysis that ends on the market has
+   stopped one page early (the same failure FM-17 names for product decks).
+
+## Template 8 · Go-to-market · storyline `gtm`
+
+Six decisions, each a page or a spread, each closing with the decision taken
+rather than the options listed:
+
+1. **Target customer / ICP** — who exactly, and who deliberately not.
+2. **Problem and value proposition** — the pain in the buyer's economics,
+   and the positioning sentence against the named alternative.
+3. **Channels and distribution** — how it reaches them, with the unit
+   economics per channel.
+4. **Messaging** — what is said to whom; the market's language, not the
+   product's (writing-rules, register profiles).
+5. **Sales motion and pricing** — the motion, the price metric, and what has
+   to be true for the number to hold.
+6. **Success measures and timeline** — the metrics that would prove it, with
+   dates and owners.
+
+## Template 9 · Status report · storyline `status-report`
+
+**Health and decisions open the document; an activity list never does.**
+Eight elements, typically one page:
+
+1. Period, and per-dimension RAG status — **with the RAG thresholds defined
+   in the document**, because an undefined amber is a negotiation.
+2. A two-to-three sentence summary a skip-level can act on.
+3. Completed this period (after the health, never instead of it).
+4. Next milestones, dated.
+5. **Top three risks, each with a concrete ask** — a risk without an ask is
+   a worry, not a report line.
+6. Decisions needed, each named to its owner.
+7. Budget position.
+8. The next checkpoint.
+
+## Template 10 · Due diligence · storyline `due-diligence`
+
+Answer-first, and the answer carries its confidence:
+
+1. **Summary** — the recommendation and the two or three findings that
+   drive it, first.
+2. **Scope, method, limitations** — what was examined, how, and what was
+   not; the limitation section is load-bearing, not an appendix courtesy.
+3. **Market** — Template 7's discipline, compressed.
+4. **Competition** — positioned, with the target's defensibility argued.
+5. **Customers** — concentration and retention measured; the top-N revenue
+   share stated.
+6. **Financial model review** — the assumptions that carry the valuation,
+   each stress-tested.
+7. **Risks and synergies** — as a red-flag matrix: severity × likelihood,
+   each flag with its diligence trail.
+8. **Recommendation** — with bid implications: what the findings do to the
+   price, not just to the mood.
+9. Appendix — everything that supports and nothing that argues.
 
 ## Cover and closing pages (every deck scenario)
 

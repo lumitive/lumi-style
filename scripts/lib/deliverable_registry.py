@@ -126,14 +126,18 @@ STAGE_OF = {"landscape": "16x9", "portrait": "a4"}
 # quality; what is enforceable is that an absence be DECLARED, which is what
 # `data-omitted` and the outline's `omitted:` line are for.
 TYPICAL_SECTIONS = {
-    "market-analysis": ("market size", "segments", "competitive landscape",
-                        "demand drivers", "risks", "implication"),
-    "gtm": ("target segment", "positioning", "channel", "pricing",
-            "launch sequence", "success measure"),
-    "status-report": ("headline", "progress", "risks and blockers", "asks",
-                      "next checkpoint"),
-    "due-diligence": ("scope and method", "findings", "quantified exposure",
-                      "limitations", "recommendation"),
+    # Aligned to Templates 7-10 (storyline-templates.md), which were written
+    # from the 2026-08 consulting-standards research skeletons.
+    "market-analysis": ("market definition", "sizing", "segments",
+                        "competitive landscape", "customer journey",
+                        "growth drivers", "implication"),
+    "gtm": ("target customer", "value proposition", "channels", "messaging",
+            "sales motion", "success measure"),
+    "status-report": ("status", "summary", "completed", "milestones",
+                      "risks", "decisions", "budget", "next checkpoint"),
+    "due-diligence": ("summary", "scope and method", "market", "competition",
+                      "customers", "financial model", "risks",
+                      "recommendation"),
     # Rewritten to the reader's arc at the second blind review (D16): the
     # first revision had every part present and still scored 1 on first
     # impression, because the parts were ordered the way the package explains

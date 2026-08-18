@@ -142,7 +142,7 @@ def test_the_worked_example_s_labels_are_slots_d14_knows():
 
 def test_a_storyline_with_a_checklist_seeds_the_agenda():
     html = scaffold("--storyline", "gtm")
-    assert "target segment" in html and "positioning" in html
+    assert "target customer" in html and "value proposition" in html
 
 
 def test_a_storyline_without_a_checklist_says_so_rather_than_seeding_nothing():
