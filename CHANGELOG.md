@@ -1,5 +1,59 @@
 # Changelog
 
+## 0.1.517 — two pages reached the owner's standard, and the path is now the rule
+
+**The benchmark-anchored review's first full cycle converged where two
+blind-sheet cycles had not.** One page — the product deck's evidence page —
+was iterated six versions against a named reference page until the owner's
+verdict was "this page is basically there"; a second page in a NEW scenario
+(a market-analysis competitive landscape, consulting register, the position
+move, the 2x2 under its dictionary contract, real sourced market data
+including a competitor's real exit) passed on its first review. The
+protocol's design held: a page had a standard to clear, not a defect list
+to empty, and what changed between versions is what this release writes
+down.
+
+**AR-5 · the reader-outcome rule.** In the external genres an internal
+metric appears on a page only as the driver of a reader outcome, with the
+link evidenced — a named published source or this package's own
+measurement. The calibration's turning point was the owner asking, of a
+page presenting three instrument readings as achievements, *why would this
+make anything better for the user?* Two clauses ride on the rule: the
+**jargon test** (a metric label the target reader must ask about has
+failed — the `heaviest layout, %` precedent), and **a judgement declares
+itself where it is drawn** (a positioning figure prints its assessment
+basis inside the figure, because the consulting register allows judgement
+and forbids judgement dressed as measurement).
+
+**The debunked-statistics ban.** Writing-rules' number discipline now names
+the two presentation-folklore numbers that nearly reached a page and fail
+verification — the 43% persuasion figure (its own 1986 working paper does
+not support it) and the 60,000× image-speed claim (no source has ever been
+produced) — and states the cost: a debunked number makes the one reader who
+knows discount every honest number beside it. The sturdier findings that
+survived the same check (the 10-against-65 recall pair, Mayer's controlled
+comparisons) are the ones the accepted page cites.
+
+**EX-2 · the calibration codicil.** Five devices validated on our own
+accepted pages join the exemplar standard: one benchmark line through every
+measure (normalised attainment, not three charts with three targets);
+number-top stat blocks with colour spent by importance; captions of a
+number and a name; reader-outcome lanes (AR-5 drawn as driver → named
+evidence → gain); row labels at title weight.
+
+**The reader-outcome layer, reported.** Eval-rubric now tables what each
+machine proxy stands in for (comprehension, retention, attention, novelty,
+efficiency, actionability) and the honest future measurement of each; each
+benchmark review carrying the two-question comprehension check accumulates
+one row of the dose-response data the proxies cannot honestly claim today.
+Nothing in the layer gates: a gate on an unmeasured outcome would be a
+fabricated number with a threshold.
+
+Re-flowed into all three entry points. The two accepted pages stay outside
+the repository with the other deliverable sources; the codicil records the
+devices, not the files.
+
+
 ## 0.1.516 — the analysis engine: the generation side the package never had
 
 **The owner's verdict on r12 (`变化不大`) triggered a root-cause investigation

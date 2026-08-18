@@ -84,3 +84,5 @@ evals/measured.local.json
 # machine's dated fact, and a committed price is a stored derivation waiting
 # to go stale (the reason cost_usd left the trace schema).
 evals/prices.local.json
+# Third-party study decks: never committed (copyright; study only — see SOURCES.md)
+references/exemplars/external/*.pdf

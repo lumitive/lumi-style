@@ -111,3 +111,34 @@ professional is the same defect as choosing a shape because it looks good:
 the 2x2 whose axes are not independent and the SWOT filled with restated
 facts are decoration wearing an analysis's clothes, and the misuse line in
 each dictionary entry names exactly that failure.
+
+## 5 · The reader-outcome rule
+
+*Serves: **GOAL**.* · id `AR-5`
+
+**In the external genres, an internal metric appears on a page only as the
+driver of a reader outcome, and the driver-to-outcome link carries evidence:
+a named published source, or this package's own measurement.** A page that
+presents the maker's QA numbers as if they were the reader's gains is
+FM-17's builder's-eye narrative at the metric level — the calibration that
+produced this rule began with exactly that page: three internal instrument
+readings presented as achievements, and the owner's question was the rule in
+embryo: *why would this make anything better for the user?* The corrected
+page led each measured change through a named finding from the retention
+and comprehension literature to the gain a reader keeps, and that chain —
+driver → evidence → outcome — is the correlate move drawn.
+
+Two clauses ride on it:
+
+- **The jargon test.** Any measure labelled on a reader-facing page fails if
+  the target reader would have to ask what it measures. The precedent is
+  `heaviest layout, %`: the owner could not read what it meant, and that
+  reaction IS the verdict — the label left the building's private language
+  on a public page. Translate the measure into the reader's terms or take
+  it off the page.
+- **A judgement declares itself where it is drawn.** A positioning figure
+  whose placements are assessments (a 2x2 of competitors, a scored
+  comparison) prints its basis inside the figure — "placements: our
+  assessment from public product documentation, 2026-08" — because the
+  consulting register allows judgement and forbids judgement dressed as
+  measurement.

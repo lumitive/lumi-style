@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.516"
+  version: "0.1.517"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -193,7 +193,11 @@ current, stale, or **unknown** — and unknown is not current.
    declaration coverage and the move vocabulary; whether the analysis is
    REAL stays with the benchmark review. A deck that skips this beat renders
    fine and reads as display — both blind reviews scored exactly that shape
-   1 on insight.
+   1 on insight. **The reader-outcome rule binds the external genres** (AR-5):
+   an internal metric appears on a page only as the driver of an evidenced
+   reader outcome; a metric label the target reader would have to ask about
+   has failed the jargon test; a figure whose placements are judgements
+   prints its basis inside the figure.
 
 2. **Write and review** under
    [`references/writing-rules.md`](references/writing-rules.md) (terminology red

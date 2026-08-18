@@ -244,7 +244,12 @@ Title = the finding; `.take` = the implication for THIS reader; the ask =
 the action. A SWOT of restated facts or a 2x2 hugging its diagonal is
 decoration wearing an analysis's clothes. **The register follows the
 audience**: buyer economics for sales, imperative procedure for training,
-judgement with stated confidence for consulting.
+judgement with stated confidence for consulting. **Internal metrics reach a
+reader page only as drivers of evidenced reader outcomes** (named published
+source or own measurement); a metric label the reader must ask about has
+failed; a judgement-based figure prints its basis inside the figure; never
+cite a publicly debunked statistic (the 43% and 60,000&#215; folklore both
+fail verification).
 Figure titles state conclusions; **the page's numbers go into the
 geometry, not beside it** — lengths, fills and step heights drawn to the
 values the page states, because a shape carrying words but none of the page's
@@ -453,6 +458,6 @@ quality), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.516** snapshot, cut 2026-08-17. It is self-contained by
+> This file is the **0.1.517** snapshot, cut 2026-08-17. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.
