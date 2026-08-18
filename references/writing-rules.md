@@ -180,6 +180,11 @@ LUMI's own seed survives as group 8.
    - `mock`
    - `proposal value`
    - `uncalibrated`
+   - `来源` — the zh marker for "source"; matched without word boundaries,
+     because CJK compounds have none
+   - `出处` — "provenance / where it came from"
+   - `示意` — the zh illustrative label rule 2 already names
+   - `实测` — "measured, not promised"; the zh counterpart of a dated position
 
    **The window is the page for an ordinary figure and the block for a range.**
    A reader takes in a page at once, so a title reading "coverage reached 41%"

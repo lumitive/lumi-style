@@ -213,6 +213,14 @@ page ranges read as emphasis on the wrong thing.)
 
 ## The agenda and the takeaway (every deck scenario)
 
+**The agenda renders as the launch sequence** — one row per part: a numbered
+dark chip, the part's claim at title weight quoting its opener, a quiet run
+line naming the pages (`tokens/lumi-layouts.css` `.launch`; the scaffold emits
+it). Adopted at 0.1.519 from an owner review that read the grades agenda as
+too quiet for a deck that opens a pitch, piloted and accepted on a real
+roadshow build. The energy comes from weight and the lime chip, never from a
+louder ground: the agenda stays a body page.
+
 **The agenda quotes the document; it never paraphrases it.** Every claim line
 on the agenda — a part title, an item — is a line the deck's own titles say,
 verbatim or containing one, and the mechanical way to be right is to derive

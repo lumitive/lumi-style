@@ -527,7 +527,14 @@ Figure fragments concatenate into false run-ons when a deck is parsed as prose, 
 than skipping the metric. When a metric is genuinely distorted, **note it and skip
 it** — genre adaptation is the metric's debt, not the document's.
 
-**M8 as a whole is never skipped, and neither are M9–M11.** M8 used to be
+**M8 reads n/a on a Chinese document, and that is the metric being honest
+rather than waived**: its splitter measures English word counts, so on zh
+prose it was measuring the stray Latin fragments and calling their uniformity
+the document's rhythm — it failed the first real Chinese deck at CV 0.23 on
+a sample of digits and product names. Chinese sentence rhythm awaits its own
+instrument (the de-translationese pass covers the register half by hand).
+For English documents nothing here softened:
+**M8 is never skipped, and neither are M9–M11.** M8 used to be
 one-tailed and marked advisory for decks: it counted only sentences that ran too
 long, so prose in which every sentence is uniformly clipped — the dominant modern
 AI tell, and what §5 used to mandate outright — scored a perfect zero. The

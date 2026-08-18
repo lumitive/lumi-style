@@ -365,32 +365,35 @@ def main(argv):
   {foot(1, total)}
 </section>''')
 
-    rows = "".join(
-        f'        <div class="gr g4"><i></i><p class="gn">Part {q} '
-        f'&#183; its subject</p>\n'
-        f'          <p class="gq">what these pages establish</p></div>\n'
-        for q in parts)
-    # A storyline seeds the agenda with the sections it typically carries — as
-    # FURNITURE TO REPLACE, which is what everything else the scaffold emits
-    # is. The registry's own comment is the constraint: this is a checklist
-    # applied at the end, never a template to start from, so the rows are
-    # marked with the storyline they came from and carry no argument.
-    if args.storyline:
-        sections = deliverable_registry.TYPICAL_SECTIONS.get(args.storyline, ())
-        if sections:
-            rows += "".join(
-                f'        <div class="gr g4"><i></i><p class="gn">{s}</p>\n'
-                f'          <p class="gq">a title naming its subject and '
-                f'carrying a fact</p></div>\n' for s in sections)
-        else:
-            # A storyline with no checklist SAYS SO. Emitting nothing here is
-            # how `proposal` shipped for eight releases looking like a
-            # storyline whose sections were all present.
-            rows += (f'        <div class="gr g4"><i></i><p class="gn">'
-                     f'no typical-section checklist exists for '
-                     f'{args.storyline}</p>\n'
-                     f'          <p class="gq">completeness is yours to '
-                     f'establish at the storyline review</p></div>\n')
+    # THE AGENDA IS THE LAUNCH SEQUENCE (0.1.519, owner review: the grades
+    # agenda read as quiet apparatus). One row per part: a numbered chip, the
+    # part's claim at title weight — QUOTE the opener's claim, D27 holds the
+    # mirror — and a quiet run line. The storyline checklist seeds the run
+    # lines, chunked across parts: a checklist applied at the end, never a
+    # template to start from, exactly as the registry's comment demands.
+    sections = (deliverable_registry.TYPICAL_SECTIONS.get(args.storyline, ())
+                if args.storyline else ())
+    chunks: list[list[str]] = [[] for _ in parts]
+    for i, sec in enumerate(sections):
+        chunks[i * len(parts) // max(1, len(sections))].append(sec)
+    rows = ""
+    for i, q in enumerate(parts):
+        run = (" &#183; ".join(chunks[i]) if sections
+               else "which pages, and what they cover")
+        rows += (
+            f'      <div class="lrow">\n'
+            f'        <div class="ln">{i + 1:02d}</div>\n'
+            f'        <div><p class="gn">What Part {q} argues, its key phrase '
+            f'<span class="hl">set in the light</span></p>\n'
+            f'          <p class="gq">{run}</p></div>\n'
+            f'      </div>\n')
+    if args.storyline and not sections:
+        # A storyline with no checklist SAYS SO. Emitting nothing here is
+        # how `proposal` shipped for eight releases looking like a
+        # storyline whose sections were all present.
+        rows += (f'      <p class="gq">no typical-section checklist exists '
+                 f'for {args.storyline}; completeness is yours to establish '
+                 f'at the storyline review</p>\n')
     out.append(f'''<section class="page" id="agenda">
   {g}
   <div class="body stack">
@@ -400,7 +403,7 @@ def main(argv):
       <p class="sup">One line saying how to read it.</p>
     </div>
     <div class="fill">
-      <div class="grades">
+      <div class="launch">
 {rows}      </div>
     </div>
   </div>

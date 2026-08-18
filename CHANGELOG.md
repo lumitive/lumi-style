@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.1.519 — the launch-sequence agenda, and the checkers learn to read Chinese
+
+**The first real Chinese deliverable was the deliberate-red run for five
+checker blind spots at once.** A competition roadshow deck built on real
+engineering data — Chinese output, sales genre, public audience — fired every
+one of these before any fix was written, which is convention 15's order
+executed on a real artifact rather than a fixture. Four are fixed in this
+release; the fifth is IDEA-14. Every fix shipped with unit tests written red
+first against the unmodified code.
+
+- **Title frames now read full-width punctuation.** `title_frame` counted a
+  full-width ：title as "plain", so thirteen genuinely varied zh titles
+  collapsed into one frame and M11 failed at 81% on a deck whose frames
+  varied. Full-width ？now reads as the question frame too.
+- **M8 reads n/a on a Chinese document.** Its splitter measures English word
+  counts; on zh prose it measured the stray Latin fragments and failed the
+  deck at CV 0.23 on a sample of digits and product names. The module's own
+  design note had said "M8 stays n/a for Chinese" since the language gate
+  shipped; the emission now agrees with it, and the rubric's "never skipped"
+  claim is amended to say exactly what is and is not skipped.
+- **The source-marker vocabulary gains its zh half**: `来源` · `出处` · `示意` ·
+  `实测`, matched without word boundaries because CJK compounds have none —
+  a page carrying `来源：Momentum Works` on every figure was counted unsourced.
+  `writing-rules.md` §4 rule 6 and `SOURCE_MARKERS` updated together; the
+  parity guard held them to each other through the change.
+- **D12's handling-terms vocabulary was English-and-confidential only.** A
+  public zh roadshow deck carrying honest terms (`公开路演版 · 引用请注明出处`)
+  failed all nineteen pages; the vocabulary now carries the zh handling forms
+  (`保密` · `内部使用` · `请勿转发` · `请勿外传` · `公开路演` · `引用请注明出处`).
+
+**Template 11's first real build produced the agenda the skill now ships.**
+An owner review read the grades agenda as too quiet for a deck that opens a
+pitch; the launch sequence — a numbered dark chip per part, the part's claim
+at title weight quoting its opener, a quiet run line — was piloted on the
+roadshow deck and accepted. It is now the scaffold's agenda
+(`new_deck.py`), a tokens pattern (`.launch`, with the lime chip carrying its
+own `--on-lime` backing in the same rule, which is D13's sanctioned pairing —
+the first cut used the text ink as the chip and D13 caught it on the
+regenerated fixtures), and a sentence in the agenda discipline
+(`storyline-templates.md`). D27 needs no change: the claim lines carry `.gn`,
+which it already reads wherever the stylesheet defines them, and the
+storyline checklist still seeds the scaffold's run lines.
+
+Deferred, each with its ledger id: the outline gate cannot read assertion in
+a Chinese title (IDEA-14, worked around with Arabic digits on the real
+build — compliance with the instrument, noted as such); short Latin privacy
+terms false-positive on embedded base64 (IDEA-15). Re-flowed into all three
+entry points; fixtures and the eval inventory regenerated.
+
+
 ## 0.1.518 — the investor pitch: YC's argument shape joins the storyline roster
 
 **By owner directive (2026-08-18): the package needed a roadshow BP
