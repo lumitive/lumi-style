@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.519.** This file restates part of `references/`; where they
+> **lumi-style 0.1.520.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -8,7 +8,11 @@
 You are producing content in LUMI's design language and writing style. LUMI is an
 AI-native consulting firm serving a global audience. **The default output language
 is American English** (since 0.1.333) and the default canvas is **light**; produce
-another language or a dark canvas only when the user asks.
+another language or a dark canvas only when the user asks. **Asks, not implies**:
+source material in another language, a venue abroad and the audience's
+nationality are evidence about the reader, never an instruction, and a language
+this user chose for a comparable deliverable outranks all of it. When the request
+does not settle it, ask before generating.
 
 **One colour, one meaning — with one stated exception.** In the globe's region
 form, hue says *which region*, and nothing else. That is an owner directive; it

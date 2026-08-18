@@ -1,5 +1,56 @@
 # Changelog
 
+## 0.1.520 — three defects the checks were not measuring
+
+**A deliverable came back from its owner with three findings, and every
+instrument this package runs had reported clean on it.** That is the shape this
+release is about: the instruments were working and were measuring the wrong
+layer. Each finding is written up as a mode with its measurement, because the
+measurement is what makes it detectable next time.
+
+**FM-18 · the input language captures the output language.** The output
+language was inferred from the source material (three Chinese documents), the
+venue and the audience, and shipped as Chinese one day after the same owner
+had explicitly chosen English for the previous deliverable of the same kind.
+The language decision had been named in a plan and the plan had been approved,
+which is not the same as being asked for. Output language now sits beside
+geometry as the question worth a round trip, with the rule stated in the
+direction the failure took: **evidence about the reader is not an instruction,
+and a language this user chose for a comparable deliverable outranks every
+inference from the material.** Re-flowed into all three entry points.
+
+**FM-19 · inherited sentences carry inherited register, and the copy metric
+does not see it.** Asked whether the deck was a copy of the draft it was built
+from, the honest answer needed measurement rather than memory: 0 of 96
+sentences matched verbatim, and 9 of 15 page titles carried an 8-character or
+longer fragment of the source, with 10 of 15 signature phrases intact. The
+skin was rewritten; the spine was lifted. **OR-7 is the rule that follows: a
+source document contributes facts and constraints, never sentences, titles or
+the order of the argument.** In practice the part authors are handed an
+extracted fact list and never the prior document, and a re-derived title that
+lands exactly where the source already was is evidence that no analytical move
+was applied.
+
+**The de-AI pass now leaves an artifact, and the register rule gained its
+document-level form.** §6's item 12 forbade a manufactured punchline; the
+build that triggered this release ended all thirteen of its content pages on
+one, which no metric counts. **12b makes the distribution the test**: vary
+what a closing line does, and more than half of them being short and quotable
+is itself the tell. The pass also ends in a findings file run through
+`judge_findings.py`, which accepts a finding only when it quotes what it
+objects to, because a pass that leaves nothing behind cannot be told from one
+that was skipped. This bites hardest in Chinese, where M8 correctly reads n/a
+(0.1.519) and the register is therefore unmeasured by construction.
+
+The rebuilt deliverable is the evidence that the three rules are executable:
+titles re-derived from the fact list by the five moves, an English build, four
+independent register jobs across its closing lines, four judge findings raised
+with quotations and all four applied, and a check stack that ended on
+`every instrument spoke, and nothing failed` before a person looked at the
+contact sheet and found two more things no instrument had (a footer numbered
+from the scaffold's page order, two figure labels crossing a plotted line).
+
+
 ## 0.1.519 — the launch-sequence agenda, and the checkers learn to read Chinese
 
 **The first real Chinese deliverable was the deliberate-red run for five

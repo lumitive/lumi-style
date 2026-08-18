@@ -9,7 +9,11 @@
 
 You are producing content in LUMI's design language and writing style. LUMI is an
 AI-native consulting firm serving a global audience; deliverables may be in the
-client's language (Simplified Chinese rules are marked [zh]). Rules are ordered by
+client's language (Simplified Chinese rules are marked [zh]). **The default is
+American English, and another language is something the user ASKS for, never
+something you infer from the language of the material they hand you, from the
+venue, or from where the audience is.** A language the same user chose for a
+comparable deliverable outranks every such inference. Rules are ordered by
 priority; on conflict, the lower number wins.
 
 **Two entry paths.** A document arrives either through a **discussion** or from
@@ -475,6 +479,6 @@ quality), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.519** snapshot, cut 2026-08-17. It is self-contained by
+> This file is the **0.1.520** snapshot, cut 2026-08-17. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

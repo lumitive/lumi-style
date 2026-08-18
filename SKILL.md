@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.519"
+  version: "0.1.520"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -45,7 +45,15 @@ picks one, says so with `<body data-geometry="landscape">` or `"portrait"`, and
 is composed for it. The genre gives the default: sales, marketing and
 consulting lead 16:9; training leads A4 portrait. **When the request does not
 settle the genre or the format, ask before generating** — it is the one
-question worth a round trip, because the answer changes every page. A second
+question worth a round trip, because the answer changes every page.
+**The output language is asked on the same terms, and it is asked rather
+than inferred**: the language of the source material, the venue and the
+audience's nationality are all evidence about the reader and none of them is
+an instruction. A language the same user chose for a comparable deliverable
+outranks every inference from the material; naming a language in a plan and
+having the plan approved does not convert an inference into an instruction
+(FM-18, from a build that shipped Chinese one day after its owner had chosen
+English for the same kind of document). A second
 geometry is a second *composition*, in its own file, with its own layouts and
 its own figures; it is never the same file viewed sideways. Each stage is
 scaled to fit the window and letterboxed — *not* a box that takes the window's
@@ -368,8 +376,10 @@ current, stale, or **unknown** — and unknown is not current.
    red-team pass — read the draft as its most skeptical reader, and treat
    over-design as a finding, not a virtue — then the
    **mandatory de-AI-flavor pass** — `references/writing-rules.md` §6, including
-   its two-pass audit; for Chinese translated from English also §6b
-   de-translationese — then the C1–C8 self-score per
+   its two-pass audit and, for an external deliverable, the findings file that
+   `scripts/ops/judge_findings.py` will only accept with quotations, because a
+   pass that leaves nothing behind cannot be told from one that was skipped;
+   for Chinese translated from English also §6b de-translationese — then the C1–C8 self-score per
    [`references/eval-rubric.md`](references/eval-rubric.md);
    **never self-score 5 before a reader has scored it, and give the reason for
    every score**.

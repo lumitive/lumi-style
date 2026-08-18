@@ -258,6 +258,46 @@ naming), D16 (C1=1 with the agenda-mirror bug as its opening finding, C5's
 same document after a parts-complete revision, which is what proves the mode
 is about the arc and not the parts).
 
+## FM-18 · The input language captures the output language
+
+- detection: a deliverable whose output language was never asked for and was
+  inferred from the language of the source material, the venue, or the
+  audience's nationality. The tell is that the language decision appears
+  first in a PLAN rather than in a question, and that an earlier document in
+  the same engagement went the other way
+- prevention: output language is a MUST-ASK, at the same tier as geometry
+  (SKILL.md's "the one question worth a round trip"). A prior answer from the
+  same owner outranks any inference from the material: if the last deliverable
+  was English because they said English, the next one is English until they
+  say otherwise. Burying the decision in an approved plan does not convert an
+  inference into an instruction
+
+Shipped instance: the 2026-08 roadshow build. Three Chinese source documents
+and a Chinese venue produced a Chinese deck one day after the owner had
+explicitly chosen English for the previous deliverable of the same kind. The
+plan named zh-Hans and was approved; the owner's review opened with "why is
+the output Chinese, I said English by default."
+
+## FM-19 · Inherited sentences carry inherited register
+
+- detection: a rebuild that reuses the source document's phrasing rather than
+  only its facts. The mechanical tells are weak by design: sentence-level
+  copying can measure at zero while the argument is wholly inherited. Measure
+  the TITLES and the signature phrases instead. A second tell: analysis
+  declarations that were written to describe pages that already existed,
+  which is AR-3 satisfied backwards
+- prevention: source material is a FACT source, never a sentence source
+  (operating-rules OR-7). Part authors receive an extracted fact list and are
+  not given the prior document at all; the vertebrae are re-derived by
+  applying the five moves to those facts, and a move that produces the same
+  title the source already had is a signal that no move was applied
+
+Shipped instance: the same roadshow build. Measured after the owner's review:
+0 of 96 sentences copied verbatim, and 9 of 15 titles carried an 8-character
+or longer fragment of the source deck, with 10 of 15 signature phrases
+surviving intact. The skin was rewritten and the spine was lifted, which is
+why every prose metric passed and the owner still read it as a copy.
+
 # Abandoned gates
 
 Declined enforcement mechanisms, recorded with reasons so they are not
