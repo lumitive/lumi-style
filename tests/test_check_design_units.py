@@ -537,3 +537,30 @@ def test_d4_a_declared_mark_keeps_its_owners_colours():
     raw = ('<html><body><svg data-mark="trademark">'
            '<path fill="#D97757"/></svg></body></html>')
     assert check_design.d4_palette(raw) == []
+
+
+# ── D12's terms vocabulary was English-and-confidential only (0.1.519) ────────
+# A public Chinese roadshow deck carried honest handling terms (公开路演版·
+# 引用请注明出处) and failed all nineteen pages; the real artifact is the
+# deliberate-red run.
+
+def _footer_doc(terms):
+    return ('<html lang="zh-Hans"><body>'
+            '<section class="page" id="p1"><p>正文。</p>'
+            f'<div class="foot"><div class="terms"><span class="conf">{terms}</span></div>'
+            '<span class="site">www.lumivate.io</span><span>01 / 01</span></div>'
+            '</section></body></html>')
+
+
+def test_d12_accepts_chinese_handling_terms(tmp_path):
+    path = tmp_path / "doc.zh-Hans.html"
+    path.write_text(_footer_doc("公开路演版 · 引用请注明出处"), encoding="utf-8")
+    r = check_design.d12_commercial_footer(path.read_text(encoding="utf-8"))
+    assert r["missing_terms"] == []
+
+
+def test_d12_still_fails_a_footer_with_no_terms(tmp_path):
+    path = tmp_path / "doc.zh-Hans.html"
+    path.write_text(_footer_doc("some other words"), encoding="utf-8")
+    r = check_design.d12_commercial_footer(path.read_text(encoding="utf-8"))
+    assert r["missing_terms"] == [0]

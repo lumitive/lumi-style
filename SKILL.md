@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.518"
+  version: "0.1.519"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -145,7 +145,8 @@ current, stale, or **unknown** — and unknown is not current.
    from market analysis to the investor pitch). Read that file and choose both
    before writing. Its deck-wide disciplines bind every scenario: the
    agenda is **derived from the page titles** (D27 gates the mirror — an
-   agenda paraphrased in fresh words fails the document), every external
+   agenda paraphrased in fresh words fails the document) and renders as the
+   **launch sequence** the scaffold emits, every external
    content page closes with one **`.take` takeaway line** (D28 reports the
    coverage), and a customer-facing product deck walks **What → Why → How →
    Value** in the reader's order (Template 6), and an investor BP is built

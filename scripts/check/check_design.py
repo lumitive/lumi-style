@@ -981,8 +981,12 @@ def d12_commercial_footer(raw, site=None):
     missing_terms, missing_site = [], []
     for i, body in enumerate(pages):
         low = _block_text(body, "foot").lower()
+        # The zh half was missing until the first real Chinese deliverable: a
+        # public roadshow deck with honest terms failed all nineteen pages.
         if not any(w in low for w in ("confidential", "privileged", "internal use",
-                                      "do not forward", "proprietary")):
+                                      "do not forward", "proprietary",
+                                      "保密", "内部使用", "请勿转发", "请勿外传",
+                                      "公开路演", "引用请注明出处")):
             missing_terms.append(i)
         if not re.search(r"\b[\w.-]+\.(io|com|cn|ai|net|org)\b", low):
             missing_site.append(i)

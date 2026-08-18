@@ -153,3 +153,35 @@ def test_m8_cv_floor_is_050_and_a_035_rhythm_now_fails():
     assert r["M8_length_cv"] < 0.50
     assert r["verdicts"]["M8_length_cv"] == "FAIL"
     assert ">=0.50" in r["targets"]["M8_length_cv"]
+
+
+# ── zh blind spots found on the first real Chinese deliverable (0.1.519) ──────
+# Each of these fired on the 2026-08 Chengdu roadshow build before the fix:
+# the deliberate-red run is the real artifact, per convention 15.
+
+def test_title_frame_reads_full_width_colon_and_question():
+    # A Chinese colon title read as "plain", so thirteen zh titles counted as
+    # one frame and M11 failed a deck whose frames genuinely varied.
+    assert check_prose.title_frame("数据分层：只认主数据") == "colon"
+    assert check_prose.title_frame("大厂做了怎么办？") == "question"
+    assert check_prose.title_frame("Plain assertion title") == "plain"
+
+
+def test_m8_is_not_measured_for_a_chinese_document(tmp_path):
+    # The English word-splitter cannot measure zh sentence rhythm; it measured
+    # the Latin fragments instead and failed a Chinese deck at cv 0.23. The
+    # module's own design note says M8 stays n/a for Chinese.
+    path = tmp_path / "doc.zh-Hans.html"
+    body = "".join(f"<p>这是第 {i} 句中文正文，说明一件事。</p>" for i in range(40))
+    path.write_text(f"<html lang='zh-Hans'><body><section class='page' id='p1'>"
+                    f"{body}</section></body></html>", encoding="utf-8")
+    r = check_prose.measure(path, "sales")
+    assert r["M8_length_cv"] is None
+
+
+def test_m2_accepts_a_chinese_source_marker(tmp_path):
+    # "来源：Momentum Works" carried the source and was still counted
+    # unsourced, because SOURCE_MARKERS was English-only.
+    s = "市场规模为 $1,330 亿。来源：行业研究。"
+    r = _measure(tmp_path, s)
+    assert r["M2_detail"] == []

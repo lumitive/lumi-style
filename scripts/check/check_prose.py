@@ -217,9 +217,15 @@ MIN_TITLES = 8          # below this, one frame dominating means nothing
 SOURCE_MARKERS = [
     "source", "derived from", "based on", "as of", "per", "n=", "extract",
     "illustrative", "mock", "proposal value", "uncalibrated",
+    "来源", "出处", "示意", "实测",
 ]
+# A CJK marker takes no \b: CJK characters count as \w, so a word boundary
+# never fires between 数据 and 来源 — found when the first real Chinese
+# deliverable carried 来源 on every figure and still failed M2.
 SOURCE_RE = re.compile(
-    "|".join(r"\bn\s*=\s*\d" if m == "n=" else rf"\b{re.escape(m)}\b"
+    "|".join(r"\bn\s*=\s*\d" if m == "n=" else
+             re.escape(m) if any("\u3400" <= ch <= "\u9fff" for ch in m)
+             else rf"\b{re.escape(m)}\b"
              for m in SOURCE_MARKERS), re.I)
 
 # A percentage or a currency amount. Deliberately NOT every number: a page
@@ -294,8 +300,8 @@ TITLE_FRAMES = ("colon", "question", "number-led", "verb-led", "plain")
 def title_frame(t: str) -> str:
     """-> which of TITLE_FRAMES this title is."""
     return (
-        "colon" if ":" in t else
-        "question" if t.rstrip().endswith("?") else
+        "colon" if (":" in t or "\uff1a" in t) else
+        "question" if t.rstrip().endswith(("?", "\uff1f")) else
         "number-led" if re.match(r"^\s*[\d$]", t) else
         "verb-led" if re.match(r"^\s*(?:[A-Z][a-z]+ing|How|Why|What|When)\b", t) else
         "plain"
@@ -685,8 +691,8 @@ def measure(path, genre, lang=None):
         "M6_unsourced_ranges": len(m6_missing),
         "M6_detail": m6_missing,
         "M6_label_enumerations": m6_labels,
-        "M8_overlong_share": round(overlong, 1),
-        "M8_length_cv": round(cv, 3),
+        "M8_overlong_share": None if is_zh else round(overlong, 1),
+        "M8_length_cv": None if is_zh else round(cv, 3),
         "M9_dashes": dashes if genre in DASH_BANNED else None,
         "M10_triad_rate": None if triad_rate is None else round(triad_rate, 1),
         "M11_title_uniformity": None if uniformity is None else round(uniformity, 1),
@@ -822,7 +828,8 @@ def grade(r):
         ("M5_zh_punctuation", r["M5_zh_punctuation"], "=0",
          (r["M5_zh_punctuation"] or 0) == 0, r["M5_zh_punctuation"] is None),
         ("M8_overlong_share", r["M8_overlong_share"], "<=8%",
-         r["M8_overlong_share"] <= 8.0, thin_rhythm),
+         (r["M8_overlong_share"] or 0) <= 8.0,
+         thin_rhythm or r["M8_overlong_share"] is None),
         # 0.50, raised from 0.35 at 0.1.508 — measured first, not assumed. The
         # refactor's own research note argued 0.35 has no discriminating power,
         # and the floor was replayed against the rebuilt corpus before moving.
@@ -830,7 +837,9 @@ def grade(r):
         # wrap as a sentence boundary: real documents sit 0.639-0.854 and the
         # degenerate fixture at 0.332, so the fix widened the separation the
         # floor relies on rather than moving it.
-        ("M8_length_cv", r["M8_length_cv"], ">=0.50", r["M8_length_cv"] >= 0.50, thin_rhythm),
+        ("M8_length_cv", r["M8_length_cv"], ">=0.50",
+         (r["M8_length_cv"] or 1.0) >= 0.50,
+         thin_rhythm or r["M8_length_cv"] is None),
         ("M9_dashes", r["M9_dashes"], "=0", r["M9_dashes"] == 0, r["M9_dashes"] is None),
         # M6 first of the three: the most decidable predicate. A range figure
         # must trace to ONE source or it may not appear (writing-rules section 4

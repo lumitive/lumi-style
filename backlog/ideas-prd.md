@@ -577,3 +577,32 @@ current tuple equals the sales tier exactly.
 with the rule "every EXTERNAL_GENRES member is a GENRES member, and the tuple
 equals the set of genres whose TIER is `sales` unless a comment names the
 exception" — with the planted-red run convention 15 requires, run first.
+
+## IDEA-14 · `check_outline.py` cannot read assertion in a Chinese title
+
+**Problem.** `is_label` decides "asserts nothing" by an English verb list plus
+an Arabic-digit test. A Chinese title asserting plainly (`本轮融资只解决一件事`) reads as a topic label unless it happens to carry an Arabic digit, and
+the outline gate FAILs it.
+
+**Evidence.** The Chengdu roadshow outline (2026-08-19): two zh titles
+misjudged; both were worked around by inserting digits (`只解决 1 件事`),
+which is compliance with the instrument, not the rule.
+
+**What would close it.** A zh assertion heuristic (predicate-marker vocabulary
+or a full-width-punctuation-aware fact test), designed against a corpus of
+real zh outlines rather than invented — convention 15 applies: grep real
+titles first, plant the red run first.
+
+## IDEA-15 · Short Latin privacy terms false-positive on embedded base64
+
+**Problem.** `check_privacy.py --terms` substring-matches case-insensitively
+across the raw file, so a three-letter Latin term ("Ray") fires on base64
+inside the embedded font (`...RayTh2...`), six times on one build.
+
+**Evidence.** Chengdu build, 2026-08-19: all six layer-1 hits were base64;
+the term had to be dropped from the out-of-bounds list to keep the check
+usable, which weakens the check.
+
+**What would close it.** Word boundaries for pure-Latin terms and a scan that
+skips `data:` URIs and base64 runs — with a planted red proving a REAL name in
+visible prose still fires.

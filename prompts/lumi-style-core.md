@@ -224,6 +224,8 @@ Say "uncertain" plainly.
   **Evidence before vision is the one inviolable ordering.** A deck built on
   illustrative data says so on its title page.
 - **Deck frame**: a cover opens and a closing ends every deck, set the same way,
+  and the agenda page is the **launch sequence**: one numbered row per part, the
+  part's claim at title weight quoting its opener, a quiet run line under it.
   each carrying the **same single vector mark** (geography claims only what the
   document truly covers). **Every part boundary gets a lime opener page**; about
   five content pages between openers is a pacing target, never a quota.
@@ -473,6 +475,6 @@ quality), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.518** snapshot, cut 2026-08-17. It is self-contained by
+> This file is the **0.1.519** snapshot, cut 2026-08-17. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.
