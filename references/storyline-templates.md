@@ -2,8 +2,8 @@
 
 *Serves: **GOAL*** — narrative skeletons serve the reader's decision rather than a constitutional clause; the cover and closing pages inside it serve **P-1** as brand apparatus. · id `ST-1`
 
-> Four narrative skeletons for four output scenarios, plus the shared
-> discipline. (Repository language: English only — red line.)
+> Narrative skeletons — one per storyline in the roster below — plus the
+> shared discipline. (Repository language: English only — red line.)
 
 ## The storyline vocabulary
 
@@ -31,8 +31,9 @@ that tuple to each other.
 | `product-intro` | what it does, who it is for, and what it deliberately does not do | Template 6 |
 | `training-curriculum` | what the reader will be able to do, taught one idea at a time | Template 4 |
 | `proposal` | here is a decision, here is what I recommend, what it costs, and what blocks it | Template 5 |
+| `pitch-deck` | we built this, it works and grows, the prize is this big, and money is what unlocks it | Template 11 |
 
-All seven now carry a full skeleton. Templates 7–10 were written from the
+Every name in the roster carries a full skeleton. Templates 7–10 were written from the
 2026-08 consulting-standards research, which had already documented each
 structure section by section before they sat in a backlog for four releases —
 the analysis-engine retrospective is what moved them (IDEA-10 closes with
@@ -305,6 +306,70 @@ Answer-first, and the answer carries its confidence:
    price, not just to the mood.
 9. Appendix — everything that supports and nothing that argues.
 
+## Template 11 · Investor pitch (BP) · storyline `pitch-deck`
+
+Added at 0.1.518 by owner directive (2026-08-18): the package needed a
+roadshow BP capability, imported from Y Combinator's published fundraising
+guidance the way the consulting standards were — the study is
+`references/exemplars/yc-pitch-notes.md` (EX-3), and this skeleton is its
+argument shape. **It is a storyline, not a genre**: a BP is external sales
+material, so the `sales` tier binds its prose and thresholds; this template
+decides the shape, and the shape is: *we built this, it works and grows, the
+prize is this big, and money is what unlocks it.*
+
+The reader is an investor deciding whether the next hour of conversation is
+worth having — not a customer. The deck is an overview that leaves room for
+questions, and it is built vertebrae-first: the page titles are written and
+agreed as one 10–15 line argument before any page exists (the storyline
+review beat, bound hardest here — the concatenated titles ARE the investment
+case). Eleven sections, in the order credibility is earned before it is spent:
+
+1. **Title and one-liner** — the company name and one sentence a layperson
+   can picture: concrete and specific, never a vision slogan. A scaffold
+   built ahead of real data says so here, on the title page (red line 1).
+2. **Traction teaser** — the one hero fact that buys attention for
+   everything after it, bridging the one-liner into the problem.
+3. **Problem** — how the world works today for the paying customer, told
+   concretely with numbers, scoped to the part this product actually
+   solves. A problem too big to solve sets up a solution page it cannot
+   have.
+4. **Solution** — the mirror of the problem page: the same situation with
+   the product, side by side, quantified. What exists NOW — futures mixed
+   in here get discounted to zero. Customer steps, never screenshots.
+5. **Traction in depth** (one to three pages) — the numbers tell one story:
+   revenue and growth on the business model, acquisition and unit
+   economics, engagement and retention. Trends, not points: monthly or
+   quarterly lines with four to six months of history as the floor of
+   believability; cumulative-only and double-axis charts are banned by
+   name; every number defines what it measures.
+6. **Market** — a bottoms-up equation drawn as a labeled arithmetic band:
+   prospective customers × value per customer, from the business's own
+   numbers (`market-sizing` in frameworks.json). Top-down report figures
+   are the named misuse.
+7. **Competition** — why 10× better, positioned on axes the investor cares
+   about, closing with the moat sentence.
+8. **Vision** — how this becomes a very large company; the hypotheticals
+   deliberately kept out of pages 1–7, licensed now because everything
+   before was real.
+9. **Team** — quantified: exits, domain authority, what was built with how
+   little. Founders, not an advisor wall; it moves to second position only
+   when the team is itself the comparative advantage.
+10. **The ask** — the climax, never omitted: the amount, what it buys, and
+    where that lands the company in 18–24 months, in traction terms, as
+    who-does-what-by-when. The page that shows money is the binding
+    constraint.
+11. **Appendix** — the anticipated investor questions, each answered with
+    data; financial projections; the detailed use of funds. It grows as
+    pitches surface new questions.
+
+Two boundary rules. **Evidence before vision is the arc's one inviolable
+ordering** — a deck that opens on the dream has spent credibility it has
+not earned, which is FM-16's completeness failure wearing a different coat.
+And **the YC floor is not the LUMI ceiling**: the study's design advice
+(grey bullets, bare charts) is a clarity floor; LUMI's figure and
+composition rules still bind every page, so the deck reads as LUMI telling
+the investor story, not as a template filled in.
+
 ## Cover and closing pages (every deck scenario)
 
 A deck opens with a **cover** and ends with a **closing page**; the content arc
@@ -394,7 +459,7 @@ manufacture the uniformity the parallel-structure rule exists to suppress.
 
 ## Shared discipline
 
-- **Title contract** (all four scenarios, decks included): every page/section
+- **Title contract** (every scenario, decks included): every page/section
   title names its **subject** and carries at least one **verifiable fact** — a
   figure, a date, a named mechanism. Length follows the fact; **there is no word
   ceiling**, only the two-line budget in `design-rules.md`.

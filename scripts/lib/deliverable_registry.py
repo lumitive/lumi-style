@@ -68,8 +68,15 @@ TIERS = {"sales": "sales", "marketing": "sales", "consulting": "sales",
 # `references/storyline-templates.md`, and the `storyline templates` guard holds
 # this tuple and that file to each other — a name here with no template there is
 # a label with no shape behind it.
+# `pitch-deck` was added at 0.1.518 by owner directive: a roadshow BP is a
+# story none of the other names cover — an argument to an investor about a
+# future business, made credible by the business that already exists. Its
+# skeleton is Template 11, written from the YC fundraising study (EX-3);
+# its genre is ordinarily `sales`, because a BP is external material and the
+# sales tier is the rule set that binds it.
 STORYLINES = ("market-analysis", "gtm", "status-report", "due-diligence",
-              "product-intro", "training-curriculum", "proposal")
+              "product-intro", "training-curriculum", "proposal",
+              "pitch-deck")
 
 
 def tier_of(genre: str) -> str:
@@ -148,4 +155,9 @@ TYPICAL_SECTIONS = {
                       "next step"),
     "training-curriculum": ("objective", "prerequisites", "modules",
                             "practice", "assessment"),
+    # Aligned to Template 11 (storyline-templates.md), written from the YC
+    # fundraising study (references/exemplars/yc-pitch-notes.md, EX-3).
+    "pitch-deck": ("one-liner", "traction teaser", "problem", "solution",
+                   "traction", "market", "competition", "vision", "team",
+                   "ask", "appendix"),
 }

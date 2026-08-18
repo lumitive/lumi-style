@@ -556,3 +556,24 @@ notes carry the examples so a second occurrence is recognized.
 it: either a prose rule in writing-rules §5 (a list of nouns is a list, not a
 sentence — give the row a verb) or, if a mechanical form emerges, an M-series
 reported metric for verbless comma-runs above a length floor.
+
+## IDEA-13 · `EXTERNAL_GENRES` is a third copy of the genre split, unguarded
+
+**Problem.** `scripts/check/check_design.py` declares
+`EXTERNAL_GENRES = ("sales", "marketing", "consulting")` as its own literal —
+the gate on D28's `.take` coverage and the code-side reading of AR-5's "the
+external genres". Its comment argues the non-import is deliberate (it answers
+a different question than `DASH_BANNED`), but the absence of a *guard* is not
+argued anywhere: `check_genre_vocabulary` reads seven files and this tuple is
+in none of them. A future external genre added to the registry would silently
+fall out of the takeaway discipline and the reader-outcome rule — the exact
+silent-divergence class the genre-vocabulary guard was built for.
+
+**Evidence.** Found during the 0.1.518 pitch-deck work while mapping every
+place the genre vocabulary is keyed. No divergence has happened yet; the
+current tuple equals the sales tier exactly.
+
+**What would close it.** Add the tuple to `check_genre_vocabulary`'s read set
+with the rule "every EXTERNAL_GENRES member is a GENRES member, and the tuple
+equals the set of genres whose TIER is `sales` unless a comment names the
+exception" — with the planted-red run convention 15 requires, run first.

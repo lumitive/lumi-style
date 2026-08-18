@@ -208,6 +208,21 @@ Say "uncertain" plainly.
   geometry** — printed, annotated, bound; 16:9 is the projection edition. For
   every other genre 16:9 leads and A4 is the print edition; both are always
   composed and verified.
+- **Investor pitch / BP** (storyline `pitch-deck`; sales rules bind — it is
+  external material): **vertebrae first** — write the 10–15 page titles as one
+  argument and agree them before building any page; the concatenated titles ARE
+  the investment case. Then: title + one-liner (concrete, layperson terms) →
+  traction teaser (one hero fact) → problem → solution (the problem page's
+  mirror, side by side, quantified, what exists NOW) → traction in depth
+  (trends, not points — four to six months of monthly/quarterly history is the
+  floor; never cumulative-only, never double-axis; every number defines what it
+  measures) → market (a bottoms-up equation drawn as a labeled arithmetic band,
+  never a pasted report figure) → competition and the moat sentence → vision
+  (licensed by the evidence before it) → team (quantified; founders, not an
+  advisor wall) → the ask (amount, uses, where that lands in 18–24 months —
+  the climax, never omitted) → appendix (anticipated investor questions).
+  **Evidence before vision is the one inviolable ordering.** A deck built on
+  illustrative data says so on its title page.
 - **Deck frame**: a cover opens and a closing ends every deck, set the same way,
   each carrying the **same single vector mark** (geography claims only what the
   document truly covers). **Every part boundary gets a lime opener page**; about
@@ -458,6 +473,6 @@ quality), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.517** snapshot, cut 2026-08-17. It is self-contained by
+> This file is the **0.1.518** snapshot, cut 2026-08-17. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

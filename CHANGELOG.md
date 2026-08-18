@@ -1,5 +1,62 @@
 # Changelog
 
+## 0.1.518 — the investor pitch: YC's argument shape joins the storyline roster
+
+**By owner directive (2026-08-18): the package needed a roadshow BP
+capability, and it is imported the way the consulting standards were —
+studied at source, written up as an exemplar, then bound into the
+vocabulary.** The study is `references/exemplars/yc-pitch-notes.md` (EX-3):
+original analysis of Y Combinator's three published fundraising-deck guides
+(the Series A pitch guide, the seed deck template, the deck-design essay),
+read in full together with the twenty-two template slides embedded in them —
+the owner's instruction was to learn the slides, not just the prose, and the
+slide-level grammar (the title as the claim sentence with its number in it;
+chart left, hero bullets right; the market as a labeled arithmetic band; the
+mirrored problem/solution pair) is in the notes with the deck each device was
+seen in.
+
+**Template 11 · Investor pitch, storyline `pitch-deck`.** The owner's stated
+core requirement — a BP lives or dies on the whole deck's narrative logic,
+one complete story about a future business, not per-page quality — is YC's
+own vertebrae method, and the template binds it as the build order: the
+10–15 page titles are written and agreed as one argument before any page
+exists, which is red line 4 and the storyline review beat bound hardest.
+The arc runs one-liner → traction teaser → problem → solution → traction in
+depth → market → competition → vision → team → ask → appendix, with two
+boundary rules: evidence before vision is the one inviolable ordering, and
+the YC floor is not the LUMI ceiling — the study's bare-bones design advice
+is a clarity floor and LUMI's composition rules still bind every page.
+**It is a storyline, not a genre** (the Template 5 precedent): a BP is
+external sales material, so the `sales` tier binds, and the registry change
+is one tuple entry plus a `TYPICAL_SECTIONS` checklist — every guard, the
+outline gate, the trace schema and the scaffold derive from the tuple.
+Named `pitch-deck`, not `pitch`: the two-axis tests use `pitch` as their
+canonical *unknown*-genre sentinel, and a storyline of that name would have
+inverted the test silently.
+
+**`market-sizing` joins frameworks.json** (decompose, drawn native): the
+bottoms-up equation — prospective customers × value per customer, from the
+business's own numbers, the arithmetic printed as a labeled band. The named
+misuse is the top-down report figure pasted as a market. Use-of-funds needed
+no entry; the existing `waterfall` is its shape.
+
+**Numbers discipline, BP-flavoured, stated where it binds** (Template 11 and
+EX-3, not new metrics): traction states trends, not points — four to six
+months of monthly or quarterly history as the floor of believability;
+cumulative-only and double-axis charts banned by name; every number defines
+what it measures; a scaffold built on illustrative data says so on its title
+page, which is YC's own practice and red line 1 doing its ordinary work.
+
+Re-flowed into all three entry points and README; the stale storyline counts
+those restatements carried ("four narrative skeletons", "all four
+scenarios", "none of the four genres") are deleted rather than incremented,
+per convention 13. Deferred: the unguarded `EXTERNAL_GENRES` tuple found
+while mapping the genre vocabulary is IDEA-13. No new gate ships in this
+release, so no deliberate-red run is owed; the roster row and tuple are held
+together by the existing storyline-vocabulary guard and its synthetic-tree
+tests.
+
+
 ## 0.1.517 — two pages reached the owner's standard, and the path is now the rule
 
 **The benchmark-anchored review's first full cycle converged where two

@@ -36,8 +36,9 @@ def test_tier_of_raises_loudly_on_an_unknown_genre():
 
 
 def test_storyline_does_not_multiply_the_reference_obligation():
-    """The obligation hangs off the tier. Six storylines, three tiers, and the
-    number of reference documents to accumulate is three."""
+    """The obligation hangs off the tier. However many storylines the roster
+    grows, three tiers, and the number of reference documents to accumulate
+    is three."""
     assert len(set(reg.TIERS.values())) < len(reg.STORYLINES)
 
 
