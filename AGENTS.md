@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.516.** This file restates part of `references/`; where they
+> **lumi-style 0.1.517.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -99,6 +99,9 @@ facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
    the `.take`; figures come from `assets/frameworks.json`'s question →
    framework → shape chain; the register comes from writing-rules' per-genre
    profiles (market language for sales, operator's procedure for training);
+   internal metrics reach a reader page only as drivers of evidenced reader
+   outcomes (AR-5), a judgement-based figure declares its basis where it is
+   drawn, and a debunked statistic is never cited;
    its deck-wide disciplines: the agenda is derived from the page titles (D27
    gates), external content pages each close with a `.take` takeaway (D28
    reports), and a product deck walks What → Why → How → Value (Template 6)

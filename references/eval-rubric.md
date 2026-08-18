@@ -499,6 +499,27 @@ acceptance that converges is comparative:
   that leave an object behind, and a review that leaves objects cannot rot
   into ticking.
 
+### The reader-outcome layer (reported; what the proxies stand in for)
+
+The machine metrics are proxies, and this table says for what — so a
+benchmark review can ask about the outcome instead of the proxy, and so the
+roadmap to measuring the real thing stays written down. Nothing here gates:
+a gate on an unmeasured outcome would be a fabricated number with a
+threshold.
+
+| reader outcome | today's proxy | the honest future measurement |
+|---|---|---|
+| comprehension | visual share; tables replaced by figures | a two-question comprehension check attached to each benchmark review |
+| retention | share of the argument carried in figures | a delayed-recall check (the literature's day-3 window) |
+| attention / visual impact | dominant-exhibit share; page energy | reviewer dwell judgement per page |
+| novelty | layout and figure-form diversity | reviewer novelty verdict |
+| efficiency | the 60-second page rule (industry folklore, labelled as such) | timed page reads |
+| actionability | C6's who/what/when | already human-scored |
+
+Each benchmark review that carries the comprehension check adds one row of
+"this document's visual share ↔ this reader's score" — the dose-response
+curve the proxies cannot honestly claim today is accumulated, not invented.
+
 ## Known genre distortions (never chase the score)
 
 Figure fragments concatenate into false run-ons when a deck is parsed as prose, so

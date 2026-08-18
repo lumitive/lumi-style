@@ -1,0 +1,15 @@
+{
+ "version": "0.1.517",
+ "diff_base": "332c600eb7608003b40d0d1a36c70417d64cdaad",
+ "spec": "waived: the design record is the calibration itself — two owner-accepted pages and their version trail in ~/Documents/LUMI-Style/_calibration/, summarised in this CHANGELOG entry; the analysis-engine spec (2026-08-18) covers the architecture",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "A rules-and-anchors release from the calibration cycle; no conformance task exercises it. The board is stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent follows the skill at 0.1.517 is unknown, not passing."
+  }
+ ]
+}

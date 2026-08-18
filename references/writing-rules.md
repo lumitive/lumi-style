@@ -205,6 +205,18 @@ LUMI's own seed survives as group 8.
    A document with no page structure — Markdown, a plain report — has one page,
    so the window is the document.
 
+**Never cite a statistic that has been publicly debunked, however widely it
+circulates.** The presentation-evidence folklore is full of them, and two are
+named here because they nearly reached a page: *"visuals make presenters 43%
+more persuasive"* (the 1986 UM/3M working paper's own text does not support
+its abstract's number) and *"the brain processes images 60,000× faster than
+text"* (no source has ever been produced). A debunked number costs more than
+no evidence: the one reader who knows discounts every honest number beside
+it. When a claim's popular figure fails verification, cite the sturdier
+finding instead — the picture-superiority recall pair (10% against 65% at
+three days, Medina) and Mayer's controlled comparisons survived the same
+check these two failed.
+
 ## 5 · Voice (the LUMI register)
 
 *Serves: **P-3**.* · id `WR-6`
