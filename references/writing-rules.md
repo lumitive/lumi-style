@@ -296,6 +296,16 @@ a page in the wrong register is not fixed by removing its tells.
 > is a gate, not advice.** It used to be named only inside a parenthesis and no
 > workflow step invoked it; three versions of AI-flavored decks shipped past it.
 > A pass in the pipeline beats good intentions.
+>
+> **And it leaves an artifact.** For an external deliverable the pass ends in a
+> findings file run through `scripts/ops/judge_findings.py`, which accepts a
+> finding only when it quotes the sentence it objects to. A pass that leaves
+> nothing behind is indistinguishable from a pass that did not happen, and the
+> behavioural record on that is one-directional: the build that shipped
+> thirteen aphorisms had every mechanical check green and no record of this
+> pass, because it was skipped. Machine metrics cannot stand in for it —
+> when a document is in Chinese, M8 reads n/a and the register is unmeasured
+> by construction (0.1.519), so the pass IS the instrument.
 
 **Word and sentence moves**
 
@@ -339,6 +349,16 @@ a page in the wrong register is not fixed by removing its tells.
     form; prefer prose when the items are explanatory rather than enumerable.
 12. **No manufactured punchlines, no aphorism formulas** ("X is the Y of Z"), no
     generic upbeat conclusion. End on the concrete fact.
+12b. **A page-closing line is not a slot for a slogan, and the test is the
+    distribution.** Item 12 catches one manufactured punchline; the deck-level
+    form is thirteen of them, one per page, each balanced and quotable. Vary
+    what the closing line DOES: one names the consequence, one states a limit
+    the document has ("this figure is an evaluation-load number and live
+    traffic has not tested it"), one asks the reader for something, one is a
+    flat unremarkable fact. If more than half of a document's closing lines
+    are short and quotable, the pattern is the tell, however good each line
+    is. (Shipped instance: a build whose thirteen `.take` lines were thirteen
+    aphorisms, every prose metric green, read as machine-written on sight.)
 13. **Boldface carries meaning or comes out.** Mechanical bolding of every key
     phrase is emphasis inflation, and it makes a page look generated.
 14. One name per concept, never synonym cycling — see §1 term consistency.

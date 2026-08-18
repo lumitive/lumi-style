@@ -173,3 +173,34 @@ measurement is for.
 **These rules are restated in the entry points**, which is what entry points
 are for. `references/` is where they are true; `SKILL.md` and `AGENTS.md` are
 where an agent reads them. When the two disagree, this file wins.
+
+## 7 · Source material is a fact source, never a sentence source
+
+*Serves: **P-2**.* · id `OR-7`
+
+A prior document supplied for a rebuild, whether it is an earlier draft, a
+competitor's deck or a colleague's outline, contributes **facts and
+constraints**. It does not contribute sentences, titles, or the order of the
+argument, unless the user says in so many words that it should.
+
+The rule exists because the failure is invisible to every prose metric this
+package ships. A rebuild can copy no sentence at all and still inherit the
+whole argument: at the 2026-08 roadshow build, sentence-level copying measured
+zero while nine of fifteen page titles carried a fragment of the source deck
+and ten of fifteen signature phrases survived. The document passed the ban
+list, the punctuation pass and the rhythm floor, and the owner read it as a
+copy on sight, because it was one.
+
+**In practice.** Extract the facts into a list with their sources, and give
+the part authors that list. Do not give them the prior document. Re-derive the
+page titles by applying the analytical moves (AR-1) to the facts: a move that
+lands on the title the source already used is evidence that no move was
+applied, not that the title was inevitable. Where the user wants a phrase
+carried over because it is theirs and it works, that is their decision and it
+is recorded as one.
+
+**The related trap in the same family**: writing the analysis declarations
+after the pages exist. A declaration produced to describe a finished page
+documents nothing; AR-3's line runs move → finding → page, and the outline
+beat is where that order is visible.
+

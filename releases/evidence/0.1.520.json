@@ -1,0 +1,15 @@
+{
+ "version": "0.1.520",
+ "diff_base": "6318f820084204344f0a691c428bf34e324c9a86",
+ "spec": "waived: an owner review of a shipped deliverable is the documented case; the three modes and the rebuilt deck are the record, and this CHANGELOG entry cites both",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "A rules release from an owner review: three failure modes, one operating rule, one register rule. No conformance task exercises language choice, source-inheritance or closing-line distribution. The board is stale since 0.1.470 and tracked there; refreshing needs live agent runs and API keys, which CI does not have. What is unconfirmed: whether each agent follows the skill at 0.1.520 is unknown, not passing."
+  }
+ ]
+}
