@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.517"
+  version: "0.1.518"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -138,15 +138,19 @@ current, stale, or **unknown** — and unknown is not current.
    its judgment anchor, and write the ask as who-does-what-by-when. The first
    blind review scored a gate-clean deck 1 on completeness and 1 on
    actionability for skipping exactly this pass (FM-16). Then
-   pick the scenario: sales/marketing · consulting/client document · internal
-   analysis · training material — four different narrative skeletons. Read
-   [`references/storyline-templates.md`](references/storyline-templates.md) and
-   choose before writing. Its deck-wide disciplines bind every scenario: the
+   pick the scenario on both axes: the **genre** (sales/marketing ·
+   consulting/client document · internal analysis · training material — which
+   rules bind) and the **storyline** (which narrative skeleton — the roster in
+   [`references/storyline-templates.md`](references/storyline-templates.md),
+   from market analysis to the investor pitch). Read that file and choose both
+   before writing. Its deck-wide disciplines bind every scenario: the
    agenda is **derived from the page titles** (D27 gates the mirror — an
    agenda paraphrased in fresh words fails the document), every external
    content page closes with one **`.take` takeaway line** (D28 reports the
    coverage), and a customer-facing product deck walks **What → Why → How →
-   Value** in the reader's order (Template 6). **Work in parallel where the platform allows** —
+   Value** in the reader's order (Template 6), and an investor BP is built
+   vertebrae-first — the page titles agreed as one argument, evidence before
+   vision, the ask as the climax (Template 11, storyline `pitch-deck`). **Work in parallel where the platform allows** —
    pages are independent once the storyline is fixed — and the parallel form
    has a protocol, proven on real builds (owner target: a 30-page document in
    under ten minutes end-to-end):

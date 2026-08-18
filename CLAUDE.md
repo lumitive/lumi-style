@@ -202,7 +202,7 @@ Actions incident blocks merging for everyone. Do not wait it out by polling.
 
 - `references/brand.md` — the water thesis, the two brand devices (waterline, field), the ground, the acid green, the consistency rules; loaded first by SKILL.md and AGENTS.md
 - `references/writing-rules.md` — output-language default, terminology red lines, banned phrases, punctuation, number discipline, the LUMI voice
-- `references/storyline-templates.md` — narrative skeletons per scenario (sales / consulting / internal analysis / training), cover & closing templates, the pre-delivery critic gate
+- `references/storyline-templates.md` — narrative skeletons, one per storyline in its roster (sales through the investor pitch), cover & closing templates, the pre-delivery critic gate
 - `references/design-rules.md` — color semantics, typography, chart rules, semantic icons, layout guards, verification matrix
 - `references/eval-rubric.md` — the M / D / C scoring rubric and the review protocol (the iteration engine)
 - `references/operating-rules.md` — how the work is done rather than what a deliverable is: the debug-log contract, the parallel-build protocol and its merge gate, questions-come-once, scaffold-never-fixture, and generate-a-world-figure-rather-than-draw-it. It exists because those five had their only home in an entry point, and an entry point is a restatement by design — a rule living only there has no source for its restatements to be checked against

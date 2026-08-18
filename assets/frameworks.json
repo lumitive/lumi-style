@@ -74,6 +74,14 @@
       "shapes": ["p156-very-attractiveaveragevery-unattractive-01", "p156-very-attractiveaveragevery-unattractive-05", "p156-very-attractiveaveragevery-unattractive-10"],
       "drawn": null
     },
+    "market-sizing": {
+      "question": "How big is the opportunity, built up from the business's own numbers rather than down from a report?",
+      "move": "decompose",
+      "slots": ["number of prospective customers, from the segments actually served", "value of each customer, from their value today", "attainable share where the claim needs one", "the product, computed and shown as a labeled arithmetic band"],
+      "misuse": "A top-down report figure pasted as the market is a citation wearing a sizing; the factors must come from the business's current customers and prices, and the arithmetic must be printed, not narrated",
+      "shapes": [],
+      "drawn": "native"
+    },
     "three-horizons": {
       "question": "What do we do now, next, and later, and why does the order hold?",
       "move": "bridge",

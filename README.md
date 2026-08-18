@@ -85,8 +85,8 @@ SKILL.md / AGENTS.md / prompts/   the three hand-written entry points — one ru
                                   and Cursor rule files are GENERATED from the registry
 references/writing-rules.md       writing style: terminology red lines · banned phrases ·
                                   punctuation · number discipline · the LUMI voice
-references/storyline-templates.md narrative skeletons: sales (value & future) · consulting ·
-                                  internal analysis · training + shared discipline
+references/storyline-templates.md narrative skeletons, one per storyline in its roster — from
+                                  sales (value & future) to the investor pitch + shared discipline
 references/design-rules.md        design language: color semantics · dual-voice typography ·
                                   five chart iron rules · semantic icons · layout
 references/PRINCIPLES.md          the constitution: six clauses every rule family declares a parent in

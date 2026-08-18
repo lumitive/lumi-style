@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.517.** This file restates part of `references/`; where they
+> **lumi-style 0.1.518.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -104,7 +104,10 @@ facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
    drawn, and a debunked statistic is never cited;
    its deck-wide disciplines: the agenda is derived from the page titles (D27
    gates), external content pages each close with a `.take` takeaway (D28
-   reports), and a product deck walks What → Why → How → Value (Template 6)
+   reports), a product deck walks What → Why → How → Value (Template 6), and
+   an investor BP (storyline `pitch-deck`, Template 11) is built
+   vertebrae-first: titles agreed as one argument, evidence before vision,
+   the ask as the climax
    (sales = value & future; consulting = PwC frame with assertive subtitles;
    internal analysis; training = enabling a team to do something). Do this before
    writing. A deck opens with a cover and ends with a closing page, each carrying
