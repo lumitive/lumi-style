@@ -771,6 +771,21 @@ the table it replaced. Columns = options, rows = dimensions is still the right
 default when the values are the point and there are more than a handful.
 Illustrative values must be labeled.
 
+### 4.0 · From question to framework to shape
+
+*Serves: **GOAL**.* · id `DR-16`
+
+Form selection (§4) starts one step earlier than a chart: **what analytical
+question is this page answering?** `assets/frameworks.json` is the
+dictionary — each entry names the question, the analytical move behind it
+(analysis-rules.md AR-1), the slots to fill, the misuse that turns it into
+decoration, and the library shapes that draw it. The chain is **question →
+framework → shape**; §4.1's relation rule then holds the chosen shape to
+the data exactly as before. Choosing the framework because it looks
+professional is the failure the misuse lines name: a SWOT of restated facts
+and a 2x2 hugging its diagonal are decoration wearing an analysis's
+clothes.
+
 ### 4.1 · Choosing a figure from the shape library
 
 *Serves: **P-4**.* · id `DR-11`

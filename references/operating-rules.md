@@ -57,20 +57,30 @@ without one produces a document assembled out of inconsistent halves.
   copied runtime is a copy of whatever version that deliverable happened to
   carry.
 
-## 3 · Questions come once, or not at all
+## 3 · Questioning is segmented, and the segments are the user's
 
 Study everything the user supplied first, and work from the reader's side: the
 first-principles question is what this reader does differently after reading.
 
-When a required input is missing, or two requirements conflict, **batch every
-question into one round before generating**. Otherwise state the assumption in
-the deliverable and carry on. A second round of questions costs the user more
-than a stated assumption they can correct, and an agent that asks continuously
-has moved its own uncertainty onto them.
+Let the user state everything freely, without interruption; then follow up
+**segment by segment, grouped by the topics the user themselves raised** —
+the segments are theirs, never the agent's categories. The experimental
+record is one-directional: segmented follow-up recovers roughly twice the
+core detail of a single batched round, and follow-up questions carry a
+load-bearing share of what tacit knowledge surfaces at all. (This section
+said "batch every question into one round" for six releases — a practice the
+2026-08 research had already falsified as an evidence-free invention before
+it shipped; the research finding was adopted into the refactor plan and lost
+in transit, and nothing compared the shipped text against the research until
+an owner review forced the audit.)
 
-This is the second beat of the discussion entry path (§6), and the questions
-themselves are bounded by the form/content line: they may ask about structure
-and evidence, and may not decide the conclusion.
+Two bounds hold regardless of shape: an agent that asks continuously has
+moved its own uncertainty onto the user — when nothing needs asking, state
+the assumption in the deliverable and carry on; and the questions are
+bounded by the form/content line — they may ask about structure and
+evidence, and may not decide the conclusion.
+
+This is the second beat of the discussion entry path (§6).
 
 ## 4 · Scaffold with the tool; never hand-copy a fixture
 

@@ -3207,6 +3207,50 @@ def check_trace_field_readers():
             f"nobody uses" for f in sorted(unread)]
 
 
+def check_frameworks():
+    """The framework dictionary resolves, and every entry can be used.
+
+    assets/frameworks.json is the generation-side complement to the shape
+    library (analysis-rules.md AR-4): each framework names the analytical
+    question it answers and binds the shape ids that draw it. Two failure
+    shapes, both shipped classes in this repo: a bound id the library does
+    not define (the dangling-reference class D19 gates in documents), and an
+    entry missing the fields that make it usable — a framework without its
+    misuse line is exactly the "rule that hands out numbers without the
+    limit" convention 6 bans.
+    """
+    import json as _json
+    fw_path = ROOT / "assets" / "frameworks.json"
+    tags_path = ROOT / "assets" / "shapes" / "tags.json"
+    try:
+        fw = _json.loads(fw_path.read_text(encoding="utf-8"))
+        tags = _json.loads(tags_path.read_text(encoding="utf-8"))["shapes"]
+    except (OSError, _json.JSONDecodeError, KeyError) as exc:
+        return [f"frameworks: could not read the two dictionaries: {exc}"]
+    errors = []
+    moves = {"compare", "decompose", "position", "correlate", "bridge"}
+    for name, entry in (fw.get("frameworks") or {}).items():
+        for field in ("question", "move", "slots", "misuse"):
+            if not entry.get(field):
+                errors.append(f"frameworks.{name}: missing {field!r}")
+        if entry.get("move") not in moves:
+            errors.append(f"frameworks.{name}: move {entry.get('move')!r} is "
+                          f"not one of the five analytical moves "
+                          f"(analysis-rules.md AR-1)")
+        for sid in entry.get("shapes") or []:
+            if sid not in tags:
+                errors.append(f"frameworks.{name}: shape {sid!r} is not in "
+                              f"the library — a binding the sprite cannot "
+                              f"resolve")
+        if not entry.get("shapes") and entry.get("drawn") != "native":
+            errors.append(f"frameworks.{name}: binds no shapes and does not "
+                          f"declare drawn:'native' — an entry an author can "
+                          f"neither embed nor draw")
+    if not (fw.get("frameworks") or {}):
+        errors.append("frameworks.json declares no frameworks at all")
+    return errors
+
+
 CHECKS = (
     ("assets tracked", check_assets_tracked),
     ("genre vocabulary", check_genre_vocabulary),
@@ -3214,6 +3258,7 @@ CHECKS = (
     ("two-axis vocabulary", check_two_axis_vocabulary),
     ("brand registry", check_brand_registry),
     ("shape library", check_shape_library),
+    ("frameworks", check_frameworks),
     ("scoring sheet parity", check_scoring_sheet_parity),
     ("metric id ranges", check_metric_id_ranges),
     ("gating claims", check_gating_claims),

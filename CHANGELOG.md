@@ -1,5 +1,90 @@
 # Changelog
 
+## 0.1.516 — the analysis engine: the generation side the package never had
+
+**The owner's verdict on r12 (`变化不大`) triggered a root-cause investigation
+instead of a third rebuild, and the finding closed the case on two blind
+reviews' worth of non-convergence: the positioning promised consultant-grade
+documents and the machinery only ever verified the absence of defects.** Four
+root causes, each now on record in `specs/2026-08-18-analysis-engine-design.md`:
+output quality was never in the refactor's problem statement (the word
+"insight" appears zero times in the v3 plan); the research filed the entire
+analytical toolkit — SWOT, 2x2, value chain, issue tree — under chart grammar,
+so the library can draw an issue tree and nothing could build one (the
+framework names appeared zero times in this repository until this release);
+the form/content line, right about gating, was over-applied to guidance, so
+five value dimensions scored post-hoc what no workflow step produced; and
+design quality was never researched, defined, or measured. This release ships
+the generation side. The blind-sheet loop's non-convergence was the symptom:
+a dashboard was being tuned on a car with no engine.
+
+**The five analytical moves, and the beat that runs them.** New rule family
+`references/analysis-rules.md` (AR-1..4): compare, decompose, position,
+correlate, bridge — each with its input shape, its finding form, and its
+tell when missing; the insight ladder (finding → implication → action) bound
+to page elements (title → `.take` → the ask); and a new ANALYSIS BEAT
+between storyline and writing whose product is one declaration per content
+section: `analysis: <move> | finding: … | implication: …`. The ghost-deck
+storyboard lives in the same beat. `check_outline.py` now reports
+declaration coverage and FAILS a move outside the five (vocabulary, not
+content — the form/content line holds; red run: `vibes` rejected, coverage
+"1 of 2" reported). Content itself is never gated; whether a declared
+analysis is real goes to the benchmark review.
+
+**The framework dictionary.** `assets/frameworks.json`: ten entries (SWOT,
+2x2, nine-box, issue tree, driver tree, value chain, funnel, waterfall,
+Harvey scorecard, three horizons), each carrying the analytical question it
+answers, the slots, the misuse line that names how it becomes decoration,
+and the library shape ids that draw it — the 206-unit library's analytical
+heritage (the 2x2 boards, the 3x3 grids, the driver trees) is queryable for
+the first time. Design-rules gains DR-16, the selection chain: **question →
+framework → shape**, one step upstream of §4.1's relation rule. A new
+`frameworks` repo guard holds every binding to the library and every entry
+to usability (missing misuse line, unknown move, unusable entry all fail;
+planted red first, four failure shapes, then six synthetic-tree tests).
+Deliberately NO second copy of the binding in `tags.json` — a reverse lookup
+beats a mirrored axis in the repository whose dominant defect is the
+hand-written second copy.
+
+**Register profiles: the audience decides the language.** Writing-rules
+WR-9: one underlying fact rendered four ways — buyer economics for
+sales/marketing, the operator's imperative procedure for training and
+manuals, judgement-with-confidence for consulting, hypothesis-and-hedge for
+internal analysis. The genre axis previously changed punctuation and visual
+share and never diction; the owner's review said it plainly: market material
+argues in the market's language.
+
+**Templates 7–10, from research already paid for.** The four skeletonless
+storylines (market-analysis with the TAM/SAM/SOM double-count, GTM's six
+decisions, the status report's eight elements with an ask per risk, due
+diligence with the red-flag matrix) were fully documented in the 2026-08
+consulting-standards research and then sat in a backlog for four releases.
+They are now Templates 7–10; `TYPICAL_SECTIONS` aligned; IDEA-10 closed by
+owner decision, with the deviation from its one-at-a-time close condition
+recorded in the ledger entry itself.
+
+**A falsified practice, shipped anyway, now fixed.** The research record
+falsified "batch every question into one round" as an evidence-free
+invention and adopted segmented follow-up (roughly twice the core detail
+recovered, experimental, N=80); the refactor plan took the finding; the
+shipped SKILL.md said the opposite for six releases. All four restatements
+now teach segmented questioning grouped by the user's own topics, and
+operating-rules §3 records the transit loss — found only because an owner
+review forced an audit that compared the repo against the research, which
+no guard does.
+
+**The acceptance changes: benchmark-anchored review.** The blind sheet
+remains the record and stops being the primary acceptance (two full cycles
+on one deck did not converge — a defect list cannot say what better looks
+like). Eval-rubric now names the comparative protocol: side-by-side against
+a named reference page, owner verdict better/worse/why per page; ONE page
+calibrates to the owner's standard before any full rebuild; and review
+evidence answers with an artifact, never a tick (the misreport spread
+between judgement items and object-leaving items is about fivefold). The
+customer-facing positioning sentence now lives in one fenced README block,
+quoted never rewritten, per the refactor's own single-source design.
+
+
 ## 0.1.515 — a trademark mark keeps its owner's colours, and declares itself to say so
 
 The r12 rebuild put four official platform marks on the get-started page

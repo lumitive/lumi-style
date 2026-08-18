@@ -131,3 +131,24 @@ def test_every_storyline_either_has_a_checklist_or_is_reported_unmeasured():
         v = _verdict_map(BARE_OMISSION.format(storyline=s))
         assert v["type completeness"] in ("note", "not_measured"), s
         assert v["declared omission"] == "FAIL", s
+
+
+# The analysis declarations (analysis-rules.md AR-3), red and green.
+
+def test_analysis_declaration_outside_the_five_moves_fails():
+    text = ("genre: sales\nstoryline: product-intro\n\n## G\n"
+            "- A title that asserts 3 things\n"
+            "analysis: vibes | finding: f | implication: i\n")
+    *_, findings = co.review(text)
+    assert any(f["check"] == "analysis vocabulary" and f["verdict"] == "FAIL"
+               for f in findings)
+
+
+def test_analysis_coverage_is_reported_never_gated():
+    text = ("genre: sales\nstoryline: product-intro\n\n## G\n"
+            "- A title that asserts 3 things\n"
+            "analysis: bridge | finding: f | implication: i\n"
+            "- Another title asserting 5 things\n")
+    *_, findings = co.review(text)
+    cov = next(f for f in findings if f["check"] == "analysis coverage")
+    assert cov["verdict"] == "note" and "1 of 2" in str(cov["detail"])

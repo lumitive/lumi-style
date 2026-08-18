@@ -234,6 +234,43 @@ LUMI's own seed survives as group 8.
 - Colloquial ≠ degraded: ordinary formal verbs are fine; do not invent new
   translationese in pursuit of a casual tone.
 
+## 5b · Register profiles — the audience decides the language
+
+*Serves: **GOAL**.* · id `WR-10`
+
+The LUMI voice (§5) is one voice; the REGISTER moves with the reader. Until
+now the genre axis changed punctuation, sourcing placement and visual share,
+and never diction — a sales deck and a training manual came out in the same
+language, and a reader called it: market material must argue in the market's
+language, product material in the product's. One profile per genre family,
+each shown on the same underlying fact so the difference is the register and
+nothing else. The fact: *the gate stack reads a deliverable in 16 seconds.*
+
+- **Sales / marketing — the buyer's economics.** Value verbs, outcomes,
+  risk retired, the buyer's own unit of account. Claims answer "what do I
+  get and what does it cost me"; mechanism appears only as proof.
+  *Register: "Sixteen seconds of machine time before any reader's minute is
+  spent — review cycles stop being your bottleneck."*
+- **Training / product manual — the operator's procedure.** Imperative
+  steps, one action per sentence, checks after every step, terms defined at
+  first use, no persuasion — the reader has already bought.
+  *Register: "Run the gate stack. It completes in about 16 seconds. If the
+  block reports any GATE line, fix that finding before continuing."*
+- **Consulting / client document — the advisor's judgement.** Findings with
+  their basis, implications for this client, options with a recommendation;
+  confidence stated, counter-case acknowledged.
+  *Register: "A 16-second machine pass shifts review effort from detection
+  to judgement; for your volume that reallocates roughly one reviewer-day
+  per week."*
+- **Internal analysis — the colleague's reasoning.** Hypotheses, evidence
+  quality, what would change the conclusion; hedges are honest here and
+  banned in sales.
+  *Register: "Gate-stack latency is 16s on the reference deck; unmeasured on
+  larger documents — assume worse before relying on it."*
+
+The de-AI pass (§6) runs after the profile is applied, never instead of it:
+a page in the wrong register is not fixed by removing its tells.
+
 ## 6 · De-AI-flavor pass (mandatory, pre-delivery)
 
 *Serves: **P-3**.* · id `WR-7`

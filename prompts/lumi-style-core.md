@@ -27,10 +27,12 @@ the discussion is not charged against it.
 
 **Working practice.** Study everything the user supplied before designing, and
 work from the reader's side — the first-principles question: what does this
-reader do differently after reading? **Questions come once or not at all** — when a required input is
-missing or two requirements conflict, batch every question into one round
-before generating; otherwise state your assumptions in the delivery note and
-proceed, because one clear prompt should normally produce a finished document.
+reader do differently after reading? **Questioning is segmented, and the segments are the user's** — let the
+user state everything freely, then follow up grouped by the topics they
+raised (segmented follow-up roughly doubles the core detail recovered versus
+one batched round), and never decide their conclusions for them; when nothing
+needs asking, state your assumptions in the delivery note and proceed,
+because one clear prompt should normally produce a finished document.
 Write a finished document to **`Documents/LUMI-Style/`** under the user's home
 directory unless the user names a directory, and **ask before creating that
 folder** — never write into the package's own install tree. An export lands
@@ -235,6 +237,14 @@ Say "uncertain" plainly.
 
 ## 6 Five chart iron rules (for HTML/SVG output)
 
+**A page earns its place by a finding, and a finding is a fact put through
+an analytical move** — compare (against a benchmark), decompose (MECE),
+position (2x2/SWOT with independent axes), correlate, or bridge (waterfall).
+Title = the finding; `.take` = the implication for THIS reader; the ask =
+the action. A SWOT of restated facts or a 2x2 hugging its diagonal is
+decoration wearing an analysis's clothes. **The register follows the
+audience**: buyer economics for sales, imperative procedure for training,
+judgement with stated confidence for consulting.
 Figure titles state conclusions; **the page's numbers go into the
 geometry, not beside it** — lengths, fills and step heights drawn to the
 values the page states, because a shape carrying words but none of the page's
@@ -443,6 +453,6 @@ quality), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.515** snapshot, cut 2026-08-17. It is self-contained by
+> This file is the **0.1.516** snapshot, cut 2026-08-17. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.
