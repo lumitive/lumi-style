@@ -221,6 +221,15 @@ too quiet for a deck that opens a pitch, piloted and accepted on a real
 roadshow build. The energy comes from weight and the lime chip, never from a
 louder ground: the agenda stays a body page.
 
+**The launch rows are the agenda's statement, so the agenda may carry no lede
+at all.** A title saying "what this document argues" above rows that already
+argue it is the same sentence twice, and an owner review called it redundant
+(0.1.521). Set `body stack no-lede` and the rows centre in the page. **Remove the
+lede whole, or not at all**: deleting the title while keeping the `.lede` block
+leaves a page reserving a title it does not carry, which `inspect_layout.py`
+counts as a check that could not run and reports as NOT SHIPPABLE. D8 then
+reports the agenda as missing a support line, correctly and without gating.
+
 **The agenda quotes the document; it never paraphrases it.** Every claim line
 on the agenda — a part title, an item — is a line the deck's own titles say,
 verbatim or containing one, and the mechanical way to be right is to derive
@@ -370,8 +379,79 @@ case). Eleven sections, in the order credibility is earned before it is spent:
     data; financial projections; the detailed use of funds. It grows as
     pitches surface new questions.
 
+### The seed / first-meeting register (0.1.521)
+
+Added by owner directive after a real roadshow build: *"for a first
+conversation with a seed investor, concepts and figures should be 80 percent —
+the investor is there to hear the pitch."* The eleven sections above are
+unchanged; this is how they are SET.
+
+**The reader is listening, not reading.** The deck is what the room looks at
+while a founder talks, so concepts and figures carry about **80% of every
+content page** and the prose is the title, one support line, the labels inside
+the drawing, and the takeaway. Say the direction, because it decides what an
+author does with it: 80% is a **floor on the drawing**, and therefore a
+**ceiling on the prose**. Read as a target it produces an inflated figure
+instead of a cut paragraph.
+
+**The layout is part of the rule, not a separate decision.** A `split` page
+gives the figure half the area and measures about 43% once the lede and the
+takeaway are counted, so it cannot reach this number however the words are
+trimmed. A figure-led page is `stack` or `split-wide` with the drawing in the
+wide cell. *Provenance: the deck that triggered this rule carried a captioned
+figure on all thirteen of its content pages and still read text-heavy — every
+page a 50/50 split, 130 words of prose at the median, and the argument carried
+in 15-23 word titles rather than in the drawings. `inspect_layout.py` keys the
+target on the storyline; `check_prose.py` M15 reports the words from the other
+side.*
+
+**Which figure draws which section.** Choose by the relation in the data, never
+by how a shape looks — the §4.0 chain is question → framework → shape, and a
+BP is where the temptation to reach for a professional-looking diagram is
+strongest:
+
+| Section | The relation | The figure |
+|---|---|---|
+| Problem | a process with a failure point | the customer's path, the break marked on it |
+| Solution | before and after on one task | paired states on one axis, quantified |
+| Traction | order over time | a trend over four to six periods; cumulative-only and double-axis stay banned by name |
+| Market | composition, as arithmetic | the labeled bottoms-up band (`market-sizing`) |
+| Unit economics | two quantities at different scale | both marks on one scale, the lever named |
+| Competition | position on independent axes | a 2x2 or capability matrix, the empty cell carrying the finding |
+| Moat | composition of an asset | the asset as a field, the load-bearing slice separated out |
+| Roadmap | order with dependency | milestones with what each reuses; unbuilt drawn as unbuilt |
+| Ask | composition against constraints | the uses against the constraint each removes |
+
+**A seed deck's numbers carry their standing.** The ask is in money and the
+traction is in measured numbers; every other figure on the page is either
+externally sourced or labeled as the business's own measurement. That is red
+line 1 in this storyline's dialect, and it is stated here so an author meets it
+while writing rather than at the gate.
+
+### Stage decides what leads (0.1.521)
+
+Owner directive: *"for a seed or pre-A conversation the data is not the point;
+an unbounded market, a grand narrative and disruption are."* This is a **stage
+axis on the ordering below, not a repeal of it.**
+
+At **seed and pre-A** a company has no traction to put first, so demanding
+evidence first demands it of something that does not exist. The vision leads,
+and the evidence changes job rather than disappearing: it stops proving *this
+already earns* and starts proving *we can build what we say* — the corpus, the
+gates, the markets already live. From **Series A** the original ordering binds
+unchanged, because by then there is something to count.
+
+What does **not** move with the stage: red line 1, the M4 ban list, and the
+title contract's information floor. **Bigness is a property of the claim, never
+of the adjectives** — "we build and operate robot greenhouses" is licensed at
+any size; "reinventing agriculture" is not, at any stage. An unbounded market is
+stated the way the study already permits: **a category creator draws analogy
+companies as its scale reference instead of a top-down TAM.** That invents no
+number, and the bottoms-up band moves to the appendix where it is still
+available to the question it answers.
+
 Two boundary rules. **Evidence before vision is the arc's one inviolable
-ordering** — a deck that opens on the dream has spent credibility it has
+ordering at Series A and beyond** — a deck that opens on the dream has spent credibility it has
 not earned, which is FM-16's completeness failure wearing a different coat.
 And **the YC floor is not the LUMI ceiling**: the study's design advice
 (grey bullets, bare charts) is a clarity floor; LUMI's figure and
@@ -383,9 +463,16 @@ the investor story, not as a template filled in.
 A deck opens with a **cover** and ends with a **closing page**; the content arc
 sits between them.
 
-- **Cover**: wordmark — the literal string **"LUMI Style"** (typographic, no
-  logo file needed; the string was carried only by template markup until an
-  owner directive fixed it in prose, 2026-08-12) · document title as the
+- **Cover**: wordmark — **the name of the product or subject this document is
+  for**, set typographically (no logo file needed). It comes from
+  `brands/registry.json`'s `wordmark` field, or from `new_deck.py --wordmark` for
+  a subject that is not a registered brand. *This read "the literal string LUMI
+  Style" until 0.1.521. That string is the design system's own name, and it was
+  never a designed rule — it existed because two generators emitted it, and an
+  owner directive of 2026-08-12 wrote prose around the markup. It reached a
+  product business plan, where the cover named the stylesheet instead of the
+  company, and the owner caught it on the rendered page. The registry has carried
+  a per-brand `wordmark` field the whole time and nothing read it.* · document title as the
   page's single statement · one-line subtitle saying who it is for and what it
   answers · a meta strip as the **`.attrs` key/value block** (audience / date /
   version / classification) — the key bold and uppercase, the value **one line**,
@@ -451,9 +538,12 @@ A deck's content arc is broken into named parts, and **every part boundary gets
 an opener page**: the lime field carrying the part label, one claim at display
 scale saying where the reader is, and one run line saying what the next pages
 argue — the `.openpart` / `.openclaim` / `.openrun` composition in
-`tokens/lumi-layouts.css`. Nothing else sits in its content area: no figure,
-no map, no icon (the footer keeps its handling marker, inverted with the
-field).
+`tokens/lumi-layouts.css`. Its content area takes no chart, no map, no navigation rail, and no icon carrying a second message.
+**One oversized subject mark is permitted**: a single silhouette carrying no text
+of its own, reversed out of the field, which restates the part's claim in another
+modality rather than adding a second thing to the page (0.1.521, owner directive).
+It is the part's subject or it is not there. (The footer
+keeps its handling marker, inverted with the field.)
 The ground runs at its medium tier, and the vector mark stays on the cover and
 closing, where the page is the mark's to hold.
 

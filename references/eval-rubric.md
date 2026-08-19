@@ -8,13 +8,13 @@
 
 ## Contents
 
-- [Machine metrics M1–M14 (scriptable; spot-check manually when no script)](#machine-metrics-m1m14-scriptable-spot-check-manually-when-no-script)
+- [Machine metrics M1–M15 (scriptable; spot-check manually when no script)](#machine-metrics-m1m15-scriptable-spot-check-manually-when-no-script)
 - [Design diagnostics (`scripts/check/check_design.py`)](#design-diagnostics-scriptscheckcheck_designpy)
 - [Human dimensions C1–C8 (the machine ticks items; the human rates and says why)](#human-dimensions-c1c8-the-machine-ticks-items-the-human-rates-and-says-why)
 - [Review protocol (the iteration engine)](#review-protocol-the-iteration-engine)
 - [Known genre distortions (never chase the score)](#known-genre-distortions-never-chase-the-score)
 
-## Machine metrics M1–M14 (scriptable; spot-check manually when no script)
+## Machine metrics M1–M15 (scriptable; spot-check manually when no script)
 
 **Ten of the twelve have code.** `check_prose.py` implements M1, M2, M4, M5, M6,
 M8, M9, M10, M11 and M12. Until 0.1.390 the parenthesis in this heading carried
@@ -54,6 +54,7 @@ have no Han character next to their punctuation.
 | M10 | Triad rate | ≤50% | share of enumerations (lists, appositive series) containing exactly three items |
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame — the five frames are the checker's `TITLE_FRAMES`: colon, question, number-led, verb-led, plain |
 | M13 | One quantity, one value | =0 — **reported** | the same two-word noun phrase carrying two different values with no qualifier near either mention. Deliberately narrow: a time series, a target/actual pair and a per-region split are different quantities, not contradictions |
+| M15 | Prose per content page | reported | the words a content page asks the reader to read beside its drawing: the page minus its lede, takeaway, footer, figure and caption. Reports a distribution, never a threshold — the accepted product deck sits at a median of 60 and the roadshow BP its owner called text-heavy at 130, and that gap is the finding. The visual-share target is the same rule measured from the other side |
 | M12 | Visible CJK in an English deliverable | =0 — **gates** | Chinese in text a reader sees, when the document declares English by `lang`, filename or `--lang`. Quoted as data (`<code>`, `<pre>`, backticks) is exempt |
 
 ## Design diagnostics (`scripts/check/check_design.py`)
@@ -74,13 +75,14 @@ have no Han character next to their punctuation.
 | D13 | Lime as light text | =0, reported | the acid green may never be light-on-light text; a surface, not a ladder step |
 | D14 | Unfilled placeholders | =0 — **gates** | slots the author left for themselves: `[TO FILL]`, `[TBD]`, `{{…}}`, an empty bracket pair |
 | D15 | File path in a footer | =0 — **gates** | a repository path pasted into reader copy: two segments and a file extension. The site D12 requires, and any URL, are not paths |
-| D16 | Visual presence and share | reported | content pages carrying no visual block (static half, `check_design.py`); rendered visual area against the genre's target — ~50% sales/marketing/consulting, ~30% training (`inspect_layout.py`). Pages declaring `data-role="apparatus"` are exempt, up to a ceiling of one content page in five |
+| D16 | Visual presence and share | reported | content pages carrying no visual block (static half, `check_design.py`); rendered visual area against the target — ~50% sales/marketing/consulting, ~30% training, and **~80% where the storyline is `pitch-deck`**, a storyline target overriding its genre's (`inspect_layout.py`; the tables there are the authority). Pages declaring `data-role="apparatus"` are exempt, up to a ceiling of one content page in five |
 | D17 | Export weight | reported | blend modes, filters and vector nodes: what the document will cost a reader who opens the PDF |
 | D18 | Region labels | reported | every coloured region on a map carries its name or a legend entry — the one place hue encodes identity, and the condition under which it may |
 | D22 | Layout vocabulary | =0 — **gates** | a page whose layout class is not one `tokens/` defines. D9 collected these and its verdict was hard-coded to pass, so an invented layout was caught by nothing (GAP-008) |
 | D23 | Font count | reported | distinct font stacks against **what `tokens/` declares** — the ceiling is derived, not a literal, so it moves if a third voice is ever added |
 | D21 | Data contract | =0 — **gates** | a figure that DECLARES the data it draws is held to it: every declared series and value must appear on the drawing. Opt-in — a figure declaring nothing is not failed — but a declaration that contradicts the drawing is a false contract, which is worse than none |
 | D20 | Palette fidelity | =0 — **gates** | every colour token the document declares that `tokens/lumi-theme.css` also defines carries the shipped value. Sizes are the document's to choose (0.1.340 withdrew the type floor); a colour is not, because one colour means one thing |
+| D30 | Figure number sequence | reported | caption numbers run 1..k, once each, in page order. A reader refers to a drawing out loud, so a repeat makes the reference ambiguous and a hole makes it wrong. All three artifacts on disk failed it when it shipped, and the generator was the cause: the scaffold numbered figures from the PAGE index, so every part opener consumed a number no drawing carried |
 | D19 | Vocabulary resolves | =0 — **gates** | every reference in the document resolves inside it: an icon `<use>` with no `<symbol>`, a block class used without the children `tokens/` renders it through, a part opener with no `opener` class, a `data-globe` mark with no runtime. All render as valid markup and empty space |
 
 **Three tiers, not two, and the Target column above says which.**

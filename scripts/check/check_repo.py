@@ -1464,6 +1464,12 @@ ENTRY_STAMP = {
 THIRD_PARTY_VERSION_LINES = {"conformance/CONFORMANCE.md": re.compile(r"^\|")}
 
 VERSION_CITATION_WAIVERS = {
+    # An upstream npm package version, pinned so the vendored marks can be
+    # re-fetched byte-for-byte. It is somebody else's release number, and the
+    # pattern this guard scans with cannot tell whose a version belongs to.
+    "1.94.0": "the pinned @lobehub/icons-static-svg release the model-family "
+              "marks in assets/logos/models/ were fetched from, recorded in "
+              "assets/logos/SOURCES.md so they can be re-fetched exactly",
     "1.0.0": "names the first release of the retired 1.x-3.x scheme, in the prose "
              "that explains why the scheme was retired",
     "3.4.0": "names the last release of the retired scheme, and the commit subject "

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI visual theme · v0.1.520 (2026-08-16)
+   LUMI visual theme · v0.1.522 (2026-08-19)
    Single source of truth for palette and typography. New documents reference
    this file or copy the token blocks verbatim (note the provenance when
    copying). Version lockstep: a deliverable's version = the lumi-style
@@ -241,6 +241,16 @@
      entry point. (v0.1.350 — the band had no token and every deliverable picked
      its own, which is the shape of drift this release exists to close.) */
   --fs-band-value: 43px;
+  /* the stat tile's number, the tier below the band (v0.1.521). A band value
+     is a page's second-loudest thing; a stat tile is a number with a SENTENCE
+     under it, three or four across a row, so it is read at close range and set
+     smaller. Owner-directed: the deck that reached her standard carried twenty
+     of these and every one was an inline style, because the package shipped no
+     role and therefore no size. `--fs-support-sm` is that sentence -- declared
+     rather than inherited, because the accepted deck's gloss used a class with
+     no HTML rendering at all and silently took the body's 15px. */
+  --fs-stat: 30px;
+  --fs-support-sm: 15px;
   --fs-lead:    61px;                       /* the number that is the page */
   --fs-lead-xl: 105px;                      /* one number, alone, full stop */
   --fs-say:     29px;                       /* the claim that is the page */

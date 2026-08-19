@@ -39,7 +39,9 @@ but a colour token that disagrees with the shipped value is a different design
 language under the same variable names, and `check_design.py`'s D20 fails it.
 
 **One declared exception: a trademark mark keeps its owner's colours.** A
-platform logo on a get-started page is someone else's identity: recolouring
+platform logo on **any page that names third-party products** — a get-started
+page, an ecosystem page, a BP's protocol or partner page (scope widened at
+0.1.521) — is someone else's identity: recolouring
 it into this palette would falsify the mark, and redrawing it in tokens would
 fabricate one. Declare it — `data-mark` on the `<svg>` — and D4's literal
 scan excises the element; an undeclared logo's hexes still fail, so the
@@ -390,7 +392,12 @@ look like it.
   eye lands on before it starts reading: a display number with its gloss, a
   claim set at display size, or a figure composed to dominate its cell. Which of
   the three, and whether a page wants a number at all, is a design decision for
-  that page — **there is no size floor and no requirement that it be type.**
+  that page — **there is no size floor and no requirement that it be type.** Which way round the
+  number and its gloss go is fixed, and §7 fixes it: the number first. The
+  apparatus already ships — `.lead` with `.lead .v` and its `.g` gloss for a page
+  that turns on one number, `.stats`/`.stat` for three or four read across a row
+  — and until 0.1.521 no shipped deliverable used `.lead` even once, which is how
+  a page's biggest number ends up inside a twenty-word title instead.
   `.lead` and the `--fs-lead / --fs-lead-xl / --fs-say` tier are in
   `tokens/`; `inspect_layout.py` reports the ratio of the largest element to
   body copy and names the pages that have neither. *Provenance: a reader called
@@ -401,8 +408,12 @@ look like it.
   page: half of those pages got a number, the rest got a redrawn figure.*
 - **A part opener earns its page.** The part label, one claim at display scale
   saying where the reader is, and one run line saying what the next pages argue —
-  the `.openpart` / `.openclaim` / `.openrun` set on the lime field — and nothing
-  else: no figure, no map, no icon. A navigation rail cannot do this at a glance,
+  the `.openpart` / `.openclaim` / `.openrun` set on the lime field — and then
+  no chart, no map, no navigation rail, and no icon carrying a second message.
+  **One oversized subject mark is permitted**: a single silhouette carrying no text
+  of its own, reversed out of the field, which restates the part's claim in another
+  modality rather than adding a second thing to the page (0.1.521, owner directive).
+  It is the part's subject or it is not there. A navigation rail cannot do this at a glance,
   and the quiet page is what makes the dense ones read as dense on purpose.
 - **A page has a layout, chosen for its content.** Sixteen ship in
   `tokens/lumi-layouts.css` as `.body.<name>`; pick with the table below. This is
@@ -500,7 +511,14 @@ look like it.
   marketing and consulting**, where the page argues visually, and **about a
   third for training**, where a learner needs the words beside the drawing. The
   document declares its genre (`<body data-genre="training">`) and the checks
-  grade against that number.
+  grade against that number. **A storyline may raise its genre's target, and one
+  does**: a `pitch-deck` page is looked at while a founder talks, so it carries
+  about **80%** (0.1.521, owner directive; Template 11 states the register, and
+  `inspect_layout.py`'s two tables are the authority). Where both speak the
+  storyline wins, being the more specific claim about the document. Raising the
+  number is a floor on the drawing and therefore a **ceiling on the prose**, and
+  a 50/50 `split` page measures about 43% once the lede and the takeaway are
+  counted — so choosing the layout is part of meeting it.
 
 - **A page on the sheet carries more than a page on the slide** (owner directive,
   2026-08-09). A slide is narrated and an A4 page is read alone, so a portrait
@@ -607,7 +625,9 @@ look like it.
 figure green `--acc-live`, which is what the `f-acc`/`s-acc` paint classes
 resolve to — everything else grayscale, red only for warnings; 3. no gridlines, no
 chart borders, no legend for single series; 4. every figure carries a source line
-(small light-gray text); 5. a type scale that suits the figure, not a fixed one.
+(small light-gray text) **in consulting and internal material — see rule 9, which
+scopes this: a sales or marketing figure carries none, because the document states
+its provenance once**; 5. a type scale that suits the figure, not a fixed one.
 
 6. **The legend goes where the figure's own layout wants it.** Top right above the
 plot is one good answer, not the rule — a vertical bar chart may want it under the
@@ -665,6 +685,23 @@ and internal analysis keep per-page sourcing, because there the reader is
 auditing the claim rather than being sold to. Red line 1 is unchanged — no
 invented facts, and every number still traces — the obligation moved to where it
 is read once rather than skipped thirty times. *Reader-requested.*
+
+  **This governs the FIGURE too, from 0.1.521.** Rule 9 removed the per-page and
+  per-footer line and left rule 4 demanding one under every drawing with no genre
+  qualifier, so the section contradicted itself for releases: a sales deck was
+  told both to state provenance once and to repeat it fourteen times. In sales and
+  marketing material the figure carries no source line, rule 8's caption drops to
+  the number and the name, rule 10's tie-break has nothing to break, and rule 17's
+  in-SVG line does not apply. *Owner review, 0.1.521: "in a BP this does not need
+  to be shown."*
+
+  **One trap comes with it, and it is invisible.** M2's window is the PAGE, not
+  the figure, and its marker vocabulary includes bare `per` and `as of`; SVG text
+  is stripped before it measures, so a line drawn inside a figure never counted
+  toward it anyway. A deck that removes every source line looks fine while it has
+  fewer than four percent-or-currency figures in HTML prose, and collapses the day
+  it has more. **So the page keeps a source marker somewhere in its own text** —
+  the eyebrow, a stat gloss, the takeaway — even when no figure carries a line.
 
   **The accepted provenance words are the checker's `D6_PROVENANCE`** —
   source · derives/derived from · based on · provenance · traces (back) to ·
@@ -735,6 +772,50 @@ different form, never a floor under the ink.*
 something, it is a second, wrong scale sitting under the first — the same deck
 laid every bar on a full-width rule, so its largest value read as 100% of a total
 it was 55% of.
+
+
+15. **A figure's viewBox width is chosen to match the CELL it renders in, so one
+user unit is about one pixel.** That is what makes `font-size: 17` inside a
+drawing mean 17px on the page, and it is the constant that lets a figure in a
+full-width cell and one in a 62% cell belong to the same document: line weights,
+label sizes and stroke dashes all land at the same rendered scale. Roughly 660 in
+a `split-wide` right cell, 1100 in `stack`, 1280 full-bleed; §4.1's per-cell
+aspect ratios then decide each height.
+*Provenance: this rule said "a document's figures share one viewBox width" for
+exactly one release. Its own evidence was miscounted — the deck it cited runs
+640, 660 and 680, rendering between 0.70 and 1.53 px per unit — and applied to a
+deck with varied layouts it does the opposite of what it promises: the same 660
+units render at 1.0 px/unit in a 652px cell and 1.66 in a 1096px one, so one
+declared size becomes two rendered sizes. The number was never the constant; the
+ratio is.*
+
+15b. **The in-figure type ladder, since "a scale that suits the figure" was the
+only guidance and produced fourteen flat drawings.** A figure's **row and section
+names set at title weight** — `svg .row-lbl`, 17px bold ink — because a chart's
+row names are read before its bars (EX-2 item 5). Its **values** take `.mid`
+(30px) or `.huge` (54px) where the number is the argument. Its **fine print** —
+axis ends, basis lines, scope flags — stays at `.lbl` / `.sm`. A drawing whose
+largest text is 13px is a diagram with captions; an exhibit has a heading you
+read from across the room.
+
+16. **A figure that compares two states names them inside the drawing**, as a
+label pair on the top line: the left in `--tx1`, the right in `--acc`. "the
+bill, item by item" against "after the standard"; "what you put in" against
+"what you get out". The pair does the work a legend would and costs no
+apparatus, and putting the accent on the right-hand label is what tells a
+reader which side is the finding.
+
+17. **The figure's source or caveat line is the last text node inside the SVG,
+at the foot of its viewBox** — 11 to 11.5px in `--tx2` or `--tx3` — not an HTML
+sibling beside it. It travels with the drawing when the drawing is resized,
+scaled or exported, which a sibling does not, and it stays clear of the caption
+block §4 rule 8 keeps to the number, the name and nothing else.
+
+18. **A number label inside a filled mark is reversed out of the mark**, in
+`--on-acc` or `--on-lime` at 20-22px, with its descriptor stacked immediately
+beneath at 11.5-12px in the same ink. This is §7's number-first order at figure
+scale, and it is the one place this package already applied it consistently
+before the rule was written down.
 
 Flow-diagram shape vocabulary (shapes carry semantics, never decoration):
 **parallelogram** = data input/output · **rectangle** = process ·
@@ -988,6 +1069,14 @@ Field-tested layout guards (each from a real defect):
   or icon size changes (field defect: caption icons floating above their text).
   Size an inline icon at roughly 1.4× the text size it accompanies (11px caption
   → ~16px icon; 20px+ next to 11px text reads as clutter).
+- **The 14px minimum governs a SEMANTIC INLINE icon, not a display-scale mark.**
+  An opener's subject mark (§3) is a composition element sized in viewport units;
+  it is not on a text line and it names nothing a reader must read. What it must
+  be is **fill-based, never stroke-based**: a hairline outline scaled to display
+  size is the accident the next bullet records, while a filled silhouette at the
+  same size is a deliberate graphic. Check which one a library ships before
+  scaling anything from it — Lucide is stroked, and a stroked icon does not
+  survive this treatment.
 - **Icon size is fixed and never inherits container scaling.** Blanket rules like
   `.fig svg{width:100%}` must exclude icons (`.fig svg.ic{width:20px}`) — a
   stretched 24px icon becoming a 110px graphic is an accident, not a design
@@ -1027,6 +1116,27 @@ Field-tested layout guards (each from a real defect):
 - **Copy the form, not the framing**: never pick the most flattering measurement
   condition for a headline number — numbers may serve as copy only when the
   framing survives scrutiny.
+- **A number reads before the words it belongs to.** Three places, one order: in
+  a **stat block** the figure comes first at display size and the sentence sits
+  under it in support ink (`.stat` / `.sv` / `.sn`, and `.band` renders the same
+  way round); **where a title carries a number** it leads rather than being
+  spelled into the middle of the sentence; **inside a figure** the value is set on
+  or above its mark with the descriptor beneath. This is an **order, not a size
+  floor and not a quota** — which tier a number takes, and whether a page carries
+  a display number at all, stays §3's focal-element decision, and **a title with
+  no number in it is a normal title.** *Second provenance, one release later: the
+  release that introduced this rule then produced a deck whose fourteen content
+  titles every one opened on a small operational count, and M11 title uniformity
+  reached 52.9% against its 60% ceiling. A placement rule had been read as a
+  template, which is convention 4's failure mode inside a rule written to prevent
+  it.* *Provenance: `.band` rendered
+  label-above-value for eleven releases while
+  `references/exemplars/mckinsey-design-notes.md` EX-2 item 2 stated the
+  opposite, and nothing compared the two. The deck that reached the owner's
+  standard wrote the rule twenty times as an inline style because the package
+  shipped no role for it; the deck that did not carry the rule put its single
+  most important number — zero signed customers — in a band below a title that
+  spelled the page's other quantities out in words.*
 
 ## 8 · The verification matrix
 

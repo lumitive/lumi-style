@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.520"
+  version: "0.1.522"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -159,7 +159,10 @@ current, stale, or **unknown** — and unknown is not current.
    coverage), and a customer-facing product deck walks **What → Why → How →
    Value** in the reader's order (Template 6), and an investor BP is built
    vertebrae-first — the page titles agreed as one argument, evidence before
-   vision, the ask as the climax (Template 11, storyline `pitch-deck`). **Work in parallel where the platform allows** —
+   vision, the ask as the climax (Template 11, storyline `pitch-deck`). **A seed
+   pitch is looked at rather than read**: concepts and figures carry about 80%
+   of a content page, which is a floor on the drawing and so a ceiling on the
+   prose, and a 50/50 `split` cannot reach it. **Work in parallel where the platform allows** —
    pages are independent once the storyline is fixed — and the parallel form
    has a protocol, proven on real builds (owner target: a 30-page document in
    under ten minutes end-to-end):
@@ -236,7 +239,15 @@ current, stale, or **unknown** — and unknown is not current.
    icon wearing labels. "Sources feeding the
    radar" is a label; "every narrowing step names its criterion" is what a reader
    carries away. Every figure gets a source line, and its number and name go
-   below it.
+   below it, and the caption numbers run 1..k once each in page order (D30 —
+   the scaffold numbered them from the PAGE index until 0.1.521, so every
+   accepted deliverable shipped holes).
+   **The number reads before the words it belongs to** (§7): above its label in
+   a stat block (`.stats`/`.stat`, and `.band` renders the same way round), at
+   the FRONT of a title rather than spelled into the middle of one, and on or
+   above its mark inside a figure. It is an order, not a size floor. A page
+   whose argument turns on a single number has `.lead` waiting for it — which
+   no shipped deliverable had used even once before this rule was written.
    **Shapes carry semantics** in a flow: parallelogram = data in or out,
    rectangle = process, diamond = decision, stadium = terminal, dashed outline =
    not built, one accent arrow marker throughout. A flow drawn entirely in
@@ -362,6 +373,20 @@ current, stale, or **unknown** — and unknown is not current.
    without judging whether they cohere**, because that judgement is the point
    of the beat. Completeness is caught here or not at all: C5 reports and never
    gates.
+   **After building, run it again with `--against <deck.html>`, and this half
+   gates.** Every planned **title** must still be the title of a page, and
+   every planned `implication:` is reported against that page's `.take`.
+   (The outline's bullet is the finding, written as the title it will
+   become; the separate `finding:` field is the author's note to
+   themselves and no check reads it.) It is
+   the same consistency question D27 already asks of the agenda, asked of the
+   plan: not whether either artifact is good, only whether they still say the
+   same thing. When they diverge, correct whichever is weaker — a title
+   sharpened in composition means the outline is now stale, and a title that
+   drifted off the finding means the page lost the analysis. *0.1.522 measured
+   this on a shipped deck: fourteen sections declared a move, a finding and an
+   implication, and* **not one of those findings still described a page.** *The
+   beat ran and composition threw its output away, with every gate green.*
 
 4. **Before delivery**: run `python3 scripts/check/check_privacy.py <file>
    --terms <list>` — P-5's other half. Layer 1 gates (credential shapes, and
@@ -415,6 +440,14 @@ current, stale, or **unknown** — and unknown is not current.
    a `data-globe` mark with no runtime to turn it. `python3 scripts/check/check_prose.py <file>` grades the English, and
    **M12 fails on Chinese in text a reader sees** when the document declares
    English — a clean banned-phrase run is not a language pass.
+   `python3 scripts/check/check_facts.py <contract.md> <file>` asks the
+   question no other check asks — **whether this build still carries the facts
+   it was built from**. Quantities in the document that appear nowhere in the
+   contract **gate**, because an invented number is red line 1; facts the
+   contract permits and the document drops are **reported**, because dropping a
+   fact is often the right editorial call and sometimes is not. *A rebuild
+   measured at 0.1.522 had silently lost eleven, including five of the seven
+   markets whose count the deck still claimed, and passed every gate.*
    **A clean run is not a verified document. Look at the sheet.**
    (The de-AI pass was advisory until 0.1.336 and nothing invoked it; three versions
    of AI-flavored decks shipped past it. The design half had no metrics at all

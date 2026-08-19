@@ -428,6 +428,23 @@ VOWS = """<div class="vows">
     </div>"""
 
 
+def renumber_figures(doc: str) -> str:
+    """Caption numbers, resequenced 1..k in document order.
+
+    The captions are written `Figure {i}` where `i` is the PAGE number, so the
+    part openers and the pages carrying no drawing punched holes: the tracked
+    pass fixture shipped 3, 4, 8, 9, 11 ... and check_design.py D30 fails it.
+    Renumbering here rather than threading a counter through `page()` keeps the
+    figure ordinal a property of the finished document, which is what it is --
+    a page can gain or lose a drawing without every later caption moving in the
+    source. The broken fixture deliberately keeps the holes: D30 needs a
+    fixture that fails it.
+    """
+    n = iter(range(1, 999))
+    return re.sub(r'(<span class="n">Figure )\d+(</span>)',
+                  lambda m: f"{m.group(1)}{next(n)}{m.group(2)}", doc)
+
+
 def page(i: int, total: int, spec, broken: bool) -> str:
     icon, eyebrow, title, sup, bullets = spec
     # The eyebrow contract (design-rules §3): subject icon, then
@@ -662,7 +679,7 @@ def build(broken: bool) -> str:
   {GROUND}
   <div class="body cover-grid">
     <div class="typeblock">
-      <p class="wordmark">LUMI Style</p>
+      <p class="wordmark">{new_deck.wordmark()}</p>
       <h1>Metering programme <span class="subj">review</span></h1>
       <p class="sub">A synthetic deliverable. Every figure here is invented.</p>
     </div>
@@ -680,7 +697,7 @@ def build(broken: bool) -> str:
   {GROUND}
   <div class="body cover-grid">
     <div class="typeblock">
-      <p class="wordmark">LUMI Style</p>
+      <p class="wordmark">{new_deck.wordmark()}</p>
       <h2>What to settle this <span class="subj">month</span></h2>
       <p class="sub">Relay siting first, then crew allocation.</p>
     </div>
@@ -706,6 +723,11 @@ def build(broken: bool) -> str:
                       for i, s in enumerate(PAGES[7:]))
             + closing)
     label = "broken" if broken else "pass"
+    # The pass fixture is what a correct document looks like, so its figure
+    # numbers run 1..k. The broken one keeps the page-index holes, because
+    # D30 needs a fixture that fails it.
+    if not broken:
+        body = renumber_figures(body)
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Metering programme review ({label} fixture)</title>
@@ -885,7 +907,7 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
 <section class="page cover" id="cover">
   <div class="body cover-grid">
     <div class="typeblock">
-      <p class="wordmark">LUMI Style</p>
+      <p class="wordmark">{new_deck.wordmark()}</p>
       <h1>{_TITLE} on the cover</h1>
     </div>
   </div>
@@ -968,7 +990,7 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
   <span class="site">{SITE}</span></div></section>
 <section class="page closing" id="closing">
   <div class="body cover-grid">
-    <div class="typeblock"><p class="wordmark">LUMI Style</p>
+    <div class="typeblock"><p class="wordmark">{new_deck.wordmark()}</p>
     <h2>{_TITLE} at the close</h2></div>
     <!-- D6_footer missing_source: the colophon names no provenance, and D6 asks
          the DOCUMENT once rather than every page. -->

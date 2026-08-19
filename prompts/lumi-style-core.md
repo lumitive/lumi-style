@@ -225,7 +225,10 @@ Say "uncertain" plainly.
   (licensed by the evidence before it) → team (quantified; founders, not an
   advisor wall) → the ask (amount, uses, where that lands in 18–24 months —
   the climax, never omitted) → appendix (anticipated investor questions).
-  **Evidence before vision is the one inviolable ordering.** A deck built on
+  **A seed first meeting is looked at, not read**: concepts and figures carry
+  about 80% of a content page — a floor on the drawing and therefore a ceiling
+  on the prose — and a 50/50 split page cannot reach it, so figure-led pages run
+  full width. **Evidence before vision is the one inviolable ordering.** A deck built on
   illustrative data says so on its title page.
 - **Deck frame**: a cover opens and a closing ends every deck, set the same way,
   and the agenda page is the **launch sequence**: one numbered row per part, the
@@ -378,7 +381,7 @@ up under it. Vertical: stack, hero-band (dominant block over a thin strip),
 band-hero (its inverse), thirds-v. Horizontal: split 50/50, split-wide 38/62,
 split-narrow 62/38, columns-2/3/4. Composite: rail, quad, sidebar-notes,
 full-bleed, diagonal-flow, and cover-grid (the cover and the closing, set the
-same way: typeblock — the wordmark is the literal string "LUMI Style" — mark
+same way: typeblock — the wordmark is the product or subject the document is for — mark
 cell, attrs column, full-width row; the attrs key sets bold and uppercase, the
 attrs value holds ONE line and a value that overruns gets shortened; the mark
 is LUMIVATE's field globe where the platform can embed assets, and the
@@ -479,6 +482,6 @@ quality), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.520** snapshot, cut 2026-08-17. It is self-contained by
+> This file is the **0.1.522** snapshot, cut 2026-08-19. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

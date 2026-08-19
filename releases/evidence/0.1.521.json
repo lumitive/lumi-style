@@ -1,0 +1,19 @@
+{
+  "version": "0.1.521",
+  "diff_base": "7fdfb15fdc93612335f63719228aaab179333d46",
+  "spec": "specs/2026-08-19-number-first-and-seed-pitch-register-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "0f34fe6699df32f498b16b6dc951f5b342b261232ceab0513ed5229cf3260f19",
+      "date": "2026-08-19"
+    }
+  ],
+  "waivers": []
+}

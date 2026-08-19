@@ -70,6 +70,7 @@ import pathlib as _bs_pathlib  # noqa: E402
 import re
 import sys
 import sys as _bs_sys  # noqa: E402
+from html import unescape as html_unescape
 
 _SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
                      if p.name == "scripts")
@@ -90,10 +91,16 @@ GROUP_MIN, GROUP_MAX = 2, 5
 # A title asserts something if it has a verb or a figure. This is the same
 # question M1 asks of a built document, asked early enough to be cheap to fix.
 VERBISH = re.compile(
-    r"\b(is|are|was|were|has|have|will|can|cannot|must|should|does|do|"
+    r"\b(is|are|was|were|has|have|will|can|cannot|may|might|must|should|"
+    r"would|could|does|do|"
     r"grew|grow|fell|fall|rose|rise|beats?|costs?|needs?|closes?|stops?|"
     r"stopped|carries|carry|leads?|drives?|misses?|holds?|breaks?|wins?|"
-    r"loses?|shifts?|moves?|keeps?|adds?|cuts?|doubles?|halves?)\b", re.I)
+    r"loses?|shifts?|moves?|keeps?|adds?|cuts?|doubles?|halves?|"
+    r"stands?|buys?|sells?|prices?|pays?|takes?|puts?|makes?|gives?|"
+    r"leaves?|leaving|consumes?|declares?|refuses?|blocks?|owns?|runs?|"
+    r"ships?|names?|signs?|exposes?|settles?|settled|arrives?|arrived|"
+    r"fails?|reaches?|turns?|shows?|asks?|answers?|goes|go|comes?|lets?)\b",
+    re.I)
 FIGURE = re.compile(r"\d")
 QUESTION = re.compile(r"\?\s*$")
 
@@ -141,12 +148,198 @@ def parse(text: str):
 
 
 def is_label(title: str) -> bool:
-    """A title that asserts nothing: no verb, no figure, and not a question."""
+    """A title that asserts nothing: no verb, no figure, and not a question.
+
+    The verb list is a closed list and is therefore INCOMPLETE BY
+    CONSTRUCTION — English has no closed set of verbs, and no amount of
+    extending it makes one. At 0.1.522 it flagged five titles that were
+    plainly sentences ("Three things stand between us and the first contract,
+    each dated") because `stand`, `buys`, `consume`, `price` and `leaving`
+    were not in it. That is why this check REPORTS and does not gate: whether
+    a title asserts something is a judgement about prose, and this repo does
+    not gate on those. The gate in this file is the outline mirror, which asks
+    only whether two artifacts still agree — a question a string comparison
+    can actually answer.
+    """
     return not (VERBISH.search(title) or FIGURE.search(title)
                 or QUESTION.search(title))
 
 
 ANALYTICAL_MOVES = ("compare", "decompose", "position", "correlate", "bridge")
+
+
+# --- the drift check (0.1.522) -----------------------------------------------
+# The analysis beat produced a plan and nothing carried it into the markup.
+# Measured on a shipped deck: the outline declared a move, a finding and an
+# implication for all fourteen content sections, and NOT ONE of its titles still
+# described a page — the beat ran and its output was discarded in composition.
+#
+# This is the same class as D27, which holds the agenda to the deck's real
+# titles and gates. It is a CONSISTENCY check, never a judgement: it asks
+# whether the artifact still says what its own plan says, and either the deck or
+# the outline is then corrected. It cannot and does not ask whether either is good.
+_WORD = re.compile(r"[a-z0-9]+")
+_STOP = frozenset("a an the and or of to in on for is are it its that this with "
+                  "we our you your be by as at from not no one".split())
+
+
+def _stem(w: str) -> str:
+    """A crude suffix strip, enough that `hold` and `holding` are one word.
+
+    Without it the overlap test failed on morphology alone: a page whose take
+    said "holding it takes a corpus" was reported as diverging from a plan that
+    said "the corpus it takes to hold it" — the same claim, counted as two.
+    This is not linguistics; it is the smallest thing that stops the check
+    reporting a difference that is not there.
+    """
+    if w.endswith(("ss", "us")):          # corpus, class — not plurals
+        return w
+    for suf in ("ing", "ies", "ed", "es", "s"):
+        if len(w) > len(suf) + 2 and w.endswith(suf):
+            return w[: -len(suf)] + ("y" if suf == "ies" else "")
+    return w
+
+
+def _content_words(s: str) -> set[str]:
+    return {_stem(w) for w in _WORD.findall(s.lower()) if w not in _STOP}
+
+
+def _matches(plan: str, shipped: str) -> bool:
+    """Containment either way, or a 60% content-word overlap.
+
+    Containment alone is too brittle: a title legitimately tightened during
+    composition ("4 existing approaches" -> "4 approaches") would read as
+    replaced. Overlap alone is too loose. Both, and the threshold is stated so
+    it can be argued with.
+    """
+    a, b = " ".join(_WORD.findall(plan.lower())), " ".join(_WORD.findall(shipped.lower()))
+    if a and b and (a in b or b in a):
+        return True
+    pw = _content_words(plan)
+    return bool(pw) and len(pw & _content_words(shipped)) / len(pw) >= 0.60
+
+
+def _flatten(fragment: str) -> str:
+    """Markup fragment -> the words a reader sees, entities resolved."""
+    return " ".join(html_unescape(re.sub(r"<[^>]+>", " ", fragment)).split())
+
+
+class _NoMatch:
+    """A stand-in so an absent attribute reads as empty rather than raising."""
+
+    @staticmethod
+    def group(_n: int) -> str:
+        return ""
+
+
+_NOMATCH = _NoMatch()
+
+
+def deck_pages(html: str) -> list[dict[str, str]]:
+    """-> [{id, title, take}] for every page that carries a title."""
+    out = []
+    # The tag's attributes are read in WHATEVER ORDER they appear. Requiring
+    # class before id made `<section id="p4" class="page">` -- valid markup,
+    # and what a hand-written page tends to look like -- parse to nothing, and
+    # the report then told the author their outline described a different
+    # document. A parser that fails must not deliver a verdict about the
+    # author's work.
+    for m in re.finditer(r"<section\b([^>]*)>(.*?)</section>", html, re.S | re.I):
+        attrs, body = m.groups()
+        cls = (re.search(r'class="([^"]*)"', attrs, re.I) or _NOMATCH).group(1) or ""
+        pid = (re.search(r'id="([^"]*)"', attrs, re.I) or _NOMATCH).group(1) or ""
+        classes = cls.split()
+        if "page" not in classes:
+            continue
+        # Compared as whitespace-delimited TOKENS: `discovery` and `recovery`
+        # both contain the substring `cover`, and a substring test silently
+        # dropped those pages from the mirror. Same bug class as `\bcard\b`
+        # matching `f-card`, which this repo has already shipped three times.
+        if {"cover", "closing", "opener"} & set(classes):
+            continue
+        t = re.search(r'<h2 class="t">(.*?)</h2>', body, re.S)
+        if not t:
+            continue
+        k = re.search(r'class="(?:[^"]*\s)?take(?:\s[^"]*)?"[^>]*>(.*?)</p>', body, re.S)
+        out.append({"id": pid, "title": _flatten(t.group(1)),
+                    "take": _flatten(k.group(1)) if k else ""})
+    return out
+
+
+def drift(text: str, html: str):
+    """-> findings comparing the outline's plan against the built document.
+
+    Returns the findings alone. It used to return `(out, len(pages),
+    len(shipped))`, and `shipped` is derived from `pages`, so the last two
+    were always equal and every caller discarded both -- a shape inviting
+    a future reader to trust a distinction that does not exist.
+    """
+    _meta, groups, _om, analyses = parse(text)
+    titles = [t for _h, ts in groups for t in ts]
+    pages = deck_pages(html)
+
+    orphans, paired = [], {}
+    for t in titles:
+        hit = next((p for p in pages if _matches(t, p["title"])), None)
+        if hit is None:
+            orphans.append(t[:60])
+        else:
+            paired[t] = hit
+
+    out = [{
+        "check": "outline mirror",
+        "verdict": "FAIL" if orphans else "ok",
+        "detail": (orphans if orphans else
+                   f"all {len(titles)} planned titles reached the document"),
+    }]
+
+    # The implication rung. AR-2 binds it to `.take`; a take that carries the
+    # title instead of the reader's stake is the ladder's middle rung missing.
+    # Reported at first ship, on the new-gate caution: a take rewritten better
+    # than its plan is a legitimate outcome, and only a person can tell.
+    lost, checked = [], 0
+    for a in analyses:
+        title = a.get("after_title")
+        imp = re.search(r"implication\s*:\s*(.+)$", str(a.get("rest", "")), re.I)
+        if not (title and imp and title in paired):
+            continue
+        checked += 1
+        if not _matches(imp.group(1).strip(), paired[title]["take"]):
+            lost.append(paired[title]["id"])
+    if analyses:
+        # `checked`, not `len(analyses)`. An implication whose page does not
+        # exist is skipped by the loop above, and counting it in the
+        # denominator produced a report that contradicted itself: the mirror
+        # named a planned title that reached no page, and this line directly
+        # beneath it said all of them reached a takeaway.
+        unpaired = len(analyses) - checked
+        tail = (f" ({unpaired} more could not be checked: their page is not in "
+                f"the document)" if unpaired else "")
+        out.append({
+            "check": "implication rung",
+            "verdict": "note",
+            "detail": (f"{len(lost)} of {checked} planned implications are "
+                       f"not in their page's takeaway: " + ", ".join(lost[:10]) + tail
+                       if lost else
+                       f"all {checked} planned implications reached a takeaway" + tail),
+        })
+    if titles and not pages:
+        # Nothing was read. `not_measured` is the tier this file introduced for
+        # exactly this and then did not apply to its own new code: the first
+        # version emitted a FAIL per planned title plus "this outline describes
+        # a different document", on a document the parser had not managed to
+        # read a single page out of. The outline may be perfect.
+        out[:] = [f for f in out if f["check"] != "outline mirror"]
+        out.append({"check": "outline mirror", "verdict": "not_measured",
+                    "detail": "no page could be read out of this document, so "
+                              "the plan has not been compared to anything — "
+                              "this is a parse failure, not a verdict on the "
+                              "outline"})
+    elif titles and len(orphans) == len(titles):
+        out.append({"check": "outline stale", "verdict": "FAIL",
+                    "detail": "not one planned title matched a page — this "
+                              "outline describes a different document"})
+    return out
 
 
 def review(text: str):
@@ -172,7 +365,7 @@ def review(text: str):
 
     labels = [t for t in titles if is_label(t)]
     findings.append({
-        "check": "topic-label titles", "verdict": "FAIL" if labels else "ok",
+        "check": "topic-label titles", "verdict": "note" if labels else "ok",
         "detail": labels or "every title asserts something"})
 
     for heading, ts in groups:
@@ -246,13 +439,23 @@ def review(text: str):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("outline", type=pathlib.Path)
+    ap.add_argument("--against", type=pathlib.Path, metavar="DECK.html",
+                    help="the built document. Holds it to this outline: every "
+                         "planned title must have reached a page (gates), and "
+                         "every planned implication its page's takeaway "
+                         "(reported). Without it the outline is reviewed alone.")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args()
     if not a.outline.is_file():
         sys.exit(f"no such outline: {a.outline}")
 
-    meta, groups, omissions, titles, findings = review(
-        a.outline.read_text(encoding="utf-8"))
+    text = a.outline.read_text(encoding="utf-8")
+    meta, groups, omissions, titles, findings = review(text)
+    if a.against:
+        if not a.against.is_file():
+            sys.exit(f"no such document: {a.against}")
+        more = drift(text, a.against.read_text(encoding="utf-8"))
+        findings.extend(more)
     failed = [f for f in findings if f["verdict"] == "FAIL"]
 
     if a.json:

@@ -43,6 +43,7 @@ Standard library only.
 from __future__ import annotations
 
 import argparse
+import json
 import pathlib
 
 # --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
@@ -78,6 +79,88 @@ ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
 # so a module-scope read here would stop the fixture generator from importing
 # whenever the fixture is absent or stale, which is exactly when it is run.
 FIXTURE = ROOT / "fixtures" / "deck-pass.en.html"
+
+
+def _field(key: str, rest: str) -> str:
+    """Pull `key: ...` out of an outline's pipe-separated analysis line."""
+    m = re.search(rf"{key}\s*:\s*([^|]+)", rest, re.I)
+    return m.group(1).strip() if m else ""
+
+
+def outline_sections(path: pathlib.Path | None):
+    """-> [{title, move, finding, implication}] from the analysis beat, or [].
+
+    The beat produced a plan and nothing carried it into the markup. Measured on
+    a shipped deck: fourteen sections declared a move, a finding and an
+    implication, and not one of those titles still described a page -- the
+    analysis ran and composition threw it away. Reading it here is what makes
+    the beat an INPUT instead of a document.
+    """
+    if path is None:
+        return []
+    sys.path.insert(0, str(ROOT / "scripts" / "check"))
+    import check_outline
+    _meta, groups, _om, analyses = check_outline.parse(
+        path.read_text(encoding="utf-8"))
+    by_title = {}
+    for a in analyses:
+        t = a.get("after_title")
+        if not t:
+            continue
+        rest = str(a.get("rest", ""))
+        by_title[t] = {"move": str(a.get("move", "")),
+                       "finding": _field("finding", rest),
+                       "implication": _field("implication", rest)}
+    out = []
+    for _h, titles in groups:
+        for t in titles:
+            d = by_title.get(t, {})
+            out.append({"title": t, "move": d.get("move", ""),
+                        "finding": d.get("finding", ""),
+                        "implication": d.get("implication", "")})
+    return out
+
+
+def framework_for(move: str) -> str:
+    """-> a one-line hint naming the frameworks that draw this move, and the
+    misuse each is known for.
+
+    `assets/frameworks.json` has been validated by a guard and read by no
+    runtime since it shipped: an author asking "which framework does this page
+    want" got the same answer as before the dictionary existed. This is the
+    question -> framework -> shape chain of analysis-rules.md AR-4, executed.
+    It NAMES the candidates and their misuse; it does not choose, because the
+    relation lives in the content and this file cannot see it.
+    """
+    if not move:
+        return ""
+    try:
+        d = json.loads((ROOT / "assets" / "frameworks.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return ""
+    entries = d.get("frameworks", d)
+    hits = [(k, v) for k, v in entries.items()
+            if isinstance(v, dict) and v.get("move") == move]
+    if not hits:
+        return ""
+    parts = [f"{k} — misuse: {v.get('misuse', '')[:110]}" for k, v in hits[:3]]
+    return f"move={move}; frameworks that draw it: " + " | ".join(parts)
+
+
+def wordmark(override: str | None = None) -> str:
+    """-> the cover/closing wordmark: the product this document is for.
+
+    `brands/registry.json` has carried a per-brand `wordmark` since the registry
+    was written and NOTHING read it — both generators hard-coded "LUMI Style",
+    which is the design system's own name. It reached a product business plan,
+    where the cover named the stylesheet rather than the company (owner review,
+    0.1.521). The registry is the source; `--wordmark` covers a subject that is
+    not a registered brand.
+    """
+    if override:
+        return override
+    reg = json.loads((ROOT / "brands" / "registry.json").read_text(encoding="utf-8"))
+    return reg["brands"][reg["default"]]["wordmark"]
 BRAND_GLOBE = ROOT / "assets" / "brand" / "lumivate" / "globe-field.svg"
 
 
@@ -310,6 +393,19 @@ SAMPLES = [
     '        <div class="swap"><span class="no">A second belief</span>'
     + ARROW + '<span class="yes">and its correction</span></div>\n'
     '      </div>',
+
+    # The stat tile (0.1.521). The number first and the sentence under it -- the
+    # order design-rules.md 7 fixes -- and the row's ONE key figure in accent,
+    # the rest in ink. Three across is the shape the accepted deck used.
+    '      <div class="stats">\n'
+    '        <div class="stat"><p class="sv acc">1 copy</p>\n'
+    '          <p class="sn">what the reader installs, and what it '
+    'brings with it.</p></div>\n'
+    '        <div class="stat"><p class="sv">12 platforms</p>\n'
+    '          <p class="sn">the count, and what the count is of.</p></div>\n'
+    '        <div class="stat"><p class="sv">190 lessons</p>\n'
+    '          <p class="sn">a third figure, glossed the same way.</p></div>\n'
+    '      </div>',
 ]
 
 
@@ -327,6 +423,16 @@ def main(argv):
                          "sections. A CHECKLIST, never a template: the rows "
                          "are furniture to replace, and a storyline with no "
                          "checklist says so rather than emitting nothing.")
+    ap.add_argument("--outline", type=pathlib.Path,
+                    help="the analysis beat's outline. Each content page is "
+                         "emitted carrying its planned title and implication "
+                         "and declaring its analytical move, so the beat is an "
+                         "INPUT rather than a document written and then "
+                         "forgotten (analysis-rules.md AR-3).")
+    ap.add_argument("--wordmark",
+                    help="the cover/closing wordmark. Defaults to the default "
+                         "brand's `wordmark` in brands/registry.json; pass this "
+                         "for a subject that is not a registered brand.")
     ap.add_argument("--pages", type=int, default=6,
                     help="content pages, not counting cover, agenda, the part "
                          "openers and the closing")
@@ -341,6 +447,8 @@ def main(argv):
     # cover, agenda, closing, + openers; training appends its reference page.
     apparatus = 1 if args.genre == "training" else 0
     total = args.pages + 3 + len(parts) + apparatus
+    mark = wordmark(args.wordmark)
+    plan = outline_sections(args.outline)
     out = [preamble(args.genre, args.geometry, args.storyline)]
 
     # The cover title carries TWO INKS: the claim in ink, the noun the deck is
@@ -351,7 +459,7 @@ def main(argv):
   {g}
   <div class="body cover-grid">
     <div class="typeblock">
-      <p class="wordmark">LUMI Style</p>
+      <p class="wordmark">{mark}</p>
       <h1>A title that states the argument about its
       <span class="subj">subject</span></h1>
       <p class="sub">One sentence saying what this is.</p>
@@ -411,6 +519,16 @@ def main(argv):
 </section>''')
 
     n = 3
+    # The figure ordinal is the FIGURE's, not the page's. It was `n - 2` until
+    # 0.1.521, which counted PAGES: every part opener consumed a number no
+    # drawing ever carried, so a two-part scaffold emitted Figure 3, 4, 8, 9,
+    # 11 ... and the tracked fixture shipped six holes. Both accepted
+    # deliverables reproduced the pattern from this generator -- one numbered
+    # two drawings `Figure 3`, the other ran 2-8 then 12-14 then 9-11. A reader
+    # says "go back to figure four" out loud, so a hole makes the reference
+    # wrong and a repeat makes it ambiguous; check_design.py D30 reads the
+    # sequence back.
+    figno = 1
     per = max(1, args.pages // max(1, len(parts)))
     for pi, part in enumerate(parts):
         # THE OPENER CARRIES class="page opener". The lime background is a
@@ -431,26 +549,39 @@ def main(argv):
         for i in range(count):
             block = SAMPLES[(pi * per + i) % len(SAMPLES)]
             figure = SHAPE_FIGURE if (pi == 0 and i == 0) else FIG_PLACEHOLDER
-            out.append(f'''<section class="page" id="p{n}">
+            # The beat's output, carried in. Where an outline exists, the page
+            # ARRIVES holding the finding it was planned to state and the
+            # implication it was planned to leave, and declares the move that
+            # produced them. Without one, the slots stay as prompts.
+            sec = plan[len(plan) and (pi * per + i) % len(plan)] if plan else {}
+            title = sec.get("title") or "A title naming its subject and carrying a fact"
+            take = sec.get("implication") or "The line the reader carries off this page."
+            move = sec.get("move", "")
+            hint = framework_for(move)
+            adecl = f' data-analysis="{move}"' if move else ""
+            fignote = (f"\n      <!-- {hint} -->" if hint else "")
+            out.append(f'''<section class="page" id="p{n}"{adecl}>
   {g}
   <div class="body split">
     <div class="lede">
       <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#i-radar"/></svg>Part {part} &#183; this page&#8217;s label</p>
-      <h2 class="t">A title naming its subject and carrying a fact</h2>
+      <h2 class="t">{title}</h2>
       <p class="sup">The support line, one sentence and not a summary.</p>
     </div>
     <div class="fill">
 {block}
     </div>
-    <div class="fill">
+    <div class="fill">{fignote}
       <div class="fig">{figure}
-      <div class="cap"><span class="n">Figure {n - 2}</span> A title stating a
+      <div class="cap"><span class="n">Figure {figno}</span> A title stating a
       conclusion <span class="srcline">Where this came from</span></div></div>
+      <p class="take">{take}</p>
     </div>
   </div>
   {foot(n, total)}
 </section>''')
             n += 1
+            figno += 1
 
     if apparatus:
         # Template 4's arc ends on the pages a learner returns to. The page is
@@ -480,7 +611,7 @@ def main(argv):
   {g}
   <div class="body cover-grid">
     <div class="typeblock">
-      <p class="wordmark">LUMI Style</p>
+      <p class="wordmark">{mark}</p>
       <h2>What the reader carries out about its
       <span class="subj">subject</span></h2>
       <p class="sub">The argument in one paragraph.</p>
