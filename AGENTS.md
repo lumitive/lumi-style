@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.520.** This file restates part of `references/`; where they
+> **lumi-style 0.1.522.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -118,8 +118,8 @@ facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
    writing. A deck opens with a cover and ends with a closing page, each carrying
    the same single vector mark — **by default the locked LUMIVATE field globe
    (`assets/brand/lumivate/globe-field.svg`), embedded live with `data-globe` +
-   the inlined runtime so it turns** — the wordmark is the literal string
-   "LUMI Style", and **every part boundary gets a lime opener
+   the inlined runtime so it turns** — the wordmark is the name of the product
+   or subject the document is for (`brands/registry.json`), and **every part boundary gets a lime opener
    page** — about five content pages between openers is a pacing target, reported
    and never gated. **Scaffold with `python3 scripts/ops/new_deck.py` and never
    hand-copy a fixture**: a shipped review carried `REPLACE ME` as its title and
@@ -133,8 +133,11 @@ facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
    display number, a claim at display size, or a figure composed to dominate;
    which one is a decision for that page. **Every content page carries at least
    one visual block, and the target share of its area follows the genre — about
-   half for sales, marketing and consulting, about a third for training** — the
-   checks report both, and neither is a floor. A reference page (glossary,
+   half for sales, marketing and consulting, about a third for training, and
+   about 80% where the storyline is `pitch-deck`, which overrides its
+   genre** — the checks report both, and neither is a floor. The 80% is a floor
+   on the drawing and so a ceiling on the prose, and a 50/50 `split` page
+   measures about 43%, so the layout is part of meeting it. A reference page (glossary,
    scoring, boundaries) is exempt and declares it with `data-role="apparatus"`,
    up to about one content page in five. **A page on the sheet carries more than
    a page on the slide**: a portrait content page adds a second content block
@@ -144,7 +147,12 @@ facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
    the support line, and a page that cannot hold both becomes two pages.
    A figure's name holds one line. **A table is for values**: prose in a
    grid is a layout error, so draw what the content actually is. Under a figure
-   goes the number, its conclusion name and the source line, and nothing else.
+   goes the number, its conclusion name and the source line, and nothing else;
+   caption numbers run 1..k once each in page order (D30). **The number reads
+   before the words it belongs to**: above its label in a stat block
+   (`.stats`/`.stat`; `.band` renders the same way round), at the FRONT of a
+   title rather than spelled into its middle, and on or above its mark inside a
+   figure. An order, not a size floor.
    Embed the vendored assets rather than improvising: `scripts/build/embed_font.py`,
    `scripts/build/embed_icons.py`, `scripts/build/embed_shapes.py` (the shape
    library — pick by the RELATION in the content, never by how the shape looks;

@@ -57,6 +57,16 @@ docs/
 !assets/shapes/*.svg
 # Official platform marks for the get-started page; provenance in SOURCES.md.
 !assets/logos/*.svg
+# The model-family marks live one level down, and the blanket *.svg rule above
+# reaches them: without this the twenty-three logos p4 draws would be on disk,
+# green in every check, and absent from the package. Same trap the Microsoft
+# raster hit at 0.1.521.
+!assets/logos/models/*.svg
+# A raster mark, where its owner publishes no vector from its own domains.
+# Scoped to this directory: the blanket *.png rule exists so an engagement
+# screenshot cannot be committed, and that reason does not reach a vendored
+# trademark whose provenance is recorded beside it.
+!assets/logos/*.png
 !assets/logos/SOURCES.md
 
 # Conformance run artifacts: renders, not records. The scoreboard is tracked;

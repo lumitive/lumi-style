@@ -1,5 +1,420 @@
 # Changelog
 
+## 0.1.522 — the plan becomes an input, and a build is held to the facts it was built from
+
+The owner's retrospective, in her words: the analysis and insight capability
+does not take effect by itself, the intelligence has *serious inertia*,
+information is forgotten or omitted between rounds, and McKinsey and YC have
+been absorbed without the work getting better. All four are correct, and the
+audit found a mechanism rather than a shortfall of effort.
+
+**The analysis beat ran, and composition threw its output away.** The outline
+for a shipped deck declares an analytical move, a written finding and a written
+implication for **14 of 14** content sections — it is the best-executed artifact
+in the chain. Then **0 of those 14 findings still described a page**. One
+section's declared implication appeared in no element of the page at all.
+Nothing in the pipeline carried `finding:` into `<h2 class="t">` or
+`implication:` into `<p class="take">`, and nothing noticed the divergence —
+though `references/analysis-rules.md` (AR-2) binds those rungs to those elements
+precisely so the ladder is visible in the markup rather than a hope.
+
+**A rebuild silently deleted eleven facts.** Measured across one rebuild: four
+brand names, **five of the seven market names the deck still claims a count
+of**, and two delivery figures. Every gate was green, because nothing compared a
+build against the fact list it was built from.
+
+**The package taught a stylesheet and the deck learned a stylesheet.** The
+exemplar study's *typographic* devices landed by themselves — row labels 56
+times, number-top stat blocks 11 of 11, captions 14 of 14. Its *analytical*
+devices did not land at all: 0 benchmark lines, 0 unit lines, 1 scope flag
+across 14 pages, 1 scorecard and it ungraded. Knowledge a stylesheet can carry
+gets applied; knowledge needing a compositional judgement does not, because
+there was no step at which that judgement was made and recorded.
+
+The root cause is architectural and this repo had already half-written it:
+0.1.516's spec says *"the form/content line, right about GATING, was
+over-applied to GUIDANCE."* The correct policy **never gate on quality** —
+earned honestly by the withdrawn 82% fill floor — was being executed as **do
+not act on quality at build time**. So every absorbed body of knowledge went to
+the one open slot, `references/` prose, which is inert by construction. Six
+counts make it concrete: dozens of deliverable gates, as many reported
+metrics, and every guard in `check_repo.CHECKS` — against one structural
+generator, **zero content generators**, and
+`assets/frameworks.json` validated by a guard and read by no runtime.
+
+The answer is not more rules and not quality gates. It is to make the plan an
+**input** to the build and then hold the artifact to its own declared plan.
+Both are consistency checks of exactly the class D27 already applies to the
+agenda, and neither asks whether anything is good.
+
+- **`new_deck.py --outline <path>`** emits each content page pre-filled from the
+  beat: the section's `finding:` as `<h2 class="t">`, its `implication:` as
+  `<p class="take">`, `data-analysis="<move>"` on the section, and a placeholder
+  comment naming the framework that move implies **and quoting its `misuse`
+  line** — the first time `assets/frameworks.json` is read by anything at
+  runtime rather than merely validated.
+- **`check_outline.py --against <deck.html>`.** Every planned title must
+  still be a page title — **gates**. Every planned implication is reported against
+  that page's `.take`. When they diverge, the weaker artifact is corrected;
+  a title sharpened during composition means the outline is stale, and a title
+  that drifted off its finding means the page lost its analysis.
+- **`check_facts.py <contract.md> <deck.html>`.** A quantity in the document
+  that appears nowhere in the contract **gates** — an invented number is red
+  line 1's territory. A permitted fact the document drops is **reported**,
+  because dropping a fact is often right and sometimes is the eleven above.
+  Deliberate-red first, per convention 15: run against the rebuild that lost
+  them, it named all eleven before the code was trusted.
+- `topic-label titles` **stops gating and becomes a note.** Its verb list is
+  closed and English's is not; it failed five titles that were plainly sentences
+  (*"Three things stand between us and the first contract, each dated"*) because
+  `stand`, `buys`, `consume`, `price` and `leaving` were absent from it. Whether
+  a title asserts something is a judgement about prose, and this repo does not
+  gate on those. The list was widened anyway, and the overlap test gained a
+  crude stemmer after it reported `hold` and `holding` as two different claims.
+- **D8 exempts the agenda**, by owner directive: its title names the document
+  and its rows name the parts, so a line between them restates one or the
+  other. `references/storyline-templates.md` had already been changed to permit
+  dropping that lede — one release before the checker was, which showed up as a
+  permanently red row. That is how a reader learns to stop reading rows.
+- Two maintenance conventions, each carrying the evidence that earned it:
+  **17**, a rebuild inherits its predecessor's facts; **18**, state what *done*
+  means for the reader before building, and report the build's grade against
+  the package's own ladder rather than its gate results alone. Their source
+  material is archived at `references/exemplars/karpathy-notes.md` as EX-4, for
+  provenance only — **the archive is deliberately not the mechanism**, since
+  this audit's central finding is that `references/exemplars/` is where
+  knowledge goes to be inert.
+
+- **The opener run line takes a `max-width` ceiling of 52ch.** Measured on a shipped
+  opener, the section summary wrapped to **five lines** and stopped at half the
+  available width, with the subject mark — which sits in its own grid column and
+  never overlapped it — a long way clear to the right. The owner asked for three
+  lines. 52ch is a **ceiling** (convention 4) and the comment says so: the copy
+  is what shortens when a section still runs past three lines, and all three
+  openers were shortened rather than the cap raised again.
+
+**Six defects a review of this entry's own code found, each fixed with the red
+planted first** (`tests/test_fact_and_outline_defects.py`, nine failing tests
+before a line was changed). Every one of them got through because the test
+written alongside the check assumed the same shape the check assumed — which is
+convention 15's warning, met inside the release that added it.
+
+- **`check_facts.py` failed correct documents.** Any two-digit run read as a
+  quantity, so a roadmap year, a telephone number and a page-derived percentage
+  all reported as invented figures. This is the worst shape a gate can have
+  here: the author's cheapest route to green is to delete a correct year.
+  A bare 1900–2099 integer is now a date, and a `+NN …` run is contact
+  furniture. `$2027` and `2027%` are still claims.
+- **It had no unmeasurable floor.** `dq` came back empty both when a document
+  invented nothing and when everything it stated sat inside a stripped
+  drawing — and both printed `ok`. A document whose every figure was drawn in
+  an excluded `<svg>` graded clean while claiming markets, revenue and
+  customers the contract had never heard of. `compare()` now strips the tags
+  *without* the exclusions and reports **UNMEASURABLE** when that text carries
+  quantities and the visible text carries none.
+- **It was blind to bulleted fact lists and to every acronym.** A name had to
+  appear preceded by a lowercase word or a comma — false for every entry in a
+  `- ` list, which is the natural shape for a FACTS section, so such a contract
+  yielded zero names and the report read `0 of 0 permitted facts`. Acronyms
+  were excluded outright by `tok.isupper()`, and the measured defect this
+  module exists for was **four platform names** dropped in a rebuild. `A2A` and
+  `AP2` were additionally invisible to the proper-noun pattern, which required
+  letters.
+- **`deck_pages()` blamed the author for a parse failure.** The section regex
+  required `class` before `id`, so `<section id="p4" class="page">` parsed to
+  nothing and the report announced that the outline described a different
+  document. Attributes are now read in either order, the cover/closing/opener
+  test compares whitespace-delimited class **tokens** rather than substrings
+  (`discovery` contained `cover`), and a document no page could be read from is
+  **`not_measured`** — the tier this file introduced for exactly this and did
+  not apply to its own new code.
+- **The implication rung reported a denominator it never measured.** Titles with
+  no page were skipped by the loop and counted in the total, so one report said
+  `all 3 planned implications reached a takeaway` directly beneath a mirror
+  finding naming a planned title that reached no page at all. It now counts
+  what it checked and says how many it could not.
+- **The entry above claimed a binding the code does not have.** It said every
+  planned `finding:` must still be a page title; `drift()` compares the
+  outline's bullet titles and never reads the `finding:` field. The gate is
+  sound, the sentence was not. Corrected here and in `SKILL.md`. This is
+  convention 14 — *do not write a claim about behaviour you have not read in
+  the code* — broken in the release that added it. Also corrected: the rung
+  binding is `references/analysis-rules.md` (AR-2), not `eval-rubric.md`; the
+  guard count named its authority instead of a number that was wrong by eleven;
+  a bullet describing a file this repository does not contain was removed.
+
+- **A seventh, found by the same review: `inspect_layout.py` told consulting
+  documents the opposite of rule 9.** Its `EXTERNAL_GENRES` — the genres that
+  state provenance once for the document rather than under every figure —
+  shipped as `("sales", "marketing", "consulting")`, borrowed whole from
+  `check_design.py`'s constant of the same name. That one means *whose reader
+  is outside the building* and decides who owes a quotable takeaway (D28);
+  consulting belongs in it. Rule 9 says the reverse in terms: consulting and
+  internal analysis **keep** per-page sourcing, because the reader is auditing
+  the claim rather than being sold to. So a consulting deck that had dropped
+  its per-page sources was told `n/a, a consulting document states its
+  provenance once in the colophon`, and the branch skips `unmeasured += 1`, so
+  the run stopped exiting 1 on a check it had not performed — the
+  measured-versus-not distinction this package rebuilt at 0.1.350, lost again
+  for one genre. The borrowed member is gone and
+  `tests/test_provenance_genre_scope.py` pins **both** constants, because the
+  tempting edit here is to make two same-named things agree. Note that
+  `check_design.py`'s own comment warns against exactly this borrowing, one
+  file away.
+
+- **`check_evidence.py --init` keeps a diff base an earlier pass established.**
+  It recomputed the base by finding the previous release's commit, and returned
+  1 when there was none — which is the normal state when a branch carried two
+  releases and they were folded into one commit at merge time. `release.py`
+  aborted its step 3 on that, so the release could not be committed by the one
+  tool that exists to refuse committing on a red preflight. The evidence file
+  already named a valid base; it is now kept, with a note saying so. A release
+  with no base *anywhere* still fails, and a test pins that direction too.
+
+*One of these fixes was itself wrong first.* Matching the decorative-drawing
+class as `(?:^|\s)` inside a prefix cannot match mid-string, so the globe's
+`class="gl trade …"` stopped being excluded and the shipped deck went red with
+eighteen coordinate figures. The repo's own token idiom
+(`(?:[^"]*\s)?X(?:\s[^"]*)?`) was the fix. Running the check against the real
+artifact caught it; the unit tests all passed.
+
+The design record is `specs/2026-08-19-analysis-plan-binding-design.md`.
+
+**Acceptance test, and the point of the release.** The rebuilt deck was run
+through both new checks. The drift check found **six** planned titles that had
+never reached the document and **two** genuine regressions where the finding had
+been demoted into a support line; the fact check found the restored names. After
+correction: 14 of 14 titles are the findings that produced them, 14 of 14 takes
+carry their implication, and 0 unsourced quantities. The mechanism caught by
+script what had previously taken five rounds of the owner's review to catch by
+eye, which was the whole claim.
+
+## 0.1.521 — the number goes first, and a seed pitch is looked at rather than read
+
+**An owner review of two decks asked why a convention she had accepted did not
+survive into the next document. The answer was that it had never been written
+down anywhere the next document could read.** The deck that reached her standard
+put its numbers on top at display size — `1 copy`, `12 platforms`, `190 lessons`
+— twenty times across eight pages, and **all twenty were inline `style=`
+attributes with no class on the number at all.** The package shipped no role, so
+the author wrote the role twenty times. Their gloss used `class="sm"`, and the
+only `.sm` rule in this package is `svg .sm`: every one of those sentences
+silently took the body's 15px and no instrument could have said so.
+
+**The shipped role did the opposite, and the package's own study said so.**
+`.band` rendered `.k` above `.v` — label above number — for eleven releases,
+while `references/exemplars/mckinsey-design-notes.md` EX-2 item 2 has read *"a
+stat block is number-top: the figure first at display size, the explanation
+under it in support ink"* the whole time. Prose right, stylesheet wrong, nothing
+comparing the two. `.band > div` is now `column-reverse`, which is deliberate:
+reversing it in CSS means every document already written renders the right way
+round on its next build, where reordering the markup would have fixed new decks
+and left every existing one wrong — the exact failure this release is about, so
+it may not be the fix's shape as well. `.stats` / `.stat` / `.sv` / `.sn` ship
+the tile itself, with `--fs-stat` and `--fs-support-sm` as declared tiers rather
+than inherited accidents, and **`.stats` lives inside `.fill`, never as a
+`.body >` child**, so it stays out of the four-site `:not()` chain. The rule is
+stated once in `design-rules.md` §7 as an ORDER and not a size floor: number
+above its label in a stat block, at the front of a title rather than spelled
+into the middle of it, and on or above its mark inside a figure.
+
+**A related emptiness turned up while measuring.** `.lead` — this package's
+documented focal-number component, with `.lead .v`, its `.g` gloss and an `xl`
+tier — **is used zero times in both accepted deliverables.** Both push their
+numbers into 15-23 word titles instead. In the roadshow BP the cost is exact:
+`0 signed customers` is the most important number in the deck and it sits in a
+band below a title that spells the page's other quantities out in words. §3 now
+says which way round the pair goes and names the apparatus that was waiting.
+
+**A seed pitch is looked at while someone talks.** Owner directive: for a first
+conversation with a seed investor, concepts and figures carry about 80% of a
+content page. Template 11 gains the register without touching its eleven
+sections, and the number is stated in the direction that decides what an author
+does with it — **a floor on the drawing is a ceiling on the prose**, because read
+as a target it produces an inflated figure instead of a cut paragraph. The
+layout is part of the rule rather than a separate decision: the deck that
+triggered this carried a captioned figure on **all thirteen** of its content
+pages and still read text-heavy, because every page was a 50/50 `split`, which
+measures **43%** once the lede and takeaway are counted. It cannot reach 80
+however the words are trimmed. Template 11 also gains the figure vocabulary —
+which relation each BP section actually has, and therefore which drawing answers
+it — because a BP is where the pull toward a professional-looking diagram is
+strongest.
+
+**Two reported metrics, and one of them found its bug in the generator.**
+`inspect_layout.py` keys the visual-share target on the STORYLINE where one is
+declared (`pitch-deck` → 80), genre elsewhere, with the unknown-storyline branch
+as loud as the unknown-genre branch already was. `check_prose.py` **M15** counts
+the prose a content page asks a reader to read beside its drawing, excluding the
+lede, the takeaway, the footer, the figure and the caption — the exclusions
+matter, since a rule may not punish a page for obeying D8 or D28. It reports a
+distribution and no threshold, on the withdrawn-fill-floor caution, and the
+first measurement is the finding: **the accepted product deck sits at a median
+of 60 words per page and the BP its owner called text-heavy at 130.**
+
+**`check_design.py` D30** asserts caption numbers run 1..k, once each, in page
+order. Planted first, per convention 15, and it went red on **every artifact
+this package had on disk**: the accepted product deck numbered two drawings
+`Figure 3` and had no Figure 4; the roadshow BP ran 2-8, then 12-14, then 9-11,
+with no Figure 1; and the tracked fixture shipped six holes. The cause was not
+three authors making the same slip — **it was the scaffold**, which emitted
+`Figure {page index - 2}`, so every part opener consumed a number no drawing
+ever carried. `new_deck.py` now counts figures. This is convention 15's point in
+its cleanest form: reading the code would not have found it, because reading
+uses the model that produced it; one `grep` at three real artifacts did.
+
+**A second owner pass on the same release, and the first finding is against a
+rule this release had just shipped.** §7 said "in a title the number goes at the
+front", and the deck built from it opened **all fourteen** content titles on a
+small operational count, with M11 title uniformity at **52.9% against a 60%
+ceiling**. A placement rule had been read as a quota — convention 4's failure
+mode inside a rule written to prevent it. It now says *where* a title carries a
+number, and adds that a title with no number is a normal title.
+
+**The cover was naming the stylesheet instead of the company.** The wordmark was
+the literal string "LUMI Style" on a product business plan. It was never a
+designed rule: two generators emitted it and a 2026-08-12 directive wrote prose
+around the markup, and **`brands/registry.json` has carried a per-brand
+`wordmark` field the whole time that nothing read.** The rule now says the cover
+carries the product or subject the document is for, `new_deck.py` and
+`build_fixtures.py` read the registry, and `--wordmark` covers a subject that is
+not a registered brand. No check ever asserted the string, so nothing broke; the
+blast radius was four prose surfaces.
+
+**The agenda may now drop its lede**, because rows that already argue the deck do
+not need a title saying they will. `body stack no-lede` centres them. The rule
+states the trap rather than leaving it to be found: **remove the lede whole or not
+at all** — deleting the title while keeping the block leaves a page reserving a
+title it does not carry, which `inspect_layout.py` reports as NOT SHIPPABLE.
+
+**§4 contradicted itself about source lines and had for releases.** Rule 9
+exempted sales material from per-page provenance; rule 4 still demanded a line
+under every figure with no genre qualifier, so a sales deck was told to state its
+provenance once and to repeat it fourteen times. Rule 4 now carries rule 9's
+scope. The trap is written down with it: **M2's window is the page and SVG is
+stripped before it measures**, so a deck that drops every source line passes while
+it has fewer than four percent-or-currency figures in HTML prose and collapses the
+day it has more — the page keeps a marker in its own text regardless.
+
+**The part opener may carry one oversized subject mark.** "No figure, no map, no
+icon" was stated in three files, one MUST-tier, and the owner asked for the
+exception; per `PRINCIPLES.md` §3 it was redrafted rather than adjudicated. The
+redraft keeps what the rule was protecting (one statement per opener, no
+navigation rail) and licenses a text-free silhouette reversed out of the field.
+§6 gains the constraint that makes it work rather than repeat a recorded defect:
+**a mark at display scale is filled, never stroked** — a hairline blown up is the
+accident §6 already describes, and Lucide is stroked.
+
+**A third owner pass, and the finding is about figures.** Fourteen content pages
+were `body stack`, fourteen figures were 900 units wide, and every one was
+rectangles and text: 1 to 9 rects, 13 to 35 texts, no plotted geometry anywhere.
+**580 words of explanation were inside the drawings**, set at 12 to 15px in a
+scaled SVG. The rebuild gives each page its own analytical form — a 2x2, a
+proportional field, a funnel, a permission matrix, a convergence timeline, an
+interval with analogy precedents, an area chart, a capability scorecard and a
+generated world map — and moves the explanation into a left column at reading
+size. Measured: **6 layouts where there was 1**, and M15's prose-beside-the-drawing
+went 4 words to 57 because the words came out of the SVG and into the page.
+
+**§4 rule 15 was wrong, and it was one release old.** It said "a document's
+figures share one viewBox width". Its evidence was miscounted (the deck it cited
+runs 640, 660 and 680) and its effect was backwards: 660 units render at 1.0
+px/unit in a 652px cell and 1.66 in a 1096px one, so with varied layouts one
+declared size becomes two rendered sizes. It now says the viewBox width is chosen
+to MATCH THE CELL, so a `font-size` inside a drawing is literal. **15b** adds the
+ladder that was missing entirely — row and section names at 17px bold
+(`svg .row-lbl`, EX-2 item 5), values at `.mid` or `.huge`, fine print at `.lbl`
+— because "a type scale that suits the figure" was the only guidance and it
+produced fourteen drawings whose largest heading was 13px.
+
+**`.stats.col`, and why it is not a metric being gamed.** A stat row is
+content-height, so a left rail written as one measured 59% of its page while
+visibly occupying the whole column; the numerator reads element boxes. The
+column form distributes the stats down the cell they are actually in, which is
+what the eye already saw. The alternative — leaving it and arguing with the
+number — is how a page ends up designed against its own measurement.
+
+**The map is generated, not drawn.** `regionmap_svg.py` with a four-region
+registry of the market phases, a scoped palette from `build_region_palette.py`
+(`--prefix phasemap`, so it cannot touch the cover globe's hues), and the three
+contrast floors asserted at generation: worst label 5.42:1, worst stroke 5.78:1,
+worst adjacent ΔE00 54.7. The first attempt used the SHIPPED registry and was
+wrong in a way worth recording — eleven regions each took their own identity
+hue, so a four-phase sequence read as five unrelated colours. Region hue encodes
+identity by directive; a phase story needs a registry whose regions ARE the
+phases.
+
+**All five ecosystem marks now ship, and two of them carry a recorded
+transformation.** Google, Meta, Reddit and X are official vectors from their
+owners' own domains; **X publishes only the white variant**, so the fill is set
+to its own black one, which is choosing between the owner's two monochrome
+variants rather than tinting into this palette. **Microsoft publishes no public
+vector at all** — the CMS endpoint 403s and every SVG path 404s — so its mark
+ships as the 216x46 raster its own UHF service serves, embedded as a `data:`
+URI. It is the first image any deliverable from this package has carried, which
+is why the colophon now names its terms: D25 gates on that and passed only
+because the sentence was added with the mark.
+
+**Three defects the marks exposed, all in this package rather than in the
+markup.** `.gitignore` excluded `*.png` globally, so a vendored trademark would
+have been one `git add -f` away from existing — caught by the `assets tracked`
+guard, and un-ignored scoped to `assets/logos/` because the blanket rule exists
+to stop an engagement screenshot, and that reason does not reach a mark whose
+provenance is recorded beside it. **D4's token-block detection knew two selector
+names**, `:root` and `.trade`, so a scoped region palette generated on
+`.phasemap` reported 26 of its own generated hexes as stray literals — the
+identical failure its own comment records about `.trade`, one release later and
+by the same cause. It now decides by SHAPE: a block that declares only custom
+properties is a token block, whatever `--prefix` produced it. And
+**`figure_clipped` measured `<symbol>` elements**: the Reddit lockup carries one
+whose bbox sits 162 units outside the wrapper's viewBox, and the probe read that
+as a fifth of the drawing clipped away on a page where nothing was clipped. A
+definition does not render where it is written, so `<defs>`, `<symbol>`,
+`<marker>`, `<clipPath>`, `<mask>` and `<pattern>` are now skipped. All three
+were found by putting real vendored markup in front of checks that had never
+met any.
+
+**Three protocol marks ship** — MCP, A2A and AP2, official vectors from each
+protocol's own repository, inlined with `data-mark`. A2UI and UCP publish raster
+avatars only and stay in type, recorded in `assets/logos/SOURCES.md` beside the
+brands that could not be verified last release.
+
+**Two probes were wrong, and the rule change is what exposed them.**
+`figure_clipped` walked every descendant of a figure and compared `getBBox()` to
+the outer viewBox — but a nested `<svg>` starts its own coordinate system, so an
+official trademark inlined at 39x13 inside a 900-unit drawing measured as 988
+units wide and the gate fired on correct markup. It now compares rendered rects
+for a nested mark and skips what that mark's own `<svg>` already measures. The
+markup that exposed it is markup the rules had just been widened to permit, which
+is the shape worth noticing: **a permission that no artifact had exercised was
+being enforced against by a probe nobody had run it past.** And the source-echo
+probe reported NOT MEASURED on a sales deck that had correctly dropped its
+per-figure source lines — it exists to catch provenance stated *twice*, so with
+the rule obeyed there is one statement and nothing to compare. It now says n/a
+with that reason for external genres instead of counting itself unmeasured.
+
+**Template 11 gains a stage axis.** The owner's directive — at seed the data is
+not the point, the market and the narrative are — collides head-on with "evidence
+before vision is the arc's one inviolable ordering", which the same owner adopted
+from the YC study at 0.1.518. Both are right about different stages: at seed there
+is no traction to put first, so demanding it demands it of nothing. Vision leads
+at seed and pre-A and the evidence changes job, from *this already earns* to *we
+can build what we say*; from Series A the original ordering is unchanged. Red
+line 1 and the ban list bind both, and an unbounded market is drawn the way the
+study already permits — **analogy companies, never a top-down TAM.**
+
+The design record is
+`specs/2026-08-19-number-first-and-seed-pitch-register-design.md`, including the
+two decisions taken AGAINST the plan: `--fs-stat` does not go in
+`design-tokens.json`, because parity between the two token files is palette-only
+and every other size tier is CSS-only, and M15 is n/a on Chinese rather than
+reporting a number the word splitter cannot produce.
+
+The `probe vocabulary` guard earned its keep mid-change, refusing the release
+until `inspect_layout.py`'s `VIS` list learned `.stats` alongside
+`check_design.py`'s `VISUAL_BLOCKS` — one metric, two carriers, caught by the
+guard that exists for exactly that.
+
 ## 0.1.520 — three defects the checks were not measuring
 
 **A deliverable came back from its owner with three findings, and every

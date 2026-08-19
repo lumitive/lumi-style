@@ -564,3 +564,40 @@ def test_d12_still_fails_a_footer_with_no_terms(tmp_path):
     path.write_text(_footer_doc("some other words"), encoding="utf-8")
     r = check_design.d12_commercial_footer(path.read_text(encoding="utf-8"))
     assert r["missing_terms"] == [0]
+
+
+# ── D30: figure numbers run 1..k, once each, in page order (0.1.521) ──────────
+# The deliberate-red run is on real artifacts: an accepted product deck numbered
+# two drawings `Figure 3` and had no Figure 4, an accepted roadshow BP ran 2-8
+# then 12-14 then 9-11, and the tracked pass fixture shipped six holes. The
+# cause was the SCAFFOLD, which numbered figures from the page index.
+
+def _fig_doc(*numbers):
+    pages = "".join(
+        f'<section class="page" id="p{i}"><div class="fig"><svg></svg>'
+        f'<div class="cap"><span class="n">Figure {n}</span> A conclusion</div>'
+        f'</div></section>'
+        for i, n in enumerate(numbers, start=1))
+    return f"<html><body>{pages}</body></html>"
+
+
+def test_d30_accepts_a_clean_sequence():
+    r = check_design.d30_figure_sequence(_fig_doc(1, 2, 3, 4))
+    assert r["duplicates"] == [] and r["holes"] == [] and not r["out_of_order"]
+
+
+def test_d30_catches_the_repeat_and_the_hole_the_accepted_deck_shipped():
+    r = check_design.d30_figure_sequence(_fig_doc(1, 2, 3, 3, 5))
+    assert r["duplicates"] == [3]
+    assert r["holes"] == [4]
+
+
+def test_d30_catches_an_appendix_cut_out_of_the_body():
+    # The BP's shape: body 2-8, then 12-14, then the appendix at 9-11.
+    r = check_design.d30_figure_sequence(_fig_doc(2, 3, 4, 12, 13, 14, 9, 10, 11))
+    assert r["out_of_order"] is True
+    assert 1 in r["holes"]
+
+
+def test_d30_is_na_when_a_document_numbers_no_figures():
+    assert check_design.d30_figure_sequence("<html><body><p>no figures</p></body></html>") is None

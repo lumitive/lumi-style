@@ -1,379 +1,389 @@
 {
- "$comment": "Hand-written, never generated. It asserts VERDICTS and exit codes, not values: 'M8_length_cv: ok', never 0.578. A golden file full of raw numbers rots on every cosmetic change and trains people to regenerate it unread, so a legitimate threshold change should touch one line here and show up in review as an intent change, while an accidental regression shows up as a verdict flip. THREE fixtures: deck-pass is a well-formed deliverable, deck-broken carries one named defect per page and is readable as a worked example, and deck-degenerate exists only to fail. The third was added in 0.1.390 because ten metrics could not be given a failing case without destroying the second: four are document-WIDE prose properties (every sentence the same length, every title the same shape) that cannot be confined to one labelled page, and six more design defects would have stopped deck-broken teaching anything. Before it, thirteen of eighteen design verdicts and four of seven prose verdicts read ok on BOTH fixtures, so a checker rewritten to `return \"ok\"` would have passed the suite whose stated purpose is to catch that. check_fixtures.py now computes this rather than trusting it: every graded verdict must have a fixture that fails it, and the run prints the count. Seven design metrics are REPORTED rather than graded and cannot fail by construction — they are counted separately, never excused silently, and two of them are exercised through n/a on the degenerate deck, which has no figures to measure.",
- "schema": 1,
- "fixtures": {
-  "deck-pass.en.html": {
-   "prose": {
-    "argv": [
-     "--genre",
-     "sales"
-    ],
-    "exit": 0,
-    "verdicts": {
-     "M10_triad_rate": "ok",
-     "M11_title_uniformity": "ok",
-     "M12_visible_cjk": "ok",
-     "M1_assertive_titles": "ok",
-     "M2_number_sourcing": "ok",
-     "M4_banned_hits": "ok",
-     "M4zh_banned_hits": "n/a",
-     "M5_zh_punctuation": "n/a",
-     "M6_unsourced_ranges": "ok",
-     "M8_length_cv": "ok",
-     "M8_overlong_share": "ok",
-     "M9_dashes": "ok",
-     "M13_quantity_conflicts": "ok",
-     "M14_parallel_frames": "ok"
+  "$comment": "Hand-written, never generated. It asserts VERDICTS and exit codes, not values: 'M8_length_cv: ok', never 0.578. A golden file full of raw numbers rots on every cosmetic change and trains people to regenerate it unread, so a legitimate threshold change should touch one line here and show up in review as an intent change, while an accidental regression shows up as a verdict flip. THREE fixtures: deck-pass is a well-formed deliverable, deck-broken carries one named defect per page and is readable as a worked example, and deck-degenerate exists only to fail. The third was added in 0.1.390 because ten metrics could not be given a failing case without destroying the second: four are document-WIDE prose properties (every sentence the same length, every title the same shape) that cannot be confined to one labelled page, and six more design defects would have stopped deck-broken teaching anything. Before it, thirteen of eighteen design verdicts and four of seven prose verdicts read ok on BOTH fixtures, so a checker rewritten to `return \"ok\"` would have passed the suite whose stated purpose is to catch that. check_fixtures.py now computes this rather than trusting it: every graded verdict must have a fixture that fails it, and the run prints the count. Seven design metrics are REPORTED rather than graded and cannot fail by construction — they are counted separately, never excused silently, and two of them are exercised through n/a on the degenerate deck, which has no figures to measure.",
+  "schema": 1,
+  "fixtures": {
+    "deck-pass.en.html": {
+      "prose": {
+        "argv": [
+          "--genre",
+          "sales"
+        ],
+        "exit": 0,
+        "verdicts": {
+          "M10_triad_rate": "ok",
+          "M11_title_uniformity": "ok",
+          "M12_visible_cjk": "ok",
+          "M1_assertive_titles": "ok",
+          "M2_number_sourcing": "ok",
+          "M4_banned_hits": "ok",
+          "M4zh_banned_hits": "n/a",
+          "M5_zh_punctuation": "n/a",
+          "M6_unsourced_ranges": "ok",
+          "M8_length_cv": "ok",
+          "M8_overlong_share": "ok",
+          "M9_dashes": "ok",
+          "M13_quantity_conflicts": "ok",
+          "M14_parallel_frames": "ok",
+          "M15_page_prose": "ok"
+        },
+        "forbid_verdicts": [
+          "n/a"
+        ],
+        "allow_na": [
+          "M4zh_banned_hits",
+          "M5_zh_punctuation"
+        ]
+      },
+      "design": {
+        "argv": [],
+        "exit": 0,
+        "verdicts": {
+          "D1_contrast": "ok",
+          "D2_type_scale": "ok",
+          "D3_tier1_per_page": "ok",
+          "D3_tier1_page_share": "ok",
+          "D4_palette_literals": "ok",
+          "D5_figure_parity": "ok",
+          "D6_footer": "ok",
+          "D8_support_line": "ok",
+          "D9_layout_spread": "ok",
+          "D10_label_icons": "ok",
+          "D12_commercial_footer": "ok",
+          "D13_lime_as_text": "ok",
+          "D14_placeholders": "ok",
+          "D15_footer_path": "ok",
+          "D5_drawn_share": "ok",
+          "D16_visual_presence": "ok",
+          "D17_export_weight": "ok",
+          "D18_region_labels": "ok",
+          "D20_palette_fidelity": "ok",
+          "D19_vocabulary": "ok",
+          "D21_data_contract": "ok",
+          "D22_layout_vocabulary": "ok",
+          "D24_images_embedded": "ok",
+          "D25_image_provenance": "ok",
+          "D23_font_count": "ok",
+          "D26_declared_scope": "ok",
+          "D27_agenda_mirror": "ok",
+          "D28_takeaway": "ok",
+          "D29_figure_numbers": "ok",
+          "D30_figure_sequence": "ok"
+        },
+        "contains": {
+          "D10_label_icons": [
+            "p3"
+          ],
+          "D16_visual_presence": [
+            "\"prose_only\": []"
+          ]
+        }
+      },
+      "layout": {
+        "argv": [
+          "--deliverable",
+          "--no-sheet"
+        ],
+        "exit": 0,
+        "verdicts": {
+          "collision": "ok",
+          "content_hidden": "ok",
+          "content_spill": "ok",
+          "datum": "ok",
+          "figure_clipped": "ok",
+          "figure_viewbox": "ok",
+          "footer_baseline": "ok",
+          "footer_wrap": "ok",
+          "page_height": "ok",
+          "figure_distorts": "ok",
+          "visual_absent": "ok",
+          "reserve_overspent": "ok",
+          "role_split": "ok",
+          "starved_column": "ok"
+        }
+      }
     },
-    "forbid_verdicts": [
-     "n/a"
-    ],
-    "allow_na": [
-     "M4zh_banned_hits",
-     "M5_zh_punctuation"
-    ]
-   },
-   "design": {
-    "argv": [],
-    "exit": 0,
-    "verdicts": {
-     "D1_contrast": "ok",
-     "D2_type_scale": "ok",
-     "D3_tier1_per_page": "ok",
-     "D3_tier1_page_share": "ok",
-     "D4_palette_literals": "ok",
-     "D5_figure_parity": "ok",
-     "D6_footer": "ok",
-     "D8_support_line": "ok",
-     "D9_layout_spread": "ok",
-     "D10_label_icons": "ok",
-     "D12_commercial_footer": "ok",
-     "D13_lime_as_text": "ok",
-     "D14_placeholders": "ok",
-     "D15_footer_path": "ok",
-     "D5_drawn_share": "ok",
-     "D16_visual_presence": "ok",
-     "D17_export_weight": "ok",
-     "D18_region_labels": "ok",
-     "D20_palette_fidelity": "ok",
-     "D19_vocabulary": "ok",
-     "D21_data_contract": "ok",
-     "D22_layout_vocabulary": "ok",
-     "D24_images_embedded": "ok",
-     "D25_image_provenance": "ok",
-     "D23_font_count": "ok",
-     "D26_declared_scope": "ok",
-     "D27_agenda_mirror": "ok",
-     "D28_takeaway": "ok",
-     "D29_figure_numbers": "ok"
+    "deck-broken.en.html": {
+      "prose": {
+        "argv": [
+          "--genre",
+          "sales"
+        ],
+        "exit": 1,
+        "verdicts": {
+          "M10_triad_rate": "ok",
+          "M11_title_uniformity": "ok",
+          "M12_visible_cjk": "FAIL",
+          "M1_assertive_titles": "ok",
+          "M2_number_sourcing": "ok",
+          "M4_banned_hits": "FAIL",
+          "M4zh_banned_hits": "n/a",
+          "M5_zh_punctuation": "n/a",
+          "M6_unsourced_ranges": "ok",
+          "M8_length_cv": "ok",
+          "M8_overlong_share": "ok",
+          "M9_dashes": "FAIL",
+          "M13_quantity_conflicts": "ok",
+          "M14_parallel_frames": "ok",
+          "M15_page_prose": "ok"
+        },
+        "contains": {
+          "M4_banned_hits": [
+            "leverage (verb)",
+            "seamless",
+            "robust",
+            "showcase"
+          ],
+          "M12_visible_cjk": [
+            "15/15"
+          ]
+        }
+      },
+      "design": {
+        "argv": [],
+        "exit": 1,
+        "verdicts": {
+          "D1_contrast": "ok",
+          "D2_type_scale": "ok",
+          "D3_tier1_per_page": "ok",
+          "D3_tier1_page_share": "ok",
+          "D4_palette_literals": "FAIL",
+          "D5_figure_parity": "ok",
+          "D6_footer": "ok",
+          "D8_support_line": "ok",
+          "D9_layout_spread": "ok",
+          "D10_label_icons": "ok",
+          "D12_commercial_footer": "FAIL",
+          "D13_lime_as_text": "ok",
+          "D14_placeholders": "FAIL",
+          "D15_footer_path": "FAIL",
+          "D5_drawn_share": "ok",
+          "D16_visual_presence": "ok",
+          "D17_export_weight": "ok",
+          "D18_region_labels": "FAIL",
+          "D20_palette_fidelity": "ok",
+          "D19_vocabulary": "ok",
+          "D21_data_contract": "FAIL",
+          "D22_layout_vocabulary": "ok",
+          "D24_images_embedded": "FAIL",
+          "D25_image_provenance": "FAIL",
+          "D23_font_count": "ok",
+          "D26_declared_scope": "FAIL",
+          "D27_agenda_mirror": "ok",
+          "D28_takeaway": "ok",
+          "D29_figure_numbers": "ok",
+          "D30_figure_sequence": "FAIL"
+        },
+        "contains": {
+          "D16_visual_presence": [
+            "p16"
+          ],
+          "D18_detail": [
+            "southeast-asia"
+          ]
+        }
+      },
+      "prose@training": {
+        "argv": [
+          "--genre",
+          "training"
+        ],
+        "exit": 1,
+        "verdicts": {
+          "M10_triad_rate": "ok",
+          "M11_title_uniformity": "ok",
+          "M12_visible_cjk": "FAIL",
+          "M1_assertive_titles": "ok",
+          "M2_number_sourcing": "ok",
+          "M4_banned_hits": "FAIL",
+          "M4zh_banned_hits": "n/a",
+          "M5_zh_punctuation": "n/a",
+          "M6_unsourced_ranges": "ok",
+          "M8_length_cv": "ok",
+          "M8_overlong_share": "ok",
+          "M9_dashes": "FAIL",
+          "M13_quantity_conflicts": "ok",
+          "M14_parallel_frames": "ok",
+          "M15_page_prose": "ok"
+        }
+      },
+      "prose@internal": {
+        "argv": [
+          "--genre",
+          "internal"
+        ],
+        "exit": 1,
+        "verdicts": {
+          "M10_triad_rate": "ok",
+          "M11_title_uniformity": "ok",
+          "M12_visible_cjk": "FAIL",
+          "M1_assertive_titles": "ok",
+          "M2_number_sourcing": "ok",
+          "M4_banned_hits": "FAIL",
+          "M4zh_banned_hits": "n/a",
+          "M5_zh_punctuation": "n/a",
+          "M6_unsourced_ranges": "ok",
+          "M8_length_cv": "ok",
+          "M8_overlong_share": "ok",
+          "M9_dashes": "n/a",
+          "M13_quantity_conflicts": "ok",
+          "M14_parallel_frames": "ok",
+          "M15_page_prose": "ok"
+        }
+      },
+      "layout": {
+        "argv": [
+          "--deliverable",
+          "--no-sheet"
+        ],
+        "exit": 1,
+        "verdicts": {
+          "collision": "ok",
+          "content_hidden": "ok",
+          "content_spill": "ok",
+          "datum": "ok",
+          "figure_clipped": "FAIL",
+          "figure_viewbox": "FAIL",
+          "footer_baseline": "ok",
+          "footer_wrap": "ok",
+          "page_height": "ok",
+          "figure_distorts": "ok",
+          "visual_absent": "ok",
+          "reserve_overspent": "ok",
+          "role_split": "ok",
+          "starved_column": "ok"
+        }
+      }
     },
-    "contains": {
-     "D10_label_icons": [
-      "p3"
-     ],
-     "D16_visual_presence": [
-      "\"prose_only\": []"
-     ]
-    }
-   },
-   "layout": {
-    "argv": [
-     "--deliverable",
-     "--no-sheet"
-    ],
-    "exit": 0,
-    "verdicts": {
-     "collision": "ok",
-     "content_hidden": "ok",
-     "content_spill": "ok",
-     "datum": "ok",
-     "figure_clipped": "ok",
-     "figure_viewbox": "ok",
-     "footer_baseline": "ok",
-     "footer_wrap": "ok",
-     "page_height": "ok",
-     "figure_distorts": "ok",
-     "visual_absent": "ok",
-     "reserve_overspent": "ok",
-     "role_split": "ok",
-     "starved_column": "ok"
-    }
-   }
-  },
-  "deck-broken.en.html": {
-   "prose": {
-    "argv": [
-     "--genre",
-     "sales"
-    ],
-    "exit": 1,
-    "verdicts": {
-     "M10_triad_rate": "ok",
-     "M11_title_uniformity": "ok",
-     "M12_visible_cjk": "FAIL",
-     "M1_assertive_titles": "ok",
-     "M2_number_sourcing": "ok",
-     "M4_banned_hits": "FAIL",
-     "M4zh_banned_hits": "n/a",
-     "M5_zh_punctuation": "n/a",
-     "M6_unsourced_ranges": "ok",
-     "M8_length_cv": "ok",
-     "M8_overlong_share": "ok",
-     "M9_dashes": "FAIL",
-     "M13_quantity_conflicts": "ok",
-     "M14_parallel_frames": "ok"
+    "deck-degenerate.en.html": {
+      "prose": {
+        "argv": [
+          "--genre",
+          "sales"
+        ],
+        "exit": 1,
+        "verdicts": {
+          "M10_triad_rate": "FAIL",
+          "M11_title_uniformity": "FAIL",
+          "M12_visible_cjk": "ok",
+          "M1_assertive_titles": "ok",
+          "M2_number_sourcing": "FAIL",
+          "M4_banned_hits": "ok",
+          "M4zh_banned_hits": "n/a",
+          "M5_zh_punctuation": "n/a",
+          "M6_unsourced_ranges": "FAIL",
+          "M8_length_cv": "FAIL",
+          "M8_overlong_share": "FAIL",
+          "M9_dashes": "ok",
+          "M13_quantity_conflicts": "ok",
+          "M14_parallel_frames": "ok",
+          "M15_page_prose": "ok"
+        }
+      },
+      "design": {
+        "argv": [],
+        "exit": 1,
+        "verdicts": {
+          "D1_contrast": "FAIL",
+          "D18_region_labels": "n/a",
+          "D2_type_scale": "ok",
+          "D3_tier1_per_page": "FAIL",
+          "D3_tier1_page_share": "FAIL",
+          "D4_palette_literals": "ok",
+          "D5_figure_parity": "ok",
+          "D6_footer": "FAIL",
+          "D8_support_line": "FAIL",
+          "D13_lime_as_text": "FAIL",
+          "D12_commercial_footer": "ok",
+          "D5_drawn_share": "ok",
+          "D14_placeholders": "ok",
+          "D15_footer_path": "ok",
+          "D9_layout_spread": "ok",
+          "D10_label_icons": "ok",
+          "D17_export_weight": "ok",
+          "D16_visual_presence": "ok",
+          "D20_palette_fidelity": "FAIL",
+          "D19_vocabulary": "FAIL",
+          "D21_data_contract": "ok",
+          "D22_layout_vocabulary": "FAIL",
+          "D24_images_embedded": "ok",
+          "D25_image_provenance": "ok",
+          "D23_font_count": "ok",
+          "D26_declared_scope": "ok",
+          "D27_agenda_mirror": "FAIL",
+          "D28_takeaway": "ok",
+          "D29_figure_numbers": "ok",
+          "D30_figure_sequence": "n/a"
+        }
+      },
+      "layout": {
+        "argv": [
+          "--deliverable",
+          "--no-sheet"
+        ],
+        "exit": 1,
+        "verdicts": {
+          "collision": "FAIL",
+          "content_hidden": "FAIL",
+          "content_spill": "FAIL",
+          "datum": "n/a",
+          "figure_clipped": "ok",
+          "figure_viewbox": "ok",
+          "footer_baseline": "FAIL",
+          "footer_wrap": "FAIL",
+          "page_height": "FAIL",
+          "figure_distorts": "FAIL",
+          "visual_absent": "FAIL",
+          "reserve_overspent": "FAIL",
+          "role_split": "FAIL",
+          "starved_column": "FAIL"
+        }
+      }
     },
-    "contains": {
-     "M4_banned_hits": [
-      "leverage (verb)",
-      "seamless",
-      "robust",
-      "showcase"
-     ],
-     "M12_visible_cjk": [
-      "15/15"
-     ]
-    }
-   },
-   "design": {
-    "argv": [],
-    "exit": 1,
-    "verdicts": {
-     "D1_contrast": "ok",
-     "D2_type_scale": "ok",
-     "D3_tier1_per_page": "ok",
-     "D3_tier1_page_share": "ok",
-     "D4_palette_literals": "FAIL",
-     "D5_figure_parity": "ok",
-     "D6_footer": "ok",
-     "D8_support_line": "ok",
-     "D9_layout_spread": "ok",
-     "D10_label_icons": "ok",
-     "D12_commercial_footer": "FAIL",
-     "D13_lime_as_text": "ok",
-     "D14_placeholders": "FAIL",
-     "D15_footer_path": "FAIL",
-     "D5_drawn_share": "ok",
-     "D16_visual_presence": "ok",
-     "D17_export_weight": "ok",
-     "D18_region_labels": "FAIL",
-     "D20_palette_fidelity": "ok",
-     "D19_vocabulary": "ok",
-     "D21_data_contract": "FAIL",
-     "D22_layout_vocabulary": "ok",
-     "D24_images_embedded": "FAIL",
-     "D25_image_provenance": "FAIL",
-     "D23_font_count": "ok",
-     "D26_declared_scope": "FAIL",
-     "D27_agenda_mirror": "ok",
-     "D28_takeaway": "ok",
-     "D29_figure_numbers": "ok"
+    "prose-zh-pass.zh.html": {
+      "prose": {
+        "argv": [],
+        "exit": 0,
+        "verdicts": {
+          "M10_triad_rate": "n/a",
+          "M11_title_uniformity": "n/a",
+          "M12_visible_cjk": "n/a",
+          "M1_assertive_titles": "n/a",
+          "M2_number_sourcing": "n/a",
+          "M4_banned_hits": "ok",
+          "M4zh_banned_hits": "ok",
+          "M5_zh_punctuation": "ok",
+          "M6_unsourced_ranges": "ok",
+          "M8_length_cv": "n/a",
+          "M8_overlong_share": "n/a",
+          "M9_dashes": "ok",
+          "M13_quantity_conflicts": "ok",
+          "M14_parallel_frames": "ok",
+          "M15_page_prose": "n/a"
+        }
+      }
     },
-    "contains": {
-     "D16_visual_presence": [
-      "p16"
-     ],
-     "D18_detail": [
-      "southeast-asia"
-     ]
+    "prose-zh-broken.zh.html": {
+      "prose": {
+        "argv": [],
+        "exit": 1,
+        "verdicts": {
+          "M10_triad_rate": "n/a",
+          "M11_title_uniformity": "n/a",
+          "M12_visible_cjk": "n/a",
+          "M1_assertive_titles": "n/a",
+          "M2_number_sourcing": "n/a",
+          "M4_banned_hits": "ok",
+          "M4zh_banned_hits": "FAIL",
+          "M5_zh_punctuation": "FAIL",
+          "M6_unsourced_ranges": "ok",
+          "M8_length_cv": "n/a",
+          "M8_overlong_share": "n/a",
+          "M9_dashes": "ok",
+          "M13_quantity_conflicts": "ok",
+          "M14_parallel_frames": "ok",
+          "M15_page_prose": "n/a"
+        }
+      }
     }
-   },
-   "prose@training": {
-    "argv": [
-     "--genre",
-     "training"
-    ],
-    "exit": 1,
-    "verdicts": {
-     "M10_triad_rate": "ok",
-     "M11_title_uniformity": "ok",
-     "M12_visible_cjk": "FAIL",
-     "M1_assertive_titles": "ok",
-     "M2_number_sourcing": "ok",
-     "M4_banned_hits": "FAIL",
-     "M4zh_banned_hits": "n/a",
-     "M5_zh_punctuation": "n/a",
-     "M6_unsourced_ranges": "ok",
-     "M8_length_cv": "ok",
-     "M8_overlong_share": "ok",
-     "M9_dashes": "FAIL",
-     "M13_quantity_conflicts": "ok",
-     "M14_parallel_frames": "ok"
-    }
-   },
-   "prose@internal": {
-    "argv": [
-     "--genre",
-     "internal"
-    ],
-    "exit": 1,
-    "verdicts": {
-     "M10_triad_rate": "ok",
-     "M11_title_uniformity": "ok",
-     "M12_visible_cjk": "FAIL",
-     "M1_assertive_titles": "ok",
-     "M2_number_sourcing": "ok",
-     "M4_banned_hits": "FAIL",
-     "M4zh_banned_hits": "n/a",
-     "M5_zh_punctuation": "n/a",
-     "M6_unsourced_ranges": "ok",
-     "M8_length_cv": "ok",
-     "M8_overlong_share": "ok",
-     "M9_dashes": "n/a",
-     "M13_quantity_conflicts": "ok",
-     "M14_parallel_frames": "ok"
-    }
-   },
-   "layout": {
-    "argv": [
-     "--deliverable",
-     "--no-sheet"
-    ],
-    "exit": 1,
-    "verdicts": {
-     "collision": "ok",
-     "content_hidden": "ok",
-     "content_spill": "ok",
-     "datum": "ok",
-     "figure_clipped": "FAIL",
-     "figure_viewbox": "FAIL",
-     "footer_baseline": "ok",
-     "footer_wrap": "ok",
-     "page_height": "ok",
-     "figure_distorts": "ok",
-     "visual_absent": "ok",
-     "reserve_overspent": "ok",
-     "role_split": "ok",
-     "starved_column": "ok"
-    }
-   }
-  },
-  "deck-degenerate.en.html": {
-   "prose": {
-    "argv": [
-     "--genre",
-     "sales"
-    ],
-    "exit": 1,
-    "verdicts": {
-     "M10_triad_rate": "FAIL",
-     "M11_title_uniformity": "FAIL",
-     "M12_visible_cjk": "ok",
-     "M1_assertive_titles": "ok",
-     "M2_number_sourcing": "FAIL",
-     "M4_banned_hits": "ok",
-     "M4zh_banned_hits": "n/a",
-     "M5_zh_punctuation": "n/a",
-     "M6_unsourced_ranges": "FAIL",
-     "M8_length_cv": "FAIL",
-     "M8_overlong_share": "FAIL",
-     "M9_dashes": "ok",
-     "M13_quantity_conflicts": "ok",
-     "M14_parallel_frames": "ok"
-    }
-   },
-   "design": {
-    "argv": [],
-    "exit": 1,
-    "verdicts": {
-     "D1_contrast": "FAIL",
-     "D18_region_labels": "n/a",
-     "D2_type_scale": "ok",
-     "D3_tier1_per_page": "FAIL",
-     "D3_tier1_page_share": "FAIL",
-     "D4_palette_literals": "ok",
-     "D5_figure_parity": "ok",
-     "D6_footer": "FAIL",
-     "D8_support_line": "FAIL",
-     "D13_lime_as_text": "FAIL",
-     "D12_commercial_footer": "ok",
-     "D5_drawn_share": "ok",
-     "D14_placeholders": "ok",
-     "D15_footer_path": "ok",
-     "D9_layout_spread": "ok",
-     "D10_label_icons": "ok",
-     "D17_export_weight": "ok",
-     "D16_visual_presence": "ok",
-     "D20_palette_fidelity": "FAIL",
-     "D19_vocabulary": "FAIL",
-     "D21_data_contract": "ok",
-     "D22_layout_vocabulary": "FAIL",
-     "D24_images_embedded": "ok",
-     "D25_image_provenance": "ok",
-     "D23_font_count": "ok",
-     "D26_declared_scope": "ok",
-     "D27_agenda_mirror": "FAIL",
-     "D28_takeaway": "ok",
-     "D29_figure_numbers": "ok"
-    }
-   },
-   "layout": {
-    "argv": [
-     "--deliverable",
-     "--no-sheet"
-    ],
-    "exit": 1,
-    "verdicts": {
-     "collision": "FAIL",
-     "content_hidden": "FAIL",
-     "content_spill": "FAIL",
-     "datum": "n/a",
-     "figure_clipped": "ok",
-     "figure_viewbox": "ok",
-     "footer_baseline": "FAIL",
-     "footer_wrap": "FAIL",
-     "page_height": "FAIL",
-     "figure_distorts": "FAIL",
-     "visual_absent": "FAIL",
-     "reserve_overspent": "FAIL",
-     "role_split": "FAIL",
-     "starved_column": "FAIL"
-    }
-   }
-  },
-  "prose-zh-pass.zh.html": {
-   "prose": {
-    "argv": [],
-    "exit": 0,
-    "verdicts": {
-     "M10_triad_rate": "n/a",
-     "M11_title_uniformity": "n/a",
-     "M12_visible_cjk": "n/a",
-     "M1_assertive_titles": "n/a",
-     "M2_number_sourcing": "n/a",
-     "M4_banned_hits": "ok",
-     "M4zh_banned_hits": "ok",
-     "M5_zh_punctuation": "ok",
-     "M6_unsourced_ranges": "ok",
-     "M8_length_cv": "n/a",
-     "M8_overlong_share": "n/a",
-     "M9_dashes": "ok",
-     "M13_quantity_conflicts": "ok",
-     "M14_parallel_frames": "ok"
-    }
-   }
-  },
-  "prose-zh-broken.zh.html": {
-   "prose": {
-    "argv": [],
-    "exit": 1,
-    "verdicts": {
-     "M10_triad_rate": "n/a",
-     "M11_title_uniformity": "n/a",
-     "M12_visible_cjk": "n/a",
-     "M1_assertive_titles": "n/a",
-     "M2_number_sourcing": "n/a",
-     "M4_banned_hits": "ok",
-     "M4zh_banned_hits": "FAIL",
-     "M5_zh_punctuation": "FAIL",
-     "M6_unsourced_ranges": "ok",
-     "M8_length_cv": "n/a",
-     "M8_overlong_share": "n/a",
-     "M9_dashes": "ok",
-     "M13_quantity_conflicts": "ok",
-     "M14_parallel_frames": "ok"
-    }
-   }
   }
- }
 }

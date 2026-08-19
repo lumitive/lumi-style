@@ -17,6 +17,8 @@ python3 scripts/check/check_repo.py            # repo invariants; exit 1 on any 
 python3 scripts/check/claim_sweep.py           # counted claims + file:line citations; REPORTS, never fails
 python3 scripts/ops/eval_corpus.py <file>    # a deliverable against evals/thresholds.json; REPORTS, never gates
 python3 scripts/check/check_prose.py <file>    # the prose metrics on a deliverable (the script's row table is the list)
+python3 scripts/check/check_outline.py <outline> [--against DECK]  # the storyline beat; --against gates the deck on its own plan
+python3 scripts/check/check_facts.py <contract> <file>  # the build against the facts it was built from
 python3 scripts/check/check_design.py <file>   # the design metrics on a deliverable (the script's row table is the list)
 python3 scripts/check/inspect_layout.py <file> # render a deliverable and report what the layout does
 python3 scripts/ops/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
@@ -142,7 +144,7 @@ than passed. **D20 is the one that looks the other way**: every COLOUR token the
 document declares that `tokens/` also defines must carry the shipped value,
 because a document can be perfectly consistent with a palette of its own
 invention and that is a different design language. Sizes are exempt by the same
-logic that withdrew the type floor at 0.1.340. Nine of its metrics **gate**, and none is a
+logic that withdrew the type floor at 0.1.340. Ten of its metrics **gate**, and none is a
 design judgement: **D12** (handling terms and origin on every page) is a
 commercial requirement on the artifact, **D14** (no `[TO FILL]`, `[TBD]` or
 `{{…}}` reaching the reader) asks whether the document is finished, **D15**
@@ -439,3 +441,31 @@ repo itself.)
     when preflight fails, with no override flag**, on the same reasoning that
     makes `check_evidence.py` execute its own commands rather than accept a
     typed verdict.
+
+17. **A rebuild inherits its predecessor's facts. Losing one is a defect, not a
+    simplification.** Measured across two consecutive builds of one business
+    plan: the second silently dropped **eleven** facts the first carried — four
+    platform names, **five of the seven market names whose count the deck still
+    stated**, and two delivery figures — and all forty-odd deliverable gates
+    reported green, because not one of them had anything to compare the document
+    to. `scripts/check/check_facts.py` is that comparison: absent facts are
+    reported, and a quantity the document states that its fact list does not is
+    red line 1 and gates. This is `references/exemplars/karpathy-notes.md`
+    §3's surgical-change test — *every changed line traces to the request* —
+    applied to a deliverable rather than to code.
+
+18. **State what "done" means for the reader before building, and loop to that.**
+    Green gates are the floor. `SKILL.md` has said so since 0.1.344 — *"Passing
+    metrics is necessary but never sufficient"* — and the practice drifted
+    anyway: five builds in two days, each delivered gate-green, each returned by
+    the owner with defects no gate can see. EX-4 §4 names the mechanism:
+    **weak success criteria require constant clarification**, so with no
+    criterion beyond the metrics the loop terminates at the metrics and the
+    reader becomes the missing check.
+    Two things follow, and both are obligations on the report rather than on the
+    document. **A build reported as complete states its grade against the
+    package's own knowledge** — how many titles are findings rather than labels
+    (AR-1), how many takes carry the reader's implication rather than restating
+    the title (AR-2) — not only its gate results. And **a rebuild reports what it
+    dropped**: `check_outline.py --against` and `check_facts.py` both exist to
+    make that answerable without waiting for a review.

@@ -359,7 +359,8 @@ are permissions. They are not requirements, and none of them outranks a red line
 
 **The brand is never the loudest thing on the page. The evidence is.**
 
-Wordmark small — the literal string "LUMI Style". No watermark, no ornament,
+Wordmark small — the name of the product or subject the document is for, from
+`brands/registry.json`. No watermark, no ornament,
 no flourish, no logo behind the content. LUMI's mark appears twice in a deck —
 the cover and the closing, and by default it is the locked FIELD GLOBE
 (`assets/brand/lumivate/globe-field.svg`), embedded live so it turns — and is

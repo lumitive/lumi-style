@@ -22,6 +22,7 @@ the hidden-constraint condition this inventory exists to surface.
 | check_prose | M12_visible_cjk | `=0 (gates)` | gate |
 | check_prose | M13_quantity_conflicts | `=0 (reported)` | reported |
 | check_prose | M14_parallel_frames | `=0 (reported)` | reported |
+| check_prose | M15_page_prose | `reported` | reported |
 | check_prose | M1_assertive_titles | `>=70% (reported)` | reported |
 | check_prose | M2_number_sourcing | `>=90%` | graded |
 | check_prose | M4_banned_hits | `=0` | graded |
@@ -52,6 +53,7 @@ the hidden-constraint condition this inventory exists to surface.
 | check_design | D28_takeaway | `reported` | reported |
 | check_design | D29_figure_numbers | `reported` | reported |
 | check_design | D2_type_scale | `reported` | reported |
+| check_design | D30_figure_sequence | `1..k once each, in page order (reported)` | reported |
 | check_design | D3_tier1_page_share | `<=33.0%` | graded |
 | check_design | D3_tier1_per_page | `<=1 per page` | graded |
 | check_design | D4_palette_literals | `=0` | graded |
@@ -105,6 +107,7 @@ different ways.
 | CAP_OFF_AXIS_PCT | `10` |  | (not searched: too short) |
 | FOOT_BASELINE_RATIO | `0.08` |  | CODE ONLY |
 | VISUAL_SHARE_TARGET | `{"sales": 50, "marketing": 50, "consulting": 50,` |  | (not searched: too short) |
+| STORYLINE_SHARE_TARGET | `{"pitch-deck": 80}` |  | (not searched: too short) |
 | GROUND_CEILING | `1.40` | a ceiling, not a target: quieter is always fine | brand.md, design-rules.md |
 
 ### scripts/check/check_globe.py

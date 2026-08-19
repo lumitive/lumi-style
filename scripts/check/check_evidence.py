@@ -297,10 +297,27 @@ def cmd_init(version: str | None) -> int:
     prev = versions[idx + 1]
     base = find_release_commit(prev)
     if base is None:
-        print(f"FAIL  no commit subject starts with '{prev} — '; cannot "
-              f"compute the release diff. Name the base explicitly by "
-              f"editing the file, or fix the commit history.")
-        return 1
+        # A base an earlier pass already established is kept rather than
+        # recomputed. The predecessor legitimately has no commit of its own
+        # when a branch carried two releases and they were folded into one at
+        # merge time -- a decision that belongs to whoever merges. Recomputing
+        # is what fails there; the file already names a base, and discarding it
+        # aborted `release.py` in step 3, which is the tool that exists to
+        # refuse committing on a red preflight. Same reasoning that already
+        # makes release.py carry hand-written waivers across an --init: do not
+        # destroy what an earlier pass established.
+        try:
+            base = str(load(v).get("diff_base") or "")
+        except (OSError, ValueError):
+            base = ""
+        if not base:
+            print(f"FAIL  no commit subject starts with '{prev} — ' and "
+                  f"releases/evidence/{v}.json names no diff_base; cannot "
+                  f"compute the release diff. Name the base explicitly by "
+                  f"editing the file, or fix the commit history.")
+            return 1
+        print(f"note  no commit for {prev}; keeping the diff_base already "
+              f"recorded for {v} ({base[:12]})")
     touched = effective_touches(base)
     if touched is None:
         print("FAIL  git cannot diff against the base (shallow clone?)")

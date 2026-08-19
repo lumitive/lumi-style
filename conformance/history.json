@@ -214,5 +214,34 @@
     "built": {
       "T1-deck": "0.1.454"
     }
+  },
+  {
+    "skill_version": "0.1.522",
+    "agent": "claude-code",
+    "date": "2026-08-19",
+    "run_dir": "conformance/results/latest",
+    "tasks": {
+      "T1-deck": "not earned",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "1659a17bfc3bd4d31e968e5856f7f7654f091b77095b40c6472b7a1e5296e1d7",
+    "instrument_version": "0.1.522"
+  },
+  {
+    "skill_version": "0.1.522",
+    "agent": "cursor",
+    "date": "2026-08-19",
+    "run_dir": "conformance/results/latest",
+    "tasks": {
+      "T1-deck": "pass",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "1659a17bfc3bd4d31e968e5856f7f7654f091b77095b40c6472b7a1e5296e1d7",
+    "instrument_version": "0.1.522",
+    "built": {
+      "T1-deck": "0.1.522"
+    }
   }
 ]

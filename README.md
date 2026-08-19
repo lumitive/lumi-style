@@ -160,8 +160,9 @@ a fixed 16:9 page and a fixed A4 sheet (the genre picks which leads — training
 leads with A4), handling terms behind a seal shield on every page, a cover and
 closing sharing the rotating LUMIVATE field globe, a lime opener at every part boundary, one claim
 per screen and one focal element on it, visual blocks carrying about half of
-every content page, numbers are the copy, titles are conclusions, and a table is
-for values.**
+every content page and about four fifths of an investor pitch's, numbers are the
+copy and a number reads before the words it belongs to, titles are conclusions,
+and a table is for values.**
 The layout skeleton was researched from the public web design of SpaceX and Tesla
 (whitespace, spec-first copy, monochrome discipline); the palette and its
 semantics are LUMI's own — one color, one meaning, enforced more strictly than

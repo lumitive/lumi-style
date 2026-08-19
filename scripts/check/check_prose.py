@@ -696,6 +696,7 @@ def measure(path, genre, lang=None):
         "M9_dashes": dashes if genre in DASH_BANNED else None,
         "M10_triad_rate": None if triad_rate is None else round(triad_rate, 1),
         "M11_title_uniformity": None if uniformity is None else round(uniformity, 1),
+        "M15_page_prose": m15_page_prose(raw, is_zh),
     }
 
 
@@ -777,6 +778,80 @@ _M14_ROLES = ("gq", "gd", "sup", "vw", "listhead", "take")
 _M14_PREFIX_WORDS = 3
 
 
+# --- M15: how much prose a content page asks the reader to read -------------
+# The text-side complement of the visual-share target. `inspect_layout.py`
+# measures the AREA a drawing occupies; nothing measured the words competing
+# with it, so a deck could put a figure on every page and still read as a wall
+# of text -- which is exactly what an owner review found on an accepted deck:
+# a figure on all thirteen content pages, 131-181 body words on each, and the
+# argument carried in 15-23 word titles rather than in the drawings.
+#
+# What is counted is the prose a reader must READ: the page minus its furniture
+# (the lede, the takeaway, the footer), minus the figure and its caption. Those
+# exclusions are the point. The title and the support line are governed by the
+# title contract and D8; the takeaway is required by D28 and a rule may not
+# punish a page for obeying another rule; SVG text is the drawing's labels,
+# which this metric wants MORE of, not fewer.
+#
+# TWO numbers, because one of them is gameable and it was gamed on the first
+# document this metric ever measured. Excluding SVG text is right in principle
+# (a drawing's labels are what the visual-share rule wants MORE of), but an
+# author who moves three sentences of body prose into `<text>` elements scores
+# 4 words a page and has cut nothing. So `median` is the prose beside the
+# drawing and `visible_median` is every word a reader sees, labels included.
+# The second cannot be moved anywhere, which is the point of having it.
+#
+# REPORTED, and it reports numbers rather than enforcing one. A threshold
+# invented on the day a metric ships is the withdrawn fill-floor mistake and
+# the withdrawn type floor; the honest first version tells an author where
+# their pages actually sit and lets a directive set the ceiling later.
+_STRIP_FOR_PROSE = re.compile(
+    r"<svg\b.*?</svg>"
+    r"|<div[^>]*class=\"(?:[^\"]*\s)?cap(?:\s[^\"]*)?\"[^>]*>.*?</div>"
+    r"|<div[^>]*class=\"(?:[^\"]*\s)?(?:lede|foot)(?:\s[^\"]*)?\"[^>]*>.*?</div>\s*"
+    r"|<p[^>]*class=\"(?:[^\"]*\s)?take(?:\s[^\"]*)?\"[^>]*>.*?</p>",
+    re.S | re.I)
+
+_PAGE_RE = re.compile(
+    r'<section[^>]*class="([^"]*\bpage\b[^"]*)"[^>]*>(.*?)</section>', re.S | re.I)
+
+
+def m15_page_prose(raw: str, is_zh: bool = False) -> dict | None:
+    """-> per-content-page word counts of the prose beside the drawing.
+
+    A content page is a `.page` that is not a cover, closing or part opener --
+    those carry display type rather than prose and counting them would drag the
+    median toward a number no argument page could hit.
+    """
+    if is_zh:
+        # Chinese has no spaces, so the word splitter returns a number that
+        # looks like an answer and is not: the zh fixtures came back at 6 and 7
+        # "words" for whole pages. n/a for the same reason M8 is n/a on Chinese
+        # -- the unit does not transfer -- and a character-count version is a
+        # separate metric with its own calibration, not this one with a
+        # different splitter. A reassuring line on a document nothing measured
+        # is the thing this package keeps removing.
+        return None
+    prose, visible = [], []
+    for cls, body in _PAGE_RE.findall(raw):
+        if any(w in cls for w in ("cover", "closing", "opener")):
+            continue
+        prose.append(len(html.unescape(
+            re.sub(r"<[^>]+>", " ", _STRIP_FOR_PROSE.sub(" ", body))).split()))
+        visible.append(len(html.unescape(re.sub(r"<[^>]+>", " ", body)).split()))
+    if not prose:
+        return None
+
+    def med(xs):
+        xs = sorted(xs)
+        m = len(xs) // 2
+        return xs[m] if len(xs) % 2 else (xs[m - 1] + xs[m]) // 2
+
+    return {"pages": len(prose), "median": med(prose),
+            "max": max(prose), "min": min(prose),
+            "visible_median": med(visible), "visible_max": max(visible)}
+
+
 def m14_parallel_frames(raw: str) -> list[tuple[str, int]]:
     """[(prefix, count)] for every same-role prefix echoed 2+ times."""
     body = re.sub(r"<(script|style|svg)\b.*?</\1>", " ", raw, flags=re.S | re.I)
@@ -820,6 +895,13 @@ def grade(r):
         # gate would have an author break a legitimate anaphora to go green.
         ("M14_parallel_frames", r["M14_parallel_frames"], "=0 (reported)",
          True, False),
+        # M15 reports a distribution, not a verdict: the value is what the
+        # author needs to see and there is no number to be under yet.
+        ("M15_page_prose",
+         (f"{pp['median']} words median beside the drawing, "
+          f"{pp['visible_median']} median including its labels, "
+          f"across {pp['pages']} content pages") if (pp := r["M15_page_prose"]) else None,
+         "reported", True, pp is None),
         # The Chinese pair. n/a on any document that is not Chinese — not "ok",
         # because a metric that passes on a document it never looked at is the
         # reassuring line this package keeps removing.

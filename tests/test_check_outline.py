@@ -42,10 +42,31 @@ def test_a_bare_noun_phrase_is_a_label():
     assert co.is_label("Market overview")
 
 
-def test_label_titles_fail():
+def test_label_titles_are_reported_never_gated():
+    """A topic label is still named — it just does not stop the build.
+
+    The heuristic is a closed verb list and English's is not: at 0.1.522 it
+    failed five titles that were plainly sentences because `stand`, `buys`,
+    `consume`, `price` and `leaving` were absent from it. Whether a title
+    asserts something is a judgement about prose, and this repo does not gate
+    on those; the gate in this file is the outline mirror, which asks only
+    whether two artifacts still agree.
+    """
     text = GOOD.replace("- Demand grew 12% while capacity grew 3%",
                         "- Market overview")
-    assert _verdicts(text)["topic-label titles"] == "FAIL"
+    assert _verdicts(text)["topic-label titles"] == "note"
+
+
+def test_a_sentence_title_is_not_called_a_label():
+    """The material, not the model of it — convention 15.
+
+    Every verb here was missing from the list that shipped before 0.1.522.
+    """
+    for title in ("Three things stand between us and the first contract",
+                  "The raise buys delivery without the founders in the room",
+                  "Four kinds of competitor, each leaving the same thing behind",
+                  "Three owners, and only one may price an order"):
+        assert not co.is_label(title), title
 
 
 def test_a_group_of_one_fails():

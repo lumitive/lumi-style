@@ -196,12 +196,26 @@ def token_block_bodies(css):
     out: dict[str, list[str]] = {"light": [], "dark": []}
     for sel, body in BLOCK_RE.findall(css):
         s = sel.strip()
-        if s in (":root", ".trade"):
-            out["light"].append(body)
+        if s in (":root", ".trade") or _declares_only_tokens(body):
+            (out["dark"] if "dark" in s else out["light"]).append(body)
         elif re.fullmatch(r"body\.dark(\s+\.trade)?"
                           r"|:root\[data-theme=[\"']dark[\"']\]", s):
             out["dark"].append(body)
     return {k: v for k, v in out.items() if v}
+
+
+# A token block is a block that declares ONLY custom properties. Naming the
+# selectors instead was fine while there were two of them and wrong the moment
+# `build_region_palette.py --prefix` shipped: a scoped palette is generated on
+# whatever class the author passed, and this function had no way to know. A
+# business plan carrying a four-region phase palette on `.phasemap` reported 26
+# of its own generated hexes as stray literals — the identical failure the
+# `.trade` comment below records, one release later and by the same cause.
+# Deciding by SHAPE rather than by name covers every prefix anyone will pass.
+def _declares_only_tokens(body: str) -> bool:
+    decls = [d.strip() for d in css_tokens.strip_comments(body, " ").split(";")
+             if d.strip()]
+    return bool(decls) and all(d.startswith("--") for d in decls)
 
 
 # `.trade` is in that list because this package ships TWO generated region
@@ -467,7 +481,8 @@ def _pages(raw):
 # band, a display lead, and the purpose-built comparison patterns. Tables are
 # deliberately absent — a table is for values (§4), and the directive that
 # created this metric asked for figures over tables.
-VISUAL_BLOCKS = ("fig", "band", "lead", "swaps", "vows", "duo", "grades", "field")
+VISUAL_BLOCKS = ("fig", "band", "lead", "swaps", "vows", "duo", "grades",
+                 "field", "stats")
 
 
 def d16_visual_presence(raw):
@@ -662,6 +677,39 @@ def d29_figure_numbers(raw):
     return {"pages_with_figs": with_figs, "naked": naked}
 
 
+_CAP_N = re.compile(r'<span class="(?:[^"]*\s)?n(?:\s[^"]*)?"[^>]*>\s*'
+                    r'(?:Figure|Exhibit|\u56fe|\u56fe\u8868)\s*(\d+)', re.I)
+
+
+def d30_figure_sequence(raw):
+    """Figure numbers that do not run 1..k once each, in page order.
+
+    Reported. A caption number is the FIGURE's ordinal and a reader uses it to
+    refer to a drawing out loud ("go back to figure four"); a duplicate makes
+    the reference ambiguous and a hole makes it wrong. Nothing measured this,
+    and the defect is in all three artifacts this package had on disk when the
+    check was written: one accepted deck numbered two drawings `Figure 3` and
+    had no Figure 4, another ran 2-8 then 12-14 then 9-11 because an appendix
+    was cut out of the body and never renumbered, and the SCAFFOLD produced the
+    holes on purpose -- it emitted `Figure {page index - 2}`, so every part
+    opener consumed a number no drawing ever carried.
+
+    That last one is why this is a check rather than an author's discipline:
+    the generator taught the defect, and both decks inherited it.
+
+    Read off `.cap .n`, which is where §4 rule 7 puts the number, and compare
+    the sequence against `1..k` in document order. `Exhibit` and the Chinese
+    forms are accepted spellings of the same slot.
+    """
+    nums = [int(m.group(1)) for m in _CAP_N.finditer(raw)]
+    if not nums:
+        return None
+    dupes = sorted({n for n in nums if nums.count(n) > 1})
+    holes = sorted(set(range(1, max(nums) + 1)) - set(nums))
+    return {"count": len(nums), "sequence": nums, "duplicates": dupes,
+            "holes": holes, "out_of_order": nums != sorted(nums)}
+
+
 def d17_export_weight(raw, css):
     """What this document will cost the reader when it is exported.
 
@@ -735,6 +783,15 @@ def d8_support_line(raw):
     missing = []
     for cls, pid, body in _pages(raw):
         if "cover" in cls or "closing" in cls:
+            continue
+        # The agenda is exempt by owner directive at 0.1.522: its title names
+        # the document and its rows name the parts, so a line between them
+        # restates one or the other. `references/storyline-templates.md` says
+        # the agenda may drop its lede whole; this row is that sentence's other
+        # half. It was written into the prose one release before it was written
+        # here, and the gap showed up as a permanently red row — which is how a
+        # reader learns to stop reading rows.
+        if "agenda" in cls or pid == "agenda":
             continue
         # A .lead block does exactly what a support line does — say what the
         # page is about, under the title — and 0.1.342 made it the answer on the
@@ -817,6 +874,10 @@ BLOCK_CONTRACTS = {
     "swap": ("no", "yes"),
     "card": ("ledname",),
     "vow": ("vn", "vt"),
+    # The stat tile (0.1.521): a number and the sentence under it. `.sv` alone
+    # is a display number with nothing saying what it counts, which red line 1
+    # forbids for the same reason `.lead` owes a `.g`.
+    "stat": ("sv", "sn"),
 }
 
 
@@ -1355,6 +1416,8 @@ def measure(path):
         "D28_detail": (d28 or {}).get("missing"),
         "D29_figure_numbers": (d29 := d29_figure_numbers(raw)),
         "D29_detail": (d29 or {}).get("naked"),
+        "D30_figure_sequence": (d30 := d30_figure_sequence(raw)),
+        "D30_detail": (d30 or {}).get("duplicates"),
         "D23_font_count": d23_font_count(
             raw, (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")),
     }
@@ -1778,6 +1841,20 @@ def grade(r):
                  f"{len(fn['naked'])} of {fn['pages_with_figs']} figure pages "
                  f"carry none of the page's numbers" if fn else None,
                  "reported", True, fn is None))
+    fs = r["D30_figure_sequence"]
+    rows.append(("D30_figure_sequence",
+                 ("; ".join(filter(None, [
+                     f"{len(fs['duplicates'])} repeated ({', '.join(str(d) for d in fs['duplicates'])})"
+                     if fs["duplicates"] else "",
+                     f"{len(fs['holes'])} missing ({', '.join(str(h) for h in fs['holes'])})"
+                     if fs["holes"] else "",
+                     "out of page order" if fs["out_of_order"] else "",
+                 ])) or f"{fs['count']} figures numbered 1..{fs['count']}")
+                 if fs else None,
+                 "1..k once each, in page order (reported)",
+                 bool(fs) and not (fs["duplicates"] or fs["holes"]
+                                   or fs["out_of_order"]),
+                 fs is None))
     vp = r["D16_visual_presence"]
     rows.append(("D16_visual_presence",
                  f"{len(vp['prose_only'])} of {vp['content_pages']} content pages "

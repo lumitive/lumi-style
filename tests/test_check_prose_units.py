@@ -185,3 +185,49 @@ def test_m2_accepts_a_chinese_source_marker(tmp_path):
     s = "市场规模为 $1,330 亿。来源：行业研究。"
     r = _measure(tmp_path, s)
     assert r["M2_detail"] == []
+
+
+# ── M15: the prose a content page asks a reader to read (0.1.521) ─────────────
+# The exclusions are the metric. A page must not be penalised for carrying the
+# title contract's lede, D28's takeaway or D12's footer, and SVG label text is
+# what the visual-share rule wants MORE of.
+
+def _prose_page(cls, body):
+    return (f'<section class="page {cls}" id="p1"><div class="body">'
+            '<div class="lede"><p class="eyebrow">Part A</p>'
+            '<h2 class="t">A title of exactly seven words here</h2>'
+            '<p class="sup">A support line that is also prose.</p></div>'
+            f'<div class="fill">{body}</div>'
+            '<p class="take">The line the reader carries away.</p></div>'
+            '<div class="foot"><span>01 / 01</span></div></section>')
+
+
+def test_m15_counts_only_the_prose_beside_the_drawing():
+    doc = "<html><body>" + _prose_page("", "<p>alpha beta gamma delta</p>") + "</body></html>"
+    r = check_prose.m15_page_prose(doc)
+    assert r is not None
+    assert r["pages"] == 1
+    assert r["median"] == 4          # the lede, take and footer are excluded
+
+
+def test_m15_ignores_svg_labels_and_the_caption():
+    body = ('<p>alpha beta gamma delta</p>'
+            '<div class="fig"><svg><text>one two three four five</text></svg>'
+            '<div class="cap"><span class="n">Figure 1</span> A conclusion drawn</div></div>')
+    doc = "<html><body>" + _prose_page("", body) + "</body></html>"
+    r = check_prose.m15_page_prose(doc)
+    assert r is not None
+    assert r["median"] == 4
+
+
+def test_m15_skips_covers_closings_and_openers():
+    doc = ("<html><body>"
+           + _prose_page("cover", "<p>a b c</p>")
+           + _prose_page("opener", "<p>d e f</p>")
+           + _prose_page("closing", "<p>g h i</p>") + "</body></html>")
+    assert check_prose.m15_page_prose(doc) is None
+
+
+def test_m15_is_na_on_chinese_because_the_unit_does_not_transfer():
+    doc = "<html><body>" + _prose_page("", "<p>这是一段中文正文，没有空格。</p>") + "</body></html>"
+    assert check_prose.m15_page_prose(doc, is_zh=True) is None

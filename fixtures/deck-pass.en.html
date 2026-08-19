@@ -216,6 +216,16 @@
      entry point. (v0.1.350 — the band had no token and every deliverable picked
      its own, which is the shape of drift this release exists to close.) */
   --fs-band-value: 43px;
+  /* the stat tile's number, the tier below the band (v0.1.521). A band value
+     is a page's second-loudest thing; a stat tile is a number with a SENTENCE
+     under it, three or four across a row, so it is read at close range and set
+     smaller. Owner-directed: the deck that reached her standard carried twenty
+     of these and every one was an inline style, because the package shipped no
+     role and therefore no size. `--fs-support-sm` is that sentence -- declared
+     rather than inherited, because the accepted deck's gloss used a class with
+     no HTML rendering at all and silently took the body's 15px. */
+  --fs-stat: 30px;
+  --fs-support-sm: 15px;
   --fs-lead:    61px;                       /* the number that is the page */
   --fs-lead-xl: 105px;                      /* one number, alone, full stop */
   --fs-say:     29px;                       /* the claim that is the page */
@@ -296,7 +306,7 @@ body.dark {
   --d-teal:    #3FA98C;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.520 (2026-08-16)
+   LUMI page layouts · v0.1.522 (2026-08-19)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -581,6 +591,11 @@ svg .sm { font-size: 11.5px; fill: var(--tx3); }
 svg .lbl-lg { font-size: 13.5px; fill: var(--tx1); }
 svg .sm-lg { font-size: 12.5px; fill: var(--tx2); }
 svg .big { font-size: 15px; font-variant-numeric: tabular-nums; }
+/* A chart's row and section names are read BEFORE its bars, so they set at
+   title weight rather than label weight (mckinsey-design-notes.md EX-2 item 5).
+   The tier the figures were missing: a deck whose in-drawing headings sat at
+   13px read as a diagram with captions, not as an exhibit. */
+svg .row-lbl { font-size: 17px; font-weight: 700; fill: var(--tx1); }
 svg .cap-w { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; fill: var(--tx3); }
 svg .huge { font-weight: 700; font-size: 54px; font-variant-numeric: tabular-nums;
             fill: var(--tx1); letter-spacing: -.02em; }
@@ -660,7 +675,26 @@ svg .dash { stroke-dasharray: 4 3; }
   display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
   gap: 20px; align-items: start;
 }
-.band > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+/* THE NUMBER READS FIRST. `column-reverse`, so the value sits above its label
+   whatever order the markup puts them in (v0.1.521, owner directive).
+
+   This rule said `column` for eleven releases, which rendered LABEL above
+   VALUE -- the exact opposite of the calibration this package had already
+   adopted: `references/exemplars/mckinsey-design-notes.md` EX-2 item 2, "a
+   stat block is number-top: the figure first at display size, the explanation
+   under it in support ink". The prose was right, the stylesheet was wrong, and
+   nothing compared them.
+
+   Reversed HERE rather than by moving `.k` and `.v` in the markup, and the
+   difference is the whole point: every document already written renders the
+   right way round from the next build, whereas a markup change would have
+   fixed new decks and left every existing one wrong. That is the failure this
+   release exists to close, so it may not be the fix's shape as well.
+
+   DOM order stays label-then-value: the pair is still read as one unit by a
+   screen reader, and `.k` remains the accessible name of `.v`. */
+.band > div { display: flex; flex-direction: column-reverse;
+              justify-content: flex-end; gap: 8px; min-width: 0; }
 .band .k {
   font-family: var(--mono); font-size: var(--fs-fine); letter-spacing: .16em;
   text-transform: uppercase; color: var(--tx3);
@@ -682,6 +716,52 @@ svg .dash { stroke-dasharray: 4 3; }
 .band .v .first { background: var(--lime); color: var(--on-lime);
                   padding: 0 .18em; margin-left: -.18em; border-radius: 1px;
                   -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+/* ── the stat tile (v0.1.521) ───────────────────────────────────────────────
+   A number with a SENTENCE under it, three or four across a row. The tier
+   below `.band`: a band value is a label and a figure, this is a figure and a
+   clause, so it is read at closer range and set smaller (`--fs-stat`, 30px).
+
+   Promoted out of a deliverable, which is why it exists at all. The deck that
+   reached the owner's standard carried TWENTY of these and every one was an
+   inline `style="font-family:var(--din);font-weight:700;font-size:30px;..."`
+   with no class on the number at all -- the package shipped no role, so the
+   author wrote the role twenty times. Its gloss used `class="sm"`, and the
+   only `.sm` rule in this package is `svg .sm`: the sentences silently took
+   the body's 15px and nothing could have reported it. Hence `--fs-support-sm`
+   is declared rather than inherited.
+
+   `.stats` is a child of `.fill`, NEVER of `.body`. A new `.body >` child has
+   to join the `:not()` exclusion chain in four places (see the fill rule and
+   the two portrait blocks); living inside the cell avoids that entirely, and
+   it is where the accepted deck put it.
+
+   The first tile of a row may take `--acc` -- the page's one key number -- and
+   the rest stay ink. That is EX-2's "colour spent by importance", and it is a
+   ceiling of one accent per row, not a target for each. */
+.stats { display: flex; gap: 34px; align-items: flex-start; }
+.stats > .stat { flex: 1; min-width: 0; }
+/* The column form (0.1.521), for a stat rail beside a figure. A stat ROW is
+   content-height — three numbers and their sentences, about 80px — and the
+   visual-share numerator reads element BOXES, so a left rail written as a row
+   measured 59% of its page while visibly occupying the whole column. This
+   distributes the stats down the cell they are actually in, which is what the
+   reference page's left column does to the eye; the measurement then agrees
+   with the page instead of being argued with. */
+.stats.col { flex-direction: column; justify-content: space-between;
+             align-items: stretch; flex: 1; gap: 22px; }
+.stat { display: flex; flex-direction: column; }
+.stat .sv {
+  font-family: var(--din); font-weight: 700; font-size: var(--fs-stat);
+  letter-spacing: -.03em; line-height: 1; color: var(--tx1);
+  font-variant-numeric: tabular-nums; margin: 0;
+}
+.stat .sv.acc { color: var(--acc); }
+.stat .sv .u { font-size: .42em; letter-spacing: 0; color: var(--tx3); }
+.stat .sn {
+  font-size: var(--fs-support-sm); line-height: 1.4; color: var(--tx2);
+  margin: 7px 0 0;
+}
 
 /* ── the block patterns (v0.1.369) ──────────────────────────────────────────
    Four shapes a deliverable repeats — the tier-1 callout, the card, the swap,
@@ -1308,8 +1388,12 @@ circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc-live); }
    label, one claim at display scale, and one run line saying what the next
    pages argue. Restraint everywhere is not a voice — full-bleed fields give a
    deck a beat, and they cost nothing in ink because each carries one sentence.
-   The world map does not appear here; the mark belongs to the cover and the
-   closing (references/storyline-templates.md). */
+   The world map does not appear here; the brand mark belongs to the cover and
+   the closing (references/storyline-templates.md). What an opener MAY carry,
+   since 0.1.521, is one oversized subject mark with no text of its own, set in
+   `--on-lime` and sized in viewport units — the part's claim in another
+   modality. It is filled, never stroked: a hairline scaled to that size is the
+   accident design-rules.md 6 records. */
 .page.opener { background: var(--lime); }
 .page.opener .openframe { display: flex; flex-direction: column;
   justify-content: center; gap: 26px; height: 100%;
@@ -1323,6 +1407,46 @@ circle.geo-live, .geo-mark.geo-live circle { fill: var(--acc-live); }
   font-weight: var(--w-display); line-height: var(--lh-display);
   letter-spacing: var(--ls-display); color: var(--on-lime); max-width: 18ch;
   margin: 0; }
+/* The subject mark (0.1.521). An opener carrying one becomes two columns: the
+   type keeps the measure it always had, the mark takes the space that was empty.
+   `:has()` rather than a modifier class, so an opener without a mark is byte-for
+   byte the composition it was and no existing document changes.
+
+   `--on-lime` is forced, and that is not cosmetic: `svg.ic` ships `color:
+   var(--acc)`, the accent IS the lime, and lime on the lime field is D13 and D1
+   at once. `fill: currentColor` is what makes the colour reach a filled
+   silhouette; a stroked icon would need `stroke` instead, and is not what this
+   slot is for (design-rules.md 6). */
+.page.opener .openframe:has(> .openmark) {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  /* The three rows are DECLARED, not implicit. `grid-row: 1 / -1` on the mark
+     resolves against the last EXPLICIT line, so with implicit rows it means
+     "row 1" and the mark inflates the part label's row instead of spanning the
+     type. Measured: the 13px label stretched to 331px and the run line ran 34px
+     past the page. */
+  grid-template-rows: repeat(3, auto);
+  align-content: center; align-items: start;
+  column-gap: 56px; row-gap: 26px;
+}
+.page.opener .openframe:has(> .openmark) > .openpart,
+.page.opener .openframe:has(> .openmark) > .openclaim,
+.page.opener .openframe:has(> .openmark) > .openrun { grid-column: 1; }
+.page.opener .openmark {
+  grid-column: 2; grid-row: 1 / -1; align-self: center;
+  height: 46svh; width: auto; color: var(--on-lime);
+}
+.page.opener .openmark svg {
+  display: block; height: 100%; width: auto; fill: currentColor;
+}
+/* The run line grows when the opener is a section summary rather than a page
+   list: the same tier the cover subtitle uses, not a new size. */
+/* 52ch is a CEILING, not a target (convention 4): it is the widest the run
+   line may set before the measure gets hard to track back to, and the
+   copy is what shortens if a section still runs past three lines. At 30ch
+   the measured opener wrapped to FIVE lines and stopped at half the
+   available width, with the subject mark — which sits in its own grid
+   column and never overlapped — a long way clear to the right. */
+.page.opener .openrun.lg { font-size: var(--fs-say); line-height: 1.35; max-width: 52ch; }
 .page.opener .openrun { font-size: var(--fs-support); line-height: 1.55;
   color: var(--on-lime); font-weight: var(--w-support); max-width: 62ch;
   border-top: 2px solid color-mix(in srgb, var(--on-lime) 28%, transparent);
@@ -2144,7 +2268,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
       <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
     </div>
-    <p class="colophon">Built with lumi-style 0.1.520 &#183; source: meter management system.</p>
+    <p class="colophon">Built with lumi-style 0.1.522 &#183; source: meter management system.</p>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 18</span></div></section>
 <section class="page opener" id="openA">
@@ -2188,7 +2312,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
         <text class="fnote" x="132" y="372">A dashed bar is a class with no
           measurement, never a low one</text>
       </svg>
-      <div class="cap"><span class="n">Figure 3</span> The gap follows terrain,
+      <div class="cap"><span class="n">Figure 1</span> The gap follows terrain,
       not meter age, so relay siting is the lever
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
@@ -2225,7 +2349,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
         <text class="fnote" x="132" y="372">A dashed bar is a class with no
           measurement, never a low one</text>
       </svg>
-      <div class="cap"><span class="n">Figure 4</span> The gap follows terrain,
+      <div class="cap"><span class="n">Figure 2</span> The gap follows terrain,
       not meter age, so relay siting is the lever
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
@@ -2329,7 +2453,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
         <text class="fnote" x="132" y="372">A dashed bar is a class with no
           measurement, never a low one</text>
       </svg>
-      <div class="cap"><span class="n">Figure 8</span> The gap follows terrain,
+      <div class="cap"><span class="n">Figure 3</span> The gap follows terrain,
       not meter age, so relay siting is the lever
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
@@ -2360,7 +2484,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
           one carries none</text>
       </svg>
       <ul class="legend"><li data-legend="north-america"><span class="k rg-north-america"></span>North America 60</li><li data-legend="europe"><span class="k rg-europe"></span>Europe 63</li><li data-legend="southeast-asia"><span class="k rg-southeast-asia"></span>Southeast Asia 35</li><li data-legend="africa"><span class="k rg-africa"></span>Africa, no source</li></ul>
-      <div class="cap"><span class="n">Figure 9</span> Coverage follows the
+      <div class="cap"><span class="n">Figure 4</span> Coverage follows the
       regions with a licensed counterparty, not the largest markets
       <span class="srcline">Illustrative, www.example.org</span></div></div>
     </div>
@@ -2407,7 +2531,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
         <text class="fnote" x="132" y="372">A dashed bar is a class with no
           measurement, never a low one</text>
       </svg>
-      <div class="cap"><span class="n">Figure 11</span> The gap follows terrain,
+      <div class="cap"><span class="n">Figure 5</span> The gap follows terrain,
       not meter age, so relay siting is the lever
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
@@ -2444,7 +2568,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
         <text class="fnote" x="132" y="372">A dashed bar is a class with no
           measurement, never a low one</text>
       </svg>
-      <div class="cap"><span class="n">Figure 12</span> The gap follows terrain,
+      <div class="cap"><span class="n">Figure 6</span> The gap follows terrain,
       not meter age, so relay siting is the lever
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
@@ -2481,7 +2605,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
         <text class="fnote" x="132" y="372">A dashed bar is a class with no
           measurement, never a low one</text>
       </svg>
-      <div class="cap"><span class="n">Figure 13</span> The gap follows terrain,
+      <div class="cap"><span class="n">Figure 7</span> The gap follows terrain,
       not meter age, so relay siting is the lever
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
@@ -2518,7 +2642,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
         <text class="fnote" x="132" y="372">A dashed bar is a class with no
           measurement, never a low one</text>
       </svg>
-      <div class="cap"><span class="n">Figure 14</span> The gap follows terrain,
+      <div class="cap"><span class="n">Figure 8</span> The gap follows terrain,
       not meter age, so relay siting is the lever
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
@@ -2555,7 +2679,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
         <text class="fnote" x="132" y="372">A dashed bar is a class with no
           measurement, never a low one</text>
       </svg>
-      <div class="cap"><span class="n">Figure 15</span> The gap follows terrain,
+      <div class="cap"><span class="n">Figure 9</span> The gap follows terrain,
       not meter age, so relay siting is the lever
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
@@ -2592,7 +2716,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
         <text class="fnote" x="132" y="372">A dashed bar is a class with no
           measurement, never a low one</text>
       </svg>
-      <div class="cap"><span class="n">Figure 16</span> The gap follows terrain,
+      <div class="cap"><span class="n">Figure 10</span> The gap follows terrain,
       not meter age, so relay siting is the lever
       <span class="srcline">Meter management system, extract of the period</span></div></div>
     </div>
@@ -2747,7 +2871,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>
     </div>
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.520.
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.522.
     Source: meter management system; every number here is invented, and a
     bracketed slot must not ship.</p></div>
   </div>

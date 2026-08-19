@@ -77,6 +77,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import color_math  # noqa: E402 — after the bootstrap, deliberately
+import deliverable_registry  # noqa: E402
 
 
 class Unmeasurable(Exception):
@@ -494,7 +495,7 @@ PROBE = r"""
     // an absence of measurement as a (bad) measurement.
     let visualPct = null;
     if (bodyEl) {
-      const VIS = '.fig, .band, .lead, .swaps, .vows, .duo, .grades, .field';
+      const VIS = '.fig, .band, .lead, .swaps, .vows, .duo, .grades, .field, .stats';
       let visPx = 0;
       for (const e of s.querySelectorAll(VIS)) {
         if (e.parentElement && e.parentElement.closest(VIS)) continue;  // count outermost only
@@ -641,6 +642,33 @@ PROBE = r"""
       }
       let worst = 0;
       for (const e of sv.querySelectorAll('*')) {
+        // A NESTED <svg> starts a new coordinate system, and getBBox() answers
+        // in it. Comparing those numbers to the OUTER viewBox is comparing two
+        // different rulers: an official trademark inlined at 39x13 inside a
+        // 900-unit drawing reported as 988 units wide, because its own viewBox
+        // is 1090 across. The rules permit exactly that markup (design-rules.md
+        // §1's declared `data-mark` exception), so the probe fired on correct
+        // work — which is worse than not firing at all.
+        if (e.ownerSVGElement !== sv) continue;   // measured with its own svg
+        // A DEFINITION does not render where it is written: <symbol>, <defs>,
+        // <marker>, <clipPath>, <mask> and <pattern> are templates, and their
+        // geometry is drawn only where something references them. An official
+        // trademark vendored from its owner (the Reddit lockup) carries a
+        // <symbol> whose bbox sits 162 units outside the wrapper's viewBox, and
+        // this probe read that as a fifth of the drawing being clipped away on a
+        // page where nothing was clipped at all.
+        if (e.closest('defs,symbol,marker,clipPath,mask,pattern')) continue;
+        if (e.tagName.toLowerCase() === 'svg') {
+          // Compare what is RENDERED, which is the only frame the two share,
+          // then convert back to the outer drawing's units.
+          const a = e.getBoundingClientRect(), b = sv.getBoundingClientRect();
+          if (!b.width || !b.height) continue;
+          const sx = vb.width / b.width, sy = vb.height / b.height;
+          worst = Math.max(worst,
+            (a.right - b.right) * sx, (b.left - a.left) * sx,
+            (a.bottom - b.bottom) * sy, (b.top - a.top) * sy);
+          continue;
+        }
         let bb; try { bb = e.getBBox(); } catch (err) { continue; }
         if (!bb.width && !bb.height) continue;
         worst = Math.max(worst,
@@ -1811,7 +1839,8 @@ def _fmt_ids(rows, n=6, key=None):
     return out + (f" (+{len(rows) - n} more)" if len(rows) > n else "")
 
 
-def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
+def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
+                storyline=None):
     """Print the per-geometry table and every page-level judgement.
 
     Returns the number of things that could not be measured. Every block here
@@ -2007,6 +2036,17 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
         n = sum(1 for r in live if r.get("sourceComparable"))
         print(f"  source: none of the {n} pages carrying both a figure source and a "
               f"footer source states the same one twice")
+    elif genre in EXTERNAL_GENRES:
+        # Sales and marketing material states its provenance ONCE, in the
+        # colophon, and its figures carry no source line (design-rules.md §4
+        # rule 9, scoped to the figure at 0.1.521). This probe exists to catch
+        # the source stated TWICE; with the rule obeyed there is one statement
+        # and nothing to compare. That is the rule working, not a blind spot,
+        # so it is n/a with its reason rather than an unmeasured check.
+        print(f"  source: n/a, a {genre} document states its provenance once in "
+              f"the colophon and its figures carry no source line (rule 9; "
+              f"consulting and internal analysis are NOT in this branch, they "
+              f"keep per-page sourcing and reach NOT MEASURED below)")
     else:
         unmeasured += 1
         print("  -- source: NOT MEASURED, no page pairs a `.cap .srcline` with a "
@@ -2169,10 +2209,28 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
     # blocks; a training page carries about a third, because a learner needs
     # the words beside the drawing. Both are targets and review triggers, never
     # floors.
+    #
+    # A storyline that names its own share wins over the genre's, because it is
+    # the more specific claim about the document (0.1.521). `pitch-deck` is the
+    # only one today; the table, not this sentence, is the authority.
     unknown_genre = genre is not None and genre not in VISUAL_SHARE_TARGET
-    target = VISUAL_SHARE_TARGET.get(genre or "sales", 50)
+    unknown_storyline = (storyline is not None
+                         and storyline not in deliverable_registry.STORYLINES)
+    if storyline in STORYLINE_SHARE_TARGET:
+        target, keyed_by = STORYLINE_SHARE_TARGET[storyline], storyline
+    else:
+        target, keyed_by = VISUAL_SHARE_TARGET.get(genre or "sales", 50), (genre or "sales")
     low = [r for r in content if r["visualPct"] < target]
-    if content and unknown_genre:
+    if content and unknown_storyline:
+        # As loud as the unknown-genre branch below, and for the same reason: a
+        # typo in `data-storyline` would silently drop a pitch deck back to the
+        # sales 50 and print a confident green line about it.
+        unmeasured += 1
+        print(f"  -- visual share: NOT MEASURED, the document declares "
+              f"data-storyline=\"{storyline}\" and this package knows "
+              + ", ".join(sorted(deliverable_registry.STORYLINES))
+              + " — fix the declaration rather than trusting a default")
+    elif content and unknown_genre:
         # Loud, because the whole point of this change is that it used to be
         # silent: a typo in the declaration graded a training handbook against
         # the sales target and printed a confident green line about it.
@@ -2187,13 +2245,13 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None):
               f"the document declares; lowest {w['id']} at {w['visualPct']}%")
     elif content and low:
         print(f"  visual share: {len(low)} of {len(content)} content pages sit under "
-              f"the {target}% {genre or 'sales'} target — "
+              f"the {target}% {keyed_by} target — "
               + ", ".join(f"{r['id']} {r.get('visualPct', 0)}%" for r in
                           sorted(low, key=lambda r: r.get('visualPct', 0))[:8])
               + ". A target and a review trigger, never a floor.")
     elif content:
         print(f"  visual share: all {len(content)} content pages carry visual blocks "
-              f"at or above the {target}% {genre or 'sales'} target")
+              f"at or above the {target}% {keyed_by} target")
 
     # Sheet density (§4, owner directive 2026-08-09). Reported on the geometry the
     # rule is about and nowhere else — a slide is narrated, so a landscape page
@@ -2502,8 +2560,44 @@ def deliverable_print(label, verdicts):
 # declaring it prints NOT MEASURED below and exits 1 — the run stops rather
 # than the metric going quiet. The `genre vocabulary` guard in check_repo.py
 # holds these keys equal to the registry's names.
+# The genres that state provenance once for the document rather than under
+# every figure (design-rules.md §4 rule 9).
+#
+# NOT the same set as check_design.py's constant of the same name, and the two
+# must not be aligned. That one means "whose reader is outside the building"
+# and decides who owes a quotable takeaway (D28); consulting belongs in it.
+# This one acts on rule 9, which says the opposite in terms: "consulting
+# deliverables and internal analysis KEEP per-page sourcing, because there the
+# reader is auditing the claim rather than being sold to."
+#
+# It shipped carrying `consulting`, borrowed with the name from the other file.
+# A consulting deck that had dropped its per-page sources was then told
+# `n/a, a consulting document states its provenance once in the colophon` --
+# the reverse of the rule it cited -- and the branch skips `unmeasured += 1`,
+# so the run stopped exiting 1 on a check it had not performed.
+# tests/test_provenance_genre_scope.py pins both directions.
+EXTERNAL_GENRES = ("sales", "marketing")
+
 VISUAL_SHARE_TARGET = {"sales": 50, "marketing": 50, "consulting": 50,
                        "internal": 50, "training": 30}
+
+# The STORYLINE can raise the bar its genre sets, and one does. A seed investor
+# pitch is looked at while a founder talks: the room is listening, not reading,
+# so concepts and figures carry about four fifths of every content page and the
+# prose is the title, one support line, the labels inside the drawing and the
+# takeaway (owner directive 0.1.521; storyline-templates.md Template 11).
+#
+# It is a FLOOR ON THE DRAWING and therefore a CEILING ON THE PROSE, which is
+# the direction that matters: an author reading it as a target inflates the
+# figure instead of cutting the words. The measurement that produced it: an
+# accepted roadshow BP put a figure on all thirteen of its content pages and
+# still read text-heavy, because every page was a 50/50 `split` and the
+# argument sat in 15-23 word titles. A `split` page cannot reach this number,
+# so choosing the layout is part of meeting it.
+#
+# Genre keys the rule tier; this keys the shape. Where both speak, the
+# storyline wins, because it is the more specific claim about the document.
+STORYLINE_SHARE_TARGET = {"pitch-deck": 80}
 
 GROUND_CEILING = 1.40          # a ceiling, not a target: quieter is always fine
 
@@ -2589,7 +2683,9 @@ def main(argv):
         head = re.sub(r"<style\b.*?</style>|<!--.*?-->", " ", head, flags=re.S | re.I)
         g = re.search(r'<body\b[^>]*\bdata-geometry=["\'](\w+)["\']', head)
         n = re.search(r'<body\b[^>]*\bdata-genre=["\'](\w+)["\']', head)
-        return (g.group(1) if g else None), (n.group(1) if n else None)
+        t = re.search(r'<body\b[^>]*\bdata-storyline=["\']([\w-]+)["\']', head)
+        return ((g.group(1) if g else None), (n.group(1) if n else None),
+                (t.group(1) if t else None))
 
     geometries = args.geometry or DEFAULT_GEOMETRIES
 
@@ -2603,7 +2699,7 @@ def main(argv):
         if not path.exists():
             print(f"missing: {name}")
             return 1
-        decl_geo, decl_genre = declared(path)
+        decl_geo, decl_genre, decl_storyline = declared(path)
         file_geometries = geometries
         if not args.geometry and decl_geo:
             # The declared stage and every matrix point the rules attach to it,
@@ -2685,7 +2781,8 @@ def main(argv):
                           f"Nothing below this line was checked — this is a report "
                           f"about zero pages, not a clean document.")
                 else:
-                    unmeasured += page_report(rows, geometry, errors, decl_genre, decl_geo)
+                    unmeasured += page_report(rows, geometry, errors, decl_genre,
+                                              decl_geo, decl_storyline)
 
             # Both audits run per geometry now, and say which one they ran at.
             try:
