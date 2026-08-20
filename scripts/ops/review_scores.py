@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Print the six human dimensions over time, and validate the store.
+"""Print the human dimensions (C1–C8) over time, and validate the store.
 
-`references/eval-rubric.md` defines H1-H6 and a protocol where a divergence of
-two forces a retrospective. The machine half of this package reports the current
+`references/eval-rubric.md` defines C1–C8 (H1–H6 until 0.1.463) and a
+protocol where a divergence of two forces a retrospective. The machine half of this package reports the current
 state of one artifact; the human half had no memory at all. Every score in the
 record was a sentence inside a release note, so nobody could answer "is H3
 improving" without re-reading the changelog.

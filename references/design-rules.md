@@ -619,7 +619,7 @@ look like it.
 
 ## 4 · Five chart iron rules + form selection
 
-*Serves: **P-4**.* Its accent-colour rule serves **P-1** and its source-line rule serves **P-2**; P0.5's rule IDs will split them. · id `DR-6`
+*Serves: **P-4** + **P-1** + **P-2**.* · id `DR-6` — one family, three parents: the form-selection rules serve P-4, the single accent colour P-1, the source line P-2. (A split into three sections was promised for "P0.5's rule ids" and never made; DR-15 then established the multi-parent form, and this follows it rather than carrying a promise a shipped release could no longer keep.)
 
 1. Figure titles state conclusions, not labels; 2. one accent color — the
 figure green `--acc-live`, which is what the `f-acc`/`s-acc` paint classes

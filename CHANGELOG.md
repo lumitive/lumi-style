@@ -1,3 +1,42 @@
+## 0.1.527 — five prose drifts corrected, and a claim of absence must now name its ledger
+
+Audit-remediation step 4 (`specs/2026-08-20-audit-remediation-design.md`).
+Every site below was written true and became false within a few releases;
+this entry edits them and adds the guard that would have fired on the
+previous state of the rubric at lines 364 and 387 — run against the 0.1.526
+file before the edits, which is the planted-red this guard ships with.
+
+**`references/eval-rubric.md` contradicted itself about two checks it also
+documents.** Its metric table listed D23 (font count) and D27 (agenda
+mirror); two rows of the same file said "there is no font-count check" and
+"agenda and tracker existence is checked by nothing today". Both rows now
+cite the checks, and the heading's "ten of the twelve have code" — wrong
+since M13 — is replaced by the sentence that cannot rot: the table is the
+list. **`rubric unbuilt claims`** is the guard: a sentence in that file
+saying a check is not built must cite a GAP or IDEA, so the ledger guard
+holds the id and the entry's closing is where the sentence gets revisited.
+This is IDEA-11's shape (a promise conditional on a state) applied to the
+file that had it twice.
+
+**DR-6 stops promising a split that P0.5 never made.** `design-rules.md`
+§4 read "P0.5's rule IDs will split them" eight releases after P0.5 shipped.
+DR-15 established the multi-parent form in the meantime, so DR-6 now serves
+**P-4 + P-1 + P-2** as one family with three parents, and says why the
+split was not made.
+
+**GAP-005 speaks the two-axis model.** The entry still said "product
+introduction has no genre at all" while `product-intro` had been a templated
+storyline since 0.1.513; it now states the obligation where 0.1.465 put it —
+on the rule tier, three tiers, two without an accepted reference — and
+points at the separate fact that A1 itself fails a later gate.
+
+**Smaller.** `review_scores.py`'s docstring said "six human dimensions,
+H1–H6" while its validator required C1–C8. Cursor's capability waiver in
+`adapters/platforms.json` said `run_conformance.py` invokes no agent, which
+stopped being true at 0.1.454; it now states what is actually unverified —
+a synthetic conformance deck is not a real deliverable through the entry
+file — rather than a mechanism that exists.
+
 ## 0.1.526 — the out-of-bounds list gets a home, and the checks that read it stop reading fonts
 
 Audit-remediation step 3 (`specs/2026-08-20-audit-remediation-design.md`).

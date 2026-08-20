@@ -300,17 +300,20 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 - status: open
 - opened: 0.1.455
 - surface: evals/thresholds.json, references/storyline-templates.md
-- symptom: only `training` has a document on record as meeting the product
-  requirement. `sales` has a rejected one; `consulting` has none outside
-  synthetic conformance decks; **product introduction has no genre at all** —
-  the phrase appears nowhere in SKILL.md, references/ or scripts/, and the
-  nearest fit (`marketing`) has no skeleton and cannot be scaffolded. Nine of
-  twenty threshold cells therefore read `provisional`, and `internal`'s figure
-  floor is `declined` outright because the only real internal document argues
-  in prose and clears every gate.
-- check: an accepted document per category, or a recorded decision that a
-  category maps onto an existing genre. Until then the provisional cells are
-  reasoned, not measured, and the file says so per cell.
+- symptom: (reworded at the audit remediation to the two-axis model of
+  0.1.465) accepted references attach to the **rule tier**, not to the storyline, and only three
+  tiers differ — `training`, `internal`, and everything else with `sales` as
+  its representative. Of the three, only `training` has a document on record
+  as meeting the product requirement (A1); `sales` has a rejected one (R1);
+  `internal` has none. Product introduction is a storyline (`product-intro`,
+  templated since 0.1.513) on the `sales` tier and carries no obligation of
+  its own. Nine of twenty threshold cells therefore read `provisional`, and
+  `internal`'s figure floor is `declined` because the only real internal
+  document argues in prose and clears every gate. A1 itself fails a gate
+  introduced after its acceptance (D27) — a separate entry records that.
+- check: an accepted document for each of the two tiers without one, through
+  the owner's blind review. Until then the provisional cells are reasoned,
+  not measured, and the file says so per cell.
 
 ## GAP-003 · The conformance history's producer path has no automated test
 
