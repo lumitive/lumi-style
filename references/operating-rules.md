@@ -233,3 +233,22 @@ character matches as a substring, because that script does not put spaces
 where a boundary would be. Embedded fonts and images are blanked before the
 term scan, since base64 spells every short Latin word eventually (IDEA-15).
 
+## 9 · An agent that cannot run the checks may not call a deliverable verified
+
+*Serves: **P-2**.* · id `OR-9`
+
+Three capability tiers describe what an agent can do with this package:
+`full` reads the bundled files and runs `scripts/`; `files` reads but cannot
+execute; `prompt` receives one pasted context and no tools. The obligation
+and the prohibition go together, and both bind the two lower tiers without
+exception: **the agent names the checks it owes, the operator runs them, and
+until then the agent may not call the deliverable verified.** "Verified" is a
+claim about a measurement (P-2), and an agent that has made none has nothing
+to claim it with — a self-score, a read-through or a checklist ticked by the
+author are not measurements.
+
+This rule lived only in the platform registry until the audit remediation,
+where every entry point says `references/` wins on conflict; a binding rule in
+the file that loses is a rule that can be lost. The registry and the review
+protocol cite it from here.
+

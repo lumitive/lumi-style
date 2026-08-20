@@ -52,7 +52,10 @@ mode"**: this tier runs no scripts, so append a plain-English debug section to
 the delivery note instead — the steps taken with rough timings, every error
 met, a C1–C8 self-score with a reason per dimension (never a self-scored 5),
 and a named list of the checks you could not run, which the operator owes.
-Write no client name or engagement figure into it.
+Write no client name or engagement figure into it. **Debug mode or not, this
+tier may not call a deliverable verified**: it names the checks it owes and
+the operator runs them (operating-rules OR-9) — "verified" is a claim about a
+measurement, and this tier has made none.
 
 ## 0 Commit first (read before the red lines)
 
@@ -178,6 +181,9 @@ reality, what really matters, fundamentally; **signposting**: let's dive in,
 let's explore, here's what you need to know; **fake-candid openers**: "Honestly?",
 "Look,", "The thing is,"; plus adjective stacks replacing numbers.
 (Adapted from the humanizer skill, MIT — see NOTICE.)
+**The checker's list, verbatim, so this tier bans what the `full` tier gates
+on** (a phrase missing here was emitted by a prompt-tier agent and failed in
+the operator's run): stands/serves as; a vital / crucial / pivotal / key role; reflects broader; marking a shift; a turning point; indelible mark; deeply rooted; groundbreaking (figurative); breathtaking; best-in-class; fostering; leverage (verb); showcase; underscore (verb); in the event that; it is important to note that; it's not about X, it's about Y; let's break this down; now let's look at; without further ado; here's the thing; it's worth noting that; undeniably; in conclusion as filler; let's embark.
 
 ## 4 Voice (the LUMI register)
 
@@ -212,6 +218,21 @@ Say "uncertain" plainly.
   geometry** — printed, annotated, bound; 16:9 is the projection edition. For
   every other genre 16:9 leads and A4 is the print edition; both are always
   composed and verified.
+- **Every storyline this package knows, by the name the document declares
+  (`data-storyline`) and the sections a reader of that kind looks for** —
+  a checklist to report against, never a gate, and a gap may be declared
+  in one reader-visible sentence rather than filled:
+  - `market-analysis`: market definition → sizing → segments → competitive landscape → customer journey → growth drivers → implication
+  - `gtm`: target customer → value proposition → channels → messaging → sales motion → success measure
+  - `status-report`: status → summary → completed → milestones → risks → decisions → budget → next checkpoint
+  - `due-diligence`: summary → scope and method → market → competition → customers → financial model → risks → recommendation
+  - `product-intro`: what it is → why it exists → how it works → evidence it works → core value → get started → next step
+  - `training-curriculum`: objective → prerequisites → modules → practice → assessment
+  - `proposal`: here is a decision, here is what I recommend (the first
+    content page, stated so it can be taken or refused), here is what it
+    costs, and here is the one thing that blocks it; no typical-section
+    checklist — the shape is the argument's.
+  - `pitch-deck`: the investor pitch below.
 - **Investor pitch / BP** (storyline `pitch-deck`; sales rules bind — it is
   external material): **vertebrae first** — write the 10–15 page titles as one
   argument and agree them before building any page; the concatenated titles ARE
@@ -306,6 +327,13 @@ alternatives is a swap, a ranking is a ladder, a two-by-two is a two-by-two. A
 scoring form stays a form.
 
 ## 7 Visual tokens (for HTML output)
+
+**The number first.** Which way round the number and its gloss go is fixed:
+the number first, its gloss under it — a page that turns on one figure sets
+it at display size above the words that explain it, never inside a
+twenty-word title. There is no size floor and no requirement that a page
+carry a number at all; which of a display number, a display-size claim or a
+dominant figure a page wants is that page's design decision.
 
 **These values are the palette, not a description of one.** Copy them; do not
 re-derive a set in the same spirit. Sizes are yours to set per page, colours are
@@ -482,6 +510,6 @@ quality), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.529** snapshot, cut 2026-08-19. It is self-contained by
+> This file is the **0.1.530** snapshot, cut 2026-08-19. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

@@ -1,3 +1,43 @@
+## 0.1.530 — the prompt tier is held to the rules it could not see, and the capability rule comes home
+
+Audit-remediation step 7 (`specs/2026-08-20-audit-remediation-design.md`).
+
+**`prompts/lumi-style-core.md` was a subset with nothing holding it.** The
+self-contained file for agents with no tools was missing the number-first
+rule (0.1.521's headline), six of the eight storyline names, twenty-five of
+the sixty phrases `check_prose` gates on, and the unconditional form of the
+capability rule — while `ban-list parity` held the checker to
+`writing-rules.md` and never looked at the prompt. A prompt-tier agent
+following §3 to the letter would still have emitted two in five of the
+phrases the full tier fails. All four are in the file now: every storyline
+by its `data-storyline` name with the sections a reader of that kind looks
+for (a checklist to report against, never a gate); the checker's ban list
+verbatim; the number-first sentence; and the prohibition stated outside the
+debug-mode branch it had been scoped to.
+
+**`prompt parity` is the guard.** It holds the prompt to three sources — the
+storyline vocabulary in `deliverable_registry`, `check_prose.BANNED` (or a
+`NOT_IN_PROMPT` waiver with a reason; the table is empty on purpose), and
+two load-bearing sentences — and it fired on real material before it was
+green: run against the 0.1.529 prompt it returns thirty-four findings, and
+its first run on the edited file caught `proposal`, the one storyline whose
+skeleton lives in a template rather than in `TYPICAL_SECTIONS`, which the
+edit had skipped. Five synthetic-tree tests in
+`tests/test_shadow_guards_audit.py`.
+
+**OR-9 · an agent that cannot run the checks may not call a deliverable
+verified.** The prohibition half of the capability-tier rule existed only in
+`adapters/platforms.json`, a file every entry point says loses to
+`references/` on conflict; `eval-rubric.md` carried the obligation half
+alone. The whole rule now lives in `references/operating-rules.md` as OR-9,
+and the registry and the review protocol cite it. This is the shape GAP-006
+was opened for, one instance of which survived its closing.
+
+**Smaller.** `emergency_merge.sh`'s trusted execution closure gains
+`check_prose.py`, `check_privacy.py`, `markup.py` and `secret_patterns.py`,
+which `check_repo.py` now imports; `tests/test_emergency_checker_closure.py`
+caught the omission, which is what it is for.
+
 ## 0.1.529 — the ledger catches up with the refactor: seven gaps and two ideas that had no entry
 
 Audit-remediation step 6 (`specs/2026-08-20-audit-remediation-design.md`).
