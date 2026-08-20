@@ -75,6 +75,131 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-014 · The cost instrument has never produced a reading
+
+- status: open
+- opened: 0.1.529
+- surface: scripts/ops/trace.py (`--phase`, `--usage`), scripts/ops/ledger.py (`--board`), evals/traces/
+- symptom: the four-phase clock, the token fields and the model×effort matrix
+  all exist, and all nine stored traces carry `phase_seconds = {}`,
+  `input_tokens = null`, `effort = null`. `ledger.py --board` reports "0 of 9
+  run(s) qualify". K1 of the product definition (six matrix cells with a
+  quality and a cost column) has zero cells, and the refactor design's own
+  falsification test for the four-beat workflow — "if the four-beat group's
+  total usage is not lower than the control group's, its economic argument is
+  void" — cannot be run, because no build stamps a phase and no run records
+  its effort. The instrument was built and never wired into the loop that
+  would feed it.
+- check: at least one trace whose `phase_seconds` was written by the tooling
+  (not typed), and `run --drive` recording `model` and `effort` per run. The
+  audit-remediation branch closes this in its T1 step; the six cells
+  themselves are an operator step recorded through the evidence gate.
+
+## GAP-015 · Privacy layer 3 is not the designed T3, and says so only in its own docstring
+
+- status: open
+- opened: 0.1.529
+- surface: scripts/check/check_privacy.py (layer 3)
+- symptom: the refactor design specified a third, report-only layer that
+  treats the user's supplied source material as an allow-list and reports
+  every organisation-shaped proper noun in the deliverable that the material
+  never mentions — "catches an invented name, not a name from the wrong
+  engagement", stated as anti-hallucination rather than anti-contamination.
+  What shipped is a line of text saying layer 3 is not mechanised. That is a
+  defensible re-decision (the allow-list check needs the material path as an
+  input and the design itself expected early false positives), but it was recorded
+  nowhere, so the design reads as delivered.
+- check: either build the allow-list report (input: `--material <dir>`;
+  output: reported, never gating) with a fixture that fails it, or record
+  the decline in FAILURE_MODES' abandoned gates with the reason, and change
+  this entry's status accordingly.
+
+## GAP-016 · `check_outline.py` mechanises three of the thirteen outline-stage evidence items
+
+- status: open
+- opened: 0.1.529
+- surface: scripts/check/check_outline.py, references/eval-rubric.md (`[outline]` tags)
+- symptom: the rubric tags thirteen evidence items `[outline]` — runnable on
+  a title-only skeleton before the document exists — and the checker
+  mechanises three (C2-② label titles, C2-③ group size, C5-① typical
+  sections) plus the mirror gate and the analysis-move check the design did
+  not ask for. C2-① (read-through) is refused with a written reason. The
+  other nine (C1-①②④⑤, C2-④, C5-③④, C6-①②) are neither built nor marked
+  as human-only, so the tag promises a machine that is not there. The
+  design's rule was "the list changes, the implementation range follows";
+  neither direction was kept.
+- check: each `[outline]` item either has a predicate in `check_outline.py`
+  with a failing fixture, or is re-tagged `[outline · human]` in the rubric
+  with one line saying why a machine cannot decide it.
+
+## GAP-017 · The shape library cannot be regenerated from the tokens inside this repository
+
+- status: open
+- opened: 0.1.529
+- surface: assets/shapes/, scripts/build/ (no recolour tool)
+- symptom: the 206 recoloured units in `assets/shapes/` were produced by a
+  tool outside the repository (`_refactor/tools/recolor_lumi.py`, in the
+  owner's review directory) from originals that are not vendored. A change
+  to a palette token therefore cannot be re-flowed into the library by any
+  script a clone carries, and no `--check` holds the committed SVGs to the
+  tokens they claim to follow — the only such guard this package has for
+  every other vendored asset. The design's step 3 ("move the recolour layer
+  into `scripts/build/` and connect it to the token source") was not done
+  and not recorded.
+- check: a recolour tool under `scripts/build/` reading the token values
+  through `css_tokens.py`, the originals vendored beside the output, and a `--check`
+  in `ci.yml` that fails on one edited byte. The audit-remediation branch
+  closes this in its step 9.
+
+## GAP-018 · AGENTS.md grew while the design said it would shrink
+
+- status: open
+- opened: 0.1.529
+- surface: AGENTS.md
+- symptom: the refactor design's D1 was a substantial slimming of AGENTS.md — the Codex
+  entry point restates part of `references/`, is the largest hand-written
+  restatement surface in the tree, and has carried withdrawn rules for up to
+  four versions before. Across the refactor it went from 210 to 286 lines
+  (+95/−19). Nothing holds its length, and the `red line parity` guard holds
+  only the six red lines inside it.
+- check: the file returns to load order + red lines + capability tier +
+  version, citing `references/` for what it now restates, and a guard holds
+  its line count to a ceiling recorded beside the guard. The
+  audit-remediation branch closes this in its step 13.
+
+## GAP-019 · Forty megabytes of unreferenced conformance results were never cleaned
+
+- status: fixed
+- opened: 0.1.529
+- closed: 0.1.529
+- surface: conformance/results/ (gitignored, local)
+- symptom: the design's D2 was a P0 item with no dependency — remove the
+  fourteen result directories the board does not reference. It was dropped
+  from the in-repo plan without a note. The directory is gitignored, so a
+  clone never sees it; what the omission cost was the 0.1.522 situation in
+  which `results/latest` held a deck from one run under a driver record from
+  another, because every drive reused one directory.
+- check: closed by 0.1.528's dated per-run directories and cleared task
+  directories rather than by a deletion — the mechanism that let one
+  directory accumulate several runs is gone, and the old directories are
+  the operator's to delete (they are on one machine and in no clone).
+
+## GAP-020 · The trace schema dropped the `feedback` field with no recorded decision
+
+- status: open
+- opened: 0.1.529
+- surface: scripts/lib/trace_schema.py
+- symptom: the refactor design's schema listed `feedback?` as the last
+  optional field (a pointer to a reader-feedback record, the N5 channel).
+  The shipped schema has no such field and no comment saying why, unlike
+  `cost_usd`, whose removal is reasoned in place. The N5 channel itself was
+  deferred to the last phase, so the field may have been dropped as
+  premature — but a field that was designed, not shipped and not explained
+  is the shape IDEA-11 describes.
+- check: either add the field as an id-only pointer into a reviews record
+  (no free text; the schema guard already forbids it) or write the reason
+  for its absence where `cost_usd`'s reason is written.
+
 ## GAP-013 · the storyline vocabulary has no entry for a proposal
 
 - status: fixed

@@ -613,3 +613,44 @@ a JWT is base64 by construction), `term_pattern` gives a pure-Latin term word
 boundaries and leaves a CJK term as a substring. Four tests planted red on
 the 0.1.525 code: the font case, the boundary case, the real-name case and
 the directory default.
+
+## IDEA-16 · The `marketing` genre has no behaviour of its own
+
+**Problem.** The two-axis split (0.1.465) found that no rule, threshold,
+template or scaffold distinguishes `marketing` from `sales`: five genre names
+produce four behaviours. `marketing` still owns a threshold column in
+`evals/thresholds.json` (three cells, all `provisional`) and a place in every
+genre vocabulary, so every genre-keyed table carries a row that can never
+differ from its neighbour.
+
+**Evidence.** The refactor design's §6.4 table: `M9_dashes` — `internal`
+exempt, the other four identical; `VISUAL_SHARE_TARGET` — `training` 30, the
+other four 50; the four threshold lines — identical for `sales` and
+`marketing`; the scaffold — only `training` differs.
+
+**What would close it.** A pure-rename release (GAP-007's discipline) that
+retires `marketing` as a genre name and maps it onto `sales`, touching
+`deliverable_registry.GENRES`, the threshold file, the scores history, the
+conformance tasks, `new_deck --genre`, `check_prose --genre` and the `genre
+vocabulary` guard together. Not before the three real tiers each have an
+accepted reference: a rename while the cells are provisional moves numbers
+that mean nothing yet.
+
+## IDEA-17 · M13 reads a number conflict in the English twin that the Chinese twin does not
+
+**Problem.** On one deliverable built in two languages from one plan,
+`M13_quantity_conflicts` reported one conflict on the English file
+(`lumivate part: 20m vs 900m`) and zero on the Chinese file. The two files
+state the same quantities; the instrument's reading differs by language.
+
+**Evidence.** 2026-08-20 audit, the r11 en/zh pair of a 23-page pitch deck.
+Neither reading has been inspected for which is right: the English hit may
+be a true conflict the Chinese scan misses (a CJK quantity phrase the
+pattern does not read), or a false one the Chinese scan rightly ignores.
+
+**What would close it.** A fixture pair — one quantity stated twice with
+different values, in English and in Chinese with a CJK measure word — that
+M13 must flag in both, and a look at the real pair to decide which reading
+was wrong. Out of the audit-remediation branch's scope on purpose: it sits
+inside the Chinese-output diagnosis the owner froze pending her team.
+
