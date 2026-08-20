@@ -1246,6 +1246,18 @@ def close_shared_browser():
         _Shared.browser = _Shared.pw = None
 
 
+def aspect_stage(declared_geometry, file_geometries):
+    """The geometry whose shape a document OWES: its declared stage, else the
+    first matrix point it was run at. Kept as a function so a test can hold it
+    without a browser — the bug it replaces was a loop variable read after the
+    loop, which no rendered check could have noticed because every verdict it
+    produced was merely wrong rather than unmeasurable."""
+    stage = deliverable_registry.STAGE_OF.get(declared_geometry)
+    if stage:
+        return stage
+    return file_geometries[0] if file_geometries else "16x9"
+
+
 def aspect_report(url, dark=False, geometry="16x9"):
     """Does a page hold its DECLARED shape in a window that is not that shape?
 
@@ -2830,9 +2842,16 @@ def main(argv):
 
         if args.no_aspect:
             continue
-        # Off-shape by definition, so it is per file and not per geometry.
+        # Off-shape by definition, so it is per file and not per geometry —
+        # and the target is the DECLARED stage, never the matrix loop's
+        # leftover. Until 0.1.524 this passed `geometry`, which after the loop
+        # above is its last value ("wide", 1.8:1), so every correct 16:9 deck
+        # read "23 of 23 pages do not hold the declared wide shape" on every
+        # window. The docstring of aspect_report records the same error in its
+        # first version with 16:9 hard-coded; this was the second arrival.
         try:
-            aspect = aspect_report(path.as_uri(), dark, geometry)
+            aspect = aspect_report(path.as_uri(), dark,
+                                   aspect_stage(decl_geo, file_geometries))
         except Unmeasurable as exc:
             unmeasured += 1
             aspect = None

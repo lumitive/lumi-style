@@ -454,3 +454,47 @@ def test_annotate_writes_the_link_fields_and_only_those(tmp_path):
         assert rec["review_ref"].startswith("reviews/scores.json")
     finally:
         (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+
+
+# --phase wrote strings until 0.1.524. argparse handed both elements of the
+# pair over as str, close() stored them as written, the schema typed the phase
+# NAME and not the value, and ledger.py sums the values. No trace had ever
+# carried a phase, so the TypeError had never fired; the audit read the code.
+
+def test_phase_seconds_value_must_be_a_number():
+    rec = _legal()
+    rec["phase_seconds"] = {"build": "12"}
+    assert any("phase_seconds['build']" in e for e in trace.validate(rec))
+    rec["phase_seconds"] = {"build": 12, "checks": 3.5}
+    assert trace.validate(rec) == []
+
+
+def test_close_parses_phase_seconds_as_numbers_and_ledger_can_sum_them(tmp_path):
+    tid = _open(tmp_path, "16x9")
+    try:
+        p = subprocess.run(
+            [sys.executable, str(TRACE_PY), "close", "--id", tid,
+             "--deliverable", str(ROOT / "fixtures" / "deck-pass.en.html"),
+             "--phase", "build", "12", "--phase", "checks", "3.5"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert p.returncode == 0, p.stderr
+        rec = json.loads((ROOT / "evals" / "traces" / f"{tid}.json")
+                         .read_text(encoding="utf-8"))
+        assert rec["phase_seconds"] == {"build": 12, "checks": 3.5}
+        assert sum(v for k, v in rec["phase_seconds"].items()
+                   if k in ("build", "checks")) == 15.5
+    finally:
+        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+
+
+def test_close_refuses_a_phase_that_is_not_a_number(tmp_path):
+    tid = _open(tmp_path, "16x9")
+    try:
+        p = subprocess.run(
+            [sys.executable, str(TRACE_PY), "close", "--id", tid,
+             "--deliverable", str(ROOT / "fixtures" / "deck-pass.en.html"),
+             "--phase", "build", "twelve"],
+            capture_output=True, text=True, cwd=ROOT)
+        assert p.returncode != 0 and "not a number" in p.stderr
+    finally:
+        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)

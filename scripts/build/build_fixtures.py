@@ -567,7 +567,16 @@ def page(i: int, total: int, spec, broken: bool) -> str:
         lead = ('<div class="lead"><div class="v">91</div>'
                 '<p class="g">Units returned per avoided visit, illustrative</p>'
                 '<p class="scope-note" data-omitted="pricing">Pricing is set by '
-                'the commercial team and is out of scope here.</p></div>')
+                'the commercial team and is out of scope here.</p>'
+                # D31: the six typical gtm sections this synthetic deck does
+                # not carry are DECLARED, in one reader-visible sentence, so
+                # the pass fixture shows what a declared scope looks like and
+                # deck-broken (same absences, nothing declared) is what fails.
+                '<p class="scope-note" data-omitted="target customer, value '
+                'proposition, channels, messaging, sales motion, success '
+                'measure">This deck states no target customer, value '
+                'proposition, channels, messaging, sales motion or success '
+                'measure: it exists to exercise the checks.</p></div>')
     if broken and i == 12:
         # D24 and D25: a linked image with no terms named. Both gates need a
         # fixture that FAILS them or the suite cannot tell them from a metric

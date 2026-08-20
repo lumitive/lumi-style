@@ -1,3 +1,52 @@
+## 0.1.524 — three instruments corrected: the aspect probe, the phase clock, and a count that never reached the reader
+
+Audit-remediation step 1 (`specs/2026-08-20-audit-remediation-plan.md`). Each
+of the three was found by reading the code against the audit's measurements,
+and one of the audit's readings was itself wrong — recorded below, because an
+entry is what a later session believes (convention 14).
+
+**The aspect probe held every landscape deck to the wrong shape.** `inspect_layout.py`
+called `aspect_report(…, geometry)` after the geometry loop had finished, so
+`geometry` was the loop's last value — `wide`, 1.8:1 — and every correct 16:9
+page (1.778:1) read off-shape on every off-shape window: "23 of 23 measured
+pages do not hold the declared wide shape", on all fifteen landscape
+deliverables of the 0.1.521–0.1.522 campaign. `aspect_report`'s own docstring
+records the first arrival of this bug (16:9 hard-coded; a portrait handbook
+failing 30 of 30); this was the second, from the other direction, and it
+reproduced the docstring's warning exactly: a report that reads as failure on
+a correct document teaches its reader to skip the section. The target now
+comes from `aspect_stage()` — the declared stage via
+`deliverable_registry.STAGE_OF`, else the first matrix point run — and
+`tests/test_inspect_layout_aspect.py` holds it without a browser. Red run:
+`fixtures/deck-pass.en.html` read 18 of 18 off-shape before, 0 of 18 after.
+
+**The phase clock rejects what it cannot store, instead of dying.** The audit
+reported that `trace.py --phase` stored strings which `ledger.py` would sum
+into a `TypeError`. **That reading was wrong**: `main()` already converted the
+pair with `int()`. What was true is narrower and still a defect — `3.5` or
+`twelve` ended in a traceback rather than a message, and `trace_schema`
+typed the phase *name* and never its *value*, so a hand-edited string
+validated. The parse now lives in `cmd_close` with a message, accepts
+fractional seconds, and the schema types the value; three CLI-path tests were
+planted red on the old code first (two of the three failed there, one for a
+different reason than the audit named). The audit document has been corrected
+at its three sites.
+
+**An undeclared section count now reaches the verdict block.** D26 keyed its
+verdict on *hidden* declarations only, so a pitch deck covering six of eleven
+typical sections with nothing declared read `ok`, and `check_deliverable`
+printed `0 graded findings` on the largest deck of the campaign — the whole
+C5 mechanism (declare the gap, reader-visibly) was computed and then dropped.
+**D31 · undeclared sections** is its own reported row, never gating (C5's
+evidence stands; surfacing is the fix), and one scope note may now declare
+several absences in one reader-visible sentence
+(`data-omitted="team, vision"`). `deck-pass` declares its six synthetic
+absences and reads ok; `deck-broken` carries the same absences undeclared and
+fails — which is the first time this metric has been seen failing. The
+matching stays what it was, a substring over visible text: C5's own warning
+is that naming is almost never mandated, so a sharper matcher would be a
+sharper wrong answer; the row is a prompt for a person, not a verdict.
+
 ## 0.1.523 — the checkers read Chinese in the mirror, a reserve is re-derived, and three marks are declined
 
 **The first release of the audit-remediation branch** (design and plan:

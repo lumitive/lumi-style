@@ -67,7 +67,8 @@
      "D27_agenda_mirror": "ok",
      "D28_takeaway": "ok",
      "D29_figure_numbers": "ok",
-     "D30_figure_sequence": "ok"
+     "D30_figure_sequence": "ok",
+     "D31_undeclared_sections": "ok"
     },
     "contains": {
      "D10_label_icons": [
@@ -171,7 +172,8 @@
      "D27_agenda_mirror": "ok",
      "D28_takeaway": "ok",
      "D29_figure_numbers": "ok",
-     "D30_figure_sequence": "FAIL"
+     "D30_figure_sequence": "FAIL",
+     "D31_undeclared_sections": "FAIL"
     },
     "contains": {
      "D16_visual_presence": [
@@ -312,7 +314,8 @@
      "D27_agenda_mirror": "FAIL",
      "D28_takeaway": "ok",
      "D29_figure_numbers": "ok",
-     "D30_figure_sequence": "n/a"
+     "D30_figure_sequence": "n/a",
+     "D31_undeclared_sections": null
     }
    },
    "layout": {

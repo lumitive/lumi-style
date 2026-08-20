@@ -202,7 +202,13 @@ def cmd_close(a):
     rec["outline_reviewed"] = bool(a.outline_reviewed)
     rec["titles_changed_after_approval"] = a.titles_changed_after_approval
     for phase, seconds in (a.phase or []):
-        rec["phase_seconds"][phase] = seconds
+        try:
+            value = float(seconds)
+        except ValueError:
+            sys.exit(f"--phase {phase}: {seconds!r} is not a number of seconds")
+        if value <= 0:
+            sys.exit(f"--phase {phase}: {seconds!r} must be a positive number")
+        rec["phase_seconds"][phase] = int(value) if value.is_integer() else value
     for k in ("model", "effort", "agent", "corpus_id"):
         if getattr(a, k, None) is not None:
             rec[k] = getattr(a, k)
@@ -371,6 +377,10 @@ def main():
     c.add_argument("--outline-reviewed", action="store_true", dest="outline_reviewed")
     c.add_argument("--titles-changed-after-approval", type=int, default=0,
                    dest="titles_changed_after_approval")
+    # The seconds value is parsed in cmd_close, with a message. Until 0.1.524
+    # main() did `int(s)` on the pair: `3.5` and `twelve` both died in a
+    # traceback, and the schema typed the phase NAME and never the value, so
+    # a hand-edited string would have validated and broken ledger.py's sum.
     c.add_argument("--phase", nargs=2, action="append", metavar=("PHASE", "SECONDS"),
                    type=str)
     c.add_argument("--model")
@@ -395,8 +405,6 @@ def main():
     v.set_defaults(func=cmd_validate)
 
     a = ap.parse_args()
-    if a.cmd == "close" and a.phase:
-        a.phase = [(p, int(s)) for p, s in a.phase]
     a.func(a)
 
 
