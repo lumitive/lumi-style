@@ -536,21 +536,17 @@ def d16_visual_presence(raw):
 
 def _flat_text(fragment: str) -> str:
     """Visible text of a markup fragment, whitespace collapsed."""
-    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", fragment)).strip()
+    return markup.visible_text(fragment)
 
 
 def _norm_line(s: str) -> str:
     """Case- and punctuation-blind form for the agenda-title comparison.
 
-    A space BETWEEN two CJK characters is dropped. Stripping an inline
-    highlight span leaves a separator where the tag was; English needs it,
-    because it lands on a word boundary, and Chinese does not, because it
-    invents one. On the zh build an agenda line identical to its opener read as
-    an orphan and D27 -- which gates -- failed a document that was correct.
-    Spaces around Latin words are untouched, so `每个 Agent 都会` keeps both.
+    The CJK space rule is `markup.join_cjk` (shared with the outline mirror);
+    its reason is written there.
     """
     t = " ".join(re.sub(r"[^a-z0-9\u4e00-\u9fff ]+", " ", s.lower()).split())
-    return re.sub(r"(?<=[\u4e00-\u9fff]) (?=[\u4e00-\u9fff])", "", t)
+    return markup.join_cjk(t)
 
 
 def d27_agenda_mirror(raw):
@@ -869,7 +865,7 @@ def _block_text(body, cls):
     while depth and (found := token.search(body, i)):
         depth += -1 if found.group(1) else 1
         i = found.end()
-    return re.sub(r"<[^>]+>", " ", body[m.end():i])
+    return markup.strip_tags(body[m.end():i])
 
 # The block patterns tokens/ renders as a STRUCTURE, and the children that
 # structure assumes. A class with a rendering, used without the shape that
@@ -1146,7 +1142,7 @@ def d14_placeholders(raw):
     body = re.sub(r"<!--.*?-->", " ", body, flags=re.S)
     found = []
     for _cls, pid, page in _pages(body) or [("", "(document)", body)]:
-        text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", page))
+        text = markup.visible_text(page)
         for m in PLACEHOLDER.finditer(text):
             inner = m.group(0).strip("[]{}<>").strip()
             if not PLACEHOLDER_MARKERS.search(inner):
@@ -1158,7 +1154,7 @@ def d14_placeholders(raw):
     # above never sees it, which is exactly how `REPLACE ME` shipped.
     head_end = body.find("<section")
     if head_end != -1:
-        head_text = re.sub(r"<[^>]+>", " ", body[:head_end])
+        head_text = markup.strip_tags(body[:head_end])
         for m in SCAFFOLD_SLOTS.finditer(head_text):
             found.append({"page": "(head)", "text": m.group(0)[:40]})
     return found
@@ -1603,7 +1599,7 @@ def d26_declared_scope(raw, storyline=None):
         # one sentence, the checker reads each name.
         names = [n.strip().lower() for n in re.split(r"[,;·]", m.group(3)) if n.strip()]
         declared.update(names)
-        if _INVISIBLE.search(attrs) or not re.sub(r"<[^>]+>", "", body).strip():
+        if _INVISIBLE.search(attrs) or not markup.strip_tags(body, sep="").strip():
             hidden.extend(names or ["(unnamed)"])
     if not storyline:
         return {"storyline": None, "missing": None, "hidden": hidden,
@@ -1612,7 +1608,7 @@ def d26_declared_scope(raw, storyline=None):
     if expected is None:
         return {"storyline": storyline, "missing": None, "hidden": hidden,
                 "declared": sorted(declared)}
-    text = re.sub(r"<[^>]+>", " ", raw).lower()
+    text = markup.strip_tags(raw).lower()
     missing = [s for s in expected if s not in text and s not in declared]
     return {"storyline": storyline, "missing": missing, "hidden": hidden,
             "declared": sorted(declared)}
@@ -1644,7 +1640,7 @@ def d21_data_contract(raw):
         # it left in, every declared value found ITSELF and the check passed on
         # figures whose data contradicted the drawing outright.
         drawing = raw[start:m.start()] + raw[m.end():m.end() + 400]
-        visible = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", drawing))
+        visible = markup.visible_text(drawing)
         try:
             data = json.loads(m.group(1))
         except json.JSONDecodeError as exc:

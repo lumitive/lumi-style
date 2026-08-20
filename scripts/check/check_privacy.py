@@ -42,29 +42,31 @@ Usage
 from __future__ import annotations
 
 import argparse
-import html as _html
+import html
 import json
 import pathlib
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
 import re
 import sys
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import markup  # noqa: E402 — after the bootstrap
+import secret_patterns  # noqa: E402 — after the bootstrap
 
 # --- Layer 1 · credential shapes (decidable, gates) --------------------------
-# Shapes, not entropy: a high-entropy string is often a hash of something
-# public, and guessing costs an author a real deletion. Each pattern here names
-# a format whose presence in a client-facing document has no innocent reading.
-CREDENTIALS = [
-    ("private key block", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
-    ("AWS access key id", re.compile(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b")),
-    ("GitHub token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{36,}\b")),
-    ("Slack token", re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}\b")),
-    ("Google API key", re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b")),
-    ("JSON web token", re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\."
-                                  r"[A-Za-z0-9_-]{10,}\b")),
-    ("credentials in a URL", re.compile(r"\b[a-z][a-z0-9+.-]*://[^\s/@]+:[^\s/@]+@")),
-    ("assignment of a secret", re.compile(
-        r"\b(?:api[_-]?key|secret|password|passwd|token)\b\s*[:=]\s*"
-        r"[\"']?[A-Za-z0-9_\-/+]{12,}", re.I)),
-]
+# The table is scripts/lib/secret_patterns.py, shared with check_repo's
+# secrets guard; the `secret patterns parity` guard keeps it the only one.
+CREDENTIALS = secret_patterns.PATTERNS
 
 # --- Layer 2 · usually-but-not-always (reported) -----------------------------
 LIKELY = [
@@ -91,13 +93,12 @@ LIKELY = [
 EXEMPT_CONTEXT = re.compile(r"(?:source|来源|资料来源)\s*[:：]", re.I)
 
 
-TAG = re.compile(r"<[^>]+>")
 
 
 def whole_file(raw: str) -> str:
     """What layer 1 searches: everything. A credential in a `data-` attribute
     has left the document boundary just as surely as one in a paragraph."""
-    return _html.unescape(raw)
+    return html.unescape(raw)
 
 
 def reader_text(raw: str) -> str:
@@ -110,7 +111,7 @@ def reader_text(raw: str) -> str:
     them a phone number: exactly the volume that teaches a reader to skip the
     reported section.
     """
-    return _html.unescape(TAG.sub(" ", raw))
+    return markup.strip_tags(raw)
 
 
 # The statuses in which the term half DID NOT RUN. Named once, because the

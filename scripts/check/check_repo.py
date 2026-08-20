@@ -35,6 +35,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 
 import color_math  # noqa: E402 — after the bootstrap, deliberately
+import secret_patterns  # noqa: E402 — the one credential table, shared with check_privacy
 import trace_schema  # noqa: E402 — the one definition, shared with scripts/ops/trace.py
 from css_tokens import css_block, css_vars  # noqa: E402, F401 — css_block is API for tests/tools
 
@@ -1978,6 +1979,61 @@ def check_brand_lock():
     return brand_lock.verify()
 
 
+def check_no_shadow_markup():
+    """No script re-grows a private strip-tags. The operation is
+    `markup.strip_tags` / `markup.visible_text` / `markup.join_cjk`.
+
+    The 2026-08-20 audit found four private strip-tags regexes
+    and two of the CJK-space rule, each a little different, in a tree whose
+    markup.py docstring lists the defects that class of duplication produced.
+    """
+    errors = []
+    tag_re = re.compile(r"""re\.(?:sub|compile)\(\s*r?["']<\[\^>\]\+>["']""")
+    cjk_re = re.compile(r"""\(\?<=\[\\u4e00-\\u9fff\]\) \(\?=\[\\u4e00-\\u9fff\]\)""")
+    for path in sorted(p for p in (ROOT / "scripts").rglob("*.py")
+                       if "__pycache__" not in p.parts):
+        if path.name == "markup.py":
+            continue
+        text = path.read_text(encoding="utf-8")
+        for regex, what in ((tag_re, "a private strip-tags"),
+                            (cjk_re, "a private CJK-space rule")):
+            for m in regex.finditer(text):
+                line = text[:m.start()].count("\n") + 1
+                errors.append(f"{rel(path)}:{line}: {what} — the shared "
+                              f"implementation is scripts/lib/markup.py")
+    return errors
+
+
+def check_secret_patterns_parity():
+    """One credential table. The repo guard and the deliverable checker both
+    import scripts/lib/secret_patterns.py; a `re.compile(` anywhere else under
+    scripts/ that spells a credential shape is a second table starting.
+
+    Two tables existed until 0.1.525, neither a superset of the other, after a
+    design that had forbidden exactly that. The markers are assembled at
+    runtime so this guard's own source does not carry them whole.
+    """
+    errors = []
+    for path in sorted(p for p in (ROOT / "scripts").rglob("*.py")
+                       if "__pycache__" not in p.parts):
+        if path.name == "secret_patterns.py":
+            continue
+        text = path.read_text(encoding="utf-8")
+        for m in re.finditer(r"re\.compile\(\s*r?[\"'](.*?)[\"']", text, re.S):
+            body = m.group(1)
+            for marker in secret_patterns.MARKERS:
+                if marker in body:
+                    line = text[:m.start()].count("\n") + 1
+                    errors.append(f"{rel(path)}:{line}: a credential regex "
+                                  f"({marker!r}) outside scripts/lib/"
+                                  f"secret_patterns.py — import PATTERNS, "
+                                  f"do not start a second table")
+    for name in ("scripts/check/check_repo.py", "scripts/check/check_privacy.py"):
+        if "import secret_patterns" not in (ROOT / name).read_text(encoding="utf-8"):
+            errors.append(f"{name} does not import secret_patterns")
+    return errors
+
+
 def check_no_shadow_math():
     """No script re-grows a private copy of the shared color or CSS readers.
 
@@ -2196,17 +2252,9 @@ SECRET_WAIVERS: dict[str, str] = {
         "on the day the second one shipped, which is the pair working.",
 }
 
-# High-signal only: on a prose-heavy repository a chatty secret scanner is a
-# scanner people stop reading. Each pattern is written so it cannot match its
-# own source here.
-SECRET_PATTERNS = (
-    ("AWS access key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
-    ("private key block", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
-    ("GitHub token", re.compile(r"\bghp_[A-Za-z0-9]{36}\b")),
-    ("GitHub fine-grained token", re.compile(r"\bgithub_pat_[A-Za-z0-9_]{22,}\b")),
-    ("API secret assignment", re.compile(
-        r"(?i)\b(?:api|secret)[_-]?key\s*[:=]\s*['\"][A-Za-z0-9+/_-]{20,}['\"]")),
-)
+# The table lives in scripts/lib/secret_patterns.py, shared with
+# check_privacy.py; `secret patterns parity` keeps it the only one.
+SECRET_PATTERNS = secret_patterns.PATTERNS
 
 
 def check_secrets():
@@ -2237,10 +2285,17 @@ def check_secrets():
             text = path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
             continue  # binary assets carry no greppable credential
+        seen_lines: set[int] = set()
         for name, pattern in SECRET_PATTERNS:
             m = pattern.search(text)
             if m:
                 line = text[:m.start()].count("\n") + 1
+                # One finding per line: the shared table's assignment shape
+                # overlaps its token shapes (`token = ghp_…` is both), and a
+                # chatty scanner is a scanner people stop reading.
+                if line in seen_lines:
+                    continue
+                seen_lines.add(line)
                 errors.append(f"{relpath}:{line}: {name} — a credential-shaped "
                               f"string in a tracked file. Rotate it, remove "
                               f"it, or waive it in SECRET_WAIVERS with the "
@@ -2338,7 +2393,7 @@ SIBLING_MODULES = (
     "color_math", "css_tokens", "lock", "deliverable_registry",
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",
-    "checker_report",
+    "checker_report", "secret_patterns",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
@@ -3294,6 +3349,8 @@ CHECKS = (
     ("source-marker parity", check_source_marker_parity),
     ("brand lock", check_brand_lock),
     ("no shadow math", check_no_shadow_math),
+    ("secret patterns parity", check_secret_patterns_parity),
+    ("no shadow markup", check_no_shadow_markup),
     ("ledgers", check_ledgers),
     ("commit convention", check_commit_convention),
     ("secrets", check_secrets),

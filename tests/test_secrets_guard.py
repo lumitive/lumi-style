@@ -43,7 +43,7 @@ def test_api_key_assignment_fails(tmp_path, monkeypatch):
         "conf.py": 'api_key = "abcdefghijklmnopqrstuv123456"\n'}))
     errors = check_repo.check_secrets()
     assert len(errors) == 1
-    assert "API secret assignment" in errors[0] and "conf.py:1" in errors[0]
+    assert "assignment of a secret" in errors[0] and "conf.py:1" in errors[0]
 
 
 def test_github_token_fails_naming_the_pattern(tmp_path, monkeypatch):

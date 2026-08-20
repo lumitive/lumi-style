@@ -35,21 +35,32 @@ Usage
 from __future__ import annotations
 
 import argparse
-import html as _html
 import json
 import pathlib
-import re
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
 import sys
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import markup  # noqa: E402 — after the bootstrap
 
 FIELDS = {"where", "claim", "quote"}
 MIN_QUOTE_WORDS = 3
-TAG = re.compile(r"<[^>]+>")
 
 
 def normalise(text: str) -> str:
     """Whitespace-flattened plain text. A real quotation survives this; the
     line breaks and markup a model did not see are what it must not be held to."""
-    return re.sub(r"\s+", " ", _html.unescape(TAG.sub(" ", text))).strip().lower()
+    return markup.visible_text(text).lower()
 
 
 def review(findings, document_text: str):
