@@ -1,0 +1,15 @@
+{
+ "version": "0.1.538",
+ "diff_base": "d714bdf042c32837ee4aa59a7707b44d6e11eab1",
+ "spec": "specs/2026-08-20-audit-remediation-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Unconfirmed: the multi-agent board's newest rows are the 0.1.522 run (2026-08-19), and 0.1.523-0.1.538 changed the rule surface. Refreshing it means driving Claude Code and Cursor through run_conformance.py run --drive on the owner's machine (API keys and CLIs; the harness now records model, effort and a conformance trace per task), which is the operator step the plan lists beside the six matrix cells. What is unverified is the current instruments' verdict on the two agents' synthetic decks, not any check this release ships."
+  }
+ ]
+}

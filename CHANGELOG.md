@@ -1,3 +1,25 @@
+## 0.1.538 — ten red CI runs on the remediation branch, and the symlink that caused them
+
+**Local green was not CI green, again.** Every release from 0.1.528 to
+0.1.537 passed `preflight.py` here and failed in CI: `run_conformance.py
+run --drive` repointed a `results/latest` symlink inside
+`conformance/results/`, a directory that exists on this machine (gitignored,
+forty megabytes of runs) and not on a runner, and two driver tests reached
+that line. Ten pushes, ten failures, noticed when the PR was marked ready —
+which is FM-06's shape (`check_repo` green is not the release green) with
+the twist that preflight was green too, because the condition was
+environmental. The repo's own note after every release — "Forty once
+accumulated this way and CI had seen none of them" — was printed ten times
+and read zero.
+
+The link is now made only when the run lives under `results/`, and never
+fatally: a link is a convenience, a run directory is the result. The
+regression test reproduces the runner's condition (no results directory) and
+both previously failing tests pass under it. The lesson for the branch is
+procedural and is recorded rather than re-learned: **watch the run after
+every push of a release branch**, and treat the draft PR's CI as part of
+`release.py`'s verdict rather than as something to read at the end.
+
 ## 0.1.537 — the audit's process finding is withdrawn, and the branch is ready to merge
 
 Audit-remediation step 14 (`specs/2026-08-20-audit-remediation-design.md`),

@@ -911,12 +911,21 @@ def main(argv):
             print(f"prepared {run_dir}; invoke each agent against its PROMPT.txt, then "
                   f"`score --run {run_dir}`. `--drive` runs them here instead.")
             return 0
+        # `latest` points at the newest dated run — only when the run lives
+        # under results/ (a `--run` elsewhere is the caller's directory, and a
+        # relative link to it would dangle), and never fatally: ten CI runs
+        # went red at 0.1.528 because this tried to link inside a directory
+        # CI does not have, and a symlink is a convenience, not a result.
         latest = RESULTS / "latest"
-        if run_dir != latest:
-            if latest.is_symlink() or latest.exists() and not latest.is_dir():
-                latest.unlink()
-            if not latest.exists():
-                latest.symlink_to(run_dir.name)
+        if run_dir.parent == RESULTS and run_dir != latest:
+            try:
+                if latest.is_symlink() or (latest.exists() and not latest.is_dir()):
+                    latest.unlink()
+                if not latest.exists():
+                    latest.symlink_to(run_dir.name)
+            except OSError as exc:
+                print(f"note  results/latest was not repointed ({exc}); the run "
+                      f"is at {run_dir}")
         print(f"drove {driven} task(s) into {run_dir}; now `score --run {run_dir}`")
         if not driven and skipped:
             # Agent RESULTS are non-deterministic and must not gate a release.

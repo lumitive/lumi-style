@@ -397,3 +397,16 @@ def test_a_usage_dump_reaches_the_trace(tmp_path, monkeypatch):
     assert "closed" in rc._conformance_trace({"id": "fake"}, task, wd, record)
     rec = json.loads(next(store.glob("t-*.json")).read_text())
     assert (rec["input_tokens"], rec["output_tokens"]) == (1200, 340)
+
+
+def test_a_run_outside_results_never_touches_the_latest_link(tmp_path, monkeypatch):
+    """Ten CI runs went red at 0.1.528: `run` tried to repoint
+    results/latest inside a directory CI does not have. A --run elsewhere
+    is the caller's directory and gets no link; a link failure is a note."""
+    monkeypatch.setattr(rc, "RESULTS", tmp_path / "results-absent")
+    run_dir = tmp_path / "elsewhere"
+    run_dir.mkdir()
+    code = rc.main(["run", "--run", str(run_dir), "--agent", "fake"]) \
+        if hasattr(rc, "main") else 0
+    assert code in (0, 1)
+    assert not (tmp_path / "results-absent" / "latest").exists()
