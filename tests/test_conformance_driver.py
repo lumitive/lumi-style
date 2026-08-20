@@ -10,6 +10,7 @@ No real agent is invoked here. The registry's `drive` argv is replaced with a
 python one-liner that behaves like an agent would: writes the deliverable, or
 hangs, or exits non-zero, or is not on PATH at all.
 """
+import ast
 import json
 import sys
 
@@ -95,16 +96,42 @@ def test_an_unpinned_run_records_that_it_was_unpinned(tmp_path):
     assert "default" in out["model"]
 
 
-def test_the_two_shipped_drivers_are_argv_lists(tmp_path):
+def test_every_shipped_driver_is_an_argv_list_driven_non_interactively(tmp_path):
     # The registry's `invoke` field is prose for a human ("say 'in LUMI
     # style…'"), and driving on it would try to execute a sentence.
-    agents = {a["id"]: a for a in json.loads(
-        rc.REGISTRY.read_text(encoding="utf-8"))["platforms"]}
-    for pid in ("claude-code", "cursor"):
-        argv = agents[pid].get("drive")
-        assert isinstance(argv, list) and argv, f"{pid} declares no drive argv"
+    #
+    # Not a hand-kept list of platform ids: the set is every record that
+    # declares a driver, so adding one to the registry brings it under this
+    # test instead of past it.
+    agents = [a for a in json.loads(
+        rc.REGISTRY.read_text(encoding="utf-8"))["platforms"] if a.get("drive")]
+    assert len(agents) >= 3, "the shipped drivers went missing from the registry"
+    for a in agents:
+        argv = a["drive"]
+        assert isinstance(argv, list) and argv, f"{a['id']} declares no drive argv"
         assert all(isinstance(x, str) for x in argv)
-        assert "-p" in argv, f"{pid} must be driven non-interactively"
+        # Non-interactive is the whole point, and the flag that does it is
+        # either in the argv (a positional prompt: Claude Code, Cursor) or
+        # declared as the flag the prompt is the VALUE of (Gemini).
+        assert "-p" in argv or a.get("drive_prompt_flag"), \
+            f"{a['id']} must be driven non-interactively"
+
+
+def test_a_declared_prompt_flag_lands_immediately_before_the_prompt(tmp_path):
+    # Gemini's `-p` takes the prompt as its value, and the prompt is appended
+    # last. Put the flag in the registry's `drive` argv and every optional flag
+    # — `--model` above all — lands between them, so the CLI receives the model
+    # NAME as its prompt and the real prompt as an interactive-mode positional:
+    # a run that reaches the model, answers the wrong question, and reports
+    # exit 0. The flag therefore belongs where the driver puts it, not where
+    # the registry lists it.
+    argv = [sys.executable, "-c",
+            "import sys,pathlib; pathlib.Path('a.md').write_text(repr(sys.argv[1:]))"]
+    agent = dict(_agent(argv), drive_prompt_flag="-p")
+    rc.drive(agent, TASK, tmp_path, model="a-model")
+    got = ast.literal_eval((tmp_path / "a.md").read_text())
+    assert got[-2:] == ["-p", TASK["prompt"]], got
+    assert "--model" in got and got.index("--model") < got.index("-p")
 
 
 # An interrupted run does not earn a verdict. The board withdrew a recorded

@@ -69,3 +69,31 @@ def test_a_detect_only_board_does_not_claim_everything_passed():
               "agents": 0, "detected": 0, "repeat": 0, "structural": 0,
               "task_ids": [], "rows": [], "run_date": None, "findings": []}
     assert "nothing was scored" in rc.render(record)
+
+
+def test_the_table_names_the_model_behind_each_row(tmp_path):
+    # A run may drive one agent on a small model and another on its default —
+    # a free-tier quota is enough to force it — and three rows on one table
+    # with nothing to tell the configurations apart read as three comparable
+    # agents. The column is what stops that reading.
+    record = {"version": "0.1.999", "run_id": "detect-only", "host": "test",
+              "agents": 2, "detected": 2, "repeat": 1, "structural": 0,
+              "task_ids": ["T1"], "run_date": None, "findings": [],
+              "rows": [{"name": "Agent One", "capability": "full", "cli": "1.0",
+                        "model": "a-lite-model", "tasks": {"T1": "pass"},
+                        "verdict": "pass", "runs": 1},
+                       {"name": "Agent Two", "capability": "full", "cli": "2.0",
+                        "model": None, "tasks": {"T1": "pass"},
+                        "verdict": "pass", "runs": 1}]}
+    text = rc.render(record)
+    header = next(x for x in text.splitlines() if x.startswith("| agent |"))
+    assert "| model |" in header
+    # The separator row must gain a column with the header, or every cell
+    # after it shifts one left in any renderer that counts them.
+    sep = next(x for x in text.splitlines() if x.startswith("|---"))
+    assert sep.count("---") == header.count("|") - 1
+    assert "a-lite-model" in text
+    # A row whose model was never recorded says so rather than borrowing the
+    # row above it.
+    two = next(x for x in text.splitlines() if x.startswith("| Agent Two"))
+    assert "| — |" in two

@@ -75,6 +75,59 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-023 · A driven agent's `new_deck.py` runs write build traces into the installed skill
+
+- status: open
+- opened: 0.1.540
+- surface: scripts/ops/trace.py (`TRACES`), scripts/ops/new_deck.py,
+  scripts/ops/run_conformance.py (`drive`)
+- symptom: `TRACES` is `LUMI_TRACES` or `ROOT / "evals" / "traces"`, and
+  `ROOT` comes from `__file__` — the *install* directory, never the caller's.
+  So when a conformance agent runs the scaffold, as the skill tells it to,
+  the trace lands in the package rather than beside the agent's work. The
+  2026-08-21 run measured it: Cursor's single T1-deck task opened **three**
+  `source: build` traces in this repository (17:44:29, 17:45:21, 17:49:01),
+  all left open, none of them a build of anything this repository ships.
+  Two harms, one mechanical and one statistical. `release.py` stages with
+  `git add -A`, so a stranger's traces are one release away from being
+  committed as the owner's. And `ledger.py --board` reads every stored trace,
+  so an agent's runs enter the efficiency median beside the owner's builds
+  and nothing in the file distinguishes them.
+- not the same as GAP-022, which is an agent writing its *deliverable*
+  outside the working directory. This is the package's own tooling writing
+  into the package, and it happens however well-behaved the agent is.
+- check: `drive()` sets `LUMI_TRACES` into the agent's environment, pointing
+  at the task's run directory, so a driven agent's traces land with the run
+  that produced them; and `ledger.py --board` states which store it read.
+  The escape hatch already exists and is simply not used on this path.
+
+## GAP-022 · An agent can write its deliverable outside the working directory, and the run records nothing
+
+- status: open
+- opened: 0.1.540
+- surface: scripts/ops/run_conformance.py (`drive`), conformance/results
+- symptom: Gemini CLI's T1-deck run on 2026-08-21 exited 0 after 663.7s and
+  its own transcript says the deck was *"written to `deck.en.html` in the
+  working directory"*. It was not: the file landed in the **skill directory**
+  — `~/.agents/skills/lumi-style`, a symlink to this repository — 571KB of
+  finished deck, at the repository root. `drive()` globs the task's
+  `deliverable` pattern in the temporary working directory only, so
+  `produced` was `[]`, the conformance trace was left open as "the drive did
+  not finish", and the board cell reads as an agent that wrote nothing. The
+  agent wrote a deck. It also wrote it somewhere a consumer of this package
+  would not want it: with the skill path handed to the CLI as a workspace
+  directory, "the working directory" is ambiguous to the agent and the
+  installed skill is writable.
+- not a scoring bug: the deck fails on its own merits (D19_vocabulary 9,
+  D6_footer 12, M11_title_uniformity 91.7% against a 60% ceiling), so no
+  verdict changes if it is scored. What is wrong is that the run says
+  "wrote nothing" about a run that wrote something, and that the something
+  landed inside the package.
+- check: `drive()` reports a deliverable-shaped file that appeared under any
+  declared `skill_paths` root during the run — named as a misplaced write,
+  never copied into the run and scored as though it had been produced
+  correctly, which would launder the finding into a pass.
+
 ## GAP-021 · The only accepted reference fails a gate introduced after its acceptance
 
 - status: open

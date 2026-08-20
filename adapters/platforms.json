@@ -72,13 +72,22 @@
     "gemini",
     "--version"
    ],
+   "drive": [
+    "gemini",
+    "--skip-trust",
+    "--approval-mode",
+    "yolo"
+   ],
+   "drive_skill_flag": "--include-directories",
+   "drive_prompt_flag": "-p",
    "docs": "https://geminicli.com/docs/cli/skills/",
    "extra": [
     "`~/.agents/skills/` is the shared cross-agent location and **takes precedence** over Gemini's own directory, so prefer it — one install there also serves GitHub Copilot, OpenCode, OpenClaw and Pi.",
-    "Gemini calls `activate_skill` and asks you to confirm the directory it is about to read; approve it once per session."
+    "Gemini calls `activate_skill` and asks you to confirm the directory it is about to read; approve it once per session.",
+    "Headless runs need `--skip-trust` (or `GEMINI_CLI_TRUST_WORKSPACE=true`). Without it the CLI prints `Approval mode overridden to \"default\" because the current folder is not trusted`, exits 55 in about a second, and never reaches the model — which reads as an agent failure and is not one."
    ],
    "capability_verified": false,
-   "capability_waiver": "Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed."
+   "capability_waiver": "Not verified as a CAPABILITY claim: the CLI is installed on the maintenance machine and `run_conformance.py run --drive` drives it since 0.1.540 (conformance/CONFORMANCE.md's `cli` column carries the version it answered, read from the probe rather than written here), but `full` claims the agent runs check_prose.py, check_design.py and inspect_layout.py itself on a real deliverable through the entry file, and no run has watched it do that — its board rows come from synthetic conformance tasks. See conformance/CONFORMANCE.md."
   },
   {
    "id": "codex",

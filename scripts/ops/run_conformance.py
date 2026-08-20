@@ -207,6 +207,18 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
     usage_flag = agent.get("drive_usage_flag")
     if usage_flag:
         argv += list(usage_flag)
+    # The prompt is appended LAST, so a CLI that takes it as the VALUE of a flag
+    # needs that flag put here rather than in the registry's `drive` argv — every
+    # optional flag above would otherwise land between them and be eaten as the
+    # prompt. Gemini is the case: `-p <prompt>` is its only non-interactive mode,
+    # and `gemini … -p --model gemini-2.5-flash <prompt>` sends the model NAME as
+    # the prompt and leaves the real one as an interactive-mode positional. An
+    # agent whose prompt is a positional (Claude Code, Cursor) declares nothing
+    # and is unaffected. Same lesson as `drive_skill_flag`'s placement note
+    # above: where a flag sits is part of the flag.
+    prompt_flag = agent.get("drive_prompt_flag")
+    if prompt_flag:
+        argv.append(prompt_flag)
     workdir = pathlib.Path(tempfile.mkdtemp(prefix=f"lumi-conf-{agent['id']}-"))
     try:
         for name in ("PROMPT.txt", "input.md"):
@@ -692,11 +704,12 @@ def render(record: dict) -> str:
              f"up to n={record['repeat']} per agent · "
              f"{record['structural']} of {record['agents']} can never answer a CLI probe",
              "",
-             "| agent | capability | cli | " +
+             "| agent | capability | cli | model | " +
              " | ".join(t for t in record["task_ids"]) + " | verdict |",
-             "|---|---|---|" + "---|" * (len(record["task_ids"]) + 1)]
+             "|---|---|---|---|" + "---|" * (len(record["task_ids"]) + 1)]
     for row in record["rows"]:
-        cells = [row["name"], row["capability"], row["cli"]]
+        cells = [row["name"], row["capability"], row["cli"],
+                 row.get("model") or "—"]
         cells += [row["tasks"].get(t, "—") for t in record["task_ids"]]
         cells.append(f"**{row['verdict']}**")
         lines.append("| " + " | ".join(cells) + " |")
@@ -1105,6 +1118,31 @@ def main(argv):
                 entry["verdict"] = "pass" if not failed else "fail"
                 entry["failed"] = failed
                 scores[key] = entry
+        # WHICH MODEL PRODUCED THE CELL, carried out of the driver record into
+        # the score so the board can say it. Attached in one pass rather than
+        # in each of the four places a score entry is born, because a cell
+        # whose model is missing because one branch forgot it is worse than no
+        # column at all. A hand-driven task has no driver.json and honestly
+        # records nothing.
+        #
+        # This became material the day it was written: one run drove three
+        # agents, and one of them was pinned to a small model because the
+        # account's free-tier quota for the larger ones was spent. Three rows
+        # on one table, two of them the CLI's default and one a lite tier, with
+        # nothing on the board to tell them apart — which is the reading this
+        # file's own driver test already warns about: a cell that says nothing
+        # about the model reads as a claim about the agent rather than about
+        # one of its configurations.
+        for key, entry in scores.items():
+            agent_id, _, task_id = key.partition("/")
+            driver = run_dir / agent_id / task_id / "driver.json"
+            if not driver.exists():
+                continue
+            try:
+                entry["model"] = json.loads(
+                    driver.read_text(encoding="utf-8")).get("model")
+            except ValueError:
+                pass
         (run_dir / "scores.json").write_text(
             json.dumps(scores, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         for key, s in sorted(scores.items()):
@@ -1208,8 +1246,18 @@ def main(argv):
             verdict = ("cannot be probed" if structural
                        else "not installed" if not ok else "not run")
             cli = note if ok else "—"
+        # The models behind this row's cells, deduplicated and in the order
+        # met. Usually one; more than one means the row mixes configurations
+        # and the board says so instead of averaging them into a verdict.
+        seen_models: list[str] = []
+        for got in mine.values():
+            for s in got:
+                m = s.get("model")
+                if m and m not in seen_models:
+                    seen_models.append(m)
         rows.append({"name": a["name"], "capability": a["capability"],
-                     "cli": cli, "tasks": cells, "verdict": verdict,
+                     "cli": cli, "model": ", ".join(seen_models) or "—",
+                     "tasks": cells, "verdict": verdict,
                      "runs": runs_here})
     record = {"version": version,
               "run_id": ", ".join(f"`{r}`" for r in runs) or "detect-only",

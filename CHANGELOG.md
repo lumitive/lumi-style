@@ -1,3 +1,78 @@
+## 0.1.540 — Gemini becomes drivable, the board names the model behind each row, and two findings the run itself produced
+
+**The board is measured again, on three agents.** It had stood on the 0.1.522
+run since 2026-08-19 and carried a waiver at 0.1.538 and 0.1.539 saying so.
+Claude Code, Cursor and Gemini CLI were each driven through all three tasks on
+2026-08-21. Cursor passes all three. Claude Code passes T2 and T3 and **fails
+T1-deck on a collision** — a change of kind rather than of grade: at 0.1.522
+that cell read `not earned` because the driver's ceiling was 900s, and with the
+default 1800s the agent finished in 1608.9s and produced a deck whose blocks
+land on each other. A timeout became a measurement. Gemini passes T2 and T3.
+
+The header of a freshly refreshed board reads `1 release behind` **by
+construction**, and it is not a sign the refresh was skipped: the runs execute
+before the release stamps its version, so the run directory carries the
+previous number while the history rows — which are what the freshness gate
+actually reads — carry this one. Anything larger than one is real staleness;
+this board's previous header said five.
+
+**Gemini could not be driven at all, and the reason was one flag's position.**
+Its registry record had a probe and no `drive` argv, so `detect` saw it and
+`run --drive` skipped it. Gemini's only non-interactive mode is `-p <prompt>`,
+where the prompt is the flag's VALUE — and this harness appends the prompt
+last, after `--model` and the effort and usage flags. Declaring `-p` in the
+registry's argv would therefore have sent `--model` as the prompt and left the
+real one as an interactive-mode positional: a run that reaches the model,
+answers a question nobody asked, and exits 0. So the prompt flag is now
+declared as `drive_prompt_flag` and the driver puts it where it has to go,
+immediately before the prompt — the same lesson `drive_skill_flag` carries two
+comments above it, that where a flag sits is part of the flag. Planted red
+first, per convention 15: without the driver change the test reads
+`['--model', 'a-model', 'write the file']`.
+
+**A second Gemini fact that only a real CLI could have taught.** Headless runs
+need `--skip-trust`. Without it the CLI prints `Approval mode overridden to
+"default" because the current folder is not trusted`, exits 55 in about a
+second, and never reaches the model — an environment refusal that reads on a
+board as an agent that failed. It is in the registry's notes and in the
+generated adapter page.
+
+**The board now names the model behind every row, because this run needed it.**
+The account's free-tier quota for `gemini-2.5-pro`, `gemini-2.5-flash`,
+`gemini-2.0-flash` and `gemini-3-pro-preview` was spent, so Gemini was pinned to
+`gemini-flash-lite-latest` while the other two ran their CLI defaults. Three
+rows on one table, one of them a lite tier, with nothing to tell them apart —
+which is the reading this file's own driver test has warned about since 0.1.454:
+*a cell that says nothing about the model reads as a claim about the agent
+rather than about one of its configurations.* `score` now carries the driver's
+model into each entry and `report` renders it as a column; a row mixing
+configurations lists them rather than averaging them away. Planted red first.
+
+**Two findings the run produced, both in the ledger rather than in this
+entry.** **GAP-022**: Gemini's T1-deck exited 0 after 663.7s saying it had
+written the deck *"in the working directory"*, and the file — 571KB, finished —
+landed in the **skill directory** instead, which on this machine is a symlink to
+this repository. `drive()` globs the working directory only, so the run recorded
+`produced: []` and the board cell reads `no deliverable`. The deck fails on its
+own merits when measured (D19 9, D6 12, M11 91.7% against a 60% ceiling), so no
+verdict is being withheld — what is wrong is a run reporting that nothing was
+written when something was, somewhere it should not have been. **GAP-023**:
+`trace.py` resolves its store from `__file__`, so a driven agent running the
+scaffold writes `source: build` traces into the *installed skill*. Cursor's one
+T1-deck task opened three of them here, all left open. `release.py` stages with
+`git add -A`, which puts a stranger's traces one release from being committed as
+the owner's, and `ledger.py --board` reads every stored trace into the same
+median. Four such traces were removed by hand before this release; the
+`LUMI_TRACES` escape hatch that would fix it already exists and is unused on
+that path.
+
+**The efficiency board has its first reading.** Claude Code's T1 trace carries
+the API's own counts — 176 in, 114413 out over 8 content pages, 14301.6 tokens
+per content page — so `ledger.py --board` reports 1 of 13 runs qualifying rather
+than 0. It sits in the `? × ?` cell, because neither model nor effort was
+pinned. That cell is what the six-cell matrix exists to fill, and it remains an
+operator step.
+
 ## 0.1.539 — main takes changes only through a pull request, and the lock reports the rule it gained
 
 **The setting the owner had left open is now closed.** 0.1.538 recorded, as an

@@ -243,5 +243,50 @@
     "built": {
       "T1-deck": "0.1.522"
     }
+  },
+  {
+    "skill_version": "0.1.540",
+    "agent": "claude-code",
+    "date": "2026-08-21",
+    "run_dir": "conformance/results/0.1.539-2026-08-21",
+    "tasks": {
+      "T1-deck": "fail",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "d6b9f4f6a795cd5993217076c5b5d4d190d52422de4b9f547ceb245d4080bc72",
+    "instrument_version": "0.1.540",
+    "built": {
+      "T1-deck": "0.1.539"
+    }
+  },
+  {
+    "skill_version": "0.1.540",
+    "agent": "cursor",
+    "date": "2026-08-21",
+    "run_dir": "conformance/results/0.1.539-2026-08-21",
+    "tasks": {
+      "T1-deck": "pass",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "d6b9f4f6a795cd5993217076c5b5d4d190d52422de4b9f547ceb245d4080bc72",
+    "instrument_version": "0.1.540",
+    "built": {
+      "T1-deck": "0.1.539"
+    }
+  },
+  {
+    "skill_version": "0.1.540",
+    "agent": "gemini-cli",
+    "date": "2026-08-21",
+    "run_dir": "conformance/results/0.1.539-2026-08-21",
+    "tasks": {
+      "T1-deck": "no deliverable",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "d6b9f4f6a795cd5993217076c5b5d4d190d52422de4b9f547ceb245d4080bc72",
+    "instrument_version": "0.1.540"
   }
 ]
