@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="11955.28 3512.28 12526.44 13168.44"><g class="com.sun.star.drawing.CustomShape">
+       <g id="id338">
+        <rect class="BoundingBox" stroke="none" fill="none" x="12411" y="9201" width="6765" height="7025" />
+        <path fill="rgb(0,0,254)" stroke="none" d="M 12443,16193 L 12443,10908 14118,9233 19143,9233 19143,14518 17468,16193 12443,16193 Z " />
+        <path fill="none" stroke="rgb(51,153,255)" stroke-width="26" stroke-linejoin="miter" d="M 12443,16193 L 12443,10908 14118,9233 19143,9233 19143,14518 17468,16193 12443,16193 Z " />
+        <path fill="rgb(51,51,254)" stroke="none" d="M 12443,10908 L 14118,9233 19143,9233 17468,10908 12443,10908 Z " />
+        <path fill="none" stroke="rgb(51,153,255)" stroke-width="26" stroke-linejoin="miter" d="M 12443,10908 L 14118,9233 19143,9233 17468,10908 12443,10908 Z " />
+        <path fill="rgb(0,0,203)" stroke="none" d="M 17468,16193 L 17468,10908 19143,9233 19143,14518 17468,16193 Z " />
+        <path fill="none" stroke="rgb(51,153,255)" stroke-width="26" stroke-linejoin="miter" d="M 17468,16193 L 17468,10908 19143,9233 19143,14518 17468,16193 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id339">
+        <rect class="BoundingBox" stroke="none" fill="none" x="17263" y="9201" width="6764" height="7025" />
+        <path fill="rgb(0,0,254)" stroke="none" d="M 17295,16193 L 17295,10907 18969,9233 23994,9233 23994,14518 22319,16193 17295,16193 Z " />
+        <path fill="none" stroke="rgb(51,153,255)" stroke-width="26" stroke-linejoin="miter" d="M 17295,16193 L 17295,10907 18969,9233 23994,9233 23994,14518 22319,16193 17295,16193 Z " />
+        <path fill="rgb(51,51,254)" stroke="none" d="M 17295,10907 L 18969,9233 23994,9233 22319,10907 17295,10907 Z " />
+        <path fill="none" stroke="rgb(51,153,255)" stroke-width="26" stroke-linejoin="miter" d="M 17295,10907 L 18969,9233 23994,9233 22319,10907 17295,10907 Z " />
+        <path fill="rgb(0,0,203)" stroke="none" d="M 22319,16193 L 22319,10907 23994,9233 23994,14518 22319,16193 Z " />
+        <path fill="none" stroke="rgb(51,153,255)" stroke-width="26" stroke-linejoin="miter" d="M 22319,16193 L 22319,10907 23994,9233 23994,14518 22319,16193 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id340">
+        <rect class="BoundingBox" stroke="none" fill="none" x="12411" y="3968" width="6765" height="7024" />
+        <path fill="rgb(0,0,254)" stroke="none" d="M 12443,10959 L 12443,5675 14118,4000 19143,4000 19143,9284 17468,10959 12443,10959 Z " />
+        <path fill="none" stroke="rgb(51,153,255)" stroke-width="26" stroke-linejoin="miter" d="M 12443,10959 L 12443,5675 14118,4000 19143,4000 19143,9284 17468,10959 12443,10959 Z " />
+        <path fill="rgb(51,51,254)" stroke="none" d="M 12443,5675 L 14118,4000 19143,4000 17468,5675 12443,5675 Z " />
+        <path fill="none" stroke="rgb(51,153,255)" stroke-width="26" stroke-linejoin="miter" d="M 12443,5675 L 14118,4000 19143,4000 17468,5675 12443,5675 Z " />
+        <path fill="rgb(0,0,203)" stroke="none" d="M 17468,10959 L 17468,5675 19143,4000 19143,9284 17468,10959 Z " />
+        <path fill="none" stroke="rgb(51,153,255)" stroke-width="26" stroke-linejoin="miter" d="M 17468,10959 L 17468,5675 19143,4000 19143,9284 17468,10959 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id341">
+        <rect class="BoundingBox" stroke="none" fill="none" x="17263" y="3968" width="6764" height="7023" />
+        <path fill="rgb(255,0,0)" fill-opacity="0.502" stroke="none" d="M 17295,10958 L 17295,5674 18969,4000 23994,4000 23994,9284 22319,10958 17295,10958 Z " />
+        <path fill="none" stroke="rgb(255,153,51)" stroke-width="26" stroke-linejoin="miter" stroke-dasharray="104,78" d="M 17295,10958 L 17295,5674 18969,4000 23994,4000 23994,9284 22319,10958 17295,10958 Z " />
+        <path fill="rgb(255,51,51)" fill-opacity="0.502" stroke="none" d="M 17295,5674 L 18969,4000 23994,4000 22319,5674 17295,5674 Z " />
+        <path fill="none" stroke="rgb(255,153,51)" stroke-width="26" stroke-linejoin="miter" stroke-dasharray="104,78" d="M 17295,5674 L 18969,4000 23994,4000 22319,5674 17295,5674 Z " />
+        <path fill="rgb(204,0,0)" fill-opacity="0.502" stroke="none" d="M 22319,10958 L 22319,5674 23994,4000 23994,9284 22319,10958 Z " />
+        <path fill="none" stroke="rgb(255,153,51)" stroke-width="26" stroke-linejoin="miter" stroke-dasharray="104,78" d="M 22319,10958 L 22319,5674 23994,4000 23994,9284 22319,10958 Z " />
+       </g>
+      </g>
+      </svg>

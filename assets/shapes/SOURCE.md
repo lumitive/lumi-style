@@ -59,3 +59,22 @@ selective.
 (`_refactor/assets-staging/previews-2k/`, plus 30 vector-3D renders). `tags.json`
 names each shape's preview path so a person can look before choosing — which is
 the step whose absence produced two wrong curations.
+
+## The originals, and the tool that makes the library from them (0.1.532)
+
+`source/` holds the 206 un-recoloured units exactly as extracted, with the
+extraction's `index.json`. `scripts/build/recolor_shapes.py` regenerates every
+unit in this directory from them, reading the light ramp, the ink, the cold
+white, the lime and the canvas from `tokens/design-tokens.json`; its `--check`
+runs in CI and fails on one byte of difference, so the committed library is
+held to the tokens the same way every other vendored asset here is. Until
+0.1.532 the tool lived outside the repository and the originals were not
+vendored: the library was a fact about one machine (GAP-017). The first
+`--check` against the committed files was byte-identical, which is the proof
+that the in-repo tool is the tool that made them.
+
+The originals are the extraction's output, not the template: they carry the
+template's own colours (black master, saturated faces, white edges) and are
+never embedded in a deliverable — `embed_shapes.py` reads only this directory's
+recoloured units, and that is what keeps P-1 an engineering fact.
+

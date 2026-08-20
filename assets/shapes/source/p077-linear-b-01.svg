@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="3402.40 2506.40 18268.20 12774.20"><g class="com.sun.star.drawing.CustomShape">
+       <g id="id1500">
+        <rect class="BoundingBox" stroke="none" fill="none" x="15111" y="3165" width="5902" height="11458" />
+        <path fill="rgb(0,0,254)" stroke="none" d="M 15129,12827 L 18586,12827 18586,14604 20994,8893 18586,3183 18586,4916 15129,4916 16681,8893 15129,12827 Z " />
+        <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 15129,12827 L 18586,12827 18586,14604 20994,8893 18586,3183 18586,4916 15129,4916 16681,8893 15129,12827 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1501">
+        <rect class="BoundingBox" stroke="none" fill="none" x="9000" y="4898" width="7247" height="3856" />
+        <path fill="rgb(0,0,254)" stroke="none" d="M 14742,4916 L 16228,8735 10640,8735 9018,4916 14742,4916 Z " />
+        <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 14742,4916 L 16228,8735 10640,8735 9018,4916 14742,4916 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1502">
+        <rect class="BoundingBox" stroke="none" fill="none" x="9000" y="8995" width="7247" height="3857" />
+        <path fill="rgb(0,0,254)" stroke="none" d="M 14742,12833 L 16228,9013 10570,9013 9018,12833 14742,12833 Z " />
+        <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 14742,12833 L 16228,9013 10570,9013 9018,12833 14742,12833 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id1503">
+        <rect class="BoundingBox" stroke="none" fill="none" x="4061" y="4899" width="6215" height="7913" />
+        <path fill="rgb(0,0,254)" stroke="none" d="M 10257,8815 L 8630,4917 4079,4917 4079,12793 8630,12793 10257,8815 Z " />
+        <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 10257,8815 L 8630,4917 4079,4917 4079,12793 8630,12793 10257,8815 Z " />
+       </g>
+      </g>
+      </svg>

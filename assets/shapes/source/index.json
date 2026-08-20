@@ -1,0 +1,623 @@
+{
+ "$comment": "The unit list the recolour tool iterates, in extraction order. The extraction's full index (page names, family labels in the template's own language) stays outside the repository; the committed tags live in ../tags.json.",
+ "units": [
+  {
+   "file": "p002-page2-01.svg"
+  },
+  {
+   "file": "p002-page2-02.svg"
+  },
+  {
+   "file": "p003-page3-01.svg"
+  },
+  {
+   "file": "p005-2x2-cubed-01.svg"
+  },
+  {
+   "file": "p006-2x2-tower-01.svg"
+  },
+  {
+   "file": "p006-2x2-tower-02.svg"
+  },
+  {
+   "file": "p007-price-01.svg"
+  },
+  {
+   "file": "p008-strategy-01.svg"
+  },
+  {
+   "file": "p009-arrow-3d-01.svg"
+  },
+  {
+   "file": "p010-cubes1-3d-01.svg"
+  },
+  {
+   "file": "p010-cubes1-3d-02.svg"
+  },
+  {
+   "file": "p011-cubes2-3d-01.svg"
+  },
+  {
+   "file": "p011-cubes2-3d-02.svg"
+  },
+  {
+   "file": "p012-footnotesource-01.svg"
+  },
+  {
+   "file": "p012-footnotesource-02.svg"
+  },
+  {
+   "file": "p013-cutout-3d-01.svg"
+  },
+  {
+   "file": "p014-new-entrant-01.svg"
+  },
+  {
+   "file": "p014-new-entrant-02.svg"
+  },
+  {
+   "file": "p014-new-entrant-03.svg"
+  },
+  {
+   "file": "p014-new-entrant-04.svg"
+  },
+  {
+   "file": "p014-new-entrant-05.svg"
+  },
+  {
+   "file": "p015-joint-01.svg"
+  },
+  {
+   "file": "p016-level-separate-4-01.svg"
+  },
+  {
+   "file": "p017-linear-a-3d-01.svg"
+  },
+  {
+   "file": "p018-linear-b-3d-01.svg"
+  },
+  {
+   "file": "p019-linear-c-3d-01.svg"
+  },
+  {
+   "file": "p019-linear-c-3d-02.svg"
+  },
+  {
+   "file": "p020-linear-d-3d-01.svg"
+  },
+  {
+   "file": "p021-linear-e-3d-01.svg"
+  },
+  {
+   "file": "p022-linear-g-3d-01.svg"
+  },
+  {
+   "file": "p023-linear-i-3d-01.svg"
+  },
+  {
+   "file": "p024-linear-j-3d-01.svg"
+  },
+  {
+   "file": "p025-linear-n-3d-01.svg"
+  },
+  {
+   "file": "p026-linear-p-3d-01.svg"
+  },
+  {
+   "file": "p027-linear-q-3d-01.svg"
+  },
+  {
+   "file": "p028-linear-q-3d-01.svg"
+  },
+  {
+   "file": "p029-implement-01.svg"
+  },
+  {
+   "file": "p030-perspective-3d-01.svg"
+  },
+  {
+   "file": "p031-propeller-3d-01.svg"
+  },
+  {
+   "file": "p032-rings-3d-01.svg"
+  },
+  {
+   "file": "p032-rings-3d-02.svg"
+  },
+  {
+   "file": "p033-scale-01.svg"
+  },
+  {
+   "file": "p034-scales-01.svg"
+  },
+  {
+   "file": "p035-sizes-in-01.svg"
+  },
+  {
+   "file": "p036-spiral1-3d-01.svg"
+  },
+  {
+   "file": "p037-spiral-01.svg"
+  },
+  {
+   "file": "p037-spiral-02.svg"
+  },
+  {
+   "file": "p037-spiral-03.svg"
+  },
+  {
+   "file": "p038-spotlight-01.svg"
+  },
+  {
+   "file": "p038-spotlight-02.svg"
+  },
+  {
+   "file": "p038-spotlight-03.svg"
+  },
+  {
+   "file": "p038-spotlight-04.svg"
+  },
+  {
+   "file": "p038-spotlight-05.svg"
+  },
+  {
+   "file": "p039-staircase-01.svg"
+  },
+  {
+   "file": "p040-stars-3d-01.svg"
+  },
+  {
+   "file": "p040-stars-3d-02.svg"
+  },
+  {
+   "file": "p041-wire-cubes-01.svg"
+  },
+  {
+   "file": "p042-arrows-01.svg"
+  },
+  {
+   "file": "p042-arrows-02.svg"
+  },
+  {
+   "file": "p042-arrows-03.svg"
+  },
+  {
+   "file": "p043-level-1-01.svg"
+  },
+  {
+   "file": "p044-level-2-01.svg"
+  },
+  {
+   "file": "p045-level-3-01.svg"
+  },
+  {
+   "file": "p046-level-4-01.svg"
+  },
+  {
+   "file": "p047-level-5-01.svg"
+  },
+  {
+   "file": "p048-level-6-01.svg"
+  },
+  {
+   "file": "p049-flow-2-01.svg"
+  },
+  {
+   "file": "p050-flow-2-title-01.svg"
+  },
+  {
+   "file": "p051-flow-3-01.svg"
+  },
+  {
+   "file": "p052-flow-3-title-01.svg"
+  },
+  {
+   "file": "p053-flow-4-01.svg"
+  },
+  {
+   "file": "p054-flow-4-title-01.svg"
+  },
+  {
+   "file": "p055-flow-5-01.svg"
+  },
+  {
+   "file": "p056-flow-5-title-01.svg"
+  },
+  {
+   "file": "p057-flow-6-01.svg"
+  },
+  {
+   "file": "p058-flow-6-title-01.svg"
+  },
+  {
+   "file": "p059-blades-01.svg"
+  },
+  {
+   "file": "p060-box-01.svg"
+  },
+  {
+   "file": "p061-box-01.svg"
+  },
+  {
+   "file": "p061-box-02.svg"
+  },
+  {
+   "file": "p061-box-03.svg"
+  },
+  {
+   "file": "p061-box-04.svg"
+  },
+  {
+   "file": "p062-cycle-1-01.svg"
+  },
+  {
+   "file": "p063-cycle-2-01.svg"
+  },
+  {
+   "file": "p064-cycle-3-01.svg"
+  },
+  {
+   "file": "p065-cycle-4-01.svg"
+  },
+  {
+   "file": "p066-cycle-5-01.svg"
+  },
+  {
+   "file": "p067-cycle-6-01.svg"
+  },
+  {
+   "file": "p068-cycle-7-01.svg"
+  },
+  {
+   "file": "p069-cycle-8-01.svg"
+  },
+  {
+   "file": "p070-incoming-01.svg"
+  },
+  {
+   "file": "p071-ribbon-01.svg"
+  },
+  {
+   "file": "p072-ring-01.svg"
+  },
+  {
+   "file": "p073-upon-2-01.svg"
+  },
+  {
+   "file": "p074-continuous-01.svg"
+  },
+  {
+   "file": "p075-cutout-01.svg"
+  },
+  {
+   "file": "p076-linear-a-01.svg"
+  },
+  {
+   "file": "p077-linear-b-01.svg"
+  },
+  {
+   "file": "p078-linear-c-01.svg"
+  },
+  {
+   "file": "p079-linear-d-01.svg"
+  },
+  {
+   "file": "p080-linear-e-01.svg"
+  },
+  {
+   "file": "p081-linear-f-01.svg"
+  },
+  {
+   "file": "p082-linear-g-01.svg"
+  },
+  {
+   "file": "p083-linear-h-01.svg"
+  },
+  {
+   "file": "p084-linear-i-01.svg"
+  },
+  {
+   "file": "p085-linear-j-01.svg"
+  },
+  {
+   "file": "p086-linear-k-01.svg"
+  },
+  {
+   "file": "p087-linear-n-01.svg"
+  },
+  {
+   "file": "p088-linear-p-01.svg"
+  },
+  {
+   "file": "p089-linear-q-01.svg"
+  },
+  {
+   "file": "p090-propeller-01.svg"
+  },
+  {
+   "file": "p091-step-5-01.svg"
+  },
+  {
+   "file": "p092-2-on-1-01.svg"
+  },
+  {
+   "file": "p093-against-01.svg"
+  },
+  {
+   "file": "p093-against-02.svg"
+  },
+  {
+   "file": "p094-at-work-01.svg"
+  },
+  {
+   "file": "p095-coupled-horiz-01.svg"
+  },
+  {
+   "file": "p096-coupled-vert-01.svg"
+  },
+  {
+   "file": "p097-focused-01.svg"
+  },
+  {
+   "file": "p098-new-entrant-01.svg"
+  },
+  {
+   "file": "p098-new-entrant-02.svg"
+  },
+  {
+   "file": "p098-new-entrant-03.svg"
+  },
+  {
+   "file": "p098-new-entrant-04.svg"
+  },
+  {
+   "file": "p098-new-entrant-05.svg"
+  },
+  {
+   "file": "p099-parallel-01.svg"
+  },
+  {
+   "file": "p100-split-01.svg"
+  },
+  {
+   "file": "p101-surround-01.svg"
+  },
+  {
+   "file": "p101-surround-02.svg"
+  },
+  {
+   "file": "p101-surround-03.svg"
+  },
+  {
+   "file": "p101-surround-04.svg"
+  },
+  {
+   "file": "p101-surround-05.svg"
+  },
+  {
+   "file": "p102-twisted-01.svg"
+  },
+  {
+   "file": "p103-up-away-01.svg"
+  },
+  {
+   "file": "p103-up-away-02.svg"
+  },
+  {
+   "file": "p104-up-down-01.svg"
+  },
+  {
+   "file": "p104-up-down-02.svg"
+  },
+  {
+   "file": "p105-customer-01.svg"
+  },
+  {
+   "file": "p106-skills-01.svg"
+  },
+  {
+   "file": "p107-the-way-managerscollectively-behave-with-01.svg"
+  },
+  {
+   "file": "p108-competitive-position-01.svg"
+  },
+  {
+   "file": "p109-change-vision-01.svg"
+  },
+  {
+   "file": "p110-delta-p-01.svg"
+  },
+  {
+   "file": "p111-natural-owner-01.svg"
+  },
+  {
+   "file": "p111-natural-owner-02.svg"
+  },
+  {
+   "file": "p111-natural-owner-03.svg"
+  },
+  {
+   "file": "p112-business-strategy-01.svg"
+  },
+  {
+   "file": "p113-restructuring-framework-01.svg"
+  },
+  {
+   "file": "p114-benefit-01.svg"
+  },
+  {
+   "file": "p115-appraise-performanceand-prospects-01.svg"
+  },
+  {
+   "file": "p116-3-01.svg"
+  },
+  {
+   "file": "p116-3-02.svg"
+  },
+  {
+   "file": "p117-stage-1-01.svg"
+  },
+  {
+   "file": "p118-selling-margin-contributionsales-01.svg"
+  },
+  {
+   "file": "p119-maximizeshareholdervalue-01.svg"
+  },
+  {
+   "file": "p120-real-01.svg"
+  },
+  {
+   "file": "p121-gantt10-01.svg"
+  },
+  {
+   "file": "p122-page122-01.svg"
+  },
+  {
+   "file": "p123-left-to-right-01.svg"
+  },
+  {
+   "file": "p124-process-objectives-01.svg"
+  },
+  {
+   "file": "p125-top-down-01.svg"
+  },
+  {
+   "file": "p126-2x2-01.svg"
+  },
+  {
+   "file": "p127-2x2-cubed-01.svg"
+  },
+  {
+   "file": "p128-2x2-extended-01.svg"
+  },
+  {
+   "file": "p129-2x2-tower-01.svg"
+  },
+  {
+   "file": "p130-3x3-01.svg"
+  },
+  {
+   "file": "p131-3x3-extended-01.svg"
+  },
+  {
+   "file": "p132-diffraction-01.svg"
+  },
+  {
+   "file": "p133-flow-down-01.svg"
+  },
+  {
+   "file": "p134-pass-through-01.svg"
+  },
+  {
+   "file": "p135-label-1-01.svg"
+  },
+  {
+   "file": "p136-label-1-01.svg"
+  },
+  {
+   "file": "p137-label-1-01.svg"
+  },
+  {
+   "file": "p137-label-1-02.svg"
+  },
+  {
+   "file": "p138-label-1-01.svg"
+  },
+  {
+   "file": "p139-label-1-01.svg"
+  },
+  {
+   "file": "p140-label-1-01.svg"
+  },
+  {
+   "file": "p141-titleunit-of-measure-01.svg"
+  },
+  {
+   "file": "p141-titleunit-of-measure-02.svg"
+  },
+  {
+   "file": "p141-titleunit-of-measure-03.svg"
+  },
+  {
+   "file": "p141-titleunit-of-measure-04.svg"
+  },
+  {
+   "file": "p141-titleunit-of-measure-05.svg"
+  },
+  {
+   "file": "p142-label-1-01.svg"
+  },
+  {
+   "file": "p144-label-1-01.svg"
+  },
+  {
+   "file": "p145-label-1-01.svg"
+  },
+  {
+   "file": "p146-label-1-01.svg"
+  },
+  {
+   "file": "p147-titleunit-of-measure-01.svg"
+  },
+  {
+   "file": "p147-titleunit-of-measure-02.svg"
+  },
+  {
+   "file": "p148-titleunit-of-measure-01.svg"
+  },
+  {
+   "file": "p149-arrows-01.svg"
+  },
+  {
+   "file": "p149-arrows-02.svg"
+  },
+  {
+   "file": "p149-arrows-03.svg"
+  },
+  {
+   "file": "p153-legendlegendlegend-01.svg"
+  },
+  {
+   "file": "p155-page155-01.svg"
+  },
+  {
+   "file": "p156-very-attractiveaveragevery-unattractive-01.svg"
+  },
+  {
+   "file": "p156-very-attractiveaveragevery-unattractive-02.svg"
+  },
+  {
+   "file": "p156-very-attractiveaveragevery-unattractive-03.svg"
+  },
+  {
+   "file": "p156-very-attractiveaveragevery-unattractive-04.svg"
+  },
+  {
+   "file": "p156-very-attractiveaveragevery-unattractive-05.svg"
+  },
+  {
+   "file": "p156-very-attractiveaveragevery-unattractive-06.svg"
+  },
+  {
+   "file": "p156-very-attractiveaveragevery-unattractive-07.svg"
+  },
+  {
+   "file": "p156-very-attractiveaveragevery-unattractive-08.svg"
+  },
+  {
+   "file": "p156-very-attractiveaveragevery-unattractive-09.svg"
+  },
+  {
+   "file": "p156-very-attractiveaveragevery-unattractive-10.svg"
+  },
+  {
+   "file": "p157-illustrative-01.svg"
+  },
+  {
+   "file": "p158-disguised-client-example-01.svg"
+  },
+  {
+   "file": "p159-world-map-01.svg"
+  }
+ ]
+}

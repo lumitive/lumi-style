@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="5232.52 3043.52 14349.96 12829.96"><g class="com.sun.star.drawing.CustomShape">
+       <g id="id2086">
+        <rect class="BoundingBox" stroke="none" fill="none" x="15579" y="3557" width="3304" height="8781" />
+        <path fill="rgb(0,0,254)" stroke="none" d="M 15597,6078 L 15602,12319 18864,12319 18864,3575 18652,3850 18373,4121 18016,4437 17551,4799 17086,5145 16667,5416 16062,5792 15597,6078 Z " />
+        <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 15597,6078 L 15602,12319 18864,12319 18864,3575 18652,3850 18373,4121 18016,4437 17551,4799 17086,5145 16667,5416 16062,5792 15597,6078 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id2087">
+        <rect class="BoundingBox" stroke="none" fill="none" x="12316" y="6059" width="3308" height="6280" />
+        <path fill="rgb(0,0,254)" stroke="none" d="M 12334,7426 L 12334,12320 15600,12320 15605,6077 15285,6247 14964,6408 14582,6578 14189,6749 13662,6959 13197,7140 12690,7310 12334,7426 Z " />
+        <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 12334,7426 L 12334,12320 15600,12320 15605,6077 15285,6247 14964,6408 14582,6578 14189,6749 13662,6959 13197,7140 12690,7310 12334,7426 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id2088">
+        <rect class="BoundingBox" stroke="none" fill="none" x="9012" y="8771" width="3339" height="3568" />
+        <path fill="rgb(0,0,254)" stroke="none" d="M 9030,9586 L 9030,12320 12332,12320 12332,8789 12126,8869 11903,8954 11578,9059 11113,9180 10621,9295 10156,9386 9608,9481 9030,9586 Z " />
+        <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 9030,9586 L 9030,12320 12332,12320 12332,8789 12126,8869 11903,8954 11578,9059 11113,9180 10621,9295 10156,9386 9608,9481 9030,9586 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id2089">
+        <rect class="BoundingBox" stroke="none" fill="none" x="5746" y="9559" width="3374" height="2779" />
+        <path fill="rgb(0,0,254)" stroke="none" d="M 5764,9968 L 5764,12319 9101,12314 9101,9577 8771,9627 8295,9697 7903,9747 7562,9787 7200,9827 6756,9867 6187,9928 5764,9968 Z " />
+        <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 5764,9968 L 5764,12319 9101,12314 9101,9577 8771,9627 8295,9697 7903,9747 7562,9787 7200,9827 6756,9867 6187,9928 5764,9968 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.LineShape">
+       <g id="id2103">
+        <rect class="BoundingBox" stroke="none" fill="none" x="5821" y="15323" width="13230" height="37" />
+        <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="miter" d="M 5821,15341 L 19050,15341 " />
+       </g>
+      </g>
+      </svg>

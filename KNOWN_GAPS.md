@@ -140,8 +140,9 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-017 · The shape library cannot be regenerated from the tokens inside this repository
 
-- status: open
+- status: fixed
 - opened: 0.1.529
+- closed: 0.1.532
 - surface: assets/shapes/, scripts/build/ (no recolour tool)
 - symptom: the 206 recoloured units in `assets/shapes/` were produced by a
   tool outside the repository (`_refactor/tools/recolor_lumi.py`, in the
@@ -154,8 +155,9 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   and not recorded.
 - check: a recolour tool under `scripts/build/` reading the token values
   through `css_tokens.py`, the originals vendored beside the output, and a `--check`
-  in `ci.yml` that fails on one edited byte. The audit-remediation branch
-  closes this in its step 9.
+  in `ci.yml` that fails on one edited byte. Closed at 0.1.532:
+  `scripts/build/recolor_shapes.py`, `assets/shapes/source/`, and the first
+  `--check` against the committed library was byte-identical.
 
 ## GAP-018 · AGENTS.md grew while the design said it would shrink
 

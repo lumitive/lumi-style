@@ -1,3 +1,38 @@
+## 0.1.532 — the shape library is regenerable from inside the repository, and held to the tokens
+
+Audit-remediation step 9 (`specs/2026-08-20-audit-remediation-design.md`).
+**Closes GAP-017.**
+
+**The recolour tool comes home, and the originals come with it.** The 206
+units under `assets/shapes/` were produced by a script in the owner's review
+directory from originals that were not vendored, so no clone could
+regenerate the library and nothing held the committed SVGs to the tokens
+they claim to follow — the one vendored asset here without a `--check`.
+`scripts/build/recolor_shapes.py` is the port: the ramp, the ink, the cold
+white, the lime and the canvas are read from `tokens/design-tokens.json` at
+run time, the colour maths comes from `color_math` (the `no shadow math`
+guard holds that), and `assets/shapes/source/` carries the un-recoloured
+originals with a unit list in extraction order. **The first `--check`
+against the committed library was byte-identical on all 206 files**, which
+is the proof that the in-repo tool is the tool that made them; the check
+now runs in CI beside the other nine asset generators, and `release.py`
+regenerates the library with the other generated artefacts.
+
+**Two fallbacks are not token values, and the file says so.** The
+extraction wrote `--ln1`/`--ln2` fallbacks as "rgba(43,46,51,.20)/.12
+flattened on white", and they are not — the true composites are `#D5D5D6`
+and `#E6E6E7`. They are kept verbatim, because they sit inside every
+committed file and the `var()` wins inside any LUMI document; moving them is
+a regeneration decision, and `--check` is where that decision becomes
+visible rather than silent.
+
+Four tests in `tests/test_recolor_shapes.py`; the planted red is one
+`--acc-5` rewritten to `--acc-4` in a copy of the library, which `--check`
+names by file. The extraction's full index (page names and family labels in
+the template's own language) stays outside the repository; the English-only
+guard would not have it, and the committed tags in `tags.json` are the
+classification that matters.
+
 ## 0.1.531 — the loop keeps its own time: traces open at the scaffold, close at the check, and the matrix can be fed
 
 Audit-remediation step 8 (`specs/2026-08-20-audit-remediation-design.md`).
