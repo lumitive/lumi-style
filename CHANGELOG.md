@@ -1,3 +1,32 @@
+## 0.1.535 — a city name leaves the tracked files, and a manifest may not describe what git does not have
+
+Audit-remediation step 12 (`specs/2026-08-20-audit-remediation-design.md`).
+
+**Red line 9's edge.** The hard core held — no client name, figure, email or
+phone in any tracked file — and one city name had reached eight of them
+through a single path: a design-provenance comment in `tokens/lumi-layouts.css`
+("the … pilot of this form was accepted"), propagated by `build_fixtures.py`
+into three fixtures, then written by hand into a test, two backlog entries
+and a spec that cited a deliverable by its filename. Each is now neutral
+("the 2026-08 roadshow pilot", "the 0.1.519 r2 build of the investor
+deck"), the fixtures regenerated, and the remediation's own spec and plan
+were carrying the word too and are corrected with the rest. The one
+remaining mention is inside `releases/evidence/0.1.519.json`, a waiver
+text in a released evidence record: evidence is history and is left as
+written. The instrument for the edge is 0.1.526's — the repo secrets guard
+reading the operator's out-of-bounds lists — and it would have caught this
+on any machine carrying the list.
+
+**`assets tracked` now runs in both directions.** It asked git which files
+under `assets/` were ignored-but-present; it did not ask whether the files
+a `SOURCES.md` describes are tracked at all. Two manifests described 37
+assets that were on disk and untracked — neither ignored nor in the index,
+so invisible to the first question — which is 0.1.504's shape (a manifest
+describing 206 preview files nobody had) arriving again. Every `| file |`
+row in every `assets/**/SOURCES.md` is now held to `git ls-files`. Red run:
+a synthetic repo with a manifest row for `ghost.svg`, in
+`tests/test_shadow_guards_audit.py`.
+
 ## 0.1.534 — a scored document is never deleted, the losses are recorded, and the pitch deck gets a corpus id
 
 Audit-remediation step 11 (`specs/2026-08-20-audit-remediation-design.md`).

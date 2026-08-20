@@ -7,7 +7,7 @@ why; not a source of rules. Rule prose lives in `references/`, values in
 ## What prompted it
 
 An owner review of two decks — `adopting-lumi-style.0.1.517.r14` (accepted) and
-`LUMI-Agent-BP-chengdu.0.1.519.r2` (rejected as text-heavy) — asked why a
+the 0.1.519 r2 build of the investor deck (rejected as text-heavy) — asked why a
 convention she had accepted in the first did not survive into the second, and
 directed that a seed investor deck be about 80% concepts and figures.
 

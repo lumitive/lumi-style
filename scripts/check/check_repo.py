@@ -3343,6 +3343,32 @@ def check_assets_tracked():
         errors.append(
             f"{path} is on disk and .gitignore excludes it — an asset the "
             f"package ships may not be one `git add -f` away from existing")
+    # The other direction: a manifest row describing a file git does not
+    # have. 0.1.504's shape manifest described 206 preview files nobody had;
+    # the 2026-08-20 audit found two SOURCES.md files describing 37 assets
+    # that were on disk and untracked — which the ignore-list check above
+    # cannot see, because untracked-and-not-ignored is neither state it asks
+    # about. A manifest is the package's word about what it ships.
+    tracked = subprocess.run(["git", "ls-files", "-z", "assets/"], cwd=ROOT,
+                             capture_output=True, text=True)
+    if tracked.returncode != 0:
+        return errors + ["could not list tracked assets (git ls-files failed) — "
+                         "the manifest half of this guard did not run"]
+    have = {f for f in tracked.stdout.split("\0") if f}
+    row = re.compile(r"^\|\s*`?([\w./-]+\.(?:svg|png|woff2|ttf|otf|json))`?\s*\|")
+    for manifest in sorted((ROOT / "assets").rglob("SOURCES.md")):
+        rel_dir = manifest.parent.relative_to(ROOT)
+        for n, line in enumerate(manifest.read_text(encoding="utf-8").splitlines(), 1):
+            m = row.match(line)
+            if not m:
+                continue
+            name = m.group(1)
+            candidate = str(rel_dir / name)
+            if candidate not in have:
+                errors.append(
+                    f"{manifest.relative_to(ROOT)}:{n} describes {name}, which "
+                    f"git does not track — a manifest row for a file nobody has "
+                    f"(0.1.504's shape)")
     return errors
 
 

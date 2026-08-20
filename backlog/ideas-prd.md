@@ -584,7 +584,7 @@ exception" — with the planted-red run convention 15 requires, run first.
 an Arabic-digit test. A Chinese title asserting plainly (`本轮融资只解决一件事`) reads as a topic label unless it happens to carry an Arabic digit, and
 the outline gate FAILs it.
 
-**Evidence.** The Chengdu roadshow outline (2026-08-19): two zh titles
+**Evidence.** The 2026-08-19 roadshow outline: two zh titles
 misjudged; both were worked around by inserting digits (`只解决 1 件事`),
 which is compliance with the instrument, not the rule.
 
@@ -599,7 +599,7 @@ titles first, plant the red run first.
 across the raw file, so a three-letter Latin term ("Ray") fires on base64
 inside the embedded font (`...RayTh2...`), six times on one build.
 
-**Evidence.** Chengdu build, 2026-08-19: all six layer-1 hits were base64;
+**Evidence.** The 2026-08-19 roadshow build: all six layer-1 hits were base64;
 the term had to be dropped from the out-of-bounds list to keep the check
 usable, which weakens the check.
 

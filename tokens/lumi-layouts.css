@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.534 (2026-08-19)
+   LUMI page layouts · v0.1.535 (2026-08-19)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -582,8 +582,8 @@ svg .dash { stroke-dasharray: 4 3; }
    per part: a dark chip carrying the row number in the acid green, the part's
    claim at title weight quoting its opener (D27 reads .gn lines wherever the
    stylesheet defines them), a quiet run line naming the pages. Provenance: an
-   owner review called the grades agenda "too quiet" and the Chengdu pilot of
-   this form was accepted; energy comes from weight and the lime, the ground
+   owner review called the grades agenda "too quiet" and the 2026-08 roadshow
+   pilot of this form was accepted; energy comes from weight and the lime, the ground
    stays the body tier. */
 .launch { display: flex; flex-direction: column; }
 .launch .lrow {
