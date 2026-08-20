@@ -184,7 +184,7 @@ Each step lists: **change · red run · tests · ledger**.
   D15/D16/D17 get archive records built from `_layout/` sheet metadata
   **marked as such** (no measurement is invented); `operating-rules.md` gains
   "a scored document is never deleted; superseded builds may be"; the
-  Chengdu BP registered as **D18** with a generated scoring sheet (D2);
+  the roadshow pitch deck registered as **D18** with a generated scoring sheet (D2);
   `evals/thresholds.json` A1 entry gains `accepted_under` and
   `shippable_under_current_gates: false` with GAP «A1 fails D27» recording D3.
 - red run: a record citing an id with neither file nor archive.
@@ -233,7 +233,7 @@ Each step lists: **change · red run · tests · ledger**.
 | D3 answer | A1 ruling | Step 11 |
 | six matrix runs | `run_conformance.py run --drive --model … --effort …` ×6 | K1, `ledger.py --board` |
 | branch protection | "require a pull request" on `main` | Step 14 evidence |
-| score D18 | the Chengdu BP sheet | agreement study row 4 |
+| score D18 | the roadshow pitch deck sheet | agreement study row 4 |
 
 ## Order and dependencies
 

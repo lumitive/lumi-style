@@ -194,3 +194,24 @@ def test_prompt_parity_fails_on_a_missing_sentence(tmp_path, monkeypatch):
 
 def test_the_live_prompt_is_at_parity():
     assert check_repo.check_prompt_parity() == []
+
+
+# 0.1.535 — a manifest row for a file git does not track fails `assets tracked`.
+
+def test_a_manifest_row_for_an_untracked_file_fails(tmp_path, monkeypatch):
+    repo = _git_tree(tmp_path / "repo", {
+        "assets/logos/SOURCES.md": "| File | Mark |\n|---|---|\n| `ghost.svg` | Ghost |\n",
+        "assets/logos/real.svg": "<svg/>",
+        ".gitignore": ""})
+    monkeypatch.setattr(check_repo, "ROOT", repo)
+    errors = check_repo.check_assets_tracked()
+    assert len(errors) == 1 and "ghost.svg" in errors[0] and "SOURCES.md:3" in errors[0]
+
+
+def test_a_manifest_row_for_a_tracked_file_passes(tmp_path, monkeypatch):
+    repo = _git_tree(tmp_path / "repo", {
+        "assets/logos/SOURCES.md": "| File | Mark |\n|---|---|\n| `real.svg` | Real |\n",
+        "assets/logos/real.svg": "<svg/>",
+        ".gitignore": ""})
+    monkeypatch.setattr(check_repo, "ROOT", repo)
+    assert check_repo.check_assets_tracked() == []

@@ -156,7 +156,8 @@ def test_m8_cv_floor_is_050_and_a_035_rhythm_now_fails():
 
 
 # ── zh blind spots found on the first real Chinese deliverable (0.1.519) ──────
-# Each of these fired on the 2026-08 Chengdu roadshow build before the fix:
+# Each of these fired on the 2026-08 roadshow build (the first real Chinese
+# deliverable) before the fix:
 # the deliberate-red run is the real artifact, per convention 15.
 
 def test_title_frame_reads_full_width_colon_and_question():
