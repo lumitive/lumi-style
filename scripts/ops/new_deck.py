@@ -110,14 +110,16 @@ def outline_sections(path: pathlib.Path | None):
         rest = str(a.get("rest", ""))
         by_title[t] = {"move": str(a.get("move", "")),
                        "finding": _field("finding", rest),
-                       "implication": _field("implication", rest)}
+                       "implication": _field("implication", rest),
+                       "framework": _field("framework", rest)}
     out = []
     for _h, titles in groups:
         for t in titles:
             d = by_title.get(t, {})
             out.append({"title": t, "move": d.get("move", ""),
                         "finding": d.get("finding", ""),
-                        "implication": d.get("implication", "")})
+                        "implication": d.get("implication", ""),
+                        "framework": d.get("framework", "")})
     return out
 
 
@@ -145,6 +147,52 @@ def framework_for(move: str) -> str:
         return ""
     parts = [f"{k} — misuse: {v.get('misuse', '')[:110]}" for k, v in hits[:3]]
     return f"move={move}; frameworks that draw it: " + " | ".join(parts)
+
+
+def shape_for(move: str, framework: str = "") -> tuple[str, str]:
+    """-> (shape id or "", comment). The question -> framework -> shape chain
+    (analysis-rules AR-4, design-rules §4.0) executed to its last link.
+
+    Until 0.1.533 the scaffold named the candidate frameworks in a comment and
+    left the figure empty, on the reasoning that the relation lives in the
+    content and a prescribed shape would repeat the mis-curation. Measured
+    across five shipped deliverables the library's use count was zero: a
+    comment is not a path. So a page whose outline declares a move now
+    ARRIVES with the first shape of the first framework that draws it — or of
+    the framework the outline names — in the figure slot, and the comment
+    lists the alternatives. The choice stays the author's; the default is no
+    longer "nothing". A framework drawn natively (funnel, waterfall,
+    market-sizing) names no shape and the slot stays a prompt.
+    """
+    if not move:
+        return "", ""
+    try:
+        d = json.loads((ROOT / "assets" / "frameworks.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return "", ""
+    entries = d.get("frameworks", d)
+    hits = [(k, v) for k, v in entries.items()
+            if isinstance(v, dict) and v.get("move") == move]
+    if framework:
+        named = [(k, v) for k, v in entries.items() if k == framework]
+        hits = named + [h for h in hits if h[0] != framework]
+    for k, v in hits:
+        shapes = [x for x in (v.get("shapes") or []) if (ROOT / "assets" / "shapes" / f"{x}.svg").exists()]
+        if shapes:
+            others = ", ".join(shapes[1:4])
+            return shapes[0], (f"{k} drawn with shape {shapes[0]}"
+                               + (f"; alternatives: {others}" if others else "")
+                               + (" — or draw the framework natively" if v.get("drawn") else ""))
+    return "", ""
+
+
+def shape_figure(shape: str, label_a: str, label_b: str) -> str:
+    return f'''<svg viewBox="0 0 640 300" role="img"
+        aria-label="{label_a}: replace the labels, keep or swap the shape">
+        <use href="#shape-{shape}" x="0" y="0" width="640" height="239"/>
+        <text x="16" y="278" class="flbl" style="fill:var(--tx2)">{label_a}</text>
+        <text x="624" y="278" text-anchor="end" class="flbl" style="fill:var(--tx2)">{label_b}</text>
+      </svg>'''
 
 
 def wordmark(override: str | None = None) -> str:
@@ -444,6 +492,20 @@ SAMPLES = [
     '        <div class="stat"><p class="sv">190 lessons</p>\n'
     '          <p class="sn">a third figure, glossed the same way.</p></div>\n'
     '      </div>',
+
+    # The field — brand.md's signature device, "many small marks, varying in
+    # intensity, ordered by the thing they measure" — shipped in the tokens at
+    # 0.1.379 and was used by nothing the audit measured. It rides in the
+    # rotation so an author meets it; its rule rides with it: ONE MARK PER
+    # DATUM. With no set behind it, delete the block — a shimmer with no data
+    # is the decoration the brand file names as dishonest.
+    '      <p class="listhead">A set with a shape: one mark per item, '
+    'ordered by what it measures</p>\n'
+    '      <!-- .field: one <i> per real datum, data-w 1..5 from the datum, '
+    'order from the data. No set? delete this block. -->\n'
+    '      <div class="field tall">'
+    + "".join(f'<i data-w="{w}"></i>' for w in (1, 1, 2, 2, 3, 3, 3, 4, 4, 5, 5, 4, 3, 2, 2, 1))
+    + '</div>',
 ]
 
 
@@ -603,6 +665,10 @@ def main(argv):
             move = sec.get("move", "")
             hint = framework_for(move)
             adecl = f' data-analysis="{move}"' if move else ""
+            shape, shape_note = shape_for(move, sec.get("framework", ""))
+            if shape:
+                figure = shape_figure(shape, "what this end names", "and what it leads to")
+                hint = (hint + "; " if hint else "") + shape_note
             fignote = (f"\n      <!-- {hint} -->" if hint else "")
             out.append(f'''<section class="page" id="p{n}"{adecl}>
   {g}

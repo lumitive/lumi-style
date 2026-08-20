@@ -1,3 +1,58 @@
+## 0.1.533 — the framework's shape reaches the figure slot, the library's use is counted, and the exemplars are read where they can act
+
+Audit-remediation step 10 (`specs/2026-08-20-audit-remediation-design.md`).
+The audit's finding on the two bodies of domain knowledge was the same
+finding twice: the McKinsey shape library (206 units, tagged, embeddable on
+demand) was referenced by **zero** `<use>` elements across five shipped
+deliverables, and the exemplar notes were loaded by no entry point. Both
+were reachable and neither was on the path.
+
+**A declared move now arrives with a shape.** `new_deck.py` used to name the
+candidate frameworks in a comment and leave the figure empty, on the
+reasoning that the relation lives in the content and a prescribed shape would
+repeat the mis-curation. The reasoning holds for the *choice* and the
+measurement says the *default* was wrong: a comment is not a path. So the
+question → framework → shape chain (AR-4, design-rules §4.0) now runs to its
+last link in the scaffold: a page whose outline declares a move gets the
+first shape of the first framework that draws it — or of the framework the
+outline names, `framework: <id>` being a new optional field of the analysis
+line — in its figure slot, with the alternatives in the comment and the
+x/y/width/height the library's non-zero viewBox origins require. A move no
+framework draws (`correlate`) or a framework drawn natively (funnel,
+waterfall, market-sizing) leaves the slot a prompt. Run against the real
+outline of the 0.1.522 pitch deck: fourteen pages, eleven slots filled, D19
+resolving every one.
+
+**D32 · shape-library use** is a reported row: how many library shapes the
+document draws with, against how many pages declare a move. It is a finding
+only on a document that declares moves and draws none of them — a deck
+whose every page says `compare` and whose figures are all hand-drawn has
+either drawn natively on purpose or let its slots go, and the count tells a
+reader which to look for. A document that declares no moves is not measured
+against it, so nothing built before the analysis beat existed reads
+differently.
+
+**The exemplars are read at the analysis beat.** `SKILL.md` step 1b and the
+`AGENTS.md` load order now send the agent to
+`references/exemplars/mckinsey-design-notes.md` (and `yc-pitch-notes.md` for
+a `pitch-deck`) at the beat, which is the one place ten devices about how a
+page carries an argument can act; loaded at composition, 0.1.522 measured
+that they landed as typography (row labels, number-top) and never as
+analysis (zero benchmark lines, zero unit lines).
+
+**The field rides in the scaffold.** `brand.md`'s signature device — one
+mark per datum, intensity from the datum — shipped in the tokens at 0.1.379
+and was used by nothing the audit measured. It is in the sample rotation
+now with its rule as the comment beside it: no set behind it, delete the
+block. The owner's D5 ruling was "keep and scaffold"; retiring it remains
+hers.
+
+Five tests in `tests/test_new_deck.py` (a named framework beats the move's
+first candidate; `correlate` leaves a prompt; an outline with moves yields
+slots) and D32's fixture expectations. GAP-016's sibling — that the scaffold
+prescribes nothing — is the reasoning this entry overrules, and it is
+overruled on a measurement rather than a preference.
+
 ## 0.1.532 — the shape library is regenerable from inside the repository, and held to the tokens
 
 Audit-remediation step 9 (`specs/2026-08-20-audit-remediation-design.md`).

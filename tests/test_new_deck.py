@@ -251,3 +251,40 @@ def test_no_storyline_means_no_trace_and_says_so():
 def test_no_trace_flag_is_honoured():
     html = scaffold("--storyline", "gtm", "--pages", "2", "--no-trace")
     assert "data-trace" not in html
+
+
+# 0.1.533 — the question → framework → shape chain reaches the figure slot.
+
+def test_a_declared_move_puts_the_frameworks_shape_in_the_slot():
+    shape, note = new_deck.shape_for("position")
+    assert shape and "2x2" in shape and "alternatives" in note
+
+
+def test_a_named_framework_wins_over_the_moves_first_candidate():
+    shape, _ = new_deck.shape_for("decompose", "value-chain")
+    assert shape.startswith("p076") or shape.startswith("p077") or shape.startswith("p056")
+
+
+def test_a_move_no_framework_draws_leaves_the_slot_a_prompt():
+    assert new_deck.shape_for("correlate") == ("", "")
+    assert new_deck.shape_for("") == ("", "")
+
+
+def test_an_outline_with_moves_yields_shape_slots(tmp_path):
+    outline = tmp_path / "o.md"
+    outline.write_text(
+        "# Plan\n\n## Part A\n\n- First title with a 40% fact\n"
+        "  analysis: compare | finding: first | implication: one | framework: harvey-scorecard\n"
+        "- Second title with 12 items\n"
+        "  analysis: decompose | finding: second | implication: two\n",
+        encoding="utf-8")
+    html = scaffold("--storyline", "gtm", "--pages", "2", "--outline", str(outline),
+                    "--no-trace")
+    assert html.count('href="#shape-') >= 2
+    assert "p156-very-attractiveaveragevery-unattractive-01" in html
+    assert 'data-analysis="decompose"' in html
+
+
+def test_the_field_device_rides_in_the_sample_rotation():
+    html = scaffold("--storyline", "gtm", "--pages", "8", "--no-trace")
+    assert 'class="field tall"' in html and "per real datum" in html
