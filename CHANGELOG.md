@@ -1,3 +1,42 @@
+## 0.1.525 — one credential table, one strip-tags, and the guards that keep them single
+
+Audit-remediation step 2 (`specs/2026-08-20-audit-remediation-design.md`).
+Both changes are the `no shadow math` shape — a
+shared implementation under `scripts/lib/` and a guard that refuses a private
+copy — because a fix that edits the copies back into agreement is the drift
+class this repository has fixed twenty-six times.
+
+**The credential table is `scripts/lib/secret_patterns.py`, and nothing else
+under `scripts/` may spell one.** `check_repo.SECRET_PATTERNS` had five shapes
+and `check_privacy.CREDENTIALS` had eight, written four months apart, neither
+a superset: a `github_pat_` token in a deliverable was caught by the repo
+guard and missed by the deliverable checker, a Slack or Google key in a
+tracked file the other way round. The refactor design had forbidden this by
+name. The union is one table with nine shapes; both checkers import it; the
+**`secret patterns parity`** guard fails a `re.compile(` anywhere else that
+carries a credential marker (the markers are assembled at runtime so the
+guard's own source does not trip it) and fails either importer that stops
+importing. The repo guard reports one finding per line, because the merged
+assignment shape overlaps the token shapes (`token = ghp_…` is both) and a
+chatty scanner is a scanner people stop reading. Red run: a planted
+`AKIA…` regex in a second file, and `check_privacy.py` with its import
+removed — both in `tests/test_shadow_guards_audit.py`.
+
+**Strip-tags is `markup.strip_tags` / `markup.visible_text`, and the
+CJK-space rule is `markup.join_cjk`.** The audit counted four private
+`re.sub(r"<[^>]+>", …)` copies; the **`no shadow markup`** guard, written
+to report every occurrence rather than the first per file, found
+**thirteen** across `check_design.py`, `check_prose.py`, `check_facts.py`,
+`check_outline.py`, `check_privacy.py` and `judge_findings.py`, each a
+little different (one lowercased, one collapsed whitespace, one resolved
+entities, one joined with nothing). All thirteen now call the shared
+helpers — `sep=""` exists for the two callers asking "is anything left at
+all" — and the two CJK-space copies added at 0.1.523, each with a comment
+pointing at the other, are one function. Fixture verdicts are unchanged
+across the change (`check_fixtures` 13 runs, all as expected), which is the
+evidence the copies were meant to be the same operation. Three scripts that
+had never imported a sibling gained the canonical bootstrap block.
+
 ## 0.1.524 — three instruments corrected: the aspect probe, the phase clock, and a count that never reached the reader
 
 Audit-remediation step 1 (`specs/2026-08-20-audit-remediation-plan.md`). Each

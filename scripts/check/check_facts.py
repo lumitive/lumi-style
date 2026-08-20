@@ -33,9 +33,22 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
 import re
 import sys
-from html import unescape
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import markup  # noqa: E402 — after the bootstrap
 
 # A quantity worth tracking: currency, percentage, or a grouped/multi-digit
 # number. A bare single digit is usually a count derived on the page ("4 gates")
@@ -107,7 +120,7 @@ def _visible(html: str) -> str:
     # `f-card`.
     s = re.sub(r'<svg[^>]*class="(?:[^"]*\s)?(?:gl|ground)(?:\s[^"]*)?".*?</svg>',
                " ", s, flags=re.S | re.I)
-    s = " ".join(unescape(re.sub(r"<[^>]+>", " ", s)).split())
+    s = markup.visible_text(s)
     s = re.sub(r"\b\d{1,3}\s*/\s*\d{1,3}\b", " ", s)
     # A telephone number is contact furniture. Left in, its runs read as three
     # separate invented quantities, and the author is told their phone number
@@ -250,7 +263,7 @@ def compare(contract: str, doc_html: str) -> dict:
     # text carries none, then the exclusions ate the whole document and this
     # check has no opinion to offer. `check_design.py` reports UNMEASURABLE on
     # a document that declares no token block for the same reason.
-    everything, _ = facts(" ".join(re.sub(r"<[^>]+>", " ", doc_html).split()),
+    everything, _ = facts(markup.visible_text(doc_html),
                           names=False)
     unmeasurable = not dq and bool(everything)
     return {"contract_quantities": len(cq), "contract_names": len(cn),

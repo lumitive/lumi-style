@@ -70,7 +70,6 @@ import pathlib as _bs_pathlib  # noqa: E402
 import re
 import sys
 import sys as _bs_sys  # noqa: E402
-from html import unescape as html_unescape
 
 _SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
                      if p.name == "scripts")
@@ -80,6 +79,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
+import markup  # noqa: E402 — after the bootstrap
 from deliverable_registry import (  # noqa: E402 — after the bootstrap
     GENRES,
     STORYLINES,
@@ -212,13 +212,9 @@ def _stem(w: str) -> str:
 def _joined(s: str) -> str:
     """The words in order, with the space between two CJK characters removed.
 
-    Stripping an inline highlight span leaves a separator where the tag was.
-    English needs it, because it lands on a word boundary; Chinese does not,
-    because it invents one. `check_design._norm_line` carries the same rule for
-    the same reason.
+    The CJK rule is `markup.join_cjk`, shared with `check_design._norm_line`.
     """
-    t = " ".join(_WORD.findall(s.lower()))
-    return re.sub(r"(?<=[\u4e00-\u9fff]) (?=[\u4e00-\u9fff])", "", t)
+    return markup.join_cjk(" ".join(_WORD.findall(s.lower())))
 
 
 def _content_words(s: str) -> set[str]:
@@ -255,7 +251,7 @@ def _matches(plan: str, shipped: str) -> bool:
 
 def _flatten(fragment: str) -> str:
     """Markup fragment -> the words a reader sees, entities resolved."""
-    return " ".join(html_unescape(re.sub(r"<[^>]+>", " ", fragment)).split())
+    return markup.visible_text(fragment)
 
 
 class _NoMatch:

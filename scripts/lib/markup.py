@@ -66,3 +66,41 @@ def body_attr(html: str, name: str) -> str | None:
         return None
     got = re.search(rf'\b{re.escape(name)}="([^"]*)"', m.group(0))
     return got.group(1) if got else None
+
+
+# --- the words a reader sees ------------------------------------------------
+# Four checkers carried their own `re.sub(r"<[^>]+>", " ", s)` plus an
+# unescape, each a little different (one lowercased, one collapsed whitespace,
+# one did neither), found by the 2026-08-20 audit. A private copy of a shared
+# operation is how 0.1.492 and 0.1.505 happened, so the operation lives here
+# and the `no shadow markup` guard refuses a fifth copy.
+_TAG_RE = re.compile(r"<[^>]+>")
+_CJK_GAP_RE = re.compile(r"(?<=[一-鿿]) (?=[一-鿿])")
+
+
+def strip_tags(fragment: str, sep: str = " ") -> str:
+    """Tags become `sep` (a space by default), entities resolve. Whitespace is
+    NOT collapsed and case is NOT changed — callers that need either do it,
+    visibly. `sep=""` is for a caller asking "is anything left at all"."""
+    import html as _html
+    return _html.unescape(_TAG_RE.sub(sep, fragment))
+
+
+def visible_text(fragment: str, sep: str = " ") -> str:
+    """strip_tags, then one space between words: the form a quotation, a fact
+    scan or a term scan compares against."""
+    return " ".join(strip_tags(fragment, sep).split())
+
+
+def join_cjk(text: str) -> str:
+    """Drop the space BETWEEN two CJK characters and nothing else.
+
+    Stripping an inline highlight span leaves a separator where the tag was.
+    English needs it, because it lands on a word boundary; Chinese does not,
+    because it invents one. On the zh build an agenda line identical to its
+    opener read as an orphan and D27 — which gates — failed a correct
+    document; the outline mirror failed a pure-CJK title against itself for
+    the same reason. Spaces around Latin words are untouched, so
+    `每个 Agent 都会` keeps both.
+    """
+    return _CJK_GAP_RE.sub("", text)

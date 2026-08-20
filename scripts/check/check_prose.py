@@ -36,7 +36,6 @@ it now fails CI.
 """
 
 import argparse
-import html
 import json
 import pathlib
 
@@ -62,6 +61,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
+import markup  # noqa: E402
 from deliverable_registry import GENRES as registry_genres  # noqa: E402
 
 # (regex, phrase). The phrase is verbatim from writing-rules.md section 2 and is
@@ -413,7 +413,7 @@ def visible_cjk(raw, suffix):
     if suffix in {".html", ".htm"}:
         text = CODE_HTML.sub(" ", raw)
         text = re.sub(r"<!--.*?-->", " ", text, flags=re.S)
-        text = html.unescape(re.sub(r"<[^>]+>", " ", text))
+        text = markup.strip_tags(text)
     else:
         text = re.sub(r"```.*?```", " ", raw, flags=re.S)
         text = re.sub(r"`[^`\n]*`", " ", text)
@@ -441,15 +441,14 @@ def _pages_and_blocks(raw_nostrip):
         raw_nostrip, re.S | re.I) or [raw_nostrip]
     out = []
     for page in pages:
-        text = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", page)))
+        text = re.sub(r"\s+", " ", markup.strip_tags(page))
         # A newline in the source is editor wrap, not structure: flatten it
         # BEFORE the boundary injection so the only "\n" left is the one
         # BLOCK_END writes, and "block" means the same thing here as it does
         # to the sentence splitter. Until this ran first, a paragraph
         # soft-wrapped across source lines was several "blocks", so a range's
         # block window was whatever line the editor broke.
-        chunks = html.unescape(re.sub(r"<[^>]+>", " ",
-                                      BLOCK_END.sub(".\n", re.sub(r"\s+", " ", page))))
+        chunks = markup.strip_tags(BLOCK_END.sub(".\n", re.sub(r"\s+", " ", page)))
         blocks = [re.sub(r"\s+", " ", b).strip()
                   for b in chunks.split("\n") if b.strip()]
         out.append((text, blocks))
@@ -470,7 +469,7 @@ def extract(path):
         raw = EMPTY_CELL_DASH.sub("<td></td>", raw)
         raw_nostrip = re.sub(r"<(script|style|svg|head)\b.*?</\1>", " ", raw, flags=re.S | re.I)
         titles = [
-            re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", m.group(1)))).strip()
+            markup.visible_text(m.group(1), sep="")
             for m in re.finditer(r"<h[12][^>]*>(.*?)</h[12]>", raw_nostrip, re.S | re.I)
         ]
         # An enumeration is an enumeration whatever it is marked up as. Counting
@@ -506,7 +505,7 @@ def extract(path):
         # Block boundaries become sentence boundaries; without this a nav bar, a
         # heading and six list items merge into one 27-word "sentence".
         body = BLOCK_END.sub(".\n", raw_nostrip)
-        body = html.unescape(re.sub(r"<[^>]+>", " ", body))
+        body = markup.strip_tags(body)
         windows = _pages_and_blocks(raw_nostrip)
     else:
         titles = [m.group(2).strip() for m in re.finditer(r"^(#{1,2})\s+(.*)$", raw, re.M)]
@@ -836,9 +835,8 @@ def m15_page_prose(raw: str, is_zh: bool = False) -> dict | None:
     for cls, body in _PAGE_RE.findall(raw):
         if any(w in cls for w in ("cover", "closing", "opener")):
             continue
-        prose.append(len(html.unescape(
-            re.sub(r"<[^>]+>", " ", _STRIP_FOR_PROSE.sub(" ", body))).split()))
-        visible.append(len(html.unescape(re.sub(r"<[^>]+>", " ", body)).split()))
+        prose.append(len(markup.strip_tags(_STRIP_FOR_PROSE.sub(" ", body)).split()))
+        visible.append(len(markup.strip_tags(body).split()))
     if not prose:
         return None
 
@@ -857,7 +855,7 @@ def m14_parallel_frames(raw: str) -> list[tuple[str, int]]:
     body = re.sub(r"<(script|style|svg)\b.*?</\1>", " ", raw, flags=re.S | re.I)
     echoes = []
     for role in _M14_ROLES:
-        texts = [re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", m.group(1))).strip()
+        texts = [markup.visible_text(m.group(1))
                  for m in re.finditer(
                      rf'class="(?:[^"]*\s)?{role}(?:\s[^"]*)?"[^>]*>(.*?)</',
                      body, re.S | re.I)]
