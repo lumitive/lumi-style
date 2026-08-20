@@ -18,6 +18,8 @@ The skill reads `references/` and `tokens/` on demand — no need to attach them
 
 Gemini calls `activate_skill` and asks you to confirm the directory it is about to read; approve it once per session.
 
-**Capability tier not exercised.** This note claims the `full` tier. Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed.
+Headless runs need `--skip-trust` (or `GEMINI_CLI_TRUST_WORKSPACE=true`). Without it the CLI prints `Approval mode overridden to "default" because the current folder is not trusted`, exits 55 in about a second, and never reaches the model — which reads as an agent failure and is not one.
+
+**Capability tier not exercised.** This note claims the `full` tier. Not verified as a CAPABILITY claim: the CLI is installed on the maintenance machine and `run_conformance.py run --drive` drives it since 0.1.540 (conformance/CONFORMANCE.md's `cli` column carries the version it answered, read from the probe rather than written here), but `full` claims the agent runs check_prose.py, check_design.py and inspect_layout.py itself on a real deliverable through the entry file, and no run has watched it do that — its board rows come from synthetic conformance tasks. See conformance/CONFORMANCE.md.
 
 Vendor documentation: https://geminicli.com/docs/cli/skills/
