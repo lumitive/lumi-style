@@ -51,6 +51,8 @@
    ],
    "drive": ["claude", "-p", "--permission-mode", "acceptEdits"],
    "drive_skill_flag": "--add-dir",
+   "drive_effort_flag": "--effort",
+   "drive_usage_flag": ["--output-format", "json"],
    "docs": "https://code.claude.com/docs/en/skills",
    "capability_verified": true
   },

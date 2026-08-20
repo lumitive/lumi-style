@@ -29,6 +29,8 @@ Usage
   trace.py open  --genre sales --storyline market-analysis --entry-path A
   trace.py yield --id T --clause P-1 --to P-2 --stage build
   trace.py refuse --id T --clauses P-1,P-5 --stage checks
+  trace.py phase start build --id T       # the clock is the tool's, never typed
+  trace.py phase stop  build --id T
   trace.py close --id T --deliverable out.html [--usage usage.json]
   trace.py validate                       # every stored record against the schema
 """
@@ -37,6 +39,7 @@ from __future__ import annotations
 import argparse
 import datetime as _dt
 import json
+import os
 import pathlib
 import re
 import sys
@@ -44,7 +47,9 @@ import uuid
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if (p / "SKILL.md").exists())
-TRACES = ROOT / "evals" / "traces"
+# LUMI_TRACES redirects the store (tests, dry runs); the default is the
+# tracked directory, because a trace that is not kept is not a record.
+TRACES = pathlib.Path(os.environ.get("LUMI_TRACES") or ROOT / "evals" / "traces")
 
 # --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
 # Bare-name sibling imports must resolve from any drawer depth: walk up to
@@ -194,6 +199,49 @@ def _read_usage(path):
                      f"({type(value).__name__}); an integer is required.")
         counts.append(value)
     return counts[0], counts[1]
+
+
+# Open phase clocks live beside the traces, outside version control (the
+# directory is gitignored): a started-at timestamp is machine state for one
+# build on one machine, and the trace itself carries only the seconds.
+def _clock_path(trace_id):
+    return TRACES / ".phases" / f"{trace_id}.json"
+
+
+def cmd_phase(a):
+    """Start or stop a phase clock. The seconds are computed here from two
+    timestamps this tool wrote; `--phase NAME SECONDS` on close is for a
+    machine dump and stays the only way to TYPE a duration, which is why the
+    audit found every stored trace with `phase_seconds = {}`: nothing in the
+    loop had a clock, so nobody typed one either."""
+    rec = _load(a.id)
+    if a.name not in PHASES:
+        sys.exit(f"phase {a.name!r} is not one of {PHASES}")
+    path = _clock_path(a.id)
+    clocks = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    now = _dt.datetime.now(_dt.UTC)
+    if a.action == "start":
+        if a.name in clocks:
+            sys.exit(f"phase {a.name!r} is already running since {clocks[a.name]}")
+        clocks[a.name] = now.isoformat(timespec="seconds")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(clocks, indent=1) + "\n", encoding="utf-8")
+        print(f"{a.name} started")
+        return
+    if a.name not in clocks:
+        sys.exit(f"phase {a.name!r} was never started on {a.id}")
+    started = _dt.datetime.fromisoformat(clocks.pop(a.name))
+    seconds = max(1, round((now - started).total_seconds()))
+    rec["phase_seconds"][a.name] = rec["phase_seconds"].get(a.name, 0) + seconds
+    errors = validate(rec)
+    if errors:
+        sys.exit("refusing to write an invalid trace:\n  " + "\n  ".join(errors))
+    _save(rec)
+    if clocks:
+        path.write_text(json.dumps(clocks, indent=1) + "\n", encoding="utf-8")
+    else:
+        path.unlink(missing_ok=True)
+    print(f"{a.name} +{seconds}s (total {rec['phase_seconds'][a.name]}s)")
 
 
 def cmd_close(a):
@@ -370,6 +418,12 @@ def main():
     r.add_argument("--clauses", required=True, help="comma-separated, e.g. P-1,P-5")
     r.add_argument("--stage", choices=PHASES, required=True)
     r.set_defaults(func=cmd_refuse)
+
+    ph = sub.add_parser("phase", help="start or stop a phase clock (the tool keeps time)")
+    ph.add_argument("action", choices=("start", "stop"))
+    ph.add_argument("name", choices=PHASES)
+    ph.add_argument("--id", required=True)
+    ph.set_defaults(func=cmd_phase)
 
     c = sub.add_parser("close", help="close a trace; verdicts come from the checkers")
     c.add_argument("--id", required=True)

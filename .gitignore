@@ -104,3 +104,8 @@ references/exemplars/external/*.pdf
 # being broken, and this file says the same thing about docs/ above.
 *.terms.txt
 terms-oob*
+
+# Open phase clocks (trace.py phase start): a started-at timestamp for one
+# build on one machine. The trace carries the seconds; the clock is not a
+# record.
+evals/traces/.phases/

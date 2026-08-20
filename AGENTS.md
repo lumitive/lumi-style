@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.530.** This file restates part of `references/`; where they
+> **lumi-style 0.1.531.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -34,10 +34,11 @@ only defence completeness has, because C5 reports and never gates. **Path B**
 starts from a recipe and is what most real builds use. **Both are held to the
 current rules, gates and evals: re-running a recipe shows that nothing broke,
 and nothing about what the rules gained since it was written.** Timing starts
-at storyline agreement; the discussion is not charged against it. Open the
-trace then (`scripts/ops/trace.py open --entry-path A|B --recipe <path> …`)
-and close it after the checks — `trace.py close` transcribes verdicts and does
-not accept them. **`--recipe` is what makes the ruling checkable**: a trace's
+at storyline agreement; the discussion is not charged against it. The trace
+opens then — `new_deck.py --storyline …` opens it, starts the build clock and
+writes the id into `<body data-trace>`; `check_deliverable.py` stops the clock
+and closes it, and reports a document with no trace as `unmeasured` —
+`trace.py close` transcribes verdicts and does not accept them. **`--recipe` is what makes the ruling checkable**: a trace's
 `skill_version` is read at open and can never be stale, so without the recipe's
 own stamp a replay is indistinguishable from a current build. `ledger.py`
 reports current, stale, or **unknown**, and unknown is not current.

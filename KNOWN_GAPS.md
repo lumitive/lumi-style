@@ -77,8 +77,9 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-014 · The cost instrument has never produced a reading
 
-- status: open
+- status: fixed
 - opened: 0.1.529
+- closed: 0.1.531
 - surface: scripts/ops/trace.py (`--phase`, `--usage`), scripts/ops/ledger.py (`--board`), evals/traces/
 - symptom: the four-phase clock, the token fields and the model×effort matrix
   all exist, and all nine stored traces carry `phase_seconds = {}`,
@@ -91,9 +92,14 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   its effort. The instrument was built and never wired into the loop that
   would feed it.
 - check: at least one trace whose `phase_seconds` was written by the tooling
-  (not typed), and `run --drive` recording `model` and `effort` per run. The
-  audit-remediation branch closes this in its T1 step; the six cells
-  themselves are an operator step recorded through the evidence gate.
+  (not typed), and `run --drive` recording `model` and `effort` per run.
+  Closed at 0.1.531: the scaffold opens the trace and starts the build clock,
+  `check_deliverable.py` stops it and records its own duration, `run --drive`
+  pins `--effort` through a registry-declared flag and reads the API's usage
+  from a JSON transcript into a `source: conformance` trace. The six cells
+  themselves are an operator step recorded through the evidence gate; until
+  they run, `ledger.py --board` still reads "0 qualify", and that is now a
+  statement about runs not made rather than about an instrument not wired.
 
 ## GAP-015 · Privacy layer 3 is not the designed T3, and says so only in its own docstring
 

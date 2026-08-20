@@ -306,3 +306,94 @@ def test_a_run_where_nothing_could_be_driven_does_not_report_success(
     code = rc.main(["run", "--drive", "--run", str(run_dir)])
     assert "NOTHING RAN" in capsys.readouterr().out
     assert code == 1
+
+
+# 0.1.531 — the effort axis, recorded as what was PINNED, and a conformance
+# trace per driven task (GAP-014's second half: the matrix reads real rows).
+
+def _echo_argv():
+    return [sys.executable, "-c",
+            "import pathlib,sys; pathlib.Path('answers.md').write_text(' '.join(sys.argv[1:]))"]
+
+
+def test_effort_is_passed_only_through_a_declared_flag_and_recorded_as_pinned(tmp_path):
+    agent = {**_agent(_echo_argv()), "drive_effort_flag": "--effort"}
+    out = rc.drive(agent, TASK, tmp_path, effort="low")
+    assert out["effort"] == "low"
+    assert "--effort low" in (tmp_path / "answers.md").read_text()
+
+
+def test_effort_on_an_agent_with_no_flag_is_recorded_as_not_pinned(tmp_path):
+    out = rc.drive(_agent(_echo_argv()), TASK, tmp_path, effort="low")
+    assert out["effort"] == "(not pinned)"
+    assert "--effort" not in (tmp_path / "answers.md").read_text()
+
+
+def test_a_driven_task_with_a_storyline_leaves_a_closed_conformance_trace(tmp_path, monkeypatch):
+    import os
+    import pathlib
+    store = tmp_path / "traces"
+    monkeypatch.setenv("LUMI_TRACES", str(store))
+    wd = tmp_path / "wd"
+    wd.mkdir()
+    deck = pathlib.Path(rc.ROOT / "fixtures" / "deck-pass.en.html")
+    (wd / "deck.en.html").write_text(deck.read_text(encoding="utf-8"), encoding="utf-8")
+    task = {"id": "T1-deck", "genre": "internal", "storyline": "status-report",
+            "deliverable": "*.html"}
+    record = {"verdict": "driven", "seconds": 12.4, "produced": ["deck.en.html"],
+              "model": "claude-sonnet-5", "effort": "low"}
+    note = rc._conformance_trace({"id": "fake"}, task, wd, record)
+    assert "closed (source: conformance)" in note, note
+    recs = [json.loads(p.read_text()) for p in store.glob("t-*.json")]
+    assert len(recs) == 1
+    rec = recs[0]
+    assert rec["source"] == "conformance" and rec["closed_at"]
+    assert rec["phase_seconds"] == {"build": 12}
+    assert rec["model"] == "claude-sonnet-5" and rec["effort"] == "low"
+    assert os.environ["LUMI_TRACES"] == str(store)
+
+
+def test_a_drive_that_did_not_finish_leaves_its_trace_open(tmp_path, monkeypatch):
+    store = tmp_path / "traces"
+    monkeypatch.setenv("LUMI_TRACES", str(store))
+    task = {"id": "T1-deck", "genre": "internal", "storyline": "status-report",
+            "deliverable": "*.html"}
+    note = rc._conformance_trace({"id": "fake"}, task, tmp_path,
+                                 {"verdict": "timeout", "produced": []})
+    assert "left open" in note
+    rec = json.loads(next(store.glob("t-*.json")).read_text())
+    assert rec["closed_at"] is None
+
+
+def test_a_task_without_a_storyline_opens_no_trace(tmp_path, monkeypatch):
+    monkeypatch.setenv("LUMI_TRACES", str(tmp_path / "traces"))
+    note = rc._conformance_trace({"id": "fake"}, TASK, tmp_path,
+                                 {"verdict": "driven", "produced": ["answers.md"]})
+    assert "declares no storyline" in note
+    assert not (tmp_path / "traces").exists()
+
+
+def test_usage_is_read_from_a_json_transcript_and_only_when_both_counts_are_integers():
+    tail = '{"result": "ok", "usage": {"input_tokens": 1200, "output_tokens": 340}}'
+    assert rc._usage_from_transcript("noise\n" + tail) == {"input_tokens": 1200,
+                                                          "output_tokens": 340}
+    assert rc._usage_from_transcript('{"usage": {"input_tokens": 1}}') is None
+    assert rc._usage_from_transcript("plain text transcript") is None
+
+
+def test_a_usage_dump_reaches_the_trace(tmp_path, monkeypatch):
+    import pathlib
+    store = tmp_path / "traces"
+    monkeypatch.setenv("LUMI_TRACES", str(store))
+    wd = tmp_path / "wd"
+    wd.mkdir()
+    deck = pathlib.Path(rc.ROOT / "fixtures" / "deck-pass.en.html")
+    (wd / "deck.en.html").write_text(deck.read_text(encoding="utf-8"), encoding="utf-8")
+    task = {"id": "T1-deck", "genre": "internal", "storyline": "status-report",
+            "deliverable": "*.html"}
+    record = {"verdict": "driven", "seconds": 3, "produced": ["deck.en.html"],
+              "model": "m", "effort": "high",
+              "usage": {"input_tokens": 1200, "output_tokens": 340}}
+    assert "closed" in rc._conformance_trace({"id": "fake"}, task, wd, record)
+    rec = json.loads(next(store.glob("t-*.json")).read_text())
+    assert (rec["input_tokens"], rec["output_tokens"]) == (1200, 340)

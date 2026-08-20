@@ -11,11 +11,26 @@ bindings and the variables are both text, in files this repo ships.
 """
 import contextlib
 import io
+
+# Scaffolds under test open traces into a scratch store, never the tracked
+# one (new_deck opens a trace whenever a storyline is given, since 0.1.531).
+# An autouse fixture rather than a module-level environment edit, so the
+# redirect cannot leak into test_trace.py's subprocesses.
+import pathlib  # noqa: E402
 import re
 
 import check_design
 import new_deck
 import pytest
+
+_SCRATCH: list[pathlib.Path] = []
+
+
+@pytest.fixture(autouse=True)
+def _scratch_traces(tmp_path, monkeypatch):
+    monkeypatch.setenv("LUMI_TRACES", str(tmp_path))
+    _SCRATCH[:] = [tmp_path]
+    yield
 
 
 def scaffold(*argv):
@@ -208,3 +223,31 @@ def test_the_card_does_not_poison_the_scaffold_s_own_gates():
         r = _json.loads(buf.getvalue())[0]
         assert r["verdicts"]["M9_dashes"] == "ok"
         assert r["verdicts"]["M4_banned_hits"] == "ok"
+
+
+# 0.1.531 — the scaffold opens the build record and the body carries its id.
+
+def test_a_scaffold_with_a_storyline_opens_a_trace_and_carries_its_id():
+    import json
+    html = scaffold("--storyline", "gtm", "--pages", "2")
+    m = re.search(r'data-trace="(t-[0-9a-f]{12})"', html)
+    assert m, "the body carries no data-trace"
+    rec = json.loads((_SCRATCH[0] / f"{m.group(1)}.json").read_text())
+    assert rec["entry_path"] == "B" and rec["storyline"] == "gtm"
+    assert rec["closed_at"] is None
+    clock = _SCRATCH[0] / ".phases" / f"{m.group(1)}.json"
+    assert clock.exists() and "build" in json.loads(clock.read_text())
+
+
+def test_no_storyline_means_no_trace_and_says_so():
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), \
+            contextlib.suppress(SystemExit):
+        new_deck.main(["--pages", "2"])
+    assert "data-trace" not in out.getvalue()
+    assert "no trace opened" in err.getvalue()
+
+
+def test_no_trace_flag_is_honoured():
+    html = scaffold("--storyline", "gtm", "--pages", "2", "--no-trace")
+    assert "data-trace" not in html

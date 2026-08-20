@@ -1,22 +1,24 @@
 {
-  "id": "T1-deck",
-  "title": "Twelve-page internal analysis deck, 16:9 HTML",
-  "min_capability": "files",
-  "deliverable": "*.html",
-  "score": [
-    "design",
-    "prose",
-    "layout"
-  ],
-  "require": {
-    "D12_commercial_footer": "ok",
-    "D14_placeholders": "ok",
-    "D15_footer_path": "ok",
-    "M4_banned_hits": "ok",
-    "collision": "ok",
-    "content_hidden": "ok"
-  },
-  "prompt": "Using the LUMI style skill, produce a twelve-page 16:9 HTML deck reviewing a fictional regional recycling programme. Invent every figure and label it as illustrative. Use www.example.org as the document origin. Write the file to deck.en.html in the working directory. Do not ask clarifying questions; make reasonable assumptions and state them on the closing page.",
-  "note": "Twelve pages, not six. check_prose's M11 needs at least 8 titles to grade and M8 needs 30 sentences; a six-page deck reported M11 as n/a every run, so the task could never exercise the metric it was scoring against. A task shorter than the checker's floor measures nothing. Genre is declared as a field, not only in the title: the harness graded every deliverable as sales material because it never passed check_prose's --genre flag, and the em-dash ban that failed this task explicitly does not bind internal analysis.",
-  "genre": "internal"
+ "id": "T1-deck",
+ "title": "Twelve-page internal analysis deck, 16:9 HTML",
+ "min_capability": "files",
+ "deliverable": "*.html",
+ "score": [
+  "design",
+  "prose",
+  "layout"
+ ],
+ "require": {
+  "D12_commercial_footer": "ok",
+  "D14_placeholders": "ok",
+  "D15_footer_path": "ok",
+  "M4_banned_hits": "ok",
+  "collision": "ok",
+  "content_hidden": "ok"
+ },
+ "prompt": "Using the LUMI style skill, produce a twelve-page 16:9 HTML deck reviewing a fictional regional recycling programme. Invent every figure and label it as illustrative. Use www.example.org as the document origin. Write the file to deck.en.html in the working directory. Do not ask clarifying questions; make reasonable assumptions and state them on the closing page.",
+ "note": "Twelve pages, not six. check_prose's M11 needs at least 8 titles to grade and M8 needs 30 sentences; a six-page deck reported M11 as n/a every run, so the task could never exercise the metric it was scoring against. A task shorter than the checker's floor measures nothing. Genre is declared as a field, not only in the title: the harness graded every deliverable as sales material because it never passed check_prose's --genre flag, and the em-dash ban that failed this task explicitly does not bind internal analysis.",
+ "genre": "internal",
+ "storyline": "status-report",
+ "storyline_note": "A review of a programme is read as a status report; the field is the task author's declaration for the trace the harness opens, and it is not part of the task fingerprint (a verdict does not depend on it)."
 }

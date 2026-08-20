@@ -249,7 +249,42 @@ def genre_card(genre: str) -> str:
             read that block whole; fix everything it names in one pass -->"""
 
 
-def preamble(genre, geometry, storyline=None):
+def open_trace(genre, geometry, storyline, outline):
+    """-> a trace id, or None when no trace could be opened (and why, on
+    stderr). The scaffold is where a build begins, so the record opens here
+    and the build clock starts here; check_deliverable.py stops the clock and
+    closes the record through the id the body carries. Fourteen consecutive
+    builds of one deck left no trace while the ledger counted zero abandoned
+    builds — the record was optional, so it was omitted.
+
+    A storyline is required by the schema; without one the trace is not
+    opened and the scaffold says so, because a trace is a declaration and
+    a guessed declaration is the thing the schema exists to refuse.
+    """
+    if not storyline:
+        print("<!-- no trace opened: a trace declares its storyline, and none "
+              "was given (--storyline) -->", file=sys.stderr)
+        return None
+    import subprocess
+    tool = pathlib.Path(__file__).with_name("trace.py")
+    stage = deliverable_registry.STAGE_OF.get(geometry, "16x9")
+    argv = [sys.executable, str(tool), "open", "--genre", genre,
+            "--storyline", storyline, "--entry-path", "A" if outline else "B",
+            "--geometry", stage]
+    if outline is not None:
+        argv += ["--recipe", str(outline)]
+    opened = subprocess.run(argv, capture_output=True, text=True)
+    if opened.returncode != 0:
+        print(f"<!-- no trace opened: {opened.stderr.strip()[:200]} -->",
+              file=sys.stderr)
+        return None
+    trace_id = opened.stdout.strip()
+    subprocess.run([sys.executable, str(tool), "phase", "start", "build",
+                    "--id", trace_id], capture_output=True, text=True)
+    return trace_id
+
+
+def preamble(genre, geometry, storyline=None, trace_id=None):
     """Everything before the first page: the token block AND the sprite.
 
     Taken from the fixture rather than rebuilt, because the fixture is the
@@ -282,6 +317,9 @@ def preamble(genre, geometry, storyline=None):
             # from the headings would make the report a measurement of the
             # guess.
             + (f' data-storyline="{storyline}"' if storyline else "")
+            # The build's own record, so the check step closes the trace the
+            # scaffold opened without anyone retyping an id.
+            + (f' data-trace="{trace_id}"' if trace_id else "")
             + '>\n' + genre_card(genre) + '\n' + sprite)
 
 
@@ -433,6 +471,10 @@ def main(argv):
                     help="the cover/closing wordmark. Defaults to the default "
                          "brand's `wordmark` in brands/registry.json; pass this "
                          "for a subject that is not a registered brand.")
+    ap.add_argument("--no-trace", action="store_true",
+                    help="do not open a build trace (fixtures, tests, dry runs). "
+                         "A real build keeps the default: the record opens "
+                         "here, and check_deliverable.py closes it.")
     ap.add_argument("--pages", type=int, default=6,
                     help="content pages, not counting cover, agenda, the part "
                          "openers and the closing")
@@ -449,7 +491,9 @@ def main(argv):
     total = args.pages + 3 + len(parts) + apparatus
     mark = wordmark(args.wordmark)
     plan = outline_sections(args.outline)
-    out = [preamble(args.genre, args.geometry, args.storyline)]
+    trace_id = None if args.no_trace else open_trace(
+        args.genre, args.geometry, args.storyline, args.outline)
+    out = [preamble(args.genre, args.geometry, args.storyline, trace_id)]
 
     # The cover title carries TWO INKS: the claim in ink, the noun the deck is
     # about as lime on its own dark chip (`.subj`) — the same green the part
