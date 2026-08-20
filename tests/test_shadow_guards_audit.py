@@ -215,3 +215,38 @@ def test_a_manifest_row_for_a_tracked_file_passes(tmp_path, monkeypatch):
         ".gitignore": ""})
     monkeypatch.setattr(check_repo, "ROOT", repo)
     assert check_repo.check_assets_tracked() == []
+
+
+# 0.1.536 — AGENTS.md stays a map, and claim_sweep can scope to what changed.
+
+def test_agents_over_the_ceiling_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _tree(tmp_path, {
+        "AGENTS.md": "x\n" * (check_repo.AGENTS_LINE_CEILING + 1)}))
+    errors = check_repo.check_entry_restatement_ceiling()
+    assert len(errors) == 1 and "ceiling" in errors[0]
+
+
+def test_agents_at_the_ceiling_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _tree(tmp_path, {
+        "AGENTS.md": "x\n" * check_repo.AGENTS_LINE_CEILING}))
+    assert check_repo.check_entry_restatement_ceiling() == []
+
+
+def test_the_live_agents_is_under_the_ceiling():
+    assert check_repo.check_entry_restatement_ceiling() == []
+
+
+def test_claim_sweep_changed_scopes_to_the_touched_files(tmp_path, monkeypatch):
+    import claim_sweep
+    repo = _git_tree(tmp_path / "repo", {
+        "README.md": "This package ships three guards.\n",
+        "NOTES.md": "There are five checkers.\n",
+        "scripts/check/check_repo.py": "CHECKS = ()\n"})
+    subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t",
+                    "commit", "-q", "-m", "base"], cwd=repo, check=True)
+    (repo / "NOTES.md").write_text("There are six checkers.\n", encoding="utf-8")
+    monkeypatch.setattr(claim_sweep, "ROOT", repo)
+    changed = claim_sweep.changed_since("HEAD")
+    assert changed == {"NOTES.md"}
+    scoped = claim_sweep.sweep_counts(changed)
+    assert all(rel == "NOTES.md" for rel, _n, _c in scoped)

@@ -204,10 +204,12 @@ def main():
     # needs a tool that holds it. REPORTED, never gating: the sweep's own
     # contract is that it reports and never fails, and turning it into a gate
     # here would quietly overrule that.
-    print("\n5. restated claims — read the ones touching what you changed")
-    sweep = run(["python3", "scripts/check/claim_sweep.py"])
-    tail = "\n".join((sweep.stdout or "").strip().splitlines()[-2:])
-    print("   " + tail.replace("\n", "\n   "))
+    print("\n5. restated claims — the ones in the files this release touches")
+    # `--changed HEAD`: the staged release diff, not the whole tree. The full
+    # sweep printed 280 lines and its last two were what a reader saw.
+    sweep = run(["python3", "scripts/check/claim_sweep.py", "--counts", "--changed", "HEAD"])
+    body = (sweep.stdout or "").strip().splitlines()
+    print("   " + "\n   ".join(body[:40]) + ("\n   …" if len(body) > 40 else ""))
 
     if a.dry_run:
         print("\n--dry-run: stopping before the commit.")

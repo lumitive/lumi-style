@@ -31,6 +31,7 @@ releases. Nobody was looking, because looking meant remembering to grep.
     python3 scripts/check/claim_sweep.py            # everything
     python3 scripts/check/claim_sweep.py --counts   # just the counted claims
     python3 scripts/check/claim_sweep.py --refs     # just the self-citations
+    python3 scripts/check/claim_sweep.py --changed  # counted claims in the files you touched
 """
 from __future__ import annotations
 
@@ -98,6 +99,27 @@ def tracked() -> list[str]:
             and not any(p.startswith(f) for f in FROZEN + GENERATED)]
 
 
+def changed_since(ref: str) -> set[str] | None:
+    """-> the files touched since `ref` (committed, staged and unstaged) plus
+    untracked files, or None when git cannot answer.
+
+    Convention 12 says "read the claims touching what you changed", and the
+    whole sweep prints two hundred and eighty lines; a reader who has to
+    find their own twenty in it reads none. `--changed` is the filter that
+    convention named and nobody had built — the P1 item the refactor design
+    listed as "claim_sweep extension" and the audit found untouched.
+    """
+    out: set[str] = set()
+    for argv in (["git", "diff", "--name-only", ref],
+                 ["git", "diff", "--name-only", "--cached"],
+                 ["git", "ls-files", "--others", "--exclude-standard"]):
+        p = subprocess.run(argv, cwd=ROOT, capture_output=True, text=True)
+        if p.returncode != 0:
+            return None
+        out.update(line for line in p.stdout.splitlines() if line)
+    return out
+
+
 def read(relpath: str) -> str | None:
     try:
         return (ROOT / relpath).read_text(encoding="utf-8")
@@ -105,9 +127,11 @@ def read(relpath: str) -> str | None:
         return None
 
 
-def sweep_counts() -> list[tuple[str, int, str]]:
+def sweep_counts(only: set[str] | None = None) -> list[tuple[str, int, str]]:
     out = []
     for relpath in tracked():
+        if only is not None and relpath not in only:
+            continue
         text = read(relpath)
         if text is None:
             continue
@@ -149,12 +173,25 @@ def main(argv=None) -> int:
         description="report counted claims and self-citations; never fails")
     ap.add_argument("--counts", action="store_true", help="only counted claims")
     ap.add_argument("--refs", action="store_true", help="only self-citations")
+    ap.add_argument("--changed", nargs="?", const="HEAD", metavar="REF",
+                    help="only the counted claims in files changed since REF "
+                         "(default HEAD; staged and untracked files count). "
+                         "Convention 12's 'the ones touching what you changed', "
+                         "as a flag.")
     args = ap.parse_args(argv)
     both = not (args.counts or args.refs)
 
     if args.counts or both:
-        counts = sweep_counts()
-        print(f"note  {len(counts)} counted claim(s) — a count next to a name "
+        only = None
+        if args.changed is not None:
+            only = changed_since(args.changed)
+            if only is None:
+                print("note  --changed: git could not list the changed files; "
+                      "sweeping everything instead")
+        counts = sweep_counts(only)
+        scope = (f" in the {len(only)} file(s) changed since {args.changed}"
+                 if only is not None else "")
+        print(f"note  {len(counts)} counted claim(s){scope} — a count next to a name "
               f"this repository defines. Most are prose; the ones that are not "
               f"belong in a parity guard.")
         by_file: dict[str, list[tuple[int, str]]] = {}
