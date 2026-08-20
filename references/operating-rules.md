@@ -252,3 +252,24 @@ where every entry point says `references/` wins on conflict; a binding rule in
 the file that loses is a rule that can be lost. The registry and the review
 protocol cite it from here.
 
+## 10 · A scored document is never deleted
+
+*Serves: **P-2**.* · id `OR-10`
+
+A human score is evidence about one document. The agreement study joins a
+machine reading to that score by corpus id, the threshold table is calibrated
+on the documents it names, and a retrospective reads the pages the score was
+given for. Delete the document and every one of those becomes a number with
+nothing behind it: the first two documents scored on C1–C8 (and the third
+that carried a trace) were deleted within a week of being scored, and the
+study's three joinable pairs can never be re-measured.
+
+So: **a document that has been scored, registered as a corpus id, or named
+by the threshold table is kept** — in the delivery directory, under its
+build name, for as long as the score is in `reviews/scores.json`.
+Superseded builds that were never scored or registered may go. Where a
+scored document was already deleted, its corpus entry records the loss
+(`archived: {sha256, pages, removed_before}`) so the id resolves to a fact
+rather than to nothing; `review_scores.py --check` fails a scored id that
+resolves to neither a file nor an archive.
+

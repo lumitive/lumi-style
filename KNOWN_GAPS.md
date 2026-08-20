@@ -75,6 +75,29 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-021 · The only accepted reference fails a gate introduced after its acceptance
+
+- status: open
+- opened: 0.1.534
+- surface: evals/thresholds.json (corpus A1), scripts/check/check_design.py (D27)
+- symptom: A1 — the one document the owner has accepted, and the calibration
+  source for five of the twenty threshold cells — fails `D27_agenda_mirror`,
+  a gate shipped at 0.1.514: its agenda paraphrases its part openers
+  rather than quoting them. The instrument is right (the paraphrase is
+  real) and the anchor is right (the acceptance stands), and the package
+  now carries an accepted reference its own gate stack would not ship. It
+  cannot be rebuilt to pass without ceasing to be the document that was
+  accepted.
+- owner ruling (2026-08-20, default taken): **calibration-only**. A1 keeps
+  its role for the cells that cite it, its corpus entry says it is not
+  shippable under the current gates, and no gate is loosened for it.
+  Re-baselining — a document built under the current rules, accepted
+  through a blind review, and then replacing A1 in the threshold table —
+  is the close condition, and it is the owner's to start.
+- check: a second accepted document on the `training` tier (or A1's
+  re-acceptance of a rebuilt edition) recorded in `evals/thresholds.json`,
+  and the calibrated cells re-derived from it.
+
 ## GAP-014 · The cost instrument has never produced a reading
 
 - status: fixed

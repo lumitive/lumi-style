@@ -326,7 +326,7 @@ FROZEN_RULE_IDS = (
     "BR-1", "BR-2", "BR-3", "BR-4", "BR-5", "BR-6",
     "DR-1", "DR-2", "DR-3", "DR-4", "DR-5", "DR-6", "DR-7", "DR-8", "DR-9", "DR-10", "DR-11",
     "WR-1", "WR-2", "WR-3", "WR-4", "WR-5", "WR-6", "WR-7", "WR-8", "WR-9",
-    "ST-1", "ER-1", "OR-1", "OR-2", "OR-7", "OR-8", "OR-9",
+    "ST-1", "ER-1", "OR-1", "OR-2", "OR-7", "OR-8", "OR-9", "OR-10",
 )
 
 def check_trace_schema():
@@ -2503,7 +2503,7 @@ SIBLING_MODULES = (
     "color_math", "css_tokens", "lock", "deliverable_registry",
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",
-    "checker_report", "secret_patterns",
+    "checker_report", "secret_patterns", "corpus",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.

@@ -53,6 +53,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
+import corpus  # noqa: E402
 from deliverable_registry import GENRES, checker_path  # noqa: E402
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
@@ -243,14 +244,12 @@ def main(argv=None) -> int:
         # entry naming a real deliverable in a tracked file is an engagement
         # fact (red line 9), so the mapping is local and its absence is said
         # out loud rather than read as an empty corpus.
-        local_path = ROOT / "evals" / "corpus.local.json"
-        try:
-            local = json.loads(local_path.read_text(encoding="utf-8"))
-        except OSError:
+        local_path = corpus.LOCAL_CORPUS
+        local = {k: str(p) for k, p in corpus.paths().items()}
+        if corpus.load() is None:
             note(f"note  {local_path.relative_to(ROOT)} is absent, so no "
                   f"corpus document could be located. evals/README.md gives "
                   f"its shape.")
-            local = {}
         for group in ("accepted", "rejected"):
             for entry in table["corpus"][group]:
                 where = local.get(entry["id"])

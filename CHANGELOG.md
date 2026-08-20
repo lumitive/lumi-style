@@ -1,3 +1,47 @@
+## 0.1.534 — a scored document is never deleted, the losses are recorded, and the pitch deck gets a corpus id
+
+Audit-remediation step 11 (`specs/2026-08-20-audit-remediation-design.md`).
+
+**The evidence behind the first C1–C8 scores is gone, and now the file says
+so.** Eight of the fifteen entries in the local corpus registry pointed at
+files that no longer exist — among them D15 and D16, the only two documents
+with human scores, and D17, the only other one with a trace. The agreement
+study's three joinable pairs can never be re-measured; a retrospective that
+wanted to read the page a score was given for has nothing to open. Nothing
+had noticed, because nothing resolved a scored id to a file.
+
+**OR-10 · a scored document is never deleted.** A document that has been
+scored, registered as a corpus id, or named by the threshold table is kept
+under its build name for as long as the score stands; superseded builds that
+were never scored may go. A corpus entry may now be `{path, archived:
+{sha256, pages, removed_before}}`, so a loss that already happened is a
+recorded fact rather than a dangling id; the three deleted documents carry
+that record with `sha256: null` — nobody can hash a file that is gone, and
+writing a digest for it would be the fabricated join key the scores file's
+own comment warns about. **`review_scores.py --check` fails a scored id that
+resolves to neither a file nor an archive**, and reports `not attempted`
+where the local registry is absent (CI), never `ok`. `scripts/lib/corpus.py`
+is the one reader of the registry; three scripts had each parsed it their
+own way.
+
+**The pitch deck is corpus D18.** The largest deliverable of the 0.1.521–
+0.1.522 campaign had never been scored. It is registered, and a blind
+C1–C8 sheet for it is written to the delivery directory by
+`scoring_sheet.py` (owner ruling D2: the sheet is generated, the scoring is
+hers and not blocking).
+
+**A1's standing is written down, not changed.** The only accepted reference
+fails D27, a gate shipped five releases after its acceptance; its agenda
+paraphrases its openers, and it cannot be rebuilt to pass without ceasing
+to be the document that was accepted. Owner ruling D3 (default taken):
+calibration-only. `evals/thresholds.json` now says `accepted_under: 0.1.449,
+shippable_under_current_gates: false` beside it, no gate is loosened, and
+**GAP-021** records the ruling with its close condition — a second accepted
+document on the tier, which is hers to start.
+
+Six tests in `tests/test_corpus_resolution.py`; the planted red is a scored
+id whose file is gone and which carries no archive.
+
 ## 0.1.533 — the framework's shape reaches the figure slot, the library's use is counted, and the exemplars are read where they can act
 
 Audit-remediation step 10 (`specs/2026-08-20-audit-remediation-design.md`).

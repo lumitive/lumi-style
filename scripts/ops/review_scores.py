@@ -53,6 +53,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
+import corpus  # noqa: E402
 from deliverable_registry import GENRES  # noqa: E402
 
 # Fields, and NOTHING else. An unknown key is an error rather than ignored
@@ -66,6 +67,53 @@ RECORD_KEYS = {"release", "genre", "self", "reader", "outcome"}
 # the gitignored evals/corpus.local.json.
 OPTIONAL_KEYS = {"document", "corpus_id", "storyline"}
 DOCUMENT_ID = re.compile(r"^[A-Z]\d{1,3}$")
+
+
+def corpus_resolution(store) -> tuple[list[str], str]:
+    """-> (errors, status). Every scored corpus id must resolve to a file that
+    exists, or to an `archived` record saying when it went and what it was.
+
+    The two documents that carried the first C1–C8 scores (and the third that
+    carried a trace) were deleted within a week of being scored; the
+    agreement study can never re-measure them. A score is evidence about a
+    document, and evidence whose object is gone is a number with nothing
+    behind it — so a scored document is never deleted (operating-rules
+    OR-10), and this is the check that says when one was. The corpus file is
+    local and gitignored; where it is absent (CI) the status is
+    'not attempted', never 'ok'.
+    """
+    try:
+        local = corpus.load()
+    except json.JSONDecodeError as exc:
+        return [f"evals/corpus.local.json does not parse ({exc})"], "failed"
+    if local is None:
+        return [], "not attempted"
+    errors = []
+    for i, rec in enumerate(store.get("reviews", [])):
+        if rec.get("schema") == 1:
+            continue
+        cid = rec.get("corpus_id") or rec.get("document")
+        if not cid:
+            continue
+        if cid not in local:
+            errors.append(f"reviews[{i}] scores {cid}, which evals/corpus.local.json "
+                          f"does not register")
+            continue
+        path, archived = local[cid]
+        exists = bool(path) and pathlib.Path(str(path)).expanduser().is_file()
+        if exists:
+            continue
+        if not archived:
+            errors.append(f"reviews[{i}] scores {cid}, whose file is gone and "
+                          f"which carries no archived record — a scored document "
+                          f"is never deleted (OR-10); if it already was, record "
+                          f"{{archived: {{sha256, pages, removed_before}}}} so the "
+                          f"loss is a fact and not a silence")
+            continue
+        if not archived.get("removed_before") and not archived.get("sha256"):
+            errors.append(f"reviews[{i}]: {cid}'s archived record names neither a "
+                          f"sha256 nor a removed_before date")
+    return errors, ("failed" if errors else "ok")
 
 
 def validate(store) -> list[str]:
@@ -195,7 +243,13 @@ def main(argv):
     if errors:
         return 1
     if args.check:
-        print(f"ok    {len(store['reviews'])} review(s) recorded, schema valid")
+        resolution, status = corpus_resolution(store)
+        for err in resolution:
+            print(f"FAIL  {err}")
+        if resolution:
+            return 1
+        print(f"ok    {len(store['reviews'])} review(s) recorded, schema valid; "
+              f"scored documents on disk or archived: {status}")
         return 0
     series(store)
     return 0
