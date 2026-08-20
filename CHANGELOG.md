@@ -1,3 +1,39 @@
+## 0.1.529 — the ledger catches up with the refactor: seven gaps and two ideas that had no entry
+
+Audit-remediation step 6 (`specs/2026-08-20-audit-remediation-design.md`).
+The refactor design's rule was "every shortfall goes to KNOWN_GAPS; none
+stops at 'later'". The audit found nine shortfalls with no entry anywhere,
+and that between 0.1.489 and 0.1.522 — thirty-three releases — not one GAP
+had been opened while two real-build defects went to the backlog. This
+release writes the entries. It changes no behaviour; its value is that the
+next session reads a ledger that says what is missing instead of a design
+that reads as delivered.
+
+**Opened.** **GAP-014** the cost instrument has never produced a reading (nine
+traces, zero phases, zero tokens, zero effort; K1's six cells empty; the
+four-beat falsification test unrunnable). **GAP-015** privacy layer 3 is not
+the designed allow-list report and says so only in its own docstring.
+**GAP-016** `check_outline.py` mechanises three of the thirteen `[outline]`
+items and the rubric's tags promise the other ten. **GAP-017** the shape
+library cannot be regenerated from the tokens inside this repository.
+**GAP-018** AGENTS.md grew from 210 to 286 lines against a design item that
+said it would shrink. **GAP-020** the trace schema dropped `feedback` with no
+recorded reason. **IDEA-16** `marketing` is a genre name with no behaviour
+of its own. **IDEA-17** M13 reads a quantity conflict on an English file that
+it does not read on the file's Chinese twin (out of this branch's scope: it
+sits inside the frozen Chinese-output diagnosis).
+
+**Opened and closed in one entry.** **GAP-019** the forty megabytes of
+unreferenced conformance results the design's P0 named and the plan dropped
+— closed by 0.1.528's dated per-run directories rather than by a deletion,
+because the mechanism that let one directory hold several runs is what
+mattered, and the old directories are on one machine and in no clone.
+
+Three of the open entries name the step of this branch that closes them
+(GAP-014 at the T1 step, GAP-017 at the recolour step, GAP-018 at the
+AGENTS.md step); the rest carry their close condition and no promise of a
+date. GAP-005 was reworded at 0.1.527 and is not repeated here.
+
 ## 0.1.528 — the conformance board's prose is generated, its header is dated, and a run id names one run
 
 Audit-remediation step 5 (`specs/2026-08-20-audit-remediation-design.md`).
