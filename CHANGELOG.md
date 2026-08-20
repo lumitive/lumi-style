@@ -1,3 +1,43 @@
+## 0.1.523 — the checkers read Chinese in the mirror, a reserve is re-derived, and three marks are declined
+
+**The first release of the audit-remediation branch** (design and plan:
+`specs/2026-08-20-audit-remediation-design.md`). It ships the batch that had
+been held on `main` uncommitted since 0.1.522, plus the asset intake the
+manifests already described.
+
+**The outline↔deck mirror gate and D27 now read Chinese.** A pure-CJK title
+failed `check_outline.py --against` against *itself*: `_WORD` matched only
+`[a-z0-9]+`, so a title with no Latin word and no digit had no content words
+and the 60% overlap test had nothing to overlap. The zh build had been passing
+this gate on its digits. CJK runs now contribute character bigrams, and a space
+between two CJK characters (left behind by `<span>` stripping) is dropped in
+both the mirror matcher and D27's agenda normaliser. **IDEA-14 is not closed by
+this** — `is_label` still judges assertion with an English verb list.
+
+**`check_facts.py` stops inventing quantities.** `$10.95 Meal` normalised to ten
+million and `$9.00 back` to nine billion because the magnitude suffix had no
+word boundary; a clock time left a bare `22`; a source filename's digits were
+reported as an invented figure; and a dose (`150mg`) was invisible to all three
+patterns. Each has a planted-red test in
+`tests/test_fact_and_outline_defects.py` §7–§10.
+
+**`.lede` reserves one title line, not two.** The prose above the rule said
+"two title lines plus one support line" while the calc reserved two of each —
+a drift inside the rule that exists to stop layout drift. Measured across a
+22-page deck no title wraps (12-word ceiling, 34px face), so a full line was
+reserved on every page and used on none: 43px per page recovered, and the
+`+24px` term now accounts for `.lede`'s two 10px flex gaps. Fixtures
+regenerated; one page is left tripping `reserve_overspent` on purpose because
+tuning it away would delete the M8 overlong case it carries.
+
+**Assets enter with their manifests.** 33 koboyo icons and three model marks
+were on disk and described in `SOURCES.md` while absent from git — the shape of
+0.1.504 again. They are added; the koboyo manifest's "twenty-two" was wrong
+(the table is the count) and eight missing rows are filled in. **Three
+owner-supplied raster marks are declined**: no source URL, no date, no usage
+basis, which is the precondition the `.gitignore` exception for vendored
+trademarks rests on. Their chips set the product name in type.
+
 # Changelog
 
 ## 0.1.522 — the plan becomes an input, and a build is held to the facts it was built from

@@ -178,7 +178,16 @@ ANALYTICAL_MOVES = ("compare", "decompose", "position", "correlate", "bridge")
 # titles and gates. It is a CONSISTENCY check, never a judgement: it asks
 # whether the artifact still says what its own plan says, and either the deck or
 # the outline is then corrected. It cannot and does not ask whether either is good.
-_WORD = re.compile(r"[a-z0-9]+")
+# A CJK run is a word here. Without the second alternative `_WORD` was
+# `[a-z0-9]+` alone, so a title written entirely in Chinese produced NO words:
+# containment needs two non-empty strings and the overlap test needs a
+# non-empty plan, so both branches fell through and `_matches` returned False
+# for a title against ITSELF. On the shipped zh deck exactly the three titles
+# carrying no Latin word and no digit failed the gate, and all three were on
+# the page character for character. The zh build had been passing this gate on
+# its digits.
+_WORD = re.compile(r"[a-z0-9]+|[\u4e00-\u9fff]+")
+_CJK = re.compile(r"[\u4e00-\u9fff]")
 _STOP = frozenset("a an the and or of to in on for is are it its that this with "
                   "we our you your be by as at from not no one".split())
 
@@ -200,8 +209,33 @@ def _stem(w: str) -> str:
     return w
 
 
+def _joined(s: str) -> str:
+    """The words in order, with the space between two CJK characters removed.
+
+    Stripping an inline highlight span leaves a separator where the tag was.
+    English needs it, because it lands on a word boundary; Chinese does not,
+    because it invents one. `check_design._norm_line` carries the same rule for
+    the same reason.
+    """
+    t = " ".join(_WORD.findall(s.lower()))
+    return re.sub(r"(?<=[\u4e00-\u9fff]) (?=[\u4e00-\u9fff])", "", t)
+
+
 def _content_words(s: str) -> set[str]:
-    return {_stem(w) for w in _WORD.findall(s.lower()) if w not in _STOP}
+    """Latin words stemmed; a CJK run as its character BIGRAMS.
+
+    A whole run taken as one token makes the 60% overlap test all-or-nothing in
+    Chinese, so a title legitimately tightened during composition -- the case
+    the threshold exists for -- would read as replaced. Bigrams give Chinese the
+    same tolerance the stemmer gives English.
+    """
+    out: set[str] = set()
+    for w in _WORD.findall(s.lower()):
+        if _CJK.match(w):
+            out.update(w[i:i + 2] for i in range(max(len(w) - 1, 1)))
+        elif w not in _STOP:
+            out.add(_stem(w))
+    return out
 
 
 def _matches(plan: str, shipped: str) -> bool:
@@ -212,7 +246,7 @@ def _matches(plan: str, shipped: str) -> bool:
     replaced. Overlap alone is too loose. Both, and the threshold is stated so
     it can be argued with.
     """
-    a, b = " ".join(_WORD.findall(plan.lower())), " ".join(_WORD.findall(shipped.lower()))
+    a, b = _joined(plan), _joined(shipped)
     if a and b and (a in b or b in a):
         return True
     pw = _content_words(plan)

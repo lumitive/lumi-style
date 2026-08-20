@@ -140,3 +140,89 @@ def test_the_implication_rung_counts_only_what_it_checked():
     rung = next(f for f in findings if f["check"] == "implication rung")
     assert " 3" not in str(rung["detail"]), (
         f"claims a denominator of 3 when only 2 titles reached a page: {rung['detail']}")
+
+
+# --- 7. a magnitude suffix must not eat the next word ------------------------
+
+def test_a_currency_figure_is_not_multiplied_by_the_following_word():
+    """`$10.95 Meal` read as ten million, `$9.00 back` as nine billion.
+
+    The k/m/b suffix carried no word boundary, so it consumed the first letter
+    of whatever came next. It corrupts BOTH sides of the comparison, and which
+    way depends on the word order of the sentence around the figure — so a
+    contract and a document stating the same price disagree if one of them
+    happens to be followed by "Meal".
+    """
+    assert cf.facts("$10.95 Meal", names=False)[0] == {"10.95"}
+    assert cf.facts("$9.00 back to single", names=False)[0] == {"9"}
+    assert cf.facts("$1.2 billion", names=False)[0] == {"1200000000"}
+
+
+def test_a_clock_time_is_not_a_quantity():
+    """`22:00` yielded a bare `0` from its minutes."""
+    assert cf.facts("she sleeps at 22:00", names=False)[0] == set()
+
+
+def test_a_dose_is_a_quantity_on_both_sides():
+    """`75mg` was invisible to the pattern, so a contract stating a dose and a
+    document stating the same dose could never be compared."""
+    assert cf.facts("about 75mg at bedtime", names=False)[0] == {"75"}
+    assert cf.facts("4g of protein", names=False)[0] == {"4"}
+
+
+# --- 8. a Chinese agenda line is not an orphan for want of a space -----------
+
+def test_d27_normaliser_ignores_spaces_between_cjk():
+    """`<span>` stripping inserts a separator that English needs and Chinese does not.
+
+    D27 compares an agenda line with the deck's own titles. Stripping the inline
+    highlight span leaves a space where the tag was: in English that lands on a
+    word boundary and matches, in Chinese it invents one, so an identical line
+    read as an orphan and the zh build failed a gate it should pass.
+    """
+    import pathlib as _p
+    import sys as _s
+    _s.path.append(str(_p.Path(__file__).resolve().parents[1] / "scripts" / "check"))
+    import check_design as cd
+    assert cd._norm_line("每个 Agent 都会撞上的 那堵墙") == cd._norm_line("每个 Agent 都会撞上的那堵墙")
+    # English still needs its spaces: these are two different lines.
+    assert cd._norm_line("the wall every agent hits") != cd._norm_line("thewalleveryagenthits")
+
+
+# --- 9. a source filename is provenance, not a claim -------------------------
+
+def test_a_source_filename_is_not_a_quantity():
+    """`Lumi-Agent-介绍 260819.html` reported 260819 as an invented figure.
+
+    A converted deck names the file it was converted from, and that name often
+    carries a date. It is furniture of exactly the class already stripped here
+    -- an ISO date, a clock time, a page fraction, a phone number -- and left
+    in, it fails a document whose every figure is sourced. The digits stay
+    readable to a person; they are simply not a quantity anyone asserted.
+    """
+    assert cf.facts("Source: Lumi-Agent-介绍 260819.html", names=False)[0] == set()
+    assert cf.facts("built from deck-2024-Q3.pdf", names=False)[0] == set()
+    # A figure BESIDE a filename is still a figure.
+    assert cf.facts("chart.html shows $4,200", names=False)[0] == {"4200"}
+
+
+# --- 10. the outline mirror could not read a Chinese title -------------------
+
+def test_the_outline_mirror_reads_chinese():
+    """`_WORD` was `[a-z0-9]+`, so a pure-CJK title had NO words at all.
+
+    Both branches of `_matches` then fell through — containment needs two
+    non-empty strings and the overlap test needs a non-empty plan — and every
+    Chinese title without a digit or a Latin word in it read as never having
+    reached the document. Measured on the shipped zh deck: exactly the three
+    titles carrying no Latin and no digit failed a gate, and all three were on
+    the page, character for character.
+    """
+    assert co._matches("缺的不是能力：是一份声明", "缺的不是能力：是一份声明")
+    # An inline highlight span leaves a space behind when the tag is stripped:
+    # English needs it, Chinese does not. Same defect as D27's normaliser.
+    assert co._matches("缺的不是能力：是一份声明", "缺的不是能力：是一份 声明")
+    # A title tightened during composition still matches, as in English.
+    assert co._matches("四类大玩家：每一类都绕开了同一件事", "四类大玩家都绕开了同一件事")
+    # A different claim is still a different claim — the gate can go red.
+    assert not co._matches("缺的不是能力：是一份声明", "四类大玩家：每一类都绕开了同一件事")

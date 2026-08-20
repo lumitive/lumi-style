@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.522 (2026-08-19)
+   LUMI page layouts · v0.1.523 (2026-08-19)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -134,8 +134,8 @@
    on almost every page, which is the deepest defect a reader had reported and
    the one nothing on the list had named. A floating lede is a datum that moves.
 
-   The reserve is a CEILING on the title block, not a target: two title lines
-   plus one support line. A title that needs three lines, or a second support
+   The reserve is a CEILING on the title block, not a target: one title line
+   plus two support lines. A title that needs three lines, or a second support
    line, does not get a taller reserve — it gets shorter text. That direction
    matters (CLAUDE.md rule 4): the 0.1.349 deck paid for this datum by trimming six
    support lines to two, and the author who reads it as a target will pad instead.
@@ -166,7 +166,20 @@
    was written for, in the package that ships the probe. */
 .body .lede {
   display: flex; flex-direction: column; gap: 10px;
-  height: calc(1.4em * 1.5 + 2 * var(--fs-title) * 1.02 + 2 * var(--fs-support) * 1.42 + 20px);
+  /* ONE title line, two support lines. It reserved TWO title lines while the
+     comment above claimed two title lines plus one support line -- the code
+     and its own prose disagreed, inside the rule that exists to stop layout
+     drift. Measured across a 22-page deck: no title wraps, because the
+     12-word ceiling and a 34px face see to it, so a full title line was
+     reserved on every page and used on none. 43px per page, straight to the
+     figure. The 24px is not slack: `.lede` is a flex column with `gap: 10px`
+     between eyebrow, title and support, so two gaps are 20px that the line
+     terms do not account for. At 12 it was 10px short and three fixture pages
+     overspent by single digits. The datum is unchanged: every page still starts its content at
+     the same y, which is what 0.1.349 bought. A title that DOES wrap fails
+     `RESERVE OVERSPENT` in inspect_layout.py and gets shorter text, because
+     this is a ceiling and not a target. */
+  height: calc(1.4em * 1.5 + 1 * var(--fs-title) * 1.02 + 2 * var(--fs-support) * 1.42 + 24px);
   justify-content: flex-start;
 }
 .body .lede > p { max-width: var(--measure); }
