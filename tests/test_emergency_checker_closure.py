@@ -54,7 +54,7 @@ def test_closure_covers_check_repo_imports_and_subprocesses():
         r"^\s*(?:import|from)\s+(color_math|css_tokens|lock|geo_projection|"
         r"geo_frame|globe_svg|regionmap_svg|sea_route|deliverable_registry|"
         r"embed_globe|embed_icons|check_prose|inspect_layout|check_privacy|"
-        r"secret_patterns|markup)\b", src, re.M))
+        r"secret_patterns|markup|corpus)\b", src, re.M))
     for mod in imported:
         assert f"{mod}.py" in names, (
             f"check_repo imports {mod} but the trusted closure does not carry "

@@ -58,8 +58,10 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
     if _p not in _bs_sys.path:
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
-# --- end bootstrap ---
 
+import corpus  # noqa: E402
+
+# --- end bootstrap ---
 import scoring_sheet  # noqa: E402
 from review_scores import DOCUMENT_ID  # noqa: E402
 
@@ -67,7 +69,7 @@ ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if p.name == "scripts").parent
 CACHE = ROOT / "evals" / "measured.local.json"
 SCORES = ROOT / "reviews" / "scores.json"
-LOCAL_CORPUS = ROOT / "evals" / "corpus.local.json"
+LOCAL_CORPUS = corpus.LOCAL_CORPUS  # the one reader is scripts/lib/corpus.py
 
 # WHICH HUMAN DIMENSION EACH METRIC CLAIMS TO PREDICT. Stated up front so the
 # study can disconfirm it. H2 is structural expression ("each page's layout best
@@ -118,10 +120,11 @@ def corpus_ids_by_name() -> dict[str, str] | None:
     operator's, and the caller must SAY the join was impossible rather than
     let it read as an empty result.
     """
-    if not LOCAL_CORPUS.exists():
+    if corpus.load() is None:
         return None
-    local = json.loads(LOCAL_CORPUS.read_text(encoding="utf-8"))
-    return {pathlib.Path(v).expanduser().name: k for k, v in local.items()}
+    # An archived entry (scored, then deleted) names no file to join on and
+    # is simply not in this map; corpus.paths() reads both shapes.
+    return {p.name: k for k, p in corpus.paths().items()}
 
 
 def read_scores() -> dict:
@@ -217,9 +220,8 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
 
     paths = list(args.files)
-    if not paths and LOCAL_CORPUS.exists():
-        local = json.loads(LOCAL_CORPUS.read_text(encoding="utf-8"))
-        paths = [pathlib.Path(v).expanduser() for v in local.values()]
+    if not paths and corpus.load() is not None:
+        paths = list(corpus.paths().values())
 
     if args.measure:
         if not paths:

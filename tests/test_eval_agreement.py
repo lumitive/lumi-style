@@ -23,6 +23,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "ops"))
 sys.path.insert(0, str(ROOT / "scripts" / "lib"))
 
+import corpus  # noqa: E402
 import eval_agreement  # noqa: E402
 import rubric_items  # noqa: E402
 
@@ -113,7 +114,7 @@ def _wire(tmp_path, monkeypatch, *, cache=True, corpus_map=True, scores=True):
     if corpus_map:
         m.write_text(json.dumps({"A1": "/somewhere/deck.en.html"}),
                      encoding="utf-8")
-    monkeypatch.setattr(eval_agreement, "LOCAL_CORPUS", m)
+    monkeypatch.setattr(corpus, "LOCAL_CORPUS", m)
     s = tmp_path / "scores.json"
     if scores:
         s.write_text(json.dumps({"reviews": [_record()]}), encoding="utf-8")
@@ -187,7 +188,7 @@ def test_the_sheet_uses_the_corpus_map_ids_when_it_has_them(
     doc.write_text("<html></html>", encoding="utf-8")
     m = tmp_path / "corpus.local.json"
     m.write_text(json.dumps({"A7": str(doc)}), encoding="utf-8")
-    monkeypatch.setattr(eval_agreement, "LOCAL_CORPUS", m)
+    monkeypatch.setattr(corpus, "LOCAL_CORPUS", m)
     assert eval_agreement.main(["--sheet", str(doc)]) == 0
     assert "A7" in capsys.readouterr().out
 
@@ -216,7 +217,7 @@ def test_measure_with_nothing_resolvable_exits_nonzero_and_writes_no_cache(
         tmp_path, monkeypatch, capsys):
     cache = tmp_path / "measured.local.json"
     monkeypatch.setattr(eval_agreement, "CACHE", cache)
-    monkeypatch.setattr(eval_agreement, "LOCAL_CORPUS",
+    monkeypatch.setattr(corpus, "LOCAL_CORPUS",
                         tmp_path / "corpus.local.json")
     missing = tmp_path / "never-built.html"
     assert eval_agreement.main(["--measure", str(missing)]) == 1

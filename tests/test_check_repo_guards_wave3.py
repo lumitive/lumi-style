@@ -295,6 +295,8 @@ def _scores_tree(tmp_path, overrides=None):
     (scripts / "lib").mkdir(parents=True)
     shutil.copyfile(REAL_SCRIPTS / "lib" / "deliverable_registry.py",
                     scripts / "lib" / "deliverable_registry.py")
+    # and the corpus reader (0.1.534), for the same reason
+    shutil.copyfile(REAL_SCRIPTS / "lib" / "corpus.py", scripts / "lib" / "corpus.py")
     (tmp_path / "CHANGELOG.md").write_text("## 0.1.1\n\n- first.\n", encoding="utf-8")
     record = {"release": "0.1.1", "genre": "sales", "corpus_id": "A1",
               "self": dict.fromkeys(DIMS, 4), "reader": dict.fromkeys(DIMS, 4),
