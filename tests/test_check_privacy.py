@@ -12,7 +12,16 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "check"))
 
+# The cross-engagement terms directory is read from LUMI_TERMS_DIR when set;
+# every test here points it at an empty directory so a list on the developer's
+# machine cannot turn "not attempted" into "loaded" under the suite.
+import os  # noqa: E402
+
 import check_privacy as cp  # noqa: E402
+
+_EMPTY = pathlib.Path(__file__).parent / "_no_terms_here"
+os.environ["LUMI_TERMS_DIR"] = str(_EMPTY)
+cp.TERMS_DIR = _EMPTY
 
 
 def _kinds(html, terms=()):
@@ -140,3 +149,42 @@ def test_every_did_not_run_status_load_terms_can_return_is_handled():
     import check_privacy as cp
     produced = {"not_attempted", "missing", "loaded"}
     assert set(cp.DID_NOT_RUN) | {"loaded"} == produced
+
+
+# 0.1.526 — IDEA-15 and the cross-engagement home.
+
+def test_a_short_latin_term_does_not_fire_inside_embedded_base64():
+    font = ("@font-face{src:url(data:font/woff2;base64,"
+            "d09GMgABAAAAAARayTh2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            "RayTh2RayTh2RayTh2RayTh2RayTh2RayTh2RayTh2==)}")
+    l1, _ = _kinds(f"<style>{font}</style><p>clean prose</p>", terms=["Ray"])
+    assert l1 == []
+
+
+def test_a_real_name_in_visible_prose_still_fires(tmp_path):
+    l1, _ = _kinds("<p>We met Ray at the plant.</p>", terms=["Ray"])
+    assert l1 == ["declared out of bounds"]
+
+
+def test_a_latin_term_matches_on_word_boundaries_only():
+    l1, _ = _kinds("<p>Rayleigh scattering</p>", terms=["Ray"])
+    assert l1 == []
+
+
+def test_a_cjk_term_matches_as_a_substring():
+    l1, _ = _kinds("<p>与三花的合作</p>", terms=["三花"])
+    assert len(l1) == 1
+
+
+def test_the_terms_directory_is_read_when_no_path_is_given(tmp_path, monkeypatch):
+    (tmp_path / "a.terms.txt").write_text("Ray\n# comment\n", encoding="utf-8")
+    (tmp_path / "b.terms.txt").write_text("三花\n", encoding="utf-8")
+    (tmp_path / "notes.txt").write_text("ignored\n", encoding="utf-8")
+    monkeypatch.setattr(cp, "TERMS_DIR", tmp_path)
+    terms, status = cp.load_terms(None)
+    assert status == "loaded" and sorted(terms) == ["Ray", "三花"]
+
+
+def test_an_empty_terms_directory_is_not_attempted(tmp_path, monkeypatch):
+    monkeypatch.setattr(cp, "TERMS_DIR", tmp_path)
+    assert cp.load_terms(None) == ([], "not_attempted")

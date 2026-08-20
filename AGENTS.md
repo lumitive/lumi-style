@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.525.** This file restates part of `references/`; where they
+> **lumi-style 0.1.526.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -72,9 +72,10 @@ delivery, the **red-team pass** rides the critic gate: read the draft as its
 most skeptical reader, and treat over-design as a finding, not a virtue.
 **The evals instruments, named because one nobody can find is one nobody
 runs**: `scripts/check/check_outline.py <outline.md>` is the machine half of
-the storyline review; `scripts/check/check_privacy.py <file> --terms <list>`
-is P-5's other half and reports NOT ATTEMPTED without the list, which is not a
-pass; `scripts/ops/scoring_sheet.py` prints the blind C1–C8 sheet, generated
+the storyline review; `scripts/check/check_privacy.py <file>`
+is P-5's other half — it reads the out-of-bounds lists under `~/.lumi/terms/`
+(OR-8) or a `--terms <list>`, and reports NOT ATTEMPTED with neither, which
+is not a pass; `scripts/ops/scoring_sheet.py` prints the blind C1–C8 sheet, generated
 from the rubric so it cannot drift from it; `scripts/ops/review_scores.py`
 stores what a reader returns, keyed by `corpus_id`; `scripts/ops/judge_findings.py`
 runs the register pass that must quote what it objects to, reported and never

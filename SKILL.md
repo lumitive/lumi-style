@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.525"
+  version: "0.1.526"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -388,13 +388,14 @@ current, stale, or **unknown** — and unknown is not current.
    implication, and* **not one of those findings still described a page.** *The
    beat ran and composition threw its output away, with every gate green.*
 
-4. **Before delivery**: run `python3 scripts/check/check_privacy.py <file>
-   --terms <list>` — P-5's other half. Layer 1 gates (credential shapes, and
-   terms declared out of bounds for this engagement); layer 2 reports; **layer 3
-   is yours**: is any commercial analysis here sensitive? The script names that
-   question and does not answer it. **Without `--terms` the term half reports
-   NOT ATTEMPTED and exits non-zero** — a check nobody ran is not a check that
-   found nothing. Then: if two MUST clauses of `references/PRINCIPLES.md`
+4. **Before delivery**: run `python3 scripts/check/check_privacy.py <file>` —
+   P-5's other half. Layer 1 gates (credential shapes, and terms declared out
+   of bounds: every `*.terms.txt` under `~/.lumi/terms/`, the one home
+   `references/operating-rules.md` OR-8 names, or a `--terms <list>` you
+   pass); layer 2 reports; **layer 3 is yours**: is any commercial analysis
+   here sensitive? The script names that question and does not answer it.
+   **With no list anywhere the term half reports NOT ATTEMPTED and exits
+   non-zero** — a check nobody ran is not a check that found nothing. Then: if two MUST clauses of `references/PRINCIPLES.md`
    cannot both be satisfied, take its §3 exit — **record both clauses and what
    each demanded, do not emit, hand it to a person**; it is rare, and it is not
    a way out of an inconvenient rule. Otherwise run the critic gate (structure before polish) and its

@@ -28,7 +28,9 @@ for the same reason `not_measured` is distinct from zero everywhere else here:
 a check nobody ran must not read like a check that found nothing.
 
 **The out-of-bounds list never enters this repository.** It is engagement data.
-It is read from a path the operator supplies, it is held as strings for the
+It is read from a path the operator supplies — or, with no path, from every
+`*.terms.txt` under `~/.lumi/terms/`, the cross-engagement home
+references/operating-rules.md OR-8 names — it is held as strings for the
 length of one run, and nothing writes it anywhere — not to a trace, not to a
 report, not to the terminal beyond the count of terms loaded. Red line 9 says
 this repository holds no engagement facts; a file of a client's forbidden words
@@ -44,6 +46,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import os
 import pathlib
 
 # --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
@@ -123,16 +126,63 @@ def reader_text(raw: str) -> str:
 DID_NOT_RUN = ("not_attempted", "missing")
 
 
+# Where the out-of-bounds lists live when no --terms is given: one file per
+# engagement, accumulated across engagements (the owner's 2026-08-15 ruling),
+# outside every repository. The location is named in
+# references/operating-rules.md (OR-8) and nowhere else is a copy of it —
+# this constant reads the same string the rule states.
+TERMS_DIR = pathlib.Path(os.environ.get("LUMI_TERMS_DIR")
+                         or pathlib.Path.home() / ".lumi" / "terms")
+TERMS_GLOB = "*.terms.txt"
+
+
+def _read_terms(path: pathlib.Path) -> list[str]:
+    return [ln.strip() for ln in path.read_text(encoding="utf-8").splitlines()
+            if ln.strip() and not ln.startswith("#")]
+
+
 def load_terms(path: pathlib.Path | None):
     """-> (terms, status). Terms are held as strings for one run and written
-    nowhere. `status` is 'not_attempted' when no list was supplied."""
-    if path is None:
+    nowhere. With no --terms, every `*.terms.txt` under ~/.lumi/terms/ is
+    loaded (the cross-engagement list); `status` is 'not_attempted' when
+    neither a path nor that directory yields a list."""
+    if path is not None:
+        if not path.is_file():
+            return [], "missing"
+        return _read_terms(path), "loaded"
+    lists = sorted(TERMS_DIR.glob(TERMS_GLOB)) if TERMS_DIR.is_dir() else []
+    if not lists:
         return [], "not_attempted"
-    if not path.is_file():
-        return [], "missing"
-    terms = [ln.strip() for ln in path.read_text(encoding="utf-8").splitlines()
-             if ln.strip() and not ln.startswith("#")]
+    terms: list[str] = []
+    for f in lists:
+        terms.extend(_read_terms(f))
     return terms, "loaded"
+
+
+# What a term scan must NOT read: an embedded font or image is base64, and a
+# three-letter Latin term ("Ray") fired six times inside one font on a real
+# build (IDEA-15) — the term had to be dropped from the list to keep the check
+# usable, which is a privacy check weakened in production. `data:` URIs and
+# long base64 runs are blanked before the term scan only; the credential scan
+# keeps the whole file because a JWT is base64 by construction.
+_DATA_URI = re.compile(r"data:[\w.+-]+/[\w.+-]+;base64,[A-Za-z0-9+/=\s]+")
+_BASE64_RUN = re.compile(r"(?<![A-Za-z0-9+/])[A-Za-z0-9+/]{40,}={0,2}(?![A-Za-z0-9+/])")
+
+
+def term_text(text: str) -> str:
+    """The file with its binary payloads blanked, same length so `_where`
+    still points at the right line."""
+    text = _DATA_URI.sub(lambda m: " " * len(m.group(0)), text)
+    return _BASE64_RUN.sub(lambda m: " " * len(m.group(0)), text)
+
+
+def term_pattern(term: str) -> re.Pattern[str]:
+    """A pure-Latin term matches on word boundaries; anything carrying a CJK
+    character or punctuation matches as a substring, because those scripts
+    do not put spaces where a boundary would be."""
+    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9 '&.-]*[A-Za-z0-9]|[A-Za-z0-9]", term):
+        return re.compile(r"(?<![A-Za-z0-9])" + re.escape(term) + r"(?![A-Za-z0-9])", re.I)
+    return re.compile(re.escape(term), re.I)
 
 
 def scan(raw: str, terms):
@@ -143,8 +193,9 @@ def scan(raw: str, terms):
     for label, pattern in CREDENTIALS:
         for m in pattern.finditer(text):
             layer1.append({"layer": 1, "kind": label, "where": _where(text, m.start())})
+    scannable = term_text(text)
     for term in terms:
-        for m in re.finditer(re.escape(term), text, re.I):
+        for m in term_pattern(term).finditer(scannable):
             # the term itself is never echoed: it is engagement data
             layer1.append({"layer": 1, "kind": "declared out of bounds",
                            "where": _where(text, m.start())})
@@ -166,9 +217,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("files", nargs="+")
     ap.add_argument("--terms", type=pathlib.Path,
-                    help="a file of terms declared out of bounds for this "
-                         "engagement, one per line. Never committed, never "
-                         "echoed, never written to a trace.")
+                    help="a file of terms declared out of bounds, one per line; "
+                         "default: every *.terms.txt under ~/.lumi/terms/. Never "
+                         "committed, never echoed, never written to a trace.")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args()
 
@@ -208,10 +259,11 @@ def main():
             print(f"  note  layer 2 · {f['kind']} · {f['where']}")
         if r["declared_terms"] == "not_attempted":
             print("  FAIL  layer 1 · declared terms: NOT ATTEMPTED — no list was "
-                  "supplied, so this half did not run.\n"
+                  "supplied and ~/.lumi/terms/ holds none, so this half did not run.\n"
                   "        A check nobody ran is not a check that found nothing. "
-                  "Pass --terms, or record\n"
-                  "        the omission against an open KNOWN_GAPS entry.")
+                  "Pass --terms, put a\n"
+                  "        *.terms.txt under ~/.lumi/terms/ (OR-8), or record the "
+                  "omission against an\n        open KNOWN_GAPS entry.")
         elif r["declared_terms"] == "missing":
             print("  FAIL  layer 1 · declared terms: the file given to --terms "
                   "does not exist")
