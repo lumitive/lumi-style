@@ -1,9 +1,12 @@
 #!/bin/bash
 # Emergency manual merge for when GitHub Actions cannot run the required check.
 #
-# Branch protection on main requires the "checks" status and enforces it for
-# admins too, so nobody can merge while Actions is down. This opens that lock for
-# one merge and closes it again.
+# Branch protection on main requires a pull request, requires the "checks"
+# status on it, and enforces both for admins, so nobody can merge while Actions
+# is down. This opens that lock for one merge and closes it again. Turning
+# enforce_admins off suspends the whole rule set for admins, so the one lock is
+# still the only one to open — and this script merges a PR either way, which is
+# what the pull-request rule asks for.
 #
 #   Usage:  bash scripts/ops/emergency_merge.sh <PR-NUMBER>
 #
@@ -205,6 +208,7 @@ echo "==> Final state"
 gh api "repos/$REPO/branches/main/protection" --jq \
   '"    enforce_admins=\(.enforce_admins.enabled)
     required=\(.required_status_checks.checks | map(.context) | join(","))
+    pr_required=\(.required_pull_request_reviews != null) approvals=\(.required_pull_request_reviews.required_approving_review_count // 0)
     linear=\(.required_linear_history.enabled) force_push_blocked=\(.allow_force_pushes.enabled|not)"' \
   || echo "    !! could not read protection state — check it by hand"
 gh pr view "$PR" --repo "$REPO" --json state --jq '"    PR state=\(.state)"' || true

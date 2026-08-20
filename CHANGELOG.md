@@ -1,3 +1,39 @@
+## 0.1.539 — main takes changes only through a pull request, and the lock reports the rule it gained
+
+**The setting the owner had left open is now closed.** 0.1.538 recorded, as an
+open operator step, "whether to require a pull request in `main`'s branch
+protection — which today requires the `checks` status and nothing about how the
+commit arrives". It now requires both. No approving review is asked for: the
+rule closes the direct push, not the solo merge, and a review requirement would
+have made every release wait on a second person rather than on a check.
+
+**What it actually closes, since the `checks` status was already required.** A
+commit that has gone green on a branch carries that status wherever it goes, so
+fast-forwarding `main` onto it was a push GitHub would accept — no pull request,
+no second CI run, no record. That path is what disappears. The protection object
+was written whole (the API has no partial update), and the sixteen settings that
+were not the subject — the required check and its strictness, admin enforcement,
+linear history, force-push and deletion blocks, conversation resolution — were
+read back field by field against a pre-change snapshot and are identical.
+
+**`emergency_merge.sh` needed no new lock, and said so wrongly.** Turning
+`enforce_admins` off suspends the whole rule set for admins, so the one lock it
+opens is still the only one; and it reaches the merge through `gh pr merge`,
+which is what the new rule asks for anyway. Its header comment claimed the
+protection was the `checks` status alone, and its closing "Final state" report
+printed four settings — neither of which would have mentioned the rule after
+this release, so the report would have looked complete while omitting one. Both
+now name it. The new `jq` line was run against two real protection objects
+before shipping, per convention 15: the live one, which prints
+`pr_required=true approvals=0`, and the pre-change snapshot, which has no such
+block at all and prints `pr_required=false approvals=0` rather than failing.
+
+**Swept, not remembered.** `CLAUDE.md`'s "When CI is slow or down" opened on the
+old fact and is corrected. The other two restatements — 0.1.538's entry above
+and step 14 of `specs/2026-08-20-audit-remediation-plan.md` — are history and
+stay as written; both describe the setting as the owner's to change, which it
+was, and this entry is where it changed.
+
 ## 0.1.538 — ten red CI runs on the remediation branch, and the symlink that caused them
 
 **Local green was not CI green, again.** Every release from 0.1.528 to

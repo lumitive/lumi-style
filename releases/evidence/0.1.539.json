@@ -1,0 +1,15 @@
+{
+ "version": "0.1.539",
+ "diff_base": "2c4b632b2e616b1cd9af81a8efb52ffce4f4a122",
+ "spec": "",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Unconfirmed, and untouched by this release: the multi-agent board's newest rows are still the 0.1.522 run (2026-08-19). The obligation is raised here by the version stamps this release writes into SKILL.md, references/, prompts/ and tokens/ — no rule surface changed, the edits are CLAUDE.md prose and scripts/ops/emergency_merge.sh. The staleness inherited from 0.1.523-0.1.538 therefore stands unchanged. Closing it is the operator step already listed beside the six model-effort cells: driving Claude Code and Cursor through run_conformance.py run --drive on the owner's machine (API keys and CLIs), then report --record. What is unverified is the current instruments' verdict on the two agents' synthetic decks, not any check this release ships."
+  }
+ ]
+}
