@@ -177,8 +177,11 @@ re-flowed into the entry points — stays with the reviewer.
 
 ## When CI is slow or down
 
-`main` requires the `checks` status and enforces it for admins, so a GitHub
-Actions incident blocks merging for everyone. Do not wait it out by polling.
+`main` takes changes only through a pull request, requires the `checks` status
+on it, and enforces both for admins, so a GitHub Actions incident blocks
+merging for everyone. (No approving review is required: the rule closes the
+direct push — including fast-forwarding `main` to a branch commit that already
+carries a green status — not the solo merge.) Do not wait it out by polling.
 
 1. **Ask the status page before waiting**, not after. One call to
    `githubstatus.com/api/v2/components.json` answers whether waiting is worth
