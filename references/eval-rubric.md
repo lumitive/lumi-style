@@ -16,9 +16,10 @@
 
 ## Machine metrics M1–M15 (scriptable; spot-check manually when no script)
 
-**Ten of the twelve have code.** `check_prose.py` implements M1, M2, M4, M5, M6,
-M8, M9, M10, M11 and M12. Until 0.1.390 the parenthesis in this heading carried
-half the table, and three of the six it carried stood behind a fact red line.
+**The table below is the list of what has code**; a count here was wrong
+twice (it said "ten of the twelve" after M13–M15 shipped). Until 0.1.390 the
+parenthesis in this heading carried half the table, and three of the six it
+carried stood behind a fact red line.
 
 **Two are recorded as NOT MECHANIZED, with the reason**, which is a decision
 rather than a gap:
@@ -361,7 +362,7 @@ those standards explicitly decline to enforce.
 | ② supporting material is in an appendix; the body has no padding | human · report only |
 | ③ status documents: every red or amber item is paired with a specific ask | human · `[outline]` · report only |
 | ④ the ending is a next step with an owner and a date, not a restatement | human · `[outline]` · report only |
-| ~~⑤ navigation exists (page numbers, agenda)~~ | **half held**: page numbers by D6; **agenda and tracker existence is checked by nothing today** — mechanisable, not built |
+| ~~⑤ navigation exists (page numbers, agenda)~~ | **held**: page numbers by D6; the agenda by D27 (gates), which holds every agenda line to a title the deck carries — stronger than existence. A tracker (a running "you are here") has no check and no rule; it is not promised |
 
 ### C6 · Actionability and decision focus · parent `GOAL`
 
@@ -384,7 +385,7 @@ belongs to the product's purpose, hence `GOAL` among its parents.
 | ① any page is understandable in about sixty seconds (time five sampled pages) | human · sampled |
 | ② terminology is stable: each key concept has one name throughout (check three) | human · sampled |
 | ~~③ placeholders and draft markers~~ | **held**: D14 (gates) |
-| ~~④ layout consistency (≤2 typefaces, restrained palette, alignment)~~ | **half held**: palette by D4 and D20; **there is no font-count check** — mechanisable, not built |
+| ~~④ layout consistency (≤2 typefaces, restrained palette, alignment)~~ | **held**: palette by D4 and D20; typeface count by D23 (reported, ceiling derived from `tokens/`). Alignment stays with the eye |
 | ~~⑤ plain-language baseline~~ | **held**: M4, M8, M9. Register as a whole goes to the **judge-finding layer** (`scripts/ops/judge_findings.py`): a language model may point at a sentence and say what is wrong with it, and **every finding carries a quotation that must appear in the document** — a model that cannot produce the sentence it objects to has not found anything. No scores, and never gates |
 
 ### C8 · Figure quality · parent `P-4`

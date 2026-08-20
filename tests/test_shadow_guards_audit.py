@@ -127,3 +127,24 @@ def test_no_lists_means_the_term_half_simply_does_not_run(tmp_path, monkeypatch)
     monkeypatch.setattr(check_repo, "ROOT", _git_tree(tmp_path / "repo", {
         "notes.md": "we built this for Acme Widgets last year\n"}))
     assert check_repo.check_secrets() == []
+
+
+# 0.1.527 — a claim of absence in the rubric must cite a ledger entry.
+
+def test_rubric_unbuilt_claim_without_a_ledger_id_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _tree(tmp_path, {
+        "references/eval-rubric.md":
+            "| ④ layout | **half held**: there is no font-count check — mechanisable, not built |\n"}))
+    errors = check_repo.check_rubric_unbuilt_claims()
+    assert len(errors) == 1 and "eval-rubric.md:1" in errors[0]
+
+
+def test_rubric_unbuilt_claim_with_a_ledger_id_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _tree(tmp_path, {
+        "references/eval-rubric.md":
+            "| ② terms | a terminology checker is not built — IDEA-12 tracks it |\n"}))
+    assert check_repo.check_rubric_unbuilt_claims() == []
+
+
+def test_the_live_rubric_carries_no_unheld_claim_of_absence():
+    assert check_repo.check_rubric_unbuilt_claims() == []

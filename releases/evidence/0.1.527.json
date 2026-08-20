@@ -1,0 +1,18 @@
+{
+  "version": "0.1.527",
+  "diff_base": "b3e888f9bfdba7068d4bf5079e9c6c6d19e4f211",
+  "spec": "specs/2026-08-20-audit-remediation-design.md",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "631a4d8e901af8b96e2f12360b6fcb86472d7414f2a6e2ad9e19a50190d304f2",
+      "date": "2026-08-20"
+    }
+  ],
+  "waivers": []
+}

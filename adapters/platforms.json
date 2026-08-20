@@ -122,7 +122,7 @@
     "A `.cursor/rules/lumi-style.mdc` pointer file ships for projects that want the rules loaded workspace-wide rather than on demand. It is a convenience — the skill path already works."
    ],
    "capability_verified": false,
-   "capability_waiver": "Not exercised BY THIS REPOSITORY. The CLI is installed and probed, and an operator has driven all three conformance tasks through it by hand — but run_conformance.py invokes no agent, so nothing here has watched this agent run the checkers itself. See conformance/CONFORMANCE.md."
+   "capability_waiver": "Not verified as a CAPABILITY claim: run_conformance.py `run --drive` drives this agent (since 0.1.454) and its 0.1.522 T1-deck run scored every verdict ok, but a conformance task is a synthetic 12-page deck, and `full` claims the agent can run the checkers on a real deliverable through the entry file — which no run has watched. See conformance/CONFORMANCE.md."
   },
   {
    "id": "antigravity",

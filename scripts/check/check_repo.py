@@ -1980,6 +1980,35 @@ def check_brand_lock():
     return brand_lock.verify()
 
 
+def check_rubric_unbuilt_claims():
+    """A sentence in eval-rubric.md saying a check is not built must cite the
+    ledger entry that tracks it.
+
+    The 2026-08-20 audit found `references/eval-rubric.md` listing D23 and
+    D27 in its metric table while two rows of the same file said "there is no
+    font-count check" and "agenda existence is checked by nothing today" —
+    both written true, both false within a handful of releases, neither with
+    anything to hold it. A claim of absence that names a GAP or IDEA is
+    checked by the ledger guard (the id must exist) and read when the entry
+    closes; one that names nothing rots in place. This is IDEA-11's shape —
+    a promise conditional on a state — applied to the file that had it twice.
+    """
+    path = ROOT / "references" / "eval-rubric.md"
+    if not path.exists():
+        return []
+    claim = re.compile(r"(?i)\bnot built\b|checked by nothing|there is no [\w -]{1,40}? check\b"
+                       r"|\bunbuilt\b|\bnot yet built\b")
+    cite = re.compile(r"\b(?:GAP|IDEA)-\d+\b")
+    errors = []
+    for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if claim.search(line) and not cite.search(line):
+            errors.append(f"references/eval-rubric.md:{n}: says a check is not "
+                          f"built and cites no GAP/IDEA — a claim of absence "
+                          f"with nothing to hold it is how D23 and D27 were "
+                          f"described as missing after they shipped")
+    return errors
+
+
 def check_no_shadow_markup():
     """No script re-grows a private strip-tags. The operation is
     `markup.strip_tags` / `markup.visible_text` / `markup.join_cjk`.
@@ -3376,6 +3405,7 @@ CHECKS = (
     ("no shadow math", check_no_shadow_math),
     ("secret patterns parity", check_secret_patterns_parity),
     ("no shadow markup", check_no_shadow_markup),
+    ("rubric unbuilt claims", check_rubric_unbuilt_claims),
     ("ledgers", check_ledgers),
     ("commit convention", check_commit_convention),
     ("secrets", check_secrets),
