@@ -1,3 +1,48 @@
+## 0.1.537 — the audit's process finding is withdrawn, and the branch is ready to merge
+
+Audit-remediation step 14 (`specs/2026-08-20-audit-remediation-design.md`),
+the last.
+
+**A finding of the audit was wrong, and this entry says so.** The audit
+read `git log --merges` as empty and concluded that sixty-six releases had
+reached `main` with no pull request. `gh pr list --state merged` shows
+otherwise: #102 carried 0.1.457–0.1.495 as one PR, and #104 through #127
+carried one release each, every one rebase-merged — which keeps one commit
+per release and leaves no merge commit. The audit inferred pull requests
+from merge commits, and the inference was the defect; the audit document,
+the remediation design and its plan are corrected at their three sites.
+This is the second of the audit's readings withdrawn on this branch (the
+first, at 0.1.524, was the phase clock), recorded here because an entry is
+what a later session believes (convention 14).
+
+**Convention 3 says what it meant.** "Merged, not squashed" read as though a
+rebase merge were a third thing; it is the form the two guards need, and it
+is how the whole refactor landed. The convention now names it.
+
+**What this branch leaves open, on purpose and in the ledger.** GAP-015
+(privacy layer 3 is not the designed allow-list report), GAP-016
+(`check_outline.py` mechanises three of thirteen outline items), GAP-020 (the
+trace schema's `feedback` field), GAP-021 (A1 fails D27; the owner's
+calibration-only ruling stands until a second accepted document exists),
+GAP-004 and GAP-005. And three operator steps the instruments are now ready
+for: the six model×effort cells (`run_conformance.py run --drive --model …
+--effort …`, which now writes conformance traces), the blind score of
+corpus D18 (its sheet is in the delivery directory), and whether to require a
+pull request in `main`'s branch protection — which today requires the
+`checks` status and nothing about how the commit arrives.
+
+Fifteen releases, 0.1.523–0.1.537, each with its own CHANGELOG entry,
+planted-red run and tests; seven new guards (`secret patterns parity`,
+`no shadow markup`, `rubric unbuilt claims`, `prompt parity`, `entry
+restatement ceiling`, the manifest half of `assets tracked`, and
+`review_scores --check`'s corpus resolution), one new generator with a CI
+`--check` (`recolor_shapes.py`), three new reported rows (D31, D32, and the
+board's generated findings), and four rules homed in `references/`
+(OR-8, OR-9, OR-10, DR-6's parentage). The audit's §10-A list is empty;
+§10-B is done or ruled; §10-C is the prompt-parity guard, the field in the
+scaffold, and a ledger that says what the `files` tier and the second brand
+are waiting for.
+
 ## 0.1.536 — AGENTS.md becomes a map, and the sweep learns to scope to what you touched
 
 Audit-remediation step 13 (`specs/2026-08-20-audit-remediation-design.md`).
