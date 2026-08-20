@@ -103,9 +103,14 @@ def validate(rec):
             errors.append(f"{key}={rec[key]!r} is outside the vocabulary {allowed}")
     if "trace_id" in rec and not ID.match(str(rec["trace_id"])):
         errors.append(f"trace_id {rec['trace_id']!r} is not t-<12 hex>")
-    for phase in rec.get("phase_seconds", {}):
+    for phase, seconds in rec.get("phase_seconds", {}).items():
         if phase not in PHASES:
             errors.append(f"phase_seconds has phase {phase!r}, not one of {PHASES}")
+        # The VALUE is typed too. A string here validated until 0.1.524, and
+        # ledger.py sums these.
+        if isinstance(seconds, bool) or not isinstance(seconds, (int, float)) or seconds < 0:
+            errors.append(f"phase_seconds[{phase!r}] must be a non-negative number, "
+                          f"got {seconds!r}")
     for y in rec.get("principle_yields", []):
         if not isinstance(y, dict) or set(y) != {"yielded", "for", "stage"}:
             errors.append(f"principle_yields entry {y!r} must be "

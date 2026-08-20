@@ -347,7 +347,9 @@ competitive landscape analysis: it was commissioned separately.</p>
 
 **Reader-visible is the point.** Every precedent prints the declaration for the
 reader, and that is where its effect comes from; a marker only the checker can
-see would do nothing but silence the checker.
+see would do nothing but silence the checker. One note may declare several
+absences (`data-omitted="team, vision"`); the undeclared count is reported as
+D31 and never gates.
 
 **Existence may be mandated; naming almost never is.** A checker that decides
 whether a section exists by grepping headings would be enforcing the one thing

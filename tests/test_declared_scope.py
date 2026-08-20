@@ -92,3 +92,23 @@ def test_deck_pass_demonstrates_a_declaration_a_reader_meets():
     rows = {n: v for n, _, _, v in cd.grade(r)}
     assert rows["D26_declared_scope"] == "ok"
     assert "pricing" in r["D26_declared_scope"]["declared"]
+
+
+# 0.1.524: the undeclared count reaches the reader as its own row (D31), and
+# one note may declare several absences. The audit found a pitch deck covering
+# six of eleven typical sections with nothing declared, D26 "ok", and
+# check_deliverable printing "0 graded findings": the mechanism computed the
+# list and then dropped it.
+
+def test_one_note_may_declare_several_absences():
+    raw = ('<body data-storyline="gtm"><p class="scope-note" '
+           'data-omitted="target customer, value proposition; channels">'
+           'Three sections are out of scope.</p></body>')
+    r = cd.d26_declared_scope(raw, "gtm")
+    assert r["declared"] == ["channels", "target customer", "value proposition"]
+    assert "target customer" not in r["missing"]
+
+
+# The D31 row itself is held by check_fixtures: deck-pass declares its six
+# absences in one sentence and reads ok; deck-broken carries the same absences
+# undeclared and reads FAIL.

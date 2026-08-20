@@ -1598,10 +1598,13 @@ def d26_declared_scope(raw, storyline=None):
     """
     declared, hidden = set(), []
     for m in _SCOPE_NOTE.finditer(raw):
-        attrs, name, body = m.group(2), m.group(3).strip().lower(), m.group(4)
-        declared.add(name)
+        attrs, body = m.group(2), m.group(4)
+        # One note may declare several absences ("a, b; c") — a reader reads
+        # one sentence, the checker reads each name.
+        names = [n.strip().lower() for n in re.split(r"[,;·]", m.group(3)) if n.strip()]
+        declared.update(names)
         if _INVISIBLE.search(attrs) or not re.sub(r"<[^>]+>", "", body).strip():
-            hidden.append(name or "(unnamed)")
+            hidden.extend(names or ["(unnamed)"])
     if not storyline:
         return {"storyline": None, "missing": None, "hidden": hidden,
                 "declared": sorted(declared)}
@@ -1809,6 +1812,16 @@ def grade(r):
             detail += f"; {len(hid)} declaration(s) a reader cannot see"
         rows.append(("D26_declared_scope", detail,
                      "every declaration is one a reader meets", not hid, False))
+        # The undeclared count is its own row so it REACHES a reader.
+        # D26's verdict keyed on `hidden` alone, so a pitch deck covering six
+        # of eleven typical sections with nothing declared produced "ok" and
+        # check_deliverable printed "0 graded findings" — the whole C5
+        # mechanism (declare the gap) was computed and then dropped. Still
+        # reported, never gating: C5's evidence stands; surfacing is the fix.
+        rows.append(("D31_undeclared_sections",
+                     None if miss is None else len(miss),
+                     "=0 or declared (reported)",
+                     not miss, miss is None))
 
     dc = r["D21_data_contract"]
     rows.append(("D21_data_contract",
