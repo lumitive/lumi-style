@@ -55,6 +55,7 @@ the hidden-constraint condition this inventory exists to surface.
 | check_design | D2_type_scale | `reported` | reported |
 | check_design | D30_figure_sequence | `1..k once each, in page order (reported)` | reported |
 | check_design | D31_undeclared_sections | `=0 or declared (reported)` | reported |
+| check_design | D32_shape_use | `>0 where moves are declared (reported)` | reported |
 | check_design | D3_tier1_page_share | `<=33.0%` | graded |
 | check_design | D3_tier1_per_page | `<=1 per page` | graded |
 | check_design | D4_palette_literals | `=0` | graded |

@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.532.** This file restates part of `references/`; where they
+> **lumi-style 0.1.533.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -103,7 +103,10 @@ facts, and only when asked; `SKILL.md`'s Debug mode section is the contract.
    section declares its analytical move (compare · decompose · position ·
    correlate · bridge) with the finding as the title and the implication as
    the `.take`; figures come from `assets/frameworks.json`'s question →
-   framework → shape chain; the register comes from writing-rules' per-genre
+   framework → shape chain (name the framework in the outline and the
+   scaffold fills the slot); read `references/exemplars/` at this beat —
+   the McKinsey design notes for any consulting page, the YC notes for a
+   `pitch-deck` — because it is the one place they can act; the register comes from writing-rules' per-genre
    profiles (market language for sales, operator's procedure for training);
    internal metrics reach a reader page only as drivers of evidenced reader
    outcomes (AR-5), a judgement-based figure declares its basis where it is

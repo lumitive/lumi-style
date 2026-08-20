@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.532"
+  version: "0.1.533"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -205,7 +205,14 @@ current, stale, or **unknown** — and unknown is not current.
    Pick the figure at the same time — the ghost deck: the framework from
    [`assets/frameworks.json`](assets/frameworks.json) (question → framework
    → shape) or a chart form from design-rules §4, so every page knows what
-   it will draw before anything is composed. `check_outline.py` reports
+   it will draw before anything is composed; name it in the outline
+   (`framework: <id>`) and the scaffold puts that framework's shape in the
+   page's figure slot. **Read the exemplar notes here, not later**:
+   [`references/exemplars/mckinsey-design-notes.md`](references/exemplars/mckinsey-design-notes.md)
+   (the ten devices a consulting page uses to carry an argument) and, for a
+   `pitch-deck`, [`references/exemplars/yc-pitch-notes.md`](references/exemplars/yc-pitch-notes.md)
+   — this beat is the one place they can act; loaded at composition they
+   landed as typography and never as analysis. `check_outline.py` reports
    declaration coverage and the move vocabulary; whether the analysis is
    REAL stays with the benchmark review. A deck that skips this beat renders
    fine and reads as display — both blind reviews scored exactly that shape

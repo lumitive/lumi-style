@@ -68,7 +68,8 @@
      "D28_takeaway": "ok",
      "D29_figure_numbers": "ok",
      "D30_figure_sequence": "ok",
-     "D31_undeclared_sections": "ok"
+     "D31_undeclared_sections": "ok",
+     "D32_shape_use": "ok"
     },
     "contains": {
      "D10_label_icons": [
@@ -173,7 +174,8 @@
      "D28_takeaway": "ok",
      "D29_figure_numbers": "ok",
      "D30_figure_sequence": "FAIL",
-     "D31_undeclared_sections": "FAIL"
+     "D31_undeclared_sections": "FAIL",
+     "D32_shape_use": "ok"
     },
     "contains": {
      "D16_visual_presence": [
@@ -315,7 +317,8 @@
      "D28_takeaway": "ok",
      "D29_figure_numbers": "ok",
      "D30_figure_sequence": "n/a",
-     "D31_undeclared_sections": null
+     "D31_undeclared_sections": null,
+     "D32_shape_use": null
     }
    },
    "layout": {

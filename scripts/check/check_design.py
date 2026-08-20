@@ -686,6 +686,29 @@ _CAP_N = re.compile(r'<span class="(?:[^"]*\s)?n(?:\s[^"]*)?"[^>]*>\s*'
                     r'(?:Figure|Exhibit|\u56fe|\u56fe\u8868)\s*(\d+)', re.I)
 
 
+_SHAPE_USE = re.compile(r'<use\b[^>]*href="#shape-[^"]+"', re.I)
+_ANALYSIS_PAGE = re.compile(r'<section\b[^>]*\bdata-analysis="[^"]+"', re.I)
+
+
+def d32_shape_use(raw):
+    """-> {shapes, analysis_pages}: how many library shapes the document draws
+    with, and how many pages declare an analytical move.
+
+    Reported, never gating. The vendored library (206 units, tagged, embedded
+    on demand) was used zero times across five shipped deliverables; the
+    number was invisible because nothing counted it. It is a finding only on
+    a document that declares moves and draws none of them with a library
+    shape — a deck built from an outline whose every page says `compare` or
+    `decompose` and whose figures are all hand-drawn has either drawn
+    natively on purpose or let the scaffold's slots go; the count tells a
+    reader which to look for. A document that declares no moves is not
+    measured against it.
+    """
+    shapes = len(_SHAPE_USE.findall(raw))
+    analysis_pages = len(_ANALYSIS_PAGE.findall(raw))
+    return {"shapes": shapes, "analysis_pages": analysis_pages}
+
+
 def d30_figure_sequence(raw):
     """Figure numbers that do not run 1..k once each, in page order.
 
@@ -1423,6 +1446,7 @@ def measure(path):
         "D29_detail": (d29 or {}).get("naked"),
         "D30_figure_sequence": (d30 := d30_figure_sequence(raw)),
         "D30_detail": (d30 or {}).get("duplicates"),
+        "D32_shape_use": d32_shape_use(raw),
         "D23_font_count": d23_font_count(
             raw, (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")),
     }
@@ -1814,6 +1838,12 @@ def grade(r):
         # check_deliverable printed "0 graded findings" — the whole C5
         # mechanism (declare the gap) was computed and then dropped. Still
         # reported, never gating: C5's evidence stands; surfacing is the fix.
+        su = r["D32_shape_use"]
+        rows.append(("D32_shape_use",
+                     f"{su['shapes']} library shape(s) on {su['analysis_pages']} "
+                     f"analysis page(s)",
+                     ">0 where moves are declared (reported)",
+                     not (su["analysis_pages"] and not su["shapes"]), False))
         rows.append(("D31_undeclared_sections",
                      None if miss is None else len(miss),
                      "=0 or declared (reported)",
