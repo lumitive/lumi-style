@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="3712.12 2538.12 17411.76 12900.76"><g class="Group">
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1511">
+         <rect class="BoundingBox" stroke="none" fill="none" x="4339" y="9171" width="16155" height="5642" />
+         <path fill="rgb(0,0,254)" stroke="none" d="M 4357,10437 L 4357,13339 18923,13325 18923,14794 20475,9189 18923,9189 18036,11905 18036,10450 4357,10437 Z " />
+         <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 4357,10437 L 4357,13339 18923,13325 18923,14794 20475,9189 18923,9189 18036,11905 18036,10450 4357,10437 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1512">
+         <rect class="BoundingBox" stroke="none" fill="none" x="4343" y="3165" width="16155" height="5642" />
+         <path fill="rgb(0,0,254)" stroke="none" d="M 4361,7536 L 4361,4634 18927,4642 18927,3183 20479,8788 18927,8788 18040,6067 18040,7527 4361,7536 Z " />
+         <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 4361,7536 L 4361,4634 18927,4642 18927,3183 20479,8788 18927,8788 18040,6067 18040,7527 4361,7536 Z " />
+        </g>
+       </g>
+      </g>
+      </svg>

@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="15495.76 7094.76 5650.48 6648.48"><g class="com.sun.star.drawing.CustomShape">
+       <g id="id840">
+        <rect class="BoundingBox" stroke="none" fill="none" x="15724" y="7323" width="5195" height="6193" />
+        <path fill="rgb(0,0,254)" stroke="none" d="M 15742,8577 L 19046,8577 19046,7341 20900,10419 19046,13497 19046,12260 15742,12260 15742,10419 15742,8577 Z " />
+        <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 15742,8577 L 19046,8577 19046,7341 20900,10419 19046,13497 19046,12260 15742,12260 15742,10419 15742,8577 Z " />
+       </g>
+      </g>
+      </svg>

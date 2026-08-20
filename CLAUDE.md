@@ -26,6 +26,7 @@ python3 scripts/ops/output_dir.py            # where a deliverable belongs; --cr
 python3 scripts/ops/new_deck.py              # emit a deck skeleton that already renders, in the standard order
 python3 scripts/build/embed_font.py            # @font-face block with the face inlined
 python3 scripts/build/embed_icons.py           # <symbol> sprite of the semantic icon set
+python3 scripts/build/recolor_shapes.py        # the shape library from its vendored originals + tokens; --check in CI
 python3 scripts/build/build_geography.py       # regenerate assets/vectors/ from lat/lon data
 python3 scripts/build/build_worldmap.py        # shared-arc world topology + the golden grid
 python3 scripts/build/build_region_palette.py  # region hues; --selftest asserts the contrast floors

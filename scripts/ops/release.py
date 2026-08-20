@@ -74,6 +74,7 @@ GENERATORS = [
     ["python3", "scripts/build/build_entrypoints.py"],
     ["python3", "scripts/build/build_fixtures.py"],
     ["python3", "scripts/build/build_eval_inventory.py"],
+    ["python3", "scripts/build/recolor_shapes.py"],
 ]
 
 

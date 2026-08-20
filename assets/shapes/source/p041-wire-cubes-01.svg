@@ -1,0 +1,70 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="7547.52 5063.52 9813.96 9740.96"><g class="Group">
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id824">
+         <rect class="BoundingBox" stroke="none" fill="none" x="11682" y="6369" width="3741" height="4025" />
+         <path fill="none" stroke="rgb(254,251,0)" stroke-width="35" stroke-linejoin="miter" d="M 13552,10375 L 11700,10375 11700,6387 15404,6387 15404,10375 13552,10375 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id825">
+         <rect class="BoundingBox" stroke="none" fill="none" x="13266" y="5418" width="3740" height="3878" />
+         <path fill="none" stroke="rgb(254,251,0)" stroke-width="35" stroke-linejoin="miter" d="M 15136,9277 L 13284,9277 13284,5436 16987,5436 16987,9277 15136,9277 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.LineShape">
+        <g id="id826">
+         <rect class="BoundingBox" stroke="none" fill="none" x="11691" y="5411" width="1609" height="978" />
+         <path fill="none" stroke="rgb(254,251,0)" stroke-width="35" stroke-linejoin="miter" d="M 11700,6372 L 13290,5427 " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.LineShape">
+        <g id="id827">
+         <rect class="BoundingBox" stroke="none" fill="none" x="15404" y="5420" width="1600" height="978" />
+         <path fill="none" stroke="rgb(254,251,0)" stroke-width="35" stroke-linejoin="miter" d="M 15413,6381 L 16994,5436 " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.LineShape">
+        <g id="id828">
+         <rect class="BoundingBox" stroke="none" fill="none" x="15403" y="9286" width="1606" height="1108" />
+         <path fill="none" stroke="rgb(254,251,0)" stroke-width="35" stroke-linejoin="miter" d="M 15413,10378 L 16998,9301 " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id829">
+         <rect class="BoundingBox" stroke="none" fill="none" x="7911" y="10371" width="3802" height="4075" />
+         <path fill="none" stroke="rgb(254,251,0)" stroke-width="35" stroke-linejoin="miter" d="M 9812,14427 L 7929,14427 7929,10389 11694,10389 11694,14427 9812,14427 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id830">
+         <rect class="BoundingBox" stroke="none" fill="none" x="9535" y="9265" width="3763" height="4030" />
+         <path fill="none" stroke="rgb(254,251,0)" stroke-width="35" stroke-linejoin="miter" d="M 11416,13276 L 9553,13276 9553,9283 13279,9283 13279,13276 11416,13276 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.LineShape">
+        <g id="id831">
+         <rect class="BoundingBox" stroke="none" fill="none" x="7901" y="9269" width="1648" height="1145" />
+         <path fill="none" stroke="rgb(254,251,0)" stroke-width="35" stroke-linejoin="miter" d="M 7911,10398 L 9538,9284 " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.LineShape">
+        <g id="id832">
+         <rect class="BoundingBox" stroke="none" fill="none" x="11703" y="9269" width="1583" height="1117" />
+         <path fill="none" stroke="rgb(254,251,0)" stroke-width="35" stroke-linejoin="miter" d="M 11713,10370 L 13275,9284 " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.LineShape">
+        <g id="id833">
+         <rect class="BoundingBox" stroke="none" fill="none" x="7919" y="13270" width="1646" height="1172" />
+         <path fill="none" stroke="rgb(254,251,0)" stroke-width="35" stroke-linejoin="miter" d="M 7930,14426 L 9553,13285 " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.LineShape">
+        <g id="id834">
+         <rect class="BoundingBox" stroke="none" fill="none" x="11689" y="13262" width="1613" height="1195" />
+         <path fill="none" stroke="rgb(254,251,0)" stroke-width="35" stroke-linejoin="miter" d="M 11700,14441 L 13290,13277 " />
+        </g>
+       </g>
+      </g>
+      </svg>

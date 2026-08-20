@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="19126.28 10143.28 5834.44 8173.44"><g class="Group">
+       <g class="com.sun.star.drawing.LineShape">
+        <g id="id173">
+         <rect class="BoundingBox" stroke="none" fill="none" x="20815" y="16963" width="1268" height="709" />
+         <path fill="none" stroke="rgb(255,255,255)" stroke-width="159" stroke-linejoin="miter" d="M 20849,17599 L 22048,17035 " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.LineShape">
+        <g id="id174">
+         <rect class="BoundingBox" stroke="none" fill="none" x="20837" y="17011" width="1224" height="613" />
+         <path fill="none" stroke="rgb(0,0,0)" stroke-width="53" stroke-linejoin="miter" d="M 20849,17599 L 22048,17035 " />
+        </g>
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id179">
+        <rect class="BoundingBox" stroke="none" fill="none" x="22409" y="15504" width="911" height="1669" />
+        <path fill="rgb(0,128,0)" stroke="none" d="M 22409,15835 L 22855,15835 22855,15505 23319,16338 22855,17172 22855,16841 22409,16841 22409,15835 Z " />
+       </g>
+      </g>
+      <g class="com.sun.star.drawing.CustomShape">
+       <g id="id180">
+        <rect class="BoundingBox" stroke="none" fill="none" x="23758" y="10446" width="901" height="7569" />
+        <path fill="rgb(0,128,0)" stroke="none" d="M 24658,14230 L 23758,18014 23758,10446 24658,14230 Z " />
+       </g>
+      </g>
+      <g class="Group">
+       <g class="com.sun.star.drawing.LineShape">
+        <g id="id201">
+         <rect class="BoundingBox" stroke="none" fill="none" x="19391" y="17013" width="1286" height="660" />
+         <path fill="none" stroke="rgb(0,0,0)" stroke-width="212" stroke-linejoin="miter" d="M 19429,17572 L 20638,17113 " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.LineShape">
+        <g id="id202">
+         <rect class="BoundingBox" stroke="none" fill="none" x="19603" y="17153" width="1030" height="432" />
+         <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="miter" d="M 19610,17567 L 20625,17170 " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.LineShape">
+        <g id="id203">
+         <rect class="BoundingBox" stroke="none" fill="none" x="19603" y="16977" width="1030" height="432" />
+         <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="miter" d="M 19610,17391 L 20625,16994 " />
+        </g>
+       </g>
+      </g>
+      </svg>

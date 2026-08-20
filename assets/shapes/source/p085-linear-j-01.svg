@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="4082.56 2562.56 16778.88 12336.88"><g class="Group">
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1572">
+         <rect class="BoundingBox" stroke="none" fill="none" x="4686" y="9817" width="8538" height="3235" />
+         <path fill="rgb(0,0,254)" stroke="none" d="M 11702,11222 L 11702,13033 13205,9835 4704,9835 4704,11222 11702,11222 Z " />
+         <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 11702,11222 L 11702,13033 13205,9835 4704,9835 4704,11222 11702,11222 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1573">
+         <rect class="BoundingBox" stroke="none" fill="none" x="4686" y="4554" width="8538" height="3235" />
+         <path fill="rgb(0,0,254)" stroke="none" d="M 11702,6382 L 11702,4572 13205,7770 4704,7770 4704,6382 11702,6382 Z " />
+         <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 11702,6382 L 11702,4572 13205,7770 4704,7770 4704,6382 11702,6382 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1574">
+         <rect class="BoundingBox" stroke="none" fill="none" x="4691" y="8000" width="9011" height="1644" />
+         <path fill="rgb(0,0,254)" stroke="none" d="M 4709,8018 L 13348,8018 13683,8837 13335,9625 4709,9621 4709,8018 Z " />
+         <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 4709,8018 L 13348,8018 13683,8837 13335,9625 4709,9621 4709,8018 Z " />
+        </g>
+       </g>
+       <g class="com.sun.star.drawing.CustomShape">
+        <g id="id1575">
+         <rect class="BoundingBox" stroke="none" fill="none" x="11684" y="3166" width="8575" height="11131" />
+         <path fill="rgb(0,0,254)" stroke="none" d="M 11702,4571 L 18443,4571 18443,3184 20240,8731 18443,14278 18443,13032 11702,13032 13681,8802 11702,4571 Z " />
+         <path fill="none" stroke="rgb(255,255,255)" stroke-width="35" stroke-linejoin="round" stroke-linecap="round" d="M 11702,4571 L 18443,4571 18443,3184 20240,8731 18443,14278 18443,13032 11702,13032 13681,8802 11702,4571 Z " />
+        </g>
+       </g>
+      </g>
+      </svg>

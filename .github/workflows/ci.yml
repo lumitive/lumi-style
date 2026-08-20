@@ -60,6 +60,7 @@ jobs:
       - run: python3 scripts/build/build_brand.py --check
       - run: python3 scripts/build/build_trade_registry.py --check
       - run: python3 scripts/build/build_region_palette.py --check
+      - run: python3 scripts/build/recolor_shapes.py --check
       # The maths properties, plus the JS port held to the Python authority
       # over the 1300-sample golden grid under bare node (projection.js is
       # DOM-free). The remaining browser checks (renderer parity, painted

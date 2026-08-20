@@ -55,6 +55,9 @@ docs/
 # `assets tracked` guard in check_repo.py asks git rather than the filesystem,
 # so a sixth directory cannot be forgotten this quietly.
 !assets/shapes/*.svg
+# The un-recoloured originals the library is regenerated from (0.1.532); the
+# guard above covers them, and this line is what lets git see them at all.
+!assets/shapes/source/*.svg
 # Official platform marks for the get-started page; provenance in SOURCES.md.
 !assets/logos/*.svg
 # The model-family marks live one level down, and the blanket *.svg rule above
