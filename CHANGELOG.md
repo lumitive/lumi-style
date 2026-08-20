@@ -1,3 +1,42 @@
+## 0.1.528 — the conformance board's prose is generated, its header is dated, and a run id names one run
+
+Audit-remediation step 5 (`specs/2026-08-20-audit-remediation-design.md`).
+
+**The hand-written half of the board narrated a different run than its
+table.** `CONFORMANCE.md`'s generated region refreshed at 0.1.522; the
+paragraphs under it still said "Both agents fail T1-deck" and "Cursor:
+`M2_number_sourcing` at 86.0%" beneath a table in which Cursor had passed all
+three tasks with every verdict `ok` — for six days, on a tracked file. The
+prose about the current run is now **generated from `scores.json`**: one
+line per agent/task that did not pass, naming the failed metrics or the
+driver's reason, and a `pass` row has no line at all. The old paragraphs are
+kept, under a heading that says they are history of earlier runs, dated in
+their own text. A sentence derived from the file cannot disagree with a
+table derived from the same file.
+
+**The header carries the run's date and the version it was scored at.** The
+date is read from the scores file's own timestamp, never typed. The version
+falls back to the newest `instrument_version` in the scores when the run id
+carries none — `results/latest` does not, and a board rendered from it read
+"skill 0.1.527" over a run scored at 0.1.522, which is precisely the claim
+the `built_version` machinery exists to stop a cell from making. It now
+reads `skill 0.1.527 · newest run 0.1.522 · 5 releases behind`.
+
+**A driven run gets its own dated directory, and a task directory is cleared
+before it is driven.** Every drive used to write into `results/latest`, so a
+fresh `driver.json` (timeout, nothing produced) could sit beside a 569KB deck
+from six days earlier in the same directory, and `history.json`'s `run_dir`
+pointed at a tree last written on another day. `run --drive` now writes
+`results/<version>-<date>/`, repoints the `latest` symlink, and removes the
+task directory before driving so whatever is in it afterwards was produced by
+that drive or by nothing. The stale deck under `latest/claude-code/T1-deck/`
+is removed locally (the directory is gitignored; nothing tracked changes).
+
+Five tests in `tests/test_conformance_board_generated.py`; the planted red
+is a scores file with one failing task rendered into a board whose prose
+names it, and a detect-only board that says nothing was scored rather than
+that everything passed.
+
 ## 0.1.527 — five prose drifts corrected, and a claim of absence must now name its ledger
 
 Audit-remediation step 4 (`specs/2026-08-20-audit-remediation-design.md`).

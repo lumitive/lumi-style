@@ -502,9 +502,26 @@ def write_board(record: dict) -> str:
 
 
 def _board_run_version(record: dict) -> str | None:
-    """-> the skill version the rendered runs were produced at, from run_id."""
+    """-> the skill version the rendered runs were produced at: from the run
+    id when it carries one, else from the newest `instrument_version` in the
+    scores. The fallback exists because `results/latest` carries no version
+    in its name, and a board rendered from it read "skill 0.1.527" over a run
+    scored at 0.1.522 — the exact claim the comment above render() says this
+    field exists to stop."""
     m = re.search(r"(\d+\.\d+\.\d+)", str(record.get("run_id") or ""))
-    return m.group(1) if m else None
+    if m:
+        return m.group(1)
+    found: list[str] = []
+    for r in re.findall(r"`([^`]+)`", str(record.get("run_id") or "")):
+        f = pathlib.Path(r) / "scores.json"
+        if f.exists():
+            try:
+                doc = json.loads(f.read_text(encoding="utf-8"))
+            except json.JSONDecodeError:
+                continue
+            found += [str(v["instrument_version"]) for v in doc.values()
+                      if isinstance(v, dict) and v.get("instrument_version")]
+    return sorted(found, key=_ver_key)[-1] if found else None
 
 
 def _releases_between(older: str | None, newer: str | None) -> int | None:
@@ -525,6 +542,49 @@ def _releases_between(older: str | None, newer: str | None) -> int | None:
         return None
     return abs(versions.index(older) - versions.index(newer))
 
+def _scores_date(runs) -> str | None:
+    """-> ISO date of the newest scores.json among the run dirs, or None."""
+    import datetime
+    stamps = []
+    for r in runs:
+        f = pathlib.Path(r) / "scores.json"
+        if f.exists():
+            stamps.append(f.stat().st_mtime)
+    if not stamps:
+        return None
+    return datetime.date.fromtimestamp(max(stamps)).isoformat()
+
+
+def _findings(runs) -> list[str]:
+    """-> one generated line per agent/task that did not pass, naming the
+    failed metrics from scores.json. This replaces the hand-written
+    narrative that used to sit under the table: at 0.1.522 that prose still
+    said "Both agents fail T1-deck" and "Cursor: M2 at 86.0%" under a table
+    in which Cursor passed all three, because the table was regenerated and
+    the paragraph was not. A sentence derived from the file cannot disagree
+    with the table derived from the same file."""
+    out = []
+    for r in runs:
+        f = pathlib.Path(r) / "scores.json"
+        if not f.exists():
+            continue
+        try:
+            doc = json.loads(f.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            out.append(f"`{f}` does not parse — nothing below it is a verdict")
+            continue
+        for key, value in sorted(doc.items()):
+            verdict = value.get("verdict", "unscored")
+            if verdict == "pass":
+                continue
+            failed = value.get("failed") or []
+            detail = value.get("detail")
+            tail = (", ".join(str(x) for x in failed) if failed else
+                    (detail or "no metric named"))
+            out.append(f"`{key}` · **{verdict}** · {tail}")
+    return out
+
+
 def render(record: dict) -> str:
     # THE HEADER CARRIES BOTH VERSIONS AND THE DISTANCE BETWEEN THEM. It used
     # to name the instrument alone, so a board rendering runs from 0.1.454 sat
@@ -540,8 +600,9 @@ def render(record: dict) -> str:
     stamp = (f"skill {record['version']}" if behind is None or behind == 0 else
              f"skill {record['version']} · newest run {ran_at} · "
              f"{behind} release{'' if behind == 1 else 's'} behind")
+    dated = f" · run {record['run_date']}" if record.get("run_date") else ""
     lines = [f"# LUMI style conformance · {stamp}", "",
-             f"Runs {record['run_id']} · {record['host']} · "
+             f"Runs {record['run_id']}{dated} · {record['host']} · "
              f"{record['detected']} of {record['agents']} agents detected · "
              f"up to n={record['repeat']} per agent · "
              f"{record['structural']} of {record['agents']} can never answer a CLI probe",
@@ -554,6 +615,16 @@ def render(record: dict) -> str:
         cells += [row["tasks"].get(t, "—") for t in record["task_ids"]]
         cells.append(f"**{row['verdict']}**")
         lines.append("| " + " | ".join(cells) + " |")
+    findings = record.get("findings") or []
+    lines += ["", "**What did not pass, from the scores file** (generated; a "
+              "`pass` row has no line here):", ""]
+    if not record.get("run_date"):
+        lines += ["* no run named — nothing was scored, so nothing passed either"]
+    else:
+        lines += [f"* {x}" for x in findings] or ["* nothing — every scored task passed"]
+    lines += ["", "*Everything below the generated marker is history of earlier "
+              "runs, dated in its own text. The table and the list above are "
+              "the only statements about the run named in the header.*"]
     lines += ["", "## What this table is not", "",
               "It is not a claim that any model produces good output: the checks "
               "measure mechanical conformance, and a page is done when a human reads "
@@ -673,7 +744,19 @@ def main(argv):
         return 0
 
     if args.command == "run":
-        run_dir = pathlib.Path(runs[0]) if runs else RESULTS / "latest"
+        # A DRIVEN run gets its own dated directory by default, and `latest`
+        # becomes a symlink to it. Under the old default every drive wrote
+        # into `results/latest`, so a new driver.json (timeout, nothing
+        # produced) could sit beside a deck from a previous run in the same
+        # directory, and history.json's run_dir pointed at a tree last written
+        # on another day. A run id now names one run.
+        if runs:
+            run_dir = pathlib.Path(runs[0])
+        elif args.drive:
+            import datetime
+            run_dir = RESULTS / f"{skill_version()}-{datetime.date.today().isoformat()}"
+        else:
+            run_dir = RESULTS / "latest"
         # Created up front. The mkdir moved inside the per-agent loop when run and
         # score split, so on the case the scoreboard itself documents — few or no
         # agents detected — `run` announced a directory it had not made and
@@ -697,6 +780,10 @@ def main(argv):
                 if args.task and t["id"] != args.task:
                     continue
                 wd = run_dir / a["id"] / t["id"]
+                if args.drive and wd.exists():
+                    # Cleared before driving: whatever is in here afterwards
+                    # was produced by THIS drive or by nothing.
+                    shutil.rmtree(wd)
                 wd.mkdir(parents=True, exist_ok=True)
                 (wd / "PROMPT.txt").write_text(t["prompt"], encoding="utf-8")
                 if "input" in t:
@@ -729,6 +816,12 @@ def main(argv):
             print(f"prepared {run_dir}; invoke each agent against its PROMPT.txt, then "
                   f"`score --run {run_dir}`. `--drive` runs them here instead.")
             return 0
+        latest = RESULTS / "latest"
+        if run_dir != latest:
+            if latest.is_symlink() or latest.exists() and not latest.is_dir():
+                latest.unlink()
+            if not latest.exists():
+                latest.symlink_to(run_dir.name)
         print(f"drove {driven} task(s) into {run_dir}; now `score --run {run_dir}`")
         if not driven and skipped:
             # Agent RESULTS are non-deterministic and must not gate a release.
@@ -1016,6 +1109,12 @@ def main(argv):
                      "runs": runs_here})
     record = {"version": version,
               "run_id": ", ".join(f"`{r}`" for r in runs) or "detect-only",
+              # The date the scores were written, read from the file, never
+              # typed: a board without a date under a table of verdicts is a
+              # board whose prose can narrate a different run than its table
+              # (it did, for six days, at 0.1.522).
+              "run_date": _scores_date(runs),
+              "findings": _findings(runs),
               "host": f"{sys.platform}", "agents": len(agents),
               "detected": sum(1 for v in probed.values() if v[0]),
               "repeat": max((r["runs"] for r in rows), default=0),
