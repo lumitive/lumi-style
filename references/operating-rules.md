@@ -204,3 +204,32 @@ after the pages exist. A declaration produced to describe a finished page
 documents nothing; AR-3's line runs move → finding → page, and the outline
 beat is where that order is visible.
 
+## 8 · The out-of-bounds list lives in one place, outside every repository
+
+*Serves: **P-5**.* · id `OR-8`
+
+The terms a deliverable must not carry — prior clients' names, other
+projects' code names, internal system names — are kept as **one file per
+engagement** under **`~/.lumi/terms/`**, named `<engagement>.terms.txt`, one
+term per line, `#` for a comment. `check_privacy.py` reads every list there
+when it is given no `--terms`, and `check_repo.py`'s secrets guard runs the
+same lists over this repository's tracked files on any machine that has them.
+Nothing else reads them and nothing writes them anywhere.
+
+The list accumulates across engagements (owner ruling, 2026-08-15): it gets
+safer with use, and it is therefore the most sensitive single file in the
+workflow. Three constraints follow, and they are not advice:
+
+- **strings only** — a name, never a context ("X Bank, 2025 project" is a
+  second leak);
+- **never in a repository, a trace, a report or a debug log** — it is the
+  thing checked, not a thing recorded; `.gitignore` nets `*.terms.txt` as
+  the second layer, and the checker never echoes a term in a finding;
+- **file-system permissions first** — encryption is a later decision, and a
+  gate does not wait for a later decision to go live.
+
+A pure-Latin term matches on word boundaries; a term carrying a CJK
+character matches as a substring, because that script does not put spaces
+where a boundary would be. Embedded fonts and images are blanked before the
+term scan, since base64 spells every short Latin word eventually (IDEA-15).
+

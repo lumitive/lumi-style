@@ -606,3 +606,10 @@ usable, which weakens the check.
 **What would close it.** Word boundaries for pure-Latin terms and a scan that
 skips `data:` URIs and base64 runs — with a planted red proving a REAL name in
 visible prose still fires.
+
+**Closed at 0.1.526.** `check_privacy.term_text` blanks `data:` URIs and
+base64 runs before the term scan (the credential scan keeps the whole file —
+a JWT is base64 by construction), `term_pattern` gives a pure-Latin term word
+boundaries and leaves a CJK term as a substring. Four tests planted red on
+the 0.1.525 code: the font case, the boundary case, the real-name case and
+the directory default.

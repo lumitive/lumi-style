@@ -34,6 +34,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 
+import check_privacy  # noqa: E402 — the OR-8 terms reader, shared
 import color_math  # noqa: E402 — after the bootstrap, deliberately
 import secret_patterns  # noqa: E402 — the one credential table, shared with check_privacy
 import trace_schema  # noqa: E402 — the one definition, shared with scripts/ops/trace.py
@@ -324,7 +325,7 @@ FROZEN_RULE_IDS = (
     "BR-1", "BR-2", "BR-3", "BR-4", "BR-5", "BR-6",
     "DR-1", "DR-2", "DR-3", "DR-4", "DR-5", "DR-6", "DR-7", "DR-8", "DR-9", "DR-10", "DR-11",
     "WR-1", "WR-2", "WR-3", "WR-4", "WR-5", "WR-6", "WR-7", "WR-8", "WR-9",
-    "ST-1", "ER-1", "OR-1", "OR-2",
+    "ST-1", "ER-1", "OR-1", "OR-2", "OR-7", "OR-8",
 )
 
 def check_trace_schema():
@@ -2257,6 +2258,14 @@ SECRET_WAIVERS: dict[str, str] = {
 SECRET_PATTERNS = secret_patterns.PATTERNS
 
 
+def _operator_terms():
+    """-> compiled patterns from every list under the OR-8 directory, or []."""
+    terms, status = check_privacy.load_terms(None)
+    if status != "loaded":
+        return []
+    return [check_privacy.term_pattern(t) for t in terms]
+
+
 def check_secrets():
     """No credential-shaped string ships in a tracked file.
 
@@ -2277,6 +2286,14 @@ def check_secrets():
                 f"scan did not run, and a scan that did not run is not a "
                 f"scan that passed"]
     errors = []
+    # The operator's out-of-bounds lists (OR-8: ~/.lumi/terms/*.terms.txt),
+    # when this machine has them, are run over the tracked text too. Red
+    # line 9's hard core (no client name in a tracked file) was held by habit
+    # alone; the 2026-08-20 audit found a city name in eight tracked files.
+    # In CI the directory does not exist and the half is simply not run — a
+    # guard returns findings, not verdicts, so its absence is reported by
+    # check_privacy on the deliverable side rather than silently here.
+    terms = _operator_terms()
     for relpath in p.stdout.splitlines():
         if not relpath or relpath in SECRET_WAIVERS:
             continue
@@ -2285,6 +2302,14 @@ def check_secrets():
             text = path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
             continue  # binary assets carry no greppable credential
+        for term_re in terms:
+            m = term_re.search(check_privacy.term_text(text))
+            if m:
+                line = text[:m.start()].count("\n") + 1
+                # the term itself is never echoed: it is engagement data
+                errors.append(f"{relpath}:{line}: a term the operator declared "
+                              f"out of bounds — red line 9")
+                break
         seen_lines: set[int] = set()
         for name, pattern in SECRET_PATTERNS:
             m = pattern.search(text)

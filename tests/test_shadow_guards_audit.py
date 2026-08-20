@@ -94,3 +94,36 @@ def test_the_live_tree_carries_no_copy():
     assert check_repo.check_no_shadow_markup() == []
     assert check_repo.check_secret_patterns_parity() == []
     assert pathlib.Path(check_repo.ROOT, "scripts/lib/secret_patterns.py").exists()
+
+
+# 0.1.526 — the repo secrets guard runs the operator's OR-8 lists too.
+import subprocess  # noqa: E402
+
+import check_privacy  # noqa: E402
+
+
+def _git_tree(tmp_path, files):
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    _tree(tmp_path, files)
+    subprocess.run(["git", "add", "-A"], cwd=tmp_path, check=True)
+    return tmp_path
+
+
+def test_a_declared_term_in_a_tracked_file_fails_the_secrets_guard(tmp_path, monkeypatch):
+    terms = tmp_path / "terms"
+    terms.mkdir()
+    (terms / "x.terms.txt").write_text("Acme Widgets\n", encoding="utf-8")
+    monkeypatch.setattr(check_privacy, "TERMS_DIR", terms)
+    monkeypatch.setattr(check_repo, "ROOT", _git_tree(tmp_path / "repo", {
+        "notes.md": "we built this for Acme Widgets last year\n"}))
+    errors = check_repo.check_secrets()
+    assert len(errors) == 1 and "notes.md:1" in errors[0]
+    assert "Acme" not in errors[0]  # never echoed
+
+
+def test_no_lists_means_the_term_half_simply_does_not_run(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_privacy, "TERMS_DIR", tmp_path / "absent")
+    monkeypatch.setattr(check_repo, "ROOT", _git_tree(tmp_path / "repo", {
+        "notes.md": "we built this for Acme Widgets last year\n"}))
+    assert check_repo.check_secrets() == []

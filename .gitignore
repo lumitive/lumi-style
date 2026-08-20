@@ -96,3 +96,11 @@ evals/measured.local.json
 evals/prices.local.json
 # Third-party study decks: never committed (copyright; study only — see SOURCES.md)
 references/exemplars/external/*.pdf
+
+# The out-of-bounds lists (check_privacy.py --terms; OR-8). Their home is
+# ~/.lumi/terms/, outside every checkout, and this net is the second layer:
+# a list copied beside a deliverable for convenience must still never be
+# added. A rule enforced only by a directory convention is one `cp` away from
+# being broken, and this file says the same thing about docs/ above.
+*.terms.txt
+terms-oob*

@@ -1,3 +1,45 @@
+## 0.1.526 — the out-of-bounds list gets a home, and the checks that read it stop reading fonts
+
+Audit-remediation step 3 (`specs/2026-08-20-audit-remediation-design.md`).
+P-5's boundary had three holes the audit measured: the deny list — "the most
+sensitive single file in the workflow" by the design's own words — had no
+canonical location and no `.gitignore` net; the check that reads it had been
+weakened in production to stay usable (IDEA-15); and the repository side of
+the same principle was held by habit, with a city name in eight tracked
+files.
+
+**OR-8 · one place, outside every repository.** `~/.lumi/terms/<engagement>.terms.txt`,
+one term per line, accumulated across engagements (the owner's 2026-08-15
+ruling) with its three constraints restated as rules rather than advice:
+strings only, never in a repository or trace or log, file-system permissions
+first. `check_privacy.py` reads every list there when given no `--terms`,
+and the `.gitignore` nets `*.terms.txt` and `terms-oob*` as the second layer,
+with the same reasoning it already gives for `docs/`. `SKILL.md` and
+`AGENTS.md` point at the rule instead of at a bare flag. `LUMI_TERMS_DIR`
+overrides the location, which is how the test suite keeps a developer's real
+list from turning "not attempted" into "loaded".
+
+**IDEA-15 closes.** A three-letter Latin term had fired six times inside an
+embedded font's base64 on a real build, and the term was dropped from the
+list to keep the check usable. `term_text` now blanks `data:` URIs and long
+base64 runs before the term scan (same length, so line numbers hold; the
+credential scan keeps the whole file — a JWT is base64 by construction), and
+`term_pattern` gives a pure-Latin term word boundaries while a term carrying
+a CJK character still matches as a substring, because that script puts no
+space where a boundary would be. Four tests were planted red on the
+0.1.525 code: the font case, the boundary case (`Rayleigh` no longer
+matches `Ray`), the real-name-in-prose case, and the directory default.
+
+**The repository's secrets guard runs the same lists.** On a machine that
+has `~/.lumi/terms/`, `check_repo.py`'s `secrets` guard runs every list over
+the tracked text files and fails on a hit without echoing the term; where
+the directory is absent (CI) that half is not run, and the deliverable-side
+checker is where its absence is reported as NOT ATTEMPTED. Red line 9's hard
+core — no client name in a tracked file — now has an instrument on the side
+that lets the file in, not only on the side that ships it. Red run: a
+synthetic tree with a declared term in `notes.md`, in
+`tests/test_shadow_guards_audit.py`.
+
 ## 0.1.525 — one credential table, one strip-tags, and the guards that keep them single
 
 Audit-remediation step 2 (`specs/2026-08-20-audit-remediation-design.md`).
