@@ -148,7 +148,7 @@ def environment_check(agent):
     return []
 
 
-def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT):
+def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=None):
     """Invoke one agent on one task, and return what happened.
 
     Until 0.1.454 nothing in this repository invoked an agent. `run` wrote a
@@ -194,6 +194,19 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT):
         argv[1:1] = [flag, str(pathlib.Path(paths[0]).expanduser())]
     if model:
         argv += ["--model", model]
+    # Effort is passed only through a flag the registry names for this agent;
+    # a CLI that has no such flag is not handed one it would reject, and the
+    # run records that the level was NOT pinned rather than pretending.
+    effort_flag = agent.get("drive_effort_flag")
+    effort_pinned = bool(effort and effort_flag)
+    if effort_pinned:
+        argv += [effort_flag, effort]
+    # A CLI that can return its own usage is asked to, through the flag the
+    # registry names; the counts are then the API's, which is the only kind
+    # trace.py accepts (`--usage` reads a dump, there is no flag to type one).
+    usage_flag = agent.get("drive_usage_flag")
+    if usage_flag:
+        argv += list(usage_flag)
     workdir = pathlib.Path(tempfile.mkdtemp(prefix=f"lumi-conf-{agent['id']}-"))
     try:
         for name in ("PROMPT.txt", "input.md"):
@@ -229,6 +242,7 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT):
         # visible only in the transcript, where an agent said it could not read
         # the skill. environment_check cannot see the sandbox; this can.
         text = out.decode("utf-8", "replace")
+        usage = _usage_from_transcript(text) if usage_flag else None
         blocked = re.search(r"blocked from reading|outside .{0,40}allowed "
                             r"director|cannot (?:read|access) .{0,40}"
                             r"(?:tokens|references)/", text, re.I)
@@ -245,7 +259,14 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT):
                 "exit_code": code, "seconds": seconds,
                 "produced": [p.name for p in produced],
                 "digest": hashlib.sha256(out).hexdigest(),
-                "model": model or "(the CLI's default)"}
+                "model": model or "(the CLI's default)",
+                # The matrix axis. Recorded as what was PINNED: an effort the
+                # CLI could not be told is "(not pinned)", never the requested
+                # value, because a board cell is a claim about what ran.
+                "effort": effort if effort_pinned else "(not pinned)",
+                # The API's own counts, when the CLI returned them; None
+                # means "not returned", never zero.
+                "usage": usage}
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
 
@@ -377,6 +398,70 @@ def task_fingerprint(task: dict) -> str:
     # the `no shadow math` guard's territory, and a fingerprint that differs
     # between callers is worse than none — both sides would report matches.
     return fingerprint.material_hash(material)
+
+
+def _usage_from_transcript(text: str) -> dict | None:
+    """-> {input_tokens, output_tokens} from a JSON transcript, else None.
+
+    Claude Code's `-p --output-format json` ends in one JSON object carrying
+    `usage`; the last JSON object in the transcript is read and the two counts
+    taken only when both are integers. Anything else is None — a count this
+    function cannot read is a count that was not returned."""
+    last = text.strip().rfind("\n{")
+    candidates = [text.strip()] + ([text.strip()[last + 1:]] if last >= 0 else [])
+    for chunk in candidates:
+        try:
+            doc = json.loads(chunk)
+        except json.JSONDecodeError:
+            continue
+        usage = doc.get("usage") if isinstance(doc, dict) else None
+        if not isinstance(usage, dict):
+            continue
+        i, o = usage.get("input_tokens"), usage.get("output_tokens")
+        if all(isinstance(v, int) and not isinstance(v, bool) for v in (i, o)):
+            return {"input_tokens": i, "output_tokens": o}
+    return None
+
+
+def _conformance_trace(agent: dict, task: dict, wd: pathlib.Path, record: dict) -> str:
+    """Open and close a `source: conformance` trace for one driven task, so
+    the matrix board reads real rows. The build phase is the driver's own
+    wall clock; model and effort are what the driver recorded; the
+    deliverable's verdicts are transcribed by `trace.py close` exactly as for
+    a real build. A task with no `storyline` field opens no trace (the schema
+    requires one and this harness does not guess), and a drive that produced
+    nothing closes none — an unclosed conformance trace is the record of a
+    drive that did not finish, which is what the ledger counts."""
+    storyline = task.get("storyline")
+    if not storyline:
+        return "no trace: the task declares no storyline"
+    tool = ROOT / "scripts" / "ops" / "trace.py"
+    geometry = {"landscape": "16x9", "portrait": "a4"}.get(task.get("geometry", "landscape"), "16x9")
+    opened = subprocess.run(
+        [sys.executable, str(tool), "open", "--genre", task.get("genre", "internal"),
+         "--storyline", storyline, "--entry-path", "B", "--source", "conformance",
+         "--geometry", geometry], capture_output=True, text=True, cwd=ROOT)
+    if opened.returncode != 0:
+        return f"no trace: {opened.stderr.strip()[:120]}"
+    tid = opened.stdout.strip()
+    produced = [wd / n for n in record.get("produced") or []]
+    if record.get("verdict") != "driven" or not produced:
+        return f"trace {tid} opened and left open: the drive did not finish"
+    argv = [sys.executable, str(tool), "close", "--id", tid,
+            "--deliverable", str(produced[0]), "--agent", agent["id"],
+            "--phase", "build", str(max(1, int(record.get("seconds") or 1)))]
+    if record.get("model") and not str(record["model"]).startswith("("):
+        argv += ["--model", record["model"]]
+    if record.get("effort") and not str(record["effort"]).startswith("("):
+        argv += ["--effort", record["effort"]]
+    if isinstance(record.get("usage"), dict):
+        usage_path = wd / "usage.json"
+        usage_path.write_text(json.dumps(record["usage"]) + "\n", encoding="utf-8")
+        argv += ["--usage", str(usage_path)]
+    closed = subprocess.run(argv, capture_output=True, text=True, cwd=ROOT)
+    if closed.returncode != 0:
+        return f"trace {tid} could not close: {closed.stderr.strip()[:120]}"
+    return f"trace {tid} closed (source: conformance)"
 
 
 def asked_fingerprint(task_dir: pathlib.Path, task: dict) -> str:
@@ -687,6 +772,12 @@ def main(argv):
                          "Left off, each CLI picks its own default and the run "
                          "records that it did — a comparison needs the pin, a "
                          "check of what a user actually gets does not")
+    ap.add_argument("--effort", choices=("low", "medium", "high"), default=None,
+                    help="with run --drive: pin the reasoning effort through the "
+                         "agent's `drive_effort_flag` and record it. This is the "
+                         "second axis of the model×effort matrix (K1); an agent "
+                         "whose registry record names no effort flag records "
+                         "the level as not pinned")
     ap.add_argument("--timeout", type=int, default=DRIVE_TIMEOUT,
                     help=f"with run --drive: seconds before one task is "
                          f"abandoned (default {DRIVE_TIMEOUT})")
@@ -804,9 +895,13 @@ def main(argv):
                         encoding="utf-8")
                     continue
                 print(f"  driving {a['id']} on {t['id']} …", flush=True)
-                record = drive(a, t, wd, model=args.model, timeout=args.timeout)
+                record = drive(a, t, wd, model=args.model, timeout=args.timeout,
+                               effort=args.effort)
                 (wd / "driver.json").write_text(
                     json.dumps(record, indent=2) + "\n", encoding="utf-8")
+                note = _conformance_trace(a, t, wd, record)
+                if note:
+                    print(f"    {note}")
                 driven += record["verdict"] == "driven"
                 print(f"    {record['verdict']}"
                       + (f" in {record['seconds']}s, wrote "

@@ -1,3 +1,52 @@
+## 0.1.531 — the loop keeps its own time: traces open at the scaffold, close at the check, and the matrix can be fed
+
+Audit-remediation step 8 (`specs/2026-08-20-audit-remediation-design.md`).
+**Closes GAP-014.** Nine traces, zero phases, zero tokens, zero effort — the
+cost instrument existed as a schema and a board, and nothing in the build
+loop had a clock. The audit's reading was that the instrument was built and
+never wired; this entry wires it, with the same rule `--usage` already
+followed: every number is the tooling's, and there is no flag to type one.
+
+**`trace.py phase start|stop <name>`.** The tool stamps the clock at start,
+stamps it at stop, and writes the difference; open clocks live in a
+gitignored sidecar beside the store, because a started-at timestamp is one
+machine's state and the trace carries only seconds. `--phase NAME SECONDS`
+on close stays, for a machine dump, and `LUMI_TRACES` is honoured (it was
+passed by one test for eight releases and ignored), so tests write to a
+scratch store.
+
+**The scaffold opens the record; the check closes it.** `new_deck.py` opens
+a trace whenever a `--storyline` is given (a trace declares its storyline,
+and the scaffold does not guess one), starts the `build` clock, and writes
+the id into `<body data-trace>` so it rides in the document. `check_deliverable.py`
+reads that attribute, stops the build clock, closes the trace with its own
+wall-clock as the `checks` phase, and — this is the part that changes what a
+reader sees — **reports a document with no trace as `unmeasured`** and
+exits non-zero, the established "did not run is not ok" shape. Fourteen
+consecutive builds of one deck had left no trace while the ledger counted
+zero abandoned builds; that absence now prints.
+
+**`run --drive --effort low|medium|high`** pins the effort through a flag the
+registry names per agent (`drive_effort_flag`; Claude Code's CLI has
+`--effort`, verified on this machine) and records what was *pinned* — an
+agent with no such flag records `(not pinned)`, never the requested value.
+Where the registry names a `drive_usage_flag`, the CLI is asked for a JSON
+transcript and the API's own `input_tokens`/`output_tokens` are read from
+it. Each driven task with a `storyline` opens a `source: conformance` trace,
+closed with the driver's seconds as the build phase, the model, the effort
+and the usage, so the model×effort matrix reads real rows from the harness
+— the first use of the `conformance` source the schema has carried since
+0.1.462. `T1-deck` declares `storyline: status-report` (not fingerprinted; a
+verdict does not depend on it). **The six cells themselves are still an
+operator step**: `ledger.py --board` reads "0 qualify" until she runs them,
+and that is now a statement about runs not made.
+
+Thirteen new tests across `test_trace.py`, `test_new_deck.py` and
+`test_conformance_driver.py`; the planted reds are a `phase stop` with no
+start, a scaffold without a storyline (no trace, and it says so), a
+check_deliverable run on a fixture with no trace (`trace: none`), and an
+effort requested of an agent with no flag.
+
 ## 0.1.530 — the prompt tier is held to the rules it could not see, and the capability rule comes home
 
 Audit-remediation step 7 (`specs/2026-08-20-audit-remediation-design.md`).

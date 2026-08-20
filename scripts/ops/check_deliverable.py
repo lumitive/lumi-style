@@ -179,7 +179,8 @@ def main(argv=None) -> int:
     ap.add_argument("--terms", help="the engagement's out-of-bounds list, "
                                     "for check_privacy's gating half")
     ap.add_argument("--trace-id", help="close this build trace afterwards "
-                                       "(trace.py close, verdicts transcribed)")
+                                       "(trace.py close, verdicts transcribed); "
+                                       "default: the document's own data-trace")
     ap.add_argument("--skip-layout", action="store_true",
                     help="no browser available; recorded as a silent "
                          "instrument and the exit stays nonzero")
@@ -190,9 +191,23 @@ def main(argv=None) -> int:
 
     raw = a.file.read_text(encoding="utf-8", errors="replace")
     genre = a.genre or markup.body_attr(raw, "data-genre")
+    # The trace id rides in the document (`<body data-trace="t-…">`, written
+    # by new_deck.py at scaffold time) so the build that opened the record is
+    # the build that closes it, with nothing retyped in between.
+    trace_id = a.trace_id or markup.body_attr(raw, "data-trace")
 
+    started = time.monotonic()
     runs = gather(a.file, genre, a.terms, skip_layout=a.skip_layout)
+    checks_seconds = max(1, round(time.monotonic() - started))
     gating, graded, silent, worst = verdict_block(runs)
+    if not trace_id:
+        # Unmeasured, not silent: a build with no trace leaves no record of
+        # its phases, its driver or its verdicts, and until 0.1.531 that
+        # absence printed nothing — fourteen consecutive builds of one deck
+        # left zero traces while the ledger reported "0 abandoned builds".
+        silent.append("trace: none — this build leaves no record (new_deck.py "
+                      "opens one; or trace.py open, then --trace-id)")
+        worst = max(worst, 1)
 
     if a.json:
         print(json.dumps({"file": str(a.file), "genre": genre,
@@ -217,9 +232,18 @@ def main(argv=None) -> int:
         print(f"\nexit {worst}: {len(gating)} gating · {len(silent)} unmeasured"
               f"/silent · {len(graded)} graded findings")
 
-    if a.trace_id and worst == 0:
+    if trace_id and worst == 0:
+        # Stop the build clock the scaffold started (if it is running), then
+        # close with THIS run's own duration as the checks phase. Both numbers
+        # are the tooling's; neither is typed.
+        stop = [sys.executable, str(ROOT / "scripts/ops/trace.py"), "phase",
+                "stop", "build", "--id", trace_id]
+        stopped = subprocess.run(stop, capture_output=True, text=True)
+        if stopped.returncode == 0:
+            print(stopped.stdout.strip())
         close = [sys.executable, str(ROOT / "scripts/ops/trace.py"), "close",
-                 "--id", a.trace_id, "--deliverable", str(a.file)]
+                 "--id", trace_id, "--deliverable", str(a.file),
+                 "--phase", "checks", str(checks_seconds)]
         proc = subprocess.run(close, capture_output=True, text=True)
         print(proc.stdout.strip() or proc.stderr.strip())
         worst = max(worst, proc.returncode)

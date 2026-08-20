@@ -8,6 +8,7 @@ code rather than of whoever runs it.
 import json
 import os
 import pathlib
+import re
 import subprocess
 import sys
 
@@ -154,8 +155,10 @@ def test_a_silent_checker_leaves_a_not_measured_marker(tmp_path):
         subprocess.run([sys.executable, str(TRACE_PY), "close", "--id", tid,
                         "--deliverable", str(doc)],
                        capture_output=True, text=True, env=env, cwd=ROOT, check=True)
-        rec = json.loads((ROOT / "evals" / "traces" / f"{tid}.json")
-                         .read_text(encoding="utf-8"))
+        # LUMI_TRACES is honoured since 0.1.531 (it was passed here for
+        # releases before that and silently ignored), so the record is in
+        # tmp_path and the tracked store is untouched.
+        rec = json.loads((tmp_path / f"{tid}.json").read_text(encoding="utf-8"))
         # Raw bytes make prose answer "unmeasurable" and design answer an
         # empty report — both SPOKE, honestly, so the per-checker silence
         # marker rightly stays absent and the whole-build marker fires: a
@@ -163,7 +166,7 @@ def test_a_silent_checker_leaves_a_not_measured_marker(tmp_path):
         assert rec["thresholds"].get("_checkers") == "not_measured"
         assert not rec["gates"] and not rec["graded"]
     finally:
-        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+        (tmp_path / f"{tid}.json").unlink(missing_ok=True)
 
 
 # A trace that contradicts its own deliverable is worse than no trace. Until
@@ -498,3 +501,56 @@ def test_close_refuses_a_phase_that_is_not_a_number(tmp_path):
         assert p.returncode != 0 and "not a number" in p.stderr
     finally:
         (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+
+
+# 0.1.531 — the loop writes the phases itself: the scaffold starts the build
+# clock, check_deliverable stops it and records its own duration as `checks`,
+# and the trace id rides in the body. GAP-014's close condition.
+
+def test_scaffold_then_check_deliverable_leaves_machine_written_phases(tmp_path):
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    deck = tmp_path / "deck.en.html"
+    scaffold = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/ops/new_deck.py"), "--storyline", "gtm",
+         "--genre", "internal", "--pages", "2"],
+        capture_output=True, text=True, env=env, cwd=ROOT, check=True)
+    deck.write_text(scaffold.stdout, encoding="utf-8")
+    m = re.search(r'data-trace="(t-[0-9a-f]{12})"', scaffold.stdout)
+    assert m, "the scaffold carries no data-trace"
+    tid = m.group(1)
+    assert (tmp_path / ".phases" / f"{tid}.json").exists()
+    # A scaffold is not a finished deliverable, so check_deliverable will not
+    # exit 0 and will not close; stop the clock and close the way it would,
+    # with the same two commands, to hold the shape end to end.
+    stop = subprocess.run([sys.executable, str(TRACE_PY), "phase", "stop", "build",
+                           "--id", tid], capture_output=True, text=True, env=env, cwd=ROOT)
+    assert stop.returncode == 0, stop.stderr
+    close = subprocess.run([sys.executable, str(TRACE_PY), "close", "--id", tid,
+                            "--deliverable", str(deck), "--phase", "checks", "7"],
+                           capture_output=True, text=True, env=env, cwd=ROOT)
+    assert close.returncode == 0, close.stderr
+    rec = json.loads((tmp_path / f"{tid}.json").read_text(encoding="utf-8"))
+    assert rec["phase_seconds"]["build"] >= 1
+    assert rec["phase_seconds"]["checks"] == 7
+    assert rec["closed_at"]
+    assert not (tmp_path / ".phases" / f"{tid}.json").exists()
+
+
+def test_phase_stop_without_start_is_refused(tmp_path):
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    tid = subprocess.run(
+        [sys.executable, str(TRACE_PY), "open", "--genre", "internal",
+         "--storyline", "proposal", "--entry-path", "B"],
+        capture_output=True, text=True, env=env, cwd=ROOT, check=True).stdout.strip()
+    p = subprocess.run([sys.executable, str(TRACE_PY), "phase", "stop", "checks",
+                        "--id", tid], capture_output=True, text=True, env=env, cwd=ROOT)
+    assert p.returncode != 0 and "never started" in p.stderr
+
+
+def test_check_deliverable_reports_a_missing_trace_as_unmeasured():
+    p = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/ops/check_deliverable.py"),
+         str(ROOT / "fixtures" / "deck-pass.en.html"), "--skip-layout"],
+        capture_output=True, text=True, cwd=ROOT)
+    assert "trace: none" in p.stdout
+    assert p.returncode != 0

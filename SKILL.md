@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.530"
+  version: "0.1.531"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -416,7 +416,12 @@ current, stale, or **unknown** — and unknown is not current.
    <list>]` launches the rendered check first, runs every text instrument while
    the browser works, and ends in one block naming every gating failure, every
    graded finding and every check that could not be measured — read that block
-   whole, then fix everything it names in ONE pass. It exists because a
+   whole, then fix everything it names in ONE pass. It also closes the build's
+   trace: `new_deck.py` opens one at scaffold time (when a `--storyline` is
+   given) and writes its id into `<body data-trace>`, starting the build clock;
+   the check step stops that clock, records its own duration as the checks
+   phase, and transcribes the verdicts. A document with no trace is reported
+   `unmeasured` — a build that leaves no record is not a measured build. It exists because a
    fifteen-page deck once took ten rounds, at least three of them from reading
    the reports in installments. The individual instruments below remain for
    targeted re-runs. `python3
