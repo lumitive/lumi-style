@@ -20,7 +20,7 @@
     "tokens/",
     "assets/"
    ],
-   "verification": "the agent names the checks it owes and the operator runs them; the agent may not call a deliverable verified",
+   "verification": "the agent names the checks it owes and the operator runs them; the agent may not call a deliverable verified (references/operating-rules.md OR-9)",
    "population_note": "NO PLATFORM SITS HERE, and the tier is kept anyway. It is not aspirational: it describes a real shape — an agent that receives the rules, the tokens and the assets and cannot execute a script — and it is the shape of an IDE assistant reading an instructions file. The tier turned out to be empty for a different reason than it looked: `capability` was the ONE registry claim with no verification field, so ten records asserted `full` and nothing had ever confirmed it for any of them. Every record now carries capability_verified, and only claude-code is true. Some of the ten may prove to be `files` in some of their modes — a chat pane that reads a rules file but cannot run a terminal is exactly this tier. Populating it means exercising an agent and recording the result; reclassifying one from a reading of its documentation does not count."
   },
   "prompt": {

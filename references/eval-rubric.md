@@ -422,7 +422,8 @@ conditional-item rule applied one level up.
    deliverable is in English, and it is `n/a` unless the document says which
    language it claims. Step 1's self-score is a claim about a
    document, and a claim made before the instruments have run is a guess. An
-   agent that cannot execute them names the checks it owes and the operator runs
+   agent that cannot execute them names the checks it owes and may not call the
+   deliverable verified (OR-9); the operator runs
    them — see the capability tiers in `CLAUDE.md`;
 0b. **The red-team pass** (storyline-templates, shared discipline): before
    self-scoring, read the draft as its most skeptical reader — overstated

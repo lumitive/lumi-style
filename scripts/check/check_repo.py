@@ -36,6 +36,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import check_privacy  # noqa: E402 — the OR-8 terms reader, shared
 import color_math  # noqa: E402 — after the bootstrap, deliberately
+import deliverable_registry  # noqa: E402 — the storyline vocabulary, for prompt parity
 import secret_patterns  # noqa: E402 — the one credential table, shared with check_privacy
 import trace_schema  # noqa: E402 — the one definition, shared with scripts/ops/trace.py
 from css_tokens import css_block, css_vars  # noqa: E402, F401 — css_block is API for tests/tools
@@ -325,7 +326,7 @@ FROZEN_RULE_IDS = (
     "BR-1", "BR-2", "BR-3", "BR-4", "BR-5", "BR-6",
     "DR-1", "DR-2", "DR-3", "DR-4", "DR-5", "DR-6", "DR-7", "DR-8", "DR-9", "DR-10", "DR-11",
     "WR-1", "WR-2", "WR-3", "WR-4", "WR-5", "WR-6", "WR-7", "WR-8", "WR-9",
-    "ST-1", "ER-1", "OR-1", "OR-2", "OR-7", "OR-8",
+    "ST-1", "ER-1", "OR-1", "OR-2", "OR-7", "OR-8", "OR-9",
 )
 
 def check_trace_schema():
@@ -1980,6 +1981,61 @@ def check_brand_lock():
     return brand_lock.verify()
 
 
+# Phrases the prompt tier is allowed to omit, with the reason. Empty on
+# purpose at creation: the audit found eighteen missing with no reason, and
+# the fix was to add them, not to waive them.
+NOT_IN_PROMPT: dict[str, str] = {}
+
+# Sentences the prompt tier must carry verbatim (lower-cased comparison),
+# each with the reason it is load-bearing for an agent that runs no scripts.
+PROMPT_MUST_CARRY: tuple[tuple[str, str], ...] = (
+    ("the number first",
+     "the 0.1.521 rule; the full tier's scaffold enforces it, the prompt tier has only the sentence"),
+    ("may not call a deliverable verified",
+     "OR-9's prohibition half; the registry carries it, and the prompt tier is the one that never runs a check"),
+)
+
+
+def check_prompt_parity():
+    """The prompt tier carries what the full tier gates on.
+
+    `prompts/lumi-style-core.md` is the self-contained file for agents with
+    no tools. Nothing held it to the rules: the 2026-08-20 audit found it
+    missing the number-first rule, six of eight storyline names and eighteen
+    of sixty banned phrases, while `ban-list parity` held check_prose to
+    writing-rules and never looked here. This holds it to three sources —
+    the storyline vocabulary, the checker's ban list (or NOT_IN_PROMPT with
+    a reason), and the sentences in PROMPT_MUST_CARRY.
+    """
+    path = ROOT / "prompts" / "lumi-style-core.md"
+    if not path.exists():
+        return ["prompts/lumi-style-core.md is missing"]
+    text = path.read_text(encoding="utf-8")
+    low = text.lower()
+    errors = []
+    for name in deliverable_registry.STORYLINES:
+        if f"`{name}`" not in text:
+            errors.append(f"prompt tier does not name storyline `{name}` — an agent "
+                          f"that cannot read deliverable_registry has no other source")
+    try:
+        import check_prose
+        banned = [phrase for _, phrase in check_prose.BANNED]
+    except Exception as exc:  # noqa: BLE001 — a broken import is a finding
+        return errors + [f"could not read check_prose.BANNED: {exc}"]
+    for phrase in banned:
+        if phrase.lower() in low or phrase in NOT_IN_PROMPT:
+            continue
+        errors.append(f"prompt tier omits banned phrase {phrase!r} and NOT_IN_PROMPT "
+                      f"gives no reason")
+    for phrase in NOT_IN_PROMPT:
+        if phrase not in banned:
+            errors.append(f"NOT_IN_PROMPT waives {phrase!r}, which check_prose does not ban")
+    for sentence, _why in PROMPT_MUST_CARRY:
+        if sentence not in low:
+            errors.append(f"prompt tier does not carry {sentence!r}")
+    return errors
+
+
 def check_rubric_unbuilt_claims():
     """A sentence in eval-rubric.md saying a check is not built must cite the
     ledger entry that tracks it.
@@ -3406,6 +3462,7 @@ CHECKS = (
     ("secret patterns parity", check_secret_patterns_parity),
     ("no shadow markup", check_no_shadow_markup),
     ("rubric unbuilt claims", check_rubric_unbuilt_claims),
+    ("prompt parity", check_prompt_parity),
     ("ledgers", check_ledgers),
     ("commit convention", check_commit_convention),
     ("secrets", check_secrets),

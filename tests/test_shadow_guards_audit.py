@@ -148,3 +148,49 @@ def test_rubric_unbuilt_claim_with_a_ledger_id_passes(tmp_path, monkeypatch):
 
 def test_the_live_rubric_carries_no_unheld_claim_of_absence():
     assert check_repo.check_rubric_unbuilt_claims() == []
+
+
+# 0.1.530 — the prompt tier is held to the storylines, the ban list and two
+# load-bearing sentences.
+
+def _prompt_tree(tmp_path, body):
+    return _tree(tmp_path, {"prompts/lumi-style-core.md": body})
+
+
+def _full_prompt_text():
+    import check_prose
+    import deliverable_registry as d
+    names = " ".join(f"`{n}`" for n in d.STORYLINES)
+    bans = "; ".join(p for _, p in check_prose.BANNED)
+    return (f"{names}\n{bans}\nthe number first.\n"
+            f"this tier may not call a deliverable verified.\n")
+
+
+def test_prompt_parity_passes_a_complete_prompt(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _prompt_tree(tmp_path, _full_prompt_text()))
+    assert check_repo.check_prompt_parity() == []
+
+
+def test_prompt_parity_fails_on_a_missing_storyline(tmp_path, monkeypatch):
+    body = _full_prompt_text().replace("`pitch-deck`", "")
+    monkeypatch.setattr(check_repo, "ROOT", _prompt_tree(tmp_path, body))
+    errors = check_repo.check_prompt_parity()
+    assert any("`pitch-deck`" in e for e in errors)
+
+
+def test_prompt_parity_fails_on_a_missing_banned_phrase(tmp_path, monkeypatch):
+    body = _full_prompt_text().replace("without further ado", "")
+    monkeypatch.setattr(check_repo, "ROOT", _prompt_tree(tmp_path, body))
+    errors = check_repo.check_prompt_parity()
+    assert any("without further ado" in e for e in errors)
+
+
+def test_prompt_parity_fails_on_a_missing_sentence(tmp_path, monkeypatch):
+    body = _full_prompt_text().replace("the number first", "the gloss first")
+    monkeypatch.setattr(check_repo, "ROOT", _prompt_tree(tmp_path, body))
+    errors = check_repo.check_prompt_parity()
+    assert any("the number first" in e for e in errors)
+
+
+def test_the_live_prompt_is_at_parity():
+    assert check_repo.check_prompt_parity() == []
