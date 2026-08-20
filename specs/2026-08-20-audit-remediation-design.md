@@ -43,16 +43,18 @@ Eleven findings classes, each verified by re-running the command on 2026-08-20:
    and the manifests describe 37 files that are not in git.
 10. Four private copies of strip-tags/unescape where `scripts/lib/markup.py`
     exists; two copies of the CJK-space rule in the uncommitted batch.
-11. Process: 66 releases pushed linearly to `main` with no PR; one release
-    without its own commit; a held, uncommitted post-0.1.522 batch.
+11. Process: one release without its own commit; a held, uncommitted
+    post-0.1.522 batch. (The audit's first reading — "66 releases with no
+    PR" — was wrong and is withdrawn at step 14: every release went through
+    a pull request, rebase-merged, which is why `git log --merges` is empty.
+    The audit inferred PRs from merge commits, and that inference was the
+    defect.)
 
 ## The decision
 
 **One branch, one PR, many release commits, merged (never squashed).** Each
 release is one coherent change with its own CHANGELOG entry, deliberate-red
-run, and tests, exactly as CLAUDE.md conventions 3 and 11 require — the audit's
-own finding 11 is that the refactor skipped the branch-and-PR half of that
-rule, so the remediation does not.
+run, and tests, exactly as CLAUDE.md conventions 3 and 11 require.
 
 Three principles decide the shape of each fix:
 
@@ -88,7 +90,7 @@ digest), plus a new scored document — not a back-filled measurement.
 | 8 | Prompt tier | a `prompt parity` guard holds `prompts/lumi-style-core.md` to: every `STORYLINES` name, every `check_prose.BANNED` phrase (or a `NOT_IN_PROMPT` waiver with reason), the number-first sentence verbatim, and the unconditional capability-tier sentence; that sentence's home moves to `references/operating-rules.md` and `platforms.json` cites it | delete one storyline name from the prompt |
 | 9 | Boundary | canonical location `~/.lumi/terms/` documented in operating-rules, SKILL, AGENTS; `.gitignore` nets `*.terms.txt` and `terms-oob*`; `check_privacy.py` strips `data:` URIs and `@font-face` base64 before matching (closes IDEA-15); the city name replaced by neutral provenance wording in the CSS comment (fixtures regenerate), the test, the backlog, the spec, and the evidence file is left as history with a note; the secrets guard **also** runs the operator's terms list over tracked files when the list exists locally (absent in CI, reported as not attempted); the three logos either get provenance from the owner (decision D1) or leave the manifest and the deck sets their names in type; the 37 untracked assets are added with the manifest; `assets tracked` guard extended to fail on a manifest row whose file is not in `git ls-files` | manifest row for a file not in the index |
 | 10 | Private copies | `markup.visible_text()` and `markup.join_cjk()`; `no shadow markup` guard forbids a private `re.sub(r"<[^>]+>"` outside `markup.py` | plant one |
-| 11 | Process | CLAUDE.md convention 19: a release reaches `main` only through a PR; the operator step is GitHub branch protection "require a pull request before merging" (recorded through the evidence gate, not as a sentence); the held post-0.1.522 batch ships as the branch's first release **only if the owner lifts the hold** (decision D0) | — |
+| 11 | Process | the audit's "no PR" finding is withdrawn (every release went through a PR, rebase-merged); CLAUDE.md convention 3 says in so many words that a rebase merge satisfies it, since the guards need one commit per release and not a merge commit; the held post-0.1.522 batch ships as the branch's first release **only if the owner lifts the hold** (decision D0) | — |
 
 ## Explicitly out of scope
 

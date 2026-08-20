@@ -321,9 +321,12 @@ repo itself.)
      is a stamp, and is in `ENTRY_STAMP`.
 
    Commit messages follow `X.Y.Z — comma-separated summary of the rule changes`.
-   **A branch carrying several releases is MERGED, not squashed** — and if it
-   is squashed, its subject takes the NEWEST version, never the range and
-   never the PR title. Two independent pieces of this repo's machinery assume
+   **A branch carrying several releases is MERGED or REBASED, never
+   squashed** — a rebase merge keeps one commit per release, which is the
+   form the two guards below need, and is how 0.1.457–0.1.522 landed (an
+   audit read the absence of merge commits as the absence of pull requests;
+   it was the absence of squashes). If a branch is squashed anyway, its
+   subject takes the NEWEST version, never the range and never the PR title. Two independent pieces of this repo's machinery assume
    one commit per release: `check_commit_convention` holds a
    CHANGELOG-touching subject to `X.Y.Z — summary` *and* to the newest heading
    in that same commit, and `check_evidence.py --init` finds the previous

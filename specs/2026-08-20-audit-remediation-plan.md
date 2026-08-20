@@ -217,13 +217,18 @@ Each step lists: **change · red run · tests · ledger**.
 
 ## Step 14 · process, then the PR
 
-- change: CLAUDE.md convention 19 (a release reaches `main` only through a
-  PR; merge, never squash); `check_evidence.py --init` obliges a
-  `branch-protection` record whose command is `gh api
-  repos/:owner/:repo/branches/main/protection` and whose digest must show
-  `required_pull_request_reviews` present — an operator step.
-- then: `gh pr create`, `bash scripts/ops/ci_wait.sh <PR>`, merge with
-  `--merge --subject "<newest version> — …"` read against the CHANGELOG first.
+- change: the audit's "66 releases with no PR" finding is **withdrawn** —
+  `gh pr list --state merged` shows #102 (0.1.457–0.1.495 as one PR) and
+  #104–#127 (one PR per release), all rebase-merged, which is why
+  `git log --merges` is empty; the audit inferred pull requests from merge
+  commits. CLAUDE.md convention 3 now says a rebase merge satisfies it (one
+  commit per release is the form the guards need); the audit report and this
+  design are corrected at their three sites. No evidence obligation is added:
+  branch protection already requires the `checks` status, and "require a
+  pull request" is the owner's setting to change, not this branch's.
+- then: the draft PR is retitled to its newest version, `bash scripts/ops/ci_wait.sh <PR>`,
+  merge with `--merge --subject "<newest version> — …"` read against the
+  CHANGELOG first.
 
 ## Operator steps (hers, recorded through the evidence gate, never typed)
 

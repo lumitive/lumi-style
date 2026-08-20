@@ -1,0 +1,8 @@
+{
+ "version": "0.1.537",
+ "diff_base": "7d4a3200e97f4ec003146ba2013b7b569fd651d4",
+ "spec": "specs/2026-08-20-audit-remediation-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}
