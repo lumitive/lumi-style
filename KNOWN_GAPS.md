@@ -184,8 +184,9 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-018 · AGENTS.md grew while the design said it would shrink
 
-- status: open
+- status: fixed
 - opened: 0.1.529
+- closed: 0.1.536
 - surface: AGENTS.md
 - symptom: the refactor design's D1 was a substantial slimming of AGENTS.md — the Codex
   entry point restates part of `references/`, is the largest hand-written
@@ -195,8 +196,9 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   only the six red lines inside it.
 - check: the file returns to load order + red lines + capability tier +
   version, citing `references/` for what it now restates, and a guard holds
-  its line count to a ceiling recorded beside the guard. The
-  audit-remediation branch closes this in its step 13.
+  its line count to a ceiling recorded beside the guard. Closed at 0.1.536:
+  286 → 125 lines, a map of `references/` with section citations; the
+  `entry restatement ceiling` guard holds 150.
 
 ## GAP-019 · Forty megabytes of unreferenced conformance results were never cleaned
 

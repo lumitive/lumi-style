@@ -1,3 +1,36 @@
+## 0.1.536 — AGENTS.md becomes a map, and the sweep learns to scope to what you touched
+
+Audit-remediation step 13 (`specs/2026-08-20-audit-remediation-design.md`).
+**Closes GAP-018.**
+
+**AGENTS.md: 286 lines → 125.** The Codex entry point restated most of
+`references/` in its own words — the load order alone ran ninety lines of
+paraphrased rules — and grew by a third during a refactor whose design said
+it would shrink. Every restatement was a copy that could drift, and this
+file had carried withdrawn rules for four versions before. It is a map now:
+the stamp, the language default, the capability tiers and OR-9, the six
+files in reading order with the section each rule lives in, the build loop
+and the instruments named once each, debug mode, and — kept verbatim — the
+six red lines, the gating line and the rule-change sentence the guards read.
+The `red line parity`, `gating claims`, `output default` and
+`version citations` guards all pass on the rewrite, which is what lets a
+hand-written file shrink without anyone reading it twice. **`entry
+restatement ceiling`** holds it to 150 lines, the number beside the guard
+and nowhere in prose; raising it is a CHANGELOG decision, the way a
+threshold is.
+
+**`claim_sweep.py --changed [REF]`.** Convention 12 says "read the claims
+touching what you changed"; the sweep printed two hundred and eighty and its
+last two lines were what `release.py` showed. The flag scopes the counted
+claims to the files changed since a ref (working tree, index and untracked
+files), and `release.py`'s step 5 now prints those — five lines on this
+release instead of a total. This is the "claim_sweep extension" the refactor
+design listed for P1 and the audit found untouched since 0.1.453.
+
+Four tests in `tests/test_shadow_guards_audit.py`; the planted reds are an
+AGENTS.md one line over the ceiling and a sweep whose scoped result names a
+file that was not changed.
+
 ## 0.1.535 — a city name leaves the tracked files, and a manifest may not describe what git does not have
 
 Audit-remediation step 12 (`specs/2026-08-20-audit-remediation-design.md`).

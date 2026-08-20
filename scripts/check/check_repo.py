@@ -1996,6 +1996,32 @@ PROMPT_MUST_CARRY: tuple[tuple[str, str], ...] = (
 )
 
 
+# AGENTS.md's line ceiling. The number lives HERE, beside the guard that
+# reads it, never in prose: convention 13. It was 286 lines at 0.1.522 after
+# a design item that said it would shrink (GAP-018); the rewrite at 0.1.536
+# made it a map of references/ at 125 lines, and the ceiling leaves room for
+# a paragraph, not for a second rulebook. Raising it is a decision recorded
+# in the CHANGELOG, the way a threshold is.
+AGENTS_LINE_CEILING = 150
+
+
+def check_entry_restatement_ceiling():
+    """AGENTS.md stays a map. A hand-written entry point that restates rules
+    is a copy per rule, and this one carried withdrawn rules for four versions
+    and grew by a third during a refactor whose design said it would shrink.
+    The ceiling is the mechanical half; what the lines SAY stays with the
+    reviewer, as every other restatement does."""
+    path = ROOT / "AGENTS.md"
+    if not path.exists():
+        return ["AGENTS.md is missing"]
+    n = len(path.read_text(encoding="utf-8").splitlines())
+    if n > AGENTS_LINE_CEILING:
+        return [f"AGENTS.md is {n} lines, over the {AGENTS_LINE_CEILING}-line "
+                f"ceiling — it is a map of references/, and a rule that belongs "
+                f"in it belongs in references/ with a citation here"]
+    return []
+
+
 def check_prompt_parity():
     """The prompt tier carries what the full tier gates on.
 
@@ -3489,6 +3515,7 @@ CHECKS = (
     ("no shadow markup", check_no_shadow_markup),
     ("rubric unbuilt claims", check_rubric_unbuilt_claims),
     ("prompt parity", check_prompt_parity),
+    ("entry restatement ceiling", check_entry_restatement_ceiling),
     ("ledgers", check_ledgers),
     ("commit convention", check_commit_convention),
     ("secrets", check_secrets),
