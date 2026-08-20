@@ -496,6 +496,12 @@ def page(i: int, total: int, spec, broken: bool) -> str:
             sup = sup + " The gap is measured against a baseline taken in the first "\
                         "quarter of the programme, before the rural feeders had been "\
                         "surveyed at all, which makes the comparison generous."  # M8 overlong
+            # This sup runs to three lines, so from 0.1.522 it also trips
+            # `reserve_overspent` on this page -- the reserve is a ceiling and
+            # three support lines exceed it. Left as is on purpose: shortening
+            # it to quiet the layout probe would delete the M8 case this page
+            # exists for, and expected.json records both verdicts rather than
+            # one of them being tuned away.
     lis = "".join(f"<li>{b}</li>" for b in bullets)
     # Page 12 carries the graded ladder and page 17 the glossary, so the two
     # block patterns promoted in 0.1.375 are exercised by the suite instead of

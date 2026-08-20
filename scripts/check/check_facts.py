@@ -40,10 +40,27 @@ from html import unescape
 # A quantity worth tracking: currency, percentage, or a grouped/multi-digit
 # number. A bare single digit is usually a count derived on the page ("4 gates")
 # and tracking it would drown the signal in arithmetic.
+# The magnitude suffix carries a WORD BOUNDARY. Without it `[kmb]` consumed the
+# first letter of the following word: `$10.95 Meal` normalised to ten million
+# and `$9.00 back` to nine billion. It corrupted both sides of the comparison
+# and which side depended on the sentence around the figure, so a contract and
+# a document stating one price disagreed if one of them was followed by "Meal".
+#
+# The unit alternative (`75mg`, `4g`) is there because a dose was invisible to
+# all three patterns: a contract stating 150mg and a document stating the same
+# could never be compared, which is a hole in the gate rather than a quiet pass.
 QUANTITY = re.compile(
-    r"[$€£¥]\s?\d[\d,.]*\s*(?:[kmb]|billion|million|thousand)?"
+    r"[$€£¥]\s?\d[\d,.]*(?:\s*(?:[kmb]|billion|million|thousand)\b)?"
     r"|\d[\d,.]*\s*(?:%|percent|¢|cents?)"
+    r"|\b\d[\d,.]*\s*(?:mg|kcal|g)\b"
     r"|\b\d[\d,]{1,}(?:\.\d+)?\b", re.I)
+
+# A filename: any run of non-space characters ending in one of the extensions a
+# source file actually carries here. Deliberately not "anything with a dot" --
+# that eats `$1.2m` and every sentence-ending decimal.
+FILENAME = re.compile(
+    r"\S*\.(?:html?|md|json|csv|tsv|pdf|pptx?|docx?|xlsx?|png|jpe?g|svg|py|js|css)\b",
+    re.I)
 
 # A proper noun: two or more capitalised words, or a single capitalised word
 # that is not a sentence opener. Kept deliberately narrow -- the point is to
@@ -101,6 +118,12 @@ def _visible(html: str) -> str:
     # Both are furniture: without these two the check reported `08` eighteen
     # times, once per source line, and `02`/`03`/`04` once per numbered stage.
     s = re.sub(r"\b\d{4}-\d{2}(?:-\d{2})?\b", " ", s)
+    # BEFORE the ordinal strip below, which would otherwise take the `00` out of
+    # `22:00` and leave a bare `22` that the clock rule in `facts()` can no
+    # longer recognise. Two strips in two files is not duplication here: this
+    # one protects the ordering, and the one in `facts()` covers the contract
+    # side, which never passes through this function.
+    s = re.sub(r"\b\d{1,2}:\d{2}\b", " ", s)
     return re.sub(r"(?<![\d.])0\d(?![\d.])", " ", s)
 
 
@@ -166,6 +189,18 @@ def facts(text: str, names: bool = True) -> tuple[set[str], set[str]]:
     lowercase word or a comma, somewhere in the source. Multi-word names are
     taken as they are.
     """
+    # A clock time is furniture and its minutes read as a quantity: `22:00`
+    # produced a bare `0`. Stripped HERE rather than in `_visible`, because the
+    # contract side never passes through `_visible` and a time in the contract
+    # parsed the same wrong way.
+    text = re.sub(r"\b\d{1,2}:\d{2}\b", " ", text)
+    # A FILENAME is provenance of the same class. A converted deck names the
+    # file it was converted from and that name usually carries a date, so
+    # `Lumi-Agent-\u4ecb\u7ecd 260819.html` reported 260819 as an invented figure and
+    # gated a document whose every real figure was sourced. Only the token
+    # ending in a known extension goes; a figure standing beside a filename is
+    # still a figure.
+    text = FILENAME.sub(" ", text)
     q = {v for m in QUANTITY.finditer(text)
          if not _is_year(m.group(0)) and (v := _value(m.group(0)))}
     if not names:

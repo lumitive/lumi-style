@@ -540,8 +540,17 @@ def _flat_text(fragment: str) -> str:
 
 
 def _norm_line(s: str) -> str:
-    """Case- and punctuation-blind form for the agenda-title comparison."""
-    return " ".join(re.sub(r"[^a-z0-9\u4e00-\u9fff ]+", " ", s.lower()).split())
+    """Case- and punctuation-blind form for the agenda-title comparison.
+
+    A space BETWEEN two CJK characters is dropped. Stripping an inline
+    highlight span leaves a separator where the tag was; English needs it,
+    because it lands on a word boundary, and Chinese does not, because it
+    invents one. On the zh build an agenda line identical to its opener read as
+    an orphan and D27 -- which gates -- failed a document that was correct.
+    Spaces around Latin words are untouched, so `每个 Agent 都会` keeps both.
+    """
+    t = " ".join(re.sub(r"[^a-z0-9\u4e00-\u9fff ]+", " ", s.lower()).split())
+    return re.sub(r"(?<=[\u4e00-\u9fff]) (?=[\u4e00-\u9fff])", "", t)
 
 
 def d27_agenda_mirror(raw):

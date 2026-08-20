@@ -93,3 +93,30 @@ wrong logo.
 | `models/spark.svg` | Spark | `@lobehub/icons-static-svg@1.94.0/icons/` | 2026-08-19 |
 | `models/step.svg` | Stepfun | `@lobehub/icons-static-svg@1.94.0/icons/` | 2026-08-19 |
 | `models/yi.svg` | Yi | `@lobehub/icons-static-svg@1.94.0/icons/` | 2026-08-19 |
+
+### Entrance-layer marks (added 0.1.522.r8)
+
+Three more from the same pinned set, for the entrance chips on p04. `hermes`,
+`workbuddy` and `cowork` have **no mark in this set**, so those chips keep a
+koboyo icon and their product name rather than borrowing a logo that belongs to
+something else.
+
+| File | Mark |
+|---|---|
+| `models/cursor.svg` | Cursor |
+| `models/copilot.svg` | Copilot |
+| `models/openclaw.svg` | OpenClaw |
+
+## Entrance marks with no recorded provenance — declined
+
+Three raster marks (Hermas, Cowork, WorkBuddy) were supplied from a download
+folder for the same entrance chips, with no source URL, no fetch date and no
+usage basis. This file's rule is that a vendored trademark carries its
+provenance beside it, and the `.gitignore` exception for `assets/logos/*.png`
+rests on that rule; so the three do not ship. A chip whose mark is not vendored
+sets its product name in type (storyline-templates, the get-started rule),
+never a redrawn imitation. If provenance arrives, they enter through a row in
+the table above like every other mark.
+
+**Spelling:** the product is **Hermas**, per the owner's list. A deck said
+"Hermes" for two releases; that was a transcription error.
