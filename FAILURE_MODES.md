@@ -388,3 +388,32 @@ already says.
 
 If an entry point ever does quote a rule verbatim, this becomes buildable and
 should be rebuilt.
+
+## FM-21 · The guard that cannot see a file until it is committed
+
+- detection: preflight is green, the commit lands, and the same command is red
+  on the committed tree with nothing changed in between. The tell is a NEW file
+  in the diff and a guard that enumerates its inputs with `git ls-files`
+- prevention: when a release adds a tracked file, `git add` it before running
+  the verification, not after. A file that is not yet in the index does not
+  exist to any guard that asks git what to scan — and this repository has
+  several, because "tracked" is exactly the right scope for a rule about what
+  the repository ships
+
+Shipped instance: 0.1.548 added `evals/rule-coverage.json`, whose `quote` field
+holds two rules that are about Chinese output and therefore carry CJK.
+`check_english_only` scans tracked JSON manifests, the file was untracked while
+preflight ran, and preflight passed 30/30. `release.py` committed on that green
+result — correctly, on the evidence it had — and the same check went red on the
+next run. The verdict was right both times; only its input changed.
+
+The fix at 0.1.549 was not to widen the guard but to narrow the exemption: a
+`quote` in that register is a verbatim substring of the rule line it cites, and
+`check_rule_coverage.py` fails the build if it ever stops being one, so CJK
+there is rule data by construction and provably so. Every other field in the
+file is still scanned, and a test asserts the difference.
+
+**This is not the release tool failing.** `release.py` runs the real preflight
+and refuses a red one; what it cannot do is run a check against a tree that does
+not exist yet. The obligation is on whoever adds the file.
+

@@ -282,11 +282,30 @@ def check_english_only():
         except (OSError, json.JSONDecodeError):
             continue                      # the parse guards report their own
         for where, value in _walk_strings(doc):
-            if CJK.search(value):
-                errors.append(
-                    f"{rel(path)}: CJK at {where} — a manifest is not rule "
-                    f"data for Chinese output; the repository language is "
-                    f"English.")
+            if not CJK.search(value):
+                continue
+            # ONE EXEMPTION, AND IT IS VERIFIED SOMEWHERE ELSE. The rule
+            # register's `quote` field holds a VERBATIM substring of the rule
+            # line it cites, and two of the rules it covers are about Chinese
+            # output — the zh ban list and the one permitted collocation. A
+            # quote of rule data is rule data. Refusing it would not remove
+            # Chinese from this repository; it would remove those two rules
+            # from the register, which is the coverage map, in the one place
+            # coverage is hardest to see.
+            #
+            # It is not a hole: `check_rule_coverage.py` fails the build unless
+            # every quote is still a substring of the line it names, so a
+            # sentence of Chinese PROSE could not survive here — it would have
+            # to exist in `references/` first, where the markdown half of this
+            # same guard would catch it. Nothing else in the file is exempt:
+            # the `gist` is this repository's own English and is scanned.
+            if (rel(path) == "evals/rule-coverage.json"
+                    and where.endswith(".quote")):
+                continue
+            errors.append(
+                f"{rel(path)}: CJK at {where} — a manifest is not rule "
+                f"data for Chinese output; the repository language is "
+                f"English.")
     for path in md_files():
         name = rel(path)
         if name in CJK_ALLOWED:
@@ -2662,7 +2681,12 @@ AUTHORITY_NAMED = "<authority-named>"
 
 GATING_CLAIM_SITES: dict[str, str] = {
     "AGENTS.md": r"\*\*((?:D\d+(?:,? (?:and )?)?)+) gate; every other D-metric",
-    "CLAUDE.md": r"\w+ of its metrics \*\*gate\*\*(.*?)All \w+ are",
+    # Re-anchored at 0.1.549: the sentence used to open "Eleven of its metrics"
+    # and close "All eleven are", so adding a gate meant editing two count words
+    # this guard does not read — a number that can rot while the check stays
+    # green. It now names its authority instead (convention 13) and the anchors
+    # are the words around the id list rather than the count.
+    "CLAUDE.md": r"metrics that \*\*gate\*\*(.*?)Every one of them is",
     "references/eval-rubric.md": r"\*\*\w+ exceptions.*?\*\*(.*?)— all decidable",
     # AUTHORITY_NAMED: this site stopped enumerating and now points at the
     # `(gates)` target string instead. Convention 13's preferred outcome — a

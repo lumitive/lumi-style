@@ -128,7 +128,10 @@ define, D24 asks whether every image ships inside the file, and D25 asks
 whether it names the terms it is used under, and D27 asks whether every
 agenda line quotes a title the document actually carries, and D32 asks
 whether a page that DECLARES an analysis move drew the shape the library ships
-for it — all decidable, in the way "does this page read as intentional" is not. **D15 is the second instance of
+for it, and D33 asks whether every icon's geometry is a file in the two sets
+this package ships rather than a drawing somebody made, and D35 asks whether the
+agenda page carries the agenda and nothing else — all decidable, in the way
+"does this page read as intentional" is not. **D15 is the second instance of
 one defect:** `.foot .src` was removed from `tokens/` in 0.1.366 after the first
 deliverable to meet it filled every client page with a build path, and a second
 put one back — in Chinese, on almost every content page — while D6, D12 and D14
@@ -170,9 +173,13 @@ things a rendered page can be wrong about decidably. **The code's
 it** — this sentence enumerated twelve findings while the code carried
 fourteen, and five files counted it four different ways (ten, twelve, fourteen,
 fourteen), which is what a hand-kept enumeration of a growing list does. Focal weight, column balance, caption distance, centerpiece scale,
-empty band and the part-opener count stay reported, because the fix for each is a
+empty band and the part-opener COUNT stay reported, because the fix for each is a
 design decision and a number satisfiable without improving the page ends the
-looking. Without the flag nothing here gates and the behaviour is unchanged, so
+looking. The count is not the same question as the *rate*: how many parts a
+deck has is its storyline's business and is reported, while a run of content
+pages going past six without a seam is decidable and gates (`opener_pacing`,
+0.1.549) — a deck may have two parts or six, but it may not have none while
+running twelve pages. Without the flag nothing here gates and the behaviour is unchanged, so
 the repository's own "no design judgement blocks" stays true.
 
 *Provenance: a deliverable with overlapping text, an overspent reserve and a lost

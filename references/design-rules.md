@@ -629,6 +629,24 @@ chart borders, no legend for single series; 4. every figure carries a source lin
 scopes this: a sales or marketing figure carries none, because the document states
 its provenance once**; 5. a type scale that suits the figure, not a fixed one.
 
+**A figure that puts numbers on a scale draws the scale's baseline and names its
+unit.** Rule 3 above bans gridlines and chart borders, and this is not a
+retraction of it: a gridline is background a reader is asked to ignore, while a
+baseline is the datum the marks are measured from and the unit is what makes the
+numbers mean anything. A bar chart with no line at its foot is a row of
+rectangles, and "42" beside one of them is a number with no dimension. Draw one
+line, on the axis the values run along, in the non-text ladder; put the unit in
+the axis label or in the value itself.
+
+`inspect_layout.py` reports `figure_axes` and does not gate on it. Measured
+2026-08-22 on the documents on record: the accepted reference draws no baseline
+on two of its nine scaled figures and an accepted intro deck on one of its four,
+while three other documents carry no figure that scales numbers at all. **The
+accepted document fails this, which is why it reports** — a rule the reference
+breaks is either a rule the reference should have followed or a bar nobody has
+earned the right to set, and one document cannot tell those apart (CLAUDE.md
+convention 6; 0.1.339's withdrawn fill floor is the standing lesson).
+
 6. **The legend goes where the figure's own layout wants it.** Top right above the
 plot is one good answer, not the rule — a vertical bar chart may want it under the
 title, a small-multiple grid may want it once at the bottom, and a figure with two

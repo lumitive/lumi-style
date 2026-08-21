@@ -196,3 +196,27 @@ def test_chinese_rule_data_is_marked_as_data_not_left_as_prose():
     emitted it bare reddened the build the first time it ran."""
     import build_page_contracts as bpc
     assert bpc._cell("Use 赋能 only in 销售赋能.") == "Use `赋能` only in `销售赋能`."
+
+
+def test_the_registers_cjk_exemption_covers_quotes_and_nothing_else(tmp_path,
+                                                                    monkeypatch):
+    """The rule register quotes two rules that are ABOUT Chinese output, so its
+    `quote` field may carry CJK. Nothing else in the file may, and the exemption
+    is narrow enough to say so."""
+    import json
+
+    import check_repo
+    root = tmp_path
+    (root / "evals").mkdir()
+    reg = root / "evals" / "rule-coverage.json"
+
+    def errors_for(rule):
+        reg.write_text(json.dumps({"rules": [rule]}), encoding="utf-8")
+        monkeypatch.setattr(check_repo, "ROOT", root)
+        monkeypatch.setattr(check_repo, "_json_manifests", lambda: [reg])
+        monkeypatch.setattr(check_repo, "md_files", lambda: [])
+        return check_repo.check_english_only()
+
+    assert errors_for({"quote": "赋能 is allowed only in", "gist": "English."}) == []
+    bad = errors_for({"quote": "fine", "gist": "这是中文散文"})
+    assert bad and ".gist" in bad[0]

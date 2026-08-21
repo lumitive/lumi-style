@@ -720,8 +720,21 @@ PROBE = r"""
            if (st && st !== 'none' && st !== 'transparent'
                && parseFloat(cs.strokeWidth || 0) > 0) stroked++;
          });
+        // A SIGNATURE FOR THE SILHOUETTE ITSELF, so two openers carrying one
+        // mark can be told apart from two openers carrying two. The marks are
+        // inlined SVG with no name to compare, so this is the geometry: the
+        // path data, the `use` targets, and an image's own src. Truncated per
+        // element because a silhouette runs to thousands of characters and the
+        // first hundred already separate the vendored set's members.
+        const parts = [];
+        e.querySelectorAll('path,polygon,polyline,use,image').forEach(k => {
+          parts.push((k.getAttribute('d') || k.getAttribute('points')
+                      || k.getAttribute('href') || '').slice(0, 100));
+        });
+        if (e.tagName.toLowerCase() === 'img') parts.push((e.src || '').slice(0, 200));
         const cand = {w: Math.round(r.width), h: Math.round(r.height),
-                      filled, stroked, img: e.tagName.toLowerCase() === 'img'};
+                      filled, stroked, img: e.tagName.toLowerCase() === 'img',
+                      sig: parts.join('|')};
         if (!best || cand.w * cand.h > best.w * best.h) best = cand;
       }
       openerMark = best;   // null = an opener that carries none
@@ -742,6 +755,53 @@ PROBE = r"""
       if (total < 4) continue;         // a mark, not a drawing
       figShapes.push(Object.keys(kinds).sort()
         .map(k => `${k}:${Math.round(100 * kinds[k] / total / 10) * 10}`).join(','));
+    }
+
+    // FIGURES THAT SCALE NUMBERS WITHOUT DRAWING THE SCALE. design-rules §4:
+    // a baseline is the datum the marks are measured from, which is a different
+    // thing from the gridlines rule 3 bans. REPORTED, never gated — every
+    // document on record trips it, the accepted reference included, so the
+    // number that would separate a defect from a house style does not exist
+    // yet (convention 6).
+    let figNoAxis = 0, figScaled = 0;
+    for (const sv of s.querySelectorAll('.fig svg:not(.ic)')) {
+      let numeric = 0;
+      sv.querySelectorAll('text').forEach(t => {
+        // A VALUE, not a year and not a bare index: at least one digit, and
+        // nothing but digits, separators and a short unit around it.
+        const v = (t.textContent || '').trim();
+        if (/^[^A-Za-z]*\d[\d.,\s]*(%|[A-Za-z]{1,4})?$/.test(v) && v.length <= 12) numeric++;
+      });
+      if (numeric < 3) continue;        // not a figure that scales anything
+      figScaled++;
+      const box = sv.viewBox && sv.viewBox.baseVal;
+      const W = (box && box.width) || 100, H = (box && box.height) || 100;
+      let axis = false;
+      sv.querySelectorAll('line,rect,path').forEach(e => {
+        if (axis) return;
+        const tag = e.tagName.toLowerCase();
+        if (tag === 'line') {
+          const x1 = +e.getAttribute('x1'), y1 = +e.getAttribute('y1');
+          const x2 = +e.getAttribute('x2'), y2 = +e.getAttribute('y2');
+          if (y1 === y2 && Math.abs(x2 - x1) > W * 0.4) axis = true;
+          if (x1 === x2 && Math.abs(y2 - y1) > H * 0.4) axis = true;
+        } else if (tag === 'rect') {
+          const w = +e.getAttribute('width'), h = +e.getAttribute('height');
+          if (h <= 2 && w > W * 0.4) axis = true;
+          if (w <= 2 && h > H * 0.4) axis = true;
+        } else {
+          // A straight two-point run, which is how a baseline is usually
+          // drawn once a figure is built from paths rather than primitives.
+          const d = (e.getAttribute('d') || '').trim();
+          const m = d.match(/^M\s*(-?[\d.]+)[ ,]+(-?[\d.]+)\s*[Ll]?\s*(-?[\d.]+)[ ,]+(-?[\d.]+)\s*$/);
+          if (m) {
+            const [x1, y1, x2, y2] = m.slice(1).map(Number);
+            if (y1 === y2 && Math.abs(x2 - x1) > W * 0.4) axis = true;
+            if (x1 === x2 && Math.abs(y2 - y1) > H * 0.4) axis = true;
+          }
+        }
+      });
+      if (!axis) figNoAxis++;
     }
 
     const figInk = [];
@@ -1310,6 +1370,10 @@ PROBE = r"""
       // scaffold emits, or an eyebrow naming it. Two checks that located the
       // agenda differently could disagree about whether a deck has one, and
       // D27 is already the authority on that page.
+      // A deck that is deliberately ONE undivided sequence says so, the way an
+      // apparatus page declares itself. Read per row because the rows are all
+      // the Python side gets; it is the same value on every one.
+      partsDeclaredNone: (document.body.dataset.parts || '') === 'none',
       isAgenda: (s.id || '').toLowerCase() === 'agenda'
         || /agenda/i.test(((s.querySelector('.eyebrow') || {}).textContent) || ''),
       capBlocks: s.querySelectorAll('.cap').length,
@@ -1322,7 +1386,7 @@ PROBE = r"""
       figLeadPct: +(100 * figLead).toFixed(0),
       caps, tables, drawn, capGapPx, capOffPct, clipped, badBox, sourceEcho, sourceComparable, fields, horizons,
       bandEscape, hasBand: s.querySelectorAll('.band').length > 0,
-      figInk, titleLines, openerMark, figShapes,
+      figInk, titleLines, openerMark, figShapes, figNoAxis, figScaled,
       textOverlaps, worstOverlap,
       ledeBlocks, ledeClamped, reserveExpected,
       openerOutsidePx, openerSide,
@@ -2067,6 +2131,80 @@ def _deck_structure_missing(live):
     return missing
 
 
+# THE PACING CEILING, taken from the accepted reference rather than the prose.
+# storyline-templates says "about five content pages between openers", and five
+# as a ceiling fails BOTH the deck the owner accepted (longest run 6) and this
+# package's own passing fixture (7). Five is the writing target; six is the
+# limit, set where `bookend_title_length` sets its own — not worse than what the
+# owner has accepted. CLAUDE.md convention 4: this number is a CEILING.
+OPENER_RUN_CEILING = 6
+
+
+def _opener_runs(live):
+    """-> [content pages between each seam], counting cover and closing as seams."""
+    runs, run = [], 0
+    for r in live:
+        if r.get("isOpener") or r.get("isCover") or r.get("isClosing"):
+            runs.append(run)
+            run = 0
+        else:
+            run += 1
+    runs.append(run)
+    return runs
+
+
+def _pacing_overrun(live):
+    """Runs of content pages longer than a deck may go without a seam.
+
+    **Why this gates now.** It was reported for four releases, in those words —
+    "a target, not a floor" — and one conformance deck came back with twelve
+    content pages and no opener at all, which the report noted and no gate
+    caught. The owner's rule is a seam about every five pages unless she says
+    otherwise, and the "unless" is what kept this reported.
+
+    The "unless" is now DECLARED rather than inferred: `<body data-parts="none">`
+    says this deck is deliberately one undivided sequence, on the precedent of
+    `data-role="apparatus"` — "a page is apparatus because the author says so"
+    (design-rules §3). Two decks the owner accepted in 2026-08 are page-for-page
+    conversions running seven and nine pages without a seam; they are not decks
+    that forgot their openers, and a checker cannot tell those apart by looking.
+    Making the author say which keeps the exemption auditable and printed
+    instead of guessed at.
+    """
+    if not _composes_as_a_deck(live):
+        return []                  # a prose report has no seams to rate
+    if any(r.get("partsDeclaredNone") for r in live):
+        return []
+    return [n for n in _opener_runs(live) if n > OPENER_RUN_CEILING]
+
+
+def _openers_repeating_a_mark(live):
+    """Openers whose subject mark is one another opener already used.
+
+    design-rules §3 says the mark "is the part's subject or it is not there", so
+    two parts carrying one silhouette are saying the two parts are the same
+    thing. The accepted reference draws three openers with three different
+    marks; this package's own passing fixture drew one mark twice until 0.1.549,
+    and the conformance deck the owner opened drew two openers byte-identical.
+
+    Compared on the mark's own geometry, not on a name: the marks are inlined
+    SVG and two copies of one silhouette have no name to differ in.
+    """
+    seen, repeats = {}, []
+    for r in live:
+        mark = r.get("openerMark")
+        if not isinstance(mark, dict):
+            continue
+        sig = mark.get("sig")
+        if not sig:
+            continue
+        if sig in seen:
+            repeats.append(r)
+        else:
+            seen[sig] = r["id"]
+    return repeats
+
+
 def _openers_without_a_mark(live):
     """Part openers carrying no oversized filled silhouette.
 
@@ -2584,6 +2722,15 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
         print(f"  figure ink: nothing overlaps anything inside "
               f"{sum(1 for r in live if r.get('drawn'))} drawn page(s)")
 
+    scaled = sum(r.get("figScaled", 0) for r in live)
+    noaxis = sum(r.get("figNoAxis", 0) for r in live)
+    if scaled:
+        print(f"  figure axes: {noaxis} of {scaled} figure(s) that put numbers "
+              f"on a scale draw no baseline for it (design-rules §4). "
+              f"REPORTED, never gated: every document on record trips this, "
+              f"the accepted reference included, so there is no bar yet — a "
+              f"gridline is background, a baseline is the datum.")
+
     escaped = _band_escaped(live)
     if escaped:
         worst = _band_escape_worst(live)
@@ -2649,21 +2796,29 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
     # between openers. Reported so a long run prompts the author to look for an
     # unmarked seam; a target read as a quota would force openers where the
     # argument has no seam, so this never gates.
-    if openers:
-        runs, run = [], 0
-        opener_ids = {r["id"] for r in openers}
-        for r in live:
-            if r["id"] in opener_ids or r.get("isCover") or r.get("isClosing"):
-                runs.append(run)
-                run = 0
-            else:
-                run += 1
-        runs.append(run)
+    if live:
+        # NOT `if openers`. A deck with no openers is the case that most needs
+        # saying — the conformance deck with twelve unbroken content pages
+        # printed nothing here, because the block that would have reported it
+        # only ran when there was already at least one seam to measure between.
+        runs = _opener_runs(live)
         longest = max(runs)
-        print(f"  opener pacing: longest run between openers is {longest} content "
-              f"page{'s' if longest != 1 else ''} against a target of about five. "
-              f"A target, not a floor — a long run is a prompt to look for an "
-              f"unmarked seam, answered by the author.")
+        over = _pacing_overrun(live)
+        if over:
+            print(f"  DECK RUNS PAST ITS SEAM RATE: longest run is {longest} "
+                  f"content pages against a ceiling of {OPENER_RUN_CEILING} "
+                  f"(runs: {runs[1:-1] or runs}). About five is the writing "
+                  f"target; six is what the accepted reference runs. A deck "
+                  f"meant to be one undivided sequence declares "
+                  f'<body data-parts="none">.')
+        elif any(r.get("partsDeclaredNone") for r in live):
+            print(f"  opener pacing: the deck declares itself one undivided "
+                  f"sequence (data-parts=\"none\"), so the seam rate does not "
+                  f"bind. Longest run {longest} content pages.")
+        else:
+            print(f"  opener pacing: longest run between openers is {longest} "
+                  f"content page{'s' if longest != 1 else ''}, inside the "
+                  f"ceiling of {OPENER_RUN_CEILING}. About five is the target.")
 
     # The visual-share target (owner directive 2026-08-09): about half of a
     # content page's area carries something drawn or figured. A target and a
@@ -2987,11 +3142,22 @@ def deliverable_verdicts(rows, consistency):
         lambda h: ("this deck composes without " + ", ".join(h)
                    + " — a page that is absent is not a page that passed"))
     add("opener_subject_mark",
-        _openers_without_a_mark(live) + _openers_with_a_stroked_mark(live),
+        _openers_without_a_mark(live) + _openers_with_a_stroked_mark(live)
+        + _openers_repeating_a_mark(live),
         not any(r.get("openerMark", "absent") != "absent" for r in live),
-        lambda h: (f"{len(h)} part openers carry no filled silhouette, which "
-                   f"design-rules §3 permits as the one element besides the "
-                   f"claim: " + _fmt_ids(h)))
+        lambda h: (f"{len(h)} part openers carry no filled silhouette, one "
+                   f"that is stroked rather than filled, or one another opener "
+                   f"already used — design-rules §3 permits exactly one and it "
+                   f"is the part's own subject: " + _fmt_ids(h)))
+    # THE SEAM RATE. Gating since 0.1.549; reported for the four releases before
+    # that, during which a conformance deck came back with twelve content pages
+    # and no opener at all and nothing failed it.
+    add("opener_pacing", _pacing_overrun(live), not _composes_as_a_deck(live),
+        lambda h: (f"{len(h)} run(s) of content pages go past "
+                   f"{OPENER_RUN_CEILING} without a seam (longest {max(h)}). "
+                   f"The accepted reference runs 6. A deck that is deliberately "
+                   f"one undivided sequence declares it with "
+                   f"<body data-parts=\"none\">"))
     add("bookend_title_length", _bookends_over_ceiling(live),
         not any((r.get("titleLines") or {}).get("kind") == "bookend"
                 for r in live),

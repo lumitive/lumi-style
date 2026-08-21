@@ -146,6 +146,19 @@ PAGES = [
 
 # The eyebrow sprite plus the footer's handling marker.
 SPRITE = sprite([p[0] for p in PAGES] + ["shield"])
+# D33 NEEDS A FIXTURE THAT FAILS IT. Two hand-drawn symbols, one of each kind
+# the metric separates: `i-handdrawn` is a name in neither shipped set, and
+# `i-shield` keeps a shipped NAME over geometry nobody shipped — the set's label
+# on somebody else's drawing, which is the harder of the two to notice by eye.
+# Only the broken deck carries them; the passing one must not, or the suite
+# cannot tell the metric from one rewritten to return ok.
+HAND_DRAWN = (
+    '<symbol id="i-handdrawn" viewBox="0 0 24 24" fill="none" '
+    'stroke="currentColor" stroke-width="2"><path d="M3 3 L21 21"/>'
+    '<path d="M21 3 L3 21"/></symbol>'
+    '<symbol id="i-shield" viewBox="0 0 24 24" fill="none" '
+    'stroke="currentColor" stroke-width="2"><path d="M12 2 L4 6 L4 13 '
+    'L12 22 L20 13 L20 6 Z"/></symbol>')
 
 
 def ground_defs() -> str:
@@ -454,7 +467,24 @@ def renumber_figures(doc: str) -> str:
                   lambda m: f"{m.group(1)}{next(n)}{m.group(2)}", doc)
 
 
-def page(i: int, total: int, spec, broken: bool) -> str:
+def page(i: int, total: int, spec, broken: bool, k: int) -> str:
+    """One content page. `i` is its page NUMBER; `k` is its ordinal among the
+    content pages, and every planted defect keys on `k`.
+
+    **Why two numbers.** The plants used to key on `i`, and a page number is a
+    function of how the deck is split into parts. Re-splitting it at 0.1.549
+    moved page 12 from a content page to a part opener and took three planted
+    defects with it — D4's literal colour and D24/D25's untermed image all came
+    back `ok`, and only `check_fixtures`' refusal to grade a metric no fixture
+    fails said so. It had happened once before: the same D4 plant sat on page 5
+    until 0.1.369 turned that page into a `stack` layout with no `.gd` at all.
+    Twice is a pattern, and the pattern is that a plant must be anchored to the
+    page's CONTENT, never to its position.
+
+    It also fixes a quieter bug: the two decks numbered differently (the passing
+    one carries an agenda), so `i == 8` meant the fifth content page in one deck
+    and the sixth in the other. The plants now land on the same page in both.
+    """
     icon, eyebrow, title, sup, bullets = spec
     # The eyebrow contract (design-rules §3): subject icon, then
     # `PART <letter> · <label>`. Pages 3-9 sit under Part A, 11-17 under Part B.
@@ -465,10 +495,10 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     terms = TERMS
     src = ""
     if broken:
-        if i == 4:
+        if k == 2:
             gd = ("Leveraging a seamless framework, this callout showcases a robust "
                   "and comprehensive approach.")            # M4 banned phrases
-        if i == 12:
+        if k == 9:
             # D4 literal colour. It sat on page 5 until 0.1.369, which then became
             # a `stack` page carrying cards and no `.gd` at all — so the planted
             # defect silently vanished and D4 came back `ok` on the fixture whose
@@ -476,32 +506,32 @@ def page(i: int, total: int, spec, broken: bool) -> str:
             # is the assertion earning its place: a defect that stops being
             # planted is indistinguishable from a check that stopped working.
             style = ' style="border-color:#ABCDEF"'
-        if i == 8:
+        if k == 6:
             terms = "Prepared for circulation"               # D12: no handling terms
-        if i == 7:
+        if k == 5:
             # a real prose em-dash, which M9 must still catch
             sup = "The gap is signal &#8212; not hardware, and it follows terrain."
-        if i == 14:
+        if k == 11:
             # M12: visible CJK in a document that declares English. The Chinese
             # here is rule DATA — the defect under test — exactly as banned
             # phrases and punctuation examples are elsewhere in this package.
             # A real deliverable named `*.en.html`, carrying `lang="en"`, shipped
             # a badge like this in a page lede and passed every metric.
             sup = "\u5df2\u56de\u6536 15/15 \u9898. Coverage held across the surveyed feeders."
-        if i == 15:
+        if k == 12:
             # D15: a repository path poured into the footer as a "source". The
             # second document to do this; 0.1.366 removed `.foot .src` from
             # tokens/ after the first.
             src = ('<span class="src">resources/'
                    '\u60c5\u62a5\u6e90\u76ee\u5f55-20260730.zh.html</span>')
-        if i == 13:
+        if k == 10:
             # D14: the slot an author leaves for themselves and then ships. A
             # real deliverable carried four of these on its closing page and
             # every check in this package passed it, because a placeholder is
             # not a banned phrase, not a colour, and occupies exactly as much
             # room as the text that should have replaced it.
             sup = "Read success held at [TO FILL]% across the surveyed feeders."
-        if i == 11:
+        if k == 8:
             sup = sup + " The gap is measured against a baseline taken in the first "\
                         "quarter of the programme, before the rural feeders had been "\
                         "surveyed at all, which makes the comparison generous."  # M8 overlong
@@ -516,7 +546,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     # block patterns promoted in 0.1.375 are exercised by the suite instead of
     # merely shipped; check_prose counts both as enumerations (M10).
     listblock = f"<ul>{lis}</ul>"
-    if i == 12:
+    if k == 9:
         listblock = (
             '<div class="grades">'
             '<div class="gr g4"><i></i><p class="gn">Estimate rate, weekly</p>'
@@ -525,7 +555,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
             '<div class="gr g2"><i></i><p class="gn">Backlog count</p></div>'
             '<div class="gr g1"><i></i><p class="gn">Crew hours</p>'
             '<p class="gc">recorded, but not predictive</p></div></div>')
-    if i == 17:
+    if k == 14:
         listblock += (
             '<dl class="gloss"><dt>Estimate rate</dt>'
             '<dd>Billed reads inferred rather than taken.</dd>'
@@ -536,7 +566,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     # a deliverable that had none. Found by running the checker against real
     # agent output; the fixtures we wrote ourselves never used a placeholder.
     cell = ""
-    if i == 9:
+    if k == 7:
         cell = ('<table><tbody>'
                 '<tr><td>Rural feeders</td><td>41</td>'
                 '<td><span class="tag built">surveyed</span></td></tr>'
@@ -559,7 +589,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
         # that reintroduces that zero gets the old behaviour, and the checker
         # has to see it. Without a fixture that FAILS, check_fixtures says out
         # loud that the metric cannot be told from one rewritten to return ok.
-        squeeze = ' style="min-height:0;height:18px"' if broken and i == 3 else ''
+        squeeze = ' style="min-height:0;height:18px"' if broken and k == 1 else ''
         band = (f'<div class="band"{squeeze}>'
                 '<div><span class="k">Coverage</span><div class="v">41<span class="u">%</span></div></div>'
                 '<div><span class="k">Feeders</span><div class="v">312</div></div>'
@@ -569,7 +599,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     # inspect_layout audits it, yet no fixture had ever drawn one — a mark per
     # datum, each carrying its data-datum, intensity from the datum.
     field = ""
-    if i == 4:
+    if k == 2:
         marks = "".join(f'<i data-w="{(k * 3) % 5 + 1}" data-datum="F{k + 1:02d}"></i>'
                         for k in range(12))
         field = ('<p class="listhead">Feeder signal strength</p>'
@@ -578,7 +608,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     if i not in (3, 4):
         lead = f'<div class="lead"><div class="v">{i * 7}</div>' \
                f'<p class="g">Units returned per avoided visit, illustrative</p></div>'
-    if not broken and i == 13:
+    if not broken and k == 10:
         # The reference implementation of a declared omission: named, reasoned,
         # and where a reader meets it. deck-broken carries the same declaration
         # hidden, so the pair is what tells a working D26 from one rewritten to
@@ -596,7 +626,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
                 'measure">This deck states no target customer, value '
                 'proposition, channels, messaging, sales motion or success '
                 'measure: it exists to exercise the checks.</p></div>')
-    if broken and i == 12:
+    if broken and k == 9:
         # D24 and D25: a linked image with no terms named. Both gates need a
         # fixture that FAILS them or the suite cannot tell them from a metric
         # rewritten to return ok — which is what check_fixtures says out loud.
@@ -605,7 +635,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
         # unattributed.
         lead = ('<div class="lead"><img src="https://example.org/plate.png" '
                 'alt="a linked plate"></div>')
-    elif broken and i == 13:
+    elif broken and k == 10:
         # D26: a scope note a reader cannot see. The rubric's whole argument
         # for the scope note is that it is READER-VISIBLE — a marker only the
         # checker can read would do nothing but silence the checker — so the
@@ -615,12 +645,12 @@ def page(i: int, total: int, spec, broken: bool) -> str:
                 '<p class="g">Units returned per avoided visit, illustrative</p>'
                 '<p class="scope-note" style="display:none" '
                 'data-omitted="pricing">Pricing is set elsewhere.</p></div>')
-    elif broken and i == 16:
+    elif broken and k == 13:
         # D16: a page with no visual block at all — no figure, no band, no
         # lead, no comparison pattern; prose, a list and a callout. The static
         # half of the visual-share directive reports it as prose-only.
         lead = ""
-    if i == 17:
+    if k == 14:
         # The apparatus exemption, exercised in both directions (0.1.381): this
         # page is prose-only AND declares itself reference, so it must NOT be
         # listed — while the broken fixture's undeclared p16 still is. A rule
@@ -632,7 +662,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     # `.key` in page 5's notes column and `.red` in page 8's, because D3 budgets
     # tier-1 callouts at one per page and putting both on one page trips it —
     # which the fixture should demonstrate obeying, not by luck.
-    if i == 8:
+    if k == 6:
         gd = ('<p class="red">The seal colour marks a red line, never emphasis. '
               'A page carries at most one tier-1 callout.</p>')
     else:
@@ -644,19 +674,19 @@ def page(i: int, total: int, spec, broken: bool) -> str:
       {cell}{band}{field}{lead}
     </div>"""
     fig = FIGURE
-    if i == 9:
+    if k == 7:
         fig = REGION_FIGURE.replace(
             "{rows}", region_rows(skip=("southeast-asia",) if broken else ()))
-    if broken and i == 4:
+    if broken and k == 2:
         fig = FIGURE_WEAK
-    elif broken and i == 8:
+    elif broken and k == 6:
         fig = FIGURE_BADBOX
     layout, cells = "split", argument + "\n    " + fig.format(i=i)
-    if broken and i == 16:
+    if broken and k == 13:
         layout, cells = "stack", argument
-    if i == 17:
+    if k == 14:
         layout, cells = "stack", argument
-    if i == 5:
+    if k == 3:
         layout, cells = "sidebar-notes", argument + "\n    " + NOTES
     # A one-line `.lead.row` above each block. Two purposes: it gives these two
     # pages an entry point — without it `inspect_layout.py` reports them as the
@@ -665,11 +695,11 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     # is how its `flex-direction: row` lost an argument to the fill rule twice.
     row = ('<div class="lead row"><div class="v">41<span class="u">%</span></div>'
            '<p class="g">Metering coverage, illustrative</p></div>')
-    if i == 6:
+    if k == 4:
         layout, cells = "stack", f'<div class="fill">{row}{CARDS}</div>'
-    if i == 7:
+    if k == 5:
         layout, cells = "stack", f'<div class="fill">{row}{VOWS}</div>'
-    role = ' data-role="apparatus"' if i == 17 else ""
+    role = ' data-role="apparatus"' if k == 14 else ""
     # D32's failing subject (0.1.543, promoted to gating): a page that DECLARES
     # an analysis move and draws none of the shapes the library ships for it.
     # The condition was always binary — the page said what it was doing and did
@@ -677,7 +707,7 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     # owner opened declared seven such pages and drew zero. Only the broken
     # fixture carries the declaration; the passing one must not, because
     # `check_fixtures` refuses a graded metric no fixture can fail.
-    if broken and i == 8:
+    if broken and k == 6:
         role += ' data-analysis="bridge"'
     return f"""
 <section class="page" id="p{i}"{role}>
@@ -700,11 +730,30 @@ def page(i: int, total: int, spec, broken: bool) -> str:
 # the silhouette the deliberate graphic. Added 0.1.546: the rule had lived in
 # prose for four releases, no fixture drew one, and three conformance decks
 # driven to pass every other gate carried none on five openers between them.
-OPENER_MARK = ('<div class="openmark"><svg viewBox="0 0 116 182" '
-               'aria-hidden="true" focusable="false"><path d="M58 6 L110 48 '
-               'L110 140 L58 178 L6 140 L6 48 Z"/><path d="M58 42 L86 64 '
-               'L86 124 L58 146 L30 124 L30 64 Z" fill="var(--lime)"/>'
-               '</svg></div>')
+def opener_mark(shape: str) -> str:
+    """One part opener's subject mark. THREE OPENERS, THREE MARKS.
+
+    design-rules §3 says the mark "is the part's subject or it is not there", so
+    two parts carrying one silhouette assert the two parts are the same thing.
+    This fixture drew one mark on both its openers until 0.1.549 — the defect
+    the owner had already found on a conformance deck, sitting unnoticed in the
+    package's own model of a correct document, because nothing compared them.
+    """
+    return ('<div class="openmark"><svg viewBox="0 0 116 182" '
+            'aria-hidden="true" focusable="false">' + shape + '</svg></div>')
+
+
+# Three silhouettes, geometrically distinct so the repetition check has
+# something real to separate — not three colours of one shape.
+MARK_HEX = ('<path d="M58 6 L110 48 L110 140 L58 178 L6 140 L6 48 Z"/>'
+            '<path d="M58 42 L86 64 L86 124 L58 146 L30 124 L30 64 Z" '
+            'fill="var(--lime)"/>')
+MARK_TOWER = ('<path d="M20 178 L20 60 L58 20 L96 60 L96 178 Z"/>'
+              '<path d="M42 178 L42 120 L74 120 L74 178 Z" fill="var(--lime)"/>')
+MARK_WAVE = ('<path d="M8 150 C40 96 76 96 108 150 L108 178 L8 178 Z"/>'
+             '<path d="M8 96 C40 42 76 42 108 96 L108 122 C76 68 40 68 8 122 Z" '
+             'fill="var(--lime)"/>')
+OPENER_MARK = opener_mark(MARK_HEX)
 # THE PACKAGE ALREADY SHIPS THE CONTAINER. `tokens/` has styled `.openmark`
 # since the opener composition landed — a second grid column, `height: 46svh`,
 # `fill: currentColor` — and the accepted reference deck uses exactly that.
@@ -738,9 +787,11 @@ def opener(part: str, number: int, total: int, claim: str, run: str,
 
 AGENDA_ROWS = (
     ("01", "What the estate measures today",
-     "Seven pages: coverage, the backlog, and what a read is worth."),
+     "Coverage, the backlog, and what a read is worth."),
     ("02", "Where the reads actually fail",
-     "Seven pages on signal, terrain and the relay siting decision."),
+     "Signal, terrain and the relay siting decision."),
+    ("03", "What the month has to settle",
+     "Crew allocation, the siting shortlist, and the cost of waiting."),
 )
 
 
@@ -779,10 +830,33 @@ def agenda(number: int, total: int) -> str:
   {foot(number, total)}</section>"""
 
 
+# HOW THE CONTENT PAGES SPLIT BETWEEN THE THREE PART OPENERS. Two shapes, and
+# the difference IS the fixture:
+#
+# * The passing deck runs 5 / 5 / 4, inside `opener_pacing`'s ceiling of six.
+# * The broken deck runs 7 / 1 / 6, so its longest stretch goes past the ceiling
+#   and a fixture can fail the check. Until 0.1.549 BOTH decks ran 7 / 7 — this
+#   package's own model of a correct document broke the seam rate it was about
+#   to start enforcing.
+#
+# Asserted against len(PAGES) rather than trusted: a page added to PAGES would
+# otherwise fall off the end of the last part without a word.
+SPLIT_PASS = (5, 5, 4)
+SPLIT_BROKEN = (7, 1, 6)
+
+
 def build(broken: bool) -> str:
+    split = SPLIT_BROKEN if broken else SPLIT_PASS
+    if sum(split) != len(PAGES):
+        # Raised, not asserted: `-O` strips an assert and this one is the whole
+        # protection against a new PAGES entry falling off the last part.
+        raise SystemExit(
+            f"the part split covers {sum(split)} pages and PAGES holds "
+            f"{len(PAGES)}; a page was added without deciding which part it "
+            f"belongs to")
     # The pass fixture carries an agenda and the broken one does not, so the
     # two run one page apart. Computed rather than written twice.
-    total = len(PAGES) + (4 if broken else 5)
+    total = len(PAGES) + len(split) + (1 if broken else 2)
     # Cover and closing are the same kind of page, set the same way: cover-grid,
     # with the LUMIVATE field globe as the one vector mark on each (the closing
     # repeats the cover's mark rather than introducing a new claim).
@@ -824,29 +898,40 @@ def build(broken: bool) -> str:
   </div>
   {foot(total, total)}</section>"""
 
-    # Page numbers follow the agenda's presence rather than being written out:
-    # a hand-numbered second copy of this arithmetic is the drift this
-    # repository has fixed twenty-six times.
-    shift = 0 if broken else 1
-    body = (cover
-            + ("" if broken else agenda(2, total))
-            + opener("A", 2 + shift, total, AGENDA_ROWS[0][1], AGENDA_ROWS[0][2])
-            + "".join(page(i + 3 + shift, total, s, broken)
-                      for i, s in enumerate(PAGES[:7]))
-            # The broken fixture's second opener draws NO mark, so
-            # `opener_subject_mark` has a fixture that fails it. The first one
-            # keeps the mark, so the metric is not merely absent everywhere.
-            + opener("B", 10 + shift, total, AGENDA_ROWS[1][1],
-                     AGENDA_ROWS[1][2], mark="" if broken else OPENER_MARK)
-            + "".join(page(i + 11 + shift, total, s, broken)
-                      for i, s in enumerate(PAGES[7:]))
-            + closing)
+    # Page numbers are COUNTED OUT as the parts are laid down, never written as
+    # literals: a hand-numbered second copy of this arithmetic is the drift this
+    # repository has fixed twenty-six times, and since 0.1.549 the two decks do
+    # not even have the same shape to hand-number.
+    #
+    # The marks: three distinct silhouettes on the passing deck, and on the
+    # broken one part B carries none while part C repeats part A's — the two
+    # halves of what `opener_subject_mark` grades, each with its own fixture.
+    # Until 0.1.549 the passing deck drew ONE mark on both its openers, which is
+    # the defect the owner had already reported on a conformance deck sitting
+    # unnoticed in this package's own model of a correct document.
+    marks = ([opener_mark(MARK_HEX), "", opener_mark(MARK_HEX)] if broken
+             else [opener_mark(MARK_HEX), opener_mark(MARK_TOWER),
+                   opener_mark(MARK_WAVE)])
+    body, n, taken = cover, 2, 0
+    if not broken:
+        body += agenda(n, total)
+        n += 1
+    for part, count, mark in zip("ABC", split, marks, strict=True):
+        claim, run = AGENDA_ROWS["ABC".index(part)][1:]
+        body += opener(part, n, total, claim, run, mark=mark)
+        n += 1
+        for j, spec in enumerate(PAGES[taken:taken + count]):
+            body += page(n, total, spec, broken, taken + j + 1)
+            n += 1
+        taken += count
+    body += closing
     label = "broken" if broken else "pass"
     # The pass fixture is what a correct document looks like, so its figure
     # numbers run 1..k. The broken one keeps the page-index holes, because
     # D30 needs a fixture that fails it.
     if not broken:
         body = renumber_figures(body)
+    hand = HAND_DRAWN if broken else ""
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Metering programme review ({label} fixture)</title>
@@ -877,7 +962,7 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
 .s-line {{ stroke: var(--ln1); }}
 .s-dash {{ stroke: var(--ln1); stroke-dasharray: 5 4; }}
 .colophon {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }}
-</style></head><body data-geometry="landscape" data-genre="sales" data-storyline="gtm">{SPRITE}{GROUND_DEFS}{body}</body></html>
+</style></head><body data-geometry="landscape" data-genre="sales" data-storyline="gtm">{SPRITE}{hand}{GROUND_DEFS}{body}</body></html>
 """
 
 
