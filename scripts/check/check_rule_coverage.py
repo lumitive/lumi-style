@@ -78,6 +78,14 @@ def check_quote(root: pathlib.Path, source: str, quote: str) -> str:
     """
     if ":" not in source:
         return f"{source!r} is not a file:line reference"
+    # A RULE LIVES IN A RULE FILE. `source` was unrestricted, so an entry could
+    # cite a deliverable — and `check_repo`'s CJK exemption trusts this field,
+    # so a sentence of Chinese lifted out of an HTML fixture passed the
+    # english-only red line as "rule data".
+    if not source.startswith(("references/", "SKILL.md", "AGENTS.md",
+                              "prompts/", "CLAUDE.md")):
+        return (f"cites {source.rsplit(':', 1)[0]!r}, which is not a rule file; "
+                f"a rule lives in references/ or an entry point")
     path_part, _, line_part = source.rpartition(":")
     path = root / path_part
     if not path.is_file():

@@ -69,6 +69,7 @@ import pathlib as _bs_pathlib  # noqa: E402
 import re
 import sys
 import sys as _bs_sys  # noqa: E402
+from html.parser import HTMLParser
 
 _SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
                      if p.name == "scripts")
@@ -571,12 +572,15 @@ def d27_agenda_mirror(raw):
     an agenda row may add its part letter or trim a subtitle without failing.
     A document with no agenda page owes nothing here (n/a).
     """
-    pages = _pages(raw)
+    pages = list(_pages(raw))
+    # THE SAME FINDER D35 USES. Each had its own, and they disagreed: this one
+    # matched `id="agenda"` case-sensitively and only the English word within
+    # 120 characters of an eyebrow, so a deck with `id="Agenda"` or a Chinese
+    # `议程` had no agenda here and an agenda there. Two gates about one page
+    # may not disagree about whether the page exists.
     agenda = None
     for _cls, pid, body in pages:
-        if pid == "agenda" or re.search(
-                r'class="(?:[^"]*\s)?eyebrow(?:\s[^"]*)?"[^>]*>.{0,120}?agenda',
-                body, re.S | re.I):
+        if _is_agenda_page(pid, body):
             agenda = body
             break
     if agenda is None:
@@ -1349,37 +1353,82 @@ GEOMETRY_ATTRS = ("d", "points", "cx", "cy", "r", "rx", "ry",
                   "x1", "y1", "x2", "y2", "x", "y", "width", "height")
 
 
+# Path data written two ways for one drawing. `M 4 6 L 8 10`, `M4 6L8 10` and
+# `M4,6L8,10` are the same line; an SVG minifier produces the second and third
+# from the first. Comparing the raw strings would report a minified copy of a
+# SHIPPED icon as somebody else's drawing — a false red on a gating metric,
+# which is the failure class that rewrites a correct document.
+ATTR = re.compile(r"""([a-z-]+)=(?:"([^"]*)"|'([^']*)')""")
+_PATH_TOKEN = re.compile(r"[A-Za-z]|-?\d*\.?\d+(?:[eE][-+]?\d+)?")
+
+
+def _path_tokens(value: str) -> tuple:
+    """-> a path's commands and numbers, separated from how they were spaced."""
+    return tuple(_PATH_TOKEN.findall(value))
+
+
 def _geometry(markup: str) -> tuple:
     """-> the drawing inside `markup`, as a comparable tuple.
 
     Reads shape elements in order and keeps the attributes that decide their
-    geometry. Whitespace inside a path is collapsed: `M 4 6` and `M4 6` draw the
-    same line and differ only in how the file was written.
+    geometry. Path and polygon data is TOKENISED rather than string-compared,
+    so `M 4 6 L 8 10` and `M4,6L8,10` — the same line, one of them minified —
+    compare equal. Every other attribute is whitespace-collapsed only.
+
+    What it deliberately does NOT read is `transform`: a scaled or translated
+    copy of a shipped icon still compares equal to it. That is a gap and not an
+    oversight — the rule this serves asks where the drawing came from, and a
+    transformed copy came from the same place.
     """
     out = []
     for el in re.finditer(r"<(path|circle|rect|ellipse|line|polygon|polyline)\b"
                           r"([^>]*)>", markup):
-        attrs = {m.group(1): re.sub(r"\s+", " ", m.group(2)).strip()
-                 for m in re.finditer(r'([a-z-]+)="([^"]*)"', el.group(2))}
-        out.append((el.group(1),
-                    tuple(attrs.get(a, "") for a in GEOMETRY_ATTRS)))
+        # EITHER QUOTE. Reading only double quotes gave a single-quoted
+        # `d='M20 6'` an all-empty geometry tuple, so a shipped icon written
+        # that way was reported `altered` while two DIFFERENT single-quoted
+        # icons compared equal — the gate failing in both directions at once.
+        attrs = {}
+        for m in re.finditer(ATTR, el.group(2)):
+            attrs[m.group(1)] = m.group(2) if m.group(2) is not None else m.group(3)
+        vals = []
+        for a in GEOMETRY_ATTRS:
+            v = attrs.get(a, "")
+            vals.append(_path_tokens(v) if a in ("d", "points")
+                        else re.sub(r"\s+", " ", v).strip())
+        out.append((el.group(1), tuple(vals)))
     return tuple(out)
 
 
 def _shipped_icons(root: pathlib.Path | None = None) -> dict:
-    """-> {name: geometry} for every icon in the sets this package ships."""
+    """-> {name: {geometry, ...}} for every icon in the sets this package ships.
+
+    **A SET of geometries per name, because both sets are authorized.** The two
+    directories collide on 32 of koboyo's 36 names — `shield`, `globe`, `key`,
+    `rocket`, `scale` and 27 more — and the first version kept only the first
+    one it saw, which was always lucide's. So a document drawing a genuinely
+    shipped koboyo silhouette was reported `altered`: the set's own name over
+    the set's own drawing, on a gating metric. Matching against ANY set that
+    carries the name is what "the two sets this package ships" means.
+    """
     base = (root or ROOT) / "assets" / "icons"
-    shipped: dict[str, tuple] = {}
+    shipped: dict[str, set] = {}
+    unreadable = []
     for setname in ICON_SETS:
         d = base / setname
         if not d.is_dir():
             continue
         for f in d.glob("*.svg"):
             try:
-                shipped.setdefault(f.stem, _geometry(
-                    f.read_text(encoding="utf-8")))
-            except OSError:                                # pragma: no cover
-                continue
+                shipped.setdefault(f.stem, set()).add(
+                    _geometry(f.read_text(encoding="utf-8")))
+            except OSError as exc:                         # pragma: no cover
+                # NAMED, not swallowed. Dropping the file silently makes every
+                # document using that icon fail as "drawn by hand", which points
+                # the reader at the document instead of at this file.
+                unreadable.append(f"{setname}/{f.name}: {exc}")
+    if unreadable:                                         # pragma: no cover
+        print("  note  icon set files that could not be read, so any document "
+              "using them will read as hand-drawn: " + "; ".join(unreadable))
     return shipped
 
 
@@ -1390,33 +1439,49 @@ def d33_icon_provenance(raw, root=None):
     one ad hoc" — every icon comes from the two sets this package ships. The
     rule had no check, and the owner's first instruction after opening a
     conformance deck was that the part-opener icon must come from
-    `assets/icons/`. An icon drawn by hand is off-brand in the way a hand-mixed
-    colour is off-brand, and it is exactly as decidable.
+    `assets/icons/`.
 
-    Two findings, kept apart because they mean different things: a symbol whose
-    NAME is in neither set was invented, and a symbol whose name is there but
-    whose geometry is not is the set's name on somebody else's drawing.
+    **Keyed on USE AS AN ICON, never on the id's spelling.** The first version
+    matched `id="i-[a-z0-9-]+"` and counted nothing else, so `<symbol
+    id="handdrawn">` — or `id="i-myIcon"`, one capital letter — was not
+    reported as unknown, it was not COUNTED, and the gate returned `ok` on a
+    document whose every icon was drawn by hand. A gate a naming choice walks
+    past is not a gate. The material says what an icon is: an inline `svg.ic`
+    pointing at a symbol, which is the vocabulary §6 and `tokens/` both use, and
+    which resolved 35, 40 and 20 uses across the three documents on record. It
+    also leaves alone the symbols that are NOT icons — the accepted reference
+    defines a library shape and a trademark mark, and neither is drawn as `.ic`.
 
-    Measured on the three documents on record before it was written: 15 symbols
-    each, 0 unmatched. A gate calibrated on the accepted document rather than on
-    what would be satisfying to catch.
+    Two findings, kept apart because they mean different things: a name in
+    neither set was invented, and a shipped NAME over a different drawing is the
+    set's label on somebody else's path.
     """
     shipped = _shipped_icons(root)
     if not shipped:
         return None                       # no sets to compare against; say so
+    symbols = {m.group(1): m.group(2) for m in re.finditer(
+        r'<symbol[^>]*\bid="([^"]+)"[^>]*>(.*?)</symbol>', raw, re.S)}
+    used = set(re.findall(
+        r'<svg[^>]*class="(?:[^"]*\s)?ic(?:\s[^"]*)?"[^>]*>\s*'
+        r'<use[^>]*href="#([^"]+)"', raw))
     unknown, altered = [], []
-    syms = re.findall(r'<symbol[^>]*\bid="i-([a-z0-9-]+)"[^>]*>(.*?)</symbol>',
-                      raw, re.S)
-    for name, geo in syms:
+    for ref in sorted(used):
+        geo = symbols.get(ref)
+        if geo is None:
+            continue          # a reference resolving to nothing is D19's finding
+        # `i-radar` is `radar.svg`. An id with no prefix is looked up as itself,
+        # so a hand-drawn `#handdrawn` is reported rather than skipped.
+        name = ref[2:] if ref.startswith("i-") else ref
         if name not in shipped:
-            unknown.append(name)
-        elif _geometry(geo) != shipped[name]:
-            altered.append(name)
-    return {"checked": len(syms), "unknown": unknown, "altered": altered}
+            unknown.append(ref)
+        elif _geometry(geo) not in shipped[name]:
+            altered.append(ref)
+    return {"checked": len(used), "unknown": unknown, "altered": altered}
 
 
 def d34_icon_uniqueness(raw):
-    """-> {pages, reused}: eyebrow icons standing for more than one subject.
+    """-> {pages, distinct, reused}: eyebrow icons standing for more than one
+    subject.
 
     **Reported, not gated, and the reference is why.** design-rules §6 says an
     icon means exactly one thing within a document — but the accepted reference
@@ -1428,13 +1493,25 @@ def d34_icon_uniqueness(raw):
     What it does answer is the owner's actual complaint, which was blunter than
     the rule: two part openers and seven of eight content pages carrying one
     icon. That shows up here as a reuse count, loudly.
+
+    Class tokens are matched with the whole-token form, not `\b`: `\bic\b`
+    matches `fig-ic` and `\beyebrow\b` matches `sub-eyebrow`, because a word
+    boundary sits at a hyphen. That has produced three false checker failures in
+    this repository already.
+
+    The AGENDA is out of scope. Its eyebrow icon names the act of routing rather
+    than a subject being argued, so sharing one with a content page is not two
+    meanings on one icon — and counting it made this package's own model
+    document report a reuse it should not.
     """
-    pat = re.compile(r'<\w+[^>]*class="[^"]*\beyebrow\b[^"]*"[^>]*>\s*'
-                     r'<svg[^>]*class="[^"]*\bic\b[^"]*"[^>]*>\s*'
-                     r'<use[^>]*href="#(i-[a-z0-9-]+)"')
+    pat = re.compile(r'<\w+[^>]*class="(?:[^"]*\s)?eyebrow(?:\s[^"]*)?"[^>]*>\s*'
+                     r'<svg[^>]*class="(?:[^"]*\s)?ic(?:\s[^"]*)?"[^>]*>\s*'
+                     r'<use[^>]*href="#([^"]+)"')
     used: dict[str, list] = {}
     for cls, pid, body in _pages(raw):
         if any(k in cls for k in ("cover", "closing", "opener")):
+            continue
+        if pid == "agenda":
             continue
         m = pat.search(body)
         if m:
@@ -1444,44 +1521,138 @@ def d34_icon_uniqueness(raw):
             "distinct": len(used), "reused": reused}
 
 
-def _direct_children(fragment: str) -> list:
-    """-> [(class attribute, inner markup)] for each depth-1 element.
+# Void elements, plus the SVG shapes a document writes self-closing. HTML's
+# parser has no list of its own for the SVG ones, and `<circle cx=..>` written
+# WITHOUT a slash is a start tag that never closes — which is the shape that
+# defeated the first version of the scan below.
+VOID_TAGS = frozenset((
+    "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta",
+    "param", "source", "track", "wbr",
+    "path", "circle", "rect", "ellipse", "line", "polygon", "polyline", "use",
+    "stop", "image",
+))
 
-    A depth counter rather than one regex over the whole blob: `.body > .band`
-    and `.launch .band` are different findings, and a pattern that could not
-    tell them apart would fail the accepted reference for markup nested three
-    levels down. Returns each child's own contents too, so a caller can look
-    one level further without hunting for the child's text again.
+
+class _ChildScan(HTMLParser):
+    """The depth-1 children of a fragment, and whether the markup was balanced.
+
+    **A tag STACK, not a depth counter.** The counter version recorded nothing
+    when an element was left unclosed, so "no children" was indistinguishable
+    from "no strays" — and worse, on a body whose depth happened to return to
+    zero at its own closing tag it recorded the entire remaining content as ONE
+    child under the first child's class name, swallowing a stat band inside what
+    it believed was the lede. Both readings made D35 report `ok` on an agenda
+    carrying a stat band, which is convention 8's "a check that did not run is
+    not a check that passed" recreated inside a gate on the release that added
+    it.
+
+    A stack catches it: a closing tag that does not match the tag on top is
+    proof the fragment cannot be read, and `balanced` says so. Callers must
+    treat that as a finding.
     """
-    kids, depth, start, cls = [], 0, 0, ""
-    void = ("br", "img", "use", "input", "meta", "path", "hr", "source")
-    for m in re.finditer(r"<(/?)([\w-]+)([^>]*?)(/?)>", fragment):
-        closing, tag, attrs, selfclose = m.groups()
-        if tag.lower() in void or selfclose:
-            continue
-        if closing:
-            depth -= 1
-            if depth == 0:
-                kids.append((cls, fragment[start:m.start()]))
-            elif depth < 0:
-                # THE CONTAINER ITSELF CLOSED. Without this the scan ran on
-                # past `</div>` and read the footer's `.terms` and `.site` as
-                # children of the body — which failed the accepted reference
-                # deck on its own footer, the first time this metric ran.
-                break
-            continue
-        if depth == 0:
-            cm = re.search(r'class="([^"]*)"', attrs)
-            cls = cm.group(1) if cm else ""
-            start = m.end()
-        depth += 1
-    return kids
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.stack: list = []
+        self.kids: list = []
+        self.balanced = True
+        self._open = None            # (class, offset) of the depth-1 child
+
+    def _offset(self):
+        line, col = self.getpos()
+        return self._line_starts[line - 1] + col
+
+    def feed_fragment(self, fragment: str):
+        self.raw = fragment
+        # getpos() reports (line, column), so an absolute offset needs where
+        # each line starts.
+        self._line_starts = [0]
+        for ln in fragment.split("\n")[:-1]:
+            self._line_starts.append(self._line_starts[-1] + len(ln) + 1)
+        self.feed(fragment)
+        self.close()
+        if self.stack:
+            self.balanced = False    # something was never closed
+        return self.kids, self.balanced
+
+    def handle_starttag(self, tag, attrs):
+        if tag in VOID_TAGS:
+            return
+        if not self.stack:
+            cls = dict(attrs).get("class") or ""
+            self._open = (cls, self._offset() + len(self.get_starttag_text() or ""))
+        self.stack.append(tag)
+
+    def handle_startendtag(self, tag, attrs):
+        if not self.stack:
+            cls = dict(attrs).get("class") or ""
+            self.kids.append((cls, ""))
+
+    def handle_endtag(self, tag):
+        if tag in VOID_TAGS:
+            return
+        if not self.stack:
+            # The container's own closing tag: everything after it belongs to
+            # the page, not to the body. The footer's `.terms` and `.site` were
+            # read as agenda children before this stopped the scan.
+            self.balanced = True
+            raise _ScanDone
+        if self.stack[-1] != tag:
+            self.balanced = False
+            raise _ScanDone
+        self.stack.pop()
+        if not self.stack and self._open is not None:
+            cls, start = self._open
+            self.kids.append((cls, self.raw[start:self._offset()]))
+            self._open = None
 
 
-# What an agenda page's `.body` may hold, and what a `.fill` inside it may hold.
-# storyline-templates: the launch sequence, and optionally the lede above it.
+class _ScanDone(Exception):
+    """The container closed, or the markup proved unreadable. Either way, stop."""
+
+
+def _direct_children(fragment: str) -> tuple:
+    """-> ([(class attribute, inner markup)], balanced)."""
+    scan = _ChildScan()
+    try:
+        return scan.feed_fragment(fragment)
+    except _ScanDone:
+        return scan.kids, scan.balanced
+    except Exception:                                    # pragma: no cover
+        # A parser error is "could not read", never "nothing wrong".
+        return scan.kids, False
+
+
+# What an agenda page's `.body` may hold at its top level, and what may appear
+# ANYWHERE inside it. storyline-templates: the launch sequence, and optionally
+# the lede above it.
 AGENDA_BODY_ALLOWED = ("lede", "fill")
 AGENDA_FILL_ALLOWED = ("launch",)
+# The visual blocks that make an agenda into a second page. `launch` is the
+# agenda's own block and is excluded; everything else in the vocabulary is an
+# argument being made somewhere it does not belong.
+AGENDA_FORBIDDEN_ANYWHERE = tuple(b for b in VISUAL_BLOCKS if b != "launch")
+# How an agenda page says it is one, in either output language. `议程` and `目录`
+# are rule DATA for Chinese output, which the repository's English-only red line
+# permits. Without them a Chinese deck's agenda was not found at all, and a
+# not-found agenda scored as a pass.
+AGENDA_WORDS = ("agenda", "议程", "目录")
+
+
+def _is_agenda_page(pid: str, body: str) -> bool:
+    """Does this page announce itself as the agenda?
+
+    Case-insensitively on the id — `id="Agenda"` escaped the first version, and
+    worse, `inspect_layout`'s `isAgenda` lowercases, so the two checkers
+    disagreed about whether the deck had an agenda at all. And on the eyebrow's
+    whole text rather than its first 120 characters, in either language.
+    """
+    if pid.lower() == "agenda":
+        return True
+    m = re.search(r'class="(?:[^"]*\s)?eyebrow(?:\s[^"]*)?"[^>]*>(.*?)</',
+                  body, re.S | re.I)
+    text = (m.group(1) if m else "").lower()
+    return any(w in text for w in AGENDA_WORDS)
 
 
 def d35_agenda_exclusive(raw):
@@ -1489,19 +1660,32 @@ def d35_agenda_exclusive(raw):
 
     **This gates**, by owner ruling after a round in which one conformance deck
     put a stat band on its agenda and another invented an `.agenda-grid` class
-    with a private `<style>` element to lay it out. An agenda that also argues
-    something is two pages sharing one sheet, and the page that routes the deck
-    is the last one that should need routing itself.
+    to lay it out. An agenda that also argues something is two pages sharing one
+    sheet, and the page that routes the deck is the last one that should need
+    routing itself.
+
+    **The page with the id wins.** The first version took whichever page matched
+    first, and a CONTENT page whose eyebrow read "PART A - agenda for the
+    quarter" was graded in place of the real agenda, which was then never
+    examined at all.
+
+    **Two questions, because a top-level allowlist was walked past four ways.**
+    Depth-1 children must be the lede or the fill — but an UNCLASSED wrapper is
+    descended into rather than skipped, since one `<div>` around a stat band
+    disabled the whole check; and any forbidden block anywhere in the subtree is
+    a stray, because `.body > .fill > .launch > .band` was three levels down and
+    `.lede > .band` was inside an allowed parent. A class LIST is read whole:
+    `class="band lede"` and `class="foot band"` both slipped past tests that
+    looked at one token.
 
     A document with no agenda owes nothing here — `deck_structure` is what asks
     whether it should have one, and asking twice would fail a deck once for the
     missing page and again for that page's contents.
     """
-    for _cls, pid, body in _pages(raw):
-        if pid != "agenda" and not re.search(
-                r'class="(?:[^"]*\s)?eyebrow(?:\s[^"]*)?"[^>]*>.{0,120}?agenda',
-                body, re.S | re.I):
-            continue
+    pages = list(_pages(raw))
+    named = [t for t in pages if t[1].lower() == "agenda"]
+    matched = [t for t in pages if _is_agenda_page(t[1], t[2])]
+    for _cls, pid, body in (named or matched):
         strays = []
         if re.search(r"<style\b", body, re.I):
             strays.append("a <style> element of its own")
@@ -1509,25 +1693,61 @@ def d35_agenda_exclusive(raw):
                       body)
         if not m:
             return {"found": pid, "strays": ["no .body block at all"]}
-        for cls, inner in _direct_children(body[m.end():]):
-            tokens = cls.split()
-            if not tokens or tokens[0] == "foot":
-                continue           # the footer is the page's, not the body's
-            if not any(t in AGENDA_BODY_ALLOWED for t in tokens):
-                strays.append(f".{tokens[0]} beside the launch sequence")
-                continue
-            if "fill" in tokens:
-                for gcls, _ in _direct_children(inner):
-                    gt = gcls.split()
-                    if gt and not any(t in AGENDA_FILL_ALLOWED for t in gt):
-                        strays.append(f".{gt[0]} inside the agenda's fill")
-        return {"found": pid, "strays": strays}
+        inner = body[m.end():]
+        kids, readable = _direct_children(inner)
+        if not readable:
+            # NOT A PASS. An unreadable body is the state this gate cannot
+            # judge, and reporting it as clean is how a check goes quiet.
+            strays.append("the .body markup could not be read — an element is "
+                          "left unclosed, so nothing inside it can be graded")
+        strays += _agenda_strays(kids)
+        # THE SUBTREE, not only the top level. One `<div>` of nesting hid every
+        # defect this gate was written for.
+        for block in AGENDA_FORBIDDEN_ANYWHERE:
+            if re.search(rf'class="(?:[^"]*\s)?{block}(?:\s[^"]*)?"',
+                         _without_footer(inner)):
+                strays.append(f".{block} somewhere inside the agenda's body")
+        return {"found": pid, "strays": sorted(set(strays))}
     # NO AGENDA PAGE IS A MEASURED ABSENCE AND PASSES, the same ruling D27
     # carries: a deck without an agenda owes nothing to a rule about what an
     # agenda may contain, and `deck_structure` is what asks whether it should
-    # have one. Returning None here reported a gating metric as unmeasurable on
-    # every deck with no agenda, which reads like an alarm and is not one.
+    # have one. `grade()` scores this as a pass rather than as UNMEASURABLE —
+    # the flag lives there, not here.
     return None
+
+
+def _without_footer(inner: str) -> str:
+    """The body's markup with the page footer removed.
+
+    The footer is the page's furniture, not the agenda's content, and it carries
+    `.terms` and `.site` — neither forbidden, but the same reasoning applies to
+    any class a footer template gains later.
+    """
+    cut = inner.find('class="foot"')
+    return inner if cut < 0 else inner[:cut]
+
+
+def _agenda_strays(kids) -> list:
+    """Top-level children of an agenda body that are not the agenda. Recursive
+    through UNCLASSED wrappers only, which is the one shape that is neither a
+    stray itself nor allowed to hide one."""
+    out = []
+    for cls, contents in kids:
+        tokens = cls.split()
+        if "foot" in tokens:
+            continue
+        if not tokens:
+            out += _agenda_strays(_direct_children(contents)[0])
+            continue
+        if not any(t in AGENDA_BODY_ALLOWED for t in tokens):
+            out.append(f".{tokens[0]} beside the launch sequence")
+            continue
+        if "fill" in tokens:
+            for gcls, _ in _direct_children(contents)[0]:
+                gt = gcls.split()
+                if gt and not any(t in AGENDA_FILL_ALLOWED for t in gt):
+                    out.append(f".{gt[0]} inside the agenda's fill")
+    return out
 
 
 # The provenance vocabulary D6 accepts in a colophon, NAMED because it was an

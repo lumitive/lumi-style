@@ -220,3 +220,12 @@ def test_the_registers_cjk_exemption_covers_quotes_and_nothing_else(tmp_path,
     assert errors_for({"quote": "赋能 is allowed only in", "gist": "English."}) == []
     bad = errors_for({"quote": "fine", "gist": "这是中文散文"})
     assert bad and ".gist" in bad[0]
+
+    # THE THIRD AXIS: the exemption is scoped to that one path. Dropping the
+    # path condition is the natural "simplification" when someone generalises
+    # this, and it would let Chinese into any tracked manifest's `quote` field.
+    other = root / "evals" / "some-other-manifest.json"
+    other.write_text(json.dumps({"rules": [{"quote": "赋能"}]}), encoding="utf-8")
+    monkeypatch.setattr(check_repo, "_json_manifests", lambda: [other])
+    elsewhere = check_repo.check_english_only()
+    assert elsewhere and "some-other-manifest.json" in elsewhere[0]

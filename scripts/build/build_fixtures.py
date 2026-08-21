@@ -152,13 +152,22 @@ SPRITE = sprite([p[0] for p in PAGES] + ["shield"])
 # on somebody else's drawing, which is the harder of the two to notice by eye.
 # Only the broken deck carries them; the passing one must not, or the suite
 # cannot tell the metric from one rewritten to return ok.
+# `i-truck` is a name BOTH shipped sets carry and this sprite does not emit, so
+# the altered-geometry plant is a real `<use>` resolving to a real definition.
+# It was `i-shield` — an id the sprite already holds — so the document carried
+# the id twice, the browser resolved every `<use>` to the first (correct) one,
+# and the planted defect existed in the markup and in no rendering of it.
 HAND_DRAWN = (
     '<symbol id="i-handdrawn" viewBox="0 0 24 24" fill="none" '
     'stroke="currentColor" stroke-width="2"><path d="M3 3 L21 21"/>'
     '<path d="M21 3 L3 21"/></symbol>'
-    '<symbol id="i-shield" viewBox="0 0 24 24" fill="none" '
+    '<symbol id="i-truck" viewBox="0 0 24 24" fill="none" '
     'stroke="currentColor" stroke-width="2"><path d="M12 2 L4 6 L4 13 '
-    'L12 22 L20 13 L20 6 Z"/></symbol>')
+    'L12 22 L20 13 L20 6 Z"/></symbol>'
+    '<svg class="ic" aria-hidden="true" style="display:none">'
+    '<use href="#i-handdrawn"/></svg>'
+    '<svg class="ic" aria-hidden="true" style="display:none">'
+    '<use href="#i-truck"/></svg>')
 
 
 def ground_defs() -> str:
@@ -605,7 +614,11 @@ def page(i: int, total: int, spec, broken: bool, k: int) -> str:
         field = ('<p class="listhead">Feeder signal strength</p>'
                  f'<div class="field tall" data-count="12">{marks}</div>')
     lead = ""
-    if i not in (3, 4):
+    # ORDINAL, not page number. This was the one plant left keyed on `i` after
+    # 0.1.549, so it suppressed `.lead` on content page 1 of the passing deck
+    # and on 1 AND 2 of the broken one — the asymmetry the `page()` docstring
+    # says no longer exists.
+    if k not in (1, 2):
         lead = f'<div class="lead"><div class="v">{i * 7}</div>' \
                f'<p class="g">Units returned per avoided visit, illustrative</p></div>'
     if not broken and k == 10:
@@ -854,9 +867,16 @@ def build(broken: bool) -> str:
             f"the part split covers {sum(split)} pages and PAGES holds "
             f"{len(PAGES)}; a page was added without deciding which part it "
             f"belongs to")
-    # The pass fixture carries an agenda and the broken one does not, so the
-    # two run one page apart. Computed rather than written twice.
-    total = len(PAGES) + len(split) + (1 if broken else 2)
+    # Content pages + one opener per part + the bookends: cover and closing
+    # always, plus the agenda on the passing deck. Written out as a sum of what
+    # is actually emitted, because the shorthand it replaces — `+ (1 if broken
+    # else 2)` — silently DROPPED THE COVER when the third opener landed, and
+    # both fixtures shipped declaring one page fewer than they hold, with the
+    # closing page repeating the previous page's number. Nothing caught it:
+    # `build_fixtures --check` compares the generator to its own artifact and
+    # they agreed, and D6 asks only whether a total is present.
+    bookends = 2 + (0 if broken else 1)            # cover, closing, [agenda]
+    total = len(PAGES) + len(split) + bookends
     # Cover and closing are the same kind of page, set the same way: cover-grid,
     # with the LUMIVATE field globe as the one vector mark on each (the closing
     # repeats the cover's mark rather than introducing a new claim).
@@ -1054,10 +1074,20 @@ def build_degenerate() -> str:
     # D27_agenda_mirror: an agenda whose every line was written fresh rather
     # than quoted from the titles. Both lines below match no title in the deck,
     # which is exactly the defect the second blind review (D16) opened with.
+    # D35_agenda_exclusive: a stat band on the agenda page, which is the defect
+    # the owner found on a conformance deck. It sits inside a real `.body` on
+    # purpose — the earlier version had no `.body` at all, so D35's red came
+    # from its "no .body block" guard clause and the STRAY SCAN, which is the
+    # metric, had never gone red on any fixture. A gate whose only failing
+    # sample takes an early return is a gate with one arm untested.
     pages = ('<section class="page" id="agenda">'
              '<p class="eyebrow">Agenda</p>'
+             '<div class="body stack">'
              '<p class="listhead">A story the pages never tell</p>'
              '<ul><li>An agenda line quoted from no title anywhere</li></ul>'
+             '<div class="band"><div class="k">41%</div>'
+             '<div class="v">A number the agenda has no business making</div>'
+             '</div></div>'
              '<div class="foot"><div class="terms"><span class="conf">'
              f'{TERMS}</span></div><span class="site">{SITE}</span></div>'
              '</section>') + pages

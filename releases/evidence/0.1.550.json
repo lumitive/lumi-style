@@ -1,0 +1,18 @@
+{
+  "version": "0.1.550",
+  "diff_base": "56d3a4787f68bad2c84f47a76b92ca3e711592dc",
+  "spec": "specs/2026-08-22-rules-equal-conformance-design.md",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "389acdd9ae726fab542071d81f968552874155dae0e6282f41a28b654a18f4c4",
+      "date": "2026-08-22"
+    }
+  ],
+  "waivers": []
+}

@@ -215,6 +215,11 @@ def _strip_code(line, in_fence):
 
 
 
+# The one exempt field, matched WHOLE. `.endswith(".quote")` also
+# matched `rules[0].notes.quote`, a key nothing in the register reads.
+REGISTER_QUOTE = re.compile(r"\$\.rules\[\d+\]\.quote")
+
+
 def _json_manifests():
     """-> the tracked .json files this repository writes by hand or generates.
 
@@ -293,14 +298,21 @@ def check_english_only():
             # from the register, which is the coverage map, in the one place
             # coverage is hardest to see.
             #
-            # It is not a hole: `check_rule_coverage.py` fails the build unless
-            # every quote is still a substring of the line it names, so a
-            # sentence of Chinese PROSE could not survive here — it would have
-            # to exist in `references/` first, where the markdown half of this
-            # same guard would catch it. Nothing else in the file is exempt:
+            # THE EXEMPTION IS EXACTLY `$.rules[N].quote`, matched whole. It
+            # was `.endswith(".quote")` at any depth, so a nested
+            # `rules[0].notes.quote` — a key the register's own reader ignores
+            # — carried a paragraph of Chinese prose through both guards. And it
+            # holds only for a quote cited out of a PROSE RULE FILE: `source`
+            # was unrestricted, so a sentence lifted from a Chinese HTML fixture
+            # passed too, which is deliverable prose and not rule data at all.
+            #
+            # With both narrowed it is not a hole: `check_rule_coverage.py`
+            # fails the build unless every quote is still a substring of the
+            # line it names, and the line has to be in a file the markdown half
+            # of this guard already reads. Nothing else in the file is exempt —
             # the `gist` is this repository's own English and is scanned.
             if (rel(path) == "evals/rule-coverage.json"
-                    and where.endswith(".quote")):
+                    and REGISTER_QUOTE.fullmatch(where)):
                 continue
             errors.append(
                 f"{rel(path)}: CJK at {where} — a manifest is not rule "
