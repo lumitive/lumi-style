@@ -1902,11 +1902,26 @@ def _title_over_two_lines(live):
             and (r.get("titleLines") or {}).get("lines", 0) > 2]
 
 
-def _bookends_over_two_lines(live):
-    """The same measurement on cover and closing, reported and never gated."""
+# The cover and closing claim carries at DISPLAY scale, where two lines is not
+# reachable: the accepted reference deck sets its cover in 46 characters at 58px
+# and takes five lines to do it. So the bookends have their own ceiling, and it
+# is not a number chosen here — it is **the accepted document's own**. Anything
+# a reader has approved is by definition acceptable; anything worse than it has
+# never been approved by anyone.
+#
+# Measured 2026-08-21 at four viewports, stable at every one because the deck is
+# a fixed canvas that scales rather than reflows:
+#   reference (accepted)          5 / 5
+#   Cursor (passed)               3 / 3
+#   Claude Code (owner: a bug)   10 / 8   — 130 characters of cover claim
+BOOKEND_TITLE_LINES = 5
+
+
+def _bookends_over_ceiling(live):
+    """Cover or closing pages whose claim runs past the reference's own length."""
     return [r for r in live
             if (r.get("titleLines") or {}).get("kind") == "bookend"
-            and (r.get("titleLines") or {}).get("lines", 0) > 2]
+            and (r.get("titleLines") or {}).get("lines", 0) > BOOKEND_TITLE_LINES]
 
 
 def _fig_ink_collides(live):
@@ -2335,11 +2350,13 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
                           for r in long_titles[:5]))
     else:
         print("  title lines: every headline outside the bookends fits two lines")
-    bookends = _bookends_over_two_lines(live)
+    bookends = _bookends_over_ceiling(live)
     if bookends:
-        print(f"  -- bookends: {len(bookends)} of cover/closing run past two "
-              f"lines — reported, not gated: "
-              + ", ".join(f"{r['id']} {r['titleLines']['lines']}" for r in bookends))
+        print(f"  BOOKEND CLAIM TOO LONG: {len(bookends)} of cover/closing run "
+              f"past {BOOKEND_TITLE_LINES} lines, which is what the accepted "
+              f"reference deck's own cover takes: "
+              + ", ".join(f"{r['id']} {r['titleLines']['lines']} lines"
+                          for r in bookends))
 
     inked = _fig_ink_collides(live)
     if inked:
@@ -2748,6 +2765,14 @@ def deliverable_verdicts(rows, consistency):
     add("title_two_lines", _title_over_two_lines(live),
         not any(r.get("titleLines") for r in live),
         lambda h: (f"{len(h)} pages carry a headline past the two-line ceiling: "
+                   + ", ".join(f"{r['id']} {r['titleLines']['lines']} lines "
+                               f"({r['titleLines']['text']!r})" for r in h[:3])))
+    add("bookend_title_length", _bookends_over_ceiling(live),
+        not any((r.get("titleLines") or {}).get("kind") == "bookend"
+                for r in live),
+        lambda h: (f"{len(h)} cover/closing claims run past "
+                   f"{BOOKEND_TITLE_LINES} lines, the length of the accepted "
+                   f"reference's own: "
                    + ", ".join(f"{r['id']} {r['titleLines']['lines']} lines "
                                f"({r['titleLines']['text']!r})" for r in h[:3])))
     add("figure_ink_collision", _fig_ink_collides(live), not drawn,

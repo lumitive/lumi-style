@@ -1,3 +1,37 @@
+## 0.1.544 — the cover claim gets the ceiling the two-line rule could not give it
+
+**The owner opened the deck that had just passed and said the cover and closing
+carried the same defect.** They did, and 0.1.543 had exempted them from the
+two-line gate on evidence that was wrong. The exemption's reasoning was sound —
+two lines is unreachable for a claim set at 58px, and the accepted reference
+deck exceeds it — but the MEASUREMENT behind it was the height-over-line-height
+reading this same release replaced everywhere else. It put the reference's cover
+at three lines. Counted from the rendered text, it is five.
+
+**So the bookends get their own ceiling, and it is not a number chosen here.**
+It is the accepted document's own: **five lines**, because a document a reader
+has approved is by definition acceptable and one worse than it has never been
+approved by anyone. Measured at four viewports, stable at every one — a deck is
+a fixed canvas that scales rather than reflows:
+
+| | cover | closing |
+|---|---|---|
+| the accepted reference | 5 | 5 |
+| Cursor, which passed | 3 | 3 |
+| the deck the owner called a bug | **10** | **8** |
+
+Ten lines is 130 characters of cover claim at display scale. That is not a
+headline that ran long; it is a paragraph in a headline's slot, and no line
+count derived from a rule about content headlines was ever going to catch it.
+
+**What this release is really recording** is that a gate written from a rule and
+a gate written from a measurement are different objects. `title_two_lines` came
+from the sentence in `design-rules`, and the sentence is about the page headline
+— it says so, in the paragraph about topic-plus-assertive-subtitle. Reading it
+as though it governed every heading in the document produced an exemption for
+the two pages where the reader looks first. The reference deck was the authority
+all along; it just had to be measured correctly to say so.
+
 ## 0.1.543 — the conformance bar becomes the package's own bar, and three checks the owner's eye found before any instrument did
 
 **A hand-written list of six was standing in for the standard.** T1's `require`

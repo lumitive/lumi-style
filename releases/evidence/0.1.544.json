@@ -1,0 +1,18 @@
+{
+  "version": "0.1.544",
+  "diff_base": "c5121d991a776fb3a44db372ac8accc617bba0a8",
+  "spec": "waived: one gate, added from the owner's UAT of a deck that had just passed. Its ceiling is measured from the accepted reference rather than chosen, and the CHANGELOG entry carries the measurement.",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "a928ecf273183ecd30b7540c7d67ffa3d2b6aed9faac62b1a4ea521b7452e663",
+      "date": "2026-08-21"
+    }
+  ],
+  "waivers": []
+}
