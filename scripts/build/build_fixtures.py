@@ -693,7 +693,30 @@ def page(i: int, total: int, spec, broken: bool) -> str:
   {foot(i, total, terms, src=src)}</section>"""
 
 
-def opener(part: str, number: int, total: int, claim: str, run: str) -> str:
+# The one oversized subject mark design-rules §3 permits on a part opener: a
+# filled silhouette carrying no text of its own, reversed out of the lime field,
+# restating the part's claim in another modality. FILLED and not stroked — the
+# same section calls a hairline outline scaled to display size the accident and
+# the silhouette the deliberate graphic. Added 0.1.546: the rule had lived in
+# prose for four releases, no fixture drew one, and three conformance decks
+# driven to pass every other gate carried none on five openers between them.
+OPENER_MARK = ('<div class="openmark"><svg viewBox="0 0 116 182" '
+               'aria-hidden="true" focusable="false"><path d="M58 6 L110 48 '
+               'L110 140 L58 178 L6 140 L6 48 Z"/><path d="M58 42 L86 64 '
+               'L86 124 L58 146 L30 124 L30 64 Z" fill="var(--lime)"/>'
+               '</svg></div>')
+# THE PACKAGE ALREADY SHIPS THE CONTAINER. `tokens/` has styled `.openmark`
+# since the opener composition landed — a second grid column, `height: 46svh`,
+# `fill: currentColor` — and the accepted reference deck uses exactly that.
+# Three attempts here wrote inline styles instead: 15% of the copy column
+# rendered 14px wide, viewport units pushed the mark past the page box and
+# `content_spill` caught it, and percentages of the frame were too small again.
+# Every one of those rounds was spent re-deriving a rendering that was already
+# in `tokens/`, which is what the class vocabulary is for.
+
+
+def opener(part: str, number: int, total: int, claim: str, run: str,
+           mark: str = OPENER_MARK) -> str:
     # The part opener, in the shipped composition: the lime field carrying
     # `.openpart` / `.openclaim` / `.openrun` and nothing else
     # (storyline-templates.md). `.page.opener` was styled since 0.1.345 and no
@@ -707,6 +730,7 @@ def opener(part: str, number: int, total: int, claim: str, run: str) -> str:
       <div class="openpart">Part {part}</div>
       <div class="openclaim">{claim}</div>
       <div class="openrun">{run}</div>
+      {mark}
     </div>
   </div>
   {foot(number, total)}</section>"""
@@ -760,8 +784,12 @@ def build(broken: bool) -> str:
                      "Seven pages: coverage, the backlog, and what a read is worth.")
             + "".join(page(i + 3, total, s, broken)
                       for i, s in enumerate(PAGES[:7]))
+            # The broken fixture's second opener draws NO mark, so
+            # `opener_subject_mark` has a fixture that fails it. The first one
+            # keeps the mark, so the metric is not merely absent everywhere.
             + opener("B", 10, total, "Where the reads actually fail",
-                     "Seven pages on signal, terrain and the relay siting decision.")
+                     "Seven pages on signal, terrain and the relay siting decision.",
+                     mark="" if broken else OPENER_MARK)
             + "".join(page(i + 11, total, s, broken)
                       for i, s in enumerate(PAGES[7:]))
             + closing)
