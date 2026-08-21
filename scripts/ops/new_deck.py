@@ -72,6 +72,18 @@ import embed_font  # noqa: E402
 import embed_globe  # noqa: E402
 import embed_shapes  # noqa: E402
 
+# ONE ICON PER PAGE, ROTATED — not because rotation is right, but because the
+# same icon on every page is demonstrably wrong and a scaffold teaches by what
+# it does. Every content page carried `#i-radar` until 0.1.547; the conformance
+# deck that inherited it reached the reader with one icon on seven of eight
+# pages and twelve of the fifteen sprite symbols dead, while the two agents
+# that varied theirs matched the accepted reference. A default nobody pushes
+# back on IS the output. The list is the sprite the fixture ships, minus
+# `i-shield` (the footer's, one meaning) and `i-list-checks` (the agenda's).
+PAGE_ICONS = ("i-layers", "i-gauge", "i-scale", "i-route", "i-target",
+              "i-git-branch", "i-split", "i-calendar", "i-funnel", "i-bell",
+              "i-radar", "i-ban", "i-book-open")
+
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if p.name == "scripts").parent
 # READ LAZILY, inside preamble(). build_fixtures.py imports this module for
@@ -509,6 +521,44 @@ SAMPLES = [
 ]
 
 
+# THE PART OPENER'S SUBJECT MARK, from the set vendored for it. design-rules
+# §3 permits exactly one — a filled silhouette carrying no text of its own,
+# reversed out of the field — and §6 vendored the set it comes from
+# (`assets/icons/koboyo/`, 36 of them, "for part-opener subject marks").
+# `tokens/` has styled `.openmark` since the
+# opener composition landed. Neither this scaffold nor any fixture drew one
+# until 0.1.547, so three conformance decks reached the reader with five bare
+# openers between them and `opener_subject_mark` (0.1.546) failed all of them.
+#
+# One per part, never the same twice: the mark says what the part is about, so
+# two identical ones say the two parts are the same thing. WHICH silhouette
+# fits WHICH part is the author's choice — these are placeholders, and the
+# emitted comment says so.
+OPENER_MARKS = ("chart", "globe", "key", "rocket", "clipboard", "scale",
+                "shield", "cpu")
+
+
+def opener_mark(index: int) -> str:
+    """-> the `.openmark` block for part `index`, or "" if the set is missing.
+
+    Reads the vendored file rather than restating its geometry: a path copied
+    into this script is a second copy of an asset, and `assets/icons/koboyo/`
+    is the authority. A missing set yields no mark rather than a broken one —
+    the gate then says so, which beats this script inventing a silhouette.
+    """
+    root = ROOT / "assets" / "icons" / "koboyo"
+    names = [n for n in OPENER_MARKS if (root / f"{n}.svg").exists()]
+    if not names:
+        return ""
+    name = names[index % len(names)]
+    svg = (root / f"{name}.svg").read_text(encoding="utf-8").strip()
+    note = ("<!-- design-rules \u00a73: ONE filled silhouette, and it is the "
+            f"part's subject.\n           `{name}` is a placeholder from "
+            "assets/icons/koboyo/ (36 to choose from);\n           two openers "
+            "may not carry the same mark. -->")
+    return f'<div class="openmark">{svg}</div>\n      {note}'
+
+
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--genre", choices=GENRES, default="internal")
@@ -646,6 +696,7 @@ def main(argv):
       <div class="openpart">Part {part}</div>
       <div class="openclaim">What this part argues</div>
       <div class="openrun">How many pages, and what they cover.</div>
+      {opener_mark(pi)}
     </div>
   </div>
   {foot(n, total)}
@@ -674,7 +725,11 @@ def main(argv):
   {g}
   <div class="body split">
     <div class="lede">
-      <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#i-radar"/></svg>Part {part} &#183; this page&#8217;s label</p>
+      <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#{PAGE_ICONS[(n - 1) % len(PAGE_ICONS)]}"/></svg>Part {part} &#183; this page&#8217;s label</p>
+      <!-- The icon is a PLACEHOLDER rotated so no two pages start alike.
+           design-rules §6: within one document an icon means exactly one
+           thing, so replace it with this page's own subject.
+           `embed_icons.py --search <term>` finds one among 2007. -->
       <h2 class="t">{title}</h2>
       <p class="sup">The support line, one sentence and not a summary.</p>
     </div>

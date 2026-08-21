@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.546"
+  version: "0.1.547"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -151,7 +151,21 @@ current, stale, or **unknown** — and unknown is not current.
    rules bind) and the **storyline** (which narrative skeleton — the roster in
    [`references/storyline-templates.md`](references/storyline-templates.md),
    from market analysis to the investor pitch). Read that file and choose both
-   before writing. Its deck-wide disciplines bind every scenario: the
+   before writing.
+
+   **Read [`references/design-rules.md`](references/design-rules.md) here too,
+   not when a section pointer sends you.** It is the longest rule file in this
+   package and the only one this entry point never told you to open: colour
+   (§1), type (§2), one claim per screen and the layout table (§3), the chart
+   iron rules and form selection (§4, with the shape library under §4.0–4.2),
+   the commercial footer (§5), **semantic icons (§6)**, numbers as the copy
+   (§7), the verification matrix (§8) and imagery (§9). Measured 2026-08-22:
+   of the 175 checkable rules in this package, 97 have no automated check at
+   all, and most of them live in that file — so an agent that does not read it
+   is relying on gates that were never written. Three conformance decks passed
+   every gate and repeated one icon across seven pages, left every part opener
+   without its subject mark, and put a stat band on the agenda; all three are
+   §3 and §6 rules, and none of the three agents had been told to read them. Its deck-wide disciplines bind every scenario: the
    agenda is **derived from the page titles** (D27 gates the mirror — an
    agenda paraphrased in fresh words fails the document) and renders as the
    **launch sequence** the scaffold emits, every external
@@ -342,6 +356,14 @@ current, stale, or **unknown** — and unknown is not current.
    labels, so this is only work when you suppress them with `--labels none`. Never place the generated 110m map and the coarse
    `globe-orthographic.svg` mark in one view; they disagree about where a
    coastline is (design-rules §1.2). Text uses the `--tx*` ladder only; `--ln*` is rules and fills.
+   **Icons come from the two sets this package ships, never drawn ad hoc**:
+   `assets/icons/lucide/` (2007 stroked icons) for every eyebrow, figure node
+   and row head, reached through `embed_icons.py --search`; and
+   `assets/icons/koboyo/` (36 filled silhouettes) for part-opener subject marks
+   only. **Within one document an icon means exactly one thing** — an icon
+   reused for a second meaning teaches the reader a vocabulary that then lies
+   to them (design-rules §6). The scaffold seeds every content page with
+   `#i-radar` as a placeholder; replacing it per page is yours to do.
    **Use the role vocabulary** the token file declares — `.eyebrow`, `h2.t`,
    `.sup`, `.listhead`, `.gd`, `.cap .n`, `.band .k`, `.band .v` — because that
    is the contract the consistency audit checks against; rename one and it drops

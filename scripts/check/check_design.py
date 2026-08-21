@@ -482,6 +482,15 @@ def _pages(raw):
 # deliberately absent — a table is for values (§4), and the directive that
 # created this metric asked for figures over tables.
 VISUAL_BLOCKS = ("fig", "band", "lead", "swaps", "vows", "duo", "grades",
+                 # `.launch` is the agenda's launch sequence — numbered dark
+                 # chips, the claim at title weight, a quiet run line. It was
+                 # adopted at 0.1.519 from an owner review that read a plain
+                 # text agenda as TOO QUIET, so it is a designed block by its
+                 # own origin. Missing from this tuple until 0.1.547, D16 read
+                 # every agenda in the package as a content page carrying
+                 # nothing visual — the accepted reference deck included, at
+                 # 1 of 18. A block introduced to be visual, counted as prose.
+                 "launch",
                  "field", "stats")
 
 

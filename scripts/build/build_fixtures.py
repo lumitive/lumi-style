@@ -736,8 +736,53 @@ def opener(part: str, number: int, total: int, claim: str, run: str,
   {foot(number, total)}</section>"""
 
 
+AGENDA_ROWS = (
+    ("01", "What the estate measures today",
+     "Seven pages: coverage, the backlog, and what a read is worth."),
+    ("02", "Where the reads actually fail",
+     "Seven pages on signal, terrain and the relay siting decision."),
+)
+
+
+def agenda(number: int, total: int) -> str:
+    """The launch sequence, one row per part (0.1.519).
+
+    **The rows quote the openers verbatim** — same strings, one tuple — because
+    D27 fails an agenda line matching no title the deck carries, and writing the
+    agenda twice is the defect D27 exists for. The pass fixture cannot be a
+    fixture for D27 and a document that quietly violates it.
+
+    The broken fixture gets NO agenda: that is the planted failure for
+    `deck_structure` (0.1.547), and it is the shape three conformance decks
+    arrived in — parts nothing routes.
+    """
+    rows = "".join(f"""
+      <div class="lrow">
+        <div class="ln">{n}</div>
+        <div><p class="gn">{claim}</p>
+          <p class="gq">{run}</p></div>
+      </div>""" for n, claim, run in AGENDA_ROWS)
+    return f"""
+<section class="page" id="agenda">
+  {GROUND}
+  <div class="body stack">
+    <div class="lede">
+      <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#i-list-checks"/></svg>Agenda</p>
+      <h2 class="t">What this review argues, and where</h2>
+      <p class="sup">Two parts: what the estate measures, then where the reads fail.</p>
+    </div>
+    <div class="fill">
+      <div class="launch">{rows}
+      </div>
+    </div>
+  </div>
+  {foot(number, total)}</section>"""
+
+
 def build(broken: bool) -> str:
-    total = len(PAGES) + 4   # cover, two part openers, closing
+    # The pass fixture carries an agenda and the broken one does not, so the
+    # two run one page apart. Computed rather than written twice.
+    total = len(PAGES) + (4 if broken else 5)
     # Cover and closing are the same kind of page, set the same way: cover-grid,
     # with the LUMIVATE field globe as the one vector mark on each (the closing
     # repeats the cover's mark rather than introducing a new claim).
@@ -779,18 +824,21 @@ def build(broken: bool) -> str:
   </div>
   {foot(total, total)}</section>"""
 
+    # Page numbers follow the agenda's presence rather than being written out:
+    # a hand-numbered second copy of this arithmetic is the drift this
+    # repository has fixed twenty-six times.
+    shift = 0 if broken else 1
     body = (cover
-            + opener("A", 2, total, "What the estate measures today",
-                     "Seven pages: coverage, the backlog, and what a read is worth.")
-            + "".join(page(i + 3, total, s, broken)
+            + ("" if broken else agenda(2, total))
+            + opener("A", 2 + shift, total, AGENDA_ROWS[0][1], AGENDA_ROWS[0][2])
+            + "".join(page(i + 3 + shift, total, s, broken)
                       for i, s in enumerate(PAGES[:7]))
             # The broken fixture's second opener draws NO mark, so
             # `opener_subject_mark` has a fixture that fails it. The first one
             # keeps the mark, so the metric is not merely absent everywhere.
-            + opener("B", 10, total, "Where the reads actually fail",
-                     "Seven pages on signal, terrain and the relay siting decision.",
-                     mark="" if broken else OPENER_MARK)
-            + "".join(page(i + 11, total, s, broken)
+            + opener("B", 10 + shift, total, AGENDA_ROWS[1][1],
+                     AGENDA_ROWS[1][2], mark="" if broken else OPENER_MARK)
+            + "".join(page(i + 11 + shift, total, s, broken)
                       for i, s in enumerate(PAGES[7:]))
             + closing)
     label = "broken" if broken else "pass"

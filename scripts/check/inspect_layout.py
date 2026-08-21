@@ -495,7 +495,11 @@ PROBE = r"""
     // an absence of measurement as a (bad) measurement.
     let visualPct = null;
     if (bodyEl) {
-      const VIS = '.fig, .band, .lead, .swaps, .vows, .duo, .grades, .field, .stats';
+      // Held to check_design's VISUAL_BLOCKS by the `probe vocabulary`
+      // guard: one metric with two carriers, one asking whether a page
+      // has anything visual and this one asking how much of the page it
+      // covers. `.launch` joined both at 0.1.547.
+      const VIS = '.fig, .band, .lead, .swaps, .vows, .duo, .grades, .launch, .field, .stats';
       let visPx = 0;
       for (const e of s.querySelectorAll(VIS)) {
         if (e.parentElement && e.parentElement.closest(VIS)) continue;  // count outermost only
@@ -1302,6 +1306,12 @@ PROBE = r"""
       isApparatus: s.dataset.role === 'apparatus',
       isCover: s.classList.contains('cover'),
       isClosing: s.classList.contains('closing'),
+      // The agenda, found the way check_design's D27 finds it — the id the
+      // scaffold emits, or an eyebrow naming it. Two checks that located the
+      // agenda differently could disagree about whether a deck has one, and
+      // D27 is already the authority on that page.
+      isAgenda: (s.id || '').toLowerCase() === 'agenda'
+        || /agenda/i.test(((s.querySelector('.eyebrow') || {}).textContent) || ''),
       capBlocks: s.querySelectorAll('.cap').length,
       spillPx, pageSpillPx, deepestWho,
       frameSkewPx,
@@ -2004,6 +2014,59 @@ def _bookends_over_ceiling(live):
 FIGURE_SHAPE_REPEAT = 3
 
 
+def _composes_as_a_deck(live):
+    """Is this document a deck at all?
+
+    A cover, a closing or a part opener — any one of the three. NOT page count:
+    the two intro decks accepted in 2026-08 are nine and eleven pages, which is
+    the length of a report, and a prose report carrying none of the three owes
+    nothing to a rule written for decks.
+    """
+    return any(r.get("isCover") or r.get("isClosing") or r.get("isOpener")
+               for r in live)
+
+
+def _deck_structure_missing(live):
+    """The structural pages a deck composes without. -> [name, ...]
+
+    Two requirements, scoped differently, and the difference came from reading
+    the folder rather than the rules:
+
+    * **Cover and closing, unconditionally.** storyline-templates: "A deck opens
+      with a cover and ends with a closing page." Every deck on the owner's
+      machine carries both.
+    * **An agenda, once the deck is divided into parts.** The agenda renders as
+      the launch sequence, "one row per part" (0.1.519) — so a deck with parts
+      and no agenda has parts nothing routes. Deliberately NOT unconditional:
+      the two intro decks the owner accepted are nine and eleven pages with no
+      openers and no agenda, and a checker that failed them would be inventing
+      a requirement her own practice has declined. `references/` says "every
+      deck scenario" and means the storyline roster; a page-for-page conversion
+      of an existing deck is not one of those scenarios.
+
+    This exists because ABSENCE SCORED BETTER THAN A POOR ATTEMPT. D27 passes a
+    deck with no agenda ("owes no mirror"), `opener_subject_mark` reads `n/a` on
+    a deck with no openers, and `run_conformance` counts `n/a` as met — so one
+    conformance deck passed the structural gates by having none of the
+    structure. A missing page is now a finding rather than a silence.
+    """
+    # Out of scope yields NO findings rather than "missing everything": the
+    # verdict would read `n/a` either way, but `add()` formats the detail from
+    # the hit list regardless, and a prose one-pager printed "composes without a
+    # cover, a closing page" beside its own n/a.
+    if not _composes_as_a_deck(live):
+        return []
+    missing = []
+    if not any(r.get("isCover") for r in live):
+        missing.append("a cover")
+    if any(r.get("isOpener") for r in live) and not any(
+            r.get("isAgenda") for r in live):
+        missing.append("an agenda routing its parts")
+    if not any(r.get("isClosing") for r in live):
+        missing.append("a closing page")
+    return missing
+
+
 def _openers_without_a_mark(live):
     """Part openers carrying no oversized filled silhouette.
 
@@ -2487,6 +2550,18 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
     elif any(r.get("openerMark") for r in live):
         print("  opener mark: every part opener carries a filled silhouette")
 
+    absent = _deck_structure_missing(live)
+    if absent:
+        print("  DECK COMPOSES WITHOUT " + ", ".join(absent).upper()
+              + ". A page that is absent is not a page that passed: D27 owes "
+                "no mirror without an agenda, and the opener checks read n/a "
+                "without openers.")
+    elif _composes_as_a_deck(live):
+        print("  deck structure: cover, closing"
+              + (", and an agenda routing its parts"
+                 if any(r.get("isOpener") for r in live) else "")
+              + " — all present")
+
     dups = _repeated_figure_shapes(live)
     if dups:
         worst = max(dups, key=lambda kv: len(kv[1]))
@@ -2907,6 +2982,10 @@ def deliverable_verdicts(rows, consistency):
         lambda h: (f"{len(h)} pages carry a headline past the two-line ceiling: "
                    + ", ".join(f"{r['id']} {r['titleLines']['lines']} lines "
                                f"({r['titleLines']['text']!r})" for r in h[:3])))
+    add("deck_structure", _deck_structure_missing(live),
+        not _composes_as_a_deck(live),
+        lambda h: ("this deck composes without " + ", ".join(h)
+                   + " — a page that is absent is not a page that passed"))
     add("opener_subject_mark",
         _openers_without_a_mark(live) + _openers_with_a_stroked_mark(live),
         not any(r.get("openerMark", "absent") != "absent" for r in live),

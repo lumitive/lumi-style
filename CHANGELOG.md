@@ -1,3 +1,67 @@
+## 0.1.547 — the scaffold stops teaching the violations, and a page that is absent stops passing
+
+**Five rounds of multi-agent conformance ran the same shape: the deliverable
+passed every gate, the owner opened it, and her eye landed on a rule no gate
+reads.** The finding behind this release is that the agents were not the
+variable. Same model, same effort, five rounds — the only thing that changed was
+how much of the standard the contract exposed, and the output went from 66KB
+failing six gates to 579KB passing everything. **An agent iterates to the edge
+of what it is shown**, so the boundary that matters is the boundary of the
+shown standard, not of the model.
+
+Measured against `references/` on 2026-08-22: **175 checkable rules about a
+deliverable's structure and appearance, 78 of them measured by some metric, 40
+of them gated, and 97 with no automated check of any kind.** The check set grew
+from what was easy to measure and has never been audited against the rule set.
+Three agents making the same class of mistake is not three agents copying each
+other; it is three agents reading one standard with the same holes in it.
+
+This release closes the amplifiers. The rule-to-check register that makes the
+remaining 97 visible is the next one. The decision record, including the two
+phases still to come, is `specs/2026-08-22-rules-equal-conformance-design.md`.
+
+**The scaffold was teaching the violations.** `new_deck.py` gave every content
+page the same `#i-radar` eyebrow — one agent inherited it onto seven of eight
+pages, leaving twelve of the fifteen shipped symbols unused — and its part
+openers carried no subject mark at all, so a deck built straight from the
+scaffold failed 0.1.546's `opener_subject_mark` on every opener it had. Both
+are fixed at the source: the eyebrow rotates through thirteen symbols and says
+in an HTML comment that it is a placeholder, and each opener now carries a
+filled silhouette read out of `assets/icons/koboyo/` — the set of thirty-six
+vendored for exactly this and named in no rule file, no entry point and no
+script until now. A scaffold is the most-read documentation this package has,
+and it was arguing against the rules.
+
+**A page that is absent was scoring better than a page done badly.** D27 passes
+a deck with no agenda, on the correct reasoning that it owes no mirror.
+`opener_subject_mark` reads `n/a` on a deck with no openers. `run_conformance`
+counts `n/a` as met. Compose the three and a deck passed the structural gates
+by having none of the structure, which is how one conformance deck passed.
+`deck_structure` gates on it now: a cover and a closing unconditionally, and an
+agenda once the deck is divided into parts, because a part opener nothing
+routes is a part nothing routes.
+
+**What set that scope was the folder, not the rules.** `references/` says the
+agenda belongs to "every deck scenario", and a gate written from that sentence
+fails two decks the owner accepted this month — nine and eleven pages,
+page-for-page conversions of her own originals, no openers and no agenda
+between them. The rule means the storyline roster; a conversion is not one of
+its scenarios. Reading the material before writing the pattern is convention 15,
+and here it was the difference between a gate and a false accusation.
+
+**The package's own good sample failed the new gate**, carrying two part
+openers and no agenda. It has one now, its rows quoting the openers from a
+single tuple so the fixture cannot violate the D27 it exists to exercise, and
+the broken fixture keeps no agenda as the planted red.
+
+**`.launch` was counted as prose.** The agenda's launch sequence — numbered dark
+chips, the claim at title weight — was adopted at 0.1.519 *because* an owner
+review read a plain text agenda as too quiet, and D16 has been reporting every
+agenda in this package as a content page carrying nothing visual ever since,
+the accepted reference deck included. It is a visual block in both carriers now;
+the `probe vocabulary` guard caught the half-done version of this change in the
+same run that made it.
+
 ## 0.1.546 — a part opener without its silhouette is a finding, and figure repetition is measured rather than guessed at
 
 **The owner named three things her eye found in decks that had passed every
