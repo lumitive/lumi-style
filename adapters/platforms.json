@@ -49,10 +49,18 @@
     "claude",
     "--version"
    ],
-   "drive": ["claude", "-p", "--permission-mode", "acceptEdits"],
+   "drive": [
+    "claude",
+    "-p",
+    "--permission-mode",
+    "acceptEdits"
+   ],
    "drive_skill_flag": "--add-dir",
    "drive_effort_flag": "--effort",
-   "drive_usage_flag": ["--output-format", "json"],
+   "drive_usage_flag": [
+    "--output-format",
+    "json"
+   ],
    "docs": "https://code.claude.com/docs/en/skills",
    "capability_verified": true
   },
@@ -126,7 +134,13 @@
     "cursor-agent",
     "--version"
    ],
-   "drive": ["cursor-agent", "-p", "--force", "--output-format", "text"],
+   "drive": [
+    "cursor-agent",
+    "-p",
+    "--force",
+    "--output-format",
+    "text"
+   ],
    "drive_skill_flag": "--add-dir",
    "docs": "https://cursor.com/docs/context/skills",
    "extra": [
@@ -258,19 +272,32 @@
    "name": "Hermes",
    "capability": "full",
    "skill_paths": [
-    "~/.agents/skills/lumi-style"
+    "~/.hermes/skills/creative/lumi-style"
    ],
-   "path_verified": false,
-   "path_waiver": "Hermes consumes the same SKILL.md format with name/description frontmatter, but no documentation we can cite states its discovery path. The shared ~/.agents/skills/ location is the most likely and must be confirmed on a machine with Hermes installed before this becomes a verified claim. Until then the README lists Hermes as unconfirmed rather than supported.",
+   "path_verified": true,
    "entry_file": "SKILL.md",
    "notes_path": "adapters/hermes.md",
-   "invoke": "unconfirmed",
-   "probe": null,
+   "invoke": "say \"in LUMI style…\"; `hermes skills list` shows whether it loaded, and `--skills lumi-style` preloads it for one run",
+   "probe": [
+    "hermes",
+    "--version"
+   ],
+   "drive": [
+    "hermes",
+    "--yolo"
+   ],
+   "drive_skill_flag": "--skills",
+   "drive_prompt_flag": "-z",
+   "drive_effort_flag": "--reasoning",
    "docs": null,
-   "docs_waiver": "The URL here was OpenClaw's repository, which is a different project. Hermes has no documentation we can cite for its skill discovery, which is the same reason path_verified is false.",
-   "probe_waiver": "Never run. The probe was declared but no Hermes install has been available to confirm the binary name, and a non-null probe satisfied the guard designed to force unverified claims into the open.",
+   "docs_waiver": "Hermes ships no documentation this package can cite for skill discovery. What is claimed here was MEASURED on an install instead (0.1.542) — `hermes skills list`, `hermes skills --help` and the CLI's own errors — which is a weaker source than a document and a much stronger one than the guess it replaces.",
+   "extra": [
+    "Hermes files skills by CATEGORY: `~/.hermes/skills/<category>/<name>/SKILL.md`. The category is the installer's choice and nothing depends on it — `creative` is what this package was installed under on the machine that verified this record. `hermes skills list` reports the category it actually loaded.",
+    "`--skills` resolves NAMES and installed paths, never arbitrary ones: `--skills lumi-style` and `--skills ~/.hermes/skills/creative/lumi-style` both load it, and `--skills <the repository itself>` exits 1 with `Unknown skill(s)`. Install it (a symlink into the category folder is enough) rather than pointing the flag at a checkout.",
+    "One-shot mode is `-z/--oneshot <prompt>`, which prints only the final response to stdout. `--usage-file <path>` writes a JSON token report, but to a FILE rather than the transcript, so `run --drive` records no usage for this agent."
+   ],
    "capability_verified": false,
-   "capability_waiver": "Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed."
+   "capability_waiver": "Not verified as a CAPABILITY claim: the CLI is installed on the maintenance machine, `run_conformance.py run --drive` drives it since 0.1.542, and it demonstrably reads the skill's own files from a working directory outside the checkout — asked for the light palette's `--acc` value it answered #48633E, which is what `tokens/lumi-theme.css` ships. What `full` additionally claims is that the agent runs check_prose.py, check_design.py and inspect_layout.py itself on a real deliverable, and no run has watched it do that. See conformance/CONFORMANCE.md."
   },
   {
    "id": "kimi",

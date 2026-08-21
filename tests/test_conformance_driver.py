@@ -437,3 +437,87 @@ def test_a_run_outside_results_never_touches_the_latest_link(tmp_path, monkeypat
         if hasattr(rc, "main") else 0
     assert code in (0, 1)
     assert not (tmp_path / "results-absent" / "latest").exists()
+
+
+# WROTE NOTHING vs WROTE IT SOMEWHERE ELSE. Two agents have produced the second
+# and the board recorded both as the first. The cost is measured: one misplaced
+# deck passed check_design, check_prose and inspect_layout --deliverable with no
+# failure at all, and its board cell read `no deliverable`.
+
+def _elsewhere(target):
+    """An agent that writes its artifact to an absolute path of its own."""
+    return [sys.executable, "-c",
+            f"import pathlib; pathlib.Path({str(target)!r}).write_text('done')"]
+
+
+def test_a_file_written_outside_the_workdir_is_named_not_ignored(tmp_path, monkeypatch):
+    home = tmp_path / "elsewhere"
+    home.mkdir()
+    monkeypatch.setattr(rc.pathlib.Path, "home", staticmethod(lambda: home))
+    out = rc.drive(_agent(_elsewhere(home / "answers.md")), TASK, tmp_path)
+    assert out["verdict"] == "misplaced", out
+    assert out["produced"] == [], "a misplaced file is never claimed as produced"
+    assert str(home / "answers.md") in out["misplaced"]
+    assert str(home / "answers.md") in out["detail"]
+
+
+def test_a_misplaced_file_is_not_copied_into_the_run(tmp_path, monkeypatch):
+    # Scoring it would launder a run that missed the task's own instruction
+    # into a pass. The run names the path and imports nothing.
+    home = tmp_path / "elsewhere"
+    home.mkdir()
+    monkeypatch.setattr(rc.pathlib.Path, "home", staticmethod(lambda: home))
+    rc.drive(_agent(_elsewhere(home / "answers.md")), TASK, tmp_path)
+    assert not (tmp_path / "answers.md").exists()
+
+
+def test_a_file_that_predates_the_run_is_not_blamed_on_it(tmp_path, monkeypatch):
+    # The sweep is by mtime, and a stale `answers.md` someone left in their home
+    # directory last year must not become this run's finding.
+    home = tmp_path / "elsewhere"
+    home.mkdir()
+    old = home / "answers.md"
+    old.write_text("from another day")
+    import os
+    os.utime(old, (1, 1))
+    monkeypatch.setattr(rc.pathlib.Path, "home", staticmethod(lambda: home))
+    out = rc.drive(_agent([sys.executable, "-c", "pass"]), TASK, tmp_path)
+    assert out["verdict"] == "driven"
+    assert out["misplaced"] == []
+
+
+def test_a_correct_run_reports_no_misplaced_write(tmp_path, monkeypatch):
+    home = tmp_path / "elsewhere"
+    home.mkdir()
+    monkeypatch.setattr(rc.pathlib.Path, "home", staticmethod(lambda: home))
+    out = rc.drive(_agent(_writes()), TASK, tmp_path)
+    assert out["verdict"] == "driven"
+    assert out["misplaced"] == []
+
+
+def test_a_file_written_into_the_runs_own_folder_counts_as_produced(tmp_path):
+    # An agent told to write "in the working directory", unable to see the
+    # driver's cwd, looked for where input.md lives and wrote beside it. That
+    # is this folder — the driver leaves a copy of the input here too — and it
+    # is where the driver copies the artifact anyway. Before this, `score`
+    # graded the file and the driver record beside it said `produced: []`.
+    (tmp_path / "input.md").write_text("the input", encoding="utf-8")
+    argv = [sys.executable, "-c",
+            f"import pathlib; pathlib.Path({str(tmp_path / 'answers.md')!r})"
+            f".write_text('done')"]
+    out = rc.drive(_agent(argv), TASK, tmp_path)
+    assert out["verdict"] == "driven"
+    assert out["produced"] == ["answers.md"]
+    assert "run's own folder" in out["detail"]
+    # The copy step must not copy the file onto itself and truncate it.
+    assert (tmp_path / "answers.md").read_text() == "done"
+
+
+def test_the_input_is_never_mistaken_for_the_artifact(tmp_path):
+    # `input.md` matches a `*.md` deliverable, sits in this folder by the
+    # driver's own hand, and predates the run. Counting it would report every
+    # T2 run as having produced something.
+    (tmp_path / "input.md").write_text("the input", encoding="utf-8")
+    out = rc.drive(_agent([sys.executable, "-c", "pass"]), TASK, tmp_path)
+    assert out["produced"] == []
+    assert out["verdict"] == "driven"

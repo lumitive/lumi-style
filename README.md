@@ -52,7 +52,7 @@ read it, and Gemini CLI gives it precedence over its own directory.
 | **OpenCode** | `~/.config/opencode/skills/` | [`adapters/opencode.md`](adapters/opencode.md) |
 | **Pi** | `~/.agents/skills/` or `~/.pi/agent/skills/` | [`adapters/pi.md`](adapters/pi.md) |
 | **OpenClaw** | `~/.agents/skills/lumi-style` | [`adapters/openclaw.md`](adapters/openclaw.md) |
-| **Hermes** | `~/.agents/skills/` — **unconfirmed** | [`adapters/hermes.md`](adapters/hermes.md) |
+| **Hermes** | `~/.hermes/skills/<category>/lumi-style` | files skills by category — [`adapters/hermes.md`](adapters/hermes.md) |
 | **Kimi / DeepSeek** | paste `prompts/lumi-style-core.md` | no skill mechanism — [`adapters/kimi.md`](adapters/kimi.md) |
 
 Any other agent implementing the standard — Kiro, Trae, Roo Code, Goose, Amp,
@@ -66,8 +66,10 @@ that the package is well-formed: the install paths above come from each vendor's
 documentation and are checked for internal consistency, every per-platform
 artifact is generated from one registry and cannot silently drift, and the check
 scripts still produce the expected verdicts on a tracked passing fixture and a
-deliberately broken one. Hermes carries a written waiver naming exactly what is
-unconfirmed.
+deliberately broken one. Where a platform's install path has not been confirmed
+on a machine, its registry record carries a written waiver naming exactly what is
+unconfirmed — which is what Hermes carried until 0.1.542, when the CLI was
+installed and the guess in it turned out to be wrong.
 
 **What that is not.** It is not a claim that any model produces good output. The
 checks measure mechanical conformance; a page is done when a human reads it as

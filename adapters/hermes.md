@@ -4,15 +4,19 @@
 
 ```bash
 git clone https://github.com/lumitive/lumi-style ~/src/lumi-style
-ln -s ~/src/lumi-style ~/.agents/skills/lumi-style
+ln -s ~/src/lumi-style ~/.hermes/skills/creative/lumi-style
 ```
 
-Invoke: unconfirmed.
+Invoke: say "in LUMI style…"; `hermes skills list` shows whether it loaded, and `--skills lumi-style` preloads it for one run.
 
 The skill reads `references/` and `tokens/` on demand — no need to attach them manually.
 
 **Symlink rather than copy.** An installed copy silently stranded at 0.1.334 while the repo reached 0.1.337, and a deck was built against three versions of superseded rules. A symlink cannot go stale.
 
-**Unverified install path.** Hermes consumes the same SKILL.md format with name/description frontmatter, but no documentation we can cite states its discovery path. The shared ~/.agents/skills/ location is the most likely and must be confirmed on a machine with Hermes installed before this becomes a verified claim. Until then the README lists Hermes as unconfirmed rather than supported.
+Hermes files skills by CATEGORY: `~/.hermes/skills/<category>/<name>/SKILL.md`. The category is the installer's choice and nothing depends on it — `creative` is what this package was installed under on the machine that verified this record. `hermes skills list` reports the category it actually loaded.
 
-**Capability tier not exercised.** This note claims the `full` tier. Not exercised. The tier claim says this agent runs check_prose.py, check_design.py and inspect_layout.py itself, and nobody has watched it do so: the CLI is not installed on any machine this package has been maintained from. See conformance/CONFORMANCE.md for what is installed.
+`--skills` resolves NAMES and installed paths, never arbitrary ones: `--skills lumi-style` and `--skills ~/.hermes/skills/creative/lumi-style` both load it, and `--skills <the repository itself>` exits 1 with `Unknown skill(s)`. Install it (a symlink into the category folder is enough) rather than pointing the flag at a checkout.
+
+One-shot mode is `-z/--oneshot <prompt>`, which prints only the final response to stdout. `--usage-file <path>` writes a JSON token report, but to a FILE rather than the transcript, so `run --drive` records no usage for this agent.
+
+**Capability tier not exercised.** This note claims the `full` tier. Not verified as a CAPABILITY claim: the CLI is installed on the maintenance machine, `run_conformance.py run --drive` drives it since 0.1.542, and it demonstrably reads the skill's own files from a working directory outside the checkout — asked for the light palette's `--acc` value it answered #48633E, which is what `tokens/lumi-theme.css` ships. What `full` additionally claims is that the agent runs check_prose.py, check_design.py and inspect_layout.py itself on a real deliverable, and no run has watched it do that. See conformance/CONFORMANCE.md.

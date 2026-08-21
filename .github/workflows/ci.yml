@@ -59,6 +59,12 @@ jobs:
       - run: python3 scripts/build/build_worldmap.py --check
       - run: python3 scripts/build/build_brand.py --check
       - run: python3 scripts/build/build_trade_registry.py --check
+      # The delivery folder holds records, not renders. In CI there is no
+      # delivery folder and this skips and says so; the value is local, in
+      # preflight, where the folder exists and grew to 349MB of page rasters
+      # twice in a fortnight. Reading the step list is how preflight learns
+      # to run it at all, so it is declared here rather than there.
+      - run: python3 scripts/ops/housekeeping.py --check
       - run: python3 scripts/build/build_region_palette.py --check
       - run: python3 scripts/build/recolor_shapes.py --check
       # The maths properties, plus the JS port held to the Python authority

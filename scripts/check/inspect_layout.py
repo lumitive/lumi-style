@@ -1733,6 +1733,25 @@ def consistency_report(url, viewport=(1280, 720), dark=False):
     return out
 
 
+def default_sheet_dir(doc: pathlib.Path) -> pathlib.Path:
+    """Where the contact sheet and its page shots go when nobody says.
+
+    A RENDER, NOT A RECORD — which is what `.gitignore` had already concluded
+    twice, one directory at a time, for `fixtures/_layout/` and
+    `backlog/_layout/`. The default was the document's own folder, so every run
+    left a set of 4K rasters beside the deliverable it had just measured, and
+    the owner's delivery folder reached 2,164 of them and 349MB between two
+    cleanups a fortnight apart (2026-08-18, 2026-08-21). The standing order
+    after the first one — no rasters in the delivery folder — lived in prose
+    and was broken by the tool that made them.
+
+    So the floor is the temp directory, per document, and `--out` is how a
+    person keeps a sheet on purpose. The path is printed either way: a render
+    nobody can find is the same as no render.
+    """
+    return pathlib.Path(tempfile.gettempdir()) / "lumi-layout" / doc.stem
+
+
 def contact_sheet(shots, out_path, cols=4):
     """Lay the page shots out as one sheet. Pure stdlib is not enough for PNG
     compositing, so this writes an HTML sheet, which prints and shares just as
@@ -2727,7 +2746,11 @@ def main(argv):
                          "a4, wide) and a file declaring neither gets all five")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--no-sheet", action="store_true", help="numbers only, no screenshots")
-    ap.add_argument("--out", default=None, help="where the sheet and shots go")
+    ap.add_argument("--out", default=None,
+                    help="where the sheet and shots go. Default: a per-document "
+                         "folder under the system temp directory, because a "
+                         "contact sheet is a render and not a record. Name a "
+                         "directory here to keep one on purpose.")
     ap.add_argument("--dark", action="store_true",
                     help="render the dark palette (class=\"dark\" on <body>); "
                          "inferred from a *.dark.* filename")
@@ -2814,7 +2837,7 @@ def main(argv):
             print(f"  note: {path.name} declares no data-geometry, so all of "
                   f"{', '.join(geometries)} are graded. A deliverable is designed "
                   f"for one geometry and should say which.", file=sys.stderr)
-        out_dir = pathlib.Path(args.out) if args.out else path.parent / "_layout"
+        out_dir = pathlib.Path(args.out) if args.out else default_sheet_dir(path)
         dark = args.dark or ".dark." in path.name
         # Which matrix points this run covers, and which it is skipping. Printed
         # rather than assumed: "verified at one matrix point is not verified" is
