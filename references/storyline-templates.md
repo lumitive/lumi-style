@@ -230,6 +230,17 @@ leaves a page reserving a title it does not carry, which `inspect_layout.py`
 counts as a check that could not run and reports as NOT SHIPPABLE. D8 then
 reports the agenda as missing a support line, correctly and without gating.
 
+**The agenda page carries the agenda and nothing else.** Its `.body` holds the
+launch sequence in a `.fill`, and optionally the `.lede` above it. No stat band,
+no figure, no second block of any kind, and no stylesheet of the page's own —
+`check_design.py` D35 gates on it.
+
+This is an owner ruling, from three conformance decks in one round: one put a
+stat band on its agenda, one invented an `.agenda-grid` class with a private
+`<style>` element to lay it out, and the third was clean. An agenda that also
+argues something is two pages sharing one sheet, and the page that routes the
+deck is the last one that should need routing itself.
+
 **The agenda quotes the document; it never paraphrases it.** Every claim line
 on the agenda — a part title, an item — is a line the deck's own titles say,
 verbatim or containing one, and the mechanical way to be right is to derive
@@ -547,13 +558,34 @@ keeps its handling marker, inverted with the field.)
 The ground runs at its medium tier, and the vector mark stays on the cover and
 closing, where the page is the mark's to hold.
 
-**Pacing: about five content pages between openers is a target, not a floor and
-not a gate.** `inspect_layout.py` reports the opener count and the longest run
-of content pages between openers; a run that stretches far past the target is a
-prompt to ask whether the argument has an unmarked seam, and the author answers
-it — in the page structure or in the delivery note — never a checker. Read as a
-quota, the same number would force openers where the argument has no seam and
-manufacture the uniformity the parallel-structure rule exists to suppress.
+**Pacing: about five content pages between openers is the TARGET; six is the
+CEILING, and it gates.** The two numbers do different jobs. Five is what to aim
+for when the argument has no obvious seam; six is the point past which a deck
+has stopped being divided into parts, and `inspect_layout.py`'s `opener_pacing`
+fails a deck that goes past it.
+
+Six rather than five, and the difference is not a rounding: **the accepted
+reference deck runs six**, and this package's own passing fixture ran seven
+until the ceiling was written. A ceiling of five would fail the document the
+owner has accepted, which would make it a number this package invented rather
+than a standard it holds — the same line-setting principle as the bookend claim
+length, and the reason 0.1.339's fill floor was withdrawn.
+
+**A deck that is deliberately one undivided sequence declares it**, with
+`<body data-parts="none">`, and the seam rate then does not bind. This is the
+"unless the author says otherwise" half of the rule, made explicit for the same
+reason `data-role="apparatus"` is declared and never inferred: two decks
+accepted in 2026-08 are page-for-page conversions that run seven and nine pages
+without a seam, and no checker can tell those apart from a deck that forgot its
+openers. Making the author say which keeps the exemption auditable and printed
+instead of guessed at.
+
+This was reported and not gated for four releases, on the argument that a quota
+would force openers where the argument has no seam. What settled it was a
+conformance deck that came back with **twelve content pages and no opener at
+all**: the report said so, nothing failed, and the deck scored as shippable.
+The quota risk is real and the ceiling is set high enough to leave it — five
+remains the target precisely so that six is not one.
 
 ## Shared discipline
 

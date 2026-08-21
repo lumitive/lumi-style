@@ -1,3 +1,92 @@
+## 0.1.549 — five rules the owner named now have checks, and the ceiling comes from the accepted deck rather than the prose
+
+**Phase 3 of `specs/2026-08-22-rules-equal-conformance-design.md`.** The register
+built at 0.1.548 was the point of doing this in order: for each thing the owner
+found by eye, it could say whether a rule already existed, and three of the five
+did — unchecked, in a file `SKILL.md` never told anyone to open.
+
+**Icons have a provenance now (`D33`, gates).** design-rules §6 has always said
+never to draw one ad hoc, and nothing read it. Every `<symbol id="i-*">` must
+carry the geometry of a file in `assets/icons/lucide/` or
+`assets/icons/koboyo/`. Two findings, kept apart because they mean different
+things: a name in neither set was invented, and a shipped NAME over a different
+drawing is the set's label on somebody else's path — the harder of the two to
+catch by eye, so the broken fixture plants one of each. Measured on the three
+documents on record before the check was written: fifteen symbols each, zero
+unmatched.
+
+**Icon reuse is counted and NOT gated (`D34`).** The rule says an icon means one
+thing per document; the accepted reference reuses three of its twelve eyebrow
+icons across two and three pages. Whether that is one meaning restated or two
+meanings collided is a judgement about the pages, so it reports. It still
+answers the owner's actual complaint, which was blunter than the rule: seven of
+eight content pages carrying one icon shows up here as a reuse count, loudly.
+
+**A part opener's silhouette may not be another part's (`opener_subject_mark`).**
+The mark is the part's subject, so two parts sharing one assert the two parts
+are the same thing. Compared on the geometry, because the marks are inlined SVG
+with no name to differ in. **It fired on this package's own passing fixture** —
+two openers, one silhouette, sitting there since the mark was added at 0.1.546 —
+which is the deliberate red this gate shipped with, on a real artifact rather
+than a planted one.
+
+**The agenda page carries the agenda and nothing else (`D35`, gates).** Owner
+ruling from one conformance round: one deck put a stat band on its agenda, one
+invented an `.agenda-grid` class with a private `<style>` to lay it out, the
+third was clean. The body holds the launch sequence in a `.fill` and optionally
+the `.lede` above it.
+
+**The seam rate gates, and the number is six (`opener_pacing`).** This was
+reported for four releases on the argument that a quota would force openers
+where the argument has no seam. What settled it was a conformance deck with
+twelve content pages and no opener at all: the report said so and nothing
+failed. **Six, not the five the prose states** — five as a ceiling fails the
+deck the owner accepted, which runs 6, and this package's own fixture, which ran
+7. Five stays the writing target precisely so six is not one.
+
+**The "unless the author says otherwise" half is now declared, not inferred.**
+`<body data-parts="none">` says a deck is deliberately one undivided sequence,
+on the `data-role="apparatus"` precedent. Two decks the owner accepted this
+month are page-for-page conversions running seven and nine pages without a seam;
+no checker can tell those apart from a deck that forgot its openers, so the
+author says which, and the exemption is auditable and printed rather than
+guessed at.
+
+**Figure axes are reported, and the accepted document is why (`figure_axes`).** A
+figure that puts numbers on a scale should draw the baseline and name the unit —
+a baseline is the datum, which is not the gridline §4 rule 3 bans. Measured: the
+reference draws none on two of its nine scaled figures, an accepted intro deck
+on one of four, three other documents carry no scaled figure at all. A rule the
+reference breaks is either a rule it should have followed or a bar nobody has
+earned; one document cannot tell those apart.
+
+**The fixtures were rebuilt into three parts, and doing it lost three planted
+defects.** Re-splitting moved page 12 from a content page to an opener, and D4's
+literal colour and D24/D25's untermed image went with it — all three came back
+`ok`, and only `check_fixtures`' refusal to grade a metric no fixture fails said
+so. **It had happened before**: the same D4 plant sat on page 5 until 0.1.369
+turned that page into a `stack` layout with no `.gd` at all. Twice is a pattern,
+so every plant now keys on the page's ordinal among the CONTENT pages rather
+than on its position in the deck. That also fixed a quieter bug — the two decks
+number differently, so `i == 8` had meant the fifth content page in one and the
+sixth in the other.
+
+**0.1.548 was committed red, and FM-21 records why.** Its new register file was
+still untracked when preflight ran, and `check_english_only` enumerates its
+inputs with `git ls-files` — so the file did not exist to the guard, preflight
+passed 30/30, and the same check went red once the commit made it visible. The
+verdict was right both times; only its input changed. The fix is not a wider
+guard but a narrower exemption: a `quote` in that register is a verbatim
+substring of the line it cites and `check_rule_coverage.py` fails the build if
+it stops being one, so CJK there is rule data by construction. Every other field
+is still scanned, and a test asserts the difference.
+
+**Two counts deleted rather than corrected.** `CLAUDE.md` opened "Eleven of its
+metrics gate" and closed "All eleven are" — two words the parity guard does not
+read, so adding a gate could leave them wrong while the check stayed green. The
+sentence now names its authority (convention 13) and the guard's anchors moved
+with it.
+
 ## 0.1.548 — the rules and the checks are now held against each other, and the count is worse than the estimate
 
 **0.1.547 closed the amplifiers. This is the measurement they were amplifying.**

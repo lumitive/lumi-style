@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.548"
+  version: "0.1.549"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -508,7 +508,9 @@ current, stale, or **unknown** — and unknown is not current.
    a mismatch — it just does not open the document — the deliverable's own version number **is** that
    version. Decks open with a cover and end with a closing page, each carrying
    the single vector mark, and every part boundary gets a lime opener page —
-   about five content pages between openers is the pacing target
+   about five content pages between openers is the pacing target and **six
+   is the ceiling `opener_pacing` gates on** — a deck meant to run undivided
+   says so with `<body data-parts="none">`
    (see `references/storyline-templates.md`).
 6. **Review loop**: decks embed the scoring table as the final page; on receiving
    reviews, any dimension diverging ≥2 forces a retrospective that produces a rule

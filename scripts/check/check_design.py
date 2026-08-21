@@ -1337,6 +1337,199 @@ def d10_label_icons(raw):
 
 
 
+# THE TWO ICON SETS THIS PACKAGE SHIPS, and the only places an icon may come
+# from (design-rules §6). Named here rather than globbed so a directory added by
+# accident cannot become a source of icons.
+ICON_SETS = ("lucide", "koboyo")
+# What counts as the geometry of a drawing: the attributes that decide its
+# SHAPE, in document order. Comparing raw markup instead would fail on a
+# reordered attribute or a self-closing tag, which is a difference in spelling
+# rather than in the drawing.
+GEOMETRY_ATTRS = ("d", "points", "cx", "cy", "r", "rx", "ry",
+                  "x1", "y1", "x2", "y2", "x", "y", "width", "height")
+
+
+def _geometry(markup: str) -> tuple:
+    """-> the drawing inside `markup`, as a comparable tuple.
+
+    Reads shape elements in order and keeps the attributes that decide their
+    geometry. Whitespace inside a path is collapsed: `M 4 6` and `M4 6` draw the
+    same line and differ only in how the file was written.
+    """
+    out = []
+    for el in re.finditer(r"<(path|circle|rect|ellipse|line|polygon|polyline)\b"
+                          r"([^>]*)>", markup):
+        attrs = {m.group(1): re.sub(r"\s+", " ", m.group(2)).strip()
+                 for m in re.finditer(r'([a-z-]+)="([^"]*)"', el.group(2))}
+        out.append((el.group(1),
+                    tuple(attrs.get(a, "") for a in GEOMETRY_ATTRS)))
+    return tuple(out)
+
+
+def _shipped_icons(root: pathlib.Path | None = None) -> dict:
+    """-> {name: geometry} for every icon in the sets this package ships."""
+    base = (root or ROOT) / "assets" / "icons"
+    shipped: dict[str, tuple] = {}
+    for setname in ICON_SETS:
+        d = base / setname
+        if not d.is_dir():
+            continue
+        for f in d.glob("*.svg"):
+            try:
+                shipped.setdefault(f.stem, _geometry(
+                    f.read_text(encoding="utf-8")))
+            except OSError:                                # pragma: no cover
+                continue
+    return shipped
+
+
+def d33_icon_provenance(raw, root=None):
+    """-> {checked, unknown, altered}: icons that did not come from the sets.
+
+    **This gates.** design-rules §6: "Never add icons to 'look rich'. Never draw
+    one ad hoc" — every icon comes from the two sets this package ships. The
+    rule had no check, and the owner's first instruction after opening a
+    conformance deck was that the part-opener icon must come from
+    `assets/icons/`. An icon drawn by hand is off-brand in the way a hand-mixed
+    colour is off-brand, and it is exactly as decidable.
+
+    Two findings, kept apart because they mean different things: a symbol whose
+    NAME is in neither set was invented, and a symbol whose name is there but
+    whose geometry is not is the set's name on somebody else's drawing.
+
+    Measured on the three documents on record before it was written: 15 symbols
+    each, 0 unmatched. A gate calibrated on the accepted document rather than on
+    what would be satisfying to catch.
+    """
+    shipped = _shipped_icons(root)
+    if not shipped:
+        return None                       # no sets to compare against; say so
+    unknown, altered = [], []
+    syms = re.findall(r'<symbol[^>]*\bid="i-([a-z0-9-]+)"[^>]*>(.*?)</symbol>',
+                      raw, re.S)
+    for name, geo in syms:
+        if name not in shipped:
+            unknown.append(name)
+        elif _geometry(geo) != shipped[name]:
+            altered.append(name)
+    return {"checked": len(syms), "unknown": unknown, "altered": altered}
+
+
+def d34_icon_uniqueness(raw):
+    """-> {pages, reused}: eyebrow icons standing for more than one subject.
+
+    **Reported, not gated, and the reference is why.** design-rules §6 says an
+    icon means exactly one thing within a document — but the accepted reference
+    deck reuses three of its twelve eyebrow icons across two and three pages
+    each, and whether that is one meaning restated or two meanings collided is a
+    judgement about the pages, not about the markup. A gate here would fail the
+    document the owner accepted, so it counts and a person decides.
+
+    What it does answer is the owner's actual complaint, which was blunter than
+    the rule: two part openers and seven of eight content pages carrying one
+    icon. That shows up here as a reuse count, loudly.
+    """
+    pat = re.compile(r'<\w+[^>]*class="[^"]*\beyebrow\b[^"]*"[^>]*>\s*'
+                     r'<svg[^>]*class="[^"]*\bic\b[^"]*"[^>]*>\s*'
+                     r'<use[^>]*href="#(i-[a-z0-9-]+)"')
+    used: dict[str, list] = {}
+    for cls, pid, body in _pages(raw):
+        if any(k in cls for k in ("cover", "closing", "opener")):
+            continue
+        m = pat.search(body)
+        if m:
+            used.setdefault(m.group(1), []).append(pid)
+    reused = {k: v for k, v in used.items() if len(v) > 1}
+    return {"pages": sum(len(v) for v in used.values()),
+            "distinct": len(used), "reused": reused}
+
+
+def _direct_children(fragment: str) -> list:
+    """-> [(class attribute, inner markup)] for each depth-1 element.
+
+    A depth counter rather than one regex over the whole blob: `.body > .band`
+    and `.launch .band` are different findings, and a pattern that could not
+    tell them apart would fail the accepted reference for markup nested three
+    levels down. Returns each child's own contents too, so a caller can look
+    one level further without hunting for the child's text again.
+    """
+    kids, depth, start, cls = [], 0, 0, ""
+    void = ("br", "img", "use", "input", "meta", "path", "hr", "source")
+    for m in re.finditer(r"<(/?)([\w-]+)([^>]*?)(/?)>", fragment):
+        closing, tag, attrs, selfclose = m.groups()
+        if tag.lower() in void or selfclose:
+            continue
+        if closing:
+            depth -= 1
+            if depth == 0:
+                kids.append((cls, fragment[start:m.start()]))
+            elif depth < 0:
+                # THE CONTAINER ITSELF CLOSED. Without this the scan ran on
+                # past `</div>` and read the footer's `.terms` and `.site` as
+                # children of the body — which failed the accepted reference
+                # deck on its own footer, the first time this metric ran.
+                break
+            continue
+        if depth == 0:
+            cm = re.search(r'class="([^"]*)"', attrs)
+            cls = cm.group(1) if cm else ""
+            start = m.end()
+        depth += 1
+    return kids
+
+
+# What an agenda page's `.body` may hold, and what a `.fill` inside it may hold.
+# storyline-templates: the launch sequence, and optionally the lede above it.
+AGENDA_BODY_ALLOWED = ("lede", "fill")
+AGENDA_FILL_ALLOWED = ("launch",)
+
+
+def d35_agenda_exclusive(raw):
+    """-> {found, strays}: blocks on the agenda page that are not the agenda.
+
+    **This gates**, by owner ruling after a round in which one conformance deck
+    put a stat band on its agenda and another invented an `.agenda-grid` class
+    with a private `<style>` element to lay it out. An agenda that also argues
+    something is two pages sharing one sheet, and the page that routes the deck
+    is the last one that should need routing itself.
+
+    A document with no agenda owes nothing here — `deck_structure` is what asks
+    whether it should have one, and asking twice would fail a deck once for the
+    missing page and again for that page's contents.
+    """
+    for _cls, pid, body in _pages(raw):
+        if pid != "agenda" and not re.search(
+                r'class="(?:[^"]*\s)?eyebrow(?:\s[^"]*)?"[^>]*>.{0,120}?agenda',
+                body, re.S | re.I):
+            continue
+        strays = []
+        if re.search(r"<style\b", body, re.I):
+            strays.append("a <style> element of its own")
+        m = re.search(r'<div[^>]*class="(?:[^"]*\s)?body(?:\s[^"]*)?"[^>]*>',
+                      body)
+        if not m:
+            return {"found": pid, "strays": ["no .body block at all"]}
+        for cls, inner in _direct_children(body[m.end():]):
+            tokens = cls.split()
+            if not tokens or tokens[0] == "foot":
+                continue           # the footer is the page's, not the body's
+            if not any(t in AGENDA_BODY_ALLOWED for t in tokens):
+                strays.append(f".{tokens[0]} beside the launch sequence")
+                continue
+            if "fill" in tokens:
+                for gcls, _ in _direct_children(inner):
+                    gt = gcls.split()
+                    if gt and not any(t in AGENDA_FILL_ALLOWED for t in gt):
+                        strays.append(f".{gt[0]} inside the agenda's fill")
+        return {"found": pid, "strays": strays}
+    # NO AGENDA PAGE IS A MEASURED ABSENCE AND PASSES, the same ruling D27
+    # carries: a deck without an agenda owes nothing to a rule about what an
+    # agenda may contain, and `deck_structure` is what asks whether it should
+    # have one. Returning None here reported a gating metric as unmeasurable on
+    # every deck with no agenda, which reads like an alarm and is not one.
+    return None
+
+
 # The provenance vocabulary D6 accepts in a colophon, NAMED because it was an
 # inline regex nobody writing a colophon could find: a deck whose closing said
 # its numbers were "cited to" their entries failed on all fifteen pages, and
@@ -1456,6 +1649,9 @@ def measure(path):
         "D30_figure_sequence": (d30 := d30_figure_sequence(raw)),
         "D30_detail": (d30 or {}).get("duplicates"),
         "D32_shape_use": d32_shape_use(raw),
+        "D33_icon_provenance": d33_icon_provenance(raw),
+        "D34_icon_uniqueness": d34_icon_uniqueness(raw),
+        "D35_agenda_exclusive": d35_agenda_exclusive(raw),
         "D23_font_count": d23_font_count(
             raw, (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")),
     }
@@ -1862,6 +2058,24 @@ def grade(r):
                      None if miss is None else len(miss),
                      "=0 or declared (reported)",
                      not miss, miss is None))
+
+    ip = r["D33_icon_provenance"]
+    rows.append(("D33_icon_provenance",
+                 None if ip is None
+                 else len(ip["unknown"]) + len(ip["altered"]),
+                 "=0 (gates)",
+                 bool(ip) and not (ip["unknown"] or ip["altered"]),
+                 ip is None))
+    iu = r["D34_icon_uniqueness"]
+    rows.append(("D34_icon_uniqueness",
+                 f"{iu['distinct']} distinct over {iu['pages']} pages, "
+                 f"{len(iu['reused'])} reused",
+                 "reported", True, not iu["pages"]))
+
+    ae = r["D35_agenda_exclusive"]
+    rows.append(("D35_agenda_exclusive",
+                 len(ae["strays"]) if ae else "no agenda page",
+                 "=0 (gates)", not (ae and ae["strays"]), False))
 
     dc = r["D21_data_contract"]
     rows.append(("D21_data_contract",

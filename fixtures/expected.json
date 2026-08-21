@@ -69,7 +69,10 @@
      "D29_figure_numbers": "ok",
      "D30_figure_sequence": "ok",
      "D31_undeclared_sections": "ok",
-     "D32_shape_use": "ok"
+     "D32_shape_use": "ok",
+     "D33_icon_provenance": "ok",
+     "D34_icon_uniqueness": "ok",
+     "D35_agenda_exclusive": "ok"
     },
     "contains": {
      "D10_label_icons": [
@@ -106,7 +109,8 @@
      "reserve_overspent": "ok",
      "role_split": "ok",
      "starved_column": "ok",
-     "deck_structure": "ok"
+     "deck_structure": "ok",
+     "opener_pacing": "ok"
     }
    }
   },
@@ -181,11 +185,14 @@
      "D29_figure_numbers": "ok",
      "D30_figure_sequence": "FAIL",
      "D31_undeclared_sections": "FAIL",
-     "D32_shape_use": "FAIL"
+     "D32_shape_use": "FAIL",
+     "D33_icon_provenance": "FAIL",
+     "D34_icon_uniqueness": "ok",
+     "D35_agenda_exclusive": "ok"
     },
     "contains": {
      "D16_visual_presence": [
-      "p16"
+      "p17"
      ],
      "D18_detail": [
       "southeast-asia"
@@ -266,7 +273,8 @@
      "reserve_overspent": "FAIL",
      "role_split": "ok",
      "starved_column": "ok",
-     "deck_structure": "FAIL"
+     "deck_structure": "FAIL",
+     "opener_pacing": "FAIL"
     }
    }
   },
@@ -330,7 +338,10 @@
      "D29_figure_numbers": "ok",
      "D30_figure_sequence": "n/a",
      "D31_undeclared_sections": null,
-     "D32_shape_use": null
+     "D32_shape_use": null,
+     "D33_icon_provenance": "ok",
+     "D34_icon_uniqueness": "n/a",
+     "D35_agenda_exclusive": "FAIL"
     }
    },
    "layout": {
@@ -359,7 +370,8 @@
      "reserve_overspent": "FAIL",
      "role_split": "FAIL",
      "starved_column": "FAIL",
-     "deck_structure": "ok"
+     "deck_structure": "ok",
+     "opener_pacing": "FAIL"
     }
    }
   },
