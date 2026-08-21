@@ -741,3 +741,41 @@ def test_a_misplaced_artifact_is_kept_in_the_record(tmp_path, monkeypatch):
     assert (tmp_path / "misplaced" / "answers.md").read_text() == "done"
     assert not (tmp_path / "answers.md").exists(), "it must not be scorable"
     assert sorted(p.name for p in tmp_path.glob(TASK["deliverable"])) == []
+
+
+# THE AGENT'S OWN WORD OUTRANKS THE CLOCK. Three agents driven in parallel can
+# all write to HOME and to the checkout, and a sweep that sorts by mtime picks
+# whichever landed last. On 2026-08-21 that put another agent's deck into
+# Hermes's run record: it was scored as Hermes's and reviewed by the owner as
+# Hermes's, while Hermes's real artifact — named in its own transcript, and a
+# pass on every gate — sat unexamined.
+
+def test_the_path_the_transcript_names_wins_over_the_newest_file(tmp_path, monkeypatch):
+    home = tmp_path / "elsewhere"
+    home.mkdir()
+    mine, theirs = home / "answers.md", home / "other.md"
+    theirs.write_text("someone else's, written later", encoding="utf-8")
+    monkeypatch.setattr(rc.pathlib.Path, "home", staticmethod(lambda: home))
+    task = dict(TASK, deliverable="*.md")
+    argv = [sys.executable, "-c",
+            f"import pathlib,os,time; p=pathlib.Path({str(mine)!r});"
+            f"p.write_text('mine');"
+            f"q=pathlib.Path({str(theirs)!r}); q.write_text('theirs');"
+            f"print('wrote {mine}')"]
+    out = rc.drive(_agent(argv), task, tmp_path)
+    assert out["verdict"] == "misplaced"
+    assert out["misplaced"][0] == str(mine), out["misplaced"]
+    assert str(mine) in out["detail"]
+
+
+def test_an_unnamed_candidate_is_still_listed_but_never_first(tmp_path, monkeypatch):
+    # A file nobody claimed is a coincidence with a timestamp. It stays in the
+    # record — a reviewer may want it — and it does not become the artifact.
+    home = tmp_path / "elsewhere"
+    home.mkdir()
+    monkeypatch.setattr(rc.pathlib.Path, "home", staticmethod(lambda: home))
+    task = dict(TASK, deliverable="*.md")
+    argv = [sys.executable, "-c",
+            f"import pathlib; pathlib.Path({str(home / 'stray.md')!r}).write_text('x')"]
+    out = rc.drive(_agent(argv), task, tmp_path)
+    assert out["misplaced"] == [str(home / "stray.md")]
