@@ -50,3 +50,56 @@ def test_an_unresolvable_home_falls_back_rather_than_raising(monkeypatch):
         raise rc.output_dir.Unresolvable("no home directory for this user")
     monkeypatch.setattr(rc.output_dir, "output_dir", boom)
     assert rc._results_root() == rc.IN_REPO_RESULTS
+
+
+# `--run` names a run, and only sometimes names a path.
+
+def _resolve(runs, results):
+    """The resolution `run` performs on `--run`, isolated.
+
+    Kept as a helper mirroring the branch rather than calling `main()`, because
+    reaching that line means driving agents. What it must never do again is
+    resolve a bare name against the working directory.
+    """
+    import pathlib
+    given = pathlib.Path(runs[0]).expanduser()
+    return (given if given.is_absolute() or len(given.parts) > 1
+            else results / given)
+
+
+def test_a_bare_run_id_lands_under_the_results_root(tmp_path):
+    """`--run r13` from inside the checkout wrote the whole run INTO the
+    checkout — transcripts, driver records and an agent's deck — which is the
+    one place the owner directive says conformance results may not go."""
+    assert _resolve(["r13-phase3"], tmp_path) == tmp_path / "r13-phase3"
+
+
+def test_an_explicit_path_is_still_honoured(tmp_path):
+    """An operator pointing at a scratch directory means it."""
+    absolute = tmp_path / "elsewhere" / "run1"
+    assert _resolve([str(absolute)], tmp_path / "results") == absolute
+    assert _resolve(["sub/dir"], tmp_path).as_posix() == "sub/dir"
+
+
+def test_agent_is_repeatable_and_every_name_has_to_resolve(tmp_path):
+    """Two things at once, because one caused the other.
+
+    `--agent` took a SINGLE value until 0.1.550, so `--agent a --agent b
+    --agent c` kept the last and a round announced as three agents drove one.
+    And the selection failed only when NOTHING matched, so a round with one
+    good name and two typos would have run the good one and said nothing.
+
+    Driven through the real CLI rather than by reading the parser: what is
+    under test is what an operator's command line does.
+    """
+    import subprocess
+    import sys
+    proc = subprocess.run(
+        [sys.executable, str(rc.ROOT / "scripts" / "ops" / "run_conformance.py"),
+         "run", "--agent", "claude-code", "--agent", "no-such-agent",
+         "--run", str(tmp_path / "unused")],
+        capture_output=True, text=True, cwd=rc.ROOT)
+    assert proc.returncode == 1, proc.stdout
+    # The bad name is named; the good one is not mistaken for the failure.
+    assert "no-such-agent" in proc.stdout
+    assert "claude-code" not in proc.stdout.split("no platform")[-1]

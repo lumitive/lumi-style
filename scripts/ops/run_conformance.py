@@ -1107,9 +1107,12 @@ def main(argv):
     # a collision, so re-running one agent replaces its own row and nobody
     # else's.
     ap.add_argument("--run", action="append", default=None)
-    ap.add_argument("--agent", default=None,
-                    help="prepare (or report) this agent even if no CLI answers its "
-                         "probe — IDEs and API models are driven by hand")
+    ap.add_argument("--agent", action="append", default=None,
+                    help="prepare (or report) this agent even if no CLI answers "
+                         "its probe — IDEs and API models are driven by hand. "
+                         "Repeatable: `--agent a --agent b` runs both. It took "
+                         "one value until 0.1.550, so three of them silently "
+                         "kept the last and a three-agent round drove one agent")
     ap.add_argument("--task", default=None,
                     help="with run: only this task id. The suite is three tasks "
                          "and one of them is a twelve-page deck, so proving the "
@@ -1193,7 +1196,20 @@ def main(argv):
         # directory, and history.json's run_dir pointed at a tree last written
         # on another day. A run id now names one run.
         if runs:
-            run_dir = pathlib.Path(runs[0])
+            # A BARE NAME IS A RUN ID, NOT A PATH. `--run r13` used to be taken
+            # literally, so it resolved against the working directory: invoked
+            # from the checkout it wrote the whole run — transcripts, driver
+            # records, an agent's deck — into the repository, which is the one
+            # place the 2026-08-21 directive says conformance results may not
+            # go. The print below claims to say "which root, said out loud" and
+            # it did: it said `r13-phase3`, a bare relative name, which is
+            # exactly the artifacts-nobody-can-find case it exists to prevent.
+            # A value that names a path (absolute, or carrying a separator) is
+            # still honoured as one — that is what an operator pointing at a
+            # scratch directory means.
+            given = pathlib.Path(runs[0]).expanduser()
+            run_dir = (given if given.is_absolute() or len(given.parts) > 1
+                       else RESULTS / given)
         elif args.drive:
             import datetime
             run_dir = RESULTS / f"{skill_version()}-{datetime.date.today().isoformat()}"
@@ -1212,10 +1228,16 @@ def main(argv):
               + ("" if RESULTS != IN_REPO_RESULTS else
                  " (the deliverable folder does not exist yet — "
                  "`output_dir.py --create` moves runs there)"))
+        named = set(args.agent or ())
         wanted = [a for a in agents
-                  if (a["id"] == args.agent if args.agent else probed[a["id"]][0])]
-        if args.agent and not wanted:
-            print(f"FAIL  no platform with id {args.agent!r} in the registry")
+                  if (a["id"] in named if named else probed[a["id"]][0])]
+        # EVERY NAME HAS TO RESOLVE, not just one of them. A set difference
+        # rather than `if not wanted`: naming three agents and matching one
+        # would otherwise run that one and say nothing about the two typos.
+        missing = sorted(named - {a["id"] for a in agents})
+        if missing:
+            print("FAIL  no platform in the registry with id "
+                  + ", ".join(repr(m) for m in missing))
             return 1
         if not wanted:
             print("no agent detected and no --agent given; nothing to prepare. An IDE "

@@ -303,9 +303,9 @@ Gathered separately at the owner's direction: these are the pages the argument i
 | Give concepts and figures about 80% of every content page in a seed-register deck. | `references/storyline-templates.md:401` | `M15` | no |
 | Lay a figure-led page out as stack or split-wide with the drawing in the wide cell. | `references/storyline-templates.md:411` | `—` | no |
 | Give every figure an external source or a label as the business's own measurement. | `references/storyline-templates.md:436` | `M2` | no |
-| Carry no so-what label in sales or client material. | `references/storyline-templates.md:616` | `—` | no |
-| Present every comparison as a table with options as columns. | `references/storyline-templates.md:620` | `—` | no |
-| Use parallel page structure only where it aids comparison. | `references/storyline-templates.md:632` | `M14` | no |
+| Carry no so-what label in sales or client material. | `references/storyline-templates.md:623` | `—` | no |
+| Present every comparison as a table with options as columns. | `references/storyline-templates.md:627` | `—` | no |
+| Use parallel page structure only where it aids comparison. | `references/storyline-templates.md:639` | `M14` | no |
 | Give every figure a conclusion-style title and a source line. | `references/storyline-templates.md:87` | `—` | no |
 | Label every claim as measured, build-time assertion, or inference. | `references/storyline-templates.md:95` | `—` | no |
 | Consolidate what is not built into one section instead of scattering it. | `references/storyline-templates.md:96` | `—` | no |
@@ -493,13 +493,13 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Ship no [TO FILL] placeholder in a finished document. | `references/storyline-templates.md:534` | `D14` | yes |
 | Version the deliverable with the lumi-style version that produced it. | `references/storyline-templates.md:540` | `—` | no |
 | Carry an assigned document edition in the filename and masthead, and still record the built-with version in the colophon. | `references/storyline-templates.md:542` | `—` | no |
-| Give every title a subject and at least one verifiable fact. | `references/storyline-templates.md:593` | `M1` | no |
-| Set no word ceiling on a title; the only limit is the two-line budget. | `references/storyline-templates.md:594` | `title_two_lines` | yes |
-| Treat the colon title form as the reference form, not the required one. | `references/storyline-templates.md:596` | `M11` | no |
-| Cap any one title frame at 60% of the document's titles. | `references/storyline-templates.md:603` | `M11` | no |
-| Reject a title that states only a contrast, a slogan, or a section label. | `references/storyline-templates.md:606` | `M1` | no |
-| Keep the evidence clause after a contrast lead-in. | `references/storyline-templates.md:608` | `M1` | no |
-| Make the concatenated titles read as a complete argument. | `references/storyline-templates.md:613` | `—` | no |
+| Give every title a subject and at least one verifiable fact. | `references/storyline-templates.md:600` | `M1` | no |
+| Set no word ceiling on a title; the only limit is the two-line budget. | `references/storyline-templates.md:601` | `title_two_lines` | yes |
+| Treat the colon title form as the reference form, not the required one. | `references/storyline-templates.md:603` | `M11` | no |
+| Cap any one title frame at 60% of the document's titles. | `references/storyline-templates.md:610` | `M11` | no |
+| Reject a title that states only a contrast, a slogan, or a section label. | `references/storyline-templates.md:613` | `M1` | no |
+| Keep the evidence clause after a contrast lead-in. | `references/storyline-templates.md:615` | `M1` | no |
+| Make the concatenated titles read as a complete argument. | `references/storyline-templates.md:620` | `—` | no |
 | Quote a banned phrase only inside figure ink, never in HTML prose. | `references/writing-rules.md:106` | `M4` | no |
 | Use full-width punctuation in Simplified-Chinese body text; half-width stays in code, URLs, emails, version strings, filenames and pure English runs. | `references/writing-rules.md:124` | `M5` | no |
 | Use 「」 for Chinese quotes and full-width parentheses around Chinese content. | `references/writing-rules.md:127` | `—` | no |

@@ -564,12 +564,19 @@ for when the argument has no obvious seam; six is the point past which a deck
 has stopped being divided into parts, and `inspect_layout.py`'s `opener_pacing`
 fails a deck that goes past it.
 
-Six rather than five, and the difference is not a rounding: **the accepted
-reference deck runs six**, and this package's own passing fixture ran seven
-until the ceiling was written. A ceiling of five would fail the document the
-owner has accepted, which would make it a number this package invented rather
-than a standard it holds — the same line-setting principle as the bookend claim
-length, and the reason 0.1.339's fill floor was withdrawn.
+Six rather than five, and the reason is about the rule rather than about any
+one document. **The first version of this ceiling was set at six because the
+accepted reference "runs 6" — and that six was the reference's six appendix
+pages after its closing**, counted as an unbroken stretch of argument by a run
+computation that did not know a deck ends. Re-measured: the reference's longest
+run between seams is five, and this package's passing fixture also runs five.
+
+Six stays because **a ceiling equal to the target is a target.** This repository
+has shipped three regressions from that exact confusion — a 3–6 word headline
+ceiling read as a target emptied every deck title of its evidence, "short
+sentences" drove sentence variance to zero, and a two-line title budget folded
+every title in half. One page of headroom is what keeps five a target
+(convention 4).
 
 **A deck that is deliberately one undivided sequence declares it**, with
 `<body data-parts="none">`, and the seam rate then does not bind. This is the

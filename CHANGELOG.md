@@ -1,3 +1,117 @@
+## 0.1.550 — four reviews ran the gates 0.1.549 added, and nine of them had a way through
+
+**Every finding here came from RUNNING the new checks, not from reading them.**
+Four review passes over the 0.1.549 diff — general, comments, tests, silent
+failures — converged on the same conclusion from different angles, and none of
+the nine defects below is a logic slip. Each is an assumption about the material:
+that a symbol id spells itself `i-`, that an attribute is double-quoted, that a
+class list has one token, that a deck ends where its closing page is, that a
+name belongs to one icon set. **Convention 15 says reading the code cannot find
+these, because reading uses the model that produced them.** This release is that
+sentence collecting on itself.
+
+**The two shipped fixtures declared the wrong page count.** Adding a third part
+opener changed the bookend arithmetic and the new expression dropped the cover,
+so both decks numbered their pages one short and the closing page repeated the
+previous page's number. It passed everything: `build_fixtures --check` compares
+the generator to its own artifact and they agreed, and D6 asks only whether a
+total is *present*. The package's model of a correct document was teaching a
+footer defect.
+
+**The pacing ceiling was calibrated on an appendix.** 0.1.549 set it at six
+because "the accepted reference runs 6" — and that six was **the reference's six
+pages after its closing page**, counted as one unbroken stretch of argument by a
+run computation that did not know a deck ends. Its real longest run between
+seams is five, and this package's fixture also runs five. A run now ends at the
+closing page, and a declared apparatus page is a seam.
+
+Six stays, for a reason that is now about the rule rather than about the
+artifact: **a ceiling equal to the target is a target.** This repository has
+shipped three regressions from exactly that confusion. One page of headroom is
+what keeps five a target.
+
+**D35 could be walked past four ways, and every one is what ordinary generated
+markup looks like**: an unclassed `<div>` wrapper, a class list whose first
+token is `foot`, a class list carrying an allowed token beside a forbidden one,
+and anything nested three levels down. It reads the whole subtree now, and
+descends through unclassed wrappers rather than skipping them. Its finder was
+narrow enough that `id="Agenda"` — one capital — and a Chinese deck's `议程`
+both scored as "no agenda page", which is a pass. D27 had its own copy of that
+finder and they disagreed; there is one finder now, because two gates about one
+page may not disagree about whether the page exists.
+
+**D33 was bypassed by a naming choice.** It matched `id="i-[a-z0-9-]+"` and did
+not merely fail to report anything else — it did not COUNT it, so a deck whose
+every icon was `#handdrawn` returned `ok`. It keys on use as an icon now (an
+`svg.ic` pointing at a symbol), which is the vocabulary the rule and the tokens
+both use, and which leaves alone the library shape and the trademark mark the
+accepted reference legitimately defines.
+
+**And D33 called 32 of the 36 shipped silhouettes forgeries.** The two icon sets
+collide on 32 names and the lookup kept whichever it read first, always
+lucide's — so a document drawing a genuine `koboyo/shield.svg` was reported as
+the set's name over somebody else's drawing. A name may now carry a drawing from
+either set. Separately, `_geometry` read only double-quoted attributes, so
+`d='M20 6'` produced an empty geometry: a shipped icon written that way failed,
+and two *different* single-quoted icons compared equal. The gate was failing in
+both directions at once.
+
+**The opener-mark signature read five of the seven shapes the filled-silhouette
+counter accepts**, so a mark drawn from `<circle>`/`<rect>` produced an empty
+signature and three openers sharing one were not a finding — and it truncated
+each attribute at 100 characters, so two genuinely different marks diverging
+later collided into a FALSE red. It reads every shape and the whole value now,
+plus `xlink:href`.
+
+**A declared pacing exemption read as `ok`.** `run_conformance` records which of
+`ok` and `n/a` a gate returned, so one `<body data-parts="none">` was the
+cheapest way to switch the gate off leaving no trace in the score — on a release
+whose central finding is that an agent iterates to the edge of what it is shown.
+It is `n/a` with the reason attached.
+
+**`figure_axes` could not fire on this package's own fixture.** Its bar of three
+numeric labels excluded the house figure shape, which carries two, so
+`figScaled` was zero on all ten figures and the report printed nothing at all —
+not "0 of 0". Its value pattern also required digits first and Latin units, so
+`US$4.2m`, `41％` and `4.2亿` all read as "not a number", silently exempting
+every Chinese-language figure.
+
+**The CJK exemption added at 0.1.549 was wider than its own comment claimed**,
+and a reviewer demonstrated two ways through: it matched any JSON path ending
+`.quote` — including a nested `rules[0].notes.quote`, a key the register's own
+reader ignores — and it placed no restriction on which file a rule could be
+quoted *from*, so a sentence of Chinese lifted out of an HTML fixture passed as
+"rule data". The path is matched whole now, and a rule may only cite a rule
+file.
+
+**Two counts in 0.1.549's entry were wrong** and are corrected here rather than
+edited out of the record: it said the seam rate had been "reported for four
+releases" when it was reported from 0.1.376 to 0.1.548 — 173 of them — and it
+described a conformance deck as having "twelve content pages and no opener"
+when the artifact is twelve PAGES with ten content pages. Both are the failure
+convention 13 warns about; a version citation cannot rot the way a count can.
+
+The design record for this line of work is
+`specs/2026-08-22-rules-equal-conformance-design.md`; nothing in it changed, but
+its "how each new check is validated" section now has nine more entries behind
+it than the five it was written from.
+
+**Two bugs found by using the tool rather than reviewing it.** `--run <name>`
+was taken as a path relative to the working directory, so a conformance round
+launched from the checkout wrote its whole record — transcripts, driver files,
+an agent's deck — into the repository, which is the one place the owner
+directive says results may not go. And `--agent` took a single value, so three
+flags kept the last and a round announced as three agents drove one.
+
+**What the fixtures owed.** D35's only red came from its "no `.body`" guard
+clause, so the stray scan — the actual metric — had never gone red on any
+fixture; the degenerate deck's agenda now carries a real body with a stat band
+in it. The altered-icon plant reused `i-shield`, an id the sprite already
+defines, so the document carried a duplicate DOM id and every `<use>` resolved
+to the correct symbol — the defect existed in the markup and in no rendering of
+it. And one plant was still keyed on the page number while `page()`'s docstring
+said none were.
+
 ## 0.1.549 — five rules the owner named now have checks, and the ceiling comes from the accepted deck rather than the prose
 
 **Phase 3 of `specs/2026-08-22-rules-equal-conformance-design.md`.** The register

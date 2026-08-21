@@ -726,12 +726,27 @@ PROBE = r"""
         // path data, the `use` targets, and an image's own src. Truncated per
         // element because a silhouette runs to thousands of characters and the
         // first hundred already separate the vendored set's members.
+        // EVERY SHAPE THE FILLED COUNTER ACCEPTS, and the WHOLE value. The
+        // first version read five element kinds and truncated each attribute to
+        // 100 characters, which broke both ways: a silhouette drawn from
+        // `<circle>`/`<rect>` produced an empty signature and
+        // `_openers_repeating_a_mark` skipped it, so three openers sharing one
+        // circle-and-rect mark passed; and two genuinely different marks whose
+        // paths diverge after character 115 collided and produced a FALSE red,
+        // which is the class of defect that rewrites a correct document.
+        // `xlink:href` is read too — `getAttribute('href')` returns null for
+        // the namespaced form that older generators emit.
         const parts = [];
-        e.querySelectorAll('path,polygon,polyline,use,image').forEach(k => {
-          parts.push((k.getAttribute('d') || k.getAttribute('points')
-                      || k.getAttribute('href') || '').slice(0, 100));
-        });
-        if (e.tagName.toLowerCase() === 'img') parts.push((e.src || '').slice(0, 200));
+        e.querySelectorAll('path,polygon,polyline,circle,ellipse,rect,line,use,image')
+         .forEach(k => {
+           const geo = ['d', 'points', 'cx', 'cy', 'r', 'rx', 'ry',
+                        'x', 'y', 'width', 'height', 'x1', 'y1', 'x2', 'y2']
+             .map(a => k.getAttribute(a) || '').join(' ').trim();
+           const ref = k.getAttribute('href')
+                    || k.getAttributeNS('http://www.w3.org/1999/xlink', 'href') || '';
+           parts.push(k.tagName.toLowerCase() + ':' + geo + ref);
+         });
+        if (e.tagName.toLowerCase() === 'img') parts.push('img:' + (e.src || ''));
         const cand = {w: Math.round(r.width), h: Math.round(r.height),
                       filled, stroked, img: e.tagName.toLowerCase() === 'img',
                       sig: parts.join('|')};
@@ -759,10 +774,9 @@ PROBE = r"""
 
     // FIGURES THAT SCALE NUMBERS WITHOUT DRAWING THE SCALE. design-rules §4:
     // a baseline is the datum the marks are measured from, which is a different
-    // thing from the gridlines rule 3 bans. REPORTED, never gated — every
-    // document on record trips it, the accepted reference included, so the
-    // number that would separate a defect from a house style does not exist
-    // yet (convention 6).
+    // thing from the gridlines rule 3 bans. REPORTED, never gated: the accepted
+    // reference trips it (2 of its 9 scaled figures, measured 2026-08-22), so
+    // one document cannot say whether it is a defect or the house style.
     let figNoAxis = 0, figScaled = 0;
     for (const sv of s.querySelectorAll('.fig svg:not(.ic)')) {
       let numeric = 0;
@@ -770,9 +784,19 @@ PROBE = r"""
         // A VALUE, not a year and not a bare index: at least one digit, and
         // nothing but digits, separators and a short unit around it.
         const v = (t.textContent || '').trim();
-        if (/^[^A-Za-z]*\d[\d.,\s]*(%|[A-Za-z]{1,4})?$/.test(v) && v.length <= 12) numeric++;
+        // A CURRENCY PREFIX AND A CJK UNIT ARE STILL VALUES. The first pattern
+        // required the digits to come first and allowed only Latin units, so
+        // `US$4.2m`, `41％` and `4.2亿` all read as "not a number" — which
+        // silently exempted every Chinese-language figure from the check.
+        if (v.length <= 14 && /\d/.test(v)
+            && /^[^\d]{0,3}[\d][\d.,\s]*[^\d]{0,4}$/.test(v)) numeric++;
       });
-      if (numeric < 3) continue;        // not a figure that scales anything
+      // TWO, not three. This package's own bar charts carry exactly two value
+      // labels, so a bar of three made `figScaled` zero on all ten figures of
+      // the passing fixture and the report printed NOTHING — no line, not even
+      // "0 of 0". A check that cannot fire on the package's own artifact is not
+      // a check (convention 15).
+      if (numeric < 2) continue;        // not a figure that scales anything
       figScaled++;
       const box = sv.viewBox && sv.viewBox.baseVal;
       const W = (box && box.width) || 100, H = (box && box.height) || 100;
@@ -2131,20 +2155,45 @@ def _deck_structure_missing(live):
     return missing
 
 
-# THE PACING CEILING, taken from the accepted reference rather than the prose.
-# storyline-templates says "about five content pages between openers", and five
-# as a ceiling fails BOTH the deck the owner accepted (longest run 6) and this
-# package's own passing fixture (7). Five is the writing target; six is the
-# limit, set where `bookend_title_length` sets its own — not worse than what the
-# owner has accepted. CLAUDE.md convention 4: this number is a CEILING.
+# THE PACING CEILING. storyline-templates makes five the writing target; this is
+# the limit, one page above it.
+#
+# **The first version of this number was wrong, and the way it was wrong is the
+# lesson.** It was set at six because the accepted reference "runs 6" — but that
+# six was the reference's SIX APPENDIX PAGES AFTER ITS CLOSING, counted as an
+# unbroken stretch of argument by a run computation that did not know a deck
+# ends. Re-measured with `_opener_runs` fixed: the reference's longest run
+# between seams is 5, and this package's passing fixture also runs 5.
+#
+# Six stays, for a reason that is now about the rule rather than about the
+# artifact: a ceiling equal to the target is a target (CLAUDE.md convention 4,
+# and 0.1.332, 0.1.336 and 0.1.337 are three shipped regressions from exactly
+# that confusion). One page of headroom is what keeps five a target.
+# This number is a CEILING.
 OPENER_RUN_CEILING = 6
 
 
 def _opener_runs(live):
-    """-> [content pages between each seam], counting cover and closing as seams."""
+    """-> [content pages between each seam], for the ARGUMENT only.
+
+    Three things end a run, and the first two were missing until 0.1.550:
+
+    * **The closing page ends the deck.** Anything after it is back matter. The
+      accepted reference carries SIX appendix pages there, and they were being
+      read as one unbroken stretch of argument — which is where the ceiling of
+      six came from. Its real longest run between seams is five. A ceiling
+      calibrated on an appendix is a number this package invented.
+    * **A declared apparatus page is a seam.** A glossary or a scoring table is
+      not the argument continuing; this file already exempts those pages from
+      the visual-share target for the same reason.
+    * A part opener, or the cover.
+    """
     runs, run = [], 0
     for r in live:
-        if r.get("isOpener") or r.get("isCover") or r.get("isClosing"):
+        if r.get("isClosing"):
+            runs.append(run)
+            return runs                 # back matter is not an unbroken run
+        if r.get("isOpener") or r.get("isCover") or r.get("isApparatus"):
             runs.append(run)
             run = 0
         else:
@@ -2156,11 +2205,14 @@ def _opener_runs(live):
 def _pacing_overrun(live):
     """Runs of content pages longer than a deck may go without a seam.
 
-    **Why this gates now.** It was reported for four releases, in those words —
-    "a target, not a floor" — and one conformance deck came back with twelve
-    content pages and no opener at all, which the report noted and no gate
-    caught. The owner's rule is a seam about every five pages unless she says
-    otherwise, and the "unless" is what kept this reported.
+    **Why this gates now.** It was reported in those words — "a target, not a
+    floor" — from 0.1.376 until this release, and a conformance deck came back
+    as twelve pages with TEN unbroken content pages and no opener at all, which
+    the report noted and no gate caught. The owner's rule is a seam about every
+    five pages unless she says otherwise, and the "unless" is what kept this
+    reported. (Both numbers here were wrong when first written: "four releases"
+    for what was 173, and "twelve content pages" for a twelve-PAGE deck. A
+    version citation cannot rot the way a count can — convention 13.)
 
     The "unless" is now DECLARED rather than inferred: `<body data-parts="none">`
     says this deck is deliberately one undivided sequence, on the precedent of
@@ -2176,6 +2228,19 @@ def _pacing_overrun(live):
     if any(r.get("partsDeclaredNone") for r in live):
         return []
     return [n for n in _opener_runs(live) if n > OPENER_RUN_CEILING]
+
+
+def _pacing_not_applicable(live):
+    """Is the seam rate a question this document does not answer?
+
+    Two cases, and the second is the point: **a declared exemption reads `n/a`,
+    never `ok`.** `run_conformance` treats both as met, but the SCORE records
+    which one — so returning `ok` made a single `<body data-parts="none">` the
+    cheapest way to switch this gate off leaving no trace, on a release whose
+    central finding is that an agent iterates to the edge of what it is shown.
+    """
+    return (not _composes_as_a_deck(live)
+            or any(r.get("partsDeclaredNone") for r in live))
 
 
 def _openers_repeating_a_mark(live):
@@ -2727,9 +2792,9 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
     if scaled:
         print(f"  figure axes: {noaxis} of {scaled} figure(s) that put numbers "
               f"on a scale draw no baseline for it (design-rules §4). "
-              f"REPORTED, never gated: every document on record trips this, "
-              f"the accepted reference included, so there is no bar yet — a "
-              f"gridline is background, a baseline is the datum.")
+              f"REPORTED, never gated — the accepted reference trips it too, so "
+              f"one document cannot say whether this is a defect or the house "
+              f"style. A gridline is background; a baseline is the datum.")
 
     escaped = _band_escaped(live)
     if escaped:
@@ -2798,7 +2863,7 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
     # argument has no seam, so this never gates.
     if live:
         # NOT `if openers`. A deck with no openers is the case that most needs
-        # saying — the conformance deck with twelve unbroken content pages
+        # saying — the conformance deck with ten unbroken content pages
         # printed nothing here, because the block that would have reported it
         # only ran when there was already at least one seam to measure between.
         runs = _opener_runs(live)
@@ -2807,8 +2872,10 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
         if over:
             print(f"  DECK RUNS PAST ITS SEAM RATE: longest run is {longest} "
                   f"content pages against a ceiling of {OPENER_RUN_CEILING} "
-                  f"(runs: {runs[1:-1] or runs}). About five is the writing "
-                  f"target; six is what the accepted reference runs. A deck "
+                  f"(runs: {[n for n in runs if n] or runs}). About five is "
+                  f"the writing target and the accepted reference's longest is "
+                  f"five; six is the ceiling, one page of headroom so the "
+                  f"target does not become the limit. A deck "
                   f"meant to be one undivided sequence declares "
                   f'<body data-parts="none">.')
         elif any(r.get("partsDeclaredNone") for r in live):
@@ -3149,14 +3216,14 @@ def deliverable_verdicts(rows, consistency):
                    f"that is stroked rather than filled, or one another opener "
                    f"already used — design-rules §3 permits exactly one and it "
                    f"is the part's own subject: " + _fmt_ids(h)))
-    # THE SEAM RATE. Gating since 0.1.549; reported for the four releases before
-    # that, during which a conformance deck came back with twelve content pages
+    # THE SEAM RATE. Gating since 0.1.549; reported from 0.1.376 until then,
+    # during which a conformance deck came back with ten unbroken content pages
     # and no opener at all and nothing failed it.
-    add("opener_pacing", _pacing_overrun(live), not _composes_as_a_deck(live),
+    add("opener_pacing", _pacing_overrun(live), _pacing_not_applicable(live),
         lambda h: (f"{len(h)} run(s) of content pages go past "
                    f"{OPENER_RUN_CEILING} without a seam (longest {max(h)}). "
-                   f"The accepted reference runs 6. A deck that is deliberately "
-                   f"one undivided sequence declares it with "
+                   f"The accepted reference's longest is 5. A deck that is "
+                   f"deliberately one undivided sequence declares it with "
                    f"<body data-parts=\"none\">"))
     add("bookend_title_length", _bookends_over_ceiling(live),
         not any((r.get("titleLines") or {}).get("kind") == "bookend"
