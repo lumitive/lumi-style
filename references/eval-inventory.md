@@ -71,7 +71,7 @@ All of these **gate** a pre-delivery run. `deliverable_verdicts`
 is the authority; five files once counted this list four
 different ways.
 
-`collision`, `content_hidden`, `content_spill`, `datum`, `figure_clipped`, `figure_distorts`, `figure_viewbox`, `footer_baseline`, `footer_wrap`, `page_height`, `reserve_overspent`, `role_split`, `starved_column`, `visual_absent`
+`band_escape`, `collision`, `content_hidden`, `content_spill`, `datum`, `figure_clipped`, `figure_distorts`, `figure_viewbox`, `footer_baseline`, `footer_wrap`, `page_height`, `reserve_overspent`, `role_split`, `starved_column`, `visual_absent`
 
 ## Module constants (discovered, with their own comments)
 

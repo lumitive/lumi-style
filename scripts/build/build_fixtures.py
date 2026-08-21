@@ -541,7 +541,17 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     # a reference implementation.
     band = ""
     if i in (3, 4):
-        band = ('<div class="band">'
+        # band_escape (0.1.541): the broken fixture's first band OVERRIDES the
+        # `min-height: min-content` floor `tokens/` gained this release, which
+        # is the only way to reach the defect now that the floor ships — and it
+        # is not a contrivance: the deck that produced the finding carried the
+        # tokens verbatim and still collapsed, because `.body > *`'s
+        # `min-height: 0` was the whole of the band's protection. A document
+        # that reintroduces that zero gets the old behaviour, and the checker
+        # has to see it. Without a fixture that FAILS, check_fixtures says out
+        # loud that the metric cannot be told from one rewritten to return ok.
+        squeeze = ' style="min-height:0;height:18px"' if broken and i == 3 else ''
+        band = (f'<div class="band"{squeeze}>'
                 '<div><span class="k">Coverage</span><div class="v">41<span class="u">%</span></div></div>'
                 '<div><span class="k">Feeders</span><div class="v">312</div></div>'
                 '<div><span class="k">Estimates</span><div class="v">8.4</div></div>'

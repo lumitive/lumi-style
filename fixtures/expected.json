@@ -88,6 +88,7 @@
     "exit": 0,
     "verdicts": {
      "collision": "ok",
+     "band_escape": "ok",
      "content_hidden": "ok",
      "content_spill": "ok",
      "datum": "ok",
@@ -242,6 +243,7 @@
     "exit": 1,
     "verdicts": {
      "collision": "ok",
+     "band_escape": "FAIL",
      "content_hidden": "ok",
      "content_spill": "ok",
      "datum": "ok",
@@ -329,6 +331,7 @@
     "exit": 1,
     "verdicts": {
      "collision": "FAIL",
+     "band_escape": "ok",
      "content_hidden": "FAIL",
      "content_spill": "FAIL",
      "datum": "n/a",

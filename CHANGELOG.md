@@ -1,3 +1,62 @@
+## 0.1.541 — a stat band may not be shorter than its own labels, in either geometry
+
+**What a page did.** `.body > *` carries `min-height: 0` so a figure can give
+back space it does not need. A stat band cannot give any back — its cells are
+text, at `align-items: start` — and the same declaration let its grid row
+collapse below the height those cells need. The cells do not shrink with the
+row: they hang out of the bottom of a box too short for them, onto whatever is
+beneath. Measured on the 0.1.540 conformance deck: a `.body.hero-band` page
+computed its rows as `138px 381px 35px`, the band needing 61px in the 35px row,
+and its labels rendered 12px below the content area's bottom edge, overlapping
+the confidential footer line by 352x5px. `collision` caught it, and only
+because the footer happened to be there to be hit.
+
+**The floor, and it is a floor.** `.body > .band { min-height: min-content; }`.
+`min-content` rather than a pixel number because the same markup needs 61px in
+landscape and 48px in portrait, so any constant would be wrong in one of them.
+The figure keeps giving back its own space, so nothing spills: measured at every
+collapse point in both geometries.
+
+**Both geometries were swept, and the second one is why.** Landscape's band
+collapses once the figure on the page passes about 380px; portrait's holds
+until about 900px — a taller page, the same mechanism, `min-height` computing
+to `0px` in both. At the extreme both crush the row to 0px and the band renders
+entirely outside itself. The first sweep of this reported portrait as
+unaffected, which was an artifact of the reproduction rather than a fact about
+portrait: the test figure was sized for a 720px-tall page. **A held-fixed axis
+is an unchecked axis**, and the fix would have shipped as landscape-only on the
+strength of a case that simply had not been pushed far enough.
+
+**The gate.** `band_escape` in `inspect_layout.py --deliverable`: a band whose
+`.k`/`.v` cells render outside the band's own box. Decidable, not aesthetic —
+text outside the box it belongs to is on top of whatever is under it — and it
+sees the case `collision` cannot, a band collapsing over empty canvas with
+nothing to hit. The measurement needs Chromium; **the decision does not**, so
+the decision is `_band_escaped` / `_band_escape_worst` in Python with tests that
+run without a browser, the pattern `aspect_stage` set at 0.1.524. The report
+names the row and the need together, because "45px of labels are outside" is the
+symptom and "a 15px row for 61px of content" is the defect.
+
+**Planted red on a real document, first.** A scaffold-built page in each
+geometry, its band collapsed by a figure that grew: red before the token floor,
+green after, both geometries. Then `check_fixtures` refused the metric outright
+— *"band_escape is graded and no fixture fails it — the suite cannot tell it
+from a metric rewritten to return ok"* — so `deck-broken.en.html`'s page 3 band
+now overrides the floor and fails it. That override is not a contrivance: the
+deck that produced the finding carried these tokens verbatim, and `.body > *`'s
+zero was the whole of the band's protection.
+
+**What this does not fix, stated plainly.** It does not make an overfull page
+fit. Re-run against the deck that produced it, `band_escape` goes green and
+`collision` still fails — now reading `conf/band 413x5px` rather than
+`k/conf 352x5px`. The band is no longer lying about its height, and the page is
+still 5px too tall for its content. That is the right attribution: one defect
+was text rendering outside its own box, and the other is a page with too much
+on it.
+
+Swept: the `--deliverable` verdict list is restated in `CLAUDE.md` and
+`SKILL.md`, and both name the new one.
+
 ## 0.1.540 — Gemini becomes drivable, the board names the model behind each row, and two findings the run itself produced
 
 **The board is measured again, on three agents.** It had stood on the 0.1.522
