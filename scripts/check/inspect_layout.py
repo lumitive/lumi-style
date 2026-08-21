@@ -681,6 +681,29 @@ PROBE = r"""
                       pct: +(100 * worst / Math.max(vb.width, vb.height)).toFixed(1)});
     }
 
+    // A STAT BAND RENDERING OUTSIDE ITSELF. `.body > *` carries `min-height: 0`
+    // so a figure can give back space; a band cannot give any back, and its
+    // grid row collapsing below the cells' height puts the labels outside the
+    // box — usually on the footer beneath. `collision` sees that case only when
+    // something is there to be hit, and a band collapsing over empty canvas is
+    // the same defect with nothing to collide with. Measured against the BAND's
+    // own box, so it is true wherever the band sits on the page.
+    const bandEscape = [];
+    for (const bd of s.querySelectorAll('.band')) {
+      const box = bd.getBoundingClientRect();
+      if (!box.height && !box.width) continue;
+      let out = 0;
+      for (const cell of bd.querySelectorAll('.k, .v')) {
+        const r = cell.getBoundingClientRect();
+        if (!r.height) continue;
+        out = Math.max(out, r.bottom - box.bottom, box.top - r.top);
+      }
+      // A pixel of rounding is not an escaped label; 2px is a visible one.
+      if (out > 1)
+        bandEscape.push({out: +out.toFixed(0), boxPx: +box.height.toFixed(0),
+                         needPx: bd.scrollHeight});
+    }
+
     // Caption centring (§4 rule 7b, 0.1.384). The horizontal companion to the
     // gap above: the caption block centres on its figure, and the two come apart
     // when the drawing's ink is not centred inside its own viewBox — which no
@@ -1126,6 +1149,7 @@ PROBE = r"""
       focalRatio: +(focalPx / Math.max(1, bodyPx)).toFixed(2),
       figLeadPct: +(100 * figLead).toFixed(0),
       caps, tables, drawn, capGapPx, capOffPct, clipped, badBox, sourceEcho, sourceComparable, fields, horizons,
+      bandEscape, hasBand: s.querySelectorAll('.band').length > 0,
       textOverlaps, worstOverlap,
       ledeBlocks, ledeClamped, reserveExpected,
       openerOutsidePx, openerSide,
@@ -1741,6 +1765,27 @@ def _colliding(live):
     return [r for r in live if r.get("textOverlaps", 0)]
 
 
+def _band_escaped(live):
+    """Pages where a stat band renders outside its own box.
+
+    Held here rather than in the probe so it can be tested without a browser,
+    which is the pattern `aspect_stage` set: the measurement needs Chromium,
+    the decision does not.
+    """
+    return [r for r in live if r.get("bandEscape")]
+
+
+def _band_escape_worst(live):
+    """-> the worst {out, boxPx, needPx} across every page, or None.
+
+    `out` is what hangs outside the band; `boxPx` and `needPx` are why, and
+    both are reported because "the labels are 45px out" is a symptom and
+    "the row is 15px for content needing 61px" is the defect.
+    """
+    all_ = [b for r in _band_escaped(live) for b in r["bandEscape"]]
+    return max(all_, key=lambda b: b["out"]) if all_ else None
+
+
 def _starved(live):
     return [r for r in live if r.get("starved")]
 
@@ -2120,6 +2165,23 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
     else:
         print(f"  collision: nothing overlaps anything on {len(live)} pages")
 
+    escaped = _band_escaped(live)
+    if escaped:
+        worst = _band_escape_worst(live)
+        print(f"  BAND ESCAPES ITS BOX: {len(escaped)} "
+              f"{'page holds' if len(escaped) == 1 else 'pages hold'} "
+              f"a stat band whose row "
+              f"collapsed below the height its own cells need, so the labels "
+              f"render outside it (worst {worst['out']}px out of a "
+              f"{worst['boxPx']}px box needing {worst['needPx']}px): "
+              + _fmt_ids(escaped, 8))
+    elif any(r.get("hasBand") for r in live):
+        print(f"  band: every stat band on "
+              f"{sum(1 for r in live if r.get('hasBand'))} page(s) contains its "
+              f"own labels")
+    else:
+        print("  -- band: no stat band in this document, nothing to measure")
+
     countable = [r for r in live if r.get("groundRepeats", 0)]
     # Whether a page HAS a ground, not whether its ground is built from the
     # countable shapes. A ground drawn in <path> has zero of those by
@@ -2493,6 +2555,15 @@ def deliverable_verdicts(rows, consistency):
     add("figure_clipped", [r for r in live if r.get("clipped")], not drawn,
         lambda h: f"{len(h)} pages draw outside a figure's own viewBox, which "
                   f"clips it away unseen: " + _fmt_ids(h))
+    # A BAND WHOSE ROW COLLAPSED. Decidable, not aesthetic: the cells are
+    # measured against the band's own box, and text outside the box it belongs
+    # to is on top of whatever is beneath it.
+    add("band_escape", _band_escaped(live), not live,
+        lambda h: (f"{len(h)} pages hold a stat band whose labels render "
+                   f"outside it: " + _fmt_ids(h)
+                   + (lambda w: f" — worst {w['out']}px out of a {w['boxPx']}px "
+                                f"box needing {w['needPx']}px"
+                      )(_band_escape_worst(live))))
     # A DRAWING THAT CONTRADICTS ITS OWN NUMBERS. Not a design judgement and not
     # a matter of taste: the mark declares the quantity, and the length either
     # follows it or it does not. A minimum-width floor drew 1 and 4 as the same

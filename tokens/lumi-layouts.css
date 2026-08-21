@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.540 (2026-08-19)
+   LUMI page layouts · v0.1.541 (2026-08-19)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -124,6 +124,29 @@
    tokens/ that cannot resolve, which is what stops the third one. */
 .foot .site { margin-right: auto; color: var(--acc); letter-spacing: .1em; }
 .body > * { min-width: 0; min-height: 0; }
+/* …EXCEPT A STAT BAND, which is text and cannot shrink. `min-height: 0` above
+   is what lets a figure give back space it does not need, and applied to a band
+   it lets the band's GRID ROW collapse below the height its own cells need. The
+   cells are `align-items: start`, so they do not shrink with the row: they hang
+   out of the bottom of a box that is too short, and the row beneath — usually
+   the footer — is where they land.
+
+   Measured on a conformance deck, 2026-08-21 (0.1.541): a `.body.hero-band`
+   page whose figure grew computed its rows as `138px 381px 35px`, the band
+   needing 61px in the 35px row. Its labels rendered 12px BELOW the content
+   area's bottom edge and overlapped the confidential footer line by 352x5px —
+   `collision` caught that one only because something happened to be there.
+   Swept both geometries rather than the one that produced it, which is the
+   whole point of sweeping: landscape collapses once the figure passes ~380px,
+   portrait at ~900px (a taller page, the same mechanism, `min-height`
+   computing to 0px in both). At the extreme both crush the row to 0px and the
+   band renders entirely outside itself.
+
+   min-content, not a pixel number: the two geometries need 61px and 48px for
+   the same markup, so any constant would be wrong in one of them. The figure
+   keeps giving back its own space, so this introduces no page spill — measured
+   at every collapse point in both geometries. */
+.body > .band { min-height: min-content; }
 /* The lede block holds eyebrow, title and support, and it RESERVES ITS HEIGHT.
    Only the prose takes the measure.
 

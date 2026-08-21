@@ -127,7 +127,8 @@ a clean document. **`--deliverable` gates a *document*, never this repo**: it
 exits non-zero on the findings that are decidable rather than aesthetic
 (collision, a starved column, content spill, page height, hidden content, a
 wrapped footer, a footer whose runs sit on different baselines, a viewBox that
-does not parse, a drawing clipped by its own viewBox, an overspent title
+does not parse, a drawing clipped by its own viewBox, a stat band whose
+labels render outside it, an overspent title
 reserve, a role split, a lost datum, a mark drawn out of proportion to the value it declares, and a document whose content pages are mostly not drawn on at all — the code's `deliverable_verdicts` is the
 authority; this list has been counted wrong in four files at once) and is the
 pre-delivery step in `SKILL.md`.
