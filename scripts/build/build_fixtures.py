@@ -357,13 +357,22 @@ FIGURE_WEAK = """<div class="fill">
         role="img" aria-label="bars"><rect class="f-acc" x="0" y="0" width="380"
         height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="70" width="250"
         height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="140" width="170"
-        height="46" fill="var(--acc)"/><text class="sm" x="400" y="30">a label that runs
+        height="46" fill="var(--acc)"/><polygon class="f-nw" points="150,60 260,60 300,93
+        260,126 150,126" fill="var(--nw)"/><text class="sm" x="400" y="30">a label that runs
         past the right edge of its own viewBox</text></svg>
       <div class="cap"><span class="n">Figure {i}</span> Reads by feeder class
       <span class="srcline">Meter management system, extract of the period</span></div>
       <script type="application/json" class="f-data">{{"series":[{{"label":"Feeder C","value":91}}]}}</script>
       </div>
     </div>"""
+# ^ The polygon is figure_ink_collision's failing subject (0.1.543): a solid
+# chevron laid across the solid bar above it, which is the defect the owner
+# opened a conformance deck and saw — 20x49px of one mark under another. The
+# accepted reference deck carries 64 self-overlaps and none exceeds 7x6px, so
+# the gate's floor is 12x12px and this plants well over it. Without a fixture
+# that FAILS, check_fixtures says out loud that the metric cannot be told from
+# one rewritten to return ok.
+#
 # ^ D21's failing subject: the figure DECLARES a series called "Feeder C" at 91,
 # and neither the label nor the number is anywhere on the drawing. A figure that
 # declares nothing is fine; one whose declaration contradicts it is not, because
@@ -661,6 +670,15 @@ def page(i: int, total: int, spec, broken: bool) -> str:
     if i == 7:
         layout, cells = "stack", f'<div class="fill">{row}{VOWS}</div>'
     role = ' data-role="apparatus"' if i == 17 else ""
+    # D32's failing subject (0.1.543, promoted to gating): a page that DECLARES
+    # an analysis move and draws none of the shapes the library ships for it.
+    # The condition was always binary — the page said what it was doing and did
+    # not do it — and it was reported for three releases while the deck the
+    # owner opened declared seven such pages and drew zero. Only the broken
+    # fixture carries the declaration; the passing one must not, because
+    # `check_fixtures` refuses a graded metric no fixture can fail.
+    if broken and i == 8:
+        role += ' data-analysis="bridge"'
     return f"""
 <section class="page" id="p{i}"{role}>
   {GROUND}

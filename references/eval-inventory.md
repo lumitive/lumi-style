@@ -55,7 +55,7 @@ the hidden-constraint condition this inventory exists to surface.
 | check_design | D2_type_scale | `reported` | reported |
 | check_design | D30_figure_sequence | `1..k once each, in page order (reported)` | reported |
 | check_design | D31_undeclared_sections | `=0 or declared (reported)` | reported |
-| check_design | D32_shape_use | `>0 where moves are declared (reported)` | reported |
+| check_design | D32_shape_use | `>0 where moves are declared (gates)` | gate |
 | check_design | D3_tier1_page_share | `<=33.0%` | graded |
 | check_design | D3_tier1_per_page | `<=1 per page` | graded |
 | check_design | D4_palette_literals | `=0` | graded |
@@ -71,7 +71,7 @@ All of these **gate** a pre-delivery run. `deliverable_verdicts`
 is the authority; five files once counted this list four
 different ways.
 
-`band_escape`, `collision`, `content_hidden`, `content_spill`, `datum`, `figure_clipped`, `figure_distorts`, `figure_viewbox`, `footer_baseline`, `footer_wrap`, `page_height`, `reserve_overspent`, `role_split`, `starved_column`, `visual_absent`
+`band_escape`, `collision`, `content_hidden`, `content_spill`, `datum`, `figure_clipped`, `figure_distorts`, `figure_ink_collision`, `figure_viewbox`, `footer_baseline`, `footer_wrap`, `page_height`, `reserve_overspent`, `role_split`, `starved_column`, `title_two_lines`, `visual_absent`
 
 ## Module constants (discovered, with their own comments)
 

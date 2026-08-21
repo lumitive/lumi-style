@@ -93,6 +93,8 @@
      "content_spill": "ok",
      "datum": "ok",
      "figure_clipped": "ok",
+     "figure_ink_collision": "ok",
+     "title_two_lines": "ok",
      "figure_viewbox": "ok",
      "footer_baseline": "ok",
      "footer_wrap": "ok",
@@ -176,7 +178,7 @@
      "D29_figure_numbers": "ok",
      "D30_figure_sequence": "FAIL",
      "D31_undeclared_sections": "FAIL",
-     "D32_shape_use": "ok"
+     "D32_shape_use": "FAIL"
     },
     "contains": {
      "D16_visual_presence": [
@@ -248,6 +250,8 @@
      "content_spill": "ok",
      "datum": "ok",
      "figure_clipped": "FAIL",
+     "figure_ink_collision": "FAIL",
+     "title_two_lines": "ok",
      "figure_viewbox": "FAIL",
      "footer_baseline": "ok",
      "footer_wrap": "ok",
@@ -336,6 +340,8 @@
      "content_spill": "FAIL",
      "datum": "n/a",
      "figure_clipped": "ok",
+     "figure_ink_collision": "ok",
+     "title_two_lines": "FAIL",
      "figure_viewbox": "ok",
      "footer_baseline": "FAIL",
      "footer_wrap": "FAIL",

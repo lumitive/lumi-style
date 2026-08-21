@@ -629,6 +629,105 @@ PROBE = r"""
     // and a 300-wide drawing are comparable.
     const clipped = [];
     const badBox = [];
+    // INK LANDING ON INK, INSIDE THE DRAWING. `collision` measures page BLOCKS
+    // — .fig against .band, a title against a footer — and never opens an svg,
+    // so a chart whose arrow sits on a box and whose label sits under both is
+    // a clean page to every gate this package has. Three agents shipped decks
+    // that way on 2026-08-21: each iterated until all three checkers exited 0,
+    // and none was told. The owner opened one and saw it in a second.
+    //
+    // FILLED ink only, and containment is not collision: a label plate BEHIND
+    // its text, a bar inside its plot frame and a halo around a node are all
+    // one shape inside another and all correct. What is left is two solid
+    // marks that partly cover each other, which is the thing a reader sees as
+    // broken. Held against the accepted reference deck before shipping.
+    // THE TWO-LINE CEILING, which design-rules states as the headline's only
+    // hard limit and which nothing has ever checked. `reserve` asks a different
+    // question — does the title block fit the height it reserved — and a title
+    // can run to five lines inside a generous reserve and pass it.
+    //
+    // WHERE IT BINDS is set by the accepted reference deck rather than by
+    // reading the sentence alone: that document keeps every part opener and
+    // every content headline at two lines or fewer, and exceeds only on its
+    // cover and its closing page, which are separate templates with their own
+    // claim at display scale. So those two are measured and reported, and the
+    // ceiling gates everywhere else.
+    let titleLines = null;
+    {
+      const t = s.querySelector('h1, h2, .t, .openclaim');
+      if (t && (t.textContent || '').trim()) {
+        // COUNTED ON THE RENDERED TEXT, via a Range, exactly as the caption
+        // measurement above does — and for the same reason. Height divided by
+        // line-height counts PADDING as text: it read a thirty-character
+        // headline in the passing fixture as three lines, at two of four
+        // viewports, and would have failed the document this package ships as
+        // its own example. A Range yields one client rect per line box and
+        // knows nothing about the box around them.
+        const rng = document.createRange();
+        rng.selectNodeContents(t);
+        const tops = new Set();
+        for (const r of rng.getClientRects()) {
+          if (r.width < 1 || r.height < 1) continue;
+          tops.add(Math.round(r.top));         // one entry per line box
+        }
+        rng.detach && rng.detach();
+        const kind = /cover|clos/i.test((s.id || '') + ' ' + (s.className || ''))
+                     ? 'bookend' : 'body';
+        titleLines = {lines: Math.max(1, tops.size), kind,
+                      text: (t.textContent || '').trim().slice(0, 40)};
+      }
+    }
+    const figInk = [];
+    for (const sv of s.querySelectorAll('.fig svg:not(.ic)')) {
+      const marks = [];
+      // NO TEXT. A label lying on the region it names is what a map IS, and
+      // the reference deck carries dozens: `'path' over '3 · Australia, New
+      // Zealand'` was this check's second false finding against a document the
+      // owner has accepted. Paint order settles it — every label in all four
+      // documents measured is drawn ON TOP of its shape, so text is never the
+      // thing being covered. What is left is solid mark against solid mark.
+      sv.querySelectorAll('rect,circle,ellipse,path,line,polygon,polyline').forEach(e => {
+        if (e.closest('defs,symbol,marker,clipPath,mask,pattern')) return;
+        const cs = getComputedStyle(e);
+        if (cs.visibility === 'hidden' || cs.display === 'none') return;
+        if (+cs.opacity < 0.15) return;                 // a wash is not ink
+        const fill = (cs.fill || '').trim();
+        if (!fill || fill === 'none' || fill === 'transparent') return;
+        const r = e.getBoundingClientRect();
+        if (r.width < 3 || r.height < 3) return;
+        marks.push({tag: e.tagName.toLowerCase(), x: r.x, y: r.y,
+                    w: r.width, h: r.height,
+                    txt: (e.textContent || '').trim().slice(0, 24)});
+      });
+      for (let i = 0; i < marks.length; i++) {
+        for (let j = i + 1; j < marks.length; j++) {
+          const a = marks[i], b = marks[j];
+          const holds = (p, q) => p.x >= q.x - 1 && p.y >= q.y - 1 &&
+                                  p.x + p.w <= q.x + q.w + 1 &&
+                                  p.y + p.h <= q.y + q.h + 1;
+          if (holds(a, b) || holds(b, a)) continue;
+          const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+          const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+          if (ox <= 3 || oy <= 3) continue;
+          // AN ABSOLUTE FLOOR, set by measuring the accepted reference deck
+          // rather than by choosing a number. Every drawing overlaps itself:
+          // an arrowhead rests on its line, a rounded corner meets its edge, a
+          // node sits on its halo. The reference carries **64 such pairs and
+          // not one exceeds 7x6px** — they are draughtsmanship. The defect the
+          // owner opened a deck and saw was 20x49px, a solid box with a solid
+          // polygon lying across it: seven times the reference's largest.
+          //
+          // A share of the smaller mark was the first rule here and it was
+          // wrong on its face: 5x5px of a 12px arrowhead is 81% of it, so the
+          // reference failed three pages the first time this ran. What a
+          // reader sees as broken is ABSOLUTE — ink the size of a word, not a
+          // fraction of a glyph.
+          if (ox < 12 || oy < 12) continue;
+          figInk.push({w: Math.round(ox), h: Math.round(oy),
+                       a: a.txt || a.tag, b: b.txt || b.tag});
+        }
+      }
+    }
     for (const sv of s.querySelectorAll('.fig svg[viewBox]:not(.ic)')) {
       const vb = sv.viewBox.baseVal;
       // A viewBox that does not parse is not "nothing to check": the browser
@@ -1150,6 +1249,7 @@ PROBE = r"""
       figLeadPct: +(100 * figLead).toFixed(0),
       caps, tables, drawn, capGapPx, capOffPct, clipped, badBox, sourceEcho, sourceComparable, fields, horizons,
       bandEscape, hasBand: s.querySelectorAll('.band').length > 0,
+      figInk, titleLines,
       textOverlaps, worstOverlap,
       ledeBlocks, ledeClamped, reserveExpected,
       openerOutsidePx, openerSide,
@@ -1784,6 +1884,48 @@ def _colliding(live):
     return [r for r in live if r.get("textOverlaps", 0)]
 
 
+def _title_over_two_lines(live):
+    """Pages whose headline runs past two lines at the design viewport.
+
+    `design-rules` states it as the headline's ONLY hard limit and nothing
+    checked it: the `reserve` verdict asks whether a title block fits the height
+    it reserved, and a five-line cover inside a generous reserve passes that.
+    Measured on three conformance decks 2026-08-21 — one cover ran to five
+    lines.
+
+    Bookends are exempt and the reference deck is why: it keeps every opener and
+    content headline inside two lines and exceeds only on its cover and closing,
+    which carry their claim at display scale under their own templates.
+    """
+    return [r for r in live
+            if (r.get("titleLines") or {}).get("kind") == "body"
+            and (r.get("titleLines") or {}).get("lines", 0) > 2]
+
+
+def _bookends_over_two_lines(live):
+    """The same measurement on cover and closing, reported and never gated."""
+    return [r for r in live
+            if (r.get("titleLines") or {}).get("kind") == "bookend"
+            and (r.get("titleLines") or {}).get("lines", 0) > 2]
+
+
+def _fig_ink_collides(live):
+    """Pages where two solid marks inside a drawing partly cover each other.
+
+    `collision` measures page BLOCKS and never opens an svg, so a chart whose
+    arrow sits on a box and whose label sits under both passes every gate this
+    package has. Three agents shipped decks that way on 2026-08-21, each having
+    iterated until all three checkers exited 0.
+    """
+    return [r for r in live if r.get("figInk")]
+
+
+def _fig_ink_worst(live):
+    """-> the largest {w,h,a,b} across every page, or None."""
+    all_ = [x for r in _fig_ink_collides(live) for x in r["figInk"]]
+    return max(all_, key=lambda x: x["w"] * x["h"]) if all_ else None
+
+
 def _band_escaped(live):
     """Pages where a stat band renders outside its own box.
 
@@ -2184,6 +2326,32 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
     else:
         print(f"  collision: nothing overlaps anything on {len(live)} pages")
 
+    long_titles = _title_over_two_lines(live)
+    if long_titles:
+        print(f"  TITLE PAST TWO LINES: {len(long_titles)} page"
+              f"{'s' if len(long_titles) != 1 else ''} carry a headline longer "
+              f"than the two-line ceiling design-rules sets: "
+              + ", ".join(f"{r['id']} {r['titleLines']['lines']} lines"
+                          for r in long_titles[:5]))
+    else:
+        print("  title lines: every headline outside the bookends fits two lines")
+    bookends = _bookends_over_two_lines(live)
+    if bookends:
+        print(f"  -- bookends: {len(bookends)} of cover/closing run past two "
+              f"lines — reported, not gated: "
+              + ", ".join(f"{r['id']} {r['titleLines']['lines']}" for r in bookends))
+
+    inked = _fig_ink_collides(live)
+    if inked:
+        w = _fig_ink_worst(live)
+        print(f"  INK ON INK INSIDE A DRAWING: {len(inked)} page"
+              f"{'s' if len(inked) != 1 else ''} draw two solid marks over each "
+              f"other (worst {w['w']}x{w['h']}px: {w['a']!r} over "
+              f"{w['b']!r}): " + _fmt_ids(inked, 8))
+    elif any(r.get("drawn") for r in live):
+        print(f"  figure ink: nothing overlaps anything inside "
+              f"{sum(1 for r in live if r.get('drawn'))} drawn page(s)")
+
     escaped = _band_escaped(live)
     if escaped:
         worst = _band_escape_worst(live)
@@ -2577,6 +2745,17 @@ def deliverable_verdicts(rows, consistency):
     # A BAND WHOSE ROW COLLAPSED. Decidable, not aesthetic: the cells are
     # measured against the band's own box, and text outside the box it belongs
     # to is on top of whatever is beneath it.
+    add("title_two_lines", _title_over_two_lines(live),
+        not any(r.get("titleLines") for r in live),
+        lambda h: (f"{len(h)} pages carry a headline past the two-line ceiling: "
+                   + ", ".join(f"{r['id']} {r['titleLines']['lines']} lines "
+                               f"({r['titleLines']['text']!r})" for r in h[:3])))
+    add("figure_ink_collision", _fig_ink_collides(live), not drawn,
+        lambda h: (f"{len(h)} pages draw two solid marks over each other inside "
+                   f"a figure: " + _fmt_ids(h)
+                   + (lambda w: f" — worst {w['w']}x{w['h']}px "
+                                f"({w['a']!r} over {w['b']!r})"
+                      )(_fig_ink_worst(live))))
     add("band_escape", _band_escaped(live), not live,
         lambda h: (f"{len(h)} pages hold a stat band whose labels render "
                    f"outside it: " + _fmt_ids(h)
