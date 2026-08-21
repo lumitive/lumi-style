@@ -75,6 +75,33 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-024 · Layout variety is measured, reported, and cannot fail
+
+- status: open
+- opened: 0.1.543
+- surface: scripts/check/check_design.py (`D9_layout_spread`)
+- symptom: the row's pass condition is the literal `True`. It prints "N
+  layouts, top X%" and no value of X has ever failed anything, so a deck that
+  runs one layout on every page reads identically to one that varies. The
+  owner opened three conformance decks on 2026-08-21 and named this first —
+  most pages are the same left/right split, and the deck is not varied enough.
+  The metric had already measured exactly that and said nothing.
+- what is known, and it is two points: the accepted reference deck
+  (LUMI-Commercial-Agent-BP-chengdu.0.1.522.r11) runs **6 layouts, top share
+  33.3%**; the deck the owner rejected runs **3 layouts, top share 70.0%**.
+  A third, from Cursor, runs 6 layouts at 30.0% and the owner did not fault
+  its layouts.
+- why it is not gated here and now: a threshold between 33% and 70% would be
+  a number invented from one accepted document. This package has done that
+  once — 0.1.339's 82% page-fill floor, which a deliverable met by stretching
+  table rows and whose reader scored three dimensions at 1 — and convention 6
+  exists because of it. `evals/thresholds.json` is where a ratio with an
+  `evidence` level belongs, not a design row with a hardcoded constant.
+- check: a second document accepted through a blind review, its layout spread
+  measured, and the bar set in `evals/thresholds.json` at `provisional` with
+  both documents cited. GAP-021's re-baseline of A1 produces the same
+  material and should close both.
+
 ## GAP-023 · A driven agent's `new_deck.py` runs write build traces into the installed skill
 
 - status: open
@@ -143,6 +170,18 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   `score` folds it into `not earned`, so it neither credits the agent nor
   blames it. **The file is never copied in and scored**, which would launder
   a run that missed the task's own instruction into a pass.
+- the two boards were separated at 0.1.543, because the first matrix run
+  showed the cost of conflating them: two of the first four cells were
+  misplaced, contributed no trace, and the matrix the runs existed for could
+  not be filled by the runs that were filling it. The conformance verdict
+  asks whether the agent did the task AS STATED and the task states the
+  working directory, so a misplaced run stays `not earned` there. The cost
+  trace asks how many output tokens a model at an effort spent per content
+  page, and a file's location cannot change that answer — so it now closes
+  against the misplaced artifact. No field of a trace is about location, and
+  `ledger.py --board` drops any run with a failing gate before computing
+  anything, so nothing is laundered into a pass. A timeout is still refused:
+  its file is a draft wherever it sits.
 - check: a driven agent whose artifact reliably lands in the working
   directory, or a task contract that states an absolute path and is therefore
   answerable by every agent alike. The 0.1.542 sweep is a report, not a fix,

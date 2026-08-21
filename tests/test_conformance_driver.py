@@ -521,3 +521,223 @@ def test_the_input_is_never_mistaken_for_the_artifact(tmp_path):
     out = rc.drive(_agent([sys.executable, "-c", "pass"]), TASK, tmp_path)
     assert out["produced"] == []
     assert out["verdict"] == "driven"
+
+
+def test_effort_in_the_model_id_pins_both_axes(tmp_path):
+    # Cursor ships Grok 4.6 as one model id per level — `cursor-grok-4.6-low`,
+    # `-medium`, `-high` — so there is no flag for a separate effort to go in.
+    # Without the template the matrix gets three model rows at "(not pinned)"
+    # effort: a deliberate comparison filed under unknown.
+    argv = [sys.executable, "-c",
+            "import sys,pathlib; pathlib.Path('a.md').write_text(' '.join(sys.argv[1:]))"]
+    agent = dict(_agent(argv), drive_effort_in_model="{model}-{effort}")
+    out = rc.drive(agent, TASK, tmp_path, model="cursor-grok-4.6", effort="high")
+    assert out["model"] == "cursor-grok-4.6-high"
+    assert out["effort"] == "high", "the level was pinned and must be recorded as pinned"
+    assert "--model cursor-grok-4.6-high" in (tmp_path / "a.md").read_text()
+
+
+def test_the_composed_model_does_not_also_get_an_effort_flag(tmp_path):
+    # A platform declaring both would otherwise be handed `--effort high` on top
+    # of a model id that already says high, which the CLI would reject.
+    argv = [sys.executable, "-c",
+            "import sys,pathlib; pathlib.Path('a.md').write_text(' '.join(sys.argv[1:]))"]
+    agent = dict(_agent(argv), drive_effort_in_model="{model}-{effort}",
+                 drive_effort_flag="--effort")
+    rc.drive(agent, TASK, tmp_path, model="m", effort="low")
+    assert "--effort" not in (tmp_path / "a.md").read_text()
+
+
+def test_a_flag_platform_is_unaffected(tmp_path):
+    argv = [sys.executable, "-c",
+            "import sys,pathlib; pathlib.Path('a.md').write_text(' '.join(sys.argv[1:]))"]
+    agent = dict(_agent(argv), drive_effort_flag="--reasoning")
+    out = rc.drive(agent, TASK, tmp_path, model="m", effort="medium")
+    assert out["model"] == "m" and out["effort"] == "medium"
+    assert "--reasoning medium" in (tmp_path / "a.md").read_text()
+
+
+def test_effort_without_a_model_cannot_be_composed(tmp_path):
+    # The template needs both halves. Recording "(not pinned)" is the honest
+    # outcome; inventing a model name to hang the level on is not.
+    argv = [sys.executable, "-c",
+            "import sys,pathlib; pathlib.Path('a.md').write_text(' '.join(sys.argv[1:]))"]
+    agent = dict(_agent(argv), drive_effort_in_model="{model}-{effort}")
+    out = rc.drive(agent, TASK, tmp_path, effort="high")
+    assert out["effort"] == "(not pinned)"
+
+
+# THE TWO BOARDS ASK DIFFERENT QUESTIONS. Conformance asks whether the agent did
+# the task as stated, and the task states the working directory. The cost trace
+# asks how many tokens a model at an effort spent per content page, which a
+# file's location cannot change. Of the first four matrix cells driven on
+# 2026-08-21, two were misplaced and contributed no trace, so the matrix the
+# runs existed for could not be filled by them.
+
+def _trace_task():
+    return {"id": "T-trace", "prompt": "make a deck", "deliverable": "*.html",
+            "storyline": "status-report", "genre": "internal"}
+
+
+def test_a_misplaced_artifact_still_closes_its_cost_trace(tmp_path, monkeypatch):
+    calls: list = []
+
+    def _record(argv, **kw):
+        calls.append(argv)
+        return _ok("t-abc")
+
+    monkeypatch.setattr(rc.subprocess, "run", _record)
+    record = {"verdict": "misplaced", "produced": [], "seconds": 12,
+              "misplaced": [str(tmp_path / "elsewhere" / "deck.en.html")],
+              "model": "m", "effort": "high"}
+    out = rc._conformance_trace({"id": "a"}, _trace_task(), tmp_path, record)
+    assert "closed" in out, out
+    closed = calls[-1]
+    assert str(tmp_path / "elsewhere" / "deck.en.html") in closed
+    assert "--model" in closed and "--effort" in closed
+
+
+def test_a_timeout_is_still_refused(tmp_path, monkeypatch):
+    # Its file is a draft, whatever its location, and a draft is not a result.
+    monkeypatch.setattr(rc.subprocess, "run", lambda argv, **kw: _ok("t-abc"))
+    record = {"verdict": "timeout", "produced": [], "seconds": 1800,
+              "misplaced": [str(tmp_path / "deck.en.html")]}
+    out = rc._conformance_trace({"id": "a"}, _trace_task(), tmp_path, record)
+    assert "left open" in out
+
+
+def test_a_misplaced_run_with_no_path_leaves_the_trace_open(tmp_path, monkeypatch):
+    monkeypatch.setattr(rc.subprocess, "run", lambda argv, **kw: _ok("t-abc"))
+    record = {"verdict": "misplaced", "produced": [], "misplaced": [], "seconds": 5}
+    out = rc._conformance_trace({"id": "a"}, _trace_task(), tmp_path, record)
+    assert "left open" in out
+
+
+class _ok:
+    def __init__(self, out):
+        self.returncode, self.stdout, self.stderr = 0, out, ""
+
+
+# THE RESULT OBJECT IS NOT ALWAYS LAST. The transcript is stdout AND stderr, and
+# Claude Code's JSON result is followed by "Warning: no stdin data received in
+# 3s". Every twelve-page run recorded `usage: null` because of that one line —
+# a missing row on the cost board, which needs output tokens before it computes.
+
+RESULT = ('{"is_error":false,"num_turns":14,'
+          '"usage":{"input_tokens":24,"output_tokens":26911},"session_id":"x"}')
+
+
+def test_usage_is_read_when_the_object_is_last():
+    assert rc._usage_from_transcript("chatter\n" + RESULT) == {
+        "input_tokens": 24, "output_tokens": 26911}
+
+
+def test_usage_is_read_when_a_warning_follows_the_object():
+    # The real shape, taken from a 2026-08-21 matrix run.
+    text = RESULT + "\nWarning: no stdin data received in 3s, proceeding without it.\n"
+    assert rc._usage_from_transcript(text) == {
+        "input_tokens": 24, "output_tokens": 26911}
+
+
+def test_a_transcript_with_no_object_is_still_none():
+    # "not returned" must stay distinguishable from zero.
+    assert rc._usage_from_transcript("Warning: something\nno json here") is None
+    assert rc._usage_from_transcript("{}") is None
+
+
+def test_a_non_integer_count_is_not_believed():
+    assert rc._usage_from_transcript(
+        '{"usage":{"input_tokens":"24","output_tokens":26911}}') is None
+
+
+# SOME CLIS REPORT USAGE TO A FILE. Hermes writes `--usage-file <path>` and says
+# nothing about tokens on stdout, so the transcript reader found none and its
+# cells carried quality without cost: a clean eight-page deck and no row on the
+# efficiency board.
+
+def test_usage_is_read_from_a_file_the_cli_wrote(tmp_path):
+    payload = ('{"input_tokens": 17952, "output_tokens": 12, '
+               '"estimated_cost_usd": 0.0026, "model": "m"}')
+    argv = [sys.executable, "-c",
+            "import sys,pathlib;"
+            "p=sys.argv[sys.argv.index('--usage-file')+1];"
+            f"pathlib.Path(p).write_text({payload!r});"
+            "pathlib.Path('answers.md').write_text('done')"]
+    agent = dict(_agent(argv), drive_usage_file_flag="--usage-file")
+    out = rc.drive(agent, TASK, tmp_path)
+    assert out["usage"] == {"input_tokens": 17952, "output_tokens": 12}
+
+
+def test_a_usage_file_that_was_never_written_is_none(tmp_path):
+    agent = dict(_agent(_writes()), drive_usage_file_flag="--usage-file")
+    out = rc.drive(agent, TASK, tmp_path)
+    assert out["usage"] is None, "absent must stay absent, never zero"
+
+
+def test_a_usage_file_with_non_integer_counts_is_not_believed(tmp_path):
+    p = tmp_path / "u.json"
+    p.write_text('{"input_tokens": null, "output_tokens": 12}', encoding="utf-8")
+    assert rc._usage_from_file(p) is None
+    p.write_text("not json at all", encoding="utf-8")
+    assert rc._usage_from_file(p) is None
+
+
+# TWO SPELLINGS. Cursor reports `inputTokens`/`outputTokens` in the same field of
+# the same shape Claude Code fills as `input_tokens`/`output_tokens`. A reader
+# that knew one of them reported "no usage" for the other in silence, and those
+# runs carried a clean eight-page deck with no row on the cost board.
+
+def test_camel_case_usage_is_read_too():
+    text = ('{"type":"result","result":"ok","usage":'
+            '{"inputTokens":19051,"outputTokens":73,"cacheReadTokens":2944}}')
+    assert rc._usage_from_transcript(text) == {
+        "input_tokens": 19051, "output_tokens": 73}
+
+
+def test_snake_case_still_wins_when_both_are_present():
+    # Not a real shape, but the order must be deterministic rather than
+    # whichever key the dict happens to yield first.
+    assert rc._two_counts({"input_tokens": 1, "output_tokens": 2,
+                           "inputTokens": 9, "outputTokens": 9}) == {
+        "input_tokens": 1, "output_tokens": 2}
+
+
+def test_a_usage_file_of_bare_counts_is_read(tmp_path):
+    p = tmp_path / "u.json"
+    p.write_text('{"inputTokens": 5, "outputTokens": 6}', encoding="utf-8")
+    assert rc._usage_from_file(p) == {"input_tokens": 5, "output_tokens": 6}
+
+
+def test_partial_counts_are_refused():
+    assert rc._two_counts({"inputTokens": 5}) is None
+    assert rc._two_counts({"input_tokens": 5, "output_tokens": None}) is None
+
+
+def test_every_flag_lands_before_the_trailing_prompt(tmp_path):
+    # The usage-file flag was appended AFTER the prompt flag, so Hermes received
+    # `-z --usage-file <path>` and read the flag name as its prompt, exiting in
+    # 0.4s — the exact failure `drive_prompt_flag` exists to prevent, committed
+    # by the code that implements it.
+    argv = [sys.executable, "-c",
+            "import sys,pathlib; pathlib.Path('a.md').write_text(repr(sys.argv[1:]))"]
+    agent = dict(_agent(argv), drive_prompt_flag="-z",
+                 drive_usage_file_flag="--usage-file")
+    rc.drive(agent, TASK, tmp_path, model="m")
+    got = ast.literal_eval((tmp_path / "a.md").read_text())
+    assert got[-2:] == ["-z", TASK["prompt"]], got
+    assert "--usage-file" in got and got.index("--usage-file") < got.index("-z")
+
+
+def test_a_misplaced_artifact_is_kept_in_the_record(tmp_path, monkeypatch):
+    # Not copying it in at all left a run directory with a transcript, a driver
+    # record and no deliverable: the reviewer could not find what the run made.
+    # It goes in a SUBdirectory, so the scorer's non-recursive glob still cannot
+    # see it — scoring it would launder a run that missed the instruction.
+    home = tmp_path / "elsewhere"
+    home.mkdir()
+    monkeypatch.setattr(rc.pathlib.Path, "home", staticmethod(lambda: home))
+    out = rc.drive(_agent(_elsewhere(home / "answers.md")), TASK, tmp_path)
+    assert out["verdict"] == "misplaced"
+    assert (tmp_path / "misplaced" / "answers.md").read_text() == "done"
+    assert not (tmp_path / "answers.md").exists(), "it must not be scorable"
+    assert sorted(p.name for p in tmp_path.glob(TASK["deliverable"])) == []

@@ -146,7 +146,7 @@ than passed. **D20 is the one that looks the other way**: every COLOUR token the
 document declares that `tokens/` also defines must carry the shipped value,
 because a document can be perfectly consistent with a palette of its own
 invention and that is a different design language. Sizes are exempt by the same
-logic that withdrew the type floor at 0.1.340. Ten of its metrics **gate**, and none is a
+logic that withdrew the type floor at 0.1.340. Eleven of its metrics **gate**, and none is a
 design judgement: **D12** (handling terms and origin on every page) is a
 commercial requirement on the artifact, **D14** (no `[TO FILL]`, `[TBD]` or
 `{{…}}` reaching the reader) asks whether the document is finished, **D15**
@@ -161,7 +161,9 @@ whether the page structure is the brand's at all, and **D24** (every image ships
 inside the file) and **D25** (every image names its terms) are what made lifting
 the imagery restriction safe rather than a hope, and **D27** (every agenda
 line quotes a title the document actually carries) asks whether the agenda is
-the document's own story or a second one. All ten are
+the document's own story or a second one, and **D32** (a page that declares an
+analysis move draws the library's shape for it) asks whether the page did what
+it said it was doing. All eleven are
 decidable in the way "does this page read as intentional" is not. The list is
 `check_design.py`'s to change: a row whose target says `(gates)` gates, and the
 `gating claims` guard holds this sentence to it.

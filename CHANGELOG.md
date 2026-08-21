@@ -1,3 +1,107 @@
+## 0.1.543 — the conformance bar becomes the package's own bar, and three checks the owner's eye found before any instrument did
+
+**A hand-written list of six was standing in for the standard.** T1's `require`
+named D12, D14, D15, M4, `collision` and `content_hidden`. Ten design metrics
+gated and fifteen layout verdicts did, and the Evals thresholds were applied by
+nothing at all — so a deck could fail D19, D1, D3, D4 and eleven layout checks
+and be recorded `pass`. One was: the owner opened a conformance deck on
+2026-08-21, found 51KB with zero content pages sitting green on the board, and
+said the deliverables did not meet the standard. She was right, and the board
+had said otherwise all day. `require` is now `"all-gating"`, read from the
+checkers' own row tables through `scripts/lib/gating.py`, plus `evals: true`.
+The set is no longer copyable, so it cannot fall behind. **FM-20** names the
+shape: not drift — the list was short the day it was written, and every release
+that added a gate widened the gap without touching it.
+
+**Held against a document known to be good, because the owner suspected the
+instrument.** She said the validation was probably buggy, which was the right
+suspicion — six of this session's findings were bugs in it. So the scorer was
+pointed at the accepted reference deck: **26 of 26 gates, three checkers at exit
+0, no Evals miss, in both genres.** The instrument passes what is good and fails
+what is not; what failed was the bar it was asked to apply.
+
+**The task now asks the agent to check its own work,** which is the owner's
+decision and the reason the earlier verdicts meant nothing. The reference deck
+was built by Claude Code through this package's real pipeline — scaffold, build,
+check, fix, repeat, eleven revisions — and a single non-interactive call with no
+loop produced 66KB against its 923KB. Holding a one-shot process to a
+pipeline's output standard measures the contract, not the agent, and every
+agent failed it identically. With the loop: Claude Code went from six gate
+failures and `visual_share 18.5` to every gate passing at 44.0, same model, same
+effort. **The one variable was whether it was told to look.**
+
+**And the `full` tier's central claim was impossible to meet.** That tier says
+the agent runs check_prose, check_design and inspect_layout ITSELF. Claude Code
+was driven with `--permission-mode acceptEdits`, which permits writing files and
+not running commands: asked to check its work it stopped after 141 seconds
+having written nothing and requested a `python3` allowlist entry. No run had
+noticed in the releases the claim has stood, because until now no task asked.
+It is driven with an explicit `--allowedTools` allowlist now — not
+`bypassPermissions`, which an automated review flagged and which would have
+handed arbitrary shell to an agent on every machine that runs this harness. A
+test refuses both a mode that cannot execute and a mode that grants everything.
+
+**Half the standard shown is half the standard met.** The first version of the
+loop named the three checkers and not the Evals, and the cost was measured
+inside the hour: Claude Code ran `check_design` five times, cleared all 29
+gates, and stopped at `visual_share_median 42.0` against a floor of 50 — a bar
+no checker reports. Hermes stopped at 44.0, Cursor at 43.5 the round before. An
+agent iterates to the edge of what it is shown; `eval_corpus.py` is the fourth
+command in the contract now.
+
+**Three checks the eye found first, and each was wrong twice before it was
+right.**
+
+`figure_ink_collision` — `collision` measures page BLOCKS and never opens an
+svg, so a chart whose arrow lies across its box is a clean page to every gate
+this package has. Three agents shipped decks that way, each having iterated
+until all three checkers exited 0, and none was told. Rule v1 keyed on the share
+of the smaller mark and **failed the accepted reference on three pages**: 5x5px
+of a 12px arrowhead is 81% of it and is how a drawing is MADE. v2 added a size
+floor and still failed it — on `'path' over '3 · Australia, New Zealand'`, a map
+label lying on the region it names. v3 excludes text entirely, because paint
+order settles it: every label in all four documents measured is drawn ON TOP.
+The floor is 12x12px, and it is the reference's own number — 64 self-overlaps
+there and **not one exceeds 7x6px**, against the 20x49px the owner saw.
+
+`title_two_lines` — design-rules calls two lines the headline's only hard limit
+and nothing checked it; `reserve` asks whether a title fits the height it
+reserved, which a five-line cover inside a generous reserve passes. Rule v1
+counted `height / line-height` and read a thirty-character headline in this
+package's own passing fixture as three lines, at two of four viewports —
+padding counted as text. v2 counts line boxes from a `Range` over the rendered
+text, which is the technique the caption measurement in the same file has used
+since 0.1.384 and which reading the file would have found. Bookends are exempt
+on the reference's evidence: it keeps every opener and content headline inside
+two lines and exceeds only on cover and closing, as do all four documents
+measured. They are reported.
+
+`D32_shape_use` gates. Its condition was always binary — a page that DECLARES
+an analysis move and draws none of the library's shapes has said what it is
+doing and not done it — and it was reported for three releases. The reference
+declares no moves and passes untouched; the deck the owner opened declares seven
+and drew zero. Four prose sites named the gating set and the guard caught all
+four.
+
+**What is measured, reported, and still cannot fail** is `D9_layout_spread`,
+whose pass condition is the literal `True`. The owner's first complaint was that
+most pages are the same left/right split; the metric had already measured
+exactly that — 3 layouts, top share 70.0%, against the reference's 6 at 33.3% —
+and said nothing. It is **GAP-024** rather than a new gate, because a threshold
+between those two numbers would be invented from one accepted document, and
+0.1.339's 82% page-fill floor is what this package earned convention 6 with.
+
+**Also from the same session.** A misplaced artifact is kept in the run record
+under `misplaced/` — not scorable, because the scorer's glob does not recurse,
+and not lost, because a run directory holding a transcript and no deliverable is
+one a reviewer cannot review; the owner looked for one and reported the absence.
+`run --drive` reads usage from a CLI's own file (`drive_usage_file_flag`, Hermes)
+and accepts `inputTokens` as well as `input_tokens` (Cursor), each of which had
+been silently recording no cost at all. Cursor pins effort through the model id
+(`drive_effort_in_model`), since `cursor-grok-4.6-low|-medium|-high` are three
+ids rather than one model and a flag. `_eval_misses` reports a document it
+cannot read instead of raising KeyError on it.
+
 ## 0.1.542 — Hermes is driven and its registry guess was wrong, a misplaced artifact is named, and the delivery folder stops collecting renders
 
 **Hermes joins the board, and two of the three things the registry said about

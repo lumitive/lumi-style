@@ -53,7 +53,9 @@
     "claude",
     "-p",
     "--permission-mode",
-    "acceptEdits"
+    "acceptEdits",
+    "--allowedTools",
+    "Bash(python3 *) Edit Write Read Glob Grep"
    ],
    "drive_skill_flag": "--add-dir",
    "drive_effort_flag": "--effort",
@@ -62,7 +64,10 @@
     "json"
    ],
    "docs": "https://code.claude.com/docs/en/skills",
-   "capability_verified": true
+   "capability_verified": true,
+   "extra": [
+    "Driven with `acceptEdits` PLUS an explicit `--allowedTools` allowlist, never `bypassPermissions`. The `full` tier's claim is that the agent runs check_prose, check_design and inspect_layout itself, and acceptEdits alone permits writing files and not running commands: asked to check its own work, Claude Code stopped after 141s having written nothing and requested a `python3` allowlist entry — a tier claim the driver's own flags made impossible to meet (measured 2026-08-21). `bypassPermissions` would also have fixed it and grants arbitrary shell to an agent, on every machine that runs this harness; the allowlist grants the three commands the task actually needs."
+   ]
   },
   {
    "id": "gemini-cli",
@@ -137,14 +142,19 @@
    "drive": [
     "cursor-agent",
     "-p",
-    "--force",
-    "--output-format",
-    "text"
+    "--force"
    ],
    "drive_skill_flag": "--add-dir",
+   "drive_effort_in_model": "{model}-{effort}",
+   "drive_usage_flag": [
+    "--output-format",
+    "json"
+   ],
    "docs": "https://cursor.com/docs/context/skills",
    "extra": [
-    "A `.cursor/rules/lumi-style.mdc` pointer file ships for projects that want the rules loaded workspace-wide rather than on demand. It is a convenience — the skill path already works."
+    "A `.cursor/rules/lumi-style.mdc` pointer file ships for projects that want the rules loaded workspace-wide rather than on demand. It is a convenience — the skill path already works.",
+    "Effort is a first-class choice in Cursor — the UI shows it beside Model — but the CLI spells it as part of the MODEL ID: `cursor-agent --list-models` returns `cursor-grok-4.6-low`, `-medium`, `-high` and `-xhigh` as separate ids. `drive_effort_in_model` composes the two so a run pins and records both axes; `--model cursor-grok-4.6` alone leaves the level to the server's default. Measured 2026-08-21: the three suffixed ids each answer exit 0, and the bracket form the CLI's own help documents (`'model[effort=low]'`) is REJECTED for them — `Cannot use this model` — because that spelling belongs to parameterized models such as `claude-opus-4-8`, not to ids that already carry the level.",
+    "`--output-format json` is declared as the usage flag rather than baked into `drive`, so one setting decides the transcript's shape and whether the run records tokens. Cursor reports them as `inputTokens`/`outputTokens` — the same shape as Claude Code's with a different spelling, which read as no usage at all until 0.1.543."
    ],
    "capability_verified": false,
    "capability_waiver": "Not verified as a CAPABILITY claim: run_conformance.py `run --drive` drives this agent (since 0.1.454) and its 0.1.522 T1-deck run scored every verdict ok, but a conformance task is a synthetic 12-page deck, and `full` claims the agent can run the checkers on a real deliverable through the entry file — which no run has watched. See conformance/CONFORMANCE.md."
@@ -289,12 +299,13 @@
    "drive_skill_flag": "--skills",
    "drive_prompt_flag": "-z",
    "drive_effort_flag": "--reasoning",
+   "drive_usage_file_flag": "--usage-file",
    "docs": null,
    "docs_waiver": "Hermes ships no documentation this package can cite for skill discovery. What is claimed here was MEASURED on an install instead (0.1.542) — `hermes skills list`, `hermes skills --help` and the CLI's own errors — which is a weaker source than a document and a much stronger one than the guess it replaces.",
    "extra": [
     "Hermes files skills by CATEGORY: `~/.hermes/skills/<category>/<name>/SKILL.md`. The category is the installer's choice and nothing depends on it — `creative` is what this package was installed under on the machine that verified this record. `hermes skills list` reports the category it actually loaded.",
     "`--skills` resolves NAMES and installed paths, never arbitrary ones: `--skills lumi-style` and `--skills ~/.hermes/skills/creative/lumi-style` both load it, and `--skills <the repository itself>` exits 1 with `Unknown skill(s)`. Install it (a symlink into the category folder is enough) rather than pointing the flag at a checkout.",
-    "One-shot mode is `-z/--oneshot <prompt>`, which prints only the final response to stdout. `--usage-file <path>` writes a JSON token report, but to a FILE rather than the transcript, so `run --drive` records no usage for this agent."
+    "`--usage-file <path>` writes the API's own token counts as JSON — `input_tokens`, `output_tokens`, cache and reasoning counts, an estimated cost and the model — to a FILE rather than the transcript, so `run --drive` reads it through `drive_usage_file_flag` instead of parsing stdout. Before 0.1.543 its runs carried quality with no cost: a clean eight-page deck and no row on the efficiency board."
    ],
    "capability_verified": false,
    "capability_waiver": "Not verified as a CAPABILITY claim: the CLI is installed on the maintenance machine, `run_conformance.py run --drive` drives it since 0.1.542, and it demonstrably reads the skill's own files from a working directory outside the checkout — asked for the light palette's `--acc` value it answered #48633E, which is what `tokens/lumi-theme.css` ships. What `full` additionally claims is that the agent runs check_prose.py, check_design.py and inspect_layout.py itself on a real deliverable, and no run has watched it do that. See conformance/CONFORMANCE.md."

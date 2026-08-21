@@ -383,13 +383,21 @@ def _measured():
 
 
 def test_the_gate_set_is_the_set_of_rows_declaring_a_gate():
+    """The rows that say `(gates)` are the rows the AST reader finds gating.
+
+    This assertion used to hold `grade()` against a list of ten ids written out
+    here, and promoting D32 in 0.1.543 broke it — correctly, and for the wrong
+    reason: the checker had changed and a hand-kept copy had not, which is the
+    defect FM-20 names and the one `scripts/lib/gating.py` was extracted to end.
+    Both sides now read the same source, so this asserts they AGREE rather than
+    asserting either against a third copy nobody updates.
+    """
+    import gating
     declared = {n for n, _, target, _ in check_design.grade(_measured())
                 if "(gates)" in target}
-    assert declared == {"D12_commercial_footer", "D14_placeholders",
-                        "D15_footer_path", "D19_vocabulary",
-                        "D20_palette_fidelity", "D21_data_contract",
-                        "D22_layout_vocabulary", "D24_images_embedded",
-                        "D25_image_provenance", "D27_agenda_mirror"}
+    from_source = gating.metric_ids("D")[1]
+    assert {n.split("_", 1)[0] for n in declared} == from_source
+    assert "D12_commercial_footer" in declared, "a sanity anchor, not a list"
 
 
 def test_a_document_failing_only_a_gate_metric_exits_one(tmp_path, capsys):

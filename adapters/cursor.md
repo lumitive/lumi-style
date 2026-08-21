@@ -15,6 +15,10 @@ The skill reads `references/` and `tokens/` on demand — no need to attach them
 
 A `.cursor/rules/lumi-style.mdc` pointer file ships for projects that want the rules loaded workspace-wide rather than on demand. It is a convenience — the skill path already works.
 
+Effort is a first-class choice in Cursor — the UI shows it beside Model — but the CLI spells it as part of the MODEL ID: `cursor-agent --list-models` returns `cursor-grok-4.6-low`, `-medium`, `-high` and `-xhigh` as separate ids. `drive_effort_in_model` composes the two so a run pins and records both axes; `--model cursor-grok-4.6` alone leaves the level to the server's default. Measured 2026-08-21: the three suffixed ids each answer exit 0, and the bracket form the CLI's own help documents (`'model[effort=low]'`) is REJECTED for them — `Cannot use this model` — because that spelling belongs to parameterized models such as `claude-opus-4-8`, not to ids that already carry the level.
+
+`--output-format json` is declared as the usage flag rather than baked into `drive`, so one setting decides the transcript's shape and whether the run records tokens. Cursor reports them as `inputTokens`/`outputTokens` — the same shape as Claude Code's with a different spelling, which read as no usage at all until 0.1.543.
+
 **Capability tier not exercised.** This note claims the `full` tier. Not verified as a CAPABILITY claim: run_conformance.py `run --drive` drives this agent (since 0.1.454) and its 0.1.522 T1-deck run scored every verdict ok, but a conformance task is a synthetic 12-page deck, and `full` claims the agent can run the checkers on a real deliverable through the entry file — which no run has watched. See conformance/CONFORMANCE.md.
 
 Vendor documentation: https://cursor.com/docs/context/skills

@@ -117,7 +117,7 @@ gated. `SKILL.md` rule 4 is why the rest only report: a page is done when a huma
 reads it as intentional, and a metric that can be satisfied without improving the
 page ends the looking rather than directing it.
 
-**Nine exceptions, and none is a design judgement.** D12 is a commercial
+**Eleven exceptions, and none is a design judgement.** D12 is a commercial
 requirement on the artifact, D14 asks whether the document is finished, D15
 asks whether the footer cites something a reader can open, D19 asks whether
 every reference in the document resolves inside it, D20 asks whether the
@@ -126,7 +126,9 @@ whether a figure that declared the data it draws agrees with its own
 numbers, and D22 whether every page's layout is one the tokens
 define, D24 asks whether every image ships inside the file, and D25 asks
 whether it names the terms it is used under, and D27 asks whether every
-agenda line quotes a title the document actually carries — all decidable, in the way "does this page read as intentional" is not. **D15 is the second instance of
+agenda line quotes a title the document actually carries, and D32 asks
+whether a page that DECLARES an analysis move drew the shape the library ships
+for it — all decidable, in the way "does this page read as intentional" is not. **D15 is the second instance of
 one defect:** `.foot .src` was removed from `tokens/` in 0.1.366 after the first
 deliverable to meet it filled every client page with a build path, and a second
 put one back — in Chinese, on almost every content page — while D6, D12 and D14

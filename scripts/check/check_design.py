@@ -1836,13 +1836,18 @@ def grade(r):
         # D26's verdict keyed on `hidden` alone, so a pitch deck covering six
         # of eleven typical sections with nothing declared produced "ok" and
         # check_deliverable printed "0 graded findings" — the whole C5
-        # mechanism (declare the gap) was computed and then dropped. Still
-        # reported, never gating: C5's evidence stands; surfacing is the fix.
+        # mechanism (declare the gap) was computed and then dropped. Surfacing
+        # was the fix at the time; GATING is the fix now (0.1.543, owner
+        # review). The condition was always binary and never a judgement: a
+        # page that DECLARES an analysis move and draws none of the shapes the
+        # library ships for it has said what it is doing and not done it. The
+        # accepted reference deck declares no moves and passes untouched; the
+        # conformance deck the owner opened declares seven and drew zero.
         su = r["D32_shape_use"]
         rows.append(("D32_shape_use",
                      f"{su['shapes']} library shape(s) on {su['analysis_pages']} "
                      f"analysis page(s)",
-                     ">0 where moves are declared (reported)",
+                     ">0 where moves are declared (gates)",
                      not (su["analysis_pages"] and not su["shapes"]), False))
         rows.append(("D31_undeclared_sections",
                      None if miss is None else len(miss),

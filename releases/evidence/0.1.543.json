@@ -1,0 +1,18 @@
+{
+  "version": "0.1.543",
+  "diff_base": "11512f073da71775875376975af5a019d7494354",
+  "spec": "waived: no design record precedes this work. It is the owner's UAT of three conformance decks taken as it arrived \u2014 four reported defects, each investigated, three confirmed and one corrected against the accepted reference. What a spec would have recorded is in the CHANGELOG entry and in FM-20, GAP-022 and GAP-024; the two new gates each carry their calibration against LUMI-Commercial-Agent-BP-chengdu.0.1.522.r11 in the code that implements them.",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "3a4c4b467e9a6df9fb38f893e82e18e90727e48bfab961dabdc9066d0404b19e",
+      "date": "2026-08-21"
+    }
+  ],
+  "waivers": []
+}

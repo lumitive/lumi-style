@@ -37,6 +37,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 import check_privacy  # noqa: E402 — the OR-8 terms reader, shared
 import color_math  # noqa: E402 — after the bootstrap, deliberately
 import deliverable_registry  # noqa: E402 — the storyline vocabulary, for prompt parity
+import gating  # noqa: E402 — after the bootstrap
 import secret_patterns  # noqa: E402 — the one credential table, shared with check_privacy
 import trace_schema  # noqa: E402 — the one definition, shared with scripts/ops/trace.py
 from css_tokens import css_block, css_vars  # noqa: E402, F401 — css_block is API for tests/tools
@@ -2529,7 +2530,7 @@ SIBLING_MODULES = (
     "color_math", "css_tokens", "lock", "deliverable_registry",
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",
-    "checker_report", "secret_patterns", "corpus",
+    "checker_report", "secret_patterns", "corpus", "gating",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
@@ -2642,10 +2643,7 @@ def check_scaffold_slots():
 # code; five of the last ten have. A number a person maintains by remembering is
 # not maintained.
 
-METRIC_AUTHORITIES = {
-    "D": "scripts/check/check_design.py",
-    "M": "scripts/check/check_prose.py",
-}
+METRIC_AUTHORITIES = gating.METRIC_AUTHORITIES
 
 # WHERE A GATING SET IS CLAIMED IN WORDS, and the pattern that captures the ids
 # it names. Same discipline as ENTRY_STAMP: a site declared here whose pattern
@@ -2693,29 +2691,12 @@ METRIC_RANGE_WAIVERS = {
 def _metric_ids(prefix: str) -> tuple[set[str], set[str]]:
     """-> (every id that produces a verdict row, the subset whose target gates).
 
-    Read out of the checker with `ast`, never by importing it: the authority is
-    the row table each script builds, where a metric's target string carries
-    "(gates)" if and only if it fails the run. Both scripts spell that table
-    differently — one appends tuples, the other returns a list literal — so this
-    walks every tuple rather than keying on either shape.
+    One implementation, in `scripts/lib/gating.py`, because a second consumer
+    arrived: `run_conformance` holds a conformance deliverable to the same set
+    this guard holds the prose to. Two readings of "which metrics gate" is the
+    shape `checker_report` was extracted to end.
     """
-    path = ROOT / METRIC_AUTHORITIES[prefix]
-    tree = ast.parse(path.read_text(encoding="utf-8"))
-    ids: set[str] = set()
-    gating: set[str] = set()
-    for node in ast.walk(tree):
-        if not (isinstance(node, ast.Tuple) and len(node.elts) >= 3):
-            continue
-        name, target = node.elts[0], node.elts[2]
-        if not (isinstance(name, ast.Constant) and isinstance(name.value, str)):
-            continue
-        match = re.match(rf"({prefix}\d+)_", name.value)
-        if not match:
-            continue
-        ids.add(match.group(1))
-        if isinstance(target, ast.Constant) and "gates" in str(target.value):
-            gating.add(match.group(1))
-    return ids, gating
+    return gating.metric_ids(prefix, ROOT)
 
 
 def check_scoring_sheet_parity():

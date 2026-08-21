@@ -304,6 +304,28 @@ Declined enforcement mechanisms, recorded with reasons so they are not
 re-proposed. (Declining is a decision; an undocumented decline gets re-argued
 every quarter.)
 
+## FM-20 · The subset bar: a gate list written by hand beside a machine-readable one
+
+- detection: a task, fixture or report that names WHICH checks must pass, as a
+  literal list, while the package computes that set somewhere else. The tell is
+  arithmetic: count the names in the list, count the gates in the checkers, and
+  see whether anybody has compared them since the list was written
+- prevention: read the set from its authority. `scripts/lib/gating.py` extracts
+  it from the checkers' own row tables for D and M metrics; every key
+  `inspect_layout --deliverable` returns is a gating verdict by construction. A
+  task declares `require: "all-gating"` rather than enumerating, so a gate added
+  tomorrow binds it the same day
+
+Shipped instance: 0.1.543. T1-deck's `require` named six metrics — D12, D14,
+D15, M4, collision, content_hidden — from the day it was written. Ten design
+metrics gate and fifteen layout verdicts do, and the Evals thresholds were
+applied by nothing at all. A deck could fail D19, D1, D3, D4 and eleven layout
+checks and be recorded `pass`; the owner opened one and found a 51KB document
+with zero content pages sitting green on the board. **This is not drift — the
+list was short the day it was written, and every release that added a gate
+widened the gap without touching it.** It is FM-01's neighbour: FM-01 is a check
+that cannot fail, this is a check that fires and is not asked.
+
 ## AG-1 · "Every CHANGELOG deferral must cite a ledger id" as a mechanical gate
 
 Declined 0.1.422. Deciding what prose constitutes a deferral is a

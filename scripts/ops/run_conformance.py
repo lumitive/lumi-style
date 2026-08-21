@@ -73,7 +73,9 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import checker_report  # noqa: E402
+import eval_corpus  # noqa: E402
 import fingerprint  # noqa: E402
+import gating  # noqa: E402
 import output_dir  # noqa: E402
 from check_prose import GENRES  # noqa: E402
 from deliverable_registry import kinds  # noqa: E402
@@ -271,14 +273,26 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
     paths = agent.get("skill_paths") or []
     if flag and paths:
         argv[1:1] = [flag, str(pathlib.Path(paths[0]).expanduser())]
+    # SOME CLIS HAVE NO EFFORT FLAG BECAUSE THE EFFORT IS THE MODEL. Cursor
+    # ships Grok 4.6 as `cursor-grok-4.6-low`, `-medium`, `-high`: one model id
+    # per level, so a separate flag would have nothing to set. Declaring the
+    # template lets such a platform pin BOTH axes and record both, instead of
+    # recording three different models at "(not pinned)" effort and putting a
+    # deliberate comparison into the matrix's unknown column.
+    effort_template = agent.get("drive_effort_in_model")
+    effort_flag = agent.get("drive_effort_flag")
+    effort_pinned = False
+    if model and effort and effort_template:
+        model = effort_template.format(model=model, effort=effort)
+        effort_pinned = True
+    elif effort and effort_flag:
+        effort_pinned = True
     if model:
         argv += ["--model", model]
-    # Effort is passed only through a flag the registry names for this agent;
-    # a CLI that has no such flag is not handed one it would reject, and the
-    # run records that the level was NOT pinned rather than pretending.
-    effort_flag = agent.get("drive_effort_flag")
-    effort_pinned = bool(effort and effort_flag)
-    if effort_pinned:
+    # Effort is otherwise passed only through a flag the registry names for this
+    # agent; a CLI that has no such flag is not handed one it would reject, and
+    # the run records that the level was NOT pinned rather than pretending.
+    if effort_pinned and effort_flag and not effort_template:
         argv += [effort_flag, effort]
     # A CLI that can return its own usage is asked to, through the flag the
     # registry names; the counts are then the API's, which is the only kind
@@ -286,6 +300,14 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
     usage_flag = agent.get("drive_usage_flag")
     if usage_flag:
         argv += list(usage_flag)
+    # SOME CLIS REPORT USAGE TO A FILE, NOT TO THE TRANSCRIPT. Hermes writes
+    # `--usage-file <path>` and prints nothing about tokens, so the transcript
+    # reader found none and its cells carried quality without cost — a clean
+    # eight-page deck with no row on the efficiency board. The flag is declared
+    # per platform like every other, and the file is written inside the working
+    # directory so it dies with it.
+    usage_file_flag = agent.get("drive_usage_file_flag")
+    usage_path = None
     # The prompt is appended LAST, so a CLI that takes it as the VALUE of a flag
     # needs that flag put here rather than in the registry's `drive` argv — every
     # optional flag above would otherwise land between them and be eaten as the
@@ -295,10 +317,21 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
     # agent whose prompt is a positional (Claude Code, Cursor) declares nothing
     # and is unaffected. Same lesson as `drive_skill_flag`'s placement note
     # above: where a flag sits is part of the flag.
+    # The working directory is made HERE, before the prompt flag, because the
+    # usage-file flag needs a path inside it and every flag has to be placed
+    # before the prompt that trails the argv. Appending it after cost Hermes a
+    # whole matrix cell: it received `-z --usage-file <path>` and read the flag
+    # name as its prompt, exiting in 0.4s. That is precisely the failure
+    # `drive_prompt_flag` exists to prevent, made by the code that implements
+    # it — where a flag sits is part of the flag, and the rule binds the driver
+    # as much as the registry.
+    workdir = pathlib.Path(tempfile.mkdtemp(prefix=f"lumi-conf-{agent['id']}-"))
+    if usage_file_flag:
+        usage_path = workdir / "cli-usage.json"
+        argv += [usage_file_flag, str(usage_path)]
     prompt_flag = agent.get("drive_prompt_flag")
     if prompt_flag:
         argv.append(prompt_flag)
-    workdir = pathlib.Path(tempfile.mkdtemp(prefix=f"lumi-conf-{agent['id']}-"))
     try:
         for name in ("PROMPT.txt", "input.md"):
             if (prompt_dir / name).exists():
@@ -308,8 +341,13 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
         # monotonic clock has no relationship to a file's timestamp.
         started_wall = time.time()
         try:
+            # stdin from /dev/null: without it Claude Code waits three seconds
+            # for input that is never coming and then warns about it, and the
+            # warning lands in the transcript after the JSON result. Its own
+            # message names this fix.
             proc = subprocess.run(argv + [task["prompt"]], cwd=workdir,
-                                  capture_output=True, timeout=timeout)
+                                  capture_output=True, timeout=timeout,
+                                  stdin=subprocess.DEVNULL)
             code, out = proc.returncode, proc.stdout + proc.stderr
         except subprocess.TimeoutExpired as expired:
             code, out = None, (expired.stdout or b"") + (expired.stderr or b"")
@@ -361,6 +399,22 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
         # harness's assumption is not something a scoreboard should decide
         # silently. See GAP-022.
         misplaced = _misplaced(agent, task, started_wall) if not produced else []
+        # THE RECORD KEEPS IT EVEN THOUGH THE SCORE DOES NOT. Not copying it in
+        # at all left a run directory holding a transcript, a driver record and
+        # no deliverable, so the person reviewing the run could not find the
+        # thing the run produced — the owner looked for one and reported the
+        # absence as a bug, correctly. `misplaced/` is a SUBdirectory: the
+        # scorer globs `<task dir>/<deliverable>` without recursing, so the file
+        # is one `ls` away from a reviewer and still invisible to the score.
+        # Both halves matter — scoring it would launder a run that missed the
+        # task's own instruction, and hiding it wastes the artifact.
+        for src in misplaced[:1]:
+            keep = prompt_dir / "misplaced"
+            try:
+                keep.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, keep / pathlib.Path(src).name)
+            except OSError as exc:
+                print(f"    could not keep the misplaced artifact: {exc}")
         for p in produced:
             if p.parent != prompt_dir:
                 shutil.copy2(p, prompt_dir / p.name)
@@ -377,6 +431,8 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
         # the skill. environment_check cannot see the sandbox; this can.
         text = out.decode("utf-8", "replace")
         usage = _usage_from_transcript(text) if usage_flag else None
+        if usage is None and usage_path is not None:
+            usage = _usage_from_file(usage_path)
         blocked = re.search(r"blocked from reading|outside .{0,40}allowed "
                             r"director|cannot (?:read|access) .{0,40}"
                             r"(?:tokens|references)/", text, re.I)
@@ -551,6 +607,28 @@ def task_fingerprint(task: dict) -> str:
     return fingerprint.material_hash(material)
 
 
+def _two_counts(usage: object) -> dict | None:
+    """-> {input_tokens, output_tokens} from a vendor's usage object, else None.
+
+    TWO SPELLINGS, because vendors do not agree and a reader that knows one of
+    them reports "no usage" for the other in silence. Claude Code and Hermes
+    write `input_tokens`; Cursor writes `inputTokens` in the same field of the
+    same shape, and its runs carried a clean eight-page deck and no cost row
+    until this looked for both.
+
+    Two integers or nothing, either way. A count that cannot be read is a count
+    that was not returned, and `None` says so — never zero, which would put a
+    free run on the cost board.
+    """
+    if not isinstance(usage, dict):
+        return None
+    for keys in (("input_tokens", "output_tokens"), ("inputTokens", "outputTokens")):
+        i, o = usage.get(keys[0]), usage.get(keys[1])
+        if all(isinstance(v, int) and not isinstance(v, bool) for v in (i, o)):
+            return {"input_tokens": i, "output_tokens": o}
+    return None
+
+
 def _usage_from_transcript(text: str) -> dict | None:
     """-> {input_tokens, output_tokens} from a JSON transcript, else None.
 
@@ -558,20 +636,103 @@ def _usage_from_transcript(text: str) -> dict | None:
     `usage`; the last JSON object in the transcript is read and the two counts
     taken only when both are integers. Anything else is None — a count this
     function cannot read is a count that was not returned."""
-    last = text.strip().rfind("\n{")
-    candidates = [text.strip()] + ([text.strip()[last + 1:]] if last >= 0 else [])
+    body = text.strip()
+    last = body.rfind("\n{")
+    candidates = [body] + ([body[last + 1:]] if last >= 0 else [])
+    # AND THE OBJECT MAY COME FIRST. Both readings above assume the JSON is the
+    # last thing in the transcript, and the transcript is stdout AND stderr:
+    # Claude Code prints its result object, then the CLI warns "no stdin data
+    # received in 3s", and the extra line makes the whole text unparseable while
+    # leaving no `\n{` for the fallback to find. Every twelve-page run recorded
+    # `usage: null` for that reason, which is a missing row on the cost board —
+    # `ledger.py --board` needs output tokens before it computes anything, so
+    # the model x effort matrix could not be filled by the runs filling it.
+    # raw_decode reads one object from the front and ignores whatever follows.
+    head = body.find("{")
+    if head >= 0:
+        try:
+            obj, _ = json.JSONDecoder().raw_decode(body[head:])
+        except ValueError:
+            pass
+        else:
+            candidates.append(json.dumps(obj))
     for chunk in candidates:
         try:
             doc = json.loads(chunk)
         except json.JSONDecodeError:
             continue
-        usage = doc.get("usage") if isinstance(doc, dict) else None
-        if not isinstance(usage, dict):
-            continue
-        i, o = usage.get("input_tokens"), usage.get("output_tokens")
-        if all(isinstance(v, int) and not isinstance(v, bool) for v in (i, o)):
-            return {"input_tokens": i, "output_tokens": o}
+        counts = _two_counts(doc.get("usage") if isinstance(doc, dict) else None)
+        if counts:
+            return counts
     return None
+
+
+def _eval_misses(path: pathlib.Path, genre: str | None) -> list[str]:
+    """-> the Evals findings that should fail a conformance deliverable.
+
+    The Evals are what this package means by a document being good enough:
+    enough content pages for a ratio to mean anything, and then prose-only
+    share, figures per content page, list density and visual share against the
+    genre's bars. No conformance run had ever applied them — T1 scored three
+    checkers and none of these — so a deck could satisfy the markup gates while
+    being a different kind of document entirely. The owner opened one and said
+    so.
+
+    `eval_corpus`'s own measure and score are used rather than re-derived: a
+    second reading of a threshold table is the shape `gating.py` and
+    `checker_report.py` were both extracted to end.
+
+    A missing bar for the genre is not a failure — the table says so in
+    `evidence`, and inventing one here would be the 0.1.339 mistake. A metric
+    the run could not MEASURE is: "not measured" has never been a pass in this
+    package.
+    """
+    try:
+        measured = eval_corpus.measure(path, with_render=True)
+    except Exception as exc:                                        # noqa: BLE001
+        return [f"evals could not measure the deliverable: {exc}"]
+    if genre:
+        measured["genre"] = genre
+    # A DOCUMENT THE EVALS COULD NOT READ is a finding, not a traceback. The
+    # measurement returns whatever it managed, so a file it could not parse —
+    # a partial write, a misplaced artifact caught mid-flight — arrives without
+    # `content_pages` and `eval_corpus.score` raises KeyError on it. Crashing
+    # the scorer turns one unmeasurable document into no scores for the whole
+    # run, which is the 0.1.350 lesson: a tool that cannot measure says so.
+    if "content_pages" not in measured:
+        return [f"evals could not read the deliverable: "
+                f"{measured.get('render_state') or 'no content pages measured'}"]
+    table = json.loads((ROOT / "evals" / "thresholds.json").read_text("utf-8"))
+    out = []
+    floor = table.get("min_content_pages", 0)
+    if measured.get("content_pages", 0) < floor:
+        out.append(f"evals content_pages={measured.get('content_pages')} "
+                   f"(floor {floor})")
+    for row in eval_corpus.score(measured, table):
+        if row["verdict"] == "MISS":
+            out.append(f"evals {row['metric']}={row.get('value')} "
+                       f"({row['direction']} {row.get('bar')})")
+        elif row["verdict"] == "not measured":
+            out.append(f"evals {row['metric']} not measured")
+    return out
+
+
+def _usage_from_file(path: pathlib.Path) -> dict | None:
+    """-> {input_tokens, output_tokens} from a CLI's own usage report, else None.
+
+    Same contract as the transcript reader and the same refusal: two integers or
+    nothing. A CLI that writes a report and fails to fill it in has reported no
+    usage, and `null` is what that means — never zero, which would put a free
+    run on the cost board.
+    """
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(doc, dict):
+        return None
+    # The report may be the counts themselves or wrap them in `usage`.
+    return _two_counts(doc) or _two_counts(doc.get("usage"))
 
 
 def _conformance_trace(agent: dict, task: dict, wd: pathlib.Path, record: dict) -> str:
@@ -596,7 +757,24 @@ def _conformance_trace(agent: dict, task: dict, wd: pathlib.Path, record: dict) 
         return f"no trace: {opened.stderr.strip()[:120]}"
     tid = opened.stdout.strip()
     produced = [wd / n for n in record.get("produced") or []]
-    if record.get("verdict") != "driven" or not produced:
+    # A MISPLACED ARTIFACT STILL ANSWERS THE COST QUESTION. The two boards ask
+    # different things and only one of them cares where the file went: the
+    # conformance verdict asks whether the agent did the task as stated, and
+    # the task states the working directory, so a misplaced run is `not earned`
+    # there and stays that way. This trace asks how many output tokens a
+    # model at an effort spent per content page, and a file's location has no
+    # bearing on that. Nothing here is laundered into a pass: a trace records
+    # agent, model, effort, gates, pages and tokens, and not one field is about
+    # location — while `ledger.py --board` drops any run with a failing gate
+    # before it computes anything.
+    #
+    # Measured before this existed: of the first four matrix cells driven on
+    # 2026-08-21, two were misplaced and therefore contributed no trace at all,
+    # so the matrix the runs were FOR could not be filled by the runs that
+    # filled it. A timeout is still refused — its file is a draft.
+    if not produced and record.get("verdict") == "misplaced" and record.get("misplaced"):
+        produced = [pathlib.Path(record["misplaced"][0])]
+    if (record.get("verdict") not in ("driven", "misplaced")) or not produced:
         return f"trace {tid} opened and left open: the drive did not finish"
     argv = [sys.executable, str(tool), "close", "--id", tid,
             "--deliverable", str(produced[0]), "--agent", agent["id"],
@@ -1234,6 +1412,7 @@ def main(argv):
                                          "built_version": built_v}
                 failed: list[str] = []
                 verdict_union: dict[str, Any] = {}
+                layout_verdicts: dict = {}
                 for kind in task["score"]:
                     if kind == "recall":
                         entry["recall"] = score_recall(
@@ -1256,6 +1435,13 @@ def main(argv):
                             # in the release that fixed that one.
                             failed.append(f"{kind} exited {entry[kind]['exit']}")
                         verdict_union.update(entry[kind]["verdicts"])
+                        # Kept apart as well as merged: every key the layout
+                        # report returns under `--deliverable` is a gating
+                        # verdict by construction, and their names are words
+                        # rather than prefixed ids, so the prefix rule that
+                        # finds D-and-M gates cannot recognise them.
+                        if kind == "layout":
+                            layout_verdicts = dict(entry[kind]["verdicts"])
                 # `require` is checked ONCE, against the union of every checker's
                 # verdicts. Per-kind it needed `got is not None` to skip the other
                 # checker's metrics, and that clause also swallowed the case this
@@ -1263,12 +1449,30 @@ def main(argv):
                 # nothing at all. check_design returns UNMEASURABLE for a document
                 # using none of LUMI's tokens, so an agent emitting exactly that
                 # scored green on the scoreboard.
-                for metric, want in (task.get("require") or {}).items():
+                require = task.get("require") or {}
+                if require == "all-gating":
+                    # EVERY GATE THIS PACKAGE HOLDS A DELIVERABLE TO, read from
+                    # the checkers rather than listed here. The hand-written
+                    # list this replaced named six metrics; ten design metrics
+                    # gate and fifteen layout verdicts do, so a deck could fail
+                    # D19, D1, D3, D4 and eleven layout checks and still score
+                    # `pass`. The owner found one by opening it.
+                    require = dict.fromkeys(gating.gating_metrics(verdict_union), "ok")
+                    require.update(dict.fromkeys(layout_verdicts, "ok"))
+                for metric, want in require.items():
                     got = verdict_union.get(metric)
                     if got is None:
                         failed.append(f"{metric} never reported")
-                    elif got != want:
+                    elif got not in (want, "n/a"):
                         failed.append(f"{metric}={got}")
+                # THE EVALS THRESHOLDS, which no conformance run had ever
+                # applied. They are what this package means by a deliverable
+                # being good enough — page count, prose-only share, figures per
+                # content page, list density, visual share — and a task that
+                # scores three checkers and none of these is scoring the
+                # markup, not the document.
+                if task.get("evals"):
+                    failed += _eval_misses(target, task.get("genre"))
                 entry["verdict"] = "pass" if not failed else "fail"
                 entry["failed"] = failed
                 scores[key] = entry
