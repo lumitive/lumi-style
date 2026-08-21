@@ -1,3 +1,64 @@
+## 0.1.548 — the rules and the checks are now held against each other, and the count is worse than the estimate
+
+**0.1.547 closed the amplifiers. This is the measurement they were amplifying.**
+
+`evals/rule-coverage.json` is one entry per checkable rule about a deliverable:
+where the rule is written, which metric measures it, whether that metric gates,
+and — where nothing does — why not. Extracted from `references/` and `SKILL.md`
+by five parallel sweeps, one per file, with **every quotation pulled out of the
+file mechanically rather than retyped**: an agent that paraphrases a rule while
+claiming to quote it produces a register that passes its own quote check and
+describes sentences nobody wrote. All 471 anchors resolved byte-for-byte at
+their cited lines on the first pass.
+
+**471 rules · 132 measured · 58 gated · 339 with no automated check.** The
+working estimate carried into this work was 175 and 97. It was low by a factor
+of nearly three, which is the more useful finding: nobody had counted, and the
+number people carry when nobody has counted is the number that feels bearable.
+
+**`references/page-contracts.md` is the owner's request, generated.** Her
+instruction was to gather the deck's cover, closing and agenda rules into one
+place so they stop being forgotten, and to gather the content-page rules
+separately. The need is real — "what a cover owes" was spread across three
+files, and five conformance rounds each broke a different one of those rules.
+But a hand-written summary of 471 rules would be the largest prose copy this
+package has ever created, and prose copies drifting is its worst measured defect
+class. So the page is generated from the register, `--check` in CI, on the
+`eval-inventory.md` precedent, and it carries pointers rather than rule text:
+the rule still lives in exactly one place. Six sections at her direction, with
+the content pages given one of their own. **The cover section reads 20 rules,
+18 of them unchecked** — which is the answer to why every round broke a
+different one.
+
+**The reverse direction is the half that earned its keep.**
+`check_rule_coverage.py` asks four things of the register — the quote is still
+at its line, the metric exists, it gates as claimed — and one thing of the
+CHECKERS: **every gate is asked for by some rule.** That fourth question found
+nine gates with no rule behind them on its first run. Four were mismapped and
+now trace correctly. Five do not: `bookend_title_length` and `band_escape` were
+calibrated from an accepted document and a rendering defect rather than from a
+sentence; `figure_ink_collision` extends a rule about text onto ink that the
+prose does not extend; and `footer_wrap` and `footer_baseline` enforce a
+requirement stated only inside a provenance note about how the defect was
+found. They are recorded in `orphan_gates` with the reason, on the KNOWN_GAPS
+pattern — a gate this package invented is a decision, not an accident, and an
+UNDECLARED one now fails CI.
+
+Phase 3 of `specs/2026-08-22-rules-equal-conformance-design.md` — the checks
+her UAT named, now that the register can say which of them have a rule behind
+them — is next.
+
+**Coverage is reported and never gated.** A coverage floor becomes a number to
+polish, which is 0.1.339's withdrawn 82% fill floor wearing different clothes.
+What gates is the register not lying.
+
+**`.launch`, `datum`, and the reader that knew one spelling.** `gating.py` now
+reads the layout gate set from the function that defines it — and its first
+version read only `add(...)` calls, missing `datum` and `role_split`, which are
+assigned into the dict directly. It reported 19 gates where there are 20. The
+same class of mistake convention 15 is about, and found the same way: by
+looking at the material rather than at the code.
+
 ## 0.1.547 — the scaffold stops teaching the violations, and a page that is absent stops passing
 
 **Five rounds of multi-agent conformance ran the same shape: the deliverable

@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.547"
+  version: "0.1.548"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -159,13 +159,24 @@ current, stale, or **unknown** — and unknown is not current.
    (§1), type (§2), one claim per screen and the layout table (§3), the chart
    iron rules and form selection (§4, with the shape library under §4.0–4.2),
    the commercial footer (§5), **semantic icons (§6)**, numbers as the copy
-   (§7), the verification matrix (§8) and imagery (§9). Measured 2026-08-22:
-   of the 175 checkable rules in this package, 97 have no automated check at
-   all, and most of them live in that file — so an agent that does not read it
-   is relying on gates that were never written. Three conformance decks passed
+   (§7), the verification matrix (§8) and imagery (§9). **Most of this package's
+   rules have no automated check at all** — how many is what
+   [`references/page-contracts.md`](references/page-contracts.md) counts, never
+   a number written here — and most of the unchecked ones live in that file, so
+   an agent that does not read it is relying on gates that were never written.
+   Three conformance decks passed
    every gate and repeated one icon across seven pages, left every part opener
    without its subject mark, and put a stat band on the agenda; all three are
-   §3 and §6 rules, and none of the three agents had been told to read them. Its deck-wide disciplines bind every scenario: the
+   §3 and §6 rules, and none of the three agents had been told to read them.
+
+   **Building or checking ONE kind of page? Read
+   [`references/page-contracts.md`](references/page-contracts.md) rather than
+   hunting.** It is generated from the rule register, so it cannot drift: every
+   rule binding the cover, the agenda, the part openers, the closing page, the
+   content pages and every page, each with the one `file:line` where it is
+   actually written and whether any check enforces it. "What a cover owes" was
+   spread across three files, and every conformance round broke a different one
+   of those rules. Its deck-wide disciplines bind every scenario: the
    agenda is **derived from the page titles** (D27 gates the mirror — an
    agenda paraphrased in fresh words fails the document) and renders as the
    **launch sequence** the scaffold emits, every external

@@ -93,3 +93,62 @@ def gating_metrics(verdicts: dict, root: pathlib.Path | None = None) -> set[str]
         if head in gate:
             out.add(name)
     return out
+
+def layout_verdicts(root: pathlib.Path | None = None) -> set[str]:
+    """-> every verdict name `inspect_layout.deliverable_verdicts` emits.
+
+    All of them gate: that function is the deliverable gate set by construction
+    and reports nothing else. Read from its `add(...)` calls rather than listed
+    here, for the reason the rest of this module exists — CLAUDE.md has counted
+    this list wrong in four files at once.
+
+    Walks only the body of that one function, so an `add(` elsewhere in the file
+    cannot smuggle a name into the gate set.
+    """
+    path = (root or ROOT) / "scripts/check/inspect_layout.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.FunctionDef)
+                and node.name == "deliverable_verdicts"):
+            continue
+        names = {c.args[0].value for c in ast.walk(node)
+                 if isinstance(c, ast.Call)
+                 and isinstance(c.func, ast.Name) and c.func.id == "add"
+                 and c.args and isinstance(c.args[0], ast.Constant)
+                 and isinstance(c.args[0].value, str)}
+        # TWO SPELLINGS, and reading only the first one lost a verdict. Most
+        # findings go through `add(...)`; `datum` and `role_split` are written
+        # straight into the dict because they come from the consistency audit
+        # rather than from the page rows. A reader keyed on the common shape
+        # reported 19 gates where there are 20 — the exact class of mistake
+        # convention 15 is about, found by looking at the material.
+        names |= {t.slice.value for a in ast.walk(node)
+                  if isinstance(a, ast.Assign)
+                  for t in a.targets
+                  if isinstance(t, ast.Subscript)
+                  and isinstance(t.value, ast.Name) and t.value.id == "out"
+                  and isinstance(t.slice, ast.Constant)
+                  and isinstance(t.slice.value, str)}
+        return names
+    return set()
+
+
+def every_gating_name(root: pathlib.Path | None = None) -> set[str]:
+    """-> every metric id and verdict name that can fail a deliverable.
+
+    The union the rule register is held to: a gate absent from here cannot be
+    cited, and a gate here that no rule cites is a threshold with no rule behind
+    it, which `check_rule_coverage.py` reports as a finding in its own right.
+    """
+    names: set[str] = set()
+    for prefix in METRIC_AUTHORITIES:
+        names |= metric_ids(prefix, root)[1]
+    return names | layout_verdicts(root)
+
+
+def every_metric_name(root: pathlib.Path | None = None) -> set[str]:
+    """-> every metric id and verdict name a checker can emit, gating or not."""
+    names: set[str] = set()
+    for prefix in METRIC_AUTHORITIES:
+        names |= metric_ids(prefix, root)[0]
+    return names | layout_verdicts(root)

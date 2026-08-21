@@ -91,7 +91,7 @@ different ways.
 
 | constant | value | comment | stated in references/ |
 |---|---|---|---|
-| CONTRAST_FLOOR | `4.5` |  | design-rules.md, eval-rubric.md |
+| CONTRAST_FLOOR | `4.5` |  | design-rules.md, eval-rubric.md, page-contracts.md |
 | CONTRAST_FLOOR_LARGE | `3.0` |  | (not searched: too short) |
 | LARGE_TEXT_PX | `24.0` |  | (not searched: too short) |
 | TIER1_PER_PAGE | `1` |  | (not searched: too short) |
@@ -101,7 +101,7 @@ different ways.
 
 | constant | value | comment | stated in references/ |
 |---|---|---|---|
-| SETTLE_MS | `350` |  | CODE ONLY |
+| SETTLE_MS | `350` |  | page-contracts.md |
 | DEFAULT_GEOMETRIES | `["16x9", "16x9-hd", "a4", "laptop", "wide"]` |  | (not searched: too short) |
 | VISUAL_ABSENT_CEILING | `1 / 3` |  | (not searched: too short) |
 | OFF_SHAPES | `[(1280, 960), (1440, 900), (1600, 1200), (1366, 768), (19…` |  | (not searched: too short) |
@@ -112,7 +112,7 @@ different ways.
 | FOOT_BASELINE_RATIO | `0.08` |  | CODE ONLY |
 | VISUAL_SHARE_TARGET | `{"sales": 50, "marketing": 50, "consulting": 50,` |  | (not searched: too short) |
 | STORYLINE_SHARE_TARGET | `{"pitch-deck": 80}` |  | (not searched: too short) |
-| GROUND_CEILING | `1.40` | a ceiling, not a target: quieter is always fine | brand.md, design-rules.md |
+| GROUND_CEILING | `1.40` | a ceiling, not a target: quieter is always fine | brand.md, design-rules.md, page-contracts.md |
 
 ### scripts/check/check_globe.py
 
@@ -155,9 +155,9 @@ different ways.
 | TOPOLOGY | `ROOT / "assets" / "vectors" / "world-110m.json"` |  | (not searched: too short) |
 | CHROMA_FRACTION | `0.65` |  | design-rules.md |
 | DELTA_E_FLOOR | `20.0` | adjacent regions, CIEDE2000 — a FLOOR | (not searched: too short) |
-| LABEL_CONTRAST_FLOOR | `4.5` | a FLOOR, the repository's existing text floor | design-rules.md, eval-rubric.md |
+| LABEL_CONTRAST_FLOOR | `4.5` | a FLOOR, the repository's existing text floor | design-rules.md, eval-rubric.md, page-contracts.md |
 | STROKE_L_OFFSET | `0.20` | darker on the light canvas, lighter on the dark | CODE ONLY |
-| PROXIMITY_KM | `1500` |  | design-rules.md |
+| PROXIMITY_KM | `1500` |  | design-rules.md, page-contracts.md |
 | EARTH_KM | `6371.0` |  | CODE ONLY |
 
 ### assets/globe/globe.js
