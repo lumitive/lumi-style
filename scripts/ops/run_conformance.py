@@ -182,9 +182,25 @@ def environment_check(agent):
     return []
 
 
-def _misplaced(agent: dict, task: dict, since: float) -> list[str]:
+def _misplaced(agent: dict, task: dict, since: float,
+               transcript: str = "") -> list[str]:
     """-> paths of deliverable-shaped files written OUTSIDE the working
-    directory during this run, newest first.
+    directory during this run — the one the AGENT NAMED first, then the rest
+    newest-first.
+
+    THE AGENT'S OWN WORD OUTRANKS THE CLOCK, and the cost of the other order is
+    measured. Three agents were driven in parallel on 2026-08-21, all of them
+    able to write to HOME and to the checkout; the sweep sorted candidates by
+    mtime and took the newest, so Hermes's record cited a deck at the
+    repository root that Hermes had not written — its transcript names
+    `/Users/he123/deck.en.html` and nothing else. That file was copied into
+    Hermes's run record, scored as Hermes's, reported to the owner as Hermes's,
+    and she reviewed another agent's cover page believing it was this one. The
+    real artifact passed every gate; the impostor failed two.
+
+    A path the transcript names is evidence of authorship. A path that merely
+    appeared during the window is a coincidence with a timestamp, which is all
+    this ever had.
 
     Bounded on purpose. It looks in the three places a confused agent actually
     writes — the user's home, the roots this platform declares as its skill
@@ -226,7 +242,11 @@ def _misplaced(agent: dict, task: dict, since: float) -> list[str]:
             if mtime >= since - 1:
                 hits.append((mtime, f))
     hits.sort(reverse=True)
-    return [str(f) for _, f in hits]
+    paths = [str(f) for _, f in hits]
+    # The agent said where it wrote. If one of the candidates is that path, it
+    # goes first and everything else is a bystander.
+    named = [p for p in paths if p in transcript]
+    return named + [p for p in paths if p not in named]
 
 
 def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=None):
@@ -358,6 +378,7 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
         # Bring back whatever the task asked for, plus the transcript. Anything
         # else the agent wrote stays in the temporary directory: the run record
         # is the deliverable and the log, not the agent's scratch.
+        text = out.decode("utf-8", "replace")
         produced = [p for p in sorted(workdir.glob(task["deliverable"]))
                     if p.name not in ("PROMPT.txt", "input.md")]
         # THE RUN'S OWN FOLDER COUNTS TOO, and one agent found it by reasoning
@@ -398,7 +419,8 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
         # whether missing that instruction is the agent's defect or this
         # harness's assumption is not something a scoreboard should decide
         # silently. See GAP-022.
-        misplaced = _misplaced(agent, task, started_wall) if not produced else []
+        misplaced = (_misplaced(agent, task, started_wall, text)
+                     if not produced else [])
         # THE RECORD KEEPS IT EVEN THOUGH THE SCORE DOES NOT. Not copying it in
         # at all left a run directory holding a transcript, a driver record and
         # no deliverable, so the person reviewing the run could not find the
@@ -429,7 +451,6 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
         # And the agent's own words decide too: the 2026-08-13 incident was
         # visible only in the transcript, where an agent said it could not read
         # the skill. environment_check cannot see the sandbox; this can.
-        text = out.decode("utf-8", "replace")
         usage = _usage_from_transcript(text) if usage_flag else None
         if usage is None and usage_path is not None:
             usage = _usage_from_file(usage_path)

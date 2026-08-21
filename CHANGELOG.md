@@ -1,3 +1,49 @@
+## 0.1.545 — the misplaced-artifact sweep was attributing one agent's deck to another, and 0.1.544's evidence came from the wrong file
+
+**The owner opened the deck this harness had filed as Hermes's and said its
+cover was worse than ever. It was not Hermes's deck.** Three agents were driven
+in parallel, all of them able to write to HOME and into the checkout, and
+`_misplaced` sorted its candidates by mtime and took the newest. Hermes's record
+therefore cited a deck at the repository ROOT — 130 characters of cover claim
+over ten lines — while Hermes's transcript names `/Users/he123/deck.en.html`
+and nothing else. That impostor was copied into Hermes's run record, scored as
+Hermes's, reported to the owner as Hermes's, and reviewed by her as Hermes's.
+
+**Hermes's real deliverable passes.** Cover four lines, twenty-four characters,
+`47.6% now, 51.2% planned`; closing three lines; **29 of 29 gates, three
+checkers at exit 0, no Evals miss.** All three agents pass the full standard at
+high effort with the check loop. The two failures previously reported against
+Hermes — `figure_clipped` and seven content pages — belong to a file it did not
+write.
+
+**The fix is that the agent's own word outranks the clock.** A path the
+transcript names is evidence of authorship; a path that merely appeared inside
+the run's time window is a coincidence with a timestamp, which is all this ever
+had. Named candidates sort first; unnamed ones stay in the record — a reviewer
+may want them — and never become the artifact.
+
+**0.1.544's evidence is corrected here, and its gate is not.** That release set
+the bookend ceiling at five lines from three measurements, and one of them —
+the ten-line cover attributed to Claude Code's round-three deck — was read off
+the same impostor file. Re-measured against what each agent actually wrote:
+
+| | cover | closing |
+|---|---|---|
+| the accepted reference | 5 | 5 |
+| Cursor | 3 | 3 |
+| Hermes | 4 | 3 |
+| Claude Code | 10 | 8 |
+
+The Claude Code figure survives — that deck is genuinely its own work and
+genuinely carries a paragraph in its cover slot — so five lines remains the
+ceiling and the reference remains its source. What changes is which agent the
+worst number belongs to, and that the ledger said the wrong one.
+
+**What this cost, stated plainly.** An instrument that guesses attribution does
+not merely record the wrong name: it hands a reviewer another author's work and
+invites a judgement about the wrong agent. The owner made exactly that judgement
+and was right about the artifact in front of her.
+
 ## 0.1.544 — the cover claim gets the ceiling the two-line rule could not give it
 
 **The owner opened the deck that had just passed and said the cover and closing
