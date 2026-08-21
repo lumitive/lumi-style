@@ -71,7 +71,7 @@ All of these **gate** a pre-delivery run. `deliverable_verdicts`
 is the authority; five files once counted this list four
 different ways.
 
-`band_escape`, `collision`, `content_hidden`, `content_spill`, `datum`, `figure_clipped`, `figure_distorts`, `figure_ink_collision`, `figure_viewbox`, `footer_baseline`, `footer_wrap`, `page_height`, `reserve_overspent`, `role_split`, `starved_column`, `title_two_lines`, `visual_absent`
+`band_escape`, `bookend_title_length`, `collision`, `content_hidden`, `content_spill`, `datum`, `figure_clipped`, `figure_distorts`, `figure_ink_collision`, `figure_viewbox`, `footer_baseline`, `footer_wrap`, `page_height`, `reserve_overspent`, `role_split`, `starved_column`, `title_two_lines`, `visual_absent`
 
 ## Module constants (discovered, with their own comments)
 
@@ -105,6 +105,7 @@ different ways.
 | DEFAULT_GEOMETRIES | `["16x9", "16x9-hd", "a4", "laptop", "wide"]` |  | (not searched: too short) |
 | VISUAL_ABSENT_CEILING | `1 / 3` |  | (not searched: too short) |
 | OFF_SHAPES | `[(1280, 960), (1440, 900), (1600, 1200), (1366, 768), (19…` |  | (not searched: too short) |
+| BOOKEND_TITLE_LINES | `5` |  | (not searched: too short) |
 | RESERVE_ALLOWANCE_PX | `4` |  | (not searched: too short) |
 | CAP_OFF_AXIS_PCT | `10` |  | (not searched: too short) |
 | FOOT_BASELINE_RATIO | `0.08` |  | CODE ONLY |
