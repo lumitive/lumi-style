@@ -1,0 +1,4723 @@
+{
+ "$comment": "Every checkable rule about a LUMI deliverable, and whether anything checks it. HAND-MAINTAINED: add an entry when you add a rule. `scripts/check/check_rule_coverage.py` verifies that each quote is still at its cited line, that each metric exists and gates as claimed, and - the reverse direction - that no gate exists without a rule behind it. It does NOT gate on coverage; a coverage floor becomes a number to polish. `references/page-contracts.md` is generated from this file.",
+ "schema": 1,
+ "rules": [
+  {
+   "id": "RC-001",
+   "source": "SKILL.md:41",
+   "quote": "A deliverable is designed for ONE page geometry",
+   "gist": "Design a deliverable for exactly one page geometry and declare which.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-002",
+   "source": "SKILL.md:57",
+   "quote": "geometry is a second *composition*, in its own file",
+   "gist": "Put a second geometry in its own file as its own composition.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-003",
+   "source": "SKILL.md:81",
+   "quote": "output language is **American English** unless the user",
+   "gist": "Default the output language to American English and the canvas to light unless the user asks otherwise.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-004",
+   "source": "SKILL.md:146",
+   "quote": "write the ask as who-does-what-by-when",
+   "gist": "In an external document give every key number its judgment anchor and write the ask as who-does-what-by-when.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-005",
+   "source": "SKILL.md:180",
+   "quote": "agenda is **derived from the page titles**",
+   "gist": "Derive the agenda from the deck's own page titles rather than paraphrasing them.",
+   "page_kind": "agenda",
+   "metric": "D27",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-006",
+   "source": "SKILL.md:183",
+   "quote": "content page closes with one **`.take` takeaway line**",
+   "gist": "Close every external-genre content page with one .take takeaway line.",
+   "page_kind": "content",
+   "metric": "D28",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-007",
+   "source": "SKILL.md:184",
+   "quote": "a customer-facing product deck walks",
+   "gist": "Order a customer-facing product deck as What, Why, How, Value in the reader's order.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-008",
+   "source": "SKILL.md:209",
+   "quote": "survives to the reader is D14's territory",
+   "gist": "Let no unreplaced placeholder or author slot survive into the delivered document.",
+   "page_kind": "all",
+   "metric": "D14",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-009",
+   "source": "SKILL.md:248",
+   "quote": "prints its basis inside the figure",
+   "gist": "A figure whose placements are judgements must print its basis inside the figure.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-010",
+   "source": "SKILL.md:264",
+   "quote": "comparisons always use tables**",
+   "gist": "Draw comparisons as tables.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-011",
+   "source": "SKILL.md:267",
+   "quote": "**A figure title states a conclusion, not a label.**",
+   "gist": "Write every figure title as a conclusion, not a label.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-012",
+   "source": "SKILL.md:268",
+   "quote": "go into the geometry, not beside it**",
+   "gist": "Put the page's numbers inside the figure's geometry.",
+   "page_kind": "content",
+   "metric": "D29",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-013",
+   "source": "SKILL.md:273",
+   "quote": "Every figure gets a source line",
+   "gist": "Give every figure a source line and put its number and name below it.",
+   "page_kind": "content",
+   "metric": "M2",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-014",
+   "source": "SKILL.md:274",
+   "quote": "the caption numbers run 1..k once each in page order",
+   "gist": "Number figure captions 1..k, once each, in page order.",
+   "page_kind": "content",
+   "metric": "D30",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-015",
+   "source": "SKILL.md:277",
+   "quote": "**The number reads before the words it belongs to**",
+   "gist": "Place a number before its label — above it in a stat block, at the front of a title, on or above its mark in a figure.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-016",
+   "source": "SKILL.md:283",
+   "quote": "**Shapes carry semantics** in a flow: parallelogram",
+   "gist": "In a flow use shapes semantically: parallelogram = data, rectangle = process, diamond = decision, stadium = terminal.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-017",
+   "source": "SKILL.md:287",
+   "quote": "**Figure parity binds the document**",
+   "gist": "Build every figure to the level of the document's best one.",
+   "page_kind": "content",
+   "metric": "D5",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-018",
+   "source": "SKILL.md:291",
+   "quote": "**a grid of rectangles containing sentences is a",
+   "gist": "Draw a table when the content is a grid of sentences, and never pour prose into a grid.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-019",
+   "source": "SKILL.md:309",
+   "quote": "The palette is not yours to choose.",
+   "gist": "Copy the shipped token block into the document rather than inventing a palette.",
+   "page_kind": "all",
+   "metric": "D20",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-020",
+   "source": "SKILL.md:316",
+   "quote": "One colour means one thing across every LUMI document",
+   "gist": "Sizes may be set per page; colour tokens may not be redefined.",
+   "page_kind": "all",
+   "metric": "D20",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-021",
+   "source": "SKILL.md:350",
+   "quote": "an image carries an argument or it",
+   "gist": "Put an image on a page only if it carries an argument.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-022",
+   "source": "SKILL.md:351",
+   "quote": "it ships as a `data:` URI and never a link",
+   "gist": "Ship every image inside the file as a data: URI, never as a link.",
+   "page_kind": "all",
+   "metric": "D24",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-023",
+   "source": "SKILL.md:352",
+   "quote": "it names its source and terms (**D25 gates**)",
+   "gist": "Name every image's source and licence terms in the document.",
+   "page_kind": "all",
+   "metric": "D25",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-024",
+   "source": "SKILL.md:353",
+   "quote": "and text never sits on raw photography",
+   "gist": "Never set text on raw photography.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-025",
+   "source": "SKILL.md:354",
+   "quote": "glass tower, the team around a laptop — are banned by name",
+   "gist": "Never use the stock tells: the handshake, the glass tower, the team around a laptop.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-026",
+   "source": "SKILL.md:365",
+   "quote": "needs a label or a legend row** — D18 checks for it",
+   "gist": "Give every coloured region a label or a legend row.",
+   "page_kind": "content",
+   "metric": "D18",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-027",
+   "source": "SKILL.md:367",
+   "quote": "Never place the generated 110m map",
+   "gist": "Never place the generated 110m map and the coarse orthographic globe mark in one view.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-028",
+   "source": "SKILL.md:369",
+   "quote": "Text uses the `--tx*` ladder only",
+   "gist": "Set text only from the --tx* ladder; --ln* is for rules and fills.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-029",
+   "source": "SKILL.md:370",
+   "quote": "**Icons come from the two sets this package ships, never",
+   "gist": "Take every icon from the two shipped sets; never draw one ad hoc.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-030",
+   "source": "SKILL.md:373",
+   "quote": "(36 filled silhouettes) for part-opener subject marks",
+   "gist": "Use the filled koboyo silhouettes for part-opener subject marks only.",
+   "page_kind": "opener",
+   "metric": "opener_subject_mark",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-031",
+   "source": "SKILL.md:374",
+   "quote": "**Within one document an icon means exactly one thing**",
+   "gist": "Within one document let each icon mean exactly one thing.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-032",
+   "source": "SKILL.md:378",
+   "quote": "**Use the role vocabulary** the token file declares",
+   "gist": "Use the token file's role class names rather than renaming them.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-033",
+   "source": "SKILL.md:388",
+   "quote": "**every content page carries at least one visual",
+   "gist": "Carry at least one visual block on every content page.",
+   "page_kind": "content",
+   "metric": "visual_absent",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-034",
+   "source": "SKILL.md:391",
+   "quote": "**A reference page is exempt and declares it**",
+   "gist": "Declare a reference page with data-role=\"apparatus\", and keep such pages to about one content page in five.",
+   "page_kind": "content",
+   "metric": "D16",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-035",
+   "source": "SKILL.md:396",
+   "quote": "**second content block** beside its centerpiece",
+   "gist": "Give a portrait content page a second content block beside its centerpiece plus one marked key point.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-036",
+   "source": "SKILL.md:401",
+   "quote": "**A figure's name holds one line**",
+   "gist": "Keep a figure's name to one line by shortening it, never by setting it smaller.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-037",
+   "source": "SKILL.md:403",
+   "quote": "A page that does not fit gets its **content** trimmed",
+   "gist": "Trim content when a page does not fit; never nudge the type.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-038",
+   "source": "SKILL.md:405",
+   "quote": "A title block that does not fit gets shorter text",
+   "gist": "Shorten the title text when the title block does not fit.",
+   "page_kind": "content",
+   "metric": "reserve_overspent",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-039",
+   "source": "SKILL.md:406",
+   "quote": "`-webkit-line-clamp` or `overflow: hidden`",
+   "gist": "Never clamp or hide overflow on the title block.",
+   "page_kind": "content",
+   "metric": "content_hidden",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-040",
+   "source": "SKILL.md:481",
+   "quote": "**D12**, the handling terms and origin",
+   "gist": "Carry the handling terms and origin on every page, opening with the seal-red shield handling marker.",
+   "page_kind": "all",
+   "metric": "D12",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-041",
+   "source": "SKILL.md:503",
+   "quote": "**once, in the closing colophon**, small and out of the",
+   "gist": "Stamp the lumi-style version once, in the closing colophon.",
+   "page_kind": "closing",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-042",
+   "source": "SKILL.md:509",
+   "quote": "Decks open with a cover and end with a closing page",
+   "gist": "Open a deck with a cover and end it with a closing page, each carrying the single vector mark.",
+   "page_kind": "all",
+   "metric": "deck_structure",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-043",
+   "source": "SKILL.md:510",
+   "quote": "every part boundary gets a lime opener page",
+   "gist": "Give every part boundary a lime opener page.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-044",
+   "source": "SKILL.md:511",
+   "quote": "about five content pages between openers is the pacing",
+   "gist": "Target about five content pages between part openers.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-045",
+   "source": "SKILL.md:513",
+   "quote": "decks embed the scoring table as the final page",
+   "gist": "Embed the scoring table as the deck's final page.",
+   "page_kind": "closing",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-046",
+   "source": "SKILL.md:560",
+   "quote": "No invented facts; every number carries its source",
+   "gist": "Invent no facts, source every number, and label illustrative values as illustrative.",
+   "page_kind": "all",
+   "metric": "M2",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-047",
+   "source": "SKILL.md:562",
+   "quote": "No coined Chinese: new concepts with no established",
+   "gist": "Coin no Chinese terms; take the English term where no established Chinese term exists.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-048",
+   "source": "SKILL.md:564",
+   "quote": "The sales storyline is **value and future**",
+   "gist": "Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-049",
+   "source": "SKILL.md:566",
+   "quote": "Every title names its subject and carries a verifiable fact",
+   "gist": "Make every title name its subject and carry a verifiable fact.",
+   "page_kind": "all",
+   "metric": "M1",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-050",
+   "source": "SKILL.md:567",
+   "quote": "no single title frame across more than 60% of a",
+   "gist": "Use no single title frame across more than 60% of a document.",
+   "page_kind": "all",
+   "metric": "M11",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-051",
+   "source": "SKILL.md:568",
+   "quote": "all titles concatenated must read as a complete argument",
+   "gist": "Make all titles concatenated read as one complete argument.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-052",
+   "source": "SKILL.md:569",
+   "quote": "Charts: one accent color, conclusion-style titles",
+   "gist": "Give charts one accent colour, conclusion-style titles, and a source line on every figure.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-053",
+   "source": "SKILL.md:571",
+   "quote": "AI never signs; money/safety conclusions never come from",
+   "gist": "AI never signs, and money or safety conclusions never come from a language model.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-054",
+   "source": "references/analysis-rules.md:26",
+   "quote": "Every content section of an external document declares which move",
+   "gist": "Declare on every content section of an external document which of the five analytical moves produced its finding.",
+   "page_kind": "content",
+   "metric": "D31",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-055",
+   "source": "references/analysis-rules.md:107",
+   "quote": "ids in the library that draw it. The selection chain is",
+   "gist": "Follow the question to framework to shape chain, drawing a declared move with the library shapes that framework names.",
+   "page_kind": "content",
+   "metric": "D32",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-056",
+   "source": "references/brand.md:93",
+   "quote": "One mark per datum, intensity from the datum",
+   "gist": "In a field, draw exactly one mark per datum and take its intensity from the datum.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-057",
+   "source": "references/brand.md:101",
+   "quote": "Every mark maps to one real item.",
+   "gist": "Never draw a field texture with no data behind it; every mark maps to one real item.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-058",
+   "source": "references/brand.md:108",
+   "quote": "**medium** on the part openers (`--ground-mid`)",
+   "gist": "Set the ground density by page class: strong on cover and closing, mid on part openers, faint on body pages.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-059",
+   "source": "references/brand.md:115",
+   "quote": "**It never carries a blend mode.**",
+   "gist": "Never put a blend mode on the ground.",
+   "page_kind": "all",
+   "metric": "D17",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-060",
+   "source": "references/brand.md:138",
+   "quote": "It may never exceed **1.40:1** against its canvas",
+   "gist": "Keep the ground's rendered contrast against its canvas at or below 1.40:1.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-061",
+   "source": "references/brand.md:141",
+   "quote": "it may never resolve into repeated identical marks",
+   "gist": "Never let the ground resolve into repeated identical, countable marks.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-062",
+   "source": "references/brand.md:145",
+   "quote": "The ground carries the colour, and the foreground does not.",
+   "gist": "Put the wider hue range in the ground only; keep the foreground one colour with one meaning.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-063",
+   "source": "references/brand.md:155",
+   "quote": "Every page has one horizon where the light collects.",
+   "gist": "Compose every page against exactly one waterline horizon.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-064",
+   "source": "references/brand.md:157",
+   "quote": "**Above it is air**: the claim, the title",
+   "gist": "Put the claim and title above the waterline and the evidence, figures and handling terms on or below it.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-065",
+   "source": "references/brand.md:166",
+   "quote": "**What makes a waterline dishonest: two of them, or none.**",
+   "gist": "Give a page exactly one waterline, never two and never none.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-066",
+   "source": "references/brand.md:174",
+   "quote": "**surface and never text**",
+   "gist": "On the light canvas use the acid green only as a surface, never as text.",
+   "page_kind": "all",
+   "metric": "D13",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-067",
+   "source": "references/brand.md:186",
+   "quote": "**`--acc`, the forest, is the working green in text.**",
+   "gist": "Use --acc (forest) for every green that reads as words on white.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-068",
+   "source": "references/brand.md:189",
+   "quote": "**`--acc-live` is the working green in figures.**",
+   "gist": "Use --acc-live for strokes, chart marks and small fills inside figures.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-069",
+   "source": "references/brand.md:199",
+   "quote": "**`--lime` is the event green.** Large panels",
+   "gist": "Reserve --lime for large panels and the cover/closing subject chip.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-070",
+   "source": "references/brand.md:200",
+   "quote": "always with the near-black reversed out of it",
+   "gist": "Never set lime bare on the light canvas; back it with or reverse near-black out of it.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-071",
+   "source": "references/brand.md:216",
+   "quote": "One lime panel per page.",
+   "gist": "Allow at most one lime panel on a page.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-072",
+   "source": "references/brand.md:218",
+   "quote": "**One lime event per body page, and it is a fill.**",
+   "gist": "Allow one lime event per body page and render it as a fill, never a rule, stroke or caption.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-073",
+   "source": "references/brand.md:227",
+   "quote": "The lime marks a number panel. It never marks a chart",
+   "gist": "Use lime for a number panel only; never paint a chart mark with it.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-074",
+   "source": "references/brand.md:235",
+   "quote": "**One role, one rendering.**",
+   "gist": "Render every repeating role exactly one way across the deck.",
+   "page_kind": "all",
+   "metric": "role_split",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-075",
+   "source": "references/brand.md:253",
+   "quote": "The content area begins at the same height on every page",
+   "gist": "Start the content area at the same height on every page of a geometry.",
+   "page_kind": "all",
+   "metric": "datum",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-076",
+   "source": "references/brand.md:260",
+   "quote": "**ceiling on the title block, not a target**",
+   "gist": "Treat the title reserve as a ceiling — two title lines plus one support line — and shorten text rather than grow it.",
+   "page_kind": "content",
+   "metric": "reserve_overspent",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-077",
+   "source": "references/brand.md:273",
+   "quote": "openers are full lime fields with the claim in near-black",
+   "gist": "Make part openers full lime fields carrying the claim in near-black at display size, and no other page.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-078",
+   "source": "references/brand.md:287",
+   "quote": "One colour, one meaning still governs data",
+   "gist": "Keep the semantic tokens flat and fixed: accent = built/pass, seal = red line, amber = partial, brass = reference.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-079",
+   "source": "references/brand.md:289",
+   "quote": "**The ramp belongs to fields and surfaces, not to",
+   "gist": "Use the accent ramp only for fields and surfaces, never to carry data meaning.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-080",
+   "source": "references/brand.md:304",
+   "quote": "**80px on the slide, 72px on the sheet**",
+   "gist": "Set part-opener display type at 80px on the slide and 72px on the sheet.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-081",
+   "source": "references/brand.md:307",
+   "quote": "**The cover and closing set SMALLER, at 58px**",
+   "gist": "Set cover and closing titles at 58px, smaller than the opener display size.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-082",
+   "source": "references/brand.md:313",
+   "quote": "weight **700** at **34px on the slide, 26px on the sheet**",
+   "gist": "Set page titles at weight 700, 34px on the slide and 26px on the sheet.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-083",
+   "source": "references/brand.md:315",
+   "quote": "**Support lines**: 17px weight 500 (`--fs-support`)",
+   "gist": "Set support lines at 17px weight 500.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-084",
+   "source": "references/brand.md:318",
+   "quote": "**Tracking**: gone. `.3em` on eyebrows was the most",
+   "gist": "Use no letter-spacing tracking, including on eyebrows.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-085",
+   "source": "references/brand.md:360",
+   "quote": "**The brand is never the loudest thing on the page",
+   "gist": "Never let the brand be the loudest thing on the page; the evidence is.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-086",
+   "source": "references/brand.md:362",
+   "quote": "Wordmark small — the name of the product or subject",
+   "gist": "Keep the wordmark small and take it from the brand registry.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-087",
+   "source": "references/brand.md:364",
+   "quote": "no flourish, no logo behind the content.",
+   "gist": "Carry no watermark, ornament, flourish or logo behind the content.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-088",
+   "source": "references/brand.md:364",
+   "quote": "LUMI's mark appears twice in a deck",
+   "gist": "Place LUMI's mark exactly twice in a deck, on the cover and the closing.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-089",
+   "source": "references/brand.md:366",
+   "quote": "embedded live so it turns",
+   "gist": "Embed the field-globe mark live so it turns, rather than as a still frame.",
+   "page_kind": "cover",
+   "metric": "D19",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-090",
+   "source": "references/design-rules.md:35",
+   "quote": "The colour values below are the shipped ones",
+   "gist": "Copy the shipped colour token values exactly into the deliverable.",
+   "page_kind": "all",
+   "metric": "D20",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-091",
+   "source": "references/design-rules.md:41",
+   "quote": "One declared exception: a trademark mark keeps its",
+   "gist": "Let a third-party trademark keep its owner's colours instead of recolouring it.",
+   "page_kind": "content",
+   "metric": "D4",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-092",
+   "source": "references/design-rules.md:50",
+   "quote": "official vector is not shipped gets its name set in type",
+   "gist": "Set a platform's name in type when its official vector is not shipped; never redraw an imitation.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-093",
+   "source": "references/design-rules.md:58",
+   "quote": "light by default, dark on request",
+   "gist": "Default the canvas to light and use dark only on request.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-094",
+   "source": "references/design-rules.md:59",
+   "quote": "white (#FFFFFF)** with cards a hair off it (#FAFAFA)",
+   "gist": "Use pure white #FFFFFF for the light canvas and #FAFAFA for cards.",
+   "page_kind": "all",
+   "metric": "D20",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-095",
+   "source": "references/design-rules.md:60",
+   "quote": "(#F4F1EA and its neighbours) that has become",
+   "gist": "Never use warm cream as the canvas.",
+   "page_kind": "all",
+   "metric": "D20",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-096",
+   "source": "references/design-rules.md:62",
+   "quote": "**Apple space grey (#1D1D1F)**, cards #2C2C2E",
+   "gist": "Use #1D1D1F for the dark canvas and #2C2C2E for its cards.",
+   "page_kind": "all",
+   "metric": "D20",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-097",
+   "source": "references/design-rules.md:64",
+   "quote": "switch with a single `body.dark` override block, never",
+   "gist": "Switch palettes with one body.dark override block, never a forked file.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-098",
+   "source": "references/design-rules.md:65",
+   "quote": "Literal colors in component CSS or inline SVG are a defect",
+   "gist": "Never write literal colours in component CSS or inline SVG.",
+   "page_kind": "all",
+   "metric": "D4",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-099",
+   "source": "references/design-rules.md:67",
+   "quote": "four of them, each clearing 4.5:1 as text on its own",
+   "gist": "Pin each meaning to exactly one of the four semantic colours, each clearing 4.5:1 as text.",
+   "page_kind": "all",
+   "metric": "D1",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-100",
+   "source": "references/design-rules.md:92",
+   "quote": "renders in `--seal-t`, the seal that stays",
+   "gist": "Render the footer's handling shield marker in --seal-t.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-101",
+   "source": "references/design-rules.md:96",
+   "quote": "on the lime opener the marker inverts with the rest of the",
+   "gist": "Invert the footer's handling marker with the rest of the footer on a lime opener.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-102",
+   "source": "references/design-rules.md:98",
+   "quote": "Hierarchy comes from a transparency ladder, not new grays",
+   "gist": "Get hierarchy from the transparency ladders, never from new greys.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-103",
+   "source": "references/design-rules.md:101",
+   "quote": "is the **text ladder**. Every step clears **4.5:1**",
+   "gist": "Keep every step of the text ladder at 4.5:1 or better.",
+   "page_kind": "all",
+   "metric": "D1",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-104",
+   "source": "references/design-rules.md:102",
+   "quote": "of its own palette. Text may use nothing else",
+   "gist": "Set text only in the text ladder tokens.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-105",
+   "source": "references/design-rules.md:104",
+   "quote": "fills, chart furniture. It may never carry text",
+   "gist": "Never set text in the non-text ladder.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-106",
+   "source": "references/design-rules.md:105",
+   "quote": "Marks a reader must distinguish (a data dot, a status ring)",
+   "gist": "Colour marks a reader must distinguish from the text ladder.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-107",
+   "source": "references/design-rules.md:111",
+   "quote": "cold white, never pure white.** Measured ratios",
+   "gist": "Set dark-canvas text in cold white, never pure white.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-108",
+   "source": "references/design-rules.md:120",
+   "quote": "if a thing should be quieter than `--tx4`, make it smaller",
+   "gist": "Make a quiet element smaller or cut it rather than fading it below legibility.",
+   "page_kind": "all",
+   "metric": "D1",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-109",
+   "source": "references/design-rules.md:122",
+   "quote": "Text on a filled surface is checked separately",
+   "gist": "Check text on a filled surface against that surface.",
+   "page_kind": "all",
+   "metric": "D1",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-110",
+   "source": "references/design-rules.md:127",
+   "quote": "an independent CVD-validated triple (blue/red/teal)",
+   "gist": "Keep chart data colours as the fixed CVD-validated triple regardless of brand palette.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-111",
+   "source": "references/design-rules.md:130",
+   "quote": "A colour is verified against the surface it is printed on",
+   "gist": "Verify every colour against the surface it is printed on.",
+   "page_kind": "all",
+   "metric": "D1",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-112",
+   "source": "references/design-rules.md:131",
+   "quote": "A status chip sits on its own wash and never touches `--bg`",
+   "gist": "Place a status chip on its own wash rather than directly on the canvas.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-113",
+   "source": "references/design-rules.md:140",
+   "quote": "openers are full accent fields with the claim reversed out",
+   "gist": "Make part openers the only full accent-field pages.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-114",
+   "source": "references/design-rules.md:143",
+   "quote": "solid `--on-accent`: fading it to 72% for hierarchy",
+   "gist": "Set text on an accent field in solid --on-accent, never faded.",
+   "page_kind": "opener",
+   "metric": "D1",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-115",
+   "source": "references/design-rules.md:144",
+   "quote": "returning through a colour choice. Hierarchy on a field",
+   "gist": "Build hierarchy on an accent field from size, not colour.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-116",
+   "source": "references/design-rules.md:151",
+   "quote": "hue encodes which region a shape is, and nothing",
+   "gist": "Let hue encode only region identity in the globe's region form.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-117",
+   "source": "references/design-rules.md:156",
+   "quote": "a region hue never appears outside a region shape",
+   "gist": "Never use a region hue outside a region shape.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-118",
+   "source": "references/design-rules.md:170",
+   "quote": "| Label text on a region fill | **≥ 4.5 : 1",
+   "gist": "Keep label text on a region fill at 4.5:1 or better.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-119",
+   "source": "references/design-rules.md:182",
+   "quote": "A document paints a region map by including that file",
+   "gist": "Paint a region map by including the shipped region palette and nothing else.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-120",
+   "source": "references/design-rules.md:190",
+   "quote": "Every coloured region carries a label or a legend entry",
+   "gist": "Give every coloured region a label or a legend entry.",
+   "page_kind": "content",
+   "metric": "D18",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-121",
+   "source": "references/design-rules.md:207",
+   "quote": "may use either and must never place both in one view",
+   "gist": "Never place the stylised mark geography and the 110m map geography in one view.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-122",
+   "source": "references/design-rules.md:224",
+   "quote": "Night is a lighting condition laid over the geography",
+   "gist": "Draw night as a wash over the geography rather than a fill.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-123",
+   "source": "references/design-rules.md:225",
+   "quote": "rather than a fill and it takes no pointer events",
+   "gist": "Give the night wash no pointer events.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-124",
+   "source": "references/design-rules.md:229",
+   "quote": "a reader can point at them, so they are gold, drawn",
+   "gist": "Draw the equator and tropics in gold, above the graticule.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-125",
+   "source": "references/design-rules.md:230",
+   "quote": "the tropics are dashed to say they are a pair",
+   "gist": "Dash the tropics so they read as a pair.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-126",
+   "source": "references/design-rules.md:234",
+   "quote": "**The land, in three weights.**",
+   "gist": "Draw land linework in three distinct weights.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-127",
+   "source": "references/design-rules.md:238",
+   "quote": "The FILLS carry no stroke at all now; all linework is here",
+   "gist": "Give region fills no stroke; carry all linework in the named line layers.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-128",
+   "source": "references/design-rules.md:240",
+   "quote": "is the heaviest line on the figure",
+   "gist": "Draw a coast as the heaviest line on the figure after the data.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-129",
+   "source": "references/design-rules.md:244",
+   "quote": "Heavier than a border inside a bloc",
+   "gist": "Draw a bloc boundary heavier than an intra-bloc border and lighter than a coast.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-130",
+   "source": "references/design-rules.md:248",
+   "quote": "faint, because the figure is not about them",
+   "gist": "Draw a border between two countries in the same bloc faintly but present.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-131",
+   "source": "references/design-rules.md:250",
+   "quote": "A bloc on the globe is quieter than the same bloc on a map",
+   "gist": "Reduce bloc fill strength on the globe relative to the flat map.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-132",
+   "source": "references/design-rules.md:254",
+   "quote": "keeps one palette across both figures",
+   "gist": "Use one hue palette across the globe and the flat map.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-133",
+   "source": "references/design-rules.md:257",
+   "quote": "outlined when a reader selects it.** No fill",
+   "gist": "Show a selected bloc's full membership as an outline with no fill.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-134",
+   "source": "references/design-rules.md:263",
+   "quote": "both are set in the utility face at a weight that survives",
+   "gist": "Set city and bloc labels in the utility face at a weight that survives being drawn over land.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-135",
+   "source": "references/design-rules.md:264",
+   "quote": "both carry a halo, because a label on a globe",
+   "gist": "Give every label on the sphere a halo.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-136",
+   "source": "references/design-rules.md:265",
+   "quote": "paint-order puts the stroke behind the glyph",
+   "gist": "Set paint-order so a label's halo stroke sits behind the glyph.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-137",
+   "source": "references/design-rules.md:277",
+   "quote": "people count recedes: the reader is identifying a bloc",
+   "gist": "Set a label's value or count to recede below the bloc name.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-138",
+   "source": "references/design-rules.md:281",
+   "quote": "Size is set by the emitter, not by CSS",
+   "gist": "Let the emitter set label size as an attribute scaled to R.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-139",
+   "source": "references/design-rules.md:291",
+   "quote": "Interaction has to be visible or it does not exist",
+   "gist": "Give hover and keyboard focus a visible treatment.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-140",
+   "source": "references/design-rules.md:300",
+   "quote": "A mark grows; a node takes the accent",
+   "gist": "On hover, grow a globe mark and give a node the accent.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-141",
+   "source": "references/design-rules.md:304",
+   "quote": "A figure that can be turned should",
+   "gist": "Show a drag affordance on a figure that can be turned.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-142",
+   "source": "references/design-rules.md:311",
+   "quote": "D-DIN is the single Latin face",
+   "gist": "Use D-DIN as the single Latin face for titles, body and data.",
+   "page_kind": "all",
+   "metric": "D23",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-143",
+   "source": "references/design-rules.md:313",
+   "quote": "Display titles are ALL-CAPS at **weight 700**",
+   "gist": "Set display titles ALL-CAPS at weight 700 with 0.92 leading.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-144",
+   "source": "references/design-rules.md:316",
+   "quote": "Rounded faces (Quicksand/Nunito) are retired",
+   "gist": "Never use rounded faces in decks.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-145",
+   "source": "references/design-rules.md:318",
+   "quote": "alongside). Embed it as a data",
+   "gist": "Embed the Latin face as a data URI, never link it.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-146",
+   "source": "references/design-rules.md:324",
+   "quote": "The embed rule is scoped to the Latin faces",
+   "gist": "Embed only the Latin faces; let Chinese render through the default CJK stack.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-147",
+   "source": "references/design-rules.md:339",
+   "quote": "the contrast fixed most of it. **There is no universal",
+   "gist": "Apply no universal type size floor; set type per page.",
+   "page_kind": "all",
+   "metric": "D2",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-148",
+   "source": "references/design-rules.md:344",
+   "quote": "13 / axis 11.5 / source 10.5 is a **starting point**",
+   "gist": "Treat the chart scale as a starting point, not a minimum.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-149",
+   "source": "references/design-rules.md:347",
+   "quote": "monospace, tabular-nums always on",
+   "gist": "Set the data voice with tabular-nums always on.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-150",
+   "source": "references/design-rules.md:348",
+   "quote": "fixed-width box** so changes never reflow",
+   "gist": "Give each digit of a counter a fixed-width box.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-151",
+   "source": "references/design-rules.md:349",
+   "quote": "a value someone will read out and verify goes in the data",
+   "gist": "Put any value a reader will read out and verify in the data voice.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-152",
+   "source": "references/design-rules.md:354",
+   "quote": "Latin eyebrows use small caps-style ALL-CAPS",
+   "gist": "Set Latin eyebrows in ALL-CAPS with 0.14em tracking.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-153",
+   "source": "references/design-rules.md:355",
+   "quote": "the CJK equivalent for display titles is size contrast",
+   "gist": "Give CJK display titles size contrast plus 0.02em tracking.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-154",
+   "source": "references/design-rules.md:362",
+   "quote": "The eyebrow names the part and the page",
+   "gist": "Make the eyebrow name the part and the page's own subject.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-155",
+   "source": "references/design-rules.md:366",
+   "quote": "not a repeated section name",
+   "gist": "Make the eyebrow label the page's own phrase, not a repeated section name.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-156",
+   "source": "references/design-rules.md:373",
+   "quote": "Each screen/page carries exactly one claim",
+   "gist": "Carry exactly one claim per page.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-157",
+   "source": "references/design-rules.md:374",
+   "quote": "accent word in green is available, not required",
+   "gist": "Treat a green accent word in a headline as optional, never mechanical.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-158",
+   "source": "references/design-rules.md:375",
+   "quote": "one to three sentences of support whose lengths",
+   "gist": "Vary the lengths of the support sentences visibly.",
+   "page_kind": "content",
+   "metric": "M8",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-159",
+   "source": "references/design-rules.md:376",
+   "quote": "on every content page without exception, figure pages",
+   "gist": "Put a support line under the title on every content page, figure pages included.",
+   "page_kind": "content",
+   "metric": "D8",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-160",
+   "source": "references/design-rules.md:377",
+   "quote": "one centerpiece, a thin footer rule with source",
+   "gist": "Give each page one centerpiece and a thin footer rule with source and page number.",
+   "page_kind": "content",
+   "metric": "D6",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-161",
+   "source": "references/design-rules.md:383",
+   "quote": "its length is set by the title contract in",
+   "gist": "Set headline length by the title contract; there is no word ceiling.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-162",
+   "source": "references/design-rules.md:384",
+   "quote": "topic + assertive subtitle carrying a verifiable",
+   "gist": "Write a title as topic plus an assertive subtitle carrying a verifiable fact.",
+   "page_kind": "content",
+   "metric": "M1",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-163",
+   "source": "references/design-rules.md:385",
+   "quote": "the only hard limit is two lines at the design viewport",
+   "gist": "Keep a headline within two lines at the design viewport.",
+   "page_kind": "content",
+   "metric": "title_two_lines",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-164",
+   "source": "references/design-rules.md:389",
+   "quote": "hairline-separated rows over card boxes",
+   "gist": "Prefer hairline-separated rows to card boxes.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-165",
+   "source": "references/design-rules.md:391",
+   "quote": "Every page has one focal element, and it is not the title",
+   "gist": "Give every page one focal element that is not the title.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-166",
+   "source": "references/design-rules.md:396",
+   "quote": "is fixed, and §7 fixes it: the number first",
+   "gist": "Put the number before its gloss.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-167",
+   "source": "references/design-rules.md:409",
+   "quote": "The part label, one claim at display scale",
+   "gist": "Give a part opener the part label, one display-scale claim, and one run line.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-168",
+   "source": "references/design-rules.md:412",
+   "quote": "no chart, no map, no navigation rail, and no icon",
+   "gist": "Put no chart, map, navigation rail or second-message icon on a part opener.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-169",
+   "source": "references/design-rules.md:413",
+   "quote": "One oversized subject mark is permitted",
+   "gist": "Allow at most one oversized filled subject silhouette on a part opener.",
+   "page_kind": "opener",
+   "metric": "opener_subject_mark",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-170",
+   "source": "references/design-rules.md:418",
+   "quote": "A page has a layout, chosen for its content",
+   "gist": "Give every page one of the layouts tokens/ defines.",
+   "page_kind": "all",
+   "metric": "D22",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-171",
+   "source": "references/design-rules.md:440",
+   "quote": "Every layout has one row that absorbs the page",
+   "gist": "Put the centerpiece in the layout's flexible row.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-172",
+   "source": "references/design-rules.md:462",
+   "quote": "comfortable measure (88ch cap, `--measure`)",
+   "gist": "Cap body prose at a comfortable 88ch measure.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-173",
+   "source": "references/design-rules.md:465",
+   "quote": "fix is a second column carrying real content",
+   "gist": "Fill a half-empty text page with a second column of real content, never a longer line.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-174",
+   "source": "references/design-rules.md:469",
+   "quote": "Do not grow chrome to fill the gap",
+   "gist": "Redraw an undersized centerpiece rather than growing chrome to fill an empty page.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-175",
+   "source": "references/design-rules.md:476",
+   "quote": "A figure is drawn for the geometry it will sit in",
+   "gist": "Draw a figure for the aspect of the cell it will sit in.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-176",
+   "source": "references/design-rules.md:507",
+   "quote": "Every content page carries at least one visual",
+   "gist": "Carry at least one visual block on every content page.",
+   "page_kind": "content",
+   "metric": "D16",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-177",
+   "source": "references/design-rules.md:510",
+   "quote": "(owner directive, 0.1.380): **about half for sales,",
+   "gist": "Give about half the content area to visual blocks for sales, marketing and consulting.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-178",
+   "source": "references/design-rules.md:512",
+   "quote": "third for training**, where a learner needs the words",
+   "gist": "Give about a third of the content area to visual blocks for training.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-179",
+   "source": "references/design-rules.md:515",
+   "quote": "a `pitch-deck` page is looked at while a founder talks",
+   "gist": "Give about 80% of the content area to visual blocks on a pitch-deck page.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-180",
+   "source": "references/design-rules.md:519",
+   "quote": "a floor on the drawing and therefore a **ceiling",
+   "gist": "Treat a raised visual share as a floor on the drawing and a ceiling on the prose.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-181",
+   "source": "references/design-rules.md:525",
+   "quote": "second content block beside its centerpiece",
+   "gist": "Give a portrait content page a second content block beside its centerpiece.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-182",
+   "source": "references/design-rules.md:527",
+   "quote": "least one marked key point**. Marked means the",
+   "gist": "Carry at least one marked key point on a portrait content page.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-183",
+   "source": "references/design-rules.md:529",
+   "quote": "which stays at one per page and a third of the document",
+   "gist": "Keep the tier-one callout budget at one per page and a third of the document.",
+   "page_kind": "content",
+   "metric": "D3",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-184",
+   "source": "references/design-rules.md:533",
+   "quote": "The sheet is a fixed box and type is never",
+   "gist": "Never nudge type size to make content fit the sheet.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-185",
+   "source": "references/design-rules.md:535",
+   "quote": "**the page becomes two pages**",
+   "gist": "Split a page in two when its blocks and its reserve will not both fit.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-186",
+   "source": "references/design-rules.md:551",
+   "quote": "A page is apparatus because the author says so",
+   "gist": "Declare apparatus in the markup; never infer it.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-187",
+   "source": "references/design-rules.md:559",
+   "quote": "A ceiling, not a target: about one content page in five",
+   "gist": "Keep apparatus pages under about one content page in five.",
+   "page_kind": "content",
+   "metric": "D16",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-188",
+   "source": "references/design-rules.md:568",
+   "quote": "a table is still for values and never for what a chart",
+   "gist": "Use a table for values, never for what a chart says better.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-189",
+   "source": "references/design-rules.md:570",
+   "quote": "from the content, never for variety",
+   "gist": "Vary the figure form page to page from the content, never for variety's own sake.",
+   "page_kind": "content",
+   "metric": "D5",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-190",
+   "source": "references/design-rules.md:573",
+   "quote": "Generous whitespace is part of the design",
+   "gist": "Distribute content across the full page height rather than crowding the top half.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-191",
+   "source": "references/design-rules.md:575",
+   "quote": "full-bleed block skeleton (single title + single CTA)",
+   "gist": "Use the full-bleed block skeleton as a single title plus single CTA.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-192",
+   "source": "references/design-rules.md:576",
+   "quote": "centerpiece is a chart, a diagram, a composed shape",
+   "gist": "Make the centerpiece a chart, diagram, composed shape or a sourced photograph.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-193",
+   "source": "references/design-rules.md:581",
+   "quote": "documents keep a table of contents; decks use a",
+   "gist": "Give a long document a table of contents and a deck a narrative rail.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-194",
+   "source": "references/design-rules.md:582",
+   "quote": "carries the source line and the page number as `N / total`",
+   "gist": "Carry the source line and the page number as N / total in every footer.",
+   "page_kind": "all",
+   "metric": "D6",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-195",
+   "source": "references/design-rules.md:585",
+   "quote": "scroll-snap is for decks only",
+   "gist": "Use scroll-snap in decks only, never in long documents.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-196",
+   "source": "references/design-rules.md:589",
+   "quote": "full 1px border plus a strong left edge",
+   "gist": "Give tier-one callouts a tinted box with border and strong left edge, tier-two the plain left rule, tier-three muted text.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-197",
+   "source": "references/design-rules.md:590",
+   "quote": "**At most one tier-one callout",
+   "gist": "Allow at most one tier-one callout per page.",
+   "page_kind": "all",
+   "metric": "D3",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-198",
+   "source": "references/design-rules.md:591",
+   "quote": "per page, and tier one on no more than a third",
+   "gist": "Put tier-one callouts on no more than a third of a deck's pages.",
+   "page_kind": "all",
+   "metric": "D3",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-199",
+   "source": "references/design-rules.md:592",
+   "quote": "things on a page both read as the conclusion",
+   "gist": "Split a page in two when two things on it both read as the conclusion.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-200",
+   "source": "references/design-rules.md:598",
+   "quote": "Deliverables state results, not process",
+   "gist": "Keep edit history, deletion notices and moved-section asides out of a deliverable.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-201",
+   "source": "references/design-rules.md:604",
+   "quote": "`split-wide`, `split-narrow` and `sidebar-notes`",
+   "gist": "Treat the split family as one composition on portrait and take variety from the vertical and composite layouts.",
+   "page_kind": "all",
+   "metric": "D9",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-202",
+   "source": "references/design-rules.md:613",
+   "quote": "list under a 1fr hero row opens a dead band",
+   "gist": "Fix a dead band with a second content block rather than a stretched one.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-203",
+   "source": "references/design-rules.md:615",
+   "quote": "`columns-2` centers each cell independently",
+   "gist": "Use portrait columns-2 only for near-equal columns.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-204",
+   "source": "references/design-rules.md:624",
+   "quote": "Figure titles state conclusions, not labels",
+   "gist": "Give every figure a title that states a conclusion, not a label.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-205",
+   "source": "references/design-rules.md:626",
+   "quote": "everything else grayscale, red only for warnings",
+   "gist": "Use one accent colour with everything else grayscale and red only for warnings.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-206",
+   "source": "references/design-rules.md:627",
+   "quote": "chart borders, no legend for single series",
+   "gist": "Draw no gridlines, no chart borders and no legend for a single series.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-207",
+   "source": "references/design-rules.md:627",
+   "quote": "every figure carries a source line",
+   "gist": "Carry a source line under every figure in consulting and internal material.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-208",
+   "source": "references/design-rules.md:636",
+   "quote": "the legend is quieter than the plot",
+   "gist": "Set a legend quieter than the plot and close to its marks.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-209",
+   "source": "references/design-rules.md:642",
+   "quote": "Figure number and name go below the figure",
+   "gist": "Put the figure number and name below the figure.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-210",
+   "source": "references/design-rules.md:643",
+   "quote": "name holds one line at the document's geometry",
+   "gist": "Keep the figure name to one line at the document's geometry.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-211",
+   "source": "references/design-rules.md:646",
+   "quote": "about 100 characters for a full-width figure",
+   "gist": "Cap a figure name at about 100 characters full-width, about 60 in a split cell.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-212",
+   "source": "references/design-rules.md:648",
+   "quote": "overruns gets shortened, never set smaller",
+   "gist": "Shorten a figure name that overruns rather than setting it smaller.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-213",
+   "source": "references/design-rules.md:654",
+   "quote": "the number, its conclusion name, and the source line",
+   "gist": "Put only the number, the conclusion name and the source line below a figure.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-214",
+   "source": "references/design-rules.md:665",
+   "quote": "The caption block centres on its figure",
+   "gist": "Centre the caption block on its figure in both geometries.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-215",
+   "source": "references/design-rules.md:675",
+   "quote": "off-centre inside its own viewBox cannot be aligned",
+   "gist": "Redraw a figure whose ink sits off-centre inside its own viewBox.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-216",
+   "source": "references/design-rules.md:679",
+   "quote": "Sales and marketing material states its provenance once",
+   "gist": "State provenance once for a sales or marketing document, not on every page.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-217",
+   "source": "references/design-rules.md:680",
+   "quote": "The cover and the closing carry it; the pages carry the",
+   "gist": "Put the provenance on the cover and closing and the handling terms on the pages.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-218",
+   "source": "references/design-rules.md:684",
+   "quote": "and internal analysis keep per-page sourcing",
+   "gist": "Keep per-page sourcing in consulting deliverables and internal analysis.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-219",
+   "source": "references/design-rules.md:693",
+   "quote": "marketing material the figure carries no source line",
+   "gist": "Omit the figure source line in sales and marketing material.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-220",
+   "source": "references/design-rules.md:703",
+   "quote": "the page keeps a source marker somewhere in its own text",
+   "gist": "Keep a source marker somewhere in each page's own text.",
+   "page_kind": "all",
+   "metric": "M2",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-221",
+   "source": "references/design-rules.md:706",
+   "quote": "The accepted provenance words are the checker's",
+   "gist": "State provenance using one of the accepted provenance words.",
+   "page_kind": "closing",
+   "metric": "D6",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-222",
+   "source": "references/design-rules.md:713",
+   "quote": "A page states its source once (any genre)",
+   "gist": "State a page's source once, in any genre.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-223",
+   "source": "references/design-rules.md:715",
+   "quote": "The figure's line wins",
+   "gist": "When a figure and the footer state the same source, keep the figure's line.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-224",
+   "source": "references/design-rules.md:722",
+   "quote": "One table per page.** Two grids side by side",
+   "gist": "Put at most one table on a page.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-225",
+   "source": "references/design-rules.md:732",
+   "quote": "A table is for values. Prose poured into a grid",
+   "gist": "Use a table only for values; never pour prose into a grid.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-226",
+   "source": "references/design-rules.md:736",
+   "quote": "duration is a timeline, a pair of alternatives is a swap",
+   "gist": "Draw the content's actual relation: a sequence as a flow, a duration as a timeline, alternatives as a swap.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-227",
+   "source": "references/design-rules.md:745",
+   "quote": "A table's row height comes from its content",
+   "gist": "Set table row height from the content, never from leftover space.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-228",
+   "source": "references/design-rules.md:757",
+   "quote": "A mark that encodes a quantity declares it",
+   "gist": "Have every mark that encodes a quantity declare that quantity in the markup.",
+   "page_kind": "content",
+   "metric": "D21",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-229",
+   "source": "references/design-rules.md:759",
+   "quote": "and the length follows it in proportion",
+   "gist": "Draw a mark's length in proportion to its declared value, with no minimum-width floor.",
+   "page_kind": "content",
+   "metric": "figure_distorts",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-230",
+   "source": "references/design-rules.md:771",
+   "quote": "A bar on a full-width track states a share",
+   "gist": "Use a full-width track only when the bar states a share of that whole.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-231",
+   "source": "references/design-rules.md:777",
+   "quote": "A figure's viewBox width is chosen to match the CELL",
+   "gist": "Choose each figure's viewBox width to match its cell so one user unit is about one pixel.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-232",
+   "source": "references/design-rules.md:782",
+   "quote": "1100 in `stack`, 1280 full-bleed",
+   "gist": "Use roughly 660 viewBox units in a split-wide right cell, 1100 in stack, 1280 full-bleed.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-233",
+   "source": "references/design-rules.md:794",
+   "quote": "`svg .row-lbl`, 17px bold ink",
+   "gist": "Set a figure's row and section names at title weight, 17px bold.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-234",
+   "source": "references/design-rules.md:796",
+   "quote": "(30px) or `.huge` (54px) where the number is the argument",
+   "gist": "Set a figure's values at .mid or .huge where the number is the argument.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-235",
+   "source": "references/design-rules.md:797",
+   "quote": "scope flags — stays at `.lbl` / `.sm`",
+   "gist": "Keep a figure's fine print at .lbl / .sm.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-236",
+   "source": "references/design-rules.md:801",
+   "quote": "A figure that compares two states names them",
+   "gist": "Name both states inside a two-state comparison figure.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-237",
+   "source": "references/design-rules.md:802",
+   "quote": "the left in `--tx1`, the right in `--acc`",
+   "gist": "Set the left label of a comparison pair in --tx1 and the right in --acc.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-238",
+   "source": "references/design-rules.md:808",
+   "quote": "The figure's source or caveat line is the last text node",
+   "gist": "Put the figure's source or caveat line inside the SVG as its last text node.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-239",
+   "source": "references/design-rules.md:809",
+   "quote": "11 to 11.5px in `--tx2` or `--tx3`",
+   "gist": "Set the in-figure source or caveat line at 11 to 11.5px in --tx2 or --tx3.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-240",
+   "source": "references/design-rules.md:814",
+   "quote": "A number label inside a filled mark is reversed out",
+   "gist": "Reverse a number label inside a filled mark out of the mark.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-241",
+   "source": "references/design-rules.md:815",
+   "quote": "`--on-acc` or `--on-lime` at 20-22px",
+   "gist": "Set a reversed number label in --on-acc or --on-lime at 20-22px.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-242",
+   "source": "references/design-rules.md:821",
+   "quote": "parallelogram** = data input/output",
+   "gist": "Use flow-diagram shapes semantically: parallelogram for data, rectangle for process, diamond for decision, stadium for terminal.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-243",
+   "source": "references/design-rules.md:823",
+   "quote": "dashed outline = not built · one accent-colored arrow marker",
+   "gist": "Mark not-built states with a dashed outline and use one accent-coloured arrow marker throughout.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-244",
+   "source": "references/design-rules.md:828",
+   "quote": "have to hold across every figure in one deliverable",
+   "gist": "Hold the shape vocabulary and level of construction across every figure in one deliverable.",
+   "page_kind": "content",
+   "metric": "D5",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-245",
+   "source": "references/design-rules.md:837",
+   "quote": "A grid of rectangles containing sentences is a table",
+   "gist": "Draw a table rather than a grid of rectangles containing sentences.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-246",
+   "source": "references/design-rules.md:841",
+   "quote": "one number is the story → stat callout",
+   "gist": "Use a stat callout when one number is the story.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-247",
+   "source": "references/design-rules.md:842",
+   "quote": "composition/trend → segmented bars / tick bands",
+   "gist": "Match form to content: composition or trend to segmented bars, a bridge to a waterfall, time commitments to a milestone timeline.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-248",
+   "source": "references/design-rules.md:848",
+   "quote": "A figure qualifies when it carries the values",
+   "gist": "Label the values on the marks when a comparison is drawn as a figure.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-249",
+   "source": "references/design-rules.md:851",
+   "quote": "Columns = options, rows = dimensions",
+   "gist": "Default a comparison table to columns as options and rows as dimensions.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-250",
+   "source": "references/design-rules.md:853",
+   "quote": "Illustrative values must be labeled.",
+   "gist": "Label illustrative values as illustrative.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-251",
+   "source": "references/design-rules.md:859",
+   "quote": "starts one step earlier than a chart",
+   "gist": "Pick the page's shape from the analytical question, not from the chart type.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-252",
+   "source": "references/design-rules.md:874",
+   "quote": "Choose by the relation the content has",
+   "gist": "Choose a figure by the relation the content has, never by how the shape looks.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-253",
+   "source": "references/design-rules.md:877",
+   "quote": "relation the shape encodes must be the same one",
+   "gist": "Make the relation in the data and the relation the shape encodes the same one.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-254",
+   "source": "references/design-rules.md:878",
+   "quote": "a 2×2 whose axes are not independent",
+   "gist": "Do not draw a funnel whose values do not decrease, a 2x2 whose axes are not independent, or a waterfall that does not add up.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-255",
+   "source": "references/design-rules.md:917",
+   "quote": "unlabelled is decoration, and decoration on an argument page",
+   "gist": "Label any library shape dropped into a page.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-256",
+   "source": "references/design-rules.md:919",
+   "quote": "The page's numbers go into the geometry, not beside it",
+   "gist": "Put the page's own numbers inside the figure's geometry.",
+   "page_kind": "content",
+   "metric": "D29",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-257",
+   "source": "references/design-rules.md:946",
+   "quote": "rather than the one you chose. Use `style=",
+   "gist": "Colour SVG text with a style attribute rather than a fill presentation attribute.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-258",
+   "source": "references/design-rules.md:951",
+   "quote": "What may not change is the relation",
+   "gist": "Keep the relation intact when layering, recolouring, scaling or rotating a library shape.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-259",
+   "source": "references/design-rules.md:957",
+   "quote": "means moving it along that ladder, never introducing a",
+   "gist": "Retint a library shape only along the accent ladder, never by introducing a colour.",
+   "page_kind": "content",
+   "metric": "D20",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-260",
+   "source": "references/design-rules.md:959",
+   "quote": "A label on a library shape is sized in the shape's own",
+   "gist": "Size a label on a library shape in the shape's own units.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-261",
+   "source": "references/design-rules.md:971",
+   "quote": "Every page carries its handling terms",
+   "gist": "Carry the handling terms and the document's origin on every page.",
+   "page_kind": "all",
+   "metric": "D12",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-262",
+   "source": "references/design-rules.md:972",
+   "quote": "the confidentiality line, then the organisation's site",
+   "gist": "Put the confidentiality line then the organisation's site left of the footer rule.",
+   "page_kind": "all",
+   "metric": "D12",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-263",
+   "source": "references/design-rules.md:973",
+   "quote": "`N / total`. Pages travel alone",
+   "gist": "Put N / total on the right of the footer.",
+   "page_kind": "all",
+   "metric": "D6",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-264",
+   "source": "references/design-rules.md:977",
+   "quote": "The terms open with the handling marker",
+   "gist": "Open the handling terms with the shield reserved icon in the .foot .conf slot.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-265",
+   "source": "references/design-rules.md:982",
+   "quote": "the lime opener the marker inverts with the rest",
+   "gist": "Invert the handling marker with the rest of the footer on the lime opener.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-266",
+   "source": "references/design-rules.md:1000",
+   "quote": "A repository path is not a reader-facing source line",
+   "gist": "Never print a repository or file path in a footer source line.",
+   "page_kind": "all",
+   "metric": "D15",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-267",
+   "source": "references/design-rules.md:1001",
+   "quote": "a system, an extract and its date",
+   "gist": "Name something the reader can act on in a source line.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-268",
+   "source": "references/design-rules.md:1008",
+   "quote": "no slot the author left for themselves may reach the",
+   "gist": "Let no author placeholder reach the reader.",
+   "page_kind": "all",
+   "metric": "D14",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-269",
+   "source": "references/design-rules.md:1024",
+   "quote": "Every eyebrow, figure node and row-head",
+   "gist": "Take every eyebrow, figure-node and row-head icon from the semantic inline set.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-270",
+   "source": "references/design-rules.md:1027",
+   "quote": "36 filled silhouettes, for part-opener subject marks",
+   "gist": "Use the filled silhouette set only for part-opener subject marks.",
+   "page_kind": "opener",
+   "metric": "opener_subject_mark",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-271",
+   "source": "references/design-rules.md:1040",
+   "quote": "Embed only what the document uses",
+   "gist": "Embed only the icons the document actually uses.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-272",
+   "source": "references/design-rules.md:1045",
+   "quote": "should not share one icon",
+   "gist": "Give pages with different subjects different icons rather than reusing one.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-273",
+   "source": "references/design-rules.md:1048",
+   "quote": "so the same concept looks the same in every deliverable",
+   "gist": "Use the reserved icon bindings so a recurring meaning looks the same everywhere.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-274",
+   "source": "references/design-rules.md:1049",
+   "quote": "within one document an icon still means",
+   "gist": "Let an icon mean exactly one thing within one document.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-275",
+   "source": "references/design-rules.md:1053",
+   "quote": "the section eyebrow on a content page carries the icon",
+   "gist": "Carry an icon naming the page's subject in every content page's eyebrow.",
+   "page_kind": "content",
+   "metric": "D10",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-276",
+   "source": "references/design-rules.md:1055",
+   "quote": "So does every labelled node inside a figure",
+   "gist": "Give every labelled figure node and table row-head group an icon.",
+   "page_kind": "content",
+   "metric": "D10",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-277",
+   "source": "references/design-rules.md:1058",
+   "quote": "effective size** at the design viewport",
+   "gist": "Render semantic icons at a minimum 14px effective size at the design viewport.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-278",
+   "source": "references/design-rules.md:1059",
+   "quote": "Never add icons to \"look rich\". Never draw",
+   "gist": "Never add icons for decoration and never draw one ad hoc.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-279",
+   "source": "references/design-rules.md:1074",
+   "quote": "must be anchored **inside the fill**",
+   "gist": "Anchor a right-anchored label on a full-width bar inside the fill.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-280",
+   "source": "references/design-rules.md:1077",
+   "quote": "An icon on a text line lives in a flex container",
+   "gist": "Put an icon on a text line in a flex container.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-281",
+   "source": "references/design-rules.md:1081",
+   "quote": "Size an inline icon at roughly 1.4× the text size",
+   "gist": "Size an inline icon at roughly 1.4x the text it accompanies.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-282",
+   "source": "references/design-rules.md:1083",
+   "quote": "The 14px minimum governs a SEMANTIC INLINE icon",
+   "gist": "Apply the 14px minimum to semantic inline icons only.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-283",
+   "source": "references/design-rules.md:1086",
+   "quote": "fill-based, never stroke-based",
+   "gist": "Make an opener's subject mark fill-based, never stroke-based.",
+   "page_kind": "opener",
+   "metric": "opener_subject_mark",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-284",
+   "source": "references/design-rules.md:1091",
+   "quote": "Icon size is fixed and never inherits container scaling",
+   "gist": "Fix icon size and exclude icons from blanket container scaling.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-285",
+   "source": "references/design-rules.md:1096",
+   "quote": "One title line is the goal; two is the ceiling",
+   "gist": "Keep a title to one line where it fits and never past two.",
+   "page_kind": "all",
+   "metric": "title_two_lines",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-286",
+   "source": "references/design-rules.md:1098",
+   "quote": "Never narrow the title container below the content width",
+   "gist": "Never narrow the title container to force a line break.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-287",
+   "source": "references/design-rules.md:1101",
+   "quote": "not a single size, and a long title takes the lower end",
+   "gist": "Set display titles as a size range and let a long title take the lower end before cutting words.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-288",
+   "source": "references/design-rules.md:1104",
+   "quote": "Never cut below the information floor",
+   "gist": "Never cut a title below its information floor when shortening it.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-289",
+   "source": "references/design-rules.md:1111",
+   "quote": "Figure vocabulary ⊆ body vocabulary",
+   "gist": "Keep figure labels within the body's terminology.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-290",
+   "source": "references/design-rules.md:1114",
+   "quote": "Cards in a row need internal alignment constraints",
+   "gist": "Equalize card title heights in a row and stack stat numbers above their labels.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-291",
+   "source": "references/design-rules.md:1122",
+   "quote": "Exact values, never rounded for effect",
+   "gist": "State exact values and never round them for effect.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-292",
+   "source": "references/design-rules.md:1123",
+   "quote": "Label + value spec strips (HEIGHT 70 m style)",
+   "gist": "Set label-plus-value spec strips with the values in the data voice.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-293",
+   "source": "references/design-rules.md:1124",
+   "quote": "qualifying information is stated inline in parentheses",
+   "gist": "State negative or qualifying information inline, never in footnotes.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-294",
+   "source": "references/design-rules.md:1127",
+   "quote": "never pick the most flattering measurement",
+   "gist": "Never pick the most flattering measurement condition for a headline number.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-295",
+   "source": "references/design-rules.md:1130",
+   "quote": "A number reads before the words it belongs to",
+   "gist": "Place a number before the words it belongs to.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-296",
+   "source": "references/design-rules.md:1131",
+   "quote": "the figure comes first at display size and the sentence sits",
+   "gist": "In a stat block put the figure first at display size with its sentence under it.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-297",
+   "source": "references/design-rules.md:1133",
+   "quote": "where a title carries a number** it leads",
+   "gist": "Lead with the number where a title carries one.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-298",
+   "source": "references/design-rules.md:1134",
+   "quote": "inside a figure** the value is set on",
+   "gist": "Inside a figure set the value on or above its mark with the descriptor beneath.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-299",
+   "source": "references/design-rules.md:1162",
+   "quote": "section renders at exactly the geometry's height",
+   "gist": "Render every section at exactly the page geometry's height.",
+   "page_kind": "all",
+   "metric": "page_height",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-300",
+   "source": "references/design-rules.md:1174",
+   "quote": "16:9 landscape, 1280×720**, checked at 1920×1080",
+   "gist": "Design the landscape format as a 1280x720 stage, checked at 1920x1080.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-301",
+   "source": "references/design-rules.md:1176",
+   "quote": "A4 portrait, 794×1123** — printing and binding",
+   "gist": "Design the portrait format as a 794x1123 A4 sheet.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-302",
+   "source": "references/design-rules.md:1178",
+   "quote": "A deliverable is designed for ONE of them",
+   "gist": "Design a deliverable for one geometry and declare it.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-303",
+   "source": "references/design-rules.md:1182",
+   "quote": "projected, so 16:9; training is printed, annotated and bound",
+   "gist": "Default sales, marketing and consulting to 16:9 and training to A4 portrait.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-304",
+   "source": "references/design-rules.md:1187",
+   "quote": "Both editions of one file is not a thing this package",
+   "gist": "Never serve both geometries from one file.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-305",
+   "source": "references/design-rules.md:1197",
+   "quote": "Portrait is a composition, not a reflow",
+   "gist": "Compose portrait pages afresh rather than collapsing landscape layouts.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-306",
+   "source": "references/design-rules.md:1241",
+   "quote": "media queries that restyle the inside",
+   "gist": "Add no window-keyed media queries that restyle the inside of the stage.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-307",
+   "source": "references/design-rules.md:1245",
+   "quote": "number must be visible on every page at every matrix point",
+   "gist": "Keep the footer rule and page number visible on every page at every matrix point.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-308",
+   "source": "references/design-rules.md:1263",
+   "quote": "Every drawn element inside its viewBox",
+   "gist": "Keep every drawn element inside its figure's viewBox.",
+   "page_kind": "content",
+   "metric": "figure_clipped",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-309",
+   "source": "references/design-rules.md:1264",
+   "quote": "to y=212 inside a viewBox 208 tall is clipped",
+   "gist": "Edit a figure's viewBox with the shape, so the box a figure declares is the box it draws in.",
+   "page_kind": "content",
+   "metric": "figure_viewbox",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-310",
+   "source": "references/design-rules.md:1267",
+   "quote": "Every label inside its own shape, at the corners",
+   "gist": "Keep every figure label inside its own shape.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-311",
+   "source": "references/design-rules.md:1283",
+   "quote": "count the distinct renderings. More than one is a finding",
+   "gist": "Render each repeated role exactly one way across the document.",
+   "page_kind": "all",
+   "metric": "role_split",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-312",
+   "source": "references/design-rules.md:1287",
+   "quote": "one datum per geometry for where content",
+   "gist": "Start content at one datum per geometry.",
+   "page_kind": "all",
+   "metric": "datum",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-313",
+   "source": "references/design-rules.md:1288",
+   "quote": "one colour per chart component across pages",
+   "gist": "Use one colour per chart component across pages and a shared baseline inside a stat band.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-314",
+   "source": "references/design-rules.md:1321",
+   "quote": "Nothing may land on anything",
+   "gist": "Let nothing land on anything: no text on text and no text on any drawn element.",
+   "page_kind": "all",
+   "metric": "collision",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-315",
+   "source": "references/design-rules.md:1335",
+   "quote": "the tracks that hold it have to move with it",
+   "gist": "Move the grid tracks with the type scale so a block never overflows onto its neighbour.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-316",
+   "source": "references/design-rules.md:1339",
+   "quote": "reserves its height, and the reserve is a **ceiling**",
+   "gist": "Treat the title block's reserved height as a ceiling.",
+   "page_kind": "all",
+   "metric": "reserve_overspent",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-317",
+   "source": "references/design-rules.md:1348",
+   "quote": "anything inside a lede is clipping. A clamp in a title",
+   "gist": "Never clamp or hide overflow in a title block.",
+   "page_kind": "all",
+   "metric": "content_hidden",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-318",
+   "source": "references/design-rules.md:1357",
+   "quote": "Nothing may be styled only inside a media query",
+   "gist": "Give every styled class a base rendering rather than styling it only inside a media query.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-319",
+   "source": "references/design-rules.md:1368",
+   "quote": "reads a page whose `.body` class is not a shipped layout",
+   "gist": "Give every page a layout class the shipped tokens define.",
+   "page_kind": "all",
+   "metric": "D22",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-320",
+   "source": "references/design-rules.md:1377",
+   "quote": "A geometry may tighten spacing. It may not change type",
+   "gist": "Let a geometry tighten spacing but never change type size.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-321",
+   "source": "references/design-rules.md:1396",
+   "quote": "require it under 1.40:1 against the canvas",
+   "gist": "Keep the rendered ground under 1.40:1 against the canvas.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-322",
+   "source": "references/design-rules.md:1405",
+   "quote": "An adjacent-sibling selector inside a grid",
+   "gist": "Avoid adjacent-sibling selectors inside a grid.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-323",
+   "source": "references/design-rules.md:1410",
+   "quote": "Side-by-side cells start on one line and carry comparable",
+   "gist": "Start side-by-side cells on one line with comparable weight.",
+   "page_kind": "content",
+   "metric": "starved_column",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-324",
+   "source": "references/design-rules.md:1430",
+   "quote": "the page frame's parts stay the same width and centre",
+   "gist": "Keep the page frame's parts the same width and centred at unintended window sizes.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-325",
+   "source": "references/design-rules.md:1436",
+   "quote": "the deepest ink against the footer rule",
+   "gist": "Keep the deepest ink on a page above the footer rule.",
+   "page_kind": "all",
+   "metric": "content_spill",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-326",
+   "source": "references/design-rules.md:1437",
+   "quote": "A page is a fixed box or it is not a page",
+   "gist": "Make each page a fixed box, scaled and letterboxed.",
+   "page_kind": "all",
+   "metric": "page_height",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-327",
+   "source": "references/design-rules.md:1439",
+   "quote": "the leftover window is a gutter that never holds page",
+   "gist": "Keep page content out of the letterbox gutter.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-328",
+   "source": "references/design-rules.md:1472",
+   "quote": "An image earns its place by carrying an argument",
+   "gist": "Include an image only when it carries an argument the page cannot make otherwise.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-329",
+   "source": "references/design-rules.md:1482",
+   "quote": "Embedded, never linked",
+   "gist": "Embed every image in the file as a data: URI rather than linking it.",
+   "page_kind": "all",
+   "metric": "D24",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-330",
+   "source": "references/design-rules.md:1486",
+   "quote": "Every image names its origin and the",
+   "gist": "Name every image's origin and terms on the page.",
+   "page_kind": "all",
+   "metric": "D25",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-331",
+   "source": "references/design-rules.md:1489",
+   "quote": "anything else needs the licence named",
+   "gist": "Name the licence for any image that is not public domain or CC0.",
+   "page_kind": "all",
+   "metric": "D25",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-332",
+   "source": "references/design-rules.md:1491",
+   "quote": "Tint it into the accent ladder — duotone against",
+   "gist": "Treat every photograph into the palette, as a duotone or a mono plate.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-333",
+   "source": "references/design-rules.md:1495",
+   "quote": "Text does not sit on an untreated image",
+   "gist": "Never set text on raw photography.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-334",
+   "source": "references/design-rules.md:1499",
+   "quote": "the cover, a part opener, a full-bleed evidence page",
+   "gist": "Place imagery only on the cover, a part opener, a full-bleed evidence page, or inside a .fig.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-335",
+   "source": "references/design-rules.md:1500",
+   "quote": "**Where it does not**: behind body copy",
+   "gist": "Never place imagery behind body copy, behind a table, or as a repeating texture.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-336",
+   "source": "references/design-rules.md:1505",
+   "quote": "written: the handshake, the glass tower",
+   "gist": "Ban the stock-photograph tells by name.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-337",
+   "source": "references/design-rules.md:1511",
+   "quote": "Downscale to the size it is actually rendered",
+   "gist": "Downscale an embedded raster to the size it is actually rendered at.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-338",
+   "source": "references/design-rules.md:1512",
+   "quote": "prefer a vector when the content is a diagram",
+   "gist": "Embed a diagram as a vector rather than a raster.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-339",
+   "source": "references/storyline-templates.md:13",
+   "quote": "They are separate axes and a document carries one of each",
+   "gist": "Carry exactly one storyline and one genre per document.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-340",
+   "source": "references/storyline-templates.md:41",
+   "quote": "an outline departs from any of them by",
+   "gist": "Declare any typical section the document omits rather than dropping it silently.",
+   "page_kind": "all",
+   "metric": "D31",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-341",
+   "source": "references/storyline-templates.md:87",
+   "quote": "every figure has a conclusion-style title and a source line",
+   "gist": "Give every figure a conclusion-style title and a source line.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-342",
+   "source": "references/storyline-templates.md:88",
+   "quote": "the document's single build-status declaration section",
+   "gist": "Carry exactly one build-status declaration section.",
+   "page_kind": "closing",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-343",
+   "source": "references/storyline-templates.md:95",
+   "quote": "build-time assertion (re-runnable) / inference",
+   "gist": "Label every claim as measured, build-time assertion, or inference.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-344",
+   "source": "references/storyline-templates.md:96",
+   "quote": "is a single consolidated section, never scattered",
+   "gist": "Consolidate what is not built into one section instead of scattering it.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-345",
+   "source": "references/storyline-templates.md:113",
+   "quote": "the em-dash rule binds as it does for",
+   "gist": "Bind the em-dash ban on training material exactly as on sales material.",
+   "page_kind": "all",
+   "metric": "M9",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-346",
+   "source": "references/storyline-templates.md:115",
+   "quote": "A4 portrait is the primary geometry",
+   "gist": "Set a training document in A4 portrait as its primary geometry.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-347",
+   "source": "references/storyline-templates.md:133",
+   "quote": "The recommendation is the first content page",
+   "gist": "Put a proposal's recommendation on the first content page, stated as a decision.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-348",
+   "source": "references/storyline-templates.md:144",
+   "quote": "The closing names which decisions block the release",
+   "gist": "Name in the closing which decisions block the release and which do not.",
+   "page_kind": "closing",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-349",
+   "source": "references/storyline-templates.md:187",
+   "quote": "four artifacts, and a page missing any of them is a",
+   "gist": "Give the get-started page all four artifacts: repository link, install step per tier, first command, feedback channel.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-350",
+   "source": "references/storyline-templates.md:207",
+   "quote": "**Agenda rows state value, not contents.**",
+   "gist": "Write each agenda row as what the part establishes for the reader, not as a table of contents.",
+   "page_kind": "agenda",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-351",
+   "source": "references/storyline-templates.md:210",
+   "quote": "page spans are apparatus and sit in the apparatus position",
+   "gist": "Keep page spans out of agenda claim rows.",
+   "page_kind": "agenda",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-352",
+   "source": "references/storyline-templates.md:216",
+   "quote": "The agenda renders as the launch sequence",
+   "gist": "Render the agenda as the launch sequence, one row per part.",
+   "page_kind": "agenda",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-353",
+   "source": "references/storyline-templates.md:217",
+   "quote": "the part's claim at title weight quoting its opener",
+   "gist": "Build each agenda row from a numbered chip, the part's claim quoting its opener, and a run line naming the pages.",
+   "page_kind": "agenda",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-354",
+   "source": "references/storyline-templates.md:221",
+   "quote": "The energy comes from weight and the lime chip",
+   "gist": "Take the agenda's energy from weight and the lime chip, never a louder ground.",
+   "page_kind": "agenda",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-355",
+   "source": "references/storyline-templates.md:224",
+   "quote": "so the agenda may carry no lede",
+   "gist": "Allow the agenda to carry no lede at all.",
+   "page_kind": "agenda",
+   "metric": "D8",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-356",
+   "source": "references/storyline-templates.md:227",
+   "quote": "Set `body stack no-lede` and the rows centre in the page",
+   "gist": "Set body stack no-lede on a lede-less agenda so the rows centre in the page.",
+   "page_kind": "agenda",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-357",
+   "source": "references/storyline-templates.md:228",
+   "quote": "deleting the title while keeping the `.lede` block",
+   "gist": "Remove the agenda's lede block whole, never just its title.",
+   "page_kind": "agenda",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-358",
+   "source": "references/storyline-templates.md:233",
+   "quote": "The agenda quotes the document; it never paraphrases it.",
+   "gist": "Quote the document on the agenda; never paraphrase it.",
+   "page_kind": "agenda",
+   "metric": "D27",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-359",
+   "source": "references/storyline-templates.md:234",
+   "quote": "a part title, an item — is a line the deck's own titles say",
+   "gist": "Make every agenda claim line one the deck's own titles say.",
+   "page_kind": "agenda",
+   "metric": "D27",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-360",
+   "source": "references/storyline-templates.md:243",
+   "quote": "**Every content page leaves one line behind.**",
+   "gist": "Close every external-genre content page with a takeaway line.",
+   "page_kind": "content",
+   "metric": "D28",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-361",
+   "source": "references/storyline-templates.md:247",
+   "quote": "one per page, and `check_design.py` D28 reports the coverage",
+   "gist": "Carry at most one takeaway per page, a tier below the callout.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-362",
+   "source": "references/storyline-templates.md:344",
+   "quote": "the company name and one sentence a layperson",
+   "gist": "Put the company name and one layperson-readable sentence on the pitch title page, never a vision slogan.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-363",
+   "source": "references/storyline-templates.md:346",
+   "quote": "built ahead of real data says so here, on the title page",
+   "gist": "Say on the title page when the deck is a scaffold built ahead of real data.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-364",
+   "source": "references/storyline-templates.md:360",
+   "quote": "cumulative-only and double-axis charts are banned by",
+   "gist": "Ban cumulative-only and double-axis charts.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-365",
+   "source": "references/storyline-templates.md:374",
+   "quote": "the climax, never omitted: the amount, what it buys",
+   "gist": "Never omit the ask page: the amount, what it buys, where it lands the company.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-366",
+   "source": "references/storyline-templates.md:390",
+   "quote": "concepts and figures carry about **80% of every",
+   "gist": "Give concepts and figures about 80% of every content page in a seed-register deck.",
+   "page_kind": "content",
+   "metric": "M15",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-367",
+   "source": "references/storyline-templates.md:400",
+   "quote": "A figure-led page is `stack` or `split-wide`",
+   "gist": "Lay a figure-led page out as stack or split-wide with the drawing in the wide cell.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-368",
+   "source": "references/storyline-templates.md:425",
+   "quote": "A seed deck's numbers carry their standing.",
+   "gist": "Give every figure an external source or a label as the business's own measurement.",
+   "page_kind": "content",
+   "metric": "M2",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-369",
+   "source": "references/storyline-templates.md:463",
+   "quote": "A deck opens with a **cover** and ends with a",
+   "gist": "Open a deck with a cover and end it with a closing page.",
+   "page_kind": "all",
+   "metric": "deck_structure",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-370",
+   "source": "references/storyline-templates.md:466",
+   "quote": "**Cover**: wordmark — **the name of the product or subject",
+   "gist": "Put the wordmark on the cover: the name of the product or subject the document is for.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-371",
+   "source": "references/storyline-templates.md:467",
+   "quote": "set typographically (no logo file needed)",
+   "gist": "Set the cover wordmark typographically; no logo file is needed.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-372",
+   "source": "references/storyline-templates.md:476",
+   "quote": "page's single statement · one-line subtitle",
+   "gist": "Carry the document title as the cover's single statement.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-373",
+   "source": "references/storyline-templates.md:476",
+   "quote": "one-line subtitle saying who it is for and what it",
+   "gist": "Give the cover a one-line subtitle saying who it is for and what it answers.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-374",
+   "source": "references/storyline-templates.md:477",
+   "quote": "a meta strip as the **`.attrs` key/value block**",
+   "gist": "Set the cover meta strip as an .attrs key/value block: audience, date, version, classification.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-375",
+   "source": "references/storyline-templates.md:478",
+   "quote": "the key bold and uppercase, the value **one line**",
+   "gist": "Set each meta key bold and uppercase and hold each value to one line.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-376",
+   "source": "references/storyline-templates.md:479",
+   "quote": "truncating rather than wrapping, so a value that overruns",
+   "gist": "Truncate an overrunning meta value rather than wrapping it.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-377",
+   "source": "references/storyline-templates.md:482",
+   "quote": "**and exactly one vector mark.**",
+   "gist": "Put exactly one vector mark on the cover.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-378",
+   "source": "references/storyline-templates.md:483",
+   "quote": "The colophon lives on the CLOSING page only",
+   "gist": "Keep the colophon off the cover; it lives on the closing page only.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-379",
+   "source": "references/storyline-templates.md:485",
+   "quote": "releases after SKILL.md moved it. Body copy and",
+   "gist": "Keep body copy and photography off the cover.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-380",
+   "source": "references/storyline-templates.md:486",
+   "quote": "**The default mark is the LUMIVATE field globe**",
+   "gist": "Use the LUMIVATE field globe as the default cover mark, embedded live with its runtime.",
+   "page_kind": "cover",
+   "metric": "D19",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-381",
+   "source": "references/storyline-templates.md:489",
+   "quote": "with reduced-motion respected and the static frame",
+   "gist": "Respect reduced-motion on the live mark and fall back to the static frame.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-382",
+   "source": "references/storyline-templates.md:491",
+   "quote": "It is sized as a field the",
+   "gist": "Size the cover mark as a field the typography sits against, not a spot illustration.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-383",
+   "source": "references/storyline-templates.md:497",
+   "quote": "A document may instead render its own subject as",
+   "gist": "A mark replacing the brand globe must say something true about the document's own subject.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-384",
+   "source": "references/storyline-templates.md:500",
+   "quote": "Geography implies coverage, so a region drawn is a region",
+   "gist": "Draw only the regions the document actually claims.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-385",
+   "source": "references/storyline-templates.md:501",
+   "quote": "mark the built ones in accent, the empty ones as hollow",
+   "gist": "Mark built regions in accent, empty ones as hollow dashed rings, out-of-scope ones muted.",
+   "page_kind": "cover",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-386",
+   "source": "references/storyline-templates.md:511",
+   "quote": "one closing statement that echoes the action page",
+   "gist": "Carry one closing statement that echoes the action page.",
+   "page_kind": "closing",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-387",
+   "source": "references/storyline-templates.md:514",
+   "quote": "a one-sentence recap of the ask",
+   "gist": "Include a one-sentence recap of the ask on the closing page.",
+   "page_kind": "closing",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-388",
+   "source": "references/storyline-templates.md:515",
+   "quote": "slots in the same `.attrs` block the cover uses",
+   "gist": "Set the closing contact slots in the same .attrs block the cover uses.",
+   "page_kind": "closing",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-389",
+   "source": "references/storyline-templates.md:515",
+   "quote": "**and the same single vector mark as the cover**",
+   "gist": "Repeat the cover's single vector mark on the closing page.",
+   "page_kind": "closing",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-390",
+   "source": "references/storyline-templates.md:517",
+   "quote": "set the same way (`cover-grid` in `tokens/lumi-layouts.css`)",
+   "gist": "Set cover and closing on the same cover-grid layout.",
+   "page_kind": "closing",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-391",
+   "source": "references/storyline-templates.md:518",
+   "quote": "so its mark repeats the cover's geography",
+   "gist": "Repeat the cover's geography in the closing mark; introduce no new claim.",
+   "page_kind": "closing",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-392",
+   "source": "references/storyline-templates.md:519",
+   "quote": "Contact details: real ones from the user, or none at all.",
+   "gist": "Use only real contact details from the user, or none.",
+   "page_kind": "closing",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-393",
+   "source": "references/storyline-templates.md:521",
+   "quote": "OMIT the contact slots entirely and name",
+   "gist": "Omit the contact slots and name the owning role in prose when no real contacts exist.",
+   "page_kind": "closing",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-394",
+   "source": "references/storyline-templates.md:523",
+   "quote": "D14 gates a finished document at zero placeholders",
+   "gist": "Ship no [TO FILL] placeholder in a finished document.",
+   "page_kind": "all",
+   "metric": "D14",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-395",
+   "source": "references/storyline-templates.md:527",
+   "quote": "End with the colophon (owner · date ·",
+   "gist": "End the closing page with the colophon: owner, date, built-with version, number-discipline line.",
+   "page_kind": "closing",
+   "metric": "D6",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-396",
+   "source": "references/storyline-templates.md:529",
+   "quote": "by default a deliverable's version number **is** the",
+   "gist": "Version the deliverable with the lumi-style version that produced it.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-397",
+   "source": "references/storyline-templates.md:531",
+   "quote": "the filename and masthead carry the document",
+   "gist": "Carry an assigned document edition in the filename and masthead, and still record the built-with version in the colophon.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-398",
+   "source": "references/storyline-templates.md:537",
+   "quote": "is broken into named parts, and **every part boundary gets",
+   "gist": "Give every part boundary an opener page.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-399",
+   "source": "references/storyline-templates.md:538",
+   "quote": "the lime field carrying the part label, one claim at display",
+   "gist": "Compose an opener as the lime field with the part label, one display-scale claim, and one run line.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-400",
+   "source": "references/storyline-templates.md:541",
+   "quote": "Its content area takes no chart, no map, no navigation rail",
+   "gist": "Put no chart, map, navigation rail or second-message icon in an opener's content area.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-401",
+   "source": "references/storyline-templates.md:542",
+   "quote": "**One oversized subject mark is permitted**",
+   "gist": "Permit exactly one oversized filled silhouette, carrying no text, on an opener.",
+   "page_kind": "opener",
+   "metric": "opener_subject_mark",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-402",
+   "source": "references/storyline-templates.md:545",
+   "quote": "It is the part's subject or it is not there.",
+   "gist": "The opener mark is the part's own subject or it is absent.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-403",
+   "source": "references/storyline-templates.md:546",
+   "quote": "keeps its handling marker, inverted with the field",
+   "gist": "Keep the footer's handling marker on an opener, inverted with the field.",
+   "page_kind": "opener",
+   "metric": "D12",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-404",
+   "source": "references/storyline-templates.md:547",
+   "quote": "The ground runs at its medium tier",
+   "gist": "Run the opener ground at its medium tier.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-405",
+   "source": "references/storyline-templates.md:547",
+   "quote": "the vector mark stays on the cover and",
+   "gist": "Keep the vector mark off openers; it stays on cover and closing.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-406",
+   "source": "references/storyline-templates.md:550",
+   "quote": "about five content pages between openers is a target",
+   "gist": "Target about five content pages between openers.",
+   "page_kind": "opener",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-407",
+   "source": "references/storyline-templates.md:561",
+   "quote": "title names its **subject** and carries at least one",
+   "gist": "Give every title a subject and at least one verifiable fact.",
+   "page_kind": "all",
+   "metric": "M1",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-408",
+   "source": "references/storyline-templates.md:562",
+   "quote": "Length follows the fact; **there is no word",
+   "gist": "Set no word ceiling on a title; the only limit is the two-line budget.",
+   "page_kind": "all",
+   "metric": "title_two_lines",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-409",
+   "source": "references/storyline-templates.md:564",
+   "quote": "is the reference form, not the required one",
+   "gist": "Treat the colon title form as the reference form, not the required one.",
+   "page_kind": "all",
+   "metric": "M11",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-410",
+   "source": "references/storyline-templates.md:571",
+   "quote": "and M11 caps any one of",
+   "gist": "Cap any one title frame at 60% of the document's titles.",
+   "page_kind": "all",
+   "metric": "M11",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-411",
+   "source": "references/storyline-templates.md:574",
+   "quote": "a title that states only a contrast",
+   "gist": "Reject a title that states only a contrast, a slogan, or a section label.",
+   "page_kind": "all",
+   "metric": "M1",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-412",
+   "source": "references/storyline-templates.md:576",
+   "quote": "Contrast is a *lead-in*, never the whole title",
+   "gist": "Keep the evidence clause after a contrast lead-in.",
+   "page_kind": "all",
+   "metric": "M1",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-413",
+   "source": "references/storyline-templates.md:581",
+   "quote": "concatenate all titles — they must read as a complete",
+   "gist": "Make the concatenated titles read as a complete argument.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-414",
+   "source": "references/storyline-templates.md:584",
+   "quote": "never carries a \"→ so-what\" label",
+   "gist": "Carry no so-what label in sales or client material.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-415",
+   "source": "references/storyline-templates.md:588",
+   "quote": "**Comparisons always use tables** (columns = options",
+   "gist": "Present every comparison as a table with options as columns.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-416",
+   "source": "references/storyline-templates.md:600",
+   "quote": "Parallel structure **only where it aids comparison**",
+   "gist": "Use parallel page structure only where it aids comparison.",
+   "page_kind": "content",
+   "metric": "M14",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-417",
+   "source": "references/writing-rules.md:27",
+   "quote": "**Default: American English.** When the user",
+   "gist": "Write in American English when the user specifies no language.",
+   "page_kind": "all",
+   "metric": "M12",
+   "gates": true,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-418",
+   "source": "references/writing-rules.md:28",
+   "quote": "writes in American English — spelling (-ize, -or, -og",
+   "gist": "Use American spellings (-ize, -or, -og: organize, color, catalog).",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-419",
+   "source": "references/writing-rules.md:29",
+   "quote": "double quotation marks with periods and commas inside",
+   "gist": "Use double quotation marks with periods and commas placed inside them.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-420",
+   "source": "references/writing-rules.md:30",
+   "quote": "the serial comma). Dates in prose follow",
+   "gist": "Use the serial comma, and follow the client's date convention in prose.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-421",
+   "source": "references/writing-rules.md:31",
+   "quote": "version strings stay ISO (YYYY-MM-DD) in every language",
+   "gist": "Write dates in data, filenames and version strings as ISO YYYY-MM-DD in every language.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-422",
+   "source": "references/writing-rules.md:33",
+   "quote": "When the user specifies a language, produce in that language",
+   "gist": "Produce the deliverable in the language the user specified.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-423",
+   "source": "references/writing-rules.md:41",
+   "quote": "**[zh-output] Never coin Chinese.** For new technical",
+   "gist": "In Chinese output, never invent a Chinese term; use the English term for concepts with no established Chinese word.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-424",
+   "source": "references/writing-rules.md:54",
+   "quote": "its **first occurrence** carries the English in parentheses",
+   "gist": "In Chinese output, give a technical term's English in parentheses at its first occurrence only.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-425",
+   "source": "references/writing-rules.md:55",
+   "quote": "quick-reference tables, and glossaries are always bilingual",
+   "gist": "Keep chart labels, quick-reference tables and glossaries bilingual.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-426",
+   "source": "references/writing-rules.md:59",
+   "quote": "One name per concept across the whole",
+   "gist": "Use one name per concept across the whole document; never rotate synonyms.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-427",
+   "source": "references/writing-rules.md:69",
+   "quote": "rule data: 值得注意的是 · 值得一提的是 · 不可否认",
+   "gist": "In Chinese output, use none of the banned AI-tell phrases on the zh list.",
+   "page_kind": "all",
+   "metric": "M4",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-428",
+   "source": "references/writing-rules.md:72",
+   "quote": "赋能 is allowed **only** in the fixed industry",
+   "gist": "Use 赋能 only inside the fixed collocations 销售赋能 and 市场赋能.",
+   "page_kind": "all",
+   "metric": "M4",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-429",
+   "source": "references/writing-rules.md:77",
+   "quote": "**[en-output] — hard block.** English has been",
+   "gist": "In English output, use none of the phrases on the banned AI-tell list.",
+   "page_kind": "all",
+   "metric": "M4",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-430",
+   "source": "references/writing-rules.md:106",
+   "quote": "Quoting a banned phrase as an example puts it in figure ink",
+   "gist": "Quote a banned phrase only inside figure ink, never in HTML prose.",
+   "page_kind": "all",
+   "metric": "M4",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-431",
+   "source": "references/writing-rules.md:124",
+   "quote": "Simplified-Chinese body text uses full-width punctuation",
+   "gist": "Use full-width punctuation in Simplified-Chinese body text; half-width stays in code, URLs, emails, version strings, filenames and pure English runs.",
+   "page_kind": "all",
+   "metric": "M5",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-432",
+   "source": "references/writing-rules.md:127",
+   "quote": "Chinese quotes are 「」; parentheses containing Chinese",
+   "gist": "Use 「」 for Chinese quotes and full-width parentheses around Chinese content.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-433",
+   "source": "references/writing-rules.md:129",
+   "quote": "Half-width space between Chinese and English/digits.",
+   "gist": "Put a half-width space between Chinese and adjacent English or digits.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-434",
+   "source": "references/writing-rules.md:139",
+   "quote": "A key number carries its judgment anchor.",
+   "gist": "Give every key number in external material a judgment anchor: a benchmark, a comparison, or the implication spelled out.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-435",
+   "source": "references/writing-rules.md:150",
+   "quote": "**Every number carries its source** or its derivation",
+   "gist": "Give every number its source or its derivation.",
+   "page_kind": "all",
+   "metric": "M2",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-436",
+   "source": "references/writing-rules.md:151",
+   "quote": "to a single source or it may not appear.",
+   "gist": "Trace a range figure to a single source in its own block, or drop it.",
+   "page_kind": "all",
+   "metric": "M6",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-437",
+   "source": "references/writing-rules.md:152",
+   "quote": "**Illustrative values must be labeled** (illustrative",
+   "gist": "Label illustrative values (illustrative / mock UI / proposal value / uncalibrated) and carry the label downstream.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-438",
+   "source": "references/writing-rules.md:155",
+   "quote": "Never cite an external benchmark that cannot be re-verified",
+   "gist": "Never cite an external benchmark that cannot be re-verified.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-439",
+   "source": "references/writing-rules.md:159",
+   "quote": "Precision matches confidence: count precisely when you can",
+   "gist": "Match precision to confidence: count precisely when you can, write \"several\" when you cannot, never fake precision.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-440",
+   "source": "references/writing-rules.md:161",
+   "quote": "No adjective stacks in place of numbers",
+   "gist": "Never substitute an adjective stack for a number; delete the adjective if no figure backs it.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-441",
+   "source": "references/writing-rules.md:189",
+   "quote": "The window is the page for an ordinary figure and the block",
+   "gist": "Put an ordinary figure's source marker somewhere on its page and a range's marker in its own block.",
+   "page_kind": "all",
+   "metric": "M2",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-442",
+   "source": "references/writing-rules.md:196",
+   "quote": "A dashed pair that is an enumeration label",
+   "gist": "Do not treat a dashed pair that is an enumeration label rather than a data range as a range figure.",
+   "page_kind": "all",
+   "metric": "M6",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-443",
+   "source": "references/writing-rules.md:200",
+   "quote": "The test is what the numbers do, not how short the sentence",
+   "gist": "Decide range-versus-label by what the numbers do, not by sentence length.",
+   "page_kind": "all",
+   "metric": "M6",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-444",
+   "source": "references/writing-rules.md:213",
+   "quote": "Never cite a statistic that has been publicly debunked",
+   "gist": "Never cite a publicly debunked statistic, however widely it circulates.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-445",
+   "source": "references/writing-rules.md:230",
+   "quote": "At most one may appear in a document, on the cover or the",
+   "gist": "Allow at most one negation-first opening per document, on the cover or the hook, and only when what is rejected is named concretely.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-446",
+   "source": "references/writing-rules.md:232",
+   "quote": "It is never a page-title form, never a section",
+   "gist": "Never use a negation-first opening as a page title or a section opener.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-447",
+   "source": "references/writing-rules.md:237",
+   "quote": "**Numbers are the copy**: state parameters plainly",
+   "gist": "State parameters plainly and strip the marketing adjectives wrapped around numbers.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-448",
+   "source": "references/writing-rules.md:241",
+   "quote": "whether it is verified (and by what), recommended (their",
+   "gist": "Make every claim's status legible: verified, recommended, or unverified with the gap named.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-449",
+   "source": "references/writing-rules.md:246",
+   "quote": "**Restrained certainty**: active voice, conclusion first",
+   "gist": "Write in active voice, conclusion first, and say \"uncertain\" plainly instead of stacking hedges.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-450",
+   "source": "references/writing-rules.md:247",
+   "quote": "**Sentence length must vary** — the former",
+   "gist": "Vary sentence length across the document.",
+   "page_kind": "all",
+   "metric": "M8",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-451",
+   "source": "references/writing-rules.md:250",
+   "quote": "fragments for drama (\"The old rules were gone.\") are banned",
+   "gist": "Never write runs of short emphatic fragments for drama.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-452",
+   "source": "references/writing-rules.md:313",
+   "quote": "**copula avoidance is a tell** — \"serves as / stands as",
+   "gist": "Replace copula avoidance (serves as / stands as / boasts / features) with is / are / has.",
+   "page_kind": "all",
+   "metric": "M4",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-453",
+   "source": "references/writing-rules.md:315",
+   "quote": "**Vary sentence length deliberately.** Not",
+   "gist": "Vary sentence length deliberately across each page or section, not just at the outliers.",
+   "page_kind": "all",
+   "metric": "M8",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-454",
+   "source": "references/writing-rules.md:319",
+   "quote": "Delete filler phrases losslessly (§2 group 4 lists",
+   "gist": "Delete filler phrases losslessly.",
+   "page_kind": "all",
+   "metric": "M4",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-455",
+   "source": "references/writing-rules.md:320",
+   "quote": "Replace abstraction with concrete detail — **only detail",
+   "gist": "Replace abstraction only with concrete detail already in the source; never invent detail.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-456",
+   "source": "references/writing-rules.md:324",
+   "quote": "Cut idling connectives; keep real causality. Transitional",
+   "gist": "Cut idling connectives and transitional openers; keep real causality.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-457",
+   "source": "references/writing-rules.md:331",
+   "quote": "No em dashes or en dashes in sales, marketing, consulting",
+   "gist": "Use no em dashes or en dashes in sales, marketing, consulting or training deliverables; internal analysis alone is exempt.",
+   "page_kind": "all",
+   "metric": "M9",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-458",
+   "source": "references/writing-rules.md:339",
+   "quote": "data and exempt; a letter-digit range (a C1-C8 style span)",
+   "gist": "Exempt a digit-to-digit range from the dash ban, but write a letter-digit span as \"C1 to C8\".",
+   "page_kind": "all",
+   "metric": "M9",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-459",
+   "source": "references/writing-rules.md:342",
+   "quote": "**Break the rule of three.** Do not force ideas",
+   "gist": "Do not force ideas into triplets; rewrite some lists as pairs or as prose.",
+   "page_kind": "all",
+   "metric": "M10",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-460",
+   "source": "references/writing-rules.md:345",
+   "quote": "**Vary list shape.** Bullets whose every item shares one",
+   "gist": "Vary list item length and construction unless the list is a genuine parallel enumeration.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-461",
+   "source": "references/writing-rules.md:348",
+   "quote": "**No inline-header bullets** (`**Item:** description`)",
+   "gist": "Do not use inline-header bullets as the default list form.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-462",
+   "source": "references/writing-rules.md:350",
+   "quote": "**No manufactured punchlines, no aphorism formulas**",
+   "gist": "Use no manufactured punchlines, aphorism formulas or generic upbeat conclusions; end on the concrete fact.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-463",
+   "source": "references/writing-rules.md:358",
+   "quote": "If more than half of a document's closing lines",
+   "gist": "Vary what page-closing lines do; no more than half may be short and quotable.",
+   "page_kind": "content",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-464",
+   "source": "references/writing-rules.md:362",
+   "quote": "**Boldface carries meaning or comes out.** Mechanical",
+   "gist": "Bold only what carries meaning; remove mechanical bolding of every key phrase.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-465",
+   "source": "references/writing-rules.md:365",
+   "quote": "**No templated parallel frames.** Sibling blocks",
+   "gist": "Do not open sibling blocks of the same role with the same words differing only in the filled slot.",
+   "page_kind": "all",
+   "metric": "M14",
+   "gates": false,
+   "why_unchecked": null
+  },
+  {
+   "id": "RC-466",
+   "source": "references/writing-rules.md:383",
+   "quote": "if yes, remove it. De-flavoring must never add facts.",
+   "gist": "Remove any fact, name, number, date or citation a rewrite added that is not in the source.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-467",
+   "source": "references/writing-rules.md:403",
+   "quote": "Kill inverted English word order, over-explicit pronouns",
+   "gist": "In Chinese output, remove inverted English word order, over-explicit pronouns and the imported \"X, not Y\" antithesis.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-468",
+   "source": "references/writing-rules.md:413",
+   "quote": "No invented facts — numbers, people, events, quotes come",
+   "gist": "Take numbers, people, events and quotes only from source material; invent no facts.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-469",
+   "source": "references/writing-rules.md:415",
+   "quote": "Money/safety conclusions never come from a language model",
+   "gist": "Never let a language model produce money or safety conclusions; use deterministic rules.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-470",
+   "source": "references/writing-rules.md:417",
+   "quote": "AI never signs: legally signed steps belong to licensed",
+   "gist": "Never let AI sign; legally signed steps belong to licensed humans.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-471",
+   "source": "references/writing-rules.md:418",
+   "quote": "Style rewrites must not change facts or framing",
+   "gist": "Keep facts and framing unchanged through a style rewrite; delete any fact that cannot be traced back.",
+   "page_kind": "all",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  }
+ ],
+ "orphan_gates": {
+  "bookend_title_length": "No sentence sets a length for a cover or closing claim. The ceiling is the accepted reference deck's own (5 lines), on the same line-setting principle as opener_pacing: not worse than what the owner accepted. Write the rule when a second accepted document confirms the number.",
+  "band_escape": "Came from a rendering defect, not a rule: `min-height: 0` let a stat band's grid row collapse below its cells and the labels rendered onto the footer. Nothing in references/ says a band may not collapse, because until 0.1.541 nobody knew it could.",
+  "figure_ink_collision": "design-rules 1321 bans text on text and text on any drawn element. Ink on ink is an EXTENSION of that rule the prose does not make, added when the owner found two filled marks overlapping on a page that passed. Fold it into 1321's sentence, or leave it here as an extension and say so.",
+  "footer_wrap": "The footer's one-line requirement appears only inside a provenance note (design-rules 1192, a deck exported at the wrong geometry). A gate whose rule exists only as an anecdote about how it was found.",
+  "footer_baseline": "Same as footer_wrap: the baseline requirement is stated in a note about a false positive (design-rules 1303), never as a rule."
+ }
+}

@@ -82,6 +82,12 @@ jobs:
       # change regenerates it or this refuses. It runs after the fixture
       # check because it measures the passing fixture to read the row tables.
       - run: python3 scripts/build/build_eval_inventory.py --check
+      # The rule register and the page contracts generated from it. The
+      # register is hand-written, so the check is that it has not gone stale
+      # against the rules it quotes or the checkers it names — including the
+      # reverse direction, a gate no rule asks for.
+      - run: python3 scripts/check/check_rule_coverage.py --check
+      - run: python3 scripts/build/build_page_contracts.py --check
       # The gates, tested. Runs after the staleness checks so a stale
       # fixture reports as stale rather than as a metric regression.
       - run: python3 scripts/check/check_fixtures.py
