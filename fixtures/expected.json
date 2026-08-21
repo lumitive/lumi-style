@@ -73,7 +73,7 @@
     },
     "contains": {
      "D10_label_icons": [
-      "p3"
+      "p4"
      ],
      "D16_visual_presence": [
       "\"prose_only\": []"
@@ -105,7 +105,8 @@
      "visual_absent": "ok",
      "reserve_overspent": "ok",
      "role_split": "ok",
-     "starved_column": "ok"
+     "starved_column": "ok",
+     "deck_structure": "ok"
     }
    }
   },
@@ -264,7 +265,8 @@
      "visual_absent": "ok",
      "reserve_overspent": "FAIL",
      "role_split": "ok",
-     "starved_column": "ok"
+     "starved_column": "ok",
+     "deck_structure": "FAIL"
     }
    }
   },
@@ -356,7 +358,8 @@
      "visual_absent": "FAIL",
      "reserve_overspent": "FAIL",
      "role_split": "FAIL",
-     "starved_column": "FAIL"
+     "starved_column": "FAIL",
+     "deck_structure": "ok"
     }
    }
   },

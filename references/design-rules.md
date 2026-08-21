@@ -1017,9 +1017,20 @@ room as the text that should have replaced it.
 
 *Serves: **P-4**.* · id `DR-8`
 
-**The icon library ships with this skill** — `assets/icons/lucide/`, 2007 icons
-on a 24×24 grid, `stroke=currentColor` re-stroked to 1.25px, so they follow the
-text ladder and switch with the palette for free. Two commands do the work:
+**Two icon sets ship with this skill, and they do different jobs.**
+
+`assets/icons/lucide/` is the **semantic inline set** — 2007 icons on a 24×24
+grid, `stroke=currentColor` re-stroked to 1.25px, so they follow the text ladder
+and switch with the palette for free. Every eyebrow, figure node and row-head
+icon comes from here.
+
+`assets/icons/koboyo/` is **36 filled silhouettes, for part-opener subject marks
+only** (§3). Fill-based, not stroked, because a stroked icon scaled to display
+size renders as the accident this section records two bullets below, while a
+filled silhouette renders as a deliberate graphic. It was vendored for that one
+purpose and named in no rule file until 0.1.547 — three conformance decks left
+every opener bare, and the set they needed had been sitting in the package the
+whole time. Two commands do the work:
 
 ```bash
 python3 scripts/build/embed_icons.py --search tariff   # find one
