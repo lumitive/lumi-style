@@ -159,14 +159,26 @@ def main():
         # loses the only record that anyone looked.
         path = ROOT / "releases" / "evidence" / f"{new}.json"
         kept_waivers = []
+        # The SPEC LINE is hand-written the same way and was not carried, which
+        # is this comment's own lesson one field to the left: a release that
+        # waived the spec requirement by hand had the waiver silently removed
+        # by the next --init and failed on the same rule again. Both fields are
+        # somebody's sentence about why; neither survives a rewrite unless it
+        # is carried.
+        kept_spec = ""
         if path.exists():
-            kept_waivers = json.loads(path.read_text(encoding="utf-8")).get("waivers", [])
+            prior = json.loads(path.read_text(encoding="utf-8"))
+            kept_waivers = prior.get("waivers", [])
+            kept_spec = prior.get("spec", "")
         proc = run(["python3", "scripts/check/check_evidence.py", "--init"])
         if proc.returncode != 0:
             sys.exit(f"   --init failed:\n{proc.stdout}{proc.stderr}")
         doc = json.loads(path.read_text(encoding="utf-8"))
         if a.spec:
             doc["spec"] = a.spec
+        elif kept_spec and not doc.get("spec"):
+            doc["spec"] = kept_spec
+            print("   carried the spec line across --init")
         if kept_waivers and not doc.get("waivers"):
             doc["waivers"] = kept_waivers
             print(f"   carried {len(kept_waivers)} waiver(s) across --init")

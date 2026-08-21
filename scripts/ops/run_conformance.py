@@ -41,6 +41,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import pathlib
 
 # The scripts are peers in one directory; the genre vocabulary lives in
@@ -73,6 +74,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import checker_report  # noqa: E402
 import fingerprint  # noqa: E402
+import output_dir  # noqa: E402
 from check_prose import GENRES  # noqa: E402
 from deliverable_registry import kinds  # noqa: E402
 
@@ -80,7 +82,37 @@ ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if p.name == "scripts").parent
 REGISTRY = ROOT / "adapters" / "platforms.json"
 TASKS = ROOT / "conformance" / "tasks"
-RESULTS = ROOT / "conformance" / "results"
+IN_REPO_RESULTS = ROOT / "conformance" / "results"
+
+
+def _results_root() -> pathlib.Path:
+    """Where a run's directories go: the operator's deliverable folder.
+
+    Multi-agent verification produces documents a person reads — decks,
+    rewrites, transcripts — and they belong beside the other deliverables
+    rather than inside a checkout, which is where they sat until 0.1.542
+    (owner directive). `output_dir.py` resolves that folder portably and is
+    the only thing in this package allowed to name it, so this asks rather
+    than restating the path.
+
+    **It never CREATES the deliverable folder.** Making a directory in
+    someone's home without being asked is the 2026-08-09 directive
+    `output_dir.py --create` exists for, so a machine that has not run
+    `--create` keeps its runs inside the checkout and the run says which of
+    the two it chose. `LUMI_CONFORMANCE_RESULTS` overrides both, for a test
+    or an operator who wants them elsewhere.
+    """
+    override = os.environ.get("LUMI_CONFORMANCE_RESULTS")
+    if override:
+        return pathlib.Path(override).expanduser()
+    try:
+        deliverables = output_dir.output_dir()
+    except output_dir.Unresolvable:
+        return IN_REPO_RESULTS
+    return deliverables / "_conformance" if deliverables.is_dir() else IN_REPO_RESULTS
+
+
+RESULTS = _results_root()
 CAP_RANK = {"prompt": 0, "files": 1, "full": 2}
 
 # How long one task may take before the driver gives up. T1 is a twelve-page
@@ -146,6 +178,53 @@ def environment_check(agent):
                 f"cannot hand {live[0]} to it — an agent driven in a temporary "
                 f"directory reads SKILL.md and nothing beside it"]
     return []
+
+
+def _misplaced(agent: dict, task: dict, since: float) -> list[str]:
+    """-> paths of deliverable-shaped files written OUTSIDE the working
+    directory during this run, newest first.
+
+    Bounded on purpose. It looks in the three places a confused agent actually
+    writes — the user's home, the roots this platform declares as its skill
+    install, and this package's own root — and never recursively, because a
+    sweep that walks a filesystem would find every file anyone has ever named
+    `answers.md` and report the run's own history back to it. Anything it
+    misses stays reported as "wrote nothing", which is the honest floor.
+
+    Never used to score. `drive()`'s comment carries the argument.
+    """
+    roots: list[pathlib.Path] = [pathlib.Path.home(), ROOT]
+    for sp in agent.get("skill_paths") or []:
+        if "<" in sp:
+            continue
+        roots.append(pathlib.Path(sp).expanduser())
+    seen: set[pathlib.Path] = set()
+    hits: list[tuple[float, pathlib.Path]] = []
+    for root in roots:
+        try:
+            resolved = root.resolve()
+        except OSError:
+            continue
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        try:
+            candidates = sorted(root.glob(task["deliverable"]))
+        except OSError:
+            continue
+        for f in candidates:
+            if f.name in ("PROMPT.txt", "input.md") or not f.is_file():
+                continue
+            try:
+                mtime = f.stat().st_mtime
+            except OSError:
+                continue
+            # A second of slack: the run's own start is recorded before the
+            # process is spawned, and filesystem timestamps are coarse.
+            if mtime >= since - 1:
+                hits.append((mtime, f))
+    hits.sort(reverse=True)
+    return [str(f) for _, f in hits]
 
 
 def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=None):
@@ -225,6 +304,9 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
             if (prompt_dir / name).exists():
                 shutil.copy2(prompt_dir / name, workdir / name)
         started = time.monotonic()
+        # Wall clock too: the misplaced-write sweep compares mtimes, and a
+        # monotonic clock has no relationship to a file's timestamp.
+        started_wall = time.time()
         try:
             proc = subprocess.run(argv + [task["prompt"]], cwd=workdir,
                                   capture_output=True, timeout=timeout)
@@ -240,8 +322,48 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
         # is the deliverable and the log, not the agent's scratch.
         produced = [p for p in sorted(workdir.glob(task["deliverable"]))
                     if p.name not in ("PROMPT.txt", "input.md")]
+        # THE RUN'S OWN FOLDER COUNTS TOO, and one agent found it by reasoning
+        # rather than by accident: told to write "in the working directory" and
+        # unable to see the driver's cwd, Hermes looked for where `input.md`
+        # lives and wrote beside it — which is this folder, because the driver
+        # leaves a copy of the input here as well as in the working directory.
+        # Its transcript says exactly that, and it is a better reading of the
+        # instruction than the driver's own assumption deserves.
+        #
+        # It is also where the driver is about to COPY the artifact, so an
+        # agent that writes here directly has met the same requirement by a
+        # shorter route. Scoring it is not a favour: `score` globs this
+        # directory, so before this the file was scored `pass` while the
+        # driver record beside it said `produced: []` — two files in one
+        # directory telling a reader different stories.
+        relocated = []
+        if not produced:
+            relocated = [p for p in sorted(prompt_dir.glob(task["deliverable"]))
+                         if p.name not in ("PROMPT.txt", "input.md",
+                                           "transcript.txt", "driver.json")]
+            produced = relocated
+        # WHERE ELSE IT MIGHT HAVE LANDED. "Wrote nothing" and "wrote it
+        # somewhere this harness does not look" are different findings, and
+        # until 0.1.542 the second was recorded as the first. Two agents have
+        # now produced the second: one wrote its deck into the installed skill
+        # directory believing it was the working directory, and Hermes writes
+        # every file to the user's HOME whatever cwd the driver starts it in —
+        # `--in` and `--no-restore-cwd` do not move it, and a prompt naming an
+        # absolute path does. The cost of calling that "no deliverable" is
+        # measured: Hermes's misplaced T1 deck passes check_design,
+        # check_prose AND inspect_layout --deliverable with no failure at all,
+        # and the board recorded it as an agent that wrote nothing.
+        #
+        # The file is NAMED and never copied in and scored. Scoring it would
+        # launder a run that did not meet the task's own instruction ("write
+        # the file to <name> in the working directory") into a pass, and
+        # whether missing that instruction is the agent's defect or this
+        # harness's assumption is not something a scoreboard should decide
+        # silently. See GAP-022.
+        misplaced = _misplaced(agent, task, started_wall) if not produced else []
         for p in produced:
-            shutil.copy2(p, prompt_dir / p.name)
+            if p.parent != prompt_dir:
+                shutil.copy2(p, prompt_dir / p.name)
         (prompt_dir / "transcript.txt").write_bytes(out)
         # THE EXIT CODE IS READ. It was recorded and never looked at, so a CLI
         # that rejected its own arguments — a renamed flag, expired auth, a
@@ -260,16 +382,33 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
                             r"(?:tokens|references)/", text, re.I)
         verdict = ("timeout" if code is None
                    else "environment" if blocked
-                   else "driven" if code == 0
-                   else "driver failed")
+                   else "driver failed" if code != 0
+                   # A run that finished and put the artifact somewhere else is
+                   # not a run that produced nothing, and it is not a pass
+                   # either. It gets its own word so the board can stop calling
+                   # it either of them.
+                   else "misplaced" if misplaced
+                   else "driven")
         return {"verdict": verdict,
                 "detail": (blocked and "the agent's own transcript says it could "
                            "not read the skill; this run attributes nothing")
                           or (code not in (0, None) and
                               f"the CLI exited {code} after {seconds}s: "
-                              f"{text.strip()[-200:]}") or None,
+                              f"{text.strip()[-200:]}")
+                          or (misplaced and
+                              f"the run wrote no {task['deliverable']} in its "
+                              f"working directory, and a file matching it "
+                              f"appeared at {misplaced[0]} while it ran; "
+                              f"nothing here is scored from that file")
+                          or (relocated and
+                              f"written into the run's own folder rather than "
+                              f"the working directory, which is where the "
+                              f"driver copies it to anyway: "
+                              f"{', '.join(p.name for p in relocated)}")
+                          or None,
                 "exit_code": code, "seconds": seconds,
                 "produced": [p.name for p in produced],
+                "misplaced": misplaced,
                 "digest": hashlib.sha256(out).hexdigest(),
                 "model": model or "(the CLI's default)",
                 # The matrix axis. Recorded as what was PINNED: an effort the
@@ -866,6 +1005,14 @@ def main(argv):
         # agents detected — `run` announced a directory it had not made and
         # `score` then reported it missing.
         run_dir.mkdir(parents=True, exist_ok=True)
+        # WHICH ROOT, said out loud. A run that quietly changed where it writes
+        # is a run whose artifacts a person cannot find, and the two roots are
+        # far apart: one is inside the checkout, the other is the folder the
+        # operator reads deliverables in.
+        print(f"  writing into {run_dir}"
+              + ("" if RESULTS != IN_REPO_RESULTS else
+                 " (the deliverable folder does not exist yet — "
+                 "`output_dir.py --create` moves runs there)"))
         wanted = [a for a in agents
                   if (a["id"] == args.agent if args.agent else probed[a["id"]][0])]
         if args.agent and not wanted:
@@ -1016,7 +1163,7 @@ def main(argv):
                         continue
                     if record.get("verdict") in ("timeout", "could not start",
                                                  "no driver", "environment",
-                                                 "driver failed"):
+                                                 "driver failed", "misplaced"):
                         scores[key] = {
                             "verdict": "not earned",
                             # The fingerprint goes in like every other entry, or
@@ -1024,12 +1171,19 @@ def main(argv):
                             # changed task and the cell prints "stale" — a
                             # timeout reported as a question nobody asked.
                             "task_hash": asked_fingerprint(task_dir, task),
-                            "detail": f"the driver reports "
-                                      f"{record['verdict']!r}"
-                                      + (f" after {record['seconds']}s"
-                                         if record.get("seconds") else "")
-                                      + " — whatever it left behind is a draft, "
-                                        "and a draft is not a result"}
+                            "detail": (
+                                f"the driver reports 'misplaced': the artifact "
+                                f"was written to {record['misplaced'][0]}, "
+                                f"outside the working directory, and is not "
+                                f"scored from there"
+                                if record.get("verdict") == "misplaced"
+                                and record.get("misplaced")
+                                else f"the driver reports "
+                                     f"{record['verdict']!r}"
+                                     + (f" after {record['seconds']}s"
+                                        if record.get("seconds") else "")
+                                     + " — whatever it left behind is a draft, "
+                                       "and a draft is not a result")}
                         unscored += 1
                         continue
                 if not produced:

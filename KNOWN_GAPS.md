@@ -118,15 +118,35 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   would not want it: with the skill path handed to the CLI as a workspace
   directory, "the working directory" is ambiguous to the agent and the
   installed skill is writable.
-- not a scoring bug: the deck fails on its own merits (D19_vocabulary 9,
-  D6_footer 12, M11_title_uniformity 91.7% against a 60% ceiling), so no
-  verdict changes if it is scored. What is wrong is that the run says
-  "wrote nothing" about a run that wrote something, and that the something
-  landed inside the package.
-- check: `drive()` reports a deliverable-shaped file that appeared under any
-  declared `skill_paths` root during the run — named as a misplaced write,
-  never copied into the run and scored as though it had been produced
-  correctly, which would launder the finding into a pass.
+- **the "no verdict is withheld" line was wrong, and Hermes disproved it
+  three releases later.** Written at 0.1.540 from the Gemini case alone,
+  where the misplaced deck failed on its own merits (D19_vocabulary 9,
+  D6_footer 12, M11_title_uniformity 91.7% against a 60% ceiling) so nothing
+  turned on where it sat. Hermes's misplaced T1 deck (2026-08-21) passes
+  `check_design` and `check_prose` with no failure and `inspect_layout
+  --deliverable` with exit 0 and 136 ok lines — the cleanest artifact any
+  agent has produced for this suite — and the board recorded it as an agent
+  that wrote nothing. A generalisation from one case, in a ledger entry whose
+  whole job is to be read later.
+- Hermes's variant is not the same mechanism. Gemini wrote into the installed
+  skill believing it was the working directory; Hermes writes every file to
+  the user's HOME whatever cwd the driver starts it in. `--in` does not move
+  it and neither does `--no-restore-cwd`; a prompt naming an absolute path
+  does, so the tool can write there and simply does not resolve "the working
+  directory" the way a process's cwd does. Whether that is the agent's defect
+  (the task says "in the working directory") or this harness's assumption
+  (every other driven CLI honours cwd) is genuinely open, which is why the
+  run now names it rather than scoring it either way.
+- partially closed at 0.1.542: `drive()` sweeps HOME, the declared
+  `skill_paths` roots and this package's root — non-recursively, by mtime
+  inside the run window — and records `verdict: misplaced` with the path.
+  `score` folds it into `not earned`, so it neither credits the agent nor
+  blames it. **The file is never copied in and scored**, which would launder
+  a run that missed the task's own instruction into a pass.
+- check: a driven agent whose artifact reliably lands in the working
+  directory, or a task contract that states an absolute path and is therefore
+  answerable by every agent alike. The 0.1.542 sweep is a report, not a fix,
+  and this entry stays open until one of those two exists.
 
 ## GAP-021 · The only accepted reference fails a gate introduced after its acceptance
 

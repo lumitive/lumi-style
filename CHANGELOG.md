@@ -1,3 +1,88 @@
+## 0.1.542 — Hermes is driven and its registry guess was wrong, a misplaced artifact is named, and the delivery folder stops collecting renders
+
+**Hermes joins the board, and two of the three things the registry said about
+it were false.** Its `probe` was `null` — withdrawn at 0.1.473 because nobody
+could confirm the binary name — and its install path was a guess carrying a
+waiver that said so: *"the shared ~/.agents/skills/ location is the most likely
+and must be confirmed on a machine with Hermes installed"*. It is not the
+location. Hermes answers `Unknown skill(s)` to that path and files skills by
+CATEGORY under `~/.hermes/skills/<category>/<name>/`. The binary is `hermes`,
+and the board's `cli` column carries whatever version it answers rather than a
+number written here. Both facts are now measured rather than assumed, and the waiver that
+made them checkable is what made the correction possible — an unverified claim
+with a written waiver is a claim that gets tested.
+
+**What driving it needs, none of which is in any document.** `-z/--oneshot
+<prompt>` is the only headless mode and the prompt is the flag's VALUE, so it
+uses `drive_prompt_flag` — the mechanism 0.1.540 added for Gemini, second
+customer inside two releases. `--yolo` for approvals. `--skills` resolves names
+and installed paths and **refuses an arbitrary one**: pointed at the repository
+itself it exits 1. `--reasoning` takes low/medium/high, which makes Hermes the
+second agent after Claude Code that can fill the effort axis of the matrix.
+`--usage-file` writes token counts to a FILE rather than the transcript, so this
+run records no usage for it and says so instead of implying zero.
+
+**The delivery folder is where verification lives now** (owner directive). Run
+directories resolve through `output_dir.py` — the same resolver design-rules §8
+already owned — so they land beside the deliverables a person reads rather than
+inside a checkout. It **reads that folder and never creates it**: the 2026-08-09
+directive gives `output_dir.py --create` that job alone, so a machine that has
+not run it keeps its runs in the checkout, and the run prints which of the two
+it chose rather than switching silently. `LUMI_CONFORMANCE_RESULTS` overrides
+both.
+
+**A misplaced artifact is named instead of being reported as nothing.** Two
+agents have now written their deliverable somewhere the driver does not look,
+and the board recorded both as agents that produced nothing. The cost is
+measurable and was measured: Hermes's first T1 deck passes `check_design`,
+`check_prose` AND `inspect_layout --deliverable` with no failure — the cleanest
+artifact any agent has produced for this suite — and its cell read `no
+deliverable`. `drive()` now sweeps HOME, the declared `skill_paths` roots and
+this package's root, non-recursively and inside the run's own time window, and
+records `verdict: misplaced` with the path. **The file is never copied in and
+scored**, because scoring it would launder a run that missed the task's own
+instruction into a pass. `score` folds it into `not earned`: neither credit nor
+blame, which is honest about a question this release does not settle — whether
+ignoring the driver's cwd is the agent's defect or the harness's assumption.
+GAP-022 carries both readings and stays open.
+
+**The 0.1.540 entry generalised from one case and this release withdraws it.**
+It said the misplaced deck "fails on its own merits, so no verdict changes if it
+is scored". True of Gemini's. Not true of Hermes's, three releases later, in a
+ledger entry whose whole job is to be read by someone later.
+
+**A run may also write into the run's own folder, and that counts.** Told to
+write "in the working directory" and unable to see the driver's cwd, Hermes
+looked for where `input.md` lives and wrote beside it — the run folder, because
+the driver leaves a copy of the input there too. Its transcript reasons it out
+in those words. That is where the driver copies the artifact anyway, so it now
+counts as produced and the record says by which route. Before this, `score`
+graded that file `pass` while the `driver.json` beside it said `produced: []` —
+two files in one directory telling a reader different stories.
+
+**Renders stop being written where records live.** `inspect_layout` wrote its
+contact sheet and 4K page rasters into the document's own folder, so the owner's
+delivery folder reached 5,834 rasters and 1.0GB by 2026-08-18 and — after a
+cleanup and a standing order against exactly that — 2,164 and 349MB again a
+fortnight later. `.gitignore` had already reached the same conclusion twice,
+one directory at a time (`fixtures/_layout/`, `backlog/_layout/`). The default
+is now a per-document folder under the system temp directory, `--out` keeps one
+on purpose, and the path is printed either way.
+
+`scripts/ops/housekeeping.py --check` is the guard, in CI and therefore in
+preflight: it fails when the delivery folder holds a render. Its rule is three
+tests in an order that matters — nothing under `_sources/` is a render whatever
+it looks like, a raster anywhere else is one, an HTML file is one only when it
+carries inspect_layout's `-sheet-` infix. **The first test exists because the
+first real run of the tool proposed deleting two thumbnails a recipe READS**,
+which is convention 15 in four seconds: the model was wrong about the material,
+and only the material could say so. `--apply` deletes renders and nothing else;
+the retention policy for documents is the owner's and is not encoded here.
+
+**Red first, everywhere.** The misplaced sweep, the run-folder route, the
+results root and the housekeeping rule each ship with tests that fail without
+their code — including one that fails by deleting a recipe input.
+
 ## 0.1.541 — a stat band may not be shorter than its own labels, in either geometry
 
 **What a page did.** `.body > *` carries `min-height: 0` so a figure can give

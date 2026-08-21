@@ -288,5 +288,78 @@
     },
     "scores_sha256": "d6b9f4f6a795cd5993217076c5b5d4d190d52422de4b9f547ceb245d4080bc72",
     "instrument_version": "0.1.540"
+  },
+  {
+    "skill_version": "0.1.541",
+    "agent": "hermes",
+    "date": "2026-08-21",
+    "run_dir": "/Users/he123/Documents/LUMI-Style/_conformance/0.1.541-2026-08-21",
+    "tasks": {
+      "T1-deck": "not earned",
+      "T2-deaify": "not earned",
+      "T3-recall": "not earned"
+    },
+    "scores_sha256": "8d231affee93d0e59cf9197114dcc66ad8599c0278120fe78105297d15726034"
+  },
+  {
+    "skill_version": "0.1.541",
+    "agent": "claude-code",
+    "date": "2026-08-21",
+    "run_dir": "conformance/results/0.1.541-2026-08-21",
+    "tasks": {
+      "T1-deck": "fail",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "6bc8b0537047ded080c26d82459e37af1cafabe2ebc8eb279ca65e59eddea87b",
+    "instrument_version": "0.1.541",
+    "built": {
+      "T1-deck": "0.1.541"
+    }
+  },
+  {
+    "skill_version": "0.1.541",
+    "agent": "claude-code",
+    "date": "2026-08-21",
+    "run_dir": "conformance/results/0.1.539-2026-08-21",
+    "tasks": {
+      "T1-deck": "fail",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "5415a39e66425b6509d5ec00b4055a70ab8a96c94ca6e826b036acd57d55153b",
+    "instrument_version": "0.1.541",
+    "built": {
+      "T1-deck": "0.1.539"
+    }
+  },
+  {
+    "skill_version": "0.1.541",
+    "agent": "cursor",
+    "date": "2026-08-21",
+    "run_dir": "conformance/results/0.1.539-2026-08-21",
+    "tasks": {
+      "T1-deck": "pass",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "5415a39e66425b6509d5ec00b4055a70ab8a96c94ca6e826b036acd57d55153b",
+    "instrument_version": "0.1.541",
+    "built": {
+      "T1-deck": "0.1.539"
+    }
+  },
+  {
+    "skill_version": "0.1.541",
+    "agent": "gemini-cli",
+    "date": "2026-08-21",
+    "run_dir": "conformance/results/0.1.539-2026-08-21",
+    "tasks": {
+      "T1-deck": "no deliverable",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "5415a39e66425b6509d5ec00b4055a70ab8a96c94ca6e826b036acd57d55153b",
+    "instrument_version": "0.1.541"
   }
 ]
