@@ -1,0 +1,18 @@
+{
+  "version": "0.1.546",
+  "diff_base": "42a58b0eb0ab6368d289b90bfd1952ebd16ba7b1",
+  "spec": "waived: two gates and a refusal, all three from the owner's UAT of decks that had passed. Each is calibrated against LUMI-Commercial-Agent-BP-chengdu.0.1.522.r11 in the code, and the refusal is GAP-025.",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "7e902752ed180a155409a348924610161f9602d745c1b592fc813e76a90d987a",
+      "date": "2026-08-21"
+    }
+  ],
+  "waivers": []
+}

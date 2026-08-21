@@ -75,6 +75,34 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-025 · Figure-structure repetition is measured and cannot be gated on one document
+
+- status: open
+- opened: 0.1.546
+- surface: scripts/check/inspect_layout.py (`_repeated_figure_shapes`,
+  `FIGURE_SHAPE_REPEAT`)
+- symptom: the owner reviewed three conformance decks and reported that the
+  figures repeat — one design reused rather than a drawing per argument. The
+  measurement confirms it: the deck she faulted draws ONE skeleton on four of
+  its seven figure pages, against the accepted reference's 21 drawings in 21
+  distinct structures and a passing deck's 7 in 7.
+- why it is reported and not gated: the reference **also** repeats. Counted by
+  page, it reuses one skeleton across p7/p10/p21/p22/p23 — five pages — while
+  still carrying 21 structures overall. A ceiling of three pages fails the
+  document the owner has accepted; a ceiling of six passes the deck she
+  rejected. What separates them is not a count but a SHARE: four of seven
+  figure pages against five of twenty-one. One accepted document cannot set
+  that ratio, and 0.1.339's invented page-fill floor is what convention 6 was
+  written for.
+- first reading was wrong in a way worth recording: it counted DRAWINGS, so
+  the reference's p4 — four small charts of one kind sitting side by side as a
+  single composition — read as four repeats. Counting pages is the fix; the
+  remaining disagreement with the reference is real rather than an artefact.
+- check: a second document accepted through a blind review, its
+  repeated-skeleton share measured, and the bar set in `evals/thresholds.json`
+  at `provisional` with both documents cited. GAP-021 and GAP-024 close on the
+  same material.
+
 ## GAP-024 · Layout variety is measured, reported, and cannot fail
 
 - status: open

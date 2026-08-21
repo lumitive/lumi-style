@@ -1,3 +1,54 @@
+## 0.1.546 — a part opener without its silhouette is a finding, and figure repetition is measured rather than guessed at
+
+**The owner named three things her eye found in decks that had passed every
+gate.** Two are answered here and the third is refused on purpose.
+
+**A part opener must carry its subject mark.** design-rules §3 permits exactly
+one — a filled silhouette carrying no text of its own, reversed out of the lime
+field, restating the part's claim in another modality (0.1.521, owner
+directive) — and it is the only element allowed there besides the label, the
+claim and the run line. The accepted reference deck carries one on every opener.
+**Three conformance decks driven to pass every other gate carried none, on five
+openers between them**, and no fixture in this package drew one either. The rule
+had been prose for four releases and nothing read it.
+
+`opener_subject_mark` gates. Its floor is a share of the page, not a pixel
+count, because a deck is a fixed canvas that SCALES: the reference's smallest
+mark is 193px wide at 16x9, 272 at laptop, 844 at wide. A 120px floor passed it
+at three viewports and failed it at the fourth — **the third time this file has
+made the one-viewport mistake in two days**, after the band floor and the title
+line count.
+
+**Figure repetition is measured and NOT gated, and the reference is why.**
+The owner is right that the decks repeat: the one she faulted draws a single
+line-and-bar skeleton on four of its seven figure pages. But the reference
+repeats too — one skeleton across five pages of twenty-one — so a ceiling of
+three fails the document she has accepted and a ceiling of six passes the deck
+she rejected. What separates them is a share, not a count, and one accepted
+document cannot set it. **GAP-025**, alongside GAP-024's layout variety, closes
+when a second accepted document exists.
+
+A first reading of it counted DRAWINGS and made the reference fail its own p4,
+where four small charts of one kind sit side by side as a single composition.
+Counting pages was the correction; the disagreement that survived it is real.
+
+**The content-page kicker icons the owner could not see are there.** Every
+content page in every deck measured carries a semantic eyebrow icon, and the
+deck she faulted carries eight distinct ones across eight pages where the
+reference reuses three of its twelve. Reported here because a finding that
+turns out to be absent is worth as much as one that lands, and because what she
+saw may still be real at a size these numbers cannot see: §3 sets an inline
+icon at roughly 1.4x its text, which beside a 58px claim is easy to miss.
+
+**Where the fixture work went wrong, which is the part worth keeping.** Adding a
+mark to the passing fixture took three attempts: `width:15%` inside the copy
+column rendered 14px wide, viewport units sized it correctly and pushed it past
+the page box until `content_spill` caught it, and percentages of the frame were
+too small again. **`tokens/` had shipped `.openmark` all along** — a second grid
+column, `height: 46svh`, `fill: currentColor` — and the reference deck uses
+exactly that. Three rounds were spent re-deriving a rendering the package
+already owned, which is what the class vocabulary exists to prevent.
+
 ## 0.1.545 — the misplaced-artifact sweep was attributing one agent's deck to another, and 0.1.544's evidence came from the wrong file
 
 **The owner opened the deck this harness had filed as Hermes's and said its

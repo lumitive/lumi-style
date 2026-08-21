@@ -677,6 +677,69 @@ PROBE = r"""
                       text: (t.textContent || '').trim().slice(0, 40)};
       }
     }
+    // A PART OPENER'S SUBJECT MARK. design-rules §3 permits exactly one — a
+    // single silhouette carrying no text of its own, reversed out of the field,
+    // restating the part's claim in another modality — and it is the only thing
+    // permitted there besides the label, the claim and the run line. The
+    // accepted reference deck carries one on every part opener (211x331,
+    // 260x331, 193x331, all filled); three conformance decks driven to pass
+    // every other gate carried none at all, on five openers between them. The
+    // rule was in the prose and in nothing else.
+    //
+    // FILLED, never stroked: the same section says a hairline outline scaled to
+    // display size is the accident and a filled silhouette is the graphic.
+    let openerMark = 'not-an-opener';
+    if (/open/i.test((s.id || '') + ' ' + (s.className || ''))
+        && !/cover|clos/i.test((s.id || '') + ' ' + (s.className || ''))) {
+      // MEASURED AS A SHARE OF THE PAGE, not in pixels. A deck is a fixed
+      // canvas that SCALES to the window, so a silhouette 193px wide at 16x9
+      // is 272px at laptop and 844px at wide — and a pixel floor tuned at one
+      // of them mis-reads the others. The reference's smallest mark is 15% of
+      // the page width and 46% of its height at every viewport; the floor is
+      // half of that, so a mark has to be genuinely small to fail rather than
+      // merely rendered at a smaller window. Found the hard way: a floor of
+      // 120px failed the accepted reference at laptop and nowhere else, which
+      // is the same one-viewport mistake this file has now made twice.
+      const pageBox = s.getBoundingClientRect();
+      let best = null;
+      for (const e of s.querySelectorAll('svg, img')) {
+        if (e.closest('.foot') || e.classList.contains('ic')
+            || e.classList.contains('ground')) continue;
+        const r = e.getBoundingClientRect();
+        if (r.width < pageBox.width * 0.07 || r.height < pageBox.height * 0.23) continue;
+        let filled = 0, stroked = 0;
+        e.querySelectorAll('path,rect,circle,ellipse,polygon,polyline,line')
+         .forEach(k => {
+           const cs = getComputedStyle(k);
+           const f = (cs.fill || '').trim(), st = (cs.stroke || '').trim();
+           if (f && f !== 'none' && f !== 'transparent') filled++;
+           if (st && st !== 'none' && st !== 'transparent'
+               && parseFloat(cs.strokeWidth || 0) > 0) stroked++;
+         });
+        const cand = {w: Math.round(r.width), h: Math.round(r.height),
+                      filled, stroked, img: e.tagName.toLowerCase() === 'img'};
+        if (!best || cand.w * cand.h > best.w * best.h) best = cand;
+      }
+      openerMark = best;   // null = an opener that carries none
+    }
+
+    // FIGURE STRUCTURE, coarsely. Which primitives a drawing is made of and in
+    // what proportion — rounded hard, so two charts of the same KIND collide
+    // and two different kinds do not. The accepted reference carries 21
+    // drawings in 21 distinct structures and Cursor's passing deck 7 in 7;
+    // one deck drew the same line-and-bar skeleton four times over.
+    const figShapes = [];
+    for (const sv of s.querySelectorAll('.fig svg:not(.ic)')) {
+      const kinds = {};
+      sv.querySelectorAll('rect,circle,ellipse,path,line,polygon,polyline,text')
+        .forEach(e => { const t = e.tagName.toLowerCase();
+                        kinds[t] = (kinds[t] || 0) + 1; });
+      const total = Object.values(kinds).reduce((a, b) => a + b, 0);
+      if (total < 4) continue;         // a mark, not a drawing
+      figShapes.push(Object.keys(kinds).sort()
+        .map(k => `${k}:${Math.round(100 * kinds[k] / total / 10) * 10}`).join(','));
+    }
+
     const figInk = [];
     for (const sv of s.querySelectorAll('.fig svg:not(.ic)')) {
       const marks = [];
@@ -1249,7 +1312,7 @@ PROBE = r"""
       figLeadPct: +(100 * figLead).toFixed(0),
       caps, tables, drawn, capGapPx, capOffPct, clipped, badBox, sourceEcho, sourceComparable, fields, horizons,
       bandEscape, hasBand: s.querySelectorAll('.band').length > 0,
-      figInk, titleLines,
+      figInk, titleLines, openerMark, figShapes,
       textOverlaps, worstOverlap,
       ledeBlocks, ledeClamped, reserveExpected,
       openerOutsidePx, openerSide,
@@ -1924,6 +1987,57 @@ def _bookends_over_ceiling(live):
             and (r.get("titleLines") or {}).get("lines", 0) > BOOKEND_TITLE_LINES]
 
 
+# REPORTED, NOT GATED, and the accepted reference is why. A first reading of it
+# counted drawings and made the reference fail its own p4, where four small
+# charts of one kind sit side by side as one composition. Counting PAGES instead
+# was the right correction and the reference still repeats a skeleton across
+# p7/p10/p21/p22/p23 — four and five pages — while carrying 21 drawings in 21
+# structures overall. So a deck the owner has accepted does reuse a skeleton
+# across separate pages, and a gate at three would have failed it.
+#
+# The owner's complaint is real and this measures it: the deck she faulted drew
+# one skeleton on four of its seven figure pages, a far higher share than the
+# reference's four of twenty-one. The number that separates them is a RATIO
+# nobody has calibrated, and inventing it from one accepted document is what
+# GAP-024 refuses for layout variety and what 0.1.339 earned convention 6 for.
+# See GAP-025.
+FIGURE_SHAPE_REPEAT = 3
+
+
+def _openers_without_a_mark(live):
+    """Part openers carrying no oversized filled silhouette.
+
+    design-rules §3 permits exactly one and the reference deck carries one on
+    every opener. Three decks driven to pass every other gate carried none on
+    any of five openers, because the rule lived in prose and nothing read it.
+    """
+    return [r for r in live
+            if r.get("openerMark", "absent") is None]
+
+
+def _openers_with_a_stroked_mark(live):
+    """Openers whose mark is an outline scaled to display size — the accident
+    the same section names, as against the filled silhouette it asks for."""
+    return [r for r in live
+            if isinstance(r.get("openerMark"), dict)
+            and not r["openerMark"].get("img")
+            and r["openerMark"].get("stroked", 0) > r["openerMark"].get("filled", 0)]
+
+
+def _repeated_figure_shapes(live):
+    """-> [(signature, [page ids])] for structures drawn FIGURE_SHAPE_REPEAT+ times."""
+    # ONE VOTE PER PAGE. The reference deck puts four small drawings of the
+    # same kind side by side on p4 — that is one composition, not four repeats,
+    # and counting drawings failed the accepted document on its own layout.
+    # What the owner saw was a skeleton reused across SEPARATE pages.
+    seen: dict[str, set[str]] = {}
+    for r in live:
+        for sig in set(r.get("figShapes") or []):
+            seen.setdefault(sig, set()).add(r["id"])
+    return [(sig, sorted(ids)) for sig, ids in seen.items()
+            if len(ids) >= FIGURE_SHAPE_REPEAT]
+
+
 def _fig_ink_collides(live):
     """Pages where two solid marks inside a drawing partly cover each other.
 
@@ -2358,6 +2472,32 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
               + ", ".join(f"{r['id']} {r['titleLines']['lines']} lines"
                           for r in bookends))
 
+    bare = _openers_without_a_mark(live)
+    stroked = _openers_with_a_stroked_mark(live)
+    if bare or stroked:
+        if bare:
+            print(f"  OPENER WITHOUT A SUBJECT MARK: {len(bare)} part opener"
+                  f"{'s' if len(bare) != 1 else ''} carry no oversized silhouette, "
+                  f"which design-rules §3 permits as the one thing besides the "
+                  f"claim: " + _fmt_ids(bare, 8))
+        if stroked:
+            print(f"  OPENER MARK IS STROKED: {len(stroked)} carry an outline "
+                  f"scaled to display size rather than a filled silhouette: "
+                  + _fmt_ids(stroked, 8))
+    elif any(r.get("openerMark") for r in live):
+        print("  opener mark: every part opener carries a filled silhouette")
+
+    dups = _repeated_figure_shapes(live)
+    if dups:
+        worst = max(dups, key=lambda kv: len(kv[1]))
+        print(f"  FIGURE STRUCTURE REPEATS: {len(dups)} skeleton"
+              f"{'s' if len(dups) != 1 else ''} drawn "
+              f"{FIGURE_SHAPE_REPEAT}+ times — worst {len(worst[1])} pages "
+              f"share one ({worst[0][:40]}): " + ", ".join(worst[1][:6]))
+    elif any(r.get("figShapes") for r in live):
+        print(f"  figure structure: no skeleton is drawn "
+              f"{FIGURE_SHAPE_REPEAT} times or more")
+
     inked = _fig_ink_collides(live)
     if inked:
         w = _fig_ink_worst(live)
@@ -2767,6 +2907,12 @@ def deliverable_verdicts(rows, consistency):
         lambda h: (f"{len(h)} pages carry a headline past the two-line ceiling: "
                    + ", ".join(f"{r['id']} {r['titleLines']['lines']} lines "
                                f"({r['titleLines']['text']!r})" for r in h[:3])))
+    add("opener_subject_mark",
+        _openers_without_a_mark(live) + _openers_with_a_stroked_mark(live),
+        not any(r.get("openerMark", "absent") != "absent" for r in live),
+        lambda h: (f"{len(h)} part openers carry no filled silhouette, which "
+                   f"design-rules §3 permits as the one element besides the "
+                   f"claim: " + _fmt_ids(h)))
     add("bookend_title_length", _bookends_over_ceiling(live),
         not any((r.get("titleLines") or {}).get("kind") == "bookend"
                 for r in live),
