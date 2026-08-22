@@ -231,3 +231,51 @@ def test_an_older_gate_still_binds_an_older_document(tmp_path):
     assert any("D19_vocabulary" in x for x in held) or any(
         "privacy" in x for x in held), (
         f"nothing older than 0.1.500 bound this document: {r['gating']}")
+
+
+# --- the one block, grouped by concept ---------------------------------------
+#
+# Forty-six lines came out in the order the checkers happened to emit them, so
+# five agenda defects sat in four separate places and a reader met the same page
+# four times without being told it was the same page. The owner's word for the
+# cost was that every use of the skill gets more expensive as the gate set grows.
+
+def test_findings_are_grouped_by_the_concept_they_belong_to():
+    out = subprocess.run(
+        [sys.executable, str(DRIVER),
+         str(ROOT / "fixtures" / "deck-degenerate.en.html"), "--fast"],
+        capture_output=True, text=True).stdout
+    # SEVERITY IS THE FIRST AXIS AND STAYS THAT WAY: a gating failure has to be
+    # fixed and a graded one is a reading, so `agenda` legitimately heads a
+    # group under GATE and another under note. What must not happen is the same
+    # concept appearing twice at the SAME severity, which is the split this
+    # grouping exists to end.
+    seen: dict[str, list[str]] = {}
+    current = None
+    for ln in out.splitlines():
+        stripped = ln.strip()
+        if stripped.startswith("── ") and "verdict" not in ln:
+            current = stripped[3:].strip()
+        elif current and stripped[:4] in ("GATE", "note", "MUTE"):
+            seen.setdefault(stripped[:4], []).append(current)
+    assert seen, "the block is flat again"
+    for label, families in seen.items():
+        runs = [f for i, f in enumerate(families) if i == 0 or families[i - 1] != f]
+        assert len(runs) == len(set(runs)), (
+            f"{label}: a concept is split across two groups: {runs}")
+    # The case that motivated it: five agenda defects, one heading.
+    assert seen["GATE"].count("agenda") >= 4
+
+
+def test_a_finding_with_no_declared_metric_keeps_its_own_heading():
+    """The privacy line, the trace line and the Evals rows are not gates and
+    have no family. Forcing them into a taxonomy built for gates would file
+    them under something untrue; they head their own group instead."""
+    import gate_registry
+    out = subprocess.run(
+        [sys.executable, str(DRIVER),
+         str(ROOT / "fixtures" / "deck-pass.en.html"), "--fast"],
+        capture_output=True, text=True).stdout
+    assert "── privacy" in out or "privacy:" in out
+    assert "privacy_terms" in gate_registry.load(), (
+        "privacy_terms left the register; the heading logic needs revisiting")

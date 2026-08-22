@@ -17,6 +17,7 @@ import sys
 import tempfile
 
 import markup
+import pytest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -63,7 +64,16 @@ def _both_checkers(raw):
 
 def test_a_chinese_agenda_page_is_found_by_both_checkers():
     """The measured case. Before this, `deck_structure` failed a deck that has
-    an agenda, because the probe could not read the word naming it."""
+    an agenda, because the probe could not read the word naming it.
+
+    Skipped where Playwright is absent, which includes CI: `inspect_layout.py`
+    renders. The half that CAN run everywhere is above — the probe is handed
+    `markup.AGENDA_WORDS` rather than spelling a vocabulary of its own — and it
+    is what actually fails if the two readers drift apart again. This one is
+    the end-to-end proof, and it belongs to whoever has a browser.
+    """
+    pytest.importorskip(
+        "playwright", reason="inspect_layout.py renders; see SKILL.md's browser step")
     raw = (ROOT / "fixtures" / "deck-pass.en.html").read_text(encoding="utf-8")
     raw = raw.replace('<section class="page" id="agenda">',
                       '<section class="page" id="p2">'

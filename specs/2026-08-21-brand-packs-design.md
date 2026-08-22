@@ -1,8 +1,8 @@
 # Brand packs — design
 
-Revision 3 (2026-08-22), after three review rounds (red/blue on revision 1; a platform
+Revision 4 (2026-08-22), after four review rounds (red/blue on revision 1; a platform
 review for Hermes, Cursor and Gemini on revision 2; red and plan-readiness on revision 2b).
-§10 records what each round changed and why. Every mechanism here is written so that a
+Baseline for every code citation: `main` at 0.1.553. §10 records what each round changed and why. Every mechanism here is written so that a
 wrong implementation goes **red**, never green-and-LUMIVATE.
 
 ## Context
@@ -30,20 +30,20 @@ directory move plus five rewired checkers.*
 | # | Decision |
 |---|---|
 | D1 | A brand owns the **visual** layer and may **extend** voice and compliance. Storylines and the AI-register ban list are **engine** (red line 3, P-3) — the brainstorm's "all four layers" yielded to the constitution. |
-| D2 | A user's brand lives at **`~/.lumi/brands/<id>/`** and nowhere else; the pointer `~/.lumi/brand` holds an **id only**. `LUMI_BRAND_HOME` overrides the `~/.lumi` root for the whole process. LUMIVATE is the only tracked pack. |
+| D2 | A user's brand lives at **`~/.lumi/brands/<id>/`** and nowhere else; the pointer `~/.lumi/brand` holds an **id only**. `LUMI_BRAND_HOME` overrides the `~/.lumi` root for the whole process — packs, the pointer, the update stamp and the OR-8 terms directory alike (`LUMI_TERMS_DIR` still wins for terms). LUMIVATE is the only tracked pack. |
 | D3 | Gallery = curated PNGs tracked in-repo under the pack, built from tracked synthetic HTML sources, with a digest rot guard over every render input. |
-| D4 | Overlay packs. File-level inheritance applies to an **explicit `INHERITABLE` list** (`compliance.md`, `assets/fonts/`); every other pack file is the pack's own or the producer refuses. Engine facts never live in a pack file, so nothing merges. |
+| D4 | Overlay packs. File-level inheritance applies to an **explicit `INHERITABLE` list** (`compliance.md` only); every other pack file is the pack's own or the producer refuses. Fonts fall back at the **json** level (D7): a pack with no `fonts` key uses the default pack's entries, whose paths resolve in the default pack — one mechanism, not two. Engine facts never live in a pack file, so nothing merges. |
 | D5 | `tokens/` dissolves and `assets/` splits, each as a **compatibility pair**; `references/ → rules/`, `adapters/ → platforms/` follow as pairs. |
 | D6 | Pack carries a **logo** set and a **legal/** set (privacy + security, text or URL). |
-| D7 | D-DIN stays the engine default face. |
+| D7 | D-DIN stays the engine default body face and IBM Plex Mono the default data face; a pack's `fonts` list carries both roles (`face: body|mono`), and both `--face-body` and `--face-mono` are **required** in every theme (the engine's `--mono: var(--face-mono), …` is otherwise invalid at computed-value time and the data voice silently inherits). |
 | D8 | First gallery scenes: sales deck, internal analysis, training, investor pitch, A4 report, Chinese deck, dark mode. `gallery.json` is the authority; prose never counts them. |
-| D9 | Below the `full` tier the brand reaches the agent by **generation**: `build_entrypoints.py --brand <id>` writes exactly two files under `~/.lumi/brands/<id>/generated/` — `core-prompt.md` (prompt tier, pasted) and `BRAND-POINTER.md` (files tier, read on the operator's instruction). Nothing per-brand is ever written under the checkout or a skill path that resolves into it; **no platform auto-loads a brand file** — a rule loading beside the skill is a second source. |
+| D9 | Below the `full` tier the brand reaches the agent by **generation**: `build_entrypoints.py --brand <id>` writes exactly two files under `~/.lumi/brands/<id>/generated/` — `core-prompt.md` (prompt tier, pasted) and `BRAND-POINTER.md` (files tier, read on the operator's instruction). Nothing per-brand is ever written under the checkout or a skill path that resolves into it; **no platform auto-loads a brand file** — a rule loading beside the skill is a second source. The per-brand core prompt is generated from `prompts/lumi-style-core.md`, whose palette and identity sentences gain fenced `<!-- brand:begin -->…<!-- brand:end -->` markers that `check_prompt_parity` skips; the hand-written source stays LUMIVATE's. |
 | D10 | **No inherited identity**: `wordmark`, `cover_mark`, `logo` absent means a text wordmark and no mark. A brand never inherits another brand's globe. |
 | D11 | **An agent never reads a pack.** The readers are `new_deck.py`, `export_pdf.py`, `new_brand.py`, `build_entrypoints.py --brand`, `build_region_palette.py`, `embed_font.py`, and the checkers through `declared()`; `check_script_paths`' pattern holds that list to the code. `brand.py --print` is a stop-gate: if it fails, the build stops and the report names the missing pointer. The agent may not choose LUMIVATE or any palette by hand (the 2026-08-13 incident). |
 | D12 | **Launch platforms are Claude Code, Hermes and Cursor.** Gemini CLI is supported by construction but not validated in this work (file tools cannot leave the workspace; the key is free-tier). GAP entry at R1. |
 | D13 | **No provenance digest in a deliverable.** A hash the author computes proves nothing; the defence against a typed `content="lumivate"` is D20's value comparison (a typed id over a foreign palette fails on values; over LUMIVATE's palette it is a LUMIVATE document) plus T4-brand's `grep -c lumivate = 0`. |
-| D14 | LUMIVATE's `output_dir` stays `Documents/LUMI-Style` (owner's corpus and the conformance results root); every pack names its own in `brand.json`. |
-| D15 | A user pack's **dark palette is derived** from the light triple and measured; a dark triple may be given to override; if derivation cannot clear the floors, dark mode is **disabled for that pack** (`theme.json.dark = false`, `new_deck.py --dark` refuses, D-metrics skip the dark block) and the report says so. |
+| D14 | `brand.json.output_dir` names the **leaf** folder under the platform's Documents directory (`output_dir.py`'s `documents_dir()` supplies the localised parent); LUMIVATE's is `LUMI-Style`, so the owner's corpus and the conformance results root do not move. |
+| D15 | A user pack's **dark palette is derived** from the light triple and measured; a dark triple may be given to override; if derivation cannot clear the floors, dark mode is **disabled for that pack** (`theme.json.dark = false`, `new_deck.py --dark` refuses, D-metrics skip the dark block) and the report says so. Shipped packs carry **no `answers`** and `new_brand.py --upgrade` refuses a shipped pack: LUMIVATE's dark palette is hand-tuned and no derivation reproduces it. |
 
 ## 1. The pack
 
@@ -56,13 +56,14 @@ brands/lumivate/                      tracked reference pack
   theme/              theme.css, theme.json            brand VALUES only (§1.1)
                       region-palette.css, region-palette-trade.css   GENERATED per pack
   assets/
-    fonts/            D-DIN.woff2, D-DIN-Bold.woff2, COPYING.txt     (INHERITABLE)
+    fonts/            D-DIN.woff2, D-DIN-Bold.woff2, IBMPlexMono-Regular.woff2,
+                      IBMPlexMono-Bold.woff2, COPYING.txt
     marks/            globe-field.svg, globe-cover.svg, globe-cover.dark.svg
     logo/             wordmark.svg, wordmark.dark.svg, mark.svg        NEW (§1.3)
-    LOCKED.json       pack lock: marks + logo, pack-relative
+    LOCKED.json       pack lock: marks + logo + fonts, pack-relative (arrives with lock.py's base, R3a)
   legal/              privacy.md, security.md — text, or a one-line file holding a URL
   voice.md            [optional] ADDITIVE: `## Never` / `## Favour`, one literal phrase per bullet
-  compliance.md       [optional, INHERITABLE] D12 handling terms, origin line, who-may-see-what
+  compliance.md       [optional, the one INHERITABLE file] D12 handling terms, origin line, who-may-see-what
   examples/           gallery: <scene>.html, <scene>-cover.png, <scene>-p1.png, gallery.json
 ```
 
@@ -76,21 +77,22 @@ one), storylines, the AI-register ban list, any engine token, any skill stamp ot
 {
   "schema": 1, "id": "lumivate", "name": "LUMIVATE",
   "wordmark": "LUMI Style", "site": "www.lumivate.io", "language_default": "en",
-  "output_dir": "Documents/LUMI-Style",
+  "output_dir": "LUMI-Style",
   "logo": {"light": "assets/logo/wordmark.svg", "dark": "assets/logo/wordmark.dark.svg",
            "mark": "assets/logo/mark.svg"},
   "cover_mark": "assets/marks/globe-field.svg",
-  "fonts": [{"file": "assets/fonts/D-DIN.woff2", "weight": 400},
-            {"file": "assets/fonts/D-DIN-Bold.woff2", "weight": 700}],
+  "fonts": [{"file": "assets/fonts/D-DIN.woff2", "weight": 400, "face": "body"},
+            {"file": "assets/fonts/D-DIN-Bold.woff2", "weight": 700, "face": "body"},
+            {"file": "assets/fonts/IBMPlexMono-Regular.woff2", "weight": 400, "face": "mono"},
+            {"file": "assets/fonts/IBMPlexMono-Bold.woff2", "weight": 700, "face": "mono"}],
   "policies": {"privacy": "legal/privacy.md", "security": "legal/security.md"},
   "compliance": {"handling_terms": "…", "origin": "…"},
-  "locked": "assets/LOCKED.json",
-  "engine_version": "0.1.546",
-  "answers": {"…interview answers, so --upgrade regenerates…"}
+  "engine_version": "<the version of the release that writes it>",
+  "locked": "assets/LOCKED.json"
 }
 ```
 
-An optional key that is present must resolve or `check_brand_pack` fails. `wordmark`,
+`engine_version` precedes every other version-shaped string in the file (`release.py` swaps the first occurrence). User packs additionally carry `answers` (the interview, for `--upgrade`). An optional key that is present must resolve or `check_brand_pack` fails. `wordmark`,
 `cover_mark`, `logo` have no default (D10). `brands/registry.json` shrinks to
 `{"default": "lumivate", "brands": {"lumivate": {"path": "brands/lumivate"}}}` and
 `check_brand_registry.ALLOWED` to `{path}`.
@@ -99,16 +101,17 @@ An optional key that is present must resolve or `check_brand_pack` fails. `wordm
 
 | Material | Home | Why |
 |---|---|---|
-| palette light + dark, ladders, ramp, washes, `on-*`, `lime`/`seal`/`amber`/`brass`, `chart` triple, `palette_default`, `chart_scale_px`, `contrast.measured`, **face names** `--face-body`, `--face-mono` | **pack** `theme/theme.css` + `theme.json` | D20 compares them; measured per palette |
-| type register `--fs-*`, `--w-*`, `--lh-*`, `--ls-*`, `--din: var(--face-body), <CJK stack>`, `--mono: var(--face-mono), <mono stack>`, `.scope-note`, ground ceiling | **engine** `layouts/register.css` | checkers read them; a pack cannot lose `--fs-stat` |
-| `retired`, `layout`, `typography`, contrast **floors**, region **parameters**, ladder alphas | **engine** `layouts/engine-tokens.json` | a pack without `retired` would pass that guard vacuously |
+| palette light + dark, ladders, ramp, washes, `on-*`, **`lime`/`on-lime`/`seal`/`amber`/`brass`/`acc-live` (required — `layouts.css` references them 46 times without fallbacks; `palette_derive` writes them when the interview does not name them)**, ground tiers `--ground-strong/-mid/-faint` and their portrait override, `chart` triple, `palette_default`, `contrast.measured`, `font` (face names as `--face-body`, `--face-mono`, both required) | **pack** `theme/theme.css` + `theme.json` | D20 compares them; measured per palette |
+| type register `--fs-*`, `--w-*`, `--lh-*`, `--ls-*`, `--din: var(--face-body), <CJK stack>`, `--mono: var(--face-mono), <mono stack>`, `.scope-note` | **engine** `layouts/register.css` | checkers read them; a pack cannot lose `--fs-stat` (the ground *ceiling* is not a token — it is `inspect_layout.GROUND_CEILING`) |
+| `retired`, `layout`, `typography` (incl. `chart_scale_px`), contrast **floors**, region **parameters**, ladder alphas; the `assets` key is deleted at R3a | **engine** `layouts/engine-tokens.json` | a pack without `retired` would pass that guard vacuously |
 | `lumi-layouts.css` | **engine** `layouts/layouts.css` | structural classes painted through `var()` |
 | region palettes, shape fallbacks, marks, `contrast.measured` | **generated per pack** | computed against the pack's ink/ground |
 
 **One declaration per custom property.** `check_token_references` holds that a name defined
 in `layouts/` is defined in no pack and vice versa (planted red: declare `--din` in the
-synthetic theme), and that every `var()` in `layouts/` resolves against `layouts/` ∪ each
-shipped theme in turn. Inclusion order in a document head: `theme.css`, `register.css`,
+synthetic theme), and that every `var()` in `layouts/` **and in each pack's generated `region-*.css`** resolves
+against `layouts/` ∪ that theme. "Declared" is per file, so `body.dark` re-declaring `:root`
+names inside one theme is not a double declaration. Inclusion order in a document head: `theme.css`, `register.css`,
 `layouts.css`, `region-*.css`. `check_palette_parity` reads floors from `engine-tokens.json`
 and `measured` from each shipped `theme.json` — two files, said here so it is not a surprise.
 
@@ -163,14 +166,14 @@ SKILL.md carries the resolution order as prose for agents that cannot import the
 | `new_deck.py` lifts `<head>` from the LUMIVATE fixture | `preamble()` assembles it from `active().path("theme/theme.css")` + `layouts/*` + `embed_font.css()`; writes `meta_tag` | scaffold under the synthetic pack: D20 `compared > 0, differs 0`; `grep -c lumivate` = 0 |
 | `new_deck.py` globe path + `www.lumivate.io` | from `brand.json`; text wordmark when no logo | scaffold under the synthetic pack carries its site and no mark |
 | D20 reads `tokens/lumi-theme.css`; missing → `compared: 0`, passes | reads `declared(doc)`; unreadable or undeclared → UNMEASURABLE | typed `lumivate` over the synthetic palette → fail; theme removed / no meta → UNMEASURABLE |
-| D23 font ceiling reads `tokens/lumi-theme.css` | reads `declared(doc)`; same UNMEASURABLE rule | synthetic pack with one face → ceiling 1 |
+| D23 font ceiling reads `tokens/lumi-theme.css` | declared set = `declared(doc)` theme ∪ `layouts/register.css` (`--din`/`--mono` live engine-side now); same UNMEASURABLE rule; `fixtures/expected.json` unchanged | a theme lacking `--face-mono` → theme guard red, never a silent inherited font |
 | `build_fixtures.py` lifts `tokens/` | lifts `shipped()[default]` theme + `layouts/`; writes `meta_tag`; `expected.json` unchanged | fixtures without the meta → `check_fixtures` red |
 | `check_privacy` strips markup before scanning | scans `<meta name="brand">` and every `content=` attribute for path shapes first | a path in the meta → red |
 | palette parity: one JSON ↔ one CSS | loop `shipped()`; floors from engine JSON | mismatched hex in `tests/fixtures/brands/acme-broken` |
 | var() resolves: `tokens/*.css` glob | §1.1 rule | `--din` declared in the synthetic theme; a layout var no theme defines |
 | `check_versions` `TOKEN_STAMPS` + "LUMI" regexes; `release.py` imports the tuple | `ENGINE_STAMPS`: `layouts/register.css` (`LUMI register · vN`), `layouts/layouts.css` (`LUMI page layouts · vN`), `layouts/engine-tokens.json` (`"version"`), plus one row per shipped pack's `brand.json` (`"engine_version":\s*"(\d+\.\d+\.\d+)"`); `release.py` and `tests/test_release_tool.py` renamed in the same commit; user packs exempt | stamp drift in `register.css` |
 | `check_retired_values` reads `tokens/design-tokens.json` | reads `layouts/engine-tokens.json` | `retired` removed → red, not vacuous |
-| `check_evidence` `TOUCH_MAP`/`STAMPED_PREFIXES`/`spec_lines_changed` key on `tokens/`, `assets/geo|globe/` | each new prefix enters **in the release that creates its directory** (`validate_maps` refuses a missing one): `brands/` at R1, `layouts/` + `brands/lumivate/theme/` at R2a, `library/` at R3a, `rules/` at R7; new obligations `gallery` (R6) and **`fresh-clone`** keyed on `.gitignore` | edit a shipped theme → `--init` obliges `layout-fixtures`; edit `.gitignore` → obliges `fresh-clone` |
+| `check_evidence` `TOUCH_MAP`/`STAMPED_PREFIXES`/`spec_lines_changed` key on `tokens/`, `assets/geo|globe/` | each new prefix enters **in the release that creates its directory** (`validate_maps` refuses a missing one): `brands/` → `conformance-freshness` at R1; `layouts/` + `brands/lumivate/theme/` → `layout-fixtures` at R2a; `brands/lumivate/assets/` + `library/geo|globe/` at R3a; `rules/` at R7; `brands/lumivate/brand.json` joins `STAMPED_PREFIXES`. New obligations `gallery` (R6) and **`brand-e2e`** = `scripts/ops/verify_brand_packs.py` (runs §8's machine lines, R6). No `fresh-clone` obligation: tracked files always clone, and `check_assets_tracked` already asks git about ignored-but-wanted files | edit a shipped theme → `--init` obliges `layout-fixtures`; a `BRAND.md` typo does not |
 | `claim_sweep.py` sees counts and citations only | **`check_path_mentions`** (generalised `check_script_paths`): every `<dir>/path` mentioned in tracked prose, code, JSON, tests resolves; `WARN_PREFIXES` holds the old half of a live pair; ships in R1 | a stale `tokens/` path in AGENTS.md |
 | `check_platform_manifest` ignores `ships` | resolves every `ships` entry | `ships: ["nonexistent/"]` |
 | `embed_font.py` D-DIN literals, byte-size asserts | faces from `active().json()["fonts"]`; sizes from the pack lock | one face → one `@font-face` |
@@ -181,13 +184,14 @@ SKILL.md carries the resolution order as prose for agents that cannot import the
 | one `LOCKED.json`, repo-relative | `lock.verify(lock_path, base)` / `lock.update(...)`; **`check_engine_lock`** (renamed) verifies `library/LOCKED.json` against `ROOT`; `check_brand_pack` verifies each shipped pack's lock against the pack root | move a runtime file → engine red; edit a mark → pack red |
 | `check_assets_tracked` scoped to `assets/` | `library/` + every shipped pack | untracked svg under the pack |
 | `.gitignore` | re-admit `library/**`, `brands/lumivate/**` (woff2, svg, png), **`!brands/registry.json`**, `!tests/fixtures/brands/**`; ignore `brands/*` otherwise | fresh clone lists the pack; `git check-ignore brands/acme/x` ignored and `brands/registry.json` not |
+| `recolor_shapes.py`, `build_brand.py`, `check_globe.py`, `check_role_weights` read `tokens/` at import or in CI | rewired in R2a (all four run in CI; `build_brand.py` is hash-locked → relock in that commit) | `tokens/` removed → all four still green |
 | conformance `SKILL_SURFACE`; `render_note`/`render_pointer` texts; `platforms.json ships` | read from `brand.py` / the registry (named: after R2b `environment_check` would otherwise report every platform unreachable) | `validate`; `--check` |
-| `run_conformance.drive()` passes no `env=` | tasks may declare `environment: {...}`; the driver merges it over `os.environ` (the same hole GAP-023 names for `LUMI_TRACES`) | T4-brand with a missing `LUMI_BRAND_HOME` → agent stops |
+| `run_conformance.drive()` passes no `env=` | tasks may declare `environment: {...}`; the driver expands `${WORKDIR}` (the run's temp dir is created after the task loads), merges over `os.environ`, and when `LUMI_BRAND_HOME` is named copies `tests/fixtures/brands/<LUMI_BRAND>` to `$LUMI_BRAND_HOME/brands/<id>` (the same hole GAP-023 names for `LUMI_TRACES`) | T4-brand with `LUMI_BRAND_HOME` at a missing path → agent stops at `--print` |
 | `check_prose` one ban list | adds the declared pack's `voice.md` bans as `M4b_pack_bans`; `n/a` with no brand is not a blind gate because M4 still graded; additive only | phrase in the synthetic `voice.md` with no pattern |
 | `check_rule_ids`, `check_principle_trace` glob `references/*.md` | ∪ shipped `BRAND.md` at R4 (R1's `BRAND.md` carries no ids) | remove a `BR-*` id → red |
 | `check_output_default` one literal in five sites | sites hold "the pack's `output_dir`" wording; `output_dir.py` reads `active().json()["output_dir"]`; `FOLDER` constant removed and the guard's regex branch rewritten | a site naming a literal folder → red |
 | README brand prose | **`check_readme_brand_prose`**: README's brand section is one paragraph ending in a link to `brands/lumivate/BRAND.md` | a second paragraph → red |
-| `trace_schema.FIELDS` closed | `brand: (str, NoneType)`; `trace.py open` writes `active().id`; `ledger.py --board` groups by it (the `trace field readers` guard) | schema test |
+| `trace_schema.FIELDS` closed; `validate` reports a missing key | `brand: (str, NoneType)`; every tracked trace migrated with `"brand": null` in the same commit (0.1.500's `recipe_hash` precedent); `trace.py open` writes `active().id`; `ledger.py --board` groups by it | schema test; one unmigrated trace → `trace schema` red |
 | **new `check_brand_pack`** | per shipped pack: required keys; every declared path resolves; `policies` file-or-URL; logo iff declared; pack lock; **no `*terms*`**; `engine_version` = SKILL.md; every pack file in `git ls-files`. Presence and lock **only** — "built from this pack's anchors" belongs to `build_region_palette --check` and `build_brand --check` | delete `legal/privacy.md`; plant `privacy-terms.txt` |
 | **new `check_gallery`** | `gallery.json` row per PNG: scene, source html, evidence id, SHA-256 over **source html + `theme/theme.css` + `layouts/*.css` + every font `brand.json.fonts` names**, in that order; CI recomputes from tracked inputs (no render); the render is `scripts/ops/build_gallery.py`, the evidence command for `record --id gallery` (Chromium build recorded there) | edit a scene html without rebuilding; a PNG with no row |
 | **new `doctor.py`** | `--platform <id>` (else "tier: not determined"); Chromium, fonts, active brand, installed version; `.git` present → `git fetch --dry-run` under 5 s with `GIT_TERMINAL_PROMPT=0`, else one line naming the platform's updater; stamp file `~/.lumi/last-update-check`; `--force`; **always exit 0**; `quota_limited` read from the registry record, never from a vendor's error text | missing font dir → reported; network cut → one line within 5 s |
@@ -240,14 +244,14 @@ hand over a logo or brand PDF; the agent reads the answers off it and asks for c
 | `--bg`, `--nw`, `--acc` (+ `--acc-live` for a second emphasis colour) | asked (Q3) |
 | `--seal` | asked (Q4) or engine red |
 | text ladder, rule ladder (engine alphas from `engine-tokens.json`), `--card-bg`, ramp `--acc-1..5` (OKLCH lightness steps), `--acc-tint/-wash/-deep`, `--on-acc*`, the dark palette (D15) | **derived and measured** against `floor_text` / `floor_ui`; a failing pair is reported with the two-inks offer and left empty — never substituted |
-| `--d-blue/-red/-teal` | inherited (CVD-validated engine default) unless the brand names its own, then CVD-checked |
-| `--lime`/`--on-lime`, `--amber`, `--brass` | **not inherited**; absent unless named; layouts fall back to `--acc` tiers |
+| `--d-blue/-red/-teal` | inherited (CVD-validated engine default) unless the brand names its own; a named triple is **reported, not CVD-checked** (no CVD model ships; IDEA at R1) |
+| `--lime`/`--on-lime`, `--amber`, `--brass`, `--seal` when Q4 is skipped | **derived, never inherited**: lime/amber/brass from the accent ramp, seal = the engine's red copied in; required values because `layouts.css` references them without fallbacks |
 | region palette, shape fallbacks, marks, `contrast.measured` | regenerated per pack |
 
 `new_brand.py` refuses a relative `--out`, prints every absolute path it wrote, runs
 `build_region_palette --brand` and refuses on a floor miss. Output contract: `new_deck.py`
-renders under the new pack with zero `differs`; `--check` green; `~/.lumi/brand` written with
-the user's say-so; `build_entrypoints.py --brand` writes the two D9 files; one preview page
+renders under the new pack with zero `differs`; `--check` green; `~/.lumi/brand` written only with
+`--activate` (the user's say-so); the OR-8 terms instruction printed, nothing written there; `build_entrypoints.py --brand` writes the two D9 files; one preview page
 from the fixture's content in the new colours.
 
 Tiers: `full` runs all of it. `files` and `prompt` conduct the interview and return
@@ -282,15 +286,18 @@ form/content line — its own spec (IDEA at R1). Brand packs provide the meta it
 ## 4c. Conformance on a non-default pack (R5)
 
 `conformance/tasks/T4-brand.json`, `min_capability: full`, `environment: {LUMI_BRAND: acme,
-LUMI_BRAND_HOME: <run workdir>/.lumi}` — the pack copied from `tests/fixtures/brands/acme/`
-into the run's work dir, which every driver already hands the agent. Prompt: *scaffold with
+LUMI_BRAND_HOME: ${WORKDIR}/.lumi}` — the driver expands `${WORKDIR}` and copies
+`tests/fixtures/brands/acme/` to `${WORKDIR}/.lumi/brands/acme/`, inside the directory every
+driver already hands the agent. Prompt: *scaffold with
 `new_deck.py`, build a six-page deck for a fictional programme, run the checks until clean;
 do not name the brand — the skill resolves it.* Expected: meta `acme`, D20
 `compared > 0, differs 0`, zero occurrences of `lumivate`, the footer carries acme's site.
-Planted reds on one real agent before the task ships: `LUMI_BRAND_HOME` at a missing path →
-the agent stops and the transcript names it; no brand → UNMEASURABLE and no `lumivate` meta.
-A platform whose transcript shows LUMIVATE instead is recorded as **not inheriting the
-environment**, not as failing the task. Drivers: Claude Code, Hermes, Cursor (D12).
+Planted red on one real agent before the task ships: `LUMI_BRAND_HOME` at a missing path →
+`brand.py --print` exits 2, the agent stops, the transcript names the pointer (with no pointer
+there is no scaffold and therefore no document — "no meta → UNMEASURABLE" is the checker's
+red, not a driven one). A platform whose transcript shows LUMIVATE instead is recorded as
+**not inheriting the environment** in a `note` field on its `history.json` row, printed by
+`report`, not as failing the task. Drivers: Claude Code, Hermes, Cursor (D12).
 
 ## 5. Gallery and README
 
@@ -360,8 +367,11 @@ No new brand-shaped design gate lands between R1 and R4 without its inventory ro
   `voice.md`; one `@font-face`; D23 ceiling 1.
 - Pointer holding a path → refused. Missing id → raises; `--print` exits 2 naming it. No meta
   → UNMEASURABLE. Typed `lumivate` over the synthetic palette → D20 fails on values.
-- Owner's machine with the pointer on the synthetic pack: `preflight.py` green.
+- Owner's machine with the pointer on the synthetic pack: `preflight.py` green (pinned by a
+  test that sets `LUMI_BRAND=acme` and asserts the guards' output is unchanged).
 - Edit a scene html, `theme.css`, `layouts.css` or a font without rebuilding → `check_gallery` red.
+- `scripts/ops/verify_brand_packs.py` runs every machine-checkable line above and is the
+  `brand-e2e` evidence command; the browser lines stay operator steps.
 - Engine lock / pack lock reds. `--din` declared in a pack → var guard red.
 - `build_entrypoints.py --brand acme` writes two files under `LUMI_BRAND_HOME`; `git status`
   in the checkout unchanged.
@@ -398,12 +408,20 @@ render input; fixtures write the meta via `meta_tag`; driver `env=` per task; `q
 from the registry; README guard; synthetic `BRAND.md` examples; `M4b`; explicit
 `INHERITABLE`; `output_dir` explicit (D14); dark palette rule (D15); `fresh-clone`
 obligation; ~18 commits named.
+**Round 4 (red + blue on spec and plan):** bridge split so the marks survive until R3a; three
+CI readers of `tokens/` rewired in R2a; D23 reads theme ∪ register; the four shipped faces; the
+"optional" tokens made required derived values (46 fallback-free references); `fresh-clone`
+withdrawn, `brand-e2e` added; traces migrated when `brand` joins the schema; `${WORKDIR}` in
+the driver; no `answers` on shipped packs; leaf-only `output_dir`; fenced markers in the core
+prompt; `LUMI_BRAND_HOME` covers the terms directory; all code citations by function name
+against 0.1.553.
 
 **Non-goals** (ledger ids assigned in R1a's CHANGELOG entry and cited here then): multi-brand
 in one document; inheritance deeper than pack → LUMIVATE; CI checking user packs; re-tuning
 the type register for non-D-DIN faces; per-brand fixtures; a marketplace `metadata.tagline`;
 the review entry path; silent auto-update; Gemini validation; the repo's own Cursor `.mdc`
-lacking frontmatter (a generated-artifact defect independent of brands — its own IDEA).
+lacking frontmatter (a generated-artifact defect independent of brands — its own IDEA); a CVD
+check for a brand-named chart triple (its own IDEA).
 
 ## Self-review
 

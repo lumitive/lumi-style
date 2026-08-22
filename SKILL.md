@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.564"
+  version: "0.1.565"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -457,7 +457,11 @@ current, stale, or **unknown** — and unknown is not current.
    the browser works, applies the Evals thresholds, and ends in one block naming
    every gating failure, every graded finding, every check that could not be
    measured, and — for a document that declares an older build — every gate
-   written after it, marked `past` and binding nothing. **A gate binds a
+   written after it, marked `past` and binding nothing. **The block groups by
+   concept**: five agenda defects arrive under one `── agenda` heading rather
+   than scattered through the order the checkers happened to emit them, so a
+   page you have to fix is met once and not four times. Severity stays the
+   outer axis — a gating failure has to be fixed and a graded one is a reading. **A gate binds a
    document built at or after the release that introduced it**; a document
    carrying no `built with lumi-style X.Y.Z` line is held to all of them, so
    omitting the stamp is not a way out — read that block whole, then fix everything it names in ONE pass.

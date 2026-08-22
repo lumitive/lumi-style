@@ -139,6 +139,49 @@ def _gating_ids(report: dict) -> set[str]:
     return {m for m, t in targets.items() if "(gates)" in (t or "")}
 
 
+def _family_of(line: str) -> str:
+    """-> the concept a finding belongs to, from `evals/gates.json`.
+
+    The line is `"<kind>: <metric> <verdict>"` and the metric is the second
+    word; a finding whose metric is not a declared verdict (the privacy line,
+    the trace line, an Evals row) keeps its own kind as its heading, which
+    reads correctly rather than forcing everything into a taxonomy built for
+    gates.
+    """
+    parts = line.split(None, 2)
+    metric = parts[1] if len(parts) > 1 else ""
+    try:
+        row = gate_registry.load().get(metric)
+    except (OSError, ValueError, KeyError):
+        row = None
+    if row:
+        return row["family"]
+    return (parts[0].rstrip(":") if parts else "other") or "other"
+
+
+def _grouped(lines: list[str]) -> list[tuple[str, list[str]]]:
+    """Findings by concept, largest group first.
+
+    **Why the report groups at all.** Forty-six lines came out in the order the
+    checkers happened to emit them, so five agenda defects sat in four separate
+    places and a reader met the same page four times without being told it was
+    the same page. The owner's word for the cost was that every use of the skill
+    gets more expensive as the gate set grows; this is where that is felt, and
+    grouping costs no assertion.
+    """
+    out: dict[str, list[str]] = {}
+    for line in lines:
+        out.setdefault(_family_of(line), []).append(line)
+    return sorted(out.items(), key=lambda kv: (-len(kv[1]), kv[0]))
+
+
+def _emit(label: str, lines: list[str]) -> None:
+    for family, group in _grouped(lines):
+        print(f"  ── {family}")
+        for line in group:
+            print(f"  {label}  {line}")
+
+
 def _since(metric: str) -> str:
     """-> the release a gate arrived in, for the line a reader sees."""
     try:
@@ -308,12 +351,9 @@ def main(argv=None) -> int:
               + (", --fast: the declared stage only" if a.fast else "")
               + ")")
         print("\n── the verdict — every instrument, one block ──────────────")
-        for line in gating:
-            print(f"  GATE  {line}")
-        for line in silent:
-            print(f"  MUTE  {line}")
-        for line in graded:
-            print(f"  note  {line}")
+        _emit("GATE", gating)
+        _emit("MUTE", silent)
+        _emit("note", graded)
         # NEITHER A PASS NOR A FAILURE, and printed as its own word. A gate
         # written after this document has nothing to say about it; reporting
         # that as `note` would put it in the same bucket as a real graded
