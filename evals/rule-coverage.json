@@ -4432,7 +4432,7 @@
    "quote": "rule data: 值得注意的是 · 值得一提的是 · 不可否认",
    "gist": "In Chinese output, use none of the banned AI-tell phrases on the zh list.",
    "page_kind": "all",
-   "metric": "M4",
+   "metric": "M4zh",
    "gates": true,
    "why_unchecked": null
   },
@@ -4442,7 +4442,7 @@
    "quote": "赋能 is allowed **only** in the fixed industry",
    "gist": "Use the fixed industry collocations only for the 'empower' verb the zh ban list restricts; the quoted line names them.",
    "page_kind": "all",
-   "metric": "M4",
+   "metric": "M4zh",
    "gates": true,
    "why_unchecked": null
   },

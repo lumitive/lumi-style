@@ -1,3 +1,78 @@
+## 0.1.561 — a gate stops being a substring in a display string, and three rows were in the wrong set
+
+**The owner's read was right and the code agrees with her.** Forty-odd gates
+were added one at a time with no abstraction, and the classification — *does
+this fail a deliverable* — was carried by whether a human-facing display string
+contained `(gates)`. Four readers parsed that string with three different
+rules: `gating.py` by AST on the source, the two checkers at runtime for their
+own exit codes, `check_deliverable` on the emitted JSON, and `check_fixtures`
+inverted. A contract that lives in a substring will eventually be read four
+ways, and it was.
+
+**Three rows were in the wrong set, and one of them mattered.**
+
+| row | was | is |
+|---|---|---|
+| `M4zh_banned_hits` | **returned by nobody** — the id pattern cannot match `M4zh_`, so the Chinese banned-phrase gate was absent from `run_conformance`'s `all-gating` require set entirely | a gate |
+| `D37_caption_name_len` | counted as a gate by every consumer, while its own target says `reported` | reported |
+| `D38_agenda_run_echo` | the same | reported |
+
+The mechanism behind all three: `gating_metrics` matched the metric ID
+**prefix**, so one row's classification was inherited by its whole family, and a
+row whose id did not fit the pattern was invisible.
+
+**`evals/gates.json` is the declaration.** 85 verdicts, each carrying what no
+checker knows — **`family`**, the concept it belongs to, and **`since`**, the
+release that introduced it. `checker` and `severity` are held to the checkers
+themselves by a new `gate declarations` guard, so the register adds knowledge
+and cannot contradict: the same discipline `check_rule_coverage` applies one
+layer up. Every field was exported from the code and from git; none was typed
+from memory.
+
+**The classification, which is the thing that was missing.** 85 rows fall into
+30 families. The largest are `fit` (7 — content that does not fit its box, split
+across `collision`, `content_spill`, `page_height`, `content_hidden`,
+`reserve_overspent`, `starved_column`, `band_escape`), `agenda` (6),
+`figure-labelling` (6) and `footer` (5). Naming them changes nothing today and
+is what makes the merges decidable rather than a matter of taste.
+
+**`since`, and the trap in it.** A document carries `built with lumi-style
+X.Y.Z`; a gate introduced after that version has nothing to say about it. Six
+gates predate the version history this CHANGELOG keeps, and the scheme they were
+numbered under — the one-point and three-point releases this file no longer
+defines — **sorts above every 0.1.x version**. Written as numbers they would have
+silenced themselves; they carry `always`. A document with
+no stamp at all is held to everything, because an absent stamp must never become
+an exemption: the cheapest way to escape every gate would otherwise be to delete
+the one line saying which rules you were written against. The verdict a scoped-out
+gate produces is `not held` — neither a pass nor a failure — and it lands in the
+next release.
+
+**One fix, three drifts behind it.** Making `M4zh` visible immediately reddened
+the rule register: nothing had ever asked the Chinese gate for a rule, because
+nothing could see it. Going to write one found `RC-441` and `RC-442` — which
+quote the *Chinese* banned list (`值得注意的是`, `赋能`) — filed against `M4`, the
+**English** metric. Repointing them reddened it again: the id extractor could not
+recognise the `zh` suffix either, so `M4zh` was not a citable id. All three are
+fixed, and the sequence is the argument for the register: a thing that cannot be
+seen cannot be found wrong.
+
+**The guard caught me on its first run.** Reading only `ast.Constant` made two
+rows whose targets interpolate a threshold look `graded` when their literal text
+says `(reported)`. The guard was right and my reader was wrong; it now joins a
+JoinedStr's literal parts, and a synthetic-tree test pins that exact case.
+
+**Deliberate red, planted first.** Five ways of lying in the register each go
+red — a downgraded severity, a wrong checker, an unregistered gate, an empty
+family, a `since` that is neither a version nor `always` — plus an empty
+register, which must not pass by agreeing with nothing. Restoring the prefix
+rule reddens the misclassification tests; making a missing stamp an exemption
+reddens the scoping test. Fourteen new tests across three files.
+
+Design record: `specs/2026-08-22-rules-equal-conformance-design.md`. This is
+Phase A of the gate consolidation the owner asked for; B (version scoping) and C
+(merging the families this release named) follow.
+
 ## 0.1.560 — the brand mark left both bookends and every gate passed it
 
 **The owner opened a conformance deck and said the 3D globe was gone from the

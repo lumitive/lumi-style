@@ -386,3 +386,76 @@ def test_ground_ceiling_with_no_token_is_a_finding_not_a_pass(tmp_path,
     (tree / "tokens" / "lumi-theme.css").write_text("  --ink: #000;\n")
     monkeypatch.setattr(check_repo, "ROOT", tree)
     assert "no --ground-ceiling" in check_repo.check_ground_ceiling()[0]
+
+
+# --- the gate register agrees with the checkers, or it is a second copy ------
+#
+# `check_rule_coverage` holds the RULE register to `gating`'s reader; this holds
+# the GATE register to the checkers' own row tables. A register nobody compares
+# is a second copy of a contract, and a second copy is what put
+# `M4zh_banned_hits` in one reader's gate set and not another's.
+
+def _gate_tree(tmp_path, gates, design_rows='("D9_x", 1, "=0 (gates)", True, False)',
+               layout_names=("collision",)):
+    import json
+    adds = "\n".join(f'    add("{n}", 1, "why")' for n in layout_names)
+    return _repo(tmp_path, {
+        "SKILL.md": "stub\n",
+        "evals/gates.json": json.dumps({"schema": 1, "gates": gates}),
+        "scripts/check/check_design.py": f"rows.append({design_rows})\n",
+        "scripts/check/check_prose.py": "rows = []\n",
+        "scripts/check/inspect_layout.py":
+            "def deliverable_verdicts(r):\n    out = {}\n" + adds + "\n    return out\n",
+    })
+
+
+D9 = {"checker": "design", "family": "layout-vocabulary", "severity": "gate",
+      "since": "always"}
+COLL = {"checker": "layout", "family": "fit", "severity": "gate", "since": "always"}
+
+
+def test_gate_declarations_agreeing_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _gate_tree(tmp_path, {"D9_x": D9, "collision": COLL}))
+    assert check_repo.check_gate_declarations() == []
+
+
+def test_a_register_that_downgrades_a_gate_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _gate_tree(
+        tmp_path, {"D9_x": dict(D9, severity="reported"), "collision": COLL}))
+    errors = check_repo.check_gate_declarations()
+    assert len(errors) == 1 and "severity" in errors[0]
+
+
+def test_a_gate_the_register_never_heard_of_fails(tmp_path, monkeypatch):
+    """The case that matters: somebody adds a gate to a checker and the register
+    stays behind. A register that merely LISTS can be silently incomplete."""
+    monkeypatch.setattr(check_repo, "ROOT", _gate_tree(tmp_path, {"D9_x": D9}))
+    errors = check_repo.check_gate_declarations()
+    assert len(errors) == 1 and "collision" in errors[0]
+
+
+def test_a_register_naming_a_withdrawn_gate_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _gate_tree(
+        tmp_path, {"D9_x": D9, "collision": COLL, "D99_gone": dict(D9)}))
+    errors = check_repo.check_gate_declarations()
+    assert len(errors) == 1 and "D99_gone" in errors[0]
+
+
+def test_an_f_string_target_is_read_for_its_literal_parts(tmp_path, monkeypatch):
+    """The guard's OWN first run got this wrong: reading only `ast.Constant`
+    made two rows whose targets interpolate a threshold look `graded` when
+    their literal text says `(reported)`. The guard was the half that was
+    wrong."""
+    monkeypatch.setattr(check_repo, "ROOT", _gate_tree(
+        tmp_path,
+        {"D9_x": dict(D9, severity="reported"), "collision": COLL},
+        design_rows='("D9_x", 1, f">={T:g}% (reported)", True, False)'))
+    assert check_repo.check_gate_declarations() == []
+
+
+def test_an_empty_register_does_not_pass_by_agreeing_with_nothing(tmp_path,
+                                                                  monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _gate_tree(tmp_path, {}))
+    errors = check_repo.check_gate_declarations()
+    assert errors and "declares nothing" in errors[0]

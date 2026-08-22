@@ -1135,6 +1135,96 @@ def check_ground_ceiling():
     return errors
 
 
+def check_gate_declarations():
+    """`evals/gates.json` says what each verdict is; the checkers say the same.
+
+    The register carries two things no checker knows — `family` (the concept a
+    verdict belongs to) and `since` (the release that introduced it) — and two
+    it must not be allowed to invent: `checker` and `severity`. Those are read
+    back out of the checkers here, so the register can add knowledge and cannot
+    contradict.
+
+    This is `check_rule_coverage`'s discipline one layer down: that guard holds
+    the RULE register to `gating`'s AST reader; this holds the GATE register to
+    the checkers' own row tables. A register nobody compares is a second copy,
+    and a second copy of a contract is what put `M4zh_banned_hits` in one
+    reader's gate set and not another's.
+    """
+    import gate_registry
+    try:
+        declared = gate_registry.load(ROOT)
+    except (OSError, ValueError) as exc:
+        return [f"{gate_registry.REGISTER} does not parse: {exc}"]
+    if not declared:
+        return [f"{gate_registry.REGISTER} declares nothing; an empty register "
+                f"agrees with every checker by construction"]
+
+    # What the checkers themselves say, read the way each one spells it.
+    actual: dict[str, tuple[str, str]] = {}
+    for kind, script in (("design", "check_design.py"), ("prose", "check_prose.py")):
+        src = (ROOT / "scripts" / "check" / script).read_text(encoding="utf-8")
+        tree = ast.parse(src)
+        for node in ast.walk(tree):
+            if not (isinstance(node, ast.Tuple) and len(node.elts) >= 3):
+                continue
+            name_node, target = node.elts[0], node.elts[2]
+            if not (isinstance(name_node, ast.Constant)
+                    and isinstance(name_node.value, str)):
+                continue
+            row = name_node.value
+            if not re.match(r"[DM]\d+z?h?_", row):
+                continue
+            # A TARGET MAY BE AN F-STRING, and reading only `ast.Constant`
+            # made two of them look graded when their own text says
+            # "(reported)" — the guard's first run said so, and the guard was
+            # the half that was wrong. `D37_caption_name_len` and
+            # `M1_assertive_titles` interpolate a threshold into the target;
+            # the classifying words are literal parts of the JoinedStr, so the
+            # literals are what get joined.
+            if isinstance(target, ast.Constant):
+                t = str(target.value)
+            elif isinstance(target, ast.JoinedStr):
+                t = "".join(v.value for v in target.values
+                            if isinstance(v, ast.Constant) and isinstance(v.value, str))
+            else:
+                t = ""
+            sev = ("gate" if "(gates)" in t
+                   else "reported" if "reported" in t else "graded")
+            actual[row] = (kind, sev)
+    for name in gating.layout_verdicts(ROOT):
+        actual[name] = ("layout", "gate")
+
+    errors = []
+    for name in sorted(set(declared) - set(actual)):
+        errors.append(f"{gate_registry.REGISTER} declares {name!r}, which no "
+                      f"checker emits — it was renamed or withdrawn")
+    for name in sorted(set(actual) - set(declared)):
+        errors.append(f"{name!r} is emitted by check_{actual[name][0]} and is "
+                      f"not in {gate_registry.REGISTER}; every verdict a "
+                      f"deliverable can receive is declared, or the register is "
+                      f"a partial map and reading it teaches the wrong set")
+    for name in sorted(set(declared) & set(actual)):
+        want_checker, want_sev = actual[name]
+        got = declared[name]
+        if got.get("checker") != want_checker:
+            errors.append(f"{name}: register says checker={got.get('checker')!r}, "
+                          f"emitted by check_{want_checker}")
+        if got.get("severity") != want_sev:
+            errors.append(f"{name}: register says severity={got.get('severity')!r}, "
+                          f"the checker's own target says {want_sev!r}")
+        if got.get("severity") not in gate_registry.SEVERITIES:
+            errors.append(f"{name}: severity {got.get('severity')!r} is not one of "
+                          + "|".join(gate_registry.SEVERITIES))
+        if not (got.get("family") or "").strip():
+            errors.append(f"{name}: no family. A verdict with no concept behind "
+                          f"it is how this set grew to 85 rows one at a time")
+        since = got.get("since")
+        if since != gate_registry.ALWAYS and not re.fullmatch(r"\d+\.\d+\.\d+", since or ""):
+            errors.append(f"{name}: since {since!r} is neither a version nor "
+                          f"{gate_registry.ALWAYS!r}")
+    return errors
+
+
 def check_probe_vocabulary():
     """A probe that keys on a class name is asserting a vocabulary; ship it.
 
@@ -2647,6 +2737,7 @@ SIBLING_MODULES = (
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",
     "checker_report", "secret_patterns", "corpus", "gating",
+    "gate_registry",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
@@ -3607,6 +3698,7 @@ CHECKS = (
     ("probe vocabulary", check_probe_vocabulary),
     ("role weights", check_role_weights),
     ("ground ceiling", check_ground_ceiling),
+    ("gate declarations", check_gate_declarations),
     ("media-only rules", check_media_only_rules),
     ("layout parity", check_layout_parity),
     ("ban-list parity", check_ban_list_parity),

@@ -23,8 +23,23 @@ walks every tuple rather than keying on either shape.
 from __future__ import annotations
 
 import ast
-import pathlib
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
 import re
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import pathlib  # noqa: E402
+
+import gate_registry  # noqa: E402
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if (p / "SKILL.md").exists())
@@ -70,29 +85,22 @@ def gating_metrics(verdicts: dict, root: pathlib.Path | None = None) -> set[str]
     """-> the subset of `verdicts` this package gates a DELIVERABLE on.
 
     Keyed on what the report actually returned, so a metric that did not run is
-    not demanded of a document that never had it. Three sources, one rule each:
+    not demanded of a document that never had it.
 
-    * design and prose — the id prefix carries "(gates)" in its row table.
-    * layout — every key it returns under `--deliverable` is a gating verdict by
-      construction; `inspect_layout` decides that in `deliverable_verdicts` and
-      reports nothing else there.
-
-    A verdict whose prefix has no authority (the layout names, which are words
-    rather than ids) falls into the third case, which is why the layout report
-    must be passed on its own rather than merged into one dict first.
+    **BY NAME, NEVER BY PREFIX.** This read the id prefix — `D38_` — and
+    inherited a whole family's classification onto every row in it. Two rows
+    whose own targets say `reported` were counted as gates
+    (`D37_caption_name_len`, `D38_agenda_run_echo`), and one row that gates was
+    invisible because `M4zh_banned_hits` does not match the id pattern, which left
+    the Chinese banned-phrase gate out of `run_conformance`'s `all-gating`
+    require set entirely. A family is a family and a verdict is a verdict;
+    `evals/gates.json` now carries both, and this asks it by name.
     """
-    gate: set[str] = set()
-    for prefix in METRIC_AUTHORITIES:
-        try:
-            gate |= metric_ids(prefix, root)[1]
-        except (OSError, SyntaxError):
-            continue
-    out = set()
-    for name in verdicts:
-        head = name.split("_", 1)[0]
-        if head in gate:
-            out.add(name)
-    return out
+    try:
+        gate = gate_registry.gates(root)
+    except (OSError, ValueError, KeyError):
+        return set()
+    return {name for name in verdicts if name in gate}
 
 def layout_verdicts(root: pathlib.Path | None = None) -> set[str]:
     """-> every verdict name `inspect_layout.deliverable_verdicts` emits.
@@ -134,21 +142,44 @@ def layout_verdicts(root: pathlib.Path | None = None) -> set[str]:
 
 
 def every_gating_name(root: pathlib.Path | None = None) -> set[str]:
-    """-> every metric id and verdict name that can fail a deliverable.
+    """-> everything the RULE REGISTER may cite as a gate.
 
-    The union the rule register is held to: a gate absent from here cannot be
-    cited, and a gate here that no rule cites is a threshold with no rule behind
-    it, which `check_rule_coverage.py` reports as a finding in its own right.
+    Metric IDS for design and prose (`D40`), verdict NAMES for layout
+    (`collision`) — because that is how the two vocabularies are spelled: a
+    rule cites the metric, and a layout verdict has no id to cite. `D38` is a
+    gating id here even though `D38_agenda_run_echo` only reports, because the
+    family does gate and a rule citing `D38` is citing that.
+
+    The row-level question — *does THIS verdict fail a document* — is
+    `gating_metrics`, and it works by name for the reason its docstring gives.
+    Two questions, two functions; one union pretending to answer both is what
+    made `check_rule_coverage` demand a rule for every row name.
+
+    Sourced from `evals/gates.json`, held to the checkers by `check_repo`'s
+    `gate declarations` guard.
     """
-    names: set[str] = set()
-    for prefix in METRIC_AUTHORITIES:
-        names |= metric_ids(prefix, root)[1]
-    return names | layout_verdicts(root)
+    return _ids_and_layout_names(gate_registry.gates(root))
+
+
+# `M4zh` IS AN ID. The pattern this replaces was `([DM]\d+)_`, which cannot
+# match `M4zh_banned_hits` — so the Chinese banned-phrase gate had no citable id
+# and the rule register could not name it. Two rules quoting the Chinese list
+# were filed under `M4`, the ENGLISH metric, and nothing could say so.
+METRIC_ID = re.compile(r"([DM]\d+(?:zh)?)_")
+
+
+def _ids_and_layout_names(names: set[str]) -> set[str]:
+    """-> the vocabulary a rule may cite: metric ids for D/M, names for layout."""
+    out = set()
+    for n in names:
+        m = METRIC_ID.match(n)
+        out.add(m.group(1) if m else n)
+    return out
 
 
 def every_metric_name(root: pathlib.Path | None = None) -> set[str]:
-    """-> every metric id and verdict name a checker can emit, gating or not."""
-    names: set[str] = set()
-    for prefix in METRIC_AUTHORITIES:
-        names |= metric_ids(prefix, root)[0]
-    return names | layout_verdicts(root)
+    """-> everything the rule register may cite at all, gating or not."""
+    try:
+        return _ids_and_layout_names(set(gate_registry.load(root)))
+    except (OSError, ValueError, KeyError):
+        return set()
