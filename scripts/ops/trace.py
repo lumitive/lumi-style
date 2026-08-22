@@ -39,7 +39,6 @@ from __future__ import annotations
 import argparse
 import datetime as _dt
 import json
-import os
 import pathlib
 import re
 import sys
@@ -47,9 +46,6 @@ import uuid
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if (p / "SKILL.md").exists())
-# LUMI_TRACES redirects the store (tests, dry runs); the default is the
-# tracked directory, because a trace that is not kept is not a record.
-TRACES = pathlib.Path(os.environ.get("LUMI_TRACES") or ROOT / "evals" / "traces")
 
 # --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
 # Bare-name sibling imports must resolve from any drawer depth: walk up to
@@ -77,6 +73,13 @@ import fingerprint  # noqa: E402
 import markup  # noqa: E402
 from deliverable_registry import STAGE_OF  # noqa: E402
 from trace_schema import ENUMS, FIELDS, PHASES, validate  # noqa: E402
+from trace_store import traces_dir  # noqa: E402 — one store resolver
+
+# LUMI_TRACES redirects the store (tests, dry runs); the default is the
+# tracked directory, because a trace that is not kept is not a record.
+# Resolved on every read rather than bound at import, so a test that
+# sets the variable after importing this module is still obeyed.
+TRACES = traces_dir(ROOT)
 
 
 def _now():

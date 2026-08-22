@@ -94,7 +94,7 @@ a module constant `R = 150.0`. Two new callers need it parameterised.
 - [ ] **Step 1: Capture the current output as the test oracle**
 
 ```bash
-cd /Users/he123/Downloads/lumi-style
+cd ~/Downloads/lumi-style
 mkdir -p /tmp/globe-oracle
 cp assets/vectors/globe-orthographic.svg assets/vectors/world-flat.svg /tmp/globe-oracle/
 python3 scripts/build_geography.py --check   # must print ok before you start
