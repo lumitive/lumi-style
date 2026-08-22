@@ -1,0 +1,516 @@
+{
+ "$comment": "Every verdict a deliverable can receive, and what this package knows about it. HAND-MAINTAINED for `family` and `since`; `checker` and `severity` are held to the checkers themselves by check_repo's `gate declarations` guard, so this file cannot lie about what gates. WHY IT EXISTS: a gate used to be a tuple in a function body classified by whether its display string contained the substring '(gates)'. Four readers parsed that string with three different rules, and three rows were misclassified in production - M4zh_banned_hits gated in check_prose's exit and was invisible to gating.py (the regex (M\\d+)_ cannot match M4zh_), while D37_caption_name_len and D38_agenda_run_echo said 'reported' in their own targets and were counted as gates by every consumer, because gating.py keyed on the D\\d+ PREFIX. FIELDS: `family` is the concept the verdict belongs to - the classification that was missing while the set grew to 85 rows one at a time. `since` is the release that introduced it, read from git; 'always' means it predates the version history this CHANGELOG keeps (the old 1.6.0-3.3.0 scheme sorts above 0.1.560 and would have silenced six gates if written as a number). A document declaring an older build version is NOT held to a later gate - it reports `not held`, which is neither a pass nor a failure.",
+ "schema": 1,
+ "gates": {
+  "D10_label_icons": {
+   "checker": "design",
+   "family": "page-furniture",
+   "severity": "reported",
+   "since": "always"
+  },
+  "D12_commercial_footer": {
+   "checker": "design",
+   "family": "footer",
+   "severity": "gate",
+   "since": "always"
+  },
+  "D13_lime_as_text": {
+   "checker": "design",
+   "family": "colour",
+   "severity": "graded",
+   "since": "always"
+  },
+  "D14_placeholders": {
+   "checker": "design",
+   "family": "completeness",
+   "severity": "gate",
+   "since": "0.1.367"
+  },
+  "D15_footer_path": {
+   "checker": "design",
+   "family": "footer",
+   "severity": "gate",
+   "since": "0.1.373"
+  },
+  "D16_visual_presence": {
+   "checker": "design",
+   "family": "visual-weight",
+   "severity": "reported",
+   "since": "0.1.376"
+  },
+  "D17_export_weight": {
+   "checker": "design",
+   "family": "visual-weight",
+   "severity": "reported",
+   "since": "0.1.380"
+  },
+  "D18_region_labels": {
+   "checker": "design",
+   "family": "geography",
+   "severity": "graded",
+   "since": "0.1.387"
+  },
+  "D19_vocabulary": {
+   "checker": "design",
+   "family": "self-reference",
+   "severity": "gate",
+   "since": "0.1.409"
+  },
+  "D1_contrast": {
+   "checker": "design",
+   "family": "colour",
+   "severity": "graded",
+   "since": "always"
+  },
+  "D20_palette_fidelity": {
+   "checker": "design",
+   "family": "colour",
+   "severity": "gate",
+   "since": "0.1.454"
+  },
+  "D21_data_contract": {
+   "checker": "design",
+   "family": "figure-fidelity",
+   "severity": "gate",
+   "since": "0.1.472"
+  },
+  "D22_layout_vocabulary": {
+   "checker": "design",
+   "family": "layout-vocabulary",
+   "severity": "gate",
+   "since": "0.1.481"
+  },
+  "D23_font_count": {
+   "checker": "design",
+   "family": "type",
+   "severity": "reported",
+   "since": "0.1.481"
+  },
+  "D24_images_embedded": {
+   "checker": "design",
+   "family": "imagery",
+   "severity": "gate",
+   "since": "0.1.493"
+  },
+  "D25_image_provenance": {
+   "checker": "design",
+   "family": "imagery",
+   "severity": "gate",
+   "since": "0.1.493"
+  },
+  "D26_declared_scope": {
+   "checker": "design",
+   "family": "deck-shape",
+   "severity": "graded",
+   "since": "0.1.502"
+  },
+  "D27_agenda_mirror": {
+   "checker": "design",
+   "family": "agenda",
+   "severity": "gate",
+   "since": "0.1.514"
+  },
+  "D28_takeaway": {
+   "checker": "design",
+   "family": "page-furniture",
+   "severity": "reported",
+   "since": "0.1.514"
+  },
+  "D29_figure_numbers": {
+   "checker": "design",
+   "family": "figure-apparatus",
+   "severity": "reported",
+   "since": "0.1.514"
+  },
+  "D2_type_scale": {
+   "checker": "design",
+   "family": "type",
+   "severity": "reported",
+   "since": "always"
+  },
+  "D30_figure_sequence": {
+   "checker": "design",
+   "family": "figure-apparatus",
+   "severity": "reported",
+   "since": "0.1.522"
+  },
+  "D31_undeclared_sections": {
+   "checker": "design",
+   "family": "deck-shape",
+   "severity": "reported",
+   "since": "0.1.524"
+  },
+  "D32_shape_use": {
+   "checker": "design",
+   "family": "analysis-shapes",
+   "severity": "gate",
+   "since": "0.1.533"
+  },
+  "D33_icon_provenance": {
+   "checker": "design",
+   "family": "icons",
+   "severity": "gate",
+   "since": "0.1.549"
+  },
+  "D34_icon_uniqueness": {
+   "checker": "design",
+   "family": "icons",
+   "severity": "reported",
+   "since": "0.1.549"
+  },
+  "D35_agenda_exclusive": {
+   "checker": "design",
+   "family": "agenda",
+   "severity": "gate",
+   "since": "0.1.549"
+  },
+  "D36_font_family": {
+   "checker": "design",
+   "family": "type",
+   "severity": "reported",
+   "since": "0.1.551"
+  },
+  "D37_caption_name_len": {
+   "checker": "design",
+   "family": "figure-labelling",
+   "severity": "reported",
+   "since": "0.1.551"
+  },
+  "D37_caption_scope": {
+   "checker": "design",
+   "family": "figure-labelling",
+   "severity": "gate",
+   "since": "0.1.551"
+  },
+  "D38_agenda_highlight": {
+   "checker": "design",
+   "family": "agenda",
+   "severity": "gate",
+   "since": "0.1.554"
+  },
+  "D38_agenda_page_spans": {
+   "checker": "design",
+   "family": "agenda",
+   "severity": "gate",
+   "since": "0.1.554"
+  },
+  "D38_agenda_run_echo": {
+   "checker": "design",
+   "family": "agenda",
+   "severity": "reported",
+   "since": "0.1.554"
+  },
+  "D39_bookend_mark": {
+   "checker": "design",
+   "family": "brand-mark",
+   "severity": "gate",
+   "since": "0.1.560"
+  },
+  "D3_tier1_page_share": {
+   "checker": "design",
+   "family": "callouts",
+   "severity": "graded",
+   "since": "always"
+  },
+  "D3_tier1_per_page": {
+   "checker": "design",
+   "family": "callouts",
+   "severity": "graded",
+   "since": "always"
+  },
+  "D40_bookend_is_the_brand": {
+   "checker": "design",
+   "family": "brand-mark",
+   "severity": "gate",
+   "since": "0.1.560"
+  },
+  "D4_palette_literals": {
+   "checker": "design",
+   "family": "colour",
+   "severity": "graded",
+   "since": "always"
+  },
+  "D5_drawn_share": {
+   "checker": "design",
+   "family": "figure-substance",
+   "severity": "reported",
+   "since": "0.1.374"
+  },
+  "D5_figure_parity": {
+   "checker": "design",
+   "family": "figure-substance",
+   "severity": "reported",
+   "since": "always"
+  },
+  "D6_footer": {
+   "checker": "design",
+   "family": "footer",
+   "severity": "graded",
+   "since": "always"
+  },
+  "D8_support_line": {
+   "checker": "design",
+   "family": "page-furniture",
+   "severity": "graded",
+   "since": "always"
+  },
+  "D9_layout_spread": {
+   "checker": "design",
+   "family": "layout-vocabulary",
+   "severity": "reported",
+   "since": "always"
+  },
+  "M10_triad_rate": {
+   "checker": "prose",
+   "family": "phrasing",
+   "severity": "graded",
+   "since": "always"
+  },
+  "M11_title_uniformity": {
+   "checker": "prose",
+   "family": "title",
+   "severity": "graded",
+   "since": "always"
+  },
+  "M12_visible_cjk": {
+   "checker": "prose",
+   "family": "output-language",
+   "severity": "gate",
+   "since": "0.1.373"
+  },
+  "M13_quantity_conflicts": {
+   "checker": "prose",
+   "family": "number-discipline",
+   "severity": "reported",
+   "since": "0.1.464"
+  },
+  "M14_parallel_frames": {
+   "checker": "prose",
+   "family": "phrasing",
+   "severity": "reported",
+   "since": "0.1.514"
+  },
+  "M15_page_prose": {
+   "checker": "prose",
+   "family": "visual-weight",
+   "severity": "reported",
+   "since": "0.1.522"
+  },
+  "M1_assertive_titles": {
+   "checker": "prose",
+   "family": "title",
+   "severity": "reported",
+   "since": "always"
+  },
+  "M2_number_sourcing": {
+   "checker": "prose",
+   "family": "number-discipline",
+   "severity": "graded",
+   "since": "always"
+  },
+  "M4_banned_hits": {
+   "checker": "prose",
+   "family": "banned-language",
+   "severity": "gate",
+   "since": "always"
+  },
+  "M4zh_banned_hits": {
+   "checker": "prose",
+   "family": "banned-language",
+   "severity": "gate",
+   "since": "always"
+  },
+  "M5_zh_punctuation": {
+   "checker": "prose",
+   "family": "punctuation",
+   "severity": "gate",
+   "since": "always"
+  },
+  "M6_unsourced_ranges": {
+   "checker": "prose",
+   "family": "number-discipline",
+   "severity": "gate",
+   "since": "always"
+  },
+  "M8_length_cv": {
+   "checker": "prose",
+   "family": "sentence-rhythm",
+   "severity": "graded",
+   "since": "always"
+  },
+  "M8_overlong_share": {
+   "checker": "prose",
+   "family": "sentence-rhythm",
+   "severity": "graded",
+   "since": "always"
+  },
+  "M9_dashes": {
+   "checker": "prose",
+   "family": "punctuation",
+   "severity": "gate",
+   "since": "always"
+  },
+  "agenda_run_wrap": {
+   "checker": "layout",
+   "family": "agenda",
+   "severity": "gate",
+   "since": "0.1.554"
+  },
+  "band_escape": {
+   "checker": "layout",
+   "family": "fit",
+   "severity": "gate",
+   "since": "0.1.541"
+  },
+  "bookend_title_length": {
+   "checker": "layout",
+   "family": "title",
+   "severity": "gate",
+   "since": "0.1.544"
+  },
+  "caption_name_wrap": {
+   "checker": "layout",
+   "family": "figure-labelling",
+   "severity": "gate",
+   "since": "0.1.551"
+  },
+  "collision": {
+   "checker": "layout",
+   "family": "fit",
+   "severity": "gate",
+   "since": "always"
+  },
+  "content_hidden": {
+   "checker": "layout",
+   "family": "fit",
+   "severity": "gate",
+   "since": "0.1.368"
+  },
+  "content_spill": {
+   "checker": "layout",
+   "family": "fit",
+   "severity": "gate",
+   "since": "0.1.368"
+  },
+  "datum": {
+   "checker": "layout",
+   "family": "role-consistency",
+   "severity": "gate",
+   "since": "always"
+  },
+  "deck_structure": {
+   "checker": "layout",
+   "family": "deck-shape",
+   "severity": "gate",
+   "since": "0.1.547"
+  },
+  "figure_axis_named": {
+   "checker": "layout",
+   "family": "figure-labelling",
+   "severity": "gate",
+   "since": "0.1.554"
+  },
+  "figure_axis_orientation": {
+   "checker": "layout",
+   "family": "figure-labelling",
+   "severity": "gate",
+   "since": "0.1.551"
+  },
+  "figure_axis_overlap": {
+   "checker": "layout",
+   "family": "figure-labelling",
+   "severity": "gate",
+   "since": "0.1.551"
+  },
+  "figure_clipped": {
+   "checker": "layout",
+   "family": "figure-integrity",
+   "severity": "gate",
+   "since": "0.1.385"
+  },
+  "figure_distorts": {
+   "checker": "layout",
+   "family": "figure-fidelity",
+   "severity": "gate",
+   "since": "0.1.453"
+  },
+  "figure_ink_collision": {
+   "checker": "layout",
+   "family": "figure-integrity",
+   "severity": "gate",
+   "since": "0.1.543"
+  },
+  "figure_viewbox": {
+   "checker": "layout",
+   "family": "figure-integrity",
+   "severity": "gate",
+   "since": "0.1.386"
+  },
+  "footer_baseline": {
+   "checker": "layout",
+   "family": "footer",
+   "severity": "gate",
+   "since": "0.1.447"
+  },
+  "footer_wrap": {
+   "checker": "layout",
+   "family": "footer",
+   "severity": "gate",
+   "since": "0.1.380"
+  },
+  "opener_pacing": {
+   "checker": "layout",
+   "family": "deck-shape",
+   "severity": "gate",
+   "since": "0.1.549"
+  },
+  "opener_subject_mark": {
+   "checker": "layout",
+   "family": "brand-mark",
+   "severity": "gate",
+   "since": "0.1.546"
+  },
+  "page_height": {
+   "checker": "layout",
+   "family": "fit",
+   "severity": "gate",
+   "since": "0.1.368"
+  },
+  "reserve_overspent": {
+   "checker": "layout",
+   "family": "fit",
+   "severity": "gate",
+   "since": "0.1.368"
+  },
+  "role_split": {
+   "checker": "layout",
+   "family": "role-consistency",
+   "severity": "gate",
+   "since": "0.1.368"
+  },
+  "role_weight": {
+   "checker": "layout",
+   "family": "role-consistency",
+   "severity": "gate",
+   "since": "0.1.551"
+  },
+  "starved_column": {
+   "checker": "layout",
+   "family": "fit",
+   "severity": "gate",
+   "since": "0.1.412"
+  },
+  "title_two_lines": {
+   "checker": "layout",
+   "family": "title",
+   "severity": "gate",
+   "since": "0.1.543"
+  },
+  "visual_absent": {
+   "checker": "layout",
+   "family": "visual-weight",
+   "severity": "gate",
+   "since": "0.1.453"
+  }
+ }
+}

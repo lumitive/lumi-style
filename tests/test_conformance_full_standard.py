@@ -39,11 +39,40 @@ def test_an_unreported_gate_is_not_conjured():
     assert gating.gating_metrics({}) == set()
 
 
-def test_layout_names_are_not_matched_by_the_prefix_rule():
-    # Layout verdicts are words, not prefixed ids, and every one of them gates
-    # by construction — which is why the driver adds them from the report
-    # rather than through this function.
-    assert gating.gating_metrics({"collision": "ok", "band_escape": "FAIL"}) == set()
+def test_gating_metrics_answers_for_all_three_checkers():
+    """One function, one answer — it used to be one function and two.
+
+    `gating_metrics` matched the metric ID PREFIX, so layout verdicts (words,
+    not ids) fell out of it entirely and `run_conformance` added them from the
+    report separately. The same prefix rule also inherited a family's
+    classification onto every row in it: `D38_agenda_run_echo` and
+    `D37_caption_name_len` say `reported` in their own targets and were
+    returned as gates, while `M4zh_banned_hits` was returned by nobody because
+    the id pattern could not match it.
+
+    It reads `evals/gates.json` by NAME now, so all three checkers get the same
+    answer from the same place. The require set `run_conformance` builds is
+    unchanged — it unions this with the layout verdicts, and the layout names
+    are now in both halves of that union.
+    """
+    got = gating.gating_metrics({
+        "collision": "ok", "band_escape": "FAIL",        # layout: gate
+        "D40_bookend_is_the_brand": "ok",                # design: gate
+        "M4zh_banned_hits": "ok",                        # prose: gate, once invisible
+        "D38_agenda_run_echo": "ok",                     # design: reported
+        "D37_caption_name_len": "ok",                    # design: reported
+        "D1_contrast": "ok",                             # design: graded
+    })
+    assert got == {"collision", "band_escape",
+                   "D40_bookend_is_the_brand", "M4zh_banned_hits"}
+
+
+def test_a_verdict_that_did_not_run_is_not_demanded():
+    """Keyed on what the report returned, so a metric a document never had is
+    not required of it. This is what lets `all-gating` be safe on a markdown
+    answer that emits no design verdicts at all."""
+    assert gating.gating_metrics({"collision": "ok"}) == {"collision"}
+    assert gating.gating_metrics({}) == set()
 
 
 def test_the_task_declares_the_full_standard():

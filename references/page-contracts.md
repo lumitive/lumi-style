@@ -563,6 +563,6 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | In Chinese output, give a technical term's English in parentheses at its first occurrence only. | `references/writing-rules.md:54` | — | `—` | no |
 | Keep chart labels, quick-reference tables and glossaries bilingual. | `references/writing-rules.md:55` | — | `—` | no |
 | Use one name per concept across the whole document; never rotate synonyms. | `references/writing-rules.md:59` | — | `—` | no |
-| In Chinese output, use none of the banned AI-tell phrases on the zh list. | `references/writing-rules.md:69` | — | `M4` | yes |
-| Use the fixed industry collocations only for the 'empower' verb the zh ban list restricts; the quoted line names them. | `references/writing-rules.md:72` | — | `M4` | yes |
+| In Chinese output, use none of the banned AI-tell phrases on the zh list. | `references/writing-rules.md:69` | — | `M4zh` | yes |
+| Use the fixed industry collocations only for the 'empower' verb the zh ban list restricts; the quoted line names them. | `references/writing-rules.md:72` | — | `M4zh` | yes |
 | In English output, use none of the phrases on the banned AI-tell list. | `references/writing-rules.md:77` | — | `M4` | yes |
