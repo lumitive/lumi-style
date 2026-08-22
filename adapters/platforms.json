@@ -59,9 +59,11 @@
    ],
    "drive_skill_flag": "--add-dir",
    "drive_effort_flag": "--effort",
-   "drive_usage_flag": [
+   "drive_stream_flag": [
+    "--verbose",
     "--output-format",
-    "json"
+    "stream-json",
+    "--include-partial-messages"
    ],
    "docs": "https://code.claude.com/docs/en/skills",
    "capability_verified": true,
@@ -146,9 +148,10 @@
    ],
    "drive_skill_flag": "--add-dir",
    "drive_effort_in_model": "{model}-{effort}",
-   "drive_usage_flag": [
+   "drive_stream_flag": [
     "--output-format",
-    "json"
+    "stream-json",
+    "--stream-partial-output"
    ],
    "docs": "https://cursor.com/docs/context/skills",
    "extra": [

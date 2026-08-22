@@ -13,6 +13,7 @@ hangs, or exits non-zero, or is not on PATH at all.
 import ast
 import json
 import sys
+import time
 
 import run_conformance as rc
 
@@ -50,11 +51,93 @@ def test_the_agent_runs_outside_this_repository(tmp_path):
     assert str(rc.ROOT) not in where, f"the agent ran inside the repository: {where}"
 
 
-def test_a_hanging_agent_is_abandoned_and_says_so(tmp_path):
+def test_a_silent_agent_is_collected_at_its_base_budget(tmp_path):
     slow = [sys.executable, "-c", "import time; time.sleep(30)"]
-    out = rc.drive(_agent(slow), TASK, tmp_path, timeout=1)
-    assert out["verdict"] == "timeout"
+    out = rc.drive(_agent(slow), TASK, tmp_path, base=1)
+    assert out["verdict"] == "stall"
     assert out["exit_code"] is None
+    # The detail describes the collection, not something else that happened to
+    # be true. Until 0.1.555 the verdict was decided first and described last,
+    # so a collected run whose file had landed somewhere odd was recorded
+    # `timeout` with a detail about a misplaced artifact.
+    assert "collected after" in out["detail"]
+    assert out["budget"]["ended"] == "stall"
+
+
+def _budget(tmp_path, body, base=1, grace=2, cap=30, **kw):
+    return rc._run_with_budget([sys.executable, "-c", body], tmp_path,
+                               base, cap, grace, poll=0.1, **kw)
+
+
+def test_a_run_that_keeps_talking_outlives_its_base_budget(tmp_path):
+    # The measured case this exists for: an agent killed at a fixed ceiling
+    # while it was still writing. Signs of life renew the budget.
+    talker = ("import sys, time\n"
+              "for _ in range(12):\n"
+              "    print('{\"type\":\"tool\"}', flush=True); time.sleep(0.2)\n")
+    started = time.monotonic()
+    code, out, record = _budget(tmp_path, talker)
+    assert code == 0, "a run that kept reporting progress must not be collected"
+    assert time.monotonic() - started > 1, "it never outlived the base budget"
+    assert record["ended"] == "exit"
+    assert record["events"] >= 12
+    assert out.count(b"tool") == 12
+
+
+def test_a_run_that_goes_quiet_is_collected_early(tmp_path):
+    # And the other half: renewal is not an excuse to wait out the hard cap.
+    quiet = ("import time\n"
+             "print('{\"type\":\"tool\"}', flush=True)\n"
+             "time.sleep(60)\n")
+    started = time.monotonic()
+    code, _out, record = _budget(tmp_path, quiet, base=1, grace=2, cap=30)
+    spent = time.monotonic() - started
+    assert code is None
+    assert record["ended"] == "stall"
+    assert spent < 15, f"it waited for the hard cap instead of the stall: {spent}s"
+
+
+def test_the_hard_cap_holds_against_a_run_that_never_stops_talking(tmp_path):
+    forever = ("import time\n"
+               "while True:\n"
+               "    print('{\"type\":\"tool\"}', flush=True); time.sleep(0.1)\n")
+    started = time.monotonic()
+    code, _out, record = _budget(tmp_path, forever, base=1, grace=5, cap=3)
+    assert code is None
+    assert record["ended"] == "hard cap"
+    assert time.monotonic() - started < 25
+
+
+def test_a_written_file_is_a_sign_of_life_when_nothing_streams(tmp_path):
+    # Hermes streams nothing and writes its deck to HOME, so the artifact's
+    # mtime is the only evidence from outside the process that it is working.
+    where = tmp_path / "out"
+    where.mkdir()
+    writer = (f"import time, pathlib\n"
+              f"for i in range(20):\n"
+              f"    pathlib.Path({str(where)!r}, 'answers.md').write_text(str(i))\n"
+              f"    time.sleep(0.2)\n")
+    code, _out, record = _budget(tmp_path, writer, base=1, grace=2, cap=30,
+                                 watch=((where, "answers.md"),),
+                                 signal_kind="artifact")
+    assert code == 0, "the file kept changing; that is progress"
+    assert record["signal"] == "artifact"
+    assert record["events"] >= 1
+
+
+def test_a_collected_run_leaves_no_children_behind(tmp_path):
+    # SIGKILL on the parent alone orphaned the browsers these CLIs start. The
+    # child here outlives its parent unless the whole group is signalled.
+    marker = tmp_path / "orphan.txt"
+    parent = (f"import subprocess, sys, time\n"
+              f"subprocess.Popen([sys.executable, '-c',\n"
+              f"  \"import time, pathlib; time.sleep(3);"
+              f" pathlib.Path({str(marker)!r}).write_text('alive')\"])\n"
+              f"time.sleep(60)\n")
+    code, _out, _record = _budget(tmp_path, parent, base=1, grace=1, cap=20)
+    assert code is None
+    time.sleep(4)
+    assert not marker.exists(), "the grandchild survived the collection"
 
 
 def test_a_failing_cli_is_a_driver_failure_not_a_driven_run(tmp_path):
