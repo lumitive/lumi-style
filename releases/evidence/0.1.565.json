@@ -1,0 +1,8 @@
+{
+ "version": "0.1.565",
+ "diff_base": "9d0d4ad84bb38ecb706e188da8d0bd36f89e5b30",
+ "spec": "specs/2026-08-22-rules-equal-conformance-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}
