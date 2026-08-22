@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+"""Which files carry the skill's version stamp — one table, three readers.
+
+**The knowledge was in three places and CLAUDE.md said two.** `check_versions`
+holds `TOKEN_STAMPS`, `check_version_citations` holds `ENTRY_STAMP`, and
+`check_evidence` held a third list, `STAMPED_PREFIXES`, deciding which changes
+in a release diff are "just a version stamp" rather than a real touch. Nothing
+compared them, and they had already diverged: `references/PRINCIPLES.md` was
+declared in `ENTRY_STAMP` and absent from the evidence gate's list.
+
+**The consequence was latent and specific.** `check_evidence`'s `TOUCH_MAP`
+maps `references/` to the `conformance-freshness` obligation — a full
+multi-agent round. Every release stamps `PRINCIPLES.md`, the evidence gate could
+not tell that stamp from an edit, so once the board goes stale every release
+would owe a conformance round for having changed no rule at all.
+
+`ENTRY_STAMP`'s own comment records the same class of miss once already:
+PRINCIPLES.md was undeclared there from 0.1.459 to 0.1.475, and the citation
+guard caught a stamp naming a version that does not exist while nothing caught
+one naming a real earlier release. A table that has been forgotten once is a
+table that wants a single home.
+
+**What this module is not.** It is not a fourth list. `stamped_paths()` is
+DERIVED from the two tables that already exist and are already guarded — adding
+a token file or an entry point still means editing exactly one of them, and this
+follows. The rule the register discipline runs on: a shared definition earns its
+place when it REMOVES readers-with-their-own-copy, never when it adds one.
+"""
+from __future__ import annotations
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+# The three token headers. Each pattern reads the version out of its own header.
+TOKEN_STAMPS: tuple[tuple[str, str], ...] = (
+    ("tokens/lumi-theme.css", r"LUMI visual theme\s*·\s*v(\d+\.\d+\.\d+)"),
+    ("tokens/design-tokens.json", r"LUMI design tokens v(\d+\.\d+\.\d+)"),
+    ("tokens/lumi-layouts.css", r"LUMI page layouts\s*·\s*v(\d+\.\d+\.\d+)"),
+)
+
+# Every entry point, and WHERE its stamp lives. `{v}` is the version, escaped by
+# the caller. A stamp with no declared position fails rather than being skipped
+# — CLAUDE.md's rule, and the reason PRINCIPLES.md's absence here was a defect
+# for sixteen releases.
+ENTRY_STAMP: dict[str, str] = {
+    "SKILL.md": r'^\s*version:\s*"{v}"',
+    "AGENTS.md": r"\*\*lumi-style {v}\.?\*\*",
+    "prompts/lumi-style-core.md": r"\*\*{v}\*\* snapshot",
+    # The scoreboard carries a first-class skill stamp on line 1. Scoping the
+    # third-party exemption to its table rows re-enabled the *citation* check
+    # there, which by construction cannot see staleness — a stale stamp names a
+    # real release and stays legal forever. This is the check that sees it.
+    "conformance/CONFORMANCE.md": r"skill {v}",
+    # The constitution carries a stamp too, and from 0.1.459 to 0.1.475 it was
+    # not declared here. The citation guard caught a stamp naming a version that
+    # does not exist, and nothing caught one naming a real EARLIER release —
+    # which is exactly the staleness this table exists to see, and exactly what
+    # CLAUDE.md says happens to a stamp with no declared position.
+    "references/PRINCIPLES.md": r"\*\*lumi-style {v}\.?\*\*",
+}
+
+# Generated artifacts that carry the stamp because their SOURCE does. A fixture
+# is rebuilt every release and its diff is the version line; the prefix form is
+# deliberate — `fixtures/` is a directory of them.
+GENERATED_STAMPED: tuple[str, ...] = ("fixtures/",)
+
+
+def stamped_paths() -> tuple[str, ...]:
+    """-> every path prefix whose diff may be nothing but a version stamp.
+
+    Derived, never listed: this is `TOKEN_STAMPS` + `ENTRY_STAMP` + the
+    generated artifacts. A release that adds a token file or an entry point
+    edits one of those tables and this follows, which is the whole point — the
+    hand-written third copy this replaces had already lost `PRINCIPLES.md`.
+    """
+    return tuple(dict.fromkeys(
+        [name for name, _ in TOKEN_STAMPS]
+        + list(ENTRY_STAMP)
+        + list(GENERATED_STAMPED)))

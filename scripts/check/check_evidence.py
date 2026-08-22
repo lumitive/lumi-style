@@ -30,14 +30,29 @@ nags on every release becomes a gate people waive on reflex).
 from __future__ import annotations
 
 import argparse
-import datetime
-import hashlib
-import json
-import pathlib
-import re
-import subprocess
-import sys
-from typing import Any
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import datetime  # noqa: E402
+import hashlib  # noqa: E402
+import json  # noqa: E402
+import pathlib  # noqa: E402
+import re  # noqa: E402
+import subprocess  # noqa: E402
+import sys  # noqa: E402
+from typing import Any  # noqa: E402
+
+import stamps  # noqa: E402 — after the bootstrap
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if p.name == "scripts").parent
@@ -94,12 +109,21 @@ TOUCH_MAP: tuple[tuple[str, tuple[str, ...]], ...] = (
 # stamp in several generated spots, so their budget is wider — measured at 6
 # lines per fixture for a stamp-only regeneration; budget 8 leaves headroom
 # for a stamp that gains a character and reflows.
-STAMPED_PREFIXES: tuple[tuple[str, int], ...] = (
-    ("SKILL.md", 2), ("AGENTS.md", 2), ("prompts/lumi-style-core.md", 2),
-    ("tokens/lumi-theme.css", 2), ("tokens/lumi-layouts.css", 2),
-    ("tokens/design-tokens.json", 2), ("conformance/CONFORMANCE.md", 2),
-    ("fixtures/", 8),
-)
+# DERIVED, never listed. This was a third hand-written copy of "which files
+# carry the version stamp", beside `check_versions`' TOKEN_STAMPS and
+# `check_version_citations`' ENTRY_STAMP — and it had already lost
+# `references/PRINCIPLES.md`. The cost was latent and specific: TOUCH_MAP maps
+# `references/` to `conformance-freshness`, every release stamps PRINCIPLES.md,
+# and this list could not tell that stamp from an edit — so once the board went
+# stale, every release would owe a full multi-agent round for having changed no
+# rule at all. `scripts/lib/stamps.py` is the one table now.
+#
+# The line budget is per PATH and stays here: it says how many changed lines a
+# diff may have and still be presumed a stamp, which is this gate's business
+# rather than the table's. A directory of generated artifacts gets more,
+# because a regenerated fixture moves its version line in several places.
+STAMPED_PREFIXES: tuple[tuple[str, int], ...] = tuple(
+    (path, 8 if path.endswith("/") else 2) for path in stamps.stamped_paths())
 
 # The overclaim phrases, checked ONLY in the newest CHANGELOG section and
 # only when this release carries waivers or gap-cited failures. Deliberately

@@ -1,3 +1,56 @@
+## 0.1.563 — three tables knew which files carry a version stamp, and this file said two
+
+**Found by asking where else the last two releases' defect shape lives.** Eight
+defects surfaced in 0.1.561–0.1.562 the moment the gate set became declarable,
+and none had been predicted; the useful question after that is not "fix them"
+but "what else is carried implicitly". The audit is in `FAILURE_MODES.md` as
+**FM-22**, and its result is reassuring rather than alarming: eleven
+hand-maintained membership lists exist in `scripts/`, **eight are already named
+by a test**, and this package's vocabularies — genres, storylines, geometries,
+trace enums, banned phrases, class names, platform capabilities — are mostly
+declared already. The gate set was the largest exception and is now declared.
+
+One real instance came out of it. **Three tables answered "which files carry the
+version stamp"**: `check_versions`' `TOKEN_STAMPS`, `check_version_citations`'
+`ENTRY_STAMP`, and `check_evidence`'s `STAMPED_PREFIXES` — while `CLAUDE.md`
+states there are two, and names them. Nothing compared the three, and they had
+already diverged: `references/PRINCIPLES.md` is declared in `ENTRY_STAMP` and
+was absent from the evidence gate's list.
+
+**The cost was latent and exact.** `check_evidence.TOUCH_MAP` maps `references/`
+to the `conformance-freshness` obligation — a full multi-agent conformance
+round. Every release stamps `PRINCIPLES.md`. The evidence gate could not tell
+that stamp from an edit, so **once the board went stale, every release would owe
+a conformance round for having changed no rule at all.** It has not fired yet
+only because the board was refreshed at 0.1.556.
+
+`scripts/lib/stamps.py` is the one table now, and `stamped_paths()` is DERIVED
+from the two that already existed and are already guarded — adding a token file
+or an entry point still means editing exactly one of them, and the evidence gate
+follows. The line budget stays in `check_evidence`, because how many changed
+lines still count as a stamp is that gate's business rather than the table's.
+Eleven paths are now recognised where ten were.
+
+`ENTRY_STAMP`'s own comment records the same class of miss once already —
+PRINCIPLES.md was undeclared there from 0.1.459 to 0.1.475. **A table forgotten
+twice is a table that wants a single home.**
+
+**The discipline this run is now held to**, written into FM-22 so the next
+register has to clear it: a register earns its place only when it (a) is
+compared to reality, so it cannot lie, and (b) REMOVES readers that kept their
+own copy rather than adding one more. `evals/gates.json` took four readers to
+one; `stamps.py` took three hand-written copies to none. A register that clears
+neither is the accumulation it was meant to cure, in a new file.
+
+**Deliberate red, planted first.** Deleting `PRINCIPLES.md` from the shared
+table reddens the test named for that exact case; letting `check_evidence` type
+its own list again reddens four. Teaching `check_repo` to read
+`check_deliverable.py` last release had already made
+`test_emergency_checker_closure` fail with *"the emergency run would execute the
+PR's copy"* — `stamps.py` joins that closure for the same reason. Five new tests.
+
+Design record: `specs/2026-08-22-rules-equal-conformance-design.md`.
+
 ## 0.1.562 — a gate written after the document stops failing it, plus three holes the register made visible
 
 **The owner's directive, 2026-08-22: historical deliverables were never meant to

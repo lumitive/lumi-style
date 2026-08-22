@@ -389,6 +389,63 @@ already says.
 If an entry point ever does quote a rule verbatim, this becomes buildable and
 should be rebuilt.
 
+## FM-22 · A set with no enumerable form cannot be found wrong
+
+- detection: you cannot answer "how many are there, and which?" without reading
+  code. The set is decided by a substring in a display string, by a row's
+  POSITION inside a conditional branch, by a promotion in one consumer, or by a
+  pattern that silently fails to match one member's name. Nothing enumerates it,
+  so nothing can be compared to it, and its inconsistencies are not drift — they
+  are invisible
+- prevention: give the set one declared form and a parity guard that holds the
+  declaration to the code. **A register earns its place only when it (a) is
+  compared to reality, so it cannot lie, and (b) REMOVES readers that kept their
+  own copy, rather than adding one more.** A register that fails either test is
+  the accumulation it was meant to cure, in a new file
+
+This is FM-20 one level up. FM-20 is a hand-written list beside a
+machine-readable one — a comparison nobody makes. This is a set with no
+machine-readable form at all, so there is nothing to compare against.
+
+Shipped instance: 0.1.561–0.1.562. The gate set — what fails a deliverable — was
+carried by whether a human-facing target string contained `(gates)`, read by
+four consumers with three different rules. Declaring it in `evals/gates.json`
+and holding it to the checkers surfaced **eight** defects in two releases, none
+of them predicted:
+
+* `M4zh_banned_hits` gated in `check_prose`'s exit and was returned by no
+  reader — the id pattern could not match it — so the Chinese banned-phrase gate
+  was absent from `run_conformance`'s `all-gating` set entirely
+* `D37_caption_name_len` and `D38_agenda_run_echo` say `reported` in their own
+  targets and were counted as gates, because the reader keyed on the id PREFIX
+  and a family's classification was inherited by every row in it
+* `RC-441` and `RC-442` quote the *Chinese* banned list and were filed against
+  `M4`, the ENGLISH metric — findable only once the Chinese gate was visible
+* the id extractor could not recognise the `zh` suffix, so `M4zh` was not a
+  citable id
+* `D32_shape_use`'s ROW sat inside the `data-storyline` branch: a document
+  declaring no storyline emitted no row, and a missing row reads as "did not
+  apply" rather than "the gate went missing"
+* `check_privacy` is the fiftieth gate and appeared in no registry: it reports
+  one verdict per FILE, fits no row table, and `check_deliverable` promotes it
+  in code
+* the blind-gate rule could not tell an `n/a` that means "nothing to look at"
+  from one that means "could not be measured"
+* three tables knew which files carry a version stamp, CLAUDE.md said two, and
+  they had already diverged — `references/PRINCIPLES.md` was declared in
+  `ENTRY_STAMP` and absent from `check_evidence`, which maps `references/` to
+  the conformance-freshness obligation. Latent and exact: every release stamps
+  that file, so once the board went stale every release would owe a full
+  multi-agent round for having changed no rule
+
+The audit that followed is the useful half. Eleven hand-maintained membership
+lists exist in `scripts/`; eight are already named by a test, which is why only
+one of the eight defects above was of that kind. **The package's vocabularies
+are mostly declared already** — genres, storylines, geometries, trace enums,
+banned phrases, class names, platform capabilities. The gate set was the largest
+undeclared one. The standing question is not "what else is undeclared" but
+whether the next register meets both halves of the bar above.
+
 ## FM-21 · The guard that cannot see a file until it is committed
 
 - detection: preflight is green, the commit lands, and the same command is red
