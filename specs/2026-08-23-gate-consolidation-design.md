@@ -140,6 +140,22 @@ mode. Red team attacks in three directions: an assertion lost to a merge, a
 document that `since` should have held and did not, and a file that is green
 locally and red in a fresh clone.
 
+## One claim in this record was wrong, and the review proved it
+
+This record said *no assertion is deleted to reduce a count*, and the red team
+tested it rather than believing it. **It is false for `check_prose`.** GAP-029
+(0.1.559) narrowed the prose exit from "any failing row" to "any failing row
+whose target is zero". On this repository's own degenerate fixture that turned
+five real defects — every title the same shape, 90% triads, 82.6% overlong
+sentences, 0% of figures sourced — from a failing run into a passing one, and
+`check_deliverable` inherited the change.
+
+The decision stands and its reasoning is good: a share is a direction, and an
+author optimizes toward any number you give them. But it **is** an assertion
+removal, not a rename, and describing it as a rename is the kind of claim
+convention 14 exists to stop. Recorded here so the next session reads it as
+what it was.
+
 ## Standing constraints
 
 - No delivered document is edited. Calibration is read-only, and a red on a

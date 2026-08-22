@@ -99,7 +99,7 @@ def test_every_row_carries_a_family():
 
 
 def test_the_families_are_the_classification_and_are_smaller_than_the_rows():
-    """The point of the field: 85 rows that grew one at a time collapse to a
+    """The point of the field: a set that grew one verdict at a time collapses to a
     readable number of concepts. If families ever approach rows one-to-one the
     field has stopped classifying anything."""
     fams = gr.families()

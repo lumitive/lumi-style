@@ -1335,7 +1335,7 @@ def check_gate_declarations():
                           + "|".join(gate_registry.SEVERITIES))
         if not (got.get("family") or "").strip():
             errors.append(f"{name}: no family. A verdict with no concept behind "
-                          f"it is how this set grew to 85 rows one at a time")
+                          f"it is how this set grew one verdict at a time")
         since = got.get("since")
         if since != gate_registry.ALWAYS and not re.fullmatch(r"\d+\.\d+\.\d+", since or ""):
             errors.append(f"{name}: since {since!r} is neither a version nor "
