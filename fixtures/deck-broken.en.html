@@ -136,6 +136,12 @@
 
   /* ── typography: D-DIN takes over (v1.2+) ── */
   --din:  'D-DIN', "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", Arial, sans-serif;
+  /* The data voice. EMBEDDED since 0.1.552 — this stack named four faces and
+     the package shipped none of them for eleven releases, so every caption,
+     footer, colophon and cover key column rendered in whatever mono the reader
+     had. IBM Plex Mono Regular and Bold now ship as data URIs under SIL OFL
+     1.1, subset to the 254 Latin codepoints these roles measurably use. The
+     rest of the stack stays as the fallback it always was. */
   --mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
   /* display titles: uppercase (Latin), weight 700 (--w-display below), leading
      .92; CJK titles: weight 700 + .04em tracking — CJK has no uppercase.
@@ -306,7 +312,7 @@ body.dark {
   --d-teal:    #3FA98C;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.551 (2026-08-19)
+   LUMI page layouts · v0.1.552 (2026-08-19)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -1378,20 +1384,16 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
   flex-direction: column; gap: 3px; max-width: 46ch;
   font-family: var(--mono); font-size: var(--fs-fine); color: var(--tx4); }
 .body.cover-grid > .attrs > div { display: flex; gap: 10px; }
-/* THE KEY IS SET IN THE FACE THIS PACKAGE ACTUALLY EMBEDS. It declared
-   `font-weight: 700` from the block above and computed to 700 — measured — and
-   an owner review still read it as not bold, twice (0.1.442 and 0.1.551). The
-   weight was never the problem: `--mono` names "IBM Plex Mono", "SF Mono",
-   Menlo and Consolas and this package embeds NONE of them, so on a machine
-   without one the key falls to a system mono and whatever that face calls 700,
-   which is often a synthesised bold. `--din` ships D-DIN Regular and Bold as
-   data URIs, so 700 is a real weight everywhere.
-   The key is a LABEL and the value is the data, so only the key moves; the
-   fixed `15ch` column that aligns the values is unaffected, `ch` being measured
-   in each element's own face. See GAP-027 for the rest of the mono surface. */
+/* The key stays in the mono voice it was designed for, and it is now genuinely
+   bold there. It declared `font-weight: 700` from the block above and computed
+   to 700 — measured — and an owner review still read it as not bold, twice
+   (0.1.442 and 0.1.551). The weight was never the problem: `--mono` named four
+   faces and this package embedded NONE of them, so the key fell to whatever
+   mono the reader's machine had and whatever THAT face called 700, often a
+   synthesised bold. IBM Plex Mono Regular and Bold ship as data URIs from
+   0.1.552, so 700 is a real weight everywhere. */
 .body.cover-grid > .attrs .k { min-width: 15ch; flex: none; letter-spacing: .08em;
-  text-transform: uppercase; font-weight: 700; color: var(--tx1);
-  font-family: var(--din); }
+  text-transform: uppercase; font-weight: 700; color: var(--tx1); }
 .body.cover-grid > .attrs .v { color: var(--tx3); white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis; }
 .body.cover-grid > .spec, .body.cover-grid > .colophon { grid-column: 1 / -1; }
@@ -2338,7 +2340,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
       <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
     </div>
-    <p class="colophon">Built with lumi-style 0.1.551 &#183; source: meter management system.</p>
+    <p class="colophon">Built with lumi-style 0.1.552 &#183; source: meter management system.</p>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 19</span></div></section>
 <section class="page opener" id="openA">
@@ -2932,7 +2934,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>
     </div>
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.551.
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.552.
     Source: meter management system; every number here is invented, and a
     bracketed slot must not ship.</p></div>
   </div>

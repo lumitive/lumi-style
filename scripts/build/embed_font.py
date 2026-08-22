@@ -12,7 +12,8 @@ every deck.
     python3 scripts/build/embed_font.py --check    # verify the vendored files are intact
 
 Paste the output into the deliverable's <style>. Roughly 56 KB of base64 for the
-pair, which is the whole cost of never thinking about fonts again.
+display pair and 45 KB for the mono pair, which is the whole cost of never
+thinking about fonts again.
 """
 
 import base64
@@ -22,13 +23,31 @@ import sys
 
 FONTS = next(p for p in pathlib.Path(__file__).resolve().parents
              if p.name == "scripts").parent / "assets" / "fonts"
-FACES = [("D-DIN.woff2", 400), ("D-DIN-Bold.woff2", 700)]
+# (file, family, weight). The family is carried per face because this package
+# now ships TWO: the display face and the data voice.
+FACES = [
+    ("D-DIN.woff2", "D-DIN", 400),
+    ("D-DIN-Bold.woff2", "D-DIN", 700),
+    # THE DATA VOICE, vendored 2026-08-22. `--mono` named "IBM Plex Mono",
+    # "SF Mono", Menlo and Consolas and this package embedded NONE of them, so
+    # every caption, footer, colophon and cover key column in every deliverable
+    # rendered in whatever mono the reader's machine happened to have — and
+    # whatever that face called 700, often a synthesised bold. An owner review
+    # read the cover's key column as "not bold" twice, five releases apart, on
+    # a rule that measures as weight 700 both times. design-rules §2 has said
+    # since v1.2 that a Latin face is embedded and never linked; the display
+    # face obeyed it and the data voice was hoped for.
+    ("IBMPlexMono-Regular.woff2", "IBM Plex Mono", 400),
+    ("IBMPlexMono-Bold.woff2", "IBM Plex Mono", 700),
+]
 
 # Recorded when the files were vendored. A mismatch means the font changed, which
 # would silently alter every deliverable's metrics.
 EXPECTED = {
     "D-DIN.woff2": 20744,
     "D-DIN-Bold.woff2": 22052,
+    "IBMPlexMono-Regular.woff2": 16624,
+    "IBMPlexMono-Bold.woff2": 17048,
 }
 
 
@@ -61,11 +80,12 @@ def css():
     because embedding was a separate step an author had to remember.
     """
     out = []
-    for name, weight in FACES:
+    for name, family, weight in FACES:
         data = base64.b64encode((FONTS / name).read_bytes()).decode("ascii")
         out.append(
-            f"@font-face{{font-family:'D-DIN';font-style:normal;font-weight:{weight};"
-            f"font-display:swap;src:url(data:font/woff2;base64,{data}) format('woff2')}}"
+            f"@font-face{{font-family:'{family}';font-style:normal;"
+            f"font-weight:{weight};font-display:swap;"
+            f"src:url(data:font/woff2;base64,{data}) format('woff2')}}"
         )
     return "\n".join(out)
 

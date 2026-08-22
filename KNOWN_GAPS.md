@@ -103,31 +103,37 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   the owner marked and 1 on the accepted reference. Re-run it before setting any
   floor.
 
-## GAP-027 · The data voice names four faces and this package embeds none of them
+## GAP-027 · Documents built before 0.1.552 embed no mono face
 
 - status: open
 - opened: 0.1.551
-- surface: tokens/lumi-theme.css (`--mono`), and the sixteen rules in
-  tokens/lumi-layouts.css that use it
-- symptom: `--mono` is `"IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace`
-  and the package ships D-DIN Regular and Bold and nothing else. Every mono
-  element in every deliverable — the cover and closing key column, figure
-  captions, the footer, the colophon — therefore renders in whatever mono the
-  reader's machine happens to have. design-rules §2 says a Latin face is
-  embedded as a data URI and never linked; this one is neither embedded nor
-  linked, it is hoped for. An owner review read the cover's key column as "not
-  bold" twice, five releases apart, on a rule that measures as 700 both times.
-- what was done at 0.1.551: the cover's `.attrs .k` moved to `--din`, which is
-  embedded, because a key is a label rather than tabular data. The other
-  fifteen uses are data and want a monospaced face, so they still fall back.
-- why it is not closed: closing it means shipping a mono face — a licensing and
-  package-weight decision for the owner, not a checker change. `D36_font_family`
-  reports every declared-but-unembedded family so the surface is visible; it
-  does not gate, because it would fail every document this package has ever
-  produced, the accepted reference included, for a defect in the tokens rather
-  than in the document.
-- check: `python3 scripts/check/check_design.py <deck>` prints the D36 row.
-  The gap closes when it reads zero on a document built from current tokens.
+- surface: assets/fonts/, scripts/build/embed_font.py, tokens/lumi-theme.css
+  (`--mono`)
+- symptom: `--mono` named "IBM Plex Mono", "SF Mono", Menlo and Consolas and
+  this package shipped D-DIN and nothing else, so every mono role in every
+  deliverable — the cover and closing key column, figure captions, the footer,
+  the colophon, the part-opener label — rendered in whatever mono the reader's
+  machine happened to have, at whatever that face called weight 700. An owner
+  review read the key column as "not bold" twice, five releases apart, on a
+  rule that measures as 700 both times.
+- what was done at 0.1.552 (owner authorised): IBM Plex Mono Regular and Bold
+  are vendored and embedded, under SIL OFL 1.1 — the same licence as D-DIN,
+  permitting commercial use, embedding and redistribution. Taken from the
+  official `@ibm/plex@6.4.0` package and subset locally to the 254 Latin
+  codepoints these roles measurably use: 33.7 KB for the pair against 92 KB
+  complete, chosen by measuring every character in a mono role across the
+  accepted reference in both languages and a conformance deck, with zero
+  misses. `D36_font_family` reads 0 on a deck built from current tokens.
+- why it stays open: the documents already on the machine still carry the old
+  block. The reference deck reports one unembedded primary (`ibm plex mono`)
+  and will until it is rebuilt. `D36_font_family` therefore reports and does
+  not gate — a gate here would fail every document produced before this
+  release, for a defect that was in the tokens.
+- what would close it: rebuild the delivered documents, then promote D36 to a
+  gate.
+- check: `python3 scripts/check/check_design.py <deck>` prints the D36 row;
+  `python3 scripts/build/embed_font.py --check` verifies all four vendored
+  files against their recorded sizes and prints their digests.
 
 ## GAP-026 · The globe's trade labels overlap by construction and are exempt from `collision`
 
