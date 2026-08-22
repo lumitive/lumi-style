@@ -960,8 +960,18 @@ def grade(r):
         # rule 1), so its window is its own block and its target is zero.
         ("M6_unsourced_ranges", r["M6_unsourced_ranges"], "=0",
          r["M6_unsourced_ranges"] == 0, False),
-        # M2 gates. The window is the page, and a document with too few figures
-        # to rate reads n/a rather than a perfect score on nothing.
+        # M2 fails the run, and it carries no gating marker in its target.
+        # Both halves are true and the reason is in this file's convention
+        # rather than in this row: check_prose exits non-zero on ANY failing
+        # row, so the marker here is emphasis and not mechanism —
+        # `tests/test_m13_reported.py` asserts exactly that, against
+        # check_design, where the marker IS the mechanism. What the comment
+        # said before ("M2 gates") was true of this script and false of
+        # `gating.py`, which reads the marker as mechanism in both. GAP-029
+        # carries that consequence.
+        #
+        # The window is the page, and a document with too few figures to rate
+        # reads n/a rather than a perfect score on nothing.
         ("M2_number_sourcing", r["M2_number_sourcing"], f">={M2_TARGET:g}%",
          (r["M2_number_sourcing"] or 0) >= M2_TARGET,
          r["M2_number_sourcing"] is None or r["figures"] < MIN_FIGURES),

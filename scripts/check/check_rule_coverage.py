@@ -174,6 +174,68 @@ def audit(root: pathlib.Path) -> tuple[list[str], dict]:
     # reasoning as the ban-list guard's `NOT_MECHANIZED`. What may not happen is
     # a gate drifting into the set with nobody noticing, so an UNDECLARED orphan
     # is a finding and every declared one is printed on every run.
+    # THE FIFTH CHECK: one property, one place it is decided.
+    #
+    # The owner asked where the design, the execution, the Inspector and the
+    # Evals live for the parts every page kind SHARES — she remembered two, the
+    # water-ripple ground and the footer. There are more, and the register could
+    # not answer because nothing in it said which rules talk about the same
+    # thing. Three real collisions were found by reading: the ground's tier is
+    # stated in `brand.md` for all pages and again in `storyline-templates.md`
+    # for openers; the footer marker's colour is stated once for all pages and
+    # THREE times for openers, in two different files; and a rule about titles
+    # written for every page cites a gate that measures content pages only.
+    #
+    # `covers` names the property, `overrides` names the entry this one is
+    # written against. The check does not care WHICH relation it is — narrowing,
+    # restating, or contradicting on purpose. It cares that a second statement
+    # of the same property is deliberate rather than discovered later by
+    # somebody chasing a value that changed in one file.
+    #
+    # It is opt-in: an entry with no `covers` is in no group and is checked as
+    # before. Labelling all 485 by property is a hand job with its own error
+    # rate, so the count of unlabelled per-kind rules is REPORTED and shrinks
+    # release by release — a coverage floor would become a number to polish.
+    by_property: dict[str, list[dict]] = {}
+    for rule in rules:
+        key = (rule.get("covers") or "").strip()
+        if key:
+            by_property.setdefault(key, []).append(rule)
+    for key, group in sorted(by_property.items()):
+        ids = {r.get("id") for r in group}
+        for rule in group:
+            rid = rule.get("id", "<no id>")
+            against = (rule.get("overrides") or "").strip()
+            if against == rid:
+                findings.append(f"{rid}: overrides itself")
+            elif against and against not in ids:
+                findings.append(
+                    f"{rid}: overrides {against!r}, which does not cover "
+                    f"{key!r} — an override has to name the entry it is "
+                    f"written against")
+        # ONE ROOT PER PROPERTY. Every other entry says which one it is written
+        # against; the root is the one nothing points away from, and it is
+        # where the value is decided. Two roots means two statements of the
+        # same property with nothing joining them, which is the shape that put
+        # 1.40 in six files. No root means the overrides form a cycle.
+        roots = [r for r in group if not (r.get("overrides") or "").strip()]
+        if len(roots) > 1:
+            findings.append(
+                f"{key!r} is stated by "
+                f"{', '.join(sorted(r.get('id', '?') for r in roots))} and none "
+                f"of them says which is the authority. Give every entry but one "
+                f"an `overrides` naming the entry it is written against — "
+                f"narrowing it, restating it, or contradicting it on purpose")
+        elif not roots:
+            findings.append(
+                f"{key!r}: every entry overrides another, so the overrides "
+                f"form a cycle and no entry decides the value")
+    counts_extra = {"properties": len(by_property),
+                    "unlabelled_kind_rules": sum(
+                        1 for r in rules
+                        if r.get("page_kind") not in ("all", "content")
+                        and not (r.get("covers") or "").strip())}
+
     declared = data.get("orphan_gates", {})
     if not isinstance(declared, dict):
         findings.append("orphan_gates must be an object of gate -> reason")
@@ -197,7 +259,7 @@ def audit(root: pathlib.Path) -> tuple[list[str], dict]:
     counts = {"rules": len(rules), "measured": measured, "gated": gated,
               "unchecked": len(rules) - measured, "gates": len(gates),
               "gates_cited": len(gates & cited),
-              "orphans": len(gates - cited)}
+              "orphans": len(gates - cited), **counts_extra}
     return findings, counts
 
 
@@ -257,6 +319,33 @@ def report(root: pathlib.Path, counts: dict) -> None:
             items = by_kind.get(kind, [])
             if items:
                 print(f"    {kind:<9} {len(items):>3}")
+    # WHERE THE SHARED PARTS ARE DECIDED. The properties every page kind
+    # touches — the ground, the footer, the title budget — are the ones a
+    # per-kind change can silently contradict, and until this the register had
+    # no way to say so. Each line names the entry that decides the value and
+    # every entry written against it.
+    props: dict[str, list[dict]] = {}
+    for rule in data["rules"]:
+        key = (rule.get("covers") or "").strip()
+        if key:
+            props.setdefault(key, []).append(rule)
+    if props:
+        print(f"  {len(props)} shared propert(ies) with a declared owner:")
+        for key, group in sorted(props.items()):
+            # `owner`, not `root` — `root` is this function's parameter, and
+            # shadowing it typed the repository's path as a rule dict.
+            owner = next((r for r in group
+                          if not (r.get("overrides") or "").strip()), None)
+            others = [r for r in group if r is not owner]
+            written = ", ".join(f"{r.get('id')} ({r.get('page_kind')})"
+                                for r in others)
+            print(f"    {key:<26} {owner and owner.get('id')} "
+                  f"({owner and owner.get('page_kind')})"
+                  + (f" ← {written}" if others else ""))
+    left = counts.get("unlabelled_kind_rules")
+    if left:
+        print(f"  {left} cover/agenda/opener/closing rule(s) still name no "
+              f"property; an overlap they are part of cannot be seen yet")
     orphans = data.get("orphan_gates", {})
     if orphans:
         print(f"  {len(orphans)} gate(s) enforce something no rule states, each "

@@ -1,3 +1,102 @@
+## 0.1.557 — where the shared parts of a page are decided, and a horse race that can finally pin three models at once
+
+**The owner asked the question this release answers: for the parts every page
+kind shares — the water-ripple ground, the footer — where do the design, the
+execution, the Inspector and the Evals live, so per-page-kind configuration
+cannot interfere?** She remembered two overlaps. The register could not answer
+at all, because nothing in it said which rules talk about the same thing.
+
+`covers` names the property an entry decides; `overrides` names the entry it is
+written against. One root per property — the entry nothing points away from is
+where the value is decided, and every other entry says which one it is written
+against, whether it narrows it, restates it, or contradicts it on purpose. The
+check does not care which; it cares that a second statement of the same property
+is deliberate rather than found later by somebody chasing a value that changed in
+one file. `check_rule_coverage.py` prints the map on every run:
+
+    footer.marker-colour   RC-100 (all) ← RC-101 (opener), RC-272 (opener), RC-417 (opener)
+    ground.contrast-ceiling RC-060 (all) ← RC-329 (all)
+    ground.tier            RC-058 (all) ← RC-365 (agenda), RC-418 (opener)
+    title.max-lines        RC-293 (all) ← RC-163 (content), RC-422 (all)
+
+Three of those four were genuine collisions. **The footer marker's colour is
+stated once for every page and three times for openers, in two different files.**
+**The ground's contrast ceiling is stated twice for every page**, in `brand.md`
+and `design-rules.md`, and neither knew about the other. **The ground's tier is
+stated in `brand.md` for all pages and again in `storyline-templates.md` for
+openers.** `references/page-contracts.md` grows a Property column so a per-kind
+sentence can no longer read as the whole story. 69 cover/agenda/opener/closing
+rules still name no property and the run says so — a count that shrinks, never a
+floor, because a coverage floor becomes a number to polish.
+
+**A per-kind rule was borrowing an all-page gate's authority.** RC-417 — "keep
+the footer's handling marker on an opener, inverted with the field" — cited D12
+and claimed to gate. `d12_commercial_footer` scans the footer's TEXT for handling
+words and a domain; it reads neither the marker, its icon, nor its colour. The
+entry now carries no metric and says what nothing measures.
+
+**And the ceiling gets a parity guard.** `1.40` is written in six places with
+nothing joining them, so `--ground-ceiling` in `tokens/` is now the authority and
+`inspect_layout.GROUND_CEILING` plus the three prose copies are held to it — the
+`role weights` pattern. The first version read ratios off any line mentioning
+"ground" and failed on `brand.md:193` ("5.21:1 on white, 3.23:1 on the dark
+ground" — two contrast figures for the *lime*) while missing `design-rules.md`,
+where the word "Ground" sits on the line above the number. One grep at the real
+material, per convention 15; what ships is the narrower guard that does what it
+says.
+
+**GAP-029 — and the correction that comes with it.** `check_prose.py:963` said
+"M2 gates" and M2's row carries no gating marker, so the comment was fixed. The
+larger asymmetry behind it — `check_design` exits non-zero only on its marked
+rows while `check_prose` exits non-zero on any failing row, where the marker is
+emphasis rather than mechanism — **was already known and already tested**:
+`test_the_two_checkers_express_gating_differently` asserts exactly that, and its
+closing line names the hazard, "a count taken from one convention and applied to
+the other is wrong, and one was". What is NOT recorded anywhere, and is the gap,
+is that the consumers still do it: `gating.py` reads the design convention into
+both, so `gating.metric_ids("M")` returns `{M12}`, `run_conformance`'s
+`all-gating` block demands nothing of the other eight, and `check_deliverable`
+prints them as `note` beside an exit code that fails the build on them. Measured
+on the degenerate fixture: check_design exits 1 with 7 of 13 failures marked,
+check_prose exits 1 with 0 of 6. **Which of them should gate is the owner's call
+and not a refactor**, so the gap carries the measurement and a recommendation
+rather than a quiet change — gating M8's length variance would mechanize the
+0.1.336 regression, where a direction was read as a target and drove sentence
+variance to zero.
+
+The design record is `specs/2026-08-22-rules-equal-conformance-design.md`; this
+closes its question about where a shared property is decided.
+
+**And the concurrency shipped in 0.1.556 could not be used for the thing it was
+built for.** A horse race between three CLIs has three different model ids —
+`opus`, `cursor-grok-4.6`, an Anthropic id through Hermes — and `--model` was one
+global flag, so the three agents still had to be driven in three invocations and
+the workers had nothing to do. Both pins are repeatable now and take
+`<agent>=<value>`; an id that resolves to no platform, or a level that is not a
+level, stops the run rather than pinning nobody, which is the failure `--effort`
+already produced once and reported as a level that was never applied.
+
+**The board is fresh again, and the round it was refreshed from says something
+about the performance question.** Three agents driven concurrently on T1 with
+both axes pinned: **Cursor passed every gate in 28.5 minutes** on
+`cursor-grok-4.6-xhigh`; **Claude Code was still working when the hard cap
+arrived at 60.0 minutes** on `opus`/xhigh — 6702 stream events, never a stall,
+verdict `over budget`, and what it left is a draft rather than a result. Hermes
+wrote its deck to HOME again (GAP-022). Both finished decks clear every layout
+and design gate, and **Cursor now names its axes** — nine of each class, against
+five unnamed axes in the round before `figure_axis_named` gated.
+
+Two of the three ran within 100 seconds of the old fixed 1800s ceiling (Cursor
+1708.7s, Hermes 1614.0s). Under the code this branch replaced, the round that
+produced the only passing deck would most likely have been SIGKILLed a minute
+and a half before it finished.
+
+**Deliberate red, planted first.** Removing the one-root rule turns two register
+tests green-to-red; disabling the prose read in the ceiling guard turns the
+drift test red; the guard's own first version was killed by a grep at
+`brand.md`; ignoring the `<agent>=` form turns the pinning test red. Fifteen
+new tests.
+
 ## 0.1.556 — the author's loop stops costing what the delivery check costs, and three agents stop queuing behind each other
 
 **The owner's number is five minutes for a twelve-page deck, and the honest

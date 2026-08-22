@@ -15,6 +15,7 @@ import json
 import sys
 import time
 
+import pytest
 import run_conformance as rc
 
 TASK = {"id": "T-test", "prompt": "write the file", "deliverable": "*.md"}
@@ -953,3 +954,57 @@ def test_one_agents_lines_are_not_split_by_another(tmp_path, monkeypatch, capsys
         head = next(n for n, ln in enumerate(lines) if ln.startswith(f"  a{i} on "))
         assert lines[head + 1].startswith("    driven"), (
             f"a{i}'s verdict did not follow its own header: {lines[head:head + 2]}")
+
+
+def test_each_agent_can_be_pinned_to_its_own_model(tmp_path, monkeypatch, capsys):
+    """A horse race between three CLIs has three different model ids.
+
+    One global `--model` could not say that, so three agents had to be driven in
+    three invocations — and the concurrency added in 0.1.556 had nothing to do.
+    """
+    run_dir = tmp_path / "run"
+    echo = [sys.executable, "-c",
+            "import sys, pathlib; "
+            "pathlib.Path('answers.md').write_text(' '.join(sys.argv[1:]))"]
+    agents = [{"id": f"a{i}", "name": f"A{i}", "capability": "full",
+               "drive": list(echo), "probe": ["true"]} for i in range(3)]
+    tasks = [{"id": "T3-recall", "prompt": "answer", "deliverable": "*.md",
+              "min_capability": "prompt", "score": ["recall"], "answers": {}}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: tasks)
+    monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
+    monkeypatch.setattr(rc, "environment_check", lambda a: [])
+    monkeypatch.setattr(rc, "_conformance_trace", lambda *a, **k: "")
+
+    rc.main(["run", "--drive", "--run", str(run_dir),
+             "--model", "house-default", "--model", "a1=its-own"])
+    want = {"a0": "house-default", "a1": "its-own", "a2": "house-default"}
+    for agent, model in want.items():
+        record = json.loads((run_dir / agent / "T3-recall" / "driver.json")
+                            .read_text(encoding="utf-8"))
+        assert record["model"] == model, f"{agent}: {record['model']}"
+
+
+def test_a_pin_for_an_agent_that_does_not_exist_stops_the_run(tmp_path,
+                                                              monkeypatch):
+    agents = [{"id": "a0", "name": "A0", "capability": "full",
+               "drive": ["/bin/true"], "probe": ["true"]}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: [])
+    monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
+    with pytest.raises(SystemExit) as exc:
+        rc.main(["run", "--drive", "--run", str(tmp_path / "r"),
+                 "--model", "typo=opus"])
+    assert "no platform in the registry" in str(exc.value)
+
+
+def test_an_effort_level_that_is_not_a_level_stops_the_run(tmp_path, monkeypatch):
+    agents = [{"id": "a0", "name": "A0", "capability": "full",
+               "drive": ["/bin/true"], "probe": ["true"]}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: [])
+    monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
+    with pytest.raises(SystemExit) as exc:
+        rc.main(["run", "--drive", "--run", str(tmp_path / "r"),
+                 "--effort", "a0=enormous"])
+    assert "not one of" in str(exc.value)
