@@ -37,8 +37,9 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 import check_privacy  # noqa: E402 — the OR-8 terms reader, shared
 import color_math  # noqa: E402 — after the bootstrap, deliberately
 import deliverable_registry  # noqa: E402 — the storyline vocabulary, for prompt parity
-import gating  # noqa: E402 — after the bootstrap
+import gating  # noqa: E402
 import secret_patterns  # noqa: E402 — the one credential table, shared with check_privacy
+import stamps  # noqa: E402 — after the bootstrap
 import trace_schema  # noqa: E402 — the one definition, shared with scripts/ops/trace.py
 from css_tokens import css_block, css_vars  # noqa: E402, F401 — css_block is API for tests/tools
 
@@ -1657,28 +1658,12 @@ PLATFORMS = ROOT / "adapters" / "platforms.json"
 # stamps and must not carry its own copy of where they are — a second list of
 # stamp positions is this repository's own worst defect class, arriving through
 # the door marked "release tooling".
-TOKEN_STAMPS = (
-    ("tokens/lumi-theme.css", r"LUMI visual theme\s*·\s*v(\d+\.\d+\.\d+)"),
-    ("tokens/design-tokens.json", r"LUMI design tokens v(\d+\.\d+\.\d+)"),
-    ("tokens/lumi-layouts.css", r"LUMI page layouts\s*·\s*v(\d+\.\d+\.\d+)"),
-)
-
-ENTRY_STAMP = {
-    "SKILL.md": r'^\s*version:\s*"{v}"',
-    "AGENTS.md": r"\*\*lumi-style {v}\.?\*\*",
-    "prompts/lumi-style-core.md": r"\*\*{v}\*\* snapshot",
-    # The scoreboard carries a first-class skill stamp on line 1. Scoping the
-    # third-party exemption to its table rows re-enabled the *citation* check
-    # there, which by construction cannot see staleness — a stale stamp names a
-    # real release and stays legal forever. This is the check that sees it.
-    "conformance/CONFORMANCE.md": r"skill {v}",
-    # The constitution carries a stamp too, and from 0.1.459 to 0.1.475 it was
-    # not declared here. The citation guard caught a stamp naming a version that
-    # does not exist, and nothing caught one naming a real EARLIER release —
-    # which is exactly the staleness this table exists to see, and exactly what
-    # CLAUDE.md says happens to a stamp with no declared position.
-    "references/PRINCIPLES.md": r"\*\*lumi-style {v}\.?\*\*",
-}
+# The two stamp tables live in `scripts/lib/stamps.py` — three readers held
+# three copies of "which files carry the version stamp" and they had already
+# diverged; see that module for what it cost. Imported under their own names
+# so every use site below reads the same way it always did.
+TOKEN_STAMPS = stamps.TOKEN_STAMPS
+ENTRY_STAMP = stamps.ENTRY_STAMP
 
 # A version string may name something other than a release only with a reason.
 # Same contract as check_prose.py's NOT_MECHANIZED: a documented exception is a
@@ -2750,7 +2735,7 @@ SIBLING_MODULES = (
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",
     "checker_report", "secret_patterns", "corpus", "gating",
-    "gate_registry",
+    "gate_registry", "stamps",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
