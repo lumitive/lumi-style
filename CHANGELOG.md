@@ -1,3 +1,55 @@
+## 0.1.574 — a document escaped the Chinese gate by deleting one attribute, and the version scope was cosmetic
+
+The third half of the adversarial review: what a verdict MEANS, and whether a
+document can escape one.
+
+**Deleting `lang="en"` took M12 from FAIL to silence.** M12 is the gate that
+fails an English deliverable carrying Chinese a reader can see. It went `n/a`
+whenever the document declared no language — and `check_deliverable` prints no
+`n/a` — so a byte-identical deck with one attribute removed exited 0 and the
+Chinese appeared nowhere in the report. `gate_registry.held` settled the same
+question one field over: **an absent stamp must not become an exemption**,
+because the cheapest escape would otherwise be to omit the line that says what
+you are. Nothing in this package requires a deliverable to declare `lang`, and
+`new_deck.py` emits one, so any hand-assembled or converted deck was one
+deletion away.
+
+It does not GUESS the language, which would be a worse cure. A document with no
+CJK has nothing for M12 to find and is honestly `n/a`. A document that carries
+Chinese and will not say what it is cannot be decided, so it is measured as
+**blind** — a third verdict beside ok and n/a — and blind on a gating row fails
+the run, with a message naming the three ways to declare.
+
+**The Chinese pair stated a reason that was false.** `M4zh_banned_hits` and
+`M5_zh_punctuation` came back "too little data: 149 sentences" on a document
+with 149 sentences. The true reason — the document is not Chinese — has been in
+`evals/gates.json`'s `na_means` since the register shipped, and the printer
+never read it. This is the third time this exact failure has been found in this
+printer, and the comment three lines above it claims to have fixed it.
+
+**`since` never changed an exit code.** The block filed a too-new gate under
+`not held` and the run still failed on it, because the exit was INHERITED from
+the instrument — and `check_design` grades against HEAD by construction and
+knows nothing about `since`. The summary then read `exit 1 · 0 gating findings`,
+which is a summary contradicting the block above it. The exit is computed from
+this block's own buckets now. An instrument that exits nonzero and produces no
+verdicts is a different thing: that is a crash, and it still fails.
+
+**And a claim in the design record was wrong.** It said no assertion had been
+deleted, only names and readers reduced. The red team tested that rather than
+believing it: **it is false for `check_prose`.** GAP-029 narrowed the prose exit
+from "any failing row" to "any failing row whose target is zero", which on this
+repository's own degenerate fixture turned five real defects — every title the
+same shape, 90% triads, 82.6% overlong sentences, 0% of figures sourced — from a
+failing run into a passing one. The decision stands and its reasoning is good.
+It is still an assertion removal rather than a rename, and
+`specs/2026-08-23-gate-consolidation-design.md` says so now.
+
+Also: the register's own row count was stale in four places in the release that
+introduced it — the failure class this repository names as its worst, inside the
+thing built to end it. The number is deleted rather than corrected, per
+convention 13.
+
 ## 0.1.573 — six guards that were green while wrong, and two that were red while right
 
 The second half of the adversarial review: the guards themselves. This

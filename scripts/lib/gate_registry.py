@@ -24,7 +24,7 @@ the checkers themselves say, by `check_repo`'s `gate declarations` guard, on the
 same reasoning that makes `check_rule_coverage` compare the rule register
 against `gating`'s AST reader rather than trusting it. What the register adds is
 what no checker knows: **`family`** — the concept a verdict belongs to, the
-classification that was missing while the set grew to 85 rows one at a time —
+classification that was missing while the set grew one verdict at a time —
 and **`since`**, the release that introduced it.
 
 **`since` and what it is for.** A document carries `built with lumi-style

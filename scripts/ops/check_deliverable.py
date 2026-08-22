@@ -215,10 +215,16 @@ def verdict_block(runs: dict, built: str | None = None
     graded: list[str] = []
     silent: list[str] = []
     not_held: list[str] = []
+    # The exit is computed from THIS block's own buckets, not inherited from
+    # the instruments'. `check_design` and `check_prose` grade a document
+    # against HEAD's rules by construction and know nothing about `since`, so
+    # inheriting their exit made the version scope cosmetic: a gate the block
+    # had just filed under `not held` still failed the run, and the summary
+    # then read "exit 1 · 0 gating findings", which is a summary contradicting
+    # the block above it. An instrument that exits nonzero and produces NO
+    # verdicts is a different thing — that is a crash, and it still fails.
     worst = 0
     for kind, run in runs.items():
-        if run["exit"] not in (0, None):
-            worst = max(worst, 1)
         if not run["spoke"]:
             why = "skipped" if run.get("skipped") else "no parseable report"
             silent.append(f"{kind}: the instrument did not speak ({why})")
@@ -327,6 +333,8 @@ def main(argv=None) -> int:
     # decided anything read it.
     built = fingerprint.version_in(raw)
     gating, graded, silent, not_held, worst = verdict_block(runs, built)
+    if gating:
+        worst = max(worst, 1)
     graded.extend(eval_notes(a.file, runs))
     if not trace_id:
         # Unmeasured, not silent: a build with no trace leaves no record of

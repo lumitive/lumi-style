@@ -594,7 +594,21 @@ def sentences(text):
 def measure(path, genre, lang=None):
     raw = path.read_text(encoding="utf-8", errors="replace")
     language, where = declared_language(path, raw, lang)
+    # UNDECLARED IS NOT EXEMPT. M12 used to go `n/a` whenever the document
+    # declared no language, so deleting one attribute took the gate that fails
+    # an English deliverable carrying Chinese from FAIL to silence — and
+    # `check_deliverable` printed nothing at all. `gate_registry.held` settled
+    # the same question one field over: an absent stamp must not become an
+    # exemption, because the cheapest escape would otherwise be to omit the
+    # line that says what you are.
+    #
+    # It does not GUESS the language either. A document with no CJK has nothing
+    # for M12 to find and is honestly n/a. A document that carries CJK and will
+    # not say what it is cannot be decided, and an undecidable gate is measured
+    # as BLIND rather than passed.
     cjk = visible_cjk(raw, path.suffix.lower()) if language == "en" else None
+    undeclared_cjk = (language is None
+                      and bool(visible_cjk(raw, path.suffix.lower())))
     body, titles, enums, windows = extract(path)
     lengths = sentences(body)
     # A Chinese document has no spaces, so the English word splitter returns
@@ -700,6 +714,7 @@ def measure(path, genre, lang=None):
         "file": str(path),
         "genre": genre,
         "language": language, "language_from": where,
+        "M12_undeclared_cjk": undeclared_cjk,
         "M13_quantity_conflicts": len(quantity_conflicts(body)),
         "M14_parallel_frames": len(m14 := m14_parallel_frames(raw)),
         "M14_detail": [f"{pre} \u00d7{n}" for pre, n in m14][:8],
@@ -931,7 +946,8 @@ def grade(r):
         # M12 first: a document in the wrong language is not a document whose
         # sentence rhythm is worth discussing.
         ("M12_visible_cjk", r["M12_visible_cjk"], "=0 (gates)",
-         not r["M12_visible_cjk"], r["M12_visible_cjk"] is None),
+         not r["M12_visible_cjk"],
+         r["M12_visible_cjk"] is None and not r["M12_undeclared_cjk"]),
         ("M4_banned_hits", r["M4_banned_hits"], "=0 (gates)",
          r["M4_banned_hits"] == 0, False),
         # Reported, never gating: a quantity legitimately changes, and a gate
@@ -1004,8 +1020,18 @@ def grade(r):
          (r["M11_title_uniformity"] or 0) <= 60.0,
          r["M11_title_uniformity"] is None or r["titles"] < MIN_TITLES),
     ]
-    return [(name, value, target, "n/a" if skip else ("ok" if good else "FAIL"))
-            for name, value, target, good, skip in rows]
+    out = []
+    for name, value, target, good, skip in rows:
+        if name == "M12_visible_cjk" and r.get("M12_undeclared_cjk"):
+            # BLIND, which is neither a pass nor a silence: the document
+            # carries Chinese a reader can see and does not say which language
+            # it is, so the gate has nothing to decide against. Deleting one
+            # attribute used to turn this row from FAIL into `n/a`.
+            out.append((name, value, target, "blind"))
+            continue
+        out.append((name, value, target,
+                    "n/a" if skip else ("ok" if good else "FAIL")))
+    return out
 
 
 def main(argv):
@@ -1054,7 +1080,7 @@ def main(argv):
         r["targets"] = {n: t for n, _, t, _ in rows}
         failed += sum(1 for _, _, _, v in rows if v == "FAIL")
         gated += sum(1 for _, _, t, v in rows
-                     if v == "FAIL" and "(gates)" in (t or ""))
+                     if v in ("FAIL", "blind") and "(gates)" in (t or ""))
         reports.append(r)
         if args.json:
             continue
@@ -1063,7 +1089,12 @@ def main(argv):
               f"{r['enumerations']} lists, genre={r['genre']})")
         for name_, value, target, verdict in rows:
             note = ""
-            if verdict == "n/a":
+            if verdict == "blind":
+                note = ("  (carries Chinese a reader can see and declares no "
+                        "language — declare it with a `lang` attribute, a "
+                        "language tag in the filename, or --lang. An undeclared "
+                        "document is not an exempt one)")
+            elif verdict == "n/a":
                 # Each n/a states ITS OWN reason. One `else` served every metric,
                 # so M12 came back "too little data: 160 sentences" on a document
                 # it had skipped for declaring Chinese — a true verdict under a
@@ -1081,6 +1112,16 @@ def main(argv):
                         else ("  (no percentage or currency figure here; bare "
                               "counts are outside this metric's window)")
                         if name_ == "M2_number_sourcing" and not r["figures"]
+                        # THE CHINESE PAIR, and the third time this exact
+                        # failure has been found in this printer. They come
+                        # back "too little data: 149 sentences" on a document
+                        # with 149 sentences; the true reason is that the
+                        # document is not Chinese, and `evals/gates.json` has
+                        # said so in `na_means` since the register shipped.
+                        else (f"  (this document declares "
+                              f"{r['language'] or 'no language'}, and this "
+                              f"metric reads Chinese output only)")
+                        if name_ in ("M4zh_banned_hits", "M5_zh_punctuation")
                         else f"  (too little data: {r['sentences']} sentences, "
                              f"{r['titles']} titles)")
             print(f"  {verdict:<4}  {name_:<22} {str(value):<8} target {target}{note}")
