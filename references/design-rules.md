@@ -657,16 +657,21 @@ belonging to it, and a reader has to work out which.
 
 The names are a ROLE, and the role has to be declared. A checker measuring
 geometry cannot tell an axis name from a data label printed on its own mark —
-both are text inside a drawing, and only one of them is a defect. `figure_axis`
-gates a figure that declares the classes; a figure that scales numbers and names
-no axis is reported, because "the author did not say" is a different finding
-from "the author said and got it wrong".
+both are text inside a drawing, and only one of them is a defect. Three verdicts
+carry this, and **all three gate**: `figure_axis_named` on a figure that puts
+numbers on a scale and names no axis, `figure_axis_overlap` on a name lying
+across the plot it names, and `figure_axis_orientation` on one set the wrong way
+round. The last two are blind until some figure declares the classes, because
+"the author said and got it wrong" is the only thing geometry can see.
 
-`inspect_layout.py` reports `figure_axes` and does not gate on it. Measured
+What is REPORTED and never gated is a different measurement with a similar name:
+the `figure axes:` line, which counts figures that put numbers on a scale and
+draw **no baseline** for it. That is a property of the drawing rather than of a
+declared role, so no verdict carries it and nothing keys on it. Measured
 2026-08-22 on the documents on record: the accepted reference draws no baseline
 on two of its nine scaled figures and an accepted intro deck on one of its four,
 while three other documents carry no figure that scales numbers at all. **The
-accepted document fails this, which is why it reports** — a rule the reference
+accepted document fails this, which is why it only reports** — a rule the reference
 breaks is either a rule the reference should have followed or a bar nobody has
 earned the right to set, and one document cannot tell those apart (CLAUDE.md
 convention 6; 0.1.339's withdrawn fill floor is the standing lesson).

@@ -1,3 +1,50 @@
+## 0.1.567 — a rule told an author a check would not fail them, and it would
+
+**Asking the layout family the same question 0.1.566 asked the prose family.**
+The 27 layout verdicts have no enumerated list in prose — `CLAUDE.md` already
+names `deliverable_verdicts` as the authority, which is convention 13's
+preferred outcome — so there was nothing to hold to a set. What prose does do is
+name individual verdicts, and a name that no verdict carries is decidable.
+
+Scanning for it found three things in one section of `references/design-rules.md`:
+
+- **`figure_axis`** — an abbreviation of a family. The verdicts are
+  `figure_axis_named`, `figure_axis_overlap` and `figure_axis_orientation`, and
+  a reader looking up the abbreviation finds nothing.
+- **`figure_axes`** — given a verdict-shaped name in backticks, when it is a
+  printed observation line that no verdict carries and nothing keys on.
+- **And the consequence of confusing those two**: the section said "a figure
+  that scales numbers and names no axis is reported". `figure_axis_named` GATES
+  exactly that case. The rule told an author the check would not fail them,
+  three paragraphs below an owner ruling taken knowing that it does — and the
+  accepted reference fails it on 10 of its 10 scaled figures. What is reported
+  is a different measurement: a figure that draws no BASELINE for a scale, which
+  is a property of the drawing rather than of a declared role.
+
+The section is rewritten to the code: three verdicts, all gating, two of them
+blind until a figure declares the classes, and the report line named as a report
+line.
+
+**The guard is narrow on purpose.** It reads a backticked identifier only when
+its FIRST WORD is one a layout verdict already owns — the shape an abbreviation
+or a half-remembered name takes. Reading every snake_case identifier would flag
+functions, probe fields and CSS names, which is a guard that rewrites prose to
+match itself; this repository has that failure on record. Waivers exist for the
+deliberate illustration, as `SCRIPT_PATH_WAIVERS` does, and CHANGELOG entries
+and specs are frozen history: an entry names the verdict that existed when it
+was written.
+
+Planted red on the real file before either fix, green after, seven
+synthetic-tree tests including the frozen-history and waiver paths.
+
+The design record for this phase is
+`specs/2026-08-23-gate-consolidation-design.md`, written now rather than
+backdated: it carries what the measurements DISPROVED as well as what they
+confirmed — the planned 49-to-30 merge would have deleted assertions, because
+the families that look redundant discriminate on the fixtures — so that a later
+session reads the reason before re-proposing it. Phases D, E and F, and the four
+prerequisites that must land before any file moves, are recorded there.
+
 ## 0.1.566 — the gate that fails a Chinese deck was missing from the table that teaches the gates
 
 **The prose metrics had no prose guard, and both of their claim sites were wrong

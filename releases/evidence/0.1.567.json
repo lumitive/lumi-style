@@ -1,0 +1,18 @@
+{
+  "version": "0.1.567",
+  "diff_base": "0c3541c69cd553712073392abcba3c6ae75518cf",
+  "spec": "specs/2026-08-23-gate-consolidation-design.md",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "98a4c92a7892ab98f18df40bb5f0364b93177062ace79845f990cda5ad78640c",
+      "date": "2026-08-23"
+    }
+  ],
+  "waivers": []
+}

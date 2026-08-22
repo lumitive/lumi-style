@@ -174,7 +174,7 @@ different ways.
 | DELTA_E_FLOOR | `20.0` | adjacent regions, CIEDE2000 — a FLOOR | (not searched: too short) |
 | LABEL_CONTRAST_FLOOR | `4.5` | a FLOOR, the repository's existing text floor | design-rules.md, eval-rubric.md, page-contracts.md |
 | STROKE_L_OFFSET | `0.20` | darker on the light canvas, lighter on the dark | CODE ONLY |
-| PROXIMITY_KM | `1500` |  | design-rules.md |
+| PROXIMITY_KM | `1500` |  | design-rules.md, page-contracts.md |
 | EARTH_KM | `6371.0` |  | CODE ONLY |
 
 ### assets/globe/globe.js
