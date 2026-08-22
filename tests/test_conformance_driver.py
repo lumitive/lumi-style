@@ -12,6 +12,7 @@ hangs, or exits non-zero, or is not on PATH at all.
 """
 import ast
 import json
+import pathlib
 import sys
 import time
 
@@ -1008,3 +1009,28 @@ def test_an_effort_level_that_is_not_a_level_stops_the_run(tmp_path, monkeypatch
         rc.main(["run", "--drive", "--run", str(tmp_path / "r"),
                  "--effort", "a0=enormous"])
     assert "not one of" in str(exc.value)
+
+
+def test_the_effort_vocabulary_has_exactly_one_definition():
+    """It had two, and they drifted in one release.
+
+    0.1.554 widened the harness to `xhigh` and `max` and left
+    `trace_schema.ENUMS["effort"]` at three, so a run could be DRIVEN at xhigh
+    and could not be RECORDED at it: on 2026-08-22 the only agent that passed
+    all three conformance tasks tried to close its trace with `--effort xhigh`,
+    argparse rejected the value, and the run contributed no row to the cost
+    board it was driven to fill.
+
+    Asserting the values would be a third copy. What this asserts is that the
+    harness reads the schema's tuple rather than owning one — the property that
+    makes the drift impossible instead of checked.
+    """
+    import trace_schema
+    source = pathlib.Path(rc.__file__).read_text(encoding="utf-8")
+    assert 'trace_schema.ENUMS["effort"]' in source, (
+        "run_conformance names its own effort levels again; import them")
+    assert '"low", "medium", "high"' not in source, (
+        "a literal effort tuple is back in run_conformance")
+    # And the shared tuple actually covers what the CLIs accept.
+    for level in ("xhigh", "max"):
+        assert level in trace_schema.ENUMS["effort"], level

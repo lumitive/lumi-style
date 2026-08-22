@@ -1,3 +1,47 @@
+## 0.1.558 — the effort levels had two definitions, and the run that passed everything left no row on the cost board
+
+**Found by reading the driver log of the round that closed 0.1.557, and it is a
+sweep this branch itself failed to finish.** 0.1.554 widened `--effort` from
+`low|medium|high` to include `xhigh` and `max`, because Cursor spells its top
+level `xhigh` inside its model id and the harness could not express it. That
+edit did not reach `scripts/lib/trace_schema.py`, which owned the same tuple —
+so a run could be **driven** at xhigh and could not be **recorded** at it.
+
+The cost is measured rather than hypothetical. On 2026-08-22 Cursor was the only
+agent to pass all three conformance tasks; `trace.py close --effort xhigh` was
+rejected by argparse, which printed its usage and exited, and the driver logged
+`trace … could not close`. The trace stayed open, so `ledger.py --board` — the
+model × effort matrix those runs exist to fill — has no xhigh row from the run
+that earned one. The board still shows `cursor-grok-4.6-high`, from an older
+round.
+
+**The fix is not a parity guard.** `run_conformance` now imports
+`trace_schema.ENUMS["effort"]` instead of naming the levels itself, which is
+what that file's own comment already says about the genre vocabulary — *"sharing
+the tuple makes the drift impossible instead of checked"*. The test asserts the
+property (the harness reads the schema's tuple, and no literal tuple has grown
+back) rather than the values, because asserting the values would be a third
+copy of them.
+
+The levels are the CLIs' and not this repository's: `claude --effort` documents
+low|medium|high|xhigh|max, and `hermes --reasoning` adds none, minimal and ultra
+beyond those. The schema carries the five every driven CLI shares.
+
+**And writing that down broke a test, which was right to break.**
+`test_cli_contracts` decides which scripts owe a `--help` by asking whether the
+file contains the string `argparse` — so the comment above, which explains that
+*argparse* rejected the value, conscripted `scripts/lib/trace_schema.py` into the
+list of operator CLIs and failed it for printing no help it was never meant to
+print. The rule now keys on `^import argparse`, which is what it always meant:
+a file that wires one up, not one that mentions the name. Same list of 43
+scripts, minus the data module. Convention 15 again, this time in a test's own
+discovery rule — a pattern keyed on a shape, meeting material it had not been
+shown.
+
+**Deliberate red, planted first.** Putting a literal tuple back in
+`run_conformance` fails the new test; narrowing the schema's tuple removes
+`xhigh` from `trace.py close --help` — the exact shape of the original defect.
+
 ## 0.1.557 — where the shared parts of a page are decided, and a horse race that can finally pin three models at once
 
 **The owner asked the question this release answers: for the parts every page

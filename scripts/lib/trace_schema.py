@@ -47,10 +47,23 @@ ENUMS = {
     "genre": GENRES,
     "entry_path": ("A", "B"),
     # The reasoning tier a build ran at. Closed, because K1's model matrix is
-    # two model tiers by THREE effort levels and a free-string column cannot be
-    # grouped. `model` deliberately stays free text one line up: model names
-    # rot, and an enum of them is a maintenance tax with no defect behind it.
-    "effort": ("low", "medium", "high"),
+    # model tiers by effort levels and a free-string column cannot be grouped.
+    # `model` deliberately stays free text one line up: model names rot, and an
+    # enum of them is a maintenance tax with no defect behind it.
+    #
+    # **The levels are the CLIs', not this repository's, and they grew.**
+    # `claude --effort` documents low|medium|high|xhigh|max; Cursor spells its
+    # top level `xhigh` inside the model id; `hermes --reasoning` adds none,
+    # minimal and ultra beyond these. 0.1.554 widened the harness to match and
+    # did not sweep here, so this tuple stayed three long — and the cost of
+    # that is measured: on 2026-08-22 the only agent that passed all three
+    # conformance tasks tried to close its trace with `--effort xhigh`,
+    # argparse rejected the value, and the run contributed no row to the cost
+    # board it was driven to fill. This is the ONE definition; `run_conformance`
+    # imports it rather than retyping it, on the reasoning the `genre` note
+    # above gives — a shared tuple makes the drift impossible instead of
+    # checked.
+    "effort": ("low", "medium", "high", "xhigh", "max"),
     "stage": ("discussion", "outline", "build", "checks"),
     # Every stage a composition maps to, plus the ones that belong to no
     # composition. Derived, so a new composition cannot become untraceable.
