@@ -3541,7 +3541,7 @@
    "gist": "Bind the em-dash ban on training material exactly as on sales material.",
    "page_kind": "all",
    "metric": "M9",
-   "gates": false,
+   "gates": true,
    "why_unchecked": null
   },
   {
@@ -4429,7 +4429,7 @@
    "gist": "In Chinese output, use none of the banned AI-tell phrases on the zh list.",
    "page_kind": "all",
    "metric": "M4",
-   "gates": false,
+   "gates": true,
    "why_unchecked": null
   },
   {
@@ -4439,7 +4439,7 @@
    "gist": "Use the fixed industry collocations only for the 'empower' verb the zh ban list restricts; the quoted line names them.",
    "page_kind": "all",
    "metric": "M4",
-   "gates": false,
+   "gates": true,
    "why_unchecked": null
   },
   {
@@ -4449,7 +4449,7 @@
    "gist": "In English output, use none of the phrases on the banned AI-tell list.",
    "page_kind": "all",
    "metric": "M4",
-   "gates": false,
+   "gates": true,
    "why_unchecked": null
   },
   {
@@ -4459,7 +4459,7 @@
    "gist": "Quote a banned phrase only inside figure ink, never in HTML prose.",
    "page_kind": "all",
    "metric": "M4",
-   "gates": false,
+   "gates": true,
    "why_unchecked": null
   },
   {
@@ -4469,7 +4469,7 @@
    "gist": "Use full-width punctuation in Simplified-Chinese body text; half-width stays in code, URLs, emails, version strings, filenames and pure English runs.",
    "page_kind": "all",
    "metric": "M5",
-   "gates": false,
+   "gates": true,
    "why_unchecked": null
   },
   {
@@ -4519,7 +4519,7 @@
    "gist": "Trace a range figure to a single source in its own block, or drop it.",
    "page_kind": "all",
    "metric": "M6",
-   "gates": false,
+   "gates": true,
    "why_unchecked": null
   },
   {
@@ -4579,7 +4579,7 @@
    "gist": "Do not treat a dashed pair that is an enumeration label rather than a data range as a range figure.",
    "page_kind": "all",
    "metric": "M6",
-   "gates": false,
+   "gates": true,
    "why_unchecked": null
   },
   {
@@ -4589,7 +4589,7 @@
    "gist": "Decide range-versus-label by what the numbers do, not by sentence length.",
    "page_kind": "all",
    "metric": "M6",
-   "gates": false,
+   "gates": true,
    "why_unchecked": null
   },
   {
@@ -4679,7 +4679,7 @@
    "gist": "Replace copula avoidance (serves as / stands as / boasts / features) with is / are / has.",
    "page_kind": "all",
    "metric": "M4",
-   "gates": false,
+   "gates": true,
    "why_unchecked": null
   },
   {
@@ -4699,7 +4699,7 @@
    "gist": "Delete filler phrases losslessly.",
    "page_kind": "all",
    "metric": "M4",
-   "gates": false,
+   "gates": true,
    "why_unchecked": null
   },
   {
@@ -4729,7 +4729,7 @@
    "gist": "Use no em dashes or en dashes in sales, marketing, consulting or training deliverables; internal analysis alone is exempt.",
    "page_kind": "all",
    "metric": "M9",
-   "gates": false,
+   "gates": true,
    "why_unchecked": null
   },
   {
@@ -4739,7 +4739,7 @@
    "gist": "Exempt a digit-to-digit range from the dash ban, but write a letter-digit span as \"C1 to C8\".",
    "page_kind": "all",
    "metric": "M9",
-   "gates": false,
+   "gates": true,
    "why_unchecked": null
   },
   {

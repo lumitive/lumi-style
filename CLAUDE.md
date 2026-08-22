@@ -136,7 +136,12 @@ pre-delivery step in `SKILL.md`.
 including the part-opener count, which is an observation and not a floor. `check_prose.py` grades either output
 language — it reads the document's own `lang`, takes `--lang` to override, and
 runs the Chinese ban list and punctuation rules on a Chinese document; **M12 is
-what fails an English deliverable carrying Chinese a reader can see.** It takes
+what fails an English deliverable carrying Chinese a reader can see.** Since
+0.1.559 it exits the way `check_design.py` does — **a prose row fails the run if
+and only if its target is zero and it does not say `(reported)`** (GAP-029, and
+`grade`'s docstring is the authority). A target of zero is a line the document
+either crosses or does not; a target that is a share is a direction, and an
+author optimizes toward any number you give them. It takes
 `--genre {sales,internal,training}`; internal analysis
 is exempt from the em-dash rule and training binds like sales. `check_design.py` reads a document's own token block, so
 most of it grades a file against the palette that file actually declares rather
