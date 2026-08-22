@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.551 (2026-08-19)
+   LUMI page layouts · v0.1.552 (2026-08-19)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -1071,20 +1071,16 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
   flex-direction: column; gap: 3px; max-width: 46ch;
   font-family: var(--mono); font-size: var(--fs-fine); color: var(--tx4); }
 .body.cover-grid > .attrs > div { display: flex; gap: 10px; }
-/* THE KEY IS SET IN THE FACE THIS PACKAGE ACTUALLY EMBEDS. It declared
-   `font-weight: 700` from the block above and computed to 700 — measured — and
-   an owner review still read it as not bold, twice (0.1.442 and 0.1.551). The
-   weight was never the problem: `--mono` names "IBM Plex Mono", "SF Mono",
-   Menlo and Consolas and this package embeds NONE of them, so on a machine
-   without one the key falls to a system mono and whatever that face calls 700,
-   which is often a synthesised bold. `--din` ships D-DIN Regular and Bold as
-   data URIs, so 700 is a real weight everywhere.
-   The key is a LABEL and the value is the data, so only the key moves; the
-   fixed `15ch` column that aligns the values is unaffected, `ch` being measured
-   in each element's own face. See GAP-027 for the rest of the mono surface. */
+/* The key stays in the mono voice it was designed for, and it is now genuinely
+   bold there. It declared `font-weight: 700` from the block above and computed
+   to 700 — measured — and an owner review still read it as not bold, twice
+   (0.1.442 and 0.1.551). The weight was never the problem: `--mono` named four
+   faces and this package embedded NONE of them, so the key fell to whatever
+   mono the reader's machine had and whatever THAT face called 700, often a
+   synthesised bold. IBM Plex Mono Regular and Bold ship as data URIs from
+   0.1.552, so 700 is a real weight everywhere. */
 .body.cover-grid > .attrs .k { min-width: 15ch; flex: none; letter-spacing: .08em;
-  text-transform: uppercase; font-weight: 700; color: var(--tx1);
-  font-family: var(--din); }
+  text-transform: uppercase; font-weight: 700; color: var(--tx1); }
 .body.cover-grid > .attrs .v { color: var(--tx3); white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis; }
 .body.cover-grid > .spec, .body.cover-grid > .colophon { grid-column: 1 / -1; }

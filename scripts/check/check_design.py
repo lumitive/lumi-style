@@ -1561,13 +1561,17 @@ def d36_font_family(raw):
                if "var(" not in m.group(1)]
     declared, unembedded = set(), set()
     for value in values:
-        for fam in value.split(","):
-            fam = fam.strip().strip('"\'').lower()
-            if not fam:
-                continue
-            declared.add(fam)
-            if fam not in embedded and fam not in GENERIC_FAMILIES:
-                unembedded.add(fam)
+        families = [f.strip().strip('"\'').lower() for f in value.split(",")]
+        families = [f for f in families if f]
+        declared |= set(families)
+        # ONLY THE FIRST. The rest of a stack is the FALLBACK, and naming faces
+        # you do not ship is what a fallback IS — "SF Mono, Menlo, Consolas"
+        # after an embedded primary is correct, not a finding. Reporting the
+        # whole stack flagged three fallbacks on a document that embeds
+        # everything it asks for.
+        if families and families[0] not in embedded \
+                and families[0] not in GENERIC_FAMILIES:
+            unembedded.add(families[0])
     return {"embedded": sorted(embedded), "declared": len(declared),
             "unembedded": sorted(unembedded)}
 

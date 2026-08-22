@@ -1,3 +1,43 @@
+## 0.1.552 — the data voice is embedded, and "not bold" turns out to have been "not there"
+
+**Owner authorisation, with a licence condition she set: the embedded face must
+be cleared for commercial use.** IBM Plex Mono is SIL OFL 1.1 — the same licence
+as D-DIN, which this package has shipped since v1.2 — and the OFL permits
+commercial use, embedding, bundling and redistribution, forbidding only the sale
+of the font on its own. Both licences now sit in `assets/fonts/COPYING.txt`, as
+the OFL requires.
+
+**What was actually broken.** `--mono` named four faces and this package shipped
+none of them. Every mono role in every deliverable — the cover and closing key
+column, figure captions, the footer, the colophon, the part-opener label —
+rendered in whatever mono the reader's machine happened to have, at whatever
+that face called weight 700, which on a synthesising fallback is not a weight at
+all. The owner read the key column as "not bold" at 0.1.442 and again at
+0.1.551; it measured 700 both times, and the CSS written in answer the first
+time was correct and could not help.
+
+**Vendored from the official package and subset here.** `@ibm/plex@6.4.0`, then
+`fontTools.subset` to the Latin ranges these roles use: **33.7 KB for the pair
+against 92 KB complete**, 254 codepoints, 340 glyphs. The range was chosen by
+measurement rather than habit — every character appearing in a mono role across
+the accepted reference in both languages and a conformance deck falls inside it,
+with zero misses — and the vendoring note says to widen it rather than accept a
+fallback if one ever turns up. Subsetting is a Modified Version under OFL
+clause 2 and is permitted; the Reserved Font Name is untouched and the files
+still identify themselves as IBM Plex Mono.
+
+**The cover key returns to the voice it was designed for.** 0.1.551 moved it to
+D-DIN because that was the only embedded face; the mono is embedded now, so the
+key is mono again and genuinely bold.
+
+**`D36_font_family` reads the PRIMARY face, not the stack.** Its first version
+reported "SF Mono, Menlo, Consolas" as unembedded on a document that embeds
+everything it asks for — but a fallback naming faces you do not ship is what a
+fallback IS. Only the first family in a stack must be embedded. A deck built
+from current tokens now reads 0; the accepted reference reads 1 and will until
+it is rebuilt, which is why the metric reports and does not gate. GAP-027 stays
+open on that rebuild.
+
 ## 0.1.551 — the collision gate could not see inside a drawing, and five rules the owner marked had no check
 
 **Nine screenshots, twelve markings, and the register named almost all of them
