@@ -1,3 +1,45 @@
+## 0.1.569 — 440 lines under one heading with no way in, and what the length guideline is actually asking for
+
+**The skill-creator audit the owner asked for, done against the installed
+validator rather than from memory.** `quick_validate.py` passes: every
+frontmatter key is allowed, the name is legal, the description is 361 characters
+against a 1024 limit, `compatibility` is 186 against 500. One PROSE guideline is
+exceeded — 594 lines against a suggested 500 — and the specific complaint was
+navigational rather than volumetric: **`## Workflow` held 440 of those 594 lines
+under a single H2 with not one H3 inside it.** Seven numbered steps, one of them
+177 lines long, and no way to reach any of them.
+
+The seven steps are H3 headings now, so the file has a table of contents, an
+anchor per step, and a seven-line pointer under `## Workflow` naming what each
+one is for. **The numbers stay** — comments in `debug_log.py` and dozens of
+release notes cite "SKILL.md step 1" and "step 3", so a step's number is its
+name. Verified word-for-word: the token stream before and after is identical
+apart from the seven added headings and the seven removed list markers.
+
+**What was NOT done, and why.** The obvious way to reach 500 lines is to move
+step 3's 177 lines of figure craft into `references/design-rules.md` and leave a
+pointer. **That exact change has already been made and already regressed.** Step
+3 records it: a reader compared a 3.4.0 deck against a 0.1.374 one and called
+the newer one less professional; measured, 24 drawn figures against 1, 410
+pieces of text inside SVGs against 8, and 14 of 14 figure titles stating a
+conclusion against 1 of 5. Every rule the weaker deck broke was already in §4.
+*The skill had not lost the craft; this step had stopped pointing at it.*
+
+So the file is 628 lines rather than 602, and the guideline is still not met.
+That is the honest outcome: the guideline's stated purpose is that an agent can
+find what it needs, the audit's own diagnosis was a missing level of hierarchy,
+and shortening the file by re-hiding the craft behind a pointer would trade a
+measured regression for a number.
+
+**Also recorded**: the Phase D footprint, measured rather than estimated.
+`assets/shapes/source/` is 207 vendored originals, **2.77 MB — 22% of the whole
+tracked repository — and a build input** that `recolor_shapes.py` reads and no
+deliverable does. It is the largest single item on the wrong side of the
+consumer boundary and it was not in the original estimate. The measured table is
+in `specs/2026-08-23-gate-consolidation-design.md`, together with the correction
+that matters more: a fresh clone is 8.28 MiB, so the case for splitting is that
+a consumer reads none of this, never that the clone is large.
+
 ## 0.1.568 — the board shipped the operator's username, and the ledger looked in a directory nobody wrote to
 
 Two defects that had to be fixed before the repository can be split in two, and
