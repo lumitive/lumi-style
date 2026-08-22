@@ -104,3 +104,33 @@ def join_cjk(text: str) -> str:
     `每个 Agent 都会` keeps both.
     """
     return _CJK_GAP_RE.sub("", text)
+
+# --- which page is the agenda ------------------------------------------------
+#
+# TWO READERS, TWO VOCABULARIES, and only one of them could read Chinese.
+# `check_design._is_agenda_page` matched the id case-insensitively OR any of
+# these words in the eyebrow; `inspect_layout`'s probe matched the id OR the
+# English word alone (`/agenda/i`). So a Chinese deck whose agenda page is
+# identified by a `议程` eyebrow was found by the design checker and missed by
+# the layout one, which then reported `deck_structure` FAIL — "this deck has
+# openers and no agenda" — about a deck that has one. Measured, not supposed.
+#
+# The words are rule DATA for Chinese output, which is what the English-only
+# red line permits; they are handed to the browser probe as JSON so the probe
+# string itself stays ASCII.
+AGENDA_WORDS = ("agenda", "议程", "目录")
+
+
+def is_agenda_page(pid: str, body: str) -> bool:
+    """Does this page announce itself as the agenda?
+
+    Case-insensitively on the id — `id="Agenda"` escaped the first version —
+    and on the eyebrow's whole text rather than its first 120 characters, in
+    either language.
+    """
+    if (pid or "").lower() == "agenda":
+        return True
+    m = re.search(r'class="(?:[^"]*\s)?eyebrow(?:\s[^"]*)?"[^>]*>(.*?)</',
+                  body or "", re.S | re.I)
+    text = (m.group(1) if m else "").lower()
+    return any(w in text for w in AGENDA_WORDS)

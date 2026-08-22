@@ -1931,23 +1931,11 @@ AGENDA_FORBIDDEN_ANYWHERE = tuple(b for b in VISUAL_BLOCKS if b != "launch")
 # are rule DATA for Chinese output, which the repository's English-only red line
 # permits. Without them a Chinese deck's agenda was not found at all, and a
 # not-found agenda scored as a pass.
-AGENDA_WORDS = ("agenda", "议程", "目录")
-
-
-def _is_agenda_page(pid: str, body: str) -> bool:
-    """Does this page announce itself as the agenda?
-
-    Case-insensitively on the id — `id="Agenda"` escaped the first version, and
-    worse, `inspect_layout`'s `isAgenda` lowercases, so the two checkers
-    disagreed about whether the deck had an agenda at all. And on the eyebrow's
-    whole text rather than its first 120 characters, in either language.
-    """
-    if pid.lower() == "agenda":
-        return True
-    m = re.search(r'class="(?:[^"]*\s)?eyebrow(?:\s[^"]*)?"[^>]*>(.*?)</',
-                  body, re.S | re.I)
-    text = (m.group(1) if m else "").lower()
-    return any(w in text for w in AGENDA_WORDS)
+# The agenda vocabulary and the recognition rule live in `scripts/lib/markup.py`
+# — two readers spelled it two ways and only one of them could read Chinese.
+# See that module for what the divergence cost.
+AGENDA_WORDS = markup.AGENDA_WORDS
+_is_agenda_page = markup.is_agenda_page
 
 
 def d35_agenda_exclusive(raw):
