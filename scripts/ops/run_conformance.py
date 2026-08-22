@@ -366,6 +366,39 @@ def environment_check(agent):
     return []
 
 
+def _per_agent(values, flag: str, known: set[str],
+               allowed: tuple[str, ...] | None = None) -> tuple[str | None, dict]:
+    """-> (the value for every agent, {agent id: its own value}).
+
+    `x` sets the default; `agent=x` sets one agent's. Both may appear.
+
+    A horse race pins a different model per CLI — `opus`, `cursor-grok-4.6`,
+    an Anthropic id through Hermes — and one global flag could not say that, so
+    three agents had to be driven in three invocations and the concurrency
+    added in 0.1.556 had nothing to do. Every id has to resolve, on the same
+    reasoning as `--agent`: a typo that silently pins nobody is the failure
+    mode `--effort` already produced once, reported as a level that was never
+    applied.
+    """
+    default: str | None = None
+    per: dict[str, str] = {}
+    for raw in values or []:
+        agent, sep, value = str(raw).partition("=")
+        if not sep:
+            agent, value = "", raw
+        if allowed and value not in allowed:
+            sys.exit(f"FAIL  {flag} {raw!r}: {value!r} is not one of "
+                     + "|".join(allowed))
+        if not agent:
+            default = value
+        elif agent not in known:
+            sys.exit(f"FAIL  {flag} {raw!r}: no platform in the registry with "
+                     f"id {agent!r}")
+        else:
+            per[agent] = value
+    return default, per
+
+
 def _artifact_roots(agent: dict) -> list[pathlib.Path]:
     """-> the places outside the working directory where a deliverable turns up.
 
@@ -1387,8 +1420,12 @@ def main(argv):
                     help="with run: actually invoke each agent, in a temporary "
                          "directory OUTSIDE this repository, instead of writing "
                          "a prompt for a person to invoke by hand")
-    ap.add_argument("--model", default=None,
+    ap.add_argument("--model", action="append", default=None, metavar="[AGENT=]ID",
                     help="with run --drive: pin the model and record which one. "
+                         "Repeatable, and `<agent>=<id>` pins one agent — a "
+                         "horse race between three CLIs has three different "
+                         "model ids and one global flag could not express it, "
+                         "which meant the agents had to be driven one at a time. "
                          "Left off, each CLI picks its own default and the run "
                          "records that it did — a comparison needs the pin, a "
                          "check of what a user actually gets does not")
@@ -1397,14 +1434,17 @@ def main(argv):
     # Cursor spells its top level `xhigh` inside the model id and has no `max`
     # for Grok 4.6 at all. Refusing them here meant the highest effort a
     # comparison could ask for was `high`, on every agent.
-    ap.add_argument("--effort",
-                    choices=("low", "medium", "high", "xhigh", "max"),
-                    default=None,
+    # Not `choices`: the value may be `<agent>=<level>` now, and argparse would
+    # reject that before anything could split it. `_per_agent` validates.
+    ap.add_argument("--effort", action="append", default=None,
+                    metavar="[AGENT=]LEVEL",
                     help="with run --drive: pin the reasoning effort through the "
                          "agent's `drive_effort_flag` and record it. This is the "
                          "second axis of the model×effort matrix (K1); an agent "
                          "whose registry record names no effort flag records "
-                         "the level as not pinned")
+                         "the level as not pinned. Repeatable as "
+                         "`<agent>=<level>`, and one of "
+                         "low|medium|high|xhigh|max")
     ap.add_argument("--budget", "--timeout", dest="budget", type=int,
                     default=DRIVE_BASE_BUDGET,
                     help=f"with run --drive: seconds one task gets outright "
@@ -1459,6 +1499,11 @@ def main(argv):
               f"Only `report` merges runs.")
         return 1
 
+    known_ids = {a["id"] for a in agents}
+    model_all, model_per = _per_agent(args.model, "--model", known_ids)
+    effort_all, effort_per = _per_agent(
+        args.effort, "--effort", known_ids,
+        ("low", "medium", "high", "xhigh", "max"))
     probed = {a["id"]: detect(a) for a in agents}
     if args.command == "detect":
         for a in agents:
@@ -1583,8 +1628,11 @@ def main(argv):
                                 "detail": blocked[0]}, indent=2) + "\n",
                     encoding="utf-8")
                 return
-            record = drive(a, t, wd, model=args.model, base=args.budget,
-                           effort=args.effort, hard_cap=args.hard_cap)
+            record = drive(a, t, wd,
+                           model=model_per.get(a["id"], model_all),
+                           base=args.budget,
+                           effort=effort_per.get(a["id"], effort_all),
+                           hard_cap=args.hard_cap)
             (wd / "driver.json").write_text(
                 json.dumps(record, indent=2) + "\n", encoding="utf-8")
             note = _conformance_trace(a, t, wd, record)

@@ -1086,6 +1086,55 @@ def check_role_weights():
     return errors
 
 
+def check_ground_ceiling():
+    """The ground's contrast ceiling, held to `tokens/` in every file that says it.
+
+    `--ground-ceiling` is the authority and the number lives in six other
+    places: `inspect_layout.GROUND_CEILING`, `tokens/lumi-layouts.css`'s comment,
+    `references/brand.md`, `references/design-rules.md`, and the two generated
+    pages. The register now records that TWO rules state it for every page and
+    neither knew about the other; this is the mechanical half of the same
+    finding, on the `role weights` pattern — a number in one file claiming to
+    quote another is this repository's most fixed defect class.
+
+    The generated pages are not read: they are rebuilt from their sources and
+    `--check` already holds them.
+    """
+    theme = (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")
+    m = re.search(r"--ground-ceiling:\s*([\d.]+)", theme)
+    if not m:
+        return ["tokens/lumi-theme.css declares no --ground-ceiling"]
+    want = m.group(1).rstrip(".")
+    errors = []
+    src = (ROOT / "scripts" / "check" / "inspect_layout.py").read_text(
+        encoding="utf-8")
+    code = re.search(r"^GROUND_CEILING\s*=\s*([\d.]+)", src, re.M)
+    if not code:
+        errors.append("inspect_layout.py declares no GROUND_CEILING")
+    elif float(code.group(1)) != float(want):
+        errors.append(f"tokens ships --ground-ceiling {want}; "
+                      f"inspect_layout.GROUND_CEILING is {code.group(1)}")
+    # WHAT THIS CHECKS AND WHAT IT DOES NOT. Each prose file must state the
+    # shipped number as a ratio; a change in `tokens/` therefore reddens every
+    # file that quotes it until somebody sweeps them, which is the failure this
+    # guard exists for (`1.40` is written in six places and nothing joined
+    # them).
+    #
+    # It deliberately does NOT try to prove no other ratio appears. The first
+    # version did, by reading ratios off any line mentioning "ground", and it
+    # failed on `brand.md:193` — "5.21:1 on white, 3.23:1 on the dark ground",
+    # two contrast figures for the LIME, on a line that happens to say ground —
+    # while missing `design-rules.md:1461`, where the word "Ground" is on the
+    # line above the number. One grep at the real material, per convention 15.
+    for rel in ("references/brand.md", "references/design-rules.md",
+                "tokens/lumi-layouts.css"):
+        text = (ROOT / rel).read_text(encoding="utf-8")
+        if f"{want}:1" not in text:
+            errors.append(f"{rel} does not state the ground ceiling as "
+                          f"{want}:1; tokens/lumi-theme.css ships {want}")
+    return errors
+
+
 def check_probe_vocabulary():
     """A probe that keys on a class name is asserting a vocabulary; ship it.
 
@@ -3557,6 +3606,7 @@ CHECKS = (
     ("region coverage", check_region_coverage),
     ("probe vocabulary", check_probe_vocabulary),
     ("role weights", check_role_weights),
+    ("ground ceiling", check_ground_ceiling),
     ("media-only rules", check_media_only_rules),
     ("layout parity", check_layout_parity),
     ("ban-list parity", check_ban_list_parity),

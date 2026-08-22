@@ -578,6 +578,7 @@
    "quote": "**medium** on the part openers (`--ground-mid`)",
    "gist": "Set the ground density by page class: strong on cover and closing, mid on part openers, faint on body pages.",
    "page_kind": "all",
+   "covers": "ground.tier",
    "metric": null,
    "gates": false,
    "why_unchecked": "no metric measures this; a candidate has not been assessed"
@@ -598,6 +599,7 @@
    "quote": "It may never exceed **1.40:1** against its canvas",
    "gist": "Keep the ground's rendered contrast against its canvas at or below 1.40:1.",
    "page_kind": "all",
+   "covers": "ground.contrast-ceiling",
    "metric": null,
    "gates": false,
    "why_unchecked": "no metric measures this; a candidate has not been assessed"
@@ -998,6 +1000,7 @@
    "quote": "renders in `--seal-t`, the seal that stays",
    "gist": "Render the footer's handling shield marker in --seal-t.",
    "page_kind": "all",
+   "covers": "footer.marker-colour",
    "metric": null,
    "gates": false,
    "why_unchecked": "no metric measures this; a candidate has not been assessed"
@@ -1008,6 +1011,8 @@
    "quote": "on the lime opener the marker inverts with the rest of the",
    "gist": "Invert the footer's handling marker with the rest of the footer on a lime opener.",
    "page_kind": "opener",
+   "covers": "footer.marker-colour",
+   "overrides": "RC-100",
    "metric": null,
    "gates": false,
    "why_unchecked": "no metric measures this; a candidate has not been assessed"
@@ -1628,6 +1633,8 @@
    "quote": "the only hard limit is two lines at the design viewport",
    "gist": "Keep a headline within two lines at the design viewport.",
    "page_kind": "content",
+   "covers": "title.max-lines",
+   "overrides": "RC-293",
    "metric": "title_two_lines",
    "gates": true,
    "why_unchecked": null
@@ -2718,6 +2725,8 @@
    "quote": "the lime opener the marker inverts with the rest of the footer",
    "gist": "Invert the handling marker with the rest of the footer on the lime opener.",
    "page_kind": "opener",
+   "covers": "footer.marker-colour",
+   "overrides": "RC-100",
    "metric": null,
    "gates": false,
    "why_unchecked": "no metric measures this; a candidate has not been assessed"
@@ -2928,6 +2937,7 @@
    "quote": "One title line is the goal; two is the ceiling",
    "gist": "Keep a title to one line where it fits and never past two.",
    "page_kind": "all",
+   "covers": "title.max-lines",
    "metric": "title_two_lines",
    "gates": true,
    "why_unchecked": null
@@ -3288,6 +3298,8 @@
    "quote": "require it under 1.40:1 against the canvas",
    "gist": "Keep the rendered ground under 1.40:1 against the canvas.",
    "page_kind": "all",
+   "covers": "ground.contrast-ceiling",
+   "overrides": "RC-060",
    "metric": null,
    "gates": false,
    "why_unchecked": "no metric measures this; a candidate has not been assessed"
@@ -3648,6 +3660,8 @@
    "quote": "The energy comes from weight and the lime chip",
    "gist": "Take the agenda's energy from weight and the lime chip, never a louder ground.",
    "page_kind": "agenda",
+   "covers": "ground.tier",
+   "overrides": "RC-058",
    "metric": null,
    "gates": false,
    "why_unchecked": "no metric measures this; a candidate has not been assessed"
@@ -4168,9 +4182,11 @@
    "quote": "keeps its handling marker, inverted with the field",
    "gist": "Keep the footer's handling marker on an opener, inverted with the field.",
    "page_kind": "opener",
-   "metric": "D12",
-   "gates": true,
-   "why_unchecked": null
+   "covers": "footer.marker-colour",
+   "overrides": "RC-100",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "D12 was cited and does not check this: d12_commercial_footer scans the footer's TEXT for handling words and a domain, and reads neither the marker, its icon, nor its colour. Nothing measures the inversion."
   },
   {
    "id": "RC-418",
@@ -4178,6 +4194,8 @@
    "quote": "The ground runs at its medium tier",
    "gist": "Run the opener ground at its medium tier.",
    "page_kind": "opener",
+   "covers": "ground.tier",
+   "overrides": "RC-058",
    "metric": null,
    "gates": false,
    "why_unchecked": "no metric measures this; a candidate has not been assessed"
@@ -4218,6 +4236,8 @@
    "quote": "Length follows the fact; **there is no word",
    "gist": "Set no word ceiling on a title; the only limit is the two-line budget.",
    "page_kind": "all",
+   "covers": "title.max-lines",
+   "overrides": "RC-293",
    "metric": "title_two_lines",
    "gates": true,
    "why_unchecked": null

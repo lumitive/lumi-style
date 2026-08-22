@@ -118,13 +118,22 @@ def render() -> str:
             continue
         unchecked = sum(1 for r in picked if not r.get("metric"))
         out += [f"{len(picked)} rules, {unchecked} of them unchecked.", "",
-                "| Rule | Where it is written | Metric | Gates |",
-                "| --- | --- | --- | --- |"]
+                "| Rule | Where it is written | Property | Metric | Gates |",
+                "| --- | --- | --- | --- | --- |"]
         for r in picked:
             metric = r.get("metric") or "—"
             gates = "yes" if r.get("gates") else "no"
+            # A PER-KIND RULE THAT TOUCHES A SHARED PROPERTY SAYS SO HERE. The
+            # ground's tier and the footer's marker are decided for every page
+            # and then restated for openers; a contracts page that showed only
+            # the per-kind sentence let a reader think it was the whole story.
+            prop = (r.get("covers") or "").strip()
+            against = (r.get("overrides") or "").strip()
+            cell = (f"`{prop}`" + (f" ← `{against}`" if against else "")
+                    if prop else "—")
             out.append(f"| {_cell(r.get('gist', ''))} "
-                       f"| `{r.get('source', '')}` | `{metric}` | {gates} |")
+                       f"| `{r.get('source', '')}` | {cell} | `{metric}` "
+                       f"| {gates} |")
         out.append("")
     return "\n".join(out).rstrip("\n") + "\n"
 

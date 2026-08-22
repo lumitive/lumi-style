@@ -361,5 +361,45 @@
     },
     "scores_sha256": "5415a39e66425b6509d5ec00b4055a70ab8a96c94ca6e826b036acd57d55153b",
     "instrument_version": "0.1.541"
+  },
+  {
+    "skill_version": "0.1.557",
+    "agent": "claude-code",
+    "date": "2026-08-22",
+    "run_dir": "/Users/he123/Documents/LUMI-Style/_conformance/r16-pinned",
+    "tasks": {
+      "T1-deck": "not earned",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "3e319f1ab6e6ad8e9639de799f80518db7df49a7b3ade1d583de590ad89fd987",
+    "instrument_version": "0.1.557"
+  },
+  {
+    "skill_version": "0.1.557",
+    "agent": "cursor",
+    "date": "2026-08-22",
+    "run_dir": "/Users/he123/Documents/LUMI-Style/_conformance/r16-pinned",
+    "tasks": {
+      "T1-deck": "pass",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "3e319f1ab6e6ad8e9639de799f80518db7df49a7b3ade1d583de590ad89fd987",
+    "instrument_version": "0.1.557",
+    "built": {
+      "T1-deck": "0.1.557"
+    }
+  },
+  {
+    "skill_version": "0.1.557",
+    "agent": "hermes",
+    "date": "2026-08-22",
+    "run_dir": "/Users/he123/Documents/LUMI-Style/_conformance/r16-pinned",
+    "tasks": {
+      "T1-deck": "not earned"
+    },
+    "scores_sha256": "3e319f1ab6e6ad8e9639de799f80518db7df49a7b3ade1d583de590ad89fd987",
+    "instrument_version": "0.1.557"
   }
 ]

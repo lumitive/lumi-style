@@ -341,3 +341,48 @@ def test_english_only_leaves_an_allowlisted_manifest_alone(tmp_path, monkeypatch
                             '{"regions":[{"n":"North America","z":"\\u5317\\u7f8e"}]}'})
     monkeypatch.setattr(check_repo, "ROOT", root)
     assert check_repo.check_english_only() == []
+
+
+# --- the ground's contrast ceiling, held to tokens/ --------------------------
+#
+# 1.40 is written in six places and nothing joined them. The register now
+# records that two rules state it for every page and neither knew about the
+# other; this is the mechanical half of the same finding.
+
+def _ground_tree(tmp_path, *, shipped="1.40", code="1.40", brand="1.40:1",
+                 rules="1.40:1", layouts="1.40:1"):
+    return _repo(tmp_path, {
+        "tokens/lumi-theme.css": f"  --ground-ceiling: {shipped};\n",
+        "scripts/check/inspect_layout.py": f"GROUND_CEILING = {code}\n",
+        "references/brand.md": f"It may never exceed **{brand}** against its canvas\n",
+        "references/design-rules.md": f"require it under {rules} against the canvas\n",
+        "tokens/lumi-layouts.css": f"it never exceeds --ground-ceiling ({layouts})\n"})
+
+
+def test_ground_ceiling_agreeing_everywhere_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _ground_tree(tmp_path))
+    assert check_repo.check_ground_ceiling() == []
+
+
+def test_ground_ceiling_drifting_in_the_checker_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _ground_tree(tmp_path, code="1.55"))
+    errors = check_repo.check_ground_ceiling()
+    assert len(errors) == 1 and "1.55" in errors[0]
+
+
+def test_ground_ceiling_drifting_in_the_prose_fails(tmp_path, monkeypatch):
+    # The measured case: the value moves in tokens/ and a prose copy keeps the
+    # old number, which is this repository's most fixed defect class.
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _ground_tree(tmp_path, shipped="1.35", code="1.35"))
+    errors = check_repo.check_ground_ceiling()
+    assert len(errors) == 3, errors
+    assert all("1.35" in e for e in errors)
+
+
+def test_ground_ceiling_with_no_token_is_a_finding_not_a_pass(tmp_path,
+                                                              monkeypatch):
+    tree = _ground_tree(tmp_path)
+    (tree / "tokens" / "lumi-theme.css").write_text("  --ink: #000;\n")
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    assert "no --ground-ceiling" in check_repo.check_ground_ceiling()[0]

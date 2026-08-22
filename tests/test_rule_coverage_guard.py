@@ -229,3 +229,72 @@ def test_the_registers_cjk_exemption_covers_quotes_and_nothing_else(tmp_path,
     monkeypatch.setattr(check_repo, "_json_manifests", lambda: [other])
     elsewhere = check_repo.check_english_only()
     assert elsewhere and "some-other-manifest.json" in elsewhere[0]
+
+
+# --- the fifth check: one property, one place it is decided -----------------
+#
+# The owner asked where the design, the Inspector and the Evals live for the
+# parts every page kind SHARES. The register could not answer, because nothing
+# in it said which rules talk about the same thing — and three real collisions
+# were sitting in it: the ground's tier stated for all pages and again for
+# openers, the footer marker's colour stated once generally and three times for
+# openers, and a title rule written for every page citing a gate that measures
+# content pages only.
+
+def _pair(covers, second_kind="opener", overrides=None):
+    rules = [dict(GOOD[0], id="R-1", page_kind="all", covers=covers),
+             dict(GOOD[1], id="R-2", page_kind=second_kind, covers=covers)]
+    if overrides:
+        rules[1]["overrides"] = overrides
+    return rules
+
+
+def test_two_statements_of_one_property_with_no_owner_is_a_finding(
+        tmp_path, monkeypatch):
+    findings, _ = _audit(monkeypatch, tmp_path, _pair("ground.tier"))
+    assert any("ground.tier" in f and "authority" in f for f in findings), findings
+
+
+def test_naming_the_entry_it_is_written_against_closes_it(tmp_path, monkeypatch):
+    findings, counts = _audit(monkeypatch, tmp_path,
+                              _pair("ground.tier", overrides="R-1"))
+    assert not [f for f in findings if "ground.tier" in f], findings
+    assert counts["properties"] == 1
+
+
+def test_an_override_naming_an_entry_outside_the_property_is_a_finding(
+        tmp_path, monkeypatch):
+    findings, _ = _audit(monkeypatch, tmp_path,
+                         _pair("ground.tier", overrides="R-9"))
+    assert any("does not cover" in f for f in findings), findings
+
+
+def test_an_entry_that_overrides_itself_is_a_finding(tmp_path, monkeypatch):
+    findings, _ = _audit(monkeypatch, tmp_path,
+                         _pair("ground.tier", overrides="R-2"))
+    assert any("overrides itself" in f for f in findings), findings
+
+
+def test_a_cycle_leaves_nobody_deciding_the_value(tmp_path, monkeypatch):
+    rules = _pair("ground.tier", overrides="R-1")
+    rules[0]["overrides"] = "R-2"
+    findings, _ = _audit(monkeypatch, tmp_path, rules)
+    assert any("cycle" in f for f in findings), findings
+
+
+def test_two_general_statements_of_one_property_are_caught_too(tmp_path,
+                                                               monkeypatch):
+    # 1.40 is written in six places and nothing joined them. Two `all` rules
+    # for one property is the same shape as the all/per-kind case.
+    findings, _ = _audit(monkeypatch, tmp_path, _pair("ground.ceiling", "all"))
+    assert any("ground.ceiling" in f for f in findings), findings
+
+
+def test_an_unlabelled_property_is_reported_not_failed(tmp_path, monkeypatch):
+    rules = [dict(GOOD[0], id="R-1", page_kind="opener")]
+    findings, counts = _audit(monkeypatch, tmp_path, rules,
+                              gating_names=("D14",), all_names=("D14",))
+    assert not findings, findings
+    assert counts["unlabelled_kind_rules"] == 1, (
+        "an unlabelled per-kind rule must be COUNTED — a coverage floor "
+        "becomes a number to polish, but an invisible gap becomes nothing")
