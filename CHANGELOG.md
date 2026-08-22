@@ -1,3 +1,77 @@
+## 0.1.573 — six guards that were green while wrong, and two that were red while right
+
+The second half of the adversarial review: the guards themselves. This
+repository's rule is that a guard's first proof is that it can go red — the
+review asked the other question, **can it stay green while wrong**, and the
+answer was yes six times.
+
+**A verdict that blocks delivery could be invisible to the register.**
+`check_gate_declarations` read every three-element `ast.Tuple` in the module.
+So a row written as a LIST (`rows.append([...])`) emitted a fully functional
+gating verdict the register never had to declare, and a row whose NAME was
+built at runtime was skipped in silence. Both now fail: rows are read from the
+`rows` table specifically, a list row is a row, and a name that is not a literal
+is a finding about the checker rather than a pass.
+
+**Worse, the guard could be talked into breaking the register.** A target that
+is not a literal — moving `"=0 (gates)"` into a constant — read as the WEAKEST
+severity, so a live gate silently became `graded` AND the guard then reported
+the (correct) register as the liar. An operator following that message would
+have demoted a real commercial gate. An unreadable target is now a finding, not
+a downgrade.
+
+**And the answer depended on `ast.walk` order.** A three-element tuple in an
+unrelated helper — `("D12_commercial_footer", "design-rules.md", "section 6")`
+— overwrote the real row and produced the same false accusation. Reading the
+`rows` table rather than every tuple ends it.
+
+**The fiftieth gate was audited against unrelated code.** The privacy parity
+asked whether `'if kind == "privacy":'` and `"gating.append"` both appeared
+anywhere in `check_deliverable.py`. In the real file they are eighteen lines and
+one scope apart: `gating.append(line)` belongs to the METRIC loop, and the
+privacy branch appends through `(gating if held else not_held)`. Demoting the
+privacy gate left the guard green. It parses the branch now.
+
+**`gating.py` had three failure policies for one broken file, and two of them
+meant "nothing gates".** An unreadable register made `gating_metrics` return the
+empty set, which `run_conformance` reads as "no design or prose verdict is
+required" — it would have scored a conformance deck on the layout verdicts
+alone. All three raise now: a register nobody could read is a fact about the
+run, not a verdict about the document.
+
+**Two guards would have made an author edit correct work**, which is the
+failure this repository takes most seriously.
+
+- `verdict names` failed **23 real identifiers**, `visual_share_median` and
+  `page_share` among them — actual output keys of `eval_corpus.py` and
+  `check_design.py`, mapped to a rubric dimension — because the verdict
+  families include ordinary English (`page`, `content`, `title`, `visual`). The
+  message told the author to rename correct code. The repository is its own
+  dictionary now: an identifier that exists in the tracked code is a real thing,
+  and what remains is a name that exists nowhere, which is what an abbreviation
+  or a half-remembered name actually is. Harvesting dict KEYS and subscripts
+  rather than every string constant, because the first attempt let this guard's
+  own docstring — which cites `figure_axis` as the thing it exists to catch —
+  enter the dictionary and pull its teeth.
+- `local paths` failed `/Users/you` in an install instruction, accusing the
+  author of shipping a username they had not shipped. Placeholders are named
+  now. The tilde-user form `~someone/` is IN scope, because it leaks exactly as
+  the absolute form does — with the slash required, since `~2.6s` in a timing
+  note is not a home directory, and the first draft failed on this file's own
+  performance figures.
+- `prose gating claims` failed a **column-aligned table**: the row pattern
+  demanded exactly one space, so any markdown formatter turned a correct table
+  into an accusation, and a partial match routed past the "re-point the entry"
+  branch into the wrong message entirely.
+
+The review and what it found are recorded in
+`specs/2026-08-23-gate-consolidation-design.md`.
+
+Two of the fixes were themselves caught by existing tests — the placeholder list
+invalidated `test_local_paths`'s own fixture name, and treating an empty `rows`
+literal as a missing table failed four synthetic trees. Both were the tests
+being right.
+
 ## 0.1.572 — the red team built the projection and drove it, and the boundary was wrong in eight places
 
 **Three adversarial reviews, run against 0.1.556–0.1.571 with one instruction:

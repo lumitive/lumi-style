@@ -96,10 +96,14 @@ def gating_metrics(verdicts: dict, root: pathlib.Path | None = None) -> set[str]
     require set entirely. A family is a family and a verdict is a verdict;
     `evals/gates.json` now carries both, and this asks it by name.
     """
-    try:
-        gate = gate_registry.gates(root)
-    except (OSError, ValueError, KeyError):
-        return set()
+    # NOT `except: return set()`. An empty gate set reads as "nothing gates" —
+    # `run_conformance` builds its `all-gating` require set from this, so an
+    # unreadable register silently stopped demanding every design and prose
+    # verdict and scored a deck on the layout ones alone. Three functions in
+    # this module had three different answers to the same broken file; they all
+    # raise now, because a register nobody could read is a fact about the run,
+    # not a verdict about the document.
+    gate = gate_registry.gates(root)
     return {name for name in verdicts if name in gate}
 
 def layout_verdicts(root: pathlib.Path | None = None) -> set[str]:
@@ -178,8 +182,10 @@ def _ids_and_layout_names(names: set[str]) -> set[str]:
 
 
 def every_metric_name(root: pathlib.Path | None = None) -> set[str]:
-    """-> everything the rule register may cite at all, gating or not."""
-    try:
-        return _ids_and_layout_names(set(gate_registry.load(root)))
-    except (OSError, ValueError, KeyError):
-        return set()
+    """-> everything the rule register may cite at all, gating or not.
+
+    Raises rather than returning the empty set, for the reason above: an empty
+    answer here reads as "no metric exists", and `check_rule_coverage` would
+    then stop demanding a rule for any of them.
+    """
+    return _ids_and_layout_names(set(gate_registry.load(root)))

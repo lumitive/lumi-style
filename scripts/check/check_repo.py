@@ -1136,6 +1136,41 @@ def check_ground_ceiling():
     return errors
 
 
+def _privacy_branch_gates(src: str) -> bool:
+    """-> whether check_deliverable's privacy branch puts its line in `gating`.
+
+    Read as a BRANCH, not as two strings anywhere in the file. The first
+    version asked whether `'if kind == "privacy":'` and `"gating.append"` both
+    appeared in the source; in the real file they are eighteen lines and one
+    scope apart — `gating.append(line)` belongs to the METRIC loop, and the
+    privacy branch appends through `(gating if held else not_held)`. The guard
+    was passing on evidence from unrelated code, so demoting the fiftieth gate
+    left it green.
+    """
+    try:
+        tree = ast.parse(src)
+    except SyntaxError:
+        return False
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.If) and isinstance(node.test, ast.Compare)
+                and isinstance(node.test.left, ast.Name)
+                and node.test.left.id == "kind"
+                and node.test.comparators
+                and isinstance(node.test.comparators[0], ast.Constant)
+                and node.test.comparators[0].value == "privacy"):
+            continue
+        for inner in ast.walk(node):
+            if not (isinstance(inner, ast.Call)
+                    and isinstance(inner.func, ast.Attribute)
+                    and inner.func.attr == "append"):
+                continue
+            target = inner.func.value
+            names = {n.id for n in ast.walk(target) if isinstance(n, ast.Name)}
+            if "gating" in names:
+                return True
+    return False
+
+
 def check_gate_declarations():
     """`evals/gates.json` says what each verdict is; the checkers say the same.
 
@@ -1161,37 +1196,106 @@ def check_gate_declarations():
                 f"agrees with every checker by construction"]
 
     # What the checkers themselves say, read the way each one spells it.
+    #
+    # ROWS, not every tuple in the module. Reading every tuple made the answer
+    # depend on `ast.walk` order: a three-element tuple in an unrelated helper
+    # (`("D12_commercial_footer", "design-rules.md", "section 6")`) overwrote
+    # the real row and the guard reported the REGISTER as the liar, which would
+    # have talked an operator into demoting a live commercial gate. A row is an
+    # element of the `rows` list literal or an argument to `rows.append`, which
+    # is how both checkers actually build them.
     actual: dict[str, tuple[str, str]] = {}
+    errors = []
     for kind, script in (("design", "check_design.py"), ("prose", "check_prose.py")):
         src = (ROOT / "scripts" / "check" / script).read_text(encoding="utf-8")
         tree = ast.parse(src)
+        seen_rows = False
         for node in ast.walk(tree):
-            if not (isinstance(node, ast.Tuple) and len(node.elts) >= 3):
+            elements: list = []
+            found_table = False
+            if (isinstance(node, ast.Assign)
+                    and any(isinstance(x, ast.Name) and x.id == "rows"
+                            for x in node.targets)
+                    and isinstance(node.value, (ast.List, ast.Tuple))):
+                elements, found_table = list(node.value.elts), True
+            elif (isinstance(node, ast.AnnAssign)
+                  and isinstance(node.target, ast.Name)
+                  and node.target.id == "rows"):
+                # `rows: list[...] = []` is an AnnAssign, which is how
+                # check_design actually opens its table.
+                found_table = True
+                if isinstance(node.value, (ast.List, ast.Tuple)):
+                    elements = list(node.value.elts)
+            elif (isinstance(node, ast.Call)
+                  and isinstance(node.func, ast.Attribute)
+                  and node.func.attr in ("append", "extend")
+                  and isinstance(node.func.value, ast.Name)
+                  and node.func.value.id == "rows"):
+                elements, found_table = list(node.args), True
+            if not found_table:
                 continue
-            name_node, target = node.elts[0], node.elts[2]
-            if not (isinstance(name_node, ast.Constant)
-                    and isinstance(name_node.value, str)):
-                continue
-            row = name_node.value
-            if not re.match(r"[DM]\d+z?h?_", row):
-                continue
-            # A TARGET MAY BE AN F-STRING, and reading only `ast.Constant`
-            # made two of them look graded when their own text says
-            # "(reported)" — the guard's first run said so, and the guard was
-            # the half that was wrong. `D37_caption_name_len` and
-            # `M1_assertive_titles` interpolate a threshold into the target;
-            # the classifying words are literal parts of the JoinedStr, so the
-            # literals are what get joined.
-            if isinstance(target, ast.Constant):
-                t = str(target.value)
-            elif isinstance(target, ast.JoinedStr):
-                t = "".join(v.value for v in target.values
-                            if isinstance(v, ast.Constant) and isinstance(v.value, str))
-            else:
-                t = ""
-            sev = ("gate" if "(gates)" in t
-                   else "reported" if "reported" in t else "graded")
-            actual[row] = (kind, sev)
+            # The table was FOUND. Whether it holds rows here is a different
+            # question — an empty literal is still the table, and demanding
+            # elements made every synthetic tree look like a missing one.
+            seen_rows = True
+            for el in elements:
+                # A LIST row is a row. Restricting to ast.Tuple let a
+                # `rows.append([...])` emit a verdict that blocks delivery
+                # while the register never had to declare it.
+                if not (isinstance(el, (ast.Tuple, ast.List)) and len(el.elts) >= 3):
+                    continue
+                name_node, target = el.elts[0], el.elts[2]
+                if not (isinstance(name_node, ast.Constant)
+                        and isinstance(name_node.value, str)):
+                    # A NAME BUILT AT RUNTIME cannot be compared to anything.
+                    # Skipping it silently is how an undeclared gate ships, so
+                    # it is a finding about the CHECKER rather than a pass.
+                    errors.append(
+                        f"{script} builds a row name at runtime "
+                        f"(line {getattr(el, 'lineno', '?')}); a verdict whose "
+                        f"name is not a literal cannot be declared in "
+                        f"{gate_registry.REGISTER}, and an undeclared verdict "
+                        f"that blocks delivery is what the register exists to "
+                        f"prevent")
+                    continue
+                row = name_node.value
+                if not re.match(r"[DM]\d+z?h?_", row):
+                    continue
+                # A TARGET MAY BE AN F-STRING, and reading only `ast.Constant`
+                # made two of them look graded when their own text says
+                # "(reported)" — the guard's first run said so, and the guard
+                # was the half that was wrong. The classifying words are
+                # literal parts of the JoinedStr, so the literals are joined.
+                if isinstance(target, ast.Constant):
+                    text = str(target.value)
+                elif isinstance(target, ast.JoinedStr):
+                    text = "".join(v.value for v in target.values
+                                   if isinstance(v, ast.Constant)
+                                   and isinstance(v.value, str))
+                else:
+                    # NOT "graded". An unreadable target used to be read as the
+                    # weakest severity, so moving a target into a constant
+                    # demoted a live gate AND the guard then demanded the
+                    # register agree with the demotion.
+                    errors.append(
+                        f"{script}: {row}'s target is not a literal, so its "
+                        f"severity cannot be read from the checker. Spell the "
+                        f"target inline — the register is held to this, and a "
+                        f"target it cannot read silently became 'graded'")
+                    continue
+                sev = ("gate" if "(gates)" in text
+                       else "reported" if "reported" in text else "graded")
+                if row in actual and actual[row] != (kind, sev):
+                    errors.append(
+                        f"{script}: {row} is declared twice with different "
+                        f"severities ({actual[row][1]} and {sev})")
+                actual[row] = (kind, sev)
+        if not seen_rows:
+            errors.append(
+                f"{script}: no `rows` table was found, so nothing was compared. "
+                f"A guard that read nothing is not a guard that agreed")
+    if errors:
+        return errors
     for name in gating.layout_verdicts(ROOT):
         actual[name] = ("layout", "gate")
     # THE FIFTIETH GATE, which fits no row table. `check_privacy` reports one
@@ -1205,7 +1309,7 @@ def check_gate_declarations():
             encoding="utf-8")
     except OSError:
         promoter = ""           # a synthetic tree has no promoter to read
-    if 'if kind == "privacy":' in promoter and "gating.append" in promoter:
+    if _privacy_branch_gates(promoter):
         actual["privacy_terms"] = ("privacy", "gate")
 
     errors = []
@@ -3291,7 +3395,7 @@ PROSE_GATE_SITES: dict[str, tuple[str, str]] = {
     # `**gates**` or it does not, and the set of rows that say it is a claim
     # about check_prose.py.
     "references/eval-rubric.md::table":
-        (r"^\| (M\d+\w*) \|[^|]*\|([^|]*)\|", "rows"),
+        (r"^\|\s*(M\d+\w*)\s*\|[^|]*\|([^|]*)\|", "rows"),
     # And the sentence below it, which argues from an EXAMPLE rather than
     # enumerating — so the claim it makes is the weaker one: nothing it calls a
     # gate may fail to be one. Holding it to the full set would be this guard
@@ -3322,7 +3426,21 @@ VERDICT_NAME_RE = re.compile(r"`([a-z][a-z0-9]*(?:_[a-z0-9]+)+)`")
 # username is the leak; the rest of the path is usually meaningful and stays.
 # `~` is the fix at both ends — recorded portably, `expanduser()`d when read
 # back — and `run_conformance._portable` is the writer's half.
-LOCAL_PATH_RE = re.compile(r"/(?:Users|home)/(?!x\b)[A-Za-z0-9][A-Za-z0-9._-]*")
+# Names that are an EXAMPLE rather than a person. `/Users/you` in an install
+# instruction is the prose that most naturally names a home directory, and
+# failing it accused the author of shipping a username they had not shipped.
+LOCAL_PATH_PLACEHOLDERS = ("x", "you", "me", "user", "username", "name",
+                           "someone", "yourname", "your-name", "USERNAME")
+# A HOME PATH, in either the absolute or the tilde-user form. `~someone/` leaks
+# the username exactly as `/Users/someone/` does, and is what a careless author
+# writes after reading this guard's own advice to "write it as `~/...`".
+_NOT_A_PERSON = r"(?!(?:" + "|".join(LOCAL_PATH_PLACEHOLDERS) + r")\b)"
+LOCAL_PATH_RE = re.compile(
+    r"/(?:Users|home)/" + _NOT_A_PERSON + r"[A-Za-z0-9][A-Za-z0-9._-]*"
+    # The tilde-user form needs the SLASH: without it `~2.6s` in a timing note
+    # reads as a home directory, which is how the first draft failed on the
+    # CHANGELOG's own performance figures.
+    + r"|~" + _NOT_A_PERSON + r"[A-Za-z][A-Za-z0-9._-]*(?=/)")
 LOCAL_PATH_WAIVERS: dict[tuple[str, str], str] = {}
 
 
@@ -3582,8 +3700,12 @@ def check_local_paths():
     machine is a dangling reference on every other, so a recorded run id could
     not be reopened by anyone but its author.
 
-    `/Users/x` and friends are excluded by the pattern rather than by a waiver:
-    a single-letter name is a placeholder in an example, not a person.
+    `/Users/you` and its friends are excluded by the pattern rather than by a
+    waiver: an install instruction is the prose that most naturally names a home
+    directory, and a placeholder in an example is not a person. The tilde-user
+    form is IN scope — `~someone/` leaks the username exactly as the absolute form
+    does, and it is what a careless author writes after reading the advice
+    below.
     """
     p = subprocess.run(["git", "ls-files"], cwd=ROOT,
                        capture_output=True, text=True)
@@ -3613,21 +3735,79 @@ def check_local_paths():
                 if (name, hit) in LOCAL_PATH_WAIVERS:
                     continue
                 errors.append(
-                    f"{name}:{lineno} names {hit}, an absolute path into "
-                    f"someone's home directory. Write it as `~/...` — it stays "
-                    f"meaningful, it resolves on the machine that can resolve "
-                    f"it at all, and it does not ship a username")
+                    f"{name}:{lineno} names {hit}, a path into someone's home "
+                    f"directory. Write it as `~/...` with nothing after the "
+                    f"tilde — it stays meaningful, it resolves on the machine "
+                    f"that can resolve it at all, and it does not ship a "
+                    f"username. A placeholder ({', '.join(LOCAL_PATH_PLACEHOLDERS[:4])}"
+                    f", …) is allowed; anything else needs LOCAL_PATH_WAIVERS")
     return errors
+
+
+def _identifiers_in_code() -> set[str]:
+    """-> every snake_case identifier the tracked code actually uses.
+
+    The repository as its own dictionary. Reads names, attributes, keyword
+    arguments and string keys out of the Python, and the same shape out of the
+    JavaScript and JSON by regex, because a report key is as real as a variable.
+    """
+    found: set[str] = set()
+    word = re.compile(r"\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+)\b")
+    for path in sorted(ROOT.glob("scripts/**/*.py")) + \
+            sorted(ROOT.glob("assets/**/*.js")) + \
+            sorted(ROOT.glob("evals/*.json")) + sorted(ROOT.glob("tokens/*.json")):
+        try:
+            src = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        if path.suffix == ".py":
+            try:
+                tree = ast.parse(src)
+            except SyntaxError:
+                continue
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Name):
+                    found.add(node.id)
+                elif isinstance(node, ast.Attribute):
+                    found.add(node.attr)
+                elif isinstance(node, ast.keyword) and node.arg:
+                    found.add(node.arg)
+                elif isinstance(node, ast.arg):
+                    found.add(node.arg)
+                elif isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+                    found.add(node.name)
+                elif isinstance(node, ast.Dict):
+                    # KEYS, never prose: harvesting every string constant let
+                    # this guard's own docstring — which cites `figure_axis` as
+                    # the thing it exists to catch — enter the dictionary and
+                    # pull the guard's teeth.
+                    found.update(k.value for k in node.keys
+                                 if isinstance(k, ast.Constant)
+                                 and isinstance(k.value, str))
+                elif (isinstance(node, ast.Subscript)
+                      and isinstance(node.slice, ast.Constant)
+                      and isinstance(node.slice.value, str)):
+                    found.add(node.slice.value)
+        else:
+            found.update(word.findall(src))
+    return found
 
 
 def check_verdict_names():
     """Prose may not name a layout verdict that does not exist.
 
-    Narrow on purpose. It does not read every snake_case identifier — most are
-    functions, probe fields or CSS names, and flagging those would be a guard
-    that edits prose to match itself. It reads the ones whose FIRST WORD a
-    layout verdict already owns, which is the shape an abbreviation or a
-    half-remembered name takes.
+    Narrow on purpose, and narrowed AGAIN after an adversarial review found it
+    would fail 23 real identifiers. The families include ordinary English —
+    `page`, `content`, `role`, `title`, `figure`, `visual` — so "first word a
+    verdict owns" caught `visual_share_median` and `page_share`, which are real
+    output keys of `eval_corpus.py` and `check_design.py`. The message told the
+    author to rename correct code, which is the wrong-gate-edits-prose failure
+    this repository already has on record.
+
+    So the repository is its own dictionary: an identifier that EXISTS in the
+    tracked code is a real thing, whatever it is named. What remains is a name
+    in the verdict families that exists nowhere — which is what an abbreviation
+    (`figure_axis`) or a half-remembered name (`figure_axes`) actually is.
     """
     import gate_registry
     try:
@@ -3640,6 +3820,7 @@ def check_verdict_names():
     if not layout:
         return []
     families = {n.split("_", 1)[0] for n in layout}
+    real = _identifiers_in_code()
     errors = []
     for path in md_files():
         name = rel(path)
@@ -3650,6 +3831,8 @@ def check_verdict_names():
             for ident in VERDICT_NAME_RE.findall(line):
                 if ident in names or ident.split("_", 1)[0] not in families:
                     continue
+                if ident in real:
+                    continue        # a real identifier, whatever it is named
                 if (name, ident) in VERDICT_NAME_WAIVERS:
                     continue
                 closer = sorted(n for n in layout if n.startswith(ident + "_"))
@@ -3659,8 +3842,9 @@ def check_verdict_names():
                 errors.append(
                     f"{name}:{lineno} names `{ident}`, which is no verdict. "
                     f"The verdicts in that family are {near}. Name one of them, "
-                    f"or say plainly that this is not a verdict — a reader who "
-                    f"looks it up finds nothing")
+                    f"say plainly that this is not a verdict, or add it to "
+                    f"VERDICT_NAME_WAIVERS with a reason — a reader who looks "
+                    f"it up finds nothing")
     return errors
 
 
