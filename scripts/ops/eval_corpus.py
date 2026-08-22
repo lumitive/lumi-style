@@ -53,6 +53,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
+import checker_report  # noqa: E402
 import corpus  # noqa: E402
 from deliverable_registry import GENRES, checker_path  # noqa: E402
 
@@ -70,8 +71,33 @@ def genre_of(raw: str) -> str | None:
     return m.group(1) if m and m.group(1) in GENRES else None
 
 
-def measure(path: pathlib.Path, with_render: bool) -> dict:
-    """Every quantity the thresholds name, for one document."""
+def thresholds() -> dict:
+    """-> the Evals table. One loader, because there were three.
+
+    `eval_corpus.main`, `run_conformance._eval_misses` and now
+    `check_deliverable` all need it, and each had its own `json.loads` of the
+    same path — the shape `checker_report` and `gating` were both extracted to
+    end.
+    """
+    return json.loads(THRESHOLDS.read_text(encoding="utf-8"))
+
+
+def measure(path: pathlib.Path, with_render: bool,
+            design: dict | None = None, layout: dict | None = None) -> dict:
+    """Every quantity the thresholds name, for one document.
+
+    `design` and `layout` are runs somebody has ALREADY made — the
+    `{"reports": [...], "exit": int}` shape `checker_report.run_checker`
+    returns. Passing them is not an optimisation detail; it is the difference
+    between the author's loop costing 4 seconds and costing 33. Every caller
+    here already holds both: `check_deliverable` ran the whole stack a moment
+    ago, and `run_conformance` scored the same two checkers on the same file.
+    Shelling out again re-rendered the entire document in a second browser to
+    recompute numbers that were sitting in memory.
+
+    Omit them and it runs the checkers itself, which is what the standalone CLI
+    does and what every test of this function relies on.
+    """
     raw = path.read_text(encoding="utf-8", errors="replace")
     genre = genre_of(raw)
     out: dict = {"file": str(path), "genre": genre}
@@ -80,17 +106,22 @@ def measure(path: pathlib.Path, with_render: bool) -> dict:
                                "does not know — nothing to compare against")
         return out
 
-    design = subprocess.run(
-        [sys.executable, str(checker_path("design")), str(path), "--json"],
-        capture_output=True, text=True)
+    if design is None:
+        proc = subprocess.run(
+            [sys.executable, str(checker_path("design")), str(path), "--json"],
+            capture_output=True, text=True)
+        reports, _spoke = checker_report.parse_report(proc.stdout)
+        design = {"reports": reports, "exit": proc.returncode}
     try:
-        d = json.loads(design.stdout)[0]
-    except (ValueError, IndexError):
+        d = (design.get("reports") or [])[0]
+    except IndexError:
+        d = None
+    if not isinstance(d, dict):
         out["unmeasurable"] = "check_design produced no parseable report"
         return out
 
-    if design.returncode:
-        out["gates"] = (f"check_design exits {design.returncode} on this "
+    if design.get("exit"):
+        out["gates"] = (f"check_design exits {design['exit']} on this "
                         f"document — a threshold score is not a gate verdict")
     vis = d.get("D16_visual_presence") or {}
     drawn = d.get("D5_drawn_share") or {}
@@ -141,19 +172,22 @@ def measure(path: pathlib.Path, with_render: bool) -> dict:
         out["render_state"] = "skipped by --no-render"
         return out
 
-    layout = subprocess.run(
-        [sys.executable, str(checker_path("layout")), str(path),
-         "--deliverable", "--json", "--no-sheet"], capture_output=True, text=True)
-    try:
-        doc = json.loads(layout.stdout)
-    except ValueError:
+    if layout is None:
+        proc = subprocess.run(
+            checker_report.checker_argv("layout", path),
+            capture_output=True, text=True)
+        reports, _spoke = checker_report.parse_report(proc.stdout)
+        layout = {"reports": reports, "exit": proc.returncode,
+                  "stderr": (proc.stdout + proc.stderr).strip()[:200]}
+    doc = (layout.get("reports") or [None])[0]
+    if not isinstance(doc, dict):
         # A CRASHED BROWSER IS NOT A SKIPPED ONE. Both used to produce the same
         # row and the same words — "the rendered half was not run" — so a
         # missing Chromium, an argparse drift or a page that would not load all
         # read as a deliberate choice. The exit code was never even looked at.
         out["render_state"] = (
-            f"inspect_layout exited {layout.returncode} and emitted no parseable "
-            f"report: {(layout.stdout + layout.stderr).strip()[:200]}")
+            f"inspect_layout exited {layout.get('exit')} and emitted no "
+            f"parseable report: {layout.get('stderr', '')}")
         return out
     geometry = next((r for r in doc.get("results", []) if "pages" in r), None)
     if geometry is None or not geometry["pages"]:
@@ -236,7 +270,7 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
     _json_mode[0] = args.json
 
-    table = json.loads(THRESHOLDS.read_text(encoding="utf-8"))
+    table = thresholds()
     files = list(args.files)
     unresolved = []
     if args.corpus:

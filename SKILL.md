@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.555"
+  version: "0.1.556"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -454,9 +454,14 @@ current, stale, or **unknown** — and unknown is not current.
    they belong after the making rather than inside it. **One command runs the
    whole stack**: `python3 scripts/ops/check_deliverable.py <file> [--terms
    <list>]` launches the rendered check first, runs every text instrument while
-   the browser works, and ends in one block naming every gating failure, every
-   graded finding and every check that could not be measured — read that block
-   whole, then fix everything it names in ONE pass. It also closes the build's
+   the browser works, applies the Evals thresholds, and ends in one block naming
+   every gating failure, every graded finding and every check that could not be
+   measured — read that block whole, then fix everything it names in ONE pass.
+   **While you are still fixing, add `--fast`**: it renders the declared stage
+   only and skips the off-shape sweep, which is 3 seconds instead of 16 on a
+   twelve-page deck with every gate still running. It is not a delivery reading
+   and it says so; the last round before you hand the document over runs without
+   it. It also closes the build's
    trace: `new_deck.py` opens one at scaffold time (when a `--storyline` is
    given) and writes its id into `<body data-trace>`, starting the build clock;
    the check step stops that clock, records its own duration as the checks

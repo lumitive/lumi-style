@@ -6,6 +6,7 @@ met failures in installments that had all been present in the first report.
 The driver's contract is therefore exactly one thing: EVERY failure family in
 ONE final block, and an exit code that cannot disagree with it.
 """
+import json
 import pathlib
 import subprocess
 import sys
@@ -110,3 +111,50 @@ def test_layout_caption_wrap_reaches_the_block(tmp_path):
     spec.loader.exec_module(drv)
     gating, graded, silent, worst = drv.verdict_block({"layout": fake_layout})
     assert any("caption" in g and "p7" in g and "p10" in g for g in graded)
+
+
+def test_fast_narrows_the_matrix_and_says_it_is_not_a_delivery_reading(tmp_path):
+    """`--fast` is the author's loop, and the difference has to be visible.
+
+    Measured on this package's own fixture: 16.4s for the full matrix against
+    3.3s for the declared stage. A loop that costs what the delivery check costs
+    is a loop an author runs less often, which is how a defect reaches a reader.
+    """
+    out = subprocess.run(
+        [sys.executable, str(DRIVER),
+         str(ROOT / "fixtures" / "deck-pass.en.html"), "--fast"],
+        capture_output=True, text=True)
+    assert "the declared stage only" in out.stdout
+    # On stderr: `--json` stdout is a document a parser reads.
+    assert "before delivery" in out.stderr, (
+        "a loop reading that does not announce itself is one somebody will "
+        "hand over")
+
+
+def test_fast_finds_the_same_gating_failures_as_the_full_matrix(tmp_path):
+    """Every gate still runs; only the coverage claim is given up. A speed flag
+    that also quietened a gate would be the worst thing in this repository."""
+    broken = str(ROOT / "fixtures" / "deck-broken.en.html")
+
+    def gates(*extra):
+        out = subprocess.run([sys.executable, str(DRIVER), broken, "--json",
+                              *extra], capture_output=True, text=True)
+        return {line for line in json.loads(out.stdout)["gating"]
+                if line.startswith("layout:")}
+
+    full, fast = gates(), gates("--fast")
+    assert fast == full, f"--fast lost {sorted(full - fast)}"
+
+
+def test_the_evals_reach_the_one_block(tmp_path):
+    """They were not in it at all. The command that exists so nobody meets
+    failures in installments left out the measure of whether the document is
+    the right KIND of document, and running the Evals separately cost a second
+    full render of the same file."""
+    out = subprocess.run(
+        [sys.executable, str(DRIVER),
+         str(ROOT / "fixtures" / "deck-degenerate.en.html"), "--fast", "--json"],
+        capture_output=True, text=True)
+    graded = json.loads(out.stdout)["graded"]
+    assert any(line.startswith("evals:") for line in graded), (
+        f"no Evals row in the block: {graded}")

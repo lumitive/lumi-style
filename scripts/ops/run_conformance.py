@@ -943,7 +943,9 @@ def _usage_from_transcript(text: str) -> dict | None:
     return None
 
 
-def _eval_misses(path: pathlib.Path, genre: str | None) -> list[str]:
+def _eval_misses(path: pathlib.Path, genre: str | None,
+                 design: dict | None = None,
+                 layout: dict | None = None) -> list[str]:
     """-> the Evals findings that should fail a conformance deliverable.
 
     The Evals are what this package means by a document being good enough:
@@ -964,7 +966,8 @@ def _eval_misses(path: pathlib.Path, genre: str | None) -> list[str]:
     package.
     """
     try:
-        measured = eval_corpus.measure(path, with_render=True)
+        measured = eval_corpus.measure(path, with_render=True,
+                                       design=design, layout=layout)
     except Exception as exc:                                        # noqa: BLE001
         return [f"evals could not measure the deliverable: {exc}"]
     if genre:
@@ -978,7 +981,7 @@ def _eval_misses(path: pathlib.Path, genre: str | None) -> list[str]:
     if "content_pages" not in measured:
         return [f"evals could not read the deliverable: "
                 f"{measured.get('render_state') or 'no content pages measured'}"]
-    table = json.loads((ROOT / "evals" / "thresholds.json").read_text("utf-8"))
+    table = eval_corpus.thresholds()
     out = []
     floor = table.get("min_content_pages", 0)
     if measured.get("content_pages", 0) < floor:
@@ -1127,9 +1130,17 @@ def score_checks(kind: str, path: pathlib.Path, genre: str | None = None) -> dic
     # silent report is `unparseable` to this scoreboard.
     run = checker_report.run_checker(kind, path, genre=genre)
     verdicts = checker_report.first_verdicts(run["reports"])
+    # THE RUN ITSELF RIDES ALONG UNDER A PRIVATE KEY, and the caller pops it
+    # before the entry is written to scores.json. The Evals need the same two
+    # checkers this just ran, and re-running them re-rendered the whole
+    # document in a second browser — 17 seconds per artifact to recompute
+    # numbers that were already in memory. The key is popped rather than
+    # serialized because a full report per kind would multiply the scoreboard's
+    # size for data nobody reads out of it.
     if not run["spoke"] or not verdicts:
-        return {"exit": run["exit"], "verdicts": {}, "unparseable": True}
-    return {"exit": run["exit"], "verdicts": verdicts}
+        return {"exit": run["exit"], "verdicts": {}, "unparseable": True,
+                "_run": run}
+    return {"exit": run["exit"], "verdicts": verdicts, "_run": run}
 
 
 def score_recall(task: dict, text: str) -> dict:
@@ -1512,7 +1523,11 @@ def main(argv):
                   "or an API model has no CLI to probe — name it with --agent and drive "
                   "it by hand.")
             return 1
-        driven = skipped = 0
+        # PREPARED FIRST, SEQUENTIALLY. Making the directories and writing the
+        # prompts is milliseconds and it is the part that must be deterministic:
+        # a reader looking at the tree afterwards should find it laid out the
+        # same way every time, whatever order the agents finished in.
+        plan: list[tuple[dict, dict, pathlib.Path]] = []
         for a in wanted:
             for t in tasks:
                 if CAP_RANK[a["capability"]] < CAP_RANK[t["min_capability"]]:
@@ -1528,41 +1543,88 @@ def main(argv):
                 (wd / "PROMPT.txt").write_text(t["prompt"], encoding="utf-8")
                 if "input" in t:
                     (wd / "input.md").write_text(t["input"], encoding="utf-8")
-                if not args.drive:
-                    continue
-                # PROVEN BEFORE DRIVEN. A run whose agent cannot read the
-                # rules produces artifacts that look like the agent's judgement
-                # and are not; two such runs were attributed to the agent
-                # before anyone read the transcript that said so.
-                blocked = environment_check(a)
-                if blocked:
+                plan.append((a, t, wd))
+
+        driven = skipped = 0
+        # ONE WORKER PER AGENT, and the agents run at once. Three agents on one
+        # task ran back to back for 74 minutes on 2026-08-21 and share nothing:
+        # separate CLIs, separate temporary directories, separate accounts.
+        # Serial was never a requirement, it was the shape of a `for` loop.
+        #
+        # Tasks WITHIN an agent stay sequential. One CLI driven twice at once
+        # shares an installation, a rate limit and in some cases a session
+        # store, and a horse race whose entrants interfere with themselves
+        # measures the interference.
+        out_lock = threading.Lock()
+        counts_lock = threading.Lock()
+
+        def say(lines: list[str]) -> None:
+            """One agent's lines, printed together. Interleaving them line by
+            line across three concurrent agents produces a transcript nobody
+            can attribute, which is the console equivalent of the misplaced
+            artifact this harness spent a release learning to name."""
+            with out_lock:
+                for line in lines:
+                    print(line, flush=True)
+
+        def drive_one(a: dict, t: dict, wd: pathlib.Path) -> None:
+            nonlocal driven, skipped
+            # PROVEN BEFORE DRIVEN. A run whose agent cannot read the
+            # rules produces artifacts that look like the agent's judgement
+            # and are not; two such runs were attributed to the agent
+            # before anyone read the transcript that said so.
+            blocked = environment_check(a)
+            if blocked:
+                with counts_lock:
                     skipped += 1
-                    print(f"  SKIPPED {a['id']} on {t['id']}: {blocked[0]}")
-                    (wd / "driver.json").write_text(
-                        json.dumps({"verdict": "environment",
-                                    "detail": blocked[0]}, indent=2) + "\n",
-                        encoding="utf-8")
-                    continue
-                # WHICH MODEL AND WHICH LEVEL, SAID OUT LOUD. The record has
-                # carried both since the driver was written and the console has
-                # never printed either, so a round could be reported as "at high
-                # effort" when neither axis was pinned and nothing on screen
-                # disagreed.
-                print(f"  driving {a['id']} on {t['id']} "
-                      f"(model {args.model or 'CLI default'}, "
-                      f"effort {args.effort or 'CLI default'}) …", flush=True)
-                record = drive(a, t, wd, model=args.model, base=args.budget,
-                               effort=args.effort, hard_cap=args.hard_cap)
+                say([f"  SKIPPED {a['id']} on {t['id']}: {blocked[0]}"])
                 (wd / "driver.json").write_text(
-                    json.dumps(record, indent=2) + "\n", encoding="utf-8")
-                note = _conformance_trace(a, t, wd, record)
-                if note:
-                    print(f"    {note}")
+                    json.dumps({"verdict": "environment",
+                                "detail": blocked[0]}, indent=2) + "\n",
+                    encoding="utf-8")
+                return
+            record = drive(a, t, wd, model=args.model, base=args.budget,
+                           effort=args.effort, hard_cap=args.hard_cap)
+            (wd / "driver.json").write_text(
+                json.dumps(record, indent=2) + "\n", encoding="utf-8")
+            note = _conformance_trace(a, t, wd, record)
+            with counts_lock:
                 driven += record["verdict"] == "driven"
-                print(f"    {record['verdict']}"
-                      + (f" in {record['seconds']}s, wrote "
-                         f"{', '.join(record['produced']) or 'nothing'}"
-                         if "seconds" in record else f" — {record.get('detail', '')}"))
+            # WHICH MODEL AND WHICH LEVEL, SAID OUT LOUD. The record has
+            # carried both since the driver was written and the console has
+            # never printed either, so a round could be reported as "at high
+            # effort" when neither axis was pinned and nothing on screen
+            # disagreed. It is printed on FINISHING rather than on starting,
+            # now that several are in flight at once: a line that announces an
+            # intention is not a line that reports what happened.
+            lines = [f"  {a['id']} on {t['id']} "
+                     f"(model {record.get('model', '?')}, "
+                     f"effort {record.get('effort', '?')})"]
+            if note:
+                lines.append(f"    {note}")
+            lines.append(f"    {record['verdict']}"
+                         + (f" in {record['seconds']}s, wrote "
+                            f"{', '.join(record['produced']) or 'nothing'}"
+                            if "seconds" in record
+                            else f" — {record.get('detail', '')}"))
+            say(lines)
+
+        def drive_agent(a: dict) -> None:
+            for one_a, t, wd in plan:
+                if one_a is a:
+                    drive_one(a, t, wd)
+
+        if args.drive and plan:
+            by_agent = list(dict.fromkeys(a["id"] for a, _t, _wd in plan))
+            print(f"  driving {len(by_agent)} agent(s) concurrently: "
+                  f"{', '.join(by_agent)} — output appears as each finishes",
+                  flush=True)
+            threads = [threading.Thread(target=drive_agent, args=(a,))
+                       for a in wanted if any(x is a for x, _t, _w in plan)]
+            for th in threads:
+                th.start()
+            for th in threads:
+                th.join()
         if not args.drive:
             print(f"prepared {run_dir}; invoke each agent against its PROMPT.txt, then "
                   f"`score --run {run_dir}`. `--drive` runs them here instead.")
@@ -1731,6 +1793,9 @@ def main(argv):
                                          "built_version": built_v}
                 failed: list[str] = []
                 verdict_union: dict[str, Any] = {}
+                # The parsed reports, kept out of the score entry: the
+                # Evals below read the same two checkers this loop runs.
+                raw_runs: dict[str, dict] = {}
                 layout_verdicts: dict = {}
                 for kind in task["score"]:
                     if kind == "recall":
@@ -1740,7 +1805,9 @@ def main(argv):
                             failed.append(f"recall {entry['recall']['score']}"
                                           f"/{entry['recall']['of']}")
                     else:
-                        entry[kind] = score_checks(kind, target, task.get("genre"))
+                        one = score_checks(kind, target, task.get("genre"))
+                        raw_runs[kind] = one.pop("_run")
+                        entry[kind] = one
                         # A checker that could not be read has not scored this
                         # artifact. The flag was written into the record and
                         # never looked at, so a crashed checker scored `pass`.
@@ -1791,7 +1858,9 @@ def main(argv):
                 # scores three checkers and none of these is scoring the
                 # markup, not the document.
                 if task.get("evals"):
-                    failed += _eval_misses(target, task.get("genre"))
+                    failed += _eval_misses(target, task.get("genre"),
+                                           design=raw_runs.get("design"),
+                                           layout=raw_runs.get("layout"))
                 entry["verdict"] = "pass" if not failed else "fail"
                 entry["failed"] = failed
                 scores[key] = entry
