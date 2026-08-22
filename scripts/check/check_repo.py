@@ -3303,6 +3303,64 @@ PROSE_GATE_SITES: dict[str, tuple[str, str]] = {
 }
 
 
+# A backticked identifier whose family a layout verdict owns, and which names
+# no verdict. Both defects this found on its first run had that shape: prose
+# had abbreviated `figure_axis_named` to `figure_axis`, and had given the
+# `figure axes:` REPORT line — which is not a verdict and which nothing keys on
+# — a verdict-shaped name of its own. A reader looking either of them up finds
+# nothing, and in this case the surrounding sentence said the unnamed-axis case
+# reports when it gates. Waivers, not a looser pattern: a false positive here
+# would rewrite prose to match a wrong check.
+VERDICT_NAME_FROZEN = ("CHANGELOG.md", "specs/", "releases/evidence/",
+                       "conformance/results/", "tests/")
+VERDICT_NAME_WAIVERS: dict[tuple[str, str], str] = {}
+VERDICT_NAME_RE = re.compile(r"`([a-z][a-z0-9]*(?:_[a-z0-9]+)+)`")
+
+
+def check_verdict_names():
+    """Prose may not name a layout verdict that does not exist.
+
+    Narrow on purpose. It does not read every snake_case identifier — most are
+    functions, probe fields or CSS names, and flagging those would be a guard
+    that edits prose to match itself. It reads the ones whose FIRST WORD a
+    layout verdict already owns, which is the shape an abbreviation or a
+    half-remembered name takes.
+    """
+    import gate_registry
+    try:
+        reg = gate_registry.load(ROOT)
+    except (OSError, ValueError) as exc:                            # noqa: BLE001
+        return [f"could not read the gate declarations: {exc}"]
+
+    names = set(reg)
+    layout = {n for n, row in reg.items() if row["checker"] == "layout"}
+    if not layout:
+        return []
+    families = {n.split("_", 1)[0] for n in layout}
+    errors = []
+    for path in md_files():
+        name = rel(path)
+        if any(name == f or name.startswith(f) for f in VERDICT_NAME_FROZEN):
+            continue
+        for lineno, line in enumerate(
+                path.read_text(encoding="utf-8").splitlines(), 1):
+            for ident in VERDICT_NAME_RE.findall(line):
+                if ident in names or ident.split("_", 1)[0] not in families:
+                    continue
+                if (name, ident) in VERDICT_NAME_WAIVERS:
+                    continue
+                closer = sorted(n for n in layout if n.startswith(ident + "_"))
+                near = ", ".join(closer or sorted(
+                    n for n in layout
+                    if n.startswith(ident.split("_", 1)[0] + "_")))
+                errors.append(
+                    f"{name}:{lineno} names `{ident}`, which is no verdict. "
+                    f"The verdicts in that family are {near}. Name one of them, "
+                    f"or say plainly that this is not a verdict — a reader who "
+                    f"looks it up finds nothing")
+    return errors
+
+
 def check_prose_gating_claims():
     r"""The same claim as `gating claims`, for the metrics check_prose.py gates.
 
@@ -3763,6 +3821,7 @@ CHECKS = (
     ("metric id ranges", check_metric_id_ranges),
     ("gating claims", check_gating_claims),
     ("prose gating claims", check_prose_gating_claims),
+    ("verdict names", check_verdict_names),
     ("version stamps", check_versions),
     ("output default", check_output_default),
     ("version citations", check_version_citations),
