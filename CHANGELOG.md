@@ -1,3 +1,90 @@
+## 0.1.572 — the red team built the projection and drove it, and the boundary was wrong in eight places
+
+**Three adversarial reviews, run against 0.1.556–0.1.571 with one instruction:
+break it.** This entry is the split half; the gate half follows. Every finding
+below was demonstrated with a runnable command before it was accepted, and every
+one is now a test.
+
+**The crash I shipped one release earlier.** `eval_corpus.py --corpus` — the
+flag's headline path — died with an uncaught `ValueError` on any machine with no
+local corpus. 0.1.571 moved the registry out of the repository and left
+`local_path.relative_to(ROOT)` behind, so the line that REPORTS the absence
+raised on it. It survived here only because this machine happens to have the
+file. **This is the exact class the cross-boundary guard cannot see**, which is
+the argument for driving the projection rather than reasoning about it.
+
+**A partition that reported itself total published two maintainer files.**
+`side_of` compared with a bare `startswith`, so the `NOTICE` rule claimed
+`NOTICE_TO_MAINTAINERS.md` and `LICENSE` claimed `LICENSE-AUDIT-NOTES.md`. This
+repository has now shipped the same missing path boundary **five times** —
+`\bcard\b` matching `f-card` among them. `shipped.matches()` spells the
+comparison out.
+
+**One capitalised letter disarmed the teeth silently.** Writing `"Dev"` instead
+of `"dev"` in a rule made an entire directory invisible to
+`check_cross_boundary_paths`, while `check_shipped_closure` still reported a
+total partition — because it only asked whether a side was non-`None`. Both the
+side value and a non-empty `why` are validated now.
+
+**Half the tree was unscanned.** The boundary scan matched double-quoted
+literals with a regex, and this repository's lint config selects no quote rule:
+`inspect_layout.py` alone carries five hundred single-quoted strings. It reads
+the AST now, which sees single, triple and implicitly-joined literals; it
+reconstructs `/`-chains of any length (two was the old limit); it treats a
+wholly-development DIRECTORY as fatal, because `ROOT / "reviews"` resolves to
+nothing after the projection; and it reports a dynamic
+`importlib.import_module("x")`, which is an import the reachability that decides
+the boundary cannot see.
+
+Two exemptions, both by construction rather than by waiver, and both found by
+running it: a path named only as `state_dir.store(in_repo=...)`'s fallback is
+the thing that is ALLOWED to be absent, and a directory holding any consumer
+file is not missing — `evals/` carries `thresholds.json` and `gates.json`.
+A bare word is not a path either: `trace_schema.py` declares the enum value
+`"conformance"`, which is not the directory of that name.
+
+**`.gitignore` was on the wrong side, and it is the only mechanical enforcement
+of red line 9 on a working tree.** The consumer half ships every producer of
+operator data — `eval_corpus`, `check_privacy --terms`, `ledger`, `trace` — and
+the projection carried no ignore rules at all, so a client's terms file, a
+corpus registry naming engagement paths and a rendered deck under `docs/` were
+all staged by a plain `git add -A`. Demonstrated, then fixed.
+
+**Two development tools rode a docstring into the consumer half.** Reachability
+cannot tell a CALL from a MENTION: `check_globe` (2,200 lines, needs Playwright)
+shipped because `geo_projection.py`'s docstring says the projection "is held to
+them by a golden grid in scripts/check/check_globe.py", and `build_worldmap`
+because an error string names it. `dev_pins` fixes both — and a pin is AUDITED
+rather than trusted: no consumer script may IMPORT a pinned stem, which is the
+half a mention cannot fake.
+
+**`new_deck.py`'s only edge to the trace store was invisible.**
+`pathlib.Path(__file__).with_name("trace.py")` is exactly the assembled path the
+regex was added to catch, and the regex could not see it — there is no
+`scripts/<drawer>/` in the string. `trace` stayed on the consumer side by
+accident, through an unrelated literal in another file.
+
+**An absent store is not an unreadable one.** `review_scores.py --check` exited
+1 on every fresh install, reporting "unreadable" with a raw errno — which reads
+as corruption — before a single review had been recorded, and naming a path that
+was not the one it opened. Nobody has reviewed anything yet is a legal state.
+
+Also: `scripts/README.md` had no rule and was being classified by the script
+computation; `evals/rule-coverage.json` and `fixtures/expected.json` ship with
+no consumer reader and are development now; `README.md`'s one link that breaks
+in the projection is prose; `scoring_sheet.py`'s Chinese sheet promised to
+transcribe into a path the projection does not carry; and `SKILL.md` said
+`review_scores.py` "stores what comes back" when its CLI is `[-h] [--check]` and
+it has never had a write path — convention 14, in the entry point.
+
+**The projection was built and driven, not reasoned about.** 2,415 files, 260
+commits, every release subject preserved — which matters because
+`check_evidence.find_release_commit` and `shipping._released_versions` read
+them. A fresh clone of it builds a 622 KB deck from the scaffold and runs the
+whole consumer surface. The sequence and the assignments are in
+`specs/2026-08-23-gate-consolidation-design.md`; the second repository exists
+and is private until its contents have been read.
+
 ## 0.1.571 — four stores that only exist because a repository is around them, and the guard with the teeth
 
 **The consumer half has to stand on its own, and four things it writes did

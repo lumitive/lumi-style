@@ -105,3 +105,79 @@ def test_a_subprocess_edge_counts_as_reachable(tmp_path):
         'run(["python3", "scripts/ops/devtool.py"])\n')
     root = _repo(tmp_path, _with({"rules": RULES + [ADAPTERS]}), files)
     assert shipped.side_of("scripts/ops/devtool.py", root) == "consumer"
+
+
+# --- the red team's attacks, kept as tests -----------------------------------
+
+def test_a_prefix_claims_only_on_a_path_boundary(tmp_path):
+    """`NOTICE` must not claim `NOTICE_TO_MAINTAINERS.md`. A bare startswith
+    published two maintainer files through a partition that reported itself
+    total, and this repository has now shipped that missing boundary five
+    times."""
+    m = _with({"rules": RULES + [ADAPTERS,
+               {"prefix": "NOTICE", "side": "consumer", "why": "attributions"}]})
+    root = _repo(tmp_path, m, {**FILES, "NOTICE": "x\n"})
+    assert shipped.side_of("NOTICE", root) == "consumer"
+    assert shipped.side_of("NOTICE_TO_MAINTAINERS.md", root) is None
+    assert shipped.matches("a/b/c", "a/b") and not shipped.matches("ab/c", "a")
+
+
+def test_a_misspelled_side_fails_rather_than_disarming_the_teeth(tmp_path, monkeypatch):
+    """One capitalised letter made a whole directory invisible to the
+    cross-boundary scan while the closure still reported a total partition."""
+    m = _with({"rules": [dict(r, side="Dev") if r["prefix"] == "tests/" else r
+                         for r in RULES] + [ADAPTERS]})
+    monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, m))
+    errors = check_repo.check_shipped_closure()
+    assert any("declares side 'Dev'" in e for e in errors), errors
+
+
+def test_a_rule_with_no_reason_fails(tmp_path, monkeypatch):
+    m = _with({"rules": [dict(r, why="") if r["prefix"] == "tests/" else r
+                         for r in RULES] + [ADAPTERS]})
+    monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, m))
+    errors = check_repo.check_shipped_closure()
+    assert any("gives\nno reason" in e or "no reason" in e for e in errors), errors
+
+
+def test_a_dev_pin_that_is_imported_fails(tmp_path, monkeypatch):
+    """A pin may override a MENTION, never a live import — that is the half a
+    mention cannot fake, and the only thing that makes a pin auditable."""
+    files = {**FILES, "scripts/ops/pinned.py": "z = 3\n"}
+    files["scripts/check/check_x.py"] = "import helper\nimport pinned\n"
+    m = _with({"dev_pins": [{"stem": "pinned", "why": "prose only"}],
+               "rules": RULES + [ADAPTERS]})
+    monkeypatch.setattr(check_repo, "ROOT", _repo(tmp_path, m, files))
+    errors = check_repo.check_shipped_closure()
+    assert any("pinned" in e and "live import" in e for e in errors), errors
+
+
+def test_a_dev_pin_over_a_mention_is_accepted(tmp_path, monkeypatch):
+    """Two development tools rode a docstring into the consumer half."""
+    files = {**FILES, "scripts/ops/pinned.py": "z = 3\n"}
+    files["scripts/lib/helper.py"] = '"""see scripts/ops/pinned.py for the grid."""\n'
+    m = _with({"dev_pins": [{"stem": "pinned", "why": "named in a docstring only"}],
+               "rules": RULES + [ADAPTERS]})
+    root = _repo(tmp_path, m, files)
+    monkeypatch.setattr(check_repo, "ROOT", root)
+    assert check_repo.check_shipped_closure() == []
+    assert shipped.side_of("scripts/ops/pinned.py", root) == "dev"
+
+
+def test_a_with_name_edge_counts_as_reachable(tmp_path):
+    """`pathlib.Path(__file__).with_name("trace.py")` is new_deck.py's edge to
+    the trace store, and the regex that was added to catch assembled paths
+    could not see it — there is no `scripts/<drawer>/` in the string."""
+    files = {**FILES, "scripts/check/sibling.py": "w = 4\n"}
+    files["scripts/check/check_x.py"] = (
+        'import pathlib\n'
+        'T = pathlib.Path(__file__).with_name("sibling.py")\n')
+    root = _repo(tmp_path, _with({"rules": RULES + [ADAPTERS]}), files)
+    assert shipped.side_of("scripts/check/sibling.py", root) == "consumer"
+
+
+def test_a_drawer_has_no_side(tmp_path):
+    """`scripts/check/` holds both sides, so calling it development reported
+    every consumer script that named its own drawer."""
+    root = _repo(tmp_path, _with({"rules": RULES + [ADAPTERS]}))
+    assert shipped.side_of("scripts/check", root) is None

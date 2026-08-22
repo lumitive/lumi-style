@@ -235,10 +235,19 @@ def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--check", action="store_true", help="validate only")
     args = ap.parse_args(argv)
+    if not STORE.exists():
+        # An ABSENT store and an UNREADABLE one are different findings, and
+        # collapsing them failed every fresh install: a skill installed from
+        # the projection carries no `reviews/`, so `--check` reported the store
+        # "unreadable" with a raw errno — which reads as corruption — before a
+        # single review had been recorded. Nobody has reviewed anything yet is
+        # a legal state; a store that exists and will not parse is not.
+        print(f"note  no reviews recorded yet ({STORE} does not exist)")
+        return 0
     try:
         store = json.loads(STORE.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        print(f"FAIL  reviews/scores.json is unreadable: {exc}")
+        print(f"FAIL  {STORE} is unreadable: {exc}")
         return 1
     errors = validate(store)
     for err in errors:

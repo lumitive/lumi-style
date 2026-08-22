@@ -1,48 +1,230 @@
 {
- "$comment": "Which side of the split each tracked file is on. WHY IT EXISTS: the design record calls for the public repository to be a mechanical projection of this one rather than a hand-copied subset, and a projection needs a boundary that a machine can compute. A LIST of what ships can omit a file silently; a PARTITION cannot, so `check_shipped_closure` requires every tracked file to match a rule and every rule to match a file. SCRIPTS ARE NOT LISTED HERE: their side is COMPUTED from reachability, seeded by the scripts SKILL.md tells an agent to run plus `consumer_seeds` below, so a script nobody can reach from the skill's own surface is development by default - the safe direction. FIELDS: `prefix` matches a path exactly or as a directory prefix, longest match wins; `side` is consumer or dev; `why` is the reason, because a boundary nobody can explain is a boundary nobody can maintain.",
  "schema": 1,
+ "$comment": "Which side of the split each tracked file is on. WHY IT EXISTS: the design record calls for the public repository to be a mechanical projection of this one rather than a hand-copied subset, and a projection needs a boundary that a machine can compute. A LIST of what ships can omit a file silently; a PARTITION cannot, so `check_shipped_closure` requires every tracked file to match a rule and every rule to match a file. SCRIPTS ARE NOT LISTED HERE: their side is COMPUTED from reachability, seeded by the scripts SKILL.md tells an agent to run plus `consumer_seeds` below, so a script nobody can reach from the skill's own surface is development by default - the safe direction. FIELDS: `prefix` matches a path exactly or as a directory prefix, longest match wins; `side` is consumer or dev; `why` is the reason, because a boundary nobody can explain is a boundary nobody can maintain.",
  "consumer_seeds": [
-  "output_dir", "export_pdf", "eval_corpus", "embed_globe", "embed_regionmap"
+  "output_dir",
+  "export_pdf",
+  "eval_corpus",
+  "embed_globe",
+  "embed_regionmap"
  ],
  "seeds_comment": "Consumer-facing scripts SKILL.md does not name by path: the two the operator runs around a delivery (where it belongs, how it becomes a PDF), the corpus scorer, and the two embedders the deck scaffold calls.",
+ "dev_pins": [
+  {
+   "stem": "check_globe",
+   "why": "reachable ONLY through prose: geo_projection.py's docstring says the projection 'is held to them by a golden grid in scripts/check/check_globe.py'. Nothing calls it. 2,200 lines needing Playwright, and a package-integrity check rather than a deliverable one"
+  },
+  {
+   "stem": "build_worldmap",
+   "why": "reachable ONLY through prose: an error string in check_globe.py and two docstrings. It regenerates the shared-arc topology from source data no deliverable carries"
+  }
+ ],
+ "pins_comment": "Reachability cannot tell a CALL from a MENTION, and two development tools rode a docstring into the consumer half. A pin is auditable rather than trusted: check_shipped_closure requires that no consumer script IMPORTS a pinned stem, which is the half a mention cannot fake.",
  "rules": [
-  {"prefix": "assets/shapes/source/", "side": "dev", "why": "207 vendored originals, 2.77 MB. Input to recolor_shapes.py; no deliverable reads them"},
-  {"prefix": "assets/", "side": "consumer", "why": "the icon, shape, vector, font and brand libraries a deliverable draws from"},
-  {"prefix": "references/", "side": "consumer", "why": "the rule prose; the single source of truth"},
-  {"prefix": "tokens/", "side": "consumer", "why": "palette and type values"},
-  {"prefix": "prompts/", "side": "consumer", "why": "the self-contained prompt-tier entry"},
-  {"prefix": "adapters/", "side": "consumer", "why": "the platform registry and its notes, and this file"},
-  {"prefix": "fixtures/", "side": "consumer", "why": "new_deck.py takes the scaffold from them: they are the reference implementation the checkers were verified against"},
-  {"prefix": "brands/", "side": "consumer", "why": "the brand pack registry"},
-  {"prefix": ".claude-plugin/", "side": "consumer", "why": "generated plugin manifest"},
-  {"prefix": ".well-known/", "side": "consumer", "why": "generated skill index"},
-  {"prefix": ".cursor/", "side": "consumer", "why": "generated Cursor rule file"},
-  {"prefix": ".github/copilot-instructions.md", "side": "consumer", "why": "generated Copilot entry"},
-  {"prefix": ".github/", "side": "dev", "why": "the workflow that gates this repository"},
-  {"prefix": "evals/gates.json", "side": "consumer", "why": "check_deliverable reads it to classify a verdict"},
-  {"prefix": "evals/thresholds.json", "side": "consumer", "why": "eval_corpus grades a deliverable against it"},
-  {"prefix": "evals/rule-coverage.json", "side": "consumer", "why": "describes the consumer's own rules, and its generator's only input"},
-  {"prefix": "evals/", "side": "dev", "why": "traces, agreement data and operator-machine facts"},
-  {"prefix": "tests/", "side": "dev", "why": "the pytest suite gates this repository"},
-  {"prefix": "specs/", "side": "dev", "why": "design records for changes to this package"},
-  {"prefix": "releases/", "side": "dev", "why": "the evidence gate's audit trail"},
-  {"prefix": "conformance/", "side": "dev", "why": "the cross-agent board and its history"},
-  {"prefix": "backlog/", "side": "dev", "why": "the deferred-work ledger"},
-  {"prefix": "reviews/", "side": "dev", "why": "the six human dimensions over time"},
-  {"prefix": "SKILL.md", "side": "consumer", "why": "the Claude Code entry point"},
-  {"prefix": "AGENTS.md", "side": "consumer", "why": "the Codex entry point"},
-  {"prefix": "GEMINI.md", "side": "consumer", "why": "generated Gemini entry point"},
-  {"prefix": "README.md", "side": "consumer", "why": "what a reader meets first"},
-  {"prefix": "LICENSE", "side": "consumer", "why": "the terms the package ships under"},
-  {"prefix": "NOTICE", "side": "consumer", "why": "the vendored assets' attributions"},
-  {"prefix": "SECURITY.md", "side": "consumer", "why": "how to report a problem in the shipped package"},
-  {"prefix": "CHANGELOG.md", "side": "consumer", "why": "check_versions binds four stamps to its newest heading, and an adapter cannot argue it is current if a reader cannot see what changed"},
-  {"prefix": "CLAUDE.md", "side": "dev", "why": "the maintenance conventions for this repository"},
-  {"prefix": "CONTRIBUTING.md", "side": "dev", "why": "how to change this repository"},
-  {"prefix": "KNOWN_GAPS.md", "side": "dev", "why": "the defect ledger"},
-  {"prefix": "FAILURE_MODES.md", "side": "dev", "why": "the recurring-failure ledger"},
-  {"prefix": "pyproject.toml", "side": "dev", "why": "ruff and mypy configuration; the deliverable path is standard library only"},
-  {"prefix": "requirements-dev.txt", "side": "dev", "why": "pinned development tools that ship in no deliverable"},
-  {"prefix": ".gitignore", "side": "dev", "why": "what this working tree ignores"}
+  {
+   "prefix": ".claude-plugin/",
+   "side": "consumer",
+   "why": "generated plugin manifest"
+  },
+  {
+   "prefix": ".cursor/",
+   "side": "consumer",
+   "why": "generated Cursor rule file"
+  },
+  {
+   "prefix": ".github/",
+   "side": "dev",
+   "why": "the workflow that gates this repository"
+  },
+  {
+   "prefix": ".github/copilot-instructions.md",
+   "side": "consumer",
+   "why": "generated Copilot entry"
+  },
+  {
+   "prefix": ".well-known/",
+   "side": "consumer",
+   "why": "generated skill index"
+  },
+  {
+   "prefix": "adapters/",
+   "side": "consumer",
+   "why": "the platform registry and its notes, and this file"
+  },
+  {
+   "prefix": "adapters/shipped.json",
+   "side": "dev",
+   "why": "this file: the boundary is a development concern, and scripts/lib/shipped.py, its only reader, is development too"
+  },
+  {
+   "prefix": "assets/",
+   "side": "consumer",
+   "why": "the icon, shape, vector, font and brand libraries a deliverable draws from"
+  },
+  {
+   "prefix": "assets/shapes/source/",
+   "side": "dev",
+   "why": "207 vendored originals, 2.77 MB. Input to recolor_shapes.py; no deliverable reads them"
+  },
+  {
+   "prefix": "backlog/",
+   "side": "dev",
+   "why": "the deferred-work ledger"
+  },
+  {
+   "prefix": "brands/",
+   "side": "consumer",
+   "why": "the brand pack registry"
+  },
+  {
+   "prefix": "conformance/",
+   "side": "dev",
+   "why": "the cross-agent board and its history"
+  },
+  {
+   "prefix": "evals/",
+   "side": "dev",
+   "why": "traces, agreement data and operator-machine facts"
+  },
+  {
+   "prefix": "evals/gates.json",
+   "side": "consumer",
+   "why": "check_deliverable reads it to classify a verdict"
+  },
+  {
+   "prefix": "evals/rule-coverage.json",
+   "side": "dev",
+   "why": "every reader is development (release.py, build_page_contracts.py, check_rule_coverage.py, check_repo.py); the consumer reads the GENERATED references/page-contracts.md instead"
+  },
+  {
+   "prefix": "evals/thresholds.json",
+   "side": "consumer",
+   "why": "eval_corpus grades a deliverable against it"
+  },
+  {
+   "prefix": "fixtures/",
+   "side": "consumer",
+   "why": "new_deck.py takes the scaffold from them: they are the reference implementation the checkers were verified against"
+  },
+  {
+   "prefix": "fixtures/expected.json",
+   "side": "dev",
+   "why": "the fixture verdict table; read only by build_fixtures.py and check_fixtures.py, both development"
+  },
+  {
+   "prefix": "prompts/",
+   "side": "consumer",
+   "why": "the self-contained prompt-tier entry"
+  },
+  {
+   "prefix": "references/",
+   "side": "consumer",
+   "why": "the rule prose; the single source of truth"
+  },
+  {
+   "prefix": "releases/",
+   "side": "dev",
+   "why": "the evidence gate's audit trail"
+  },
+  {
+   "prefix": "reviews/",
+   "side": "dev",
+   "why": "the six human dimensions over time"
+  },
+  {
+   "prefix": "scripts/README.md",
+   "side": "dev",
+   "why": "a map of the drawers for someone changing this package; the consumer reads SKILL.md"
+  },
+  {
+   "prefix": "specs/",
+   "side": "dev",
+   "why": "design records for changes to this package"
+  },
+  {
+   "prefix": "tests/",
+   "side": "dev",
+   "why": "the pytest suite gates this repository"
+  },
+  {
+   "prefix": "tokens/",
+   "side": "consumer",
+   "why": "palette and type values"
+  },
+  {
+   "prefix": ".gitignore",
+   "side": "consumer",
+   "why": "the ONLY mechanical enforcement of red line 9 on a working tree. The consumer half ships every producer of operator data — eval_corpus, check_privacy --terms, ledger, trace — so a projection without it stages a client's terms file, a corpus registry naming engagement paths, and a rendered deck under docs/ the moment anyone runs git add -A"
+  },
+  {
+   "prefix": "AGENTS.md",
+   "side": "consumer",
+   "why": "the Codex entry point"
+  },
+  {
+   "prefix": "CHANGELOG.md",
+   "side": "consumer",
+   "why": "check_versions binds four stamps to its newest heading, and an adapter cannot argue it is current if a reader cannot see what changed"
+  },
+  {
+   "prefix": "CLAUDE.md",
+   "side": "dev",
+   "why": "the maintenance conventions for this repository"
+  },
+  {
+   "prefix": "CONTRIBUTING.md",
+   "side": "dev",
+   "why": "how to change this repository"
+  },
+  {
+   "prefix": "FAILURE_MODES.md",
+   "side": "dev",
+   "why": "the recurring-failure ledger"
+  },
+  {
+   "prefix": "GEMINI.md",
+   "side": "consumer",
+   "why": "generated Gemini entry point"
+  },
+  {
+   "prefix": "KNOWN_GAPS.md",
+   "side": "dev",
+   "why": "the defect ledger"
+  },
+  {
+   "prefix": "LICENSE",
+   "side": "consumer",
+   "why": "the terms the package ships under"
+  },
+  {
+   "prefix": "NOTICE",
+   "side": "consumer",
+   "why": "the vendored assets' attributions"
+  },
+  {
+   "prefix": "README.md",
+   "side": "consumer",
+   "why": "what a reader meets first"
+  },
+  {
+   "prefix": "SECURITY.md",
+   "side": "consumer",
+   "why": "how to report a problem in the shipped package"
+  },
+  {
+   "prefix": "SKILL.md",
+   "side": "consumer",
+   "why": "the Claude Code entry point"
+  },
+  {
+   "prefix": "pyproject.toml",
+   "side": "dev",
+   "why": "ruff and mypy configuration; the deliverable path is standard library only"
+  },
+  {
+   "prefix": "requirements-dev.txt",
+   "side": "dev",
+   "why": "pinned development tools that ship in no deliverable"
+  }
  ]
 }
