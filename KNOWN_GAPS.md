@@ -129,6 +129,14 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   and will until it is rebuilt. `D36_font_family` therefore reports and does
   not gate — a gate here would fail every document produced before this
   release, for a defect that was in the tokens.
+- **a second gate now depends on the same rebuild.** `figure_axis_named`
+  (0.1.554) fails every figure that scales numbers and names no axis, and the
+  classes it wants shipped at 0.1.551 — so the accepted reference fails it on
+  10 of its 10 scaled figures and an accepted intro deck on 4 of 4. The owner
+  ruled on 2026-08-22 that it gates anyway, knowing the cost, because the
+  documents are being rebuilt for the font anyway. **Until that rebuild the
+  reference is not the calibration anchor for THIS gate** (it remains the anchor
+  for every other one).
 - what would close it: rebuild the delivered documents, then promote D36 to a
   gate.
 - check: `python3 scripts/check/check_design.py <deck>` prints the D36 row;
