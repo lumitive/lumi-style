@@ -3285,6 +3285,92 @@ def check_gating_claims():
     return errors
 
 
+PROSE_GATE_SITES: dict[str, tuple[str, str]] = {
+    # The rubric's own metric table. Each row's target cell either says
+    # `**gates**` or it does not, and the set of rows that say it is a claim
+    # about check_prose.py.
+    "references/eval-rubric.md::table":
+        (r"^\| (M\d+\w*) \|[^|]*\|([^|]*)\|", "rows"),
+    # And the sentence below it, which argues from an EXAMPLE rather than
+    # enumerating — so the claim it makes is the weaker one: nothing it calls a
+    # gate may fail to be one. Holding it to the full set would be this guard
+    # being wrong about its material; it said "M2 and M6 do gate" from the
+    # release that wrote it until 0.1.566, and M2 has never carried `(gates)`.
+    # The commit that wrote that sentence did not touch M2's code at all —
+    # convention 14, in the file that teaches the rubric.
+    "references/eval-rubric.md::sentence":
+        (r"\*\*((?:M\d+\w*(?:,? (?:and )?)?)+) (?:do|does) gate\*\*", "names"),
+}
+
+
+def check_prose_gating_claims():
+    r"""The same claim as `gating claims`, for the metrics check_prose.py gates.
+
+    It had no guard at all, and both of its claim sites were wrong when one was
+    written: the table omitted M4zh entirely, so the one gate that fails a
+    CHINESE deliverable was absent from the document a reader learns the metrics
+    from — in a package whose decks are largely Chinese.
+
+    Two claim shapes, because the sites make two different claims. A table of
+    metrics enumerates, so its `**gates**` marks must equal the gate set. A
+    sentence arguing from an example names a subset, and what it may not do is
+    call something a gate that is not one.
+
+    The truth comes from `evals/gates.json` by NAME rather than from the id
+    prefix. `gating.metric_ids("M")` cannot see `M4zh_banned_hits`: its pattern
+    is `M\d+_`, and `M4zh_` does not match it. A guard built on the prefix
+    reader would have confidently reported the table correct.
+    """
+    import gate_registry
+    try:
+        reg = gate_registry.load(ROOT)
+    except (OSError, ValueError) as exc:                            # noqa: BLE001
+        return [f"could not read the gate declarations: {exc}"]
+
+    truth = {name.split("_", 1)[0] for name, row in reg.items()
+             if name.startswith("M") and row["severity"] == "gate"}
+    errors = []
+    for site, (pattern, kind) in sorted(PROSE_GATE_SITES.items()):
+        path = ROOT / site.split("::", 1)[0]
+        if not path.exists():
+            errors.append(f"{site} is a declared gating-claim site and does not exist")
+            continue
+        text = path.read_text(encoding="utf-8")
+        if kind == "rows":
+            found = re.findall(pattern, text, re.M)
+            if not found:
+                errors.append(f"{site}: the metric table is gone or no longer "
+                              f"matches its pattern; re-point the entry")
+                continue
+            claimed = {mid for mid, target in found if "**gates**" in target}
+        else:
+            hit = re.search(pattern, text, re.S)
+            if not hit:
+                errors.append(
+                    f"{site}: the declared gating claim no longer matches its "
+                    f"pattern. Re-point it at the sentence, or delete the "
+                    f"sentence and name check_prose.py as the authority — do "
+                    f"not drop the entry")
+                continue
+            claimed = set(re.findall(r"M\d+\w*", hit.group(1)))
+            wrong = claimed - truth
+            if wrong:
+                errors.append(
+                    f"{site}: calls {', '.join(sorted(wrong))} a metric that "
+                    f"gates; check_prose.py gates on "
+                    f"{', '.join(sorted(truth))}")
+            continue
+        if claimed != truth:
+            missing = ", ".join(sorted(truth - claimed)) or "(none)"
+            extra = ", ".join(sorted(claimed - truth)) or "(none)"
+            errors.append(
+                f"{site}: names {', '.join(sorted(claimed)) or '(none)'} as the "
+                f"prose metrics that gate; check_prose.py gates on "
+                f"{', '.join(sorted(truth))} (missing: {missing}; "
+                f"claimed and does not gate: {extra})")
+    return errors
+
+
 def check_storyline_vocabulary():
     """The storyline names in code and the roster in the rules are one list.
 
@@ -3676,6 +3762,7 @@ CHECKS = (
     ("scoring sheet parity", check_scoring_sheet_parity),
     ("metric id ranges", check_metric_id_ranges),
     ("gating claims", check_gating_claims),
+    ("prose gating claims", check_prose_gating_claims),
     ("version stamps", check_versions),
     ("output default", check_output_default),
     ("version citations", check_version_citations),
