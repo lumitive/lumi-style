@@ -79,6 +79,7 @@ import eval_corpus  # noqa: E402
 import fingerprint  # noqa: E402
 import gating  # noqa: E402
 import output_dir  # noqa: E402
+import trace_schema  # noqa: E402
 from check_prose import GENRES  # noqa: E402
 from deliverable_registry import kinds  # noqa: E402
 
@@ -1501,9 +1502,12 @@ def main(argv):
 
     known_ids = {a["id"] for a in agents}
     model_all, model_per = _per_agent(args.model, "--model", known_ids)
+    # THE TUPLE IS IMPORTED, NOT RETYPED. It was retyped, and the copies drifted
+    # in one release: 0.1.554 widened this one and left `trace_schema`'s at
+    # three, so a run pinned to `xhigh` could be driven and could not be
+    # recorded.
     effort_all, effort_per = _per_agent(
-        args.effort, "--effort", known_ids,
-        ("low", "medium", "high", "xhigh", "max"))
+        args.effort, "--effort", known_ids, trace_schema.ENUMS["effort"])
     probed = {a["id"]: detect(a) for a in agents}
     if args.command == "detect":
         for a in agents:
