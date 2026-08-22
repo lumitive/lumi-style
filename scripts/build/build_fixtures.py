@@ -917,6 +917,23 @@ def build(broken: bool) -> str:
     # Cover and closing are the same kind of page, set the same way: cover-grid,
     # with the LUMIVATE field globe as the one vector mark on each (the closing
     # repeats the cover's mark rather than introducing a new claim).
+    # THE BROKEN DECK LOSES ITS BRAND MARK, both bookends, the way the deck the
+    # owner opened on 2026-08-22 had: the cover keeps a drawing that is a CHART
+    # rather than the locked globe (D40), and the closing carries a different
+    # mark from the cover (D39). Two plants because the two gates say different
+    # things — a bookend that is not the brand, and two bookends that disagree.
+    waffle = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" '
+              'role="img" aria-label="Twenty-five cells, one per thousand '
+              'meters read">'
+              + "".join(f'<rect class="f-acc" x="{(i % 5) * 20 + 2}" '
+                        f'y="{(i // 5) * 20 + 2}" width="16" height="16"/>'
+                        for i in range(25))
+              + "</svg>")
+    other = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" '
+             'role="img" aria-label="A single ring, not the deck\'s own mark">'
+             '<circle class="s-mut" cx="50" cy="50" r="40" fill="none"/></svg>')
+    cover_mark = waffle if broken else GLOBE
+    closing_mark = other if broken else GLOBE
     cover = f"""
 <section class="page cover" id="cover">
   {GROUND}
@@ -926,7 +943,7 @@ def build(broken: bool) -> str:
       <h1>Metering programme <span class="subj">review</span></h1>
       <p class="sub">A synthetic deliverable. Every figure here is invented.</p>
     </div>
-    <div class="markcell">{GLOBE}</div>
+    <div class="markcell">{cover_mark}</div>
     <div class="attrs">
       <div><span class="k">Audience</span><span class="v">Checker regression suite</span></div>
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
@@ -944,7 +961,7 @@ def build(broken: bool) -> str:
       <h2>What to settle this <span class="subj">month</span></h2>
       <p class="sub">Relay siting first, then crew allocation.</p>
     </div>
-    <div class="markcell">{GLOBE}</div>
+    <div class="markcell">{closing_mark}</div>
     <div class="attrs">
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>

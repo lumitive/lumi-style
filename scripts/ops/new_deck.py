@@ -628,6 +628,10 @@ def main(argv):
       <span class="subj">subject</span></h1>
       <p class="sub">One sentence saying what this is.</p>
     </div>
+    <!-- The brand mark. Keep it: with no explicit instruction from the
+         owner this is the mark, and D40 fails a deck that carries
+         something else without `<body data-brand-mark="…">` naming the
+         replacement that was asked for. -->
     <div class="markcell" data-globe>{brand_globe()}</div>
     <div class="attrs">
       <div><span class="k">Label</span><span class="v">value</span></div>
@@ -790,6 +794,10 @@ def main(argv):
       <span class="subj">subject</span></h2>
       <p class="sub">The argument in one paragraph.</p>
     </div>
+    <!-- The brand mark. Keep it: with no explicit instruction from the
+         owner this is the mark, and D40 fails a deck that carries
+         something else without `<body data-brand-mark="…">` naming the
+         replacement that was asked for. -->
     <div class="markcell" data-globe>{brand_globe()}</div>
     <div class="attrs">
       <div><span class="k">Label</span><span class="v">value</span></div>

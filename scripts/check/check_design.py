@@ -54,6 +54,7 @@ Standard library only, like the rest of scripts/.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import pathlib
 
@@ -1596,6 +1597,132 @@ def d36_font_family(raw):
 AGENDA_PAGE_SPAN = re.compile(r"\bpages?\s*\d", re.I)
 
 
+BOOKENDS = ("cover", "closing")
+# A document that replaces the brand mark says so, on `<body>`, in words.
+#
+# **The default is the field globe and a replacement is the owner's call, not
+# the author's** (owner directive, 2026-08-22: "规则是允许调整，但在用户没有显示
+# 要求调整，默认就是选择的 3D 地球" — a replacement is permitted only when it was
+# explicitly asked for). `storyline-templates.md` has always allowed a document
+# to "render its own subject as geometry"; what it never had was a way to tell a
+# requested replacement from a mark that simply went missing. Without one, an
+# agent that deleted the brand from both bookends and drew a hundred-cell waffle
+# of a collection statistic passed every gate in this package, and the owner
+# found it by opening the file.
+MARK_WAIVER = "data-brand-mark"
+
+
+def _brand_globe_signature():
+    """The locked asset's own geometry, read from the asset.
+
+    Never a constant here: `assets/brand/lumivate/globe-field.svg` is generated
+    and locked, and a signature typed into this file would be a second copy of a
+    thing that regenerates — the drift class this repository has fixed
+    twenty-six times. Sorted `d` attributes plus the node count, so an attribute
+    reordering or a re-indent does not read as a different mark.
+    """
+    svg = (ROOT / "assets" / "brand" / "lumivate" / "globe-field.svg").read_text(
+        encoding="utf-8")
+    return _mark_signature(svg)
+
+
+def _mark_signature(svg: str) -> str:
+    ds = re.findall(r'\sd="([^"]+)"', svg)
+    nodes = len(re.findall(r"<circle[\s/>]", svg))
+    return hashlib.sha256(("|".join(sorted(ds)) + f"#{nodes}").encode()).hexdigest()[:12]
+
+
+def _bookend_marks(raw):
+    """-> {kind: (signature, shape census)} for each bookend page present.
+
+    A bookend with no mark cell, or a cell with no drawing, maps to None — the
+    page is here and the mark is not, which is a finding rather than a skip.
+    """
+    out: dict[str, tuple | None] = {}
+    for kind in BOOKENDS:
+        page = re.search(r'<section[^>]*class="page ' + kind + r'"[^>]*>(.*?)</section>',
+                         raw, re.S | re.I)
+        if not page:
+            continue
+        body = page.group(1)
+        # A CLASS IS A TOKEN IN A LIST, NOT A STRING. The first cut looked for
+        # `class="markcell"` exactly and read `class="markcell fig trade"` — the
+        # owner's own globe demo — as a page with no mark at all. Three false
+        # checker failures in this repository have come from matching a class
+        # without its boundaries; this is the fourth, and calibrating on her
+        # folder caught it where reading the code had not.
+        cell = re.search(r'<[^>]*\sclass="[^"]*(?<![\w-])markcell(?![\w-])[^"]*"',
+                         body, re.I)
+        if not cell:
+            out[kind] = None
+            continue
+        svg = re.search(r"<svg.*?</svg>", body[cell.start():], re.S | re.I)
+        out[kind] = None if not svg else (
+            _mark_signature(svg.group(0)),
+            {sh for sh in ("rect", "path", "circle", "polygon", "polyline",
+                           "ellipse", "use")
+             if re.search(r"<" + sh + r"[\s/>]", svg.group(0))})
+    return out
+
+
+def d39_bookend_mark(raw):
+    """One mark, twice — the cover's and the closing's are the same mark.
+
+    `brand.md`: "LUMI's mark appears twice in a deck — the cover and the
+    closing." Compared by which shape KINDS are present, never by their counts:
+    two frames of a live globe legitimately differ because the runtime turns it,
+    and a census demanding equal counts would fail a correct document for
+    rotating — the mistake `_grid_arity` and D19's first cut both made.
+
+    Calibrated across the owner's folder: one document reds,
+    `LUMI-SIFT-intro.0.1.522.zh-Hans.html`, whose cover carried a funnel diagram
+    while its closing kept the globe — and whose own r3 and r4 revisions made the
+    two agree. The red names what those revisions already fixed.
+    """
+    marks = _bookend_marks(raw)
+    if len(marks) < 2 or not all(marks.values()):
+        return None                     # D40 owns an absent mark
+    kinds = {k: v[1] for k, v in marks.items()}
+    return {"differ": kinds[BOOKENDS[0]] != kinds[BOOKENDS[1]],
+            "kinds": {k: sorted(v) for k, v in kinds.items()}}
+
+
+def d40_bookend_is_the_brand(raw):
+    """Each bookend carries the LOCKED field globe, or the document says why not.
+
+    **The rule the owner stated on 2026-08-22**: a replacement is allowed and it
+    is hers to ask for, so with no explicit instruction the mark is the 3D
+    globe. This asserts exactly that and nothing about taste — the drawing's
+    geometry either matches the locked asset or it does not, and a document that
+    replaces it declares `<body data-brand-mark="…">` naming what was asked for.
+
+    What it caught the day it was written: an agent replaced the brand on BOTH
+    bookends with a hundred-cell waffle of a collection statistic. D19 could not
+    see it and says so in its own docstring — "A MARK obliges a RUNTIME, never
+    the reverse" — so a bookend with no globe at all was invisible to every gate
+    in this file.
+
+    The runtime is deliberately not asserted here. D19 already holds a
+    `data-globe` mark to its runtime, and `fixtures/deck-pass.en.html` carries
+    the brand drawing as a still frame on purpose (it is a checker input and
+    ships no scripts). Two gates asserting one thing is how a document ends up
+    with two explanations of one red.
+    """
+    waiver = markup.body_attr(raw, MARK_WAIVER)
+    if (waiver or "").strip():
+        return []                       # a declared replacement; D39 still binds
+    want = _brand_globe_signature()
+    out = []
+    for kind, mark in _bookend_marks(raw).items():
+        if mark is None:
+            out.append(f"{kind}: no mark at all")
+        elif mark[0] != want:
+            out.append(f"{kind}: not the locked field globe "
+                       f"(drawn with {'+'.join(sorted(mark[1])) or 'nothing'}); "
+                       f"declare {MARK_WAIVER} if this replacement was asked for")
+    return out
+
+
 def d38_agenda_rows(raw):
     """-> {rows, unmarked, with_pages, echoing}: what each launch row does.
 
@@ -2063,6 +2190,8 @@ def measure(path):
         "D36_font_family": d36_font_family(raw),
         "D37_caption_scope": d37_caption_scope(raw),
         "D38_agenda_rows": d38_agenda_rows(raw),
+        "D39_bookend_mark": d39_bookend_mark(raw),
+        "D40_bookend_is_the_brand": d40_bookend_is_the_brand(raw),
         "D23_font_count": d23_font_count(
             raw, (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")),
     }
@@ -2507,6 +2636,21 @@ def grade(r):
     rows.append(("D38_agenda_run_echo",
                  len(ar["echoing"]) if ar else "no launch rows",
                  "reported", True, not ar))
+
+    # THE BRAND MARK, which nothing looked at. The owner opened a deck on
+    # 2026-08-22 whose cover and closing had lost the field globe and said so;
+    # every gate in this file had passed it.
+    bm = r["D39_bookend_mark"]
+    rows.append(("D39_bookend_mark",
+                 ("the two bookends carry different marks: "
+                  + "; ".join(f"{k}={'+'.join(v) or 'nothing'}"
+                              for k, v in bm["kinds"].items())
+                  if bm["differ"] else 0) if bm else "no pair of drawn bookends",
+                 "=0 (gates)", not (bm and bm["differ"]), bm is None))
+    bmm = r["D40_bookend_is_the_brand"]
+    rows.append(("D40_bookend_is_the_brand",
+                 "; ".join(bmm) if bmm else 0,
+                 "=0 (gates)", not bmm, bmm is None))
 
     ae = r["D35_agenda_exclusive"]
     rows.append(("D35_agenda_exclusive",

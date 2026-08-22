@@ -65,8 +65,10 @@ the hidden-constraint condition this inventory exists to surface.
 | check_design | D38_agenda_highlight | `=0 (gates)` | gate |
 | check_design | D38_agenda_page_spans | `=0 (gates)` | gate |
 | check_design | D38_agenda_run_echo | `reported` | reported |
+| check_design | D39_bookend_mark | `=0 (gates)` | gate |
 | check_design | D3_tier1_page_share | `<=33.0%` | graded |
 | check_design | D3_tier1_per_page | `<=1 per page` | graded |
+| check_design | D40_bookend_is_the_brand | `=0 (gates)` | gate |
 | check_design | D4_palette_literals | `=0` | graded |
 | check_design | D5_drawn_share | `reported` | reported |
 | check_design | D5_figure_parity | `reported` | reported |

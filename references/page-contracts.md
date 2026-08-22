@@ -6,7 +6,7 @@ Its source is `evals/rule-coverage.json`; the rules themselves live in
 This page is an index, never an authority: where it disagrees with the
 file it cites, the file wins and this page is stale.
 
-**485 rules · 146 measured by a metric · 86 gated · 339 with no automated check.**
+**487 rules · 148 measured by a metric · 88 gated · 339 with no automated check.**
 
 That last number is the point of the page. A rule with no check is not
 a rule an agent will follow, because an agent iterates to the edge of
@@ -25,7 +25,7 @@ The first page a reader sees, and the one every conformance round broke differen
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
 | Set cover and closing titles at 58px, smaller than the opener display size. | `references/brand.md:307` | — | `—` | no |
-| Embed the field-globe mark live so it turns, rather than as a still frame. | `references/brand.md:366` | — | `D19` | yes |
+| Embed the field-globe mark live so it turns, rather than as a still frame. | `references/brand.md:366` | `bookend.mark` ← `RC-486` | `D19` | yes |
 | Put the company name and one layperson-readable sentence on the pitch title page, never a vision slogan. | `references/storyline-templates.md:378` | — | `—` | no |
 | Say on the title page when the deck is a scaffold built ahead of real data. | `references/storyline-templates.md:380` | — | `—` | no |
 | Put the wordmark on the cover: the name of the product or subject the document is for. | `references/storyline-templates.md:500` | — | `—` | no |
@@ -38,12 +38,12 @@ The first page a reader sees, and the one every conformance round broke differen
 | Put exactly one vector mark on the cover. | `references/storyline-templates.md:516` | — | `—` | no |
 | Keep the colophon off the cover; it lives on the closing page only. | `references/storyline-templates.md:517` | — | `—` | no |
 | Keep body copy and photography off the cover. | `references/storyline-templates.md:519` | — | `—` | no |
-| Use the LUMIVATE field globe as the default cover mark, embedded live with its runtime. | `references/storyline-templates.md:520` | — | `D19` | yes |
+| Use the LUMIVATE field globe as the default cover mark, embedded live with its runtime. | `references/storyline-templates.md:520` | `bookend.mark` ← `RC-486` | `D40` | yes |
 | Respect reduced-motion on the live mark and fall back to the static frame. | `references/storyline-templates.md:523` | — | `—` | no |
 | Size the cover mark as a field the typography sits against, not a spot illustration. | `references/storyline-templates.md:525` | — | `—` | no |
-| A mark replacing the brand globe must say something true about the document's own subject. | `references/storyline-templates.md:531` | — | `—` | no |
-| Draw only the regions the document actually claims. | `references/storyline-templates.md:534` | — | `—` | no |
-| Mark built regions in accent, empty ones as hollow dashed rings, out-of-scope ones muted. | `references/storyline-templates.md:535` | — | `—` | no |
+| A mark replacing the brand globe must say something true about the document's own subject. | `references/storyline-templates.md:540` | `bookend.mark` ← `RC-486` | `—` | no |
+| Draw only the regions the document actually claims. | `references/storyline-templates.md:543` | — | `—` | no |
+| Mark built regions in accent, empty ones as hollow dashed rings, out-of-scope ones muted. | `references/storyline-templates.md:544` | — | `—` | no |
 
 ## 2 · The agenda
 
@@ -96,16 +96,16 @@ The seams. A part opener is a claim, a label, a run line and one silhouette.
 | Put no chart, map, navigation rail or second-message icon on a part opener. | `references/design-rules.md:412` | — | `—` | no |
 | Allow at most one oversized filled subject silhouette on a part opener. | `references/design-rules.md:413` | — | `opener_subject_mark` | yes |
 | Invert the footer's handling marker with the rest of the footer on a lime opener. | `references/design-rules.md:96` | `footer.marker-colour` ← `RC-100` | `—` | no |
-| Give every part boundary an opener page. | `references/storyline-templates.md:571` | — | `—` | no |
-| Compose an opener as the lime field with the part label, one display-scale claim, and one run line. | `references/storyline-templates.md:572` | — | `—` | no |
-| Put no chart, map, navigation rail or second-message icon in an opener's content area. | `references/storyline-templates.md:575` | — | `—` | no |
-| Permit exactly one oversized filled silhouette, carrying no text, on an opener. | `references/storyline-templates.md:576` | — | `opener_subject_mark` | yes |
-| The opener mark is the part's own subject or it is absent. | `references/storyline-templates.md:579` | — | `—` | no |
-| Give each part opener its own subject silhouette; two parts may not share one. | `references/storyline-templates.md:579` | — | `opener_subject_mark` | yes |
-| Keep the footer's handling marker on an opener, inverted with the field. | `references/storyline-templates.md:580` | `footer.marker-colour` ← `RC-100` | `—` | no |
-| Run the opener ground at its medium tier. | `references/storyline-templates.md:581` | `ground.tier` ← `RC-058` | `—` | no |
-| Keep the vector mark off openers; it stays on cover and closing. | `references/storyline-templates.md:581` | — | `—` | no |
-| Target about five content pages between part openers and never run past six without a seam. | `references/storyline-templates.md:584` | — | `opener_pacing` | yes |
+| Give every part boundary an opener page. | `references/storyline-templates.md:580` | — | `—` | no |
+| Compose an opener as the lime field with the part label, one display-scale claim, and one run line. | `references/storyline-templates.md:581` | — | `—` | no |
+| Put no chart, map, navigation rail or second-message icon in an opener's content area. | `references/storyline-templates.md:584` | — | `—` | no |
+| Permit exactly one oversized filled silhouette, carrying no text, on an opener. | `references/storyline-templates.md:585` | — | `opener_subject_mark` | yes |
+| The opener mark is the part's own subject or it is absent. | `references/storyline-templates.md:588` | — | `—` | no |
+| Give each part opener its own subject silhouette; two parts may not share one. | `references/storyline-templates.md:588` | — | `opener_subject_mark` | yes |
+| Keep the footer's handling marker on an opener, inverted with the field. | `references/storyline-templates.md:589` | `footer.marker-colour` ← `RC-100` | `—` | no |
+| Run the opener ground at its medium tier. | `references/storyline-templates.md:590` | `ground.tier` ← `RC-058` | `—` | no |
+| Keep the vector mark off openers; it stays on cover and closing. | `references/storyline-templates.md:590` | — | `—` | no |
+| Target about five content pages between part openers and never run past six without a seam. | `references/storyline-templates.md:593` | — | `opener_pacing` | yes |
 
 ## 4 · The closing page
 
@@ -121,15 +121,15 @@ The last page, set like the cover and asking for the decision.
 | Embed the scoring table as the deck's final page. | `SKILL.md:520` | — | `—` | no |
 | State provenance using one of the accepted provenance words. | `references/design-rules.md:761` | — | `D6` | no |
 | Name in the closing which decisions block the release and which do not. | `references/storyline-templates.md:144` | — | `—` | no |
-| Carry one closing statement that echoes the action page. | `references/storyline-templates.md:545` | — | `—` | no |
-| Include a one-sentence recap of the ask on the closing page. | `references/storyline-templates.md:548` | — | `—` | no |
-| Set the closing contact slots in the same .attrs block the cover uses. | `references/storyline-templates.md:549` | — | `—` | no |
-| Repeat the cover's single vector mark on the closing page. | `references/storyline-templates.md:549` | — | `—` | no |
-| Set cover and closing on the same cover-grid layout. | `references/storyline-templates.md:551` | — | `—` | no |
-| Repeat the cover's geography in the closing mark; introduce no new claim. | `references/storyline-templates.md:552` | — | `—` | no |
-| Use only real contact details from the user, or none. | `references/storyline-templates.md:553` | — | `—` | no |
-| Omit the contact slots and name the owning role in prose when no real contacts exist. | `references/storyline-templates.md:555` | — | `—` | no |
-| End the closing page with the colophon: owner, date, built-with version, number-discipline line. | `references/storyline-templates.md:561` | — | `D6` | no |
+| Carry one closing statement that echoes the action page. | `references/storyline-templates.md:554` | — | `—` | no |
+| Include a one-sentence recap of the ask on the closing page. | `references/storyline-templates.md:557` | — | `—` | no |
+| Set the closing contact slots in the same .attrs block the cover uses. | `references/storyline-templates.md:558` | — | `—` | no |
+| Repeat the cover's single vector mark on the closing page. | `references/storyline-templates.md:558` | — | `—` | no |
+| Set cover and closing on the same cover-grid layout. | `references/storyline-templates.md:560` | — | `—` | no |
+| Repeat the cover's geography in the closing mark; introduce no new claim. | `references/storyline-templates.md:561` | — | `—` | no |
+| Use only real contact details from the user, or none. | `references/storyline-templates.md:562` | — | `—` | no |
+| Omit the contact slots and name the owning role in prose when no real contacts exist. | `references/storyline-templates.md:564` | — | `—` | no |
+| End the closing page with the colophon: owner, date, built-with version, number-discipline line. | `references/storyline-templates.md:570` | — | `D6` | no |
 | Carry exactly one build-status declaration section. | `references/storyline-templates.md:88` | — | `—` | no |
 
 ## 5 · The content pages
@@ -313,9 +313,9 @@ Gathered separately at the owner's direction: these are the pages the argument i
 | Give concepts and figures about 80% of every content page in a seed-register deck. | `references/storyline-templates.md:424` | — | `M15` | no |
 | Lay a figure-led page out as stack or split-wide with the drawing in the wide cell. | `references/storyline-templates.md:434` | — | `—` | no |
 | Give every figure an external source or a label as the business's own measurement. | `references/storyline-templates.md:459` | — | `M2` | no |
-| Carry no so-what label in sales or client material. | `references/storyline-templates.md:646` | — | `—` | no |
-| Present every comparison as a table with options as columns. | `references/storyline-templates.md:650` | — | `—` | no |
-| Use parallel page structure only where it aids comparison. | `references/storyline-templates.md:662` | — | `M14` | no |
+| Carry no so-what label in sales or client material. | `references/storyline-templates.md:655` | — | `—` | no |
+| Present every comparison as a table with options as columns. | `references/storyline-templates.md:659` | — | `—` | no |
+| Use parallel page structure only where it aids comparison. | `references/storyline-templates.md:671` | — | `M14` | no |
 | Give every figure a conclusion-style title and a source line. | `references/storyline-templates.md:87` | — | `—` | no |
 | Label every claim as measured, build-time assertion, or inference. | `references/storyline-templates.md:95` | — | `—` | no |
 | Consolidate what is not built into one section instead of scattering it. | `references/storyline-templates.md:96` | — | `—` | no |
@@ -327,7 +327,7 @@ Gathered separately at the owner's direction: these are the pages the argument i
 
 The footer, the palette, the type ladder, the layout vocabulary — what binds regardless of which page it is.
 
-233 rules, 153 of them unchecked.
+235 rules, 153 of them unchecked.
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
@@ -381,6 +381,7 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Keep the wordmark small and take it from the brand registry. | `references/brand.md:362` | — | `—` | no |
 | Carry no watermark, ornament, flourish or logo behind the content. | `references/brand.md:364` | — | `—` | no |
 | Place LUMI's mark exactly twice in a deck, on the cover and the closing. | `references/brand.md:364` | — | `—` | no |
+| Carry one mark twice — the cover's and the closing's are the same mark. | `references/brand.md:364` | `bookend.mark` ← `RC-486` | `D39` | yes |
 | In a field, draw exactly one mark per datum and take its intensity from the datum. | `references/brand.md:93` | — | `—` | no |
 | Keep every step of the text ladder at 4.5:1 or better. | `references/design-rules.md:101` | — | `D1` | no |
 | Set text only in the text ladder tokens. | `references/design-rules.md:102` | — | `—` | no |
@@ -500,16 +501,17 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Carry exactly one storyline and one genre per document. | `references/storyline-templates.md:13` | — | `—` | no |
 | Declare any typical section the document omits rather than dropping it silently. | `references/storyline-templates.md:41` | — | `D31` | no |
 | Open a deck with a cover and end it with a closing page. | `references/storyline-templates.md:497` | — | `deck_structure` | yes |
-| Ship no [TO FILL] placeholder in a finished document. | `references/storyline-templates.md:557` | — | `D14` | yes |
-| Version the deliverable with the lumi-style version that produced it. | `references/storyline-templates.md:563` | — | `—` | no |
-| Carry an assigned document edition in the filename and masthead, and still record the built-with version in the colophon. | `references/storyline-templates.md:565` | — | `—` | no |
-| Give every title a subject and at least one verifiable fact. | `references/storyline-templates.md:623` | — | `M1` | no |
-| Set no word ceiling on a title; the only limit is the two-line budget. | `references/storyline-templates.md:624` | `title.max-lines` ← `RC-293` | `title_two_lines` | yes |
-| Treat the colon title form as the reference form, not the required one. | `references/storyline-templates.md:626` | — | `M11` | no |
-| Cap any one title frame at 60% of the document's titles. | `references/storyline-templates.md:633` | — | `M11` | no |
-| Reject a title that states only a contrast, a slogan, or a section label. | `references/storyline-templates.md:636` | — | `M1` | no |
-| Keep the evidence clause after a contrast lead-in. | `references/storyline-templates.md:638` | — | `M1` | no |
-| Make the concatenated titles read as a complete argument. | `references/storyline-templates.md:643` | — | `—` | no |
+| Carry the locked field globe on the cover and the closing unless the document declares the replacement the owner asked for. | `references/storyline-templates.md:532` | `bookend.mark` | `D40` | yes |
+| Ship no [TO FILL] placeholder in a finished document. | `references/storyline-templates.md:566` | — | `D14` | yes |
+| Version the deliverable with the lumi-style version that produced it. | `references/storyline-templates.md:572` | — | `—` | no |
+| Carry an assigned document edition in the filename and masthead, and still record the built-with version in the colophon. | `references/storyline-templates.md:574` | — | `—` | no |
+| Give every title a subject and at least one verifiable fact. | `references/storyline-templates.md:632` | — | `M1` | no |
+| Set no word ceiling on a title; the only limit is the two-line budget. | `references/storyline-templates.md:633` | `title.max-lines` ← `RC-293` | `title_two_lines` | yes |
+| Treat the colon title form as the reference form, not the required one. | `references/storyline-templates.md:635` | — | `M11` | no |
+| Cap any one title frame at 60% of the document's titles. | `references/storyline-templates.md:642` | — | `M11` | no |
+| Reject a title that states only a contrast, a slogan, or a section label. | `references/storyline-templates.md:645` | — | `M1` | no |
+| Keep the evidence clause after a contrast lead-in. | `references/storyline-templates.md:647` | — | `M1` | no |
+| Make the concatenated titles read as a complete argument. | `references/storyline-templates.md:652` | — | `—` | no |
 | Quote a banned phrase only inside figure ink, never in HTML prose. | `references/writing-rules.md:106` | — | `M4` | yes |
 | Use full-width punctuation in Simplified-Chinese body text; half-width stays in code, URLs, emails, version strings, filenames and pure English runs. | `references/writing-rules.md:124` | — | `M5` | yes |
 | Use 「」 for Chinese quotes and full-width parentheses around Chinese content. | `references/writing-rules.md:127` | — | `—` | no |

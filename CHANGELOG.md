@@ -1,3 +1,64 @@
+## 0.1.560 — the brand mark left both bookends and every gate passed it
+
+**The owner opened a conformance deck and said the 3D globe was gone from the
+cover and the closing. It was.** An agent had replaced the LUMIVATE field globe
+on both bookends with a hundred-cell waffle of a collection figure — and
+`check_design` reported zero failures, `inspect_layout --deliverable` reported
+zero, the Evals reported zero. Forty-odd gates and not one of them looks at
+whether the brand is still there.
+
+**Why nothing saw it.** D19 is the gate the rules pointed at, and it asserts a
+`data-globe` mark HAS its runtime. Its own docstring says why that is one-way:
+*"A MARK obliges a RUNTIME, never the reverse"* — the mirrored assertion would
+fail this package's own passing fixture, which carries the drawing as a still
+frame on purpose. So a bookend with no globe at all was invisible by
+construction, and two register entries (RC-089, RC-393) cited D19 as their gate
+for something D19 refuses to assert. That is the same borrowing 0.1.557 found in
+RC-417 and D12, in the rule that matters most.
+
+**The rule, as the owner states it.** A replacement has always been permitted —
+`storyline-templates.md` lets a document "render its own subject as geometry" —
+but permission was read as the author's. It is not: *with no explicit
+instruction the mark is the locked field globe*, and a document carrying
+something else declares `<body data-brand-mark="what was asked for">`. The
+declaration is the whole point: it separates a replacement somebody asked for
+from a brand mark that went missing, which nothing could tell apart before.
+
+**D40** gates each bookend against the locked asset's own geometry — read from
+`assets/brand/lumivate/globe-field.svg` at run time, never a signature typed
+into the checker, because the asset regenerates. **D39** gates the other half of
+`brand.md`'s sentence, that the mark "appears twice … the cover and the
+closing": whatever the mark is, both bookends carry it. Compared by which shape
+kinds are present rather than by counts — the two frames of a live globe differ
+because the runtime turns it, and a census demanding equality would fail a
+correct document for rotating.
+
+**Calibrated on the owner's folder before it shipped, and it changed the check
+twice.** The first cut looked for `class="markcell"` as a literal and read her
+own `class="markcell fig trade"` as a page with no mark — the fourth false
+checker failure in this repository from matching a class without its token
+boundaries, and calibration caught it where reading the code had not. The
+second cut gated "not a chart" rather than "is the brand", which was the rule
+read loosely; the owner corrected it.
+
+**What reds, stated rather than discovered later.** Thirteen documents in the
+delivery folder carry a deliberate subject globe and now need one attribute
+each, because there has never been a way to say so: the SIFT and Agent intros,
+the three Sanhua training decks, the older ops guide, and the two globe demos
+whose closing carries no mark at all. Every Chengdu BP build, `adopting-lumi-style`,
+the 0.1.448 ops guide, both fixtures and the scaffold pass untouched — as does
+the Cursor deck from the same conformance round, which kept the brand on both
+bookends while the Claude Code deck did not.
+
+The design record is `specs/2026-08-22-rules-equal-conformance-design.md`: this
+is its thesis meeting the one rule nobody had written a check for, found the way
+the spec says defects are still being found — by the owner opening the file.
+
+**Deliberate red, planted first.** The broken fixture loses its brand mark the
+way the owner's deck did — a chart on the cover for D40, a different mark on the
+closing for D39 — and both go red there and stay green on the passing fixture.
+Removing the declaration check reds a document that declares its replacement.
+
 ## 0.1.559 — a prose row gates if and only if its target is zero (GAP-029 closed)
 
 **The owner's decision, and it turns a list into a sentence.** GAP-029 recorded
