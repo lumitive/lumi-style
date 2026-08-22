@@ -782,7 +782,7 @@ PROBE = r"""
     // thing from the gridlines rule 3 bans. REPORTED, never gated: the accepted
     // reference trips it (2 of its 9 scaled figures, measured 2026-08-22), so
     // one document cannot say whether it is a defect or the house style.
-    let figNoAxis = 0, figScaled = 0;
+    let figNoAxis = 0, figScaled = 0, figUnnamedAxes = 0;
     for (const sv of s.querySelectorAll('.fig svg:not(.ic)')) {
       let numeric = 0;
       sv.querySelectorAll('text').forEach(t => {
@@ -803,6 +803,11 @@ PROBE = r"""
       // a check (convention 15).
       if (numeric < 2) continue;        // not a figure that scales anything
       figScaled++;
+      // A FIGURE THAT SCALES NUMBERS NAMES ITS AXES. Owner ruling 2026-08-22.
+      // Without the name the reader is given a quantity and no dimension, and
+      // the two axis gates below have nothing to grade — a document could dodge
+      // both by declining to say which text was an axis name.
+      if (!sv.querySelector('.axname-x, .axname-y')) figUnnamedAxes++;
       const box = sv.viewBox && sv.viewBox.baseVal;
       const W = (box && box.width) || 100, H = (box && box.height) || 100;
       let axis = false;
@@ -856,7 +861,7 @@ PROBE = r"""
     const axisNames = [];
     for (const sv of s.querySelectorAll('.fig svg:not(.ic)')) {
       const names = [...sv.querySelectorAll('.axname-x, .axname-y')];
-      if (!names.length) continue;
+      if (!names.length) continue;   // unnamed: counted by figUnnamedAxes below
       // The plot is where the MARKS are — every drawn thing that is not one of
       // these names, and not text at all. `use` and `image` are in: a plot
       // square composed from a `<symbol>` is still the plot, and leaving them
@@ -884,6 +889,21 @@ PROBE = r"""
           misturned: vertical !== wantsVertical,
         });
       }
+    }
+
+    // THE AGENDA'S RUN LINES, counted in rendered lines. storyline-templates
+    // calls it "a quiet run line"; a run that wraps is not quiet, and one deck
+    // packed three facts into 203 characters that rendered as two. Counted the
+    // way the figure name is (`capWrapped`) rather than by character budget —
+    // the ceiling belongs to the column the row sits in, not to a number.
+    let runWrapped = 0;
+    for (const q of s.querySelectorAll('.launch .gq')) {
+      const r = document.createRange();
+      r.selectNodeContents(q);
+      const tops = new Set([...r.getClientRects()]
+        .filter(b => b.height > 1)
+        .map(b => Math.round(b.top / 4)));
+      if (tops.size > 1) runWrapped++;
     }
 
     const figInk = [];
@@ -1549,7 +1569,9 @@ PROBE = r"""
       figLeadPct: +(100 * figLead).toFixed(0),
       caps, tables, drawn, capGapPx, capOffPct, clipped, badBox, sourceEcho, sourceComparable, fields, horizons,
       bandEscape, hasBand: s.querySelectorAll('.band').length > 0,
-      figInk, titleLines, openerMark, figShapes, figNoAxis, figScaled, roleWeights,
+      figInk, titleLines, openerMark, figShapes, figNoAxis, figScaled,
+      figUnnamedAxes, roleWeights,
+      runWrapped,
       axisNames,
       textOverlaps, worstOverlap,
       ledeBlocks, ledeClamped, reserveExpected,
@@ -3422,6 +3444,13 @@ def deliverable_verdicts(rows, consistency):
     # captions on one deck rendered two lines with every name reported as
     # holding one. Rule 8 now keeps the source inside the drawing, so the name
     # is alone under the figure and its wrap is its own.
+    add("figure_axis_named",
+        [r for r in live if r.get("figUnnamedAxes")],
+        not any(r.get("figScaled") for r in live),
+        lambda h: (f"{sum(r['figUnnamedAxes'] for r in h)} figure(s) put numbers "
+                   f"on a scale and name no axis — `.axname-x` below the "
+                   f"baseline, `.axname-y` left of the vertical axis: "
+                   + _fmt_ids(h)))
     axis_declared = any(r.get("axisNames") for r in live)
     add("figure_axis_overlap", _axis_names_over_plot(live), not axis_declared,
         lambda h: (f"{len(h)} axis name(s) lie across the plot they name: "
@@ -3432,6 +3461,11 @@ def deliverable_verdicts(rows, consistency):
         lambda h: (f"{len(h)} axis name(s) face the wrong way — the y name "
                    f"reads bottom to top, the x name reads level: "
                    + ", ".join(f"{x['id']} {x['text']!r}" for x in h[:3])))
+    add("agenda_run_wrap", [r for r in live if r.get("runWrapped")],
+        not any(r.get("isAgenda") for r in live),
+        lambda h: (f"{len(h)} agenda run line(s) wrap to a second line — the row "
+                   f"names what the part covers, it does not summarise it: "
+                   + _fmt_ids(h)))
     add("caption_name_wrap", [r for r in live if r.get("capWrapped")],
         not any(r.get("caps") for r in live),
         lambda h: (f"{len(h)} figure names wrap to a second line — shorten the "

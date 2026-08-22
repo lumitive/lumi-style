@@ -376,7 +376,11 @@ def region_rows(skip=()):
 
 
 # The rect-only figure the broken fixture keeps, so D5 has a subject.
-# FOUR PLANTS IN ONE BROKEN-ONLY FIGURE. Two are the axis names: `.axname-x`
+# FIVE PLANTS IN ONE BROKEN-ONLY FIGURE. The two `.fval` percentages make it a
+# figure that SCALES numbers while naming no axis, which is `figure_axis_named`'s
+# red: a reader is handed a quantity and no dimension.
+#
+# FOUR OTHERS. Two are the axis names: `.axname-x`
 # printed across the bars it is supposed to sit under, and `.axname-y` forced
 # back to horizontal writing so it reads across instead of upward. Both are what
 # three conformance decks did, and neither could be found before `tokens/`
@@ -441,7 +445,9 @@ FIGURE_BADBOX = """<div class="fill">
         role="img" aria-label="steps"><rect class="f-acc" x="20" y="20" width="600"
         height="60" rx="4"/><rect class="f-accw" x="20" y="110" width="600"
         height="60" rx="4"/><rect class="f-accw" x="20" y="200" width="600"
-        height="60" rx="4"/><text class="fnote" x="20" y="286">Meter management
+        height="60" rx="4"/><text class="fval" x="640" y="56">62%</text>
+        <text class="fval" x="640" y="146">28%</text>
+        <text class="fnote" x="20" y="286">Meter management
         system, extract of the period</text></svg>
       <div class="cap"><span class="n">Figure {i}</span> Three tiers of feeder loss,
       and the reason the middle tier is the one that moves the estate's number
@@ -829,12 +835,17 @@ def opener(part: str, number: int, total: int, claim: str, run: str,
   {foot(number, total)}</section>"""
 
 
+# (number, claim, marked phrase, run line). The MARKED phrase is wrapped in
+# `.hl` — storyline-templates: "The energy comes from weight and the lime chip,
+# never from a louder ground." The accepted reference marks all three of its
+# claims; this fixture marked none until 0.1.554, so the package's own model of
+# an agenda was the flat one the rule exists to prevent.
 AGENDA_ROWS = (
-    ("01", "What the estate measures today",
+    ("01", "What the estate", "measures today",
      "Coverage, the backlog, and what a read is worth."),
-    ("02", "Where the reads actually fail",
+    ("02", "Where the reads", "actually fail",
      "Signal, terrain and the relay siting decision."),
-    ("03", "What the month has to settle",
+    ("03", "What the month has", "to settle",
      "Crew allocation, the siting shortlist, and the cost of waiting."),
 )
 
@@ -854,9 +865,9 @@ def agenda(number: int, total: int) -> str:
     rows = "".join(f"""
       <div class="lrow">
         <div class="ln">{n}</div>
-        <div><p class="gn">{claim}</p>
+        <div><p class="gn">{claim} <span class="hl">{mark}</span></p>
           <p class="gq">{run}</p></div>
-      </div>""" for n, claim, run in AGENDA_ROWS)
+      </div>""" for n, claim, mark, run in AGENDA_ROWS)
     return f"""
 <section class="page" id="agenda">
   {GROUND}
@@ -963,7 +974,11 @@ def build(broken: bool) -> str:
         body += agenda(n, total)
         n += 1
     for part, count, mark in zip("ABC", split, marks, strict=True):
-        claim, run = AGENDA_ROWS["ABC".index(part)][1:]
+        # NOT `mark` — that name is the opener's silhouette, bound by the loop
+        # above. Shadowing it blanked all three marks and `opener_subject_mark`
+        # went red on the passing fixture, which is what caught it.
+        _n, head, marked, run = AGENDA_ROWS["ABC".index(part)]
+        claim = f"{head} {marked}"
         body += opener(part, n, total, claim, run, mark=mark)
         n += 1
         for j, spec in enumerate(PAGES[taken:taken + count]):
@@ -1119,7 +1134,28 @@ def build_degenerate() -> str:
              '<ul><li>An agenda line quoted from no title anywhere</li></ul>'
              '<div class="band"><div class="k">41%</div>'
              '<div class="v">A number the agenda has no business making</div>'
+             '</div>'
+             # D38's two gating arms, planted: launch rows whose claims carry no
+             # lime chip, and run lines that are a table of contents. The rule
+             # names this exact shape — "a row reading ... pages 4 to 7 is a
+             # table of contents wearing an agenda's clothes" — and a
+             # conformance deck wrote it in both its rows.
+             '<div class="fill"><div class="launch">'
+             '<div class="lrow"><div class="ln">01</div><div>'
+             '<p class="gn">What the estate measures today</p>'
+             '<p class="gq">Coverage and the backlog, on pages 4 to 9.</p>'
              '</div></div>'
+             '<div class="lrow"><div class="ln">02</div><div>'
+             '<p class="gn">Where the reads actually fail</p>'
+             # Long enough to wrap: `agenda_run_wrap`'s red. A conformance
+             # deck packed three facts into 203 characters here and the row
+             # rendered as two lines, which is the opposite of "a quiet run".
+             '<p class="gq">Signal, terrain and the relay siting decision, '
+             'with the crew allocation that follows from it and the cost of '
+             'waiting another quarter before any of it is settled, '
+             'on pages 10 to 15.</p>'
+             '</div></div>'
+             '</div></div></div>'
              '<div class="foot"><div class="terms"><span class="conf">'
              f'{TERMS}</span></div><span class="site">{SITE}</span></div>'
              '</section>') + pages

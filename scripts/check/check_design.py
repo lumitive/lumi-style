@@ -1591,6 +1591,55 @@ def d36_font_family(raw):
             "unembedded": sorted(unembedded)}
 
 
+# A page span in an agenda row — "pages 4 to 7", "on pages 8-11". The rule names
+# this shape as the thing an agenda row must not be.
+AGENDA_PAGE_SPAN = re.compile(r"\bpages?\s*\d", re.I)
+
+
+def d38_agenda_rows(raw):
+    """-> {rows, unmarked, with_pages, echoing}: what each launch row does.
+
+    Two findings GATE and one reports, by owner ruling 2026-08-22 after she read
+    three conformance agendas side by side and named one correct.
+
+    * **Every claim carries the lime chip.** storyline-templates: "The energy
+      comes from weight and the lime chip, never from a louder ground." The
+      accepted reference marks all three of its claims; two conformance decks
+      marked none of theirs, and their rows read as a list rather than as the
+      deck's argument.
+    * **No page spans.** The same section: a row reading "the ban list, the rule
+      set, the gates: pages 4 to 7" is "a table of contents wearing an agenda's
+      clothes ... page spans are apparatus and sit in the apparatus position."
+      One deck wrote "on pages 4 to 7" in both its rows.
+    * **The run line does not restate the claim** — reported, not gated. The
+      test is word overlap against the run's opening, which is crude enough to
+      catch a paraphrase that is not one; a person decides.
+    """
+    for _cls, pid, body in _pages(raw):
+        if not _is_agenda_page(pid, body):
+            continue
+        rows = re.findall(
+            r'<p[^>]*class="(?:[^"]*\s)?gn(?:\s[^"]*)?"[^>]*>(.*?)</p>\s*'
+            r'<p[^>]*class="(?:[^"]*\s)?gq(?:\s[^"]*)?"[^>]*>(.*?)</p>',
+            body, re.S)
+        if not rows:
+            return None                 # not a launch sequence; D35's question
+        unmarked, with_pages, echoing = [], [], []
+        for i, (claim, run) in enumerate(rows, start=1):
+            if not re.search(r'class="(?:[^"]*\s)?hl(?:\s[^"]*)?"', claim):
+                unmarked.append(i)
+            run_text = markup.visible_text(run)
+            if AGENDA_PAGE_SPAN.search(run_text):
+                with_pages.append(i)
+            claim_words = set(markup.visible_text(claim).lower().split())
+            head = markup.visible_text(run).lower().split()[:6]
+            if claim_words and len(claim_words & set(head)) >= 3:
+                echoing.append(i)
+        return {"rows": len(rows), "unmarked": unmarked,
+                "with_pages": with_pages, "echoing": echoing}
+    return None
+
+
 def d34_icon_uniqueness(raw):
     """-> {pages, distinct, reused}: eyebrow icons standing for more than one
     subject.
@@ -2013,6 +2062,7 @@ def measure(path):
         "D35_agenda_exclusive": d35_agenda_exclusive(raw),
         "D36_font_family": d36_font_family(raw),
         "D37_caption_scope": d37_caption_scope(raw),
+        "D38_agenda_rows": d38_agenda_rows(raw),
         "D23_font_count": d23_font_count(
             raw, (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")),
     }
@@ -2446,6 +2496,17 @@ def grade(r):
     rows.append(("D37_caption_name_len", len(cs["long_names"]),
                  f'<={CAPTION_NAME_CHARS["full"]} chars (reported)',
                  True, not cs["captions"]))
+
+    ar = r["D38_agenda_rows"]
+    rows.append(("D38_agenda_highlight",
+                 len(ar["unmarked"]) if ar else "no launch rows",
+                 "=0 (gates)", not (ar and ar["unmarked"]), False))
+    rows.append(("D38_agenda_page_spans",
+                 len(ar["with_pages"]) if ar else "no launch rows",
+                 "=0 (gates)", not (ar and ar["with_pages"]), False))
+    rows.append(("D38_agenda_run_echo",
+                 len(ar["echoing"]) if ar else "no launch rows",
+                 "reported", True, not ar))
 
     ae = r["D35_agenda_exclusive"]
     rows.append(("D35_agenda_exclusive",

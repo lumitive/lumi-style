@@ -62,6 +62,9 @@ the hidden-constraint condition this inventory exists to surface.
 | check_design | D36_font_family | `reported (GAP-027)` | graded |
 | check_design | D37_caption_name_len | `<=100 chars (reported)` | reported |
 | check_design | D37_caption_scope | `=0 (gates)` | gate |
+| check_design | D38_agenda_highlight | `=0 (gates)` | gate |
+| check_design | D38_agenda_page_spans | `=0 (gates)` | gate |
+| check_design | D38_agenda_run_echo | `reported` | reported |
 | check_design | D3_tier1_page_share | `<=33.0%` | graded |
 | check_design | D3_tier1_per_page | `<=1 per page` | graded |
 | check_design | D4_palette_literals | `=0` | graded |
@@ -77,7 +80,7 @@ All of these **gate** a pre-delivery run. `deliverable_verdicts`
 is the authority; five files once counted this list four
 different ways.
 
-`band_escape`, `bookend_title_length`, `caption_name_wrap`, `collision`, `content_hidden`, `content_spill`, `datum`, `deck_structure`, `figure_axis_orientation`, `figure_axis_overlap`, `figure_clipped`, `figure_distorts`, `figure_ink_collision`, `figure_viewbox`, `footer_baseline`, `footer_wrap`, `opener_pacing`, `opener_subject_mark`, `page_height`, `reserve_overspent`, `role_split`, `role_weight`, `starved_column`, `title_two_lines`, `visual_absent`
+`agenda_run_wrap`, `band_escape`, `bookend_title_length`, `caption_name_wrap`, `collision`, `content_hidden`, `content_spill`, `datum`, `deck_structure`, `figure_axis_named`, `figure_axis_orientation`, `figure_axis_overlap`, `figure_clipped`, `figure_distorts`, `figure_ink_collision`, `figure_viewbox`, `footer_baseline`, `footer_wrap`, `opener_pacing`, `opener_subject_mark`, `page_height`, `reserve_overspent`, `role_split`, `role_weight`, `starved_column`, `title_two_lines`, `visual_absent`
 
 ## Module constants (discovered, with their own comments)
 

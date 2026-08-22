@@ -557,14 +557,47 @@ def test_a_flag_platform_is_unaffected(tmp_path):
     assert "--reasoning medium" in (tmp_path / "a.md").read_text()
 
 
-def test_effort_without_a_model_cannot_be_composed(tmp_path):
-    # The template needs both halves. Recording "(not pinned)" is the honest
-    # outcome; inventing a model name to hang the level on is not.
+def test_effort_without_a_model_refuses_to_run(tmp_path):
+    """The template needs both halves, and from 0.1.554 the driver REFUSES
+    rather than recording "(not pinned)" and carrying on.
+
+    The earlier ruling — "recording (not pinned) is the honest outcome;
+    inventing a model name to hang the level on is not" — was honest about the
+    RECORD and silent on the console. A whole comparison round was then reported
+    as "Cursor at high effort" when Cursor had run on the server's default model
+    at the server's default level, and the matrix row the flag exists to fill was
+    dropped without a word. Owner ruling 2026-08-22: pin it, or fail.
+    """
+    import pytest
     argv = [sys.executable, "-c",
             "import sys,pathlib; pathlib.Path('a.md').write_text(' '.join(sys.argv[1:]))"]
     agent = dict(_agent(argv), drive_effort_in_model="{model}-{effort}")
-    out = rc.drive(agent, TASK, tmp_path, effort="high")
-    assert out["effort"] == "(not pinned)"
+    with pytest.raises(SystemExit) as exc:
+        rc.drive(agent, TASK, tmp_path, effort="high")
+    assert "no --model" in str(exc.value)
+
+
+def test_effort_with_a_model_still_composes(tmp_path):
+    """The refusal must not swallow the case it exists to protect."""
+    argv = [sys.executable, "-c",
+            "import sys,pathlib; pathlib.Path('a.md').write_text(' '.join(sys.argv[1:]))"]
+    agent = dict(_agent(argv), drive_effort_in_model="{model}-{effort}")
+    out = rc.drive(agent, TASK, tmp_path, model="cursor-grok-4.6", effort="high")
+    assert out["effort"] == "high"
+    assert out["model"] == "cursor-grok-4.6-high"
+
+
+def test_the_top_efforts_are_expressible():
+    """`--effort` accepted only low|medium|high, so the highest level a
+    comparison could ask for was `high` — on agents whose CLIs document `xhigh`
+    and `max`, and on Cursor whose Grok 4.6 tops out at `xhigh`."""
+    import contextlib
+    import io
+    for level in ("xhigh", "max"):
+        buf = io.StringIO()
+        with contextlib.suppress(SystemExit), contextlib.redirect_stderr(buf):
+            rc.main(["run", "--effort", level, "--agent", "no-such-agent"])
+        assert "invalid choice" not in buf.getvalue(), level
 
 
 # THE TWO BOARDS ASK DIFFERENT QUESTIONS. Conformance asks whether the agent did
@@ -779,3 +812,4 @@ def test_an_unnamed_candidate_is_still_listed_but_never_first(tmp_path, monkeypa
             f"import pathlib; pathlib.Path({str(home / 'stray.md')!r}).write_text('x')"]
     out = rc.drive(_agent(argv), task, tmp_path)
     assert out["misplaced"] == [str(home / "stray.md")]
+

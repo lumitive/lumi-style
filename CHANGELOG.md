@@ -1,3 +1,70 @@
+## 0.1.554 — three agenda rows the owner read side by side, an axis that has to be named, and an effort flag that pinned nothing
+
+**She opened the three r15 agendas and said one was right.** The difference is
+now four measurements rather than an impression, and her own accepted deck is
+the standard answer at every one: three rows, three lime chips, run lines of 30
+to 35 characters, no page numbers.
+
+| | chip | run length | page span | echoes the claim |
+|---|---|---|---|---|
+| **accepted reference** | **3/3** | 30–35 | no | no |
+| Claude Code | 2/2 | 77–83 | no | no |
+| Cursor | **0/2** | **167–203, wrapping to two lines** | no | no |
+| Hermes | **0/2** | 73–90 | **yes** | **yes** |
+
+`D38` gates the chip and the page span; `agenda_run_wrap` gates the wrap,
+counted in rendered lines the way a figure name is rather than by a character
+budget nobody measured. Whether a run line merely restates its claim is
+REPORTED — the test is word overlap and too coarse to fail a document on.
+
+**A rule two sentences from its own counter-example.** The launch sequence read
+"a quiet run line naming the pages", and one paragraph above it the same section
+calls a row ending "pages 4 to 7" a table of contents in an agenda's clothes.
+An agent took the nearer sentence literally and wrote "on pages 4 to 7" into
+both its rows. It now reads "naming **what those pages cover**". The ambiguous
+sentence won for four releases because nothing measured which reading shipped.
+
+**This package's own agenda had no chips either** — the fixture marked none of
+its three claims, so the model of a correct agenda was the flat one the rule
+exists to prevent. Fixed here, and fixing it caught a second defect: the edit
+shadowed the loop variable holding the opener silhouettes and blanked all three,
+which `opener_subject_mark` reported immediately.
+
+**A figure that scales numbers must name its axes (`figure_axis_named`, gates).**
+Without the name a reader is handed a quantity and no dimension — and the two
+placement gates added at 0.1.551 have nothing to grade, so a document could walk
+past both by declining to say which text is an axis name. **The owner ruled it
+gates knowing the cost**: every document built before the classes shipped fails
+until rebuilt, the accepted reference on 10 of its 10 scaled figures and an
+accepted intro deck on 4 of 4. GAP-027 records that the reference is not the
+calibration anchor for THIS gate until the rebuild, and remains the anchor for
+every other one.
+
+**`--effort` pinned nothing, and said nothing.** An agent that spells effort
+inside its model id needs both halves; given only `--effort`, the driver
+composed nothing, pinned nothing, and recorded `(not pinned)` — honest in the
+record, invisible on the console. **A whole comparison round was reported as
+"Cursor at high effort" when Cursor had run on the server's default model at the
+server's default level**, and the matrix row the flag exists to fill was dropped
+without a word. It is a hard error now. The earlier ruling — "recording (not
+pinned) is the honest outcome; inventing a model name to hang the level on is
+not" — was right about the record and is superseded on the behaviour.
+
+Two facts found by asking the CLI rather than the registry: **`cursor-grok-4.6-max`
+does not exist** — Grok 4.6 tops out at `xhigh`, and `max` in that CLI belongs to
+other families — and `--effort` accepted only `low|medium|high`, so the highest
+level a comparison could ask for was `high` on every agent. Both fixed.
+
+The design record is `specs/2026-08-22-rules-equal-conformance-design.md`; this
+release is its "the checks her UAT named" phase continuing, one round further in.
+
+**`release.py` no longer commits files the owner owns.** `git add -A` takes
+everything in the tree, and 0.1.547 swept 413 lines of her in-progress
+brand-packs spec into a release commit — untracked, hers, and nothing asked. The
+content was unchanged, but a release should not decide when someone else's work
+enters the history. `OWNER_OWNED` is now excluded from the commit and printed as
+left alone; preflight still checks those paths like any other.
+
 ## 0.1.553 — D37 was reading the caption by its tag name, and then by too many of them
 
 **Found by running the new gate against the round it was written for, not by

@@ -117,6 +117,15 @@ def stamp(old: str, new: str, dry: bool) -> list[str]:
     return touched
 
 
+# Files the owner authors and this script may not commit on her behalf. A path
+# here is still checked by preflight like any other — it is excluded from the
+# COMMIT, not from the verification.
+OWNER_OWNED = (
+    "specs/2026-08-21-brand-packs-design.md",
+    "specs/2026-08-21-brand-packs-plan.md",
+)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--version", required=True, help="the version being released")
@@ -228,7 +237,22 @@ def main():
         return
 
     print("\n6. commit")
+    # OWNER-OWNED PATHS ARE NEVER SWEPT INTO A RELEASE. `git add -A` takes
+    # everything in the tree, including files the owner is editing and has said
+    # not to touch. 0.1.547 committed 413 lines of her brand-packs spec that
+    # way — it was untracked, it was hers, and nothing asked. Content unchanged,
+    # but a release should not decide when someone else's work-in-progress
+    # enters the history.
+    #
+    # A rule written down and then broken needs a tool that holds it (convention
+    # 16, which is why this script exists at all), so the exclusion is code
+    # rather than a note to remember at commit time.
+    held = [rel for rel in OWNER_OWNED
+            if run(["git", "status", "--porcelain", "--", rel]).stdout.strip()]
     run(["git", "add", "-A"], capture=False)
+    for owned in held:
+        run(["git", "reset", "-q", "HEAD", "--", owned], capture=False)
+        print(f"   left alone: {owned} (owner-owned; not this release's to commit)")
     subject = f"{new} — {heading_summary}"
     proc = run(["git", "commit", "-m", subject, "-m",
                 "Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"])

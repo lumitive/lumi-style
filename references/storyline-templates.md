@@ -214,9 +214,22 @@ page ranges read as emphasis on the wrong thing.)
 ## The agenda and the takeaway (every deck scenario)
 
 **The agenda renders as the launch sequence** — one row per part: a numbered
-dark chip, the part's claim at title weight quoting its opener, a quiet run
-line naming the pages (`tokens/lumi-layouts.css` `.launch`; the scaffold emits
-it). Adopted at 0.1.519 from an owner review that read the grades agenda as
+dark chip, the part's claim at title weight quoting its opener, and a quiet run
+line naming **what those pages cover** (`tokens/lumi-layouts.css` `.launch`; the
+scaffold emits it). *This read "naming the pages" until 0.1.554, which a
+conformance agent took literally and wrote "on pages 4 to 7" into both its rows
+— the exact shape the paragraph above calls a table of contents in an agenda's
+clothes. Two sentences apart, and the ambiguous one won.*
+
+**Each claim carries the lime chip, and the run line holds one line.** The
+energy comes from weight and the chip; a claim with no marked phrase renders as
+a list item, and a run line that wraps has stopped being quiet. The accepted
+reference marks all three of its claims and runs 30 to 35 characters; two
+conformance decks marked none of theirs and one packed 203 characters into a row
+that rendered as two lines. `check_design.py` D38 gates the chip and the page
+spans; `inspect_layout.py`'s `agenda_run_wrap` gates the wrap. Whether the run
+line merely restates the claim is reported, not gated — the test is word overlap
+and it is too coarse to fail a document on. Adopted at 0.1.519 from an owner review that read the grades agenda as
 too quiet for a deck that opens a pitch, piloted and accepted on a real
 roadshow build. The energy comes from weight and the lime chip, never from a
 louder ground: the agenda stays a body page.

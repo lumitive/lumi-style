@@ -638,6 +638,14 @@ rectangles, and "42" beside one of them is a number with no dimension. Draw one
 line, on the axis the values run along, in the non-text ladder; put the unit in
 the axis label or in the value itself.
 
+**A figure that puts numbers on a scale NAMES its axes**, with the shipped
+classes, and `figure_axis_named` gates it. Without the name a reader is handed a
+quantity and no dimension — and the two placement gates below have nothing to
+grade, so a document could walk past both by declining to say which text is an
+axis name. *Owner ruling 2026-08-22, taken knowing the cost: every document
+built before the classes shipped fails this until it is rebuilt, the accepted
+reference among them (10 of its 10 scaled figures). See GAP-027.*
+
 **An axis NAME sits outside the plot, and the vertical one reads upward.** The
 horizontal axis's name goes below its line, level. The vertical axis's name goes
 to the LEFT of its line, set upright reading bottom to top — `tokens/` ships

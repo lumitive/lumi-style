@@ -302,6 +302,19 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
     effort_template = agent.get("drive_effort_in_model")
     effort_flag = agent.get("drive_effort_flag")
     effort_pinned = False
+    # AN EFFORT THAT CANNOT BE APPLIED IS AN ERROR, NOT A FOOTNOTE. An agent
+    # that spells effort inside its model id needs BOTH halves; given only
+    # `--effort`, the old code composed nothing, pinned nothing, and recorded
+    # "(not pinned)" — honest in the record and invisible on the console. A
+    # whole comparison round was reported as "Cursor at high effort" when Cursor
+    # had run on the server's default model at the server's default level, and
+    # the matrix row it was meant to fill was silently dropped.
+    if effort and effort_template and not model:
+        sys.exit(
+            f"FAIL  --effort {effort} was given, but {agent['id']} composes "
+            f"effort into its model id ({effort_template!r}) and no --model was "
+            f"given, so neither axis can be pinned. Pass --model as well, or "
+            f"drop --effort and accept the CLI's defaults.")
     if model and effort and effort_template:
         model = effort_template.format(model=model, effort=effort)
         effort_pinned = True
@@ -1126,7 +1139,14 @@ def main(argv):
                          "Left off, each CLI picks its own default and the run "
                          "records that it did — a comparison needs the pin, a "
                          "check of what a user actually gets does not")
-    ap.add_argument("--effort", choices=("low", "medium", "high"), default=None,
+    # `xhigh` and `max` are real levels: `claude --effort` documents
+    # low|medium|high|xhigh|max and `hermes --reasoning` adds none|minimal|ultra.
+    # Cursor spells its top level `xhigh` inside the model id and has no `max`
+    # for Grok 4.6 at all. Refusing them here meant the highest effort a
+    # comparison could ask for was `high`, on every agent.
+    ap.add_argument("--effort",
+                    choices=("low", "medium", "high", "xhigh", "max"),
+                    default=None,
                     help="with run --drive: pin the reasoning effort through the "
                          "agent's `drive_effort_flag` and record it. This is the "
                          "second axis of the model×effort matrix (K1); an agent "
@@ -1275,7 +1295,14 @@ def main(argv):
                                     "detail": blocked[0]}, indent=2) + "\n",
                         encoding="utf-8")
                     continue
-                print(f"  driving {a['id']} on {t['id']} …", flush=True)
+                # WHICH MODEL AND WHICH LEVEL, SAID OUT LOUD. The record has
+                # carried both since the driver was written and the console has
+                # never printed either, so a round could be reported as "at high
+                # effort" when neither axis was pinned and nothing on screen
+                # disagreed.
+                print(f"  driving {a['id']} on {t['id']} "
+                      f"(model {args.model or 'CLI default'}, "
+                      f"effort {args.effort or 'CLI default'}) …", flush=True)
                 record = drive(a, t, wd, model=args.model, timeout=args.timeout,
                                effort=args.effort)
                 (wd / "driver.json").write_text(
