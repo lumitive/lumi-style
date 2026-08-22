@@ -177,7 +177,10 @@ deck is only doing that, and **D37** (the caption below a figure holds the
 number and the name, and the source line lives inside the drawing) asks whether
 two roles were run together into one sentence, and **D38** (every agenda claim
 carries the lime chip, and no agenda row names a page span) asks whether the page
-that routes the deck reads as its argument or as a table of contents. Every one of them is
+that routes the deck reads as its argument or as a table of contents, and **D39**
+(the cover's mark and the closing's are the same mark) and **D40** (each bookend
+carries the locked field globe unless the document declares the replacement that
+was asked for) ask whether the brand is still on the pages that carry it. Every one of them is
 decidable in the way "does this page read as intentional" is not. The list is
 `check_design.py`'s to change: a row whose target says `(gates)` gates, and the
 `gating claims` guard holds this sentence to it.

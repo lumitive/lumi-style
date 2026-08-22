@@ -528,7 +528,16 @@ sits between them.
   **The brand mark is identity; a replacement mark is a claim.** The field
   globe carries LUMIVATE's own field — its blocs, lanes and codes — the way a
   logo carries a company's business, and its `aria-label` says so; it claims
-  nothing about the document. A document may instead render its own subject as
+  nothing about the document. **A replacement is the owner's call and not the
+  author's**: with no explicit instruction the mark is the locked field globe,
+  and a document that carries something else declares
+  `<body data-brand-mark="what was asked for">` (owner directive, 2026-08-22 —
+  a deck came back with the brand deleted from both bookends and a hundred-cell
+  waffle of a collection figure in its place, and every gate in the package
+  passed it, because the one that names `data-globe` asserts a mark obliges a
+  runtime and never the reverse). The declaration is what separates a
+  replacement that was asked for from a brand mark that went missing; `D40`
+  gates on it. A document may render its own subject as
   geometry, and THAT mark must say something true about the document: a globe
   on a deck about one supply chain shows that chain's nodes and routes and
   nothing else. Geography implies coverage, so a region drawn is a region

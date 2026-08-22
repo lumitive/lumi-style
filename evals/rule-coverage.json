@@ -890,9 +890,10 @@
    "quote": "embedded live so it turns",
    "gist": "Embed the field-globe mark live so it turns, rather than as a still frame.",
    "page_kind": "cover",
+   "covers": "bookend.mark",
+   "overrides": "RC-486",
    "metric": "D19",
-   "gates": true,
-   "why_unchecked": null
+   "gates": true
   },
   {
    "id": "RC-090",
@@ -3942,9 +3943,10 @@
    "quote": "**The default mark is the LUMIVATE field globe**",
    "gist": "Use the LUMIVATE field globe as the default cover mark, embedded live with its runtime.",
    "page_kind": "cover",
-   "metric": "D19",
-   "gates": true,
-   "why_unchecked": null
+   "covers": "bookend.mark",
+   "overrides": "RC-486",
+   "metric": "D40",
+   "gates": true
   },
   {
    "id": "RC-394",
@@ -3968,17 +3970,19 @@
   },
   {
    "id": "RC-396",
-   "source": "references/storyline-templates.md:531",
-   "quote": "A document may instead render its own subject as",
+   "source": "references/storyline-templates.md:540",
+   "quote": "render its own subject as",
    "gist": "A mark replacing the brand globe must say something true about the document's own subject.",
    "page_kind": "cover",
+   "covers": "bookend.mark",
+   "overrides": "RC-486",
    "metric": null,
    "gates": false,
    "why_unchecked": "no metric measures this; a candidate has not been assessed"
   },
   {
    "id": "RC-397",
-   "source": "references/storyline-templates.md:534",
+   "source": "references/storyline-templates.md:543",
    "quote": "Geography implies coverage, so a region drawn is a region",
    "gist": "Draw only the regions the document actually claims.",
    "page_kind": "cover",
@@ -3988,7 +3992,7 @@
   },
   {
    "id": "RC-398",
-   "source": "references/storyline-templates.md:535",
+   "source": "references/storyline-templates.md:544",
    "quote": "mark the built ones in accent, the empty ones as hollow",
    "gist": "Mark built regions in accent, empty ones as hollow dashed rings, out-of-scope ones muted.",
    "page_kind": "cover",
@@ -3998,7 +4002,7 @@
   },
   {
    "id": "RC-399",
-   "source": "references/storyline-templates.md:545",
+   "source": "references/storyline-templates.md:554",
    "quote": "one closing statement that echoes the action page",
    "gist": "Carry one closing statement that echoes the action page.",
    "page_kind": "closing",
@@ -4008,7 +4012,7 @@
   },
   {
    "id": "RC-400",
-   "source": "references/storyline-templates.md:548",
+   "source": "references/storyline-templates.md:557",
    "quote": "a one-sentence recap of the ask",
    "gist": "Include a one-sentence recap of the ask on the closing page.",
    "page_kind": "closing",
@@ -4018,7 +4022,7 @@
   },
   {
    "id": "RC-401",
-   "source": "references/storyline-templates.md:549",
+   "source": "references/storyline-templates.md:558",
    "quote": "slots in the same `.attrs` block the cover uses",
    "gist": "Set the closing contact slots in the same .attrs block the cover uses.",
    "page_kind": "closing",
@@ -4028,7 +4032,7 @@
   },
   {
    "id": "RC-402",
-   "source": "references/storyline-templates.md:549",
+   "source": "references/storyline-templates.md:558",
    "quote": "**and the same single vector mark as the cover**",
    "gist": "Repeat the cover's single vector mark on the closing page.",
    "page_kind": "closing",
@@ -4038,7 +4042,7 @@
   },
   {
    "id": "RC-403",
-   "source": "references/storyline-templates.md:551",
+   "source": "references/storyline-templates.md:560",
    "quote": "set the same way (`cover-grid` in `tokens/lumi-layouts.css`)",
    "gist": "Set cover and closing on the same cover-grid layout.",
    "page_kind": "closing",
@@ -4048,7 +4052,7 @@
   },
   {
    "id": "RC-404",
-   "source": "references/storyline-templates.md:552",
+   "source": "references/storyline-templates.md:561",
    "quote": "so its mark repeats the cover's geography",
    "gist": "Repeat the cover's geography in the closing mark; introduce no new claim.",
    "page_kind": "closing",
@@ -4058,7 +4062,7 @@
   },
   {
    "id": "RC-405",
-   "source": "references/storyline-templates.md:553",
+   "source": "references/storyline-templates.md:562",
    "quote": "Contact details: real ones from the user, or none at all.",
    "gist": "Use only real contact details from the user, or none.",
    "page_kind": "closing",
@@ -4068,7 +4072,7 @@
   },
   {
    "id": "RC-406",
-   "source": "references/storyline-templates.md:555",
+   "source": "references/storyline-templates.md:564",
    "quote": "OMIT the contact slots entirely and name",
    "gist": "Omit the contact slots and name the owning role in prose when no real contacts exist.",
    "page_kind": "closing",
@@ -4078,7 +4082,7 @@
   },
   {
    "id": "RC-407",
-   "source": "references/storyline-templates.md:557",
+   "source": "references/storyline-templates.md:566",
    "quote": "D14 gates a finished document at zero placeholders",
    "gist": "Ship no [TO FILL] placeholder in a finished document.",
    "page_kind": "all",
@@ -4088,7 +4092,7 @@
   },
   {
    "id": "RC-408",
-   "source": "references/storyline-templates.md:561",
+   "source": "references/storyline-templates.md:570",
    "quote": "End with the colophon (owner · date ·",
    "gist": "End the closing page with the colophon: owner, date, built-with version, number-discipline line.",
    "page_kind": "closing",
@@ -4098,7 +4102,7 @@
   },
   {
    "id": "RC-409",
-   "source": "references/storyline-templates.md:563",
+   "source": "references/storyline-templates.md:572",
    "quote": "by default a deliverable's version number **is** the",
    "gist": "Version the deliverable with the lumi-style version that produced it.",
    "page_kind": "all",
@@ -4108,7 +4112,7 @@
   },
   {
    "id": "RC-410",
-   "source": "references/storyline-templates.md:565",
+   "source": "references/storyline-templates.md:574",
    "quote": "the filename and masthead carry the document",
    "gist": "Carry an assigned document edition in the filename and masthead, and still record the built-with version in the colophon.",
    "page_kind": "all",
@@ -4118,7 +4122,7 @@
   },
   {
    "id": "RC-411",
-   "source": "references/storyline-templates.md:571",
+   "source": "references/storyline-templates.md:580",
    "quote": "is broken into named parts, and **every part boundary gets",
    "gist": "Give every part boundary an opener page.",
    "page_kind": "opener",
@@ -4128,7 +4132,7 @@
   },
   {
    "id": "RC-412",
-   "source": "references/storyline-templates.md:572",
+   "source": "references/storyline-templates.md:581",
    "quote": "the lime field carrying the part label, one claim at display",
    "gist": "Compose an opener as the lime field with the part label, one display-scale claim, and one run line.",
    "page_kind": "opener",
@@ -4138,7 +4142,7 @@
   },
   {
    "id": "RC-413",
-   "source": "references/storyline-templates.md:575",
+   "source": "references/storyline-templates.md:584",
    "quote": "Its content area takes no chart, no map, no navigation rail",
    "gist": "Put no chart, map, navigation rail or second-message icon in an opener's content area.",
    "page_kind": "opener",
@@ -4148,7 +4152,7 @@
   },
   {
    "id": "RC-414",
-   "source": "references/storyline-templates.md:576",
+   "source": "references/storyline-templates.md:585",
    "quote": "**One oversized subject mark is permitted**",
    "gist": "Permit exactly one oversized filled silhouette, carrying no text, on an opener.",
    "page_kind": "opener",
@@ -4158,7 +4162,7 @@
   },
   {
    "id": "RC-415",
-   "source": "references/storyline-templates.md:579",
+   "source": "references/storyline-templates.md:588",
    "quote": "It is the part's subject or it is not there.",
    "gist": "The opener mark is the part's own subject or it is absent.",
    "page_kind": "opener",
@@ -4168,7 +4172,7 @@
   },
   {
    "id": "RC-416",
-   "source": "references/storyline-templates.md:579",
+   "source": "references/storyline-templates.md:588",
    "quote": "It is the part's subject or it is not there.",
    "gist": "Give each part opener its own subject silhouette; two parts may not share one.",
    "page_kind": "opener",
@@ -4178,7 +4182,7 @@
   },
   {
    "id": "RC-417",
-   "source": "references/storyline-templates.md:580",
+   "source": "references/storyline-templates.md:589",
    "quote": "keeps its handling marker, inverted with the field",
    "gist": "Keep the footer's handling marker on an opener, inverted with the field.",
    "page_kind": "opener",
@@ -4190,7 +4194,7 @@
   },
   {
    "id": "RC-418",
-   "source": "references/storyline-templates.md:581",
+   "source": "references/storyline-templates.md:590",
    "quote": "The ground runs at its medium tier",
    "gist": "Run the opener ground at its medium tier.",
    "page_kind": "opener",
@@ -4202,7 +4206,7 @@
   },
   {
    "id": "RC-419",
-   "source": "references/storyline-templates.md:581",
+   "source": "references/storyline-templates.md:590",
    "quote": "the vector mark stays on the cover and",
    "gist": "Keep the vector mark off openers; it stays on cover and closing.",
    "page_kind": "opener",
@@ -4212,7 +4216,7 @@
   },
   {
    "id": "RC-420",
-   "source": "references/storyline-templates.md:584",
+   "source": "references/storyline-templates.md:593",
    "quote": "about five content pages between openers is the TARGET; six is the",
    "gist": "Target about five content pages between part openers and never run past six without a seam.",
    "page_kind": "opener",
@@ -4222,7 +4226,7 @@
   },
   {
    "id": "RC-421",
-   "source": "references/storyline-templates.md:623",
+   "source": "references/storyline-templates.md:632",
    "quote": "title names its **subject** and carries at least one",
    "gist": "Give every title a subject and at least one verifiable fact.",
    "page_kind": "all",
@@ -4232,7 +4236,7 @@
   },
   {
    "id": "RC-422",
-   "source": "references/storyline-templates.md:624",
+   "source": "references/storyline-templates.md:633",
    "quote": "Length follows the fact; **there is no word",
    "gist": "Set no word ceiling on a title; the only limit is the two-line budget.",
    "page_kind": "all",
@@ -4244,7 +4248,7 @@
   },
   {
    "id": "RC-423",
-   "source": "references/storyline-templates.md:626",
+   "source": "references/storyline-templates.md:635",
    "quote": "is the reference form, not the required one",
    "gist": "Treat the colon title form as the reference form, not the required one.",
    "page_kind": "all",
@@ -4254,7 +4258,7 @@
   },
   {
    "id": "RC-424",
-   "source": "references/storyline-templates.md:633",
+   "source": "references/storyline-templates.md:642",
    "quote": "and M11 caps any one of",
    "gist": "Cap any one title frame at 60% of the document's titles.",
    "page_kind": "all",
@@ -4264,7 +4268,7 @@
   },
   {
    "id": "RC-425",
-   "source": "references/storyline-templates.md:636",
+   "source": "references/storyline-templates.md:645",
    "quote": "a title that states only a contrast",
    "gist": "Reject a title that states only a contrast, a slogan, or a section label.",
    "page_kind": "all",
@@ -4274,7 +4278,7 @@
   },
   {
    "id": "RC-426",
-   "source": "references/storyline-templates.md:638",
+   "source": "references/storyline-templates.md:647",
    "quote": "Contrast is a *lead-in*, never the whole title",
    "gist": "Keep the evidence clause after a contrast lead-in.",
    "page_kind": "all",
@@ -4284,7 +4288,7 @@
   },
   {
    "id": "RC-427",
-   "source": "references/storyline-templates.md:643",
+   "source": "references/storyline-templates.md:652",
    "quote": "concatenate all titles — they must read as a complete",
    "gist": "Make the concatenated titles read as a complete argument.",
    "page_kind": "all",
@@ -4294,7 +4298,7 @@
   },
   {
    "id": "RC-428",
-   "source": "references/storyline-templates.md:646",
+   "source": "references/storyline-templates.md:655",
    "quote": "never carries a \"→ so-what\" label",
    "gist": "Carry no so-what label in sales or client material.",
    "page_kind": "content",
@@ -4304,7 +4308,7 @@
   },
   {
    "id": "RC-429",
-   "source": "references/storyline-templates.md:650",
+   "source": "references/storyline-templates.md:659",
    "quote": "**Comparisons always use tables** (columns = options",
    "gist": "Present every comparison as a table with options as columns.",
    "page_kind": "content",
@@ -4314,7 +4318,7 @@
   },
   {
    "id": "RC-430",
-   "source": "references/storyline-templates.md:662",
+   "source": "references/storyline-templates.md:671",
    "quote": "Parallel structure **only where it aids comparison**",
    "gist": "Use parallel page structure only where it aids comparison.",
    "page_kind": "content",
@@ -4871,6 +4875,27 @@
    "metric": null,
    "gates": false,
    "why_unchecked": "no metric measures this; a candidate has not been assessed"
+  },
+  {
+   "id": "RC-486",
+   "source": "references/storyline-templates.md:532",
+   "quote": "with no explicit instruction the mark is the locked field globe",
+   "gist": "Carry the locked field globe on the cover and the closing unless the document declares the replacement the owner asked for.",
+   "page_kind": "all",
+   "covers": "bookend.mark",
+   "metric": "D40",
+   "gates": true
+  },
+  {
+   "id": "RC-487",
+   "source": "references/brand.md:364",
+   "quote": "LUMI's mark appears twice in a deck",
+   "gist": "Carry one mark twice — the cover's and the closing's are the same mark.",
+   "page_kind": "all",
+   "covers": "bookend.mark",
+   "overrides": "RC-486",
+   "metric": "D39",
+   "gates": true
   }
  ],
  "orphan_gates": {
