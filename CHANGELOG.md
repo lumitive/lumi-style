@@ -1,3 +1,28 @@
+## 0.1.553 — D37 was reading the caption by its tag name, and then by too many of them
+
+**Found by running the new gate against the round it was written for, not by
+reading it.** Both corrections landed within minutes of each other and they
+point in opposite directions, which is the useful part.
+
+**It matched `<p>` and `<div>` only.** One conformance deck wrote
+`<figcaption class="cap">` and its source line walked straight past a GATING
+check — on a tag name, which is the identical shape of D33's `i-` id that
+0.1.550 closed for the same reason. A class is the role; the element is the
+author's choice, and a gate keyed on the element is a gate a markup preference
+walks around.
+
+**Widening it to any element then failed a deck that was CORRECT.** The other
+agent had done exactly what §4 rule 17 asks — put the source INSIDE the drawing,
+wrapped in `<g class="cap">`, with the caption below the figure holding only the
+number and the name — and the widened pattern read that in-figure source as a
+caption source. A rule being followed, reported as the rule being broken. It
+was caught because the accepted reference and both fixtures were re-run before
+the result was believed; the false positive lasted one command.
+
+So: any HTML element carrying `.cap` is graded, and a `.cap` inside an `<svg>`
+is not, because an in-figure source is the rule working. Both cases are pinned
+by tests named after the decks that produced them.
+
 ## 0.1.552 — the data voice is embedded, and "not bold" turns out to have been "not there"
 
 **Owner authorisation, with a licence condition she set: the embedded face must

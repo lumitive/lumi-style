@@ -377,3 +377,28 @@ def test_a_declared_pacing_exemption_reads_as_not_applicable_not_as_a_pass():
     # And a deck that simply passes is NOT reported as exempt.
     fine = _rows(["cover"] + ["c"] * 5 + ["closing"])
     assert il._pacing_not_applicable(fine) is False
+
+
+# ── D37: which caption the metric grades ────────────────────────────────────
+
+def test_a_caption_on_any_html_element_is_graded():
+    """It matched `<p>` and `<div>` only, and a conformance deck wrote
+    `<figcaption class="cap">` — so a source line walked past a GATING check on
+    a tag name, which is the shape D33's `i-` id had."""
+    for tag in ("p", "div", "figcaption"):
+        raw = (f'<{tag} class="cap"><span class="n">Figure 1</span> A name'
+               f'<span class="srcline">Where it came from</span></{tag}>')
+        assert cd.d37_caption_scope(raw)["with_source"] == [1], tag
+
+
+def test_a_source_inside_the_drawing_is_the_rule_being_followed():
+    """Widening the match then flagged a deck that was CORRECT: it put the
+    source inside the SVG as §4 rule 17 asks, wrapped in `<g class="cap">`,
+    with the caption below the figure holding only the number and the name."""
+    raw = ('<div class="fig"><svg viewBox="0 0 10 10">'
+           '<g class="cap"><text class="sm srcline">Illustrative values</text></g>'
+           '</svg>'
+           '<div class="cap"><span class="n">Figure 1</span> A name</div></div>')
+    r = cd.d37_caption_scope(raw)
+    assert r["with_source"] == [], r
+    assert r["captions"] == 1, "only the caption below the figure is graded"
