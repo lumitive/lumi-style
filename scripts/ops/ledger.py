@@ -50,10 +50,6 @@ import sys
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if (p / "SKILL.md").exists())
-# NOT tracked (.gitignore, beside the other two .local.json files): a price is
-# an operator machine's fact with a date on it, not the package's.
-PRICES = ROOT / "evals" / "prices.local.json"
-
 # --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
 # Bare-name sibling imports must resolve from any drawer depth: walk up to
 # the scripts/ root and APPEND it and its drawers to sys.path — append,
@@ -75,10 +71,15 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 # The effort vocabulary is the schema's, never retyped here — a second literal
 # copy is the drift the genre enum already grew once, one domain over.
+import state_dir  # noqa: E402 — one answer for operator-owned stores
 from trace_schema import ENUMS  # noqa: E402
 from trace_store import traces_dir  # noqa: E402 — the SAME store trace.py writes
 
 TRACES = traces_dir(ROOT)
+# NOT tracked (.gitignore, beside the other two .local.json files): a price is
+# an operator machine's fact with a date on it, not the package's.
+PRICES = state_dir.store("prices.local.json", root=ROOT,
+                         in_repo=("evals", "prices.local.json"))
 
 TRIGGER_N = 3          # pieces of the same evidence before a candidate is drafted
 QUEUE_CAPACITY = 5     # per cycle; the rest are deferred, never dropped

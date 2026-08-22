@@ -2736,6 +2736,7 @@ SIBLING_MODULES = (
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",
     "checker_report", "secret_patterns", "corpus", "gating",
     "gate_registry", "stamps", "trace_store", "shipped",
+    "state_dir",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
@@ -3386,6 +3387,64 @@ def check_shipped_closure():
     return errors
 
 
+CROSS_BOUNDARY_WAIVERS: dict[tuple[str, str], str] = {}
+
+
+def check_cross_boundary_paths():
+    """A consumer script may not name a file the projection leaves behind.
+
+    The teeth of the split. `check_shipped_closure` proves the boundary is
+    total; this proves the consumer half can stand on its own — a script that
+    ships while the file it opens does not is a skill that is green here and
+    broken in a fresh clone, which is precisely the class `check_assets_tracked`
+    exists for.
+
+    Scans STRING LITERALS in the consumer closure and reports the ones naming a
+    TRACKED file on the development side. Two limits, stated rather than
+    implied: a path assembled from variables is invisible to it, and an
+    untracked path is not its business — the state stores moved out from under
+    it for exactly that reason, and `state_dir.store()` names its in-repo
+    fallback in a tuple this scan does not read.
+    """
+    import shipped
+    try:
+        shipped.manifest(ROOT)
+    except (OSError, ValueError) as exc:                            # noqa: BLE001
+        return [f"could not read {shipped.MANIFEST}: {exc}"]
+    p = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT,
+                       capture_output=True, text=True)
+    if p.returncode != 0:
+        return [f"git ls-files failed ({p.stderr.strip()[:80]}) — the "
+                f"cross-boundary scan did not run, and a scan that did not run "
+                f"is not a scan that passed"]
+    tracked = {f for f in p.stdout.split("\0") if f}
+    consumer = shipped.consumer_scripts(ROOT)
+    scripts = {q.stem: q for q in
+               list(ROOT.glob("scripts/*/*.py")) + list(ROOT.glob("scripts/*.py"))}
+    literal = re.compile(r'"([\w][\w./-]*)"')
+    joined = re.compile(r'"([\w.-]+)"\s*/\s*"([\w.-]+)"')
+    errors = []
+    for stem in sorted(consumer):
+        path = scripts.get(stem)
+        if path is None:
+            continue
+        name = rel(path)
+        src = path.read_text(encoding="utf-8")
+        found = set(literal.findall(src))
+        found |= {f"{a}/{b}" for a, b in joined.findall(src)}
+        for cand in sorted(found & tracked):
+            if shipped.side_of(cand, ROOT, consumer) != "dev":
+                continue
+            if (name, cand) in CROSS_BOUNDARY_WAIVERS:
+                continue
+            errors.append(
+                f"{name} ships to the consumer and names `{cand}`, which does "
+                f"not. After the split that file is not there — move the data "
+                f"to the consumer side, resolve it through `state_dir`, or "
+                f"waive it with the reason it is safe")
+    return errors
+
+
 def check_local_paths():
     """No tracked file names an operator's home directory.
 
@@ -3941,6 +4000,7 @@ CHECKS = (
     ("verdict names", check_verdict_names),
     ("local paths", check_local_paths),
     ("shipped closure", check_shipped_closure),
+    ("cross-boundary paths", check_cross_boundary_paths),
     ("version stamps", check_versions),
     ("output default", check_output_default),
     ("version citations", check_version_citations),

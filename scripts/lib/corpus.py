@@ -12,12 +12,27 @@ from __future__ import annotations
 import json
 import pathlib
 
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import state_dir  # noqa: E402
+
 # The repo root by its SKILL.md; in a synthetic tree under test (no SKILL.md)
 # the drawer layout still locates the tree two levels up from scripts/lib.
 ROOT = next((p for p in pathlib.Path(__file__).resolve().parents
              if (p / "SKILL.md").exists()),
             pathlib.Path(__file__).resolve().parents[2])
-LOCAL_CORPUS = ROOT / "evals" / "corpus.local.json"
+LOCAL_CORPUS = state_dir.store("corpus.local.json", root=ROOT,
+                              in_repo=("evals", "corpus.local.json"))
 
 
 def entry(value) -> tuple[str | None, dict | None]:
