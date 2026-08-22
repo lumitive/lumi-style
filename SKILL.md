@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.561"
+  version: "0.1.562"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -455,8 +455,12 @@ current, stale, or **unknown** — and unknown is not current.
    whole stack**: `python3 scripts/ops/check_deliverable.py <file> [--terms
    <list>]` launches the rendered check first, runs every text instrument while
    the browser works, applies the Evals thresholds, and ends in one block naming
-   every gating failure, every graded finding and every check that could not be
-   measured — read that block whole, then fix everything it names in ONE pass.
+   every gating failure, every graded finding, every check that could not be
+   measured, and — for a document that declares an older build — every gate
+   written after it, marked `past` and binding nothing. **A gate binds a
+   document built at or after the release that introduced it**; a document
+   carrying no `built with lumi-style X.Y.Z` line is held to all of them, so
+   omitting the stamp is not a way out — read that block whole, then fix everything it names in ONE pass.
    **While you are still fixing, add `--fast`**: it renders the declared stage
    only and skips the off-shape sweep, which is 3 seconds instead of 16 on a
    twelve-page deck with every gate still running. It is not a delivery reading

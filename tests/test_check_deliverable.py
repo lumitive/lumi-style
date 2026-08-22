@@ -8,6 +8,7 @@ ONE final block, and an exit code that cannot disagree with it.
 """
 import json
 import pathlib
+import re
 import subprocess
 import sys
 
@@ -109,7 +110,8 @@ def test_layout_caption_wrap_reaches_the_block(tmp_path):
     assert spec is not None and spec.loader is not None
     drv = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(drv)
-    gating, graded, silent, worst = drv.verdict_block({"layout": fake_layout})
+    gating, graded, silent, _not_held, worst = drv.verdict_block(
+        {"layout": fake_layout})
     assert any("caption" in g and "p7" in g and "p10" in g for g in graded)
 
 
@@ -158,3 +160,74 @@ def test_the_evals_reach_the_one_block(tmp_path):
     graded = json.loads(out.stdout)["graded"]
     assert any(line.startswith("evals:") for line in graded), (
         f"no Evals row in the block: {graded}")
+
+
+# --- a gate written after the document has nothing to say about it -----------
+#
+# The owner's directive, 2026-08-22: historical deliverables were never meant to
+# be upgraded to satisfy rules written after them. Before this, the gate set
+# applied was always HEAD's — `built_version` was captured by `run_conformance`
+# and read by nothing that decided anything — so a deck accepted at 0.1.449 was
+# failed by a gate written at 0.1.560 and the failure read exactly like a defect.
+
+def _stamped(tmp_path, version):
+    """A document that genuinely fails a late gate, stamped as an older build."""
+    raw = (ROOT / "fixtures" / "deck-pass.en.html").read_text(encoding="utf-8")
+    # Remove the closing page's mark: D40_bookend_is_the_brand (0.1.560) fails.
+    raw = raw.replace('class="markcell"', 'class="notamarkcell"')
+    # SUBSTITUTE the stamp, never append one: the fixture already carries a
+    # colophon and `fingerprint.version_in` takes the FIRST match, so a second
+    # stamp lower down is read by nobody. The first version of this helper
+    # appended and the test failed reporting the fixture's own version — the
+    # test was wrong, not the scoping.
+    raw = re.sub(r"lumi-style\s+\d+\.\d+\.\d+",
+                 f"lumi-style {version}" if version else "lumi-style",
+                 raw)
+    doc = tmp_path / f"d-{version or 'nostamp'}.en.html"
+    doc.write_text(raw, encoding="utf-8")
+    return doc
+
+
+def _report(doc):
+    out = subprocess.run([sys.executable, str(DRIVER), str(doc), "--fast", "--json"],
+                         capture_output=True, text=True)
+    return json.loads(out.stdout)
+
+
+def test_a_gate_newer_than_the_document_is_not_held(tmp_path):
+    r = _report(_stamped(tmp_path, "0.1.500"))
+    assert r["built"] == "0.1.500"
+    late = [x for x in r["not_held"] if "D40_bookend_is_the_brand" in x]
+    assert late, f"D40 arrived at 0.1.560 and should not bind: {r['not_held']}"
+    assert "0.1.560" in late[0] and "0.1.500" in late[0], (
+        "the line has to say which gate and which document, or a reader cannot "
+        "tell an exemption from a pass")
+    assert not any("D40_bookend_is_the_brand" in x for x in r["gating"])
+
+
+def test_the_same_document_built_today_is_held(tmp_path):
+    """The other half, and the one that matters: scoping must not become a way
+    for a NEW deliverable to escape a new rule."""
+    r = _report(_stamped(tmp_path, "0.1.999"))
+    assert any("D40_bookend_is_the_brand" in x for x in r["gating"])
+    assert not r["not_held"]
+
+
+def test_a_document_with_no_stamp_is_held_to_everything(tmp_path):
+    """An absent stamp must never become an exemption, or the cheapest way to
+    escape every gate is to delete the line saying which rules you were written
+    against."""
+    r = _report(_stamped(tmp_path, None))
+    assert r["built"] is None
+    assert any("D40_bookend_is_the_brand" in x for x in r["gating"])
+    assert not r["not_held"]
+
+
+def test_an_older_gate_still_binds_an_older_document(tmp_path):
+    """Scoping exempts only what was written after the document. A gate that
+    predates it is a gate."""
+    r = _report(_stamped(tmp_path, "0.1.500"))
+    held = r["gating"] + r["silent"]
+    assert any("D19_vocabulary" in x for x in held) or any(
+        "privacy" in x for x in held), (
+        f"nothing older than 0.1.500 bound this document: {r['gating']}")

@@ -82,6 +82,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import color_math  # noqa: E402 — after the bootstrap, deliberately
 import css_tokens  # noqa: E402 — after the bootstrap, deliberately
+import gate_registry  # noqa: E402 — after the bootstrap
 import markup  # noqa: E402 — after the bootstrap
 from deliverable_registry import (  # noqa: E402 — after the bootstrap
     TYPICAL_SECTIONS,
@@ -708,8 +709,10 @@ def d32_shape_use(raw):
     """-> {shapes, analysis_pages}: how many library shapes the document draws
     with, and how many pages declare an analytical move.
 
-    Reported, never gating. The vendored library (206 units, tagged, embedded
-    on demand) was used zero times across five shipped deliverables; the
+    GATES since 0.1.543, and this line said "reported, never gating" for
+    seventeen releases after it stopped being true. The vendored library (206
+    units, tagged, embedded on demand) was used zero times across five shipped
+    deliverables; the
     number was invisible because nothing counted it. It is a finding only on
     a document that declares moves and draws none of them with a library
     shape — a deck built from an outline whose every page says `compare` or
@@ -2561,6 +2564,21 @@ def grade(r):
                  else (f"{pv['rasters']} image(s), no terms named" if pv else None),
                  "every image names its terms (gates)",
                  bool(pv and pv["licence_named"]), pv is None))
+    # D32 IS MEASURED FOR EVERY DOCUMENT, and its row used to live inside the
+    # `data-storyline` branch below — so a deliverable declaring no storyline
+    # emitted no D32 row at all and the gate vanished with it. `gating_metrics`
+    # keys on what the report returned, so nothing noticed: a missing row reads
+    # as a metric that did not apply rather than as a gate that went missing.
+    # It is hoisted here and reports `n/a` where no move is declared, which is
+    # what "a document that declares no moves is not measured against it" means
+    # — the metric saying so, rather than the metric being absent.
+    su = r["D32_shape_use"]
+    rows.append(("D32_shape_use",
+                 f"{su['shapes']} library shape(s) on {su['analysis_pages']} "
+                 f"analysis page(s)" if su else None,
+                 ">0 where moves are declared (gates)",
+                 not (su and su["analysis_pages"] and not su["shapes"]),
+                 not su or not su["analysis_pages"]))
     ds = r["D26_declared_scope"]
     if ds is None:
         rows.append(("D26_declared_scope", None,
@@ -2588,12 +2606,6 @@ def grade(r):
         # library ships for it has said what it is doing and not done it. The
         # accepted reference deck declares no moves and passes untouched; the
         # conformance deck the owner opened declares seven and drew zero.
-        su = r["D32_shape_use"]
-        rows.append(("D32_shape_use",
-                     f"{su['shapes']} library shape(s) on {su['analysis_pages']} "
-                     f"analysis page(s)",
-                     ">0 where moves are declared (gates)",
-                     not (su["analysis_pages"] and not su["shapes"]), False))
         rows.append(("D31_undeclared_sections",
                      None if miss is None else len(miss),
                      "=0 or declared (reported)",
@@ -2776,7 +2788,19 @@ def main(argv):
         # the pre-delivery path. `inspect_layout` has said the sentence for
         # this since 0.1.350: a check that did not run is not a check that
         # passed.
-        blind = sorted(n for n in gates if r["verdicts"][n] == "n/a")
+        # NOT APPLICABLE IS NOT NOT MEASURED. This counted every `n/a` gating
+        # row as blind, which was right for the case it was written for — D12
+        # and D15 reading n/a because no `<section class="page">` matched, a
+        # commercial gate silent on unreadable markup — and wrong for the six
+        # gates that reach n/a because the predicate has nothing to look at: a
+        # Chinese ban list on an English deck, a caption rule on a deck with no
+        # captions. `evals/gates.json` carries the difference in `na_means`,
+        # because no checker holds it: the row itself cannot tell you whether
+        # its own silence is honest.
+        na_ok = {n for n, g in gate_registry.load(ROOT).items()
+                 if (g.get("na_means") or "").strip()}
+        blind = sorted(n for n in gates
+                       if r["verdicts"][n] == "n/a" and n not in na_ok)
         if blind:
             blind_gates += 1
             # IN THE REPORT, not over it. This warning used to print even under

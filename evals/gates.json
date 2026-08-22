@@ -1,5 +1,5 @@
 {
- "$comment": "Every verdict a deliverable can receive, and what this package knows about it. HAND-MAINTAINED for `family` and `since`; `checker` and `severity` are held to the checkers themselves by check_repo's `gate declarations` guard, so this file cannot lie about what gates. WHY IT EXISTS: a gate used to be a tuple in a function body classified by whether its display string contained the substring '(gates)'. Four readers parsed that string with three different rules, and three rows were misclassified in production - M4zh_banned_hits gated in check_prose's exit and was invisible to gating.py (the regex (M\\d+)_ cannot match M4zh_), while D37_caption_name_len and D38_agenda_run_echo said 'reported' in their own targets and were counted as gates by every consumer, because gating.py keyed on the D\\d+ PREFIX. FIELDS: `family` is the concept the verdict belongs to - the classification that was missing while the set grew to 85 rows one at a time. `since` is the release that introduced it, read from git; 'always' means it predates the version history this CHANGELOG keeps (the old 1.6.0-3.3.0 scheme sorts above 0.1.560 and would have silenced six gates if written as a number). A document declaring an older build version is NOT held to a later gate - it reports `not held`, which is neither a pass nor a failure.",
+ "$comment": "Every verdict a deliverable can receive, and what this package knows about it. HAND-MAINTAINED for `family` and `since`; `checker` and `severity` are held to the checkers themselves by check_repo's `gate declarations` guard, so this file cannot lie about what gates. WHY IT EXISTS: a gate used to be a tuple in a function body classified by whether its display string contained the substring '(gates)'. Four readers parsed that string with three different rules, and three rows were misclassified in production - M4zh_banned_hits gated in check_prose's exit and was invisible to gating.py (the regex (M\\d+)_ cannot match M4zh_), while D37_caption_name_len and D38_agenda_run_echo said 'reported' in their own targets and were counted as gates by every consumer, because gating.py keyed on the D\\d+ PREFIX. FIELDS: `family` is the concept the verdict belongs to - the classification that was missing while the set grew to 85 rows one at a time. `since` is the release that introduced it, read from git; 'always' means it predates the version history this CHANGELOG keeps (the old 1.6.0-3.3.0 scheme sorts above 0.1.560 and would have silenced six gates if written as a number). `privacy_terms` is the fiftieth gate and had no registry entry anywhere: check_privacy reports one `verdict` per FILE rather than a verdicts map, so it fits no row table, and `check_deliverable` promotes it to the gating bucket in code. It failed builds while `gating.py`, this register and `run_conformance`'s require set all had no idea it existed. `na_means` is present on a gate whose `n/a` means the predicate had nothing to look at, and absent on one whose `n/a` means it could not be measured — a distinction no checker holds, and the reason check_design's blind-gate rule could not tell a Chinese-only metric on an English deck from a commercial gate gone silent on unreadable markup. A document declaring an older build version is NOT held to a later gate - it reports `not held`, which is neither a pass nor a failure.",
  "schema": 1,
  "gates": {
   "D10_label_icons": {
@@ -144,7 +144,8 @@
    "checker": "design",
    "family": "analysis-shapes",
    "severity": "gate",
-   "since": "0.1.533"
+   "since": "0.1.533",
+   "na_means": "no page declares an analysis move"
   },
   "D33_icon_provenance": {
    "checker": "design",
@@ -180,7 +181,8 @@
    "checker": "design",
    "family": "figure-labelling",
    "severity": "gate",
-   "since": "0.1.551"
+   "since": "0.1.551",
+   "na_means": "the document carries no figure caption"
   },
   "D38_agenda_highlight": {
    "checker": "design",
@@ -204,7 +206,8 @@
    "checker": "design",
    "family": "brand-mark",
    "severity": "gate",
-   "since": "0.1.560"
+   "since": "0.1.560",
+   "na_means": "the document has no pair of drawn bookends"
   },
   "D3_tier1_page_share": {
    "checker": "design",
@@ -276,7 +279,8 @@
    "checker": "prose",
    "family": "output-language",
    "severity": "gate",
-   "since": "0.1.373"
+   "since": "0.1.373",
+   "na_means": "the document does not declare English"
   },
   "M13_quantity_conflicts": {
    "checker": "prose",
@@ -318,13 +322,15 @@
    "checker": "prose",
    "family": "banned-language",
    "severity": "gate",
-   "since": "always"
+   "since": "always",
+   "na_means": "the document is not Chinese"
   },
   "M5_zh_punctuation": {
    "checker": "prose",
    "family": "punctuation",
    "severity": "gate",
-   "since": "always"
+   "since": "always",
+   "na_means": "the document is not Chinese"
   },
   "M6_unsourced_ranges": {
    "checker": "prose",
@@ -511,6 +517,12 @@
    "family": "visual-weight",
    "severity": "gate",
    "since": "0.1.453"
+  },
+  "privacy_terms": {
+   "checker": "privacy",
+   "family": "handling-terms",
+   "severity": "gate",
+   "since": "always"
   }
  }
 }
