@@ -1,0 +1,8 @@
+{
+ "version": "0.1.569",
+ "diff_base": "9a0c439021fddf7d7379a36b48a255f5d64a422f",
+ "spec": "specs/2026-08-23-gate-consolidation-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}

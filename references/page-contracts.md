@@ -55,7 +55,7 @@ The page that routes the parts. It quotes the deck; it never rewrites it.
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
-| Derive the agenda from the deck's own page titles rather than paraphrasing them. | `SKILL.md:180` | — | `D27` | yes |
+| Derive the agenda from the deck's own page titles rather than paraphrasing them. | `SKILL.md:193` | — | `D27` | yes |
 | Write each agenda row as what the part establishes for the reader, not as a table of contents. | `references/storyline-templates.md:207` | — | `—` | no |
 | Keep page spans out of an agenda row; they are apparatus. | `references/storyline-templates.md:210` | — | `D38` | yes |
 | Keep page spans out of agenda claim rows. | `references/storyline-templates.md:210` | — | `—` | no |
@@ -82,8 +82,8 @@ The seams. A part opener is a claim, a label, a run line and one silhouette.
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
-| Use the filled koboyo silhouettes for part-opener subject marks only. | `SKILL.md:373` | — | `opener_subject_mark` | yes |
-| Give every part boundary a lime opener page. | `SKILL.md:523` | — | `—` | no |
+| Use the filled koboyo silhouettes for part-opener subject marks only. | `SKILL.md:391` | — | `opener_subject_mark` | yes |
+| Give every part boundary a lime opener page. | `SKILL.md:546` | — | `—` | no |
 | Make part openers full lime fields carrying the claim in near-black at display size, and no other page. | `references/brand.md:273` | — | `—` | no |
 | Set part-opener display type at 80px on the slide and 72px on the sheet. | `references/brand.md:304` | — | `—` | no |
 | Invert the handling marker with the rest of the footer on the lime opener. | `references/design-rules.md:1052` | `footer.marker-colour` ← `RC-100` | `—` | no |
@@ -117,8 +117,8 @@ The last page, set like the cover and asking for the decision.
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
-| Stamp the lumi-style version once, in the closing colophon. | `SKILL.md:516` | — | `—` | no |
-| Embed the scoring table as the deck's final page. | `SKILL.md:528` | — | `—` | no |
+| Stamp the lumi-style version once, in the closing colophon. | `SKILL.md:539` | — | `—` | no |
+| Embed the scoring table as the deck's final page. | `SKILL.md:554` | — | `—` | no |
 | State provenance using one of the accepted provenance words. | `references/design-rules.md:766` | — | `D6` | no |
 | Name in the closing which decisions block the release and which do not. | `references/storyline-templates.md:144` | — | `—` | no |
 | Carry one closing statement that echoes the action page. | `references/storyline-templates.md:554` | — | `—` | no |
@@ -142,27 +142,27 @@ Gathered separately at the owner's direction: these are the pages the argument i
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
-| Close every external-genre content page with one .take takeaway line. | `SKILL.md:183` | — | `D28` | no |
-| A figure whose placements are judgements must print its basis inside the figure. | `SKILL.md:248` | — | `—` | no |
-| Draw comparisons as tables. | `SKILL.md:264` | — | `—` | no |
-| Write every figure title as a conclusion, not a label. | `SKILL.md:267` | — | `—` | no |
-| Put the page's numbers inside the figure's geometry. | `SKILL.md:268` | — | `D29` | no |
-| Give every figure a source line and put its number and name below it. | `SKILL.md:273` | — | `M2` | no |
-| Number figure captions 1..k, once each, in page order. | `SKILL.md:274` | — | `D30` | no |
-| Place a number before its label — above it in a stat block, at the front of a title, on or above its mark in a figure. | `SKILL.md:277` | — | `—` | no |
-| In a flow use shapes semantically: parallelogram = data, rectangle = process, diamond = decision, stadium = terminal. | `SKILL.md:283` | — | `—` | no |
-| Build every figure to the level of the document's best one. | `SKILL.md:287` | — | `D5` | no |
-| Draw a table when the content is a grid of sentences, and never pour prose into a grid. | `SKILL.md:291` | — | `—` | no |
-| Put an image on a page only if it carries an argument. | `SKILL.md:350` | — | `—` | no |
-| Give every coloured region a label or a legend row. | `SKILL.md:365` | — | `D18` | no |
-| Never place the generated 110m map and the coarse orthographic globe mark in one view. | `SKILL.md:367` | — | `—` | no |
-| Carry at least one visual block on every content page. | `SKILL.md:388` | — | `visual_absent` | yes |
-| Declare a reference page with data-role="apparatus", and keep such pages to about one content page in five. | `SKILL.md:391` | — | `D16` | no |
-| Give a portrait content page a second content block beside its centerpiece plus one marked key point. | `SKILL.md:396` | — | `—` | no |
-| Keep a figure's name to one line by shortening it, never by setting it smaller. | `SKILL.md:401` | — | `—` | no |
-| Shorten the title text when the title block does not fit. | `SKILL.md:405` | — | `reserve_overspent` | yes |
-| Never clamp or hide overflow on the title block. | `SKILL.md:406` | — | `content_hidden` | yes |
-| Give charts one accent colour, conclusion-style titles, and a source line on every figure. | `SKILL.md:584` | — | `—` | no |
+| Close every external-genre content page with one .take takeaway line. | `SKILL.md:196` | — | `D28` | no |
+| A figure whose placements are judgements must print its basis inside the figure. | `SKILL.md:261` | — | `—` | no |
+| Draw comparisons as tables. | `SKILL.md:282` | — | `—` | no |
+| Write every figure title as a conclusion, not a label. | `SKILL.md:285` | — | `—` | no |
+| Put the page's numbers inside the figure's geometry. | `SKILL.md:286` | — | `D29` | no |
+| Give every figure a source line and put its number and name below it. | `SKILL.md:291` | — | `M2` | no |
+| Number figure captions 1..k, once each, in page order. | `SKILL.md:292` | — | `D30` | no |
+| Place a number before its label — above it in a stat block, at the front of a title, on or above its mark in a figure. | `SKILL.md:295` | — | `—` | no |
+| In a flow use shapes semantically: parallelogram = data, rectangle = process, diamond = decision, stadium = terminal. | `SKILL.md:301` | — | `—` | no |
+| Build every figure to the level of the document's best one. | `SKILL.md:305` | — | `D5` | no |
+| Draw a table when the content is a grid of sentences, and never pour prose into a grid. | `SKILL.md:309` | — | `—` | no |
+| Put an image on a page only if it carries an argument. | `SKILL.md:368` | — | `—` | no |
+| Give every coloured region a label or a legend row. | `SKILL.md:383` | — | `D18` | no |
+| Never place the generated 110m map and the coarse orthographic globe mark in one view. | `SKILL.md:385` | — | `—` | no |
+| Carry at least one visual block on every content page. | `SKILL.md:406` | — | `visual_absent` | yes |
+| Declare a reference page with data-role="apparatus", and keep such pages to about one content page in five. | `SKILL.md:409` | — | `D16` | no |
+| Give a portrait content page a second content block beside its centerpiece plus one marked key point. | `SKILL.md:414` | — | `—` | no |
+| Keep a figure's name to one line by shortening it, never by setting it smaller. | `SKILL.md:419` | — | `—` | no |
+| Shorten the title text when the title block does not fit. | `SKILL.md:423` | — | `reserve_overspent` | yes |
+| Never clamp or hide overflow on the title block. | `SKILL.md:424` | — | `content_hidden` | yes |
+| Give charts one accent colour, conclusion-style titles, and a source line on every figure. | `SKILL.md:610` | — | `—` | no |
 | Follow the question to framework to shape chain, drawing a declared move with the library shapes that framework names. | `references/analysis-rules.md:107` | — | `D32` | yes |
 | Declare on every content section of an external document which of the five analytical moves produced its finding. | `references/analysis-rules.md:26` | — | `D31` | no |
 | Use --acc-live for strokes, chart marks and small fills inside figures. | `references/brand.md:189` | — | `—` | no |
@@ -331,32 +331,32 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
-| In an external document give every key number its judgment anchor and write the ask as who-does-what-by-when. | `SKILL.md:146` | — | `—` | no |
-| Order a customer-facing product deck as What, Why, How, Value in the reader's order. | `SKILL.md:184` | — | `—` | no |
-| Let no unreplaced placeholder or author slot survive into the delivered document. | `SKILL.md:209` | — | `D14` | yes |
-| Copy the shipped token block into the document rather than inventing a palette. | `SKILL.md:309` | — | `D20` | yes |
-| Sizes may be set per page; colour tokens may not be redefined. | `SKILL.md:316` | — | `D20` | yes |
-| Ship every image inside the file as a data: URI, never as a link. | `SKILL.md:351` | — | `D24` | yes |
-| Name every image's source and licence terms in the document. | `SKILL.md:352` | — | `D25` | yes |
-| Never set text on raw photography. | `SKILL.md:353` | — | `—` | no |
-| Never use the stock tells: the handshake, the glass tower, the team around a laptop. | `SKILL.md:354` | — | `—` | no |
-| Set text only from the --tx* ladder; --ln* is for rules and fills. | `SKILL.md:369` | — | `—` | no |
-| Take every icon from the two shipped sets; never draw one ad hoc. | `SKILL.md:370` | — | `—` | no |
-| Within one document let each icon mean exactly one thing. | `SKILL.md:374` | — | `—` | no |
-| Use the token file's role class names rather than renaming them. | `SKILL.md:378` | — | `—` | no |
-| Trim content when a page does not fit; never nudge the type. | `SKILL.md:403` | — | `—` | no |
+| In an external document give every key number its judgment anchor and write the ask as who-does-what-by-when. | `SKILL.md:159` | — | `—` | no |
+| Order a customer-facing product deck as What, Why, How, Value in the reader's order. | `SKILL.md:197` | — | `—` | no |
+| Let no unreplaced placeholder or author slot survive into the delivered document. | `SKILL.md:222` | — | `D14` | yes |
+| Copy the shipped token block into the document rather than inventing a palette. | `SKILL.md:327` | — | `D20` | yes |
+| Sizes may be set per page; colour tokens may not be redefined. | `SKILL.md:334` | — | `D20` | yes |
+| Ship every image inside the file as a data: URI, never as a link. | `SKILL.md:369` | — | `D24` | yes |
+| Name every image's source and licence terms in the document. | `SKILL.md:370` | — | `D25` | yes |
+| Never set text on raw photography. | `SKILL.md:371` | — | `—` | no |
+| Never use the stock tells: the handshake, the glass tower, the team around a laptop. | `SKILL.md:372` | — | `—` | no |
+| Set text only from the --tx* ladder; --ln* is for rules and fills. | `SKILL.md:387` | — | `—` | no |
+| Take every icon from the two shipped sets; never draw one ad hoc. | `SKILL.md:388` | — | `—` | no |
+| Within one document let each icon mean exactly one thing. | `SKILL.md:392` | — | `—` | no |
+| Use the token file's role class names rather than renaming them. | `SKILL.md:396` | — | `—` | no |
 | Design a deliverable for exactly one page geometry and declare which. | `SKILL.md:41` | — | `—` | no |
-| Carry the handling terms and origin on every page, opening with the seal-red shield handling marker. | `SKILL.md:494` | — | `D12` | yes |
-| Open a deck with a cover and end it with a closing page, each carrying the single vector mark. | `SKILL.md:522` | — | `deck_structure` | yes |
-| Target about five content pages between part openers. | `SKILL.md:524` | — | `—` | no |
+| Trim content when a page does not fit; never nudge the type. | `SKILL.md:421` | — | `—` | no |
+| Carry the handling terms and origin on every page, opening with the seal-red shield handling marker. | `SKILL.md:514` | — | `D12` | yes |
+| Open a deck with a cover and end it with a closing page, each carrying the single vector mark. | `SKILL.md:545` | — | `deck_structure` | yes |
+| Target about five content pages between part openers. | `SKILL.md:547` | — | `—` | no |
 | Put a second geometry in its own file as its own composition. | `SKILL.md:57` | — | `—` | no |
-| Invent no facts, source every number, and label illustrative values as illustrative. | `SKILL.md:575` | — | `M2` | no |
-| Coin no Chinese terms; take the English term where no established Chinese term exists. | `SKILL.md:577` | — | `—` | no |
-| Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page. | `SKILL.md:579` | — | `—` | no |
-| Make every title name its subject and carry a verifiable fact. | `SKILL.md:581` | — | `M1` | no |
-| Use no single title frame across more than 60% of a document. | `SKILL.md:582` | — | `M11` | no |
-| Make all titles concatenated read as one complete argument. | `SKILL.md:583` | — | `—` | no |
-| AI never signs, and money or safety conclusions never come from a language model. | `SKILL.md:586` | — | `—` | no |
+| Invent no facts, source every number, and label illustrative values as illustrative. | `SKILL.md:601` | — | `M2` | no |
+| Coin no Chinese terms; take the English term where no established Chinese term exists. | `SKILL.md:603` | — | `—` | no |
+| Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page. | `SKILL.md:605` | — | `—` | no |
+| Make every title name its subject and carry a verifiable fact. | `SKILL.md:607` | — | `M1` | no |
+| Use no single title frame across more than 60% of a document. | `SKILL.md:608` | — | `M11` | no |
+| Make all titles concatenated read as one complete argument. | `SKILL.md:609` | — | `—` | no |
+| AI never signs, and money or safety conclusions never come from a language model. | `SKILL.md:612` | — | `—` | no |
 | Default the output language to American English and the canvas to light unless the user asks otherwise. | `SKILL.md:81` | — | `—` | no |
 | Never draw a field texture with no data behind it; every mark maps to one real item. | `references/brand.md:101` | — | `—` | no |
 | Set the ground density by page class: strong on cover and closing, mid on part openers, faint on body pages. | `references/brand.md:108` | `ground.tier` | `—` | no |

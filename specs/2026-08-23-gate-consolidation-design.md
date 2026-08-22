@@ -104,6 +104,25 @@ Prerequisites, all of them before any file moves:
   existing `LUMI_TERMS_DIR` precedent, creating directories only on an explicit
   write.
 
+**The footprint, measured 2026-08-23 rather than estimated.** 2,975 tracked
+files, ~12.5 MB. The owner saw 244 MB on disk; 197 MB of that is gitignored and
+has never been pushed, and a fresh clone is 8.28 MiB. So the case for the split
+is not clone size — it is that a consumer reads none of it.
+
+| | tracked | note |
+|---|---|---|
+| `assets/shapes/source/` | **2.77 MB** | 207 VENDORED ORIGINALS. Input to `recolor_shapes.py`; no deliverable reads them |
+| `assets/shapes/*.svg` | 2.9 MB | the built library — consumer |
+| `assets/icons`, `vectors`, `brand`, `logos`, `fonts` | 2.3 MB | consumer |
+| `scripts/` | 1.67 MB | mixed: the checkers ship, the repo guards do not |
+| `fixtures/` | 795 KB | consumer, deliberately — see below |
+| `tests/` | 530 KB | development |
+| `specs/`, `evals/`, `releases/`, `conformance/`, `backlog/` | 767 KB | development |
+
+`assets/shapes/source/` alone is **22% of the tracked repository and a build
+input**, which is the single largest item on the wrong side of the boundary and
+was not in the original estimate.
+
 Three assignments that read backwards and are deliberate: `fixtures/` ships to
 the consumer because `new_deck.py` takes the scaffold from it as the reference
 implementation; `CHANGELOG.md` ships because `check_versions` binds four stamps

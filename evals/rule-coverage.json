@@ -34,7 +34,7 @@
   },
   {
    "id": "RC-004",
-   "source": "SKILL.md:146",
+   "source": "SKILL.md:159",
    "quote": "write the ask as who-does-what-by-when",
    "gist": "In an external document give every key number its judgment anchor and write the ask as who-does-what-by-when.",
    "page_kind": "all",
@@ -44,7 +44,7 @@
   },
   {
    "id": "RC-005",
-   "source": "SKILL.md:180",
+   "source": "SKILL.md:193",
    "quote": "agenda is **derived from the page titles**",
    "gist": "Derive the agenda from the deck's own page titles rather than paraphrasing them.",
    "page_kind": "agenda",
@@ -54,7 +54,7 @@
   },
   {
    "id": "RC-006",
-   "source": "SKILL.md:183",
+   "source": "SKILL.md:196",
    "quote": "content page closes with one **`.take` takeaway line**",
    "gist": "Close every external-genre content page with one .take takeaway line.",
    "page_kind": "content",
@@ -64,7 +64,7 @@
   },
   {
    "id": "RC-007",
-   "source": "SKILL.md:184",
+   "source": "SKILL.md:197",
    "quote": "a customer-facing product deck walks",
    "gist": "Order a customer-facing product deck as What, Why, How, Value in the reader's order.",
    "page_kind": "all",
@@ -74,7 +74,7 @@
   },
   {
    "id": "RC-008",
-   "source": "SKILL.md:209",
+   "source": "SKILL.md:222",
    "quote": "survives to the reader is D14's territory",
    "gist": "Let no unreplaced placeholder or author slot survive into the delivered document.",
    "page_kind": "all",
@@ -84,7 +84,7 @@
   },
   {
    "id": "RC-009",
-   "source": "SKILL.md:248",
+   "source": "SKILL.md:261",
    "quote": "prints its basis inside the figure",
    "gist": "A figure whose placements are judgements must print its basis inside the figure.",
    "page_kind": "content",
@@ -94,7 +94,7 @@
   },
   {
    "id": "RC-010",
-   "source": "SKILL.md:264",
+   "source": "SKILL.md:282",
    "quote": "comparisons always use tables**",
    "gist": "Draw comparisons as tables.",
    "page_kind": "content",
@@ -104,7 +104,7 @@
   },
   {
    "id": "RC-011",
-   "source": "SKILL.md:267",
+   "source": "SKILL.md:285",
    "quote": "**A figure title states a conclusion, not a label.**",
    "gist": "Write every figure title as a conclusion, not a label.",
    "page_kind": "content",
@@ -114,7 +114,7 @@
   },
   {
    "id": "RC-012",
-   "source": "SKILL.md:268",
+   "source": "SKILL.md:286",
    "quote": "go into the geometry, not beside it**",
    "gist": "Put the page's numbers inside the figure's geometry.",
    "page_kind": "content",
@@ -124,7 +124,7 @@
   },
   {
    "id": "RC-013",
-   "source": "SKILL.md:273",
+   "source": "SKILL.md:291",
    "quote": "Every figure gets a source line",
    "gist": "Give every figure a source line and put its number and name below it.",
    "page_kind": "content",
@@ -134,7 +134,7 @@
   },
   {
    "id": "RC-014",
-   "source": "SKILL.md:274",
+   "source": "SKILL.md:292",
    "quote": "the caption numbers run 1..k once each in page order",
    "gist": "Number figure captions 1..k, once each, in page order.",
    "page_kind": "content",
@@ -144,7 +144,7 @@
   },
   {
    "id": "RC-015",
-   "source": "SKILL.md:277",
+   "source": "SKILL.md:295",
    "quote": "**The number reads before the words it belongs to**",
    "gist": "Place a number before its label — above it in a stat block, at the front of a title, on or above its mark in a figure.",
    "page_kind": "content",
@@ -154,7 +154,7 @@
   },
   {
    "id": "RC-016",
-   "source": "SKILL.md:283",
+   "source": "SKILL.md:301",
    "quote": "**Shapes carry semantics** in a flow: parallelogram",
    "gist": "In a flow use shapes semantically: parallelogram = data, rectangle = process, diamond = decision, stadium = terminal.",
    "page_kind": "content",
@@ -164,7 +164,7 @@
   },
   {
    "id": "RC-017",
-   "source": "SKILL.md:287",
+   "source": "SKILL.md:305",
    "quote": "**Figure parity binds the document**",
    "gist": "Build every figure to the level of the document's best one.",
    "page_kind": "content",
@@ -174,7 +174,7 @@
   },
   {
    "id": "RC-018",
-   "source": "SKILL.md:291",
+   "source": "SKILL.md:309",
    "quote": "**a grid of rectangles containing sentences is a",
    "gist": "Draw a table when the content is a grid of sentences, and never pour prose into a grid.",
    "page_kind": "content",
@@ -184,7 +184,7 @@
   },
   {
    "id": "RC-019",
-   "source": "SKILL.md:309",
+   "source": "SKILL.md:327",
    "quote": "The palette is not yours to choose.",
    "gist": "Copy the shipped token block into the document rather than inventing a palette.",
    "page_kind": "all",
@@ -194,7 +194,7 @@
   },
   {
    "id": "RC-020",
-   "source": "SKILL.md:316",
+   "source": "SKILL.md:334",
    "quote": "One colour means one thing across every LUMI document",
    "gist": "Sizes may be set per page; colour tokens may not be redefined.",
    "page_kind": "all",
@@ -204,7 +204,7 @@
   },
   {
    "id": "RC-021",
-   "source": "SKILL.md:350",
+   "source": "SKILL.md:368",
    "quote": "an image carries an argument or it",
    "gist": "Put an image on a page only if it carries an argument.",
    "page_kind": "content",
@@ -214,7 +214,7 @@
   },
   {
    "id": "RC-022",
-   "source": "SKILL.md:351",
+   "source": "SKILL.md:369",
    "quote": "it ships as a `data:` URI and never a link",
    "gist": "Ship every image inside the file as a data: URI, never as a link.",
    "page_kind": "all",
@@ -224,7 +224,7 @@
   },
   {
    "id": "RC-023",
-   "source": "SKILL.md:352",
+   "source": "SKILL.md:370",
    "quote": "it names its source and terms (**D25 gates**)",
    "gist": "Name every image's source and licence terms in the document.",
    "page_kind": "all",
@@ -234,7 +234,7 @@
   },
   {
    "id": "RC-024",
-   "source": "SKILL.md:353",
+   "source": "SKILL.md:371",
    "quote": "and text never sits on raw photography",
    "gist": "Never set text on raw photography.",
    "page_kind": "all",
@@ -244,7 +244,7 @@
   },
   {
    "id": "RC-025",
-   "source": "SKILL.md:354",
+   "source": "SKILL.md:372",
    "quote": "glass tower, the team around a laptop — are banned by name",
    "gist": "Never use the stock tells: the handshake, the glass tower, the team around a laptop.",
    "page_kind": "all",
@@ -254,7 +254,7 @@
   },
   {
    "id": "RC-026",
-   "source": "SKILL.md:365",
+   "source": "SKILL.md:383",
    "quote": "needs a label or a legend row** — D18 checks for it",
    "gist": "Give every coloured region a label or a legend row.",
    "page_kind": "content",
@@ -264,7 +264,7 @@
   },
   {
    "id": "RC-027",
-   "source": "SKILL.md:367",
+   "source": "SKILL.md:385",
    "quote": "Never place the generated 110m map",
    "gist": "Never place the generated 110m map and the coarse orthographic globe mark in one view.",
    "page_kind": "content",
@@ -274,7 +274,7 @@
   },
   {
    "id": "RC-028",
-   "source": "SKILL.md:369",
+   "source": "SKILL.md:387",
    "quote": "Text uses the `--tx*` ladder only",
    "gist": "Set text only from the --tx* ladder; --ln* is for rules and fills.",
    "page_kind": "all",
@@ -284,7 +284,7 @@
   },
   {
    "id": "RC-029",
-   "source": "SKILL.md:370",
+   "source": "SKILL.md:388",
    "quote": "**Icons come from the two sets this package ships, never",
    "gist": "Take every icon from the two shipped sets; never draw one ad hoc.",
    "page_kind": "all",
@@ -294,7 +294,7 @@
   },
   {
    "id": "RC-030",
-   "source": "SKILL.md:373",
+   "source": "SKILL.md:391",
    "quote": "(36 filled silhouettes) for part-opener subject marks",
    "gist": "Use the filled koboyo silhouettes for part-opener subject marks only.",
    "page_kind": "opener",
@@ -304,7 +304,7 @@
   },
   {
    "id": "RC-031",
-   "source": "SKILL.md:374",
+   "source": "SKILL.md:392",
    "quote": "**Within one document an icon means exactly one thing**",
    "gist": "Within one document let each icon mean exactly one thing.",
    "page_kind": "all",
@@ -314,7 +314,7 @@
   },
   {
    "id": "RC-032",
-   "source": "SKILL.md:378",
+   "source": "SKILL.md:396",
    "quote": "**Use the role vocabulary** the token file declares",
    "gist": "Use the token file's role class names rather than renaming them.",
    "page_kind": "all",
@@ -324,7 +324,7 @@
   },
   {
    "id": "RC-033",
-   "source": "SKILL.md:388",
+   "source": "SKILL.md:406",
    "quote": "**every content page carries at least one visual",
    "gist": "Carry at least one visual block on every content page.",
    "page_kind": "content",
@@ -334,7 +334,7 @@
   },
   {
    "id": "RC-034",
-   "source": "SKILL.md:391",
+   "source": "SKILL.md:409",
    "quote": "**A reference page is exempt and declares it**",
    "gist": "Declare a reference page with data-role=\"apparatus\", and keep such pages to about one content page in five.",
    "page_kind": "content",
@@ -344,7 +344,7 @@
   },
   {
    "id": "RC-035",
-   "source": "SKILL.md:396",
+   "source": "SKILL.md:414",
    "quote": "**second content block** beside its centerpiece",
    "gist": "Give a portrait content page a second content block beside its centerpiece plus one marked key point.",
    "page_kind": "content",
@@ -354,7 +354,7 @@
   },
   {
    "id": "RC-036",
-   "source": "SKILL.md:401",
+   "source": "SKILL.md:419",
    "quote": "**A figure's name holds one line**",
    "gist": "Keep a figure's name to one line by shortening it, never by setting it smaller.",
    "page_kind": "content",
@@ -364,7 +364,7 @@
   },
   {
    "id": "RC-037",
-   "source": "SKILL.md:403",
+   "source": "SKILL.md:421",
    "quote": "A page that does not fit gets its **content** trimmed",
    "gist": "Trim content when a page does not fit; never nudge the type.",
    "page_kind": "all",
@@ -374,7 +374,7 @@
   },
   {
    "id": "RC-038",
-   "source": "SKILL.md:405",
+   "source": "SKILL.md:423",
    "quote": "A title block that does not fit gets shorter text",
    "gist": "Shorten the title text when the title block does not fit.",
    "page_kind": "content",
@@ -384,7 +384,7 @@
   },
   {
    "id": "RC-039",
-   "source": "SKILL.md:406",
+   "source": "SKILL.md:424",
    "quote": "`-webkit-line-clamp` or `overflow: hidden`",
    "gist": "Never clamp or hide overflow on the title block.",
    "page_kind": "content",
@@ -394,7 +394,7 @@
   },
   {
    "id": "RC-040",
-   "source": "SKILL.md:494",
+   "source": "SKILL.md:514",
    "quote": "**D12**, the handling terms and origin",
    "gist": "Carry the handling terms and origin on every page, opening with the seal-red shield handling marker.",
    "page_kind": "all",
@@ -404,7 +404,7 @@
   },
   {
    "id": "RC-041",
-   "source": "SKILL.md:516",
+   "source": "SKILL.md:539",
    "quote": "**once, in the closing colophon**, small and out of the",
    "gist": "Stamp the lumi-style version once, in the closing colophon.",
    "page_kind": "closing",
@@ -414,7 +414,7 @@
   },
   {
    "id": "RC-042",
-   "source": "SKILL.md:522",
+   "source": "SKILL.md:545",
    "quote": "Decks open with a cover and end with a closing page",
    "gist": "Open a deck with a cover and end it with a closing page, each carrying the single vector mark.",
    "page_kind": "all",
@@ -424,7 +424,7 @@
   },
   {
    "id": "RC-043",
-   "source": "SKILL.md:523",
+   "source": "SKILL.md:546",
    "quote": "every part boundary gets a lime opener page",
    "gist": "Give every part boundary a lime opener page.",
    "page_kind": "opener",
@@ -434,7 +434,7 @@
   },
   {
    "id": "RC-044",
-   "source": "SKILL.md:524",
+   "source": "SKILL.md:547",
    "quote": "about five content pages between openers is the pacing",
    "gist": "Target about five content pages between part openers.",
    "page_kind": "all",
@@ -444,7 +444,7 @@
   },
   {
    "id": "RC-045",
-   "source": "SKILL.md:528",
+   "source": "SKILL.md:554",
    "quote": "decks embed the scoring table as the final page",
    "gist": "Embed the scoring table as the deck's final page.",
    "page_kind": "closing",
@@ -454,7 +454,7 @@
   },
   {
    "id": "RC-046",
-   "source": "SKILL.md:575",
+   "source": "SKILL.md:601",
    "quote": "No invented facts; every number carries its source",
    "gist": "Invent no facts, source every number, and label illustrative values as illustrative.",
    "page_kind": "all",
@@ -464,7 +464,7 @@
   },
   {
    "id": "RC-047",
-   "source": "SKILL.md:577",
+   "source": "SKILL.md:603",
    "quote": "No coined Chinese: new concepts with no established",
    "gist": "Coin no Chinese terms; take the English term where no established Chinese term exists.",
    "page_kind": "all",
@@ -474,7 +474,7 @@
   },
   {
    "id": "RC-048",
-   "source": "SKILL.md:579",
+   "source": "SKILL.md:605",
    "quote": "The sales storyline is **value and future**",
    "gist": "Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page.",
    "page_kind": "all",
@@ -484,7 +484,7 @@
   },
   {
    "id": "RC-049",
-   "source": "SKILL.md:581",
+   "source": "SKILL.md:607",
    "quote": "Every title names its subject and carries a verifiable fact",
    "gist": "Make every title name its subject and carry a verifiable fact.",
    "page_kind": "all",
@@ -494,7 +494,7 @@
   },
   {
    "id": "RC-050",
-   "source": "SKILL.md:582",
+   "source": "SKILL.md:608",
    "quote": "no single title frame across more than 60% of a",
    "gist": "Use no single title frame across more than 60% of a document.",
    "page_kind": "all",
@@ -504,7 +504,7 @@
   },
   {
    "id": "RC-051",
-   "source": "SKILL.md:583",
+   "source": "SKILL.md:609",
    "quote": "all titles concatenated must read as a complete argument",
    "gist": "Make all titles concatenated read as one complete argument.",
    "page_kind": "all",
@@ -514,7 +514,7 @@
   },
   {
    "id": "RC-052",
-   "source": "SKILL.md:584",
+   "source": "SKILL.md:610",
    "quote": "Charts: one accent color, conclusion-style titles",
    "gist": "Give charts one accent colour, conclusion-style titles, and a source line on every figure.",
    "page_kind": "content",
@@ -524,7 +524,7 @@
   },
   {
    "id": "RC-053",
-   "source": "SKILL.md:586",
+   "source": "SKILL.md:612",
    "quote": "AI never signs; money/safety conclusions never come from",
    "gist": "AI never signs, and money or safety conclusions never come from a language model.",
    "page_kind": "all",
