@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.571"
+  version: "0.1.572"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -558,9 +558,11 @@ revision (CHANGELOG + version bump) — this is the skill's iteration engine.
 instrument nobody can find is an instrument nobody runs**: `python3
 scripts/ops/scoring_sheet.py <file>` prints the blind C1–C8 sheet a reader
 fills in — generated from the rubric, so it cannot drift from it — and
-`scripts/ops/review_scores.py` stores what comes back, which needs a
-`corpus_id` because the agreement study joins a machine reading to a human
-score on the same document. `python3 scripts/ops/judge_findings.py` runs the
+`scripts/ops/review_scores.py --check` validates and reports the store the
+scores are written into, which needs a `corpus_id` on every record because the
+agreement study joins a machine reading to a human score on the same document.
+(Transcribing a filled sheet into the store is the operator's edit; the script
+reads and validates, and has never had a write path.) `python3 scripts/ops/judge_findings.py` runs the
 register pass that has to quote what it objects to; it reports and never
 gates, because a judge that scored would be scoring fluency. `python3
 scripts/ops/ledger.py` reads every closed trace and says which metric keeps

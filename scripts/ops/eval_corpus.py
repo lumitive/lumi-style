@@ -281,7 +281,12 @@ def main(argv=None) -> int:
         local_path = corpus.LOCAL_CORPUS
         local = {k: str(p) for k, p in corpus.paths().items()}
         if corpus.load() is None:
-            note(f"note  {local_path.relative_to(ROOT)} is absent, so no "
+            # NOT relative_to(ROOT): the registry moved to the operator state
+            # directory at 0.1.571, so on a machine that has no local corpus
+            # this raised ValueError and the flag's headline path was a
+            # traceback. Home is collapsed so the note carries no username.
+            shown = str(local_path).replace(str(pathlib.Path.home()), "~", 1)
+            note(f"note  {shown} is absent, so no "
                   f"corpus document could be located. evals/README.md gives "
                   f"its shape.")
         for group in ("accepted", "rejected"):

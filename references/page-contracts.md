@@ -162,7 +162,7 @@ Gathered separately at the owner's direction: these are the pages the argument i
 | Keep a figure's name to one line by shortening it, never by setting it smaller. | `SKILL.md:419` | — | `—` | no |
 | Shorten the title text when the title block does not fit. | `SKILL.md:423` | — | `reserve_overspent` | yes |
 | Never clamp or hide overflow on the title block. | `SKILL.md:424` | — | `content_hidden` | yes |
-| Give charts one accent colour, conclusion-style titles, and a source line on every figure. | `SKILL.md:610` | — | `—` | no |
+| Give charts one accent colour, conclusion-style titles, and a source line on every figure. | `SKILL.md:612` | — | `—` | no |
 | Follow the question to framework to shape chain, drawing a declared move with the library shapes that framework names. | `references/analysis-rules.md:107` | — | `D32` | yes |
 | Declare on every content section of an external document which of the five analytical moves produced its finding. | `references/analysis-rules.md:26` | — | `D31` | no |
 | Use --acc-live for strokes, chart marks and small fills inside figures. | `references/brand.md:189` | — | `—` | no |
@@ -350,13 +350,13 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Open a deck with a cover and end it with a closing page, each carrying the single vector mark. | `SKILL.md:545` | — | `deck_structure` | yes |
 | Target about five content pages between part openers. | `SKILL.md:547` | — | `—` | no |
 | Put a second geometry in its own file as its own composition. | `SKILL.md:57` | — | `—` | no |
-| Invent no facts, source every number, and label illustrative values as illustrative. | `SKILL.md:601` | — | `M2` | no |
-| Coin no Chinese terms; take the English term where no established Chinese term exists. | `SKILL.md:603` | — | `—` | no |
-| Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page. | `SKILL.md:605` | — | `—` | no |
-| Make every title name its subject and carry a verifiable fact. | `SKILL.md:607` | — | `M1` | no |
-| Use no single title frame across more than 60% of a document. | `SKILL.md:608` | — | `M11` | no |
-| Make all titles concatenated read as one complete argument. | `SKILL.md:609` | — | `—` | no |
-| AI never signs, and money or safety conclusions never come from a language model. | `SKILL.md:612` | — | `—` | no |
+| Invent no facts, source every number, and label illustrative values as illustrative. | `SKILL.md:603` | — | `M2` | no |
+| Coin no Chinese terms; take the English term where no established Chinese term exists. | `SKILL.md:605` | — | `—` | no |
+| Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page. | `SKILL.md:607` | — | `—` | no |
+| Make every title name its subject and carry a verifiable fact. | `SKILL.md:609` | — | `M1` | no |
+| Use no single title frame across more than 60% of a document. | `SKILL.md:610` | — | `M11` | no |
+| Make all titles concatenated read as one complete argument. | `SKILL.md:611` | — | `—` | no |
+| AI never signs, and money or safety conclusions never come from a language model. | `SKILL.md:614` | — | `—` | no |
 | Default the output language to American English and the canvas to light unless the user asks otherwise. | `SKILL.md:81` | — | `—` | no |
 | Never draw a field texture with no data behind it; every mark maps to one real item. | `references/brand.md:101` | — | `—` | no |
 | Set the ground density by page class: strong on cover and closing, mid on part openers, faint on body pages. | `references/brand.md:108` | `ground.tier` | `—` | no |

@@ -3357,6 +3357,23 @@ def check_shipped_closure():
     tracked = [f for f in p.stdout.split("\0") if f]
     consumer = shipped.consumer_scripts(ROOT)
     errors = []
+    # A rule whose `side` is misspelled disarms the teeth SILENTLY: `side_of`
+    # returns the raw string, this guard only asked whether it was non-None,
+    # and `check_cross_boundary_paths` compares against "dev" — so one
+    # capitalised letter made a whole directory invisible while the partition
+    # still reported itself total. A JSON edit produces exactly that typo.
+    for rule in decl["rules"]:
+        if rule.get("side") not in ("consumer", "dev"):
+            errors.append(
+                f"{shipped.MANIFEST}: the rule for `{rule.get('prefix')}` "
+                f"declares side {rule.get('side')!r}; it is 'consumer' or 'dev'")
+        if not (rule.get("why") or "").strip():
+            errors.append(
+                f"{shipped.MANIFEST}: the rule for `{rule.get('prefix')}` gives "
+                f"no reason. A boundary nobody can explain is a boundary nobody "
+                f"can maintain")
+    if errors:
+        return errors
     claimed: set[str] = set()
     for relpath in tracked:
         side = shipped.side_of(relpath, ROOT, consumer)
@@ -3367,11 +3384,10 @@ def check_shipped_closure():
                 f"naming its side and why, rather than leaving the projection "
                 f"to guess")
             continue
-        if not relpath.startswith("scripts/"):
-            best = max((r["prefix"] for r in decl["rules"]
-                        if relpath == r["prefix"] or relpath.startswith(r["prefix"])),
-                       key=len)
-            claimed.add(best)
+        hits = [r["prefix"] for r in decl["rules"]
+                if shipped.matches(relpath, r["prefix"])]
+        if hits:
+            claimed.add(max(hits, key=len))
     for rule in decl["rules"]:
         if rule["prefix"] not in claimed:
             errors.append(
@@ -3384,6 +3400,23 @@ def check_shipped_closure():
         if seed not in known:
             errors.append(
                 f"{shipped.MANIFEST}: consumer seed `{seed}` names no script")
+    # A pin overrides reachability, so it is AUDITED rather than trusted.
+    # Reachability cannot tell a call from a mention — two development tools
+    # rode a docstring into the consumer half — but an IMPORT is not a mention,
+    # and no consumer script may import something pinned to the other side.
+    for pin in decl.get("dev_pins", []):
+        stem = pin["stem"]
+        if stem not in known:
+            errors.append(
+                f"{shipped.MANIFEST}: dev pin `{stem}` names no script")
+            continue
+        importers = shipped.imports_of(stem, ROOT) & consumer
+        if importers:
+            errors.append(
+                f"{shipped.MANIFEST}: `{stem}` is pinned to the development "
+                f"side and {', '.join(sorted(importers))} import(s) it. A pin "
+                f"may override a MENTION, never a live import — delete the pin "
+                f"or break the import")
     return errors
 
 
@@ -3399,12 +3432,20 @@ def check_cross_boundary_paths():
     broken in a fresh clone, which is precisely the class `check_assets_tracked`
     exists for.
 
-    Scans STRING LITERALS in the consumer closure and reports the ones naming a
-    TRACKED file on the development side. Two limits, stated rather than
-    implied: a path assembled from variables is invisible to it, and an
-    untracked path is not its business — the state stores moved out from under
-    it for exactly that reason, and `state_dir.store()` names its in-repo
-    fallback in a tuple this scan does not read.
+    It reads the AST rather than the text. The first version matched
+    double-quoted literals with a regex, and this repository's lint config
+    selects no quote rule — `inspect_layout.py` alone carries five hundred
+    single-quoted strings — so half the tree went unscanned, along with triple
+    quotes and implicit concatenation. `ast.Constant` sees all of them.
+
+    It also reconstructs `/`-joined constant chains (`ROOT / "conformance" /
+    "results" / "index.json"`), counts a dev DIRECTORY as fatal — `(ROOT /
+    "tests")` resolves to nothing after the projection — and reports a dynamic
+    `import_module("x")`, which is an import the reachability that decides the
+    boundary cannot see.
+
+    One limit remains, stated rather than implied: a path assembled through a
+    variable or `+` is invisible.
     """
     import shipped
     try:
@@ -3419,30 +3460,116 @@ def check_cross_boundary_paths():
                 f"is not a scan that passed"]
     tracked = {f for f in p.stdout.split("\0") if f}
     consumer = shipped.consumer_scripts(ROOT)
+    # A directory is reported only when NOTHING under it ships. `evals/` holds
+    # `thresholds.json` and `gates.json`, both consumer, so a script naming
+    # `ROOT / "evals" / "thresholds.json"` is naming something that is there.
+    wholly_dev = set()
+    for d in {a for f in tracked for a in _ancestors(f)}:
+        under = [f for f in tracked if f.startswith(d + "/")]
+        if under and all(shipped.side_of(f, ROOT, consumer) == "dev" for f in under):
+            wholly_dev.add(d)
     scripts = {q.stem: q for q in
                list(ROOT.glob("scripts/*/*.py")) + list(ROOT.glob("scripts/*.py"))}
-    literal = re.compile(r'"([\w][\w./-]*)"')
-    joined = re.compile(r'"([\w.-]+)"\s*/\s*"([\w.-]+)"')
     errors = []
     for stem in sorted(consumer):
         path = scripts.get(stem)
         if path is None:
             continue
         name = rel(path)
-        src = path.read_text(encoding="utf-8")
-        found = set(literal.findall(src))
-        found |= {f"{a}/{b}" for a, b in joined.findall(src)}
-        for cand in sorted(found & tracked):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except (OSError, SyntaxError) as exc:                       # noqa: BLE001
+            errors.append(f"{name} could not be parsed for the boundary scan: {exc}")
+            continue
+        found: set[str] = set()
+        # Constants used AS A PATH — the right side of a `/` join, or anything
+        # carrying a separator. A bare word is not: `trace_schema.py` declares
+        # the enum value "conformance", which is not the directory of that name.
+        as_path: set[str] = set()
+        # A path named ONLY as `state_dir.store(in_repo=...)`'s fallback is not
+        # a dependency — it is the thing that is ALLOWED to be absent, and the
+        # resolver falls to the operator state directory when it is. Excluded
+        # by construction rather than by a waiver, because a waiver would have
+        # to be re-written for every store.
+        fallback: set[str] = set()
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            for kw in node.keywords:
+                if kw.arg != "in_repo" or not isinstance(kw.value, ast.Tuple):
+                    continue
+                parts = [e.value for e in kw.value.elts
+                         if isinstance(e, ast.Constant) and isinstance(e.value, str)]
+                for i in range(len(parts)):
+                    fallback.add("/".join(parts[:i + 1]))
+                fallback.update(parts)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                found.add(node.value)
+                if "/" in node.value:
+                    as_path.add(node.value)
+            elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+                if (isinstance(node.right, ast.Constant)
+                        and isinstance(node.right.value, str)):
+                    as_path.add(node.right.value)
+                chain = _slash_chain(node)
+                if chain:
+                    found.add(chain)
+                    as_path.add(chain)
+            elif (isinstance(node, ast.Call)
+                  and isinstance(node.func, ast.Attribute)
+                  and node.func.attr == "import_module"
+                  and node.args
+                  and isinstance(node.args[0], ast.Constant)
+                  and isinstance(node.args[0].value, str)):
+                mod = node.args[0].value
+                for drawer in ("lib", "ops", "check", "build", "render"):
+                    cand = f"scripts/{drawer}/{mod}.py"
+                    if (cand in tracked
+                            and shipped.side_of(cand, ROOT, consumer) == "dev"):
+                        errors.append(
+                            f"{name} ships to the consumer and imports `{mod}` "
+                            f"dynamically; `{cand}` does not ship. A dynamic "
+                            f"import is invisible to the reachability that "
+                            f"decides the boundary — import it plainly, or move "
+                            f"the module")
+        hits = (found & tracked) | (as_path & wholly_dev)
+        for cand in sorted(hits - fallback):
             if shipped.side_of(cand, ROOT, consumer) != "dev":
                 continue
             if (name, cand) in CROSS_BOUNDARY_WAIVERS:
                 continue
+            kind = "file" if cand in tracked else "directory"
             errors.append(
-                f"{name} ships to the consumer and names `{cand}`, which does "
-                f"not. After the split that file is not there — move the data "
-                f"to the consumer side, resolve it through `state_dir`, or "
-                f"waive it with the reason it is safe")
+                f"{name} ships to the consumer and names the {kind} `{cand}`, "
+                f"which does not. After the split it is not there — move it to "
+                f"the consumer side, resolve it through `state_dir`, or waive "
+                f"it in CROSS_BOUNDARY_WAIVERS with the reason it is safe")
     return errors
+
+
+def _ancestors(relpath: str) -> set[str]:
+    """-> every directory prefix of a tracked path, without a trailing slash."""
+    parts = relpath.split("/")[:-1]
+    return {"/".join(parts[:i + 1]) for i in range(len(parts))}
+
+
+def _slash_chain(node) -> str | None:
+    """-> `"a/b/c"` for `<anything> / "a" / "b" / "c"`, else None.
+
+    Two segments were all the first version reconstructed, so a three-segment
+    join walked past it.
+    """
+    parts: list[str] = []
+    cur = node
+    while (isinstance(cur, ast.BinOp) and isinstance(cur.op, ast.Div)
+           and isinstance(cur.right, ast.Constant)
+           and isinstance(cur.right.value, str)):
+        parts.append(cur.right.value)
+        cur = cur.left
+    if isinstance(cur, ast.Constant) and isinstance(cur.value, str):
+        parts.append(cur.value)
+    return "/".join(reversed(parts)) if len(parts) >= 2 else None
 
 
 def check_local_paths():

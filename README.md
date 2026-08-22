@@ -75,7 +75,7 @@ installed and the guess in it turned out to be wrong.
 checks measure mechanical conformance; a page is done when a human reads it as
 intentional. `python3 scripts/ops/run_conformance.py` runs a fixed task suite through
 whichever agent CLIs are installed and records the result in
-[`conformance/CONFORMANCE.md`](conformance/CONFORMANCE.md) — including the agents
+`conformance/CONFORMANCE.md` in the development repository — including the agents
 it could not run, which are listed rather than omitted. Each row there is one run
 of one CLI version on one machine on one date, not a property of the agent.
 
