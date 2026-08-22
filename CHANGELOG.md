@@ -1,3 +1,44 @@
+## 0.1.570 — a list of what ships can omit a file silently; a partition cannot
+
+**The boundary the repository split needs, landed before anything moves.** The
+design record calls for the public repository to be a mechanical projection of
+this one rather than a hand-copied subset, and a projection needs a boundary a
+machine can compute.
+
+`adapters/shipped.json` is that boundary, and it is written as a **partition**
+rather than as a list. The distinction is the whole point: a list of what ships
+can omit a file and still look complete, which is the failure
+`check_assets_tracked` was written for — *a guard that reads the filesystem
+cannot tell "published" from "on the author's machine"*. `check_shipped_closure`
+requires every tracked file to be claimed by exactly one rule, every rule to
+claim at least one file, and every declared seed to name a script that exists.
+
+**Scripts are absent from the manifest on purpose: their side is COMPUTED.**
+Reachability from the scripts SKILL.md tells an agent to run, following imports
+AND `scripts/<drawer>/<name>.py` strings — this package's scripts invoke each
+other by subprocess as often as they import each other, and a boundary that saw
+only imports would cut a live edge. A script nobody can reach from the skill's
+own surface is development by default, which is the safe direction to be wrong
+in: a dev script wrongly kept is dead weight, a consumer script wrongly dropped
+is a broken install.
+
+**Measured, not estimated.** 2,976 tracked files partition into **2,417 consumer
+(8.49 MB) and 559 development (4.61 MB)**, and 65 scripts into 40 and 25. The
+single largest item on the development side is `assets/shapes/source/` — 207
+vendored originals, 2.77 MB, 22% of the whole tracked tree, read by
+`recolor_shapes.py` and by no deliverable. It was not in the original estimate.
+
+Three planted reds before the tests: a deleted rule (the unclaimed file is
+named), a rule claiming nothing, and a seed naming no script. Seven
+synthetic-tree tests, including the two that matter for the computation — a
+script reached only through a subprocess string counts as reachable, and an
+unreachable one is development.
+
+Nothing has moved. The split still needs the second repository, which is the
+owner's to create; the sequence, the three assignments that read backwards, and
+the measured footprint are in
+`specs/2026-08-23-gate-consolidation-design.md`.
+
 ## 0.1.569 — 440 lines under one heading with no way in, and what the length guideline is actually asking for
 
 **The skill-creator audit the owner asked for, done against the installed
