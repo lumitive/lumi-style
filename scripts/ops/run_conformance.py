@@ -57,10 +57,12 @@ import pathlib
 import pathlib as _bs_pathlib  # noqa: E402
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import sys as _bs_sys  # noqa: E402
 import tempfile
+import threading
 import time
 from typing import Any
 
@@ -117,12 +119,194 @@ def _results_root() -> pathlib.Path:
 RESULTS = _results_root()
 CAP_RANK = {"prompt": 0, "files": 1, "full": 2}
 
-# How long one task may take before the driver gives up. T1 is a twelve-page
-# deck and this package's own measurement of a thirty-page one is 27 minutes, so
-# the ceiling is generous; what it buys is that an agent which hangs produces a
-# recorded `timeout` rather than a session that never ends. Before this existed
-# the only timeout in the file was the 20 seconds on the `--version` probe.
-DRIVE_TIMEOUT = 1800
+# --- the budget -------------------------------------------------------------
+#
+# **A fixed wall clock is the wrong instrument, and this repository has the
+# measurement.** `DRIVE_TIMEOUT = 1800` killed Hermes on 2026-08-21 while it was
+# still working: its deck's mtime is six seconds before the driver record's, and
+# that deck still fails `title_two_lines` today — it was inside the repair loop
+# for the third gate when the SIGKILL landed. Nothing about thirty minutes was a
+# statement about that run; it was a number somebody wrote.
+#
+# What replaces it is not a bigger number. A run gets a BASE budget outright,
+# and past that it continues only while it keeps showing it is alive, up to a
+# HARD CAP that renewal can never pass. Three consequences, all of them the
+# point: a run that finishes early is unaffected, a run that is still working at
+# the base budget gets more, and a run that has genuinely stopped is collected
+# without waiting for a clock nobody set for it.
+#
+# `base` is deliberately unshortenable. A stall is only ever grounds for ending
+# a run that has ALREADY spent its base budget, because silence inside it is
+# normal — an agent composing one long message emits nothing for minutes, and a
+# stall detector that fired there would kill the healthy case to catch the sick
+# one.
+DRIVE_BASE_BUDGET = 1800
+# No sign of life for this long, after the base budget is spent, is a stall.
+# Five minutes is generous against the finest-grained signal a CLI offers
+# (token deltas, below) and coarse against the crudest (the artifact's mtime).
+DRIVE_IDLE_GRACE = 300
+# The backstop. Renewal cannot pass it, so an agent that loops forever while
+# emitting events still ends.
+DRIVE_HARD_CAP = 3600
+# SIGTERM, then this long to flush, then SIGKILL. The old code sent SIGKILL
+# outright, so the CLI never wrote its result object and its own child browser
+# was orphaned.
+DRIVE_TERM_GRACE = 15
+
+
+def _is_delta(line: bytes) -> bool:
+    """Is this NDJSON line a token-level chunk rather than a record?
+
+    Both shapes here were read off a real invocation rather than reasoned about
+    (convention 15): Claude Code spells a partial `{"type":"stream_event", ...}`
+    and Cursor spells it `{"type":"thinking","subtype":"delta", ...}`.
+
+    They are dropped from the stored transcript and counted as liveness. Nothing
+    is lost by dropping them — both CLIs also emit the COMPLETED message as its
+    own event, so the text a reader wants is in the transcript either way, and
+    keeping the deltas would put roughly one JSON line per output token into a
+    file whose job is to be read by a person.
+    """
+    if not line.startswith(b"{") or len(line) > 65536:
+        return False
+    try:
+        doc = json.loads(line)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return False
+    return isinstance(doc, dict) and (doc.get("type") == "stream_event"
+                                      or doc.get("subtype") == "delta")
+
+
+def _newest_mtime(globs) -> float:
+    """-> the newest mtime among files matching `globs`, or 0.0.
+
+    The progress signal for a CLI with no event stream. Coarse on purpose: it
+    ticks when the agent writes the thing it was asked for, which is the one
+    piece of evidence available from outside a process that reports nothing.
+    """
+    newest = 0.0
+    for root, pattern in globs:
+        try:
+            for f in root.glob(pattern):
+                if f.is_file():
+                    newest = max(newest, f.stat().st_mtime)
+        except OSError:
+            continue
+    return newest
+
+
+def _run_with_budget(argv, cwd, base, hard_cap, idle_grace, watch=(),
+                     signal_kind="none", poll=1.0):
+    """Run `argv`, renewing its budget while it shows signs of life.
+
+    -> (exit code or None if it was collected, transcript bytes, a record of
+    how the budget went).
+
+    The signs, in the order of how much they can tell you:
+
+    * **the event stream** — every line the CLI writes, deltas included. A CLI
+      told `--output-format stream-json` reports each tool call and each token
+      chunk, so silence here really is silence.
+    * **the artifact** — the mtime of anything matching `watch`. All that is
+      left for a CLI that streams nothing; it ticks per file write.
+    * **neither** — the base budget, and nothing renews it.
+
+    Two reader threads rather than `select`: the child's stdout and stderr are
+    both pipes, and a single-threaded reader that drains one while the other
+    fills deadlocks on the full pipe. `capture_output=True` had no such problem
+    because it never looked until the process was over, which is exactly the
+    property being given up here.
+    """
+    proc = subprocess.Popen(argv, cwd=str(cwd), stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, stdin=subprocess.DEVNULL,
+                            # ITS OWN PROCESS GROUP, so the whole tree can be
+                            # signalled. These CLIs start browsers and language
+                            # servers; killing the parent alone left them.
+                            start_new_session=True)
+    started = time.monotonic()
+    kept: list[bytes] = []
+    # None until something happens, NOT the start time. Seeding it with the
+    # start would make the run's floor `idle_grace` rather than `base` — with a
+    # base shorter than the grace, a process that emitted nothing at all would
+    # still be waited on for the whole grace, which is the opposite of the rule.
+    live: list[float | None] = [None]
+    events = [0]
+    lock = threading.Lock()
+
+    def reader(stream):
+        for line in iter(stream.readline, b""):
+            with lock:
+                live[0] = time.monotonic()
+                events[0] += 1
+                if not _is_delta(line.rstrip(b"\n")):
+                    kept.append(line)
+        stream.close()
+
+    threads = [threading.Thread(target=reader, args=(s,), daemon=True)
+               for s in (proc.stdout, proc.stderr)]
+    for t in threads:
+        t.start()
+
+    artifact = _newest_mtime(watch) if watch else 0.0
+    ended = "exit"
+    while True:
+        code = proc.poll()
+        if code is not None:
+            break
+        now = time.monotonic()
+        if watch:
+            seen = _newest_mtime(watch)
+            if seen > artifact:
+                artifact = seen
+                with lock:
+                    live[0] = now
+                    events[0] += 1
+        with lock:
+            last = live[0]
+        # RENEWAL, AND IT ONLY EVER EXTENDS. The base is the floor — a quiet
+        # first minute cannot pull the limit backwards — and the hard cap is
+        # the ceiling, which nothing can push past.
+        limit = started + base
+        if last is not None:
+            limit = max(limit, last + idle_grace)
+        limit = min(limit, started + hard_cap)
+        if now >= limit:
+            ended = "hard cap" if now >= started + hard_cap else "stall"
+            _collect(proc)
+            code = None
+            break
+        time.sleep(poll)
+
+    for t in threads:
+        t.join(timeout=DRIVE_TERM_GRACE)
+    if code is None:
+        proc.poll()
+    with lock:
+        record = {"base": base, "hard_cap": hard_cap, "idle_grace": idle_grace,
+                  "events": events[0], "ended": ended,
+                  "signal": signal_kind,
+                  "spent": round(time.monotonic() - started, 1)}
+    return code, b"".join(kept), record
+
+
+def _collect(proc) -> None:
+    """End a process and its children: SIGTERM the group, then SIGKILL it.
+
+    The grace matters. A CLI signalled with SIGKILL never writes its result
+    object, so a run collected at its budget lost the usage counts, the model it
+    actually ran, and whatever it was about to say about why it was slow — the
+    whole record of the run this harness exists to keep.
+    """
+    for sig, wait in ((signal.SIGTERM, DRIVE_TERM_GRACE), (signal.SIGKILL, 5)):
+        try:
+            os.killpg(os.getpgid(proc.pid), sig)
+        except (OSError, ProcessLookupError):
+            return
+        try:
+            proc.wait(timeout=wait)
+            return
+        except subprocess.TimeoutExpired:
+            continue
 
 
 # What a consumer of this skill must be able to READ. Not a guess about the
@@ -182,6 +366,25 @@ def environment_check(agent):
     return []
 
 
+def _artifact_roots(agent: dict) -> list[pathlib.Path]:
+    """-> the places outside the working directory where a deliverable turns up.
+
+    One list, two readers, and they must not diverge: `_misplaced` searches
+    these AFTER the run to say where the file went, and the budget watches them
+    DURING it to say whether the agent is still writing. A driver that renewed
+    against one set and reported against another would report a file it had
+    never counted as progress.
+
+    Bounded and never recursive, for the reason `_misplaced` gives at length.
+    """
+    roots: list[pathlib.Path] = [pathlib.Path.home(), ROOT]
+    for sp in agent.get("skill_paths") or []:
+        if "<" in sp:
+            continue
+        roots.append(pathlib.Path(sp).expanduser())
+    return roots
+
+
 def _misplaced(agent: dict, task: dict, since: float,
                transcript: str = "") -> list[str]:
     """-> paths of deliverable-shaped files written OUTSIDE the working
@@ -211,11 +414,7 @@ def _misplaced(agent: dict, task: dict, since: float,
 
     Never used to score. `drive()`'s comment carries the argument.
     """
-    roots: list[pathlib.Path] = [pathlib.Path.home(), ROOT]
-    for sp in agent.get("skill_paths") or []:
-        if "<" in sp:
-            continue
-        roots.append(pathlib.Path(sp).expanduser())
+    roots = _artifact_roots(agent)
     seen: set[pathlib.Path] = set()
     hits: list[tuple[float, pathlib.Path]] = []
     for root in roots:
@@ -249,7 +448,8 @@ def _misplaced(agent: dict, task: dict, since: float,
     return named + [p for p in paths if p not in named]
 
 
-def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=None):
+def drive(agent, task, prompt_dir, model=None, base=DRIVE_BASE_BUDGET,
+          effort=None, hard_cap=DRIVE_HARD_CAP):
     """Invoke one agent on one task, and return what happened.
 
     Until 0.1.454 nothing in this repository invoked an agent. `run` wrote a
@@ -330,8 +530,19 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
     # A CLI that can return its own usage is asked to, through the flag the
     # registry names; the counts are then the API's, which is the only kind
     # trace.py accepts (`--usage` reads a dump, there is no flag to type one).
+    #
+    # STREAMING IS THE SAME FLAG ASKED FOR MORE. `--output-format stream-json`
+    # ends in the identical result object `json` returns, so a streaming CLI
+    # reports its usage exactly as before AND reports progress while it works,
+    # which is what the budget above needs to renew against. The two are
+    # mutually exclusive on the command line — a CLI cannot be told both output
+    # formats — so the registry declares whichever it supports and the stream
+    # wins when both are present.
+    stream_flag = agent.get("drive_stream_flag")
     usage_flag = agent.get("drive_usage_flag")
-    if usage_flag:
+    if stream_flag:
+        argv += list(stream_flag)
+    elif usage_flag:
         argv += list(usage_flag)
     # SOME CLIS REPORT USAGE TO A FILE, NOT TO THE TRANSCRIPT. Hermes writes
     # `--usage-file <path>` and prints nothing about tokens, so the transcript
@@ -373,17 +584,27 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
         # Wall clock too: the misplaced-write sweep compares mtimes, and a
         # monotonic clock has no relationship to a file's timestamp.
         started_wall = time.time()
+        # WHAT THIS RUN CAN SEE OF ITS OWN PROGRESS, decided here rather than
+        # assumed. A streaming CLI is watched through its events. One that
+        # streams nothing is watched through the artifact — the same places
+        # `_misplaced` looks, because an agent that writes its deck to HOME is
+        # still visibly working, and Hermes is precisely that agent. A CLI with
+        # neither gets the base budget and the record says so, which is better
+        # than a renewal rule quietly doing nothing.
+        watch: list[tuple[pathlib.Path, str]] = [(workdir, task["deliverable"]),
+                                                 (prompt_dir, task["deliverable"])]
+        if not stream_flag:
+            for root in _artifact_roots(agent):
+                watch.append((root, task["deliverable"]))
+        signal_kind = "stream" if stream_flag else "artifact"
         try:
             # stdin from /dev/null: without it Claude Code waits three seconds
             # for input that is never coming and then warns about it, and the
             # warning lands in the transcript after the JSON result. Its own
             # message names this fix.
-            proc = subprocess.run(argv + [task["prompt"]], cwd=workdir,
-                                  capture_output=True, timeout=timeout,
-                                  stdin=subprocess.DEVNULL)
-            code, out = proc.returncode, proc.stdout + proc.stderr
-        except subprocess.TimeoutExpired as expired:
-            code, out = None, (expired.stdout or b"") + (expired.stderr or b"")
+            code, out, budget = _run_with_budget(
+                argv + [task["prompt"]], workdir, base, hard_cap,
+                DRIVE_IDLE_GRACE, watch=tuple(watch), signal_kind=signal_kind)
         except OSError as exc:
             return {"verdict": "could not start", "detail": str(exc)}
         seconds = round(time.monotonic() - started, 1)
@@ -464,13 +685,21 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
         # And the agent's own words decide too: the 2026-08-13 incident was
         # visible only in the transcript, where an agent said it could not read
         # the skill. environment_check cannot see the sandbox; this can.
-        usage = _usage_from_transcript(text) if usage_flag else None
+        usage = (_usage_from_transcript(text)
+                 if (usage_flag or stream_flag) else None)
         if usage is None and usage_path is not None:
             usage = _usage_from_file(usage_path)
         blocked = re.search(r"blocked from reading|outside .{0,40}allowed "
                             r"director|cannot (?:read|access) .{0,40}"
                             r"(?:tokens|references)/", text, re.I)
-        verdict = ("timeout" if code is None
+        # A COLLECTED RUN IS NOT A HUNG ONE ANY MORE, so it stops being called
+        # one word. `stall` is a run that showed no sign of life after its base
+        # budget; `over budget` is one that was still moving when the hard cap
+        # arrived. The board treats both as failures — they are — but a reader
+        # asking "was it stuck or was it slow" now has the answer in the
+        # verdict rather than having to reason from a duration.
+        verdict = ("stall" if code is None and budget["ended"] == "stall"
+                   else "over budget" if code is None
                    else "environment" if blocked
                    else "driver failed" if code != 0
                    # A run that finished and put the artifact somewhere else is
@@ -480,8 +709,21 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
                    else "misplaced" if misplaced
                    else "driven")
         return {"verdict": verdict,
-                "detail": (blocked and "the agent's own transcript says it could "
-                           "not read the skill; this run attributes nothing")
+                # THE DETAIL FOLLOWS THE VERDICT'S OWN ORDER. It did not:
+                # `timeout` was decided first and described last, so a run
+                # collected at its budget that had also written its file
+                # somewhere odd was recorded `verdict: timeout` with a detail
+                # explaining a misplaced artifact. That is what Hermes's
+                # 2026-08-21 record says, and reading it tells you neither
+                # thing.
+                "detail": (code is None and
+                           f"collected after {seconds}s: {budget['ended']} "
+                           f"(base {budget['base']}s, hard cap "
+                           f"{budget['hard_cap']}s, {budget['events']} sign(s) "
+                           f"of life via {budget['signal']}); the CLI was sent "
+                           f"SIGTERM first, so whatever it flushed is above")
+                          or (blocked and "the agent's own transcript says it could "
+                              "not read the skill; this run attributes nothing")
                           or (code not in (0, None) and
                               f"the CLI exited {code} after {seconds}s: "
                               f"{text.strip()[-200:]}")
@@ -496,7 +738,7 @@ def drive(agent, task, prompt_dir, model=None, timeout=DRIVE_TIMEOUT, effort=Non
                               f"driver copies it to anyway: "
                               f"{', '.join(p.name for p in relocated)}")
                           or None,
-                "exit_code": code, "seconds": seconds,
+                "exit_code": code, "seconds": seconds, "budget": budget,
                 "produced": [p.name for p in produced],
                 "misplaced": misplaced,
                 "digest": hashlib.sha256(out).hexdigest(),
@@ -1152,9 +1394,15 @@ def main(argv):
                          "second axis of the model×effort matrix (K1); an agent "
                          "whose registry record names no effort flag records "
                          "the level as not pinned")
-    ap.add_argument("--timeout", type=int, default=DRIVE_TIMEOUT,
-                    help=f"with run --drive: seconds before one task is "
-                         f"abandoned (default {DRIVE_TIMEOUT})")
+    ap.add_argument("--budget", "--timeout", dest="budget", type=int,
+                    default=DRIVE_BASE_BUDGET,
+                    help=f"with run --drive: seconds one task gets outright "
+                         f"(default {DRIVE_BASE_BUDGET}). Past it the run "
+                         f"continues while it shows signs of life, never past "
+                         f"--hard-cap")
+    ap.add_argument("--hard-cap", type=int, default=DRIVE_HARD_CAP,
+                    help=f"with run --drive: seconds no amount of progress can "
+                         f"extend a task past (default {DRIVE_HARD_CAP})")
     ap.add_argument("--record", action="store_true",
                     help="with report: append one row per scored agent per run "
                          "to conformance/history.json — the tracked memory the "
@@ -1303,8 +1551,8 @@ def main(argv):
                 print(f"  driving {a['id']} on {t['id']} "
                       f"(model {args.model or 'CLI default'}, "
                       f"effort {args.effort or 'CLI default'}) …", flush=True)
-                record = drive(a, t, wd, model=args.model, timeout=args.timeout,
-                               effort=args.effort)
+                record = drive(a, t, wd, model=args.model, base=args.budget,
+                               effort=args.effort, hard_cap=args.hard_cap)
                 (wd / "driver.json").write_text(
                     json.dumps(record, indent=2) + "\n", encoding="utf-8")
                 note = _conformance_trace(a, t, wd, record)
@@ -1409,7 +1657,8 @@ def main(argv):
                                       f"driver was very likely killed mid-write"}
                         unscored += 1
                         continue
-                    if record.get("verdict") in ("timeout", "could not start",
+                    if record.get("verdict") in ("stall", "over budget",
+                                                 "timeout", "could not start",
                                                  "no driver", "environment",
                                                  "driver failed", "misplaced"):
                         scores[key] = {

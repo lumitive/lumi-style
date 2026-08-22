@@ -151,7 +151,10 @@ different ways.
 | constant | value | comment | stated in references/ |
 |---|---|---|---|
 | CAP_RANK | `{"prompt": 0, "files": 1, "full": 2}` |  | (not searched: too short) |
-| DRIVE_TIMEOUT | `1800` |  | CODE ONLY |
+| DRIVE_BASE_BUDGET | `1800` |  | CODE ONLY |
+| DRIVE_IDLE_GRACE | `300` |  | design-rules.md, page-contracts.md |
+| DRIVE_HARD_CAP | `3600` |  | CODE ONLY |
+| DRIVE_TERM_GRACE | `15` |  | (not searched: too short) |
 
 ### scripts/ops/debug_log.py
 

@@ -1,3 +1,69 @@
+## 0.1.555 — a budget that renews while the agent is still working, and the verdict that finally describes itself
+
+**The thirty-minute ceiling killed an agent that was still writing.** The 2026-08-21
+round recorded `hermes/T1-deck` as a timeout at 1800.0s. The deck it left has an
+mtime six seconds before the driver's record, and it still fails
+`title_two_lines` today — the agent was inside the repair loop for the third
+gate when the SIGKILL landed. Nothing about thirty minutes was a statement about
+that run; it was a number somebody wrote, and the only thing it measured was
+itself.
+
+The replacement is not a bigger number. A run gets a **base budget** outright
+(1800s, unchanged), and past it continues only while it keeps showing signs of
+life, up to a **hard cap** (3600s) that renewal can never pass. Three properties
+matter and each is tested: a run that finishes early is unaffected, a run still
+working at the base budget gets more, and a run that has genuinely stopped is
+collected without waiting out a clock nobody set for it.
+
+**What counts as a sign of life, in the order of how much it tells you.** Claude
+Code and Cursor are now driven with `--output-format stream-json` and their
+partial-message flags, so every tool call and every token chunk is an event and
+silence really is silence; the same stream ends in the identical result object
+`json` returned, so the usage counts this board runs on are unaffected. A CLI
+that streams nothing is watched through the artifact instead — the mtime of
+anything matching the deliverable in the places `_misplaced` already searches,
+which is how Hermes, whose deck lands in HOME whatever cwd it is given, is
+visibly working from outside a process that reports nothing. A platform with
+neither gets the base budget and the record says `signal: none` rather than
+pretending a renewal rule did something.
+
+The token deltas are counted as liveness and dropped from the stored transcript.
+Nothing is lost: both CLIs also emit each completed message as its own event, so
+the text a reader wants is there either way, and keeping the deltas would put
+roughly one JSON line per output token into a file whose job is to be read by a
+person. Both delta shapes were read off a real invocation rather than reasoned
+about — Claude Code spells it `type: "stream_event"`, Cursor spells it
+`subtype: "delta"` — which is convention 15 costing thirty seconds.
+
+**SIGTERM before SIGKILL, and to the process group.** The old code killed the
+parent outright, so the CLI never wrote its result object — a run collected at
+its ceiling lost its usage counts, the model it had actually run, and whatever
+it was about to say about why it was slow — and the browsers these agents start
+were left orphaned. The group is signalled, given fifteen seconds to flush, then
+killed. A synthetic grandchild proves it: with the parent alone signalled, the
+grandchild outlives the collection and writes its marker.
+
+**And the verdict now describes what happened.** `timeout` was decided first in
+the verdict chain and described last in the detail chain, so a collected run
+whose file had also landed somewhere odd was recorded `verdict: timeout` with a
+detail explaining a misplaced artifact — which is exactly what Hermes's record
+says, and reading it tells you neither thing. The detail follows the verdict's
+own order now, and the one word has become two: `stall` for a run that showed no
+sign of life after its base budget, `over budget` for one still moving when the
+hard cap arrived. A reader asking "was it stuck or was it slow" gets the answer
+from the verdict instead of reasoning from a duration. Both are still "not
+earned" on the board; historical `timeout` records keep their word.
+
+`--timeout` survives as an alias for `--budget`, and `--hard-cap` is new. The
+design record is `specs/2026-08-22-rules-equal-conformance-design.md`; this is
+the harness half of it — a conformance run that ends on a clock rather than on
+the agent's own behaviour measures the clock.
+
+**Deliberate red, planted first.** Deleting the renewal line turns the two
+renewal tests red (`ended: stall` where `hard cap` is required); signalling the
+parent instead of the group leaves the grandchild alive and turns the orphan
+test red. Six new tests in `tests/test_conformance_driver.py`.
+
 ## 0.1.554 — three agenda rows the owner read side by side, an axis that has to be named, and an effort flag that pinned nothing
 
 **She opened the three r15 agendas and said one was right.** The difference is
