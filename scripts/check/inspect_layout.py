@@ -3674,6 +3674,10 @@ def main(argv):
                          "inferred from a *.dark.* filename")
     ap.add_argument("--no-aspect", action="store_true",
                     help="skip the off-shape aspect assertion")
+    ap.add_argument("--iterate", action="store_true",
+                    help="the author's loop, not the delivery check: the "
+                         "declared stage only and no off-shape sweep. Every "
+                         "gate still runs; the matrix coverage claim does not")
     ap.add_argument("--deliverable", action="store_true",
                     help="grade this file as something about to be sent: exit "
                          "non-zero on collision, a starved column, content "
@@ -3745,6 +3749,21 @@ def main(argv):
             # nothing, so portrait does not take it.
             file_geometries = (["a4", "wide"] if decl_geo == "portrait"
                                else ["16x9", "16x9-hd", "laptop", "wide"])
+        # THE LOOP IS NOT THE DELIVERY CHECK, and running it as one made the
+        # loop cost what the delivery check costs. Four matrix points plus five
+        # off-shape windows is seventeen full page loads — 16.4s on this
+        # package's own fixture, against 3.3s for the declared stage alone —
+        # and an author fixing a collision on page 7 pays all of it on every
+        # round. `--iterate` narrows to the FIRST point the declaration implies
+        # and skips the off-shape sweep; it never chooses the point itself, so
+        # there is no second copy of the mapping above to drift from it.
+        #
+        # It is a speed flag and nothing else: every gate still runs, at one
+        # geometry. What it gives up is the coverage claim, which is why the
+        # run says so out loud and `check_deliverable.py` refuses to let a
+        # delivery reading come out of it.
+        if args.iterate:
+            file_geometries = file_geometries[:1]
         elif not args.geometry and not decl_geo:
             # STDERR. This printed to stdout, ahead of the JSON document, so
             # `--json` on any deliverable that declares no data-geometry emitted
@@ -3764,7 +3783,9 @@ def main(argv):
         skipped = [g for g in GEOMETRIES if g not in file_geometries]
         print(f"\n{path.name}: {len(file_geometries)} geometry point(s) — "
               f"{', '.join(file_geometries)}"
-              + (f"; not run: {', '.join(skipped)}" if skipped else ""),
+              + (f"; not run: {', '.join(skipped)}" if skipped else "")
+              + ("; --iterate: the author's loop, and not a delivery reading"
+                 if args.iterate else ""),
               file=sys.stderr if args.json else sys.stdout)
         for geometry in file_geometries:
             shot_dir = None
@@ -3852,7 +3873,7 @@ def main(argv):
                             "verdicts": {k: v for k, (v, _) in verdicts.items()},
                             "consistency": c, "ground": g})
 
-        if args.no_aspect:
+        if args.no_aspect or args.iterate:
             continue
         # Off-shape by definition, so it is per file and not per geometry —
         # and the target is the DECLARED stage, never the matrix loop's

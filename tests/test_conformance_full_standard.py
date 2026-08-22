@@ -97,7 +97,7 @@ def test_a_document_the_evals_cannot_read_is_a_finding_not_a_crash(tmp_path, mon
     unmeasurable document must not cost the whole run its scores."""
     import run_conformance as rc
     monkeypatch.setattr(rc.eval_corpus, "measure",
-                        lambda path, with_render: {"genre": "internal"})
+                        lambda path, with_render, **kw: {"genre": "internal"})
     out = rc._eval_misses(tmp_path / "x.html", "internal")
     assert out and "could not read" in out[0]
 
@@ -105,7 +105,7 @@ def test_a_document_the_evals_cannot_read_is_a_finding_not_a_crash(tmp_path, mon
 def test_a_measurable_document_still_reports_its_misses(tmp_path, monkeypatch):
     import run_conformance as rc
     monkeypatch.setattr(rc.eval_corpus, "measure",
-                        lambda path, with_render: {"genre": "internal",
+                        lambda path, with_render, **kw: {"genre": "internal",
                                                    "content_pages": 3})
     out = rc._eval_misses(tmp_path / "x.html", "internal")
     assert any("content_pages=3" in x for x in out)

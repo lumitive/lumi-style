@@ -1,3 +1,71 @@
+## 0.1.556 — the author's loop stops costing what the delivery check costs, and three agents stop queuing behind each other
+
+**The owner's number is five minutes for a twelve-page deck, and the honest
+answer is that four fifths of the wall clock is the model writing.** Measured on
+one Claude Code run: 1191.5s total, of which 958.0s (80.7%) is output tokens
+leaving the API at 62.8 tok/s. Deleting every check in this package would take
+that run to 963s — still three times the target. **The lever that reaches five
+minutes is making the agent write less**, which is an authoring-model change
+(the scaffold emitting content-page structure so the agent fills facts instead
+of hand-writing SVG), not a performance fix. This release takes the other 19.3%
+seriously and says plainly that it is the other 19.3%.
+
+**The loop was priced like the delivery check.** `inspect_layout` renders four
+matrix points plus five off-shape windows — seventeen full page loads, 16.4s on
+this package's own fixture — and an author fixing a collision on page 7 paid all
+of it every round, then paid it AGAIN because `eval_corpus.py` shells out and
+re-renders the same document (17.0s) to recompute numbers `check_deliverable`
+had just measured. One round of the author's loop was 33.4 seconds of rendering
+the same twelve pages twice.
+
+Now: `inspect_layout --iterate` runs the declared stage only and skips the
+off-shape sweep, and `check_deliverable --fast` passes it through. **Every gate
+still runs** — on the broken fixture both modes return the identical fourteen
+findings, and a test asserts that equality rather than trusting it. What is
+given up is the coverage claim, so the flag says so on stderr after the verdict
+block and the trace is not closed from a `--fast` run. And `eval_corpus.measure`
+now accepts the two runs its caller already holds instead of making its own.
+
+    check_deliverable                 16.4s
+    + eval_corpus (separate command)  17.0s   →  33.4s per round
+    check_deliverable --fast           3.6s   (the Evals now included)
+
+**The Evals were not in the one block at all.** The command that exists so
+nobody meets failures in installments left out the measure of whether the
+document is the right KIND of document — prose-only share, figures per content
+page, list density, visual share. They are in it now, GRADED and never gating,
+which is what `eval_corpus` has always been.
+
+**Three agents stopped queuing.** They share nothing — separate CLIs, separate
+temporary directories, separate accounts — so the 74 minutes three of them took
+back to back on 2026-08-21 was the shape of a `for` loop and not a requirement.
+One worker per agent now; tasks WITHIN an agent stay sequential, because one CLI
+driven twice at once shares an installation, a rate limit and sometimes a session
+store, and a horse race whose entrants interfere with themselves measures the
+interference. Each agent's lines print together under a lock — interleaved line
+by line, three concurrent agents produce a transcript nobody can attribute — and
+the model and effort line moved from the start of a task to its end, because a
+line announcing an intention is not a line reporting what happened.
+
+**And 113 seconds of one run were the harness refusing its own agent.** The
+driven allowlist was `Bash(python3 *)`, which denies `cd <dir> && python3 …`,
+`sed` and `grep`; thirteen denials, each followed by the agent rephrasing. A
+permission the harness withholds is not a finding about the skill. Widened to
+those commands, still never `bypassPermissions`.
+
+`json.loads` of `evals/thresholds.json` existed in three places; `thresholds()`
+is now the one loader, the shape `checker_report` and `gating` were both
+extracted to end.
+
+Design record: `specs/2026-08-22-rules-equal-conformance-design.md`.
+
+**Deliberate red, planted first.** Starting each thread and joining it
+immediately turns the concurrency test red at 6s for three 2s agents; making
+`--iterate` skip its geometry turns the gate-equality test red; deleting the one
+line that folds the Evals in turns the block test red. The first version of the
+`--fast` notice printed to stdout and broke `--json`'s parse — caught by its own
+test, which is convention 15 working as intended.
+
 ## 0.1.555 — a budget that renews while the agent is still working, and the verdict that finally describes itself
 
 **The thirty-minute ceiling killed an agent that was still writing.** The 2026-08-21

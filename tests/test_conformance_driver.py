@@ -896,3 +896,60 @@ def test_an_unnamed_candidate_is_still_listed_but_never_first(tmp_path, monkeypa
     out = rc.drive(_agent(argv), task, tmp_path)
     assert out["misplaced"] == [str(home / "stray.md")]
 
+
+
+def test_three_agents_are_driven_at_once_rather_than_back_to_back(
+        tmp_path, monkeypatch, capsys):
+    """Three agents on one task ran back to back for 74 minutes on 2026-08-21.
+
+    They share nothing — separate CLIs, separate temporary directories,
+    separate accounts — so serial was never a requirement, it was the shape of
+    a `for` loop. Each fake agent here sleeps two seconds; serial is six.
+    """
+    run_dir = tmp_path / "run"
+    sleeper = [sys.executable, "-c",
+               "import pathlib, time; time.sleep(2); "
+               "pathlib.Path('answers.md').write_text('done')"]
+    agents = [{"id": f"a{i}", "name": f"A{i}", "capability": "full",
+               "drive": list(sleeper), "probe": ["true"]} for i in range(3)]
+    tasks = [{"id": "T3-recall", "prompt": "answer", "deliverable": "*.md",
+              "min_capability": "prompt", "score": ["recall"], "answers": {}}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: tasks)
+    monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
+    monkeypatch.setattr(rc, "environment_check", lambda a: [])
+    monkeypatch.setattr(rc, "_conformance_trace", lambda *a, **k: "")
+
+    started = time.monotonic()
+    rc.main(["run", "--drive", "--run", str(run_dir)])
+    spent = time.monotonic() - started
+    printed = capsys.readouterr().out
+    assert "concurrently" in printed
+    assert spent < 5, f"they ran back to back: {spent:.1f}s for 3 x 2s"
+    for i in range(3):
+        record = json.loads((run_dir / f"a{i}" / "T3-recall" / "driver.json")
+                            .read_text(encoding="utf-8"))
+        assert record["verdict"] == "driven", record
+
+
+def test_one_agents_lines_are_not_split_by_another(tmp_path, monkeypatch, capsys):
+    """Interleaved line by line, three concurrent agents produce a transcript
+    nobody can attribute. Each agent's block is printed under one lock."""
+    run_dir = tmp_path / "run"
+    agents = [{"id": f"a{i}", "name": f"A{i}", "capability": "full",
+               "drive": [sys.executable, "-c",
+                         "import pathlib; pathlib.Path('answers.md').write_text('x')"],
+               "probe": ["true"]} for i in range(3)]
+    tasks = [{"id": "T3-recall", "prompt": "answer", "deliverable": "*.md",
+              "min_capability": "prompt", "score": ["recall"], "answers": {}}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: tasks)
+    monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
+    monkeypatch.setattr(rc, "environment_check", lambda a: [])
+    monkeypatch.setattr(rc, "_conformance_trace", lambda *a, **k: "")
+    rc.main(["run", "--drive", "--run", str(run_dir)])
+    lines = [ln for ln in capsys.readouterr().out.splitlines() if ln.strip()]
+    for i in range(3):
+        head = next(n for n, ln in enumerate(lines) if ln.startswith(f"  a{i} on "))
+        assert lines[head + 1].startswith("    driven"), (
+            f"a{i}'s verdict did not follow its own header: {lines[head:head + 2]}")

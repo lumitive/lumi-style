@@ -46,6 +46,7 @@ import sys  # noqa: E402
 import time  # noqa: E402
 
 import checker_report  # noqa: E402
+import eval_corpus  # noqa: E402
 import markup  # noqa: E402
 from deliverable_registry import GENRES, kinds  # noqa: E402
 
@@ -54,7 +55,7 @@ ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
 
 
 def gather(path: pathlib.Path, genre: str | None, terms: str | None,
-           skip_layout: bool = False) -> dict:
+           skip_layout: bool = False, iterate: bool = False) -> dict:
     """Run every instrument; -> {kind: run dict}. Layout goes first and runs
     concurrently — it renders in a browser while the text checks execute."""
     runs: dict[str, dict] = {}
@@ -62,7 +63,7 @@ def gather(path: pathlib.Path, genre: str | None, terms: str | None,
     t0 = time.monotonic()
     if not skip_layout:
         layout_proc = subprocess.Popen(
-            checker_report.checker_argv("layout", path),
+            checker_report.checker_argv("layout", path, iterate=iterate),
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
     for kind in kinds():
@@ -95,6 +96,40 @@ def gather(path: pathlib.Path, genre: str | None, terms: str | None,
         runs["layout"] = {"kind": "layout", "exit": None, "spoke": False,
                           "reports": None, "skipped": True}
     return runs
+
+
+def eval_notes(path: pathlib.Path, runs: dict) -> list[str]:
+    """-> the Evals, as graded notes, from the reports this run already holds.
+
+    **The Evals were not in this block at all**, so the one command that exists
+    so nobody meets failures in installments left out the measure of whether the
+    document is the right KIND of document — prose-only share, figures per
+    content page, list density, visual share. An author ran `eval_corpus.py`
+    separately or did not run it, and running it separately cost a second full
+    render of the same file: 17 seconds to recompute numbers this process had
+    already measured.
+
+    They stay GRADED and never gating, which is what `eval_corpus` has always
+    been (CLAUDE.md: "REPORTS, never gates"). A threshold miss is a question for
+    a person.
+    """
+    try:
+        measured = eval_corpus.measure(path, with_render=True,
+                                       design=runs.get("design"),
+                                       layout=runs.get("layout"))
+        table = eval_corpus.thresholds()
+    except Exception as exc:                                    # noqa: BLE001
+        return [f"evals: not measured ({exc.__class__.__name__}: {exc})"]
+    if measured.get("unmeasurable"):
+        return [f"evals: unmeasurable — {measured['unmeasurable']}"]
+    out = []
+    for row in eval_corpus.score(measured, table):
+        if row["verdict"] == "MISS":
+            out.append(f"evals: {row['metric']}={row.get('value')} "
+                       f"({row['direction']} {row.get('bar')})")
+        elif row["verdict"] == "not measured":
+            out.append(f"evals: {row['metric']} not measured")
+    return out
 
 
 def _gating_ids(report: dict) -> set[str]:
@@ -181,6 +216,12 @@ def main(argv=None) -> int:
     ap.add_argument("--trace-id", help="close this build trace afterwards "
                                        "(trace.py close, verdicts transcribed); "
                                        "default: the document's own data-trace")
+    ap.add_argument("--fast", action="store_true",
+                    help="the author's loop: the rendered check runs at the "
+                         "declared stage only, with no off-shape sweep. Every "
+                         "gate still runs — 3s instead of 16s on a twelve-page "
+                         "deck. NOT a delivery reading; run it without --fast "
+                         "before you hand the document over")
     ap.add_argument("--skip-layout", action="store_true",
                     help="no browser available; recorded as a silent "
                          "instrument and the exit stays nonzero")
@@ -197,9 +238,11 @@ def main(argv=None) -> int:
     trace_id = a.trace_id or markup.body_attr(raw, "data-trace")
 
     started = time.monotonic()
-    runs = gather(a.file, genre, a.terms, skip_layout=a.skip_layout)
+    runs = gather(a.file, genre, a.terms, skip_layout=a.skip_layout,
+                  iterate=a.fast)
     checks_seconds = max(1, round(time.monotonic() - started))
     gating, graded, silent, worst = verdict_block(runs)
+    graded.extend(eval_notes(a.file, runs))
     if not trace_id:
         # Unmeasured, not silent: a build with no trace leaves no record of
         # its phases, its driver or its verdicts, and until 0.1.531 that
@@ -218,6 +261,7 @@ def main(argv=None) -> int:
         secs = runs["layout"].get("seconds")
         print(f"{a.file.name}  (genre={genre or 'undeclared'}"
               + (f", layout rendered concurrently in {secs}s" if secs else "")
+              + (", --fast: the declared stage only" if a.fast else "")
               + ")")
         print("\n── the verdict — every instrument, one block ──────────────")
         for line in gating:
@@ -232,7 +276,17 @@ def main(argv=None) -> int:
         print(f"\nexit {worst}: {len(gating)} gating · {len(silent)} unmeasured"
               f"/silent · {len(graded)} graded findings")
 
-    if trace_id and worst == 0:
+    if a.fast:
+        # A LOOP READING IS NOT A DELIVERY READING, and the difference has to
+        # survive being read by somebody in a hurry. Printed after the verdict
+        # block rather than before it, because the last line is what gets read
+        # — and on STDERR, because `--json`'s stdout is a document a parser
+        # reads and a note appended to it is a note that breaks the parse. The
+        # first version of this line did exactly that and its own test caught
+        # it.
+        print("\n  --fast: one geometry, no off-shape sweep. Run this again "
+              "without --fast before delivery.", file=sys.stderr)
+    if trace_id and worst == 0 and not a.fast:
         # Stop the build clock the scaffold started (if it is running), then
         # close with THIS run's own duration as the checks phase. Both numbers
         # are the tooling's; neither is typed.

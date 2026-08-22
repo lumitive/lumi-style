@@ -40,12 +40,18 @@ import sys  # noqa: E402
 from deliverable_registry import checker_path  # noqa: E402
 
 
-def checker_argv(kind: str, path, genre: str | None = None) -> list[str]:
+def checker_argv(kind: str, path, genre: str | None = None,
+                 iterate: bool = False) -> list[str]:
     """The canonical invocation for one checker kind, in one place.
 
     The knowledge here used to live in `run_conformance.score_checks` alone,
     which is why every OTHER caller ran prose without `--genre` and graded
     every deliverable as sales material whatever it declared itself to be.
+
+    `iterate` is the author's loop rather than the delivery check: every gate
+    still runs, at the declared stage only. It is meaningless to the checkers
+    that do not render, so it is silently theirs to ignore rather than an error
+    — a caller looping over `kinds()` passes one flag, not a special case.
     """
     argv = [sys.executable, str(checker_path(kind)), str(path), "--json"]
     if kind == "prose" and genre:
@@ -54,6 +60,8 @@ def checker_argv(kind: str, path, genre: str | None = None) -> list[str]:
         # `--deliverable` is the point: without it inspect_layout gates on
         # nothing. `--no-sheet` because nobody is watching a harness run.
         argv += ["--deliverable", "--no-sheet"]
+        if iterate:
+            argv.append("--iterate")
     return argv
 
 
@@ -77,13 +85,14 @@ def parse_report(stdout: str | bytes):
     return None, False
 
 
-def run_checker(kind: str, path, genre: str | None = None, timeout: int = 600):
+def run_checker(kind: str, path, genre: str | None = None, timeout: int = 600,
+                iterate: bool = False):
     """-> {kind, exit, spoke, reports}. Executes and parses; decides nothing.
 
     A timeout or unparseable output is `spoke=False` with the raw exit — the
     caller records that state rather than skipping it.
     """
-    argv = checker_argv(kind, path, genre)
+    argv = checker_argv(kind, path, genre, iterate=iterate)
     try:
         proc = subprocess.run(argv, capture_output=True, text=True,
                               timeout=timeout)

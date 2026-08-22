@@ -9,6 +9,7 @@ The discipline is the repository's: every outcome demonstrated, not just the
 good one, because a check only ever seen passing is FM-01.
 """
 import json
+import pathlib
 
 import eval_corpus as ec
 
@@ -111,3 +112,68 @@ def test_a_missed_bar_alone_does_not_fail_the_run():
     # gates in writing by the checkers they come from.
     rows = ec.score(_measured(a_ceiling=0.9), TABLE)
     assert any(r["verdict"] == "MISS" for r in rows)
+
+
+def _real_design_report():
+    """check_design's REAL output on this package's own fixture.
+
+    Hand-written stand-ins for a checker's report shape are how a test comes to
+    assert a contract nobody ships: the first version of this file invented
+    `prose_only` as an int and `D5_drawn_share` without `figures`, and passed
+    nothing. Convention 15 — look at a real instance.
+    """
+    import json
+    import subprocess
+    import sys
+    root = pathlib.Path(__file__).resolve().parents[1]
+    proc = subprocess.run(
+        [sys.executable, str(root / "scripts/check/check_design.py"),
+         str(root / "fixtures/deck-pass.en.html"), "--json"],
+        capture_output=True, text=True)
+    return {"exit": proc.returncode, "reports": json.loads(proc.stdout)}
+
+
+def test_supplied_reports_are_used_instead_of_re_running_the_checkers(tmp_path,
+                                                                     monkeypatch):
+    """The reason `--fast` is 3 seconds and not 33: `measure` re-rendered the
+    whole document in a second browser to recompute numbers its caller already
+    held. Given both runs, it must not shell out at all."""
+    design = _real_design_report()
+    doc = tmp_path / "d.html"
+    doc.write_text('<html><body data-genre="sales"></body></html>', encoding="utf-8")
+
+    def refuse(*a, **k):                                   # pragma: no cover
+        raise AssertionError("measure shelled out despite being handed reports")
+
+    monkeypatch.setattr(ec.subprocess, "run", refuse)
+    layout = {"exit": 0, "reports": [{"results": [{"pages": [
+        {"visualPct": 60.0}, {"visualPct": 40.0}]}]}]}
+    out = ec.measure(doc, with_render=True, design=design, layout=layout)
+    assert out["genre"] == "sales"
+    assert out["content_pages"] == 14
+    assert out["visual_share_median"] == 50.0
+
+
+def test_a_supplied_layout_run_that_says_nothing_is_a_render_state(tmp_path,
+                                                                   monkeypatch):
+    # A crashed browser upstream must arrive here as a render_state, not as a
+    # traceback and not as a silent pass.
+    design = _real_design_report()
+    doc = tmp_path / "d.html"
+    doc.write_text('<html><body data-genre="sales"></body></html>', encoding="utf-8")
+
+    def refuse(*a, **k):                                   # pragma: no cover
+        raise AssertionError("measure shelled out despite being handed reports")
+
+    monkeypatch.setattr(ec.subprocess, "run", refuse)
+    out = ec.measure(doc, with_render=True, design=design,
+                     layout={"exit": 1, "reports": None, "stderr": "no chromium"})
+    assert "no chromium" in out["render_state"]
+    # Present and None: "not measured" is a value here, and the score
+    # step reads None as a miss rather than as a pass.
+    assert out["visual_share_median"] is None
+
+
+def test_the_thresholds_table_has_one_loader():
+    table = ec.thresholds()
+    assert "metrics" in table and "min_content_pages" in table
