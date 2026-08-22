@@ -221,14 +221,24 @@ too quiet for a deck that opens a pitch, piloted and accepted on a real
 roadshow build. The energy comes from weight and the lime chip, never from a
 louder ground: the agenda stays a body page.
 
-**The launch rows are the agenda's statement, so the agenda may carry no lede
-at all.** A title saying "what this document argues" above rows that already
+**The launch rows are the agenda's statement, so the agenda carries NO LEDE —
+no title, no support line.** A title saying "what this document argues" above rows that already
 argue it is the same sentence twice, and an owner review called it redundant
-(0.1.521). Set `body stack no-lede` and the rows centre in the page. **Remove the
-lede whole, or not at all**: deleting the title while keeping the `.lede` block
+(0.1.521). Set `body stack no-lede` and the rows centre in the page — the
+centring is not a separate instruction, it is what removing the lede does:
+`no-lede` drops the title's reserved grid row and `.fill` already centres what
+it holds. **Remove the lede whole, or not at all**: deleting the title while keeping the `.lede` block
 leaves a page reserving a title it does not carry, which `inspect_layout.py`
 counts as a check that could not run and reports as NOT SHIPPABLE. D8 then
 reports the agenda as missing a support line, correctly and without gating.
+
+This was written as a permission — "may carry no lede" — for four releases, and
+two of three conformance agents kept the lede. The scaffold is why: it emitted
+`body stack` with a placeholder title reading *"What this document argues, and
+where"*, which is the exact redundant sentence the paragraph above asks authors
+to delete. Measured on the accepted reference the rows sit 119px below the body
+top and 115px above the footer; on a deck that kept its lede, 267 and 99 — the
+same page, 2.7 times out of balance. `check_design.py` D35 gates it now.
 
 **The agenda page carries the agenda and nothing else.** Its `.body` holds the
 launch sequence in a `.fill`, and optionally the `.lede` above it. No stat band,

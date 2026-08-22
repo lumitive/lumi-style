@@ -444,7 +444,15 @@ SHAPE_FIGURE = f'''<svg viewBox="0 0 640 300" role="img"
 FIG_PLACEHOLDER = ("<!-- draw what the content IS: a flow, a timeline, a bridge,"
                    " a table. Shapes carry semantics; dashed means not built."
                    " embed_shapes.py --list names every unit the library ships."
-                   " -->")
+                   " IF THE DRAWING SCALES NUMBERS, name its axes with the"
+                   " shipped classes. Put class=axname-x on a text node below"
+                   " the baseline, running level, and class=axname-y on one to"
+                   " the LEFT of the vertical axis; tokens/ turns that one"
+                   " upright to read bottom to top. Neither may lie across the"
+                   " marks. figure_axis_overlap and figure_axis_orientation gate"
+                   " both. A name is a ROLE: without the class a checker cannot"
+                   " tell an axis name from a data label on its own mark, and"
+                   " three conformance decks printed one across the plot. -->")
 
 SAMPLES = [
     '      <p class="listhead">A heading over a block</p>\n'
@@ -660,12 +668,7 @@ def main(argv):
                  f'at the storyline review</p>\n')
     out.append(f'''<section class="page" id="agenda">
   {g}
-  <div class="body stack">
-    <div class="lede">
-      <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#i-list-checks"/></svg>Agenda</p>
-      <h2 class="t">What this document argues, and where</h2>
-      <p class="sup">One line saying how to read it.</p>
-    </div>
+  <div class="body stack no-lede">
     <div class="fill">
       <div class="launch">
 {rows}      </div>
@@ -739,7 +742,13 @@ def main(argv):
     <div class="fill">{fignote}
       <div class="fig">{figure}
       <div class="cap"><span class="n">Figure {figno}</span> A title stating a
-      conclusion <span class="srcline">Where this came from</span></div></div>
+      conclusion</div></div>
+      <!-- design-rules §4 rule 8: the caption holds the number and the name and
+           NOTHING ELSE. The source line is the drawing's own last text node
+           (rule 17) — see the `<text class="fnote">` at the foot of the figure
+           above. Run together in one caption the two read as one sentence, and
+           the line break lands in the source so the name never appears to
+           wrap. -->
       <p class="take">{take}</p>
     </div>
   </div>

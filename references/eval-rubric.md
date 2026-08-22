@@ -130,7 +130,9 @@ agenda line quotes a title the document actually carries, and D32 asks
 whether a page that DECLARES an analysis move drew the shape the library ships
 for it, and D33 asks whether every icon's geometry is a file in the two sets
 this package ships rather than a drawing somebody made, and D35 asks whether the
-agenda page carries the agenda and nothing else — all decidable, in the way
+agenda page carries the agenda and nothing else, and D37 asks whether the
+caption below a figure holds the number and the name alone, with the source
+inside the drawing where §4 rule 17 puts it — all decidable, in the way
 "does this page read as intentional" is not. **D15 is the second instance of
 one defect:** `.foot .src` was removed from `tokens/` in 0.1.366 after the first
 deliverable to meet it filled every client page with a build path, and a second

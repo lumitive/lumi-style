@@ -235,6 +235,11 @@ PROBE = r"""
   // opener-inset scan — and the opener block sits earlier in source order, so
   // the constant is hoisted rather than copied. A vocabulary written in two
   // places is a vocabulary that drifts in one of them.
+  // The absolute floor for two glyph runs overlapping, in CSS px. Both
+  // dimensions must clear it. Calibrated on the accepted reference deck and
+  // this package's own passing fixture, which must report zero.
+  const GLYPH_OVERLAP_W = 20, GLYPH_OVERLAP_H = 6;
+  const ROLE_WEIGHT_SELECTORS = __ROLE_WEIGHT_SELECTORS__;
   const TEXT_SEL = 'p,li,dt,dd,h1,h2,td,th,.k,.v,.g,.say,.gd,.key,.note,.listhead,'
              + '.eyebrow,.cap,.srcline,.conf,.site,.tick,.vt,.vw,.vn,.no,.yes,'
              + '.who,.verdict,.wordmark,.sub,.colophon,.openpart,.openclaim,'
@@ -828,6 +833,59 @@ PROBE = r"""
       if (!axis) figNoAxis++;
     }
 
+    // The LIGHTEST rendering of each weight-bearing role on this page. Lightest
+    // rather than first: one row of a ladder rendered at 400 is the defect, and
+    // an average would hide it behind three correct siblings.
+    const roleWeights = {};
+    for (const sel of ROLE_WEIGHT_SELECTORS) {
+      let worst = null;
+      for (const e of s.querySelectorAll(sel)) {
+        if (!(e.textContent || '').trim()) continue;
+        const w = parseInt(getComputedStyle(e).fontWeight, 10);
+        if (!isNaN(w) && (worst === null || w < worst)) worst = w;
+      }
+      if (worst !== null) roleWeights[sel] = worst;
+    }
+
+    // ── AXIS NAMES AGAINST THE PLOT THEY NAME ───────────────────────────
+    // A name declared with `.axname-x` / `.axname-y` may not lie across the
+    // region the marks occupy, and the vertical one reads bottom to top. Both
+    // are decidable ONLY because the document says which text is an axis name:
+    // a data label printed on its own mark is the same geometry and is
+    // correct, so without the declared role a checker is guessing.
+    const axisNames = [];
+    for (const sv of s.querySelectorAll('.fig svg:not(.ic)')) {
+      const names = [...sv.querySelectorAll('.axname-x, .axname-y')];
+      if (!names.length) continue;
+      // The plot is where the MARKS are — every drawn thing that is not one of
+      // these names, and not text at all. `use` and `image` are in: a plot
+      // square composed from a `<symbol>` is still the plot, and leaving them
+      // out is why `figure_ink_collision` could not see one.
+      let px0 = Infinity, py0 = Infinity, px1 = -Infinity, py1 = -Infinity;
+      for (const m of sv.querySelectorAll(
+             'rect,circle,ellipse,path,polygon,polyline,line,use,image')) {
+        if (m.closest('defs,symbol,marker,clipPath,mask,pattern')) continue;
+        const r = m.getBoundingClientRect();
+        if (r.width < 2 && r.height < 2) continue;
+        px0 = Math.min(px0, r.left); py0 = Math.min(py0, r.top);
+        px1 = Math.max(px1, r.right); py1 = Math.max(py1, r.bottom);
+      }
+      if (!isFinite(px0)) continue;
+      for (const n of names) {
+        const r = n.getBoundingClientRect();
+        const ox = Math.min(r.right, px1) - Math.max(r.left, px0);
+        const oy = Math.min(r.bottom, py1) - Math.max(r.top, py0);
+        const vertical = /vertical/.test(getComputedStyle(n).writingMode);
+        const wantsVertical = n.classList.contains('axname-y');
+        axisNames.push({
+          text: (n.textContent || '').trim().slice(0, 40),
+          over: (ox > GLYPH_OVERLAP_W && oy > GLYPH_OVERLAP_H)
+                ? {w: inPageUnits(ox), h: inPageUnits(oy)} : null,
+          misturned: vertical !== wantsVertical,
+        });
+      }
+    }
+
     const figInk = [];
     for (const sv of s.querySelectorAll('.fig svg:not(.ic)')) {
       const marks = [];
@@ -1055,6 +1113,87 @@ PROBE = r"""
         worstOverlap = {area, w: inPageUnits(ox), h: inPageUnits(oy), a: na, b: nb};
       }
     };
+    // ── TEXT INSIDE A DRAWING IS TEXT ────────────────────────────────────
+    // `TEXT_SEL` above names HTML roles only, so an `<svg>` entered this scan
+    // as ONE opaque box and two labels inside one drawing were, to this probe,
+    // the same object overlapping itself. The rule it implements has always
+    // said "nothing may land on anything"; the probe just never enumerated
+    // SVG text as text. Six real overlaps sat in one conformance deck — an
+    // axis unit printed over the word "Illustrative", a risk label over its
+    // own category name — and `collision` reported `ok` on all of them.
+    //
+    // A SEPARATE FLOOR, because a glyph run is not a paragraph. Kerning and
+    // anti-aliasing put a few pixels of two labels together routinely: the
+    // noise measured 32x4 and 15x16, the real defects 21x13 and up. Neither
+    // dimension separates them alone, so both must clear.
+    const svgText = [...s.querySelectorAll('svg text')].filter(t =>
+      (t.textContent || '').trim()
+      && !t.closest('.ground')
+      // THE GLOBE IS EXEMPT. Its signal labels are HS codes printed along
+      // trade arcs and they overlap by construction at 5+ places on the cover
+      // and closing of every deck built with it, the accepted reference
+      // included. Gating them would fail page 1 of the document this package
+      // calibrates on. Recorded as a gap rather than treated as clean.
+      && !t.closest('svg.gl')
+      && !t.closest('defs,symbol,marker,clipPath,mask,pattern'));
+    for (let i = 0; i < svgText.length; i++) {
+      for (let j = i + 1; j < svgText.length; j++) {
+        const a = svgText[i].getBoundingClientRect();
+        const b = svgText[j].getBoundingClientRect();
+        const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+        const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+        if (ox < GLYPH_OVERLAP_W || oy < GLYPH_OVERLAP_H) continue;
+        textOverlaps++;
+        const area = ox * oy;
+        if (!worstOverlap || area > worstOverlap.area) {
+          worstOverlap = {area, w: inPageUnits(ox), h: inPageUnits(oy),
+                          a: (svgText[i].textContent || '').trim().slice(0, 40),
+                          b: (svgText[j].textContent || '').trim().slice(0, 40)};
+        }
+      }
+    }
+
+    // ── A STROKE THROUGH A GLYPH RUN ────────────────────────────────────
+    // The other half of "text against every drawn element", inside a drawing.
+    // Only STROKED marks, and that restriction is the whole discriminator: a
+    // data label sitting ON its own filled mark is what a labelled chart looks
+    // like, and `figure_ink_collision` excludes text for exactly that reason.
+    // A line drawn THROUGH a word is never a labelling relationship. Found on a
+    // conformance deck where three arrow rules crossed the sentences beneath
+    // them.
+    const strokes = [...svgText.length ? s.querySelectorAll(
+      '.fig svg line, .fig svg path, .fig svg polyline') : []].filter(m => {
+        if (m.closest('defs,symbol,marker,clipPath,mask,pattern')) return false;
+        if (m.closest('svg.gl')) return false;
+        const cs = getComputedStyle(m);
+        const f = (cs.fill || '').trim();
+        // Stroked and NOT filled: a filled path is a shape, and a label on a
+        // shape is the case above.
+        return (cs.stroke || 'none') !== 'none'
+               && parseFloat(cs.strokeWidth || 0) > 0
+               && (f === 'none' || f === 'transparent' || !f);
+      });
+    for (const t of svgText) {
+      const a = t.getBoundingClientRect();
+      for (const m of strokes) {
+        const b = m.getBoundingClientRect();
+        // A long thin box is the stroke's own extent, so require the overlap to
+        // be a real bite out of the TEXT rather than a graze along its edge.
+        const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+        const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+        if (ox < GLYPH_OVERLAP_W || oy < GLYPH_OVERLAP_H) continue;
+        if (oy > a.height * 0.9) continue;   // the stroke spans the whole line:
+                                             // a rule under a caption, not through it
+        textOverlaps++;
+        const area = ox * oy;
+        if (!worstOverlap || area > worstOverlap.area) {
+          worstOverlap = {area, w: inPageUnits(ox), h: inPageUnits(oy),
+                          a: (t.textContent || '').trim().slice(0, 40),
+                          b: 'a stroke drawn through it'};
+        }
+      }
+    }
+
     for (let i = 0; i < leaves.length; i++) {
       for (let j = i + 1; j < leaves.length; j++) {
         clash(leaves[i], leaves[j], tagOf(leaves[i]), tagOf(leaves[j]));
@@ -1410,7 +1549,8 @@ PROBE = r"""
       figLeadPct: +(100 * figLead).toFixed(0),
       caps, tables, drawn, capGapPx, capOffPct, clipped, badBox, sourceEcho, sourceComparable, fields, horizons,
       bandEscape, hasBand: s.querySelectorAll('.band').length > 0,
-      figInk, titleLines, openerMark, figShapes, figNoAxis, figScaled,
+      figInk, titleLines, openerMark, figShapes, figNoAxis, figScaled, roleWeights,
+      axisNames,
       textOverlaps, worstOverlap,
       ledeBlocks, ledeClamped, reserveExpected,
       openerOutsidePx, openerSide,
@@ -1590,7 +1730,11 @@ def with_playwright(url, geometry, dark, shot_dir, stem):
     rows, shots = None, []
     page, errors = open_page(shared_browser(), url, GEOMETRIES[geometry], dark)
     try:
-        rows = page.evaluate(PROBE)
+        # The weight table is Python's, so the probe is handed the
+        # selectors rather than repeating them — a vocabulary written in
+        # two places is a vocabulary that drifts in one of them.
+        rows = page.evaluate(PROBE.replace(
+            '__ROLE_WEIGHT_SELECTORS__', json.dumps(list(ROLE_WEIGHTS))))
         if shot_dir:
             # Screenshot the section element, not the viewport. The first version
             # scrolled each page into view and shot the viewport, and with
@@ -1790,6 +1934,10 @@ CONSISTENCY_PROBE = r"""
     // cover-grid furniture promoted the mono key/value rows the cover and
     // closing carry. Same rule as `.band` vs `.lead`: distinct scopes are
     // distinct roles, and only a use outside every shipped scope is invented.
+    // The graded ladder's row name. It is a heading inside a repeating
+    // block, so one deck rendering it at 700 and another at 400 is the
+    // same split this contract exists to find.
+    ['.gn', ['.gr', '.launch']],
     ['.k', ['.band', '.attrs', '.spec']],
     ['.v', ['.band', '.lead', '.attrs', '.spec']],
     // Shipped scoped in 0.1.369 for the reason `.k` is: `.no` and `.yes` are the
@@ -2241,6 +2389,53 @@ def _pacing_not_applicable(live):
     """
     return (not _composes_as_a_deck(live)
             or any(r.get("partsDeclaredNone") for r in live))
+
+
+# ROLES WHOSE WEIGHT CARRIES THE MEANING, and the weight `tokens/` ships for
+# each. A heading that renders at body weight is not a heading — the graded
+# ladder's row name declared no weight at all until 0.1.551 and computed to 400,
+# so a four-row ladder read as four paragraphs and an owner review could not
+# tell the names from their notes.
+#
+# The numbers are held to `tokens/lumi-layouts.css` by check_repo's
+# `role weights` guard, so this table cannot drift away from the stylesheet it
+# claims to quote.
+ROLE_WEIGHTS = {".gr .gn": 700, ".launch .gn": 800}
+
+
+def _underweight_roles(live):
+    """Roles rendering lighter than the weight `tokens/` gives them.
+
+    Rendered, not declared: a document inlines its own copy of the stylesheet,
+    and the copy is where the weight goes missing. `check_design`'s D20 asks the
+    same question of colour tokens and can ask it statically because a colour is
+    a literal; a weight arrives through the cascade and only the browser knows
+    which rule won.
+    """
+    hits = []
+    for r in live:
+        for sel, want in (r.get("roleWeights") or {}).items():
+            if want is not None and want < ROLE_WEIGHTS.get(sel, 0):
+                hits.append({"id": r["id"], "sel": sel, "got": want,
+                             "want": ROLE_WEIGHTS[sel]})
+    return hits
+
+
+def _axis_names_over_plot(live):
+    """Declared axis names lying across the region the marks occupy."""
+    return [{"id": r["id"], **a} for r in live
+            for a in (r.get("axisNames") or []) if a.get("over")]
+
+
+def _axis_names_misturned(live):
+    """A y-axis name that does not read upward, or an x-axis name that does.
+
+    The vertical one is set with `writing-mode` plus a 180-degree rotation,
+    which is what makes it read bottom to top; `tokens/` ships both halves and a
+    document that overrides one gets a name reading downward.
+    """
+    return [{"id": r["id"], **a} for r in live
+            for a in (r.get("axisNames") or []) if a.get("misturned")]
 
 
 def _openers_repeating_a_mark(live):
@@ -3219,6 +3414,33 @@ def deliverable_verdicts(rows, consistency):
     # THE SEAM RATE. Gating since 0.1.549; reported from 0.1.376 until then,
     # during which a conformance deck came back with ten unbroken content pages
     # and no opener at all and nothing failed it.
+    # THE FIGURE NAME HOLDS ONE LINE (design-rules §4 rule 7). Reported since
+    # the probe was written and gating from 0.1.551, and what changed in
+    # between is that the measurement became a real one: while the caption also
+    # carried the source line, the two were a single inline flow and the break
+    # landed inside the SOURCE, so the name never appeared to wrap. Nine of ten
+    # captions on one deck rendered two lines with every name reported as
+    # holding one. Rule 8 now keeps the source inside the drawing, so the name
+    # is alone under the figure and its wrap is its own.
+    axis_declared = any(r.get("axisNames") for r in live)
+    add("figure_axis_overlap", _axis_names_over_plot(live), not axis_declared,
+        lambda h: (f"{len(h)} axis name(s) lie across the plot they name: "
+                   + ", ".join(f"{x['id']} {x['text']!r} "
+                               f"({x['over']['w']}x{x['over']['h']}px)"
+                               for x in h[:3])))
+    add("figure_axis_orientation", _axis_names_misturned(live), not axis_declared,
+        lambda h: (f"{len(h)} axis name(s) face the wrong way — the y name "
+                   f"reads bottom to top, the x name reads level: "
+                   + ", ".join(f"{x['id']} {x['text']!r}" for x in h[:3])))
+    add("caption_name_wrap", [r for r in live if r.get("capWrapped")],
+        not any(r.get("caps") for r in live),
+        lambda h: (f"{len(h)} figure names wrap to a second line — shorten the "
+                   f"name, never set it smaller: " + _fmt_ids(h)))
+    add("role_weight", _underweight_roles(live),
+        not any(r.get("roleWeights") for r in live),
+        lambda h: ("a role renders lighter than the weight tokens/ gives it: "
+                   + ", ".join(f"{x['id']} {x['sel']} at {x['got']} "
+                               f"(shipped {x['want']})" for x in h[:3])))
     add("opener_pacing", _pacing_overrun(live), _pacing_not_applicable(live),
         lambda h: (f"{len(h)} run(s) of content pages go past "
                    f"{OPENER_RUN_CEILING} without a seam (longest {max(h)}). "

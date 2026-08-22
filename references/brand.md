@@ -172,7 +172,7 @@ from the top down reads as *poured*.
 `--lime: #B8FF00`. It measures **1.21:1 as text on the white canvas** — unreadable
 — and **16.44:1 with near-black reversed out of it**, so on light it is a
 **surface and never text**, and `check_design.py` D13 measures exactly that
-(reported like every design judgement there — only D12/D14/D15/D19/D20/D21/D22/D24/D25/D27/D32/D33/D35 gate). On
+(reported like every design judgement there — only D12/D14/D15/D19/D20/D21/D22/D24/D25/D27/D32/D33/D35/D37 gate). On
 the dark canvas it is the accent proper at 13.90:1.
 
 **Two greens, and the canvas forces them apart.** Counted on the content pages,

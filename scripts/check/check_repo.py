@@ -1050,6 +1050,42 @@ def _shipped_classes():
     return base
 
 
+def check_role_weights():
+    """`inspect_layout.ROLE_WEIGHTS` says what weight `tokens/` gives a role.
+
+    A number in one file claiming to quote another is this repository's most
+    fixed defect class, so the claim is held to the stylesheet rather than
+    trusted. The gate reads the rendered weight; this reads the declared one;
+    if they ever describe different numbers, the gate is enforcing a value
+    nothing ships.
+    """
+    css = (ROOT / "tokens" / "lumi-layouts.css").read_text(encoding="utf-8")
+    src = (ROOT / "scripts" / "check" / "inspect_layout.py").read_text(
+        encoding="utf-8")
+    m = re.search(r"^ROLE_WEIGHTS = \{(.*?)\}", src, re.S | re.M)
+    if not m:
+        return ["inspect_layout.py declares no ROLE_WEIGHTS table"]
+    table = dict(re.findall(r'"([^"]+)":\s*(\d+)', m.group(1)))
+    if not table:
+        return ["ROLE_WEIGHTS parsed to nothing; a guard that reads no rows "
+                "passes every stylesheet by construction"]
+    errors = []
+    for sel, want in sorted(table.items()):
+        # The last declaration wins in a stylesheet, so read them all.
+        blocks = re.findall(re.escape(sel) + r"\s*\{([^}]*)\}", css)
+        weights = [w for b in blocks
+                   for w in re.findall(r"font-weight:\s*(\d+)", b)]
+        if not weights:
+            errors.append(
+                f"ROLE_WEIGHTS names {sel!r} at {want}, and "
+                f"tokens/lumi-layouts.css declares no font-weight for it")
+        elif weights[-1] != want:
+            errors.append(
+                f"ROLE_WEIGHTS says {sel!r} is {want}; "
+                f"tokens/lumi-layouts.css ships {weights[-1]}")
+    return errors
+
+
 def check_probe_vocabulary():
     """A probe that keys on a class name is asserting a vocabulary; ship it.
 
@@ -3520,6 +3556,7 @@ CHECKS = (
     ("token references", check_token_references),
     ("region coverage", check_region_coverage),
     ("probe vocabulary", check_probe_vocabulary),
+    ("role weights", check_role_weights),
     ("media-only rules", check_media_only_rules),
     ("layout parity", check_layout_parity),
     ("ban-list parity", check_ban_list_parity),

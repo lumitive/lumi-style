@@ -1479,6 +1479,99 @@ def d33_icon_provenance(raw, root=None):
     return {"checked": len(used), "unknown": unknown, "altered": altered}
 
 
+# A figure name's ceiling, by the cell it sits in (design-rules §4 rule 7).
+# REPORTED here and gated in `inspect_layout` — the true measurement is whether
+# the rendered name wraps, and characters are the early warning an author can
+# act on while writing rather than after rendering.
+CAPTION_NAME_CHARS = {"full": 100, "split": 60}
+
+
+def d37_caption_scope(raw):
+    """-> {captions, with_source, long_names}: what sits under a figure.
+
+    **This gates on the source line.** design-rules §4 rule 8 says the caption
+    below a figure carries the number and the name and nothing else; the source
+    is the drawing's own last text node (rule 17). The two bullets contradicted
+    each other for several releases and every conformance deck followed the
+    losing one, which produced `…off the green lineIllustrative programme-board
+    values` — two roles in one inline flow with no separator, because nothing in
+    the stylesheet supplies one and nothing required the author to.
+
+    The long-name count is REPORTED. The ceiling is a character count standing
+    in for a rendered line, and the rendered line is what `caption_name_wrap`
+    measures; failing a document twice for one defect teaches a reader to skim.
+    """
+    caps = re.findall(r'<(?:p|div)[^>]*class="(?:[^"]*\s)?cap(?:\s[^"]*)?"[^>]*>'
+                      r'(.*?)</(?:p|div)>', raw, re.S)
+    with_source, long_names = [], []
+    for i, c in enumerate(caps, start=1):
+        if re.search(r'class="(?:[^"]*\s)?srcline(?:\s[^"]*)?"', c):
+            with_source.append(i)
+        # The name is what is left once the number and any source are removed.
+        name = markup.visible_text(
+            re.sub(r'<span[^>]*class="(?:[^"]*\s)?(?:n|srcline)'
+                   r'(?:\s[^"]*)?"[^>]*>.*?</span>', " ", c, flags=re.S))
+        if len(name) > CAPTION_NAME_CHARS["full"]:
+            long_names.append((i, len(name)))
+    return {"captions": len(caps), "with_source": with_source,
+            "long_names": long_names}
+
+
+# Families a browser resolves without a file: the generic keywords, plus the
+# CJK fallbacks a Latin face cannot carry and design-rules §2 explicitly scopes
+# the embed rule away from ("the embed rule is scoped to the Latin faces").
+GENERIC_FAMILIES = {
+    "serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui",
+    "ui-monospace", "ui-sans-serif", "ui-serif", "ui-rounded", "inherit",
+    "initial", "unset", "-apple-system", "blinkmacsystemfont",
+    "pingfang sc", "hiragino sans gb", "noto sans sc", "microsoft yahei",
+    "heiti sc", "songti sc", "arial", "helvetica", "helvetica neue",
+}
+
+
+def d36_font_family(raw):
+    """-> {embedded, declared, unembedded}: faces the document asks for and
+    does not carry.
+
+    **Reported, not gated, and the reason is in GAP-027.** design-rules §2 says
+    a Latin face is embedded as a data URI and never linked. `--mono` names four
+    faces and this package embeds none of them, so every document it has ever
+    produced would fail this — the accepted reference included. A gate that
+    fails the calibration anchor is measuring the tokens, not the document, and
+    the tokens are the thing to fix.
+
+    What it is worth reporting anyway: an owner review read the cover's key
+    column as "not bold" twice, five releases apart, on a rule that measures as
+    weight 700 both times. The weight was never the defect; the face was, and
+    nothing said so.
+    """
+    embedded = {m.group(1).strip().strip('"\'').lower() for m in re.finditer(
+        r"@font-face\s*\{[^}]*?font-family:\s*([^;}]+)", raw, re.S | re.I)}
+    # THE STACK LIVES BEHIND A TOKEN. Almost every rule in this package says
+    # `font-family: var(--din)`, so a scan that read only `font-family:` values
+    # found nothing but variable names and reported a clean document. The
+    # families are in the custom property, and only the ones a rule actually
+    # reaches through are worth reporting — an unused token is not a face the
+    # document asks for.
+    stacks = dict(re.findall(r"(--[\w-]+):\s*([^;}]*(?:serif|monospace|'|\")[^;}]*)",
+                             raw, re.I))
+    used = set(re.findall(r"font-family:\s*var\(\s*(--[\w-]+)", raw, re.I))
+    values = [stacks[v] for v in used if v in stacks]
+    values += [m.group(1) for m in re.finditer(r"font-family:\s*([^;}]+)", raw, re.I)
+               if "var(" not in m.group(1)]
+    declared, unembedded = set(), set()
+    for value in values:
+        for fam in value.split(","):
+            fam = fam.strip().strip('"\'').lower()
+            if not fam:
+                continue
+            declared.add(fam)
+            if fam not in embedded and fam not in GENERIC_FAMILIES:
+                unembedded.add(fam)
+    return {"embedded": sorted(embedded), "declared": len(declared),
+            "unembedded": sorted(unembedded)}
+
+
 def d34_icon_uniqueness(raw):
     """-> {pages, distinct, reused}: eyebrow icons standing for more than one
     subject.
@@ -1626,7 +1719,11 @@ def _direct_children(fragment: str) -> tuple:
 # What an agenda page's `.body` may hold at its top level, and what may appear
 # ANYWHERE inside it. storyline-templates: the launch sequence, and optionally
 # the lede above it.
-AGENDA_BODY_ALLOWED = ("lede", "fill")
+# The agenda's body holds the launch sequence and NOTHING ELSE — not even the
+# lede. storyline-templates made that an obligation at 0.1.551; it had been a
+# permission ("may carry no lede") for four releases, and two of three
+# conformance agents kept the lede because the scaffold emitted one.
+AGENDA_BODY_ALLOWED = ("fill",)
 AGENDA_FILL_ALLOWED = ("launch",)
 # The visual blocks that make an agenda into a second page. `launch` is the
 # agenda's own block and is excluded; everything else in the vocabulary is an
@@ -1689,6 +1786,27 @@ def d35_agenda_exclusive(raw):
         strays = []
         if re.search(r"<style\b", body, re.I):
             strays.append("a <style> element of its own")
+        # NO LEDE, AND `no-lede` SAID OUT LOUD. Two halves of one rule: the
+        # title and support line come out, and the body says so in its class so
+        # the grid drops the row they reserved. Removing only one of the two
+        # leaves a page reserving a title it does not carry — the "partial
+        # removal is NOT SHIPPABLE" case the rule names.
+        bm = re.search(r'<div[^>]*class="((?:[^"]*\s)?body(?:\s[^"]*)?)"', body)
+        carries = [w for w, pat in (
+            ("a title", r'<h2[^>]*class="(?:[^"]*\s)?t(?:\s[^"]*)?"'),
+            ("a support line", r'class="(?:[^"]*\s)?sup(?:\s[^"]*)?"'),
+        ) if re.search(pat, body)]
+        # ONE FINDING, not four. A page that kept its lede trips the lede, the
+        # title, the support line and the missing class all at once, and four
+        # lines saying one thing is how a reader learns to skim the report.
+        if carries:
+            strays.append(", ".join(carries) + " above the launch rows: the "
+                          "rows are the agenda's statement, so the agenda "
+                          "carries no lede")
+        elif bm and "no-lede" not in bm.group(1).split():
+            # Partial removal — the title is gone and the row it sat in is not.
+            strays.append("a .body that does not declare no-lede, so the page "
+                          "still reserves the row a deleted title sat in")
         m = re.search(r'<div[^>]*class="(?:[^"]*\s)?body(?:\s[^"]*)?"[^>]*>',
                       body)
         if not m:
@@ -1739,6 +1857,8 @@ def _agenda_strays(kids) -> list:
         if not tokens:
             out += _agenda_strays(_direct_children(contents)[0])
             continue
+        if "lede" in tokens:
+            continue        # the lede has its own finding, in its own words
         if not any(t in AGENDA_BODY_ALLOWED for t in tokens):
             out.append(f".{tokens[0]} beside the launch sequence")
             continue
@@ -1872,6 +1992,8 @@ def measure(path):
         "D33_icon_provenance": d33_icon_provenance(raw),
         "D34_icon_uniqueness": d34_icon_uniqueness(raw),
         "D35_agenda_exclusive": d35_agenda_exclusive(raw),
+        "D36_font_family": d36_font_family(raw),
+        "D37_caption_scope": d37_caption_scope(raw),
         "D23_font_count": d23_font_count(
             raw, (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")),
     }
@@ -2291,6 +2413,20 @@ def grade(r):
                  f"{iu['distinct']} distinct over {iu['pages']} pages, "
                  f"{len(iu['reused'])} reused",
                  "reported", True, not iu["pages"]))
+
+    ff = r["D36_font_family"]
+    rows.append(("D36_font_family",
+                 f"{len(ff['unembedded'])} declared, not embedded"
+                 + (f" ({', '.join(ff['unembedded'][:3])})"
+                    if ff["unembedded"] else ""),
+                 "reported (GAP-027)", True, False))
+
+    cs = r["D37_caption_scope"]
+    rows.append(("D37_caption_scope", len(cs["with_source"]), "=0 (gates)",
+                 not cs["with_source"], not cs["captions"]))
+    rows.append(("D37_caption_name_len", len(cs["long_names"]),
+                 f'<={CAPTION_NAME_CHARS["full"]} chars (reported)',
+                 True, not cs["captions"]))
 
     ae = r["D35_agenda_exclusive"]
     rows.append(("D35_agenda_exclusive",
