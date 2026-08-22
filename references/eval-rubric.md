@@ -47,6 +47,7 @@ have no Han character next to their punctuation.
 | M2 | Number-sourcing rate | ≥90% | share of percentage and currency figures whose PAGE carries a source marker (writing-rules §4 rule 6) |
 | M3 | Coined-term violations | =0 | occurrences of banned legacy coinages (substring exemptions apply) |
 | M4 | Banned AI-tell phrases | =0 — **gates** | banned-phrase hits (fixed-collocation exemptions apply) |
+| M4zh | Banned AI-tell phrases (zh) | =0 — **gates** | the same, on the Chinese ban list, when the document's language is Chinese — a separate id because a Chinese deliverable is graded against a separate list (`writing-rules.md` §2) |
 | M5 | Punctuation violations (zh) | =0 — **gates** | half-width punctuation adjacent to CJK (code/pre/formula exempt) |
 | M6 | Unsourced range figures | =0 — **gates** | range-shaped numbers with no source marker in their own BLOCK; an enumeration label ("blocks 1–3") is reported, not counted (writing-rules §4 rule 6) |
 | M7 | Term mixing | =0 | old and new names of one concept co-occurring |
@@ -579,8 +580,12 @@ information for a reader, who overrules it. It is promoted to a gate only if a
 review shows it caught something a person did not, which needs two releases of
 real documents read against it.
 
-**M2 and M6 do gate**, because their predicates are decidable: a marker from a
-stated list is either in the window or it is not. Both windows are defined in
+**M6 does gate**, because its predicate is decidable: a marker from a
+stated list is either in the window or it is not. **M2 does not**, and the
+difference is not decidability — M2's predicate is the same one. It is that M2
+is a RATE against a chosen threshold, and ninety per cent is a policy rather
+than a red line; a document at eighty-nine is not broken in the way a document
+with an unsourced range is. Both windows are defined in
 `writing-rules.md` §4 rule 6 rather than only in code, and `check_repo.py`'s
 `source-marker parity` guard holds the script's list to the rules' — the same
 discipline as the ban list, added because a metric that invents its own

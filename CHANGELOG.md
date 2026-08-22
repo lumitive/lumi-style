@@ -1,3 +1,48 @@
+## 0.1.566 — the gate that fails a Chinese deck was missing from the table that teaches the gates
+
+**The prose metrics had no prose guard, and both of their claim sites were wrong
+the moment one was written.** `check_gating_claims` has held the DESIGN metrics
+to their prose since 0.1.422; nothing held the prose metrics to theirs. Adding
+that guard and running it once, against the real repository, found two defects:
+
+- **The rubric's metric table had no `M4zh` row at all.** M4zh is the ban list
+  for Chinese output, it gates, and it is the one prose gate that can fail a
+  Chinese deliverable — absent from the document a reader learns the metrics
+  from, in a package whose decks are largely Chinese. It appears correctly in
+  the *generated* `eval-inventory.md`, which is how the hand-written table could
+  disagree with the code and with the generated table simultaneously.
+- **The sentence below it said "M2 and M6 do gate".** M2 has never carried
+  `(gates)`. The commit that wrote the sentence did not touch M2's code, which
+  is convention 14 — a claim about behaviour nobody read — in the file that
+  teaches the rubric. Corrected to M6, with M2's actual reason stated: its
+  predicate is decidable, but ninety per cent is a POLICY threshold rather than
+  a red line, and a document at eighty-nine is not broken the way one carrying
+  an unsourced range is.
+
+**Two claim shapes, because the sites make two different claims.** A table of
+metrics ENUMERATES, so its `**gates**` marks must equal the gate set. A sentence
+arguing from an example NAMES A SUBSET, and what it may not do is call something
+a gate that is not one. Holding the sentence to the full set would have forced
+every mention of a metric into a six-item list — the guard being wrong about its
+material, which is convention 15 and which this guard hit on its first draft.
+
+**The truth is read by name, never by prefix.** `gating.metric_ids("M")` matches
+`M\d+_` and therefore cannot see `M4zh_banned_hits`. A guard built on the prefix
+reader would have confidently reported the table correct — the same blindness
+that let M4zh gate in production while three registries had no idea it existed
+(0.1.561). It reads `evals/gates.json` by name instead.
+
+Deliberate red first, per convention 15: the guard was planted before either
+prose fix and named both sites and both defects on its first run. Six
+synthetic-tree tests, both directions — a table missing a gate, a table marking
+a reported metric, a sentence misattributing, and a deleted sentence failing
+rather than passing silently, because dropping the claim must not drop the
+watch.
+
+Also folded in: the Chinese-agenda end-to-end test added at 0.1.564 renders, so
+it skips where Playwright is absent, which includes CI. A broken Playwright
+still errors loudly rather than vanishing.
+
 ## 0.1.565 — the one block meets a page once instead of four times
 
 **Where the owner's "every use gets more expensive" is actually felt.** Forty-six
