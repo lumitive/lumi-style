@@ -84,6 +84,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import color_math  # noqa: E402 — after the bootstrap, deliberately
 import deliverable_registry  # noqa: E402
+import markup  # noqa: E402
 
 
 class Unmeasurable(Exception):
@@ -246,6 +247,7 @@ PROBE = r"""
   // this package's own passing fixture, which must report zero.
   const GLYPH_OVERLAP_W = 20, GLYPH_OVERLAP_H = 6;
   const ROLE_WEIGHT_SELECTORS = __ROLE_WEIGHT_SELECTORS__;
+  const AGENDA_WORDS = __AGENDA_WORDS__;
   const TEXT_SEL = 'p,li,dt,dd,h1,h2,td,th,.k,.v,.g,.say,.gd,.key,.note,.listhead,'
              + '.eyebrow,.cap,.srcline,.conf,.site,.tick,.vt,.vw,.vn,.no,.yes,'
              + '.who,.verdict,.wordmark,.sub,.colophon,.openpart,.openclaim,'
@@ -1563,8 +1565,19 @@ PROBE = r"""
       // apparatus page declares itself. Read per row because the rows are all
       // the Python side gets; it is the same value on every one.
       partsDeclaredNone: (document.body.dataset.parts || '') === 'none',
+      // THE WORDS ARE HANDED IN, not written here. This regex was /agenda/i —
+      // English only — while check_design matched a vocabulary that includes
+      // 议程 and 目录, so a Chinese deck whose agenda page is named by its
+      // eyebrow was found by one checker and missed by the other, which then
+      // reported deck_structure FAIL about a deck that has an agenda.
+      // `markup.AGENDA_WORDS` is the one vocabulary; substituted as JSON so
+      // this probe string stays ASCII.
       isAgenda: (s.id || '').toLowerCase() === 'agenda'
-        || /agenda/i.test(((s.querySelector('.eyebrow') || {}).textContent) || ''),
+        || (() => {
+             const t = (((s.querySelector('.eyebrow') || {}).textContent) || '')
+               .toLowerCase();
+             return AGENDA_WORDS.some(w => t.indexOf(w) !== -1);
+           })(),
       capBlocks: s.querySelectorAll('.cap').length,
       spillPx, pageSpillPx, deepestWho,
       frameSkewPx,
@@ -1762,7 +1775,9 @@ def with_playwright(url, geometry, dark, shot_dir, stem):
         # selectors rather than repeating them — a vocabulary written in
         # two places is a vocabulary that drifts in one of them.
         rows = page.evaluate(PROBE.replace(
-            '__ROLE_WEIGHT_SELECTORS__', json.dumps(list(ROLE_WEIGHTS))))
+            '__ROLE_WEIGHT_SELECTORS__', json.dumps(list(ROLE_WEIGHTS))
+        ).replace(
+            '__AGENDA_WORDS__', json.dumps(list(markup.AGENDA_WORDS))))
         if shot_dir:
             # Screenshot the section element, not the viewport. The first version
             # scrolled each page into view and shot the viewport, and with

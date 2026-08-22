@@ -1,3 +1,47 @@
+## 0.1.564 — a Chinese agenda page was found by one checker and missed by the other
+
+**Phase C opened by disproving its own plan, and that is the finding worth
+recording first.** The plan said "merge the overlapping gate families: 49 gates
+down to about 30, fewer names and not fewer assertions." Measured against the
+fixtures, **the families do not overlap**. On `deck-broken`, `reserve_overspent`
+fails while `content_hidden` passes — a title block can overspend its reserve
+without being clipped. `band_escape` fails while `page_height` and
+`content_spill` pass. On `deck-degenerate`, `collision` fails while
+`figure_ink_collision` passes, because one reads page blocks and the other reads
+inside a drawing. **Seven gates that look like one concept discriminate in
+practice, and merging them would have deleted real assertions to reach a
+number.** The count was the wrong target; the classification shipped at 0.1.561
+was the deliverable, and it stands.
+
+What *is* duplicated is machinery, and one piece of it was actively wrong.
+
+**Two readers of "which page is the agenda", and only one could read Chinese.**
+`check_design._is_agenda_page` matched the id case-insensitively OR any of
+`agenda`, `议程`, `目录` in the eyebrow. `inspect_layout`'s probe matched the id
+OR the English word alone — `/agenda/i`. So a Chinese deck whose agenda page is
+named by its eyebrow rather than its id is found by the design checker and
+missed by the layout one, which then reports `deck_structure` FAIL — *"this deck
+has openers and no agenda"* — about a deck that has one. Reproduced, then fixed,
+then reproduced again with the fix removed.
+
+`markup.is_agenda_page` is the one rule now; `check_design` delegates to it and
+the probe is handed `markup.AGENDA_WORDS` as JSON, the way
+`ROLE_WEIGHT_SELECTORS` already is — so the vocabulary cannot be spelled twice
+and the probe source stays ASCII.
+
+**A correction to what I reported while finding this.** The first construction
+was invalid: I removed the agenda page's id from a fixture whose agenda page has
+no eyebrow at all, so *both* readers lost it and `deck_structure` failing was
+correct. The divergence is narrower than that and more precise — it needs an
+agenda page named in Chinese, which is the case that matters here, since the
+decks this package is used for are largely Chinese.
+
+**Deliberate red, planted first.** Restoring the English-only regex reddens two
+tests, one of them the end-to-end case against a real rendered document. Four
+new tests.
+
+Design record: `specs/2026-08-22-rules-equal-conformance-design.md`.
+
 ## 0.1.563 — three tables knew which files carry a version stamp, and this file said two
 
 **Found by asking where else the last two releases' defect shape lives.** Eight
