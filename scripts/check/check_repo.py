@@ -2735,7 +2735,7 @@ SIBLING_MODULES = (
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",
     "checker_report", "secret_patterns", "corpus", "gating",
-    "gate_registry", "stamps",
+    "gate_registry", "stamps", "trace_store",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
@@ -3317,6 +3317,62 @@ VERDICT_NAME_WAIVERS: dict[tuple[str, str], str] = {}
 VERDICT_NAME_RE = re.compile(r"`([a-z][a-z0-9]*(?:_[a-z0-9]+)+)`")
 
 
+# An absolute path into somebody's home directory, in a TRACKED file. The
+# username is the leak; the rest of the path is usually meaningful and stays.
+# `~` is the fix at both ends — recorded portably, `expanduser()`d when read
+# back — and `run_conformance._portable` is the writer's half.
+LOCAL_PATH_RE = re.compile(r"/(?:Users|home)/(?!x\b)[A-Za-z0-9][A-Za-z0-9._-]*")
+LOCAL_PATH_WAIVERS: dict[tuple[str, str], str] = {}
+
+
+def check_local_paths():
+    """No tracked file names an operator's home directory.
+
+    Two reasons, and the second is why this is a gate rather than a note. It is
+    a privacy leak: `conformance/CONFORMANCE.md` carried the owner's username
+    on its fourth line, written there by `report --record`, and the board is a
+    tracked file. And it is a correctness leak: a path that resolves on one
+    machine is a dangling reference on every other, so a recorded run id could
+    not be reopened by anyone but its author.
+
+    `/Users/x` and friends are excluded by the pattern rather than by a waiver:
+    a single-letter name is a placeholder in an example, not a person.
+    """
+    p = subprocess.run(["git", "ls-files"], cwd=ROOT,
+                       capture_output=True, text=True)
+    if p.returncode != 0:
+        # A git failure inside a checkout is a finding, not a skip — the same
+        # policy check_secrets holds for the identical condition.
+        return [f"git ls-files failed ({p.stderr.strip()[:80]}) — the local-path "
+                f"scan did not run, and a scan that did not run is not a scan "
+                f"that passed"]
+    errors = []
+    for name in p.stdout.splitlines():
+        # tests/ by construction: a synthetic tree's fixtures name paths that
+        # exist only in tmp_path, and this guard's OWN tests must plant the
+        # string it looks for. releases/evidence/ is frozen history.
+        # SCRIPT_PATH_FROZEN excludes tests/ for the identical reason, and
+        # missing it here shipped a guard that failed on its own tests the
+        # moment they were tracked — the scan reads git, so it saw nothing
+        # while they were still untracked.
+        if not name or name.startswith(("tests/", "releases/evidence/")):
+            continue
+        try:
+            text = (ROOT / name).read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue  # binary assets carry no greppable path
+        for lineno, line in enumerate(text.splitlines(), 1):
+            for hit in LOCAL_PATH_RE.findall(line):
+                if (name, hit) in LOCAL_PATH_WAIVERS:
+                    continue
+                errors.append(
+                    f"{name}:{lineno} names {hit}, an absolute path into "
+                    f"someone's home directory. Write it as `~/...` — it stays "
+                    f"meaningful, it resolves on the machine that can resolve "
+                    f"it at all, and it does not ship a username")
+    return errors
+
+
 def check_verdict_names():
     """Prose may not name a layout verdict that does not exist.
 
@@ -3822,6 +3878,7 @@ CHECKS = (
     ("gating claims", check_gating_claims),
     ("prose gating claims", check_prose_gating_claims),
     ("verdict names", check_verdict_names),
+    ("local paths", check_local_paths),
     ("version stamps", check_versions),
     ("output default", check_output_default),
     ("version citations", check_version_citations),

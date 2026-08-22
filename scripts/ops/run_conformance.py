@@ -430,7 +430,7 @@ def _misplaced(agent: dict, task: dict, since: float,
     able to write to HOME and to the checkout; the sweep sorted candidates by
     mtime and took the newest, so Hermes's record cited a deck at the
     repository root that Hermes had not written — its transcript names
-    `/Users/he123/deck.en.html` and nothing else. That file was copied into
+    `~/deck.en.html` and nothing else. That file was copied into
     Hermes's run record, scored as Hermes's, reported to the owner as Hermes's,
     and she reviewed another agent's cover page believing it was this one. The
     real artifact passed every gate; the impostor failed two.
@@ -1248,7 +1248,7 @@ def _board_run_version(record: dict) -> str | None:
         return m.group(1)
     found: list[str] = []
     for r in re.findall(r"`([^`]+)`", str(record.get("run_id") or "")):
-        f = pathlib.Path(r) / "scores.json"
+        f = pathlib.Path(r).expanduser() / "scores.json"
         if f.exists():
             try:
                 doc = json.loads(f.read_text(encoding="utf-8"))
@@ -1288,6 +1288,23 @@ def _scores_date(runs) -> str | None:
     if not stamps:
         return None
     return datetime.date.fromtimestamp(max(stamps)).isoformat()
+
+
+def _portable(text: str) -> str:
+    """Collapse this machine's home directory to `~` in anything RECORDED.
+
+    The board and `history.json` are tracked files, and a run directory is
+    named by an absolute path — so every recorded run carried the operator's
+    username into git, and would have carried it into a public repository. `~`
+    keeps the path meaningful and expandable on the machine that wrote it,
+    which is the only machine that can resolve it anyway.
+
+    Paired with `expanduser()` wherever a recorded path is read BACK: a run id
+    is not only displayed, `skill_version()` opens it to recover the version of
+    a run whose directory name carries none.
+    """
+    home = str(pathlib.Path.home())
+    return text.replace(home, "~") if home not in ("", "/") else text
 
 
 def _findings(runs) -> list[str]:
@@ -2058,13 +2075,14 @@ def main(argv):
                      "tasks": cells, "verdict": verdict,
                      "runs": runs_here})
     record = {"version": version,
-              "run_id": ", ".join(f"`{r}`" for r in runs) or "detect-only",
+              "run_id": ", ".join(f"`{_portable(str(r))}`" for r in runs)
+              or "detect-only",
               # The date the scores were written, read from the file, never
               # typed: a board without a date under a table of verdicts is a
               # board whose prose can narrate a different run than its table
               # (it did, for six days, at 0.1.522).
               "run_date": _scores_date(runs),
-              "findings": _findings(runs),
+              "findings": [_portable(f) for f in _findings(runs)],
               "host": f"{sys.platform}", "agents": len(agents),
               "detected": sum(1 for v in probed.values() if v[0]),
               "repeat": max((r["runs"] for r in rows), default=0),

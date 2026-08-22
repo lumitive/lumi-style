@@ -1,3 +1,52 @@
+## 0.1.568 — the board shipped the operator's username, and the ledger looked in a directory nobody wrote to
+
+Two defects that had to be fixed before the repository can be split in two, and
+that are defects today regardless of whether it ever is. Both are the same
+shape: **two halves that are each individually correct.**
+
+**`report --record` wrote an absolute run directory onto the board.** The
+conformance board's fourth line has read `Runs /Users/<name>/Documents/…` since
+the results moved out of the repository, and the board is a TRACKED file — so
+every recorded run carried the operator's username into git, and would have
+carried it into a public repository. Six leaks across five tracked files when
+this was counted, one of them written there by a generator.
+
+The run id is not decoration: `skill_version()` opens it to recover the version
+of a run whose directory name carries none, which is exactly the owner's
+`r16-pinned`. So the fix is at both ends — `_portable()` collapses this
+machine's home to `~` in anything RECORDED, and every read-back
+`expanduser()`s. The path stays meaningful and resolves on the only machine
+that could ever resolve it.
+
+`check_local_paths` is the standing form. A single-letter name (`/Users/x`) is
+excluded by the pattern rather than by a waiver, because a placeholder in an
+example is not a person.
+
+**`ledger.py` read `ROOT/evals/traces`; `trace.py` writes wherever
+`LUMI_TRACES` says.** Set the variable and the writer goes one place while the
+reader looks in another — and the ledger reports an EMPTY STORE rather than an
+error, because an empty directory is a legal state. Nothing was wrong on either
+side, which is why no guard caught it and why the fix ships with a test rather
+than a guard.
+
+One resolver now, `scripts/lib/trace_store.py`, imported by both. It is not
+called `trace`: the canonical bootstrap APPENDS to `sys.path` so the standard
+library always wins, and the standard library has a `trace` module — a reader
+reaching for the obvious name would get stdlib's and fail in a way that has
+nothing to do with traces. The test asserts that too, because it is the kind of
+thing a later session will try.
+
+Nine tests across the two, both directions, and the ledger split was
+demonstrated live before it was fixed.
+
+**The guard's own first red was itself**, and it is worth recording because it
+is a shape rather than a slip. It reads `git ls-files`, so while its tests were
+still untracked it saw nothing and preflight passed; the release committed them
+and CI failed on the fixtures that plant the very string it looks for.
+`SCRIPT_PATH_FROZEN` has excluded `tests/` for the identical reason since it was
+written. **A guard that reads git behaves differently before and after `git
+add`, and a local green taken before the commit is not the same claim.**
+
 ## 0.1.567 — a rule told an author a check would not fail them, and it would
 
 **Asking the layout family the same question 0.1.566 asked the prose family.**
@@ -1453,7 +1502,7 @@ cover was worse than ever. It was not Hermes's deck.** Three agents were driven
 in parallel, all of them able to write to HOME and into the checkout, and
 `_misplaced` sorted its candidates by mtime and took the newest. Hermes's record
 therefore cited a deck at the repository ROOT — 130 characters of cover claim
-over ten lines — while Hermes's transcript names `/Users/he123/deck.en.html`
+over ten lines — while Hermes's transcript names `~/deck.en.html`
 and nothing else. That impostor was copied into Hermes's run record, scored as
 Hermes's, reported to the owner as Hermes's, and reviewed by her as Hermes's.
 
