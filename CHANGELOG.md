@@ -1,3 +1,125 @@
+## 0.1.551 — the collision gate could not see inside a drawing, and five rules the owner marked had no check
+
+**Nine screenshots, twelve markings, and the register named almost all of them
+before the code was touched.** The pattern changed from the last round: this
+time it was not that the rules had no checks, but that a check's REACH was
+narrower than the rule it implements. `collision` gates, its rule says "nothing
+may land on anything — text against text and text against every drawn element",
+and four visible text-on-text overlaps inside figures passed it on three decks.
+
+**`collision` now reads text inside a drawing.** Its text vocabulary named HTML
+roles only, so an `<svg>` entered the scan as ONE opaque box and two labels
+inside one figure were, to the probe, the same object overlapping itself. Six
+real overlaps sat in one conformance deck — an axis unit printed over the word
+"Illustrative", a risk label over its own category name. A separate absolute
+floor, because a glyph run is not a paragraph: kerning puts a few pixels of two
+labels together routinely, the noise measured 32x4 and 15x16, the defects 21x13
+and up, and neither dimension separates them alone.
+
+**The globe is exempt and GAP-026 says so.** The first thing the new scan found
+was the brand globe: its HS-code trade labels overlap by construction at five or
+more places on the cover and closing of every deck built with it, the accepted
+reference included. Gating them would fail page 1 of the document every other
+gate is calibrated against, for a defect the runtime and not the author
+controls.
+
+**A stroke drawn through a glyph run is the other half**, and the restriction to
+STROKED marks is the whole discriminator: a data label sitting on its own filled
+mark is what a labelled chart looks like, which is why `figure_ink_collision`
+excludes text on purpose. A line drawn through a word is never a labelling
+relationship.
+
+**The agenda's lede went from permission to obligation.** The rule read "the
+agenda MAY carry no lede" for four releases and two of three agents kept it —
+because the scaffold emitted one, with a placeholder title reading *"What this
+document argues, and where"*, the exact redundant sentence the rule asks authors
+to delete. The prose changed at 0.1.521 and the generator never followed.
+Measured: the accepted reference's rows sit 119px below the body top and 115px
+above the footer; a deck that kept its lede, 267 and 99 — the same page, 2.7
+times out of balance. **Centring needed no gate of its own**: `no-lede` drops the
+row the title reserved and `.fill` already centres what it holds, so removing
+the lede IS the centring.
+
+**The figure caption's two halves were one sentence.** `.cap` is a single inline
+flow — number, name, source — and the separator was whatever whitespace the
+author happened to type. One deck typed none: `…off the green lineIllustrative
+programme-board values`. §4's rule 8 and rule 17 had contradicted each other for
+several releases about whether the source belongs there at all; **rule 17 wins
+by owner ruling** and the source moves inside the drawing, where the accepted
+reference already puts it — 21 captions, one `srcline` in the whole file.
+
+**That ruling repaired a probe that was structurally blind.** `capWrapped` has
+existed, reported, and never gated — and could not work: with the source in the
+same inline flow the break landed inside the SOURCE, so the NAME never appeared
+to wrap. It reported every name holding one line on decks where six of seven and
+eight of ten captions rendered two. With the caption holding the name alone the
+measurement is real, and `caption_name_wrap` gates it.
+
+**`M2` could not see where the rules put a source.** `check_prose` strips every
+`<svg>` before scanning, so a source line following rule 17 was invisible to the
+one metric that asks whether a number carries its source. The two rules
+contradicted each other in the only place it mattered: a document that put the
+source where the rules say could not satisfy M2 without ALSO repeating it in
+prose — which is what the reference happens to do and what nothing required.
+The page window now carries what a figure prints inside itself; blocks do not,
+because a chart's axis labels are not a run of prose. The reference's English
+twin went from 95.7% to 100%.
+
+**A repeating block's row name renders at title weight.** `.gr .gn` declared no
+`font-weight` at all and computed to 400 — the same weight as its own note and
+as the body around it, separated by one pixel of size and a step of colour. The
+agenda's `.launch .gn`, the same class name one scope over, has always been 800.
+`role_weight` gates the RENDERED weight, because a weight arrives through the
+cascade and only the browser knows which rule won; a parity guard holds the
+table to `tokens/` so it cannot quote a number the stylesheet does not ship.
+
+**The cover's key column: the weight was never the problem.** Measured on the
+owner's own deck, `.attrs .k` computes to 700 and aligns left — it has since
+0.1.442, when the same complaint was made and answered with the same CSS.
+`--mono` names "IBM Plex Mono", "SF Mono", Menlo and Consolas and **this package
+embeds none of them**, so the key falls to whatever mono the reader's machine
+has and whatever that face calls 700, often a synthesised bold. The key is a
+label rather than tabular data, so it moves to the embedded `--din`; the other
+fifteen mono uses are data and wait on GAP-027, which is a licensing and
+package-weight decision. `D36_font_family` reports every declared-but-unembedded
+family and does not gate, because it would fail every document this package has
+ever made.
+
+**Axis names needed a vocabulary before they could have a gate.** Geometry
+cannot tell an axis name lying across the plot from a data label printed on its
+own mark — on one figure four labels sat inside the plot square and all four
+were correct, while the axis name beside them was the defect. The only role
+signal was a class the deck invented. So `tokens/` ships `.axname-x` and
+`.axname-y`, the y one paired with `rotate: 180deg` because bare
+`writing-mode: vertical-rl` reads downward; `figure_axis_overlap` and
+`figure_axis_orientation` gate a figure that declares them, and the scaffold now
+tells an author to. A figure that scales numbers and names no axis is reported —
+"the author did not say" is a different finding from "the author said and got it
+wrong".
+
+**One marking measured as not a defect, and GAP-028 records it.** Three arrow
+rules the owner read as overlapping the text beneath them have ZERO overlap at a
+0.5px threshold: they sit in the LEADING between two lines. The measurement that
+would catch them is a clearance floor, and the accepted reference carries a
+legitimate 194x17px rule sitting exactly on the line it underlines — any floor
+that catches the arrows fails that. It waits on a second accepted document, as
+GAP-024 and GAP-025 do.
+
+The design record this line of work runs under is
+`specs/2026-08-22-rules-equal-conformance-design.md`. Its thesis held again: the
+owner's eye lands where nothing measures, and the register can now name those
+places before she has to.
+
+**No per-agent rule prompts.** The owner asked whether each agent should get its
+own tuned rules. Three decks broke the same rules — 22 of 24 captions over a
+stated ceiling, three agenda ledes, three unweighted ladders — so the defects
+are not agent-shaped. `adapters/platforms.json` carries 18 fields per platform
+and not one of them holds a rule, by design: "adding a platform is a registry
+record and a note, never a restatement of a rule". Forking the rules per agent
+would build the largest drift surface this repository has ever had, and would
+turn conformance from "does the skill hold across agents" into "did we tune this
+one".
+
 ## 0.1.550 — four reviews ran the gates 0.1.549 added, and nine of them had a way through
 
 **Every finding here came from RUNNING the new checks, not from reading them.**

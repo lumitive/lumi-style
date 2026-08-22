@@ -72,7 +72,10 @@
      "D32_shape_use": "ok",
      "D33_icon_provenance": "ok",
      "D34_icon_uniqueness": "ok",
-     "D35_agenda_exclusive": "ok"
+     "D35_agenda_exclusive": "ok",
+     "D37_caption_scope": "ok",
+     "D37_caption_name_len": "ok",
+     "D36_font_family": "ok"
     },
     "contains": {
      "D10_label_icons": [
@@ -110,7 +113,11 @@
      "role_split": "ok",
      "starved_column": "ok",
      "deck_structure": "ok",
-     "opener_pacing": "ok"
+     "opener_pacing": "ok",
+     "role_weight": "ok",
+     "caption_name_wrap": "ok",
+     "figure_axis_overlap": "ok",
+     "figure_axis_orientation": "ok"
     }
    }
   },
@@ -188,7 +195,10 @@
      "D32_shape_use": "FAIL",
      "D33_icon_provenance": "FAIL",
      "D34_icon_uniqueness": "ok",
-     "D35_agenda_exclusive": "ok"
+     "D35_agenda_exclusive": "ok",
+     "D37_caption_scope": "FAIL",
+     "D37_caption_name_len": "ok",
+     "D36_font_family": "ok"
     },
     "contains": {
      "D16_visual_presence": [
@@ -254,7 +264,7 @@
     ],
     "exit": 1,
     "verdicts": {
-     "collision": "ok",
+     "collision": "FAIL",
      "band_escape": "FAIL",
      "content_hidden": "ok",
      "content_spill": "ok",
@@ -274,7 +284,11 @@
      "role_split": "ok",
      "starved_column": "ok",
      "deck_structure": "FAIL",
-     "opener_pacing": "FAIL"
+     "opener_pacing": "FAIL",
+     "role_weight": "FAIL",
+     "caption_name_wrap": "FAIL",
+     "figure_axis_overlap": "FAIL",
+     "figure_axis_orientation": "FAIL"
     }
    }
   },
@@ -341,7 +355,10 @@
      "D32_shape_use": null,
      "D33_icon_provenance": "ok",
      "D34_icon_uniqueness": "n/a",
-     "D35_agenda_exclusive": "FAIL"
+     "D35_agenda_exclusive": "FAIL",
+     "D37_caption_scope": "n/a",
+     "D37_caption_name_len": "n/a",
+     "D36_font_family": "ok"
     }
    },
    "layout": {
@@ -371,7 +388,11 @@
      "role_split": "FAIL",
      "starved_column": "FAIL",
      "deck_structure": "ok",
-     "opener_pacing": "FAIL"
+     "opener_pacing": "FAIL",
+     "role_weight": "n/a",
+     "caption_name_wrap": "n/a",
+     "figure_axis_overlap": "n/a",
+     "figure_axis_orientation": "n/a"
     }
    }
   },

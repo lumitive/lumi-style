@@ -75,6 +75,89 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-028 · A rule drawn in the leading between two text lines measures as no overlap
+
+- status: open
+- opened: 0.1.551
+- surface: scripts/check/inspect_layout.py (the stroke-through-text arm of the
+  `collision` scan)
+- symptom: the owner marked three green arrow rules on a conformance deck as
+  overlapping the text beneath them. Measured at a 0.5px threshold, the overlap
+  is ZERO: the arrows sit at y=80/150/220 and the labels they crowd have their
+  boxes starting at y=80, so the strokes run in the LEADING between two lines
+  and touch neither. What she is seeing is clearance, not collision — the rule
+  has no breathing room above the label, so at reading size it reads as
+  striking through it.
+- why it is not gated: the discriminating measurement would be a minimum
+  clearance between a stroke and a nearby glyph run, and the accepted reference
+  carries a legitimate 194x17px rule sitting exactly on a text line (p18, a
+  caption rule spanning the line it underlines). Any clearance floor that
+  catches the arrows also fails that, and a gate that fails the calibration
+  anchor is measuring the wrong thing. The `oy > height * 0.9` guard in the
+  stroke arm exists to let the reference's case through.
+- what would close it: a second accepted document, so a clearance floor can be
+  set from two rather than invented from one — the same condition GAP-024 and
+  GAP-025 wait on.
+- check: MEASURED 0.1.551 — a probe comparing every `.fig svg` stroked mark
+  against every `.fig svg text` box reports 0 overlaps on the conformance deck
+  the owner marked and 1 on the accepted reference. Re-run it before setting any
+  floor.
+
+## GAP-027 · The data voice names four faces and this package embeds none of them
+
+- status: open
+- opened: 0.1.551
+- surface: tokens/lumi-theme.css (`--mono`), and the sixteen rules in
+  tokens/lumi-layouts.css that use it
+- symptom: `--mono` is `"IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace`
+  and the package ships D-DIN Regular and Bold and nothing else. Every mono
+  element in every deliverable — the cover and closing key column, figure
+  captions, the footer, the colophon — therefore renders in whatever mono the
+  reader's machine happens to have. design-rules §2 says a Latin face is
+  embedded as a data URI and never linked; this one is neither embedded nor
+  linked, it is hoped for. An owner review read the cover's key column as "not
+  bold" twice, five releases apart, on a rule that measures as 700 both times.
+- what was done at 0.1.551: the cover's `.attrs .k` moved to `--din`, which is
+  embedded, because a key is a label rather than tabular data. The other
+  fifteen uses are data and want a monospaced face, so they still fall back.
+- why it is not closed: closing it means shipping a mono face — a licensing and
+  package-weight decision for the owner, not a checker change. `D36_font_family`
+  reports every declared-but-unembedded family so the surface is visible; it
+  does not gate, because it would fail every document this package has ever
+  produced, the accepted reference included, for a defect in the tokens rather
+  than in the document.
+- check: `python3 scripts/check/check_design.py <deck>` prints the D36 row.
+  The gap closes when it reads zero on a document built from current tokens.
+
+## GAP-026 · The globe's trade labels overlap by construction and are exempt from `collision`
+
+- status: open
+- opened: 0.1.551
+- surface: scripts/check/inspect_layout.py (the `svg.gl` filter in the SVG-text
+  collision scan)
+- symptom: `collision` learned to read SVG text at 0.1.551, and the first thing
+  it found was the brand globe. Its signal labels are HS codes printed along
+  trade arcs, and on the cover and closing of every deck built with the globe —
+  the accepted reference included — five or more of them overlap each other
+  (`392310` over `481920`, `392329` over `401693`, and so on). The chain is
+  `text -> g.gl-sig -> svg.gl`, so the existing `.ground` filter does not reach
+  them.
+- why it is exempt and not fixed: the labels are placed by the globe runtime
+  from real coordinates, and which ones collide depends on the rotation the
+  page happens to render. Gating them would fail page 1 of the document this
+  package calibrates every other gate against, for a defect the runtime and not
+  the author controls. Exempting them is the lesser wrong, and naming the
+  exemption here is what keeps it from reading as "nothing was found".
+- what would close it: label decluttering in the globe runtime — suppress a
+  signal label whose box overlaps one already drawn, the way a map renderer
+  does. That is a change to `scripts/render/` and its JS port, not to the
+  checker, and it wants the golden-grid test extended first.
+- check: MEASURED 0.1.551 — with the `svg.gl` filter removed, the accepted
+  reference reports collisions on its cover and closing and nothing else; with
+  it in place, zero collisions on all 23 pages. Re-measure by deleting the
+  filter and running `inspect_layout.py <reference> --deliverable --no-sheet`;
+  the gap closes when that run is clean without the filter.
+
 ## GAP-025 · Figure-structure repetition is measured and cannot be gated on one document
 
 - status: open

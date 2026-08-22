@@ -317,6 +317,8 @@ FIGURE = """<div class="fill">
       <div class="fig"><svg viewBox="0 0 640 420" preserveAspectRatio="xMidYMid meet"
         role="img" aria-label="Read success by feeder class, urban against rural">
         <line x1="132" y1="24" x2="132" y2="332" class="s-line" stroke-width="1"/>
+        <text class="axname-y" x="118" y="180">feeder class</text>
+        <text class="axname-x" x="132" y="352">read success, % of scheduled reads</text>
         <text class="flbl" x="0" y="76">Urban</text>
         <rect class="f-acc" x="132" y="40" width="380" height="64" fill="var(--acc)"/>
         <text class="fval" x="524" y="79">96.2%</text>
@@ -329,10 +331,10 @@ FIGURE = """<div class="fill">
         <text class="fnote" x="314" y="287">not surveyed this cycle</text>
         <text class="fnote" x="132" y="372">A dashed bar is a class with no
           measurement, never a low one</text>
+        <text class="fnote" x="132" y="410">Meter management system, extract of the period</text>
       </svg>
       <div class="cap"><span class="n">Figure {i}</span> The gap follows terrain,
-      not meter age, so relay siting is the lever
-      <span class="srcline">Meter management system, extract of the period</span></div></div>
+      not meter age, so relay siting is the lever</div></div>
     </div>"""
 
 # A region figure, for D18. Deliberately small: the real globe is 68 KB of path
@@ -350,13 +352,13 @@ REGION_FIGURE = """<div class="fill">
         <path class="rg rg-europe is-live" d="M200 30h130v70H200Z"/>
         <path class="rg rg-southeast-asia is-live" d="M360 60h120v80H360Z"/>
         <path class="rg rg-africa is-zero" d="M240 140h110v120H240Z"/>
-        <text class="flbl" x="20" y="290">Filled regions carry a source; a washed
+        <text class="flbl" x="20" y="272">Filled regions carry a source; a washed
           one carries none</text>
+        <text class="fnote" x="20" y="294">Illustrative, www.example.org</text>
       </svg>
       <ul class="legend">{rows}</ul>
       <div class="cap"><span class="n">Figure {i}</span> Coverage follows the
-      regions with a licensed counterparty, not the largest markets
-      <span class="srcline">Illustrative, www.example.org</span></div></div>
+      licensed counterparty, not market size</div></div>
     </div>"""
 
 REGION_ROWS = {
@@ -374,14 +376,36 @@ def region_rows(skip=()):
 
 
 # The rect-only figure the broken fixture keeps, so D5 has a subject.
+# FOUR PLANTS IN ONE BROKEN-ONLY FIGURE. Two are the axis names: `.axname-x`
+# printed across the bars it is supposed to sit under, and `.axname-y` forced
+# back to horizontal writing so it reads across instead of upward. Both are what
+# three conformance decks did, and neither could be found before `tokens/`
+# shipped the classes that say which text is an axis name.
+#
+# The `.srcline` in its caption is
+# `D37_caption_scope`'s red: design-rules §4 rule 8 keeps the caption to the
+# number and the name, and every conformance deck put the source there instead,
+# where it runs into the name with no separator.
+#
+# The two `.sm` labels on y=176 are the planted SVG-TEXT COLLISION: one anchored
+# from each end of the same baseline, meeting in the middle. It is the exact
+# shape a conformance deck shipped twice — an axis unit printed over the word
+# "Illustrative" — and `collision` reported `ok` on it until 0.1.551, because
+# the probe's text vocabulary named HTML roles only and read an `<svg>` as one
+# opaque box.
 FIGURE_WEAK = """<div class="fill">
       <div class="fig"><svg viewBox="0 0 640 186" preserveAspectRatio="xMidYMid meet"
         role="img" aria-label="bars"><rect class="f-acc" x="0" y="0" width="380"
         height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="70" width="250"
         height="46" fill="var(--acc)"/><rect class="f-acc" x="0" y="140" width="170"
         height="46" fill="var(--acc)"/><polygon class="f-nw" points="150,60 260,60 300,93
-        260,126 150,126" fill="var(--nw)"/><text class="sm" x="400" y="30">a label that runs
-        past the right edge of its own viewBox</text></svg>
+        260,126 150,126" fill="var(--nw)"/><text class="axname-x" x="60"
+        y="96">share of scheduled reads</text><text class="axname-y" x="8" y="90"
+        style="writing-mode:horizontal-tb">feeder class</text><text class="sm" x="400" y="30">a label that runs
+        past the right edge of its own viewBox</text><text class="sm" x="620" y="176"
+        text-anchor="end">92% of the estate</text><text class="sm" x="520" y="176"
+        text-anchor="start">Illustrative.</text><text class="fnote" x="0" y="182"
+        >Meter management system, extract of the period</text></svg>
       <div class="cap"><span class="n">Figure {i}</span> Reads by feeder class
       <span class="srcline">Meter management system, extract of the period</span></div>
       <script type="application/json" class="f-data">{{"series":[{{"label":"Feeder C","value":91}}]}}</script>
@@ -407,14 +431,21 @@ FIGURE_WEAK = """<div class="fill">
 # against a box nobody chose. Found in a real deliverable at 0.1.386, where a
 # six-row figure rendered three rows while every check stayed green, because the
 # clipping probe read the unparsed box as "nothing to measure" and skipped it.
+# Broken-only, and it carries TWO plants: the three-number viewBox below, and a
+# figure NAME long enough to wrap. `caption_name_wrap` needs a red, and it has
+# to sit on a figure whose caption holds no source line — with a source in the
+# caption the break lands there instead and the name never appears to wrap,
+# which is the blindness rule 8 was rewritten to remove.
 FIGURE_BADBOX = """<div class="fill">
       <div class="fig"><svg viewBox="0 640 300" preserveAspectRatio="xMidYMid meet"
         role="img" aria-label="steps"><rect class="f-acc" x="20" y="20" width="600"
         height="60" rx="4"/><rect class="f-accw" x="20" y="110" width="600"
         height="60" rx="4"/><rect class="f-accw" x="20" y="200" width="600"
-        height="60" rx="4"/></svg>
-      <div class="cap"><span class="n">Figure {i}</span> Three tiers of feeder loss
-      <span class="srcline">Meter management system, extract of the period</span></div></div>
+        height="60" rx="4"/><text class="fnote" x="20" y="286">Meter management
+        system, extract of the period</text></svg>
+      <div class="cap"><span class="n">Figure {i}</span> Three tiers of feeder loss,
+      and the reason the middle tier is the one that moves the estate's number
+      when the relay programme finally reaches it</div></div>
     </div>"""
 
 NOTES = """<div class="notes">
@@ -829,12 +860,7 @@ def agenda(number: int, total: int) -> str:
     return f"""
 <section class="page" id="agenda">
   {GROUND}
-  <div class="body stack">
-    <div class="lede">
-      <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#i-list-checks"/></svg>Agenda</p>
-      <h2 class="t">What this review argues, and where</h2>
-      <p class="sup">Two parts: what the estate measures, then where the reads fail.</p>
-    </div>
+  <div class="body stack no-lede">
     <div class="fill">
       <div class="launch">{rows}
       </div>
@@ -952,6 +978,12 @@ def build(broken: bool) -> str:
     if not broken:
         body = renumber_figures(body)
     hand = HAND_DRAWN if broken else ""
+    # `role_weight` needs a fixture that fails it. This is the real shape of the
+    # defect: not a missing rule but a document whose own copy of the stylesheet
+    # renders a weight-bearing role at body weight. Two conformance decks
+    # shipped exactly this, and the ladder read as four paragraphs.
+    weight_loss = ("<style>.gr .gn { font-weight: 400; }</style>"
+                   if broken else "")
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Metering programme review ({label} fixture)</title>
@@ -982,7 +1014,7 @@ ul {{ margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }}
 .s-line {{ stroke: var(--ln1); }}
 .s-dash {{ stroke: var(--ln1); stroke-dasharray: 5 4; }}
 .colophon {{ font-family: var(--mono); font-size: var(--fs-source); color: var(--tx4); }}
-</style></head><body data-geometry="landscape" data-genre="sales" data-storyline="gtm">{SPRITE}{hand}{GROUND_DEFS}{body}</body></html>
+</style></head><body data-geometry="landscape" data-genre="sales" data-storyline="gtm">{SPRITE}{hand}{weight_loss}{GROUND_DEFS}{body}</body></html>
 """
 
 

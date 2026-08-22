@@ -59,6 +59,9 @@ the hidden-constraint condition this inventory exists to surface.
 | check_design | D33_icon_provenance | `=0 (gates)` | gate |
 | check_design | D34_icon_uniqueness | `reported` | reported |
 | check_design | D35_agenda_exclusive | `=0 (gates)` | gate |
+| check_design | D36_font_family | `reported (GAP-027)` | graded |
+| check_design | D37_caption_name_len | `<=100 chars (reported)` | reported |
+| check_design | D37_caption_scope | `=0 (gates)` | gate |
 | check_design | D3_tier1_page_share | `<=33.0%` | graded |
 | check_design | D3_tier1_per_page | `<=1 per page` | graded |
 | check_design | D4_palette_literals | `=0` | graded |
@@ -74,7 +77,7 @@ All of these **gate** a pre-delivery run. `deliverable_verdicts`
 is the authority; five files once counted this list four
 different ways.
 
-`band_escape`, `bookend_title_length`, `collision`, `content_hidden`, `content_spill`, `datum`, `deck_structure`, `figure_clipped`, `figure_distorts`, `figure_ink_collision`, `figure_viewbox`, `footer_baseline`, `footer_wrap`, `opener_pacing`, `opener_subject_mark`, `page_height`, `reserve_overspent`, `role_split`, `starved_column`, `title_two_lines`, `visual_absent`
+`band_escape`, `bookend_title_length`, `caption_name_wrap`, `collision`, `content_hidden`, `content_spill`, `datum`, `deck_structure`, `figure_axis_orientation`, `figure_axis_overlap`, `figure_clipped`, `figure_distorts`, `figure_ink_collision`, `figure_viewbox`, `footer_baseline`, `footer_wrap`, `opener_pacing`, `opener_subject_mark`, `page_height`, `reserve_overspent`, `role_split`, `role_weight`, `starved_column`, `title_two_lines`, `visual_absent`
 
 ## Module constants (discovered, with their own comments)
 
@@ -99,6 +102,7 @@ different ways.
 | LARGE_TEXT_PX | `24.0` |  | (not searched: too short) |
 | TIER1_PER_PAGE | `1` |  | (not searched: too short) |
 | TIER1_PAGE_SHARE | `33.0` | percent of a deck's pages that may carry one | (not searched: too short) |
+| CAPTION_NAME_CHARS | `{"full": 100, "split": 60}` |  | (not searched: too short) |
 
 ### scripts/check/inspect_layout.py
 
@@ -111,6 +115,7 @@ different ways.
 | BOOKEND_TITLE_LINES | `5` |  | (not searched: too short) |
 | FIGURE_SHAPE_REPEAT | `3` |  | (not searched: too short) |
 | OPENER_RUN_CEILING | `6` |  | (not searched: too short) |
+| ROLE_WEIGHTS | `{".gr .gn": 700, ".launch .gn": 800}` |  | (not searched: too short) |
 | RESERVE_ALLOWANCE_PX | `4` |  | (not searched: too short) |
 | CAP_OFF_AXIS_PCT | `10` |  | (not searched: too short) |
 | FOOT_BASELINE_RATIO | `0.08` |  | CODE ONLY |
@@ -161,7 +166,7 @@ different ways.
 | DELTA_E_FLOOR | `20.0` | adjacent regions, CIEDE2000 — a FLOOR | (not searched: too short) |
 | LABEL_CONTRAST_FLOOR | `4.5` | a FLOOR, the repository's existing text floor | design-rules.md, eval-rubric.md, page-contracts.md |
 | STROKE_L_OFFSET | `0.20` | darker on the light canvas, lighter on the dark | CODE ONLY |
-| PROXIMITY_KM | `1500` |  | design-rules.md, page-contracts.md |
+| PROXIMITY_KM | `1500` |  | design-rules.md |
 | EARTH_KM | `6371.0` |  | CODE ONLY |
 
 ### assets/globe/globe.js

@@ -56,7 +56,7 @@ def test_geometry_compares_the_drawing_not_the_spelling():
 # ── D35: the agenda page carries the agenda and nothing else ────────────────
 
 def _agenda(inner):
-    return ('<section class="page" id="agenda"><div class="body stack">'
+    return ('<section class="page" id="agenda"><div class="body stack no-lede">'
             + inner +
             '</div><div class="foot"><div class="terms"><span class="conf">x'
             '</span></div><span class="site">y</span></div></section>')
@@ -65,9 +65,20 @@ def _agenda(inner):
 LAUNCH = '<div class="fill"><div class="launch"><div class="lrow">a</div></div></div>'
 
 
-def test_a_launch_sequence_with_its_lede_passes():
-    raw = _agenda('<div class="lede"><h2 class="t">T</h2></div>' + LAUNCH)
-    assert cd.d35_agenda_exclusive(raw)["strays"] == []
+def test_a_launch_sequence_alone_passes_and_one_with_a_lede_does_not():
+    """The agenda carried a lede by permission until 0.1.551 and carries none by
+    obligation after it: the rows ARE the statement, so a title above them says
+    it twice, and the reserved row pushes them off centre. Two of three
+    conformance agents kept it, because the scaffold emitted it."""
+    assert cd.d35_agenda_exclusive(_agenda(LAUNCH))["strays"] == []
+    kept = cd.d35_agenda_exclusive(
+        _agenda('<div class="lede"><h2 class="t">T</h2>'
+                '<p class="sup">s</p></div>' + LAUNCH))["strays"]
+    assert any("carries no lede" in x for x in kept), kept
+    # ONE finding, not four. The lede, the title, the support line and the
+    # missing class are one defect, and four lines saying so is how a reader
+    # learns to skim the report.
+    assert len(kept) == 1, kept
 
 
 def test_the_footer_is_not_read_as_a_stray():
@@ -204,7 +215,7 @@ def test_the_page_whose_id_says_agenda_wins_over_an_eyebrow_that_mentions_one():
     in an eyebrow mis-graded two decks in opposite directions."""
     decoy = ('<section class="page" id="p2">'
              '<p class="eyebrow">PART A - agenda for the quarter</p>'
-             '<div class="body stack">' + LAUNCH + '</div></section>')
+             '<div class="body stack no-lede">' + LAUNCH + '</div></section>')
     r = cd.d35_agenda_exclusive(decoy + _agenda(LAUNCH + '<div class="band">S</div>'))
     assert r["found"] == "agenda"
     assert any("band" in s for s in r["strays"])
@@ -308,7 +319,7 @@ def test_the_agenda_is_found_however_it_says_it_is_one():
                          ("p9", "x" * 130 + " AGENDA")):
         eb = f'<p class="eyebrow">{eyebrow}</p>' if eyebrow else ""
         raw = ('<section class="page" id="' + pid + '">' + eb
-               + '<div class="body stack">' + LAUNCH + band + "</div></section>")
+               + '<div class="body stack no-lede">' + LAUNCH + band + "</div></section>")
         r = cd.d35_agenda_exclusive(raw)
         assert r and any("band" in s for s in r["strays"]), (pid, eyebrow, r)
 

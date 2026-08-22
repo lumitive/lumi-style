@@ -638,6 +638,22 @@ rectangles, and "42" beside one of them is a number with no dimension. Draw one
 line, on the axis the values run along, in the non-text ladder; put the unit in
 the axis label or in the value itself.
 
+**An axis NAME sits outside the plot, and the vertical one reads upward.** The
+horizontal axis's name goes below its line, level. The vertical axis's name goes
+to the LEFT of its line, set upright reading bottom to top — `tokens/` ships
+`.axname-x` and `.axname-y` for exactly this, and the y rule pairs
+`writing-mode: vertical-rl` with `rotate: 180deg` because the bare property
+reads downward. **Neither may overlap the plot area**, which is the region the
+marks occupy: a name lying across the data is indistinguishable from a label
+belonging to it, and a reader has to work out which.
+
+The names are a ROLE, and the role has to be declared. A checker measuring
+geometry cannot tell an axis name from a data label printed on its own mark —
+both are text inside a drawing, and only one of them is a defect. `figure_axis`
+gates a figure that declares the classes; a figure that scales numbers and names
+no axis is reported, because "the author did not say" is a different finding
+from "the author said and got it wrong".
+
 `inspect_layout.py` reports `figure_axes` and does not gate on it. Measured
 2026-08-22 on the documents on record: the accepted reference draws no baseline
 on two of its nine scaled figures and an accepted intro deck on one of its four,
@@ -669,8 +685,21 @@ question they have not formed yet, and putting it beside breaks the pairing when
 the column stacks. *Provenance: two split-layout pages moved the caption into the
 side column, which detached the number from the figure it numbers.*
 
-8. **Below the figure: the number, its conclusion name, and the source line.
-Nothing else.** Explanation belongs in the page's own column, where it is set at
+8. **Below the figure: the number and its conclusion name. Nothing else — the
+source line goes INSIDE the drawing** (rule 17). The two halves of this bullet
+contradicted each other for several releases: this one said the caption carries
+the source, rule 17 said the source is the SVG's last text node and "stays clear
+of the caption block". Rule 17 wins, by owner ruling 2026-08-22, and the reason
+is measurable. Run together in one inline flow the two read as one sentence —
+three conformance decks shipped `…off the green lineIllustrative programme-board
+values`, with no separator at all — and worse, the line break lands inside the
+source, so the NAME never appears to wrap and the one-line ceiling above cannot
+be measured. Nine of ten captions on one deck rendered two lines while the
+checker reported every name holding one. Moving the source into the drawing
+leaves the name alone under the figure, where the ceiling is a real measurement
+and the source travels with the picture it describes.
+
+Everything below still applies to what remains:** Explanation belongs in the page's own column, where it is set at
 reading size next to the argument it serves. Under the figure it sits at caption
 size, a page away from that argument, and it grows: the two longest ran 72 and
 124 words. Worse, it repeats — on both of those pages the "caption" turned out to
@@ -806,6 +835,16 @@ deck with varied layouts it does the opposite of what it promises: the same 660
 units render at 1.0 px/unit in a 652px cell and 1.66 in a 1096px one, so one
 declared size becomes two rendered sizes. The number was never the constant; the
 ratio is.*
+
+15a. **A repeating block's row NAME carries title weight.** The graded ladder,
+the vow block, the launch sequence: each is a list of named things with a note
+under each name, and the name is a heading. `.gr .gn` declared no weight at all
+until 0.1.551 and computed to 400 — the same weight as its own note and as the
+body around it, separated by one pixel of size and a step of colour. An owner
+review read a four-row ladder and could not tell the names from the notes.
+`tokens/` ships the weight and `inspect_layout`'s `role_weight` gates the
+rendering, because a weight arrives through the cascade and only the browser
+knows which rule won.
 
 15b. **The in-figure type ladder, since "a scale that suits the figure" was the
 only guidance and produced fourteen flat drawings.** A figure's **row and section

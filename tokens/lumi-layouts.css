@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.550 (2026-08-19)
+   LUMI page layouts · v0.1.551 (2026-08-19)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -318,6 +318,21 @@ svg text { font-family: var(--din); fill: var(--tx2); }
 svg .lbl { font-size: 11px; }
 svg .sm { font-size: 11.5px; fill: var(--tx3); }
 svg .lbl-lg { font-size: 13.5px; fill: var(--tx1); }
+/* THE AXIS NAMES, which are a role and not a size. A chart's axis name and a
+   data label on a mark look identical to a checker measuring geometry — both
+   are text inside a drawing — and only one of them may sit on the plot. Three
+   conformance decks printed an axis name across the plot area, and the finding
+   could not be made without the document saying which text was which. So the
+   package ships the vocabulary: `.axname-x` below the horizontal axis, running
+   level; `.axname-y` to the left of the vertical axis, set upright reading
+   BOTTOM TO TOP, which is the convention every chart grammar uses because it
+   keeps the name beside the values it scales rather than above them.
+   `writing-mode` plus `rotate: 180deg` is the pair that reads upward — the
+   bare `vertical-rl` reads downward, which is the other convention and the
+   wrong one here. */
+svg .axname-x { font-size: 11px; fill: var(--tx3); }
+svg .axname-y { font-size: 11px; fill: var(--tx3);
+  writing-mode: vertical-rl; rotate: 180deg; }
 svg .sm-lg { font-size: 12.5px; fill: var(--tx2); }
 svg .big { font-size: 15px; font-variant-numeric: tabular-nums; }
 /* A chart's row and section names are read BEFORE its bars, so they set at
@@ -713,7 +728,14 @@ table.score td:last-child, table.score th:last-child { white-space: nowrap; }
 .gr.g3 i { border-left-color: var(--acc); opacity: .72; }
 .gr.g2 i { border-left-color: var(--tx4); opacity: .8; }
 .gr.g1 i { border-left-color: var(--ln1); }
-.gr .gn { font-size: var(--fs-fig-title); color: var(--tx1); line-height: 1.25; margin: 0; }
+/* The row's NAME, at title weight. It declared no font-weight at all until
+   0.1.551, so it computed to 400 — the same weight as the sentence under
+   it and as the body around it, separated only by 1px of size and a
+   colour step. An owner review read a four-row ladder and could not tell
+   the names from their notes. The agenda's `.launch .gn`, the same class
+   name one scope over, has always been 800. */
+.gr .gn { font-size: var(--fs-fig-title); color: var(--tx1); line-height: 1.25;
+          margin: 0; font-weight: 700; }
 .gr .gc { grid-column: 2; font-size: var(--fs-fine); line-height: 1.4;
           color: var(--tx4); margin-top: 2px; }
 .gr .gq { grid-column: 2; font-size: 12px; line-height: 1.4;
@@ -1049,8 +1071,20 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
   flex-direction: column; gap: 3px; max-width: 46ch;
   font-family: var(--mono); font-size: var(--fs-fine); color: var(--tx4); }
 .body.cover-grid > .attrs > div { display: flex; gap: 10px; }
+/* THE KEY IS SET IN THE FACE THIS PACKAGE ACTUALLY EMBEDS. It declared
+   `font-weight: 700` from the block above and computed to 700 — measured — and
+   an owner review still read it as not bold, twice (0.1.442 and 0.1.551). The
+   weight was never the problem: `--mono` names "IBM Plex Mono", "SF Mono",
+   Menlo and Consolas and this package embeds NONE of them, so on a machine
+   without one the key falls to a system mono and whatever that face calls 700,
+   which is often a synthesised bold. `--din` ships D-DIN Regular and Bold as
+   data URIs, so 700 is a real weight everywhere.
+   The key is a LABEL and the value is the data, so only the key moves; the
+   fixed `15ch` column that aligns the values is unaffected, `ch` being measured
+   in each element's own face. See GAP-027 for the rest of the mono surface. */
 .body.cover-grid > .attrs .k { min-width: 15ch; flex: none; letter-spacing: .08em;
-  text-transform: uppercase; font-weight: 700; color: var(--tx1); }
+  text-transform: uppercase; font-weight: 700; color: var(--tx1);
+  font-family: var(--din); }
 .body.cover-grid > .attrs .v { color: var(--tx3); white-space: nowrap;
   overflow: hidden; text-overflow: ellipsis; }
 .body.cover-grid > .spec, .body.cover-grid > .colophon { grid-column: 1 / -1; }

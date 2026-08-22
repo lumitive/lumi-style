@@ -428,19 +428,51 @@ class Unmeasurable(Exception):
     """The file yielded nothing to measure. Never silently a pass."""
 
 
-def _pages_and_blocks(raw_nostrip):
+def _figure_text(page_markup: str) -> str:
+    """The words a figure prints inside itself, and nothing else about it.
+
+    **`raw_nostrip` deletes every `<svg>` whole**, so a source line that
+    followed design-rules §4 rule 17 — "the last text node inside the SVG, at
+    the foot of its viewBox" — was invisible to the one metric that asks
+    whether a number carries its source. The two rules contradicted each other
+    in the only place it mattered: a document that put the source where the
+    rules say could not satisfy M2 without ALSO repeating it in prose, which is
+    what the accepted reference happens to do and what nothing required.
+
+    Only `<text>` contents come back, never markup or path data: the reason the
+    SVG is stripped in the first place — "code would be scored as prose" — is
+    still right for every other metric in this file.
+    """
+    return " ".join(markup.visible_text(m.group(1)) for m in
+                    re.finditer(r"<text\b[^>]*>(.*?)</text>", page_markup,
+                                re.S | re.I))
+
+
+def _pages_and_blocks(raw_nostrip, raw_with_svg=None):
     """-> [(page_text, [block_text])], the two windows section 4 rule 6 defines.
 
     A page is `<section class="page">`; a document with no page structure has
     one page, which is the document. Blocks come from the same BLOCK_END
     boundaries the sentence splitter uses, so "its block" means the same thing
     to a reader of the rules and to this file.
+
+    `page_text` also carries what the page's figures print inside themselves,
+    because that is where the rules put a figure's source. `blocks` do not — a
+    block is a run of prose, and a chart's axis labels are not one.
     """
-    pages = re.findall(
-        r'<section[^>]*class="[^"]*\bpage\b[^"]*"[^>]*>(.*?)</section>',
-        raw_nostrip, re.S | re.I) or [raw_nostrip]
+    PAGE_RE = r'<section[^>]*class="[^"]*\bpage\b[^"]*"[^>]*>(.*?)</section>'
+    pages = re.findall(PAGE_RE, raw_nostrip, re.S | re.I) or [raw_nostrip]
+    figure_text = []
+    if raw_with_svg is not None:
+        with_svg = re.findall(PAGE_RE, raw_with_svg, re.S | re.I) or [raw_with_svg]
+        # Only when the two readings agree about how many pages there are. They
+        # are the same document with `<svg>` removed, so they should — and if a
+        # future strip ever changes that, dropping the figure text is the safe
+        # direction: a missing marker is reported, an invented one is not.
+        if len(with_svg) == len(pages):
+            figure_text = [_figure_text(p) for p in with_svg]
     out = []
-    for page in pages:
+    for i, page in enumerate(pages):
         text = re.sub(r"\s+", " ", markup.strip_tags(page))
         # A newline in the source is editor wrap, not structure: flatten it
         # BEFORE the boundary injection so the only "\n" left is the one
@@ -451,6 +483,8 @@ def _pages_and_blocks(raw_nostrip):
         chunks = markup.strip_tags(BLOCK_END.sub(".\n", re.sub(r"\s+", " ", page)))
         blocks = [re.sub(r"\s+", " ", b).strip()
                   for b in chunks.split("\n") if b.strip()]
+        if i < len(figure_text) and figure_text[i]:
+            text = f"{text} {figure_text[i]}"
         out.append((text, blocks))
     return out
 
@@ -506,7 +540,7 @@ def extract(path):
         # heading and six list items merge into one 27-word "sentence".
         body = BLOCK_END.sub(".\n", raw_nostrip)
         body = markup.strip_tags(body)
-        windows = _pages_and_blocks(raw_nostrip)
+        windows = _pages_and_blocks(raw_nostrip, raw)
     else:
         titles = [m.group(2).strip() for m in re.finditer(r"^(#{1,2})\s+(.*)$", raw, re.M)]
         enums = [len(list(g)) for g in _markdown_lists(raw)]
