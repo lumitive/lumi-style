@@ -25,13 +25,13 @@ the hidden-constraint condition this inventory exists to surface.
 | check_prose | M15_page_prose | `reported` | reported |
 | check_prose | M1_assertive_titles | `>=70% (reported)` | reported |
 | check_prose | M2_number_sourcing | `>=90%` | graded |
-| check_prose | M4_banned_hits | `=0` | graded |
-| check_prose | M4zh_banned_hits | `=0` | graded |
-| check_prose | M5_zh_punctuation | `=0` | graded |
-| check_prose | M6_unsourced_ranges | `=0` | graded |
+| check_prose | M4_banned_hits | `=0 (gates)` | gate |
+| check_prose | M4zh_banned_hits | `=0 (gates)` | gate |
+| check_prose | M5_zh_punctuation | `=0 (gates)` | gate |
+| check_prose | M6_unsourced_ranges | `=0 (gates)` | gate |
 | check_prose | M8_length_cv | `>=0.50` | graded |
 | check_prose | M8_overlong_share | `<=8%` | graded |
-| check_prose | M9_dashes | `=0` | graded |
+| check_prose | M9_dashes | `=0 (gates)` | gate |
 | check_design | D10_label_icons | `reported` | reported |
 | check_design | D12_commercial_footer | `=0 (gates)` | gate |
 | check_design | D13_lime_as_text | `=0` | graded |

@@ -46,12 +46,12 @@ have no Han character next to their punctuation.
 | M1 | Assertive-title rate | ≥70%, **reported not gating** (decks included — never waived) | share of titles that name a subject and carry a verifiable fact |
 | M2 | Number-sourcing rate | ≥90% | share of percentage and currency figures whose PAGE carries a source marker (writing-rules §4 rule 6) |
 | M3 | Coined-term violations | =0 | occurrences of banned legacy coinages (substring exemptions apply) |
-| M4 | Banned AI-tell phrases | =0 | banned-phrase hits (fixed-collocation exemptions apply) |
-| M5 | Punctuation violations (zh) | =0 | half-width punctuation adjacent to CJK (code/pre/formula exempt) |
-| M6 | Unsourced range figures | =0 | range-shaped numbers with no source marker in their own BLOCK; an enumeration label ("blocks 1–3") is reported, not counted (writing-rules §4 rule 6) |
+| M4 | Banned AI-tell phrases | =0 — **gates** | banned-phrase hits (fixed-collocation exemptions apply) |
+| M5 | Punctuation violations (zh) | =0 — **gates** | half-width punctuation adjacent to CJK (code/pre/formula exempt) |
+| M6 | Unsourced range figures | =0 — **gates** | range-shaped numbers with no source marker in their own BLOCK; an enumeration label ("blocks 1–3") is reported, not counted (writing-rules §4 rule 6) |
 | M7 | Term mixing | =0 | old and new names of one concept co-occurring |
 | M8 | Sentence-rhythm health (two-tailed) | overlong ≤8% **and** length CV ≥0.50 (decks included — never waived; floor raised from 0.35 at 0.1.508, measured against the rebuilt corpus first) | share of sentences past the length threshold, **and** the coefficient of variation of sentence length |
-| M9 | Em dashes, en output | =0 | em/en dash characters in every genre but internal analysis (the checker's `DASH_BANNED` is the set), outside code and digit-to-digit ranges |
+| M9 | Em dashes, en output | =0 — **gates** | em/en dash characters in every genre but internal analysis (the checker's `DASH_BANNED` is the set), outside code and digit-to-digit ranges |
 | M10 | Triad rate | ≤50% | share of enumerations (lists, appositive series) containing exactly three items |
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame — the five frames are the checker's `TITLE_FRAMES`: colon, question, number-led, verb-led, plain |
 | M13 | One quantity, one value | =0 — **reported** | the same two-word noun phrase carrying two different values with no qualifier near either mention. Deliberately narrow: a time series, a target/actual pair and a per-region split are different quantities, not contradictions |

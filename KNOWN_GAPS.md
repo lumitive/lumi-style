@@ -75,42 +75,38 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
-## GAP-029 · `gating.py` reads one checker's convention into the other
+## GAP-029 · `gating.py` read one checker's convention into the other
 
-- status: open
+- status: fixed
 - opened: 0.1.557
+- closed: 0.1.559
 - surface: scripts/lib/gating.py, scripts/check/check_prose.py,
   scripts/ops/check_deliverable.py, scripts/ops/run_conformance.py
-- symptom: **the asymmetry itself is not the gap and is not news** —
-  `tests/test_m13_reported.py::test_the_two_checkers_express_gating_differently`
-  has asserted it since it was written: in `check_design` the `(gates)` marker
-  IS the mechanism, in `check_prose` any failing row exits non-zero and the
-  marker on M12 is emphasis. The gap is the consequence for everything that
-  reads `gating.py`, which applies the design convention to both. So
-  `gating.metric_ids("M")` returns `{M12}`, `run_conformance`'s `all-gating`
-  block demands nothing of the rest, and `check_deliverable` prints them as
-  `note` — beside an exit code that fails the build on them. Measured on
-  `fixtures/deck-degenerate.en.html`: check_design exits 1 with 7 of its 13
-  failures marked; check_prose exits 1 with 0 of its 6. The metrics in that
-  position are M2 (number sourcing), M4/M4zh (banned phrases), M5 (zh
-  punctuation), M6 (unsourced ranges), M8 (overlong share, length variance),
-  M10 (triad rate) and M11 (title uniformity). That test's own last line —
-  "A count taken from one convention and applied to the other is wrong, and one
-  was" — names the hazard; the consumers still do it.
-- why it is not fixed here: **which of them should gate is the owner's call,
-  not a refactor.** Convention 4 is the reason to be careful in one direction —
-  M8's length variance is a *direction*, and 0.1.336 shipped a regression from
-  reading a direction as a target, so gating it would mechanize that mistake.
-  The recommendation, for a decision rather than a quiet change: mark the
-  decidable red lines whose target is zero — M4/M4zh (the banned list is
-  writing-rules §2), M5, M6 (a range figure must trace to one source or it may
-  not appear) — and let M2, M8, M10, M11 be graded, matching what this package
-  already says about them. Then `check_prose` can take `check_design`'s exit
-  contract and one convention covers both.
-- check: none yet. When it closes, the check is that both scripts compute
-  their exit from the same predicate and that `gating.metric_ids("M")` returns
-  the set the owner chose. `test_the_two_checkers_express_gating_differently`
-  is the test that must then change, and its counts are the tripwire.
+- symptom: **the asymmetry itself was never the gap and was never news** —
+  `tests/test_m13_reported.py` had asserted it since it was written: in
+  `check_design` the `(gates)` marker IS the mechanism, in `check_prose` any
+  failing row exited non-zero and the marker on M12 was emphasis. The gap was
+  the consequence for everything reading `gating.py`, which applies the design
+  convention to both. `gating.metric_ids("M")` returned `{M12}`,
+  `run_conformance`'s `all-gating` block demanded nothing of the rest, and
+  `check_deliverable` printed them as `note` — beside an exit code that failed
+  the build on them. Measured on `fixtures/deck-degenerate.en.html`:
+  check_design exited 1 with 7 of its 13 failures marked; check_prose exited 1
+  with 0 of its 6.
+- resolution: the owner chose the split on 2026-08-22 and it is now one
+  sentence rather than a list: **a prose row gates if and only if its target is
+  zero and it does not say `(reported)`.** M4, M4zh, M5, M6 and M9 join M12;
+  M2, M8, M10 and M11 are graded, and M1, M13, M14 and M15 stay reported.
+  `check_prose` exits on its gating failures the way `check_design` does, and
+  an unmeasurable document still fails. M9 was not in the recommendation as
+  first written and belongs by the rule: its target is zero, and a first scan
+  that showed it failing four accepted documents was an artifact of not passing
+  their declared `data-genre=internal`, under which every one reads `n/a`.
+- check: `tests/test_m13_reported.py` — three tests replace the one that
+  asserted the old asymmetry: that the two checkers now express gating the same
+  way, that every zero-targeted row gates and no share-targeted row does (read
+  from the checker's own report, not from a second list), and that a document
+  failing only directions exits zero and says so.
 
 ## GAP-028 · A rule drawn in the leading between two text lines measures as no overlap
 

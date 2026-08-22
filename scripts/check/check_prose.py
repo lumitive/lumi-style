@@ -905,14 +905,35 @@ def m14_parallel_frames(raw: str) -> list[tuple[str, int]]:
 
 
 def grade(r):
-    """[(metric, value, target, verdict)] — verdict is ok / FAIL / n/a."""
+    """[(metric, value, target, verdict)] — verdict is ok / FAIL / n/a.
+
+    **A row gates if and only if its target is zero and it does not say
+    `(reported)`.** That is the whole rule, and it is stated here rather than
+    enumerated anywhere, because an enumeration of gates is a list that rots —
+    this file shipped one that named M12 alone while eight other rows failed the
+    run through the exit code (GAP-029, closed at 0.1.559).
+
+    Why zero is the line. A target of zero is a rule the document either obeys
+    or breaks: a banned phrase is present or it is not, a range figure traces to
+    a source or it does not. A target that is a share — 90% of numbers sourced,
+    sentence-length variance at or above 0.50 — is a DIRECTION, and this
+    repository has shipped three regressions from authors optimizing toward a
+    direction read as a target; 0.1.336 drove sentence variance to zero doing
+    exactly that. Directions are graded so an author reads them; they do not
+    fail a build.
+
+    `(reported)` overrides the zero rule for M13 and M14, which are zero-targeted
+    and deliberately toothless: a quantity legitimately changes, and parallelism
+    is sometimes rhetoric.
+    """
     thin_rhythm = r["sentences"] < MIN_SENTENCES
     rows = [
         # M12 first: a document in the wrong language is not a document whose
         # sentence rhythm is worth discussing.
         ("M12_visible_cjk", r["M12_visible_cjk"], "=0 (gates)",
          not r["M12_visible_cjk"], r["M12_visible_cjk"] is None),
-        ("M4_banned_hits", r["M4_banned_hits"], "=0", r["M4_banned_hits"] == 0, False),
+        ("M4_banned_hits", r["M4_banned_hits"], "=0 (gates)",
+         r["M4_banned_hits"] == 0, False),
         # Reported, never gating: a quantity legitimately changes, and a gate
         # here would make an author edit correct prose to silence it.
         # REPORTED, and the verdict is hard-coded True for the same reason M1's
@@ -937,9 +958,9 @@ def grade(r):
         # The Chinese pair. n/a on any document that is not Chinese — not "ok",
         # because a metric that passes on a document it never looked at is the
         # reassuring line this package keeps removing.
-        ("M4zh_banned_hits", r["M4zh_banned_hits"], "=0",
+        ("M4zh_banned_hits", r["M4zh_banned_hits"], "=0 (gates)",
          (r["M4zh_banned_hits"] or 0) == 0, r["M4zh_banned_hits"] is None),
-        ("M5_zh_punctuation", r["M5_zh_punctuation"], "=0",
+        ("M5_zh_punctuation", r["M5_zh_punctuation"], "=0 (gates)",
          (r["M5_zh_punctuation"] or 0) == 0, r["M5_zh_punctuation"] is None),
         ("M8_overlong_share", r["M8_overlong_share"], "<=8%",
          (r["M8_overlong_share"] or 0) <= 8.0,
@@ -954,21 +975,18 @@ def grade(r):
         ("M8_length_cv", r["M8_length_cv"], ">=0.50",
          (r["M8_length_cv"] or 1.0) >= 0.50,
          thin_rhythm or r["M8_length_cv"] is None),
-        ("M9_dashes", r["M9_dashes"], "=0", r["M9_dashes"] == 0, r["M9_dashes"] is None),
+        ("M9_dashes", r["M9_dashes"], "=0 (gates)",
+         r["M9_dashes"] == 0, r["M9_dashes"] is None),
         # M6 first of the three: the most decidable predicate. A range figure
         # must trace to ONE source or it may not appear (writing-rules section 4
         # rule 1), so its window is its own block and its target is zero.
-        ("M6_unsourced_ranges", r["M6_unsourced_ranges"], "=0",
+        ("M6_unsourced_ranges", r["M6_unsourced_ranges"], "=0 (gates)",
          r["M6_unsourced_ranges"] == 0, False),
-        # M2 fails the run, and it carries no gating marker in its target.
-        # Both halves are true and the reason is in this file's convention
-        # rather than in this row: check_prose exits non-zero on ANY failing
-        # row, so the marker here is emphasis and not mechanism —
-        # `tests/test_m13_reported.py` asserts exactly that, against
-        # check_design, where the marker IS the mechanism. What the comment
-        # said before ("M2 gates") was true of this script and false of
-        # `gating.py`, which reads the marker as mechanism in both. GAP-029
-        # carries that consequence.
+        # M2 is GRADED: its target is a share, so it is a direction and not a
+        # line. It failed the run until 0.1.559, through the exit code rather
+        # than through any marker — the comment here said "M2 gates" for eleven
+        # releases while `gating.py`, which every other consumer reads, called
+        # it graded. GAP-029.
         #
         # The window is the page, and a document with too few figures to rate
         # reads n/a rather than a perfect score on nothing.
@@ -1003,7 +1021,15 @@ def main(argv):
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
 
-    reports, failed = [], 0
+    # TWO COUNTS, because they answer different questions and one of them used
+    # to answer both. `failed` is what the run REPORTS — every metric a reader
+    # should look at. `gated` is what the run FAILS ON, and until 0.1.559 there
+    # was no such variable: this script exited non-zero on any failing row while
+    # check_design exited only on its marked ones, so eight prose metrics broke
+    # a build through the exit code and were classified as graded by
+    # `gating.py`, which every other consumer reads. `check_deliverable` printed
+    # them as `note` beside an exit that said otherwise. GAP-029.
+    reports, failed, gated = [], 0, 0
     for name in args.files:
         path = pathlib.Path(name)
         try:
@@ -1011,7 +1037,11 @@ def main(argv):
                 raise Unmeasurable("not a readable file")
             r = measure(path, args.genre, args.lang)
         except (Unmeasurable, OSError) as exc:
+            # A DOCUMENT THIS CANNOT MEASURE FAILS THE RUN, whatever the gate
+            # set is. "Not measured" has never been a pass in this package, and
+            # check_design's exit says the same by counting `unmeasurable`.
             failed += 1
+            gated += 1
             print(f"FAIL  {path}: unmeasurable — {exc}", file=sys.stderr)
             reports.append({"file": str(path), "unmeasurable": str(exc)})
             continue
@@ -1023,6 +1053,8 @@ def main(argv):
         # exactly that to say which verdicts it asserted and which it could not.
         r["targets"] = {n: t for n, _, t, _ in rows}
         failed += sum(1 for _, _, _, v in rows if v == "FAIL")
+        gated += sum(1 for _, _, t, v in rows
+                     if v == "FAIL" and "(gates)" in (t or ""))
         reports.append(r)
         if args.json:
             continue
@@ -1068,8 +1100,17 @@ def main(argv):
     if args.json:
         print(json.dumps(reports, indent=2))
     else:
-        print(f"\n{failed} metric failure(s)" if failed else "\nall metrics pass")
-    return 1 if failed else 0
+        # THE TWO NUMBERS, SAID APART. A run with four graded failures and no
+        # gating one exits zero, and a line reading "4 metric failure(s)" beside
+        # `echo $?` printing 0 is the contradiction this release exists to end.
+        if not failed:
+            print("\nall metrics pass")
+        elif gated:
+            print(f"\n{failed} metric failure(s), {gated} of them gating")
+        else:
+            print(f"\n{failed} metric failure(s), none of them gating — read "
+                  f"them, they are directions rather than lines")
+    return 1 if gated else 0
 
 
 if __name__ == "__main__":

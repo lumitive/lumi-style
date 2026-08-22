@@ -1,3 +1,55 @@
+## 0.1.559 — a prose row gates if and only if its target is zero (GAP-029 closed)
+
+**The owner's decision, and it turns a list into a sentence.** GAP-029 recorded
+that `check_design` exits non-zero only on rows whose target says `(gates)` while
+`check_prose` exited non-zero on ANY failing row and marked one — so eight prose
+metrics failed a build through the exit code and were classified as graded by
+`gating.py`, which every other consumer reads. `check_deliverable` printed them
+as `note` beside an exit that said otherwise.
+
+The rule now: **a prose row gates if and only if its target is zero and it does
+not say `(reported)`.** Nothing enumerates the gates, because an enumeration of
+gates is a list that rots — this file shipped one that named M12 alone.
+
+    gates      M4, M4zh, M5, M6, M9, M12      every =0 row
+    graded     M2, M8, M10, M11               every share
+    reported   M1, M13, M14, M15              =0 rows opted out on purpose
+
+**Why zero is the line.** A target of zero is a rule the document either obeys
+or breaks: a banned phrase is present or it is not, a range figure traces to a
+source or it does not. A target that is a share — 90% of numbers sourced,
+sentence-length variance at or above 0.50 — is a DIRECTION, and this repository
+has shipped three regressions from an author optimizing toward a direction read
+as a target. 0.1.336 drove sentence variance to zero doing exactly that, which
+is why gating M8 would have mechanized the mistake rather than caught it.
+
+**M9 was not in the recommendation and belongs by the rule.** Its target is
+zero and the em-dash ban is a writing-rules red line of the same kind as the
+banned-phrase list. A first scan showed it failing four of the owner's accepted
+documents — and that was an artifact of the scan, not a finding: all four
+declare `data-genre="internal"`, which the rule exempts, and `check_prose`
+defaults to `sales` rather than reading the document's own declaration. Under
+their own genre every one reads `n/a`. Calibrating on the accepted documents
+caught this before it shipped, which is the whole reason that rule exists.
+
+`check_prose` now counts two things apart: `failed` is what the run reports and
+`gated` is what it fails on, so a run printing "4 metric failure(s)" no longer
+sits beside `echo $?` printing 1 for reasons nobody declared. When nothing
+gating failed it says so — *"none of them gating — read them, they are
+directions rather than lines"*. An unmeasurable document still fails, because
+"not measured" has never been a pass here.
+
+Thirteen register entries were re-synced to the new gate set by reading it from
+the checker rather than by hand, and `eval-rubric.md` marks the four new gates
+in the column that was already there for M12.
+
+**Deliberate red, planted first.** Restoring the old exit turns two tests red;
+marking a share-targeted row `(gates)` turns the rule test red; removing the
+marker from a zero-targeted row turns the same test red the other way. The
+end-to-end test needed a real artifact and its first two candidates failed no
+metric at all — they would have passed the assertion without ever exercising it,
+so the document in the test is six three-item lists, built by running it.
+
 ## 0.1.558 — the effort levels had two definitions, and the run that passed everything left no row on the cost board
 
 **Found by reading the driver log of the round that closed 0.1.557, and it is a

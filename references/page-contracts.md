@@ -6,7 +6,7 @@ Its source is `evals/rule-coverage.json`; the rules themselves live in
 This page is an index, never an authority: where it disagrees with the
 file it cites, the file wins and this page is stale.
 
-**485 rules · 146 measured by a metric · 73 gated · 339 with no automated check.**
+**485 rules · 146 measured by a metric · 86 gated · 339 with no automated check.**
 
 That last number is the point of the page. A rule with no check is not
 a rule an agent will follow, because an agent iterates to the edge of
@@ -495,7 +495,7 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Keep a source marker somewhere in each page's own text. | `references/design-rules.md:758` | — | `M2` | no |
 | Render the footer's handling shield marker in --seal-t. | `references/design-rules.md:92` | `footer.marker-colour` | `—` | no |
 | Get hierarchy from the transparency ladders, never from new greys. | `references/design-rules.md:98` | — | `—` | no |
-| Bind the em-dash ban on training material exactly as on sales material. | `references/storyline-templates.md:113` | — | `M9` | no |
+| Bind the em-dash ban on training material exactly as on sales material. | `references/storyline-templates.md:113` | — | `M9` | yes |
 | Set a training document in A4 portrait as its primary geometry. | `references/storyline-templates.md:115` | — | `—` | no |
 | Carry exactly one storyline and one genre per document. | `references/storyline-templates.md:13` | — | `—` | no |
 | Declare any typical section the document omits rather than dropping it silently. | `references/storyline-templates.md:41` | — | `D31` | no |
@@ -510,20 +510,20 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Reject a title that states only a contrast, a slogan, or a section label. | `references/storyline-templates.md:636` | — | `M1` | no |
 | Keep the evidence clause after a contrast lead-in. | `references/storyline-templates.md:638` | — | `M1` | no |
 | Make the concatenated titles read as a complete argument. | `references/storyline-templates.md:643` | — | `—` | no |
-| Quote a banned phrase only inside figure ink, never in HTML prose. | `references/writing-rules.md:106` | — | `M4` | no |
-| Use full-width punctuation in Simplified-Chinese body text; half-width stays in code, URLs, emails, version strings, filenames and pure English runs. | `references/writing-rules.md:124` | — | `M5` | no |
+| Quote a banned phrase only inside figure ink, never in HTML prose. | `references/writing-rules.md:106` | — | `M4` | yes |
+| Use full-width punctuation in Simplified-Chinese body text; half-width stays in code, URLs, emails, version strings, filenames and pure English runs. | `references/writing-rules.md:124` | — | `M5` | yes |
 | Use 「」 for Chinese quotes and full-width parentheses around Chinese content. | `references/writing-rules.md:127` | — | `—` | no |
 | Put a half-width space between Chinese and adjacent English or digits. | `references/writing-rules.md:129` | — | `—` | no |
 | Give every key number in external material a judgment anchor: a benchmark, a comparison, or the implication spelled out. | `references/writing-rules.md:139` | — | `—` | no |
 | Give every number its source or its derivation. | `references/writing-rules.md:150` | — | `M2` | no |
-| Trace a range figure to a single source in its own block, or drop it. | `references/writing-rules.md:151` | — | `M6` | no |
+| Trace a range figure to a single source in its own block, or drop it. | `references/writing-rules.md:151` | — | `M6` | yes |
 | Label illustrative values (illustrative / mock UI / proposal value / uncalibrated) and carry the label downstream. | `references/writing-rules.md:152` | — | `—` | no |
 | Never cite an external benchmark that cannot be re-verified. | `references/writing-rules.md:155` | — | `—` | no |
 | Match precision to confidence: count precisely when you can, write "several" when you cannot, never fake precision. | `references/writing-rules.md:159` | — | `—` | no |
 | Never substitute an adjective stack for a number; delete the adjective if no figure backs it. | `references/writing-rules.md:161` | — | `—` | no |
 | Put an ordinary figure's source marker somewhere on its page and a range's marker in its own block. | `references/writing-rules.md:189` | — | `M2` | no |
-| Do not treat a dashed pair that is an enumeration label rather than a data range as a range figure. | `references/writing-rules.md:196` | — | `M6` | no |
-| Decide range-versus-label by what the numbers do, not by sentence length. | `references/writing-rules.md:200` | — | `M6` | no |
+| Do not treat a dashed pair that is an enumeration label rather than a data range as a range figure. | `references/writing-rules.md:196` | — | `M6` | yes |
+| Decide range-versus-label by what the numbers do, not by sentence length. | `references/writing-rules.md:200` | — | `M6` | yes |
 | Never cite a publicly debunked statistic, however widely it circulates. | `references/writing-rules.md:213` | — | `—` | no |
 | Allow at most one negation-first opening per document, on the cover or the hook, and only when what is rejected is named concretely. | `references/writing-rules.md:230` | — | `—` | no |
 | Never use a negation-first opening as a page title or a section opener. | `references/writing-rules.md:232` | — | `—` | no |
@@ -537,14 +537,14 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Use double quotation marks with periods and commas placed inside them. | `references/writing-rules.md:29` | — | `—` | no |
 | Use the serial comma, and follow the client's date convention in prose. | `references/writing-rules.md:30` | — | `—` | no |
 | Write dates in data, filenames and version strings as ISO YYYY-MM-DD in every language. | `references/writing-rules.md:31` | — | `—` | no |
-| Replace copula avoidance (serves as / stands as / boasts / features) with is / are / has. | `references/writing-rules.md:313` | — | `M4` | no |
+| Replace copula avoidance (serves as / stands as / boasts / features) with is / are / has. | `references/writing-rules.md:313` | — | `M4` | yes |
 | Vary sentence length deliberately across each page or section, not just at the outliers. | `references/writing-rules.md:315` | — | `M8` | no |
-| Delete filler phrases losslessly. | `references/writing-rules.md:319` | — | `M4` | no |
+| Delete filler phrases losslessly. | `references/writing-rules.md:319` | — | `M4` | yes |
 | Replace abstraction only with concrete detail already in the source; never invent detail. | `references/writing-rules.md:320` | — | `—` | no |
 | Cut idling connectives and transitional openers; keep real causality. | `references/writing-rules.md:324` | — | `—` | no |
 | Produce the deliverable in the language the user specified. | `references/writing-rules.md:33` | — | `—` | no |
-| Use no em dashes or en dashes in sales, marketing, consulting or training deliverables; internal analysis alone is exempt. | `references/writing-rules.md:331` | — | `M9` | no |
-| Exempt a digit-to-digit range from the dash ban, but write a letter-digit span as "C1 to C8". | `references/writing-rules.md:339` | — | `M9` | no |
+| Use no em dashes or en dashes in sales, marketing, consulting or training deliverables; internal analysis alone is exempt. | `references/writing-rules.md:331` | — | `M9` | yes |
+| Exempt a digit-to-digit range from the dash ban, but write a letter-digit span as "C1 to C8". | `references/writing-rules.md:339` | — | `M9` | yes |
 | Do not force ideas into triplets; rewrite some lists as pairs or as prose. | `references/writing-rules.md:342` | — | `M10` | no |
 | Vary list item length and construction unless the list is a genuine parallel enumeration. | `references/writing-rules.md:345` | — | `—` | no |
 | Do not use inline-header bullets as the default list form. | `references/writing-rules.md:348` | — | `—` | no |
@@ -561,6 +561,6 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | In Chinese output, give a technical term's English in parentheses at its first occurrence only. | `references/writing-rules.md:54` | — | `—` | no |
 | Keep chart labels, quick-reference tables and glossaries bilingual. | `references/writing-rules.md:55` | — | `—` | no |
 | Use one name per concept across the whole document; never rotate synonyms. | `references/writing-rules.md:59` | — | `—` | no |
-| In Chinese output, use none of the banned AI-tell phrases on the zh list. | `references/writing-rules.md:69` | — | `M4` | no |
-| Use the fixed industry collocations only for the 'empower' verb the zh ban list restricts; the quoted line names them. | `references/writing-rules.md:72` | — | `M4` | no |
-| In English output, use none of the phrases on the banned AI-tell list. | `references/writing-rules.md:77` | — | `M4` | no |
+| In Chinese output, use none of the banned AI-tell phrases on the zh list. | `references/writing-rules.md:69` | — | `M4` | yes |
+| Use the fixed industry collocations only for the 'empower' verb the zh ban list restricts; the quoted line names them. | `references/writing-rules.md:72` | — | `M4` | yes |
+| In English output, use none of the phrases on the banned AI-tell list. | `references/writing-rules.md:77` | — | `M4` | yes |
