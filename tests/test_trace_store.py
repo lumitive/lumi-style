@@ -26,11 +26,17 @@ def test_writer_and_ledger_agree_under_the_override(tmp_path, monkeypatch):
     assert tr.TRACES == led.TRACES == tmp_path
 
 
-def test_the_default_is_the_tracked_directory(tmp_path, monkeypatch):
-    """A trace that is not kept is not a record."""
+def test_the_default_is_the_tracked_directory_when_there_is_one(tmp_path, monkeypatch):
+    """A trace that is not kept is not a record — so a checkout that HAS the
+    tracked directory keeps writing into it, and no release moves an operator's
+    file. A checkout that does not (an installed skill, whose projection
+    carries no `evals/`) falls to the state directory instead; 0.1.571."""
     monkeypatch.delenv("LUMI_TRACES", raising=False)
+    monkeypatch.setenv("LUMI_STATE", str(tmp_path / "state"))
     monkeypatch.syspath_prepend(str(ROOT / "scripts" / "lib"))
     store = _fresh("trace_store")
+    assert store.traces_dir(tmp_path) == tmp_path / "state" / "traces"
+    (tmp_path / "evals" / "traces").mkdir(parents=True)
     assert store.traces_dir(tmp_path) == tmp_path / "evals" / "traces"
 
 

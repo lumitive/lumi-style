@@ -26,7 +26,6 @@ import sys
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if p.name == "scripts").parent
-STORE = ROOT / "reviews" / "scores.json"
 CHANGELOG = ROOT / "CHANGELOG.md"
 
 # The genres references/storyline-templates.md defines. Imported rather than
@@ -54,7 +53,11 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import corpus  # noqa: E402
+import state_dir  # noqa: E402 — one answer for operator-owned stores
 from deliverable_registry import GENRES  # noqa: E402
+
+STORE = state_dir.store("scores.json", root=ROOT,
+                        in_repo=("reviews", "scores.json"))
 
 # Fields, and NOTHING else. An unknown key is an error rather than ignored
 # data: the whole engagement-fact defence is that there is nowhere to put one.

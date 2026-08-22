@@ -297,6 +297,10 @@ def _scores_tree(tmp_path, overrides=None):
                     scripts / "lib" / "deliverable_registry.py")
     # and the corpus reader (0.1.534), for the same reason
     shutil.copyfile(REAL_SCRIPTS / "lib" / "corpus.py", scripts / "lib" / "corpus.py")
+    # and the store resolver (0.1.571): review_scores.py asks it where the
+    # score store lives, and without it here the delegate exits on the import.
+    shutil.copyfile(REAL_SCRIPTS / "lib" / "state_dir.py",
+                    scripts / "lib" / "state_dir.py")
     (tmp_path / "CHANGELOG.md").write_text("## 0.1.1\n\n- first.\n", encoding="utf-8")
     record = {"release": "0.1.1", "genre": "sales", "corpus_id": "A1",
               "self": dict.fromkeys(DIMS, 4), "reader": dict.fromkeys(DIMS, 4),

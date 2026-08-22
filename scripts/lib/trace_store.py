@@ -16,6 +16,20 @@ from __future__ import annotations
 import os
 import pathlib
 
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import state_dir  # noqa: E402
+
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if (p / "SKILL.md").exists())
 
@@ -23,8 +37,12 @@ ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
 def traces_dir(root: pathlib.Path | None = None) -> pathlib.Path:
     """-> the trace store. `LUMI_TRACES` redirects it (tests, dry runs).
 
-    The default is the tracked directory, because a trace that is not kept is
-    not a record. `root` is the caller's, so a synthetic tree can be pointed at.
+    The default is this checkout's tracked directory when it has one, because
+    a trace that is not kept is not a record — and the operator state directory
+    when it does not, because an installed skill has no `evals/`. `root` is the
+    caller's, so a synthetic tree can be pointed at.
     """
     override = os.environ.get("LUMI_TRACES")
-    return pathlib.Path(override) if override else (root or ROOT) / "evals" / "traces"
+    if override:
+        return pathlib.Path(override)
+    return state_dir.store("traces", in_repo=("evals", "traces"), root=root or ROOT)

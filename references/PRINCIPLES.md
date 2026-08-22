@@ -1,6 +1,6 @@
 # LUMI principles
 
-> **lumi-style 0.1.570.** Six clauses, stable numbering, owner-only. Expected to
+> **lumi-style 0.1.571.** Six clauses, stable numbering, owner-only. Expected to
 > change less than once a year; a change needs a spec and the owner's explicit
 > approval, not a retrospective.
 

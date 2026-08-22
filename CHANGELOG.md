@@ -1,3 +1,45 @@
+## 0.1.571 — four stores that only exist because a repository is around them, and the guard with the teeth
+
+**The consumer half has to stand on its own, and four things it writes did
+not.** The trace store, the local corpus registry, the price table and the
+review scores all resolved against the repository root. Three of them are
+gitignored on purpose — one machine's facts with a date on them — and all four
+would have no directory to live in once the skill is installed from a projection
+that carries no `evals/` and no `reviews/`.
+
+`scripts/lib/state_dir.py` is the one answer: `LUMI_STATE`, else
+`$XDG_STATE_HOME/lumi`, else `~/.lumi`, with the per-store variables that
+already existed still winning over all of it.
+
+**The resolution is deliberately not a flat default.** It prefers the in-repo
+directory WHEN THIS CHECKOUT ACTUALLY HAS IT, so a maintainer's existing data
+stays exactly where it is and **no release moves an operator's file**; it falls
+back to the state directory everywhere else, which is what an installed skill
+sees. Nothing creates a directory by resolving — `check_privacy.py`'s
+`LUMI_TERMS_DIR` is the precedent and the 2026-08-09 instruction is explicit:
+create on an explicit write, never on import and never on a read.
+
+**`check_cross_boundary_paths` is the guard with the teeth.**
+`check_shipped_closure` (0.1.570) proves the boundary is total; this proves the
+consumer half can survive the projection. A script that ships while the file it
+opens does not is a skill that is green here and broken in a fresh clone — the
+class `check_assets_tracked` exists for. It reports **zero** today, because the
+four stores are what it would have found: the residue was measured first (five
+paths across five scripts), then closed, and the guard is what keeps it closed.
+Planted red on real material anyway, since a check that has never fired on a
+real artifact is not a check.
+
+Two limits, stated rather than implied: a path assembled from variables is
+invisible to it, and an untracked path is not its business. Both guards are the
+prerequisites `specs/2026-08-23-gate-consolidation-design.md` names as landing
+before any file moves, and with these two the list is closed.
+
+**An existing test went red, and it was right to.** `trace_store`'s default
+changed, so the test asserting it unconditionally now asserts both halves — the
+checkout that has the directory and the install that does not. Twelve new tests
+besides. `state_dir` also carries corpus.py's tolerant root fallback, without
+which a guard test's synthetic tree raises `StopIteration` from an import.
+
 ## 0.1.570 — a list of what ships can omit a file silently; a partition cannot
 
 **The boundary the repository split needs, landed before anything moves.** The
