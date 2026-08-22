@@ -2735,7 +2735,7 @@ SIBLING_MODULES = (
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",
     "checker_report", "secret_patterns", "corpus", "gating",
-    "gate_registry", "stamps", "trace_store",
+    "gate_registry", "stamps", "trace_store", "shipped",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
@@ -3325,6 +3325,67 @@ LOCAL_PATH_RE = re.compile(r"/(?:Users|home)/(?!x\b)[A-Za-z0-9][A-Za-z0-9._-]*")
 LOCAL_PATH_WAIVERS: dict[tuple[str, str], str] = {}
 
 
+def check_shipped_closure():
+    """The boundary between the two repositories PARTITIONS the tracked tree.
+
+    A list of what ships can omit a file silently and still look complete; a
+    partition cannot. So this asserts three things, and the first is the one
+    that matters: **every tracked file is claimed by exactly one rule.** The
+    second is that no rule claims nothing, because a dead rule is a boundary
+    decision that has already stopped being true. The third is that every
+    declared consumer seed names a script that exists.
+
+    Scripts are absent from the manifest ON PURPOSE — their side is computed
+    from reachability, so a new one is development until something the skill
+    can reach imports or invokes it. Wrong in the safe direction: a dev script
+    wrongly kept is dead weight, a consumer script wrongly dropped is a broken
+    install.
+    """
+    import shipped
+    try:
+        decl = shipped.manifest(ROOT)
+    except (OSError, ValueError) as exc:                            # noqa: BLE001
+        return [f"could not read {shipped.MANIFEST}: {exc}"]
+
+    p = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT,
+                       capture_output=True, text=True)
+    if p.returncode != 0:
+        return [f"git ls-files failed ({p.stderr.strip()[:80]}) — the shipped "
+                f"closure did not run, and a scan that did not run is not a "
+                f"scan that passed"]
+    tracked = [f for f in p.stdout.split("\0") if f]
+    consumer = shipped.consumer_scripts(ROOT)
+    errors = []
+    claimed: set[str] = set()
+    for relpath in tracked:
+        side = shipped.side_of(relpath, ROOT, consumer)
+        if side is None:
+            errors.append(
+                f"{relpath} is tracked and no rule in {shipped.MANIFEST} "
+                f"claims it. The manifest partitions the tree — add a rule "
+                f"naming its side and why, rather than leaving the projection "
+                f"to guess")
+            continue
+        if not relpath.startswith("scripts/"):
+            best = max((r["prefix"] for r in decl["rules"]
+                        if relpath == r["prefix"] or relpath.startswith(r["prefix"])),
+                       key=len)
+            claimed.add(best)
+    for rule in decl["rules"]:
+        if rule["prefix"] not in claimed:
+            errors.append(
+                f"{shipped.MANIFEST}: the rule for `{rule['prefix']}` claims no "
+                f"tracked file. A boundary decision that has stopped being true "
+                f"is worse than none — delete it or re-point it")
+    known = {q.stem for q in
+             list(ROOT.glob("scripts/*/*.py")) + list(ROOT.glob("scripts/*.py"))}
+    for seed in decl.get("consumer_seeds", []):
+        if seed not in known:
+            errors.append(
+                f"{shipped.MANIFEST}: consumer seed `{seed}` names no script")
+    return errors
+
+
 def check_local_paths():
     """No tracked file names an operator's home directory.
 
@@ -3879,6 +3940,7 @@ CHECKS = (
     ("prose gating claims", check_prose_gating_claims),
     ("verdict names", check_verdict_names),
     ("local paths", check_local_paths),
+    ("shipped closure", check_shipped_closure),
     ("version stamps", check_versions),
     ("output default", check_output_default),
     ("version citations", check_version_citations),
