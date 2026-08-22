@@ -1501,8 +1501,23 @@ def d37_caption_scope(raw):
     in for a rendered line, and the rendered line is what `caption_name_wrap`
     measures; failing a document twice for one defect teaches a reader to skim.
     """
-    caps = re.findall(r'<(?:p|div)[^>]*class="(?:[^"]*\s)?cap(?:\s[^"]*)?"[^>]*>'
-                      r'(.*?)</(?:p|div)>', raw, re.S)
+    # ANY HTML ELEMENT, AND NO SVG ONE. Two corrections in one line, both found
+    # by running this against real decks rather than reading it:
+    #
+    # * It matched `<p` and `<div` only, and a deck wrote
+    #   `<figcaption class="cap">` — so a source line walked past a GATING check
+    #   on a tag name, the same shape as D33's `i-` id.
+    # * Widening it to any element then flagged a deck that was CORRECT: it had
+    #   put the source inside the drawing as rule 17 asks, wrapped in
+    #   `<g class="cap">`, and the caption below the figure held only the number
+    #   and the name. An in-figure source is the rule being followed, so a `.cap`
+    #   inside an `<svg>` is not the caption this metric grades.
+    svg_spans = [(m.start(), m.end())
+                 for m in re.finditer(r"<svg\b.*?</svg>", raw, re.S | re.I)]
+    caps = [m.group(2) for m in re.finditer(
+        r'<([a-z]+)[^>]*class="(?:[^"]*\s)?cap(?:\s[^"]*)?"[^>]*>(.*?)</\1>',
+        raw, re.S | re.I)
+        if not any(a <= m.start() < b for a, b in svg_spans)]
     with_source, long_names = [], []
     for i, c in enumerate(caps, start=1):
         if re.search(r'class="(?:[^"]*\s)?srcline(?:\s[^"]*)?"', c):
