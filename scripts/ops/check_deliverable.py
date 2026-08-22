@@ -47,6 +47,8 @@ import time  # noqa: E402
 
 import checker_report  # noqa: E402
 import eval_corpus  # noqa: E402
+import fingerprint  # noqa: E402
+import gate_registry  # noqa: E402
 import markup  # noqa: E402
 from deliverable_registry import GENRES, kinds  # noqa: E402
 
@@ -137,11 +139,39 @@ def _gating_ids(report: dict) -> set[str]:
     return {m for m, t in targets.items() if "(gates)" in (t or "")}
 
 
-def verdict_block(runs: dict) -> tuple[list[str], list[str], list[str], int]:
-    """-> (gating, graded, silent, exit_code). The one block at the end."""
+def _since(metric: str) -> str:
+    """-> the release a gate arrived in, for the line a reader sees."""
+    try:
+        return gate_registry.load().get(metric, {}).get("since", "?")
+    except (OSError, ValueError, KeyError):
+        return "?"
+
+
+def verdict_block(runs: dict, built: str | None = None
+                  ) -> tuple[list[str], list[str], list[str], list[str], int]:
+    """-> (gating, graded, silent, not_held, exit_code). The one block at the end.
+
+    `built` is the version the document declares — `built with lumi-style
+    X.Y.Z`, read by `fingerprint.version_in`. A gate introduced AFTER that
+    version has nothing to say about this document: its finding goes to
+    `not_held`, which is neither a pass nor a failure and does not touch the
+    exit code.
+
+    **Why this exists** (owner directive, 2026-08-22): historical deliverables
+    were never meant to be upgraded to satisfy rules written after them. Before
+    this, the gate set applied was always HEAD's — `built_version` was captured
+    by `run_conformance` and read by nothing that decided anything — so a deck
+    accepted at 0.1.449 was failed by a gate written at 0.1.560 and the failure
+    read exactly like a defect. A NEW deliverable is still held to everything.
+
+    A document with NO stamp is held to everything, deliberately: an absent
+    stamp must never become an exemption, or the cheapest way to escape every
+    gate is to delete the line saying which rules you were written against.
+    """
     gating: list[str] = []
     graded: list[str] = []
     silent: list[str] = []
+    not_held: list[str] = []
     worst = 0
     for kind, run in runs.items():
         if run["exit"] not in (0, None):
@@ -194,16 +224,24 @@ def verdict_block(runs: dict) -> tuple[list[str], list[str], list[str], int]:
                 # Layout's deliverable verdicts all gate; prose/design gate
                 # only where the target says so.
                 if kind == "layout" or metric in gates:
-                    gating.append(line)
+                    since = _since(metric)
+                    if not gate_registry.held(metric, built):
+                        not_held.append(f"{line} — this gate arrived at "
+                                        f"{since}; the document declares "
+                                        f"{built}")
+                    else:
+                        gating.append(line)
                 else:
                     graded.append(line)
             if kind == "privacy":
                 v = report.get("verdict")
                 if v and v != "ok":
-                    gating.append(f"privacy: declared terms {v}"
-                                  if v in ("not_attempted", "missing")
-                                  else f"privacy: {v}")
-    return gating, graded, silent, worst
+                    line = (f"privacy: declared terms {v}"
+                            if v in ("not_attempted", "missing")
+                            else f"privacy: {v}")
+                    (gating if gate_registry.held("privacy_terms", built)
+                     else not_held).append(line)
+    return gating, graded, silent, not_held, worst
 
 
 def main(argv=None) -> int:
@@ -241,7 +279,11 @@ def main(argv=None) -> int:
     runs = gather(a.file, genre, a.terms, skip_layout=a.skip_layout,
                   iterate=a.fast)
     checks_seconds = max(1, round(time.monotonic() - started))
-    gating, graded, silent, worst = verdict_block(runs)
+    # THE VERSION THE DOCUMENT DECLARES. `fingerprint.version_in` reads the
+    # colophon every LUMI deliverable carries; it existed and nothing that
+    # decided anything read it.
+    built = fingerprint.version_in(raw)
+    gating, graded, silent, not_held, worst = verdict_block(runs, built)
     graded.extend(eval_notes(a.file, runs))
     if not trace_id:
         # Unmeasured, not silent: a build with no trace leaves no record of
@@ -254,7 +296,9 @@ def main(argv=None) -> int:
 
     if a.json:
         print(json.dumps({"file": str(a.file), "genre": genre,
+                          "built": built,
                           "gating": gating, "graded": graded, "silent": silent,
+                          "not_held": not_held,
                           "exits": {k: r["exit"] for k, r in runs.items()},
                           "exit": worst}, indent=1))
     else:
@@ -270,11 +314,19 @@ def main(argv=None) -> int:
             print(f"  MUTE  {line}")
         for line in graded:
             print(f"  note  {line}")
-        if not (gating or silent or graded):
+        # NEITHER A PASS NOR A FAILURE, and printed as its own word. A gate
+        # written after this document has nothing to say about it; reporting
+        # that as `note` would put it in the same bucket as a real graded
+        # finding, and as `GATE` would be the behaviour this exists to end.
+        for line in not_held:
+            print(f"  past  {line}")
+        if not (gating or silent or graded or not_held):
             print("  every instrument spoke, and nothing failed. The last "
                   "gate is a person: look at the contact sheet.")
         print(f"\nexit {worst}: {len(gating)} gating · {len(silent)} unmeasured"
-              f"/silent · {len(graded)} graded findings")
+              f"/silent · {len(graded)} graded findings"
+              + (f" · {len(not_held)} not held (this document declares "
+                 f"{built or 'no version'})" if not_held else ""))
 
     if a.fast:
         # A LOOP READING IS NOT A DELIVERY READING, and the difference has to

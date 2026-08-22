@@ -17,10 +17,15 @@ The numbers beside it answer the question a fill percentage could not:
   largest empty rect   the biggest clear rectangle on the page, which is what
                        "looks empty" means geometrically.
 
-**No judgement here gates.** Release 0.1.339 answered "the pages look empty" with
-an 82% fill floor, satisfied it by stretching table rows, and shipped four
-diagrams at 40% of their cell. A number that can be satisfied without improving
-the page ends the looking.
+**No AESTHETIC judgement here gates, and this file said "no judgement here
+gates" long after 27 of them did.** The distinction is the mode. Run plainly,
+every finding below is reported for a person to read; run with `--deliverable`,
+the verdicts `deliverable_verdicts` returns fail the artifact, and they are
+decidable rather than aesthetic — a collision is a collision, a clipped title is
+clipped. Release 0.1.339 answered "the pages look empty" with an 82% fill floor,
+satisfied it by stretching table rows, and shipped four diagrams at 40% of their
+cell: a number that can be satisfied without improving the page ends the looking,
+and that is what stays out of the gate set.
 
 **A check that did not run is not a check that passed.** Every summary below is
 written `if <defects>: LOUD else: reassuring`, and until 0.1.350 the reassuring
@@ -32,7 +37,8 @@ So this file now carries the concept its sibling `check_design.py` already had �
 `Unmeasurable`, printed as `NOT MEASURED (<reason>)` — and **exit code is 1 when
 anything could not be measured**. That is not a gate on the design; it is the
 difference between a probe that says nothing and a probe that says everything is
-fine. The judgements themselves still gate nothing.
+fine. The aesthetic judgements still gate nothing; `--deliverable`'s decidable
+ones do, and `evals/gates.json` names every one of them.
 
     python3 scripts/check/inspect_layout.py ~/Documents/LUMI-Style/deck.html
     python3 scripts/check/inspect_layout.py ~/Documents/LUMI-Style/deck.html --geometry a4
@@ -2142,7 +2148,8 @@ CONSISTENCY_PROBE = r"""
 
 def consistency_report(url, viewport=(1280, 720), dark=False):
     """Read the deck as a system rather than as pages. Returns the raw findings;
-    main() decides what to print. No judgement here gates.
+    main() decides what to print. Nothing this function returns gates; the
+    gating set is `deliverable_verdicts`.
 
     The viewport is a parameter because it was a constant, and the constant was
     landscape. §7 makes A4 a required matrix point, `main()` runs the page probe

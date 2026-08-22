@@ -82,6 +82,19 @@ tracked file.
 The list above is representative; `check_repo.py`'s `CHECKS` tuple is the
 authority, and a guard with no entry there does not run.
 
+**Every verdict a deliverable can receive is declared in `evals/gates.json`**,
+with the concept it belongs to (`family`), the release that introduced it
+(`since`), and whether an `n/a` from it is an honest silence (`na_means`) or a
+measurement that did not happen. `checker` and `severity` are held to the
+checkers themselves by the `gate declarations` guard, so the register adds
+knowledge and cannot contradict. **A gate binds a document built at or after its
+`since`** — an older deliverable reports `not held`, which is neither a pass nor
+a failure — and a document with no version stamp is held to everything, because
+an absent stamp must not become an exemption. This exists because the gate set
+applied was always HEAD's: `built_version` was captured and read by nothing that
+decided anything, so a deck accepted at 0.1.449 was failed by a rule written
+after it and the failure read exactly like a defect.
+
 `tests/` holds the pytest suite: characterization tests for the shared
 modules, synthetic-tree tests that prove each guard can FAIL as well as pass
 (a guard only ever seen passing is FM-01 in `FAILURE_MODES.md`), and a

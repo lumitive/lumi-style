@@ -1193,6 +1193,19 @@ def check_gate_declarations():
             actual[row] = (kind, sev)
     for name in gating.layout_verdicts(ROOT):
         actual[name] = ("layout", "gate")
+    # THE FIFTIETH GATE, which fits no row table. `check_privacy` reports one
+    # `verdict` per FILE rather than a verdicts map, and `check_deliverable`
+    # promotes a non-ok one into the gating bucket in code — so it failed
+    # builds while `gating.py`, this register and `run_conformance`'s require
+    # set all had no idea it existed. Its parity is asserted where its gating
+    # actually lives: the promotion in check_deliverable's own source.
+    try:
+        promoter = (ROOT / "scripts" / "ops" / "check_deliverable.py").read_text(
+            encoding="utf-8")
+    except OSError:
+        promoter = ""           # a synthetic tree has no promoter to read
+    if 'if kind == "privacy":' in promoter and "gating.append" in promoter:
+        actual["privacy_terms"] = ("privacy", "gate")
 
     errors = []
     for name in sorted(set(declared) - set(actual)):

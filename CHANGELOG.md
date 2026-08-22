@@ -1,3 +1,97 @@
+## 0.1.562 — a gate written after the document stops failing it, plus three holes the register made visible
+
+**The owner's directive, 2026-08-22: historical deliverables were never meant to
+be upgraded to satisfy rules written after them.** She never asked for that; the
+bug she reported was that a NEW deliverable must obey the new rules. The code
+agreed with her more literally than I had: **no gate was scoped to a document's
+version at all.** `fingerprint.version_in` has two call sites in the whole
+repository; `run_conformance` stores `built_version` in the scoreboard and the
+verdict is computed without ever reading it, and `check_deliverable` read no
+version whatever. So a deck accepted at 0.1.449 was failed by a gate written at
+0.1.560, and the failure read exactly like a defect.
+
+Now: **a gate binds a document built at or after the release that introduced
+it.** An older document reports the finding as `past` — neither a pass nor a
+failure, not counted in the exit code, and the line says which gate arrived when
+and which version the document declares, so an exemption cannot be mistaken for
+a pass. Verified on one document under two stamps: at 0.1.500 it shows three
+gating failures and four `past`; the same bytes at 0.1.562 show seven gating and
+none. An older gate still binds an older document — `D19` and the privacy line
+hold in both.
+
+**The scoping must not become an escape.** A document carrying no
+`built with lumi-style X.Y.Z` is held to everything, deliberately: the cheapest
+way out of every gate would otherwise be to delete the one line that says which
+rules you were written against. The planted red for that is its own test, and so
+is the one for a NEW document — reversing the comparison so scoping applies
+forwards reddens it.
+
+**The calibration use is unchanged and is the reason to keep it.** Running new
+gates against the owner's accepted documents is how a wrong check gets caught —
+it caught two of mine in one session. What changes is that those reds are no
+longer work: a red on an old document now says the check is wrong or the gate is
+new, and never that the document owes an edit.
+
+### The three holes the register made visible
+
+Three holes the gate register made visible the moment it existed. None is
+tidying; each fails a build or fails to.
+
+**A gate that disappeared instead of saying `n/a`.** `D32_shape_use` is measured
+for every document — `d32_shape_use(raw)` runs unconditionally — but its ROW sat
+inside the `data-storyline` branch of `grade()`. A deliverable declaring no
+storyline emitted no D32 row at all, and `gating_metrics` keys on *what the
+report returned*, so the absence read as a metric that did not apply rather than
+as a gate that had gone missing. Those two are indistinguishable from outside,
+which is exactly why the row has to be present saying `n/a`. Hoisted out of the
+branch. Its docstring also still said "Reported, never gating" — seventeen
+releases after 0.1.543 made it gate.
+
+**The fiftieth gate, in no registry anywhere.** `check_privacy` reports one
+`verdict` per FILE rather than a verdicts map, so it fits no row table, and
+`check_deliverable` promotes a non-`ok` one into the gating bucket in code. It
+has been failing builds while `gating.py`, the rule register and
+`run_conformance`'s `all-gating` set all had no idea it existed. It is
+`privacy_terms` in `evals/gates.json` now, and the parity guard asserts it where
+its gating actually lives — the promotion in `check_deliverable`'s own source,
+which reddens if that line is renamed.
+
+**Not applicable is not not measured.** Making D32 report `n/a` immediately
+reddened this package's own passing fixture, and the reason is a distinction
+nothing could express. `check_design` fails a run on **any** gating row reading
+`n/a` — right for the case it was written for, D12 and D15 going silent because
+no `<section class="page">` matched, a commercial gate mute on unreadable
+markup. It is wrong for the six gates that reach `n/a` because the predicate has
+nothing to look at: a Chinese ban list on an English deck, a caption rule on a
+deck with no captions. Measured across the fixtures and twelve real
+deliverables, those six are `D32_shape_use`, `M4zh_banned_hits`,
+`M5_zh_punctuation`, `M12_visible_cjk`, `D37_caption_scope` and
+`D39_bookend_mark`.
+
+`na_means` carries it, and it belongs in the register rather than in a checker
+for a reason worth stating: **a row cannot tell you whether its own silence is
+honest.** The commercial gates are deliberately not given the field — their
+`n/a` means the markup could not be read, and excusing it would re-open the hole
+the blind rule exists for. Verified both ways: renaming `section.page` to
+something the probe cannot see still reddens `D12`, `D15` and `D22` as blind and
+exits 1; deleting one `na_means` reddens the passing fixture.
+
+**Two things the repository's own machinery caught in this release.** Teaching
+the parity guard to read `check_deliverable.py` made `check_repo` depend on a
+file the emergency-merge path did not carry a trusted copy of —
+`test_emergency_checker_closure` failed with *"the emergency run would execute
+the PR's copy"*, which is the whole point of that closure. `check_deliverable.py`
+and `gate_registry.py` join it. And adding a paragraph to `SKILL.md` moved
+fourteen rule quotes down four lines; `--relocate` followed them, which is what
+it is for.
+
+**Deliberate red, planted first.** Removing D32's `na_means` reddens
+`check_fixtures`; renaming the privacy promotion reddens the parity guard; the
+blind case is exercised against a real mutated document rather than asserted.
+Three new tests.
+
+Design record: `specs/2026-08-22-rules-equal-conformance-design.md`.
+
 ## 0.1.561 — a gate stops being a substring in a display string, and three rows were in the wrong set
 
 **The owner's read was right and the code agrees with her.** Forty-odd gates

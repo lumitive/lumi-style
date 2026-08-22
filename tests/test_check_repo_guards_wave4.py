@@ -459,3 +459,26 @@ def test_an_empty_register_does_not_pass_by_agreeing_with_nothing(tmp_path,
     monkeypatch.setattr(check_repo, "ROOT", _gate_tree(tmp_path, {}))
     errors = check_repo.check_gate_declarations()
     assert errors and "declares nothing" in errors[0]
+
+
+def test_the_privacy_gate_is_checked_where_its_gating_actually_lives(tmp_path,
+                                                                     monkeypatch):
+    """`check_privacy` fits no row table — it reports one `verdict` per FILE —
+    and `check_deliverable` promotes a non-ok one into the gating bucket in
+    code. So its parity is asserted against that promotion. Rename the
+    promotion and the register is declaring a gate nothing emits."""
+    tree = _gate_tree(tmp_path, {
+        "D9_x": D9, "collision": COLL,
+        "privacy_terms": {"checker": "privacy", "family": "handling-terms",
+                          "severity": "gate", "since": "always"}})
+    promoter = tree / "scripts" / "ops"
+    promoter.mkdir(parents=True, exist_ok=True)
+    (promoter / "check_deliverable.py").write_text(
+        'if kind == "privacy":\n    gating.append("x")\n')
+    monkeypatch.setattr(check_repo, "ROOT", tree)
+    assert check_repo.check_gate_declarations() == []
+
+    (promoter / "check_deliverable.py").write_text(
+        'if kind == "PRIVACY_RENAMED":\n    gating.append("x")\n')
+    errors = check_repo.check_gate_declarations()
+    assert len(errors) == 1 and "privacy_terms" in errors[0]

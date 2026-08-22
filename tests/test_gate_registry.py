@@ -108,3 +108,50 @@ def test_the_families_are_the_classification_and_are_smaller_than_the_rows():
     assert len(fams) < rows / 2, (
         f"{len(fams)} families for {rows} rows — the classification is not "
         f"grouping")
+
+
+# --- not applicable is not not measured --------------------------------------
+
+def test_na_means_separates_an_honest_silence_from_a_blind_gate():
+    """`check_design` failed a run on ANY gating row reading `n/a`.
+
+    That was right for the case it was written for — D12 and D15 reading n/a
+    because no `<section class="page">` matched, a commercial gate silent on
+    unreadable markup — and wrong for the gates that reach n/a because the
+    predicate has nothing to look at. A Chinese ban list on an English deck is
+    not a gate that failed to run. No checker holds the difference: a row
+    cannot tell you whether its own silence is honest.
+    """
+    live = gr.load()
+    honest = {n for n, g in live.items() if (g.get("na_means") or "").strip()}
+    assert honest, "no gate declares a legitimate n/a; the distinction is gone"
+    for name in honest:
+        assert live[name]["severity"] == "gate", (
+            f"{name} declares na_means and does not gate — the field only "
+            f"changes what a GATING n/a means")
+    # The commercial gates must never be excused this way: their n/a is the
+    # exact failure the blind rule exists to catch.
+    for name in ("D12_commercial_footer", "D15_footer_path"):
+        assert name not in honest, (
+            f"{name}'s n/a means the page markup could not be read — excusing "
+            f"it re-opens the hole the blind-gate rule was written for")
+
+
+def test_a_gate_that_cannot_apply_still_appears_in_the_report():
+    """D32's ROW used to live inside the `data-storyline` branch, so a document
+    declaring no storyline emitted no D32 row at all and the gate vanished with
+    it. `gating_metrics` keys on what the report returned, so a missing row
+    reads as a metric that did not apply rather than as a gate that went
+    missing — the two are indistinguishable from outside, which is why the row
+    has to be there saying `n/a`."""
+    import json
+    import subprocess
+    import sys
+    out = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/check/check_design.py"),
+         str(ROOT / "fixtures/deck-pass.en.html"), "--json"],
+        capture_output=True, text=True)
+    verdicts = json.loads(out.stdout)[0]["verdicts"]
+    assert "D32_shape_use" in verdicts
+    assert verdicts["D32_shape_use"] == "n/a"
+    assert out.returncode == 0, "an inapplicable gate must not fail the run"
