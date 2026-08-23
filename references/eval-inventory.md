@@ -97,6 +97,7 @@ different ways.
 | M2_TARGET | `90.0` | percent of figures whose page carries a marker | (not searched: too short) |
 | M1_TARGET | `70.0` | percent of titles naming a subject and a fact | (not searched: too short) |
 | MIN_FIGURES | `4` | below this, a sourcing rate is one number's opinion | (not searched: too short) |
+| MIN_ASK_TOKENS | `3` |  | (not searched: too short) |
 | LOOK_AHEAD | `60` | characters after the phrase in which the number counts | (not searched: too short) |
 
 ### scripts/check/check_design.py

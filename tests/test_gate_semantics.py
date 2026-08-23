@@ -103,14 +103,24 @@ def test_a_gate_newer_than_the_document_leaves_the_gating_bucket(tmp_path):
 # source document (FM-18, second instance).
 
 
-def _relabelled_zh(tmp_path, name, asked=False):
+def _relabelled_zh(tmp_path, name, asked=False, quote=None, source=None):
     """A Chinese deliverable, declared as such. This is the shape M12 waves
-    through and M16 exists to stop."""
+    through and M16 exists to stop.
+
+    `asked` alone reproduces 0.1.587's mechanism — the boolean an agent could
+    type for itself — and must NOT be enough any more."""
     raw = PASS.read_text(encoding="utf-8")
     raw = re.sub(r"(<h2[^>]*>)", r"\1客户在三个月内完成了全部迁移 ", raw, count=1)
     raw = raw.replace('<html lang="en"', '<html lang="zh-Hans"')
+    decl = ""
     if asked:
-        raw = raw.replace("<body ", '<body data-lang-asked="zh-Hans" ', 1)
+        decl += ' data-lang-asked="zh-Hans"'
+    if quote:
+        decl += f' data-lang-ask-quote="{quote}"'
+    if source:
+        decl += f' data-localized-from="{source}"'
+    if decl:
+        raw = raw.replace("<body ", f"<body{decl} ", 1)
     p = tmp_path / name
     p.write_text(raw, encoding="utf-8")
     return p
@@ -126,13 +136,49 @@ def test_relabelling_the_document_is_not_a_fix(tmp_path):
     assert "FAIL  M16_language_asked" in out.stdout, out.stdout
 
 
-def test_a_recorded_ask_is_the_fix(tmp_path):
+def test_the_flag_an_agent_can_type_is_no_longer_enough(tmp_path):
+    """0.1.587's mechanism, exactly as a shipped build used it: declare the
+    language and assert in the same breath that it was asked for. The 0.1.588
+    contract needs the user's words AND an English deck this one derives
+    from — and the second cannot be satisfied by typing."""
+    out = _prose(_relabelled_zh(tmp_path, "e.html", asked=True))
+    assert out.returncode == 1, out.stdout
+    assert "FAIL  M16_language_asked" in out.stdout, out.stdout
+    assert "data-lang-ask-quote" in out.stdout
+    assert "data-localized-from" in out.stdout
+
+
+def test_a_real_derivative_is_the_fix(tmp_path):
     """A Chinese deliverable somebody asked for is a legitimate document. M16
     must pass it, or the gate is a ban on Chinese output rather than a hold on
     inference."""
-    out = _prose(_relabelled_zh(tmp_path, "e.html", asked=True))
+    (tmp_path / "src.en.html").write_text("<html lang=\"en\"><body></body></html>",
+                                          encoding="utf-8")
+    out = _prose(_relabelled_zh(tmp_path, "e2.html", asked=True,
+                                quote="请把报告写成中文", source="src.en.html"))
     assert out.returncode == 0, out.stdout
     assert "ok    M16_language_asked" in out.stdout, out.stdout
+
+
+def test_the_english_source_has_to_be_there(tmp_path):
+    """`data-localized-from` is the only declaration an agent cannot satisfy by
+    typing: the file it names has to exist beside this one."""
+    out = _prose(_relabelled_zh(tmp_path, "e3.html", asked=True,
+                                quote="请把报告写成中文",
+                                source="a-deck-that-was-never-built.en.html"))
+    assert out.returncode == 1, out.stdout
+    assert "does not exist" in out.stdout, out.stdout
+
+
+def test_a_fragment_is_not_a_quotation(tmp_path):
+    """judge_findings.py's floor, in the other place a model attributes words
+    to a person."""
+    (tmp_path / "src.en.html").write_text("<html lang=\"en\"><body></body></html>",
+                                          encoding="utf-8")
+    out = _prose(_relabelled_zh(tmp_path, "e4.html", asked=True, quote="zh",
+                                source="src.en.html"))
+    assert out.returncode == 1, out.stdout
+    assert "fragment that would match anything" in out.stdout, out.stdout
 
 
 def test_the_operator_can_record_the_ask_from_the_command_line(tmp_path):
@@ -154,8 +200,20 @@ def test_the_failure_says_what_would_fix_it(tmp_path):
     """A FAIL that names no fix teaches the cheapest one, and the cheapest one
     here is the edit this metric exists to stop."""
     out = _prose(_relabelled_zh(tmp_path, "g.html"))
-    assert "data-lang-asked" in out.stdout, out.stdout
-    assert "never inferred" in out.stdout, out.stdout
+    assert "localize.py" in out.stdout, out.stdout
+    assert "already passes" in out.stdout, out.stdout
+
+
+def test_an_unasked_chinese_document_is_not_coached(tmp_path):
+    """The positive-feedback loop, measured: declaring `zh` silenced M12 and in
+    the same move woke the Chinese ban list and the punctuation pass, so a
+    build's first machine reading was `FAIL M5_zh_punctuation 93` and it
+    answered by improving its Chinese. Do not tutor a language a document has
+    no recorded ask to be in."""
+    out = _prose(_relabelled_zh(tmp_path, "h.html"))
+    assert "n/a   M4zh_banned_hits" in out.stdout, out.stdout
+    assert "n/a   M5_zh_punctuation" in out.stdout, out.stdout
+    assert "the improvement is to deliver in English" in out.stdout
 
 
 def test_m16_is_declared_in_the_gate_register():

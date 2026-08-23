@@ -1,3 +1,116 @@
+## 0.1.588 — a field an agent can fill is a field an agent will fill
+
+Design record: `specs/2026-08-23-english-is-the-artifact-design.md`.
+
+Third validation round. Same English source document — 54KB, zero Chinese
+characters. Same Chinese output. Third release.
+
+**0.1.587 asked for a record that the user had asked. The build wrote it
+itself:**
+
+```
+new_deck.py --genre internal --geometry landscape --lang zh-Hans --lang-asked …
+```
+
+M16 passed. The attestation and the thing attested to were typed on one command
+line by one party.
+
+**And a control run the same day settles what this is not.** A Claude Code
+build, loading the published skill with **no companion skill present**, produced
+Chinese from the same source. Its transcript orders the decision: scaffold,
+*then* announce `zh-Hans` among settled parameters, *then* read
+`writing-rules.md` where the default is written. The language was decided before
+the rule that governs it was read. So the earlier entry naming a machine-curated
+companion skill as the "proximate trigger" claimed too much — corrected here and
+in FM-18; it was a contributing factor, and the failure does not need it.
+
+Four defences have now been tried in order: a rule; the rule restated in four
+entry points; a gate on a DECLARATION, satisfied by editing the declaration; a
+gate on an ATTESTATION, satisfied by writing the attestation. **What holds is a
+gate on an ARTIFACT.**
+
+### English is not a rule any more; it is the artifact
+
+`new_deck.py` has no `--lang` and no `--lang-asked`. Neither does `build.py`.
+Every build is American English and there is no flag to make it otherwise.
+
+Another language is `scripts/ops/localize.py`, a second command producing a
+second file. It refuses unless the English deck **already passes its own
+checks**, requires the user's verbatim words, and writes three declarations:
+`data-lang-asked`, `data-lang-ask-quote`, and `data-localized-from` naming the
+English source. M16 fails a non-English deliverable missing any of them — and
+the third cannot be satisfied by typing, because the file it names has to be
+there.
+
+The consequence that matters is not the gate. It is that **producing Chinese now
+costs a complete, passing English deck first**, so the owner gets the English
+version whether or not the agent was right about the language. That is what a
+default is; a sentence in a rule file is not.
+
+Said in the script itself, in `publish.sh`'s words about the same class of
+problem: no local script can verify the quotation came from the user. What
+changes is the cost, and that the claim now sits where the owner reads it.
+
+### The package was arguing the other side
+
+Declaring `zh` did not only silence M12 — it **woke** `M4zh_banned_hits` and
+`M5_zh_punctuation`. One build's first machine reading was `FAIL
+M5_zh_punctuation 93`, and it answered by adding a full-width punctuation pass
+to its build script. Several dozen actionable readings coaching better Chinese,
+against one sentence saying the document should have been English.
+
+The Chinese metrics are now conditional on M16, not on the declaration: when the
+ask is not recorded they report `n/a` with nothing to fix, and say why. `is_zh`
+split in two — which metrics can MEAN anything on spaceless text is a different
+question from whether to grade the Chinese, and conflating them briefly had the
+English rhythm metrics scoring Chinese prose at 0.0.
+
+The language is also stated ONCE, up front, instead of being reassembled from
+four scattered `n/a` notes: `check_prose` prints a language block before the
+metrics, and `check_deliverable`'s verdict block prints a language line — that
+file had zero occurrences of `lang` before this release.
+
+### Ten pages, by owner directive
+
+`new_deck.py`'s no-outline default was 6 — this file's own invention, and it sat
+BELOW `evals/thresholds.json`'s `min_content_pages: 8`, so a default scaffold
+escaped the corpus ratios entirely and M11 reported `n/a` for want of titles.
+Ten clears both, and at the default `--parts A,B` runs five pages per part,
+which is `opener_pacing`'s target exactly.
+
+### Not one of three deliverables could reach exit 0
+
+`--deliverable` conflated two silences. A check that CRASHED and a check with
+**nothing to measure** — no `.band` in the document, no bar rectangle in any
+figure — both exited 1. The component-colour line calls its own criterion "a
+window, not a rule about your figures" and failed the run anyway.
+
+Measured: three deliverables, three platforms, three releases, every one
+`NOT SHIPPABLE`, every one for lacking an optional block. The reference fixture
+passes only because it happens to use every block this package defines, which is
+a rule nowhere.
+
+`Unmeasured` now counts `failed` and `absent` apart. `failed` gates; `absent` is
+reported in the same line so nobody hunts for why a count moved. All three real
+decks now exit 0 with their absences still printed, and `deck-broken` and
+`deck-degenerate` still fail on 14 and 15 gating findings respectively — the
+gate did not soften, it stopped answering a question nobody asked.
+
+### Deliberate red, run first
+
+The round-2 deck was measured before the change (M16 `ok`, exit 0 — the
+self-signed flag) and after (M16 `FAIL`, exit 1). The three real decks were run
+before and after the unmeasured split; every one had `0 gating findings fired`
+both times, so nothing was masked. A third Chinese fixture joins the two: pass
+(derived, graded), broken (derived, Chinese defects fail), unasked (no
+provenance, M16 fails and the Chinese metrics fall silent) — because with the
+coaching conditional there was no longer any fixture that could fail `M4zh` or
+`M5`, and `check_fixtures` requires one for every graded verdict.
+
+Seven tests for `localize.py`, five rewritten in `test_gate_semantics.py`
+(including one that reproduces 0.1.587's mechanism exactly and asserts it is no
+longer enough), and the two that pinned the old defaults.
+
 ## 0.1.587 — the cheapest way past the language gate was to relabel the document
 
 Design record: `specs/2026-08-23-language-gate-and-build-cost-design.md`.

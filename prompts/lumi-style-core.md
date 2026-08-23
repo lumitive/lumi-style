@@ -515,6 +515,6 @@ quality), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.587** snapshot, cut 2026-08-19. It is self-contained by
+> This file is the **0.1.588** snapshot, cut 2026-08-19. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

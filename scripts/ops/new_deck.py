@@ -92,6 +92,14 @@ ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
 # whenever the fixture is absent or stale, which is exactly when it is run.
 FIXTURE = ROOT / "fixtures" / "deck-pass.en.html"
 
+# The owner's default, 2026-08-23, after three validation rounds: ten content
+# pages. Six was this file's own invention and it sat BELOW
+# `evals/thresholds.json`'s `min_content_pages: 8`, so a default scaffold
+# escaped the corpus ratios entirely and `check_prose`'s M11 reported n/a for
+# want of titles. Ten clears both, and at the default `--parts A,B` it runs
+# five pages per part - `opener_pacing`'s target exactly.
+DEFAULT_PAGES = 10
+
 
 def _field(key: str, rest: str) -> str:
     """Pull `key: ...` out of an outline's pipe-separated analysis line."""
@@ -344,8 +352,7 @@ def open_trace(genre, geometry, storyline, outline):
     return trace_id
 
 
-def preamble(genre, geometry, storyline=None, trace_id=None,
-             lang="en", lang_asked=False):
+def preamble(genre, geometry, storyline=None, trace_id=None):
     """Everything before the first page: the token block AND the sprite.
 
     Taken from the fixture rather than rebuilt, because the fixture is the
@@ -363,13 +370,15 @@ def preamble(genre, geometry, storyline=None, trace_id=None,
     body_at = src.index("<body", src.index("</head>"))
     body_open_end = src.index(">", body_at) + 1
     sprite = src[body_open_end:src.index("<section", body_open_end)]
-    # The fixture is `deck-pass.en.html`, so the head it hands over says
-    # `lang="en"` whatever the deliverable is about to be written in. That was
-    # invisible while nothing could say otherwise, and it meant a Chinese build
-    # started from an English declaration and had to edit it by hand — which is
-    # exactly the edit that walked a 2026-08 build past M12 (FM-18).
-    head = re.sub(r'(<html[^>]*\blang\s*=\s*)["\'][\w-]+["\']',
-                  lambda m: f'{m.group(1)}"{lang}"', head, count=1)
+    # THE SCAFFOLD IS ENGLISH. It carries the fixture's `lang="en"` and there is
+    # no flag here to make it anything else, because 0.1.587 had two and an
+    # agent typed both of them itself: `--lang zh-Hans --lang-asked` on the
+    # command line, and M16's "somebody asked" record was signed by the party
+    # it was meant to hold. A field an agent can fill is a field an agent will
+    # fill. Another language is `scripts/ops/localize.py` — a second command,
+    # a second file, derived from an English deck that already passed its
+    # checks (writing-rules section 0, which has said since 0.1.333 that
+    # Chinese is produced by translating English).
     head = re.sub(r"<title>.*?</title>", "<title>REPLACE ME</title>", head, count=1)
     # The face rides along. design-rules.md requires it embedded, and when
     # embedding was a separate step, two deliverables in one week shipped with
@@ -380,12 +389,6 @@ def preamble(genre, geometry, storyline=None, trace_id=None,
                         "<style>\n" + embed_font.css() + "\n</style></head>")
     return (head + f'\n<body class="deck" data-theme="light" '
             f'data-geometry="{geometry}" data-genre="{genre}"'
-            # ASKED, never inferred, and recorded only when a person actually
-            # asked. American English is the default and carries no record;
-            # any other language without one fails M16. The evidence for
-            # "the user asked" cannot live in the agent's memory of the
-            # conversation, because that is precisely what FM-18 is about.
-            + (f' data-lang-asked="{lang}"' if lang_asked else "")
             # DECLARED, never inferred. D26 reads this to say which sections
             # the document neither covers nor declares; guessing a storyline
             # from the headings would make the report a measurement of the
@@ -609,20 +612,6 @@ def main(argv):
                     help="write the scaffold here instead of to stdout. "
                          "Stdout stays the default; this exists so a caller "
                          "does not have to capture it")
-    ap.add_argument("--lang", default="en",
-                    help="the deliverable's output language, as a BCP-47 code "
-                         "for <html lang>. Default: en. American English is "
-                         "LUMI's default output language (writing-rules "
-                         "section 0) and another language is asked for, never "
-                         "inferred from the source material, the venue or the "
-                         "audience.")
-    ap.add_argument("--lang-asked", action="store_true",
-                    help="the user ASKED for --lang. Writes data-lang-asked on "
-                         "<body>, which is what M16 reads. Required for any "
-                         "language but English: without it the deck fails "
-                         "check_prose. Do not pass it because the input "
-                         "document or the conversation was in that language "
-                         "- neither is an instruction (FM-18).")
     ap.add_argument("--no-trace", action="store_true",
                     help="do not open a build trace (fixtures, tests, dry runs). "
                          "A real build keeps the default: the record opens "
@@ -630,8 +619,9 @@ def main(argv):
     ap.add_argument("--pages", type=int, default=None,
                     help="content pages, not counting cover, agenda, the part "
                          "openers and the closing. Default: the number of "
-                         "sections in --outline, or 6 with no outline. Pass it "
-                         "to scaffold a subset on purpose")
+                         "sections in --outline, or " + str(DEFAULT_PAGES) +
+                         " with no outline. Pass it to scaffold a subset on "
+                         "purpose")
     ap.add_argument("--parts", default="A,B",
                     help="part letters, comma separated. Two is the default: "
                          "one part is not a part, it is a document.")
@@ -642,25 +632,24 @@ def main(argv):
     parts = [x.strip() for x in args.parts.split(",") if x.strip()]
     mark = wordmark(args.wordmark)
     plan = outline_sections(args.outline)
-    # THE OUTLINE KNOWS HOW MANY PAGES THERE ARE. `--pages` defaulted to 6
-    # whatever the outline said, so a ten-title plan silently emitted six
-    # content pages and four findings had nowhere to go -- silently, because the
-    # scaffold is valid either way and no check compares a scaffold to a plan.
-    # An explicit `--pages` still wins: an author may deliberately scaffold a
-    # subset.
+    # THE OUTLINE KNOWS HOW MANY PAGES THERE ARE. `--pages` defaulted to a
+    # literal whatever the outline said, so a ten-title plan silently emitted
+    # six content pages and four findings had nowhere to go -- silently,
+    # because the scaffold is valid either way and no check compares a scaffold
+    # to a plan. An explicit `--pages` still wins: an author may deliberately
+    # scaffold a subset.
     if args.outline and plan and args.pages is None:
         args.pages = len(plan)
         print(f"note  --pages {args.pages}, from the {len(plan)} section(s) in "
               f"{args.outline.name}", file=sys.stderr)
     if args.pages is None:
-        args.pages = 6
+        args.pages = DEFAULT_PAGES
     # cover, agenda, closing, + openers; training appends its reference page.
     apparatus = 1 if args.genre == "training" else 0
     total = args.pages + 3 + len(parts) + apparatus
     trace_id = None if args.no_trace else open_trace(
         args.genre, args.geometry, args.storyline, args.outline)
-    out = [preamble(args.genre, args.geometry, args.storyline, trace_id,
-                    args.lang, args.lang_asked)]
+    out = [preamble(args.genre, args.geometry, args.storyline, trace_id)]
 
     # The cover title carries TWO INKS: the claim in ink, the noun the deck is
     # about as lime on its own dark chip (`.subj`) — the same green the part

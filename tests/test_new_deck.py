@@ -341,5 +341,24 @@ def test_an_explicit_pages_still_wins(tmp_path):
     assert _content_pages(html) == 4
 
 
-def test_with_no_outline_the_default_is_unchanged():
-    assert _content_pages(scaffold("--no-trace")) == 6
+def test_with_no_outline_the_default_is_the_owners_ten():
+    """The owner's default, 2026-08-23, after three validation rounds. Six was
+    this file's own invention and sat BELOW `evals/thresholds.json`'s
+    `min_content_pages: 8`, so a default scaffold escaped the corpus ratios and
+    M11 reported n/a for want of titles."""
+    assert _content_pages(scaffold("--no-trace")) == new_deck.DEFAULT_PAGES == 10
+
+
+def test_the_scaffold_has_no_way_to_be_anything_but_english():
+    """0.1.587 gave it `--lang` and `--lang-asked`, and a build ran both
+    itself — signing M16's "somebody asked" record on the same command line as
+    the language it was attesting to. A field an agent can fill is a field an
+    agent will fill."""
+    html = scaffold("--no-trace")
+    assert '<html lang="en"' in html
+    assert "data-lang-asked" not in html
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), \
+            pytest.raises(SystemExit):
+        new_deck.main(["--no-trace", "--lang", "zh-Hans"])
+    assert "unrecognized arguments" in err.getvalue()

@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.587"
+  version: "0.1.588"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -158,21 +158,18 @@ core detail recovered versus one batched round (the batched form shipped
 here for six releases against the research that had already falsified
 it). Questions may probe structure and evidence and may never decide the
 user's conclusions for them. When nothing needs asking, state the
-assumptions in the delivery note and proceed. **Three things are asked
-before anything is generated, and output language is one of them** —
-beside the genre and the page geometry, for the same reason: the answer
-changes every page. **American English is the default**; another language
-is something the user ASKS for, never something you read off the language
-of their material, the language THEY are typing in, the venue, or where
-the audience is. A language the same user chose for a comparable
-deliverable outranks every inference from the material, and naming a
-language in a plan and having the plan approved does not convert an
-inference into an instruction. When they do ask, the build records it —
-`new_deck.py --lang <code> --lang-asked` — and **M16 fails a deliverable
-in any language but English that carries no such record**. This paragraph
-is here rather than only in the preamble because the rule was in the
-preamble, correct and forceful, for both of the builds that broke it
-(FM-18). **For an external document, the value pass comes before the build**: answer
+assumptions in the delivery note and proceed. **Genre and geometry are asked
+before anything is generated** — the answer changes every page.
+**Output language is not asked, because it is not open: the build is in
+American English.** The scaffold has no language flag. If the user asks
+for another language, that is a SECOND file, derived from the finished
+English one with `scripts/ops/localize.py`, quoting their own words —
+and M16 fails a non-English deliverable that is not such a derivative.
+Never read the language off their material, off the language THEY are
+typing in, off the venue, or off where the audience is. This is written
+this way because the rule was in the preamble, correct and forceful, for
+all three of the builds that broke it, and because the version that asked
+for a record got one the agent wrote itself (FM-18). **For an external document, the value pass comes before the build**: answer
 5W+1H for the document as a whole (what, why, who, when, where, how — the
 reader should recover all six from the deck alone), give every key number
 its judgment anchor, and write the ask as who-does-what-by-when. The first
@@ -683,10 +680,11 @@ no log.
 5. Charts: one accent color, conclusion-style titles, a source line on every
    figure;
 6. AI never signs; money/safety conclusions never come from a language model.
-7. Output language is **American English** unless the user asked for another —
-   asked, never inferred from the source material, from the language they are
-   writing to you in, from the venue, or from where the audience is; and a
-   deliverable in any other language records the ask.
+7. The deliverable is in **American English**. Another language is a SECOND
+   file derived from it with `scripts/ops/localize.py`, never the language the
+   build starts in — asked for in the user's own words, never inferred from the
+   source material, from the language they are writing to you in, from the
+   venue, or from where the audience is.
 
 ## Cross-platform
 
