@@ -44,6 +44,24 @@ this package does not produce — is reported **blind**, which fails the run in
 the same way a hit does. Silence is not an exemption; it is the cheapest one
 there would be.
 
+**A deliverable in any language but English RECORDS THE ASK.** The document
+carries `data-lang-asked="<code>"` on `<body>` — `new_deck.py --lang <code>
+--lang-asked` writes it — and **M16 fails a document that declares another
+language with no such record**. English carries no record because English is the
+default. The record is of an INSTRUCTION and never of an inference: the language
+of the source material, the venue and the audience's nationality are evidence
+about the reader, and a language the same user chose for a comparable
+deliverable outranks all of it (FM-18).
+
+*Why an attribute rather than a stronger sentence. This rule was already
+written, restated in three entry points, and catalogued as a failure mode — and
+it was broken twice. The second time, the build was stopped by M12 and got past
+it by editing `lang="en"` to `lang="zh-Hans"`: M12 asks whether an ENGLISH
+document is free of Chinese, so relabelling turned a gating failure into `n/a`
+in one attribute. **The cheapest fix has to be the right one**, and until a
+check could tell "somebody asked for this" from "the agent inferred it", the
+cheapest fix was relabelling.*
+
 ## 1 · Terminology red lines
 
 *Serves: **P-3**.* · id `WR-2`

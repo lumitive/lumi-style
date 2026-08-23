@@ -57,6 +57,27 @@ without one produces a document assembled out of inconsistent halves.
   copied runtime is a copy of whatever version that deliverable happened to
   carry.
 
+## 2b · A build gets its own session, and one command per stage
+
+The bill for an agent build is `API calls x context per call`, and both halves
+are the build's to control. Measured on one 2026-08 ten-page deck: **460 calls,
+105 million cached input tokens, 389 terminal commands** — `inspect_layout` 64
+times, the fill script 46, `embed_shapes` 38, and the one command that runs the
+whole check stack, 6.
+
+- **One command per stage.** `scripts/ops/build.py` runs scaffold, fill, embed
+  and the full gate stack in one process, and writes the debug log as a side
+  effect rather than one wrapped command per turn. `check_deliverable.py`
+  already contained every instrument; running the stack and then the instruments
+  is the same work twice, and the expensive half is a browser.
+- **Use the loop flags.** `--fast` on the driver, `--iterate --no-sheet` on
+  `inspect_layout` directly: about 4 seconds against 22 on a twelve-page deck,
+  with every gate still running. The delivery round runs without them.
+- **A build gets its own session.** Unrelated conversation in the same session
+  is re-sent on every call for the rest of the build. On the build above, a
+  cost-verification discussion held in the same session cost about as much as
+  the build it was measuring.
+
 ## 3 · Questioning is segmented, and the segments are the user's
 
 Study everything the user supplied first, and work from the reader's side: the

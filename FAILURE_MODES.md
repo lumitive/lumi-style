@@ -278,6 +278,24 @@ explicitly chosen English for the previous deliverable of the same kind. The
 plan named zh-Hans and was approved; the owner's review opened with "why is
 the output Chinese, I said English by default."
 
+Second shipped instance, 2026-08-23, on a different platform: a wholly English
+source document (0 CJK characters in 54KB) produced a wholly Chinese deck. The
+new inference was the **conversation's own language** — the owner's request was
+typed in Chinese — and it was not the agent's invention: a machine-curated
+companion skill on that host carried the line `Chinese input + Chinese-speaking
+user -> zh-Hans output` as an operational instruction.
+
+**What the second instance changed.** The prevention above is text, and text is
+what failed twice. It failed a particular way worth recording: the build WAS
+stopped, by M12, and got past it by editing `lang="en"` to `lang="zh-Hans"`.
+M12 asks whether an ENGLISH document is free of Chinese, so declaring Chinese
+turned a gating failure into `n/a` — one attribute, and the document was
+green. **The cheapest fix was the wrong one, so the rule lost to the gate.**
+M16 (0.1.587) is the mechanical half: a deliverable in any language but English
+fails unless the ask is recorded on the document itself, which relabelling
+cannot supply. See also the general shape in the abandoned-gates reasoning — a
+gate whose cheapest satisfaction is a relabel is a gate that teaches relabelling.
+
 ## FM-19 · Inherited sentences carry inherited register
 
 - detection: a rebuild that reuses the source document's phrasing rather than

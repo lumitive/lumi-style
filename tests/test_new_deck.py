@@ -288,3 +288,58 @@ def test_an_outline_with_moves_yields_shape_slots(tmp_path):
 def test_the_field_device_rides_in_the_sample_rotation():
     html = scaffold("--storyline", "gtm", "--pages", "8", "--no-trace")
     assert 'class="field tall"' in html and "per real datum" in html
+
+
+# --- the page count follows the plan -----------------------------------------
+# `--pages` defaulted to 6 whatever the outline said, so a ten-title plan
+# silently emitted six content pages and four findings had nowhere to go —
+# silently, because the scaffold is valid either way and no check compares a
+# scaffold to a plan. Recorded as a build trap after a 2026-08 build had to
+# discover it by counting.
+
+_OUTLINE = """A plan with more sections than the old default
+genre: internal
+storyline: market-analysis
+
+## Part 1 · First
+- The first finding says something about its subject
+  analysis: compare | finding: f1 | implication: i1
+- The second finding says something about its subject
+  analysis: decompose | finding: f2 | implication: i2
+- The third finding says something about its subject
+  analysis: position | finding: f3 | implication: i3
+
+## Part 2 · Second
+- The fourth finding says something about its subject
+  analysis: bridge | finding: f4 | implication: i4
+- The fifth finding says something about its subject
+  analysis: correlate | finding: f5 | implication: i5
+- The sixth finding says something about its subject
+  analysis: compare | finding: f6 | implication: i6
+- The seventh finding says something about its subject
+  analysis: decompose | finding: f7 | implication: i7
+"""
+
+
+def _content_pages(html):
+    return len(re.findall(r'<section class="page"[^>]*id="p\d+"', html))
+
+
+def test_the_page_count_defaults_to_the_outlines_section_count(tmp_path):
+    o = tmp_path / "outline.md"
+    o.write_text(_OUTLINE, encoding="utf-8")
+    html = scaffold("--no-trace", "--outline", str(o), "--parts", "A,B")
+    assert _content_pages(html) == 7, "the plan has seven sections"
+
+
+def test_an_explicit_pages_still_wins(tmp_path):
+    """An author may deliberately scaffold a subset."""
+    o = tmp_path / "outline.md"
+    o.write_text(_OUTLINE, encoding="utf-8")
+    html = scaffold("--no-trace", "--outline", str(o), "--parts", "A,B",
+                    "--pages", "4")
+    assert _content_pages(html) == 4
+
+
+def test_with_no_outline_the_default_is_unchanged():
+    assert _content_pages(scaffold("--no-trace")) == 6

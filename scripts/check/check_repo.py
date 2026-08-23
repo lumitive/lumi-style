@@ -3564,7 +3564,15 @@ def check_shipped_closure():
     return errors
 
 
-CROSS_BOUNDARY_WAIVERS: dict[tuple[str, str], str] = {}
+CROSS_BOUNDARY_WAIVERS: dict[tuple[str, str], str] = {
+    ("scripts/ops/debug_log.py", "KNOWN_GAPS.md"):
+        "validate() reads KNOWN_GAPS to check that a cited GAP id is OPEN, and "
+        "catches OSError: where the ledger is not beside the script - the "
+        "consumer side, or a log written in an engagement folder - a well-formed "
+        "id is accepted instead. The alternative is refusing to validate a log "
+        "because the ledger lives elsewhere, which would break the platforms "
+        "this contract exists to make comparable. Degrading, not depending.",
+}
 
 
 def check_cross_boundary_paths():

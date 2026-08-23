@@ -300,6 +300,13 @@
    "severity": "reported",
    "since": "0.1.522"
   },
+  "M16_language_asked": {
+   "checker": "prose",
+   "family": "output-language",
+   "severity": "gate",
+   "since": "0.1.587",
+   "na_means": "the document declares no language at all, so there is nothing to compare an ask against - M12 answers that document as `blind`, which fails. English reads `ok` rather than n/a: it is the default and needs no record"
+  },
   "M1_assertive_titles": {
    "checker": "prose",
    "family": "title",

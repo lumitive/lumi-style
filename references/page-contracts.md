@@ -7,7 +7,7 @@ place its rule is written.
 This page is an index, never an authority: where it disagrees with the
 file it cites, the file wins and this page is stale.
 
-**488 rules · 149 measured by a metric · 89 gated · 339 with no automated check.**
+**490 rules · 152 measured by a metric · 92 gated · 338 with no automated check.**
 
 That last number is the point of the page. A rule with no check is not
 a rule an agent will follow, because an agent iterates to the edge of
@@ -56,7 +56,7 @@ The page that routes the parts. It quotes the deck; it never rewrites it.
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
-| Derive the agenda from the deck's own page titles rather than paraphrasing them. | `SKILL.md:193` | — | `D27` | yes |
+| Derive the agenda from the deck's own page titles rather than paraphrasing them. | `SKILL.md:226` | — | `D27` | yes |
 | Write each agenda row as what the part establishes for the reader, not as a table of contents. | `references/storyline-templates.md:207` | — | `—` | no |
 | Keep page spans out of an agenda row; they are apparatus. | `references/storyline-templates.md:210` | — | `D38` | yes |
 | Keep page spans out of agenda claim rows. | `references/storyline-templates.md:210` | — | `—` | no |
@@ -83,8 +83,8 @@ The seams. A part opener is a claim, a label, a run line and one silhouette.
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
-| Use the filled koboyo silhouettes for part-opener subject marks only. | `SKILL.md:391` | — | `opener_subject_mark` | yes |
-| Give every part boundary a lime opener page. | `SKILL.md:550` | — | `—` | no |
+| Use the filled koboyo silhouettes for part-opener subject marks only. | `SKILL.md:432` | — | `opener_subject_mark` | yes |
+| Give every part boundary a lime opener page. | `SKILL.md:617` | — | `—` | no |
 | Make part openers full lime fields carrying the claim in near-black at display size, and no other page. | `references/brand.md:273` | — | `—` | no |
 | Set part-opener display type at 80px on the slide and 72px on the sheet. | `references/brand.md:304` | — | `—` | no |
 | Invert the handling marker with the rest of the footer on the lime opener. | `references/design-rules.md:1052` | `footer.marker-colour` ← `RC-100` | `—` | no |
@@ -118,8 +118,8 @@ The last page, set like the cover and asking for the decision.
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
-| Stamp the lumi-style version once, in the closing colophon. | `SKILL.md:543` | — | `—` | no |
-| Embed the scoring table as the deck's final page. | `SKILL.md:558` | — | `—` | no |
+| Stamp the lumi-style version once, in the closing colophon. | `SKILL.md:610` | — | `—` | no |
+| Embed the scoring table as the deck's final page. | `SKILL.md:625` | — | `—` | no |
 | State provenance using one of the accepted provenance words. | `references/design-rules.md:766` | — | `D6` | no |
 | Name in the closing which decisions block the release and which do not. | `references/storyline-templates.md:144` | — | `—` | no |
 | Carry one closing statement that echoes the action page. | `references/storyline-templates.md:554` | — | `—` | no |
@@ -143,27 +143,27 @@ Gathered separately at the owner's direction: these are the pages the argument i
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
-| Close every external-genre content page with one .take takeaway line. | `SKILL.md:196` | — | `D28` | no |
-| A figure whose placements are judgements must print its basis inside the figure. | `SKILL.md:261` | — | `—` | no |
-| Draw comparisons as tables. | `SKILL.md:282` | — | `—` | no |
-| Write every figure title as a conclusion, not a label. | `SKILL.md:285` | — | `—` | no |
-| Put the page's numbers inside the figure's geometry. | `SKILL.md:286` | — | `D29` | no |
-| Give every figure a source line and put its number and name below it. | `SKILL.md:291` | — | `M2` | no |
-| Number figure captions 1..k, once each, in page order. | `SKILL.md:292` | — | `D30` | no |
-| Place a number before its label — above it in a stat block, at the front of a title, on or above its mark in a figure. | `SKILL.md:295` | — | `—` | no |
-| In a flow use shapes semantically: parallelogram = data, rectangle = process, diamond = decision, stadium = terminal. | `SKILL.md:301` | — | `—` | no |
-| Build every figure to the level of the document's best one. | `SKILL.md:305` | — | `D5` | no |
-| Draw a table when the content is a grid of sentences, and never pour prose into a grid. | `SKILL.md:309` | — | `—` | no |
-| Put an image on a page only if it carries an argument. | `SKILL.md:368` | — | `—` | no |
-| Give every coloured region a label or a legend row. | `SKILL.md:383` | — | `D18` | no |
-| Never place the generated 110m map and the coarse orthographic globe mark in one view. | `SKILL.md:385` | — | `—` | no |
-| Carry at least one visual block on every content page. | `SKILL.md:406` | — | `visual_absent` | yes |
-| Declare a reference page with data-role="apparatus", and keep such pages to about one content page in five. | `SKILL.md:409` | — | `D16` | no |
-| Give a portrait content page a second content block beside its centerpiece plus one marked key point. | `SKILL.md:414` | — | `—` | no |
-| Keep a figure's name to one line by shortening it, never by setting it smaller. | `SKILL.md:419` | — | `—` | no |
-| Shorten the title text when the title block does not fit. | `SKILL.md:423` | — | `reserve_overspent` | yes |
-| Never clamp or hide overflow on the title block. | `SKILL.md:424` | — | `content_hidden` | yes |
-| Give charts one accent colour, conclusion-style titles, and a source line on every figure. | `SKILL.md:616` | — | `—` | no |
+| Close every external-genre content page with one .take takeaway line. | `SKILL.md:229` | — | `D28` | no |
+| A figure whose placements are judgements must print its basis inside the figure. | `SKILL.md:294` | — | `—` | no |
+| Draw comparisons as tables. | `SKILL.md:315` | — | `—` | no |
+| Write every figure title as a conclusion, not a label. | `SKILL.md:318` | — | `—` | no |
+| Put the page's numbers inside the figure's geometry. | `SKILL.md:319` | — | `D29` | no |
+| Give every figure a source line and put its number and name below it. | `SKILL.md:324` | — | `M2` | no |
+| Number figure captions 1..k, once each, in page order. | `SKILL.md:325` | — | `D30` | no |
+| Place a number before its label — above it in a stat block, at the front of a title, on or above its mark in a figure. | `SKILL.md:328` | — | `—` | no |
+| In a flow use shapes semantically: parallelogram = data, rectangle = process, diamond = decision, stadium = terminal. | `SKILL.md:334` | — | `—` | no |
+| Build every figure to the level of the document's best one. | `SKILL.md:338` | — | `D5` | no |
+| Draw a table when the content is a grid of sentences, and never pour prose into a grid. | `SKILL.md:342` | — | `—` | no |
+| Put an image on a page only if it carries an argument. | `SKILL.md:409` | — | `—` | no |
+| Give every coloured region a label or a legend row. | `SKILL.md:424` | — | `D18` | no |
+| Never place the generated 110m map and the coarse orthographic globe mark in one view. | `SKILL.md:426` | — | `—` | no |
+| Carry at least one visual block on every content page. | `SKILL.md:447` | — | `visual_absent` | yes |
+| Declare a reference page with data-role="apparatus", and keep such pages to about one content page in five. | `SKILL.md:450` | — | `D16` | no |
+| Give a portrait content page a second content block beside its centerpiece plus one marked key point. | `SKILL.md:455` | — | `—` | no |
+| Keep a figure's name to one line by shortening it, never by setting it smaller. | `SKILL.md:460` | — | `—` | no |
+| Shorten the title text when the title block does not fit. | `SKILL.md:464` | — | `reserve_overspent` | yes |
+| Never clamp or hide overflow on the title block. | `SKILL.md:465` | — | `content_hidden` | yes |
+| Give charts one accent colour, conclusion-style titles, and a source line on every figure. | `SKILL.md:683` | — | `—` | no |
 | Follow the question to framework to shape chain, drawing a declared move with the library shapes that framework names. | `references/analysis-rules.md:107` | — | `D32` | yes |
 | Declare on every content section of an external document which of the five analytical moves produced its finding. | `references/analysis-rules.md:26` | — | `D31` | no |
 | Use --acc-live for strokes, chart marks and small fills inside figures. | `references/brand.md:189` | — | `—` | no |
@@ -185,10 +185,10 @@ Gathered separately at the owner's direction: these are the pages the argument i
 | Equalize card title heights in a row and stack stat numbers above their labels. | `references/design-rules.md:1184` | — | `—` | no |
 | Inside a figure set the value on or above its mark with the descriptor beneath. | `references/design-rules.md:1204` | — | `—` | no |
 | Keep chart data colours as the fixed CVD-validated triple regardless of brand palette. | `references/design-rules.md:127` | — | `—` | no |
-| Keep every drawn element inside its figure's viewBox. | `references/design-rules.md:1333` | — | `figure_clipped` | yes |
-| Edit a figure's viewBox with the shape, so the box a figure declares is the box it draws in. | `references/design-rules.md:1334` | — | `figure_viewbox` | yes |
-| Keep every figure label inside its own shape. | `references/design-rules.md:1337` | — | `—` | no |
-| Start side-by-side cells on one line with comparable weight. | `references/design-rules.md:1480` | — | `starved_column` | yes |
+| Keep every drawn element inside its figure's viewBox. | `references/design-rules.md:1334` | — | `figure_clipped` | yes |
+| Edit a figure's viewBox with the shape, so the box a figure declares is the box it draws in. | `references/design-rules.md:1335` | — | `figure_viewbox` | yes |
+| Keep every figure label inside its own shape. | `references/design-rules.md:1338` | — | `—` | no |
+| Start side-by-side cells on one line with comparable weight. | `references/design-rules.md:1481` | — | `starved_column` | yes |
 | Let hue encode only region identity in the globe's region form. | `references/design-rules.md:151` | — | `—` | no |
 | Never use a region hue outside a region shape. | `references/design-rules.md:156` | — | `—` | no |
 | Keep label text on a region fill at 4.5:1 or better. | `references/design-rules.md:170` | — | `—` | no |
@@ -320,7 +320,7 @@ Gathered separately at the owner's direction: these are the pages the argument i
 | Give every figure a conclusion-style title and a source line. | `references/storyline-templates.md:87` | — | `—` | no |
 | Label every claim as measured, build-time assertion, or inference. | `references/storyline-templates.md:95` | — | `—` | no |
 | Consolidate what is not built into one section instead of scattering it. | `references/storyline-templates.md:96` | — | `—` | no |
-| Vary what page-closing lines do; no more than half may be short and quotable. | `references/writing-rules.md:368` | — | `—` | no |
+| Vary what page-closing lines do; no more than half may be short and quotable. | `references/writing-rules.md:386` | — | `—` | no |
 
 ## 6 · Every page
 
@@ -328,37 +328,37 @@ Gathered separately at the owner's direction: these are the pages the argument i
 
 The footer, the palette, the type ladder, the layout vocabulary — what binds regardless of which page it is.
 
-236 rules, 153 of them unchecked.
+238 rules, 152 of them unchecked.
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
-| In an external document give every key number its judgment anchor and write the ask as who-does-what-by-when. | `SKILL.md:159` | — | `—` | no |
-| Order a customer-facing product deck as What, Why, How, Value in the reader's order. | `SKILL.md:197` | — | `—` | no |
-| Let no unreplaced placeholder or author slot survive into the delivered document. | `SKILL.md:222` | — | `D14` | yes |
-| Copy the shipped token block into the document rather than inventing a palette. | `SKILL.md:327` | — | `D20` | yes |
-| Sizes may be set per page; colour tokens may not be redefined. | `SKILL.md:334` | — | `D20` | yes |
-| Ship every image inside the file as a data: URI, never as a link. | `SKILL.md:369` | — | `D24` | yes |
-| Name every image's source and licence terms in the document. | `SKILL.md:370` | — | `D25` | yes |
-| Never set text on raw photography. | `SKILL.md:371` | — | `—` | no |
-| Never use the stock tells: the handshake, the glass tower, the team around a laptop. | `SKILL.md:372` | — | `—` | no |
-| Set text only from the --tx* ladder; --ln* is for rules and fills. | `SKILL.md:387` | — | `—` | no |
-| Take every icon from the two shipped sets; never draw one ad hoc. | `SKILL.md:388` | — | `—` | no |
-| Within one document let each icon mean exactly one thing. | `SKILL.md:392` | — | `—` | no |
-| Use the token file's role class names rather than renaming them. | `SKILL.md:396` | — | `—` | no |
+| In an external document give every key number its judgment anchor and write the ask as who-does-what-by-when. | `SKILL.md:178` | — | `—` | no |
+| Order a customer-facing product deck as What, Why, How, Value in the reader's order. | `SKILL.md:230` | — | `—` | no |
+| Let no unreplaced placeholder or author slot survive into the delivered document. | `SKILL.md:255` | — | `D14` | yes |
+| Copy the shipped token block into the document rather than inventing a palette. | `SKILL.md:368` | — | `D20` | yes |
+| Sizes may be set per page; colour tokens may not be redefined. | `SKILL.md:375` | — | `D20` | yes |
 | Design a deliverable for exactly one page geometry and declare which. | `SKILL.md:41` | — | `—` | no |
-| Trim content when a page does not fit; never nudge the type. | `SKILL.md:421` | — | `—` | no |
-| Carry the handling terms and origin on every page, opening with the seal-red shield handling marker. | `SKILL.md:516` | — | `D12` | yes |
-| Open a deck with a cover and end it with a closing page, each carrying the single vector mark. | `SKILL.md:549` | — | `deck_structure` | yes |
-| Target about five content pages between part openers. | `SKILL.md:551` | — | `—` | no |
-| Put a second geometry in its own file as its own composition. | `SKILL.md:57` | — | `—` | no |
-| Invent no facts, source every number, and label illustrative values as illustrative. | `SKILL.md:607` | — | `M2` | no |
-| Coin no Chinese terms; take the English term where no established Chinese term exists. | `SKILL.md:609` | — | `—` | no |
-| Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page. | `SKILL.md:611` | — | `—` | no |
-| Make every title name its subject and carry a verifiable fact. | `SKILL.md:613` | — | `M1` | no |
-| Use no single title frame across more than 60% of a document. | `SKILL.md:614` | — | `M11` | no |
-| Make all titles concatenated read as one complete argument. | `SKILL.md:615` | — | `—` | no |
-| AI never signs, and money or safety conclusions never come from a language model. | `SKILL.md:618` | — | `—` | no |
-| Default the output language to American English and the canvas to light unless the user asks otherwise. | `SKILL.md:81` | — | `—` | no |
+| Ship every image inside the file as a data: URI, never as a link. | `SKILL.md:410` | — | `D24` | yes |
+| Name every image's source and licence terms in the document. | `SKILL.md:411` | — | `D25` | yes |
+| Never set text on raw photography. | `SKILL.md:412` | — | `—` | no |
+| Never use the stock tells: the handshake, the glass tower, the team around a laptop. | `SKILL.md:413` | — | `—` | no |
+| Set text only from the --tx* ladder; --ln* is for rules and fills. | `SKILL.md:428` | — | `—` | no |
+| Take every icon from the two shipped sets; never draw one ad hoc. | `SKILL.md:429` | — | `—` | no |
+| Within one document let each icon mean exactly one thing. | `SKILL.md:433` | — | `—` | no |
+| Use the token file's role class names rather than renaming them. | `SKILL.md:437` | — | `—` | no |
+| Trim content when a page does not fit; never nudge the type. | `SKILL.md:462` | — | `—` | no |
+| Carry the handling terms and origin on every page, opening with the seal-red shield handling marker. | `SKILL.md:578` | — | `D12` | yes |
+| Open a deck with a cover and end it with a closing page, each carrying the single vector mark. | `SKILL.md:616` | — | `deck_structure` | yes |
+| Target about five content pages between part openers. | `SKILL.md:618` | — | `—` | no |
+| Put a second geometry in its own file as its own composition. | `SKILL.md:62` | — | `—` | no |
+| Invent no facts, source every number, and label illustrative values as illustrative. | `SKILL.md:674` | — | `M2` | no |
+| Coin no Chinese terms; take the English term where no established Chinese term exists. | `SKILL.md:676` | — | `—` | no |
+| Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page. | `SKILL.md:678` | — | `—` | no |
+| Make every title name its subject and carry a verifiable fact. | `SKILL.md:680` | — | `M1` | no |
+| Use no single title frame across more than 60% of a document. | `SKILL.md:681` | — | `M11` | no |
+| Make all titles concatenated read as one complete argument. | `SKILL.md:682` | — | `—` | no |
+| AI never signs, and money or safety conclusions never come from a language model. | `SKILL.md:685` | — | `—` | no |
+| Default the output language to American English and the canvas to light unless the user asks otherwise. | `SKILL.md:86` | — | `M16` | yes |
 | Never draw a field texture with no data behind it; every mark maps to one real item. | `references/brand.md:101` | — | `—` | no |
 | Set the ground density by page class: strong on cover and closing, mid on part openers, faint on body pages. | `references/brand.md:108` | `ground.tier` | `—` | no |
 | Never put a blend mode on the ground. | `references/brand.md:115` | — | `D17` | no |
@@ -424,39 +424,39 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Design the portrait format as a 794x1123 A4 sheet. | `references/design-rules.md:1246` | — | `—` | no |
 | Design a deliverable for one geometry and declare it. | `references/design-rules.md:1248` | — | `—` | no |
 | Default sales, marketing and consulting to 16:9 and training to A4 portrait. | `references/design-rules.md:1252` | — | `—` | no |
-| Never serve both geometries from one file. | `references/design-rules.md:1257` | — | `—` | no |
-| Compose portrait pages afresh rather than collapsing landscape layouts. | `references/design-rules.md:1267` | — | `—` | no |
+| Never serve both geometries from one file. | `references/design-rules.md:1258` | — | `—` | no |
+| Compose portrait pages afresh rather than collapsing landscape layouts. | `references/design-rules.md:1268` | — | `—` | no |
 | Verify every colour against the surface it is printed on. | `references/design-rules.md:130` | — | `D1` | no |
 | Place a status chip on its own wash rather than directly on the canvas. | `references/design-rules.md:131` | — | `—` | no |
-| Add no window-keyed media queries that restyle the inside of the stage. | `references/design-rules.md:1311` | — | `—` | no |
-| Keep the footer rule and page number visible on every page at every matrix point. | `references/design-rules.md:1315` | — | `—` | no |
-| Render each repeated role exactly one way across the document. | `references/design-rules.md:1353` | — | `role_split` | yes |
-| Start content at one datum per geometry. | `references/design-rules.md:1357` | — | `datum` | yes |
-| Use one colour per chart component across pages and a shared baseline inside a stat band. | `references/design-rules.md:1358` | — | `—` | no |
-| Let nothing land on anything: no text on text and no text on any drawn element. | `references/design-rules.md:1391` | — | `collision` | yes |
-| Move the grid tracks with the type scale so a block never overflows onto its neighbour. | `references/design-rules.md:1405` | — | `—` | no |
-| Treat the title block's reserved height as a ceiling. | `references/design-rules.md:1409` | — | `reserve_overspent` | yes |
-| Never clamp or hide overflow in a title block. | `references/design-rules.md:1418` | — | `content_hidden` | yes |
-| Give every styled class a base rendering rather than styling it only inside a media query. | `references/design-rules.md:1427` | — | `—` | no |
-| Give every page a layout class the shipped tokens define. | `references/design-rules.md:1438` | — | `D22` | yes |
-| Let a geometry tighten spacing but never change type size. | `references/design-rules.md:1447` | — | `—` | no |
-| Keep the rendered ground under 1.40:1 against the canvas. | `references/design-rules.md:1466` | `ground.contrast-ceiling` ← `RC-060` | `—` | no |
-| Avoid adjacent-sibling selectors inside a grid. | `references/design-rules.md:1475` | — | `—` | no |
-| Keep the page frame's parts the same width and centred at unintended window sizes. | `references/design-rules.md:1500` | — | `—` | no |
-| Keep the deepest ink on a page above the footer rule. | `references/design-rules.md:1506` | — | `content_spill` | yes |
-| Make each page a fixed box, scaled and letterboxed. | `references/design-rules.md:1507` | — | `page_height` | yes |
-| Keep page content out of the letterbox gutter. | `references/design-rules.md:1509` | — | `—` | no |
-| Include an image only when it carries an argument the page cannot make otherwise. | `references/design-rules.md:1542` | — | `—` | no |
-| Embed every image in the file as a data: URI rather than linking it. | `references/design-rules.md:1552` | — | `D24` | yes |
-| Name every image's origin and terms on the page. | `references/design-rules.md:1556` | — | `D25` | yes |
-| Name the licence for any image that is not public domain or CC0. | `references/design-rules.md:1559` | — | `D25` | yes |
-| Treat every photograph into the palette, as a duotone or a mono plate. | `references/design-rules.md:1561` | — | `—` | no |
-| Never set text on raw photography. | `references/design-rules.md:1565` | — | `—` | no |
-| Place imagery only on the cover, a part opener, a full-bleed evidence page, or inside a .fig. | `references/design-rules.md:1569` | — | `—` | no |
-| Never place imagery behind body copy, behind a table, or as a repeating texture. | `references/design-rules.md:1570` | — | `—` | no |
-| Ban the stock-photograph tells by name. | `references/design-rules.md:1575` | — | `—` | no |
-| Downscale an embedded raster to the size it is actually rendered at. | `references/design-rules.md:1581` | — | `—` | no |
-| Embed a diagram as a vector rather than a raster. | `references/design-rules.md:1582` | — | `—` | no |
+| Add no window-keyed media queries that restyle the inside of the stage. | `references/design-rules.md:1312` | — | `—` | no |
+| Keep the footer rule and page number visible on every page at every matrix point. | `references/design-rules.md:1316` | — | `—` | no |
+| Render each repeated role exactly one way across the document. | `references/design-rules.md:1354` | — | `role_split` | yes |
+| Start content at one datum per geometry. | `references/design-rules.md:1358` | — | `datum` | yes |
+| Use one colour per chart component across pages and a shared baseline inside a stat band. | `references/design-rules.md:1359` | — | `—` | no |
+| Let nothing land on anything: no text on text and no text on any drawn element. | `references/design-rules.md:1392` | — | `collision` | yes |
+| Move the grid tracks with the type scale so a block never overflows onto its neighbour. | `references/design-rules.md:1406` | — | `—` | no |
+| Treat the title block's reserved height as a ceiling. | `references/design-rules.md:1410` | — | `reserve_overspent` | yes |
+| Never clamp or hide overflow in a title block. | `references/design-rules.md:1419` | — | `content_hidden` | yes |
+| Give every styled class a base rendering rather than styling it only inside a media query. | `references/design-rules.md:1428` | — | `—` | no |
+| Give every page a layout class the shipped tokens define. | `references/design-rules.md:1439` | — | `D22` | yes |
+| Let a geometry tighten spacing but never change type size. | `references/design-rules.md:1448` | — | `—` | no |
+| Keep the rendered ground under 1.40:1 against the canvas. | `references/design-rules.md:1467` | `ground.contrast-ceiling` ← `RC-060` | `—` | no |
+| Avoid adjacent-sibling selectors inside a grid. | `references/design-rules.md:1476` | — | `—` | no |
+| Keep the page frame's parts the same width and centred at unintended window sizes. | `references/design-rules.md:1501` | — | `—` | no |
+| Keep the deepest ink on a page above the footer rule. | `references/design-rules.md:1507` | — | `content_spill` | yes |
+| Make each page a fixed box, scaled and letterboxed. | `references/design-rules.md:1508` | — | `page_height` | yes |
+| Keep page content out of the letterbox gutter. | `references/design-rules.md:1510` | — | `—` | no |
+| Include an image only when it carries an argument the page cannot make otherwise. | `references/design-rules.md:1543` | — | `—` | no |
+| Embed every image in the file as a data: URI rather than linking it. | `references/design-rules.md:1553` | — | `D24` | yes |
+| Name every image's origin and terms on the page. | `references/design-rules.md:1557` | — | `D25` | yes |
+| Name the licence for any image that is not public domain or CC0. | `references/design-rules.md:1560` | — | `D25` | yes |
+| Treat every photograph into the palette, as a duotone or a mono plate. | `references/design-rules.md:1562` | — | `—` | no |
+| Never set text on raw photography. | `references/design-rules.md:1566` | — | `—` | no |
+| Place imagery only on the cover, a part opener, a full-bleed evidence page, or inside a .fig. | `references/design-rules.md:1570` | — | `—` | no |
+| Never place imagery behind body copy, behind a table, or as a repeating texture. | `references/design-rules.md:1571` | — | `—` | no |
+| Ban the stock-photograph tells by name. | `references/design-rules.md:1576` | — | `—` | no |
+| Downscale an embedded raster to the size it is actually rendered at. | `references/design-rules.md:1582` | — | `—` | no |
+| Embed a diagram as a vector rather than a raster. | `references/design-rules.md:1583` | — | `—` | no |
 | Never place the stylised mark geography and the 110m map geography in one view. | `references/design-rules.md:207` | — | `—` | no |
 | Use D-DIN as the single Latin face for titles, body and data. | `references/design-rules.md:311` | — | `D23` | no |
 | Set display titles ALL-CAPS at weight 700 with 0.92 leading. | `references/design-rules.md:313` | — | `—` | no |
@@ -497,7 +497,7 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Keep a source marker somewhere in each page's own text. | `references/design-rules.md:763` | — | `M2` | no |
 | Render the footer's handling shield marker in --seal-t. | `references/design-rules.md:92` | `footer.marker-colour` | `—` | no |
 | Get hierarchy from the transparency ladders, never from new greys. | `references/design-rules.md:98` | — | `—` | no |
-| Carry none of the engagement's out-of-bounds terms in a deliverable, and name the list so the check can be attempted at all. | `references/operating-rules.md:211` | — | `privacy_terms` | yes |
+| Carry none of the engagement's out-of-bounds terms in a deliverable, and name the list so the check can be attempted at all. | `references/operating-rules.md:232` | — | `privacy_terms` | yes |
 | Bind the em-dash ban on training material exactly as on sales material. | `references/storyline-templates.md:113` | — | `M9` | yes |
 | Set a training document in A4 portrait as its primary geometry. | `references/storyline-templates.md:115` | — | `—` | no |
 | Carry exactly one storyline and one genre per document. | `references/storyline-templates.md:13` | — | `—` | no |
@@ -514,57 +514,59 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Reject a title that states only a contrast, a slogan, or a section label. | `references/storyline-templates.md:645` | — | `M1` | no |
 | Keep the evidence clause after a contrast lead-in. | `references/storyline-templates.md:647` | — | `M1` | no |
 | Make the concatenated titles read as a complete argument. | `references/storyline-templates.md:652` | — | `—` | no |
-| Quote a banned phrase only inside figure ink, never in HTML prose. | `references/writing-rules.md:116` | — | `M4` | yes |
-| Use full-width punctuation in Simplified-Chinese body text; half-width stays in code, URLs, emails, version strings, filenames and pure English runs. | `references/writing-rules.md:134` | — | `M5` | yes |
-| Use 「」 for Chinese quotes and full-width parentheses around Chinese content. | `references/writing-rules.md:137` | — | `—` | no |
-| Put a half-width space between Chinese and adjacent English or digits. | `references/writing-rules.md:139` | — | `—` | no |
-| Give every key number in external material a judgment anchor: a benchmark, a comparison, or the implication spelled out. | `references/writing-rules.md:149` | — | `—` | no |
-| Give every number its source or its derivation. | `references/writing-rules.md:160` | — | `M2` | no |
-| Trace a range figure to a single source in its own block, or drop it. | `references/writing-rules.md:161` | — | `M6` | yes |
-| Label illustrative values (illustrative / mock UI / proposal value / uncalibrated) and carry the label downstream. | `references/writing-rules.md:162` | — | `—` | no |
-| Never cite an external benchmark that cannot be re-verified. | `references/writing-rules.md:165` | — | `—` | no |
-| Match precision to confidence: count precisely when you can, write "several" when you cannot, never fake precision. | `references/writing-rules.md:169` | — | `—` | no |
-| Never substitute an adjective stack for a number; delete the adjective if no figure backs it. | `references/writing-rules.md:171` | — | `—` | no |
-| Put an ordinary figure's source marker somewhere on its page and a range's marker in its own block. | `references/writing-rules.md:199` | — | `M2` | no |
-| Do not treat a dashed pair that is an enumeration label rather than a data range as a range figure. | `references/writing-rules.md:206` | — | `M6` | yes |
-| Decide range-versus-label by what the numbers do, not by sentence length. | `references/writing-rules.md:210` | — | `M6` | yes |
-| Never cite a publicly debunked statistic, however widely it circulates. | `references/writing-rules.md:223` | — | `—` | no |
-| Allow at most one negation-first opening per document, on the cover or the hook, and only when what is rejected is named concretely. | `references/writing-rules.md:240` | — | `—` | no |
-| Never use a negation-first opening as a page title or a section opener. | `references/writing-rules.md:242` | — | `—` | no |
-| State parameters plainly and strip the marketing adjectives wrapped around numbers. | `references/writing-rules.md:247` | — | `—` | no |
-| Make every claim's status legible: verified, recommended, or unverified with the gap named. | `references/writing-rules.md:251` | — | `—` | no |
-| Write in active voice, conclusion first, and say "uncertain" plainly instead of stacking hedges. | `references/writing-rules.md:256` | — | `—` | no |
-| Vary sentence length across the document. | `references/writing-rules.md:257` | — | `M8` | no |
-| Never write runs of short emphatic fragments for drama. | `references/writing-rules.md:260` | — | `—` | no |
-| Write in American English when the user specifies no language. | `references/writing-rules.md:27` | — | `M12` | yes |
+| Use the fixed industry collocations only for the 'empower' verb the zh ban list restricts; the quoted line names them. | `references/writing-rules.md:100` | — | `M4zh` | yes |
+| In English output, use none of the phrases on the banned AI-tell list. | `references/writing-rules.md:105` | — | `M4` | yes |
+| Quote a banned phrase only inside figure ink, never in HTML prose. | `references/writing-rules.md:134` | — | `M4` | yes |
+| Use full-width punctuation in Simplified-Chinese body text; half-width stays in code, URLs, emails, version strings, filenames and pure English runs. | `references/writing-rules.md:152` | — | `M5` | yes |
+| Use 「」 for Chinese quotes and full-width parentheses around Chinese content. | `references/writing-rules.md:155` | — | `—` | no |
+| Put a half-width space between Chinese and adjacent English or digits. | `references/writing-rules.md:157` | — | `—` | no |
+| Give every key number in external material a judgment anchor: a benchmark, a comparison, or the implication spelled out. | `references/writing-rules.md:167` | — | `—` | no |
+| Give every number its source or its derivation. | `references/writing-rules.md:178` | — | `M2` | no |
+| Trace a range figure to a single source in its own block, or drop it. | `references/writing-rules.md:179` | — | `M6` | yes |
+| Label illustrative values (illustrative / mock UI / proposal value / uncalibrated) and carry the label downstream. | `references/writing-rules.md:180` | — | `—` | no |
+| Never cite an external benchmark that cannot be re-verified. | `references/writing-rules.md:183` | — | `—` | no |
+| Match precision to confidence: count precisely when you can, write "several" when you cannot, never fake precision. | `references/writing-rules.md:187` | — | `—` | no |
+| Never substitute an adjective stack for a number; delete the adjective if no figure backs it. | `references/writing-rules.md:189` | — | `—` | no |
+| Put an ordinary figure's source marker somewhere on its page and a range's marker in its own block. | `references/writing-rules.md:217` | — | `M2` | no |
+| Do not treat a dashed pair that is an enumeration label rather than a data range as a range figure. | `references/writing-rules.md:224` | — | `M6` | yes |
+| Decide range-versus-label by what the numbers do, not by sentence length. | `references/writing-rules.md:228` | — | `M6` | yes |
+| Never cite a publicly debunked statistic, however widely it circulates. | `references/writing-rules.md:241` | — | `—` | no |
+| Allow at most one negation-first opening per document, on the cover or the hook, and only when what is rejected is named concretely. | `references/writing-rules.md:258` | — | `—` | no |
+| Never use a negation-first opening as a page title or a section opener. | `references/writing-rules.md:260` | — | `—` | no |
+| State parameters plainly and strip the marketing adjectives wrapped around numbers. | `references/writing-rules.md:265` | — | `—` | no |
+| Make every claim's status legible: verified, recommended, or unverified with the gap named. | `references/writing-rules.md:269` | — | `—` | no |
+| Write in American English when the user specifies no language. | `references/writing-rules.md:27` | — | `M16` | yes |
+| Write in active voice, conclusion first, and say "uncertain" plainly instead of stacking hedges. | `references/writing-rules.md:274` | — | `—` | no |
+| Vary sentence length across the document. | `references/writing-rules.md:275` | — | `M8` | no |
+| Never write runs of short emphatic fragments for drama. | `references/writing-rules.md:278` | — | `—` | no |
 | Use American spellings (-ize, -or, -og: organize, color, catalog). | `references/writing-rules.md:28` | — | `—` | no |
 | Use double quotation marks with periods and commas placed inside them. | `references/writing-rules.md:29` | — | `—` | no |
 | Use the serial comma, and follow the client's date convention in prose. | `references/writing-rules.md:30` | — | `—` | no |
 | Write dates in data, filenames and version strings as ISO YYYY-MM-DD in every language. | `references/writing-rules.md:31` | — | `—` | no |
-| Replace copula avoidance (serves as / stands as / boasts / features) with is / are / has. | `references/writing-rules.md:323` | — | `M4` | yes |
-| Vary sentence length deliberately across each page or section, not just at the outliers. | `references/writing-rules.md:325` | — | `M8` | no |
-| Delete filler phrases losslessly. | `references/writing-rules.md:329` | — | `M4` | yes |
 | Produce the deliverable in the language the user specified. | `references/writing-rules.md:33` | — | `—` | no |
-| Replace abstraction only with concrete detail already in the source; never invent detail. | `references/writing-rules.md:330` | — | `—` | no |
-| Cut idling connectives and transitional openers; keep real causality. | `references/writing-rules.md:334` | — | `—` | no |
-| Use no em dashes or en dashes in sales, marketing, consulting or training deliverables; internal analysis alone is exempt. | `references/writing-rules.md:341` | — | `M9` | yes |
-| Exempt a digit-to-digit range from the dash ban, but write a letter-digit span as "C1 to C8". | `references/writing-rules.md:349` | — | `M9` | yes |
-| Do not force ideas into triplets; rewrite some lists as pairs or as prose. | `references/writing-rules.md:352` | — | `M10` | no |
-| Vary list item length and construction unless the list is a genuine parallel enumeration. | `references/writing-rules.md:355` | — | `—` | no |
-| Do not use inline-header bullets as the default list form. | `references/writing-rules.md:358` | — | `—` | no |
-| Use no manufactured punchlines, aphorism formulas or generic upbeat conclusions; end on the concrete fact. | `references/writing-rules.md:360` | — | `—` | no |
-| Bold only what carries meaning; remove mechanical bolding of every key phrase. | `references/writing-rules.md:372` | — | `—` | no |
-| Do not open sibling blocks of the same role with the same words differing only in the filled slot. | `references/writing-rules.md:375` | — | `M14` | no |
-| Remove any fact, name, number, date or citation a rewrite added that is not in the source. | `references/writing-rules.md:393` | — | `—` | no |
-| In Chinese output, remove inverted English word order, over-explicit pronouns and the imported "X, not Y" antithesis. | `references/writing-rules.md:413` | — | `—` | no |
-| Take numbers, people, events and quotes only from source material; invent no facts. | `references/writing-rules.md:423` | — | `—` | no |
-| Never let a language model produce money or safety conclusions; use deterministic rules. | `references/writing-rules.md:425` | — | `—` | no |
-| Never let AI sign; legally signed steps belong to licensed humans. | `references/writing-rules.md:427` | — | `—` | no |
-| Keep facts and framing unchanged through a style rewrite; delete any fact that cannot be traced back. | `references/writing-rules.md:428` | — | `—` | no |
-| In Chinese output, never invent a Chinese term; use the English term for concepts with no established Chinese word. | `references/writing-rules.md:51` | — | `—` | no |
-| In Chinese output, give a technical term's English in parentheses at its first occurrence only. | `references/writing-rules.md:64` | — | `—` | no |
-| Keep chart labels, quick-reference tables and glossaries bilingual. | `references/writing-rules.md:65` | — | `—` | no |
-| Use one name per concept across the whole document; never rotate synonyms. | `references/writing-rules.md:69` | — | `—` | no |
-| In Chinese output, use none of the banned AI-tell phrases on the zh list. | `references/writing-rules.md:79` | — | `M4zh` | yes |
-| Use the fixed industry collocations only for the 'empower' verb the zh ban list restricts; the quoted line names them. | `references/writing-rules.md:82` | — | `M4zh` | yes |
-| In English output, use none of the phrases on the banned AI-tell list. | `references/writing-rules.md:87` | — | `M4` | yes |
+| Replace copula avoidance (serves as / stands as / boasts / features) with is / are / has. | `references/writing-rules.md:341` | — | `M4` | yes |
+| Vary sentence length deliberately across each page or section, not just at the outliers. | `references/writing-rules.md:343` | — | `M8` | no |
+| Delete filler phrases losslessly. | `references/writing-rules.md:347` | — | `M4` | yes |
+| Replace abstraction only with concrete detail already in the source; never invent detail. | `references/writing-rules.md:348` | — | `—` | no |
+| Cut idling connectives and transitional openers; keep real causality. | `references/writing-rules.md:352` | — | `—` | no |
+| Use no em dashes or en dashes in sales, marketing, consulting or training deliverables; internal analysis alone is exempt. | `references/writing-rules.md:359` | — | `M9` | yes |
+| Exempt a digit-to-digit range from the dash ban, but write a letter-digit span as "C1 to C8". | `references/writing-rules.md:367` | — | `M9` | yes |
+| Do not force ideas into triplets; rewrite some lists as pairs or as prose. | `references/writing-rules.md:370` | — | `M10` | no |
+| Vary list item length and construction unless the list is a genuine parallel enumeration. | `references/writing-rules.md:373` | — | `—` | no |
+| Do not use inline-header bullets as the default list form. | `references/writing-rules.md:376` | — | `—` | no |
+| Use no manufactured punchlines, aphorism formulas or generic upbeat conclusions; end on the concrete fact. | `references/writing-rules.md:378` | — | `—` | no |
+| Keep an English deliverable free of Chinese in text a reader sees. | `references/writing-rules.md:39` | — | `M12` | yes |
+| Bold only what carries meaning; remove mechanical bolding of every key phrase. | `references/writing-rules.md:390` | — | `—` | no |
+| Do not open sibling blocks of the same role with the same words differing only in the filled slot. | `references/writing-rules.md:393` | — | `M14` | no |
+| Remove any fact, name, number, date or citation a rewrite added that is not in the source. | `references/writing-rules.md:411` | — | `—` | no |
+| In Chinese output, remove inverted English word order, over-explicit pronouns and the imported "X, not Y" antithesis. | `references/writing-rules.md:431` | — | `—` | no |
+| Take numbers, people, events and quotes only from source material; invent no facts. | `references/writing-rules.md:441` | — | `—` | no |
+| Never let a language model produce money or safety conclusions; use deterministic rules. | `references/writing-rules.md:443` | — | `—` | no |
+| Never let AI sign; legally signed steps belong to licensed humans. | `references/writing-rules.md:445` | — | `—` | no |
+| Keep facts and framing unchanged through a style rewrite; delete any fact that cannot be traced back. | `references/writing-rules.md:446` | — | `—` | no |
+| Record the ask on any deliverable not in English: data-lang-asked on <body>. | `references/writing-rules.md:47` | — | `M16` | yes |
+| In Chinese output, never invent a Chinese term; use the English term for concepts with no established Chinese word. | `references/writing-rules.md:69` | — | `—` | no |
+| In Chinese output, give a technical term's English in parentheses at its first occurrence only. | `references/writing-rules.md:82` | — | `—` | no |
+| Keep chart labels, quick-reference tables and glossaries bilingual. | `references/writing-rules.md:83` | — | `—` | no |
+| Use one name per concept across the whole document; never rotate synonyms. | `references/writing-rules.md:87` | — | `—` | no |
+| In Chinese output, use none of the banned AI-tell phrases on the zh list. | `references/writing-rules.md:97` | — | `M4zh` | yes |

@@ -371,6 +371,48 @@ def cmd_note(args):
     return 0
 
 
+def _short(cmd: str, width: int = 70) -> str:
+    cmd = " ".join(str(cmd).split())
+    return cmd if len(cmd) <= width else cmd[:width - 1] + "\u2026"
+
+
+def _by_command(commands) -> dict:
+    """-> {command string: its entries, in the order they were recorded}.
+
+    Keyed on the command itself rather than on a label, because `run` records
+    no label into `commands` - the two lists have never been joined.
+    """
+    by: dict = {}
+    for c in commands:
+        by.setdefault(" ".join(str(c.get("command", "")).split()), []).append(c)
+    return by
+
+
+def _cites_open_gap(log) -> bool:
+    """Does any error message name an OPEN KNOWN_GAPS entry?
+
+    An id nobody defines is not a citation, and a closed one is not a reason to
+    ship red. Where KNOWN_GAPS cannot be read - the log is written in an
+    engagement folder and the package may not be beside it - a well-formed id is
+    accepted rather than the whole check being dropped: refusing to validate a
+    log because the repository is elsewhere would fail the platforms this
+    contract exists to make comparable.
+    """
+    cited = set()
+    for e in log.get("errors") or []:
+        cited |= set(re.findall(r"GAP-\d+", str(e.get("message", ""))))
+    if not cited:
+        return False
+    try:
+        gaps = (ROOT / "KNOWN_GAPS.md").read_text(encoding="utf-8")
+    except OSError:
+        return True
+    open_ids = set(re.findall(
+        r"^## (GAP-\d+)[^\n]*\n(?:(?!^## ).)*?- status: open",
+        gaps, re.M | re.S))
+    return bool(cited & open_ids)
+
+
 def validate(log) -> list[str]:
     """-> human-readable problems; empty means the log holds its contract.
 
@@ -430,6 +472,27 @@ def validate(log) -> list[str]:
                    f"explains none of them — `run` records a failure itself, so "
                    f"an empty `errors` beside a failure means the log was "
                    f"assembled by hand")
+    # A LOGGED FAILURE IS NOT A RESOLVED ONE. The check above passes the moment
+    # `errors` is non-empty, and `run` fills `errors` automatically — so a build
+    # whose last layout check printed NOT SHIPPABLE and whose last full-stack
+    # check exited 1 produced a log this function blessed, and the delivery note
+    # beside it reported both as green. Measured on a 2026-08 build; the debug
+    # JSON says `"exit_code": 1` twice and the report says "0 FAIL".
+    #
+    # So: a command that failed must have been RUN AGAIN and passed, or the log
+    # must say which open gap it ships under. This is check_evidence.py's rule,
+    # which exists for exactly this and had no counterpart on the deliverable
+    # side.
+    for cmd, entries in _by_command(commands).items():
+        if entries[-1].get("exit_code") in (0, None):
+            continue
+        if _cites_open_gap(log):
+            continue
+        out.append(f"the last run of `{_short(cmd)}` exited "
+                   f"{entries[-1]['exit_code']} and nothing ran it clean "
+                   f"afterwards — a build whose final reading is red is a red "
+                   f"build. Fix it and run it again, or name the open "
+                   f"KNOWN_GAPS entry it ships under in an `error` message")
 
     for i, s in enumerate(log.get("steps") or []):
         secs = s.get("seconds")

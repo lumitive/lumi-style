@@ -356,6 +356,14 @@ CJK = re.compile(_CJK_CHAR + r"(?:[\s\d/%\-\u3001\uff0c\u3002\uff1a\uff1b\u00b7]
 # is a decision a reader can see rather than a line in a config nobody reads.
 CODE_HTML = re.compile(r"<(code|pre|script|style|svg|head)\b.*?</\1>", re.S | re.I)
 LANG_ATTR = re.compile(r"<html[^>]*\blang\s*=\s*[\"']([\w-]+)", re.I)
+# The other half of the language question, and the reason M12 alone was not
+# enough. `lang` says what the document IS; this says a person ASKED for it.
+# Without the pair, the cheapest way past M12 was to relabel the document —
+# which is what a 2026-08 build did, turning a gating FAIL into `n/a` by
+# editing one attribute instead of the prose underneath it (FM-18, second
+# instance). English needs no such record: it is the default.
+LANG_ASKED = re.compile(
+    r"<body[^>]*\bdata-lang-asked\s*=\s*[\"']([\w-]+)", re.I)
 
 
 def zh_punctuation(text):
@@ -398,6 +406,22 @@ def declared_language(path, raw, override=None):
             return tag.split("_")[0].split("-")[0], "the filename"
     return None, ("no lang attribute, no language tag in the filename, and no "
                   "--lang given")
+
+
+def asked_language(raw, override=None):
+    """Which language somebody ASKED for, and where that record lives.
+
+    Returns (code, where) or (None, reason). This is a record of an
+    instruction, never an inference: the language of the source material, the
+    venue and the audience's nationality are evidence about the reader and none
+    of them is an ask (`references/writing-rules.md` section 0, FM-18).
+    """
+    if override:
+        return override.split("-")[0].lower(), "--asked-lang"
+    m = LANG_ASKED.search(raw)
+    if m:
+        return m.group(1).split("-")[0].lower(), "data-lang-asked"
+    return None, "no data-lang-asked attribute and no --asked-lang given"
 
 
 def visible_cjk(raw, suffix):
@@ -591,7 +615,7 @@ def sentences(text):
     return out
 
 
-def measure(path, genre, lang=None):
+def measure(path, genre, lang=None, asked=None):
     raw = path.read_text(encoding="utf-8", errors="replace")
     language, where = declared_language(path, raw, lang)
     # UNDECLARED IS NOT EXEMPT. M12 used to go `n/a` whenever the document
@@ -614,6 +638,18 @@ def measure(path, genre, lang=None):
     # right one field over: an unknown name is never silently exempt.
     undeclared_cjk = (language not in ("en", "zh")
                       and bool(visible_cjk(raw, path.suffix.lower())))
+    # M16: a language other than the default is something a person asked for.
+    # M12 asks whether an English document is free of Chinese; it cannot ask
+    # whether the document should have been English, and until 0.1.587 nothing
+    # could. English is `0` rather than `n/a` on purpose — a metric that reads
+    # `n/a` on the ordinary case teaches a reader to ignore the row.
+    asked_lang, asked_from = asked_language(raw, asked)
+    if language is None:
+        unasked = None
+    elif language == "en":
+        unasked = 0
+    else:
+        unasked = 0 if asked_lang == language else 1
     body, titles, enums, windows = extract(path)
     lengths = sentences(body)
     # A Chinese document has no spaces, so the English word splitter returns
@@ -720,6 +756,13 @@ def measure(path, genre, lang=None):
         "genre": genre,
         "language": language, "language_from": where,
         "M12_undeclared_cjk": undeclared_cjk,
+        "M16_language_asked": unasked,
+        "M16_detail": ([] if not unasked else
+                       [f"the document declares {language!r} ({where}); "
+                        f"{asked_from}. American English is the default and "
+                        f"another language is asked for, never inferred "
+                        f"(writing-rules section 0)."]),
+        "asked_language": asked_lang, "asked_language_from": asked_from,
         "M13_quantity_conflicts": len(quantity_conflicts(body)),
         "M14_parallel_frames": len(m14 := m14_parallel_frames(raw)),
         "M14_detail": [f"{pre} \u00d7{n}" for pre, n in m14][:8],
@@ -958,6 +1001,13 @@ def grade(r):
         ("M12_visible_cjk", r["M12_visible_cjk"], "=0 (gates)",
          not r["M12_visible_cjk"],
          r["M12_visible_cjk"] is None and not r["M12_undeclared_cjk"]),
+        # M12's other half. M12 asks whether an ENGLISH document is free of
+        # Chinese, so declaring `zh` made it `n/a` and relabelling became the
+        # cheapest fix — a shipped build did exactly that, and the rule that
+        # says English is the default had nothing holding it. This asks the
+        # question M12 structurally cannot: was this language ASKED for?
+        ("M16_language_asked", r["M16_language_asked"], "=0 (gates)",
+         not r["M16_language_asked"], r["M16_language_asked"] is None),
         ("M4_banned_hits", r["M4_banned_hits"], "=0 (gates)",
          r["M4_banned_hits"] == 0, False),
         # Reported, never gating: a quantity legitimately changes, and a gate
@@ -1050,6 +1100,12 @@ def main(argv):
     ap.add_argument("--genre", choices=list(GENRES), default="sales",
                     help="internal analysis documents are exempt from the M9 dash "
                          "ban; training binds like sales — its readers quote it")
+    ap.add_argument("--asked-lang", default=None,
+                    help="the language the USER asked for. Overrides the "
+                         "document's data-lang-asked attribute. M16 fails a "
+                         "document in any language but English that no record "
+                         "says was asked for; English is the default and needs "
+                         "no record")
     ap.add_argument("--lang", default=None,
                     help="the language the deliverable claims. Overrides the "
                          "document's own lang attribute and the *.en.* filename "
@@ -1071,7 +1127,8 @@ def main(argv):
         try:
             if not path.is_file():
                 raise Unmeasurable("not a readable file")
-            r = measure(path, args.genre, args.lang)
+            r = measure(path, args.genre, args.lang,
+                        args.asked_lang)
         except (Unmeasurable, OSError) as exc:
             # A DOCUMENT THIS CANNOT MEASURE FAILS THE RUN, whatever the gate
             # set is. "Not measured" has never been a pass in this package, and
@@ -1148,6 +1205,14 @@ def main(argv):
             print("        banned: " + ", ".join(f"{p}x{n}" for p, n in worst))
         for snippet in r["M12_detail"][:6]:
             print(f"        CJK in reader text: …{snippet}…")
+        # A FAIL that does not say what would fix it teaches the cheapest
+        # fix, and the cheapest fix here is the one this metric exists to
+        # stop: relabelling the document.
+        for line in r["M16_detail"]:
+            print(f"        {line}")
+            print("        fix it by writing the deliverable in English, or "
+                  "record the ask: <body data-lang-asked=\"...\"> "
+                  "(new_deck.py --lang <code> --lang-asked).")
         # WHAT WAS EXEMPTED, said out loud. These live in the JSON and were
         # never printed, so an author whose range passed M6 by being read as an
         # enumeration label could not tell that from a range this metric never

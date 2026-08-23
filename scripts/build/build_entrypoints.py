@@ -32,6 +32,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 import sys
 from typing import Any
 
@@ -93,15 +94,32 @@ def skill_field(name: str) -> str:
     return value
 
 
-def red_lines() -> str:
-    """The six red lines, lifted from SKILL.md rather than restated.
+def red_lines_heading() -> str:
+    """SKILL.md's red-lines heading, verbatim.
 
-    A pointer file that paraphrases them is a seventh copy waiting to drift; this
+    How MANY there are is whatever SKILL.md says today, never a number written
+    here. This function used to match the literal string "## Six non-negotiable",
+    so adding a seventh red line crashed every generated pointer file with a bare
+    StopIteration - convention 13's problem, in the generator that exists to stop
+    prose from counting.
+    """
+    text = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+    m = re.search(r"^## \w+ non-negotiable red lines.*$", text, re.M)
+    if not m:
+        raise ValueError("SKILL.md has no red-lines heading to lift")
+    return m.group(0)
+
+
+def red_lines() -> str:
+    """The red lines, lifted from SKILL.md rather than restated.
+
+    A pointer file that paraphrases them is one more copy waiting to drift; this
     is the one section every platform must carry verbatim.
     """
     text = (ROOT / "SKILL.md").read_text(encoding="utf-8")
     lines = text.splitlines()
-    start = next(i for i, ln in enumerate(lines) if ln.startswith("## Six non-negotiable"))
+    heading = red_lines_heading()
+    start = next(i for i, ln in enumerate(lines) if ln == heading)
     end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
     block = "\n".join(lines[start + 1:end]).strip()
     if not block:
@@ -191,7 +209,7 @@ def render_pointer(p: dict, version: str, heading: str, path: str) -> str:
         f"{p['name']} loads it on demand. This file exists for the case where the "
         f"repository is checked out in the working tree instead.",
         "",
-        "## Six non-negotiable red lines (every scenario)",
+        red_lines_heading(),
         "",
         red_lines(),
         "",

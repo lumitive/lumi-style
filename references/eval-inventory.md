@@ -23,6 +23,7 @@ the hidden-constraint condition this inventory exists to surface.
 | check_prose | M13_quantity_conflicts | `=0 (reported)` | reported |
 | check_prose | M14_parallel_frames | `=0 (reported)` | reported |
 | check_prose | M15_page_prose | `reported` | reported |
+| check_prose | M16_language_asked | `=0 (gates)` | gate |
 | check_prose | M1_assertive_titles | `>=70% (reported)` | reported |
 | check_prose | M2_number_sourcing | `>=90%` | graded |
 | check_prose | M4_banned_hits | `=0 (gates)` | gate |
@@ -174,7 +175,7 @@ different ways.
 | DELTA_E_FLOOR | `20.0` | adjacent regions, CIEDE2000 — a FLOOR | (not searched: too short) |
 | LABEL_CONTRAST_FLOOR | `4.5` | a FLOOR, the repository's existing text floor | design-rules.md, eval-rubric.md, page-contracts.md |
 | STROKE_L_OFFSET | `0.20` | darker on the light canvas, lighter on the dark | CODE ONLY |
-| PROXIMITY_KM | `1500` |  | design-rules.md, page-contracts.md |
+| PROXIMITY_KM | `1500` |  | design-rules.md |
 | EARTH_KM | `6371.0` |  | CODE ONLY |
 
 ### assets/globe/globe.js

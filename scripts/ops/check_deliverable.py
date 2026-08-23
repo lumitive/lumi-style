@@ -58,7 +58,8 @@ ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
 
 
 def gather(path: pathlib.Path, genre: str | None, terms: str | None,
-           skip_layout: bool = False, iterate: bool = False) -> dict:
+           skip_layout: bool = False, iterate: bool = False,
+           sheet: bool = False) -> dict:
     """Run every instrument; -> {kind: run dict}. Layout goes first and runs
     concurrently — it renders in a browser while the text checks execute."""
     runs: dict[str, dict] = {}
@@ -66,7 +67,8 @@ def gather(path: pathlib.Path, genre: str | None, terms: str | None,
     t0 = time.monotonic()
     if not skip_layout:
         layout_proc = subprocess.Popen(
-            checker_report.checker_argv("layout", path, iterate=iterate),
+            checker_report.checker_argv("layout", path, iterate=iterate,
+                                        sheet=sheet),
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
     for kind in kinds():
@@ -326,6 +328,13 @@ def main(argv=None) -> int:
                          "gate still runs — 3s instead of 16s on a twelve-page "
                          "deck. NOT a delivery reading; run it without --fast "
                          "before you hand the document over")
+    ap.add_argument("--sheet", action="store_true",
+                    help="also build the contact sheet, and print where it "
+                         "landed. Off by default because a harness run has "
+                         "nobody watching — but the sheet IS the last gate "
+                         "(`SKILL.md`: 'look at the sheet'), and suppressing it "
+                         "unconditionally is why authors ran inspect_layout a "
+                         "second time. Pass it on the delivery round")
     ap.add_argument("--skip-layout", action="store_true",
                     help="no browser available; recorded as a silent "
                          "instrument and the exit stays nonzero")
@@ -343,7 +352,7 @@ def main(argv=None) -> int:
 
     started = time.monotonic()
     runs = gather(a.file, genre, a.terms, skip_layout=a.skip_layout,
-                  iterate=a.fast)
+                  iterate=a.fast, sheet=a.sheet)
     checks_seconds = max(1, round(time.monotonic() - started))
     # THE VERSION THE DOCUMENT DECLARES. `fingerprint.version_in` reads the
     # colophon every LUMI deliverable carries; it existed and nothing that
@@ -391,6 +400,16 @@ def main(argv=None) -> int:
         if not (gating or silent or graded or not_held):
             print("  every instrument spoke, and nothing failed. The last "
                   "gate is a person: look at the contact sheet.")
+        # WHERE the sheet is, when one was built. "Look at the contact sheet"
+        # is the last gate and it was an instruction with no address.
+        for rep in (runs.get("layout") or {}).get("reports") or []:
+            sheets = [row.get("sheet") for row in (rep.get("results") or [])
+                      if row.get("sheet")]
+            if sheets:
+                print(f"\n  contact sheet: {sheets[0]}")
+                print("  Look at it. That is the last gate; the numbers only "
+                      "say where to look.")
+                break
         print(f"\nexit {worst}: {len(gating)} gating · {len(silent)} unmeasured"
               f"/silent · {len(graded)} graded findings"
               + (f" · {len(not_held)} not held (this document declares "

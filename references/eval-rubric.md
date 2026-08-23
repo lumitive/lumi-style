@@ -8,13 +8,13 @@
 
 ## Contents
 
-- [Machine metrics M1–M15 (scriptable; spot-check manually when no script)](#machine-metrics-m1m15-scriptable-spot-check-manually-when-no-script)
+- [Machine metrics M1–M16 (scriptable; spot-check manually when no script)](#machine-metrics-m1m16-scriptable-spot-check-manually-when-no-script)
 - [Design diagnostics (`scripts/check/check_design.py`)](#design-diagnostics-scriptscheckcheck_designpy)
 - [Human dimensions C1–C8 (the machine ticks items; the human rates and says why)](#human-dimensions-c1c8-the-machine-ticks-items-the-human-rates-and-says-why)
 - [Review protocol (the iteration engine)](#review-protocol-the-iteration-engine)
 - [Known genre distortions (never chase the score)](#known-genre-distortions-never-chase-the-score)
 
-## Machine metrics M1–M15 (scriptable; spot-check manually when no script)
+## Machine metrics M1–M16 (scriptable; spot-check manually when no script)
 
 **The table below is the list of what has code**; a count here was wrong
 twice (it said "ten of the twelve" after M13–M15 shipped). Until 0.1.390 the
@@ -58,6 +58,7 @@ have no Han character next to their punctuation.
 | M13 | One quantity, one value | =0 — **reported** | the same two-word noun phrase carrying two different values with no qualifier near either mention. Deliberately narrow: a time series, a target/actual pair and a per-region split are different quantities, not contradictions |
 | M15 | Prose per content page | reported | the words a content page asks the reader to read beside its drawing: the page minus its lede, takeaway, footer, figure and caption. Reports a distribution, never a threshold — the accepted product deck sits at a median of 60 and the roadshow BP its owner called text-heavy at 130, and that gap is the finding. The visual-share target is the same rule measured from the other side |
 | M12 | Visible CJK in an English deliverable | =0 — **gates** | Chinese in text a reader sees, when the document declares English by `lang`, filename or `--lang` — or declares no language at all, which is reported `blind` and fails the same way. Quoted as data (`<code>`, `<pre>`, backticks) is exempt |
+| M16 | The output language was asked for | =0 — **gates** | a document declaring any language but English with no record that the user asked for it: `data-lang-asked` on `<body>`, or `--asked-lang`. English is `ok` rather than n/a — it is the default and needs no record. M12's other half: M12 asks whether an ENGLISH document is free of Chinese, so relabelling `lang` took a gating FAIL to `n/a`, and a shipped build did exactly that (FM-18) |
 
 ## Design diagnostics (`scripts/check/check_design.py`)
 

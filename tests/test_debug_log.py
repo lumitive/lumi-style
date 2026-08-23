@@ -333,3 +333,68 @@ def test_a_non_json_failure_still_records_its_tail(tmp_path, capsys):
     log = _read(path)
     assert "it died here" in log["errors"][0]["message"]
     assert "failing" not in log["commands"][0]
+
+
+# --- a logged failure is not a resolved failure ------------------------------
+# `validate` passed the moment `errors` was non-empty — and `run` fills `errors`
+# automatically, so the pair could never disagree. A 2026-08 build's log recorded
+# `"exit_code": 1` for its layout check and for its full-stack check, both as the
+# LAST run of each, and the delivery report beside it called them "0 FAIL".
+
+
+def test_a_build_whose_last_reading_is_red_fails_validate(tmp_path):
+    log = _init(tmp_path)
+    _run(log, sys.executable, "-c", "import sys; sys.exit(1)", label="layout")
+    problems = debug_log.validate(_read(log))
+    assert any("nothing ran it clean afterwards" in p for p in problems), problems
+
+
+def test_a_command_that_ends_green_is_accepted(tmp_path):
+    """The point is not to ban a red run — an author's loop is red by design.
+    It is to ban a red LAST run, so the SAME command has to be seen passing."""
+    flag = tmp_path / "fixed"
+    probe = ("import pathlib, sys; "
+             f"sys.exit(0 if pathlib.Path({str(flag)!r}).exists() else 1)")
+    log = _init(tmp_path)
+    _run(log, sys.executable, "-c", probe, label="layout")
+    assert any("nothing ran it clean" in p for p in debug_log.validate(_read(log)))
+    flag.write_text("")                       # the author fixed the document
+    _run(log, sys.executable, "-c", probe, label="layout")
+    problems = debug_log.validate(_read(log))
+    assert not any("nothing ran it clean" in p for p in problems), problems
+
+
+def test_a_different_command_passing_does_not_clear_the_failed_one(tmp_path):
+    """Otherwise any green command in the log would launder every red one."""
+    log = _init(tmp_path)
+    _run(log, sys.executable, "-c", "import sys; sys.exit(1)", label="layout")
+    _run(log, sys.executable, "-c", "import sys; sys.exit(0)", label="prose")
+    problems = debug_log.validate(_read(log))
+    assert any("nothing ran it clean" in p for p in problems), problems
+
+
+def test_a_red_run_may_ship_only_under_an_open_gap(tmp_path):
+    """check_evidence.py's rule, which had no counterpart on the deliverable
+    side: a known failure ships when a person has written down that it is
+    known."""
+    import pathlib
+    import re
+    gaps = (pathlib.Path(debug_log.ROOT) / "KNOWN_GAPS.md").read_text(encoding="utf-8")
+    open_ids = re.findall(r"^## (GAP-\d+)[^\n]*\n(?:(?!^## ).)*?- status: open",
+                          gaps, re.M | re.S)
+    assert open_ids, "no open gap to cite; this test needs one"
+    log = _init(tmp_path)
+    _run(log, sys.executable, "-c", "import sys; sys.exit(1)", label="layout")
+    debug_log.main(["error", str(log), "--stage", "layout",
+                    "--message", f"known, ships under {open_ids[0]}"])
+    problems = debug_log.validate(_read(log))
+    assert not any("nothing ran it clean" in p for p in problems), problems
+
+
+def test_an_invented_gap_id_is_not_a_citation(tmp_path):
+    log = _init(tmp_path)
+    _run(log, sys.executable, "-c", "import sys; sys.exit(1)", label="layout")
+    debug_log.main(["error", str(log), "--stage", "layout",
+                    "--message", "known, ships under GAP-999"])
+    problems = debug_log.validate(_read(log))
+    assert any("nothing ran it clean" in p for p in problems), problems

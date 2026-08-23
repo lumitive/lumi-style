@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.586.** This file restates part of `references/`; where they
+> **lumi-style 0.1.587.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -94,7 +94,7 @@ collapses to one layout, a sheet page carries a second block beside its
 centerpiece, and rendered geometry — not declared CSS — decides; run
 `inspect_layout.py` at the design viewport and look.
 
-**Six hard red lines**: no invented facts (every number carries its source;
+**Seven hard red lines**: no invented facts (every number carries its source;
 illustrative values are labeled 示意); no invented Chinese coinages (use the
 standard Chinese term, or the English term directly when none exists); sales
 narrative leads with value & future (honesty boundaries take exactly one page);
@@ -106,8 +106,12 @@ charts use one accent color — the figure green `--acc-live`, which is what the
 `f-acc`/`s-acc` paint classes resolve to; `--acc` is the same meaning as text
 ink — plus conclusion-style titles and a source line;
 AI never signs — money/safety conclusions never come from a language model.
+Output language is American English unless the user asked for another — asked,
+never inferred from the source material, from the language the user is writing
+in, from the venue or from the audience's nationality — and a deliverable in any
+other language records the ask (`data-lang-asked`, which M16 gates).
 
-**Workflow note**: after drafting Chinese prose, run a full-width punctuation pass
+**Workflow note**: *when the user asked for Chinese* — the default is American English and Chinese is never inferred — after drafting Chinese prose, run a full-width punctuation pass
 (Chinese text uses full-width ,:;? — half-width stays only inside code, URLs,
 filenames, and pure-English runs). Then run the **mandatory de-AI-flavor pass**
 (`references/writing-rules.md` §6 — word, sentence and structural moves plus the
