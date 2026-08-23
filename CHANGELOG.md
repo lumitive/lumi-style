@@ -1,3 +1,32 @@
+## 0.1.579 — a name the owner had declared out of bounds, found by running the scan the publication needed
+
+Publishing the projection is irreversible in the way that matters — a name that
+reaches a public repository has reached it — so the pre-publish step was to run
+the guards against the PROJECTION rather than against this tree. Three came back
+clean. Then the fourth revealed that one of them had not actually run.
+
+**`check_secrets`'s client-name half needs the operator's list, and this machine
+had none installed.** The guard says so in its own comment — *"In CI the
+directory does not exist and the half is simply not run"* — and a clean report
+from it means "no credential shape", never "no client name". Pointed at the
+owner's real list, it failed immediately: a company name she had declared out of
+bounds sat in a `CHANGELOG.md` entry, and `CHANGELOG.md` ships.
+
+Red line 9's hard core is that no client name reaches a tracked file, and the
+2026-08-20 audit found a city name in eight of them. This is the same class,
+one file, found before publication rather than after. The sentence is
+anonymized the way every other entry in this file is.
+
+**The city name in the same paragraph stays**, on the owner's ruling: it is used
+as a project codename rather than as a client, and it is not on her list. Written
+down so the next scan does not re-open it.
+
+The lesson is about the SCAN, not the string: a privacy guard that silently
+skips its own subject reports the same green as one that checked. The
+publication checklist now points the guard at the operator's list explicitly,
+because the default is an empty directory and an empty directory is not an
+absence of clients.
+
 ## 0.1.578 — the published package gets the only check that can speak for it
 
 The projection carries no tests, no repository guards and no development
@@ -1086,7 +1115,7 @@ read loosely; the owner corrected it.
 **What reds, stated rather than discovered later.** Thirteen documents in the
 delivery folder carry a deliberate subject globe and now need one attribute
 each, because there has never been a way to say so: the SIFT and Agent intros,
-the three Sanhua training decks, the older ops guide, and the two globe demos
+the three training decks for one client, the older ops guide, and the two globe demos
 whose closing carries no mark at all. Every Chengdu BP build, `adopting-lumi-style`,
 the 0.1.448 ops guide, both fixtures and the scaffold pass untouched — as does
 the Cursor deck from the same conformance round, which kept the brand on both
