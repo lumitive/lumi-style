@@ -28,6 +28,8 @@ Usage
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import json
 import pathlib
 import re
@@ -139,28 +141,38 @@ REALIGNERS = [
 # REPORTED, never a gate. Being behind is a normal state: a maintainer may
 # deliberately hold several releases before publishing. What is not normal is
 # not knowing. This is `shipping.report()`'s argument, one repository over.
-PUBLISHED_STAMP = ("https://raw.githubusercontent.com/lumitive/"
-                   "lumi-style-skill/main/SKILL.md")
+# THE API, not raw.githubusercontent. The raw host is a CDN and caches for
+# minutes: measured immediately after publishing 0.1.582, the API returned
+# 0.1.582 and raw still returned 0.1.581. A note that says "1 release behind"
+# to someone who has just published is a note that trains its reader to ignore
+# it. `gh` is already a hard dependency of this workflow (emergency_merge.sh),
+# and `--jq` keeps the parsing on gh's side.
+PUBLISHED_REPO = "lumitive/lumi-style-skill"
 
 
 def published_version(timeout: int = 6) -> str | None:
     """-> the version stamp the published package carries, or None.
 
-    Asks the public remote for one file. No credential is involved — the
-    repository is public — and `curl` rather than `urllib` because a
-    Python.org install on macOS ships without a certificate bundle and
-    `urlopen` fails there with CERTIFICATE_VERIFY_FAILED while `curl` works.
-    Shelling out is this file's habit anyway: every other step reads an exit
-    code from the process that produced it.
+    Asks GitHub's API for one file, through `gh`. Not `urllib`: a Python.org
+    install on macOS ships without a certificate bundle, so `urlopen` fails
+    with CERTIFICATE_VERIFY_FAILED against a URL `curl` fetches with a 200.
+    Not raw.githubusercontent either — see the constant above. Shelling out is
+    this file's habit anyway: every other step reads an exit code from the
+    process that produced it.
 
     ANY failure returns None and the caller says "could not ask". A release
     must not fail because an advisory note could not be written, and a note
     that lies about being current would be worse than none.
     """
-    proc = run(["curl", "-sS", "-f", "--max-time", str(timeout), PUBLISHED_STAMP])
+    proc = run(["gh", "api", f"repos/{PUBLISHED_REPO}/contents/SKILL.md",
+                "--jq", ".content"])
     if proc.returncode != 0:
         return None
-    m = re.search(r'version: "([\d.]+)"', proc.stdout[:4096])
+    try:
+        head = base64.b64decode(proc.stdout).decode("utf-8", "replace")[:4096]
+    except (ValueError, binascii.Error):
+        return None
+    m = re.search(r'version: "([\d.]+)"', head)
     return m.group(1) if m else None
 
 

@@ -17,7 +17,10 @@ sys.path[:0] = [str(ROOT / "scripts"), str(ROOT / "scripts" / "ops"),
 import release  # noqa: E402
 
 
-def _no_network(monkeypatch, out="", rc=0):
+def _no_network(monkeypatch, body=None, rc=0):
+    """`published_version` reads base64 from `gh api --jq .content`."""
+    import base64
+    out = "" if body is None else base64.b64encode(body.encode()).decode()
     monkeypatch.setattr(release, "run", lambda cmd, **kw: types.SimpleNamespace(
         returncode=rc, stdout=out, stderr=""))
 
@@ -38,6 +41,27 @@ def test_a_failed_fetch_is_none_rather_than_a_guess(monkeypatch):
 def test_a_stamp_that_does_not_parse_is_none(monkeypatch):
     _no_network(monkeypatch, "a file with no version stamp at all\n")
     assert release.published_version() is None
+
+
+def test_a_body_that_is_not_base64_is_none(monkeypatch):
+    """gh answering with something unexpected must not raise out of a note."""
+    monkeypatch.setattr(release, "run", lambda cmd, **kw: types.SimpleNamespace(
+        returncode=0, stdout="!!!not base64!!!", stderr=""))
+    assert release.published_version() is None
+
+
+def test_it_asks_the_api_rather_than_the_raw_cdn(monkeypatch):
+    """raw.githubusercontent caches for minutes: measured immediately after
+    publishing 0.1.582, the API said 0.1.582 and raw still said 0.1.581. A note
+    that tells someone who has just published that they are a release behind is
+    a note that trains its reader to ignore it."""
+    seen: dict[str, list] = {}
+    monkeypatch.setattr(release, "run", lambda cmd, **kw: (
+        seen.setdefault("cmd", cmd), types.SimpleNamespace(
+            returncode=1, stdout="", stderr=""))[1])
+    release.published_version()
+    assert seen["cmd"][:2] == ["gh", "api"]
+    assert not any("raw.githubusercontent" in str(a) for a in seen["cmd"])
 
 
 def test_in_sync_says_nothing_to_publish(monkeypatch, capsys):
