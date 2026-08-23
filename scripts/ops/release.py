@@ -131,6 +131,81 @@ REALIGNERS = [
 ]
 
 
+# The published package advances only when `publish.sh --push` runs, and the
+# development repository advances on every merge. Nothing joins them, so the
+# projection falls behind silently — it did, between 0.1.580 and 0.1.581,
+# and a person noticing was the only thing that caught it.
+#
+# REPORTED, never a gate. Being behind is a normal state: a maintainer may
+# deliberately hold several releases before publishing. What is not normal is
+# not knowing. This is `shipping.report()`'s argument, one repository over.
+PUBLISHED_STAMP = ("https://raw.githubusercontent.com/lumitive/"
+                   "lumi-style-skill/main/SKILL.md")
+
+
+def published_version(timeout: int = 6) -> str | None:
+    """-> the version stamp the published package carries, or None.
+
+    Asks the public remote for one file. No credential is involved — the
+    repository is public — and `curl` rather than `urllib` because a
+    Python.org install on macOS ships without a certificate bundle and
+    `urlopen` fails there with CERTIFICATE_VERIFY_FAILED while `curl` works.
+    Shelling out is this file's habit anyway: every other step reads an exit
+    code from the process that produced it.
+
+    ANY failure returns None and the caller says "could not ask". A release
+    must not fail because an advisory note could not be written, and a note
+    that lies about being current would be worse than none.
+    """
+    proc = run(["curl", "-sS", "-f", "--max-time", str(timeout), PUBLISHED_STAMP])
+    if proc.returncode != 0:
+        return None
+    m = re.search(r'version: "([\d.]+)"', proc.stdout[:4096])
+    return m.group(1) if m else None
+
+
+def report_published(now: str) -> None:
+    """Say how far the published package is behind, and how to close it."""
+    there = published_version()
+    if there is None:
+        print("note  could not ask the published package which version it "
+              "carries (offline, or the remote moved). Publishing state "
+              "unknown — `scripts/ops/publish.sh` is a dry run by default.")
+        return
+    if there == now:
+        print(f"ok    the published package carries {there} — nothing to publish.")
+        return
+    gap = _releases_between(there, now)
+    if gap is not None and gap < 0:
+        # The published package is NEWER. Not arithmetic to report as a
+        # negative: it means this checkout is behind its own remote, or
+        # something published from elsewhere, and either is worth saying
+        # plainly rather than dressing as a publishing gap.
+        print(f"note  the published package carries {there}, which is NEWER "
+              f"than this repository's {now}. Pull `main` before publishing — "
+              f"something published from another checkout.")
+        return
+    count = f"{gap} release(s)" if gap is not None else "some releases"
+    print(f"note  the published package carries {there}; this repository is now "
+          f"at {now} — {count} ahead.\n"
+          f"      Publish with `scripts/ops/publish.sh --push` (bare is a dry "
+          f"run). It refuses without an out-of-bounds terms list.")
+
+
+def _releases_between(older: str, newer: str) -> int | None:
+    """-> how many release headings sit between two versions, or None.
+
+    Counted from the CHANGELOG rather than from either git history: the
+    projection's commits are rewritten, so their hashes cannot be compared to
+    this repository's at all.
+    """
+    text = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    versions = re.findall(r"^## (\d+\.\d+\.\d+) — ", text, re.M)
+    if older not in versions or newer not in versions:
+        return None
+    return versions.index(older) - versions.index(newer)
+
+
 def run(cmd, *, capture=True):
     """-> CompletedProcess. Never through a shell, never through a pipe: the
     exit code has to come from the process that produced it."""
@@ -318,6 +393,8 @@ def main():
     # while every local check stayed green, and nothing asked.
     print()
     shipping.report()
+    print()
+    report_published(new)
 
 
 if __name__ == "__main__":

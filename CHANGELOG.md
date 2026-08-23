@@ -1,3 +1,40 @@
+## 0.1.582 — a release now says how far the published package is behind
+
+Two repositories, and nothing joined them. The development one advances on every
+merge; the published projection advances only when `publish.sh --push` runs. So
+the projection falls behind SILENTLY — it did, between 0.1.580 and 0.1.581, and
+a person noticing was the only thing that caught it.
+
+`release.py` asks the published package which version it carries and says so as
+its last line, beside `shipping.report()`'s count of unpushed work. Same
+argument, one repository over: forty releases once accumulated on an unpushed
+branch while every local check stayed green, because nothing asked.
+
+**Reported, never a gate.** Being behind is a normal state — a maintainer may
+hold several releases before publishing, and a gate here would fail a release
+for a decision somebody made on purpose. What is not normal is not knowing.
+
+Four answers, and the two that are not "behind" both took a fix:
+
+- **In sync** says nothing to publish.
+- **Behind** names the gap and the command, counted from the CHANGELOG rather
+  than from either git history — the projection's commits are REWRITTEN, so
+  their hashes cannot be compared to this repository's at all.
+- **The published package is NEWER** is not a gap of minus three. It means this
+  checkout is behind its own remote, or something published from elsewhere, and
+  the first draft reported it as "-3 release(s) ahead".
+- **Could not ask** says exactly that. A release must not fail because an
+  advisory note could not be written, and a note claiming "current" on a failed
+  fetch would be worse than none.
+
+`curl` rather than `urllib`, and the reason is the kind this package keeps
+finding: a Python.org install on macOS ships without a certificate bundle, so
+`urlopen` failed here with CERTIFICATE_VERIFY_FAILED against a URL `curl`
+fetches with a 200. Shelling out is this file's habit anyway — every other step
+reads an exit code from the process that produced it.
+
+Eight tests, none of them touching the network.
+
 ## 0.1.581 — the board is refreshed, and the answer to the question 0.1.575 could not answer
 
 0.1.575 changed what a prose row can return and what an exit means, and waived
