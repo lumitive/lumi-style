@@ -1,3 +1,89 @@
+## 0.1.575 — five reviews of the eleven releases before it, and three bugs I wrote in the last one
+
+A full review of 0.1.564–0.1.574 across five lenses: comment accuracy, test
+coverage, silent failures, convention compliance, and a prose-drift sweep. It
+found three live bugs, all of them mine, all of them from 0.1.574.
+
+**A document nothing could measure exited 0.** 0.1.574 stopped inheriting the
+instruments' exit codes so that `since` could move a finding out of the gating
+bucket. Five branches append to `silent`; only one still raised the exit. So
+`check_deliverable` — the pre-delivery step SKILL.md names — printed
+`gating metric D12_handling_terms could not be measured (this is not a pass)`
+and returned **zero**, and because the run looked clean it then closed the build
+trace as a completed passing build. A deck whose pages are `div.page` rather
+than `section.page` takes both commercial gates silent that way; a Chinese deck
+exported as GB18030 does it to the whole prose instrument. Every silent branch
+raises the exit now, and `main` holds the invariant the summary line has always
+asserted: a finding in either bucket is a nonzero exit.
+
+**`check_prose` printed "all metrics pass" on a run that exited 1.** The `blind`
+verdict was counted into `gated` and not into `failed`, and the summary branches
+on `failed`. An author reading the tool's own last line ships the document. This
+is the summary-contradicts-the-exit failure three lines below the comment that
+says the release exists to end it.
+
+**The M12 escape reopened one character wider.** 0.1.574 closed "delete the
+`lang` attribute". `declared_language` returns whatever the attribute SAYS, with
+no membership test, so `lang="xx"` went straight back to `n/a` — printed as a
+legitimate exemption. `gate_registry.held` gets the closed-set question right
+one field over: an unknown name is never silently exempt. Any language this
+package does not produce is now treated as undeclared.
+
+**And the boundary could be redrawn in silence.** `shipped.consumer_scripts()`
+seeds itself with a regex over SKILL.md. A documentation pass that names the
+commands in prose rather than as paths collapses it — measured: **fourteen
+scripts flip to the development side, `new_deck.py` among them**, the projection
+ships nothing runnable, and BOTH boundary guards stay green, because "dev" is a
+valid side and the cross-boundary loop simply iterates over nothing. An empty
+consumer set raises now, and a missing SKILL.md raises rather than returning
+one.
+
+**A rule was gating on something no rule file stated.** M12 now fails a document
+that will not declare its language, and `references/` never asked for a
+declaration — the remedy existed only inside a failure message. `writing-rules`
+§0 states it: a deliverable declares the language it is in, and silence is not
+an exemption because it is the cheapest one there would be.
+
+Also closed, from the same five reviews:
+
+- `gating.layout_verdicts` still returned the empty set on an unreadable
+  `inspect_layout` while the comment beside it said all three readers raise.
+  Two more callers — `check_rule_coverage.audit` and `run_conformance`'s scoring
+  pass — turned that raise into a traceback rather than a finding; a scoring
+  pass that cannot read the gate set now says so instead of discarding a run
+  that has already driven every agent.
+- `check_verdict_names` returned `[]` when the register declared no layout
+  verdict, which in this file means "checked and found nothing".
+- `emergency_merge.sh`'s trusted closure carried neither `shipped.py` nor
+  `state_dir.py`, so the two new boundary guards would have run a pull
+  request's own copy of the module that decides what ships. The test that
+  should have caught it kept a hand-written module list that stopped at
+  `corpus`; it reads `check_repo.SIBLING_MODULES` now.
+- `trace_store.ROOT` raised `StopIteration` from an import in any tree without
+  a `SKILL.md` — its sibling, written the same release, carries the fallback and
+  says why.
+- Fourteen comments and docstrings that had stopped being true, including two
+  hypotheticals I had written in the past tense as shipped defects (convention
+  14, in the release that fixed three of them), `release.py` carrying two
+  different numbers for one fact twenty-eight lines apart, and `trace.py`
+  claiming a re-resolution that has never happened.
+- The prose sweep: `blind` existed nowhere outside this file; the register's own
+  `na_means` for M12 stated the pre-0.1.574 rule; the review protocol told an
+  author that an undeclared document was harmless; three reference files still
+  named `reviews/scores.json` as a path; `thresholds.json` — a shipped file —
+  pointed at two things the projection does not carry; `scripts/README.md`'s
+  import-edge paragraph was false in five places; and nothing outside a
+  docstring documented where an operator's stores live, which is now
+  `operating-rules` OR-8b.
+
+The conformance board is **not** refreshed here and the evidence file says why:
+this release changed what a prose row can return and what an exit means, so a
+deck that scored `pass` on the r16-pinned board might not score `pass` now, and
+the board does not say so. Refreshing it needs the owner's keys and cannot run
+in CI. Recorded as an obligation, owed before any number from that board is
+quoted again. The review and what it found are recorded in
+`specs/2026-08-23-gate-consolidation-design.md`.
+
 ## 0.1.574 — a document escaped the Chinese gate by deleting one attribute, and the version scope was cosmetic
 
 The third half of the adversarial review: what a verdict MEANS, and whether a

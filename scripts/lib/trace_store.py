@@ -30,8 +30,13 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import state_dir  # noqa: E402
 
-ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
-            if (p / "SKILL.md").exists())
+# The fallback is not decoration: a synthetic tree built by a guard test has no
+# SKILL.md, and a bare `next()` raises StopIteration from an IMPORT — a
+# traceback with nothing about traces in it. Same shape corpus.py and
+# state_dir.py carry, for the same reason.
+ROOT = next((p for p in pathlib.Path(__file__).resolve().parents
+             if (p / "SKILL.md").exists()),
+            pathlib.Path(__file__).resolve().parents[2])
 
 
 def traces_dir(root: pathlib.Path | None = None) -> pathlib.Path:

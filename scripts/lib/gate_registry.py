@@ -25,7 +25,9 @@ same reasoning that makes `check_rule_coverage` compare the rule register
 against `gating`'s AST reader rather than trusting it. What the register adds is
 what no checker knows: **`family`** — the concept a verdict belongs to, the
 classification that was missing while the set grew one verdict at a time —
-and **`since`**, the release that introduced it.
+**`since`**, the release that introduced it, and **`na_means`**, present on a
+gate whose `n/a` is an honest silence and absent on one whose `n/a` is a
+measurement that did not happen.
 
 **`since` and what it is for.** A document carries `built with lumi-style
 X.Y.Z`. A gate introduced after that version has nothing to say about the
@@ -60,12 +62,16 @@ ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
 REGISTER = "evals/gates.json"
 
 SEVERITIES = ("gate", "graded", "reported")
-CHECKERS = ("design", "prose", "layout")
+# `privacy` is the fiftieth gate: check_privacy reports one verdict per FILE
+# rather than a verdicts map, so it fits no row table and check_deliverable
+# promotes it in code. Omitting it here made this tuple disagree with the
+# register it describes.
+CHECKERS = ("design", "prose", "layout", "privacy")
 ALWAYS = "always"
 
 
 def load(root: pathlib.Path | None = None) -> dict:
-    """-> {name: {checker, family, severity, since}}.
+    """-> {name: {checker, family, severity, since, na_means?}}.
 
     `root` is the caller's, not this module's: `check_repo`'s guard tests build
     a synthetic tree and point the guard at it. A module that resolved the path

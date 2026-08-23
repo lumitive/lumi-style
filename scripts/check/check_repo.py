@@ -3448,11 +3448,14 @@ def check_shipped_closure():
     """The boundary between the two repositories PARTITIONS the tracked tree.
 
     A list of what ships can omit a file silently and still look complete; a
-    partition cannot. So this asserts three things, and the first is the one
-    that matters: **every tracked file is claimed by exactly one rule.** The
-    second is that no rule claims nothing, because a dead rule is a boundary
-    decision that has already stopped being true. The third is that every
-    declared consumer seed names a script that exists.
+    partition cannot. The assertion that matters is that **every tracked file
+    is PLACED** — a rule claims it, longest prefix winning, or reachability
+    computes its side because it is a script. Not "exactly one rule": no rule
+    claims a script at all, and several rules may match one file. Beside it:
+    every rule declares a side this code understands and a reason a person can
+    read, no rule claims nothing (a dead rule is a boundary decision that has
+    stopped being true), every seed and every pin names a script that exists,
+    and no consumer script imports a pinned one.
 
     Scripts are absent from the manifest ON PURPOSE — their side is computed
     from reachability, so a new one is development until something the skill
@@ -3562,8 +3565,11 @@ def check_cross_boundary_paths():
     `import_module("x")`, which is an import the reachability that decides the
     boundary cannot see.
 
-    One limit remains, stated rather than implied: a path assembled through a
-    variable or `+` is invisible.
+    The limits, stated rather than implied: only literals and `/`-joined
+    literal chains are seen, so a path assembled through a variable, `+`, an
+    f-string, `.format()` or `os.path.join` is invisible. The neighbouring
+    `check_gate_declarations` reads `ast.JoinedStr` for the same reason, so the
+    f-string half is a known gap rather than an unconsidered one.
     """
     import shipped
     try:
@@ -3691,7 +3697,12 @@ def _slash_chain(node) -> str | None:
 
 
 def check_local_paths():
-    """No tracked file names an operator's home directory.
+    """No tracked file outside `tests/` and `releases/evidence/` names an
+    operator's home directory.
+
+    Those two are excluded by construction: a synthetic tree's fixtures name
+    paths that exist only in `tmp_path`, this guard's own tests must plant the
+    string it looks for, and evidence files are frozen history.
 
     Two reasons, and the second is why this is a gate rather than a note. It is
     a privacy leak: `conformance/CONFORMANCE.md` carried the owner's username
@@ -3745,11 +3756,18 @@ def check_local_paths():
 
 
 def _identifiers_in_code() -> set[str]:
-    """-> every snake_case identifier the tracked code actually uses.
+    """-> the identifiers this package's own code uses.
 
-    The repository as its own dictionary. Reads names, attributes, keyword
-    arguments and string keys out of the Python, and the same shape out of the
-    JavaScript and JSON by regex, because a report key is as real as a variable.
+    The repository as its own dictionary. Walks the Python under `scripts/` for
+    names, attributes, arguments, function and class names, dict KEYS and string
+    subscripts — keys and subscripts rather than every string constant, because
+    harvesting prose let this guard's own docstring enter the dictionary and pull
+    its teeth. The JavaScript under `assets/` and the JSON under `evals/` and
+    `tokens/` are read by regex, because a report key is as real as a variable.
+
+    It globs the filesystem rather than asking git, and it returns names of any
+    shape, not only snake_case — both are fine for a dictionary, whose only job
+    is to answer "is this a real thing".
     """
     found: set[str] = set()
     word = re.compile(r"\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+)\b")
@@ -3818,7 +3836,11 @@ def check_verdict_names():
     names = set(reg)
     layout = {n for n, row in reg.items() if row["checker"] == "layout"}
     if not layout:
-        return []
+        # NOT a pass. `[]` means "checked and found nothing" in this file, and
+        # a register with no layout verdict cannot be true — it means this
+        # guard had nothing to hold prose to.
+        return [f"{gate_registry.REGISTER} declares no layout verdict, so this "
+                f"guard had nothing to compare prose against"]
     families = {n.split("_", 1)[0] for n in layout}
     real = _identifiers_in_code()
     errors = []

@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.574"
+  version: "0.1.575"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -518,7 +518,9 @@ left for yourself; **D15**, a file path in a footer; and **D19**, a reference
 that does not resolve inside the document — an icon pointing at no symbol, or
 a `data-globe` mark with no runtime to turn it. `python3 scripts/check/check_prose.py <file>` grades the English, and
 **M12 fails on Chinese in text a reader sees** when the document declares
-English — a clean banned-phrase run is not a language pass.
+English, and reports `blind` — which also fails — when it declares no language
+at all. A clean banned-phrase run is not a language pass, and an undeclared
+document is not an exempt one.
 `python3 scripts/check/check_facts.py <contract.md> <file>` asks the
 question no other check asks — **whether this build still carries the facts
 it was built from**. Quantities in the document that appear nowhere in the

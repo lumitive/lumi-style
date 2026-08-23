@@ -149,7 +149,11 @@ pre-delivery step in `SKILL.md`.
 including the part-opener count, which is an observation and not a floor. `check_prose.py` grades either output
 language — it reads the document's own `lang`, takes `--lang` to override, and
 runs the Chinese ban list and punctuation rules on a Chinese document; **M12 is
-what fails an English deliverable carrying Chinese a reader can see.** Since
+what fails an English deliverable carrying Chinese a reader can see** — and,
+since 0.1.575, a document carrying Chinese that declares NO language, which it
+reports `blind` rather than exempting, because silence would otherwise be the
+cheapest exemption there is (`writing-rules.md` §0 is the rule; `blind` is a
+fourth verdict beside ok / FAIL / n/a, and it fails). Since
 0.1.559 it exits the way `check_design.py` does — **a prose row fails the run if
 and only if its target is zero and it does not say `(reported)`** (GAP-029, and
 `grade`'s docstring is the authority). A target of zero is a line the document
@@ -259,6 +263,11 @@ Three entry points load these rules, and each restates part of them:
 - `SKILL.md` — Claude Code entry; reads `references/` and `tokens/` on demand
 - `AGENTS.md` — Codex entry; summarizes the load order and the six red lines inline
 - `prompts/lumi-style-core.md` — **self-contained** single file for Kimi/DeepSeek. It was described as "a strict subset of `references/`" and that has been false since it grew rules of its own (never name a region by its colour in prose; the prompt-tier debug degradation format). It is a **derived restatement that may carry prompt-tier-only rules**, and those are the second thing to check when the two disagree, so any substantive rule change must be re-flowed into it by hand
+
+`adapters/` also carries **`shipped.json`**, which is not about platforms: it
+declares which side of the repository split each tracked file is on, and three
+guards (`shipped closure`, `cross-boundary paths`, and the reachability
+computation in `scripts/lib/shipped.py`) hold the tree to it.
 
 `adapters/platforms.json` is the **platform registry** — the single source of
 install paths, capability tiers and entry files for every platform this package

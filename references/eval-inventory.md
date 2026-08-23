@@ -113,7 +113,7 @@ different ways.
 
 | constant | value | comment | stated in references/ |
 |---|---|---|---|
-| SETTLE_MS | `350` |  | page-contracts.md |
+| SETTLE_MS | `350` |  | CODE ONLY |
 | DEFAULT_GEOMETRIES | `["16x9", "16x9-hd", "a4", "laptop", "wide"]` |  | (not searched: too short) |
 | VISUAL_ABSENT_CEILING | `1 / 3` |  | (not searched: too short) |
 | OFF_SHAPES | `[(1280, 960), (1440, 900), (1600, 1200), (1366, 768), (19…` |  | (not searched: too short) |

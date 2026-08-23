@@ -77,8 +77,9 @@ from trace_store import traces_dir  # noqa: E402 — one store resolver
 
 # LUMI_TRACES redirects the store (tests, dry runs); the default is the
 # tracked directory, because a trace that is not kept is not a record.
-# Resolved on every read rather than bound at import, so a test that
-# sets the variable after importing this module is still obeyed.
+# Bound at IMPORT, like every other module constant here. A test that sets
+# LUMI_TRACES afterwards must re-import (tests/test_trace_store.py does);
+# `traces_dir()` is the callable form for anyone who needs it resolved live.
 TRACES = traces_dir(ROOT)
 
 

@@ -607,7 +607,12 @@ def measure(path, genre, lang=None):
     # not say what it is cannot be decided, and an undecidable gate is measured
     # as BLIND rather than passed.
     cjk = visible_cjk(raw, path.suffix.lower()) if language == "en" else None
-    undeclared_cjk = (language is None
+    # NOT `language is None`. `declared_language` returns whatever the `lang`
+    # attribute says, with no membership test, so `lang="xx"` reopened exactly
+    # the escape 0.1.574 closed — one character wider, and reading as a
+    # legitimate exemption. `gate_registry.held` gets the closed-set question
+    # right one field over: an unknown name is never silently exempt.
+    undeclared_cjk = (language not in ("en", "zh")
                       and bool(visible_cjk(raw, path.suffix.lower())))
     body, titles, enums, windows = extract(path)
     lengths = sentences(body)
@@ -920,7 +925,12 @@ def m14_parallel_frames(raw: str) -> list[tuple[str, int]]:
 
 
 def grade(r):
-    """[(metric, value, target, verdict)] — verdict is ok / FAIL / n/a.
+    """[(metric, value, target, verdict)] — verdict is ok / FAIL / n/a / blind.
+
+    `blind` is M12 alone: the document carries Chinese a reader can see and
+    declares no language, so the gate has nothing to decide against. It counts
+    toward the exit exactly as FAIL does, and it is neither a pass nor a
+    silence — a consumer filtering on `("ok", "n/a")` drops it.
 
     **A row gates if and only if its target is zero and it does not say
     `(reported)`.** That is the whole rule, and it is stated here rather than
@@ -1078,7 +1088,12 @@ def main(argv):
         # failed from one that is reported and cannot. check_fixtures.py needs
         # exactly that to say which verdicts it asserted and which it could not.
         r["targets"] = {n: t for n, _, t, _ in rows}
-        failed += sum(1 for _, _, _, v in rows if v == "FAIL")
+        # `blind` counts here too. It was added to `gated` and not to `failed`,
+        # so a document whose only defect was a blind M12 printed "all metrics
+        # pass" and returned 1 — the same summary-contradicts-the-exit failure,
+        # in the other direction, three lines below the comment that says this
+        # release exists to end it.
+        failed += sum(1 for _, _, _, v in rows if v in ("FAIL", "blind"))
         gated += sum(1 for _, _, t, v in rows
                      if v in ("FAIL", "blind") and "(gates)" in (t or ""))
         reports.append(r)
@@ -1113,11 +1128,14 @@ def main(argv):
                               "counts are outside this metric's window)")
                         if name_ == "M2_number_sourcing" and not r["figures"]
                         # THE CHINESE PAIR, and the third time this exact
-                        # failure has been found in this printer. They come
+                        # failure has been found in this printer. They came
                         # back "too little data: 149 sentences" on a document
                         # with 149 sentences; the true reason is that the
-                        # document is not Chinese, and `evals/gates.json` has
-                        # said so in `na_means` since the register shipped.
+                        # document is not Chinese. `evals/gates.json` says the
+                        # same thing in `na_means`, and NOTHING JOINS THE TWO —
+                        # this sentence is a third copy of that fact, kept
+                        # because reading the register here would make the
+                        # printer depend on it for prose it can compute.
                         else (f"  (this document declares "
                               f"{r['language'] or 'no language'}, and this "
                               f"metric reads Chinese output only)")

@@ -20,9 +20,10 @@ check that could not be measured. There is nothing to grep and nothing to
 scroll past; the last block is the whole verdict. Genre is read from the
 document's own declaration unless overridden — the document says what it is.
 
-The exit code is the strictest aggregation: zero only when every instrument
-exited zero. A check that could not run is a nonzero exit somewhere, and a
-check nobody ran is not a check that found nothing.
+The exit code is THIS BLOCK's, not the instruments'. Zero only when nothing
+gates and nothing went unmeasured: a gate the document is too old to be held to
+no longer fails the run, and a check that could not run still does — a check
+nobody ran is not a check that found nothing.
 """
 from __future__ import annotations
 
@@ -215,6 +216,13 @@ def verdict_block(runs: dict, built: str | None = None
     graded: list[str] = []
     silent: list[str] = []
     not_held: list[str] = []
+    # SILENT RAISES THE EXIT, everywhere. 0.1.574 stopped inheriting the
+    # instruments' exits so `since` could move a finding out of the gating
+    # bucket — and five branches append to `silent`, of which only one still
+    # touched `worst`. The block printed "this is not a pass" beside three
+    # different findings and returned 0. The summary line has always asserted
+    # "N unmeasured/silent" alongside a nonzero exit; nothing held it.
+    #
     # The exit is computed from THIS block's own buckets, not inherited from
     # the instruments'. `check_design` and `check_prose` grade a document
     # against HEAD's rules by construction and know nothing about `since`, so
@@ -237,11 +245,19 @@ def verdict_block(runs: dict, built: str | None = None
             # prose, privacy and layout and said nothing at all about design.
             silent.append(f"{kind}: exited {run['exit']} with an empty report "
                           f"— the document could not be measured at all")
+            # AND IT FAILS THE RUN. 0.1.574 stopped inheriting the instruments'
+            # exits so that `since` could move a finding out of the gating
+            # bucket, and this branch lost its exit with them: the block
+            # printed "could not be measured at all" and returned 0. A
+            # document nothing could measure is not a document that passed.
+            worst = max(worst, 1)
             continue
         for report in run["reports"] or []:
             if report.get("unmeasurable"):
                 silent.append(f"{kind}: unmeasurable — {report['unmeasurable']}")
+                worst = max(worst, 1)
             if report.get("unmeasured"):
+                worst = max(worst, 1)
                 silent.append(f"{kind}: {report['unmeasured']} rendered "
                               f"check(s) could not be measured")
             # Reported layout findings that used to live only in the report
@@ -263,6 +279,7 @@ def verdict_block(runs: dict, built: str | None = None
                               f"({', '.join(sorted(seen_wrap))}) — shorten "
                               f"the name, never the type")
             for m in report.get("blind_gates") or []:
+                worst = max(worst, 1)
                 silent.append(f"{kind}: gating metric {m} could not be "
                               f"measured (this is not a pass)")
             gates = _gating_ids(report)
@@ -333,7 +350,10 @@ def main(argv=None) -> int:
     # decided anything read it.
     built = fingerprint.version_in(raw)
     gating, graded, silent, not_held, worst = verdict_block(runs, built)
-    if gating:
+    if gating or silent:
+        # The invariant the summary line asserts: a finding in either bucket is
+        # a nonzero exit. Held here as well as at each append, because a later
+        # branch that forgets is exactly how this broke.
         worst = max(worst, 1)
     graded.extend(eval_notes(a.file, runs))
     if not trace_id:

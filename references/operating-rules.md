@@ -233,6 +233,23 @@ character matches as a substring, because that script does not put spaces
 where a boundary would be. Embedded fonts and images are blanked before the
 term scan, since base64 spells every short Latin word eventually (IDEA-15).
 
+## 8b · An operator's stores live outside the package
+
+*Serves: **GOAL**.* · id `OR-8b`
+
+Four things this package writes belong to the person running it, not to the
+package: the build traces, the local corpus registry, the price table, and the
+review scores. They resolve through one answer — `LUMI_STATE` if it is set,
+else `$XDG_STATE_HOME/lumi`, else `~/.lumi` — with `LUMI_TRACES` still winning
+for the trace store alone.
+
+**A checkout that already holds one of them keeps it.** The resolver prefers the
+in-repo directory when it exists, so no release ever moves an operator's file;
+an installed skill, which has no such directory, gets the state directory
+instead. Nothing is created by asking where a store is — a directory appears on
+an explicit write and never on an import or a read. This is `OR-8`'s rule for
+the out-of-bounds list, generalised to everything else with the same shape.
+
 ## 9 · An agent that cannot run the checks may not call a deliverable verified
 
 *Serves: **P-2**.* · id `OR-9`
@@ -266,7 +283,7 @@ study's three joinable pairs can never be re-measured.
 
 So: **a document that has been scored, registered as a corpus id, or named
 by the threshold table is kept** — in the delivery directory, under its
-build name, for as long as the score is in `reviews/scores.json`.
+build name, for as long as the score is in the store `review_scores.py` reads.
 Superseded builds that were never scored or registered may go. Where a
 scored document was already deleted, its corpus entry records the loss
 (`archived: {sha256, pages, removed_before}`) so the id resolves to a fact
