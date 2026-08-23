@@ -40,10 +40,25 @@ import json  # noqa: E402
 import pathlib  # noqa: E402
 import re  # noqa: E402
 
-# The stamp every deliverable carries in its closing colophon, and the stamp a
-# recipe carries in its own source. One pattern: they are the same claim about
-# the same thing — which version of these rules produced this.
+# The stamp every deliverable carries in its closing colophon.
 VERSION_STAMP = re.compile(r"lumi-style\s+(\d+\.\d+\.\d+)")
+
+# The stamp a RECIPE carries, which is a different shape and needed its own
+# pattern. One comment here used to claim the colophon pattern covered both;
+# it does not, and the cost was measured. A build script writes its colophon as
+# `f"Built with lumi-style {VERSION}"` — an interpolation, not a literal — so
+# the colophon pattern finds nothing in the source and the recipe reads as
+# UNSTAMPED even when the script's own `VERSION = "0.1.591"` line says
+# otherwise. Convention 15 in one line: the pattern was written against the
+# rendered artifact and then applied to the source that renders it.
+#
+# Eleven of the eighty stored traces carry a recipe hash and no version, and
+# `unknown` is not `current`. This pattern is ONE cause of that; fingerprinting
+# an outline (which carries no stamp at all, and which `new_deck.py` did until
+# 0.1.592 — see `trace.py cmd_annotate`) is another, and the trace does not
+# record which file was hashed, so no cause can be attributed to all eleven.
+RECIPE_STAMP = re.compile(r"""^VERSION\s*=\s*["'](\d+\.\d+\.\d+)["']""",
+                          re.MULTILINE)
 
 
 def material_hash(material: dict, length: int = 12) -> str:
@@ -81,12 +96,47 @@ def skill_version() -> str:
 def version_in(text: str) -> str | None:
     """-> the lumi-style version this text stamps, or None.
 
+    THE COLOPHON ONLY. A recipe's own `VERSION = "..."` line is read by
+    `recipe_version_in`, deliberately not by this — see that function for why
+    widening this one silently handed documents an exemption from newer gates.
+
     None is honest and load-bearing: a recipe that names no version has not
     told us it is current, and the caller must not read that as agreement with
     HEAD. It is the difference between "built at 0.1.457" and "we do not know",
     and both are different from "built now".
     """
     m = VERSION_STAMP.search(text)
+    return m.group(1) if m else None
+
+
+def recipe_version_in(text: str) -> str | None:
+    """-> the version a RECIPE's source stamps, or None. Not for deliverables.
+
+    Two shapes, in order: the colophon a recipe writes as a literal, then its
+    own `VERSION = "0.1.591"` at line start.
+
+    **Deliberately a separate function from `version_in`, and it was one shared
+    function for part of 0.1.592's development.** Sharing it widened the reader
+    that `check_deliverable.py` uses to decide WHICH GATES BIND: a document with
+    no colophon but a line-initial `VERSION = "9.9.9"` inside an inline script
+    would manufacture a stamp, and gates newer than it would report `not held`
+    instead of binding. CLAUDE.md is explicit that this must not happen — "a
+    document with no version stamp is held to everything, because an absent
+    stamp must not become an exemption" — so the widening belongs only on the
+    recipe path, where an absent stamp means `unknown` rather than an exemption.
+
+    It stays loose in one respect, and the looseness is real: a build script is
+    operator code outside this repository, and nothing constrains its `VERSION`
+    to mean lumi-style's version rather than the document's own revision. A
+    recipe stamped `2.4.0` will be reported `stale` against `0.1.592`. That is a
+    wrong reading, but it is a LOUD one — the ledger prints the pair — whereas
+    the alternative (reading nothing) is the silent `unknown` this release set
+    out to reduce. Recorded rather than hidden.
+    """
+    m = VERSION_STAMP.search(text)
+    if m:
+        return m.group(1)
+    m = RECIPE_STAMP.search(text)
     return m.group(1) if m else None
 
 
@@ -98,4 +148,4 @@ def recipe_fingerprint(path: pathlib.Path, **context) -> tuple[str, str | None]:
     identical when they were told to make different documents.
     """
     text = path.read_text(encoding="utf-8", errors="replace")
-    return material_hash({"recipe": text, **context}), version_in(text)
+    return material_hash({"recipe": text, **context}), recipe_version_in(text)

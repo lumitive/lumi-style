@@ -1,3 +1,129 @@
+## 0.1.592 — the scaffold handed out the one layout the rule rules out
+
+Three defects, one shape: a rule stated in prose, a tool that did the opposite,
+and a metric that measured the gap and said nothing.
+
+**The scaffold emitted `body split` on every content page it produced.**
+`storyline-templates.md` has said since 0.1.521 that "a `split` page gives the
+figure half the area ... so it cannot reach this number however the words are
+trimmed. A figure-led page is `stack` or `split-wide` with the drawing in the
+wide cell." `new_deck.py` hard-coded the excluded layout, so every author began
+from it. Measured on the scaffold's own output: **10 of 11 content pages under
+the 50% internal target, worst page 37%, top layout share 71.4%** — worse than
+the **70.0%** deck a review rejected and recorded in GAP-024, while the accepted
+reference deck uses `split` **zero** times. It now alternates `split-wide` and
+`stack`, and hands a unit too thin for the figure box the whole width, which is
+the advice `shape_fill` was already printing as a comment instead of acting on.
+After: **4 of 11 under target, worst 46%, top share 42.9%.** A `stack` page also
+emits ONE cell rather than two — that grid declares `auto 1fr`, so the third
+child landed in an implicit auto row and the drawing rendered at **3%** of the
+page. That number is why the rotation ships with the child structure and not
+only with a class name.
+
+*The field case: a ten-page deck built at 0.1.591 came back faulted by eye for
+figures that were too small. Nine of its fourteen pages were one layout and
+seven content pages sat at exactly 35% visual share. The author had not chosen
+that; the scaffold had.*
+
+**A trace inferred its entry path, and fingerprinted the wrong file.**
+`new_deck.py` read path A from the mere presence of an `--outline` — an outline
+is used on both paths — and passed that outline as `--recipe`. Two replays of
+one frozen build script were therefore recorded as original four-beat builds
+carrying identical outline hashes, which is the exact record `--recipe` exists
+to make impossible. And because an outline carries no version stamp, those
+builds read as `unknown` vintage for ever while the 39KB script that produced
+every page was fingerprinted by nothing. The entry path is now declared
+(`--entry-path A|B`, no trace without it, the same rule `--storyline` already
+had) and the builder is recorded once it exists, with
+`trace.py annotate --id <id> --recipe <build script>`.
+
+**`version_in` could not read a recipe's own stamp.** One pattern claimed to
+cover both a deliverable's colophon and a recipe's source. A build script writes
+its colophon as `f"Built with lumi-style {VERSION}"` — an interpolation, not a
+literal — so a script whose line 22 says `VERSION = "0.1.591"` read as
+unstamped. Eleven builds sit in the ledger as `unknown` for this reason.
+Convention 15 in one line: the pattern was written against the rendered artifact
+and then applied to the source that renders it.
+
+**The Hermes token counter reported exactly twice the truth.** `hermes()` summed
+the four token fields and a second reader summed the same rows into the same
+dict again; `api_calls` and `tool_calls` were correct, which is the worst shape
+a broken instrument can take, because the counts look sane and the doubling
+reads as usage. It survived two releases and was caught in the field by a
+comparison that halved the numbers by hand and put the correction in a footnote
+— a reader doing the tool's job. The two readers are merged rather than one
+trimmed: the defect was not a stray line but two readers of one table sharing an
+accumulator, and trimming leaves that shape for the next edit to re-grow.
+
+**A bar was drafted here and withdrawn.** GAP-024 wants a threshold on layout
+top share and five documents now carry a verdict; ordered, they looked decisive
+(28.6 / 30.0 / 33.3 not faulted, 64.3 / 70.0 faulted). Measured against A1, this
+package's own accepted reference: **78.6%**. The accepted document scores worse
+than both faulted ones, so the bar was removed and the metric moved to
+`reported_not_thresholded` with the counter-example beside it. That is the
+automated route working — a bar a person had blessed would have shipped, and
+this one disconfirmed itself in one command. The reasoning is recorded in
+`specs/2026-08-24-round-4-retrospective-design.md`, which also records why round
+5 has to run two passes rather than one.
+
+The evidence gate's obligation map listed the layout instrument and the tokens
+but not the generator between them, so a release that changed every page's
+layout owed no browser check. `scripts/ops/new_deck.py` now maps to
+`layout-fixtures`.
+
+**A four-agent review ran against this release before it shipped, and it
+changed the release.** What it caught, each verified by measurement rather than
+by reading:
+
+- **The first rotation collapsed on the plan-driven path.** It gave any unit too
+  thin for the figure box `stack` whatever its turn; `shape_for` resolves
+  `compare` to a unit that inks 6.7% of the box and `position` to one that inks
+  38.4%, so an outline repeating one move put **every** content page in `stack` —
+  a 100% top share, worse than the 71.4% being removed, through the door this
+  package's own main route walks in by. The override is gone. The test that was
+  meant to cover it could not: it looped over the one unit `shape_fill`'s
+  docstring names as *filling* the box (100%), so its assert never executed —
+  FM-01 and convention 11 in one function.
+- **The scaffold's before-worst page is 37%, not 35%.** 35% is the field deck's
+  number, and the two documents were merged into one row in three files.
+- **The new evidence obligation rendered the wrong document.** It mapped the
+  scaffold to `layout-fixtures`, which renders a hand-written fixture carrying
+  ten `body split` pages and none of the new shape — an exit 0 that proved
+  nothing about the change it was added for. There is now a `scaffold-render`
+  obligation that renders what `new_deck.py` actually emits.
+- **`version_in` had been widened for both its callers, and one of them decides
+  which gates bind.** A document with no colophon but a line-initial
+  `VERSION = "9.9.9"` would have manufactured a stamp and exempted itself from
+  every newer gate — the exact thing CLAUDE.md forbids. The recipe reader is now
+  a separate function.
+- **`session_cost.py` crashed on a NULL `api_call_count`** (the merge guarded the
+  tokens and left the counts) and reported an unknown session id as a whole
+  table of zeros under a "1 session(s)" header. Both fixed; an unknown id is now
+  refused, matching the Claude branch.
+- **`ledger.py` printed "N build(s) had no recipe (path A looks like this)" over
+  a bucket that is 100% path B** — false for every row it described, while the
+  row data already carried the entry path.
+- Three restatements the release contradicted and had not swept: `AGENTS.md`'s
+  scaffold command, `references/build-card.md`'s one command, and two comments
+  inside `trace.py`. Plus a `SKILL.md` section citation pointing at §4, which is
+  "Five chart iron rules".
+
+Two claims were also softened rather than fixed: the eleven `unknown`-vintage
+ledger records had two different causes attributed to all of them by two
+different files, and the trace does not record which file it hashed — so neither
+cause can claim them. And the rule the scaffold now follows is scoped to Template
+11's seed register; what generalises is "do not hand every page the narrowest
+cell", not the 80% number.
+
+Deliberate-red runs: the token double-count was pinned by a synthetic sqlite
+fixture asserting a known row (`800 == 400` before, green after); the entry-path
+and recipe defects by three source-and-behaviour assertions that all failed
+first; the layout change by measuring the emitted scaffold before and after with
+`inspect_layout.py`, including the 3% stack page the first attempt produced;
+and the collapsed rotation by a test that generates an outline whose pages repeat
+one analysis move, run against the reinstated override to watch it go red before
+the override was removed.
+
 ## 0.1.591 — the counter did not ship
 
 `scripts/ops/session_cost.py` arrived at 0.1.590 to settle a comparison, and

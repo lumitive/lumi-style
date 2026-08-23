@@ -169,8 +169,17 @@ def render() -> str:
     w("python3 scripts/ops/brief.py --genre <g> --storyline <s>   # read once, not 11 times")
     w("python3 scripts/ops/build.py --deck <out.html> --script <fill.py> \\")
     w("        --outline <outline.md> --genre <g> --geometry <g> \\")
-    w("        --storyline <s> --pages <n> --parts A,B,C --lang en --fast")
+    w("        --storyline <s> --entry-path A|B \\")
+    w("        --pages <n> --parts A,B,C --lang en --fast")
     w("```")
+    w("")
+    w("**`--entry-path` is not optional in practice.** A is the four-beat "
+      "discussion, B starts from a recipe. Without it the scaffold opens NO "
+      "TRACE, which looks exactly like the deliberate `--no-trace` opt-out and "
+      "is only caught at the end, by `check_deliverable` reporting the build "
+      "`unmeasured` after every stage has already run. It used to be guessed "
+      "from whether an `--outline` was present, and an outline is used on both "
+      "paths, so replays were recorded as original builds.")
     w("")
     w("`--fast` while fixing (the declared stage only, every gate still "
       "running); `--deliver` on the last round (full matrix, and the contact "

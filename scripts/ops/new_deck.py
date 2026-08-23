@@ -255,6 +255,70 @@ def shape_fill(shape: str) -> float | None:
     return round(100 * w * h / (FIG_BOX[0] * FIG_BOX[1]), 1)
 
 
+# The layouts a figure-led content page may take, and why `split` is not among
+# them. `references/storyline-templates.md` states the rule this scaffold used
+# to break on every page it emitted (search it for "figure-led page" — a line
+# number here would rot, which CLAUDE.md convention 13 is about). NOTE ITS
+# SCOPE: the sentence sits under Template 11's seed/first-meeting register,
+# where "this number" is the pitch deck's 80% floor, and `inspect_layout.py`
+# keys the share target on the storyline. The scaffold generalises it because
+# the CELL GEOMETRY the rule reasons from is the same at every genre — half a
+# row is half a row — while the number it cannot reach differs. What is
+# generalised is "do not hand every page the narrowest cell", not the 80: "A `split` page gives the figure half the area and
+# measures about 43% once the lede and the takeaway are counted, so it cannot
+# reach this number however the words are trimmed. A figure-led page is `stack`
+# or `split-wide` with the drawing in the wide cell."
+#
+# The scaffold hard-coded `body split` for EVERY content page until 0.1.592, so
+# the one layout that rule excludes was the only one an author was handed. The
+# cost was measured on a real build: nine of fourteen pages in one layout, seven
+# content pages at exactly 35% visual share, and a deck the owner faulted by eye
+# for figures that were too small. (35% is that DECK's number. The scaffold's
+# own output measured 37% at its worst page — two different documents, and an
+# earlier draft of this comment merged them into one row.) The deck GAP-024 records as ACCEPTED — the
+# landscape roadshow deck at 6 layouts / 33.3% top share, not A1 — uses `split`
+# ZERO times: it runs split-wide, stack, split-narrow, full-bleed, hero-band and
+# sidebar-notes. Two different documents in this repository are called "the
+# accepted reference" and they disagree about `split`: A1, the corpus's training
+# anchor, is 22 of 30 pages `split` at 78.6% top share, which is why no bar can
+# be drawn on top share (KNOWN_GAPS GAP-024). Name which one you mean.
+#
+# `stack` gives the drawing the whole width; `split-wide` gives it the wide cell
+# — 62% of the row at 16x9, though `tokens/lumi-layouts.css` collapses it to one
+# column in portrait — and keeps prose beside it. (That 62% is a COLUMN WIDTH,
+# not a visual share; the shares quoted below are page areas.) Alternating is what stops the deck reading as one
+# template — D9_layout_spread measures that and, per GAP-024, cannot yet fail,
+# so the scaffold is where variety has to come from rather than from a gate.
+#
+# **The rotation is unconditional, and the first version of it was not.** It
+# began by giving any unit too thin for the figure box `stack` regardless of its
+# turn, on the reasoning that a thin drawing wants the whole width. Measured on
+# the plan-driven path, which is the main one: `shape_for` resolves `compare` to
+# a unit that inks 6.7% of the box and `position` to one that inks 38.4%, both
+# under the threshold — so an outline whose pages repeat one analytical move put
+# **every** content page in `stack`, a 100% top share. That is the defect this
+# release exists to remove, reached through the door the release walked in by.
+#
+# The override also bought less than it looked: `shape_fill` measures a unit
+# against FIG_BOX's PROPORTION, and that proportion does not change with the
+# layout — a 6.7% unit inks 6.7% of whichever cell it is given. What a thin unit
+# actually needs is a wider unit, which is what `shape_figure` already prints a
+# comment asking for.
+FIGURE_LAYOUTS = ("split-wide", "stack")
+
+
+def figure_layout(index: int, shape: str | None) -> str:
+    """-> the layout for content page `index` (0-based).
+
+    `shape` is accepted and deliberately unused: the first version keyed on it
+    and collapsed the rotation, and the parameter stays so the caller reads as
+    "the layout for this page's figure" rather than a bare modulo. See the block
+    comment above for the measurement.
+    """
+    del shape
+    return FIGURE_LAYOUTS[index % len(FIGURE_LAYOUTS)]
+
+
 def shape_figure(shape: str, label_a: str, label_b: str) -> str:
     fill = shape_fill(shape)
     note = ""
@@ -378,7 +442,7 @@ def genre_card(genre: str) -> str:
             read that block whole; fix everything it names in one pass -->"""
 
 
-def open_trace(genre, geometry, storyline, outline):
+def open_trace(genre, geometry, storyline, entry_path):
     """-> a trace id, or None when no trace could be opened (and why, on
     stderr). The scaffold is where a build begins, so the record opens here
     and the build clock starts here; check_deliverable.py stops the clock and
@@ -389,19 +453,39 @@ def open_trace(genre, geometry, storyline, outline):
     A storyline is required by the schema; without one the trace is not
     opened and the scaffold says so, because a trace is a declaration and
     a guessed declaration is the thing the schema exists to refuse.
+
+    **The entry path is declared, never inferred.** Until 0.1.592 this passed
+    path A whenever an outline existed and path B otherwise, and an outline is
+    used on BOTH paths — so every build that happened to hand one over was
+    recorded as an original four-beat build. Two replays of one frozen script landed in the ledger that way, with
+    identical outline hashes, which is the precise record `--recipe` exists to
+    make impossible. The same guessed-declaration rule that governs the
+    storyline above governs this: no `--entry-path`, no trace.
+
+    **The outline is not the recipe either.** It was passed as `--recipe`, so
+    the file fingerprinted was the PLAN while the script that produced every
+    page was fingerprinted by nothing — and an outline carries no version
+    stamp, so those builds read as `unknown` vintage for ever. The builder does
+    not exist yet at scaffold time; it is recorded afterwards with
+    `trace.py annotate --id <id> --recipe <build script>`.
     """
     if not storyline:
         print("<!-- no trace opened: a trace declares its storyline, and none "
               "was given (--storyline) -->", file=sys.stderr)
         return None
+    if entry_path not in ("A", "B"):
+        print("<!-- no trace opened: a trace declares its entry path, and none "
+              "was given (--entry-path A|B). A is the four-beat discussion, B "
+              "starts from a recipe; handing over an outline does not decide "
+              "which, and guessing it is what put two replays in the ledger as "
+              "original builds -->", file=sys.stderr)
+        return None
     import subprocess
     tool = pathlib.Path(__file__).with_name("trace.py")
     stage = deliverable_registry.STAGE_OF.get(geometry, "16x9")
     argv = [sys.executable, str(tool), "open", "--genre", genre,
-            "--storyline", storyline, "--entry-path", "A" if outline else "B",
+            "--storyline", storyline, "--entry-path", entry_path,
             "--geometry", stage]
-    if outline is not None:
-        argv += ["--recipe", str(outline)]
     opened = subprocess.run(argv, capture_output=True, text=True)
     if opened.returncode != 0:
         print(f"<!-- no trace opened: {opened.stderr.strip()[:200]} -->",
@@ -670,6 +754,13 @@ def main(argv):
                          "sections. A CHECKLIST, never a template: the rows "
                          "are furniture to replace, and a storyline with no "
                          "checklist says so rather than emitting nothing.")
+    ap.add_argument("--entry-path", dest="entry_path", choices=("A", "B"),
+                    help="how this document reached the workflow: A is the "
+                         "four-beat discussion, B starts from a recipe. "
+                         "DECLARED, never inferred — handing over an outline "
+                         "does not decide it, and guessing it recorded two "
+                         "replays as original builds. Without it no trace "
+                         "opens, on the same rule as --storyline.")
     ap.add_argument("--outline", type=pathlib.Path,
                     help="the analysis beat's outline. Each content page is "
                          "emitted carrying its planned title and implication "
@@ -751,7 +842,7 @@ def main(argv):
     apparatus = 1 if args.genre == "training" else 0
     total = args.pages + 3 + len(parts) + apparatus
     trace_id = None if args.no_trace else open_trace(
-        args.genre, args.geometry, args.storyline, args.outline)
+        args.genre, args.geometry, args.storyline, args.entry_path)
     out = [preamble(args.genre, args.geometry, args.storyline, trace_id,
                     args.lang, args.lang_asked)]
 
@@ -869,9 +960,23 @@ def main(argv):
                 figure = shape_figure(shape, "what this end names", "and what it leads to")
                 hint = (hint + "; " if hint else "") + shape_note
             fignote = (f"\n      <!-- {hint} -->" if hint else "")
+            lay = figure_layout(figno - 1, shape)
+            # `.body.stack` is "one full-width centerpiece": its grid declares
+            # `auto 1fr` — a lede and ONE cell. A page that hands it three
+            # children puts the figure in an implicit auto row, and it renders
+            # at 3% of the page. That is measured, on the first scaffold built
+            # after this rotation existed, which is why the rotation ships with
+            # the child structure rather than only the class name.
+            if lay == "stack":
+                cells_open = ("    <div class=\"fill\">\n" + block
+                              + "\n      <!-- stack gives ONE cell the 1fr row,"
+                                " so the block and the drawing share it -->")
+            else:
+                cells_open = ("    <div class=\"fill\">\n" + block
+                              + "\n    </div>\n    <div class=\"fill\">")
             out.append(f'''<section class="page" id="p{n}"{adecl}>
   {g}
-  <div class="body split">
+  <div class="body {lay}">
     <div class="lede">
       <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#{PAGE_ICONS[(n - 1) % len(PAGE_ICONS)]}"/></svg>Part {part} &#183; this page&#8217;s label</p>
       <!-- The icon is a PLACEHOLDER rotated so no two pages start alike.
@@ -881,10 +986,7 @@ def main(argv):
       <h2 class="t">{title}</h2>
       <p class="sup">The support line, one sentence and not a summary.</p>
     </div>
-    <div class="fill">
-{block}
-    </div>
-    <div class="fill">{fignote}
+{cells_open}{fignote}
       <div class="fig">{figure}
       <div class="cap"><span class="n">Figure {figno}</span> A title stating a
       conclusion</div></div>

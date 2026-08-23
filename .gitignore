@@ -112,3 +112,4 @@ terms-oob*
 # build on one machine. The trace carries the seconds; the clock is not a
 # record.
 evals/traces/.phases/
+fixtures/.scaffold-evidence.html

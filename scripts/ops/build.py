@@ -99,6 +99,12 @@ def main(argv=None) -> int:
     ap.add_argument("--genre", choices=list(GENRES), default="internal")
     ap.add_argument("--geometry", choices=list(COMPOSITIONS), default="landscape")
     ap.add_argument("--storyline", choices=list(STORYLINES))
+    ap.add_argument("--entry-path", dest="entry_path", choices=("A", "B"),
+                    help="how this document reached the workflow: A is the "
+                         "four-beat discussion, B starts from a recipe. The "
+                         "scaffold opens no trace without it, because the "
+                         "value used to be guessed from whether an --outline "
+                         "was present and an outline is used on both paths.")
     ap.add_argument("--pages", type=int)
     ap.add_argument("--parts")
     ap.add_argument("--lang", default="en",
@@ -190,6 +196,8 @@ def main(argv=None) -> int:
             argv_nd += ["--lang-asked", a.lang_asked]
         if a.storyline:
             argv_nd += ["--storyline", a.storyline]
+        if a.entry_path:
+            argv_nd += ["--entry-path", a.entry_path]
         if a.outline:
             argv_nd += ["--outline", str(a.outline)]
         if a.pages:

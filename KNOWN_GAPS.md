@@ -326,10 +326,36 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   table rows and whose reader scored three dimensions at 1 — and convention 6
   exists because of it. `evals/thresholds.json` is where a ratio with an
   `evidence` level belongs, not a design row with a hardcoded constant.
-- check: a second document accepted through a blind review, its layout spread
-  measured, and the bar set in `evals/thresholds.json` at `provisional` with
-  both documents cited. GAP-021's re-baseline of A1 produces the same
-  material and should close both.
+- **0.1.592 tried the bar and the corpus refused it.** Three more documents now
+  carry a verdict: two market-analysis decks built from one source at 0.1.591 —
+  one faulted by eye for figures that were too small at **64.3%**, one not
+  faulted at **28.6%** — and the scaffold's own output, which was emitting
+  **71.4%** before that release and **42.9%** after. Ordered, that looked like a
+  clean separation with an empty band from 33.3 to 64.3, and a `provisional`
+  bar of 50 was drafted into `evals/thresholds.json`. Then it was measured
+  against A1, the corpus's own accepted anchor: **78.6%** — 22 of its 30 pages
+  are `split`. **A1 is not the deck this entry calls accepted above**: that one
+  is the landscape roadshow deck at 33.3%, which uses `split` zero times. Two
+  accepted documents disagreeing this hard about one layout is itself the
+  finding. **The accepted document scores worse than both documents an
+  owner faulted**, so top share does not order these documents by quality and
+  any bar drawn here fails the reference. Scoping the bar to decks was
+  considered and declined: A1 is landscape too, and inventing a distinction to
+  rescue a number is the move convention 6 exists to stop. The bar was removed
+  and the metric moved to `reported_not_thresholded` with the counter-example
+  recorded beside it.
+- what 0.1.592 did instead, and it needed no threshold: `new_deck.py` was
+  emitting `body split` on EVERY content page — the layout
+  `storyline-templates.md` already rules out for a figure-led page. The fix is
+  the scaffold obeying a written rule, not a new gate. Visual share on the
+  emitted scaffold went from 10 of 11 content pages under target (worst 37%) to
+  4 of 11 (worst 46%). The 35% quoted elsewhere is the FIELD DECK's worst page,
+  not the scaffold's; the two were merged into one row in a first draft.
+- check: this gap now needs something other than a top-share bar. The open
+  question is what property separates A1 at 78.6 from the deck rejected at 70.0,
+  given both run one layout on most pages — the answer is probably not variety
+  at all, and the gap may be mis-framed. GAP-021's re-baseline of A1 is still
+  the material that would settle it.
 
 ## GAP-023 · A driven agent's `new_deck.py` runs write build traces into the installed skill
 

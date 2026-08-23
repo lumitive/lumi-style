@@ -138,6 +138,11 @@ def measure(path: pathlib.Path, with_render: bool,
         return out
 
     out["content_pages"] = pages
+    # READ from check_design, never recomputed. D9 already decides which pages
+    # count and how the split family merges; a second implementation here would
+    # be the `no shadow math` guard's territory, and the two copies would
+    # disagree on exactly the documents this bar is meant to separate.
+    layout_top_share = (d.get("D9_layout_variety") or {}).get("top_share")
     out["prose_only_share"] = round(len(vis.get("prose_only") or []) / pages, 3)
     out["figures_per_content_page"] = round(figures / pages, 3)
     # COUNTED ON CONTENT PAGES ONLY, to match the denominator. Counting the
@@ -153,6 +158,12 @@ def measure(path: pathlib.Path, with_render: bool,
     out["list_items_per_content_page"] = round(
         len(re.findall(r"<li\b", body)) / pages, 3)
     out["reported"] = {
+        # Printed without a bar, and `reported_not_thresholded` in
+        # evals/thresholds.json records why: the accepted reference scores
+        # worse on this than either document an owner faulted, so it does not
+        # order them by quality. Measured anyway, because GAP-024 is open and
+        # a number nobody prints is a number nobody can disconfirm.
+        "layout_top_share": layout_top_share,
         "fig_blocks": drawn.get("figures") or 0,
         "drawn": figures,
         "laid_out": drawn.get("laid_out"),
@@ -344,6 +355,15 @@ def main(argv=None) -> int:
         if measured.get("gates"):
             print(f"  gates        {measured['gates']}")
         rep = measured["reported"]
+        # `layout_top_share` prints HERE and not only under --json. The comment
+        # beside it in `measure` said "a number nobody prints is a number
+        # nobody can disconfirm" while the printed line omitted it — convention
+        # 14, in the release that wrote the sentence. `None` prints as
+        # `unmeasured`: check_design returns it for a document that declares no
+        # layout class at all, which is not the same as a good spread.
+        _lts = rep.get("layout_top_share")
+        print(f"  reported     layout top share "
+              f"{'unmeasured' if _lts is None else str(_lts) + '%'}")
         print(f"  reported     {rep['drawn']} drawn of {rep['fig_blocks']} "
               f"fig blocks ({rep['laid_out']} laid out), "
               f"rect-only {rep['rect_only_share']}, "
