@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.575"
+  version: "0.1.576"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -510,8 +510,10 @@ its own viewBox, a stat band whose labels render outside it, an overspent title 
 matrix that declaration implies, and a single `--geometry` switches the matrix
 off. Add a second run with `--dark` if the deliverable ships a dark variant;
 one run renders one palette.
-`python3 scripts/check/check_design.py <file>` reports the design metrics and gates on four
-things, none of them a design judgement: **D12**, the handling terms and origin
+`python3 scripts/check/check_design.py <file>` reports the design metrics and
+gates on every row its own table marks `(gates)` — none of them a design
+judgement, and the script is the authority on which they are. These four are
+the ones a draft trips first: **D12**, the handling terms and origin
 every page owes (the terms open with the seal-red `shield` handling marker —
 the rendering ships in `tokens/`, the gate is the terms); **D14**, any slot
 left for yourself; **D15**, a file path in a footer; and **D19**, a reference

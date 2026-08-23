@@ -52,10 +52,13 @@ def test_a_dev_path_fails_and_says_what_to_do(tmp_path, monkeypatch):
 
 def test_a_path_built_from_two_pieces_is_seen(tmp_path, monkeypatch):
     """`ROOT / "evals" / "x.json"` is the form half this repository uses."""
+    # SEEN: a two-segment join naming a dev file fires.
     monkeypatch.setattr(check_repo, "ROOT", _repo(
-        tmp_path, 'GAPS = ROOT / "KNOWN" / "GAPS.md"\n'))
-    # not a tracked file under that spelling, so nothing fires
-    assert check_repo.check_cross_boundary_paths() == []
+        tmp_path, 'S = ROOT / "reviews" / "scores.json"\n',
+        extra={"reviews/scores.json": "{}\n"}))
+    errors = check_repo.check_cross_boundary_paths()
+    assert any("reviews/scores.json" in e for e in errors), errors
+    # and a consumer one does not
     monkeypatch.setattr(check_repo, "ROOT", _repo(
         tmp_path, 'B = ROOT / "references" / "brand.md"\n'))
     assert check_repo.check_cross_boundary_paths() == []
