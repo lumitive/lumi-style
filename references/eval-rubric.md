@@ -118,7 +118,7 @@ gated. `SKILL.md` rule 4 is why the rest only report: a page is done when a huma
 reads it as intentional, and a metric that can be satisfied without improving the
 page ends the looking rather than directing it.
 
-**Eleven exceptions, and none is a design judgement.** D12 is a commercial
+**These exceptions, and none is a design judgement.** D12 is a commercial
 requirement on the artifact, D14 asks whether the document is finished, D15
 asks whether the footer cites something a reader can open, D19 asks whether
 every reference in the document resolves inside it, D20 asks whether the

@@ -1,3 +1,39 @@
+## 0.1.577 — a guard that could whitelist a wrong name against itself, and a store that changed under a tool without saying so
+
+The review's remainder. Three things that were not defects yet and were each one
+edit away from becoming one.
+
+**`check_verdict_names` read `evals/*.json` whole, and one of those files stores
+verbatim quotes of reference prose.** So a wrong verdict name written into a
+sentence that `rule-coverage.json` quotes would enter the guard's dictionary and
+whitelist itself against the guard policing that very sentence. Exactly one
+snake_case token lives in those quotes today and nothing is masked; the
+circularity is the defect, not its current reach. The JSON gives up its KEYS
+now. Both directions re-checked on the real tree: a name that exists nowhere
+still fails, and `visual_share_median` and `page_share` still do not.
+
+**`check_review_scores` could report `ok` having read nothing.** 0.1.572 taught
+`review_scores.py --check` that an absent store is a legal state — right for a
+freshly installed skill, where nobody has reviewed anything yet. It is wrong
+here, where the store is a TRACKED file: an absent one is a deletion, and the
+guard whose stated reason for running in CI is red line 9 would pass having
+validated nothing. The guard asks about the tracked file itself before
+delegating.
+
+**`state_dir` moved a store under a tool without saying so.** The resolution
+flips on whether a directory happens to exist, and two of the four candidates
+are gitignored — so a fresh clone, a worktree, or deleting one untracked file
+moves a store with no warning, and a write afterwards leaves two copies
+diverging invisibly. `describe()` names which arm answered, and the one tool
+that prints a store path uses it. `run_conformance` prints `writing into
+{run_dir}` for the same reason.
+
+Also: `references/eval-rubric.md` said "Eleven exceptions" and listed
+seventeen — pre-existing, and convention 13's answer is to delete the number
+rather than correct it.
+
+The design record is `specs/2026-08-23-gate-consolidation-design.md`.
+
 ## 0.1.576 — the tests the review found could pass against broken code
 
 0.1.575 fixed what five reviews found. This is the other half of what they

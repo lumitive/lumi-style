@@ -58,3 +58,18 @@ def store(*parts: str, in_repo: tuple[str, ...] = (),
         if candidate.exists():
             return candidate
     return state_dir().joinpath(*parts)
+
+
+def describe(*parts: str, in_repo: tuple[str, ...] = (),
+             root: pathlib.Path | None = None) -> str:
+    """-> a sentence naming WHICH store answered, for a tool that prints one.
+
+    The resolution flips on whether a directory happens to exist, and nothing
+    said so out loud: two of the four candidates are gitignored, so a fresh
+    clone, a worktree, or deleting an untracked file moves the store with no
+    warning, and a write afterwards leaves the two copies diverging invisibly.
+    `run_conformance` prints `writing into {run_dir}` for exactly this reason.
+    """
+    where = store(*parts, in_repo=in_repo, root=root)
+    inside = bool(in_repo) and where == (root or ROOT).joinpath(*in_repo)
+    return f"{where} ({'in this checkout' if inside else 'operator state'})"

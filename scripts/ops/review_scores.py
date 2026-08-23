@@ -243,7 +243,8 @@ def main(argv):
         # "unreadable" with a raw errno — which reads as corruption — before a
         # single review had been recorded. Nobody has reviewed anything yet is
         # a legal state; a store that exists and will not parse is not.
-        print(f"note  no reviews recorded yet ({STORE} does not exist)")
+        print(f"note  no reviews recorded yet — the store would be "
+              f"{state_dir.describe('scores.json', root=ROOT, in_repo=('reviews', 'scores.json'))}")
         return 0
     try:
         store = json.loads(STORE.read_text(encoding="utf-8"))
