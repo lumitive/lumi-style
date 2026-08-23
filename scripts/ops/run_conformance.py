@@ -2134,10 +2134,17 @@ def main(argv):
                     per_built.setdefault(agent_id, {})[task_id] = value["built_version"]
                 if value.get("instrument_version"):
                     instruments.add(value["instrument_version"])
+            # PORTABLE, like the board's run id. 0.1.568 collapsed the home
+            # directory in what `report` RENDERS and missed what it RECORDS, so
+            # every history row kept writing the operator's username into a
+            # tracked file — `check_local_paths` caught it on the first refresh
+            # after that release. The de-duplication below compares against the
+            # same form, or a re-record would append a second row for one run.
+            where = _portable(str(name))
             for agent_id, task_verdicts in sorted(per_agent.items()):
                 row = {"skill_version": version, "agent": agent_id,
                        "date": datetime.date.today().isoformat(),
-                       "run_dir": str(name), "tasks": task_verdicts,
+                       "run_dir": where, "tasks": task_verdicts,
                        "scores_sha256": digest}
                 # IDEA-8: the ruler and the artifact vintages, when the
                 # scores carry them (older scores.json rows predate the
@@ -2147,7 +2154,7 @@ def main(argv):
                 if per_built.get(agent_id):
                     row["built"] = per_built[agent_id]
                 if not any(r.get("agent") == agent_id
-                           and r.get("run_dir") == str(name)
+                           and r.get("run_dir") == where
                            and r.get("scores_sha256") == digest
                            for r in history):
                     history.append(row)

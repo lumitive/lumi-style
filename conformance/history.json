@@ -401,5 +401,63 @@
     },
     "scores_sha256": "3e319f1ab6e6ad8e9639de799f80518db7df49a7b3ade1d583de590ad89fd987",
     "instrument_version": "0.1.557"
+  },
+  {
+    "skill_version": "0.1.580",
+    "agent": "claude-code",
+    "date": "2026-08-23",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/0.1.578-2026-08-23",
+    "tasks": {
+      "T1-deck": "pass",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "b33c8984fa2f9594feb4cacf61ce1462c7008fdb87f393ee88026c01e09f38ab",
+    "instrument_version": "0.1.580",
+    "built": {
+      "T1-deck": "0.1.580"
+    }
+  },
+  {
+    "skill_version": "0.1.580",
+    "agent": "cursor",
+    "date": "2026-08-23",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/0.1.578-2026-08-23",
+    "tasks": {
+      "T1-deck": "pass",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "b33c8984fa2f9594feb4cacf61ce1462c7008fdb87f393ee88026c01e09f38ab",
+    "instrument_version": "0.1.580",
+    "built": {
+      "T1-deck": "0.1.580"
+    }
+  },
+  {
+    "skill_version": "0.1.580",
+    "agent": "gemini-cli",
+    "date": "2026-08-23",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/0.1.578-2026-08-23",
+    "tasks": {
+      "T1-deck": "not earned",
+      "T2-deaify": "not earned",
+      "T3-recall": "not earned"
+    },
+    "scores_sha256": "b33c8984fa2f9594feb4cacf61ce1462c7008fdb87f393ee88026c01e09f38ab",
+    "instrument_version": "0.1.580"
+  },
+  {
+    "skill_version": "0.1.580",
+    "agent": "hermes",
+    "date": "2026-08-23",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/0.1.578-2026-08-23",
+    "tasks": {
+      "T1-deck": "not earned",
+      "T2-deaify": "pass",
+      "T3-recall": "not earned"
+    },
+    "scores_sha256": "b33c8984fa2f9594feb4cacf61ce1462c7008fdb87f393ee88026c01e09f38ab",
+    "instrument_version": "0.1.580"
   }
 ]

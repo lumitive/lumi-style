@@ -1,3 +1,52 @@
+## 0.1.581 — the board is refreshed, and the answer to the question 0.1.575 could not answer
+
+0.1.575 changed what a prose row can return and what an exit means, and waived
+the conformance obligation with the honest reason: a deck that scored `pass` on
+the r16-pinned board might not score `pass` now, and the board could not say so.
+This run answers it. **It still passes.**
+
+Four agents driven concurrently against 0.1.580 — the version carrying the
+`blind` verdict, the exit computed from `check_deliverable`'s own buckets, and
+M12's refusal to treat an undeclared language as an exemption.
+
+| | T1-deck | T2 | T3 | |
+|---|---|---|---|---|
+| Claude Code | pass | pass | pass | **3 of 3**, T1 in 17 minutes |
+| Cursor | pass | pass | pass | **3 of 3**, T1 in 30 minutes |
+| Hermes | not earned | pass | not earned | 1 of 3 |
+| Gemini CLI | not earned | not earned | not earned | 0 of 3 |
+
+**Not one verdict on either passing deck was `blind`, and not one was `n/a`.**
+Every row read `ok`. That is the result the change was supposed to produce: a
+gate that fails a document refusing to say what language it is in should be
+invisible to a document that says so, and both agents' decks do.
+
+**Hermes fails in a shape, not at random.** Its T1 stalled after 1854 seconds
+and its T3 came back `misplaced` in 25 — both times a deck existed on disk and
+the harness declined to credit it, because the path was not one Hermes had
+NAMED. That is 0.1.572's rule working: a path the transcript names is evidence
+of authorship, a path that merely appeared is a coincidence with a timestamp.
+The artifact is kept under `misplaced/` rather than deleted, so the operator can
+see what was rejected and why.
+
+**Gemini CLI earned nothing on any task**, failing T2 and T3 in fifteen and
+seventeen seconds. The key on this machine is free-tier; the harness records
+what happened rather than guessing why.
+
+Two agents fully passing is what the freshness obligation asks for, so
+`releases/evidence/0.1.575.json`'s waiver is discharged here rather than
+carried forward.
+
+**And the refresh found a defect in the release that fixed this exact class.**
+0.1.568 collapsed the operator's home directory in what `report` RENDERS and
+missed what it RECORDS: `history.json`'s `run_dir` kept writing the absolute
+path, so every history row carried the username into a tracked file.
+`check_local_paths` caught it on the first refresh after that release, which is
+the guard doing its job — but the fix had been reported as complete. Both ends
+are portable now, including the de-duplication comparison, which would
+otherwise append a second row for one run; verified by re-recording and
+counting.
+
 ## 0.1.580 — the publication was a script in /tmp, which is where steps go to be forgotten
 
 0.1.578 gave the published package a check that can speak for it. This gives the
