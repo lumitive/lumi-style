@@ -57,6 +57,27 @@ def material_hash(material: dict, length: int = 12) -> str:
     ).hexdigest()[:length]
 
 
+def skill_version() -> str:
+    """-> the version SKILL.md declares.
+
+    `debug_log` had the only reader and the scaffold could not reach it, so
+    `new_deck.py` shipped the literal `VERSION` in its colophon — a slot D14
+    GATES on. Every build by every user was therefore one red round and one
+    hand edit, to write a number the package already knows.
+
+    Here rather than in `stamps.py` because that module names paths the
+    consumer projection does not carry, and importing it from the scaffold
+    would drag them across the boundary.
+    """
+    root = next(p for p in pathlib.Path(__file__).resolve().parents
+                if (p / "SKILL.md").exists())
+    m = re.search(r'^\s*version:\s*"(\d+\.\d+\.\d+)"',
+                  (root / "SKILL.md").read_text(encoding="utf-8"), re.M)
+    if not m:
+        raise SystemExit("FAIL  SKILL.md carries no metadata.version")
+    return m.group(1)
+
+
 def version_in(text: str) -> str | None:
     """-> the lumi-style version this text stamps, or None.
 

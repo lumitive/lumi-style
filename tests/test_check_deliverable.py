@@ -7,10 +7,12 @@ The driver's contract is therefore exactly one thing: EVERY failure family in
 ONE final block, and an exit code that cannot disagree with it.
 """
 import json
+import os
 import pathlib
 import re
 import subprocess
 import sys
+import tempfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DRIVER = ROOT / "scripts" / "ops" / "check_deliverable.py"
@@ -23,12 +25,24 @@ TRIFAIL = """<html><head><title>t</title><style>.x{color:#123456}</style></head>
 </section></body></html>"""
 
 
+# (defined above _run)
+# One empty directory for the whole module, created once: `check_privacy`
+# resolves `LUMI_TERMS_DIR` and reports NOT ATTEMPTED when it holds no list,
+# which is the state these tests were written against.
+_EMPTY_TERMS = pathlib.Path(tempfile.mkdtemp(prefix="lumi-no-terms-"))
+
+
 def _run(doc_text, tmp_path, *args):
     doc = tmp_path / "doc.html"
     doc.write_text(doc_text, encoding="utf-8")
+    # See `_report`: an empty terms directory, so what these assert does not
+    # depend on whether the machine running them happens to carry an
+    # out-of-bounds list.
+    env = dict(os.environ)
+    env["LUMI_TERMS_DIR"] = str(_EMPTY_TERMS)
     return subprocess.run(
         [sys.executable, str(DRIVER), str(doc), "--skip-layout", *args],
-        capture_output=True, text=True, cwd=ROOT)
+        capture_output=True, text=True, cwd=ROOT, env=env)
 
 
 def test_every_failure_family_lands_in_the_one_block(tmp_path):
@@ -141,7 +155,15 @@ def test_fast_finds_the_same_gating_failures_as_the_full_matrix(tmp_path):
     def gates(*extra):
         out = subprocess.run([sys.executable, str(DRIVER), broken, "--json",
                               *extra], capture_output=True, text=True)
-        return {line for line in json.loads(out.stdout)["gating"]
+        # THE FINDING NAMES, not the whole line. Since 0.1.590 each line
+        # carries the detail that names the page, and that detail includes
+        # measured pixels — which legitimately differ between geometries
+        # (`106x12px` at one stage, `106x13px` at another). Comparing the
+        # rendered sentence would fail on a difference that is the point of
+        # rendering at two sizes; the question here is whether `--fast` loses
+        # a FINDING.
+        return {line.split(" — ")[0].strip()
+                for line in json.loads(out.stdout)["gating"]
                 if line.startswith("layout:")}
 
     full, fast = gates(), gates("--fast")
@@ -170,6 +192,8 @@ def test_the_evals_reach_the_one_block(tmp_path):
 # and read by nothing that decided anything — so a deck accepted at 0.1.449 was
 # failed by a gate written at 0.1.560 and the failure read exactly like a defect.
 
+
+
 def _stamped(tmp_path, version):
     """A document that genuinely fails a late gate, stamped as an older build."""
     raw = (ROOT / "fixtures" / "deck-pass.en.html").read_text(encoding="utf-8")
@@ -188,9 +212,20 @@ def _stamped(tmp_path, version):
     return doc
 
 
-def _report(doc):
+def _report(doc, terms_dir=None):
+    """Run the stack over one document.
+
+    **With an empty terms directory unless the caller names one.** Three tests
+    here read `privacy` as a finding, which it is only when P-5's term half
+    reports NOT ATTEMPTED — so on a machine that HAS an out-of-bounds list at
+    `~/.lumi/terms/` they failed, and on CI, which has none, they passed. A
+    test whose verdict depends on operator state outside the repository is
+    testing the machine.
+    """
+    env = dict(os.environ)
+    env["LUMI_TERMS_DIR"] = str(terms_dir or _EMPTY_TERMS)
     out = subprocess.run([sys.executable, str(DRIVER), str(doc), "--fast", "--json"],
-                         capture_output=True, text=True)
+                         capture_output=True, text=True, env=env)
     return json.loads(out.stdout)
 
 
@@ -272,10 +307,12 @@ def test_a_finding_with_no_declared_metric_keeps_its_own_heading():
     have no family. Forcing them into a taxonomy built for gates would file
     them under something untrue; they head their own group instead."""
     import gate_registry
+    env = dict(os.environ)
+    env["LUMI_TERMS_DIR"] = str(_EMPTY_TERMS)   # see `_report`
     out = subprocess.run(
         [sys.executable, str(DRIVER),
          str(ROOT / "fixtures" / "deck-pass.en.html"), "--fast"],
-        capture_output=True, text=True).stdout
+        capture_output=True, text=True, env=env).stdout
     # NOT `or "privacy:" in out` — the finding line itself reads
     # "GATE  privacy: declared terms not_attempted", so the disjunct survived
     # deleting the heading this test is named for.

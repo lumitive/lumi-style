@@ -41,7 +41,8 @@ from deliverable_registry import checker_path  # noqa: E402
 
 
 def checker_argv(kind: str, path, genre: str | None = None,
-                 iterate: bool = False, sheet: bool = False) -> list[str]:
+                 iterate: bool = False, sheet: bool = False,
+                 against=None) -> list[str]:
     """The canonical invocation for one checker kind, in one place.
 
     The knowledge here used to live in `run_conformance.score_checks` alone,
@@ -70,6 +71,10 @@ def checker_argv(kind: str, path, genre: str | None = None,
             argv.append("--no-sheet")
         if iterate:
             argv.append("--iterate")
+        if against:
+            # The previous round's reading. Only the renderer can compare
+            # rendered geometry, so only the layout kind carries it.
+            argv += ["--against", str(against)]
     return argv
 
 

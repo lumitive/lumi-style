@@ -42,7 +42,9 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import argparse  # noqa: E402
+import json  # noqa: E402
 import pathlib  # noqa: E402
+import shutil  # noqa: E402
 import subprocess  # noqa: E402
 import sys  # noqa: E402
 import time  # noqa: E402
@@ -121,6 +123,23 @@ def main(argv=None) -> int:
     ap.add_argument("--debug-log", action="store_true",
                     help="write <stem>.debug.json beside the deck, one entry "
                          "per command, machine-written")
+    ap.add_argument("--assess", action="append", metavar="Cn=score:reason",
+                    default=[],
+                    help="a C1-C8 self-score, repeatable: "
+                         "--assess C1=4:\"storyline declared and mirrored\". "
+                         "Folded into this run instead of eight separate "
+                         "`debug_log assess` calls. 5 is refused — never "
+                         "self-score 5 before a reader")
+    ap.add_argument("--keep-log", action="store_true",
+                    help="do not restart the debug log. One run of this driver "
+                         "is one build's record, so it restarts by default; "
+                         "pass this to keep an earlier run's log and let init "
+                         "refuse")
+    ap.add_argument("--facts", type=pathlib.Path, metavar="CONTRACT.md",
+                    help="the fact contract this build was made from. Asks the "
+                         "question no other check asks — whether the rebuild "
+                         "still carries the facts it was built from. A measured "
+                         "rebuild silently lost eleven")
     ap.add_argument("--platform", default="claude-code",
                     help="registry id for the debug log")
     a = ap.parse_args(argv)
@@ -139,10 +158,29 @@ def main(argv=None) -> int:
         # the two computed the path independently and would diverge the moment
         # only one was fixed.
         log_path = a.deck.parent / (debug_log.log_stem(a.deck) + ".debug.json")
-        debug_log.main(["init", str(a.deck), "--platform", a.platform])
+        # RESTART BY DEFAULT. `debug_log init` refuses an existing log so one
+        # build's record is not silently overwritten — and **one run of this
+        # driver IS one build**, which is the invariant that guard protects.
+        # Without the passthrough, every iteration after the first died here
+        # before a single stage ran, and the author moved the log aside by
+        # hand: nine times on one measured build.
+        argv_init = ["init", str(a.deck), "--platform", a.platform]
+        if not a.keep_log:
+            argv_init.append("--restart")
+        debug_log.main(argv_init)
         if not log_path.is_file():
             sys.exit(f"debug_log init wrote no log at {log_path}")
     stage = Stage(log_path)
+
+    # A9 · THE BEAT'S OWN HALF, before anything is built. `check_outline`
+    # without `--against` decides the cheap half — topic-label titles, group
+    # size, an undeclared section — and prints the titles to be read as one
+    # paragraph. SKILL.md asks for it before building; only the after half was
+    # ever in this driver, so the before half cost a separate command.
+    if a.outline:
+        stage.run("outline", [sys.executable,
+                              str(ROOT / "scripts/check/check_outline.py"),
+                              str(a.outline)])
 
     if not a.keep_scaffold:
         argv_nd = [sys.executable, str(ROOT / "scripts/ops/new_deck.py"),
@@ -182,7 +220,51 @@ def main(argv=None) -> int:
         argv_cd.append("--fast")
     if a.deliver:
         argv_cd.append("--sheet")
+    # THE PREVIOUS ROUND'S READING, kept and passed back in. A build that is
+    # already green has no signal telling it so, and one measured session ran
+    # SIX more rounds after its last failure — with the debug log recording
+    # nothing on a green round, so neither the author nor a reader could say
+    # whether those rounds improved anything. `--against` answers that: a round
+    # that moved no measured number says so in one line.
+    prev = a.deck.parent / f".{a.deck.stem}.layout.json"
+
+    # ALWAYS, not only in debug mode: the next round's comparison needs this
+    # round's reading, and a driver that only kept it when someone asked for a
+    # log would make the comparison a debug-mode feature.
+    reports_dir = a.deck.parent / f".{a.deck.stem}.reports"
+    argv_cd += ["--reports-dir", str(reports_dir)]
+    if prev.is_file():
+        argv_cd += ["--against", str(prev)]
     rc = stage.run("check", argv_cd)
+
+    # Keep this round's layout reading as the next round's baseline, so the
+    # comparison needs no ceremony from the caller.
+    src = (reports_dir or (a.deck.parent / f".{a.deck.stem}.reports")) / "layout.json"
+    if src.is_file():
+        prev.write_bytes(src.read_bytes())
+
+    if a.facts:
+        # Also outside check_deliverable, and the only check that compares the
+        # document to what it was built FROM.
+        rc = stage.run("facts", [sys.executable,
+                                 str(ROOT / "scripts/check/check_facts.py"),
+                                 str(a.facts), str(a.deck)]) or rc
+
+    if a.deliver:
+        # THE DELIVERY ROUND'S OWN COMMANDS, folded in. `export_pdf` had no
+        # caller anywhere in the package, and the scoring sheet is generated
+        # from the rubric — both were separate round trips at the end of every
+        # build, after the driver had already returned.
+        stage.run("export pdf", [sys.executable,
+                                 str(ROOT / "scripts/ops/export_pdf.py"),
+                                 str(a.deck)])
+        sheet = a.deck.parent / f"{a.deck.stem}.scoring-sheet.md"
+        proc = subprocess.run(
+            [sys.executable, str(ROOT / "scripts/ops/scoring_sheet.py"),
+             str(a.deck)], capture_output=True, text=True)
+        if proc.returncode == 0 and proc.stdout.strip():
+            sheet.write_text(proc.stdout, encoding="utf-8")
+            print(f"   scoring sheet: {sheet}")
 
     if a.outline:
         # The question no other check asks: is this still the deck that was
@@ -191,6 +273,31 @@ def main(argv=None) -> int:
         rc = stage.run("outline mirror",
                        [sys.executable, str(ROOT / "scripts/check/check_outline.py"),
                         str(a.outline), "--against", str(a.deck)]) or rc
+
+    if log_path is not None:
+        # THE CONTRACT'S OTHER HALF, honoured from the reports the check step
+        # already produced. `attach` asked for documents this pipeline used to
+        # throw away, so keeping the contract cost six commands and a second
+        # browser render.
+        for kind in ("design", "prose", "layout"):
+            f = reports_dir / f"{kind}.json"
+            if f.is_file():
+                try:
+                    debug_log.attach_doc(log_path, kind,
+                                         json.loads(f.read_text(encoding="utf-8")))
+                except (OSError, ValueError) as exc:
+                    print(f"   could not attach {kind}: {exc}", file=sys.stderr)
+    shutil.rmtree(reports_dir, ignore_errors=True)
+
+    if log_path is not None and a.assess:
+        for spec in a.assess:
+            dim, _, rest = spec.partition("=")
+            score, _, reason = rest.partition(":")
+            rc_a = debug_log.main(["assess", str(log_path), "--dim", dim.strip(),
+                                   "--score", score.strip(),
+                                   "--reason", reason.strip() or "(no reason given)"])
+            if rc_a:
+                rc = rc or rc_a
 
     if log_path is not None:
         print(f"\n   debug log: {log_path}")

@@ -8,6 +8,7 @@ level — which string fires, which deliberately does not.
 import pathlib
 
 import check_design
+import gate_registry
 
 FOOT = ('<div class="foot"><span class="conf">Confidential</span>'
         '<span class="site">www.example.org</span><span>01 / 02</span></div>')
@@ -32,10 +33,22 @@ def test_d14_replace_me_in_the_title_is_found_as_head():
     assert any(f["page"] == "(head)" and "REPLACE ME" in f["text"] for f in found)
 
 
-def test_d14_unfilled_colophon_version_is_found():
+def test_the_colophon_version_is_no_longer_a_slot_to_leave():
+    """It stopped being a scaffold slot at 0.1.590, when `new_deck.py` began
+    substituting the real version — the package always knew it, and leaving it
+    to the author cost every build one red round and one hand edit.
+
+    So D14 no longer lists it: `check_repo`'s `scaffold slots` guard is
+    explicit both ways, and a pattern matching a string the scaffold cannot
+    emit is a pattern guarding nothing. **A colophon that names no readable
+    version is not unguarded** — `gate_registry.held` reads it, and a document
+    declaring no version is held to every gate rather than exempted from the
+    new ones, which is the stronger answer."""
     raw = _doc(page_body='<p class="colophon">Built with lumi-style VERSION.</p>')
-    found = check_design.d14_placeholders(raw)
-    assert any("lumi-style VERSION" in f["text"] for f in found)
+    assert not any("lumi-style VERSION" in f["text"]
+                   for f in check_design.d14_placeholders(raw))
+    assert gate_registry.held("D41_role_echo", None), \
+        "a document with no version must be held to every gate"
 
 
 def test_d14_filled_colophon_is_not_a_slot():

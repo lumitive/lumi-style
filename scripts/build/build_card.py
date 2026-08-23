@@ -166,6 +166,7 @@ def render() -> str:
     w("## The one command")
     w("")
     w("```")
+    w("python3 scripts/ops/brief.py --genre <g> --storyline <s>   # read once, not 11 times")
     w("python3 scripts/ops/build.py --deck <out.html> --script <fill.py> \\")
     w("        --outline <outline.md> --genre <g> --geometry <g> \\")
     w("        --storyline <s> --pages <n> --parts A,B,C --lang en --fast")
@@ -176,6 +177,14 @@ def render() -> str:
       "sheet whose path it prints — look at it, that is the last gate). "
       "`--debug-log` writes the execution log as a side effect rather than one "
       "wrapped command per turn.")
+    w("")
+    w("**Placing labels on a library shape?** `assets/shapes/geometry.json` "
+      "carries every unit's viewBox, the four `use` attributes that put it on "
+      "frame, and its aspect. All 206 origins are non-zero, so composing "
+      "against an estimated one draws outside the viewBox — that is "
+      "`figure_clipped`, and a rebuild round. It also says what share of the "
+      "figure box a unit will ink: **160 of the 206 come in under 55%**, and "
+      "the scaffold says so at the moment you pick one.")
     w("")
     w("**The instruments are already inside it** — prose, design, layout, "
       "privacy and the Evals, one process, browser rendering while the text "

@@ -1,3 +1,125 @@
+## 0.1.590 — the calls the package was charging for, and the counter that found them
+
+Design record: `specs/2026-08-24-fewer-round-trips-design.md`.
+
+### The comparison that started this was measuring two different things
+
+The owner's target was that Claude Code, on a stronger model and harness, should
+spend fewer API calls than Hermes on the same deck. The reported figures were
+**187 against 37**. Both were wrong, in opposite directions.
+
+Claude Code writes its transcript with **one JSONL record per content block**,
+and every record repeats the same `usage` object. A counter that sums per record
+multiplies the call count and every token total. The build's real figure was
+**70 calls**, and its reported tokens were inflated 2.5-3.6x. Hermes ran the task
+across **two** sessions and the reading named one of them, with
+`background_review` excluded.
+
+Counted the same way, the whole task was **Claude Code 76 calls against Hermes
+130** — the target was already met — with tool calls level at 121 and 117, and
+output tokens 195k against 325k. `scripts/ops/session_cost.py` reads either
+platform and prints both traps in its own docstring, because each of them fooled
+this repository once.
+
+### What the package was charging for
+
+Ten forced round trips, each one the package's doing rather than an agent's
+habit. In order of what they cost per build:
+
+**A gating placeholder the package could always have filled.** The scaffold
+emitted `Built with lumi-style VERSION`, and `check_design`'s `AUTHOR_FILL`
+listed that string as a D14 **gate** — so every build by every user was
+guaranteed one red round and one hand edit, to write a number
+`debug_log._skill_version` had been reading all along. The scaffold stamps
+itself now, and the pattern is gone from `AUTHOR_FILL`, because a pattern
+guarding nothing misleads the next reader.
+
+**Eleven to fourteen reads before the first page.** SKILL.md names them by line
+and the build card is explicitly an addition, not a substitute. On one measured
+build that was 20 calls and 82,000 output tokens before a page existed, with
+84KB fetched twice by two different tools in adjacent calls.
+`scripts/ops/brief.py --genre <g> --storyline <s>` fetches all of it once. **It
+changes nothing about what is read** — the card's own warning that an agent
+composing from it alone produces a document that passes everything and says
+nothing is repeated at the end of the brief.
+
+**A debug log that refused the second round.** `debug_log init` declines an
+existing log, and `build.py` passed no `--restart` and had no flag for one — so
+every iteration after the first died before a single stage ran, and one build
+moved the log aside by hand nine times. One run of the driver **is** one build's
+record, which is the invariant that guard protects; it restarts by default now.
+
+**A verdict block that named the check and not the page.** `deliverable_verdicts`
+returns `(verdict, detail)` and both JSON emissions dropped the detail, so an
+author who knew which check failed re-ran the renderer to learn which page —
+four calls on one build, for information already in memory. The block carries it
+now. The `capWrapped` line immediately above was the same need, solved by hand
+for exactly one finding.
+
+**A shape library that published no geometry.** All 206 units carry a non-zero
+viewBox origin, 133 of them span more than 1000 user units, and `tags.json`
+carried a ten-word relation vocabulary and no measurements. So placing a label
+meant reading raw SVGs — four calls for eleven shapes — or estimating, and one
+build estimated: **five figures drew outside their own viewBox**, and the round
+that followed rewrote the whole figure layer.
+`assets/shapes/geometry.json` is generated and `--check`s in CI.
+
+**And the same manifest explains the thin figures.** The scaffold's figure box
+is 640x239 — 2.68:1, which is `p009-arrow-3d-01`'s proportion and almost nothing
+else's. A `<symbol>` maps its own viewBox into that viewport, so **160 of the 206
+units ink less than 55% of the box and the median unit fills 43%** — which is
+exactly the visual share both round-3 decks reported, and the page an owner
+picked out by eye with "the figure is too small". The author was handed a
+starved box and graded on the drawing.
+
+The scaffold says the number when the shape is chosen, and names the three real
+answers: a wider unit, a layout with a squarer cell, or something composed
+beside the drawing. **It does not resize anything.** A scaffold that stretched
+the unit to make the metric move would be 0.1.339's withdrawn fill floor in
+another costume.
+
+**A debug contract asking for documents the driver destroyed.** `attach` wanted
+each checker's `--json`; `check_deliverable` gathered all three in memory and
+wrote none — so honouring the contract meant re-running all three checkers, one
+of them a second browser render. `--reports-dir` hands them over and the driver
+attaches in process. `assess` cost eight more calls, and **SKILL.md documented
+the wrong dimension names** (`H1..H6` against the code's `C1..C8`, a mismatch
+`debug_log`'s own comment describes), so the first one was a guaranteed argparse
+failure. `build.py --assess C1=4:"…"` folds all eight into the run being made
+anyway.
+
+**Three checks and a trace outside the driver.** `check_facts` — the only check
+that asks whether a rebuild still carries the facts it was built from — was not
+in the stack. The pre-build half of `check_outline` was not either. `export_pdf`
+had no caller anywhere in the package. And the trace closed only on a green,
+non-`--fast` run, so every loop round left one open for `ledger.py` to report as
+abandoned; a red build is still a measured build, and it closes now.
+
+**A contact sheet that cost one read per page.** It is an HTML page referencing N
+PNGs, on the stated reasoning that pure stdlib cannot composite. The browser is
+already paid for: 17 of one build's 27 file reads were page shots at 120-384KB,
+the cover read four times. `--sheet` now also screenshots the sheet it just
+wrote — one image, every page, one read.
+
+### Rounds
+
+`build.py` keeps each round's layout reading and passes `--against` itself from
+the second round on. The reading that says **"no measured number moved — if you
+were repairing something here, the repair did not land"** now appears without
+anyone asking for it. One measured session ran six rounds after its last
+failure with nothing able to tell it that, and its debug log recorded nothing on
+a green round, so neither the author nor a reader could say whether those rounds
+improved anything.
+
+### Corrected
+
+`specs/2026-08-23-english-is-the-artifact-design.md` is marked **superseded** —
+its derivative requirement was withdrawn by the owner the same day, and an
+unmarked spec is a stale truth waiting to be cited. And 0.1.589 printed D6's
+Chinese provenance words into the scaffold's genre card, so eight CJK characters
+shipped inside every English deliverable; the card prints the English words and
+the checker keeps the full list.
+
 ## 0.1.589 — the language you asked for, and the reading that confirms a repair
 
 Design record: `specs/2026-08-23-language-direct-and-worklist-design.md`.
