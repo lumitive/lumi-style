@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.588"
+  version: "0.1.589"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -160,16 +160,17 @@ it). Questions may probe structure and evidence and may never decide the
 user's conclusions for them. When nothing needs asking, state the
 assumptions in the delivery note and proceed. **Genre and geometry are asked
 before anything is generated** — the answer changes every page.
-**Output language is not asked, because it is not open: the build is in
-American English.** The scaffold has no language flag. If the user asks
-for another language, that is a SECOND file, derived from the finished
-English one with `scripts/ops/localize.py`, quoting their own words —
-and M16 fails a non-English deliverable that is not such a derivative.
-Never read the language off their material, off the language THEY are
-typing in, off the venue, or off where the audience is. This is written
-this way because the rule was in the preamble, correct and forceful, for
-all three of the builds that broke it, and because the version that asked
-for a record got one the agent wrote itself (FM-18). **For an external document, the value pass comes before the build**: answer
+**Output language is not one of them, because it is not open by
+default: the build is American English unless the user asked otherwise.**
+When they did ask, quote them — `new_deck.py --lang <code> --lang-asked
+"<their words>"` — and the deck is authored in that language directly.
+M16 fails a non-English deliverable carrying no quotation. Never read the
+language off their material, off the language THEY are typing in, off
+the venue, or off where the audience is. This is written here rather
+than only in the preamble because the rule sat in the preamble, correct
+and forceful, for all three of the builds that broke it — and because
+the version that asked for a record got one the agent wrote itself
+(FM-18). **For an external document, the value pass comes before the build**: answer
 5W+1H for the document as a whole (what, why, who, when, where, how — the
 reader should recover all six from the deck alone), give every key number
 its judgment anchor, and write the ask as who-does-what-by-when. The first
@@ -680,11 +681,11 @@ no log.
 5. Charts: one accent color, conclusion-style titles, a source line on every
    figure;
 6. AI never signs; money/safety conclusions never come from a language model.
-7. The deliverable is in **American English**. Another language is a SECOND
-   file derived from it with `scripts/ops/localize.py`, never the language the
-   build starts in — asked for in the user's own words, never inferred from the
-   source material, from the language they are writing to you in, from the
-   venue, or from where the audience is.
+7. Output language is **American English** by default. Another language is
+   asked for **in the user's own words**, which the build quotes onto the
+   document — never inferred from the source material, from the language they
+   are writing to you in, from the venue, or from where the audience is. A deck
+   they asked for in another language is written in it, not translated into it.
 
 ## Cross-platform
 

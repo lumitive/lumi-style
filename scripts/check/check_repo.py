@@ -1758,6 +1758,47 @@ def check_source_marker_parity():
         errors.append(f"check_prose.py matches {marker!r} as a source marker, which "
                       f"writing-rules.md section 4 rule 6 does not list — the rules "
                       f"are the source, not the script")
+
+    # THE OTHER VOCABULARY, which had no guard at all. `check_design`'s
+    # D6_PROVENANCE decides what counts as provenance in a colophon, and it was
+    # English-only while the list above had carried Chinese for releases — so a
+    # correct Chinese document was reported as missing its source on every
+    # page. This does not demand the two lists be equal (they answer different
+    # questions: a marker beside a number, a provenance word in a colophon).
+    # It demands that neither be blind in a language the other can read.
+    design = ROOT / "scripts/check/check_design.py"
+    if not design.is_file():
+        # A tree with no design checker has no second vocabulary to compare —
+        # which is a synthetic tree, not a finding. A tree that HAS the file and
+        # declares no D6_PROVENANCE is a real defect and is reported below.
+        return errors
+    try:
+        dsrc = design.read_text(encoding="utf-8")
+        prov = None
+        for node in ast.walk(ast.parse(dsrc)):
+            if (isinstance(node, ast.Assign)
+                    and any(getattr(t, "id", None) == "D6_PROVENANCE"
+                            for t in node.targets)):
+                prov = {w.lower() for w in ast.literal_eval(node.value)}
+        if prov is None:
+            raise ValueError("check_design.py declares no D6_PROVENANCE")
+    except (OSError, ValueError, SyntaxError) as exc:
+        return errors + [f"could not read D6_PROVENANCE: {exc}"]
+
+    def _cjk(words):
+        return {w for w in words
+                if any("\u3400" <= ch <= "\u9fff" for ch in w)}
+
+    if _cjk(script) and not _cjk(prov):
+        errors.append(
+            "check_prose.py recognises source markers in Chinese and "
+            "check_design.py's D6_PROVENANCE recognises none — a correct "
+            "Chinese colophon is reported as missing its provenance on every "
+            "page, which is the checker deciding what the document may say")
+    if _cjk(prov) and not _cjk(script):
+        errors.append(
+            "check_design.py's D6_PROVENANCE recognises Chinese and "
+            "check_prose.py's SOURCE_MARKERS does not")
     return errors
 
 

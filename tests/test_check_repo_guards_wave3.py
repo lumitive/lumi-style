@@ -382,3 +382,46 @@ def test_brand_lock_missing_lock_file_fails(tmp_path, monkeypatch):
     _lock_tree(tmp_path, monkeypatch, with_lock_file=False)
     errors = check_repo.check_brand_lock()
     assert len(errors) == 1 and "missing" in errors[0]
+
+
+# --- the D6 half of source-marker parity ------------------------------------
+# It had no guard at all: `check_design`'s D6_PROVENANCE was English-only while
+# `check_prose`'s SOURCE_MARKERS had carried Chinese for releases, so a correct
+# Chinese colophon was reported as missing its provenance on every page.
+
+
+def _write_design_script(root, provenance=("source", "based on")):
+    d = root / "scripts" / "check"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "check_design.py").write_text(
+        "D6_PROVENANCE = " + repr(tuple(provenance)) + "\n", encoding="utf-8")
+
+
+_ZH_MARKERS = ("source", "as of", "n=", "\u6765\u6e90")
+
+
+def test_a_design_vocabulary_blind_to_chinese_fails(tmp_path, monkeypatch):
+    _write_rules(tmp_path, markers=_ZH_MARKERS)
+    _write_prose_script(tmp_path, markers=list(_ZH_MARKERS))
+    _write_design_script(tmp_path)          # English only
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    errors = check_repo.check_source_marker_parity()
+    assert any("recognises none" in e for e in errors), errors
+
+
+def test_both_vocabularies_reading_chinese_passes(tmp_path, monkeypatch):
+    _write_rules(tmp_path, markers=_ZH_MARKERS)
+    _write_prose_script(tmp_path, markers=list(_ZH_MARKERS))
+    _write_design_script(tmp_path, ("source", "based on", "\u6765\u6e90"))
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    assert check_repo.check_source_marker_parity() == []
+
+
+def test_a_design_checker_with_no_vocabulary_at_all_fails(tmp_path, monkeypatch):
+    _write_rules(tmp_path)
+    _write_prose_script(tmp_path)
+    (tmp_path / "scripts" / "check" / "check_design.py").write_text(
+        "# no D6_PROVENANCE here\n", encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    errors = check_repo.check_source_marker_parity()
+    assert any("D6_PROVENANCE" in e for e in errors), errors

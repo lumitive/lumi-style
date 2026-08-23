@@ -133,16 +133,24 @@ STAGE_OF = {"landscape": "16x9", "portrait": "a4"}
 # quality; what is enforceable is that an absence be DECLARED, which is what
 # `data-omitted` and the outline's `omitted:` line are for.
 TYPICAL_SECTIONS = {
+    # Each entry is the section name and, where one exists, the Chinese a
+    # reader would actually see. D26 tested the English string against the
+    # whole document, so a correct Chinese deliverable reported EVERY
+    # typical section missing — and the author of one put a bilingual
+    # coverage table on a page to satisfy it. That is the checker deciding
+    # what the document says, which is the failure this package names
+    # first. A plain string still means "this exact wording".
+
     # Aligned to Templates 7-10 (storyline-templates.md), which were written
     # from the 2026-08 consulting-standards research skeletons.
-    "market-analysis": ("market definition", "sizing", "segments",
-                        "competitive landscape", "customer journey",
-                        "growth drivers", "implication"),
-    "gtm": ("target customer", "value proposition", "channels", "messaging",
-            "sales motion", "success measure"),
+    "market-analysis": (("market definition", "市场定义"), ("sizing", "规模"), ("segments", "细分"),
+                        ("competitive landscape", "竞争格局"), ("customer journey", "客户旅程"),
+                        ("growth drivers", "增长驱动"), ("implication", "含义")),
+    "gtm": (("target customer", "目标客户"), ("value proposition", "价值主张"), ("channels", "渠道"), ("messaging", "信息"),
+            ("sales motion", "销售动作"), "success measure"),
     "status-report": ("status", "summary", "completed", "milestones",
                       "risks", "decisions", "budget", "next checkpoint"),
-    "due-diligence": ("summary", "scope and method", "market", "competition",
+    "due-diligence": ("summary", "scope and method", ("market", "市场"), ("competition", "竞争"),
                       "customers", "financial model", "risks",
                       "recommendation"),
     # Rewritten to the reader's arc at the second blind review (D16): the
@@ -150,14 +158,31 @@ TYPICAL_SECTIONS = {
     # impression, because the parts were ordered the way the package explains
     # itself. What→Why→How→Value is the consultant's order — 是什么、为什么
     # （痛点）、怎么做、对企业的核心价值 — and Template 6 is the skeleton.
-    "product-intro": ("what it is", "why it exists", "how it works",
-                      "evidence it works", "core value", "get started",
-                      "next step"),
+    "product-intro": (("what it is", "是什么"), ("why it exists", "为什么"), ("how it works", "怎么做"),
+                      "evidence it works", ("core value", "核心价值"), ("get started", "开始使用"),
+                      ("next step", "下一步")),
     "training-curriculum": ("objective", "prerequisites", "modules",
                             "practice", "assessment"),
     # Aligned to Template 11 (storyline-templates.md), written from the YC
     # fundraising study (references/exemplars/yc-pitch-notes.md, EX-3).
-    "pitch-deck": ("one-liner", "traction teaser", "problem", "solution",
-                   "traction", "market", "competition", "vision", "team",
-                   "ask", "appendix"),
+    "pitch-deck": (("one-liner", "一句话"), "traction teaser", ("problem", "问题"), ("solution", "方案"),
+                   ("traction", "进展"), ("market", "市场"), ("competition", "竞争"), ("vision", "愿景"), ("team", "团队"),
+                   ("ask", "诉求"), ("appendix", "附录")),
 }
+
+
+def section_alts(entry) -> tuple[str, ...]:
+    """-> every wording a reader might meet this section under.
+
+    An entry is a name, or a tuple whose first item is the canonical English
+    name. One helper rather than three unpackings, because three consumers read
+    this table and a tuple silently used as a string is the shape of defect
+    this file's own comments keep describing.
+    """
+    return (entry,) if isinstance(entry, str) else tuple(entry)
+
+
+def section_name(entry) -> str:
+    """-> the canonical name, which is what a finding reports."""
+    return section_alts(entry)[0]
+

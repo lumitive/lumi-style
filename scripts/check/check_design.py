@@ -86,6 +86,8 @@ import gate_registry  # noqa: E402 — after the bootstrap
 import markup  # noqa: E402 — after the bootstrap
 from deliverable_registry import (  # noqa: E402 — after the bootstrap
     TYPICAL_SECTIONS,
+    section_alts,
+    section_name,
 )
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
@@ -701,29 +703,145 @@ _CAP_N = re.compile(r'<span class="(?:[^"]*\s)?n(?:\s[^"]*)?"[^>]*>\s*'
                     r'(?:Figure|Exhibit|\u56fe|\u56fe\u8868)\s*(\d+)', re.I)
 
 
+_ROLE_RE = {
+    "take": re.compile(r'<[^>]*class="[^"]*\btake\b[^"]*"[^>]*>(.*?)</', re.S | re.I),
+    "sup": re.compile(r'<[^>]*class="[^"]*\bsup\b[^"]*"[^>]*>(.*?)</', re.S | re.I),
+    "lead": re.compile(r'<[^>]*class="[^"]*\blead\b[^"]*"[^>]*>(.*?)</', re.S | re.I),
+    "gd": re.compile(r'<[^>]*class="[^"]*\bgd\b[^"]*"[^>]*>(.*?)</', re.S | re.I),
+    "title": re.compile(r'<h2[^>]*class="[^"]*\bt\b[^"]*"[^>]*>(.*?)</h2>', re.S | re.I),
+}
+# A run this long, shared by two roles on one page, is a repetition rather than
+# a coincidence. Counted in characters for CJK and in words for the rest,
+# because a Chinese clause of eight characters is about an English clause of
+# four words.
+REPEAT_CHARS, REPEAT_WORDS = 8, 4
+
+
+def _longest_shared(a: str, b: str) -> str:
+    """-> the longest run both strings contain. Small inputs; a page's roles."""
+    if not a or not b:
+        return ""
+    best = ""
+    for i in range(len(a)):
+        for j in range(i + len(best) + 1, len(a) + 1):
+            if a[i:j] in b:
+                best = a[i:j]
+            else:
+                break
+    return best
+
+
+def d41_role_echo(raw):
+    """-> pages where two roles on one page say the same thing.
+
+    **Measured across two documents**, which is this package's bar for
+    promoting a lesson to a rule. A 20-page sales report put one sentence in a
+    `.gd` and again in the page's `.take`; a 2026-08 deck's `.take` was its
+    `.sup` with the head cut off, word for word, and its `.lead` restated the
+    first half of the title. Every gate was green on all of them.
+
+    The `.lead` case has a cause worth naming: SKILL.md ENCOURAGES `.lead` on a
+    page whose argument turns on one number, and says nothing about what
+    `.lead` must carry that the title does not — so the cheapest way to satisfy
+    the rule is to repeat the title. Following the rule produced the defect.
+
+    REPORTED. A page may legitimately echo a phrase, and only a reader can tell
+    a refrain from a duplicate.
+    """
+    hits = []
+    for _cls, pid, body in _pages(raw):
+        got = {}
+        for role, rx in _ROLE_RE.items():
+            m = rx.search(body)
+            if m:
+                got[role] = markup.strip_tags(m.group(1)).strip()
+        for left, right in (("take", "sup"), ("take", "gd"), ("lead", "title")):
+            a, b = got.get(left, ""), got.get(right, "")
+            shared = _longest_shared(a, b)
+            if not shared:
+                continue
+            cjk = any("\u3400" <= ch <= "\u9fff" for ch in shared)
+            long_enough = (len(shared.strip()) >= REPEAT_CHARS if cjk
+                           else len(shared.split()) >= REPEAT_WORDS)
+            if long_enough:
+                hits.append((pid, left, right, shared.strip()[:60]))
+    return hits
+
+
+def _analysis_move(raw, pid):
+    """-> the move a page declares, or "".
+
+    `_pages()` does not capture section attributes — `data-analysis` is emitted
+    after `id` and falls inside its uncaptured `[^>]*>`. Both attribute orders
+    are matched, the way D16 and D18 already read `data-role`.
+    """
+    for pat in (rf'<section[^>]*id="{re.escape(pid)}"[^>]*data-analysis="([^"]*)"',
+                rf'<section[^>]*data-analysis="([^"]*)"[^>]*id="{re.escape(pid)}"'):
+        m = re.search(pat, raw)
+        if m:
+            return m.group(1).strip().lower()
+    return ""
+
+
 _SHAPE_USE = re.compile(r'<use\b[^>]*href="#shape-[^"]+"', re.I)
 _ANALYSIS_PAGE = re.compile(r'<section\b[^>]*\bdata-analysis="[^"]+"', re.I)
 
 
-def d32_shape_use(raw):
-    """-> {shapes, analysis_pages}: how many library shapes the document draws
-    with, and how many pages declare an analytical move.
+def _drawable_moves() -> set[str]:
+    """-> the analytical moves the shape library can actually draw.
 
-    GATES since 0.1.543, and this line said "reported, never gating" for
-    seventeen releases after it stopped being true. The vendored library (206
-    units, tagged, embedded on demand) was used zero times across five shipped
-    deliverables; the
-    number was invisible because nothing counted it. It is a finding only on
-    a document that declares moves and draws none of them with a library
-    shape — a deck built from an outline whose every page says `compare` or
-    `decompose` and whose figures are all hand-drawn has either drawn
-    natively on purpose or let the scaffold's slots go; the count tells a
-    reader which to look for. A document that declares no moves is not
-    measured against it.
+    Read from `assets/frameworks.json` rather than listed here, because the
+    answer is data and a list would rot. A move with no framework, or whose
+    every framework is `drawn: native`, cannot be held to using a library
+    shape — that is a gap in the registry, not a defect in the page.
     """
-    shapes = len(_SHAPE_USE.findall(raw))
-    analysis_pages = len(_ANALYSIS_PAGE.findall(raw))
-    return {"shapes": shapes, "analysis_pages": analysis_pages}
+    try:
+        reg = json.loads((ROOT / "assets" / "frameworks.json")
+                         .read_text(encoding="utf-8"))["frameworks"]
+    except (OSError, ValueError, KeyError):
+        return set()
+    return {f.get("move") for f in reg.values() if f.get("shapes")} - {None, ""}
+
+
+def d32_shape_use(raw):
+    """-> per page: does a page that declares an analytical move draw one?
+
+    GATES since 0.1.543. **It counted DOCUMENT-WIDE until 0.1.589**, failing
+    only when a document declared moves and drew no library shape anywhere —
+    so one shape on one page cleared ten declared moves, which is what a
+    measured deliverable did: `1 library shape(s) on 10 analysis page(s)`,
+    green. Both prose sites describing this metric said *a page* that declares
+    a move draws the library's shape for it (`CLAUDE.md`,
+    `references/page-contracts.md`), so the code was the half that was wrong —
+    the same shape as RC-431, where the register claimed an enforcement that
+    did not exist.
+
+    **A page is held only when its declared move is one the library can draw.**
+    `correlate` has no entry in `assets/frameworks.json` at all, so a page
+    declaring it would fail through no fault of its author; that gap is
+    recorded rather than charged to the page.
+
+    The vendored library is 206 tagged units embedded on demand. Reuse is also
+    the cheap path: on one measured pair of builds, the deck that drew its
+    figures by hand spent 343k output tokens against 115k for the one that
+    reused shapes, and output costs ~94x what a cached input token does.
+    """
+    drawable = _drawable_moves()
+    bare, held = [], 0
+    for _cls, pid, body in _pages(raw):
+        move = _analysis_move(raw, pid)
+        if not move or move not in drawable:
+            continue
+        held += 1
+        if not _SHAPE_USE.search(body):
+            bare.append(pid)
+    return {"shapes": len(_SHAPE_USE.findall(raw)),
+            "analysis_pages": len(_ANALYSIS_PAGE.findall(raw)),
+            "held": held, "bare": bare,
+            "undrawable": sorted(
+                {m for m in (_analysis_move(raw, pid)
+                             for _c, pid, _b in _pages(raw))
+                 if m and m not in drawable})}
 
 
 def d30_figure_sequence(raw):
@@ -2062,12 +2180,23 @@ def _agenda_strays(kids) -> list:
 # the author learned the accepted words from the checker's source. This is the
 # same discipline writing-rules gives the M2/M6 marker list ("this list is the
 # contract"); the scaffold's genre card prints these words.
-D6_PROVENANCE = ("source", "derives from", "derived from", "based on",
-                 "provenance", "traces to", "traces back to", "drawn from",
-                 "comes from")
-D6_PROVENANCE_RE = re.compile(
-    r"source|derives? from|derived from|based on|provenance"
-    r"|traces? (?:back )?to|drawn from|comes from")
+# THE CHINESE HALF WAS MISSING, and `check_prose.SOURCE_MARKERS` has carried
+# 来源/出处/示意/实测 for releases. A Chinese colophon reading `出处：…` was
+# reported as missing provenance on EVERY page — the checker deciding what the
+# page must say, in a language it could not read. Found on a real deliverable
+# whose author refused to edit correct Chinese to go green, and was right.
+D6_PROVENANCE = ("source", "derive from", "derives from", "derived from",
+                 "based on", "provenance", "trace to", "traces to",
+                 "traces back to", "drawn from", "comes from",
+                 "\u6765\u6e90", "\u51fa\u5904", "\u4f9d\u636e", "\u6458\u81ea")
+# Built FROM the tuple rather than retyped beside it: the two disagreed the
+# moment one was edited, which is this repository's most-fixed defect class.
+# A CJK term takes no word boundary — CJK characters count as \w, so \b never
+# fires between 数据 and 来源 (check_prose's SOURCE_RE says the same thing).
+D6_PROVENANCE_RE = re.compile("|".join(
+    re.escape(w) if any("\u3400" <= ch <= "\u9fff" for ch in w)
+    else re.escape(w).replace(r"\ ", " ")
+    for w in D6_PROVENANCE))
 
 
 def d6_footer(raw):
@@ -2175,6 +2304,7 @@ def measure(path):
         "D30_figure_sequence": (d30 := d30_figure_sequence(raw)),
         "D30_detail": (d30 or {}).get("duplicates"),
         "D32_shape_use": d32_shape_use(raw),
+        "D41_role_echo": d41_role_echo(raw),
         "D33_icon_provenance": d33_icon_provenance(raw),
         "D34_icon_uniqueness": d34_icon_uniqueness(raw),
         "D35_agenda_exclusive": d35_agenda_exclusive(raw),
@@ -2369,7 +2499,9 @@ def d26_declared_scope(raw, storyline=None):
         return {"storyline": storyline, "missing": None, "hidden": hidden,
                 "declared": sorted(declared)}
     text = markup.strip_tags(raw).lower()
-    missing = [s for s in expected if s not in text and s not in declared]
+    missing = [section_name(sec) for sec in expected
+               if not any(a in text or a in declared
+                          for a in section_alts(sec))]
     return {"storyline": storyline, "missing": missing, "hidden": hidden,
             "declared": sorted(declared)}
 
@@ -2560,13 +2692,20 @@ def grade(r):
     # It is hoisted here and reports `n/a` where no move is declared, which is
     # what "a document that declares no moves is not measured against it" means
     # — the metric saying so, rather than the metric being absent.
+    ec = r["D41_role_echo"]
+    rows.append(("D41_role_echo", len(ec) if ec is not None else None,
+                 "=0 (reported)", True, ec is None))
     su = r["D32_shape_use"]
     rows.append(("D32_shape_use",
-                 f"{su['shapes']} library shape(s) on {su['analysis_pages']} "
-                 f"analysis page(s)" if su else None,
-                 ">0 where moves are declared (gates)",
-                 not (su and su["analysis_pages"] and not su["shapes"]),
-                 not su or not su["analysis_pages"]))
+                 (f"{len(su['bare'])} of {su['held']} analysis page(s) draw no "
+                  f"library shape" + (f": {', '.join(su['bare'][:6])}"
+                                      if su["bare"] else "")
+                  + (f" · {', '.join(su['undrawable'])} not held (no framework "
+                     f"in assets/frameworks.json names a shape)"
+                     if su["undrawable"] else "")) if su else None,
+                 "=0 per page where the move is drawable (gates)",
+                 not (su and su["bare"]),
+                 not su or not su["held"]))
     ds = r["D26_declared_scope"]
     if ds is None:
         rows.append(("D26_declared_scope", None,
@@ -2841,6 +2980,10 @@ def main(argv):
             print(f"        page {o['page_index']} carries {o['tier1']} tier-1 callouts")
         for pid in r["D8_support_line"][:8]:
             print(f"        {pid} has no support line under its title")
+        for pid, left, right, shared in (r.get("D41_role_echo") or []):
+            print(f"        {pid}: .{left} repeats .{right} — {shared!r}. "
+                  f"Two roles, one sentence: the reader is told the same thing "
+                  f"twice and one of the two slots is doing nothing")
         cf = r.get("D12_commercial_footer")
         if cf:
             for i in cf["missing_terms"][:6]:

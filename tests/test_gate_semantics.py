@@ -138,45 +138,29 @@ def test_relabelling_the_document_is_not_a_fix(tmp_path):
 
 def test_the_flag_an_agent_can_type_is_no_longer_enough(tmp_path):
     """0.1.587's mechanism, exactly as a shipped build used it: declare the
-    language and assert in the same breath that it was asked for. The 0.1.588
-    contract needs the user's words AND an English deck this one derives
-    from — and the second cannot be satisfied by typing."""
+    language and assert in the same breath that it was asked for, with a
+    boolean. The contract now needs the user's WORDS."""
     out = _prose(_relabelled_zh(tmp_path, "e.html", asked=True))
     assert out.returncode == 1, out.stdout
     assert "FAIL  M16_language_asked" in out.stdout, out.stdout
     assert "data-lang-ask-quote" in out.stdout
-    assert "data-localized-from" in out.stdout
 
 
-def test_a_real_derivative_is_the_fix(tmp_path):
-    """A Chinese deliverable somebody asked for is a legitimate document. M16
-    must pass it, or the gate is a ban on Chinese output rather than a hold on
-    inference."""
-    (tmp_path / "src.en.html").write_text("<html lang=\"en\"><body></body></html>",
-                                          encoding="utf-8")
+def test_the_users_own_words_are_the_fix(tmp_path):
+    """A Chinese deliverable somebody asked for is a legitimate document,
+    authored in Chinese directly — no English deck required, because writing
+    the same content twice is a cost the owner declined. M16 must pass it, or
+    the gate is a ban on Chinese output rather than a hold on inference."""
     out = _prose(_relabelled_zh(tmp_path, "e2.html", asked=True,
-                                quote="请把报告写成中文", source="src.en.html"))
+                                quote="请把报告写成中文"))
     assert out.returncode == 0, out.stdout
     assert "ok    M16_language_asked" in out.stdout, out.stdout
-
-
-def test_the_english_source_has_to_be_there(tmp_path):
-    """`data-localized-from` is the only declaration an agent cannot satisfy by
-    typing: the file it names has to exist beside this one."""
-    out = _prose(_relabelled_zh(tmp_path, "e3.html", asked=True,
-                                quote="请把报告写成中文",
-                                source="a-deck-that-was-never-built.en.html"))
-    assert out.returncode == 1, out.stdout
-    assert "does not exist" in out.stdout, out.stdout
 
 
 def test_a_fragment_is_not_a_quotation(tmp_path):
     """judge_findings.py's floor, in the other place a model attributes words
     to a person."""
-    (tmp_path / "src.en.html").write_text("<html lang=\"en\"><body></body></html>",
-                                          encoding="utf-8")
-    out = _prose(_relabelled_zh(tmp_path, "e4.html", asked=True, quote="zh",
-                                source="src.en.html"))
+    out = _prose(_relabelled_zh(tmp_path, "e4.html", asked=True, quote="zh"))
     assert out.returncode == 1, out.stdout
     assert "fragment that would match anything" in out.stdout, out.stdout
 
@@ -200,8 +184,7 @@ def test_the_failure_says_what_would_fix_it(tmp_path):
     """A FAIL that names no fix teaches the cheapest one, and the cheapest one
     here is the edit this metric exists to stop."""
     out = _prose(_relabelled_zh(tmp_path, "g.html"))
-    assert "localize.py" in out.stdout, out.stdout
-    assert "already passes" in out.stdout, out.stdout
+    assert "data-lang-ask-quote" in out.stdout, out.stdout
 
 
 def test_an_unasked_chinese_document_is_not_coached(tmp_path):

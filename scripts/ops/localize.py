@@ -1,44 +1,29 @@
 #!/usr/bin/env python3
-"""Derive a deliverable in another language from an English one that passed.
+"""Give an existing deliverable a second language version, kept in step with it.
 
-**American English is not a rule here; it is the artifact.** The scaffold has no
-language flag at all, so every build starts in English and stays there unless
-somebody runs THIS command — which needs an English deck that already passes its
-checks, and the user's own words asking for the other language.
+**This is not the path to a non-English deliverable.** A deck the user asked for
+in another language is authored IN that language: `new_deck.py --lang zh-Hans
+--lang-asked "<their words>"`, and the prose is written in Chinese from the
+start. Building English first and translating writes the same content twice —
+the owner's ruling, 2026-08-23, and she is right about the cost.
 
-Why it is shaped this way, measured across three validation rounds on two
-platforms and two models. The rule "output language is American English unless
-the user asks" has been written since 0.1.333, restated correctly in four entry
-points, and catalogued as FM-18. Every round produced Chinese from a wholly
-English source:
-
-* 0.1.581 - M12 fired, and the build changed `lang="en"` to `lang="zh-Hans"`.
-  M12 only asks whether an ENGLISH document is free of Chinese, so declaring
-  Chinese moved the document out of its question. One attribute, gate green.
-* 0.1.586 - the build script wrote `lang="zh-Hans"` from the start, so M12 read
-  `n/a` on the very first measurement and never spoke at all.
-* 0.1.587 - M16 arrived and required a record that somebody had asked. The
-  agent ran `new_deck.py --lang zh-Hans --lang-asked` and signed the record
-  itself.
-
-**A field an agent can fill is a field an agent will fill.** So the flag is
-gone, and the only door to another language is a second command over a finished
-English document. Producing Chinese now costs a complete English deck first,
-which is the outcome the rule was always asking for: the owner gets the English
-version whether or not the agent was right about the language.
+What this command is for is the case her own work already has: **one deck, two
+language versions, shipped side by side** (`…zh-Hans.html` beside `…en.html`).
+It copies a finished deliverable, sets `<html lang>`, and records where the copy
+came from, so the pair can be told apart and traced. Translating the prose
+afterwards is the author's work; this does not translate.
 
     python3 scripts/ops/localize.py deck.en.html \\
-            --lang zh-Hans --asked "把报告写成中文" --out deck.zh-Hans.html
+            --lang zh-Hans --asked "\u628a\u62a5\u544a\u5199\u6210\u4e2d\u6587" --out deck.zh-Hans.html
 
-Then translate the prose. That part is the author's; this command does not
-translate, it establishes provenance and refuses without it.
+It refuses unless the source passes its own checks, because a copy inherits
+every defect of the document it was copied from and adds a translation on top.
+`--skip-source-check` exists for the case where you have just checked it
+yourself; it is recorded, not silent.
 
 **What no local script can do, said plainly rather than implied**: verify that
-the quoted words are the user's. Nothing on this machine can. What this changes
-is the cost - from typing a flag to producing a passing English deck and then
-attributing a sentence to a person who will read it in the document - and it
-puts the claim somewhere the owner sees. `publish.sh` states the same limit
-about the same class of problem.
+the quoted words are the user's. Nothing on this machine can. `publish.sh`
+states the same limit about the same class of problem.
 """
 from __future__ import annotations
 

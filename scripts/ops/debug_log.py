@@ -212,15 +212,29 @@ def _mutate(path, fn):
         _save(path, log)
 
 
+def log_stem(deliverable: pathlib.Path) -> str:
+    """-> the log's stem: everything but the final extension.
+
+    `guide.en.html` and `guide.en.pdf` share one log, which is the point — the
+    log describes the build, not one export. **The version and the language
+    stay**, because this package's own convention puts both in the filename:
+    `x.0.1.588.zh-Hans.html`. Splitting on the FIRST dot collapsed that to
+    `x.debug.json`, so the zh and en versions of one deck wrote to the same
+    file — and since `init` refuses to start when the log already exists, the
+    second one hard-failed, or with `--restart` destroyed the first one's
+    evidence.
+    """
+    return deliverable.name.rsplit(".", 1)[0] if "." in deliverable.name \
+        else deliverable.name
+
+
 def cmd_init(args):
     deliverable = pathlib.Path(args.deliverable)
     ids = _platform_ids()
     if args.platform not in ids:
         raise SystemExit(f"FAIL  platform {args.platform!r} is not in "
                          f"adapters/platforms.json ({', '.join(sorted(ids))})")
-    # The stem before the first dot: `guide.en.html` and `guide.en.pdf` share
-    # one log, which is the point — the log describes the build, not one export.
-    out = deliverable.parent / (deliverable.name.split(".")[0] + ".debug.json")
+    out = deliverable.parent / (log_stem(deliverable) + ".debug.json")
     # A LOG IS ONE BUILD'S RECORD. Starting over on top of an existing one
     # silently destroys a build's evidence, and carrying one across builds is
     # how the first real sample came to name one version in `deliverable` while

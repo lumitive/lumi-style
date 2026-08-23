@@ -349,16 +349,32 @@ def test_with_no_outline_the_default_is_the_owners_ten():
     assert _content_pages(scaffold("--no-trace")) == new_deck.DEFAULT_PAGES == 10
 
 
-def test_the_scaffold_has_no_way_to_be_anything_but_english():
-    """0.1.587 gave it `--lang` and `--lang-asked`, and a build ran both
-    itself — signing M16's "somebody asked" record on the same command line as
-    the language it was attesting to. A field an agent can fill is a field an
-    agent will fill."""
+def test_the_default_is_english_and_takes_no_flag():
+    """English is the default, so the ordinary build types nothing."""
     html = scaffold("--no-trace")
     assert '<html lang="en"' in html
     assert "data-lang-asked" not in html
-    out, err = io.StringIO(), io.StringIO()
-    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), \
-            pytest.raises(SystemExit):
+
+
+def test_another_language_is_authored_directly_and_needs_the_users_words():
+    """The user asked, so the deck is written in that language from the start —
+    not built in English and translated, which writes the same content twice.
+    0.1.587's `--lang-asked` was a BOOLEAN the agent typed on the same command
+    line as the language it was attesting to; it carries the words now."""
+    with contextlib.redirect_stdout(io.StringIO()), \
+            pytest.raises(SystemExit) as exc:
         new_deck.main(["--no-trace", "--lang", "zh-Hans"])
-    assert "unrecognized arguments" in err.getvalue()
+    assert "asked for" in str(exc.value), str(exc.value)
+
+    html = scaffold("--no-trace", "--lang", "zh-Hans",
+                    "--lang-asked", "\u7528\u4e2d\u6587\u5199\u8fd9\u4efd\u62a5\u544a")
+    assert '<html lang="zh-Hans"' in html
+    assert 'data-lang-asked="zh-Hans"' in html
+    assert "data-lang-ask-quote=" in html
+
+
+def test_a_fragment_is_not_a_quotation():
+    with contextlib.redirect_stdout(io.StringIO()), \
+            pytest.raises(SystemExit) as exc:
+        new_deck.main(["--no-trace", "--lang", "ja", "--lang-asked", "ja"])
+    assert "fragment" in str(exc.value), str(exc.value)

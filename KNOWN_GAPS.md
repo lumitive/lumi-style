@@ -75,23 +75,55 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-032 · `correlate` is in the move vocabulary and in no framework
+
+- status: open
+- opened: 0.1.589
+- surface: assets/frameworks.json, references/analysis-rules.md
+- symptom: the five analytical moves are compare, decompose, position,
+  **correlate** and bridge. `assets/frameworks.json` carries frameworks for
+  four of them — `correlate` has no entry at all, so `new_deck.shape_for
+  ("correlate")` returns nothing and a page declaring it arrives with an empty
+  figure slot while its four siblings arrive with a shape.
+- found by: making D32 per-page (0.1.589). A page declaring `correlate` would
+  have failed the new gate through no fault of its author, so the gate holds a
+  page only when its move is one the library can draw — and the exemption is
+  printed, which is how this became visible.
+- why it is not simply filled: which framework draws a correlation is a design
+  question (scatter with a fitted line? a quadrant with two measured axes? a
+  matrix?), and inventing one to close a gap is convention 6's warning. It
+  needs the same treatment the other four had: a question, a framework, a
+  shape, and a misuse note.
+- check: `D32_shape_use` prints `<move> not held (no framework in
+  assets/frameworks.json names a shape)` for every such move it meets
+
 ## GAP-030 · Red line 5 asks every figure for a source line and nothing reads it
 
 - status: open
 - opened: 0.1.587
-- surface: scripts/check/check_design.py, scripts/check/inspect_layout.py
-- symptom: SKILL.md's red line 5 — "a source line on every figure" — has no
-  check. Measured on a 2026-08 deck: **ten figures, zero `.cap .srcline`
-  elements in the whole document**, and every design gate green.
-  `inspect_layout` reports `source: NOT MEASURED, no page pairs a `.cap
-  .srcline` with a document `.colophon``, which reads as an absence of data
-  rather than as the finding it is — the document has no source lines at all,
-  which is exactly what the rule forbids.
+- corrected: 0.1.589 — **the entry's evidence was written backwards.** It said
+  "ten figures, zero `.cap .srcline` elements", as though the absence of a
+  source line in the caption were the defect. Zero is what D37 REQUIRES: the
+  source is the drawing's own last text node (design-rules section 4 rule 17),
+  and D37 gates a caption that carries one. The conclusion held; the evidence
+  named the wrong thing, which is convention 14 in the ledger this repository
+  keeps to catch exactly that.
+- surface: scripts/check/check_design.py, scripts/check/inspect_layout.py,
+  tokens/lumi-layouts.css
+- symptom: restated correctly at 0.1.589 — two measured deliverables carry a source
+  **nowhere** — not in the caption, where D37 forbids it, and not inside the
+  drawing, where rule 17 asks for it. Red line 5 says every figure carries a
+  source line and no check looks in the place the rule names.
+- and the two halves contradict each other: `inspect_layout` looks for a source
+  by pairing `.cap .srcline` with the colophon — the arrangement D37 gates
+  against — so a document that follows the rule reports `source: NOT MEASURED`.
+  `tokens/lumi-layouts.css` still styles `.cap .srcline`, which is the third
+  copy of the disagreement. Since 0.1.588 an absent subject no longer fails the
+  run, so this costs a reading rather than a release; the contradiction remains.
 - why it is not simply gated: a figure that states no data arguably owes no
   source, so the population is "figures that state a number", which is D29's
-  question and D29 reports rather than gates. The candidate is: a figure
-  carrying a value the page states must carry a source line. Needs a real
-  instance sweep before the pattern is written (convention 15).
+  question and D29 reports. Needs a real-instance sweep before the pattern is
+  written (convention 15).
 - check: none
 
 ## GAP-031 · A deck can delete its takeaway rung and every gate stays green

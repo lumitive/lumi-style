@@ -99,6 +99,13 @@ def main(argv=None) -> int:
     ap.add_argument("--storyline", choices=list(STORYLINES))
     ap.add_argument("--pages", type=int)
     ap.add_argument("--parts")
+    ap.add_argument("--lang", default="en",
+                    help="the deliverable's output language, BCP-47. Default: "
+                         "en. Pass another code when the USER asked for it; "
+                         "the deck is authored in that language directly")
+    ap.add_argument("--lang-asked", metavar="QUOTE",
+                    help="the user's own words asking for --lang, verbatim. "
+                         "Required for any language but English")
     ap.add_argument("--terms", help="the engagement's out-of-bounds list, "
                                     "passed to the privacy half")
     ap.add_argument("--fast", action="store_true",
@@ -121,17 +128,17 @@ def main(argv=None) -> int:
     if a.fast and a.deliver:
         sys.exit("--fast and --deliver are the loop and the delivery round; "
                  "pick one")
-    # There is no --lang here any more, and that is the point. A flag an agent
-    # can type is a flag an agent will type: 0.1.587 had `--lang zh-Hans
-    # --lang-asked` and a build ran both itself, signing M16's record on the
-    # same command line as the language it was attesting to. Every build is
-    # English; another language is `scripts/ops/localize.py`, over a finished
-    # English deck.
+    # The language refusal lives in `new_deck.py`, which is the command that
+    # writes the declaration; repeating it here would be a second copy of a
+    # rule with one owner.
 
     a.deck.parent.mkdir(parents=True, exist_ok=True)
     log_path = None
     if a.debug_log:
-        log_path = a.deck.parent / (a.deck.name.split(".")[0] + ".debug.json")
+        # The same rule as `debug_log init`, asked of it rather than retyped:
+        # the two computed the path independently and would diverge the moment
+        # only one was fixed.
+        log_path = a.deck.parent / (debug_log.log_stem(a.deck) + ".debug.json")
         debug_log.main(["init", str(a.deck), "--platform", a.platform])
         if not log_path.is_file():
             sys.exit(f"debug_log init wrote no log at {log_path}")
@@ -139,7 +146,10 @@ def main(argv=None) -> int:
 
     if not a.keep_scaffold:
         argv_nd = [sys.executable, str(ROOT / "scripts/ops/new_deck.py"),
-                   "--genre", a.genre, "--geometry", a.geometry]
+                   "--genre", a.genre, "--geometry", a.geometry,
+                   "--lang", a.lang]
+        if a.lang_asked:
+            argv_nd += ["--lang-asked", a.lang_asked]
         if a.storyline:
             argv_nd += ["--storyline", a.storyline]
         if a.outline:

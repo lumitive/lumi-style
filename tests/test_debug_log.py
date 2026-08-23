@@ -20,7 +20,9 @@ def _init(tmp_path, name="doc.en.html"):
     deliverable.write_text("<html></html>")
     rc = debug_log.main(["init", str(deliverable), "--platform", "claude-code"])
     assert rc == 0
-    return tmp_path / (name.split(".")[0] + ".debug.json")
+    # Asked of the module rather than recomputed: the two diverged the moment
+    # only one was fixed, which is what 0.1.589 removed from build.py.
+    return tmp_path / (debug_log.log_stem(deliverable) + ".debug.json")
 
 
 def _run(path, *command, label="step"):

@@ -2724,11 +2724,18 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
     for r in live:
         a = r["aspect"]
         note = ""
-        if a and a["ratio"] > 1.5:
-            note = (f"fig {a['figure']}:1 in cell {a['cell']}:1 — "
-                    f"fills {a['fillsCellHeight']}% of cell height")
-        elif a:
+        cs_ = r["centerScale"]
+        if a:
             note = f"fig {a['figure']}:1 in cell {a['cell']}:1"
+            # BY AREA, not by aspect. The old trigger was `ratio > 1.5`, so a
+            # wide flat figure that filled its width and a third of its height
+            # — the emptiest page on one measured deck — got no annotation at
+            # all, while two better pages did. `fillsCellHeight` is derived
+            # from the declared viewBox and reads 100 whenever ratio <= 1;
+            # `drawnH`/`cellH` were measured all along and never printed.
+            if cs_ is not None and cs_ < FIGURE_SHARE_FLOOR:
+                note += (f" — drawn {a['drawnH']}px in a {a['cellH']}px cell, "
+                         f"{cs_}% of it by area")
         over = f"  +{r['overflowPx']}px" if r["overflowPx"] > 1 else ""
         # `centerScale or '-'` printed 0.0 and "no centerpiece found" the same way.
         cs = r["centerScale"]
@@ -2758,6 +2765,20 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
         print(f"  TITLE NOT IDENTIFIED: {len(notitle)} of {len(live)} pages reserve a "
               f".lede but carry no h2.t / h1 / h2 in it — the focal ratio on those "
               f"pages includes whatever titles them: " + _fmt_ids(notitle))
+
+    thin = [r for r in live
+            if (r.get("centerpiece") or "").startswith("div.fig")
+            and r.get("centerScale") is not None
+            and r["centerScale"] < FIGURE_SHARE_FLOOR]
+    if thin:
+        print(f"  FIGURE SHARE: {len(thin)} figure(s) fill under "
+              f"{FIGURE_SHARE_FLOOR:g}% of the cell they were given — "
+              + ", ".join(f"{r['id']} {r['centerScale']}%" for r in thin)
+              + ". Reported, not gated: the floor is calibrated on three "
+                "documents and wants a release of readings first.")
+    elif any((r.get("centerpiece") or "").startswith("div.fig") for r in live):
+        print(f"  figure share: every drawn centerpiece fills at least "
+              f"{FIGURE_SHARE_FLOOR:g}% of its cell")
 
     multi = [r for r in live if r.get("colCount", 0) > 1]
     # 3px, not 8. A reader saw two tables 4px out of line and called it a bug;
@@ -3298,6 +3319,116 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
     return unmeasured
 
 
+# The per-page numbers a repair is supposed to move. Every one of them is
+# already measured and printed, and until 0.1.589 **not one was read by any
+# verdict** — which is why a dead band and a collapsed figure survived two
+# repairs with every gate green both times. `--against` is the reading that
+# notices.
+# A figure far below the cell it was given. REPORTED, not gated — the floor is
+# calibrated rather than reasoned, and one release of readings comes before any
+# gate (convention 6).
+#
+# Measured on three documents at 0.1.589: the reference fixture's ten figure
+# pages run 61.7-82.7 with a median of 82.7; one shipped deck runs 93-97 on
+# eight pages and 35.9 on the ninth; another runs 71-81 on five and 37 on the
+# sixth. The two low pages are the two an owner picked out by eye. 55 sits in
+# the gap and clears the reference by 6.7 points.
+#
+# `centerScale` is the centerpiece's area as a share of its cell, and it has
+# been computed and printed since long before this — read by nothing. That is
+# why a figure could collapse and survive two repairs: `flex: 0 1 auto;
+# min-height: 0` (tokens/lumi-layouts.css) lets an SVG shrink instead of
+# overflowing, so content_spill, collision and visual_absent all pass while the
+# drawing is not there. The same family as `-webkit-line-clamp`: what can be
+# squeezed does not overflow.
+FIGURE_SHARE_FLOOR = 55.0
+
+AGAINST_FIELDS = (
+    ("centerScale", "the centerpiece's share of its cell, by area"),
+    ("emptyBandPct", "the tallest band of the page with no ink in it"),
+    ("visualPct", "the page's visual share"),
+    ("titleLines", "how many lines the title takes"),
+    ("spillPx", "content past the page box"),
+    ("overflowPx", "overflow"),
+    ("ledeOverspendPx", "the title block against what it reserves"),
+)
+
+
+def _page_map(doc):
+    """-> {(file, geometry, page id): row}, skipping the aspect-only entries.
+
+    `results` carries two different shapes — one per file x geometry with
+    `pages`, and one per file with only `aspect`. `eval_corpus.py` has the same
+    `if "pages" in r` guard for the same reason.
+    """
+    out = {}
+    for r in doc.get("results") or []:
+        if "pages" not in r:
+            continue
+        for row in r["pages"]:
+            if row.get("id"):
+                out[(r.get("file"), r.get("geometry"), row["id"])] = row
+    return out
+
+
+def against_report(before: dict, now: dict) -> tuple[list[tuple[str, str, str]], bool]:
+    """-> ([(verdict, subject, detail)], regressed).
+
+    Reports rather than gates, on `check_outline --against`'s stated caution: a
+    page rewritten better than its plan is a legitimate outcome and only a
+    person can tell. **A regression is the exception** — a gating verdict that
+    was `ok` and is now `FAIL` is not a matter of taste.
+
+    The verdict words are that file's four: ok / FAIL / note / not_measured.
+    """
+    out: list[tuple[str, str, str]] = []
+    old_pages, new_pages = _page_map(before), _page_map(now)
+    if not old_pages:
+        out.append(("not_measured", "previous run",
+                    "no page could be read out of it, so nothing has been "
+                    "compared — this is a parse failure, not a verdict on the "
+                    "document"))
+        return out, False
+    shared = set(old_pages) & set(new_pages)
+    if not shared:
+        out.append(("FAIL", "previous run",
+                    f"not one page id matched ({len(old_pages)} then, "
+                    f"{len(new_pages)} now) — this reading describes a "
+                    f"different document"))
+        return out, True
+
+    regressed = False
+    moved = 0
+    for key in sorted(shared):
+        was, is_ = old_pages[key], new_pages[key]
+        pid = key[2]
+        for field, what in AGAINST_FIELDS:
+            a, b = was.get(field), is_.get(field)
+            if isinstance(a, dict) or isinstance(b, dict):
+                a, b = (a or {}).get("lines"), (b or {}).get("lines")
+            if a is None or b is None or a == b:
+                continue
+            moved += 1
+            out.append(("note", f"{pid} {field}", f"{a} → {b} ({what})"))
+
+    ob, nb = before.get("verdicts") or {}, now.get("verdicts") or {}
+    for name in sorted(set(ob) | set(nb)):
+        a, b = ob.get(name, "absent"), nb.get(name, "absent")
+        if a == b:
+            continue
+        if b == "FAIL" and a != "FAIL":
+            regressed = True
+            out.append(("FAIL", name, f"{a} → {b} — REGRESSED"))
+        else:
+            out.append(("note", name, f"{a} → {b}"))
+
+    if not moved and not any(v == "FAIL" for v, _, _ in out):
+        out.append(("note", "every compared page",
+                    "no measured number moved — if you were repairing "
+                    "something here, the repair did not land"))
+    return out, regressed
+
+
 class Unmeasured:
     """Two different silences, counted apart.
 
@@ -3753,6 +3884,14 @@ def main(argv):
                     help="the author's loop, not the delivery check: the "
                          "declared stage only and no off-shape sweep. Every "
                          "gate still runs; the matrix coverage claim does not")
+    ap.add_argument("--against", type=pathlib.Path, metavar="BEFORE.json",
+                    help="a previous `--json` run of this document. Prints "
+                         "what moved between then and now, per page: the "
+                         "package can FIND a layout defect and had no way to "
+                         "confirm a REPAIR, so a build fixed one page twice "
+                         "and shipped it still broken with every gate green. "
+                         "Reports; a gating verdict that went ok -> FAIL is "
+                         "the exception and exits non-zero")
     ap.add_argument("--deliverable", action="store_true",
                     help="grade this file as something about to be sent: exit "
                          "non-zero on collision, a starved column, content "
@@ -4013,12 +4152,30 @@ def main(argv):
             folded.setdefault(finding, was)
     failing = {k: v for k, v in folded.items() if v[0] == "FAIL"}
 
+    against: list[tuple[str, str, str]] = []
+    regressed = False
+    if args.against:
+        if not args.against.is_file():
+            sys.exit(f"no such previous run: {args.against}")
+        try:
+            before = json.loads(args.against.read_text(encoding="utf-8"))
+        except ValueError as exc:
+            sys.exit(f"{args.against} is not readable JSON ({exc})")
+        against, regressed = against_report(
+            before, {"results": results,
+                     "verdicts": {k: v for k, (v, _) in folded.items()}})
+
     if args.json:
         print(json.dumps({"results": results,
                           "unmeasured": unmeasured.failed,
                           "unmeasurable": unmeasured.failed,
                           "absent": unmeasured.absent,
-                          "verdicts": {k: v for k, (v, _) in folded.items()}},
+                          "verdicts": {k: v for k, (v, _) in folded.items()},
+                          # A SIBLING BLOCK, never inside `verdicts`:
+                          # run_conformance turns every key there into a
+                          # required-ok gate on every task.
+                          "against": [{"verdict": v, "subject": k,
+                                       "detail": d} for v, k, d in against]},
                          indent=2))
     else:
         # ONE final line carrying BOTH facts. These used to be two prints: the
@@ -4027,6 +4184,17 @@ def main(argv):
         # who read the last line (or grepped for it) shipped past a check that
         # never ran. Twice in one session. The last line of a verdict tool is
         # the verdict, whole.
+        if against:
+            print(f"\n{' vs '.join([str(args.against.name), 'now'])} — what "
+                  f"moved")
+            mark = {"ok": "ok  ", "FAIL": "FAIL", "note": "note",
+                    "not_measured": "n/m "}
+            for verdict, subject, detail in against:
+                print(f"  {mark[verdict]}  {subject:28} {detail}")
+            if regressed:
+                print("  A gating verdict went from ok to FAIL. That is not a "
+                      "matter of taste.")
+
         # ABSENT IS NOT A FINDING, and it never gates. It is said in the same
         # breath so nobody has to hunt for why a count moved.
         nothing = (f" · {unmeasured.absent} check(s) had nothing to measure "
@@ -4056,7 +4224,7 @@ def main(argv):
                   + nothing)
     if args.deliverable and failing:
         return 1
-    return 1 if unmeasured.failed else 0
+    return 1 if (unmeasured.failed or regressed) else 0
 
 
 if __name__ == "__main__":

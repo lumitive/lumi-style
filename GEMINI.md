@@ -2,7 +2,7 @@
 
 # LUMI Style — Gemini CLI
 
-> **lumi-style 0.1.588.** This file points at the skill; it does not restate it. The rules live in [`SKILL.md`](SKILL.md) and [`references/`](references/), and on any conflict those win.
+> **lumi-style 0.1.589.** This file points at the skill; it does not restate it. The rules live in [`SKILL.md`](SKILL.md) and [`references/`](references/), and on any conflict those win.
 
 You are producing content in LUMI's design language and writing style.
 
@@ -24,10 +24,10 @@ You are producing content in LUMI's design language and writing style.
 5. Charts: one accent color, conclusion-style titles, a source line on every
    figure;
 6. AI never signs; money/safety conclusions never come from a language model.
-7. The deliverable is in **American English**. Another language is a SECOND
-   file derived from it with `scripts/ops/localize.py`, never the language the
-   build starts in — asked for in the user's own words, never inferred from the
-   source material, from the language they are writing to you in, from the
-   venue, or from where the audience is.
+7. Output language is **American English** by default. Another language is
+   asked for **in the user's own words**, which the build quotes onto the
+   document — never inferred from the source material, from the language they
+   are writing to you in, from the venue, or from where the audience is. A deck
+   they asked for in another language is written in it, not translated into it.
 
 **Measure rather than trust**: `python3 scripts/check/check_prose.py <file>` for English prose, `python3 scripts/check/check_design.py <file>` for any HTML, and `python3 scripts/check/inspect_layout.py <file>` to render the pages and look at them. Their design judgements gate nothing, but an unmeasurable check exits 1 and names what it could not find.

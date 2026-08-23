@@ -84,6 +84,8 @@ from deliverable_registry import (  # noqa: E402 — after the bootstrap
     GENRES,
     STORYLINES,
     TYPICAL_SECTIONS,
+    section_alts,
+    section_name,
 )
 
 GROUP_MIN, GROUP_MAX = 2, 5
@@ -410,8 +412,9 @@ def review(text: str):
     if expected:
         blob = " ".join(t.lower() for t in titles)
         declared = {o["section"] for o in omissions}
-        missing = [s for s in expected
-                   if s not in blob and s not in declared]
+        missing = [section_name(s) for s in expected
+                   if not any(a in blob or a in declared
+                              for a in section_alts(s))]
         findings.append({
             "check": "type completeness", "verdict": "note",
             "detail": missing or "every typical section is named or declared"})
