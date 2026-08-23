@@ -7,6 +7,16 @@
 cross-platform skill.** Built on the [Agent Skills](https://agentskills.io)
 standard, so it loads on any agent that implements it.
 
+> **Two repositories, and only one of them takes changes.** `lumi-style` is
+> where the package is developed and where every change goes.
+> `lumi-style-skill` is the published package: a mechanical projection of this
+> one's history, carrying what a reader uses and nothing else — no tests, no
+> repository guards, no design records. It is rebuilt from `lumi-style` and
+> force-published, so **an edit made there is overwritten by the next
+> publish**. The boundary is declared in `lumi-style` and three checks there
+> hold the tree to it. If you are reading this in `lumi-style-skill`, the file
+> you want to change lives in the other repository.
+
 > **LUMI Style lets you use the AI agents and general models you already
 > have to produce market documents at a consulting practitioner's standard —
 > branded design, a complete and original narrative, and analysis you can

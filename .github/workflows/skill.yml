@@ -1,0 +1,94 @@
+# The CONSUMER half, checked as a consumer sees it.
+#
+# This file ships. It runs here, in the development repository, and it runs in
+# the published projection — which is the point: the projection carries no
+# tests, no repo guards and no development scripts, so the only thing that can
+# say "the shipped package still works" is a workflow that uses it the way a
+# reader does. `check_repo.py` grades this repository and cannot answer that.
+#
+# Everything below is standard library only, as the deliverable path is.
+name: skill
+on: [push, pull_request]
+
+jobs:
+  skill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # The scaffold has to render before anything can be said about it.
+      - name: build a deck from the scaffold
+        run: |
+          python3 scripts/ops/new_deck.py --no-trace > /tmp/deck.en.html
+          test -s /tmp/deck.en.html
+          # A scaffold that shrinks to nothing still "succeeds" — 400 KB is a
+          # floor under the embedded font, icons and shape sprite, not a target.
+          test "$(wc -c < /tmp/deck.en.html)" -gt 400000
+
+      # The reference implementation the checkers were verified against. These
+      # two are green on it with no browser, which is what makes them usable as
+      # assertions here.
+      #
+      # `eval_corpus.py` is NOT among them, and the reason is worth stating: one
+      # of its thresholds is measured by rendering, so on a machine with no
+      # Chromium it reports "a threshold that was not measured has not been
+      # cleared" and exits 1 — correctly. It passed locally only because the
+      # author's machine has Playwright. Asserting it here would either force a
+      # browser on everyone who forks this, or bake in the exact "green on my
+      # machine" failure this workflow exists to catch.
+      - name: the reference document passes its own checkers
+        run: |
+          python3 scripts/check/check_design.py fixtures/deck-pass.en.html
+          python3 scripts/check/check_prose.py fixtures/deck-pass.en.html
+
+      # A raw scaffold FAILS the design checks — it is full of slots — so what
+      # is asserted here is the half that must be clean from the first byte.
+      - name: a fresh scaffold is clean where it must be
+        run: |
+          python3 scripts/check/check_prose.py /tmp/deck.en.html --genre sales
+          python3 scripts/build/embed_icons.py --check
+
+      # Every consumer script must at least load. The projection drops modules
+      # that nothing reachable imports, so an import error here means the
+      # boundary cut a live edge — the one failure a static guard cannot see.
+      - name: every shipped script loads
+        run: |
+          fail=0
+          for f in $(git ls-files 'scripts/**/*.py' 'scripts/*.py'); do
+            python3 -c "import ast,sys; ast.parse(open('$f').read())" || fail=1
+          done
+          for f in $(git ls-files 'scripts/check/*.py' 'scripts/ops/*.py' \
+                                  'scripts/build/*.py' 'scripts/render/*.py'); do
+            out=$(python3 "$f" --help 2>&1); rc=$?
+            # 0 is a help screen; 2 is argparse rejecting a missing argument on
+            # a script that takes none. An ImportError is neither.
+            if [ $rc -ne 0 ] && [ $rc -ne 2 ]; then
+              case "$out" in
+                *ImportError*|*ModuleNotFoundError*|*Traceback*)
+                  echo "FAIL $f"; echo "$out" | tail -3; fail=1 ;;
+              esac
+            fi
+          done
+          exit $fail
+
+      # A store is written where the package SAYS it is written.
+      #
+      # Not "outside the tree": this workflow runs in the development
+      # repository too, where `evals/traces/` exists and the resolver correctly
+      # prefers it — so an assertion about `/tmp` was true in the projection and
+      # false here, which is a workflow that cannot run in both. The invariant
+      # that holds in both is the one that matters anyway: a trace opened by the
+      # tool lands in the store the tool names, and an installed skill with no
+      # `evals/` gets the operator state directory rather than a crash.
+      - name: a store is written where the package says it is
+        env:
+          LUMI_STATE: /tmp/lumi-state
+        run: |
+          id=$(python3 scripts/ops/trace.py open --entry-path A --genre sales                  --storyline gtm)
+          where=$(python3 -c "import sys; sys.path.append('scripts/lib');                   import trace_store; print(trace_store.traces_dir())")
+          echo "trace $id -> $where"
+          test -f "$where/$id.json"
+          python3 scripts/ops/review_scores.py --check
