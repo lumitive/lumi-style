@@ -1,3 +1,27 @@
+## 0.1.586 — the confirmation named one version and the push shipped another
+
+The gate added at 0.1.585 read the version from `$DEV` — whatever branch happens
+to be checked out — while the thing it pushes is a projection of `origin/main`.
+
+So publishing 0.1.585 from a branch, while `main` was still at 0.1.584,
+confirmed 0.1.585, shipped 0.1.584, and printed **"published 0.1.585"** over
+content whose stamp said 0.1.584. Caught by asking the published repository what
+it actually carried, one command after the push.
+
+**A confirmation that names something other than what is pushed is worse than no
+confirmation**, because it is believed. This is the third defect in three
+releases in the same small piece of code, and all three are the same mistake:
+the line a person reads before an irreversible act was describing something
+other than the act — an unknown version at 0.1.584, a cached version at 0.1.583,
+and now the wrong version entirely.
+
+`here` is read from the projection. The test asserts both halves — that it reads
+`$WORK/proj`, and that it does not read `$DEV` — because the second is what
+regressed.
+
+Verified end to end this time rather than by reading: published, then asked
+GitHub what the file says. It says 0.1.585.
+
 ## 0.1.585 — the gate built one release ago blocked the person it was built for
 
 0.1.584 made `--push` refuse whenever stdin was not a terminal, reasoning that
