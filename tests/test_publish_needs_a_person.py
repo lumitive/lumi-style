@@ -17,22 +17,30 @@ def test_the_script_parses():
     assert subprocess.run(["bash", "-n", str(SCRIPT)]).returncode == 0
 
 
-def test_push_refuses_without_a_terminal():
-    """The half an agent cannot satisfy. Everything else in this script is a
-    check a machine can pass; this one is not."""
+def test_push_refuses_without_a_named_version():
+    """A bare `--push` had already become a habit — mine. The version changes
+    every release, so naming it cannot."""
     src = SCRIPT.read_text(encoding="utf-8")
-    assert 'if [ ! -t 0 ]; then' in src, "no terminal test guards the push"
-    refusal = src[src.index('if [ ! -t 0 ]; then'):]
+    assert 'if [ -z "$CLAIMED" ]; then' in src
+    refusal = src[src.index('if [ -z "$CLAIMED" ]; then'):]
     assert "REFUSING" in refusal and "exit 2" in refusal
-    # and it comes BEFORE any push
-    assert src.index('if [ ! -t 0 ]; then') < src.index("git -C \"$WORK/proj\" push")
+    assert src.index('if [ -z "$CLAIMED" ]; then') < src.index('git -C "$WORK/proj" push')
 
 
-def test_the_confirmation_is_the_version_not_a_keypress():
-    """Typing the version means reading what is about to happen. `y` does not."""
+def test_a_version_that_is_not_this_checkout_refuses():
     src = SCRIPT.read_text(encoding="utf-8")
-    assert 'read -r answer' in src
-    assert '[ "$answer" = "$here" ]' in src, "any answer would do"
+    assert '[ "$CLAIMED" != "$here" ]' in src
+    assert src.index('[ "$CLAIMED" != "$here" ]') < src.index('git -C "$WORK/proj" push')
+
+
+def test_no_tty_test_guards_the_push():
+    """The first version of this gate refused whenever stdin was not a
+    terminal, and BLOCKED THE OWNER: `!` in Claude Code has no TTY either, so a
+    check meant to distinguish an agent from a person distinguished neither and
+    failed against the person it existed to serve."""
+    code = "\n".join(line for line in SCRIPT.read_text(encoding="utf-8").splitlines()
+                     if not line.lstrip().startswith("#"))
+    assert "-t 0" not in code
 
 
 def test_the_remote_version_comes_from_the_api_not_the_cdn():
@@ -49,7 +57,8 @@ def test_the_remote_version_comes_from_the_api_not_the_cdn():
 
 def test_a_dry_run_is_the_default():
     src = SCRIPT.read_text(encoding="utf-8")
-    assert 'PUSH=0' in src and '[ "${1:-}" = "--push" ] && PUSH=1' in src
+    assert 'PUSH=0' in src
+    assert '[ "${1:-}" = "--push" ] && { PUSH=1; CLAIMED=${2:-}; }' in src
 
 
 def test_it_refuses_without_an_out_of_bounds_list():

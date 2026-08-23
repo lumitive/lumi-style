@@ -16,16 +16,25 @@
 # checked or skipped. This script refuses to publish without a list, because an
 # empty directory is not an absence of clients. It found one on its first run.
 #
-# THE PUSH NEEDS A PERSON. `--push` is not enough on its own: the last step
-# asks for a typed confirmation and refuses when stdin is not a terminal, so an
-# agent running this non-interactively cannot publish and must hand the command
-# back. Owner instruction, 2026-08-23 — publishing is hers to authorise, one
-# publication at a time, and a rule that lives only in an agent's memory is a
-# rule until the next session. Convention 16: a rule written down and then
-# broken needs a tool that holds it.
+# THE PUSH NAMES ITS VERSION. `--push` alone is refused; it takes the version
+# being published as an argument, and a mismatch stops everything.
+#
+# Owner instruction, 2026-08-23: publishing is hers to authorise, one
+# publication at a time. NO LOCAL SCRIPT CAN TELL WHOSE HANDS TYPED A COMMAND,
+# and this one does not pretend to — what it can do is make publishing
+# impossible to do by habit. The version changes every release, so `--push
+# 0.1.584` cannot become muscle memory the way a bare `--push` had already
+# become mine.
+#
+# The first version of this gate refused whenever stdin was not a terminal. It
+# blocked the owner: `!` in Claude Code has no TTY either, so the check meant
+# to distinguish an agent from a person distinguished neither, and failed in
+# the worst direction — against the person it existed to serve. Convention 15,
+# in the release that added it: look at a real instance before writing a
+# pattern that keys on its shape.
 #
 # Usage:  scripts/ops/publish.sh                 # dry run: check, do not push
-#         scripts/ops/publish.sh --push          # check, then ASK, then publish
+#         scripts/ops/publish.sh --push 0.1.584  # publish that exact version
 set -euo pipefail
 
 DEV=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -34,7 +43,8 @@ SOURCE=${LUMI_SOURCE_REMOTE:-https://github.com/lumitive/lumi-style.git}
 TERMS=${LUMI_TERMS_DIR:-$HOME/.lumi/terms}
 WORK=$(mktemp -d)
 PUSH=0
-[ "${1:-}" = "--push" ] && PUSH=1
+CLAIMED=""
+[ "${1:-}" = "--push" ] && { PUSH=1; CLAIMED=${2:-}; }
 trap 'rm -rf "$WORK"' EXIT
 
 command -v git-filter-repo >/dev/null 2>&1 || {
@@ -131,28 +141,30 @@ here=$(cd "$DEV" && grep -m1 -o '"[0-9.]*"' SKILL.md | tr -d '"')
 slug=${PUBLIC#https://github.com/}; slug=${slug%.git}
 there=$(gh api "repos/$slug/contents/SKILL.md" --jq .content 2>/dev/null \
         | base64 -d 2>/dev/null | grep -m1 -o '"[0-9.]*"' | tr -d '"' || true)
+
 echo "About to FORCE-PUSH the projection of $here over ${there:-an unknown version}"
 echo "at $PUBLIC — the published history is replaced, not merged."
 echo
 
-if [ ! -t 0 ]; then
-  cat <<'MSG'
-REFUSING: --push needs a person, and stdin is not a terminal.
+if [ -z "$CLAIMED" ]; then
+  cat <<MSG
+REFUSING: --push takes the version to publish.
 
-  Publishing is the owner's to authorise, one publication at a time. Every
-  check above passed, so nothing is wrong with the projection — what is
-  missing is the say-so.
+  Every check above passed, so nothing is wrong with the projection — what is
+  missing is a deliberate act. Naming the version is that act: it changes every
+  release, so it cannot become a habit the way a bare --push can.
 
-  Run it yourself:  scripts/ops/publish.sh --push
-  (in Claude Code, prefix with `!` to run it in this session)
+      scripts/ops/publish.sh --push $here
 MSG
   exit 2
 fi
 
-printf 'Type the version to publish (%s) to confirm, anything else to stop: ' "$here"
-read -r answer
-[ "$answer" = "$here" ] || { echo "stopped — nothing was published."; exit 3; }
+if [ "$CLAIMED" != "$here" ]; then
+  echo "REFUSING: asked to publish $CLAIMED; this checkout is at $here."
+  echo "  Pull main, or name the version you meant. Nothing was published."
+  exit 3
+fi
 
 git -C "$WORK/proj" remote add publish "$PUBLIC"
 git -C "$WORK/proj" push --force publish main:main
-echo "published to $PUBLIC"
+echo "published $here to $PUBLIC"
