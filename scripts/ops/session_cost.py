@@ -68,7 +68,22 @@ def _blank() -> dict:
 
 
 def hermes(ids: list[str], db: pathlib.Path) -> dict:
-    """-> the reading for one or more Hermes sessions, whole table."""
+    """-> the reading for one or more Hermes sessions, whole table.
+
+    **One pass over `session_model_usage`, and only one.** Until 0.1.592 this
+    summed the four token fields and a second reader summed the SAME rows into
+    the SAME dict afterwards, so every token came back exactly doubled while
+    `api_calls` and `tool_calls` stayed correct. That is the worst shape an
+    instrument can fail in: the counts look sane, so the doubling reads as real
+    usage rather than as a bug. It survived two releases and was caught in the
+    field, by a platform comparison that halved the numbers by hand and put the
+    correction in a footnote — which is a reader doing the tool's job.
+
+    The two functions are merged rather than one of them trimmed, because the
+    defect was not a stray line: it was two readers of one table sharing one
+    accumulator. Trimming leaves that shape in place for the next edit to
+    re-grow. `tests/test_session_cost_hermes.py` pins the reading.
+    """
     out = _blank()
     con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
     try:
@@ -78,11 +93,18 @@ def hermes(ids: list[str], db: pathlib.Path) -> dict:
                     " cache_read_tokens, cache_write_tokens"
                     " from session_model_usage where session_id=?", (sid,)):
                 task = row[0] or "(main)"
-                out["api_calls"] += row[1]
-                out["by_task"][task] = out["by_task"].get(task, 0) + row[1]
-                for i, f in enumerate(FIELDS, start=2):
-                    out[f] += row[i] if i < 6 else 0
-                out["input_tokens"] += 0  # summed above; kept explicit
+                # `or 0` on the COUNT as well as the tokens below. The merge
+                # that removed the double-count guarded the tokens and left
+                # these two unguarded, so one NULL `api_call_count` in a real
+                # state store took the whole reading down with a TypeError.
+                calls = row[1] or 0
+                out["api_calls"] += calls
+                out["by_task"][task] = out["by_task"].get(task, 0) + calls
+                # row[2:] is (input, output, cache_read, cache_write) — the
+                # Hermes column order, which is FIELDS' order under
+                # HERMES_FIELD. Summed HERE and nowhere else.
+                for f, v in zip(FIELDS, row[2:]):
+                    out[f] += v or 0
             # The tool side: one row per tool result, and the assistant rows
             # carry the batched call arrays.
             for (blob,) in con.execute(
@@ -97,20 +119,6 @@ def hermes(ids: list[str], db: pathlib.Path) -> dict:
     finally:
         con.close()
     return out
-
-
-def _hermes_tokens(ids: list[str], db: pathlib.Path, out: dict) -> None:
-    con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
-    try:
-        for sid in ids:
-            for row in con.execute(
-                    "select input_tokens, output_tokens, cache_read_tokens,"
-                    " cache_write_tokens from session_model_usage"
-                    " where session_id=?", (sid,)):
-                for f, v in zip(FIELDS, row):
-                    out[f] += v or 0
-    finally:
-        con.close()
 
 
 def claude(paths: list[pathlib.Path], since=None, until=None) -> dict:
@@ -202,8 +210,23 @@ def main(argv=None) -> int:
     if a.hermes:
         if not a.db.is_file():
             sys.exit(f"no Hermes state store at {a.db}")
+        # A SESSION ID THAT MATCHES NOTHING IS A TYPO, NOT A FREE BUILD. Without
+        # this an unknown id printed a whole zero table under a "1 session(s)"
+        # header and exited 0 — a reading that says the work cost nothing. The
+        # Claude branch below already hard-exits on a transcript it cannot find;
+        # this is the same rule on the other platform.
+        con = sqlite3.connect(f"file:{a.db}?mode=ro", uri=True)
+        try:
+            empty = [sid for sid in a.hermes if not con.execute(
+                "select 1 from session_model_usage where session_id=? limit 1",
+                (sid,)).fetchone()]
+        finally:
+            con.close()
+        if empty:
+            sys.exit("no rows for session id(s): " + ", ".join(empty)
+                     + "\n  A reading of zero is not the same as no reading. "
+                       "Check the id against the store's own sessions table.")
         r = hermes(a.hermes, a.db)
-        _hermes_tokens(a.hermes, a.db, r)
         report(f"hermes · {len(a.hermes)} session(s)", r)
     if a.claude:
         missing = [p for p in a.claude if not p.is_file()]

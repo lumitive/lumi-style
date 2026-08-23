@@ -463,8 +463,23 @@ def main():
         elif state == "current":
             print(f"       {len(rows_s)} build(s) current")
         else:
-            print(f"       {len(rows_s)} build(s) had no recipe (path A looks "
-                  f"like this)")
+            # SPLIT BY ENTRY PATH. This line read "path A looks like this" and
+            # every one of the 64 rows it described was path B — false for 100%
+            # of its population, while `ledger_recipes` already carried
+            # `entry_path` on every row and simply was not read here. Path B
+            # with no recipe is the state `--recipe` exists to make impossible,
+            # so it is the half worth shouting about.
+            no_recipe_b = [r for r in rows_s if r.get("entry_path") == "B"]
+            no_recipe_a = [r for r in rows_s if r.get("entry_path") == "A"]
+            if no_recipe_a:
+                print(f"       {len(no_recipe_a)} build(s) had no recipe on "
+                      f"path A — a document composed from a conversation "
+                      f"looks like this")
+            if no_recipe_b:
+                print(f"       {len(no_recipe_b)} build(s) are path B WITH NO "
+                      f"RECIPE — path B means 'started from a recipe', so each "
+                      f"of these names no driver and cannot say which rules it "
+                      f"followed")
 
     beats = ledger_beats(traces)
     print("LEDGER 2c · did the storyline review happen, and did it hold?")

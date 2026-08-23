@@ -512,7 +512,7 @@ def test_scaffold_then_check_deliverable_leaves_machine_written_phases(tmp_path)
     deck = tmp_path / "deck.en.html"
     scaffold = subprocess.run(
         [sys.executable, str(ROOT / "scripts/ops/new_deck.py"), "--storyline", "gtm",
-         "--genre", "internal", "--pages", "2"],
+         "--genre", "internal", "--pages", "2", "--entry-path", "B"],
         capture_output=True, text=True, env=env, cwd=ROOT, check=True)
     deck.write_text(scaffold.stdout, encoding="utf-8")
     m = re.search(r'data-trace="(t-[0-9a-f]{12})"', scaffold.stdout)

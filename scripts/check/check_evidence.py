@@ -74,6 +74,22 @@ OBLIGATIONS: dict[str, tuple[str, str]] = {
         "the decidable layout gates on the passing fixture, in a real browser "
         "(inspect_layout's deliverable_verdicts is the list)",
     ),
+    # `layout-fixtures` renders a HAND-WRITTEN fixture. That fixture is built
+    # for gate coverage, not as a sample of what the scaffold emits — at
+    # 0.1.592 it carried ten `body split` pages and no one-cell `stack` page at
+    # all, so mapping a scaffold change to it recorded an exit 0 that proved
+    # nothing about the change. This one renders what `new_deck.py` ACTUALLY
+    # emits, which is the only way a scaffold change gets looked at.
+    "scaffold-render": (
+        "python3 scripts/ops/new_deck.py --genre internal "
+        "--storyline market-analysis --pages 10 --parts A,B,C --no-trace "
+        "--out fixtures/.scaffold-evidence.html && "
+        "python3 scripts/check/inspect_layout.py --deliverable "
+        "fixtures/.scaffold-evidence.html",
+        "the decidable layout gates on a freshly generated scaffold, in a real "
+        "browser — the markup new_deck.py emits rather than a fixture that "
+        "happens to sit beside it",
+    ),
     "globe-js": (
         "python3 scripts/check/check_globe.py",
         "the globe checks INCLUDING the browser half that CI cannot run",
@@ -90,6 +106,17 @@ TOUCH_MAP: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("tokens/", ("layout-fixtures", "conformance-freshness")),
     ("references/design-rules.md", ("layout-fixtures",)),
     ("scripts/check/inspect_layout.py", ("layout-fixtures",)),
+    # The scaffold EMITS the markup that gets laid out. 0.1.592 changed which
+    # layout class every content page carries — from `split` on all of them to
+    # an alternation — and this gate asked for nothing, because the map listed
+    # the instrument and the tokens but not the generator between them. A
+    # change to what a page IS needs the browser as much as a change to how it
+    # is measured: the first attempt at that alternation rendered a figure at
+    # 3% of two pages and 15-20% of three more, and the release's static test
+    # (counting `.fill` children) was written only AFTER a render showed it. It maps to
+    # `scaffold-render` and NOT to `layout-fixtures`, because the latter renders
+    # a hand-written fixture that the scaffold does not produce.
+    ("scripts/ops/new_deck.py", ("scaffold-render",)),
     ("fixtures/", ("layout-fixtures",)),
     ("assets/geo/", ("globe-js",)),
     ("assets/globe/", ("globe-js",)),

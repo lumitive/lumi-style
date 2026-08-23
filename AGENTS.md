@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.591.** This file restates part of `references/`; where they
+> **lumi-style 0.1.592.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -66,10 +66,13 @@ deliverable verified (`references/operating-rules.md` OR-9).
 
 Write a finished document to `Documents/LUMI-Style/` under the user's home
 (`scripts/ops/output_dir.py` resolves it). Scaffold with
-`python3 scripts/ops/new_deck.py --genre … --storyline … [--outline <plan>]`
-and never hand-copy a fixture: the scaffold carries the genre's contract, the
-outline's titles and takes, a shape slot per declared move, and it opens the
-build trace (`<body data-trace>`). Compose. Then **one command runs every
+`python3 scripts/ops/new_deck.py --genre … --storyline … --entry-path A|B
+[--outline <plan>]` and never hand-copy a fixture: the scaffold carries the
+genre's contract, the outline's titles and takes, a shape slot per declared
+move, and it opens the build trace (`<body data-trace>`). **No `--entry-path`,
+no trace** — A is the four-beat discussion, B starts from a recipe, and the
+value used to be guessed from whether an `--outline` was present, which
+recorded replays as original builds. Compose. Then **one command runs every
 instrument**: `python3 scripts/ops/check_deliverable.py <file>` — the
 rendered check, every text instrument, privacy (`check_privacy.py` reads
 `~/.lumi/terms/`, OR-8, and reports NOT ATTEMPTED without a list), and one

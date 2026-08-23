@@ -237,7 +237,8 @@ def test_the_card_does_not_poison_the_scaffold_s_own_gates():
 
 def test_a_scaffold_with_a_storyline_opens_a_trace_and_carries_its_id():
     import json
-    html = scaffold("--storyline", "gtm", "--pages", "2")
+    html = scaffold("--storyline", "gtm", "--pages", "2",
+                    "--entry-path", "B")
     m = re.search(r'data-trace="(t-[0-9a-f]{12})"', html)
     assert m, "the body carries no data-trace"
     rec = json.loads((_SCRATCH[0] / f"{m.group(1)}.json").read_text())
@@ -257,8 +258,22 @@ def test_no_storyline_means_no_trace_and_says_so():
 
 
 def test_no_trace_flag_is_honoured():
-    html = scaffold("--storyline", "gtm", "--pages", "2", "--no-trace")
+    html = scaffold("--storyline", "gtm", "--pages", "2", "--no-trace",
+                    "--entry-path", "B")
     assert "data-trace" not in html
+
+
+def test_no_entry_path_means_no_trace_and_says_so():
+    """The entry path is declared, never inferred — the same rule as the
+    storyline above. Guessing it from the presence of an outline recorded two
+    replays of one frozen script as original four-beat builds."""
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), \
+            contextlib.suppress(SystemExit):
+        new_deck.main(["--storyline", "gtm", "--pages", "2"])
+    assert "data-trace" not in out.getvalue()
+    assert "no trace opened" in err.getvalue()
+    assert "entry path" in err.getvalue()
 
 
 # 0.1.533 — the question → framework → shape chain reaches the figure slot.

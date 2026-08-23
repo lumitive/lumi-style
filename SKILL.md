@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.591"
+  version: "0.1.592"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -131,9 +131,12 @@ source, a structure carried forward — and it is what most real builds use.
 shows that nothing broke, and shows nothing about what the rules gained since
 it was written.** Timing starts when the storyline is agreed; the discussion is
 not charged against it. Open the build's trace at that moment
-(`scripts/ops/trace.py open --entry-path A|B --recipe <path> …`) and close it
+(`scripts/ops/trace.py open --entry-path A|B [--recipe <path>] …`) and close it
 after the checks (`trace.py close`), which transcribes the verdicts rather than
-accepting them. **`--recipe` is how path B stays honest**: a trace's
+accepting them. **`--recipe` at open only when the recipe is already in hand** —
+a fill script written after the scaffold does not exist yet, and is recorded
+then with `trace.py annotate --id <id> --recipe <build script>`; never point
+either at the outline, which is the plan rather than the driver. **`--recipe` is how path B stays honest**: a trace's
 `skill_version` is read from SKILL.md at open, so it can never be stale, and
 without the recipe's own version stamp a replay of a frozen script is
 indistinguishable from a build made to today's rules. `ledger.py` reports
@@ -360,6 +363,17 @@ skill had not lost the craft; this step had stopped pointing at it.*
 `python3 scripts/ops/new_deck.py --genre <genre> --geometry <geometry>` emits
 the standard order with the display face embedded and every icon reference
 resolving (to stdout by default; `--out <file>` writes it).
+**It now chooses each content page's layout rather than handing every page the
+same one.** It used to emit `body split` on all of them — the one layout
+`references/storyline-templates.md` rules out for a figure-led page (search it
+for "figure-led page"), because half the width cannot reach the
+visual-share target however the prose is cut. Measured on its own output: 10 of
+11 content pages under the 50% internal target and a top layout share of
+**71.4%**, which is worse than the 70.0% deck an owner review rejected. It now
+alternates `split-wide` and `stack` and gives a thin unit the whole width: 4 of
+11 under target, top share 42.9%. A `stack` page also emits ONE cell rather than
+two, because that grid declares `auto 1fr` and a third child starved the drawing
+to 3% of the page.
 **`python3 scripts/ops/build.py` is the whole build in one command** — scaffold,
 your fill script, `embed_shapes`, and the step-4 gate stack — and it is what a
 real build should run, because every separate command is an API round trip
@@ -552,11 +566,24 @@ each** — twenty-three minutes and sixty-four round trips — against six runs 
 this one command. The author was running the slow instrument separately to get
 the sheet, which is the artifact this file calls the last gate and which
 `check_deliverable` used to suppress unconditionally.* It also closes the build's
-trace: `new_deck.py` opens one at scaffold time (when a `--storyline` is
-given) and writes its id into `<body data-trace>`, starting the build clock;
+trace: `new_deck.py` opens one at scaffold time (when a `--storyline` **and an
+`--entry-path A|B`** are given) and writes its id into `<body data-trace>`,
+starting the build clock;
 the check step stops that clock, records its own duration as the checks
 phase, and transcribes the verdicts. A document with no trace is reported
-`unmeasured` — a build that leaves no record is not a measured build. It exists because a
+`unmeasured` — a build that leaves no record is not a measured build.
+**The entry path is declared, never inferred, and the recipe is the builder.**
+Pass `--entry-path A|B` to `build.py` (it hands it to the scaffold) or to
+`new_deck.py` directly.
+Until 0.1.592 the scaffold read path A from the mere presence of an `--outline`
+— an outline is used on both paths — and fingerprinted that outline as the
+recipe. Two replays of one frozen build script were therefore recorded as
+original four-beat builds carrying identical outline hashes, and because an
+outline bears no version stamp they sit in the ledger as `unknown` vintage for
+ever, while the 39KB script that produced every page was fingerprinted by
+nothing. So: pass `--entry-path`, and once the fill script exists record it with
+`python3 scripts/ops/trace.py annotate --id <id> --recipe <build script>` —
+the hash and the version stamp are computed from the file, never typed. It exists because a
 fifteen-page deck once took ten rounds, at least three of them from reading
 the reports in installments.
 

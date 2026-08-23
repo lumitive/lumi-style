@@ -133,10 +133,14 @@ def cmd_open(a):
                gates={}, graded={}, thresholds={},
                principle_yields=[], refused_to_emit=None,
                recipe_hash=None, recipe_version=None)
-    # WHAT DROVE THIS BUILD, taken at open, from what the build was actually
-    # given. Computing it later would fingerprint whatever the recipe had
-    # become, which is the mistake `asked_fingerprint` exists to avoid one
-    # domain over.
+    # WHAT DROVE THIS BUILD, taken at open when the build was handed one.
+    # Taking it at open is still the better moment — it fingerprints what the
+    # build was actually given rather than whatever the recipe had become,
+    # which is the mistake `asked_fingerprint` exists to avoid one domain over.
+    # But a fill script does not EXIST at scaffold time, so `annotate --recipe`
+    # (0.1.592) records it afterwards; that is a later reading of the same
+    # fact, not a second opinion about it, and it overwrites whatever was taken
+    # here. Prefer this one when the recipe is in hand.
     if getattr(a, "recipe", None) is not None:
         if not a.recipe.is_file():
             sys.exit(f"--recipe {a.recipe} is not a file. A recipe nobody can "
@@ -362,15 +366,42 @@ def cmd_annotate(a):
     measurement corpus and to the review that scored it — they are addresses,
     not verdicts, which is why this subcommand may write them after close and
     the verdict fields still have no flag anywhere.
+
+    `--recipe` belongs here for the same reason and no other: the file that
+    drives a build does not exist when the trace opens. `new_deck.py` opens the
+    trace to time the scaffold, and the build script is written afterwards — so
+    until 0.1.592 the only thing available to fingerprint at open was the
+    OUTLINE, and that is what got recorded. An outline carries no version
+    stamp, so such a build sits in the ledger as `unknown` vintage for ever
+    while the script that actually produced the pages is fingerprinted by
+    nothing. (Eleven stored traces carry a hash and no version; the record does
+    not say which file each hashed, so this is one known cause among them
+    rather than the cause of all eleven — `fingerprint.py` names the other.)
+
+    It is still a fact and not a verdict: the hash and the version are COMPUTED
+    from the file, never typed, on the same reasoning that makes
+    `check_evidence.py` run its own commands instead of accepting a person's
+    word for the result.
     """
     rec = _load(a.id)
     if a.corpus_id:
         rec["corpus_id"] = a.corpus_id
     if a.review_ref:
         rec["review_ref"] = a.review_ref
+    if a.recipe is not None:
+        if not a.recipe.is_file():
+            sys.exit(f"--recipe {a.recipe} is not a file. A recipe nobody can "
+                     f"read is not a recipe this trace can vouch for.")
+        rec["recipe_hash"], rec["recipe_version"] = fingerprint.recipe_fingerprint(
+            a.recipe, genre=rec.get("genre"), storyline=rec.get("storyline"))
+        if rec["recipe_version"] is None:
+            print(f"  note: {a.recipe.name} carries no version stamp, so this "
+                  f"build reads as UNKNOWN vintage in the ledger — which is "
+                  f"not the same as current.", file=sys.stderr)
     _fail_if_invalid(rec)
     _save(rec)
-    print(f"{a.id}: corpus_id={rec['corpus_id']} review_ref={rec['review_ref']}")
+    print(f"{a.id}: corpus_id={rec['corpus_id']} review_ref={rec['review_ref']} "
+          f"recipe={rec['recipe_version'] or 'unstamped'}")
 
 def cmd_validate(_a):
     if not TRACES.exists():
@@ -398,8 +429,10 @@ def main():
     o.add_argument("--genre", choices=ENUMS["genre"], required=True)
     o.add_argument("--storyline", required=True)
     o.add_argument("--recipe", type=pathlib.Path,
-                   help="the assemble script, outline or template this build "
-                        "is driven by. Its bytes are fingerprinted and its own "
+                   help="the assemble script or template this build is "
+                        "driven by — NOT its outline, which is a plan rather "
+                        "than a driver and carries no version stamp. Its bytes "
+                        "are fingerprinted and its own "
                         "version stamp is read, so a replay of a frozen recipe "
                         "is distinguishable from a build made to the current "
                         "rules. Omit it only when there is no recipe — a "
@@ -457,6 +490,11 @@ def main():
     an.add_argument("--id", required=True)
     an.add_argument("--corpus-id", dest="corpus_id")
     an.add_argument("--review-ref", dest="review_ref")
+    # The builder, fingerprinted once it exists. See cmd_annotate's docstring
+    # for why this cannot be done at open.
+    an.add_argument("--recipe", type=pathlib.Path,
+                    help="the file that actually drove this build — hashed and "
+                         "read for a version stamp, never typed")
     an.set_defaults(func=cmd_annotate)
 
     v = sub.add_parser("validate", help="check every stored trace against the schema")

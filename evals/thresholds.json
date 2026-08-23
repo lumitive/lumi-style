@@ -201,6 +201,12 @@
     "accepted": 0,
     "rejected": 1,
     "why": "one table is not a defect; design-rules caps it at one per page, which inspect_layout already reports"
+   },
+   "layout_top_share": {
+    "accepted": 78.6,
+    "rejected": 70.0,
+    "unit": "share of body pages on the single most-used layout (check_design D9_layout_variety.top_share, percent)",
+    "why": "GAP-024 asks for a bar here and the corpus refuses to give one. A bar of 50 was drafted at 0.1.592 on what looked like a clean separation — three documents not faulted on layout at 28.6 / 30.0 / 33.3, two faulted at 64.3 / 70.0, an empty band between — and then measured against A1, the corpus's own accepted anchor (the training document accepted under 0.1.449), which sits at 78.6 (22 of its 30 pages are `split`). NOTE that A1 is not the deck GAP-024 calls accepted — that one is the landscape roadshow deck at 33.3, and it uses `split` zero times; the two accepted documents disagree about `split`, which is itself the finding. A1 scores WORSE than both faulted ones, so top share does not order these documents by quality and any bar drawn here fails A1. Scoping the bar to decks was considered and declined: A1 is landscape too, and inventing a distinction to rescue a number is what convention 6 was written about. What the evidence does support is a change to the SCAFFOLD, which is where 0.1.592 put it."
    }
   }
  },
