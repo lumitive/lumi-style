@@ -454,12 +454,36 @@
      "M10_triad_rate": "n/a",
      "M11_title_uniformity": "n/a",
      "M12_visible_cjk": "n/a",
-     "M16_language_asked": "FAIL",
+     "M16_language_asked": "ok",
      "M1_assertive_titles": "n/a",
      "M2_number_sourcing": "n/a",
      "M4_banned_hits": "ok",
      "M4zh_banned_hits": "FAIL",
      "M5_zh_punctuation": "FAIL",
+     "M6_unsourced_ranges": "ok",
+     "M8_length_cv": "n/a",
+     "M8_overlong_share": "n/a",
+     "M9_dashes": "ok",
+     "M13_quantity_conflicts": "ok",
+     "M14_parallel_frames": "ok",
+     "M15_page_prose": "n/a"
+    }
+   }
+  },
+  "prose-zh-unasked.zh.html": {
+   "prose": {
+    "argv": [],
+    "exit": 1,
+    "verdicts": {
+     "M10_triad_rate": "n/a",
+     "M11_title_uniformity": "n/a",
+     "M12_visible_cjk": "n/a",
+     "M16_language_asked": "FAIL",
+     "M1_assertive_titles": "n/a",
+     "M2_number_sourcing": "n/a",
+     "M4_banned_hits": "ok",
+     "M4zh_banned_hits": "n/a",
+     "M5_zh_punctuation": "n/a",
      "M6_unsourced_ranges": "ok",
      "M8_length_cv": "n/a",
      "M8_overlong_share": "n/a",

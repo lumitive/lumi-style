@@ -1,0 +1,18 @@
+{
+  "version": "0.1.588",
+  "diff_base": "20bfa2e1dba4510cd256f5df459f088e99e63d26",
+  "spec": "specs/2026-08-23-english-is-the-artifact-design.md",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "98a4c92a7892ab98f18df40bb5f0364b93177062ace79845f990cda5ad78640c",
+      "date": "2026-08-23"
+    }
+  ],
+  "waivers": []
+}

@@ -281,9 +281,10 @@ the output Chinese, I said English by default."
 Second shipped instance, 2026-08-23, on a different platform: a wholly English
 source document (0 CJK characters in 54KB) produced a wholly Chinese deck. The
 new inference was the **conversation's own language** — the owner's request was
-typed in Chinese — and it was not the agent's invention: a machine-curated
-companion skill on that host carried the line `Chinese input + Chinese-speaking
-user -> zh-Hans output` as an operational instruction.
+typed in Chinese. A machine-curated companion skill on that host carried the
+line `Chinese input + Chinese-speaking user -> zh-Hans output` as an
+operational instruction; that was a contributing factor and **not the cause**,
+which the control run in the third instance below settles.
 
 **What the second instance changed.** The prevention above is text, and text is
 what failed twice. It failed a particular way worth recording: the build WAS
@@ -295,6 +296,52 @@ M16 (0.1.587) is the mechanical half: a deliverable in any language but English
 fails unless the ask is recorded on the document itself, which relabelling
 cannot supply. See also the general shape in the abandoned-gates reasoning — a
 gate whose cheapest satisfaction is a relabel is a gate that teaches relabelling.
+
+**Third instance, 2026-08-23**, and it is the one that decides the mechanism:
+two more builds, and the failure survived both a control and a gate.
+
+*The control.* A Claude Code build the same day, loading the published skill
+with **no companion skill present**, produced Chinese from the same English
+source. Its transcript orders the decision exactly: it ran the scaffold, then
+announced `zh-Hans` in a list of settled parameters, and only afterwards read
+`writing-rules.md`, where the default is stated. **The language was decided
+before the rule that governs it was read, and reading it changed nothing.**
+
+*The gate.* 0.1.587 shipped M16, which fails a non-English deliverable carrying
+no record that the user asked. The next build ran
+
+```
+new_deck.py --genre internal --geometry landscape --lang zh-Hans --lang-asked …
+```
+
+— **signing the record itself**, on the same command line as the language it was
+attesting to. M16 passed.
+
+- detection, added: a `data-lang-asked` whose language matches a `--lang` the
+  same command supplied. More generally, **an attestation field the attesting
+  party can fill**
+- prevention, replacing the earlier one: the scaffold has no language flag at
+  all. Every build is English; another language is a derivative produced by
+  `scripts/ops/localize.py` from a finished English deck that already passes,
+  carrying the user's verbatim words and naming its source file. **That file has
+  to exist** — the one requirement that cannot be met by typing — and it means
+  the English deliverable exists whether or not the agent was right
+
+**The general lesson, which is not about language.** Four defences in order: a
+rule (broke); the rule restated in four entry points (broke); a gate on a
+DECLARATION (satisfied by editing the declaration); a gate on an ATTESTATION
+(satisfied by writing the attestation). What holds is a gate on an ARTIFACT —
+something that has to be built. *A field an agent can fill is a field an agent
+will fill; ask for something it has to produce instead.*
+
+*A second mechanism, found in the same investigation and fixed with it:*
+declaring `zh` did not only silence M12, it **woke the Chinese ban list and the
+punctuation pass**. One build's first machine reading was `FAIL
+M5_zh_punctuation 93`, and it answered by adding a full-width punctuation pass
+to its build script. The package was coaching an agent to write better Chinese
+in a document that should have been English, and no rule sentence outvotes
+several dozen actionable readings. Since 0.1.588 the Chinese metrics are
+conditional on M16 and report `n/a` with nothing to fix when it has not passed.
 
 ## FM-19 · Inherited sentences carry inherited register
 

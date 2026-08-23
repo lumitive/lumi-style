@@ -18,7 +18,7 @@ front of it, which is convention 15's exact warning.
 
     python3 scripts/ops/build.py --deck out/deck.html --script build_deck.py \\
             --outline outline.md --genre internal --storyline market-analysis \\
-            --pages 10 --parts A,B,C --lang en
+            --pages 10 --parts A,B,C
 
     ... --fast          the author's loop: 4s instead of 22 on the browser half
     ... --deliver       the delivery round: full matrix and the contact sheet
@@ -99,11 +99,6 @@ def main(argv=None) -> int:
     ap.add_argument("--storyline", choices=list(STORYLINES))
     ap.add_argument("--pages", type=int)
     ap.add_argument("--parts")
-    ap.add_argument("--lang", default="en",
-                    help="output language for <html lang>. Default: en")
-    ap.add_argument("--lang-asked", action="store_true",
-                    help="the user ASKED for --lang. Required for any language "
-                         "but English, or M16 fails the deck")
     ap.add_argument("--terms", help="the engagement's out-of-bounds list, "
                                     "passed to the privacy half")
     ap.add_argument("--fast", action="store_true",
@@ -126,15 +121,12 @@ def main(argv=None) -> int:
     if a.fast and a.deliver:
         sys.exit("--fast and --deliver are the loop and the delivery round; "
                  "pick one")
-    if a.lang != "en" and not a.lang_asked:
-        # Said HERE rather than three stages later, because the fix is a
-        # question for the user and not an edit to the document.
-        sys.exit(f"--lang {a.lang} without --lang-asked: American English is "
-                 f"LUMI's default output language and another language is "
-                 f"asked for, never inferred from the source material, the "
-                 f"venue, the audience, or the language of this conversation "
-                 f"(writing-rules section 0, FM-18). If the user asked, pass "
-                 f"--lang-asked and the deck records it.")
+    # There is no --lang here any more, and that is the point. A flag an agent
+    # can type is a flag an agent will type: 0.1.587 had `--lang zh-Hans
+    # --lang-asked` and a build ran both itself, signing M16's record on the
+    # same command line as the language it was attesting to. Every build is
+    # English; another language is `scripts/ops/localize.py`, over a finished
+    # English deck.
 
     a.deck.parent.mkdir(parents=True, exist_ok=True)
     log_path = None
@@ -147,10 +139,7 @@ def main(argv=None) -> int:
 
     if not a.keep_scaffold:
         argv_nd = [sys.executable, str(ROOT / "scripts/ops/new_deck.py"),
-                   "--genre", a.genre, "--geometry", a.geometry,
-                   "--lang", a.lang]
-        if a.lang_asked:
-            argv_nd.append("--lang-asked")
+                   "--genre", a.genre, "--geometry", a.geometry]
         if a.storyline:
             argv_nd += ["--storyline", a.storyline]
         if a.outline:

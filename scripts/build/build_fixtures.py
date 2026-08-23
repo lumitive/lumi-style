@@ -1342,14 +1342,28 @@ ZH_CLEAN = """<section class="page"><h2>覆盖率停留在 41%</h2>
 <p>下一步需要三个决定：中继选址、班组分配、估算率是否成为上报指标。</p></section>"""
 
 
-def build_zh(broken: bool) -> str:
+def build_zh(broken: bool, localized: bool = True) -> str:
     body = ZH_DEFECTS if broken else ZH_CLEAN
-    label = "broken" if broken else "pass"
+    label = ("broken" if broken else "pass") if localized else "unasked"
     # M16's failing case, and it is the BROKEN fixture's job to carry it: a
-    # Chinese deliverable nobody recorded an ask for. The pass fixture records
-    # the ask, because a Chinese deliverable somebody asked for is a legitimate
-    # document and must read `ok` rather than being exempted.
-    asked = "" if broken else ' data-lang-asked="zh"'
+    # Chinese deliverable with no provenance at all. The pass fixture carries
+    # the three declarations `localize.py` writes, because a Chinese
+    # deliverable somebody asked for is a legitimate document and must read
+    # `ok` rather than being exempted — and `data-localized-from` has to name a
+    # file that is really there, which for a fixture is the English deck
+    # sitting beside it in the same directory.
+    # THREE fixtures, because there are three states and each needs one that
+    # fails it. `localized` carries the provenance `localize.py` writes, so the
+    # Chinese ban list and the punctuation pass are GRADED on it — which is
+    # what makes the broken one able to fail them. `unasked` carries none, so
+    # M16 fails and the Chinese metrics fall silent by design (0.1.588): the
+    # package does not coach a language a document has no recorded ask to be
+    # in. `data-localized-from` has to name a file that is really there, which
+    # for a fixture is the English deck beside it.
+    asked = ("" if not localized else
+             ' data-lang-asked="zh"'
+             ' data-lang-ask-quote="\u8bf7\u628a\u62a5\u544a\u5199\u6210\u4e2d\u6587"'
+             ' data-localized-from="deck-pass.en.html"')
     return f"""<!doctype html>
 <html lang="zh"><head><meta charset="utf-8">
 <title>中文校验样本（{label}）</title>
@@ -1365,7 +1379,8 @@ def targets() -> dict[str, str]:
             "fixtures/deck-broken.en.html": build(True),
             "fixtures/deck-degenerate.en.html": build_degenerate(),
             "fixtures/prose-zh-pass.zh.html": build_zh(False),
-            "fixtures/prose-zh-broken.zh.html": build_zh(True)}
+            "fixtures/prose-zh-broken.zh.html": build_zh(True),
+            "fixtures/prose-zh-unasked.zh.html": build_zh(False, localized=False)}
 
 
 def main(argv):

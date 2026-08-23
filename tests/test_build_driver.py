@@ -20,23 +20,22 @@ def _build(*args):
                           capture_output=True, text=True)
 
 
-def test_a_non_english_language_without_an_ask_is_refused(tmp_path):
-    """The refusal is here rather than three stages later because the fix is a
-    question for the user, not an edit to the document (FM-18)."""
+def test_the_driver_has_no_language_flag_at_all(tmp_path):
+    """0.1.587 gave it `--lang` and `--lang-asked` and refused the pair when
+    they disagreed. A shipped build simply passed both. The flag is gone: every
+    build is English, and another language is `scripts/ops/localize.py` over a
+    finished English deck."""
     out = _build("--deck", str(tmp_path / "d.html"), "--lang", "zh-Hans")
-    assert out.returncode == 1, out.stdout + out.stderr
-    assert "never inferred" in (out.stdout + out.stderr)
-    assert not (tmp_path / "d.html").exists(), "it refused after scaffolding"
+    assert out.returncode != 0
+    assert "unrecognized arguments" in (out.stdout + out.stderr)
 
 
-def test_a_recorded_ask_is_accepted_and_lands_on_the_document(tmp_path):
+def test_every_build_is_english(tmp_path):
     deck = tmp_path / "d.html"
-    out = _build("--deck", str(deck), "--lang", "zh-Hans", "--lang-asked",
-                 "--fast", "--pages", "2")
-    assert deck.is_file(), out.stdout + out.stderr
+    _build("--deck", str(deck), "--fast", "--pages", "2")
     raw = deck.read_text(encoding="utf-8")
-    assert '<html lang="zh-Hans"' in raw
-    assert 'data-lang-asked="zh-Hans"' in raw
+    assert '<html lang="en"' in raw
+    assert "data-lang-asked" not in raw
 
 
 def test_the_loop_and_the_delivery_round_are_not_the_same_run(tmp_path):

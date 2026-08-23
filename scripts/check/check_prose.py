@@ -364,6 +364,17 @@ LANG_ATTR = re.compile(r"<html[^>]*\blang\s*=\s*[\"']([\w-]+)", re.I)
 # instance). English needs no such record: it is the default.
 LANG_ASKED = re.compile(
     r"<body[^>]*\bdata-lang-asked\s*=\s*[\"']([\w-]+)", re.I)
+# The other two declarations `localize.py` writes. The quote is what a person
+# checks; `data-localized-from` is the only one an agent cannot satisfy by
+# typing, because the file it names has to be there.
+LANG_QUOTE = re.compile(
+    r"<body[^>]*\bdata-lang-ask-quote\s*=\s*\"([^\"]*)\"", re.I)
+LOCALIZED_FROM = re.compile(
+    r"<body[^>]*\bdata-localized-from\s*=\s*\"([^\"]*)\"", re.I)
+# judge_findings.py's floor, counted so it means the same in a language with no
+# spaces: a CJK character is a token.
+MIN_ASK_TOKENS = 3
+_ASK_TOKEN = re.compile(r"[A-Za-z0-9]+|[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]")
 
 
 def zh_punctuation(text):
@@ -408,20 +419,49 @@ def declared_language(path, raw, override=None):
                   "--lang given")
 
 
-def asked_language(raw, override=None):
-    """Which language somebody ASKED for, and where that record lives.
+def asked_language(path, raw, override=None):
+    """Is this document a LOCALIZED DERIVATIVE, and does its provenance hold?
 
-    Returns (code, where) or (None, reason). This is a record of an
-    instruction, never an inference: the language of the source material, the
-    venue and the audience's nationality are evidence about the reader and none
-    of them is an ask (`references/writing-rules.md` section 0, FM-18).
+    Returns (code, where, problems). `problems` is empty when the document
+    carries all three declarations `localize.py` writes and the English source
+    it names is really there.
+
+    Three declarations rather than one, because 0.1.587 had one and it did not
+    survive contact: `--lang-asked` was a boolean an agent typed itself, on the
+    same command line as the language it was attesting to. The quote is what a
+    person checks. **`data-localized-from` is the only one that cannot be
+    satisfied by typing**, because the English deck it names has to exist next
+    to this file - and producing one is the whole outcome the rule was asking
+    for.
     """
     if override:
-        return override.split("-")[0].lower(), "--asked-lang"
+        return override.split("-")[0].lower(), "--asked-lang", []
     m = LANG_ASKED.search(raw)
-    if m:
-        return m.group(1).split("-")[0].lower(), "data-lang-asked"
-    return None, "no data-lang-asked attribute and no --asked-lang given"
+    if not m:
+        return None, "no data-lang-asked attribute", [
+            "no `data-lang-asked` on <body>: nothing records that this language "
+            "was asked for"]
+    code = m.group(1).split("-")[0].lower()
+    problems = []
+    q = LANG_QUOTE.search(raw)
+    quote = (q.group(1) if q else "").strip()
+    if not quote:
+        problems.append("no `data-lang-ask-quote`: the user's own words asking "
+                        "for this language are not recorded")
+    elif len(_ASK_TOKEN.findall(quote)) < MIN_ASK_TOKENS:
+        problems.append(f"`data-lang-ask-quote` is {quote!r}, a fragment that "
+                        f"would match anything (under {MIN_ASK_TOKENS} tokens)")
+    lf = LOCALIZED_FROM.search(raw)
+    src = (lf.group(1) if lf else "").strip()
+    if not src:
+        problems.append("no `data-localized-from`: a document in another "
+                        "language is derived from an English one, and this "
+                        "names none")
+    elif not (path.parent / src).is_file():
+        problems.append(f"`data-localized-from` names {src!r}, which is not "
+                        f"beside this file - the English deck it claims to "
+                        f"derive from does not exist")
+    return code, "data-lang-asked", problems
 
 
 def visible_cjk(raw, suffix):
@@ -643,13 +683,22 @@ def measure(path, genre, lang=None, asked=None):
     # whether the document should have been English, and until 0.1.587 nothing
     # could. English is `0` rather than `n/a` on purpose — a metric that reads
     # `n/a` on the ordinary case teaches a reader to ignore the row.
-    asked_lang, asked_from = asked_language(raw, asked)
+    asked_lang, asked_from, ask_problems = asked_language(path, raw, asked)
+    _q = LANG_QUOTE.search(raw)
+    ask_quote = _q.group(1) if _q else None
+    _lf = LOCALIZED_FROM.search(raw)
+    localized_from = _lf.group(1) if _lf else None
     if language is None:
         unasked = None
     elif language == "en":
         unasked = 0
+    elif asked_lang != language:
+        unasked = 1
+        ask_problems = ask_problems or [
+            f"`data-lang-asked` says {asked_lang!r}, the document says "
+            f"{language!r}"]
     else:
-        unasked = 0 if asked_lang == language else 1
+        unasked = 1 if ask_problems else 0
     body, titles, enums, windows = extract(path)
     lengths = sentences(body)
     # A Chinese document has no spaces, so the English word splitter returns
@@ -670,9 +719,25 @@ def measure(path, genre, lang=None, asked=None):
     # The Chinese half runs only on a document that says it is Chinese. Both
     # halves are measured against the same body text; nothing here changes what
     # an English deliverable is graded on.
+    # AND ONLY WHEN SOMEBODY ASKED FOR IT. Measured across three validation
+    # rounds: declaring `zh` silenced M12 and, in the same move, WOKE THESE TWO
+    # UP. A 2026-08 build's first machine reading was `FAIL M5_zh_punctuation
+    # 93` — "you have 93 Chinese punctuation errors" — and it answered by
+    # adding a full-width punctuation pass to its build script. The package was
+    # coaching an agent to write better Chinese in a document that should have
+    # been English, and no rule sentence outvotes several dozen actionable
+    # readings.
+    #
+    # So the Chinese half is conditional on M16, not on the declaration alone.
+    # Do not tutor a language a document has no recorded ask to be in.
+    # TWO QUESTIONS, TWO VARIABLES. `is_zh` says which metrics can MEAN
+    # anything: the English sentence-rhythm and per-page-prose metrics have no
+    # reading on text with no spaces, whoever asked for it. `zh_graded` says
+    # whether to grade the Chinese — and that is the one conditional on M16.
     is_zh = language == "zh"
+    zh_graded = is_zh and not unasked
     zh_hits, zh_punct = [], []
-    if is_zh:
+    if zh_graded:
         for pattern, label in BANNED_ZH:
             n = len(re.findall(pattern, body, re.M))
             if n:
@@ -758,11 +823,13 @@ def measure(path, genre, lang=None, asked=None):
         "M12_undeclared_cjk": undeclared_cjk,
         "M16_language_asked": unasked,
         "M16_detail": ([] if not unasked else
-                       [f"the document declares {language!r} ({where}); "
-                        f"{asked_from}. American English is the default and "
-                        f"another language is asked for, never inferred "
-                        f"(writing-rules section 0)."]),
+                       [f"the document declares {language!r} ({where}), and "
+                        f"its provenance does not hold:"] + ask_problems),
         "asked_language": asked_lang, "asked_language_from": asked_from,
+        # Read once here so every consumer says the same thing about the same
+        # document: the verdict block, the JSON, and the delivery note.
+        "ask_quote": ask_quote,
+        "localized_from": localized_from,
         "M13_quantity_conflicts": len(quantity_conflicts(body)),
         "M14_parallel_frames": len(m14 := m14_parallel_frames(raw)),
         "M14_detail": [f"{pre} \u00d7{n}" for pre, n in m14][:8],
@@ -775,9 +842,9 @@ def measure(path, genre, lang=None, asked=None):
         "enumerations": len(enums),
         "M4_banned_hits": sum(n for _, n in hits),
         "M4_detail": hits,
-        "M4zh_banned_hits": sum(n for _, n in zh_hits) if is_zh else None,
+        "M4zh_banned_hits": sum(n for _, n in zh_hits) if zh_graded else None,
         "M4zh_detail": zh_hits,
-        "M5_zh_punctuation": len(zh_punct) if is_zh else None,
+        "M5_zh_punctuation": len(zh_punct) if zh_graded else None,
         "M5_detail": zh_punct[:12],
         "figures": figures,
         "M1_assertive_titles": None if m1_rate is None else round(m1_rate, 1),
@@ -1094,6 +1161,38 @@ def grade(r):
     return out
 
 
+def language_block(r) -> list[str]:
+    """The language question, answered once, in the order a reader asks it.
+
+    What language is this, was it asked for, where is the evidence, and which
+    metrics that decision switches off. Six metrics branch on the declared
+    language and each said so in its own `n/a` note; nothing said it up front.
+    """
+    lang = r["language"] or "undeclared"
+    out = []
+    if r["language"] == "en" or r["language"] is None:
+        out.append(f"  language: {lang}"
+                   + ("  (the default; no record needed)"
+                      if r["language"] == "en" else
+                      "  (nothing declares one — a `lang` attribute, a filename "
+                      "tag or --lang)"))
+        return out
+    src = r.get("localized_from")
+    quote = r.get("ask_quote")
+    if r["M16_language_asked"]:
+        out.append(f"  language: {lang}  \u2014 NOT ASKED FOR (M16)")
+        for line in r["M16_detail"][1:]:
+            out.append(f"            {line}")
+        out.append("            The Chinese metrics below are silent by "
+                   "design: improving this document's Chinese is not the fix.")
+    else:
+        out.append(f"  language: {lang}  (derived from {src}; "
+                   f"asked: \"{quote}\")")
+        out.append("            No script verified that quotation came from "
+                   "the user. You can.")
+    return out
+
+
 def main(argv):
     ap = argparse.ArgumentParser(add_help=True, description=__doc__.split("\n")[0])
     ap.add_argument("files", nargs="+")
@@ -1159,6 +1258,12 @@ def main(argv):
 
         print(f"\n{r['file']}  ({r['sentences']} sentences, {r['titles']} titles, "
               f"{r['enumerations']} lists, genre={r['genre']})")
+        # THE LANGUAGE, SAID ONCE, BEFORE THE METRICS. It used to be readable
+        # only by assembling four scattered n/a notes, so an author learned the
+        # document's language one metric at a time and needed several runs to
+        # see the whole answer. One block, one pass.
+        for line in language_block(r):
+            print(line)
         for name_, value, target, verdict in rows:
             note = ""
             if verdict == "blind":
@@ -1193,10 +1298,22 @@ def main(argv):
                         # this sentence is a third copy of that fact, kept
                         # because reading the register here would make the
                         # printer depend on it for prose it can compute.
-                        else (f"  (this document declares "
-                              f"{r['language'] or 'no language'}, and this "
-                              f"metric reads Chinese output only)")
+                        else ("  (this document has no recorded ask to be "
+                              "in Chinese — see M16. Nothing here is a "
+                              "suggestion for improving it, because the "
+                              "improvement is to deliver in English)"
+                              if r["language"] == "zh"
+                              and r["M16_language_asked"]
+                              else f"  (this document declares "
+                                   f"{r['language'] or 'no language'}, and this "
+                                   f"metric reads Chinese output only)")
                         if name_ in ("M4zh_banned_hits", "M5_zh_punctuation")
+                        else ("  (this document is Chinese, and these read "
+                              "sentence rhythm through spaces, which Chinese "
+                              "does not use)")
+                        if r["language"] == "zh" and name_ in (
+                            "M8_overlong_share", "M8_length_cv",
+                            "M15_page_prose")
                         else f"  (too little data: {r['sentences']} sentences, "
                              f"{r['titles']} titles)")
             print(f"  {verdict:<4}  {name_:<22} {str(value):<8} target {target}{note}")
@@ -1210,9 +1327,12 @@ def main(argv):
         # stop: relabelling the document.
         for line in r["M16_detail"]:
             print(f"        {line}")
-            print("        fix it by writing the deliverable in English, or "
-                  "record the ask: <body data-lang-asked=\"...\"> "
-                  "(new_deck.py --lang <code> --lang-asked).")
+            print("        The fix is to deliver in English — the scaffold "
+                  "emits it and needs no flag. If the user asked for this "
+                  "language, derive it: `python3 scripts/ops/localize.py "
+                  "<deck>.en.html --lang <code> --asked \"<their words>\" "
+                  "--out <deck>.<code>.html`, which needs an English deck that "
+                  "already passes.")
         # WHAT WAS EXEMPTED, said out loud. These live in the JSON and were
         # never printed, so an author whose range passed M6 by being read as an
         # enumeration label could not tell that from a range this metric never

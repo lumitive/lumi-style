@@ -2702,7 +2702,7 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
     (SKILL.md rule 4). What *is* new in 0.1.350 is the other half: a block whose
     subject does not exist says so instead of congratulating the document.
     """
-    unmeasured = 0
+    unmeasured = Unmeasured()
     w, h = GEOMETRIES[geometry]
     for e in errors:
         unmeasured += 1
@@ -2900,7 +2900,7 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
               f"consulting and internal analysis are NOT in this branch, they "
               f"keep per-page sourcing and reach NOT MEASURED below)")
     else:
-        unmeasured += 1
+        unmeasured += _absent()
         print("  -- source: NOT MEASURED, no page pairs a `.cap .srcline` with a "
               "a document `.colophon`, so nothing could be compared")
 
@@ -3179,7 +3179,7 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
         # As loud as the unknown-genre branch below, and for the same reason: a
         # typo in `data-storyline` would silently drop a pitch deck back to the
         # sales 50 and print a confident green line about it.
-        unmeasured += 1
+        unmeasured += _absent()
         print(f"  -- visual share: NOT MEASURED, the document declares "
               f"data-storyline=\"{storyline}\" and this package knows "
               + ", ".join(sorted(deliverable_registry.STORYLINES))
@@ -3188,7 +3188,7 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
         # Loud, because the whole point of this change is that it used to be
         # silent: a typo in the declaration graded a training handbook against
         # the sales target and printed a confident green line about it.
-        unmeasured += 1
+        unmeasured += _absent()
         print(f"  -- visual share: NOT MEASURED, the document declares "
               f"data-genre=\"{genre}\" and this package knows "
               + ", ".join(sorted(VISUAL_SHARE_TARGET))
@@ -3298,9 +3298,62 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
     return unmeasured
 
 
+class Unmeasured:
+    """Two different silences, counted apart.
+
+    **"A check that did not run is not a check that passed" is about a check
+    that FAILED to run** — a crash, a page with no box, markup the probe could
+    not read. It was also being applied to a check with NOTHING TO MEASURE: no
+    `.band` in the document, no bar rectangle in any figure, no `.field`. Those
+    are absences by design, and the code says so itself — the component-colour
+    line calls its own criterion "a window, not a rule about your figures" —
+    and then exited 1 anyway.
+
+    Measured: three deliverables, three platforms, three releases, and **not one
+    of them could reach exit 0**, every time because it did not contain some
+    optional block. The reference fixture passes only because it happens to use
+    every block this package defines, which is not a rule anywhere.
+
+    So: `failed` gates. `absent` reports.
+    """
+
+    __slots__ = ("failed", "absent")
+
+    def __init__(self, failed: int = 0, absent: int = 0):
+        self.failed, self.absent = failed, absent
+
+    def __iadd__(self, other):
+        if isinstance(other, Unmeasured):
+            self.failed += other.failed
+            self.absent += other.absent
+        else:
+            # A bare int is a check that could not run. The absent ones say so.
+            self.failed += int(other)
+        return self
+
+    def __add__(self, other):
+        out = Unmeasured(self.failed, self.absent)
+        out += other
+        return out
+
+    __radd__ = __add__
+
+    @property
+    def total(self) -> int:
+        return self.failed + self.absent
+
+    def __bool__(self) -> bool:
+        return bool(self.failed)
+
+
+def _absent(n: int = 1) -> Unmeasured:
+    """The subject of this check is not in the document. Report, do not gate."""
+    return Unmeasured(absent=n)
+
+
 def consistency_print(label, c):
     """Print the role audit. Returns how much of it could not be run."""
-    unmeasured = 0
+    unmeasured = Unmeasured()
     print(f"\n{label} — one role, one rendering")
     for e in c.get("errors", []):
         unmeasured += 1
@@ -3308,7 +3361,7 @@ def consistency_print(label, c):
     for role in c["roles"]:
         v = sorted(role["variants"], key=lambda x: -x["n"])
         if not v:
-            unmeasured += 1
+            unmeasured += _absent()
             print(f"  -- {role['name']}: NOT MEASURED, no element matched "
                   f"'{role['sel']}' anywhere in the document")
         elif _role_split(role):
@@ -3343,7 +3396,7 @@ def consistency_print(label, c):
 
     d = c["datums"]
     if not d:
-        unmeasured += 1
+        unmeasured += _absent()
         print(f"  -- datum: NOT MEASURED, no page paired a .body cell with an h2.t "
               f"title ({c.get('datumSkipped', 0)} pages skipped)")
     elif not c.get("datumExpected"):
@@ -3381,7 +3434,7 @@ def consistency_print(label, c):
             print(f"  ok  {comp}: one colour across {len(uses)} uses")
 
     if not c.get("bandsExamined"):
-        unmeasured += 1
+        unmeasured += _absent()
         print(f"  -- band baseline: NOT MEASURED, no .band with two or more labels "
               f"({c.get('bandsTooSmall', 0)} too small to compare)")
     elif c["bandSkew"]:
@@ -3739,7 +3792,7 @@ def main(argv):
 
     geometries = args.geometry or DEFAULT_GEOMETRIES
 
-    results, unmeasured = [], 0
+    results, unmeasured = [], Unmeasured()
     # {(file, geometry): {finding: (verdict, detail)}}. Collected whether or not
     # anything is printed, because `--json` skips every print block and the gate
     # may not depend on which output mode the operator chose.
@@ -3961,7 +4014,10 @@ def main(argv):
     failing = {k: v for k, v in folded.items() if v[0] == "FAIL"}
 
     if args.json:
-        print(json.dumps({"results": results, "unmeasured": unmeasured,
+        print(json.dumps({"results": results,
+                          "unmeasured": unmeasured.failed,
+                          "unmeasurable": unmeasured.failed,
+                          "absent": unmeasured.absent,
                           "verdicts": {k: v for k, (v, _) in folded.items()}},
                          indent=2))
     else:
@@ -3971,28 +4027,36 @@ def main(argv):
         # who read the last line (or grepped for it) shipped past a check that
         # never ran. Twice in one session. The last line of a verdict tool is
         # the verdict, whole.
+        # ABSENT IS NOT A FINDING, and it never gates. It is said in the same
+        # breath so nobody has to hunt for why a count moved.
+        nothing = (f" · {unmeasured.absent} check(s) had nothing to measure "
+                   f"(the document carries no such block); reported, not gating"
+                   if unmeasured.absent else "")
         if args.deliverable:
             if failing:
                 print(f"\nNOT SHIPPABLE: {len(failing)} of {len(folded)} gating "
                       f"findings fired — " + ", ".join(sorted(failing))
-                      + (f" · and {unmeasured} check(s) could not be measured"
-                         if unmeasured else ""))
-            elif unmeasured:
+                      + (f" · and {unmeasured.failed} check(s) could not be "
+                         f"measured" if unmeasured.failed else "") + nothing)
+            elif unmeasured.failed:
                 print(f"\nNOT SHIPPABLE: 0 gating findings fired, but "
-                      f"{unmeasured} check(s) could not be measured — a check "
-                      f"that did not run is not a check that passed. Exit 1.")
+                      f"{unmeasured.failed} check(s) could not be measured — a "
+                      f"check that did not run is not a check that passed. "
+                      f"Exit 1." + nothing)
             else:
                 na = sorted(k for k, v in folded.items() if v[0] == "n/a")
                 print("\nNo gating finding fired"
                       + (f" ({len(na)} had nothing to grade: {', '.join(na)})" if na else "")
+                      + nothing
                       + ". That is geometry and consistency, not a verdict on the "
                         "design — look at the contact sheet.")
-        elif unmeasured:
-            print(f"\n{unmeasured} check(s) could not be measured. A check that did not "
-                  f"run is not a check that passed — exit 1.")
+        elif unmeasured.failed:
+            print(f"\n{unmeasured.failed} check(s) could not be measured. A check "
+                  f"that did not run is not a check that passed — exit 1."
+                  + nothing)
     if args.deliverable and failing:
         return 1
-    return 1 if unmeasured else 0
+    return 1 if unmeasured.failed else 0
 
 
 if __name__ == "__main__":

@@ -387,7 +387,26 @@ def main(argv=None) -> int:
               + (f", layout rendered concurrently in {secs}s" if secs else "")
               + (", --fast: the declared stage only" if a.fast else "")
               + ")")
-        print("\n── the verdict — every instrument, one block ──────────────")
+        # WHAT LANGUAGE IS THIS. Zero hits for `lang` in this file before
+        # 0.1.588, so the one block that exists to spare an author from meeting
+        # failures in installments never said which language it had graded —
+        # while three validation rounds shipped a language nobody asked for.
+        for rep in (runs.get("prose") or {}).get("reports") or []:
+            lang = rep.get("language") or "undeclared"
+            if rep.get("M16_language_asked"):
+                print(f"  language: {lang} \u2014 NOT ASKED FOR (M16). English "
+                      f"is the default and needs no record; another language "
+                      f"is derived with scripts/ops/localize.py from an "
+                      f"English deck that passed.")
+            elif lang == "en":
+                print("  language: en (the default)")
+            elif lang != "undeclared":
+                print(f"  language: {lang} (derived from "
+                      f"{rep.get('localized_from')}; asked: "
+                      f"\"{rep.get('ask_quote')}\")")
+            break
+        print("\n\u2500\u2500 the verdict \u2014 every instrument, one block "
+              "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500")
         _emit("GATE", gating)
         _emit("MUTE", silent)
         _emit("note", graded)
