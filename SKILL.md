@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.589"
+  version: "0.1.590"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -199,6 +199,14 @@ every gate and repeated one icon across seven pages, left every part opener
 without its subject mark, and put a stat band on the agenda; all three are
 §3 and §6 rules, and none of the three agents had been told to read them.
 
+**Fetch all of it in one command**: `python3 scripts/ops/brief.py --genre <g>
+--storyline <s>` concatenates every file named above — brand, the one storyline
+template, analysis rules, writing rules, the card, the exemplar note, and the
+section index of the two long ones (`--full` for those whole). It changes
+nothing about WHAT you read; it changes that reading it cost twenty API calls
+and 82,000 output tokens on a measured build, 84KB of it fetched twice by two
+different tools in adjacent calls.
+
 **Keep [`references/build-card.md`](references/build-card.md) open while you
 compose, and stop re-opening the reference files for a class name.** It is
 generated from the registers and the tokens, `--check` in CI, and it carries
@@ -359,7 +367,14 @@ carrying the whole conversation. Measured on a 2026-08 ten-page deck that ran
 them separately: **389 terminal commands and 460 API calls, 105 million cached
 input tokens**, of which the fill script alone was 46 invocations and
 `embed_shapes` 38. The driver also writes the debug log as a side effect, so
-debug mode stops costing a turn per command. `fixtures/` are checker inputs: a 34-page review reached its
+debug mode stops costing a turn per command.
+**It also carries the previous round's reading forward**: from the second round
+on it passes `--against` by itself, so a round that moved no measured number
+says so — one session ran **six rounds after its last failure** with nothing
+able to tell it that. `--facts <contract.md>` adds the one check that asks
+whether the rebuild still carries the facts it was built from; `--deliver`
+folds in the PDF export and the scoring sheet, which were separate commands
+after the driver had already returned. `fixtures/` are checker inputs: a 34-page review reached its
 reader with `REPLACE ME` as its browser-tab title and the fixture's
 `www.example.org` in all 34 footers because its pages were hand-copied from
 one, and `check_design.py`'s D14 now refuses the scaffold's own slots.
@@ -654,8 +669,15 @@ schema, so every platform produces the same log):
   timing, so the log is evidence, not claims;
 - `attach <log> --kind design|prose|layout --json-file <f>` with each
   checker's `--json` output;
-- `assess <log> --dim H1..H6 --score 1-4 --reason "…"` after the self-score
-  step (5 is refused — never self-score 5 before a reader);
+- `assess <log> --dim C1..C8 --score 1-4 --reason "…"` after the self-score
+  step (5 is refused — never self-score 5 before a reader). **This said
+  `H1..H6` for forty-odd releases after C replaced H**, so an agent following
+  this file typed a dimension argparse rejects and spent a round trip finding
+  out. `scripts/ops/build.py --assess C1=4:"…"` folds all eight into the run
+  you are already making, and attaches each checker's report from the ones the
+  check step already produced — the contract used to ask for documents this
+  pipeline threw away, so honouring it cost six commands and a second browser
+  render;
 - `error <log> --stage <where> --message <what>` the moment anything fails;
 - `validate <log>` before delivery, and point the user at the file in the
   delivery note.

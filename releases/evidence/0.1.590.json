@@ -1,0 +1,18 @@
+{
+  "version": "0.1.590",
+  "diff_base": "04fa7ea86a2135bbf98e2bf5e4229d3b81d1672e",
+  "spec": "specs/2026-08-24-fewer-round-trips-design.md",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "9b5780272ec9942a0e7b8b813ccb404575605052013935874144500ab7ff03e7",
+      "date": "2026-08-24"
+    }
+  ],
+  "waivers": []
+}

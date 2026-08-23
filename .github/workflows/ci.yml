@@ -91,6 +91,9 @@ jobs:
       # The build card: the decidable half of the rules, generated so it
       # cannot become a third copy of them.
       - run: python3 scripts/build/build_card.py --check
+      # The shape library's own measurements: 206 non-zero origins that an
+      # author would otherwise have to read out of the SVGs one by one.
+      - run: python3 scripts/build/build_shape_geometry.py --check
       # The gates, tested. Runs after the staleness checks so a stale
       # fixture reports as stale rather than as a metric regression.
       - run: python3 scripts/check/check_fixtures.py

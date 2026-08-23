@@ -1257,7 +1257,12 @@ PLACEHOLDER_MARKERS = re.compile(
 # stays with the reviewer — IDEA-9.)
 AUTHOR_FILL = (
     "REPLACE ME",
-    "lumi-style VERSION",
+    # `lumi-style VERSION` was here until 0.1.590, when the scaffold started
+    # substituting the real version — a slot the package could always fill was
+    # costing every build a red round and a hand edit. A pattern guarding
+    # nothing misleads the next reader, which is what `scaffold slots` says.
+    # A colophon that names no version is not unguarded: `gate_registry.held`
+    # reads it, and an absent stamp is held to every gate.
     "A title that states the argument about its",
     "What the reader carries out about its",
     "One sentence saying what this is.",

@@ -190,10 +190,18 @@ def test_the_card_names_every_title_frame_the_checker_counts():
         assert frame in html
 
 
-def test_the_card_names_every_provenance_word_d6_accepts():
-    html = scaffold("--genre", "sales")
+def test_the_card_names_the_english_provenance_words_d6_accepts():
+    """The card prints the words an English deliverable can use. It does NOT
+    print the Chinese ones: D6 accepts them and the checker holds the list, but
+    a card printed into an English document does not need to carry the other
+    language's rule data — 0.1.589 shipped eight CJK characters into every
+    English deck this way."""
+    html = scaffold("--no-trace")
     for word in check_design.D6_PROVENANCE:
-        assert word in html
+        if word.isascii():
+            assert word in html, word
+        else:
+            assert word not in html, f"{word} is rule data, not deck content"
 
 
 def test_the_card_states_the_dash_policy_for_the_genre():

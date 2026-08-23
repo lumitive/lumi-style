@@ -2218,6 +2218,26 @@ def contact_sheet(shots, out_path, cols=4):
     for s in shots:
         html.append(f'<figure><img src="{s.name}"><figcaption>{s.stem}</figcaption></figure>')
     out_path.write_text("".join(html), encoding="utf-8")
+    # AND ONE IMAGE, because the HTML is N separate PNGs and reading it costs N
+    # fetches. Measured on one build: 17 of 27 file reads were page shots at
+    # 120-384KB each, the cover read four times — the bulk of that session's
+    # cached input. The browser is already paid for; compositing the sheet it
+    # just wrote is one more screenshot.
+    try:
+        composite = out_path.with_suffix(".png")
+        page, _errs = open_page(shared_browser(), out_path.as_uri(),
+                                (1400, 900), False)
+        try:
+            page.screenshot(path=str(composite), full_page=True)
+        finally:
+            page.close()
+    except Exception as exc:                               # noqa: BLE001
+        # A sheet without its composite is the old behaviour, not a failure:
+        # the HTML and the shots are both still there. It says so rather than
+        # swallowing, because a silently missing composite would read as "this
+        # build has no sheet".
+        print(f"  (no composite sheet: {exc.__class__.__name__}: {exc} — "
+              f"the HTML sheet and its page shots are still there)")
     return out_path
 
 
@@ -4090,6 +4110,14 @@ def main(argv):
                             "size": GEOMETRIES[geometry], "dark": dark,
                             "pages": rows, "pageErrors": errors,
                             "verdicts": {k: v for k, (v, _) in verdicts.items()},
+                            # THE DETAIL, kept. It names the pages, and it was
+                            # computed and thrown away in both JSON emissions —
+                            # so an author who knew WHICH check failed had to
+                            # run this instrument again to learn WHICH PAGE.
+                            # Four calls on one measured build, for information
+                            # that was already in memory.
+                            "details": {k: d for k, (_v, d) in verdicts.items()
+                                        if d},
                             "consistency": c, "ground": g})
 
         if args.no_aspect or args.iterate:
@@ -4171,6 +4199,8 @@ def main(argv):
                           "unmeasurable": unmeasured.failed,
                           "absent": unmeasured.absent,
                           "verdicts": {k: v for k, (v, _) in folded.items()},
+                          "details": {k: d for k, (_v, d) in folded.items()
+                                      if d},
                           # A SIBLING BLOCK, never inside `verdicts`:
                           # run_conformance turns every key there into a
                           # required-ok gate on every task.

@@ -59,7 +59,7 @@ ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
 
 def gather(path: pathlib.Path, genre: str | None, terms: str | None,
            skip_layout: bool = False, iterate: bool = False,
-           sheet: bool = False) -> dict:
+           sheet: bool = False, against=None) -> dict:
     """Run every instrument; -> {kind: run dict}. Layout goes first and runs
     concurrently — it renders in a browser while the text checks execute."""
     runs: dict[str, dict] = {}
@@ -68,7 +68,7 @@ def gather(path: pathlib.Path, genre: str | None, terms: str | None,
     if not skip_layout:
         layout_proc = subprocess.Popen(
             checker_report.checker_argv("layout", path, iterate=iterate,
-                                        sheet=sheet),
+                                        sheet=sheet, against=against),
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
     for kind in kinds():
@@ -289,6 +289,13 @@ def verdict_block(runs: dict, built: str | None = None
                 if verdict in ("ok", "n/a"):
                     continue
                 line = f"{kind}: {metric} {verdict}"
+                # WHICH PAGE. The instrument computes it and used to drop it,
+                # so an author who read this block still had to re-run the
+                # renderer to find out where to go. The `capWrapped` block
+                # above is the same need, solved by hand for one finding.
+                where = (report.get("details") or {}).get(metric)
+                if where:
+                    line += f" — {where}"
                 # Layout's deliverable verdicts all gate; prose/design gate
                 # only where the target says so.
                 if kind == "layout" or metric in gates:
@@ -338,6 +345,17 @@ def main(argv=None) -> int:
     ap.add_argument("--skip-layout", action="store_true",
                     help="no browser available; recorded as a silent "
                          "instrument and the exit stays nonzero")
+    ap.add_argument("--against", type=pathlib.Path, metavar="BEFORE.json",
+                    help="the previous round's layout --json. Passed to the "
+                         "renderer, which prints what moved between then and "
+                         "now — the reading that says whether a repair landed")
+    ap.add_argument("--reports-dir", type=pathlib.Path, metavar="DIR",
+                    help="write each instrument's raw --json here, one file "
+                         "per kind. The debug-log contract asks the author to "
+                         "`attach` those documents, and this process gathered "
+                         "them in memory and threw them away — so honouring "
+                         "the contract meant re-running all three checkers, "
+                         "one of them a second browser render")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
     if not a.file.is_file():
@@ -352,7 +370,16 @@ def main(argv=None) -> int:
 
     started = time.monotonic()
     runs = gather(a.file, genre, a.terms, skip_layout=a.skip_layout,
-                  iterate=a.fast, sheet=a.sheet)
+                  iterate=a.fast, sheet=a.sheet, against=a.against)
+    if a.reports_dir:
+        a.reports_dir.mkdir(parents=True, exist_ok=True)
+        for kind, run in runs.items():
+            reports = run.get("reports")
+            if reports is None:
+                continue
+            doc = reports[0] if len(reports) == 1 else reports
+            (a.reports_dir / f"{kind}.json").write_text(
+                json.dumps(doc, indent=2), encoding="utf-8")
     checks_seconds = max(1, round(time.monotonic() - started))
     # THE VERSION THE DOCUMENT DECLARES. `fingerprint.version_in` reads the
     # colophon every LUMI deliverable carries; it existed and nothing that
@@ -387,6 +414,24 @@ def main(argv=None) -> int:
               + (f", layout rendered concurrently in {secs}s" if secs else "")
               + (", --fast: the declared stage only" if a.fast else "")
               + ")")
+        # WHAT MOVED SINCE THE LAST ROUND. The renderer computes it under
+        # --json and it would otherwise sit unread in the report: this is the
+        # only line in the package that can say a repair did not land, and one
+        # measured session ran six rounds after its last failure without it.
+        for rep in (runs.get("layout") or {}).get("reports") or []:
+            rows = rep.get("against") or []
+            if not rows:
+                continue
+            print(f"\n  what moved since the last round ({len(rows)}):")
+            mark = {"ok": "ok  ", "FAIL": "FAIL", "note": "note",
+                    "not_measured": "n/m "}
+            for row in rows[:12]:
+                print(f"    {mark.get(row.get('verdict'), '?')}  "
+                      f"{row.get('subject', ''):26} {row.get('detail', '')}")
+            if len(rows) > 12:
+                print(f"    … {len(rows) - 12} more in the --json")
+            break
+
         # WHAT LANGUAGE IS THIS. Zero hits for `lang` in this file before
         # 0.1.588, so the one block that exists to spare an author from meeting
         # failures in installments never said which language it had graded —
@@ -425,6 +470,12 @@ def main(argv=None) -> int:
             sheets = [row.get("sheet") for row in (rep.get("results") or [])
                       if row.get("sheet")]
             if sheets:
+                png = pathlib.Path(sheets[0]).with_suffix(".png")
+                if png.is_file():
+                    print(f"\n  contact sheet: {png}")
+                    print("  One image, every page. Look at it — that is the "
+                          "last gate; the numbers only say where to look.")
+                    break
                 print(f"\n  contact sheet: {sheets[0]}")
                 print("  Look at it. That is the last gate; the numbers only "
                       "say where to look.")
@@ -444,7 +495,12 @@ def main(argv=None) -> int:
         # it.
         print("\n  --fast: one geometry, no off-shape sweep. Run this again "
               "without --fast before delivery.", file=sys.stderr)
-    if trace_id and worst == 0 and not a.fast:
+    # A RED BUILD IS STILL A MEASURED BUILD. Closing only on a green,
+    # non-`--fast` run meant every loop round left an open trace, and
+    # `ledger.py` then reported them as abandoned — one manual `trace.py close`
+    # each. The trace records what happened; refusing to close it on a failure
+    # loses exactly the rounds worth studying.
+    if trace_id and not a.fast:
         # Stop the build clock the scaffold started (if it is running), then
         # close with THIS run's own duration as the checks phase. Both numbers
         # are the tooling's; neither is typed.

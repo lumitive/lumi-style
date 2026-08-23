@@ -72,6 +72,7 @@ import deliverable_registry  # noqa: E402
 import embed_font  # noqa: E402
 import embed_globe  # noqa: E402
 import embed_shapes  # noqa: E402
+import fingerprint  # noqa: E402
 
 # ONE ICON PER PAGE, ROTATED — not because rotation is right, but because the
 # same icon on every page is demonstrably wrong and a scaffold teaches by what
@@ -212,9 +213,60 @@ def shape_for(move: str, framework: str = "") -> tuple[str, str]:
     return "", ""
 
 
+def shape_aspect(shape: str) -> float | None:
+    """-> the unit's own width/height, from the generated geometry manifest."""
+    try:
+        g = json.loads((ROOT / "assets" / "shapes" / "geometry.json")
+                       .read_text(encoding="utf-8"))["units"]
+    except (OSError, ValueError, KeyError):
+        return None
+    return (g.get(shape) or {}).get("aspect")
+
+
+# The scaffold's figure box, and the proportion it suits. A `<symbol>` maps its
+# own viewBox into this viewport under `preserveAspectRatio`, so a unit of a
+# different proportion is letterboxed inside it — and the letterboxing is real
+# emptiness on the page, not a measurement artifact.
+FIG_BOX = (640, 239)
+FIG_BOX_ASPECT = FIG_BOX[0] / FIG_BOX[1]
+
+
+def shape_fill(shape: str) -> float | None:
+    """-> what share of the figure box this unit will actually ink, in percent.
+
+    **Measured across the library: 160 of the 206 units come in under 55% of
+    this box, and the median unit fills 43%** — which is the visual share two
+    shipped decks reported, and the shape of the page an owner picked out by
+    eye with "the figure is too small". The author was handed a box shaped for
+    one unit (`p009-arrow-3d-01`, 2.68:1) and graded on the drawing.
+
+    This does NOT resize anything to make the number go up. A 1.08:1 unit
+    cannot fill a 2.68:1 box, and a scaffold that stretched it would be
+    0.1.339's withdrawn fill floor in another costume — satisfying a metric by
+    deforming the work. It says the number instead, at the moment the shape is
+    chosen, so the choice is informed: pick a wider unit, give the page a
+    layout whose cell is squarer, or put something beside the drawing.
+    """
+    a = shape_aspect(shape)
+    if not a:
+        return None
+    w = min(FIG_BOX[0], FIG_BOX[1] * a)
+    h = min(FIG_BOX[1], FIG_BOX[0] / a)
+    return round(100 * w * h / (FIG_BOX[0] * FIG_BOX[1]), 1)
+
+
 def shape_figure(shape: str, label_a: str, label_b: str) -> str:
+    fill = shape_fill(shape)
+    note = ""
+    if fill is not None and fill < 55:
+        note = (f"\n        <!-- {shape} is {shape_aspect(shape):.2f}:1 in a "
+                f"{FIG_BOX_ASPECT:.2f}:1 box, so it inks about {fill:.0f}% of "
+                f"this cell. That reads as a thin page. Pick a wider unit "
+                f"(assets/shapes/geometry.json lists every aspect), give this "
+                f"page a layout with a squarer cell, or compose something "
+                f"beside the drawing. Do not stretch it. -->")
     return f'''<svg viewBox="0 0 640 300" role="img"
-        aria-label="{label_a}: replace the labels, keep or swap the shape">
+        aria-label="{label_a}: replace the labels, keep or swap the shape">{note}
         <use href="#shape-{shape}" x="0" y="0" width="640" height="239"/>
         <text x="16" y="278" class="flbl" style="fill:var(--tx2)">{label_a}</text>
         <text x="624" y="278" text-anchor="end" class="flbl" style="fill:var(--tx2)">{label_b}</text>
@@ -313,7 +365,10 @@ def genre_card(genre: str) -> str:
             the same phrase in HTML prose fails the run
   titles  · M11 counts syntactic frames {check_prose.TITLE_FRAMES} — no one
             frame may carry more than 60% of the titles
-  colophon· D6 accepts these provenance words: {", ".join(check_design.D6_PROVENANCE)}
+  colophon· D6 accepts these provenance words: {", ".join(w for w in check_design.D6_PROVENANCE if w.isascii())}
+          · and their Chinese equivalents when the deliverable is Chinese —
+            the checker holds the full list; a card printed into an English
+            document does not need to carry the other language's rule data
   roles   · every page role is defined by the pages this scaffold emits —
             compose FROM them (the closing title is the closing's h2, not a
             second cover h1); a role rewritten from memory drops out of the
@@ -888,7 +943,7 @@ def main(argv):
     <div class="attrs">
       <div><span class="k">Label</span><span class="v">value</span></div>
     </div>
-    <p class="colophon">Built with lumi-style VERSION &#183; source: WHERE THE
+    <p class="colophon">Built with lumi-style {fingerprint.skill_version()} &#183; source: WHERE THE
     NUMBERS CAME FROM.</p>
   </div>
   {foot(total, total)}

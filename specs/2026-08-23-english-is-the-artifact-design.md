@@ -1,6 +1,11 @@
 # English is the artifact, not the rule · design
 
-Date 2026-08-23 · Status: **approved by the owner; shipped 0.1.588.**
+Date 2026-08-23 · Status: **SUPERSEDED the same day by
+`2026-08-23-language-direct-and-worklist-design.md`.** The owner withdrew the
+derivative requirement: a deliverable asked for in another language is authored
+in that language, and `--lang` / `--lang-asked` are back on `new_deck.py` and
+`build.py`. What survived is the quotation. Kept as the record of a mechanism
+that was available, was the strongest on offer, and was not worth its price.
 
 Successor to `2026-08-23-language-gate-and-build-cost-design.md`, whose language
 half did not hold. Written after the third validation round.

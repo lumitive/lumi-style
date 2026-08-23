@@ -339,20 +339,32 @@ def cmd_step(args):
     return 0
 
 
+def attach_doc(log_path, kind: str, doc) -> None:
+    """Attach an already-parsed checker report. The in-process half of
+    `cmd_attach`.
+
+    It exists because the contract asked for something the driver destroyed:
+    `check_deliverable` gathers all three reports into memory and never writes
+    them, so honouring `attach` meant **re-running all three checkers with
+    `--json` redirected to files** — six commands, one of them a second browser
+    render. The reports were in hand the whole time.
+    """
+    def add(log):
+        log["checks"].setdefault(kind, []).append(
+            {"after": len(log["commands"]), "doc": doc})
+
+    _mutate(pathlib.Path(log_path), add)
+
+
 def cmd_attach(args):
     doc = _read_json(pathlib.Path(args.json_file),
                      "a checker that crashed writes no parseable --json")
 
-    def add(log):
-        # A LIST, NOT A SLOT. Keyed by kind and overwritten, a checker's second
-        # run replaced its first — so a build that failed a check and then
-        # passed it kept only the passing document, which is the one an
-        # evaluator does not need. `after` ties each document to the command
-        # entry it followed.
-        log["checks"].setdefault(args.kind, []).append(
-            {"after": len(log["commands"]), "doc": doc})
-
-    _mutate(pathlib.Path(args.log), add)
+    # A LIST, NOT A SLOT. Keyed by kind and overwritten, a checker's second run
+    # replaced its first — so a build that failed a check and then passed it
+    # kept only the passing document, which is the one an evaluator does not
+    # need. `after` ties each document to the command entry it followed.
+    attach_doc(args.log, args.kind, doc)
     print(f"ok    attached {args.kind}")
     return 0
 
