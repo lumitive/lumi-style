@@ -1637,7 +1637,19 @@ def check_review_scores():
     the shape that carries a client name into the repository, and the defence is
     that the schema has no field to put one in. A guard that is not run is a
     comment.
+
+    **An absent store is a finding HERE even though it is not one for the
+    script.** `review_scores.py --check` returns 0 when there is no store,
+    which is right for a freshly installed skill — nobody has reviewed anything
+    yet. It is not right for THIS repository, which tracks the store: an absent
+    one means the tracked file was deleted, and the guard would report `ok`
+    having read nothing at all.
     """
+    store = ROOT / "reviews" / "scores.json"
+    if not store.exists():
+        return [f"{rel(store)} is gone. It is a TRACKED file here, so its "
+                f"absence is a deletion rather than a fresh install — and this "
+                f"guard would otherwise pass having validated nothing"]
     proc = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "ops" / "review_scores.py"), "--check"],
         capture_output=True, text=True)
@@ -3817,6 +3829,25 @@ def _identifiers_in_code() -> set[str]:
                       and isinstance(node.slice, ast.Constant)
                       and isinstance(node.slice.value, str)):
                     found.add(node.slice.value)
+        elif path.suffix == ".json":
+            # KEYS ONLY. `evals/rule-coverage.json` stores verbatim quotes of
+            # reference prose, so reading the whole file let a wrong verdict
+            # name written into a reference sentence whitelist itself against
+            # the guard policing that same sentence. Nothing is masked today —
+            # one snake_case token lives in those quotes — but the circularity
+            # is the defect, not its current reach.
+            try:
+                doc = json.loads(src)
+            except json.JSONDecodeError:
+                continue
+            stack = [doc]
+            while stack:
+                node = stack.pop()
+                if isinstance(node, dict):
+                    found.update(k for k in node if isinstance(k, str))
+                    stack.extend(node.values())
+                elif isinstance(node, list):
+                    stack.extend(node)
         else:
             found.update(word.findall(src))
     return found

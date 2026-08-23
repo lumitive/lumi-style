@@ -1,0 +1,15 @@
+{
+ "version": "0.1.577",
+ "diff_base": "74d534020ddd1f4dd8942a0ce7edcdc0a3cf5466",
+ "spec": "specs/2026-08-23-gate-consolidation-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Unconfirmed, and unchanged by this release: the board's newest rows are still the r16-pinned run (2026-08-22). Nothing here alters what a checker returns on a deliverable - two guards about this repository and one store resolver that now names which arm answered. The behaviour that invalidates those rows landed at 0.1.575; its evidence file carries the reasoning. Refreshing the board needs the owner's API keys and cannot run in CI."
+  }
+ ]
+}
