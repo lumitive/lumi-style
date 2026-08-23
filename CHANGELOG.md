@@ -1,3 +1,21 @@
+## 0.1.591 — the counter did not ship
+
+`scripts/ops/session_cost.py` arrived at 0.1.590 to settle a comparison, and
+**the projection left it behind**: the consumer boundary is computed from what
+SKILL.md names, SKILL.md did not name it, so the one tool both platforms need in
+order to measure the next round shipped to neither.
+
+This is the third time in four releases that an instrument was built and put on
+no documented path — `--iterate` lived only in `--help` until 0.1.587, the
+0.1.589 readings were named nowhere until this release named them, and now a
+counter that CI could not see was invisible to the reachability computation for
+the same reason. **A tool nobody is told about is a tool nobody runs**, and here
+the boundary made that mechanical: the file was not merely unfound, it was not
+present.
+
+SKILL.md names it now, beside the debug-mode section, with both counting traps
+stated where an author meets them.
+
 ## 0.1.590 — the calls the package was charging for, and the counter that found them
 
 Design record: `specs/2026-08-24-fewer-round-trips-design.md`.

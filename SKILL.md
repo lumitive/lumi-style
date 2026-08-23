@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.590"
+  version: "0.1.591"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -652,6 +652,18 @@ gates, because a judge that scored would be scoring fluency. `python3
 scripts/ops/ledger.py` reads every closed trace and says which metric keeps
 failing, which instrument is suspect, whether the recipe was written against
 these rules, and whether the storyline review happened and held.
+
+**What the build cost, in units that survive being compared.** `python3
+scripts/ops/session_cost.py --hermes <session_id>` or `--claude
+<transcript.jsonl>` prints API calls, tool calls and every token field for
+either platform, and says the two traps out loud: a Claude Code transcript
+writes **one record per content block**, each repeating the same `usage`, so a
+per-record sum multiplied one build's call count from 70 to 187 and every token
+figure by 2.5–3.6×; and a Hermes reading that names the main task row omits
+`background_review`, and a task split across two sessions is one task. It
+reports tool calls beside API calls because **an API call is not a unit of
+work** — the platforms batch differently, and the ratio is the number that says
+how much was done.
 
 ## Debug mode (on request only)
 
