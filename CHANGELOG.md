@@ -1,3 +1,32 @@
+## 0.1.585 — the gate built one release ago blocked the person it was built for
+
+0.1.584 made `--push` refuse whenever stdin was not a terminal, reasoning that
+an agent running non-interactively could not then publish. **The owner ran it
+and it refused her.** `!` in Claude Code has no TTY either, so a check meant to
+distinguish an agent from a person distinguished neither — and failed in the
+worst available direction, against the person it existed to serve.
+
+Convention 15, in the release that added the gate: look at a real instance
+before writing a pattern that keys on its shape. I wrote a model of how she
+works instead of looking at how she works.
+
+**The honest replacement admits what a local script cannot do.** No command can
+tell whose hands typed it, and this one no longer pretends to. What it can do
+is make publishing impossible to do by HABIT, and that is the actual failure
+being prevented: a bare `--push` had already become routine — mine, after every
+merge, which is what the owner asked to stop.
+
+So `--push` takes the version as an argument. `--push 0.1.585` names what is
+about to happen; a missing or mismatched version refuses and publishes nothing.
+A version changes every release, so it cannot become muscle memory the way a
+flag can.
+
+Three refusals, each verified against the real script: no version named, a
+version this checkout is not at, and the dry run that remains the default. The
+test that asserted the TTY check now asserts its ABSENCE, with the reason,
+because the next person to reach for `-t 0` should meet the story rather than
+the idea.
+
 ## 0.1.584 — publishing needs a person, and the script is what holds that
 
 Owner instruction, 2026-08-23: the push to the published repository waits for
