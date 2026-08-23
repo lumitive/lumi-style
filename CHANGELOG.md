@@ -1,3 +1,35 @@
+## 0.1.580 — the publication was a script in /tmp, which is where steps go to be forgotten
+
+0.1.578 gave the published package a check that can speak for it. This gives the
+PUBLICATION itself one, because until now it was a shell script in a temporary
+directory — the shape of every step this repository has lost between sessions,
+and the reason `release.py` exists at all.
+
+`scripts/ops/publish.sh` rebuilds the projection from `origin/main` and checks
+five things before its last line, which is the only line that pushes. A
+projection is easy to rebuild and a published name is not, so the order is that
+way round rather than "push, then look".
+
+**The check worth naming is the first one, and it refuses rather than reports.**
+`check_secrets`'s client-name half reads the operator's out-of-bounds list, and
+its default location is usually EMPTY — so the guard returns the same green
+whether it checked or skipped, which is how 0.1.579's finding survived until the
+day of publication. The script will not publish without a list at all. An empty
+directory is not an absence of clients.
+
+The other four: every release subject preserved (`check_evidence` and `shipping`
+read them to find a version, so losing one breaks the next release rather than
+this one); no development file rode along; the home-path and English-only guards
+asked of the PROJECTION rather than of this tree; and a fresh clone of the
+projection builds a deck above a 400 KB **floor** and passes its own checkers.
+
+`--push` is opt-in; the bare command is a dry run.
+
+**It went red on its first real invocation, correctly.** It reads `origin/main`,
+0.1.579's fix was still in review, and it refused to publish a projection
+carrying the name that release removes. That is the whole design working before
+it had shipped.
+
 ## 0.1.579 — a name the owner had declared out of bounds, found by running the scan the publication needed
 
 Publishing the projection is irreversible in the way that matters — a name that
