@@ -364,9 +364,10 @@ LANG_ATTR = re.compile(r"<html[^>]*\blang\s*=\s*[\"']([\w-]+)", re.I)
 # instance). English needs no such record: it is the default.
 LANG_ASKED = re.compile(
     r"<body[^>]*\bdata-lang-asked\s*=\s*[\"']([\w-]+)", re.I)
-# The other two declarations `localize.py` writes. The quote is what a person
-# checks; `data-localized-from` is the only one an agent cannot satisfy by
-# typing, because the file it names has to be there.
+# The user's own words, and — for a document `localize.py` derived from another
+# — where it came from. The quote is part of M16's contract; the provenance is
+# recorded when it exists and is not required, because authoring directly in the
+# language the user asked for is the ordinary path.
 LANG_QUOTE = re.compile(
     r"<body[^>]*\bdata-lang-ask-quote\s*=\s*\"([^\"]*)\"", re.I)
 LOCALIZED_FROM = re.compile(
@@ -419,20 +420,22 @@ def declared_language(path, raw, override=None):
                   "--lang given")
 
 
-def asked_language(path, raw, override=None):
-    """Is this document a LOCALIZED DERIVATIVE, and does its provenance hold?
+def asked_language(raw, override=None):
+    """Which language somebody ASKED for, in their own words.
 
     Returns (code, where, problems). `problems` is empty when the document
-    carries all three declarations `localize.py` writes and the English source
-    it names is really there.
+    carries both declarations: the language, and the user's verbatim words.
 
-    Three declarations rather than one, because 0.1.587 had one and it did not
-    survive contact: `--lang-asked` was a boolean an agent typed itself, on the
-    same command line as the language it was attesting to. The quote is what a
-    person checks. **`data-localized-from` is the only one that cannot be
-    satisfied by typing**, because the English deck it names has to exist next
-    to this file - and producing one is the whole outcome the rule was asking
-    for.
+    Two rather than one, because 0.1.587 had one and it did not survive contact.
+    `--lang-asked` was a BOOLEAN, typed by the agent on the same command line as
+    the language it was attesting to, and M16 passed. The quotation costs the
+    build nothing — the agent already has the sentence if there was one — and it
+    is checkable by the only party who knows whether it was said.
+
+    Said plainly rather than implied: **no local script can verify the quotation
+    came from the user.** `publish.sh` admits the same limit about the same
+    class of problem. What this changes is the price of the claim, and that the
+    claim lands where the owner reads it.
     """
     if override:
         return override.split("-")[0].lower(), "--asked-lang", []
@@ -451,16 +454,6 @@ def asked_language(path, raw, override=None):
     elif len(_ASK_TOKEN.findall(quote)) < MIN_ASK_TOKENS:
         problems.append(f"`data-lang-ask-quote` is {quote!r}, a fragment that "
                         f"would match anything (under {MIN_ASK_TOKENS} tokens)")
-    lf = LOCALIZED_FROM.search(raw)
-    src = (lf.group(1) if lf else "").strip()
-    if not src:
-        problems.append("no `data-localized-from`: a document in another "
-                        "language is derived from an English one, and this "
-                        "names none")
-    elif not (path.parent / src).is_file():
-        problems.append(f"`data-localized-from` names {src!r}, which is not "
-                        f"beside this file - the English deck it claims to "
-                        f"derive from does not exist")
     return code, "data-lang-asked", problems
 
 
@@ -683,7 +676,7 @@ def measure(path, genre, lang=None, asked=None):
     # whether the document should have been English, and until 0.1.587 nothing
     # could. English is `0` rather than `n/a` on purpose — a metric that reads
     # `n/a` on the ordinary case teaches a reader to ignore the row.
-    asked_lang, asked_from, ask_problems = asked_language(path, raw, asked)
+    asked_lang, asked_from, ask_problems = asked_language(raw, asked)
     _q = LANG_QUOTE.search(raw)
     ask_quote = _q.group(1) if _q else None
     _lf = LOCALIZED_FROM.search(raw)
@@ -1186,8 +1179,8 @@ def language_block(r) -> list[str]:
         out.append("            The Chinese metrics below are silent by "
                    "design: improving this document's Chinese is not the fix.")
     else:
-        out.append(f"  language: {lang}  (derived from {src}; "
-                   f"asked: \"{quote}\")")
+        out.append(f"  language: {lang}  (asked: \"{quote}\""
+                   + (f"; derived from {src}" if src else "") + ")")
         out.append("            No script verified that quotation came from "
                    "the user. You can.")
     return out
@@ -1327,12 +1320,11 @@ def main(argv):
         # stop: relabelling the document.
         for line in r["M16_detail"]:
             print(f"        {line}")
-            print("        The fix is to deliver in English — the scaffold "
-                  "emits it and needs no flag. If the user asked for this "
-                  "language, derive it: `python3 scripts/ops/localize.py "
-                  "<deck>.en.html --lang <code> --asked \"<their words>\" "
-                  "--out <deck>.<code>.html`, which needs an English deck that "
-                  "already passes.")
+            print("        The fix is to deliver in English — that is the "
+                  "default and needs no flag. If the user asked for this "
+                  "language, quote them: `new_deck.py --lang <code> "
+                  "--lang-asked \"<their words>\"` writes "
+                  "`data-lang-ask-quote` onto the document.")
         # WHAT WAS EXEMPTED, said out loud. These live in the JSON and were
         # never printed, so an author whose range passed M6 by being read as an
         # enumeration label could not tell that from a range this metric never

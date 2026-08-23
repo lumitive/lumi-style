@@ -43,6 +43,7 @@ Standard library only.
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import pathlib
 
@@ -99,6 +100,11 @@ FIXTURE = ROOT / "fixtures" / "deck-pass.en.html"
 # want of titles. Ten clears both, and at the default `--parts A,B` it runs
 # five pages per part - `opener_pacing`'s target exactly.
 DEFAULT_PAGES = 10
+
+# `judge_findings.py` rejects a quotation under three words as "a fragment that
+# would match anything". The same floor, counted so it means the same thing in a
+# language without spaces: a CJK character is a token.
+_ASK_TOKEN = re.compile(r"[A-Za-z0-9]+|[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]")
 
 
 def _field(key: str, rest: str) -> str:
@@ -352,7 +358,8 @@ def open_trace(genre, geometry, storyline, outline):
     return trace_id
 
 
-def preamble(genre, geometry, storyline=None, trace_id=None):
+def preamble(genre, geometry, storyline=None, trace_id=None,
+             lang="en", ask_quote=None):
     """Everything before the first page: the token block AND the sprite.
 
     Taken from the fixture rather than rebuilt, because the fixture is the
@@ -370,15 +377,20 @@ def preamble(genre, geometry, storyline=None, trace_id=None):
     body_at = src.index("<body", src.index("</head>"))
     body_open_end = src.index(">", body_at) + 1
     sprite = src[body_open_end:src.index("<section", body_open_end)]
-    # THE SCAFFOLD IS ENGLISH. It carries the fixture's `lang="en"` and there is
-    # no flag here to make it anything else, because 0.1.587 had two and an
-    # agent typed both of them itself: `--lang zh-Hans --lang-asked` on the
-    # command line, and M16's "somebody asked" record was signed by the party
-    # it was meant to hold. A field an agent can fill is a field an agent will
-    # fill. Another language is `scripts/ops/localize.py` — a second command,
-    # a second file, derived from an English deck that already passed its
-    # checks (writing-rules section 0, which has said since 0.1.333 that
-    # Chinese is produced by translating English).
+    # THE DEFAULT IS ENGLISH, and it is a default rather than a lock: a
+    # deliverable the user asked for in another language is authored IN that
+    # language, directly. 0.1.588 briefly required it to be derived from a
+    # finished English deck, which wrote the same content twice and was the
+    # wrong answer to the right problem — the owner's ruling, and she is right
+    # about the cost.
+    #
+    # What survives is the cheap half. `--lang-asked` carries the user's OWN
+    # WORDS rather than a boolean, because 0.1.587's boolean was typed by the
+    # agent on the same command line as the language it was attesting to. A
+    # quotation costs nothing to pass and is checkable by the one party who
+    # knows: the person who either said it or did not.
+    head = re.sub(r'(<html[^>]*\blang\s*=\s*)["\'][\w-]+["\']',
+                  lambda m: f'{m.group(1)}"{lang}"', head, count=1)
     head = re.sub(r"<title>.*?</title>", "<title>REPLACE ME</title>", head, count=1)
     # The face rides along. design-rules.md requires it embedded, and when
     # embedding was a separate step, two deliverables in one week shipped with
@@ -389,6 +401,11 @@ def preamble(genre, geometry, storyline=None, trace_id=None):
                         "<style>\n" + embed_font.css() + "\n</style></head>")
     return (head + f'\n<body class="deck" data-theme="light" '
             f'data-geometry="{geometry}" data-genre="{genre}"'
+            # ASKED, and quoted. English is the default and carries no record;
+            # any other language without the user's words fails M16.
+            + (f' data-lang-asked="{lang}"'
+               f' data-lang-ask-quote="{html.escape(ask_quote, quote=True)}"'
+               if ask_quote else "")
             # DECLARED, never inferred. D26 reads this to say which sections
             # the document neither covers nor declares; guessing a storyline
             # from the headings would make the report a measurement of the
@@ -608,6 +625,21 @@ def main(argv):
                     help="the cover/closing wordmark. Defaults to the default "
                          "brand's `wordmark` in brands/registry.json; pass this "
                          "for a subject that is not a registered brand.")
+    ap.add_argument("--lang", default="en",
+                    help="the deliverable's output language, BCP-47, for "
+                         "<html lang>. **Default: en.** American English is "
+                         "LUMI's default output language (writing-rules "
+                         "section 0). Pass another code when the USER asked "
+                         "for it — the deck is then authored in that language "
+                         "directly, not translated from English.")
+    ap.add_argument("--lang-asked", metavar="QUOTE",
+                    help="the user's OWN WORDS asking for --lang, verbatim. "
+                         "Required for any language but English. Not your "
+                         "summary of them, and never the fact that the source "
+                         "material or this conversation was in that language — "
+                         "neither is an instruction (FM-18). It is written into "
+                         "the document as `data-lang-ask-quote`, where the "
+                         "owner reads it.")
     ap.add_argument("--out", type=pathlib.Path,
                     help="write the scaffold here instead of to stdout. "
                          "Stdout stays the default; this exists so a caller "
@@ -626,6 +658,22 @@ def main(argv):
                     help="part letters, comma separated. Two is the default: "
                          "one part is not a part, it is a document.")
     args = ap.parse_args(argv)
+
+    # SAID BEFORE ANYTHING IS BUILT, because the fix is a question for the user
+    # and not an edit to the document. Three validation rounds produced a
+    # language nobody asked for; the quotation is what makes the claim visible
+    # to the one party who can check it.
+    if args.lang.split("-")[0].lower() != "en" and not args.lang_asked:
+        sys.exit(
+            f"--lang {args.lang} without --lang-asked: American English is "
+            f"LUMI's default output language, and another language is asked "
+            f"for — never inferred from the source material, the venue, the "
+            f"audience, or the language of this conversation (writing-rules "
+            f"section 0, FM-18). If the user asked, quote them:\n"
+            f"    --lang {args.lang} --lang-asked \"<their words>\"")
+    if args.lang_asked and len(_ASK_TOKEN.findall(args.lang_asked)) < 3:
+        sys.exit(f"--lang-asked {args.lang_asked!r} is a fragment that would "
+                 f"match anything. Quote what the user actually said.")
 
     src = FIXTURE.read_text(encoding="utf-8")
     g = ground(src)
@@ -649,7 +697,8 @@ def main(argv):
     total = args.pages + 3 + len(parts) + apparatus
     trace_id = None if args.no_trace else open_trace(
         args.genre, args.geometry, args.storyline, args.outline)
-    out = [preamble(args.genre, args.geometry, args.storyline, trace_id)]
+    out = [preamble(args.genre, args.geometry, args.storyline, trace_id,
+                    args.lang, args.lang_asked)]
 
     # The cover title carries TWO INKS: the claim in ink, the noun the deck is
     # about as lime on its own dark chip (`.subj`) — the same green the part
@@ -686,8 +735,9 @@ def main(argv):
     sections = (deliverable_registry.TYPICAL_SECTIONS.get(args.storyline, ())
                 if args.storyline else ())
     chunks: list[list[str]] = [[] for _ in parts]
-    for i, sec in enumerate(sections):
-        chunks[i * len(parts) // max(1, len(sections))].append(sec)
+    for i, checklist_entry in enumerate(sections):
+        chunks[i * len(parts) // max(1, len(sections))].append(
+            deliverable_registry.section_name(checklist_entry))
     rows = ""
     for i, q in enumerate(parts):
         run = (" &#183; ".join(chunks[i]) if sections

@@ -320,19 +320,26 @@ attesting to. M16 passed.
 - detection, added: a `data-lang-asked` whose language matches a `--lang` the
   same command supplied. More generally, **an attestation field the attesting
   party can fill**
-- prevention, replacing the earlier one: the scaffold has no language flag at
-  all. Every build is English; another language is a derivative produced by
-  `scripts/ops/localize.py` from a finished English deck that already passes,
-  carrying the user's verbatim words and naming its source file. **That file has
-  to exist** — the one requirement that cannot be met by typing — and it means
-  the English deliverable exists whether or not the agent was right
+- prevention, replacing the earlier one: `--lang-asked` carries the user's
+  VERBATIM WORDS rather than a boolean, and the document keeps them as
+  `data-lang-ask-quote` where the owner reads them. M16 fails a non-English
+  deliverable with no quotation
 
 **The general lesson, which is not about language.** Four defences in order: a
 rule (broke); the rule restated in four entry points (broke); a gate on a
-DECLARATION (satisfied by editing the declaration); a gate on an ATTESTATION
-(satisfied by writing the attestation). What holds is a gate on an ARTIFACT —
-something that has to be built. *A field an agent can fill is a field an agent
-will fill; ask for something it has to produce instead.*
+DECLARATION, satisfied by editing the declaration; a gate on a BOOLEAN
+ATTESTATION, satisfied by typing it. *A field an agent can fill with nothing is
+a field an agent will fill.* What a local script can still ask for is a claim
+with CONTENT — words attributed to a person who will read them — and what it
+cannot do is verify them. `publish.sh` states the same limit about the same
+class of problem, and stating it is part of the fix: a check that pretends to
+verify authorship teaches people to trust it.
+
+*A requirement that the non-English deck be DERIVED from a finished English one
+— which no agent can fake — shipped and was withdrawn by the owner the same day:
+it writes the same content twice, and the cost is real. Recorded because the
+rejected option is part of the record: the strongest available mechanism was
+available and was not worth its price.*
 
 *A second mechanism, found in the same investigation and fixed with it:*
 declaring `zh` did not only silence M12, it **woke the Chinese ban list and the

@@ -1,0 +1,18 @@
+{
+  "version": "0.1.589",
+  "diff_base": "e9b8805abb9f25b0d1d78eae28e78ca98abec1df",
+  "spec": "specs/2026-08-23-language-direct-and-worklist-design.md",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "9b5780272ec9942a0e7b8b813ccb404575605052013935874144500ab7ff03e7",
+      "date": "2026-08-23"
+    }
+  ],
+  "waivers": []
+}

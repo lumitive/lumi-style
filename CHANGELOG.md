@@ -1,3 +1,149 @@
+## 0.1.589 — the language you asked for, and the reading that confirms a repair
+
+Design record: `specs/2026-08-23-language-direct-and-worklist-design.md`.
+
+### The owner withdrew 0.1.588's language mechanism, and she is right
+
+0.1.588 required a non-English deliverable to be DERIVED from a finished English
+one. No agent can fake that, and it is the wrong answer: it writes the same
+content twice. Her rule is simpler and it is the one this package should always
+have implemented —
+
+```
+new_deck.py                                              # English, the default
+new_deck.py --lang zh-Hans --lang-asked "<their words>"  # they asked for Chinese
+new_deck.py --lang ja      --lang-asked "<their words>"  # they asked for Japanese
+```
+
+A deck asked for in another language is **authored in that language**, not
+translated into it. `localize.py` stays, demoted to what it is actually good
+for: giving a finished deck a second language version to ship beside the first.
+
+**What survives is the cheap half.** `--lang-asked` carries the user's own words
+rather than a boolean — 0.1.587's boolean was typed by the agent on the same
+command line as the language it was attesting to — and the document keeps them
+as `data-lang-ask-quote`. M16 fails a non-English deliverable with no quotation.
+It costs nothing: the sentence already exists if it was ever said.
+
+Four defences, in order: a rule; the rule restated in four entry points; a gate
+on a declaration, satisfied by editing the declaration; a gate on a boolean,
+satisfied by typing it. **A field an agent can fill with nothing is a field an
+agent will fill.** What a local script can ask for is a claim with CONTENT —
+words attributed to a person who will read them — and what it cannot do is
+verify them. `publish.sh` states the same limit about the same class of problem,
+and stating it is part of the fix.
+
+### One shape cleared ten declared moves
+
+`D32_shape_use` counted DOCUMENT-WIDE and failed only when a document declared
+analytical moves and drew no library shape anywhere. A measured deck read
+`1 library shape(s) on 10 analysis page(s)` — **green**. Both prose sites
+describing this metric said *a page* that declares a move draws the library's
+shape for it, so the code was the half that was wrong, the same shape as
+RC-431's false enforcement claim.
+
+Per page now. On the deck above: `9 of 10 analysis page(s) draw no library
+shape: p4, p5, p6, p8, p9, p10`. No fixture verdict moved.
+
+It also makes reuse the cheap path, which it was not before: on one measured
+pair of builds the deck that drew its figures by hand spent 343k output tokens
+against 115k for the one that reused shapes, and output costs about 94x a cached
+input token.
+
+Making it per-page surfaced **GAP-032**: `correlate` is one of the five
+analytical moves and has no entry in `assets/frameworks.json` at all, so a page
+declaring it arrives with an empty figure slot. A page is held only when its
+move is one the library can draw, and the exemption is printed — which is how
+the gap became visible rather than becoming a false failure.
+
+### An instrument that finds a defect, and none that confirms a repair
+
+The deepest finding of three validation rounds. A build diagnosed a page's dead
+band and collapsed figure correctly — better than this release's author did —
+fixed it twice, and shipped it still broken. Every gate was green before and
+after, because **the three numbers that describe that defect were computed,
+printed, and read by nothing**: `centerScale`, `emptyBandPct`,
+`aspect.fillsCellHeight`.
+
+`inspect_layout --against <before.json>` reads them. It prints what moved per
+page, in `check_outline --against`'s four-tier vocabulary, and says the sentence
+that was missing:
+
+```
+note  every compared page   no measured number moved — if you were repairing
+                            something here, the repair did not land
+```
+
+It reports rather than gates, on that file's stated caution — a page rewritten
+better than its plan is a legitimate outcome. A gating verdict that goes ok to
+FAIL is the exception and exits non-zero. The comparison lands in a sibling
+`against` block and **never inside `verdicts`**, because `run_conformance` turns
+every key there into a required-ok gate on every task.
+
+### The emptiest figure was the one nothing annotated
+
+The annotation that says a figure is small fired on `aspect.ratio > 1.5` — a
+HEIGHT reading — so a wide flat figure that filled its width and a third of its
+height got no annotation, while two better pages did. `fillsCellHeight` is
+derived from the declared viewBox and reads 100 whenever ratio ≤ 1; the measured
+pair `drawnH`/`cellH` was computed, carried, and never printed.
+
+By area now, against a floor **calibrated rather than reasoned**: the reference
+fixture's ten figure pages run 61.7–82.7; one shipped deck runs 93–97 on eight
+pages and 35.9 on the ninth; another runs 71–81 on five and 37 on the sixth. The
+two low pages are the two an owner picked out by eye. 55 sits in the gap and
+clears the reference by 6.7 points. Reported, not gated — one release of
+readings before any floor gates.
+
+### Two roles, one sentence
+
+`D41_role_echo`, reported. A 20-page sales report put one sentence in a `.gd`
+and again in the page's `.take`; a later deck's `.take` was its `.sup` with the
+head cut off, word for word, and its `.lead` restated the first half of the
+title. Two documents is this package's bar for promoting a lesson to a rule.
+
+The `.lead` case has a cause worth naming: SKILL.md ENCOURAGES `.lead` on a page
+whose argument turns on one number and says nothing about what `.lead` must
+carry that the title does not — so the cheapest way to satisfy the rule is to
+repeat the title. **Following the rule produced the defect.**
+
+### The checkers could not read Chinese, and one of them edited a page
+
+`D6_PROVENANCE` was English-only while `check_prose.SOURCE_MARKERS` had carried
+`来源` / `出处` / `示意` / `实测` for releases, so a Chinese colophon reading
+`出处：…` was
+reported as missing provenance on **every page**. The author of one such
+deliverable refused to edit correct Chinese to go green and was right. The
+regex is now built FROM the tuple rather than retyped beside it, and the
+`source-marker parity` guard — which read only `check_prose`'s list — now fails
+when one of the two vocabularies is blind in a language the other reads.
+
+`D26`'s `TYPICAL_SECTIONS` were English strings tested against the document
+text, so a correct Chinese deliverable reported every typical section missing —
+and the author of one put a bilingual coverage table on a page to satisfy it.
+**The checker decided what the page said.** Each entry now carries the Chinese a
+reader would meet, through one shared `section_alts`/`section_name` helper
+rather than three unpackings.
+
+### And the debug log could not name two language versions apart
+
+`debug_log init` took the stem before the FIRST dot, so `x.0.1.588.zh-Hans.html`
+and `x.0.1.588.en.html` wrote to one `x.debug.json` — and since `init` refuses
+to start when the log exists, the second one hard-failed, or with `--restart`
+destroyed the first one's evidence. It takes everything but the final extension
+now, so `guide.en.html` and `guide.en.pdf` still share one log, which was the
+point. `build.py` asks `debug_log` for the path instead of computing its own.
+
+### Corrected
+
+**GAP-030's evidence was written backwards.** It said "ten figures, zero
+`.cap .srcline`", as though a missing caption source line were the defect — zero
+is what D37 REQUIRES, since the source is the drawing's own last text node. The
+conclusion held; the evidence named the wrong thing. Restated: two deliverables
+carry a source **nowhere**, and `inspect_layout` looks for one in the place D37
+gates against, which is a contradiction the entry now records. The spec that
+repeated the claim is corrected too.
+
 ## 0.1.588 — a field an agent can fill is a field an agent will fill
 
 Design record: `specs/2026-08-23-english-is-the-artifact-design.md`.

@@ -128,7 +128,9 @@ one turn per command on top, by contract.
 ## What this does not fix
 
 Recorded rather than claimed. The deck the run produced is formally immaculate
-and analytically thin: ten figures with no source line at all (red line 5, and
+and analytically thin: ten figures carrying a source line nowhere — not in
+the caption, where D37 forbids one, and not inside the drawing, where the rule
+asks for it (red line 5, and
 nothing reads it — **GAP-030**), the `.take` implication rung deleted from all
 ten content pages while every gate stayed green (**GAP-031**), seven of ten
 figures carrying zero text, one shape construct used ten times, visual share at

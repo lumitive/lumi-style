@@ -233,6 +233,12 @@
    "severity": "graded",
    "since": "always"
   },
+  "D41_role_echo": {
+   "checker": "design",
+   "family": "repetition",
+   "severity": "reported",
+   "since": "0.1.589"
+  },
   "D5_drawn_share": {
    "checker": "design",
    "family": "figure-substance",

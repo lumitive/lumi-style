@@ -20,14 +20,22 @@ def _build(*args):
                           capture_output=True, text=True)
 
 
-def test_the_driver_has_no_language_flag_at_all(tmp_path):
-    """0.1.587 gave it `--lang` and `--lang-asked` and refused the pair when
-    they disagreed. A shipped build simply passed both. The flag is gone: every
-    build is English, and another language is `scripts/ops/localize.py` over a
-    finished English deck."""
-    out = _build("--deck", str(tmp_path / "d.html"), "--lang", "zh-Hans")
+def test_the_driver_passes_the_language_through(tmp_path):
+    """The refusal lives in new_deck.py, which writes the declaration; a second
+    copy here would be a rule with two owners."""
+    out = _build("--deck", str(tmp_path / "d.html"), "--lang", "zh-Hans",
+                 "--fast", "--pages", "2")
     assert out.returncode != 0
-    assert "unrecognized arguments" in (out.stdout + out.stderr)
+    assert "asked for" in (out.stdout + out.stderr)
+
+
+def test_a_quoted_ask_reaches_the_document(tmp_path):
+    deck = tmp_path / "d.html"
+    _build("--deck", str(deck), "--fast", "--pages", "2",
+           "--lang", "zh-Hans", "--lang-asked", "\u7528\u4e2d\u6587\u5199\u8fd9\u4efd\u62a5\u544a")
+    raw = deck.read_text(encoding="utf-8")
+    assert '<html lang="zh-Hans"' in raw
+    assert "data-lang-ask-quote=" in raw
 
 
 def test_every_build_is_english(tmp_path):

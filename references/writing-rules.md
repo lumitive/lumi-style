@@ -44,44 +44,43 @@ this package does not produce — is reported **blind**, which fails the run in
 the same way a hit does. Silence is not an exemption; it is the cheapest one
 there would be.
 
-**English is not a rule here; it is the artifact.** The scaffold
-(`scripts/ops/new_deck.py`) has no language flag at all, so every build starts
-in American English and stays there. **A deliverable in any other language is
-DERIVED from a finished English one** by a second command:
+**American English is the default, and another language is asked for.** The
+scaffold emits English and needs no flag:
 
 ```
-python3 scripts/ops/localize.py <deck>.en.html \
-        --lang zh-Hans --asked "<the user's own words>" --out <deck>.zh-Hans.html
+new_deck.py                                              # English
+new_deck.py --lang zh-Hans --lang-asked "<their words>"  # they asked for Chinese
+new_deck.py --lang ja      --lang-asked "<their words>"  # they asked for Japanese
 ```
 
-It refuses unless the English deck already passes its checks, and it writes three
-declarations onto the derived document: `data-lang-asked`, the verbatim
-`data-lang-ask-quote`, and `data-localized-from` naming the English source.
-**M16 fails a non-English deliverable missing any of the three**, and the third
-one is the one that cannot be satisfied by typing — the file it names has to be
-there.
+A deliverable the user asked for in another language is **authored in that
+language, directly** — not written in English and translated, which produces the
+same content twice.
 
-The record is of an INSTRUCTION and never of an inference: the language of the
-source material, the venue, the audience's nationality and **the language the
-user is writing to you in** are evidence about the reader, and a language the
-same user chose for a comparable deliverable outranks all of it (FM-18).
+**`--lang-asked` carries the user's own words**, and the document keeps them as
+`data-lang-ask-quote`. **M16 fails a non-English deliverable with no quotation**
+(under three tokens is a fragment that would match anything; a CJK character
+counts as a token). The record is of an INSTRUCTION and never of an inference:
+the language of the source material, the venue, the audience's nationality and
+**the language the user is writing to you in** are evidence about the reader, and
+a language the same user chose for a comparable deliverable outranks all of it.
 
-*Why the mechanism keeps getting stronger. This rule was written, restated in
-four entry points, and catalogued as a failure mode — and then broken three
+*Why the quotation, when the default is already English. This rule was written,
+restated in four entry points, and catalogued as FM-18 — and then broken three
 times in three days, on two platforms and two models, from a source document
-with no Chinese in it at all.*
+with no Chinese in it at all. Every one of those builds started from an
+`lang="en"` scaffold. A default alone stopped none of them.*
 
 *0.1.581: M12 fired and the build changed `lang="en"` to `lang="zh-Hans"`, which
 moved the document out of M12's question entirely. 0.1.586: the build script
 wrote `lang="zh-Hans"` from the start, so M12 read `n/a` on the first
-measurement and never spoke. 0.1.587 added M16, which required a record that
-somebody had asked — and the build ran `new_deck.py --lang zh-Hans --lang-asked`,
-signing the record itself.*
+measurement and never spoke. 0.1.587 required a record that somebody had asked
+— and the build ran `--lang zh-Hans --lang-asked`, signing a boolean on the same
+command line as the language it was attesting to.*
 
-***A field an agent can fill is a field an agent will fill.*** *So the flag is
-gone. Producing another language now costs a complete, passing English deck
-first — which means the owner gets the English version whether or not the agent
-was right about the language. That is what a default is.*
+*So the flag carries words now. No script can verify they are the user's; what
+changes is that inventing them means attributing a sentence to a person who will
+read it in the document.*
 
 **And the Chinese metrics are conditional on M16, not on the declaration.**
 Declaring `zh` used to silence M12 and, in the same move, wake `M4zh` and `M5`
@@ -90,6 +89,10 @@ errors" and it answered by improving its Chinese. When M16 has not passed, the
 Chinese half reports `n/a` and offers nothing to fix: **the improvement is to
 deliver in English, and a package that coaches the prose is arguing the other
 side.**
+
+*Two language versions of one deliverable* — the pair shipped side by side — is
+`scripts/ops/localize.py`, which copies a finished deck and records where the
+copy came from. It is not the path to a non-English deliverable.
 
 ## 1 · Terminology red lines
 

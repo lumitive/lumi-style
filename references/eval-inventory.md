@@ -56,7 +56,7 @@ the hidden-constraint condition this inventory exists to surface.
 | check_design | D2_type_scale | `reported` | reported |
 | check_design | D30_figure_sequence | `1..k once each, in page order (reported)` | reported |
 | check_design | D31_undeclared_sections | `=0 or declared (reported)` | reported |
-| check_design | D32_shape_use | `>0 where moves are declared (gates)` | gate |
+| check_design | D32_shape_use | `=0 per page where the move is drawable (gates)` | gate |
 | check_design | D33_icon_provenance | `=0 (gates)` | gate |
 | check_design | D34_icon_uniqueness | `reported` | reported |
 | check_design | D35_agenda_exclusive | `=0 (gates)` | gate |
@@ -70,6 +70,7 @@ the hidden-constraint condition this inventory exists to surface.
 | check_design | D3_tier1_page_share | `<=33.0%` | graded |
 | check_design | D3_tier1_per_page | `<=1 per page` | graded |
 | check_design | D40_bookend_is_the_brand | `=0 (gates)` | gate |
+| check_design | D41_role_echo | `=0 (reported)` | reported |
 | check_design | D4_palette_literals | `=0` | graded |
 | check_design | D5_drawn_share | `reported` | reported |
 | check_design | D5_figure_parity | `reported` | reported |
@@ -126,6 +127,7 @@ different ways.
 | RESERVE_ALLOWANCE_PX | `4` |  | (not searched: too short) |
 | CAP_OFF_AXIS_PCT | `10` |  | (not searched: too short) |
 | FOOT_BASELINE_RATIO | `0.08` |  | CODE ONLY |
+| FIGURE_SHARE_FLOOR | `55.0` |  | (not searched: too short) |
 | VISUAL_SHARE_TARGET | `{"sales": 50, "marketing": 50, "consulting": 50,` |  | (not searched: too short) |
 | STORYLINE_SHARE_TARGET | `{"pitch-deck": 80}` |  | (not searched: too short) |
 | GROUND_CEILING | `1.40` | a ceiling, not a target: quieter is always fine | brand.md, design-rules.md, page-contracts.md |
