@@ -42,6 +42,11 @@
    "why": "generated Copilot entry"
   },
   {
+   "prefix": ".github/workflows/skill.yml",
+   "side": "consumer",
+   "why": "the only thing that can say the SHIPPED package still works: the projection carries no tests, no repo guards and no development scripts, so a workflow that uses the skill the way a reader does is the whole verification the public repository has"
+  },
+  {
    "prefix": ".well-known/",
    "side": "consumer",
    "why": "generated skill index"

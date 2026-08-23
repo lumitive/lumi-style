@@ -1,3 +1,66 @@
+## 0.1.578 — the published package gets the only check that can speak for it
+
+The projection carries no tests, no repository guards and no development
+scripts. `check_repo.py` grades THIS repository and cannot say whether the
+shipped package still works; nothing could, until now.
+
+`.github/workflows/skill.yml` ships. It runs here and it runs in the projection,
+and it uses the skill the way a reader does:
+
+- the scaffold renders, above a **floor** of 400 KB — a scaffold that shrank to
+  nothing would otherwise still "succeed", and the floor is under the embedded
+  font, icons and shape sprite rather than a size to aim at;
+- the reference document passes its own three checkers, which is what makes it
+  usable as an assertion at all;
+- a raw scaffold is clean where it must be from the first byte — a raw scaffold
+  FAILS the design checks, because it is full of slots, so only the half that
+  can be clean is asserted;
+- **every shipped script loads.** The projection drops modules nothing
+  reachable imports, so an ImportError here means the boundary cut a live edge
+   — the one failure `check_shipped_closure` and `check_cross_boundary_paths`
+  cannot see, because both are static and this is not;
+- a store is written where the package SAYS it is written.
+
+Every step was run against a real projection built from this commit's parent
+before the file was written, which is the order convention 15 asks for — and it
+was still not enough. The first push went red on `eval_corpus.py`: one of its
+thresholds is measured by RENDERING, so on a machine with no Chromium it
+reports "a threshold that was not measured has not been cleared" and exits 1,
+correctly. It had passed locally only because this machine has Playwright.
+Asserting it would either force a browser on everyone who forks the published
+package, or bake in the exact green-on-my-machine failure this workflow exists
+to catch. Verified the other way round before removing it: with `playwright`
+made unimportable, `check_design` and `check_prose` stay green on the reference
+document and `eval_corpus` does not.
+
+The second push went red on the store step, for the mirror-image reason: it
+asserted the trace landed in `/tmp`, which is true in the projection and FALSE
+here, because this repository has `evals/traces/` and the resolver correctly
+prefers it. A workflow that ships has to hold in both trees. The invariant that
+does is the one worth asserting anyway — a trace lands in the store the tool
+NAMES — and it was checked in a real projection and in this repository before
+being written down this time.
+
+**And the published repository now says where changes go.** `CONTRIBUTING.md`
+is development-side, so a reader landing in the projection had nowhere to look —
+and an edit made there is overwritten by the next publish. One paragraph in
+`README.md`, which ships, says so. Written carefully: the first draft named
+`adapters/shipped.json`, a file the projection does not carry, which is the
+cross-boundary prose class this same review had just found three instances of.
+
+That class is now a recorded DECLINE rather than an open question. Extending
+`check_cross_boundary_paths` to markdown was proposed and refused in
+`FAILURE_MODES.md` FM-23: an ATTRIBUTED mention is legitimate — `README.md`
+names the conformance board and says "in the development repository" in the same
+sentence — and a guard that cannot tell the two apart would instruct an author
+to delete a useful reference. Deciding whether an English sentence attributes
+its reference is the phrase-trigger class AG-1 already declined.
+
+The boundary guard caught its own author on the way in: the rule was added to
+`adapters/shipped.json` before the file was `git add`ed, and `shipped closure`
+failed it as a rule claiming nothing. That is the guard doing exactly what it
+is for.
+
 ## 0.1.577 — a guard that could whitelist a wrong name against itself, and a store that changed under a tool without saying so
 
 The review's remainder. Three things that were not defects yet and were each one

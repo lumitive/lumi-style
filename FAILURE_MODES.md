@@ -304,6 +304,30 @@ Declined enforcement mechanisms, recorded with reasons so they are not
 re-proposed. (Declining is a decision; an undocumented decline gets re-argued
 every quarter.)
 
+## FM-23 · A prose guard over cross-boundary references
+
+- detection: a shipped markdown file naming a path the projection does not
+  carry. Three real instances were found by the 2026-08-23 review —
+  `evals/thresholds.json` pointing at `evals/README.md`, `eval_corpus.py`
+  sending a user to the same file, and `references/page-contracts.md` citing
+  its development-side source and generator. All three are fixed.
+- proposed: extend `check_cross_boundary_paths` from Python to markdown, so a
+  consumer document naming a development path fails.
+- DECLINED, 2026-08-23. An ATTRIBUTED mention is legitimate and common:
+  `README.md:88` names `conformance/CONFORMANCE.md` and says "in the
+  development repository" in the same sentence, which is exactly the right way
+  to refer to something a reader cannot open. A guard that cannot tell the two
+  apart would fail correct prose and instruct the author to delete a useful
+  reference — the wrong-gate-edits-prose failure this repository has on record
+  twice, most recently at 0.1.573 where `verdict names` demanded that
+  `visual_share_median` be renamed. Deciding whether an English sentence
+  attributes its reference is the phrase-trigger class AG-1 already declined.
+- prevention: the prose sweep, by hand, when the boundary moves — which is
+  convention 12's general rule, not a special case. `claim_sweep.py` is the
+  worklist, and every boundary rule carries a `why` a person can read, so the
+  question "does this document name something a reader cannot open" is
+  answerable without a guard that guesses at grammar.
+
 ## FM-20 · The subset bar: a gate list written by hand beside a machine-readable one
 
 - detection: a task, fixture or report that names WHICH checks must pass, as a
