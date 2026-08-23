@@ -1,0 +1,15 @@
+{
+ "version": "0.1.576",
+ "diff_base": "2e7fa549dc4d963c8a2e0bf0b063c7ef29adb01d",
+ "spec": "specs/2026-08-23-gate-consolidation-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Unconfirmed, and unchanged by this release: the board's newest rows are still the r16-pinned run (2026-08-22). The obligation is raised here by the version stamps this release writes and by the SKILL.md sentence it corrects; the behaviour that actually invalidates those rows landed at 0.1.575, whose evidence file carries the same waiver and the reasoning. Refreshing the board needs the owner's API keys and cannot run in CI. Owed before any number from that board is quoted again."
+  }
+ ]
+}

@@ -1,3 +1,48 @@
+## 0.1.576 — the tests the review found could pass against broken code
+
+0.1.575 fixed what five reviews found. This is the other half of what they
+found: assertions that held while the thing they were named for was gone.
+
+**Three tests could not fail.**
+
+- `test_the_four_stores_all_route_through_it` checked BASENAMES. Every basename
+  is identical under the pre-0.1.571 `ROOT / "evals" / "corpus.local.json"`, so
+  reverting the fix passed the test written to prevent it — and two of the four
+  stores were never asserted at all. It cannot be asserted on the resolved
+  values either, because `in_repo` correctly wins in a maintainer's checkout,
+  which is where the suite runs. It reads the SOURCE now: no store may build an
+  in-repo path by hand.
+- `test_a_finding_with_no_declared_metric_keeps_its_own_heading` accepted
+  `"privacy:" in out`, which the finding line itself satisfies — the disjunct
+  survived deleting the heading the test is named for.
+- `test_a_path_built_from_two_pieces_is_seen` asserted `== []` twice and never
+  showed a two-segment join being seen.
+
+**And nine behaviours had no test in the failing direction**, every one of them
+something this range shipped, broke, or fixed with nothing watching: the four
+`silent` branches that lost their exit; an unknown `lang` value; the summary
+line agreeing with the exit; a blind gate travelling through `check_deliverable`
+rather than only through `check_prose`; an empty consumer set and a missing
+SKILL.md; a register declaring no layout verdict; the derived generator list
+being non-empty and complete against `ci.yml`; and the home-collapse guard for a
+root home directory.
+
+The pattern in all twelve is the same one this repository names in its own
+conventions: a check that has never fired is not a check, and an assertion that
+cannot fail is not an assertion. Twelve of them shipped inside a run whose whole
+subject was gates that could not go red.
+
+**And `SKILL.md` said "gates on four things" while eighteen design verdicts
+gate** — in the file an agent actually loads, unwatched by anything, and carried
+through 0.1.569's restructure without a sweep. It names the authority now
+instead of counting, and it is a declared gating-claim site: the guard fails if
+the sentence goes, and fails if a list grows back into it. Each authority-named
+site now declares its own anchor, because there is more than one and they do not
+share wording.
+
+The design record for this phase is
+`specs/2026-08-23-gate-consolidation-design.md`.
+
 ## 0.1.575 — five reviews of the eleven releases before it, and three bugs I wrote in the last one
 
 A full review of 0.1.564–0.1.574 across five lenses: comment accuracy, test

@@ -276,6 +276,9 @@ def test_a_finding_with_no_declared_metric_keeps_its_own_heading():
         [sys.executable, str(DRIVER),
          str(ROOT / "fixtures" / "deck-pass.en.html"), "--fast"],
         capture_output=True, text=True).stdout
-    assert "── privacy" in out or "privacy:" in out
+    # NOT `or "privacy:" in out` — the finding line itself reads
+    # "GATE  privacy: declared terms not_attempted", so the disjunct survived
+    # deleting the heading this test is named for.
+    assert "── privacy" in out
     assert "privacy_terms" in gate_registry.load(), (
         "privacy_terms left the register; the heading logic needs revisiting")

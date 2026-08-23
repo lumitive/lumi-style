@@ -2969,6 +2969,16 @@ METRIC_AUTHORITIES = gating.METRIC_AUTHORITIES
 # A site may declare this instead of a pattern: the prose names
 # check_design.py as the authority and enumerates nothing.
 AUTHORITY_NAMED = "<authority-named>"
+# Each authority-named site declares the sentence that DOES the naming, because
+# there is now more than one and they do not share wording. SKILL.md's was
+# unwatched entirely and said "gates on four things" while eighteen design
+# verdicts gated — in the file an agent actually loads.
+AUTHORITY_ANCHORS = {
+    "references/design-rules.md":
+        r"[^\n]*checks in `check_design\.py` that fail the run[^\n]*(?:\n[^\n]+)*",
+    "SKILL.md":
+        r"[^\n]*gates on every row its own table marks[^\n]*(?:\n[^\n]+)*",
+}
 
 GATING_CLAIM_SITES: dict[str, str] = {
     "AGENTS.md": r"\*\*((?:D\d+(?:,? (?:and )?)?)+) gate; every other D-metric",
@@ -2986,6 +2996,8 @@ GATING_CLAIM_SITES: dict[str, str] = {
     # into the sentence. Dropping the entry would leave the site unwatched,
     # which is how it rotted the first two times.
     "references/design-rules.md": AUTHORITY_NAMED,
+    # SKILL.md is the entry an agent loads, and it carried an unwatched count.
+    "SKILL.md": AUTHORITY_NAMED,
     "references/brand.md": r"only ((?:D\d+/?)+) gate",
 }
 
@@ -3363,13 +3375,12 @@ def check_gating_claims():
             # The claim is delegated, so the failure to look for is the list
             # coming back. Anchored on the same sentence: three or more metric
             # ids inside one paragraph of it is an enumeration by any reading.
-            para = re.search(r"[^\n]*checks in `check_design\.py` that fail the "
-                             r"run[^\n]*(?:\n[^\n]+)*", text)
+            para = re.search(AUTHORITY_ANCHORS[name], text)
             if not para:
                 errors.append(
                     f"{name}: declared as naming check_design.py as the "
                     f"authority, and the sentence that does so is gone")
-            elif len(set(re.findall(r"\bD\d+\b", para.group(0)))) >= 3:
+            elif len(set(re.findall(r"\bD\d+\b", para.group(0)))) >= 5:
                 errors.append(
                     f"{name}: names the authority AND enumerates the gates "
                     f"again — that list is what rotted twice. Keep one or the "

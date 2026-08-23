@@ -7,8 +7,6 @@ directory to live in once the skill is installed from a projection that carries
 no `evals/` or `reviews/`.
 """
 import pathlib
-import subprocess
-import sys
 
 import state_dir
 
@@ -61,17 +59,26 @@ def test_nothing_is_created_by_resolving(tmp_path, monkeypatch):
     assert not (tmp_path / "state").exists()
 
 
-def test_the_four_stores_all_route_through_it(tmp_path):
-    """A fifth store resolved by hand is the drift this module ends."""
-    lib, ops = ROOT / "scripts" / "lib", ROOT / "scripts" / "ops"
-    code = (f"import sys; sys.path.append({str(lib)!r}); "
-            f"sys.path.append({str(ops)!r}); "
-            "import corpus, ledger, review_scores, trace_store; "
-            "print(corpus.LOCAL_CORPUS, ledger.PRICES, review_scores.STORE, "
-            "trace_store.traces_dir())")
-    out = subprocess.run(
-        [sys.executable, "-c", code], capture_output=True, text=True,
-        env={"LUMI_STATE": str(tmp_path), "PATH": "/usr/bin:/bin",
-             "HOME": str(tmp_path)})
-    assert out.returncode == 0, out.stderr
-    assert "corpus.local.json" in out.stdout and "scores.json" in out.stdout
+def test_no_store_resolves_its_own_path():
+    """A fifth store resolved by hand is the drift this module ends.
+
+    Asserted on the SOURCE, not on the resolved constants. The first version
+    ran the four modules and checked their basenames — but every basename is
+    identical under the pre-0.1.571 `ROOT / "evals" / "corpus.local.json"`, so
+    reverting the fix passed it. And it cannot be asserted on the values
+    either: `in_repo` correctly wins in a maintainer's checkout, which is where
+    the suite runs.
+    """
+    stores = {
+        "scripts/lib/corpus.py": "corpus.local.json",
+        "scripts/ops/ledger.py": "prices.local.json",
+        "scripts/ops/review_scores.py": "scores.json",
+        "scripts/lib/trace_store.py": "traces",
+    }
+    for rel, leaf in stores.items():
+        src = (ROOT / rel).read_text(encoding="utf-8")
+        assert "state_dir.store(" in src, f"{rel} does not ask state_dir"
+        assert leaf in src, f"{rel} no longer names {leaf}"
+        # and nobody builds the in-repo path themselves any more
+        for hand in ('ROOT / "evals" / "', 'ROOT / "reviews" / "'):
+            assert hand not in src, f"{rel} resolves {hand!r} by hand"
