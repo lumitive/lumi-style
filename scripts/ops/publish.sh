@@ -134,7 +134,13 @@ if [ "$PUSH" -eq 0 ]; then
   exit 0
 fi
 
-here=$(cd "$DEV" && grep -m1 -o '"[0-9.]*"' SKILL.md | tr -d '"')
+# READ FROM THE PROJECTION, never from the working tree. `$DEV` is whatever
+# branch happens to be checked out; the thing being pushed is a projection of
+# `origin/main`. Publishing 0.1.585 from a branch while main was still at
+# 0.1.584 confirmed one version and shipped the other, and printed "published
+# 0.1.585" over content that said 0.1.584. A confirmation that names something
+# other than what is pushed is worse than no confirmation.
+here=$(cd "$WORK/proj" && grep -m1 -o '"[0-9.]*"' SKILL.md | tr -d '"')
 # The API, never raw.githubusercontent: the raw host is a CDN and caches for
 # minutes, so right after a publish it names the PREVIOUS version — which is
 # exactly when this line is read (0.1.583).

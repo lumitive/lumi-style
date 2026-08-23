@@ -27,6 +27,20 @@ def test_push_refuses_without_a_named_version():
     assert src.index('if [ -z "$CLAIMED" ]; then') < src.index('git -C "$WORK/proj" push')
 
 
+def test_the_version_is_read_from_the_projection_not_the_working_tree():
+    """The confirmation named one version and the push shipped another.
+
+    `$DEV` is whatever branch happens to be checked out; the thing pushed is a
+    projection of `origin/main`. Publishing 0.1.585 from a branch while main was
+    still at 0.1.584 confirmed 0.1.585, shipped 0.1.584, and PRINTED "published
+    0.1.585" over content that said 0.1.584. A confirmation that names
+    something other than what is pushed is worse than no confirmation.
+    """
+    src = SCRIPT.read_text(encoding="utf-8")
+    assert 'here=$(cd "$WORK/proj"' in src
+    assert 'here=$(cd "$DEV"' not in src
+
+
 def test_a_version_that_is_not_this_checkout_refuses():
     src = SCRIPT.read_text(encoding="utf-8")
     assert '[ "$CLAIMED" != "$here" ]' in src
