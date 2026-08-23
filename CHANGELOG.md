@@ -1,3 +1,37 @@
+## 0.1.584 — publishing needs a person, and the script is what holds that
+
+Owner instruction, 2026-08-23: the push to the published repository waits for
+her say-so, one publication at a time. 0.1.582 gave a release a note about how
+far the projection was behind; this makes the push itself stop.
+
+**`--push` is no longer enough.** The last step prints what is about to happen —
+the version being published, the version being replaced, and that the published
+history is REPLACED rather than merged — and then asks for the version to be
+typed back. A keypress would not do: typing the version means having read the
+line above it.
+
+**And it refuses outright when stdin is not a terminal.** That is the half an
+agent cannot satisfy. Everything else in the script is a check a machine can
+pass; this one exists so that an agent running non-interactively has to hand the
+command back rather than decide. A rule that lives only in an agent's memory is
+a rule until the next session, which is convention 16's whole argument and the
+reason `release.py` refuses to commit on a red preflight rather than trusting
+anyone to look.
+
+The refusal says what is true: every check passed, nothing is wrong with the
+projection, and what is missing is the authorisation.
+
+Also fixed on the way: the "replacing version X" line read `an unknown version`
+because the remote probe was built from a mangled repository slug — a line that
+is wrong is a line that gets skipped, and this one is the last thing read before
+a force-push. It asks the API rather than `raw.githubusercontent` for the reason
+0.1.583 records: the raw host is a CDN and names the previous version for
+minutes after a publish, which is exactly when this line is read.
+
+Six tests, none of which push anything. One of them asserts the confirmation
+compares against the version rather than accepting any answer, because the
+difference between those two is the whole feature.
+
 ## 0.1.583 — the note told the truth of five minutes ago
 
 0.1.582's publishing note read `raw.githubusercontent`, which is a CDN and

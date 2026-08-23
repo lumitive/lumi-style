@@ -16,8 +16,16 @@
 # checked or skipped. This script refuses to publish without a list, because an
 # empty directory is not an absence of clients. It found one on its first run.
 #
+# THE PUSH NEEDS A PERSON. `--push` is not enough on its own: the last step
+# asks for a typed confirmation and refuses when stdin is not a terminal, so an
+# agent running this non-interactively cannot publish and must hand the command
+# back. Owner instruction, 2026-08-23 — publishing is hers to authorise, one
+# publication at a time, and a rule that lives only in an agent's memory is a
+# rule until the next session. Convention 16: a rule written down and then
+# broken needs a tool that holds it.
+#
 # Usage:  scripts/ops/publish.sh                 # dry run: check, do not push
-#         scripts/ops/publish.sh --push          # check, then publish
+#         scripts/ops/publish.sh --push          # check, then ASK, then publish
 set -euo pipefail
 
 DEV=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -115,6 +123,36 @@ if [ "$PUSH" -eq 0 ]; then
   echo "DRY RUN — every check passed, nothing was published. Re-run with --push."
   exit 0
 fi
+
+here=$(cd "$DEV" && grep -m1 -o '"[0-9.]*"' SKILL.md | tr -d '"')
+# The API, never raw.githubusercontent: the raw host is a CDN and caches for
+# minutes, so right after a publish it names the PREVIOUS version — which is
+# exactly when this line is read (0.1.583).
+slug=${PUBLIC#https://github.com/}; slug=${slug%.git}
+there=$(gh api "repos/$slug/contents/SKILL.md" --jq .content 2>/dev/null \
+        | base64 -d 2>/dev/null | grep -m1 -o '"[0-9.]*"' | tr -d '"' || true)
+echo "About to FORCE-PUSH the projection of $here over ${there:-an unknown version}"
+echo "at $PUBLIC — the published history is replaced, not merged."
+echo
+
+if [ ! -t 0 ]; then
+  cat <<'MSG'
+REFUSING: --push needs a person, and stdin is not a terminal.
+
+  Publishing is the owner's to authorise, one publication at a time. Every
+  check above passed, so nothing is wrong with the projection — what is
+  missing is the say-so.
+
+  Run it yourself:  scripts/ops/publish.sh --push
+  (in Claude Code, prefix with `!` to run it in this session)
+MSG
+  exit 2
+fi
+
+printf 'Type the version to publish (%s) to confirm, anything else to stop: ' "$here"
+read -r answer
+[ "$answer" = "$here" ] || { echo "stopped — nothing was published."; exit 3; }
+
 git -C "$WORK/proj" remote add publish "$PUBLIC"
 git -C "$WORK/proj" push --force publish main:main
 echo "published to $PUBLIC"
