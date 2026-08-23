@@ -1,3 +1,23 @@
+## 0.1.583 — the note told the truth of five minutes ago
+
+0.1.582's publishing note read `raw.githubusercontent`, which is a CDN and
+caches. Measured immediately after publishing 0.1.582: the API returned
+0.1.582 and raw still returned 0.1.581.
+
+So the note told someone who had just published that they were a release
+behind. That is worse than no note — **a tool that is wrong right after you
+act trains its reader to ignore it**, and this one exists precisely to be
+believed at that moment.
+
+It asks GitHub's API through `gh` now, which this workflow already depends on
+(`emergency_merge.sh`), and which answers from the repository rather than from
+an edge cache. Two more tests: one asserts the command is `gh api` and carries
+no raw host, and one asserts a body that is not base64 returns None rather than
+raising out of a note.
+
+Found the way the last three of these have been found — by running the thing
+and reading what it said, one command after the change it was reporting on.
+
 ## 0.1.582 — a release now says how far the published package is behind
 
 Two repositories, and nothing joined them. The development one advances on every
