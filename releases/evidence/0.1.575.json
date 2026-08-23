@@ -1,0 +1,15 @@
+{
+ "version": "0.1.575",
+ "diff_base": "0a9f2a9ecf3e3ad2ad6c1f6b08418c4a9ce97fd7",
+ "spec": "specs/2026-08-23-gate-consolidation-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Unconfirmed, and this release is the reason it needs refreshing. The board's newest rows are the r16-pinned run (2026-08-22), scored before check_prose gained the `blind` verdict, before M12 stopped exempting an undeclared document, and before check_deliverable's exit stopped inheriting the instruments'. A deck that scored `pass` on that board might not score `pass` now, and the board does not say so. Refreshing it means driving at least two agents through run_conformance.py run --drive on the owner's machine, which needs her API keys and roughly half an hour of wall clock; it cannot run in CI and no key is in this repository. The obligation is recorded rather than discharged, and it is owed before any conformance number from this board is quoted again."
+  }
+ ]
+}

@@ -57,7 +57,7 @@ have no Han character next to their punctuation.
 | M11 | Title-shape uniformity | ≤60% | share of page titles sharing one syntactic frame — the five frames are the checker's `TITLE_FRAMES`: colon, question, number-led, verb-led, plain |
 | M13 | One quantity, one value | =0 — **reported** | the same two-word noun phrase carrying two different values with no qualifier near either mention. Deliberately narrow: a time series, a target/actual pair and a per-region split are different quantities, not contradictions |
 | M15 | Prose per content page | reported | the words a content page asks the reader to read beside its drawing: the page minus its lede, takeaway, footer, figure and caption. Reports a distribution, never a threshold — the accepted product deck sits at a median of 60 and the roadshow BP its owner called text-heavy at 130, and that gap is the finding. The visual-share target is the same rule measured from the other side |
-| M12 | Visible CJK in an English deliverable | =0 — **gates** | Chinese in text a reader sees, when the document declares English by `lang`, filename or `--lang`. Quoted as data (`<code>`, `<pre>`, backticks) is exempt |
+| M12 | Visible CJK in an English deliverable | =0 — **gates** | Chinese in text a reader sees, when the document declares English by `lang`, filename or `--lang` — or declares no language at all, which is reported `blind` and fails the same way. Quoted as data (`<code>`, `<pre>`, backticks) is exempt |
 
 ## Design diagnostics (`scripts/check/check_design.py`)
 
@@ -434,8 +434,10 @@ conditional-item rule applied one level up.
    `check_prose.py` (English), `check_design.py` (any HTML), and
    **`inspect_layout.py --deliverable`**. **A clean dash-and-banned-phrase run is
    not a language pass** — M12 is the metric that answers whether an English
-   deliverable is in English, and it is `n/a` unless the document says which
-   language it claims. Step 1's self-score is a claim about a
+   deliverable is in English. It is `n/a` only on a document that declares
+   Chinese; a document carrying Chinese that declares NOTHING is reported
+   `blind` and fails, because silence would otherwise be the cheapest
+   exemption there is (writing-rules §0). Step 1's self-score is a claim about a
    document, and a claim made before the instruments have run is a guess. An
    agent that cannot execute them names the checks it owes and may not call the
    deliverable verified (OR-9); the operator runs
@@ -476,7 +478,7 @@ conditional-item rule applied one level up.
    that shipped a clipped figure.)
 4. The retrospective produces one of three outcomes: a rule revision (CHANGELOG +
    version bump) / an anchor revision (anchors can be wrong too) / a recorded
-   no-change with reasons. **Record the round in `reviews/scores.json`** — release,
+   no-change with reasons. **Record the round in the score store (`review_scores.py --check` prints where it is on this machine; in a maintainer's checkout that is `reviews/scores.json`)** — release,
    genre, the self-scores and reader scores across every dimension, outcome — and read the series back
    with `python3 scripts/ops/review_scores.py`. Until 0.1.390 this loop had no memory:
    every score lived as a sentence in a release note, so no dimension could be read

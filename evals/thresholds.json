@@ -9,7 +9,7 @@
  },
  "corpus": {
   "note": "Documents are identified by id. The paths live in a local file the runner reads if present and this repository does not track, because a corpus entry naming a real deliverable is an engagement fact in a tracked file (CLAUDE.md red line 9). The CHANGELOG entry describing this table anonymises correctly; this file has to as well.",
-  "local_paths": "evals/corpus.local.json (gitignored; see evals/README.md)",
+  "local_paths": "the local corpus registry: a JSON object mapping a corpus id to a document path. Never tracked - it names an operator machine's files. `eval_corpus.py --corpus` prints where it resolves",
   "accepted": [
    {
     "id": "A1",

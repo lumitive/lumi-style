@@ -118,8 +118,17 @@ def audit(root: pathlib.Path) -> tuple[list[str], dict]:
         return [f"{REGISTER} declares no rules; a register that is empty "
                 f"passes every check by construction"], {}
 
-    known = gating.every_metric_name(root)
-    gates = gating.every_gating_name(root)
+    # The GATE register can be unreadable too, and `gating`'s readers raise
+    # rather than answering the empty set. Caught here so a corrupt
+    # `evals/gates.json` is a finding this audit reports, not a traceback out
+    # of the `--check` step — the rule register eight lines above already gets
+    # exactly this treatment.
+    try:
+        known = gating.every_metric_name(root)
+        gates = gating.every_gating_name(root)
+    except (OSError, ValueError, KeyError) as exc:
+        return [f"the gate register could not be read ({exc}), so no rule "
+                f"could be held to a metric"], {}
     findings: list[str] = []
     seen: set[str] = set()
     cited: set[str] = set()

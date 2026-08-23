@@ -19,6 +19,12 @@ lib/            imported, never gates by itself
   css_tokens      the ONE CSS custom-property reader (ditto)
   lock            the brand-lock verifier (LOCKED.json's teeth)
   deliverable_registry  the ONE kind->checker map (both consumers below)
+  markup          the ONE HTML reader (pages, bodies, agenda vocabulary)
+  gating          which metrics gate, read from evals/gates.json
+  gate_registry   that register's reader: family, since, severity
+  shipped         which side of the repository split a file is on
+  state_dir       where an operator's stores live ($LUMI_STATE / ~/.lumi)
+  trace_store     the ONE trace-store resolver, writer and readers alike
 
 render/         geometry becomes SVG
   globe_svg       a static globe frame; re-exports geo_frame for its callers
@@ -65,8 +71,12 @@ cycle waiting to happen**: `new_deck` reads `fixtures/deck-pass.en.html`, the
 artifact `build_fixtures` generates, so its `FIXTURE` read stays inside
 `preamble()` and must never move to module scope — at module scope the
 fixture generator could not import while the fixture was absent or stale.
-Nothing else imports `ops/` (tests do), and nothing in `lib/` imports
-anything local except `geo_frame → geo_projection`.
+Nothing else imports `ops/` (tests do). `lib/` modules DO import each other —
+`geo_frame → geo_projection`, `checker_report → deliverable_registry`,
+`gating → gate_registry`, `trace_schema → deliverable_registry`, and
+`corpus`/`trace_store` → `state_dir` — each of them a shared definition with one
+owner, which is what `lib/` is for. What no module in it may do is import from
+`ops/`, `check/` or `build/`.
 
 History note: this tree was flat (36 files, counting the registry that
 arrived with the hardening) until 0.1.438–0.1.440. The

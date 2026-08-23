@@ -34,6 +34,16 @@ When the user specifies a language, produce in that language. Rules in sections
 1–7 are language-agnostic unless marked **[zh-output]** (Simplified Chinese
 deliverables only) or **[en-output]**.
 
+**A deliverable DECLARES the language it is in.** An HTML document carries
+`lang="en"` or `lang="zh"` on its root element; a file may say it in its name
+instead (`deck.en.html`, `deck.zh.html`). This is not bookkeeping: M12 is the
+check that catches Chinese a reader can see in an English deliverable, and it
+has nothing to compare against when the document will not say what it is. A
+document that carries Chinese and declares nothing — or declares a language
+this package does not produce — is reported **blind**, which fails the run in
+the same way a hit does. Silence is not an exemption; it is the cheapest one
+there would be.
+
 ## 1 · Terminology red lines
 
 *Serves: **P-3**.* · id `WR-2`

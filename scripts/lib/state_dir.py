@@ -1,10 +1,13 @@
 """Where this package writes things that belong to an OPERATOR, not to a repo.
 
 Four stores were resolved against the repository root: the trace store, the
-local corpus registry, the price table and the review scores. Three of those
-are gitignored on purpose — they are one machine's facts with dates on them —
-and all four would have no directory to live in once the skill is installed
-from a projection that carries no `evals/` or `reviews/`.
+local corpus registry, the price table and the review scores. TWO of them are
+gitignored on purpose — the corpus registry and the price table, one machine's
+facts with dates on them; the traces and the review scores are tracked, because
+a record that is not kept is not a record. What all four share is that they
+would have no directory to live in once the skill is installed from a projection
+that carries no `evals/traces/` and no `reviews/`. (It does carry `evals/` —
+`gates.json` and `thresholds.json` ship.)
 
 The resolution is deliberately NOT a flat default. It prefers the in-repo
 directory **when this checkout actually has it**, so a maintainer's existing

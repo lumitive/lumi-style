@@ -121,7 +121,7 @@ consistency and belong with item 2, and M5 is Chinese punctuation, which is item
   `fixtures/expected.json` for both fixtures.
 - Each has a **failing case planted in `deck-broken`**. A metric asserted `ok` on
   both fixtures cannot tell a working checker from one rewritten to return `ok`.
-- M2 and M6 fail (non-zero exit) like M4. M1 reports rather than gates until it
+- M6 fails (non-zero exit) like M4; M2 has never gated. M1 reports rather than gates until it
   has been read against real documents for two releases, because a title
   heuristic that fires on good titles is a line reviewers learn to skip.
 

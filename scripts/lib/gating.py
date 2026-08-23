@@ -1,24 +1,26 @@
-#!/usr/bin/env python3
-"""Which metrics GATE — read from the checkers, never listed by hand.
+"""Which metrics GATE.
 
-A checker decides this in one place: the target string on a row carries
-"(gates)" if and only if that metric fails the run. Two consumers need the
-answer and neither may keep its own copy — `check_repo.check_gating_claims`
-holds the package's prose to it, and `run_conformance` holds a conformance
-deliverable to it.
+The AUTHORITY is `evals/gates.json`, held to the checkers themselves by
+check_repo's `gate declarations` guard. `gating_metrics`, `every_gating_name`
+and `every_metric_name` all read it by NAME.
 
-**Why the second consumer exists.** T1's `require` block named six metrics by
-hand: D12, D14, D15, M4, collision, content_hidden. Ten design metrics gate and
-fifteen layout verdicts do, so a deck could fail D19, D1, D3, D4 and eleven
-layout checks and still be scored `pass` — which is what the owner found by
-opening one on 2026-08-21. A hand-written subset of a machine-readable set is
-the drift this repository has fixed twenty-six times, and here it was not even
-drift: the list was short the day it was written.
+`metric_ids` alone still reads the `(gates)` substring off the row tables, and
+that is deliberate: it answers an id-level question (which D-metrics gate) that
+the prose guard needs, and reading it from the same place the register is held
+to keeps the two from becoming two copies.
+
+Three consumers need the answer and none may keep its own: check_repo's `gating
+claims`, `run_conformance`'s require set, and `check_rule_coverage`.
+
+**Why the conformance consumer exists.** T1's `require` block named six metrics
+by hand: D12, D14, D15, M4, collision, content_hidden. A deck could fail eleven
+layout checks and four design ones and still be scored `pass` — which is what
+the owner found by opening one on 2026-08-21. A hand-written subset of a
+machine-readable set is this repository's most-fixed drift, and here it was not
+even drift: the list was short the day it was written.
 
 `ast`, never `import`: the authority is the source of the row table, and
-importing a checker to ask it would run a checker. Both scripts spell the table
-differently — one appends tuples, the other returns a list literal — so this
-walks every tuple rather than keying on either shape.
+importing a checker to ask it would run one.
 """
 from __future__ import annotations
 
@@ -132,7 +134,7 @@ def layout_verdicts(root: pathlib.Path | None = None) -> set[str]:
         # findings go through `add(...)`; `datum` and `role_split` are written
         # straight into the dict because they come from the consistency audit
         # rather than from the page rows. A reader keyed on the common shape
-        # reported 19 gates where there are 20 — the exact class of mistake
+        # reported one gate fewer than there were — the exact class of mistake
         # convention 15 is about, found by looking at the material.
         names |= {t.slice.value for a in ast.walk(node)
                   if isinstance(a, ast.Assign)
@@ -142,7 +144,11 @@ def layout_verdicts(root: pathlib.Path | None = None) -> set[str]:
                   and isinstance(t.slice, ast.Constant)
                   and isinstance(t.slice.value, str)}
         return names
-    return set()
+    # NOT `set()`. An empty layout gate set reads as "no layout verdict
+    # gates" — the same "nothing gates" meaning the sibling functions
+    # were changed for, and the comment above claimed all three had been.
+    raise ValueError(f"{path}: no `deliverable_verdicts` function, so the "
+                     f"layout gate set cannot be read")
 
 
 def every_gating_name(root: pathlib.Path | None = None) -> set[str]:

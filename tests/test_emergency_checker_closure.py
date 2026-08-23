@@ -50,11 +50,16 @@ def test_closure_covers_check_repo_imports_and_subprocesses():
     check, closure = _parse_closure()
     names = {p.name for p in closure}
     src = check.read_text(encoding="utf-8")
+    # DERIVED from check_repo's own sibling table, never restated. The list
+    # used to be spelled here and stopped at `corpus`, so `shipped` and
+    # `state_dir` — both imported by the new boundary guards — were invisible
+    # to this test and absent from the closure. A hand-written subset of a
+    # machine-readable set is the drift this repository has fixed most often.
+    import check_repo
     imported = set(re.findall(
-        r"^\s*(?:import|from)\s+(color_math|css_tokens|lock|geo_projection|"
-        r"geo_frame|globe_svg|regionmap_svg|sea_route|deliverable_registry|"
-        r"embed_globe|embed_icons|check_prose|inspect_layout|check_privacy|"
-        r"secret_patterns|markup|corpus)\b", src, re.M))
+        r"^\s*(?:import|from)\s+(" + "|".join(check_repo.SIBLING_MODULES) + r")\b",
+        src, re.M))
+    assert imported, "the sibling-import scan matched nothing"
     for mod in imported:
         assert f"{mod}.py" in names, (
             f"check_repo imports {mod} but the trusted closure does not carry "

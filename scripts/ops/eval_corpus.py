@@ -285,10 +285,12 @@ def main(argv=None) -> int:
             # directory at 0.1.571, so on a machine that has no local corpus
             # this raised ValueError and the flag's headline path was a
             # traceback. Home is collapsed so the note carries no username.
-            shown = str(local_path).replace(str(pathlib.Path.home()), "~", 1)
+            home = str(pathlib.Path.home())
+            shown = (str(local_path).replace(home, "~", 1)
+                     if home not in ("", "/") else str(local_path))
             note(f"note  {shown} is absent, so no "
-                  f"corpus document could be located. evals/README.md gives "
-                  f"its shape.")
+                  f"corpus document could be located. It is a JSON object mapping "
+                  f"a corpus id to the path of the document it names.")
         for group in ("accepted", "rejected"):
             for entry in table["corpus"][group]:
                 where = local.get(entry["id"])

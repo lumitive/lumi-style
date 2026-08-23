@@ -11,8 +11,9 @@ improving" without re-reading the changelog.
     python3 scripts/ops/review_scores.py --check    # validate only (runs in CI)
 
 This is a schema and a printer, not a system. It stores no prose: see the
-$comment in reviews/scores.json for why a notes column is the one field this
-file may never have.
+$comment in the store itself for why a notes column is the one field this
+file may never have. Where the store lives is `state_dir`'s answer, not this
+file's — `--check` prints it.
 
 Standard library only.
 """
@@ -124,7 +125,7 @@ def validate(store) -> list[str]:
     dims = store.get("dimensions")
     outcomes = set(store.get("outcomes") or [])
     if dims != ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]:
-        return [f"reviews/scores.json declares dimensions {dims!r}; the rubric "
+        return [f"{STORE} declares dimensions {dims!r}; the rubric "
                 f"defines C1-C8 and the store may not disagree with it"]
     releases = set(re.findall(r"^##\s+(\d+\.\d+\.\d+)", CHANGELOG.read_text(
         encoding="utf-8"), re.M))

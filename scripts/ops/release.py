@@ -75,9 +75,10 @@ def stamped_files() -> list[str]:
 # Two kinds, and only one of them can be listed here honestly.
 #
 # THE GENERATORS ARE DERIVED FROM ci.yml, never listed. This was a hand-written
-# list of four and CI `--check`s five: `build_page_contracts.py` was missing, so
-# a release that changed `evals/rule-coverage.json` regenerated three artefacts,
-# left the fourth stale, and failed its own preflight. That happened three times
+# list of four while CI checked every generator in `scripts/build/`:
+# `build_page_contracts.py` was missing, so a release that changed
+# `evals/rule-coverage.json` regenerated three artefacts, left that one stale,
+# and failed its own preflight. That happened three times
 # before anybody read the list against the workflow — which is the same shape as
 # every other hand-written subset this package has fixed, in the script whose
 # whole purpose is that local green and CI green are the same claim.

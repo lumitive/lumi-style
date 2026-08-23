@@ -280,7 +280,7 @@
    "family": "output-language",
    "severity": "gate",
    "since": "0.1.373",
-   "na_means": "the document does not declare English"
+   "na_means": "the document declares a language this metric does not read - Chinese. A document that declares NOTHING and carries CJK is `blind`, not n/a: it fails"
   },
   "M13_quantity_conflicts": {
    "checker": "prose",

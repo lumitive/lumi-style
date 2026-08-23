@@ -1912,7 +1912,18 @@ def main(argv):
                     # gate and fifteen layout verdicts do, so a deck could fail
                     # D19, D1, D3, D4 and eleven layout checks and still score
                     # `pass`. The owner found one by opening it.
-                    require = dict.fromkeys(gating.gating_metrics(verdict_union), "ok")
+                    # `gating` raises on an unreadable register rather than
+                    # answering the empty set, which used to mean "nothing is
+                    # required". Turned into a finding here: a scoring pass
+                    # that cannot read the gate set must say so, not discard a
+                    # run that has already driven every agent.
+                    try:
+                        require = dict.fromkeys(
+                            gating.gating_metrics(verdict_union), "ok")
+                    except (OSError, ValueError, KeyError) as exc:
+                        failed.append(f"the gate register could not be read "
+                                      f"({exc}); nothing could be required")
+                        require = {}
                     require.update(dict.fromkeys(layout_verdicts, "ok"))
                 for metric, want in require.items():
                     got = verdict_union.get(metric)
