@@ -1,0 +1,18 @@
+{
+  "version": "0.1.587",
+  "diff_base": "a550464f2738ad50f11d6bf4fd704541c5978a65",
+  "spec": "specs/2026-08-23-language-gate-and-build-cost-design.md",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "98a4c92a7892ab98f18df40bb5f0364b93177062ace79845f990cda5ad78640c",
+      "date": "2026-08-23"
+    }
+  ],
+  "waivers": []
+}

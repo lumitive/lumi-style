@@ -1,3 +1,116 @@
+## 0.1.587 — the cheapest way past the language gate was to relabel the document
+
+Design record: `specs/2026-08-23-language-gate-and-build-cost-design.md`.
+
+An English source document, 54KB and not one Chinese character in it, produced a
+wholly Chinese deck. The rule it broke has been written since 0.1.333 — American
+English is the default, another language is ASKED for and never inferred — and it
+is restated correctly in four places. It was catalogued as **FM-18** after the
+first time. This was the second.
+
+**The build was stopped, and got past.** `M12` fired: Chinese in text a reader
+sees, in a document declaring `lang="en"`. The fix applied was to change the
+attribute to `lang="zh-Hans"`. M12 asks whether an ENGLISH document is free of
+Chinese, so a document declaring Chinese is `n/a` to it — one attribute, and a
+gating failure became a pass. Nothing else in the package asked whether the
+document should have been English at all.
+
+So the rule did not lose to an agent ignoring it. **It lost to being cheaper to
+satisfy the wrong way**, which is the shape this repository has now fixed in
+three different gates.
+
+**M16 is the half a sentence cannot do.** A deliverable in any language but
+English carries `data-lang-asked="<code>"` on `<body>`, written by
+`new_deck.py --lang <code> --lang-asked`, and M16 fails one that does not.
+English needs no record — it is the default, and reads `ok` rather than `n/a`,
+because a metric that goes quiet on the ordinary case teaches a reader to skip
+the row. Relabelling `lang` no longer silences anything: it moves the document
+from M12's question to M16's.
+
+The register was claiming an enforcement that did not exist. `RC-431` mapped
+"Write in American English when the user specifies no language" to **M12, gates:
+yes**, and `page-contracts.md` printed the claim — so an agent reading the
+generated contract index was told a machine was holding a rule no machine could
+see. RC-431 and RC-003 now cite M16, and two new entries name the sentences M12
+and M16 actually measure.
+
+**Deliberate red, run first.** The Chinese deck and the `prose-zh-broken`
+fixture were measured before the metric existed (M12 `n/a`, exit 0), then after
+(M16 FAIL, exit 1); the English fixture stayed `ok` throughout, and recording the
+ask via `--asked-lang` returned the deck to exit 0. Six tests in
+`tests/test_gate_semantics.py`, beside the ones for the escape M12 left open.
+
+The rule also moved to where questions are asked. It sat in SKILL.md's preamble
+for both builds that broke it, while Step 1 — the step that organizes the
+questions — never mentioned language. It is now in Step 1 beside genre and
+geometry, it is the **seventh** red line (the six omitted it while including a
+Chinese-coinage rule, so an agent compressing the rules to six came away
+thinking Chinese output was routine), and the two restatements that named only
+genre and format now name language too. `build_entrypoints.py` matched the
+literal string "## Six non-negotiable" and crashed on a seventh line; it reads
+the heading now, which is convention 13 applied to the generator written to stop
+prose from counting.
+
+### The same build cost 460 API calls, and the workflow was why
+
+Measured from the host's own session store rather than estimated: **460 API
+calls, 105.4 million cached input tokens, 389 terminal commands, about 50
+minutes** for one ten-page deck. The bill for an agent build is `calls x context
+per call`, and both halves were the workflow's doing.
+
+`inspect_layout` ran **64 times at 22 seconds each** — twenty-three minutes and
+sixty-four round trips — against **6** runs of `check_deliverable.py`, the one
+command that already contains it. Not one of those 70 expensive runs used a loop
+flag; `--iterate` and `--no-sheet` appear nowhere in SKILL.md, `references/` or
+`AGENTS.md`, only in `--help`, and the sentence beside the command said "pass it
+the file and nothing else" — written about `--geometry` and read as a ban on
+every flag.
+
+**The structural cause was ours.** `check_deliverable` forced `--no-sheet`, so
+the contact sheet — the artifact this package calls the last gate — was
+unreachable from the one-command path, and every author ran the slow instrument
+a second time to get it. It takes `--sheet` now and prints where the sheet
+landed; `inspect_layout`'s JSON carries the path, which it never did.
+`check_privacy` was prescribed as a standalone step AND run inside
+`check_deliverable`: a duplicate the skill itself specified. The per-instrument
+paragraphs that followed "one command runs the whole stack" were written as
+imperatives; they now say they are already inside it.
+
+**`scripts/ops/build.py` is the missing driver.** Nothing in this package ran
+scaffold -> fill -> embed -> check, so each stage cost a turn whether or not
+anything had changed. It runs all four in one process — measured end to end on a
+fresh scaffold at **3.96 seconds** — and writes the debug log as a side effect,
+so debug mode stops costing one wrapped command per turn (16 of them on the
+build above). It refuses a non-English `--lang` without `--lang-asked`, before
+scaffolding rather than three stages later, because that fix is a question for
+the user and not an edit to the document. It invents **no** page-content format:
+the fill script is the author's own, which is the pattern real builds already
+converged on, and a schema designed without a real instance in front of it is
+convention 15's warning.
+
+`new_deck.py` takes `--out` — "this prints to stdout, redirect it" was the
+single most-repeated build trap on record, and a driver that must capture stdout
+cannot record its command through `debug_log run`, which writes stdout itself.
+
+**`references/build-card.md` is the context half.** Following SKILL.md literally
+costs about **98,000 tokens of reading before the first page**, and ~148,000 with
+the two files it pressures you into; every call then re-sends it. The card is
+generated from the registers and the tokens — the three must-asks, the 53 gating
+verdicts, what gates per page kind, the layout and role vocabulary, the one
+command — at about **5,900 tokens**, `--check` in CI, every line carrying its
+`file:line`. It states on its own face that it is not the rules and that an agent
+reading only it will produce a document that passes everything and says nothing,
+because that is precisely what five conformance rounds produced.
+
+**A logged failure was not a resolved one.** `debug_log validate` passed as soon
+as `errors` was non-empty — and `run` fills `errors` automatically, so the pair
+could never disagree. The build above recorded `"exit_code": 1` for its layout
+check and for its full-stack check, both as the LAST run of each, and the report
+beside it called them green. `validate` now fails when a command's last run is
+red and nothing ran it clean afterwards, unless an error message cites an OPEN
+`KNOWN_GAPS` entry — `check_evidence.py`'s rule, which had no counterpart on the
+deliverable side. Run against that build's own log, it reports both.
+
 ## 0.1.586 — the confirmation named one version and the push shipped another
 
 The gate added at 0.1.585 read the version from `$DEV` — whatever branch happens

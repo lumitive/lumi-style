@@ -3890,6 +3890,11 @@ def main(argv):
                 print(f"  contact sheet: {sheet}")
                 print("  Look at it. That is the check; the numbers only say where to look.")
             results.append({"file": path.name, "geometry": geometry,
+                            # The sheet was printed and never RETURNED, so a
+                            # caller running with --json built the one artifact
+                            # this package calls the last gate and could not
+                            # say where it landed.
+                            "sheet": str(sheet) if sheet else None,
                             "size": GEOMETRIES[geometry], "dark": dark,
                             "pages": rows, "pageErrors": errors,
                             "verdicts": {k: v for k, (v, _) in verdicts.items()},

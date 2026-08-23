@@ -1250,8 +1250,9 @@ A layout is verified only across the **matrix**, not at a point:
   the tokens hang the stage off that declaration rather than off the reader's
   window. The genre picks the default — sales, marketing and consulting are
   projected, so 16:9; training is printed, annotated and bound, so A4 portrait —
-  **and when the request does not settle the genre or the format, ask before
-  generating.** That is the one question worth a round trip, because the answer
+  **and when the request does not settle the genre, the format or the output
+  language, ask before generating.** Those are the questions worth a round trip,
+  because the answer
   changes every page.
 
   **Both editions of one file is not a thing this package produces.** A second

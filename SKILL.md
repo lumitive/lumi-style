@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.586"
+  version: "0.1.587"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -52,8 +52,13 @@ audience's nationality are all evidence about the reader and none of them is
 an instruction. A language the same user chose for a comparable deliverable
 outranks every inference from the material; naming a language in a plan and
 having the plan approved does not convert an inference into an instruction
-(FM-18, from a build that shipped Chinese one day after its owner had chosen
-English for the same kind of document). A second
+(FM-18, which has now happened twice — the second time
+the build was stopped by M12 and got past it by editing `lang="en"` to
+`lang="zh-Hans"`, because M12 asks whether an ENGLISH document is free of
+Chinese and relabelling turned a gating failure into `n/a`). **The ask is
+recorded rather than remembered**: `new_deck.py --lang <code> --lang-asked`
+writes `data-lang-asked` on `<body>`, and **M16 fails a deliverable in any
+language but English that carries no such record**. A second
 geometry is a second *composition*, in its own file, with its own layouts and
 its own figures; it is never the same file viewed sideways. Each stage is
 scaled to fit the window and letterboxed — *not* a box that takes the window's
@@ -153,7 +158,21 @@ core detail recovered versus one batched round (the batched form shipped
 here for six releases against the research that had already falsified
 it). Questions may probe structure and evidence and may never decide the
 user's conclusions for them. When nothing needs asking, state the
-assumptions in the delivery note and proceed. **For an external document, the value pass comes before the build**: answer
+assumptions in the delivery note and proceed. **Three things are asked
+before anything is generated, and output language is one of them** —
+beside the genre and the page geometry, for the same reason: the answer
+changes every page. **American English is the default**; another language
+is something the user ASKS for, never something you read off the language
+of their material, the language THEY are typing in, the venue, or where
+the audience is. A language the same user chose for a comparable
+deliverable outranks every inference from the material, and naming a
+language in a plan and having the plan approved does not convert an
+inference into an instruction. When they do ask, the build records it —
+`new_deck.py --lang <code> --lang-asked` — and **M16 fails a deliverable
+in any language but English that carries no such record**. This paragraph
+is here rather than only in the preamble because the rule was in the
+preamble, correct and forceful, for both of the builds that broke it
+(FM-18). **For an external document, the value pass comes before the build**: answer
 5W+1H for the document as a whole (what, why, who, when, where, how — the
 reader should recover all six from the deck alone), give every key number
 its judgment anchor, and write the ask as who-does-what-by-when. The first
@@ -181,6 +200,20 @@ Three conformance decks passed
 every gate and repeated one icon across seven pages, left every part opener
 without its subject mark, and put a stat band on the agenda; all three are
 §3 and §6 rules, and none of the three agents had been told to read them.
+
+**Keep [`references/build-card.md`](references/build-card.md) open while you
+compose, and stop re-opening the reference files for a class name.** It is
+generated from the registers and the tokens, `--check` in CI, and it carries
+only what a script can fail you for: the three must-asks, the gating verdicts,
+what gates per page kind, the layout and role vocabulary, and the one command.
+It is about 5,900 tokens against the ~98,000 the reads above cost, and the
+difference is the whole reason it exists — a 2026-08 ten-page build re-sent
+**105 million cached tokens across 460 API calls**, and every one of those calls
+carried the reference set. **The card is not the rules and says so on its face**:
+it holds no judgement, and an agent that reads only the card produces a document
+that passes every gate and says nothing, which is exactly what five conformance
+rounds produced. Read the references above to have something to say; read the
+card so you do not read them again.
 
 **Building or checking ONE kind of page? Read
 [`references/page-contracts.md`](references/page-contracts.md) rather than
@@ -320,7 +353,15 @@ skill had not lost the craft; this step had stopped pointing at it.*
 **Then compose the page — starting from the scaffold, never the fixture.**
 `python3 scripts/ops/new_deck.py --genre <genre> --geometry <geometry>` emits
 the standard order with the display face embedded and every icon reference
-resolving. `fixtures/` are checker inputs: a 34-page review reached its
+resolving (to stdout by default; `--out <file>` writes it).
+**`python3 scripts/ops/build.py` is the whole build in one command** — scaffold,
+your fill script, `embed_shapes`, and the step-4 gate stack — and it is what a
+real build should run, because every separate command is an API round trip
+carrying the whole conversation. Measured on a 2026-08 ten-page deck that ran
+them separately: **389 terminal commands and 460 API calls, 105 million cached
+input tokens**, of which the fill script alone was 46 invocations and
+`embed_shapes` 38. The driver also writes the debug log as a side effect, so
+debug mode stops costing a turn per command. `fixtures/` are checker inputs: a 34-page review reached its
 reader with `REPLACE ME` as its browser-tab title and the fixture's
 `www.example.org` in all 34 footers because its pages were hand-copied from
 one, and `check_design.py`'s D14 now refuses the scaffold's own slots.
@@ -448,11 +489,13 @@ beat ran and composition threw its output away, with every gate green.*
 
 ### Step 4 · Before delivery
 
-**Before delivery**: run `python3 scripts/check/check_privacy.py <file>` —
-P-5's other half. Layer 1 gates (credential shapes, and terms declared out
-of bounds: every `*.terms.txt` under `~/.lumi/terms/`, the one home
-`references/operating-rules.md` OR-8 names, or a `--terms <list>` you
-pass); layer 2 reports; **layer 3 is yours**: is any commercial analysis
+**Before delivery**, the privacy question — P-5's other half. `check_privacy`
+runs INSIDE `check_deliverable.py` below, so **do not run it as a separate
+step**; pass the engagement's list through with `--terms <list>` and read its
+lines out of the one verdict block. Layer 1 gates (credential shapes, and terms
+declared out of bounds: every `*.terms.txt` under `~/.lumi/terms/`, the one home
+`references/operating-rules.md` OR-8 names, or the `--terms <list>` you pass);
+layer 2 reports; **layer 3 is yours**: is any commercial analysis
 here sensitive? The script names that question and does not answer it.
 **With no list anywhere the term half reports NOT ATTEMPTED and exits
 non-zero** — a check nobody ran is not a check that found nothing. Then: if two MUST clauses of `references/PRINCIPLES.md`
@@ -489,26 +532,45 @@ omitting the stamp is not a way out — read that block whole, then fix everythi
 only and skips the off-shape sweep, which is 3 seconds instead of 16 on a
 twelve-page deck with every gate still running. It is not a delivery reading
 and it says so; the last round before you hand the document over runs without
-it. It also closes the build's
+it, **with `--sheet`**, which builds the contact sheet and prints where it
+landed. *Both flags exist because the loop is where the cost is. Measured on a
+2026-08 build that used neither: `inspect_layout` ran **64 times at 22 seconds
+each** — twenty-three minutes and sixty-four round trips — against six runs of
+this one command. The author was running the slow instrument separately to get
+the sheet, which is the artifact this file calls the last gate and which
+`check_deliverable` used to suppress unconditionally.* It also closes the build's
 trace: `new_deck.py` opens one at scaffold time (when a `--storyline` is
 given) and writes its id into `<body data-trace>`, starting the build clock;
 the check step stops that clock, records its own duration as the checks
 phase, and transcribes the verdicts. A document with no trace is reported
 `unmeasured` — a build that leaves no record is not a measured build. It exists because a
 fifteen-page deck once took ten rounds, at least three of them from reading
-the reports in installments. The individual instruments below remain for
-targeted re-runs. `python3
+the reports in installments.
+
+**The instruments below are already inside that command** — prose, design,
+layout, privacy and the Evals, in one process, with the browser rendering while
+the text checks run. **Do not run them as steps.** They are described here so
+you can re-run ONE of them against ONE finding while you fix it, and that is the
+only reason to invoke them directly. Running the stack and then the instruments
+is the same work twice, and the expensive half of it is a browser.
+
+`python3
 scripts/check/inspect_layout.py <file>` renders the pages and builds a contact sheet;
 its design judgements gate nothing but it **exits 1 when a check could not be
-measured**, and those lines come before every green one. Run it again with
-**`--deliverable`**, which exits non-zero on the findings a rendered page
+measured**, and those lines come before every green one. **`--iterate` is its
+author's loop** — the declared stage only, no off-shape sweep, every gate still
+running — and with `--no-sheet` it measures a twelve-page deck in about 4
+seconds instead of 22. It is not a delivery reading. `--deliverable` exits
+non-zero on the findings a rendered page
 can be wrong about decidably: collision, a starved column, content spill,
 page height, hidden content, a wrapped footer, a footer whose runs sit on
 different baselines, a viewBox that does not parse, a drawing clipped by
 its own viewBox, a stat band whose labels render outside it, an overspent title reserve, a role split, a lost datum, a mark drawn out of proportion to the value it declares, and a document whose content pages are mostly not drawn on at all.
-**Pass it the file and nothing else** — it reads `data-geometry` and runs the
+**Do not pass it a `--geometry`** — it reads `data-geometry` and runs the
 matrix that declaration implies, and a single `--geometry` switches the matrix
-off. Add a second run with `--dark` if the deliverable ships a dark variant;
+off. (This sentence read "pass it the file and nothing else", which was about
+`--geometry` and was followed as a ban on every flag, including the two that
+make the loop cheap.) Add a second run with `--dark` if the deliverable ships a dark variant;
 one run renders one palette.
 `python3 scripts/check/check_design.py <file>` reports the design metrics and
 gates on every row its own table marks `(gates)` — none of them a design
@@ -518,11 +580,16 @@ every page owes (the terms open with the seal-red `shield` handling marker —
 the rendering ships in `tokens/`, the gate is the terms); **D14**, any slot
 left for yourself; **D15**, a file path in a footer; and **D19**, a reference
 that does not resolve inside the document — an icon pointing at no symbol, or
-a `data-globe` mark with no runtime to turn it. `python3 scripts/check/check_prose.py <file>` grades the English, and
-**M12 fails on Chinese in text a reader sees** when the document declares
-English, and reports `blind` — which also fails — when it declares no language
-at all. A clean banned-phrase run is not a language pass, and an undeclared
-document is not an exempt one.
+a `data-globe` mark with no runtime to turn it. `python3 scripts/check/check_prose.py <file>` grades the prose, and the
+language pair is two questions rather than one. **M12 fails on Chinese in text a
+reader sees** when the document declares English, and reports `blind` — which
+also fails — when it declares no language at all. **M16 fails a document
+declaring any language but English with no record that the user asked for it**
+(`data-lang-asked` on `<body>`, or `--asked-lang`). M12 alone was escapable:
+relabelling `lang="en"` to `lang="zh-Hans"` moved a document out of M12's
+question entirely, and a shipped build made exactly that edit to go green. A
+clean banned-phrase run is not a language pass, an undeclared document is not an
+exempt one, and a relabelled one is not a fixed one.
 `python3 scripts/check/check_facts.py <contract.md> <file>` asks the
 question no other check asks — **whether this build still carries the facts
 it was built from**. Quantities in the document that appear nowhere in the
@@ -602,7 +669,7 @@ writes what it can into the delivery note and names what it owes, the same
 degradation contract the checkers use. Without the words "debug mode", write
 no log.
 
-## Six non-negotiable red lines (every scenario)
+## Seven non-negotiable red lines (every scenario)
 
 1. No invented facts; every number carries its source; illustrative values are
    labeled;
@@ -616,6 +683,10 @@ no log.
 5. Charts: one accent color, conclusion-style titles, a source line on every
    figure;
 6. AI never signs; money/safety conclusions never come from a language model.
+7. Output language is **American English** unless the user asked for another —
+   asked, never inferred from the source material, from the language they are
+   writing to you in, from the venue, or from where the audience is; and a
+   deliverable in any other language records the ask.
 
 ## Cross-platform
 

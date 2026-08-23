@@ -88,6 +88,9 @@ jobs:
       # reverse direction, a gate no rule asks for.
       - run: python3 scripts/check/check_rule_coverage.py --check
       - run: python3 scripts/build/build_page_contracts.py --check
+      # The build card: the decidable half of the rules, generated so it
+      # cannot become a third copy of them.
+      - run: python3 scripts/build/build_card.py --check
       # The gates, tested. Runs after the staleness checks so a stale
       # fixture reports as stale rather than as a metric regression.
       - run: python3 scripts/check/check_fixtures.py

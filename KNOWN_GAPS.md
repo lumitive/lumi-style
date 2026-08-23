@@ -75,6 +75,45 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-030 · Red line 5 asks every figure for a source line and nothing reads it
+
+- status: open
+- opened: 0.1.587
+- surface: scripts/check/check_design.py, scripts/check/inspect_layout.py
+- symptom: SKILL.md's red line 5 — "a source line on every figure" — has no
+  check. Measured on a 2026-08 deck: **ten figures, zero `.cap .srcline`
+  elements in the whole document**, and every design gate green.
+  `inspect_layout` reports `source: NOT MEASURED, no page pairs a `.cap
+  .srcline` with a document `.colophon``, which reads as an absence of data
+  rather than as the finding it is — the document has no source lines at all,
+  which is exactly what the rule forbids.
+- why it is not simply gated: a figure that states no data arguably owes no
+  source, so the population is "figures that state a number", which is D29's
+  question and D29 reports rather than gates. The candidate is: a figure
+  carrying a value the page states must carry a source line. Needs a real
+  instance sweep before the pattern is written (convention 15).
+- check: none
+
+## GAP-031 · A deck can delete its takeaway rung and every gate stays green
+
+- status: open
+- opened: 0.1.587
+- surface: scripts/check/check_design.py D28, scripts/check/check_outline.py
+- symptom: `new_deck.py` seeds every content page with a `.take` line; a
+  2026-08 build emitted **ten content pages and zero `.take` elements**, having
+  substituted the tier-1 `.key` callout on five of them and nothing on the other
+  five. D28 is `n/a` for the internal genre, so it said nothing.
+  `check_outline --against` DID report "10 of 10 planned implications are not in
+  their page's takeaway" — the right finding, in a line that reads as a note.
+  AR-2's implication rung was deleted wholesale and the document was green.
+- why it is not simply gated: `.take` is required of EXTERNAL content pages, and
+  the genre exemption is deliberate. What is not deliberate is that an outline
+  declaring an implication for every page can lose every one of them without a
+  gating verdict. The candidate is on `check_outline --against`: a planned
+  implication that reached no page at all, in any element, rather than only "not
+  in the takeaway".
+- check: none (check_outline reports it)
+
 ## GAP-029 · `gating.py` read one checker's convention into the other
 
 - status: fixed

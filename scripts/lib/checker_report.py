@@ -2,7 +2,7 @@
 """Run a deliverable checker and read its report — one implementation.
 
 Four scripts grew private copies of the same two facts: how to invoke a checker
-kind (`--genre` for prose, `--deliverable --no-sheet` for layout) and how to
+kind (`--genre` for prose, `--deliverable` plus a sheet choice for layout) and how to
 parse what comes back (prose and design print a LIST of per-file dicts; layout
 prints ONE dict with `verdicts` at the top and `unmeasured` beside it).
 `run_conformance.score_checks` had both; `check_fixtures.verdicts_of` and
@@ -41,7 +41,7 @@ from deliverable_registry import checker_path  # noqa: E402
 
 
 def checker_argv(kind: str, path, genre: str | None = None,
-                 iterate: bool = False) -> list[str]:
+                 iterate: bool = False, sheet: bool = False) -> list[str]:
     """The canonical invocation for one checker kind, in one place.
 
     The knowledge here used to live in `run_conformance.score_checks` alone,
@@ -58,8 +58,16 @@ def checker_argv(kind: str, path, genre: str | None = None,
         argv += ["--genre", genre]
     if kind == "layout":
         # `--deliverable` is the point: without it inspect_layout gates on
-        # nothing. `--no-sheet` because nobody is watching a harness run.
-        argv += ["--deliverable", "--no-sheet"]
+        # nothing. `--no-sheet` by default because nobody is watching a harness
+        # run — but `sheet` exists because a person IS watching the last round,
+        # and the contact sheet is the last gate this package has. Suppressing
+        # it unconditionally meant the one-command path could not produce the
+        # one artifact SKILL.md calls the final check, so every author ran
+        # inspect_layout a second time to get it. Measured on one 2026-08 build:
+        # 64 separate runs at 22 seconds each, against 6 of the one command.
+        argv.append("--deliverable")
+        if not sheet:
+            argv.append("--no-sheet")
         if iterate:
             argv.append("--iterate")
     return argv

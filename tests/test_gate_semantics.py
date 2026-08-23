@@ -92,3 +92,74 @@ def test_a_gate_newer_than_the_document_leaves_the_gating_bucket(tmp_path):
     assert not [g for g in o["gating"] if "D14" in g], o["gating"]
     assert any("D14" in g for g in n["gating"]), n["gating"]
     assert any("D14" in g for g in o["not_held"]), o["not_held"]
+
+
+# --- M16: the other half of the escape ---------------------------------------
+# M12 asks whether an ENGLISH document is free of Chinese. It cannot ask whether
+# the document should have been English, so relabelling `lang="en"` to
+# `lang="zh-Hans"` took a gating FAIL to `n/a` — one attribute, and the rule
+# that says American English is the default had nothing holding it. A 2026-08
+# Hermes build did exactly that and shipped a Chinese deck from a wholly English
+# source document (FM-18, second instance).
+
+
+def _relabelled_zh(tmp_path, name, asked=False):
+    """A Chinese deliverable, declared as such. This is the shape M12 waves
+    through and M16 exists to stop."""
+    raw = PASS.read_text(encoding="utf-8")
+    raw = re.sub(r"(<h2[^>]*>)", r"\1客户在三个月内完成了全部迁移 ", raw, count=1)
+    raw = raw.replace('<html lang="en"', '<html lang="zh-Hans"')
+    if asked:
+        raw = raw.replace("<body ", '<body data-lang-asked="zh-Hans" ', 1)
+    p = tmp_path / name
+    p.write_text(raw, encoding="utf-8")
+    return p
+
+
+def test_relabelling_the_document_is_not_a_fix(tmp_path):
+    """The measured escape, in full: change one attribute and M12 goes n/a.
+    M16 has to fail the same document, or the cheapest fix stays the wrong
+    one."""
+    out = _prose(_relabelled_zh(tmp_path, "d.html"))
+    assert out.returncode == 1, out.stdout
+    assert "n/a   M12_visible_cjk" in out.stdout, "M12 still goes quiet"
+    assert "FAIL  M16_language_asked" in out.stdout, out.stdout
+
+
+def test_a_recorded_ask_is_the_fix(tmp_path):
+    """A Chinese deliverable somebody asked for is a legitimate document. M16
+    must pass it, or the gate is a ban on Chinese output rather than a hold on
+    inference."""
+    out = _prose(_relabelled_zh(tmp_path, "e.html", asked=True))
+    assert out.returncode == 0, out.stdout
+    assert "ok    M16_language_asked" in out.stdout, out.stdout
+
+
+def test_the_operator_can_record_the_ask_from_the_command_line(tmp_path):
+    """An older deliverable carries no attribute, and re-measuring one must not
+    require editing it."""
+    out = _prose(_relabelled_zh(tmp_path, "f.html"), "--asked-lang", "zh")
+    assert out.returncode == 0, out.stdout
+    assert "ok    M16_language_asked" in out.stdout, out.stdout
+
+
+def test_english_reads_ok_rather_than_being_exempt(tmp_path):
+    """`n/a` on the ordinary case teaches a reader to skip the row, and this is
+    the row that says which language the deliverable is in."""
+    out = _prose(PASS, "--genre", "sales")
+    assert "ok    M16_language_asked" in out.stdout, out.stdout
+
+
+def test_the_failure_says_what_would_fix_it(tmp_path):
+    """A FAIL that names no fix teaches the cheapest one, and the cheapest one
+    here is the edit this metric exists to stop."""
+    out = _prose(_relabelled_zh(tmp_path, "g.html"))
+    assert "data-lang-asked" in out.stdout, out.stdout
+    assert "never inferred" in out.stdout, out.stdout
+
+
+def test_m16_is_declared_in_the_gate_register():
+    reg = json.loads((ROOT / "evals/gates.json").read_text(encoding="utf-8"))
+    entry = reg["gates"]["M16_language_asked"]
+    assert entry["severity"] == "gate"
+    assert entry["family"] == "output-language", "M12's family; they are one question"
