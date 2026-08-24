@@ -1,0 +1,8 @@
+{
+  "version": "0.1.593",
+  "diff_base": "4b6aef57e2d009e0f7b8f449ec11c26401337fd6",
+  "spec": "waived: one check, added from a measured finding in the round-5 validation and scoped to it. The reasoning, the field case and the two ways the deliberate-red test was wrong first are in the CHANGELOG entry; a design record would restate it.",
+  "obligations": [],
+  "checks": [],
+  "waivers": []
+}

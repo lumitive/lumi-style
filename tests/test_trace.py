@@ -547,6 +547,44 @@ def test_phase_stop_without_start_is_refused(tmp_path):
     assert p.returncode != 0 and "never started" in p.stderr
 
 
+def test_a_declared_trace_that_resolves_to_nothing_is_not_a_record(tmp_path):
+    """An id is a promise that a record exists, and `--fast` never checked it.
+
+    A delivery round already caught this by accident: `trace.py close` fails on
+    an id it cannot find, prints `no such trace: t-…` and carries a nonzero exit
+    back. But the close step is skipped under `--fast`, which is the author's
+    inner loop — so a deck naming a trace stored nowhere ran the whole loop
+    clean, exit 0, with the word `trace` appearing nowhere in the output.
+    Measured on three real decks from one validation round.
+
+    THE TEST RUNS `--fast` FOR THAT REASON. Without it the close step supplies
+    the failure and the test passes against unfixed code.
+    """
+    import markup
+    deck = tmp_path / "dangling.en.html"
+    src = (ROOT / "fixtures" / "deck-pass.en.html").read_text(encoding="utf-8")
+    assert "data-trace" not in src, "the fixture already declares a trace"
+    # Patch the tag `body_attr` actually reads — the file carries an earlier
+    # `<body` lookalike, and replacing that one injects an attribute the
+    # parser never sees (which is how the first draft of this test passed
+    # against unfixed code).
+    tag = markup.body_tag(src)
+    assert tag, "no body tag found in the fixture"
+    patched = tag.group(0).replace("<body ", '<body data-trace="t-000000000000" ', 1)
+    deck.write_text(src[:tag.start()] + patched + src[tag.end():], encoding="utf-8")
+    assert markup.body_attr(deck.read_text(encoding="utf-8"),
+                            "data-trace") == "t-000000000000"
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path / "empty-store")}
+    p = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/ops/check_deliverable.py"),
+         str(deck), "--fast"],
+        capture_output=True, text=True, cwd=ROOT, env=env)
+    assert "t-000000000000" in p.stdout, (
+        "the dangling id is not named under --fast:\n" + p.stdout[-1500:])
+    assert p.returncode != 0, (
+        "a --fast round passed a deck naming a trace that does not exist")
+
+
 def test_check_deliverable_reports_a_missing_trace_as_unmeasured():
     p = subprocess.run(
         [sys.executable, str(ROOT / "scripts/ops/check_deliverable.py"),
