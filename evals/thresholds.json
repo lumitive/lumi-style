@@ -18,7 +18,12 @@
     "date": "2026-08-13",
     "note": "the only document on record as meeting the product requirement; accepted under 0.1.449, and since D27 (0.1.514) it fails a gate introduced after its acceptance — its agenda paraphrases its openers. It stays the calibration anchor for the cells that cite it; it is not a document the current gate stack would ship, and the gap entry records the owner's ruling.",
     "accepted_under": "0.1.449",
-    "shippable_under_current_gates": false
+    "shippable_under_current_gates": false,
+    "readings": {
+     "layout_top_share": 78.6,
+     "layout_kinds": 3,
+     "figures": 22
+    }
    }
   ],
   "rejected": [
@@ -27,9 +32,15 @@
     "genre": "sales",
     "date": "2026-08-13",
     "rejected_for": "figures far below the accepted document; nearly half its content pages carry nothing visual",
-    "note": "its build script was repaired the same day, so its figure-shape numbers improved and two metrics stopped separating"
+    "note": "its build script was repaired the same day, so its figure-shape numbers improved and two metrics stopped separating",
+    "readings": {
+     "layout_top_share": 42.9,
+     "layout_kinds": 5,
+     "figures": 5
+    }
    }
-  ]
+  ],
+  "readings_note": "MEASURED, never typed from memory. Each `readings` block is what the checkers report for that document today; `bar_replay.py <metric> <n>` replays a proposed bar against them. The block exists because 0.1.592's layout bar was drafted from documents somebody happened to reopen and refuted by one nobody had thought to check — the corpus, not the reasoning, was the weak part."
  },
  "metrics": {
   "prose_only_share": {

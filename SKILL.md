@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.594"
+  version: "0.1.595"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -572,6 +572,13 @@ starting the build clock;
 the check step stops that clock, records its own duration as the checks
 phase, and transcribes the verdicts. A document with no trace is reported
 `unmeasured` — a build that leaves no record is not a measured build.
+**The close also records the document's SHAPE** — layout spread, figures,
+visual-share median, repeated skeletons — transcribed from the reports the run
+already produced. `scripts/ops/ledger.py` reports the distribution across every
+build, and `scripts/ops/bar_replay.py <metric> <number>` asks a proposed
+threshold whether it contradicts any document an owner has judged. Both are
+descriptive: they exist because two open gaps spent fifty releases waiting for
+"a second measured document" while no build was keeping its numbers.
 **The entry path is declared, never inferred, and the recipe is the builder.**
 Pass `--entry-path A|B` to `build.py` (it hands it to the scaffold) or to
 `new_deck.py` directly.

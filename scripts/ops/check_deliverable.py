@@ -42,6 +42,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 import argparse  # noqa: E402
 import json  # noqa: E402
 import pathlib  # noqa: E402
+import statistics  # noqa: E402
 import subprocess  # noqa: E402
 import sys  # noqa: E402
 import time  # noqa: E402
@@ -50,6 +51,7 @@ import checker_report  # noqa: E402
 import eval_corpus  # noqa: E402
 import fingerprint  # noqa: E402
 import gate_registry  # noqa: E402
+import inspect_layout  # noqa: E402
 import markup  # noqa: E402
 import trace_store  # noqa: E402
 from deliverable_registry import GENRES, kinds  # noqa: E402
@@ -320,6 +322,118 @@ def verdict_block(runs: dict, built: str | None = None
     return gating, graded, silent, not_held, worst
 
 
+def _text_share(signature: str) -> int:
+    """-> the percent of a figure-shape signature that is `text`.
+
+    A signature is `tag:pct` parts joined by commas, percentages rounded to the
+    nearest ten (`inspect_layout`'s figShapes). `text:90` and `line:10,text:90`
+    are the same drawing as far as structure goes.
+    """
+    for part in signature.split(","):
+        tag, _, pct = part.partition(":")
+        if tag == "text":
+            try:
+                return int(pct)
+            except ValueError:
+                return 0
+    return 0
+
+
+def _rendered_shape(runs) -> dict:
+    """-> the shape readings only a render can produce, from THIS run's reports.
+
+    `visual_share_median` is `eval_corpus`'s own computation over the rendered
+    pages; `repeated_skeleton_pages` counts the pages drawing a skeleton that
+    `inspect_layout.FIGURE_SHAPE_REPEAT` or more pages draw — the checker's own
+    bar, imported, because two thresholds under one metric name is exactly what
+    the corpus must not hold. Both are descriptive: they say what the document
+    looked like, never whether that was good enough.
+    """
+    out: dict[str, object] = {}
+    reports = (runs.get("layout") or {}).get("reports") or []
+    doc = reports[0] if reports else None
+    if not isinstance(doc, dict):
+        return out
+    # THE SAME SELECTOR `eval_corpus` USES (`"pages" in r`, not truthiness).
+    # `inspect_layout` emits one entry per geometry — five by default — so
+    # "several entries carry pages" is the normal case, and the two selectors
+    # disagreed whenever the first one was empty: one returned None, the other
+    # a median from a different geometry. Two computations under one metric
+    # name is what the `no shadow math` guard is about, and a corpus holding
+    # both would compare numbers that are not the same number.
+    geometry = next((r for r in doc.get("results", []) if "pages" in r), None)
+    if geometry is None or not geometry.get("pages"):
+        return out
+    # RECORD WHICH GEOMETRY IT CAME FROM. A median with no geometry beside it
+    # is not comparable across documents, and `bar_replay` compares them.
+    if geometry.get("geometry"):
+        out["geometry"] = geometry["geometry"]
+    shares = [p["visualPct"] for p in geometry["pages"]
+              if isinstance(p.get("visualPct"), (int, float))
+              and not (p.get("isOpener") or p.get("isCover")
+                       or p.get("isClosing") or p.get("isApparatus"))]
+    if shares:
+        out["visual_share_median"] = round(statistics.median(shares), 1)
+    seen: dict[str, set] = {}
+    for page in geometry["pages"]:
+        for sig in set(page.get("figShapes") or []):
+            seen.setdefault(sig, set()).add(page.get("id"))
+    # `inspect_layout.FIGURE_SHAPE_REPEAT` is the checker's own bar for calling
+    # a skeleton repeated, and it is 3 — not 2. Counting at 2 here and calling
+    # the result by the checker's name would put two different definitions of
+    # one metric into the corpus. The threshold is imported, not retyped.
+    repeated = {pid for ids in seen.values()
+                if len(ids) >= inspect_layout.FIGURE_SHAPE_REPEAT for pid in ids}
+    if seen:
+        out["repeated_skeleton_pages"] = len(repeated)
+
+    # PAGES THAT DECLARE DIFFERENT ANALYTICAL MOVES AND DRAW THE SAME SKELETON.
+    # GAP-025 asks whether a deck's figures repeat, and wanted a share to gate
+    # on. This is the contradiction form of the same question and needs no
+    # threshold — a page saying it compares and a page saying it positions
+    # should not arrive as the same drawing.
+    #
+    # MEASURED, NOT GATED, and the calibration is why. The two judged
+    # documents on record — one accepted, one rejected — carry no
+    # `data-analysis` at all; both predate the convention — so they cannot exercise it, and a gate no accepted document
+    # can exercise is FM-01 waiting to happen. On the two decks that do declare
+    # moves it fires only on the degenerate signature below, which is excluded.
+    # So it has no failing case anywhere yet: it accumulates in the corpus until
+    # there is material, which is what `bar_replay.py` will then read.
+    by_sig: dict[str, set] = {}
+    excluded = 0
+    for page in geometry["pages"]:
+        move = (page.get("declaredMove") or "").strip()
+        if not move:
+            continue
+        for sig in set(page.get("figShapes") or []):
+            # A DRAWING THAT IS ALL TEXT carries no structure to share, so two
+            # pages "agreeing" on it says nothing about either. Keyed on the
+            # TEXT SHARE, not on the absence of a comma: signature parts are
+            # percentages rounded to ten, so one stray element makes
+            # `line:0,text:100` — every bit as structureless, and the comma
+            # rule let it through. Measured on a real deck, three of its four
+            # signatures were text-only and only one was excluded.
+            if _text_share(sig) >= 90:
+                excluded += 1
+                continue
+            by_sig.setdefault(sig, set()).add(move)
+    # A MEASURED ZERO IS A READING. Keyed on whether any page DECLARED a move,
+    # not on whether any skeleton survived the exclusion: `if by_sig` omitted
+    # the key for a document where the honest answer is 0, the schema says an
+    # absent key means "not measured", and the corpus would then hold only the
+    # documents that happened to clash — a distribution biased toward the
+    # defect, which is the 0.1.592 failure this release exists to prevent.
+    if any((page.get("declaredMove") or "").strip() for page in geometry["pages"]):
+        out["move_skeleton_clashes"] = sum(
+            1 for v in by_sig.values() if len(v) > 1)
+        # A zero over nothing but text blobs is not the same statement as a
+        # zero over real drawings, and the number alone cannot tell them apart.
+        if excluded:
+            out["text_only_figures"] = excluded
+    return out
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("file", type=pathlib.Path)
@@ -537,6 +651,18 @@ def main(argv=None) -> int:
         close = [sys.executable, str(ROOT / "scripts/ops/trace.py"), "close",
                  "--id", trace_id, "--deliverable", str(a.file),
                  "--phase", "checks", str(checks_seconds)]
+        # HAND OVER THE TWO READINGS THAT NEEDED A BROWSER. This run rendered
+        # the document; `trace.py close` does not and should not. Passing them
+        # is what lets the corpus keep a shape for every build instead of
+        # re-measuring old files by hand — which is why GAP-024's bar was
+        # drafted from five documents found one at a time and refuted by a
+        # sixth nobody had thought to check.
+        shape = _rendered_shape(runs)
+        for flag, key in (("--visual-share-median", "visual_share_median"),
+                          ("--repeated-skeleton-pages", "repeated_skeleton_pages"),
+                          ("--move-skeleton-clashes", "move_skeleton_clashes")):
+            if shape.get(key) is not None:
+                close += [flag, str(shape[key])]
         proc = subprocess.run(close, capture_output=True, text=True)
         print(proc.stdout.strip() or proc.stderr.strip())
         worst = max(worst, proc.returncode)

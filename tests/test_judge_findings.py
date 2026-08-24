@@ -3,6 +3,7 @@
 This is where a hallucinated finding dies. Every other test here is about
 keeping the contract narrow enough that it cannot become a scoring judge.
 """
+import json
 import pathlib
 import sys
 
@@ -138,3 +139,70 @@ def test_fixed_is_refused_when_the_sentence_is_still_there():
     accepted, rejected = jf.review(f, still_there, before_text=still_there)
     assert not accepted
     assert any("still in the document" in r[1] for r in rejected), rejected
+
+
+def test_a_dimension_outside_the_rubric_is_refused():
+    """The dimension list is imported from `rubric_items`, not retyped — a
+    second C1-C8 in this file is the drift that module was extracted to stop,
+    and it already outlived one list offering C1-C7 after C8 shipped."""
+    f = [{"where": "p1", "claim": "c", "quote": "says something ordinary",
+          "dimension": "C9"}]
+    accepted, rejected = jf.review(f, "<p>says something ordinary</p>")
+    assert not accepted and "C9" in rejected[0][1]
+
+
+def test_a_finding_may_name_no_dimension():
+    """Optional. A finding that points at a sentence is a finding whether or
+    not the model could file it."""
+    f = [{"where": "p1", "claim": "c", "quote": "says something ordinary"}]
+    accepted, _ = jf.review(f, "<p>says something ordinary</p>")
+    assert len(accepted) == 1
+
+
+def test_the_report_groups_by_dimension(tmp_path):
+    """Parsed into groups, not grepped for headings.
+
+    A substring check passed a version that printed every heading and listed
+    EVERY finding under each of them, and passed a version that reversed the
+    order. Headings rendering is not grouping.
+    """
+    import subprocess
+    doc = tmp_path / "d.html"
+    doc.write_text("<p>says something ordinary and also mentions a second thing</p>")
+    fj = tmp_path / "f.json"
+    fj.write_text(json.dumps([
+        {"where": "p1", "claim": "alpha", "quote": "says something ordinary",
+         "dimension": "C8"},
+        {"where": "p2", "claim": "beta", "quote": "mentions a second thing"}]))
+    out = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/ops/judge_findings.py"), str(fj),
+         "--document", str(doc)], capture_output=True, text=True, cwd=ROOT).stdout
+
+    groups: dict[str, list[str]] = {}
+    current = None
+    for line in out.splitlines():
+        if line.strip().startswith("── "):
+            current = line.strip()[3:].split(" · ")[0]
+            groups[current] = []
+        elif current and "note  " in line:
+            groups[current].append(line.split(": ", 1)[1].strip())
+    assert list(groups) == ["C8", "unfiled"], groups
+    assert groups["C8"] == ["alpha"], groups
+    assert groups["unfiled"] == ["beta"], groups
+
+
+def test_the_dimension_list_is_the_rubric_s_own():
+    """Imported, not retyped. A second C1-C8 in this file is the drift
+    `rubric_items` was extracted to stop, and a retyped list missing C1
+    survived every other test."""
+    import rubric_items
+    assert jf.DIMENSIONS == tuple(rubric_items.DIM_TITLE)
+
+
+def test_the_judge_still_has_no_field_for_a_score():
+    """The contract this file exists for: a judge that scores gets fooled by
+    fluent verbosity, and that is measured."""
+    f = [{"where": "p1", "claim": "c", "quote": "says something ordinary",
+          "score": 3}]
+    accepted, rejected = jf.review(f, "<p>says something ordinary</p>")
+    assert not accepted and "score" in rejected[0][1]

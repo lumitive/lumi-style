@@ -84,7 +84,7 @@ The seams. A part opener is a claim, a label, a run line and one silhouette.
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
 | Use the filled koboyo silhouettes for part-opener subject marks only. | `SKILL.md:459` | — | `opener_subject_mark` | yes |
-| Give every part boundary a lime opener page. | `SKILL.md:657` | — | `—` | no |
+| Give every part boundary a lime opener page. | `SKILL.md:664` | — | `—` | no |
 | Make part openers full lime fields carrying the claim in near-black at display size, and no other page. | `references/brand.md:273` | — | `—` | no |
 | Set part-opener display type at 80px on the slide and 72px on the sheet. | `references/brand.md:304` | — | `—` | no |
 | Invert the handling marker with the rest of the footer on the lime opener. | `references/design-rules.md:1052` | `footer.marker-colour` ← `RC-100` | `—` | no |
@@ -118,8 +118,8 @@ The last page, set like the cover and asking for the decision.
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
-| Stamp the lumi-style version once, in the closing colophon. | `SKILL.md:650` | — | `—` | no |
-| Embed the scoring table as the deck's final page. | `SKILL.md:665` | — | `—` | no |
+| Stamp the lumi-style version once, in the closing colophon. | `SKILL.md:657` | — | `—` | no |
+| Embed the scoring table as the deck's final page. | `SKILL.md:672` | — | `—` | no |
 | State provenance using one of the accepted provenance words. | `references/design-rules.md:766` | — | `D6` | no |
 | Name in the closing which decisions block the release and which do not. | `references/storyline-templates.md:144` | — | `—` | no |
 | Carry one closing statement that echoes the action page. | `references/storyline-templates.md:554` | — | `—` | no |
@@ -163,7 +163,7 @@ Gathered separately at the owner's direction: these are the pages the argument i
 | Keep a figure's name to one line by shortening it, never by setting it smaller. | `SKILL.md:487` | — | `—` | no |
 | Shorten the title text when the title block does not fit. | `SKILL.md:491` | — | `reserve_overspent` | yes |
 | Never clamp or hide overflow on the title block. | `SKILL.md:492` | — | `content_hidden` | yes |
-| Give charts one accent colour, conclusion-style titles, and a source line on every figure. | `SKILL.md:742` | — | `—` | no |
+| Give charts one accent colour, conclusion-style titles, and a source line on every figure. | `SKILL.md:749` | — | `—` | no |
 | Follow the question to framework to shape chain, drawing a declared move with the library shapes that framework names. | `references/analysis-rules.md:107` | — | `D32` | yes |
 | Declare on every content section of an external document which of the five analytical moves produced its finding. | `references/analysis-rules.md:26` | — | `D31` | no |
 | Use --acc-live for strokes, chart marks and small fills inside figures. | `references/brand.md:189` | — | `—` | no |
@@ -347,17 +347,17 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Within one document let each icon mean exactly one thing. | `SKILL.md:460` | — | `—` | no |
 | Use the token file's role class names rather than renaming them. | `SKILL.md:464` | — | `—` | no |
 | Trim content when a page does not fit; never nudge the type. | `SKILL.md:489` | — | `—` | no |
-| Carry the handling terms and origin on every page, opening with the seal-red shield handling marker. | `SKILL.md:618` | — | `D12` | yes |
 | Put a second geometry in its own file as its own composition. | `SKILL.md:62` | — | `—` | no |
-| Open a deck with a cover and end it with a closing page, each carrying the single vector mark. | `SKILL.md:656` | — | `deck_structure` | yes |
-| Target about five content pages between part openers. | `SKILL.md:658` | — | `—` | no |
-| Invent no facts, source every number, and label illustrative values as illustrative. | `SKILL.md:733` | — | `M2` | no |
-| Coin no Chinese terms; take the English term where no established Chinese term exists. | `SKILL.md:735` | — | `—` | no |
-| Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page. | `SKILL.md:737` | — | `—` | no |
-| Make every title name its subject and carry a verifiable fact. | `SKILL.md:739` | — | `M1` | no |
-| Use no single title frame across more than 60% of a document. | `SKILL.md:740` | — | `M11` | no |
-| Make all titles concatenated read as one complete argument. | `SKILL.md:741` | — | `—` | no |
-| AI never signs, and money or safety conclusions never come from a language model. | `SKILL.md:744` | — | `—` | no |
+| Carry the handling terms and origin on every page, opening with the seal-red shield handling marker. | `SKILL.md:625` | — | `D12` | yes |
+| Open a deck with a cover and end it with a closing page, each carrying the single vector mark. | `SKILL.md:663` | — | `deck_structure` | yes |
+| Target about five content pages between part openers. | `SKILL.md:665` | — | `—` | no |
+| Invent no facts, source every number, and label illustrative values as illustrative. | `SKILL.md:740` | — | `M2` | no |
+| Coin no Chinese terms; take the English term where no established Chinese term exists. | `SKILL.md:742` | — | `—` | no |
+| Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page. | `SKILL.md:744` | — | `—` | no |
+| Make every title name its subject and carry a verifiable fact. | `SKILL.md:746` | — | `M1` | no |
+| Use no single title frame across more than 60% of a document. | `SKILL.md:747` | — | `M11` | no |
+| Make all titles concatenated read as one complete argument. | `SKILL.md:748` | — | `—` | no |
+| AI never signs, and money or safety conclusions never come from a language model. | `SKILL.md:751` | — | `—` | no |
 | Default the output language to American English and the canvas to light unless the user asks otherwise. | `SKILL.md:86` | — | `M16` | yes |
 | Never draw a field texture with no data behind it; every mark maps to one real item. | `references/brand.md:101` | — | `—` | no |
 | Set the ground density by page class: strong on cover and closing, mid on part openers, faint on body pages. | `references/brand.md:108` | `ground.tier` | `—` | no |
