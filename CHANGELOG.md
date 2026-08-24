@@ -1,3 +1,37 @@
+## 0.1.593 — the id was kept and the record was not
+
+A build trace's id rides in the document (`<body data-trace="t-…">`). Whether a
+record answers to that id was checked on the delivery round and nowhere else.
+
+**`trace.py close` fails on an id it cannot find** — `no such trace: t-…`,
+nonzero exit — so a full `check_deliverable` run has always caught a dangling
+id. **That step is skipped under `--fast`**, which is the author's inner loop
+and the one run many times per build. So a deck naming a trace stored nowhere
+ran the whole loop clean: **exit 0, and the word `trace` appeared nowhere in the
+output.** The absent case was louder than the dangling one — a build with no
+`data-trace` at all has printed `trace: none` since 0.1.531.
+
+`check_deliverable` now resolves the id against the trace store on every run,
+`--fast` included, and reports a dangling one as an unmeasured finding naming
+the store it looked in.
+
+*The field case: a six-run validation round across three platforms. Three of the
+six decks carried a `data-trace` for a trace that is in no store — not
+`~/.lumi/traces`, not the checkout's `evals/traces`, not even as an open phase
+clock. Two of those three had recorded `check_deliverable` exit 0 in their own
+debug logs, so the records existed when they closed and were gone afterwards.
+**What removed them is not established, and this release does not claim to know
+— it makes the condition visible on every round instead of on the last one.***
+
+Deliberate-red run: a fixture deck patched with `data-trace="t-000000000000"`
+and checked under `--fast`. The first draft of that test was wrong twice and
+both mistakes are worth recording, because each is a way a green test can mean
+nothing. It first injected the attribute into an earlier `<body` lookalike in
+the file rather than the tag `markup.body_attr` actually reads, so the parser
+never saw it. Corrected, it then passed against unfixed code — because without
+`--fast` the close step supplied the failure the test was claiming to detect.
+Only the `--fast` form goes red for the reason the check exists.
+
 ## 0.1.592 — the scaffold handed out the one layout the rule rules out
 
 Three defects, one shape: a rule stated in prose, a tool that did the opposite,

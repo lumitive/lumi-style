@@ -51,6 +51,7 @@ import eval_corpus  # noqa: E402
 import fingerprint  # noqa: E402
 import gate_registry  # noqa: E402
 import markup  # noqa: E402
+import trace_store  # noqa: E402
 from deliverable_registry import GENRES, kinds  # noqa: E402
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
@@ -399,6 +400,30 @@ def main(argv=None) -> int:
         # left zero traces while the ledger reported "0 abandoned builds".
         silent.append("trace: none — this build leaves no record (new_deck.py "
                       "opens one; or trace.py open, then --trace-id)")
+        worst = max(worst, 1)
+    elif not (trace_store.traces_dir() / f"{trace_id}.json").is_file():
+        # THE ID IS A PROMISE THAT A RECORD EXISTS, and `--fast` never asked.
+        #
+        # Be precise about what was already there: the close step below fails
+        # on an id it cannot find, prints `no such trace: t-…` and carries a
+        # nonzero exit back, so a DELIVERY round has always caught this. But
+        # that step is skipped under `--fast` — the author's inner loop, the
+        # one run many times per build — so a deck naming a trace stored
+        # nowhere ran the whole loop clean, exit 0, with the word `trace`
+        # appearing nowhere in the output. Measured on three real decks from
+        # one validation round, and on a synthetic one in tests/test_trace.py.
+        #
+        # A DANGLING ID IS WORSE THAN AN ABSENT ONE. Absent prints
+        # `trace: none` and a reader knows where they stand; dangling said
+        # nothing, so the deck read as measured while naming a record no one
+        # can open. An open trace is NOT this case — `trace.py open` writes
+        # the record before it prints the id, so a build still in flight
+        # resolves here and closes below.
+        silent.append(
+            f"trace: {trace_id} names no record — the document declares a "
+            f"trace that is not in {trace_store.traces_dir()}. The id was "
+            f"kept and the record was not; a build whose record cannot be "
+            f"opened is not a measured build")
         worst = max(worst, 1)
 
     if a.json:
