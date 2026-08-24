@@ -315,7 +315,7 @@ body.dark {
   --d-teal:    #3FA98C;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.593 (2026-08-19)
+   LUMI page layouts · v0.1.594 (2026-08-19)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -647,8 +647,20 @@ svg .lbl-lg { font-size: 13.5px; fill: var(--tx1); }
    bare `vertical-rl` reads downward, which is the other convention and the
    wrong one here. */
 svg .axname-x { font-size: 11px; fill: var(--tx3); }
+/* `transform-box: fill-box` is not decoration. The CSS `rotate` property turns
+   the element about `transform-origin`, and for an SVG element that origin
+   defaults to the USER-SPACE ORIGIN (0 0) rather than the glyph — so
+   `rotate: 180deg` alone spun every y-axis name a half turn about the corner
+   of the drawing and flung it outside the viewBox, where the root svg clips it
+   away. **Every y-axis name this package has ever shipped was invisible**, and
+   the probe that would have said so was measuring the untransformed box and
+   therefore agreed. Measured 0.1.594 on `fixtures/deck-pass.en.html`: the
+   label rendered 103 units left and 199 units above the drawing, and a
+   screenshot of the figure shows no vertical axis name at all. With the box
+   and origin named, the same label lands inside at (90, 148). */
 svg .axname-y { font-size: 11px; fill: var(--tx3);
-  writing-mode: vertical-rl; rotate: 180deg; }
+  writing-mode: vertical-rl; rotate: 180deg;
+  transform-box: fill-box; transform-origin: center; }
 svg .sm-lg { font-size: 12.5px; fill: var(--tx2); }
 svg .big { font-size: 15px; font-variant-numeric: tabular-nums; }
 /* A chart's row and section names are read BEFORE its bars, so they set at
@@ -2393,7 +2405,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
     <h2>The reporting position across the estate under review has not moved materially since the previous cycle closed and remains subject to the same constraints that were recorded at the time by the programme at the close</h2></div>
     <!-- D6_footer missing_source: the colophon names no provenance, and D6 asks
          the DOCUMENT once rather than every page. -->
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.593.</p></div>
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.594.</p></div>
   </div>
   <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div>
   <span class="site">www.example.org</span></div></section>

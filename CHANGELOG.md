@@ -1,3 +1,159 @@
+## 0.1.594 — every y-axis name this package shipped was invisible
+
+The release set out to save round trips. Repairing the first instrument
+uncovered a defect the instrument had been agreeing with.
+
+**`svg .axname-y` rotated the label about the corner of the drawing.** The rule
+is `writing-mode: vertical-rl; rotate: 180deg`, and the CSS `rotate` property
+turns an element about `transform-origin` — which for an SVG element defaults to
+the USER-SPACE ORIGIN, not the glyph. So every y-axis name was spun a half turn
+about (0, 0) and thrown outside the viewBox, where the root svg clips it away.
+
+Measured on this package's own passing fixture, **in the viewBox's own units**:
+the label's box ran x −125.9…−110.1, y −242.4…−180 — wholly outside a
+640×420 drawing — and a screenshot of the figure shows no vertical axis name at
+all: bars, value labels, x-axis name, caption, and a bare axis where the name
+should be. Nine drawings on nine pages, in the fixture the evidence gate renders
+every release. `transform-box: fill-box` and `transform-origin: center` put it
+back: x 110.1…125.9, y 180…242.4, left of the axis line at x=132, reading
+bottom to top. The screenshot shows it.
+
+*A first draft of this entry gave those four numbers as 103, 199, 90 and 148 —
+the CSS-pixel values, the svg being rendered at 0.8219 of its user scale. Naming
+screen units as drawing units is the exact confusion that produced the matrix
+bug below, in the entry describing it.*
+
+The rotation is about (0, 0), so this is geometry- and theme-independent: any
+label at positive coordinates lands at negative ones.
+
+**The check agreed with the defect**, which is why it lasted. `figure_clipped`
+compared the UNTRANSFORMED box — see below — so it read the label's pre-rotation
+position, found it inside, and said so. Two wrongs reporting green.
+
+*This is the shape CLAUDE.md convention 8 is about: a metric that passes is not
+a verified document. The fixture had passed every gate every release.*
+
+**A claim this entry made and had to withdraw.** A draft said `figure_clipped`
+had no planted failure of its own and passed `check_fixtures` only on the
+accident above, and a new fixture was added to give it one. That was wrong:
+`FIGURE_WEAK` has carried a deliberate runaway label since before this release,
+and with the corrected matrix it still fails at 58 units. The suite's momentary
+red was the *stylesheet* repair changing which pages failed, not the gate losing
+its subject. The added fixture was removed. Recorded because "the gate had
+nothing exercising it" is the most alarming thing a release can say, and it
+should not be said without running the case without it.
+
+**Two more things this release broke and repaired, both worth recording because
+each is the release's own subject happening to the release.**
+
+The first correction of the clipped probe used `getCTM()`, which for a direct
+child of the root svg returns the viewBox-to-VIEWPORT matrix — so the corners
+came back in screen units and a rect sitting comfortably inside a 400-unit box
+measured 641 units outside it. `deck-degenerate` caught it. The matrix is now
+`sv.getScreenCTM()⁻¹ · e.getScreenCTM()`, which cancels the viewport scale and
+leaves only the transforms between the element and its svg. Convention 15, in
+the release that quotes convention 15: a pattern written against an assumption
+rather than against a real instance of every shape it meets.
+
+And the stylesheet comment written to explain the y-axis defect contains the
+words "screenshot of the figure" — which is one of the phrases `D25` accepts as
+naming an image's terms. **D25 searched the raw file**, so a comment about
+something else, in a file no reader opens, made a deck carrying an unattributed
+linked image report `terms named`. It now searches what a reader sees, through a
+new `markup.reader_text` that drops `<style>`, `<script>` and comments — the same
+argument D26 already makes about scope notes, which is that a marker only the
+checker can read does nothing but silence the checker.
+
+### Six tools that were right about the document and unclear about themselves
+
+A validation round measured the author's loop and found roughly **twelve extra
+round trips, eighteen per cent of the calls**, spent on tools that had already
+found the answer and could not hand it over. None of these changes what a
+document must be; all six change what an author is told.
+
+**A drawing was measured before its own transform.** `getBBox()` answers in the
+element's own user space, and this package's axis-name convention rotates text
+(`translate(x, y) rotate(-90)`), so such a label's untransformed box sits at
+negative y. Six correct drawings in one deck were reported as clipped, and the
+author shortened real axis names to silence a probe that was wrong. The corners are now
+carried into the frame the viewBox is in — see the matrix note below for which
+one, since the obvious choice is the wrong one.
+
+**The same push recorded `{over, pct}` and nothing else** — eight pages, one
+number each, and no way to find the element without writing a private probe. It
+now names the worst element: `at <text.lbl 'this label really does run off…'>`.
+
+**`debug_log validate` said `ok` about an empty self-assessment.** It graded each
+entry in `quality`, so a block with no entries was graded zero times: a log
+recording seven commands and not one self-score printed *the log holds its
+contract*. That is the shape `verify_gates.py` exists to refuse — a validator
+saying yes to work that was never done. Keyed on `commands`, so an initialised
+log is not nagged before there is anything to assess.
+
+**And the thing that emptied it:** `build.py --restart` rebuilt the log every
+round, so scores passed on round 9 were gone by round 12. A C1–C8 score is a
+judgement about the DOCUMENT, not about one round of building it. It now
+carries across the restart, through the `assess` subcommand so a carried value
+meets the same validation a typed one does.
+
+**`judge_findings.py` could only validate the advice you did not take.** The
+de-AI pass exists to change the sentence; once it has, the quotation that caused
+the repair no longer appears and the finding was refused for having worked. One
+build split its findings into two files for this reason. `--before <snapshot>`
+holds a finding marked `fixed` to the text it objected to. **The contract does
+not move** — the quotation must still appear verbatim, and `fixed` without a
+snapshot is refused, because a repair claimed without the text it repaired is a
+claim with no evidence.
+
+**`brief.py` was built to save a round trip and cost five.** It writes the whole brief to
+stdout — tens of kilobytes, and more with `--full` — which a harness with a single-output ceiling turns into a 2KB preview:
+run it, probe the file, fail a Read on the token ceiling, read it in two halves.
+`--out <dir>` writes it in parts and prints the manifest, which is where the count and the real sizes live — they vary with the genre, the storyline and `--full`. The parts are a
+SPLIT of the joined text, not a second assembly — a test pins that they rejoin
+to exactly the bytes stdout carries, because a `--out` that built the text its
+own way would drift invisibly.
+
+**`check_outline` accepted one dash.** `omitted: sizing - <reason>` reported
+"declared without a reason" while the reason sat right there, and the syntax was
+written down only in the script's docstring. Em dash, en dash and a **spaced**
+hyphen now all separate — spaced, because a bare one would call
+`go-to-market — deferred` a section named "go". The failure names the three.
+
+**`check_design --json` returns a list, and a shell caller had no way to know.**
+Three validation rounds each rediscovered it by crashing. The shape is not
+changing: `checker_report.parse_report` already normalises it for every caller
+inside the package, and a second shape would be a second thing to keep in step.
+`--help` says it instead.
+
+**A four-agent review ran before merge and changed this release too.** Beyond
+the three withdrawn claims above, it found: the clipped probe fell back to the
+untransformed box — the very ruler this release removes — whenever the matrix
+could not be computed, silently, on a gating verdict (now counted and reported
+as `CLIPPING NOT MEASURED`, which exits nonzero); the nested-`<svg>` branch
+raised `worst` without claiming the identity, so the report named an innocent
+element and sent the operator back to writing a private probe; `reader_text`
+shipped as a second near-copy of `markup.SKIP_RE` in the module whose guard
+refuses exactly that; **D25's tightening failed correct documents**, because
+provenance written in an `alt` is provenance a reader meets and the narrowing
+dropped it with the CSS; the assessment carry-forward died on a previous log
+that was valid JSON but not an object, and lost a list-shaped `quality` without
+a word; `brief.py --out` left a previous brief's parts in the directory and
+still said "read them in order"; `judge_findings` accepted `<b> <i> <u>` as a
+three-word quotation because the floor counted the raw string and the match ran
+on the normalised one; `fixed` was satisfied by passing the same file as both
+`--document` and `--before`; and `check_outline` chose its separator by tuple
+order rather than position, so a reason containing an em dash keyed the section
+under a name no checklist matches.
+
+Deliberate-red runs: each item was reproduced before it was fixed. The clipped
+pair got a real instance first (convention 15) — a rotated axis name that
+renders wholly inside its box, reported at "10 user units" outside — and both
+tests were then confirmed red against the old measurement. The rest were pinned
+by tests that fail on the previous behaviour: an empty `quality` validating
+clean, a second build round losing round one's scores, a `fixed` finding refused
+against the repaired text, brief parts that do not rejoin, and a spaced hyphen
+read as no reason at all.
+
 ## 0.1.593 — the id was kept and the record was not
 
 A build trace's id rides in the document (`<body data-trace="t-…">`). Whether a
