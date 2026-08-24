@@ -400,3 +400,43 @@ def test_an_invented_gap_id_is_not_a_citation(tmp_path):
                     "--message", "known, ships under GAP-999"])
     problems = debug_log.validate(_read(log))
     assert any("nothing ran it clean" in p for p in problems), problems
+
+
+# --- the empty self-assessment ----------------------------------------------
+
+def test_a_finished_build_with_no_self_assessment_is_refused(tmp_path):
+    """`validate` iterated `quality`'s items, so an EMPTY block iterated zero
+    times and produced no finding: a log recording seven commands and not one
+    self-score printed `ok    the log holds its contract`.
+
+    That is the shape `verify_gates.py` exists to refuse — a validator saying
+    yes to work that was never done. Measured in the field at 0.1.591, where a
+    build's `--assess` values were cleared by a later round and the log still
+    validated clean.
+    """
+    log = _init(tmp_path)
+    _run(log, sys.executable, "-c", "pass")
+    doc = _read(log)
+    assert doc["commands"], "the fixture recorded no command"
+    assert not doc.get("quality"), "the fixture already carries a self-score"
+    problems = debug_log.validate(doc)
+    assert any("quality" in p for p in problems), (
+        "a finished build with an empty self-assessment validated clean: "
+        f"{problems}")
+
+
+def test_a_log_with_no_commands_yet_is_not_nagged_about_quality(tmp_path):
+    """An initialised log is not a finished build. The refusal above must not
+    fire before there is anything to assess, or every `init` reads red."""
+    log = _init(tmp_path)
+    doc = _read(log)
+    assert not doc["commands"]
+    assert not any("quality" in p for p in debug_log.validate(doc))
+
+
+def test_a_self_assessed_build_still_validates(tmp_path):
+    log = _init(tmp_path)
+    _run(log, sys.executable, "-c", "pass")
+    debug_log.main(["assess", str(log), "--dim", "C1", "--score", "4",
+                    "--reason", "the storyline is declared and mirrored"])
+    assert not debug_log.validate(_read(log))

@@ -23,7 +23,7 @@ THE SHAPES ARE BORROWED FROM THE ONES THIS REPO ALREADY TRUSTS
 gates on speed); `run` is the evidence-gate shape — it EXECUTES the command
 and machine-writes exit code, output digest and date, so there is no verdict
 field for a human to type; quality is the checkers' own `--json` attached
-verbatim plus H1-H6 self-scores, under review_scores' standing rule that 5 is
+verbatim plus C1-C8 self-scores, under review_scores' standing rule that 5 is
 never self-scored before a reader has scored it (this file refuses to write
 one).
 
@@ -77,7 +77,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import checker_report  # noqa: E402 — after the bootstrap
 
-# C1-C8, matching the store review_scores.py validates. This said H1-H6 for
+# C1-C8, matching the store review_scores.py validates. This said C1-C8 for
 # forty-odd releases after C replaced H — the exact defect the scoring-sheet
 # parity guard was built for, alive in the one file that guard does not read.
 DIMS = tuple(f"C{i}" for i in range(1, 9))
@@ -104,7 +104,7 @@ def failing_verdicts(output: bytes):
 
     The two report shapes and the non-ok extraction live in checker_report now
     — one reader for the four scripts that need it, because four private
-    copies of a contract is how a sheet described H1-H6 for two releases after
+    copies of a contract is how a sheet described C1-C8 for two releases after
     C1-C8 replaced them.
     """
     reports, spoke = checker_report.parse_report(output)
@@ -533,9 +533,25 @@ def validate(log) -> list[str]:
         if not isinstance(docs, list):
             out.append(f"checks.{kind} is not a list — a checker runs more than "
                        f"once per build and every run is kept")
+    # AN EMPTY SELF-ASSESSMENT IS NOT A CLEAN ONE. The loop below grades each
+    # entry, so a block with no entries was graded zero times and produced no
+    # finding: a log recording seven commands and not one self-score printed
+    # `ok  the log holds its contract`. That is precisely the shape
+    # `verify_gates.py` exists to refuse — a validator saying yes to work that
+    # was never done. Found in the field at 0.1.591, where one build's
+    # `--assess` values were cleared by a later round and the log stayed green.
+    #
+    # Keyed on `commands` because an initialised log is not a finished build:
+    # nagging before there is anything to assess would make every `init` read
+    # red, and a gate that is red by default is a gate people learn to ignore.
+    if log.get("commands") and not (log.get("quality") or {}):
+        out.append("quality is empty — this log records a finished build and "
+                   "not one self-score. `debug_log.py assess` writes them, or "
+                   "`build.py --assess Cn=score:reason`; the rubric's "
+                   "dimensions are in references/eval-rubric.md")
     for dim, q in (log.get("quality") or {}).items():
         if dim not in DIMS:
-            out.append(f"quality.{dim} is not an H1-H6 dimension")
+            out.append(f"quality.{dim} is not one of {', '.join(DIMS)}")
             continue
         if not isinstance(q, dict):
             out.append(f"quality.{dim} is {type(q).__name__}, not a "
@@ -600,7 +616,7 @@ def main(argv):
     p.add_argument("--json-file", required=True)
     p.set_defaults(fn=cmd_attach)
 
-    p = sub.add_parser("assess", help="record an H1-H6 self-score with its reason")
+    p = sub.add_parser("assess", help="record an C1-C8 self-score with its reason")
     p.add_argument("log")
     p.add_argument("--dim", choices=DIMS, required=True)
     p.add_argument("--score", type=int, required=True)

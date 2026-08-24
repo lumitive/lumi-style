@@ -170,10 +170,66 @@ def main(argv=None) -> int:
         # Without the passthrough, every iteration after the first died here
         # before a single stage ran, and the author moved the log aside by
         # hand: nine times on one measured build.
+        # CARRY THE SELF-ASSESSMENT ACROSS THE RESTART. A C1-C8 score is a
+        # judgement about the DOCUMENT, not about one round of building it, so
+        # restarting the round's record must not discard it. It did: values
+        # passed with `--assess` on round 9 were gone by round 12, and
+        # `debug_log validate` said `ok` about the emptiness (fixed in the same
+        # release). Read before the restart, written back after.
+        carried: dict[str, dict] = {}
+        if not a.keep_log and log_path.is_file():
+            try:
+                # PARSE FIRST, THEN ASK ITS SHAPE. Chaining `.get` onto the
+                # parse meant a log that is valid JSON but not an object —
+                # `[]` is enough — raised AttributeError, which is not in the
+                # except clause, and the driver died before the first stage.
+                previous = json.loads(log_path.read_text(encoding="utf-8"))
+                if not isinstance(previous, dict):
+                    raise ValueError(
+                        f"top level is a {type(previous).__name__}, not an object")
+                # `or {}` AFTER the shape check, not before it: `[] or {}`
+                # is `{}`, so a `quality` that is a list became an empty dict
+                # and passed the guard below without a word — the silent loss
+                # this branch exists to stop.
+                quality = previous.get("quality")
+                if quality is not None and not isinstance(quality, dict):
+                    raise ValueError(
+                        f"`quality` is a {type(quality).__name__}, not an object")
+                carried = quality or {}
+            except (OSError, ValueError) as exc:
+                # SAY IT. Swallowing this loses the C1-C8 judgement that this
+                # whole branch exists to preserve, and the validator then tells
+                # the operator their finished build carries no self-score —
+                # blaming them for a loss the driver caused. The precedent is
+                # two hundred lines down, where a report that cannot be
+                # attached prints why.
+                print(f"   carry-forward: could not read the previous log's "
+                      f"self-assessment ({exc}); last round's scores are lost",
+                      file=sys.stderr)
+                carried = {}
+
         argv_init = ["init", str(a.deck), "--platform", a.platform]
         if not a.keep_log:
             argv_init.append("--restart")
         debug_log.main(argv_init)
+        for dim, q in carried.items():
+            # Through the subcommand, so a carried value meets the same
+            # validation a typed one does. **Refused is not fatal**: the
+            # subcommand exits on a bad value, and a `5` left in an old log
+            # therefore killed a fresh build with a message about a rule nobody
+            # had just broken — after the restart had already emptied the block
+            # it was trying to save. A carried value that cannot be re-accepted
+            # is dropped and named, and the build continues.
+            reason = str((q or {}).get("reason", "")).strip() if isinstance(q, dict) else ""
+            score = (q or {}).get("score") if isinstance(q, dict) else None
+            try:
+                debug_log.main(["assess", str(log_path), "--dim", str(dim),
+                                "--score", str(score),
+                                "--reason", reason or "(carried forward)"])
+            except SystemExit as exc:
+                print(f"   carry-forward: {dim}={score!r} from the previous "
+                      f"log was refused on the way back ({exc}); dropped",
+                      file=sys.stderr)
         if not log_path.is_file():
             sys.exit(f"debug_log init wrote no log at {log_path}")
     stage = Stage(log_path)

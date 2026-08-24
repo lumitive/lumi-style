@@ -54,6 +54,9 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 import markup  # noqa: E402 — after the bootstrap
 
 FIELDS = {"where", "claim", "quote"}
+# `fixed` marks a finding the author ACTED ON. It is optional and it is
+# not a verdict: it only says which text the quotation is held to.
+OPTIONAL_FIELDS = {"fixed"}
 MIN_QUOTE_WORDS = 3
 
 
@@ -63,17 +66,34 @@ def normalise(text: str) -> str:
     return markup.visible_text(text).lower()
 
 
-def review(findings, document_text: str):
+def review(findings, document_text: str, before_text: str | None = None):
     """-> (accepted, rejected). Rejection is a fact about the finding, not a
-    judgement about the document."""
+    judgement about the document.
+
+    `before_text` is the pre-repair snapshot, and it exists because the tool
+    could otherwise only ever validate the advice you did NOT take. The de-AI
+    pass exists to change the sentence; once it has, the quotation that caused
+    the repair no longer appears in the document, so the finding was refused
+    for having worked. A build was left splitting its findings into two files
+    for this reason — the ones it adopted, which the script could not read, and
+    the ones it declined, which it could.
+
+    **The contract does not move.** A quotation must still appear VERBATIM, and
+    a model that cannot produce the sentence it objects to has still found
+    nothing. What widens is WHICH text it is held to, and only for a finding
+    that declares `fixed` — which in turn requires the snapshot, because
+    claiming a repair without producing the text repaired is a claim with no
+    evidence.
+    """
     haystack = normalise(document_text)
+    was = normalise(before_text) if before_text is not None else None
     accepted, rejected = [], []
     for i, f in enumerate(findings):
         where = f"findings[{i}]"
         if not isinstance(f, dict):
             rejected.append((where, "not an object"))
             continue
-        extra = sorted(set(f) - FIELDS)
+        extra = sorted(set(f) - FIELDS - OPTIONAL_FIELDS)
         if extra:
             rejected.append((where, f"carries {extra}; the contract is "
                                     f"where/claim/quote and there is no field "
@@ -84,16 +104,52 @@ def review(findings, document_text: str):
             rejected.append((where, f"missing {missing}"))
             continue
         quote = str(f["quote"]).strip()
-        if len(quote.split()) < MIN_QUOTE_WORDS:
-            rejected.append((where, f"quote is {len(quote.split())} word(s); "
-                                    f"fewer than {MIN_QUOTE_WORDS} is a "
-                                    f"fragment that would match anything"))
+        # COUNTED AFTER NORMALISING. The floor ran on the raw string and the
+        # membership test ran on the normalised one, so `<b> <i> <u>` counted
+        # as three words, normalised to the empty string, and `"" in haystack`
+        # is True — a finding quoting nothing, printed as evidence attached.
+        words = len(normalise(quote).split())
+        if words < MIN_QUOTE_WORDS:
+            rejected.append((where, f"quote is {words} word(s) once markup is "
+                                    f"stripped; fewer than {MIN_QUOTE_WORDS} "
+                                    f"is a fragment that would match anything"))
             continue
-        if normalise(quote) not in haystack:
+        # `is True`, not `bool(...)`: the string "no" is truthy, and a finding
+        # that says `"fixed": "no"` meant the opposite of what it was read as.
+        fixed = f.get("fixed") is True
+        if fixed:
+            # `fixed` ASSERTS TWO THINGS and both are checkable: the sentence
+            # was there, and it is not there now. Accepting on "in either text"
+            # let the same file be passed as both --document and --before, so
+            # a finding could be declared repaired against an unrepaired
+            # document and printed as validated.
+            if was is None:
+                rejected.append((where, "declares `fixed` and no --before "
+                                        "snapshot was given; a repair claimed "
+                                        "without the text it repaired is a "
+                                        "claim with no evidence"))
+                continue
+            if normalise(quote) not in was:
+                rejected.append((where, "declares `fixed` and the quoted words "
+                                        "are not in the --before snapshot "
+                                        "either — nothing here was repaired"))
+                continue
+            if normalise(quote) in haystack:
+                rejected.append((where, "declares `fixed` and the quoted words "
+                                        "are still in the document; a repair "
+                                        "that left the sentence in place is "
+                                        "not a repair"))
+                continue
+            accepted.append(f)
+            continue
+        found = normalise(quote) in haystack
+        if not found:
             rejected.append((where, "the quoted words do not appear in the "
-                                    "document — a model that cannot produce "
-                                    "the sentence it objects to has not found "
-                                    "anything"))
+                                    + ("document or the --before snapshot"
+                                       if fixed else "document")
+                                    + " — a model that cannot produce "
+                                      "the sentence it objects to has not found "
+                                      "anything"))
             continue
         accepted.append(f)
     return accepted, rejected
@@ -103,6 +159,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("findings", type=pathlib.Path)
     ap.add_argument("--document", type=pathlib.Path, required=True)
+    ap.add_argument("--before", type=pathlib.Path,
+                    help="the pre-repair snapshot. A finding marked `fixed` is "
+                         "held to THIS text, because the pass that adopted it "
+                         "removed the sentence it quoted. Without it a `fixed` "
+                         "finding is refused.")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args()
     for p in (a.findings, a.document):
@@ -116,8 +177,18 @@ def main():
     if not isinstance(findings, list):
         sys.exit(f"{a.findings}: expected a list of findings")
 
+    before_text = None
+    if a.before is not None:
+        if not a.before.is_file():
+            sys.exit(f"no such file: {a.before}")
+        if a.before.resolve() == a.document.resolve():
+            sys.exit("--before and --document are the same file. A repair is a "
+                     "difference between two texts; handing over one text twice "
+                     "asserts nothing.")
+        before_text = a.before.read_text(encoding="utf-8", errors="replace")
     accepted, rejected = review(
-        findings, a.document.read_text(encoding="utf-8", errors="replace"))
+        findings, a.document.read_text(encoding="utf-8", errors="replace"),
+        before_text=before_text)
 
     if a.json:
         print(json.dumps({"accepted": accepted,

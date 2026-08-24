@@ -17,7 +17,7 @@ beat; the argument itself stays a person's.
   able to state the ordering logic — the second half is theirs.
 - **Completeness, reported.** Sections the storyline typically carries and this
   outline does not name. **An outline may declare an omission** with
-  `omitted: <section> — <reason>`, which is the distinction between having
+  `omitted: <section> — <reason>` (an en dash or a spaced hyphen separate too), which is the distinction between having
   forgotten a section and having decided against it.
 
 **What it deliberately refuses to decide**
@@ -133,7 +133,30 @@ def parse(text: str):
         m = re.match(r"^omitted\s*:\s*(.+)$", line, re.I)
         if m:
             body = m.group(1)
-            name, _, reason = body.partition("—")
+            # THREE SEPARATORS, TRIED IN ORDER. Only the em dash was accepted,
+            # so `omitted: sizing - <reason>` reported "declared without a
+            # reason" while the reason sat right there — and the syntax was
+            # written down only in this file's docstring. One rebuild round,
+            # measured at 0.1.591.
+            #
+            # The hyphen must be SPACED. A bare `-` would split
+            # `go-to-market — commissioned separately` at the first hyphen and
+            # call the section "go".
+            # THE EARLIEST SEPARATOR WINS, not the first one in this tuple.
+            # Chosen by tuple order, `sizing - a reason — with an em dash in it`
+            # split on the em dash and keyed the section as
+            # "sizing - a reason", which no checklist matches — so a correctly
+            # declared omission read as undeclared and the finding told the
+            # author to add the reason they had written. Em dashes are this
+            # package's house punctuation, so a reason containing one is
+            # ordinary.
+            cut = min((body.find(sep), sep) for sep in ("—", "–", " - ")
+                      if sep in body) if any(
+                          sep in body for sep in ("—", "–", " - ")) else None
+            if cut is None:
+                name, reason = body, ""
+            else:
+                name, _, reason = body.partition(cut[1])
             omissions.append({"section": name.strip().lower(),
                               "reason": reason.strip()})
             continue
@@ -465,7 +488,10 @@ def review(text: str):
             "check": "declared omission", "verdict": "FAIL",
             "detail": f"{undeclared_reason} declared without a reason; the "
                       f"declaration is what separates a decision from a "
-                      f"gap, and a bare one does neither"})
+                      f"gap, and a bare one does neither. The reason follows "
+                      f"the section name after an em dash, an en dash, or a "
+                      f"spaced hyphen: `omitted: sizing — commissioned "
+                      f"separately`"})
     return meta, groups, omissions, titles, findings
 
 

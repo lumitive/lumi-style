@@ -178,3 +178,67 @@ def test_the_counter_dedupes_a_claude_transcript(tmp_path):
     assert "API calls" in out.stdout
     assert "1" in out.stdout.split("API calls")[1][:20], out.stdout
     assert "300" not in out.stdout, "summed per record instead of per message"
+
+
+def test_a_self_assessment_survives_the_next_round(tmp_path):
+    """`--restart` rebuilds the log each round, so assessments passed on round
+    9 were gone by round 12 — and the validator said `ok` about the emptiness.
+    A self-score is a judgement about the DOCUMENT, not about one round of
+    building it, so it carries forward and a later `--assess` overwrites it.
+    """
+    deck = tmp_path / "d.en.html"
+    _run("scripts/ops/build.py", "--deck", str(deck), "--fast", "--pages", "2",
+         "--storyline", "gtm", "--entry-path", "B", "--debug-log",
+         "--assess", "C1=4:the storyline is declared and mirrored")
+    log = tmp_path / (deck.stem.split(".")[0] + ".debug.json")
+    logs = list(tmp_path.glob("*.debug.json"))
+    assert logs, "no debug log written"
+    log = logs[0]
+    first = json.loads(log.read_text())["quality"]
+    assert "C1" in first, f"the assessment was not written: {first}"
+
+    # a later round, with no --assess of its own
+    _run("scripts/ops/build.py", "--deck", str(deck), "--fast", "--pages", "2",
+         "--storyline", "gtm", "--entry-path", "B", "--debug-log")
+    kept = json.loads(log.read_text())["quality"]
+    assert kept.get("C1", {}).get("score") == 4, (
+        f"the previous round's self-assessment was lost: {kept}")
+
+
+def test_a_later_assessment_overwrites_the_carried_one(tmp_path):
+    deck = tmp_path / "d.en.html"
+    for score in ("4", "2"):
+        _run("scripts/ops/build.py", "--deck", str(deck), "--fast", "--pages", "2",
+             "--storyline", "gtm", "--entry-path", "B", "--debug-log",
+             "--assess", f"C1={score}:a reason worth recording")
+    log = list(tmp_path.glob("*.debug.json"))[0]
+    assert json.loads(log.read_text())["quality"]["C1"]["score"] == 2
+
+
+def test_the_brief_parts_rejoin_to_exactly_the_whole(tmp_path):
+    """`--out` must be the same bytes stdout would have carried.
+
+    The joined brief is ~87KB and a harness with a single-output ceiling turns
+    it into a 2KB preview, so the tool built to save a round trip cost five.
+    The split is only safe if it is a split — if `--out` assembled the text a
+    second way the two would drift, and the drift would be invisible.
+    """
+    whole = _run("scripts/ops/brief.py", "--genre", "internal",
+                 "--storyline", "market-analysis").stdout
+    out = _run("scripts/ops/brief.py", "--genre", "internal",
+               "--storyline", "market-analysis", "--out", str(tmp_path))
+    parts = sorted(tmp_path.glob("*.md"))
+    assert len(parts) > 3, f"the brief did not split: {parts}"
+    joined = "".join(p.read_text(encoding="utf-8") for p in parts)
+    assert joined == whole, "the parts are not the bytes stdout carries"
+    assert str(tmp_path) in out.stdout and "brief written in" in out.stdout
+
+
+def test_no_single_brief_part_is_larger_than_the_whole_was(tmp_path):
+    """The point is the ceiling. A split that leaves one 80KB part has not
+    solved anything."""
+    _run("scripts/ops/brief.py", "--genre", "internal", "--storyline",
+         "market-analysis", "--out", str(tmp_path))
+    sizes = [p.stat().st_size for p in tmp_path.glob("*.md")]
+    assert max(sizes) < sum(sizes) / 2, (
+        f"one part carries most of the brief: {max(sizes)} of {sum(sizes)}")

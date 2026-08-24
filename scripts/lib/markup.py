@@ -92,6 +92,36 @@ def visible_text(fragment: str, sep: str = " ") -> str:
     return " ".join(strip_tags(fragment, sep).split())
 
 
+def reader_text(fragment: str, sep: str = " ") -> str:
+    """visible_text, minus what only a machine reads.
+
+    `strip_tags` removes the TAGS and keeps everything between them, so a
+    `<style>` block's rules and comments survive into the "visible" text. For a
+    scan that asks *did the document say this to a reader*, that is the wrong
+    corpus: a phrase inside a CSS comment says it to nobody.
+
+    Measured. `check_design`'s D25 asks whether a document names the terms of
+    the images it ships, and it searched the raw file — so a stylesheet comment
+    added at 0.1.594 that happened to contain the words "screenshot of" made a
+    deck carrying an unattributed linked image report `terms named`. The gate
+    was silenced by a sentence about something else, in a file no reader opens.
+
+    **`SKIP_RE`, not a second pattern of its own.** The first version of this
+    function carried its own near-copy — `<style\b[^>]*>` against SKIP_RE's
+    `<style\b` — in the module whose `no shadow markup` guard exists to refuse
+    exactly that.
+
+    **What it does not do**, stated because a caller will otherwise assume it:
+    SKIP_RE finds `<style` by pattern, not by parse, so an unescaped `<` inside
+    a quoted attribute value opens a span that swallows real text until the next
+    `</style>`. That weakness is the module's, not this function's — `body_tag`
+    and `visible_text` share it — and it is recorded here rather than papered
+    over because a caller gating on this text should know its corpus can be
+    truncated by markup no reader would call unusual.
+    """
+    return visible_text(SKIP_RE.sub(" ", fragment), sep)
+
+
 def join_cjk(text: str) -> str:
     """Drop the space BETWEEN two CJK characters and nothing else.
 

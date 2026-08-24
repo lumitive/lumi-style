@@ -1,0 +1,18 @@
+{
+  "version": "0.1.594",
+  "diff_base": "747d933372a0c896d6ce2bbf6a358cecb0c47697",
+  "spec": "waived: six ergonomics fixes measured in a validation round, the y-axis-name defect the first of them uncovered, and the review findings on both. Each carries its field case and deliberate-red run in the CHANGELOG entry; they share no design.",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "f04602e1e4dabf54880d35f1a127e018812a9c892b096ad3bdbb2f17779ea4dd",
+      "date": "2026-08-24"
+    }
+  ],
+  "waivers": []
+}

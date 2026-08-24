@@ -47,7 +47,7 @@ not. A design metric that gates is a mistake; a commercial one that does not is 
 different mistake.
 
     python3 scripts/check/check_design.py deck.html [more files ...]
-    python3 scripts/check/check_design.py --json deck.html
+    python3 scripts/check/check_design.py --json deck.html   # top level is a LIST; take [0]
 
 Standard library only, like the rest of scripts/.
 """
@@ -2415,6 +2415,12 @@ _RASTER = re.compile(r"<(?:img|image)\b[^>]*?(?:src|href|xlink:href)\s*=\s*"
 _CSS_URL = re.compile(r"url\(([^)]*)\)", re.I)
 # The licence has to be NAMED, not gestured at. A colophon saying "images
 # licensed appropriately" is the sentence that gets written when nobody checked.
+# Attribute-borne prose a reader actually meets: `alt` is shown when the image
+# fails and spoken by a screen reader; `aria-label` is the accessible name.
+# Neither is a CSS comment, and both are where an author most naturally writes
+# "Screenshot of ...".
+_ATTR_PROSE = re.compile(r'(?:alt|aria-label)="([^"]*)"', re.I)
+
 _LICENCE = re.compile(
     r"\b(public domain|CC0|CC[ -]BY(?:[ -]SA|[ -]NC|[ -]ND)?(?:[ -]\d\.\d)?"
     r"|Unsplash|licen[cs]ed under|used under|own work|screenshot of)\b", re.I)
@@ -2519,11 +2525,28 @@ def d25_image_provenance(raw):
     commercial risk D12 exists for, arriving through a different door.
     """
     n = len(_RASTER.findall(raw))
+    # SEARCHED IN WHAT A READER SEES, not in the file. This scanned `raw`, so a
+    # phrase anywhere in the document satisfied it — including inside a
+    # `<style>` block. Measured at 0.1.594: a stylesheet comment about an
+    # unrelated defect happened to contain the words "screenshot of", and a
+    # fixture carrying an unattributed linked image began reporting
+    # `terms named`. The gate was silenced by a sentence a reader never sees,
+    # which is the same argument D26 already makes about scope notes — a marker
+    # only the checker can read would do nothing but silence the checker.
+    # THE CORPUS IS WHAT A READER MEETS, WHICH INCLUDES `alt`. Tightening this
+    # to reader_text alone at 0.1.594 failed correct documents: "Screenshot of
+    # the operator console" in an `alt` is provenance an author wrote for a
+    # reader — it is read aloud by a screen reader and shown when the image
+    # does not load — and the tightening dropped it with the CSS. Both
+    # attribute forms are added back explicitly; a stylesheet comment still
+    # does not count, which was the whole point.
+    said = markup.reader_text(raw) + " " + " ".join(
+        _ATTR_PROSE.findall(raw))
     # A document with no images has nothing to name, and it must PASS rather
     # than read `n/a` — check_design treats an unmeasurable gate as a failure on
     # purpose, and applying that to an optional element would fail every
     # text-and-vector deliverable this package has ever produced.
-    return {"rasters": n, "licence_named": bool(_LICENCE.search(raw)) if n else True}
+    return {"rasters": n, "licence_named": bool(_LICENCE.search(said)) if n else True}
 
 
 def d21_data_contract(raw):
@@ -2879,7 +2902,18 @@ def _d_number(name: str) -> int:
 def main(argv):
     ap = argparse.ArgumentParser(add_help=True, description=__doc__.split("\n")[0])
     ap.add_argument("files", nargs="+")
-    ap.add_argument("--json", action="store_true")
+    ap.add_argument("--json", action="store_true",
+                    help="the whole report as JSON. **The top level is a LIST, "
+                         "one entry per document**, even for a single file — "
+                         "take [0]. It is a list because this command accepts "
+                         "several files; the shape is not going to change, "
+                         "because scripts/lib/checker_report.py's parse_report "
+                         "already normalises it for every caller inside this "
+                         "package and a second shape would be a second thing "
+                         "to keep in step. This help text is here because an "
+                         "agent reading the stream from a shell has no such "
+                         "reader, and three validation rounds each rediscovered "
+                         "the list by crashing on it.")
     args = ap.parse_args(argv)
 
     results, failures, unmeasurable, gated_failure = [], 0, 0, 0

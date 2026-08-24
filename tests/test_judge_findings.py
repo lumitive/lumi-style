@@ -68,3 +68,73 @@ def test_rejection_is_a_fact_about_the_finding_not_the_document():
     verdict, no score and no exit code that a build could gate on."""
     assert not hasattr(jf, "gate")
     assert "verdict" not in jf.FIELDS
+
+
+# --- the finding you took ----------------------------------------------------
+
+DOC_BEFORE = "<p>We are revolutionising how teams unlock value at scale.</p>"
+DOC_AFTER = "<p>Seven teams cut settlement time from four days to one.</p>"
+
+
+def test_a_finding_whose_sentence_was_rewritten_is_rejected_against_the_new_text():
+    """The state this change is about: the de-AI pass EXISTS to change the
+    sentence, so once it has, the quotation no longer appears and the finding
+    that caused the repair is refused. The tool could only ever validate the
+    advice you did NOT take."""
+    f = [{"where": "p4 title", "claim": "sounds like a press release",
+          "quote": "revolutionising how teams unlock value"}]
+    accepted, rejected = jf.review(f, DOC_AFTER)
+    assert not accepted and rejected
+
+
+def test_a_fixed_finding_is_checked_against_the_text_it_objected_to():
+    """`--before` names the pre-repair snapshot. The contract does not move:
+    the quotation must appear VERBATIM in some version — what changes is which
+    version it is held to."""
+    f = [{"where": "p4 title", "claim": "sounds like a press release",
+          "quote": "revolutionising how teams unlock value", "fixed": True}]
+    accepted, rejected = jf.review(f, DOC_AFTER, before_text=DOC_BEFORE)
+    assert accepted and not rejected, rejected
+
+
+def test_a_fixed_finding_still_needs_a_real_quotation():
+    """A hallucinated quote dies exactly as before — `--before` widens where
+    the words may be found, never whether they must exist."""
+    f = [{"where": "p4 title", "claim": "invented",
+          "quote": "words that were never in either version", "fixed": True}]
+    accepted, rejected = jf.review(f, DOC_AFTER, before_text=DOC_BEFORE)
+    assert not accepted and rejected
+
+
+def test_fixed_is_refused_when_no_before_snapshot_was_given():
+    """Claiming a repair without producing the text repaired is a claim with
+    no evidence, and is refused rather than quietly accepted."""
+    f = [{"where": "p4 title", "claim": "sounds like a press release",
+          "quote": "revolutionising how teams unlock value", "fixed": True}]
+    accepted, rejected = jf.review(f, DOC_AFTER)
+    assert not accepted
+    assert any("--before" in r[1] for r in rejected), rejected
+
+
+def test_a_tag_only_quote_is_not_evidence():
+    """The word floor ran on the RAW string and the membership test on the
+    normalised one, so `<b> <i> <u>` counted as three words, normalised to the
+    empty string, and `"" in haystack` is True — a finding quoting nothing,
+    printed as `evidence attached`."""
+    f = [{"where": "p1", "claim": "tag-only quote", "quote": "<b> <i> <u>"}]
+    accepted, rejected = jf.review(f, DOC_AFTER)
+    assert not accepted and rejected
+
+
+def test_fixed_is_refused_when_the_sentence_is_still_there():
+    """`fixed` asserts two things and both are checkable: the sentence was
+    there, and it is not there now. Accepting on "in either text" let the same
+    file be passed as both, so a repair could be declared against an unrepaired
+    document and printed as validated."""
+    still_there = "<p>We are revolutionising how teams unlock value.</p>"
+    f = [{"where": "p4", "claim": "claimed a repair", "fixed": True,
+          "quote": "revolutionising how teams unlock value"}]
+    # the sentence is in BOTH texts: nothing was repaired
+    accepted, rejected = jf.review(f, still_there, before_text=still_there)
+    assert not accepted
+    assert any("still in the document" in r[1] for r in rejected), rejected

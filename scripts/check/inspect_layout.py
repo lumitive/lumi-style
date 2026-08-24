@@ -965,6 +965,7 @@ PROBE = r"""
         }
       }
     }
+    let clipFail = 0;
     for (const sv of s.querySelectorAll('.fig svg[viewBox]:not(.ic)')) {
       const vb = sv.viewBox.baseVal;
       // A viewBox that does not parse is not "nothing to check": the browser
@@ -976,7 +977,7 @@ PROBE = r"""
         badBox.push((sv.getAttribute('viewBox') || '').slice(0, 24));
         continue;
       }
-      let worst = 0;
+      let worst = 0, worstEl = null;
       for (const e of sv.querySelectorAll('*')) {
         // A NESTED <svg> starts a new coordinate system, and getBBox() answers
         // in it. Comparing those numbers to the OUTER viewBox is comparing two
@@ -1000,21 +1001,87 @@ PROBE = r"""
           const a = e.getBoundingClientRect(), b = sv.getBoundingClientRect();
           if (!b.width || !b.height) continue;
           const sx = vb.width / b.width, sy = vb.height / b.height;
-          worst = Math.max(worst,
+          const nested = Math.max(
             (a.right - b.right) * sx, (b.left - a.left) * sx,
             (a.bottom - b.bottom) * sy, (b.top - a.top) * sy);
+          if (nested > worst) {
+            worst = nested;
+            // CLAIM THE IDENTITY HERE TOO. This branch raised `worst` and left
+            // `worstEl` pointing at whatever the previous element was, so the
+            // report named an innocent label and the operator edited it, got
+            // the same number, and was back to writing a private probe. A
+            // nested <svg> in a figure is a shipped pattern (the inlined
+            // trademark named above), so this is the common case, not a corner.
+            worstEl = {tag: 'svg', cls: (e.getAttribute('class') || '').slice(0, 24),
+                       text: (e.getAttribute('aria-label') || '').slice(0, 40)};
+          }
           continue;
         }
         let bb; try { bb = e.getBBox(); } catch (err) { continue; }
         if (!bb.width && !bb.height) continue;
-        worst = Math.max(worst,
-          (bb.x + bb.width) - (vb.x + vb.width), vb.x - bb.x,
-          (bb.y + bb.height) - (vb.y + vb.height), vb.y - bb.y);
+        // MEASURED WHERE IT RENDERS, not where it was written. `getBBox()`
+        // answers in the element's OWN user space, before any transform — so a
+        // rotated label's box can sit at negative coordinates while the glyph
+        // renders comfortably inside. Six correct drawings in one deck were
+        // reported as clipped and the author shortened real axis names to
+        // silence a probe that was wrong; the package's own `.axname-y` was
+        // meanwhile rendering OUTSIDE and being passed, for the same reason
+        // read the other way round.
+        let x0 = bb.x, y0 = bb.y, x1 = bb.x + bb.width, y1 = bb.y + bb.height;
+        // ELEMENT USER SPACE -> THIS SVG'S USER SPACE, which is the frame `vb`
+        // is in. NOT `e.getCTM()`: for a direct child of the root svg that
+        // returns the viewBox-to-VIEWPORT matrix, so the corners come back in
+        // screen units and a rect sitting well inside a 400-unit box measured
+        // 641 units outside it. Composing the two screen matrices cancels the
+        // viewport scale and leaves only the transforms between the element
+        // and this svg — which is the whole question.
+        let ctm = null;
+        try {
+          const es = e.getScreenCTM(), ss = sv.getScreenCTM();
+          if (es && ss) ctm = ss.inverse().multiply(es);
+        } catch (err) { ctm = null; }
+        if (!ctm) {
+          // NOT MEASURED, AND COUNTED. Falling through to the untransformed
+          // box would be the ruler this release exists to remove, restored as
+          // a silent branch — and `SVGMatrix.inverse()` THROWS on a
+          // non-invertible matrix, so any zero-scaled ancestor puts a whole
+          // drawing on that path. The file already decided this question for
+          // the ink probe 850 lines above: count the fallbacks and let the
+          // page say its numbers are incomplete.
+          clipFail++;
+          continue;
+        }
+        {
+          const xs = [], ys = [];
+          for (const [cx, cy] of [[bb.x, bb.y], [x1, bb.y], [bb.x, y1], [x1, y1]]) {
+            xs.push(ctm.a * cx + ctm.c * cy + ctm.e);
+            ys.push(ctm.b * cx + ctm.d * cy + ctm.f);
+          }
+          x0 = Math.min(...xs); x1 = Math.max(...xs);
+          y0 = Math.min(...ys); y1 = Math.max(...ys);
+        }
+        const out = Math.max(x1 - (vb.x + vb.width), vb.x - x0,
+                             y1 - (vb.y + vb.height), vb.y - y0);
+        if (out > worst) {
+          worst = out;
+          // WHO went outside, not only how far. The report used to print
+          // `{over, pct}` and nothing else: eight pages, one number each, and
+          // no way to find the element without writing a private probe. The
+          // identity costs nothing to carry and is what turns a reading into
+          // an edit.
+          worstEl = {tag: e.tagName.toLowerCase(),
+                     cls: (e.getAttribute('class') || '').slice(0, 24),
+                     text: (e.textContent || '').replace(/\s+/g, ' ')
+                             .trim().slice(0, 40)};
+        }
       }
       // Half a unit of rounding is not a clipped label.
       if (worst > 0.5)
         clipped.push({over: +worst.toFixed(0),
-                      pct: +(100 * worst / Math.max(vb.width, vb.height)).toFixed(1)});
+                      pct: +(100 * worst / Math.max(vb.width, vb.height)).toFixed(1),
+                      tag: worstEl ? worstEl.tag : '?',
+                      cls: worstEl ? worstEl.cls : '',
+                      text: worstEl ? worstEl.text : ''});
     }
 
     // A STAT BAND RENDERING OUTSIDE ITSELF. `.body > *` carries `min-height: 0`
@@ -1407,6 +1474,7 @@ PROBE = r"""
       // page with a non-zero count has spill, column-skew and caption-gap
       // numbers measured against element boxes, which is the pre-fix behaviour.
       inkUnavailable: inkFail - inkFailAtStart,
+      clipUnavailable: clipFail,
       hasFooter: !!footEl,
       // A STARVED COLUMN: a block carrying words, rendered too narrow to hold
       // them. This is the shape of a defect no markup reader can see — the
@@ -2779,6 +2847,21 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
               f"skew and caption gap on those pages are element boxes, not ink: "
               + _fmt_ids(noink))
 
+    # The clipped probe's own fallbacks, reported for the same reason as the ink
+    # probe's: an element whose matrix could not be computed was NOT compared to
+    # its viewBox, and a silent skip in a gating check is the shape this release
+    # exists to remove. `unmeasured` makes the run exit nonzero — a check that
+    # did not run is not a check that passed.
+    noclip = [r for r in live if r.get("clipUnavailable")]
+    if noclip:
+        unmeasured += len(noclip)
+        n = sum(r["clipUnavailable"] for r in noclip)
+        print(f"  CLIPPING NOT MEASURED: {n} element(s) on {len(noclip)} page(s) "
+              f"could not be placed in their drawing's own frame (a zero-scaled "
+              f"or unrendered ancestor makes the matrix non-invertible), so "
+              f"whether they fall outside the viewBox is unknown: "
+              + _fmt_ids(noclip))
+
     notitle = [r for r in live if r.get("titleMissing")]
     if notitle:
         unmeasured += len(notitle)
@@ -2913,11 +2996,16 @@ def page_report(rows, geometry, errors, genre=None, declared_geometry=None,
     if clip:
         n = sum(len(r["clipped"]) for r in clip)
         worst = max((c for r in clip for c in r["clipped"]), key=lambda c: c["pct"])
+        who = worst.get("tag") or "?"
+        if worst.get("cls"):
+            who += f".{worst['cls']}"
+        if worst.get("text"):
+            who += f" {worst['text']!r}"
         print(f"  FIGURE CLIPPED: {n} drawing{'s' if n != 1 else ''} on "
               f"{len(clip)} page{'s' if len(clip) != 1 else ''} draw outside their "
               f"own viewBox, so a root svg clips it away and the reader never sees "
               f"it (worst {worst['over']} user units, {worst['pct']}% of the "
-              f"drawing): " + _fmt_ids(clip, 8))
+              f"drawing, at <{who}>): " + _fmt_ids(clip, 8))
     elif any(r.get("drawn") for r in live):
         print("  ok  figures: every drawing stays inside its own viewBox")
 

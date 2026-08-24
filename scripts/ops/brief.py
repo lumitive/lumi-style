@@ -78,6 +78,30 @@ def _storyline_slice(text: str, storyline: str) -> str:
 
 
 def brief(genre: str, storyline: str | None, full: bool) -> str:
+    """-> the whole brief as one string, for a caller that can take it."""
+    return "".join(body for _label, body in brief_parts(genre, storyline, full))
+
+
+def brief_parts(genre: str, storyline: str | None,
+                full: bool) -> list[tuple[str, str]]:
+    """-> [(label, text)] — the brief in the pieces it is already made of.
+
+    `brief()` joins these. The split exists because the joined form is tens of
+    kilobytes — the manifest prints the real sizes, and a number written here
+    would be a fourth copy that rots (convention 13) — and a harness with a
+    single-output ceiling truncates it to a 2KB preview:
+    the tool built to save a round trip cost five (run it, probe the file,
+    fail a Read on the token ceiling, then read it in two halves). Measured at
+    0.1.591. `--out` writes the parts and prints only the manifest.
+
+    The labels are the section headers the joined form already carries, so the
+    two cannot drift into naming different things.
+    """
+    parts: list[tuple[str, str]] = []
+
+    def add(label: str, text: str) -> None:
+        parts.append((label, text))
+
     out = [f"# LUMI build brief · genre={genre}"
            + (f" · storyline={storyline}" if storyline else "")]
     out.append("\nEverything SKILL.md asks you to read before composing, "
@@ -120,18 +144,60 @@ def brief(genre: str, storyline: str | None, full: bool) -> str:
         "All 206 origins are non-zero; composing against an estimated one "
         "draws outside the viewBox, which is `figure_clipped` and a rebuild "
         "round.\n")
-    return "".join(out)
+    # CUT WHERE THE JOINED FORM ALREADY CUTS. Each `== <name>` banner starts a
+    # section; the text before the first is the preamble. Splitting the buffer
+    # the builder produced — rather than assembling it a second way — is what
+    # keeps `--out` and stdout from ever disagreeing about the bytes.
+    whole = "".join(out)
+    chunks = re.split(r"(?m)^={70}\n== (.+)\n={70}\n", whole)
+    add("preamble", chunks[0])
+    for i in range(1, len(chunks) - 1, 2):
+        add(chunks[i].strip(),
+            "=" * 70 + f"\n== {chunks[i]}\n" + "=" * 70 + "\n" + chunks[i + 1])
+    return parts
 
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--genre", choices=list(GENRES), required=True)
     ap.add_argument("--storyline", choices=list(STORYLINES))
+    ap.add_argument("--out", type=pathlib.Path, metavar="DIR",
+                    help="write the brief as numbered parts in DIR and print "
+                         "only the manifest. Use it on any harness with a "
+                         "single-output ceiling; the manifest prints the real sizes.")
     ap.add_argument("--full", action="store_true",
                     help="send design-rules.md and page-contracts.md whole "
                          "rather than their section index")
     a = ap.parse_args(argv)
-    sys.stdout.write(brief(a.genre, a.storyline, a.full))
+    if a.out is None:
+        sys.stdout.write(brief(a.genre, a.storyline, a.full))
+        return 0
+    a.out.mkdir(parents=True, exist_ok=True)
+    # A REUSED DIRECTORY MIXES TWO BRIEFS AND SAYS "9 parts". The part names
+    # carry the section they hold, so a different genre, storyline or --full
+    # writes a DIFFERENT set of names beside the old ones: two storyline
+    # templates, two exemplars, and a full design-rules.md sitting next to the
+    # stub that says "section index only". The manifest still says 9, the
+    # directory holds 13, the exit code is 0, and the footer tells the reader
+    # to read them in order.
+    stale = sorted(a.out.glob("*.md"))
+    for old_part in stale:
+        old_part.unlink()
+    written = []
+    for i, (label, body) in enumerate(brief_parts(a.genre, a.storyline, a.full)):
+        stem = re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-")[:60] or "part"
+        path = a.out / f"{i:02d}-{stem}.md"
+        path.write_text(body, encoding="utf-8")
+        written.append((path, len(body)))
+    if stale:
+        print(f"replaced {len(stale)} part(s) from a previous brief in {a.out}")
+    print(f"brief written in {len(written)} parts to {a.out}")
+    for path, n in written:
+        print(f"  {n:>7,}  {path.name}")
+    print("\n  Read them in this order. They are the same bytes stdout would "
+          "have carried;\n  the split exists because one write of the whole "
+          "is a truncated preview on a harness\n  with an output ceiling, and a "
+          "truncated brief is worse than none.")
     return 0
 
 
