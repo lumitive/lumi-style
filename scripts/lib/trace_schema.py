@@ -73,6 +73,21 @@ PHASES = ENUMS["stage"]
 CLAUSE = re.compile(r"^P-[1-9]\d*$")
 ID = re.compile(r"^t-[0-9a-f]{12}$")
 
+# What a `shape` reading may name. A closed vocabulary for the same reason the
+# trace's own field list is closed: a store anyone can add a key to is a store
+# nobody can read across.
+SHAPE_KEYS = ("layout_top_share", "layout_kinds", "visual_share_median",
+              "repeated_skeleton_pages", "figures",
+              "move_skeleton_clashes", "text_only_figures")
+# A shape reading is a number; `geometry` says which rendering the rendered
+# ones came from, and a median with no geometry beside it is not comparable
+# across documents.
+SHAPE_TEXT_KEYS = ("geometry",)
+
+# Fields introduced after traces were already being stored. Absent is legal;
+# present must still be the declared type.
+ADDED_LATER = frozenset({"shape"})
+
 FIELDS: dict[str, object] = {
     "trace_id": str, "opened_at": str, "closed_at": (str, type(None)),
     "source": str, "skill_version": str, "genre": str, "storyline": str,
@@ -94,6 +109,21 @@ FIELDS: dict[str, object] = {
     # computes cost at report time from a dated price table when one exists.
     "output_tokens": (int, type(None)),
     "gates": dict, "graded": dict, "thresholds": dict,
+    # THE DOCUMENT'S SHAPE, so the corpus can grow its own baseline.
+    #
+    # `gates` and `graded` record whether each metric passed; none of them
+    # records what the document LOOKED like. GAP-024 and GAP-025 have both been
+    # open since 0.1.543 for want of a second measured document, and the reason
+    # a second one was never to hand is that no build kept its numbers — every
+    # comparison had to be re-measured by opening old files, which is why the
+    # one attempt at a bar (0.1.592) was drafted from five documents found by
+    # hand and refuted by a sixth.
+    #
+    # Descriptive, never a threshold. A reading here says what this build was,
+    # not whether it was good; `ledger.py` reports the distribution and a person
+    # reads it. That is the whole difference between a corpus that grows and a
+    # number somebody invented.
+    "shape": dict,
     "principle_yields": list, "refused_to_emit": (dict, type(None)),
     "corpus_id": (str, type(None)), "review_ref": (str, type(None)),
 }
@@ -108,7 +138,20 @@ def validate(rec):
                       f"carries no free-form data")
     for key, typ in FIELDS.items():
         if key not in rec:
+            # A FIELD ADDED AFTER RECORDS EXISTED IS OPTIONAL. `shape` arrived
+            # at 0.1.595 with 135 traces already stored; requiring it would
+            # redden every one of them for having been written before it
+            # existed, which teaches nothing and trains people to ignore the
+            # guard. New records get it from `cmd_open`; old ones stay as they
+            # were written, which is what a record is for.
+            if key in ADDED_LATER:
+                continue
             errors.append(f"missing field {key}")
+        elif rec[key] is None and key in ADDED_LATER:
+            # For a field added after records existed, a null says exactly what
+            # an absent key says: not recorded. Refusing one while allowing the
+            # other would fail a record for how its writer spelled "nothing".
+            continue
         elif not isinstance(rec[key], typ):  # type: ignore[arg-type]
             errors.append(f"{key}: expected {typ}, got {type(rec[key]).__name__}")
     for key, allowed in ENUMS.items():
@@ -116,6 +159,24 @@ def validate(rec):
             errors.append(f"{key}={rec[key]!r} is outside the vocabulary {allowed}")
     if "trace_id" in rec and not ID.match(str(rec["trace_id"])):
         errors.append(f"trace_id {rec['trace_id']!r} is not t-<12 hex>")
+    # ONLY WHEN IT IS A DICT. The type check above APPENDS an error and does
+    # not return, so a truthy non-dict fell through to `.items()` and raised —
+    # `[]` reported cleanly while `[1, 2]` crashed, and the crash took
+    # `check_repo`'s guard with it, so the tree could not be checked at all.
+    # A validator that raises instead of reporting cannot name the bad record.
+    for key, value in (rec.get("shape") if isinstance(rec.get("shape"), dict)
+                       else {}).items():
+        if key in SHAPE_TEXT_KEYS:
+            if not isinstance(value, str) or not value:
+                errors.append(f"shape.{key} is {value!r}; expected a name")
+            continue
+        if key not in SHAPE_KEYS:
+            errors.append(f"shape.{key} is not one of "
+                          f"{', '.join(SHAPE_KEYS + SHAPE_TEXT_KEYS)}")
+        elif isinstance(value, bool) or not isinstance(value, (int, float)):
+            errors.append(f"shape.{key} is {value!r}; a shape reading is a "
+                          f"number or the key is absent — there is no field "
+                          f"for 'not measured' because an absent key IS that")
     for phase, seconds in rec.get("phase_seconds", {}).items():
         if phase not in PHASES:
             errors.append(f"phase_seconds has phase {phase!r}, not one of {PHASES}")

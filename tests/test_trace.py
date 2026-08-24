@@ -26,7 +26,8 @@ def _legal():
                genre="sales", storyline="market-analysis", entry_path="A",
                outline_reviewed=False, titles_changed_after_approval=0,
                geometry="16x9", pages=0, content_pages=0, phase_seconds={},
-               gates={}, graded={}, thresholds={}, principle_yields=[],
+               gates={}, graded={}, thresholds={}, shape={},
+               principle_yields=[],
                refused_to_emit=None)
     return rec
 
@@ -592,3 +593,29 @@ def test_check_deliverable_reports_a_missing_trace_as_unmeasured():
         capture_output=True, text=True, cwd=ROOT)
     assert "trace: none" in p.stdout
     assert p.returncode != 0
+
+
+def test_a_trace_opened_before_the_shape_field_still_closes(tmp_path):
+    """A migration is not done until both sides of it are.
+
+    `trace_schema` was taught that an absent `shape` means "not recorded", and
+    `cmd_close` was not: it assumed `cmd_open` had written the key and died
+    with KeyError on any build open across the 0.1.595 boundary — losing the
+    trace entirely, for 135 stored records and every build in flight.
+    """
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    tid = subprocess.run(
+        [sys.executable, str(TRACE_PY), "open", "--genre", "internal",
+         "--storyline", "market-analysis", "--entry-path", "B",
+         "--geometry", "16x9"],
+        capture_output=True, text=True, env=env, cwd=ROOT, check=True).stdout.strip()
+    stored = tmp_path / f"{tid}.json"
+    rec = json.loads(stored.read_text())
+    del rec["shape"]                      # a record written before the field
+    stored.write_text(json.dumps(rec))
+    p = subprocess.run(
+        [sys.executable, str(TRACE_PY), "close", "--id", tid, "--deliverable",
+         str(ROOT / "fixtures" / "deck-pass.en.html")],
+        capture_output=True, text=True, env=env, cwd=ROOT)
+    assert p.returncode == 0, p.stderr[-600:]
+    assert isinstance(json.loads(stored.read_text()).get("shape"), dict)

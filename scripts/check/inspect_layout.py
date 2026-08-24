@@ -1657,6 +1657,11 @@ PROBE = r"""
       caps, tables, drawn, capGapPx, capOffPct, clipped, badBox, sourceEcho, sourceComparable, fields, horizons,
       bandEscape, hasBand: s.querySelectorAll('.band').length > 0,
       figInk, titleLines, openerMark, figShapes, figNoAxis, figScaled,
+      // The analytical move the page DECLARES. `check_design` reads it
+      // from the markup; this probe never carried it, so the two facts
+      // needed to ask whether a drawing matches its move lived in
+      // different checkers and the question could not be asked.
+      declaredMove: (s.getAttribute('data-analysis') || '').trim(),
       figUnnamedAxes, roleWeights,
       runWrapped,
       axisNames,

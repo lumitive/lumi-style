@@ -130,7 +130,7 @@ def cmd_open(a):
                storyline=a.storyline, entry_path=a.entry_path,
                outline_reviewed=False, titles_changed_after_approval=0,
                geometry=a.geometry, pages=0, content_pages=0, phase_seconds={},
-               gates={}, graded={}, thresholds={},
+               gates={}, graded={}, thresholds={}, shape={},
                principle_yields=[], refused_to_emit=None,
                recipe_hash=None, recipe_version=None)
     # WHAT DROVE THIS BUILD, taken at open when the build was handed one.
@@ -254,6 +254,13 @@ def cmd_phase(a):
 
 def cmd_close(a):
     rec = _load(a.id)
+    # NOT `setdefault`: the schema blesses `null` as "not recorded" (absent and
+    # null say the same thing), so a record carrying one still reached
+    # `rec["shape"][key] = ...` and died with TypeError. Two stored traces in
+    # this repository carry exactly that. A migration must handle every state
+    # its own schema declares legal.
+    if not isinstance(rec.get("shape"), dict):
+        rec["shape"] = {}
     rec["closed_at"] = _now()
     rec["outline_reviewed"] = bool(a.outline_reviewed)
     rec["titles_changed_after_approval"] = a.titles_changed_after_approval
@@ -270,6 +277,17 @@ def cmd_close(a):
             rec[k] = getattr(a, k)
     if a.usage is not None:
         rec["input_tokens"], rec["output_tokens"] = _read_usage(a.usage)
+    # The two readings that need a browser arrive from the tool that ran one.
+    # Supplied like `--usage` and for the same reason: re-rendering here to
+    # re-derive a number `check_deliverable` already holds would double the
+    # cost of every close. They are READINGS, not verdicts — the rule that
+    # verdicts are never supplied is untouched.
+    for flag, key in (("visual_share_median", "visual_share_median"),
+                      ("repeated_skeleton_pages", "repeated_skeleton_pages"),
+                      ("move_skeleton_clashes", "move_skeleton_clashes")):
+        got = getattr(a, flag, None)
+        if got is not None:
+            rec["shape"][key] = got
 
     # THE TRACE MUST NOT CONTRADICT THE DOCUMENT. A trace recording `a4`
     # beside a body declaring `landscape` describes two different documents,
@@ -336,6 +354,17 @@ def cmd_close(a):
                 rec["thresholds"][mid] = (
                     "n/a" if str(verdict).lower() in ("n/a", "na")
                     else "not_measured")
+        # THE SHAPE, from the report this function already ran. Free: no extra
+        # render, no second measurement, and the numbers are the checker's own.
+        if name == "design":
+            spread = row.get("D9_layout_variety") or {}
+            if isinstance(spread.get("top_share"), (int, float)):
+                rec["shape"]["layout_top_share"] = spread["top_share"]
+            if isinstance(spread.get("distinct"), int):
+                rec["shape"]["layout_kinds"] = spread["distinct"]
+            drawn = row.get("D5_drawn_share") or {}
+            if isinstance(drawn.get("drawn"), int):
+                rec["shape"]["figures"] = drawn["drawn"]
         v = row.get("D16_visual_presence") or {}
         if isinstance(v.get("content_pages"), int):
             rec["content_pages"] = v["content_pages"]
@@ -383,6 +412,11 @@ def cmd_annotate(a):
     `check_evidence.py` run its own commands instead of accepting a person's
     word for the result.
     """
+    # A RECORD OPENED BEFORE `shape` EXISTED IS STILL A RECORD. `trace_schema`
+    # migrated the READ side — absent and null both mean "not recorded" — and
+    # this side was left assuming `cmd_open` had written the key. Any build open
+    # across the 0.1.595 boundary therefore died here with KeyError and lost its
+    # trace entirely. A migration is not done until both sides of it are.
     rec = _load(a.id)
     if a.corpus_id:
         rec["corpus_id"] = a.corpus_id
@@ -466,6 +500,13 @@ def main():
     c.add_argument("--id", required=True)
     c.add_argument("--deliverable", required=True)
     c.add_argument("--outline-reviewed", action="store_true", dest="outline_reviewed")
+    c.add_argument("--visual-share-median", dest="visual_share_median", type=float,
+                   help="the rendered reading, from the tool that rendered it")
+    c.add_argument("--repeated-skeleton-pages", dest="repeated_skeleton_pages",
+                   type=int, help="pages drawing a skeleton another page draws")
+    c.add_argument("--move-skeleton-clashes", dest="move_skeleton_clashes",
+                   type=int, help="skeletons drawn for two different declared "
+                                  "analytical moves")
     c.add_argument("--titles-changed-after-approval", type=int, default=0,
                    dest="titles_changed_after_approval")
     # The seconds value is parsed in cmd_close, with a message. Until 0.1.524

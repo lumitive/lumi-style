@@ -51,12 +51,19 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
-import markup  # noqa: E402 — after the bootstrap
+import markup  # noqa: E402
+import rubric_items  # noqa: E402 — after the bootstrap
 
 FIELDS = {"where", "claim", "quote"}
 # `fixed` marks a finding the author ACTED ON. It is optional and it is
 # not a verdict: it only says which text the quotation is held to.
-OPTIONAL_FIELDS = {"fixed"}
+OPTIONAL_FIELDS = {"fixed", "dimension"}
+
+# The reviewer's own dimensions, imported rather than retyped. A second list of
+# C1-C8 in this file would be the drift `rubric_items` was extracted to stop —
+# it already outlived one, offering C1-C7 after C8 shipped, and a reader who
+# filled that form produced a record `review_scores.py` rejects.
+DIMENSIONS = tuple(rubric_items.DIM_TITLE)
 MIN_QUOTE_WORDS = 3
 
 
@@ -102,6 +109,11 @@ def review(findings, document_text: str, before_text: str | None = None):
         missing = sorted(FIELDS - set(f))
         if missing:
             rejected.append((where, f"missing {missing}"))
+            continue
+        dim = f.get("dimension")
+        if dim is not None and dim not in DIMENSIONS:
+            rejected.append((where, f"names dimension {dim!r}; the rubric's "
+                                    f"are {', '.join(DIMENSIONS)}"))
             continue
         quote = str(f["quote"]).strip()
         # COUNTED AFTER NORMALISING. The floor ran on the raw string and the
@@ -198,9 +210,19 @@ def main():
 
     print(f"{a.findings} against {a.document}\n")
     print(f"  {len(accepted)} accepted, {len(rejected)} rejected\n")
+    # GROUPED BY DIMENSION, because a list of twenty findings in arrival order
+    # is a list nobody acts on. The dimension is optional: a finding that names
+    # none is still a finding, and lands under `unfiled`.
+    by_dim: dict[str, list] = {}
     for f in accepted:
-        print(f"  note  {f['where']}: {f['claim']}")
-        print(f"        \"{f['quote']}\"")
+        by_dim.setdefault(f.get("dimension") or "unfiled", []).append(f)
+    for dim in [d for d in DIMENSIONS if d in by_dim] + (
+            ["unfiled"] if "unfiled" in by_dim else []):
+        title = rubric_items.DIM_TITLE.get(dim, "no dimension named")
+        print(f"  ── {dim} · {title}")
+        for f in by_dim[dim]:
+            print(f"     note  {f['where']}: {f['claim']}")
+            print(f"           \"{f['quote']}\"")
     for where, why in rejected:
         print(f"  drop  {where}: {why}")
     if accepted:

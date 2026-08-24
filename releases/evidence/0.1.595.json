@@ -1,0 +1,18 @@
+{
+  "version": "0.1.595",
+  "diff_base": "ec66ff86db07a8751b888675855eb36494763178",
+  "spec": "waived: the four eval pillars from specs/2026-08-24-round-4-retrospective-design.md, implemented. That design record is the spec; this release is its execution, including the pillar it could not ship as a gate and why.",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "f04602e1e4dabf54880d35f1a127e018812a9c892b096ad3bdbb2f17779ea4dd",
+      "date": "2026-08-25"
+    }
+  ],
+  "waivers": []
+}

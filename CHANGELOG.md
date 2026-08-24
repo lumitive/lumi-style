@@ -1,3 +1,78 @@
+## 0.1.595 — the corpus keeps its own numbers now
+
+Two gaps have been open since 0.1.543 waiting for "a second measured document".
+Neither was waiting on a decision. They were waiting because **no build kept its
+numbers**, so every comparison had to be assembled by reopening old files, and
+0.1.592's layout bar was duly drafted from five documents somebody had
+remembered and refuted by a sixth nobody had thought of.
+
+**Every build now records its own shape.** `trace.py` carries a `shape` block —
+layout top share, layout kinds, figures, visual-share median, repeated-skeleton
+pages — transcribed at close from the reports `check_deliverable` already ran.
+No extra render, no second measurement. `ledger.py` reports the distribution and
+nothing else: a reading says what a build WAS, never whether it was good. That
+is the whole difference between a corpus that grows and a number somebody
+invented.
+
+**`scripts/ops/bar_replay.py` asks a proposed bar whether it contradicts the
+record.** Given a metric and a number it replays them against every document
+carrying an owner verdict and names the disagreements. Pointed at the withdrawn
+`layout_top_share <= 50`, it reproduces 0.1.592's conclusion mechanically — and
+finds a second disagreement the hand pass missed: **R1, which the owner
+rejected, sits at 42.9 and that bar would have passed it.** The bar was not
+merely wrong about the accepted document; it orders the two backwards. That
+run is the tool's own deliberate red, and it is a test.
+
+The tool sets nothing. It reports, and a person decides — a tool that could
+write the threshold it had just validated would be the invented-number machine
+with an extra step.
+
+**The judge is organised by the rubric's own dimensions.** `judge_findings.py`
+accepts an optional `dimension`, validates it against `rubric_items` rather than
+a retyped list, and groups its report. The contract is untouched: a quotation
+must appear verbatim, and there is still no field for a score, because a judge
+that scores gets fooled by fluent verbosity and that is measured.
+
+**A second review round changed this release too.** With mutation evidence, it
+found that `bar_replay` passed its tests without consulting the owner's verdict
+at all — both existing cases happened to be genuine disagreements, so a tool
+that flagged everything produced identical output, and nothing asserted an exit
+of 0. It found `test_the_tool_sets_nothing` disarmed by the three tests above
+it: the snapshot was taken after they had already run the tool, so a mutant that
+wrote to the corpus passed while leaving the tracked file modified on disk. And
+it found the write side of the `shape` migration untouched — a trace opened
+before this release, or carrying the `null` the schema explicitly blesses, died
+at close with `KeyError` / `TypeError` and lost its record. That is 135 stored
+traces and every build in flight.
+
+It also found the text-only exclusion wrong about the real material: signature
+parts are percentages rounded to ten, so one stray element makes
+`line:0,text:100` — as structureless as `text:100` and not excluded by a rule
+that keyed on the absence of a comma. Three of one deck's four signatures were
+90%+ text and only one was excluded. The rule now keys on the text share, and
+the count of excluded figures is recorded beside the clash count, because
+`move_skeleton_clashes: 0` over nothing but text blobs reads as the stronger
+claim.
+
+And `bar_replay` now reports its two directions apart. A bar that FAILS a
+document the owner accepted is wrong outright. A bar that PASSES one she
+rejected is weaker evidence — R1 was rejected for its figures, so a layout bar
+has no obligation to fail it, and collapsing the two would make every metric
+unpassable as rejected documents accumulate, pushing an author toward a number
+chosen to fail R1 for the wrong reason. That is this tool's own badge on the
+invented-number machine.
+
+**A gate was built, calibrated, and not shipped as a gate.** GAP-025 can be
+asked without a threshold — two pages declaring DIFFERENT analytical moves must
+not arrive as the SAME drawing — and the browser probe now carries each page's
+`data-analysis` so the two facts stop living in different checkers. It does not
+gate: the one accepted document on record and the one rejected beside it declare no
+moves at all — both predate the convention — so neither can exercise it, and on the two decks that do, every
+clash came from `text:100` — "a drawing made only of text", the absence of
+structure rather than a structure two pages share. Excluding that leaves zero
+clashes on both. **A check with no failing case anywhere is not a gate**, so the
+count joins the shape block and waits for material. Both gap entries record it.
+
 ## 0.1.594 — every y-axis name this package shipped was invisible
 
 The release set out to save round trips. Repairing the first instrument

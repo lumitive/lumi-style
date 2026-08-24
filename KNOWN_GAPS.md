@@ -299,10 +299,32 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   the reference's p4 — four small charts of one kind sitting side by side as a
   single composition — read as four repeats. Counting pages is the fix; the
   remaining disagreement with the reference is real rather than an artefact.
-- check: a second document accepted through a blind review, its
-  repeated-skeleton share measured, and the bar set in `evals/thresholds.json`
-  at `provisional` with both documents cited. GAP-021 and GAP-024 close on the
-  same material.
+- **0.1.595 built the contradiction form and could not gate it.** The share
+  this entry is stuck on can be avoided entirely by asking a question with no
+  threshold in it: two pages that declare DIFFERENT analytical moves and draw
+  the SAME skeleton contradict themselves. It is now measured — the browser
+  probe carries each page's `data-analysis`, which it never did, so the two
+  facts needed to ask the question stopped living in different checkers.
+  **It does not gate, for two measured reasons.** The two judged documents on
+  record — one accepted, one rejected — declare no `data-analysis` at all, both
+  predating the convention, so neither can exercise it, and a gate no accepted
+  document can exercise is FM-01 waiting to happen. And on the two decks that do
+  declare moves, every clash came from a figure that is nothing but text, which
+  is the absence of structure rather than a structure two pages share; excluding
+  those leaves **zero** clashes on both. So the check has no failing case
+  anywhere yet.
+- a caution that belongs with the number: that zero is not evidence the drawings
+  agree with their declared moves. It is a deck whose figures are almost all
+  text blobs — three of one deck's four signatures are 90%+ text. The count is
+  recorded beside `text_only_figures` for exactly this reason, because
+  `move_skeleton_clashes: 0` alone reads as the stronger claim.
+- what it does instead: the count goes into the trace's `shape` block with the
+  other readings, so the corpus accumulates one per build and
+  `scripts/ops/bar_replay.py` can be pointed at it once documents an owner has
+  judged actually carry declared moves.
+- check: judged documents that DECLARE their analytical moves. Until then this
+  gap is waiting on material, not on a decision — which is a different state
+  from the one it was in, and worth the distinction.
 
 ## GAP-024 · Layout variety is measured, reported, and cannot fail
 
@@ -351,6 +373,18 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   emitted scaffold went from 10 of 11 content pages under target (worst 37%) to
   4 of 11 (worst 46%). The 35% quoted elsewhere is the FIELD DECK's worst page,
   not the scaffold's; the two were merged into one row in a first draft.
+- **0.1.595 made the refutation mechanical.** `scripts/ops/bar_replay.py` takes
+  a metric and a proposed bar, replays it against every document carrying an
+  owner verdict, and reports which ones it would have contradicted. Pointed at
+  the withdrawn bar it reproduces the answer this entry reached by hand — and
+  finds a second disagreement the hand pass missed: R1, which the owner
+  REJECTED, sits at 42.9 and the bar of 50 would have passed it. The bar is not
+  merely wrong about A1; it orders these two documents backwards.
+- what is still missing is material, not method: only two documents carry both
+  an owner verdict and a measured reading. Every build now records its own
+  shape (`trace.py`'s `shape` block, reported by `ledger.py`), so the corpus
+  grows without anyone remembering to reopen anything — which is the condition
+  this entry has actually been waiting on since 0.1.543.
 - check: this gap now needs something other than a top-share bar. The open
   question is what property separates A1 at 78.6 from the deck rejected at 70.0,
   given both run one layout on most pages — the answer is probably not variety

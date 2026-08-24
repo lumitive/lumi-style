@@ -176,6 +176,24 @@ def ledger_signals(traces):
 
 
 
+def ledger_shape(traces):
+    """-> {key: sorted readings} over every build that recorded a shape.
+
+    **A distribution, never a bar.** The point is that the corpus keeps its own
+    numbers so a proposed threshold can be checked against them instead of
+    invented from whichever documents somebody happened to reopen — which is
+    how 0.1.592's layout bar came to be drafted from five documents and refuted
+    by a sixth. Nothing here decides anything; `bar_replay.py` is what asks a
+    number whether it separates, and a person reads the answer.
+    """
+    out: dict[str, list] = {}
+    for t in traces:
+        for key, value in (t.get("shape") or {}).items():
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                out.setdefault(key, []).append(value)
+    return {k: sorted(v) for k, v in sorted(out.items())}
+
+
 def ledger_recipes(traces):
     """-> rows saying whether each build's recipe was current, old, or unknown.
 
@@ -494,6 +512,20 @@ def main():
           f"{', '.join(f'{k}={v}' for k, v in sorted(beats['by_entry_path'].items()))}")
 
     refusals, yields, abandoned = ledger_signals(traces)
+    shape = ledger_shape(traces)
+    print("LEDGER 2d · what the documents LOOKED like")
+    if not shape:
+        print("       no build has recorded a shape yet — `check_deliverable` "
+              "writes one at close from the checkers it already ran")
+    for key, values in shape.items():
+        mid = statistics.median(values)
+        print(f"       {key:24} n={len(values):<4} "
+              f"min {values[0]:g}  median {mid:g}  max {values[-1]:g}")
+    if shape:
+        print("       A distribution, not a bar. `bar_replay.py <metric> <n>` "
+              "asks whether a proposed number separates the documents an owner "
+              "has actually judged.")
+
     print("LEDGER 3 · what the constitution recorded")
     print(f"       {len(refusals)} refusal(s) to emit — each names a pair of "
           f"clauses that needs specifying")
