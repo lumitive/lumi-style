@@ -498,8 +498,11 @@ def open_trace(genre, geometry, storyline, entry_path, out_path=None):
     the file fingerprinted was the PLAN while the script that produced every
     page was fingerprinted by nothing — and an outline carries no version
     stamp, so those builds read as `unknown` vintage for ever. The builder does
-    not exist yet at scaffold time; it is recorded afterwards — `build.py` does
-    it from `--script`, which is the file that actually produced the pages.
+    not exist yet at scaffold time — true of the SCAFFOLD, and false of the
+    driver, which is handed the script on its own command line. `build.py`
+    records it from `--script` after the fill (0.1.603); a hand-run
+    `trace.py annotate --id <id> --recipe <build script>` is what a build
+    assembled some other way still owes.
 
     **A trace belongs to the DOCUMENT, not to the round that scaffolded it**
     (0.1.602). A build is N rounds and the driver re-scaffolds each one, so

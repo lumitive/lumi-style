@@ -1,3 +1,28 @@
+## 0.1.603 — the driver knew the recipe and told nobody
+
+Path B means "started from a recipe", and the ledger is full of path-B builds
+that name none. The cause is one line that was never written: `build.py` is
+handed the fill script as `--script` and passed it to the trace nowhere, so
+every build through the driver was recipe-less unless an operator remembered a
+second command afterwards. Both agents of the 2026-08-25 round ran `annotate` by
+hand once their build was over, which is the tell — a workaround two strangers
+reach for independently is a missing feature.
+
+The scaffold's docstring is why nobody noticed: *the builder does not exist yet
+at scaffold time*. True of the scaffold, false of the driver, and the sentence
+was doing duty for both. It says which is which now (convention 14).
+
+Recorded after the fill rather than at scaffold time, for two reasons: by then
+the script has actually produced the pages, and since 0.1.602 a second round
+reuses the deck's trace and calls `trace.py open` not at all — so an
+`open --recipe` would have stopped firing from round two onward, which is the
+same shape of silence this release exists to end.
+
+Deliberate red: a build with `--script` whose trace carried `recipe_hash: null`.
+Counter-red, green throughout: a build with no script records no recipe rather
+than acquiring a fingerprint of something that did not drive it — path A's shape
+is the absence, and a plausible wrong answer there would be worse than none.
+
 ## 0.1.602 — one document, one trace; the loop was opening a new one every round
 
 The same false premise as 0.1.601, one file over. The scaffold opens a trace,

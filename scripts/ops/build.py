@@ -50,6 +50,7 @@ import sys  # noqa: E402
 import time  # noqa: E402
 
 import debug_log  # noqa: E402
+import markup  # noqa: E402
 from deliverable_registry import COMPOSITIONS, GENRES, STORYLINES  # noqa: E402
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
@@ -229,6 +230,28 @@ def main(argv=None) -> int:
     stage.run("embed shapes",
               [sys.executable, str(ROOT / "scripts/build/embed_shapes.py"),
                str(a.deck)])
+
+    # THE RECIPE, RECORDED BY THE ONE COMMAND THAT KNOWS IT. `new_deck.py`'s
+    # docstring says the builder does not exist at scaffold time and is
+    # recorded afterwards by hand — true of the scaffold, false here: the
+    # driver was handed the script on its own command line. So every path-B
+    # build through this driver was recipe-less unless an operator remembered a
+    # second command, and the ledger filled with builds that could not say
+    # which rules they followed. Both agents of the 2026-08-25 validation round
+    # ran `annotate` by hand afterwards, which is the tell.
+    #
+    # AFTER the fill rather than at scaffold time, and for two reasons: the
+    # script has by then actually produced the pages, and from 0.1.602 a second
+    # round reuses the deck's trace and calls `trace.py open` not at all — so
+    # an `open --recipe` would silently stop firing from round two onward.
+    if a.script:
+        trace_id = markup.body_attr(
+            a.deck.read_text(encoding="utf-8"), "data-trace")
+        if trace_id:
+            stage.run("recipe",
+                      [sys.executable, str(ROOT / "scripts/ops/trace.py"),
+                       "annotate", "--id", trace_id,
+                       "--recipe", str(a.script)])
 
     argv_cd = [sys.executable, str(ROOT / "scripts/ops/check_deliverable.py"),
                str(a.deck)]
