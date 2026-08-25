@@ -368,6 +368,16 @@ see would do nothing but silence the checker. One note may declare several
 absences (`data-omitted="team, vision"`); the undeclared count is reported as
 D31 and never gates.
 
+**And a note DECLARES an absence; it does not cover one.** Until 0.1.600 the
+coverage scan read the whole document first, scope notes included, so the
+sentence "this report excludes competitive landscape analysis" was itself the
+thing that made competitive landscape count as covered — and deleting the
+`data-omitted` attribute changed nothing at all. The declaration was decorative
+and the branch that reads it had never once been load-bearing. The corpus is
+now what a reader meets (`markup.reader_text`, so a stylesheet comment cannot
+supply a section either) minus the scope notes' own bodies, which is what makes
+the attribute the thing that clears the section.
+
 **Existence may be mandated; naming almost never is.** A checker that decides
 whether a section exists by grepping headings would be enforcing the one thing
 those standards explicitly decline to enforce.

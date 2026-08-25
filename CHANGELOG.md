@@ -1,3 +1,44 @@
+## 0.1.600 — a scope note declares an absence; it does not cover one
+
+C5 lets a document declare a deliberate gap instead of filling it, and the
+declaration is a reader-visible note carrying `data-omitted`. Measured during
+the round-6 retrospective, **that attribute had never done anything.** The
+coverage scan read the whole document before it consulted the declarations, and
+a scope note's own body is part of the document — so the sentence "this report
+excludes competitive landscape analysis" was itself what made competitive
+landscape count as covered. Delete the attribute and nothing changed. The branch
+that reads it had never once been load-bearing, which is FM-01's shape living
+inside a metric rather than in a guard.
+
+**The same line had a second defect.** The corpus came from `strip_tags`, which
+keeps what is between the tags — a `<style>` block's text included. One injected
+CSS comment naming three sections took a status report's missing count from
+three to zero. `markup.reader_text` was written for exactly this at 0.1.594,
+when a stylesheet comment silenced D25's image-provenance gate, and it never
+reached this second call site. The CHANGELOG's own description of D31 as "a
+substring over visible text" was false until now; `references/eval-rubric.md`
+says so.
+
+Both are one idea: the corpus is what a reader meets, minus what the document
+tells the reader it does not cover. Scope notes are subtracted by ROLE as well
+as by attribute — a note written without `data-omitted` is an undeclared
+omission and should read as one, not as coverage supplied by its own apology.
+
+**And D31 acquired a threshold history.** `trace.py` records a reading only for
+a report key named after the metric; D31's number lived inside a dict keyed
+D26, so the metric sitting at the top of the ledger's failing table — eleven
+FAIL across thirty-two recorded runs — had no threshold history at all, and
+`ledger_instruments` could form no opinion about it in either direction. "A real
+weakness, or a bar set wrong" was unanswerable by construction. It is answerable
+now, and **no bar moves in this release**: a later commit on this branch changes
+what a trace counts, so the denominator behind that eleven changes meaning, and
+any proposal waits for a re-measurement run through `bar_replay.py` (GAP-035).
+
+Deliberate red on all three, planted first: a stylesheet comment covering three
+sections, a scope note covering what it excluded, and a report with no key a
+trace could record. Every fixture verdict holds, and both round-6 decks report
+the D31 verdict they did before.
+
 ## 0.1.599 — the colophon's own version was a quantity nobody sourced
 
 Three numbers a document is MADE of were being graded as numbers a document

@@ -75,6 +75,41 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-035 · D31's bar has never been measured, and its corpus changed meaning mid-branch
+
+- status: open — **the question is open on purpose; this entry exists to stop
+  the next session from closing it by adjusting the number**
+- opened: 0.1.600
+- surface: scripts/check/check_design.py (`d26_declared_scope`),
+  scripts/lib/deliverable_registry.py (`TYPICAL_SECTIONS`), scripts/ops/ledger.py
+- symptom: D31 is the top row of the ledger's failing table — **11 FAIL across
+  32 recorded runs**, nine of them `status-report` conformance tasks — which
+  makes it a standing threshold candidate reading "a real weakness, or a bar
+  set wrong". Three things make that question unanswerable today rather than
+  merely unanswered:
+  - it had **no threshold history at all** until 0.1.600, because `trace.py`
+    records a reading only for a report key named after the metric and D31's
+    number lived inside D26's dict. `ledger_instruments` could form no opinion
+    in either direction;
+  - the matcher is a plain case-insensitive substring over the document, so
+    what it measures is **vocabulary, not coverage** — two conformance decks
+    with identical apparatus scored opposite verdicts on the strength of which
+    words their prose happened to use;
+  - the scaffold seeds the agenda's run lines with `section_name(...)`, so a
+    fresh scaffold measures itself compliant and **the metric goes red at the
+    moment an author replaces that furniture with prose a reader would want**.
+    That is the shape of the withdrawn 82% fill floor, one step worse: a number
+    satisfiable by not improving the page.
+- and the denominator moves: a later release on this branch makes a trace
+  belong to a document rather than to a build round, so "11 of 32" counts
+  something different afterwards.
+- check: after this branch lands, drive one full build under the new trace
+  lifecycle, re-measure D31 across the corpus, and put any proposed bar through
+  `python3 scripts/ops/bar_replay.py D31_undeclared_sections <n>` before
+  proposing it. **No bar proposal without that run.** 0.1.600 fixed what a
+  section may be satisfied BY; whether the bar itself is right is a separate
+  question and needs its own evidence.
+
 ## GAP-034 · A digit-LED name still reads as a value on a scale
 
 - status: open — **observed, and deliberately not guessed at**
