@@ -100,8 +100,9 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-037 · The board's own staleness clause froze for fourteen releases
 
-- status: open
+- status: fixed
 - opened: 0.1.605
+- closed: 0.1.607
 - surface: conformance/CONFORMANCE.md, scripts/lib/stamps.py:62,
   scripts/ops/run_conformance.py:1347 (render)
 - symptom: `render()` writes `skill <v> · newest run <r> · N releases behind`,
@@ -118,10 +119,15 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   fresh, `behind == 0` and the clause is omitted entirely, so the next stamp
   bump produces a header that discloses nothing at all rather than something
   wrong.
-- check: none yet. The fix is a guard rather than a rule: the distance is
-  computable from `history.json` and the current version, so nothing needs to
-  be remembered — this is CLAUDE.md convention 13's parity-guard pattern, with
-  the code as one side.
+- check: python3 scripts/check/check_repo.py (`board staleness clause`) — it
+  recomputes the distance from the board's own run id and the CHANGELOG and
+  holds the header to it, so neither a frozen number nor an omitted clause can
+  ship. `run_conformance.py restamp` rewrites that one line and runs in
+  `release.py`'s realigners, so the recomputation happens in the same step that
+  invalidated it rather than being remembered. Both failure shapes have a
+  deliberate-red run; a third red found the guard reading the board from one
+  tree and the CHANGELOG from another, which is why `_releases_between` now
+  takes the root it should look in.
 
 ## GAP-036 · The scored artifact is whichever one sorts first
 

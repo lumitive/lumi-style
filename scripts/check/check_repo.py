@@ -3399,6 +3399,79 @@ def check_metric_id_ranges():
     return errors
 
 
+def check_board_staleness_clause():
+    """The board's own "N releases behind" is recomputed, never trusted.
+
+    `run_conformance.render()` writes `skill <v> · newest run <r> · N releases
+    behind`, and N is correct for exactly as long as nobody bumps the stamp.
+    Every release does: `stamps.py` requires `skill {v}` in this file and the
+    pattern is a substring match, so the cheapest edit moves the version and
+    leaves the clause where it was. `check_evidence` then presumes the change
+    is a stamp and does not count it as a touch, which is right for a stamp and
+    is why nothing else was ever going to see this.
+
+    Measured before this guard: 0.1.592 through 0.1.604 shipped the header
+    `newest run 0.1.578 · 3 releases behind` FOURTEEN TIMES RUNNING while the
+    real distance grew from three to twenty-six. A frozen number is worse than
+    no number, because it reads as a measurement — and the omitted form has the
+    same defect from the other side: when the board is fresh the clause is left
+    out entirely, so the next stamp bump produces a header that discloses
+    nothing rather than something wrong.
+
+    CLAUDE.md convention 13: the number stays only because it is in a parity
+    guard with the code as one side. Nothing here is remembered — the distance
+    is recomputed from the CHANGELOG and the board's own run id, through
+    `run_conformance`'s function rather than a second copy of it.
+    """
+    path = ROOT / "conformance" / "CONFORMANCE.md"
+    if not path.exists():
+        return ["conformance/CONFORMANCE.md is missing"]
+    lines = path.read_text(encoding="utf-8").splitlines()
+    header = next((ln for ln in lines[:6] if ln.startswith("# ")), None)
+    runs = next((ln for ln in lines[:8] if ln.startswith("Runs ")), None)
+    if header is None or runs is None:
+        return ["conformance/CONFORMANCE.md: no `# ` header or no `Runs ` line "
+                "in the generated block — the board is not in the shape "
+                "run_conformance.py report --record writes"]
+
+    try:
+        import run_conformance
+    except Exception as exc:                                        # noqa: BLE001
+        return [f"could not import run_conformance to recompute the "
+                f"board's staleness: {exc}"]
+
+    found = re.search(r"(\d+\.\d+\.\d+)", runs)
+    if not found:
+        return [f"conformance/CONFORMANCE.md: the Runs line names no version, "
+                f"so the board cannot say what it measured: {runs.strip()!r}"]
+    ran_at = found.group(1)
+    released = re.findall(r"^##\s+(\d+\.\d+\.\d+)",
+                          (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"),
+                          re.M)
+    if not released:
+        return ["CHANGELOG.md: no '## X.Y.Z' release headings found"]
+    current = released[0]
+    behind = run_conformance._releases_between(ran_at, current, ROOT)
+    if behind is None:
+        # Not a failure to invent: a run version the CHANGELOG does not carry
+        # is a board from before this history, and saying so is the honest
+        # answer. The guard's job is the clause, not the archaeology.
+        return []
+
+    expected = (f"skill {current}" if behind == 0 else
+                f"skill {current} · newest run {ran_at} · "
+                f"{behind} release{'' if behind == 1 else 's'} behind")
+    if expected in header:
+        return []
+    return [f"conformance/CONFORMANCE.md: the header says "
+            f"{header.split('·', 1)[-1].strip()!r}, and the board's run "
+            f"({ran_at}) is {behind} release(s) behind {current}. It should "
+            f"read {expected!r}. Regenerate it "
+            f"(run_conformance.py report --record) rather than editing the "
+            f"line — a hand-corrected clause is the same defect one release "
+            f"later."]
+
+
 def check_gating_claims():
     """Every sentence naming WHICH metrics gate names the set that gates.
 
@@ -4420,6 +4493,7 @@ CHECKS = (
     ("scoring sheet parity", check_scoring_sheet_parity),
     ("metric id ranges", check_metric_id_ranges),
     ("gating claims", check_gating_claims),
+    ("board staleness clause", check_board_staleness_clause),
     ("prose gating claims", check_prose_gating_claims),
     ("verdict names", check_verdict_names),
     ("local paths", check_local_paths),
