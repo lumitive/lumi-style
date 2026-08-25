@@ -1,3 +1,140 @@
+## 0.1.605 — the board, driven at last, and what it says
+
+Nine consecutive releases waived `conformance-freshness` — 0.1.596 through
+0.1.604 — each with the same promise in different words: the honest refresh is one round driven after the
+branch lands. The board's last measurement was the 2026-08-23 run, well outside
+the fifteen releases the gate allows — and that run is filed under two numbers,
+which is a small warning about the header: its directory and the board's own
+`newest run` clause say 0.1.578, while every row it recorded is stamped 0.1.580.
+The rows are the measurement, so 0.1.580 is what the table below cites. This is that round: four agents, three tasks, twelve
+cells, `run --drive` throughout, and `conformance_fresh()` now answers True.
+
+**This release's evidence file records no execution, and that is the design
+rather than an omission.** `check_evidence.py record --id conformance-freshness`
+refuses by construction: its `validate` command exits 0 on a stale board, so a
+recorded run would discharge the obligation while proving nothing. The only two
+things that satisfy it are a waiver or the board actually becoming fresh — the
+refreshed `conformance/history.json` in this commit is the evidence, and
+`--check` reads it directly.
+
+**It had to be driven twice, and the first attempt is the more useful finding.**
+The round ran once against installs that were still at 0.1.597 — every agent
+skill path on this machine pointed at the release BEFORE the branch, so the
+round measured agents reading none of the seven releases the waivers were
+written for, and the board would have said `skill 0.1.605` over it. Nothing
+catches that: `skill_version()` reads the checkout, never the install the agent
+opened. The installs were updated to the published 0.1.604, the round was driven
+again, and everything the first attempt had SCORED was withdrawn: four history
+rows and four conformance traces. A row stamped with a version its agent never
+read is a claim, and the board is where this package makes its most public ones.
+
+**The board had also been lying about how stale it was, and it takes fourteen
+releases lined up to see it.** `render()` writes `newest run <r> · N releases
+behind`, correct the moment it is generated; every release after that hand-bumps
+the stamp, and because the stamp pattern is a substring match the version moves
+while the clause stays. From 0.1.592 to 0.1.604 the header said **`3 releases
+behind` fourteen times running**, while the real distance grew from three to
+twenty-six. The evidence gate knew — it had been demanding a waiver since eleven
+releases in — but the board is the artifact anyone reads, and it kept printing 3.
+GAP-037; the fix is a guard rather than a promise, and it is the next release.
+
+**The withdrawal is not total, and the two survivors are named here rather than
+left to be noticed.** Cursor's 1004-second T1 in the table below, and Gemini
+passing T3, both come from the withdrawn attempt. They are kept because they are
+comparisons rather than verdicts — one is a middle row in a timing series, the
+other is the only thing that distinguishes a quota ceiling from an ability
+ceiling. Neither is scored, neither appears on the board, and both can be
+checked in `~/Documents/LUMI-Style/_conformance/0.1.604-2026-08-25/`. The gap between the
+board's stamp and what the agents read is real and unclosed, and this release
+does not close it.
+
+So: **the agents read 0.1.604, the instruments are 0.1.605**, and one release of
+distance is unavoidable — a round cannot be driven against the release it
+produces. The gap is visible per cell and not in the header: `scores.json`
+carries `built_version` for the deck, and the markdown answers carry no stamp at
+all, so one scored cell in six can state its vintage.
+
+**Only Cursor earned all three tasks, and its deck is the round's useful
+artifact.** Twelve pages, every gating layout verdict clean, built under the
+repaired rules. Its timing is the sharpest reading the round produced:
+
+| the rules it read | T1-deck |
+|---|---|
+| 0.1.580 | 1813s |
+| 0.1.597 | 1004s |
+| **0.1.604** | **677s** |
+
+The same agent, the same task, a third of the time it took two rounds ago. That
+is one sample and not a trend, and it is the first evidence for 0.1.598's figure
+repairs from outside the branch that made them.
+
+**And the other deck-building agent went the other way, which the table above
+would hide.** Claude Code drove T1 in 1022.9 seconds at 0.1.580 and finished;
+here it ran to the hour cap twice and earned nothing. Against the board this one
+replaces, that is a straight regression — `pass` to `not earned` — and it is not
+explained by the rules being harder, because the agent that read the same rules
+got faster. What the round can say is that the two agents diverged; what it
+cannot say is why, and a single sample each is not the place to guess.
+
+The other three failed, and the failures are worth separating because the board
+prints one word for all of them:
+
+* **Claude Code ran past the hour cap on T1** — 3601.5 seconds, for the second
+  round running. Its deck has **zero gating failures** when the instruments are
+  run over it. The clock was the verdict, not the artifact, and "a draft is not
+  a result" is the harness's rule and stands. The timeout also came four minutes
+  from exposing a scoring bug nobody had hit: the run left five HTML files, the
+  scorer takes whichever sorts first, and that is `_s2.html`, a shape sprite
+  (GAP-036).
+* **Hermes wrote its deliverable outside the working directory** on T1 and T3,
+  also for the second round running. Its deck, too, has **zero gating failures**
+  — measured, because publishing that fact for one agent and withholding it for
+  the other is the asymmetry a review of this release caught in its first draft.
+  The refusal to score from there is right, and the reason is written where it
+  happened: a sweep that took the newest file by mtime once recorded another
+  agent's deck as Hermes's, and the owner reviewed the wrong cover page.
+
+  **The two zeroes are not the same zero, and the second review of this release
+  caught the sentence above implying they were (GAP-038).** Run the design gates over both
+  decks: five of them have nothing to grade on Hermes's — no agenda page (D27,
+  D35), no launch rows (D38 twice), no page declaring an analysis move (D32) —
+  against Claude Code's, where all five grade real content, including six
+  analysis pages. Only D32 says so; the other four print `ok` on the absence,
+  which is how a document earns four clean gating rows by leaving out the pages
+  they exist to check. That is a defect in the gate vocabulary rather than a
+  finding about either agent, and closing it moves rows out of `ok` across the
+  whole corpus, so it is recorded rather than fixed here.
+* **Gemini CLI earned nothing** — HTTP 429 on all three, a free-tier quota. It
+  passed T3 in the earlier attempt, which is how one knows the ceiling is the
+  quota and not the agent.
+
+Two of the three failures repeated across both attempts, which makes them the
+agent's behaviour rather than the day's weather. None of them is about the rules.
+
+**What this round did not do is retry until the numbers improved.** The budget
+is part of the task and re-driving a cell to make it read `pass` would be tuning
+the measurement. The one thing that WAS re-driven is the whole round, because
+the first attempt measured the wrong version of the rules — which is the
+opposite move: it made the reading harder, not kinder.
+
+Four conformance traces join `evals/traces/`, two of them left open. An unclosed
+trace is the record of an abandoned build, and closing them to tidy the ledger
+would make it say something untrue.
+
+**Two more traces were staged with them, and finding out where they came from is
+the round's own small lesson.** The first draft of this entry blamed the evidence
+gate's `scaffold-render` obligation, which carries `--no-trace` and cannot open
+one. The review that caught it reproduced the real producer and so did I: the
+test suite drives `build.py` through a helper that passes no environment, so
+`LUMI_TRACES` was unset and every run wrote `source: build` traces of a two-page
+scaffold into the tracked store. `preflight.py` runs the suite and `release.py`
+stages with `git add -A`; 0.1.604 committed four. GAP-023 carries both halves —
+stopping the producer, and what to do about the ones already tracked. A trace
+store is a record, and deleting history to improve a counter is the move this
+package exists to refuse, so that second half is nobody's to decide in passing.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.604 — an omission declared in the outline never reached the page
 
 C5 lets a document declare a deliberate gap instead of filling it, and on entry

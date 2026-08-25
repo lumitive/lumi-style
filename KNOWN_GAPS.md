@@ -75,6 +75,76 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-038 · Four gating rows print `ok` on a page that is not there
+
+- status: open
+- opened: 0.1.605
+- surface: scripts/check/check_design.py (D27, D35, D38 x2)
+- symptom: a gate whose subject is absent from the document reports `ok`,
+  which is indistinguishable from a gate that graded real content and found
+  nothing wrong. Measured on the two unscored decks of the 0.1.605 round:
+  Hermes's carries no agenda page and no page declaring an analysis move, so
+  D27 (`no agenda page`), D35 (`no agenda page`) and D38's two rows (`no
+  launch rows`) all print `ok` beside a detail string that says the opposite.
+  D32 gets the same absence right — `0 of 0 analysis page(s)`, verdict `n/a` —
+  which is what makes this a vocabulary defect rather than a judgement call:
+  the same run of the same script prints both answers for the same shape of
+  emptiness. The cost is a roll-up: two decks both read "zero gating failures"
+  when one of them earned four of its clean rows by leaving out the pages
+  those rows exist to check.
+- check: none yet. `evals/gates.json` already carries `na_means` per gate,
+  which is where the answer belongs — an honest silence is `n/a`, and these
+  four are silences. Fixing it moves rows out of `ok`, so it needs a corpus
+  sweep first: any deliverable whose clean sheet depends on one of these four
+  will change verdict, and that is the finding rather than a regression.
+
+## GAP-037 · The board's own staleness clause froze for fourteen releases
+
+- status: open
+- opened: 0.1.605
+- surface: conformance/CONFORMANCE.md, scripts/lib/stamps.py:62,
+  scripts/ops/run_conformance.py:1347 (render)
+- symptom: `render()` writes `skill <v> · newest run <r> · N releases behind`,
+  and N is correct at the moment the board is generated. Every release after
+  that hand-bumps the stamp, because `stamps.py` requires `skill {v}` and the
+  regex matches a substring — so the version moves and the clause does not.
+  Measured across 0.1.592 through 0.1.605: the header said `3 releases behind`
+  fourteen times running while the real distance grew from 3 to 26. The
+  evidence gate knew (`CONFORMANCE_STALE_AFTER = 15` had been crossed eleven
+  releases earlier and every one of them wrote a waiver); the board, which is
+  the public artifact, kept printing 3. A frozen number is worse than no
+  number, because it reads as a measurement.
+  A second shape of the same defect ships in this very release: with the board
+  fresh, `behind == 0` and the clause is omitted entirely, so the next stamp
+  bump produces a header that discloses nothing at all rather than something
+  wrong.
+- check: none yet. The fix is a guard rather than a rule: the distance is
+  computable from `history.json` and the current version, so nothing needs to
+  be remembered — this is CLAUDE.md convention 13's parity-guard pattern, with
+  the code as one side.
+
+## GAP-036 · The scored artifact is whichever one sorts first
+
+- status: open
+- opened: 0.1.605
+- surface: scripts/ops/run_conformance.py:650, :1093
+- symptom: `produced` is a sorted glob and `_conformance_trace` scores
+  `produced[0]`, so when a task's deliverable pattern matches more than one
+  file the scored one is chosen alphabetically. This has never fired, and it
+  came within four minutes of firing in the 0.1.605 round: Claude Code hit the
+  hour cap on T1 having written `deck.en.html` plus four working files, and
+  `_s2.html` sorts first — a shape sprite, which would have been scored as the
+  deck had the agent finished. It did not, so the cell reads `not earned` and
+  nothing was scored at all.
+  `_misplaced`'s docstring compounds it: it says the misplaced artifact is
+  "never used to score", while `:1089` feeds `record["misplaced"][0]` straight
+  into the same `produced[0]`. One of those two is wrong and the code is not
+  the one that can be read.
+- check: none yet. The selection rule has to be stated before it can be
+  tested — newest, or largest, or refuse to guess when the glob matches more
+  than one — and refusing is the only one of the three that cannot silently
+  score the wrong file.
+
 ## GAP-035 · D31's bar has never been measured, and its corpus changed meaning mid-branch
 
 - status: open — **the question is open on purpose; this entry exists to stop
@@ -483,6 +553,25 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   2026-08-21 run measured it: Cursor's single T1-deck task opened **three**
   `source: build` traces in this repository (17:44:29, 17:45:21, 17:49:01),
   all left open, none of them a build of anything this repository ships.
+- **and the driven agent is not the only producer: the TEST SUITE is.**
+  `tests/test_fewer_round_trips.py` drives `build.py` through a `_run` helper
+  that passes no `env`, so `LUMI_TRACES` is unset and each run writes
+  `source: build` traces of a two-page scaffold straight into the tracked
+  store. `preflight.py` runs the suite and `release.py` stages with
+  `git add -A`, so they reach commits: 0.1.604 committed four. Reproduced at
+  0.1.605 — two tests, two traces, every time. The fix is a scratch store for
+  the suite, redirected where every test file inherits it rather than in the one
+  helper that was caught: `tests/test_new_deck.py` already does this per file,
+  and a per-file fix leaves the next file that drives a build free to do it
+  again.
+  **What is NOT decided here is the ones already tracked.** They are records of
+  builds that happened, of documents nobody kept, and `ledger.py` counts them
+  as abandoned beside real ones — so they distort any reading of that number.
+  Deleting corpus history to improve a counter is the move this package refuses
+  everywhere else, so the decision is the owner's and the measurement is
+  written down for whoever takes it: count the tracked `source: build` traces
+  with no `closed_at` and no `recipe_hash`, and compare against the builds the
+  ledger is supposed to describe.
 - **that evidence had two causes and this entry named one of them.** Three
   records from one task is not the store's location at all — it is the trace
   LIFECYCLE: the driver re-scaffolded every round and the scaffold opened a
