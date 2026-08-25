@@ -226,3 +226,62 @@ def test_the_outline_mirror_reads_chinese():
     assert co._matches("四类大玩家：每一类都绕开了同一件事", "四类大玩家都绕开了同一件事")
     # A different claim is still a different claim — the gate can go red.
     assert not co._matches("缺的不是能力：是一份声明", "四类大玩家：每一类都绕开了同一件事")
+
+
+# --- 7. the document's own apparatus is not a claim (0.1.599) ----------------
+# Three more of the same family as the year and the phone number above: a
+# number the DOCUMENT is made of, graded as a number the document asserts. All
+# three were found by reading the code during the round-6 retrospective rather
+# than by a build failing, so the reds come first here too.
+
+def test_a_v_prefixed_version_stamp_is_not_a_quantity():
+    """`VERSION`'s leading `\\b` is defeated by the `v`.
+
+    A colophon reading "built with lumi-style v0.1.599" invents the quantity
+    599 and the gate that guards red line 1 fires on the package's own stamp.
+    The bare form is stripped, so which way it goes depends on how the author
+    typed it.
+    """
+    r = cf.compare(CONTRACT, "<html><p>Built with lumi-style v0.1.599 · "
+                             "source: the engagement record.</p></html>")
+    assert r["unsourced_quantities"] == []
+
+
+def test_a_caption_ordinal_is_furniture_on_both_sides_of_ten():
+    """`Figure 3` and `Figure 10` are the same kind of thing.
+
+    `FURNITURE` already declares a caption ordinal furniture, and the quantity
+    branch never consults it — so single-digit captions were invisible only
+    because the quantity pattern needs two digits, and the tenth figure of a
+    document became a claim about a quantity.
+    """
+    lo = cf.compare(CONTRACT, "<html><p>Figure 3 A title stating a conclusion"
+                              "</p></html>")
+    hi = cf.compare(CONTRACT, "<html><p>Figure 10 A title stating a conclusion"
+                              "</p></html>")
+    assert lo["unsourced_quantities"] == []
+    assert hi["unsourced_quantities"] == lo["unsourced_quantities"]
+
+
+def test_a_zero_padded_ordinal_ending_a_sentence_is_still_an_ordinal():
+    """The ordinal strip's lookahead is defeated by a full stop.
+
+    `(?<![\\d.])0\\d(?![\\d.])` refuses `00.` because the period is in the
+    lookahead's class, so the scaffold's own card sample — "Page 00." — reads
+    as the quantity zero.
+    """
+    r = cf.compare(CONTRACT, "<html><p>The one line to carry away. Page 00."
+                             "</p></html>")
+    assert r["unsourced_quantities"] == []
+
+
+def test_a_real_figure_beside_the_apparatus_still_gates():
+    """The counter-red, and the only thing between this and a hole in a gate.
+
+    Run before and after: widening what counts as furniture must not blind the
+    check to a quantity the contract never authorised.
+    """
+    r = cf.compare(CONTRACT, "<html><p>Built with lumi-style v0.1.599 · "
+                             "Figure 10 · 41% of respondents agreed.</p></html>")
+    assert "41" in r["unsourced_quantities"], (
+        f"the gate stopped seeing a real figure: {r['unsourced_quantities']}")

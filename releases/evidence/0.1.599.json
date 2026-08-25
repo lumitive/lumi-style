@@ -1,0 +1,15 @@
+{
+ "version": "0.1.599",
+ "diff_base": "e763154d6b54e40478a3bb3145da5e3cdee4907e",
+ "spec": "specs/2026-08-25-round-6-retrospective-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board is stale and this release does not refresh it. This is the second commit of the round-6 retrospective branch, which is still changing the checkers, the driver and the scaffold every conformance task runs through; scoring agents against them mid-branch would measure a moving ruler. The refresh owed is one round driven after the branch lands, and this release does not touch a rule surface an agent reads — it repairs three ways the document's own apparatus was graded as its claims."
+  }
+ ]
+}

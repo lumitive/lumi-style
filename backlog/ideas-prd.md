@@ -654,3 +654,34 @@ M13 must flag in both, and a look at the real pair to decide which reading
 was wrong. Out of the audit-remediation branch's scope on purpose: it sits
 inside the Chinese-output diagnosis the owner froze pending her team.
 
+
+---
+
+## IDEA-18 · The scaffold hands the author six plausible numbers, and only an optional flag can catch them
+
+**Problem.** A bare scaffold's visible prose carries `41`, `312`, `12`, `190`,
+`00` and a caption ordinal — the `.band` sample, the two stat tiles, the card's
+"Page 00." and `Figure 10`. Two of those are the checker's problem and were
+fixed at 0.1.599 (a caption ordinal and a zero-padded page number are the
+document's apparatus). The other four are the author's: `41%` and `312` are
+sample VALUES, and a sample value that survives to delivery is exactly what red
+line 1 exists to catch.
+
+**Evidence.** Measured on a fresh `new_deck.py --genre sales --storyline
+market-analysis` piped straight into `check_facts._visible`: six quantities,
+none of them the author's. `D14` cannot see them — they are not `[TO FILL]`,
+they are numbers that look finished. The only instrument that can is
+`check_facts.py`, which runs only when the author passes `build.py --facts`,
+and that flag is optional.
+
+**Why it is not simply fixed.** Exempting them would blind the gate to real
+invented figures at exactly the place they are most likely to appear, and
+removing them from the scaffold would leave the sample blocks without the
+number-first shape they exist to demonstrate. The interesting question is
+whether the scaffold's own furniture can be MARKED as furniture — the same
+declared-not-inferred move `data-role="apparatus"` and `data-omitted` already
+make elsewhere — so that a sample number surviving to delivery is decidable
+without a contract.
+
+**What would close it.** Two builds where a scaffold sample number reached a
+reader. Until then this is a hazard with one recorded near-miss, not a defect.

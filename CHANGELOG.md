@@ -1,3 +1,40 @@
+## 0.1.599 — the colophon's own version was a quantity nobody sourced
+
+Three numbers a document is MADE of were being graded as numbers a document
+ASSERTS, and one of them gates. Found by reading the code during the round-6
+retrospective rather than by a build failing, which is why the reds were planted
+first and are kept.
+
+**A `v` in front of a version stamp made it a claim.** `VERSION`'s leading `\b`
+is satisfied by a space and defeated by a letter, so `0.1.597` was stripped as
+provenance and `v0.1.597` was not — and `597` then matched as an unsourced
+quantity, which is red line 1's gate firing on this package's own stamp. Which
+way it fell depended on how the author typed a string no reader takes as a
+claim. Neither deck of round 6 typed the `v`, so this shipped latent.
+
+**A caption ordinal was furniture below ten and a claim above it.** `FURNITURE`
+has declared `figure N` furniture since it was written, and it is consulted only
+in the proper-noun branch — the quantity branch never reads it. `Figure 3` was
+invisible only because the quantity pattern needs two digits, so a document's
+tenth figure became a number the contract had to authorise. One of the round-6
+contracts duly carries a line absolving `10`; it does not need it now.
+
+**And "Page 00." defeated the ordinal strip.** `(?<![\d.])0\d(?![\d.])` puts the
+full stop in its own lookahead, so the scaffold's card sample produced the
+quantity zero. One `ORDINAL_LABEL` strip covers all three shapes — and it names
+four words only: `figure`, `fig`, `page`, `step`. `table`, `exhibit` and
+`section` are speculation until a document produces one.
+
+This widens a gating check, so the counter-red is the load-bearing test and is
+run before and after: a colophon, a caption and `41% of respondents` in one
+paragraph must still report the `41`. It does. Both round-6 decks still pass the
+fact gate against their own contracts.
+
+What is NOT fixed is the scaffold's own sample values — `41`, `312`, `12`, `190`
+— which are the author's furniture and which the contract legitimately grades: a
+sample number that survives to delivery is precisely what red line 1 is for.
+That hazard is IDEA-18, with the two-document threshold it would need.
+
 ## 0.1.598 — a name with a digit in it is not a number on a scale
 
 The sixth validation round drove two agents on two platforms from one source
