@@ -1,0 +1,15 @@
+{
+ "version": "0.1.601",
+ "diff_base": "c3c94bb3d9d7fce2418889b240bf6bee303bc234",
+ "spec": "specs/2026-08-25-round-6-retrospective-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Mid-branch on the round-6 retrospective. This release changes how a build's record is kept, not what a deliverable must be, so a refreshed board would score the same documents against the same rules — while two later commits on this branch still change the driver and the scaffold every conformance task runs through. The refresh owed is one round driven after the branch lands, and it will be the first round whose own log survives its rounds."
+  }
+ ]
+}

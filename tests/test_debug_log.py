@@ -37,7 +37,10 @@ def _read(path):
 
 def test_init_writes_the_closed_shape(tmp_path, capsys):
     log = _read(_init(tmp_path))
-    assert set(log) == debug_log.TOP_KEYS
+    # `rounds` joined as an OPTIONAL key at 0.1.601 — a log written before it
+    # has none and must not read as malformed, so the closed set is the
+    # required keys plus what the schema declares optional.
+    assert set(log) == debug_log.TOP_KEYS | debug_log.OPTIONAL_KEYS
     assert log["deliverable"] == "doc.en.html"
     assert log["platform"] == "claude-code"
 
@@ -78,6 +81,7 @@ def test_run_records_machine_written_evidence(tmp_path, capsys):
     assert entry["exit_code"] == 0
     assert debug_log.DIGEST.fullmatch(entry["stdout_sha256"])
     assert log["steps"][0] == {"label": "greet", "seconds": entry["seconds"],
+                               "round": 1,
                                "source": "run"}
 
 
@@ -440,3 +444,97 @@ def test_a_self_assessed_build_still_validates(tmp_path):
     debug_log.main(["assess", str(log), "--dim", "C1", "--score", "4",
                     "--reason", "the storyline is declared and mirrored"])
     assert not debug_log.validate(_read(log))
+
+
+# --- the record belongs to the artifact, the round is a field (0.1.601) -----
+
+def test_a_second_round_keeps_the_first_rounds_evidence(tmp_path):
+    """A build is N rounds and the log kept one of them.
+
+    `build.py` restarted the log every round and carried only the C1-C8
+    self-score, so rounds 1..N-1 of machine-written evidence — exit codes,
+    timings, digests, the attached checker reports — were destroyed by the
+    round that followed. The tell is in this package's own source: the author
+    moved the log aside by hand nine times on one measured build, and both
+    agents of the 2026-08-25 validation round independently did the same.
+    """
+    deck = tmp_path / "d.en.html"
+    deck.write_text("<html><body></body></html>", encoding="utf-8")
+    log = tmp_path / (debug_log.log_stem(deck) + ".debug.json")
+    debug_log.main(["init", str(deck), "--platform", "claude-code"])
+    debug_log.main(["run", str(log), "--label", "first", "--",
+                    sys.executable, "-c", "print('round one')"])
+    debug_log.main(["init", str(deck), "--platform", "claude-code", "--resume"])
+    debug_log.main(["run", str(log), "--label", "second", "--",
+                    sys.executable, "-c", "print('round two')"])
+    kept = json.loads(log.read_text(encoding="utf-8"))
+    labels = [s["label"] for s in kept["steps"]]
+    assert labels == ["first", "second"], (
+        f"the second round destroyed the first's record: {labels}")
+    assert kept["rounds"] == 2
+    assert [c["round"] for c in kept["commands"]] == [1, 2]
+
+
+def test_a_command_that_failed_in_an_earlier_round_and_passed_later_validates(tmp_path):
+    """`validate` already knew how to read this and could never see it.
+
+    Its contract is that a command which failed must have been RUN AGAIN and
+    passed. Across a restart there was no earlier round to compare against, so
+    the rule could only ever apply within one round.
+    """
+    deck = tmp_path / "d.en.html"
+    deck.write_text("<html><body></body></html>", encoding="utf-8")
+    log = tmp_path / (debug_log.log_stem(deck) + ".debug.json")
+    # ONE COMMAND, TWO ROUNDS. `_by_command` groups on the command string, so
+    # the fix has to be the same command run again — which is what a build
+    # round IS. A script the round rewrites is the honest way to say that.
+    step = tmp_path / "step.py"
+    step.write_text("import sys; sys.exit(1)", encoding="utf-8")
+    debug_log.main(["init", str(deck), "--platform", "claude-code"])
+    debug_log.main(["run", str(log), "--label", "check", "--",
+                    sys.executable, str(step)])
+    debug_log.main(["init", str(deck), "--platform", "claude-code", "--resume"])
+    step.write_text("print('clean')", encoding="utf-8")
+    debug_log.main(["run", str(log), "--label", "check", "--",
+                    sys.executable, str(step)])
+    debug_log.main(["assess", str(log), "--dim", "C1", "--score", "4",
+                    "--reason", "the round two rounds prove"])
+    problems = debug_log.validate(json.loads(log.read_text(encoding="utf-8")))
+    assert problems == [], f"a cleared failure still reads as red: {problems}"
+
+    # The mirror: green then red is still red.
+    step.write_text("import sys; sys.exit(1)", encoding="utf-8")
+    debug_log.main(["init", str(deck), "--platform", "claude-code", "--resume"])
+    debug_log.main(["run", str(log), "--label", "check", "--",
+                    sys.executable, str(step)])
+    problems = debug_log.validate(json.loads(log.read_text(encoding="utf-8")))
+    assert problems, "a build whose final reading is red validated clean"
+
+
+def test_resume_refuses_a_log_written_by_another_version(tmp_path):
+    """The original lesson, made mechanical.
+
+    A log carried across builds once named one version in `deliverable` while
+    its last commands checked another. Resume must not reopen that door: it
+    refuses, and says which flag starts a new record.
+    """
+    deck = tmp_path / "d.en.html"
+    deck.write_text("<html><body></body></html>", encoding="utf-8")
+    log = tmp_path / (debug_log.log_stem(deck) + ".debug.json")
+    debug_log.main(["init", str(deck), "--platform", "claude-code"])
+    stale = json.loads(log.read_text(encoding="utf-8"))
+    stale["skill_version"] = "0.0.1"
+    log.write_text(json.dumps(stale), encoding="utf-8")
+    with pytest.raises(SystemExit) as e:
+        debug_log.main(["init", str(deck), "--platform", "claude-code", "--resume"])
+    assert "0.0.1" in str(e.value)
+
+
+def test_init_with_no_flag_still_refuses(tmp_path):
+    """The counter-red: the guard that stops a silent overwrite is untouched."""
+    deck = tmp_path / "d.en.html"
+    deck.write_text("<html><body></body></html>", encoding="utf-8")
+    debug_log.main(["init", str(deck), "--platform", "claude-code"])
+    with pytest.raises(SystemExit) as e:
+        debug_log.main(["init", str(deck), "--platform", "claude-code"])
+    assert "already exists" in str(e.value)

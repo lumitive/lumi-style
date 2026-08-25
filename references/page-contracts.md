@@ -163,7 +163,7 @@ Gathered separately at the owner's direction: these are the pages the argument i
 | Keep a figure's name to one line by shortening it, never by setting it smaller. | `SKILL.md:487` | — | `—` | no |
 | Shorten the title text when the title block does not fit. | `SKILL.md:491` | — | `reserve_overspent` | yes |
 | Never clamp or hide overflow on the title block. | `SKILL.md:492` | — | `content_hidden` | yes |
-| Give charts one accent colour, conclusion-style titles, and a source line on every figure. | `SKILL.md:749` | — | `—` | no |
+| Give charts one accent colour, conclusion-style titles, and a source line on every figure. | `SKILL.md:753` | — | `—` | no |
 | Follow the question to framework to shape chain, drawing a declared move with the library shapes that framework names. | `references/analysis-rules.md:107` | — | `D32` | yes |
 | Declare on every content section of an external document which of the five analytical moves produced its finding. | `references/analysis-rules.md:26` | — | `D31` | no |
 | Use --acc-live for strokes, chart marks and small fills inside figures. | `references/brand.md:189` | — | `—` | no |
@@ -351,13 +351,13 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Carry the handling terms and origin on every page, opening with the seal-red shield handling marker. | `SKILL.md:625` | — | `D12` | yes |
 | Open a deck with a cover and end it with a closing page, each carrying the single vector mark. | `SKILL.md:663` | — | `deck_structure` | yes |
 | Target about five content pages between part openers. | `SKILL.md:665` | — | `—` | no |
-| Invent no facts, source every number, and label illustrative values as illustrative. | `SKILL.md:740` | — | `M2` | no |
-| Coin no Chinese terms; take the English term where no established Chinese term exists. | `SKILL.md:742` | — | `—` | no |
-| Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page. | `SKILL.md:744` | — | `—` | no |
-| Make every title name its subject and carry a verifiable fact. | `SKILL.md:746` | — | `M1` | no |
-| Use no single title frame across more than 60% of a document. | `SKILL.md:747` | — | `M11` | no |
-| Make all titles concatenated read as one complete argument. | `SKILL.md:748` | — | `—` | no |
-| AI never signs, and money or safety conclusions never come from a language model. | `SKILL.md:751` | — | `—` | no |
+| Invent no facts, source every number, and label illustrative values as illustrative. | `SKILL.md:744` | — | `M2` | no |
+| Coin no Chinese terms; take the English term where no established Chinese term exists. | `SKILL.md:746` | — | `—` | no |
+| Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page. | `SKILL.md:748` | — | `—` | no |
+| Make every title name its subject and carry a verifiable fact. | `SKILL.md:750` | — | `M1` | no |
+| Use no single title frame across more than 60% of a document. | `SKILL.md:751` | — | `M11` | no |
+| Make all titles concatenated read as one complete argument. | `SKILL.md:752` | — | `—` | no |
+| AI never signs, and money or safety conclusions never come from a language model. | `SKILL.md:755` | — | `—` | no |
 | Default the output language to American English and the canvas to light unless the user asks otherwise. | `SKILL.md:86` | — | `M16` | yes |
 | Never draw a field texture with no data behind it; every mark maps to one real item. | `references/brand.md:101` | — | `—` | no |
 | Set the ground density by page class: strong on cover and closing, mid on part openers, faint on body pages. | `references/brand.md:108` | `ground.tier` | `—` | no |
@@ -497,7 +497,7 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Keep a source marker somewhere in each page's own text. | `references/design-rules.md:772` | — | `M2` | no |
 | Render the footer's handling shield marker in --seal-t. | `references/design-rules.md:92` | `footer.marker-colour` | `—` | no |
 | Get hierarchy from the transparency ladders, never from new greys. | `references/design-rules.md:98` | — | `—` | no |
-| Carry none of the engagement's out-of-bounds terms in a deliverable, and name the list so the check can be attempted at all. | `references/operating-rules.md:232` | — | `privacy_terms` | yes |
+| Carry none of the engagement's out-of-bounds terms in a deliverable, and name the list so the check can be attempted at all. | `references/operating-rules.md:237` | — | `privacy_terms` | yes |
 | Bind the em-dash ban on training material exactly as on sales material. | `references/storyline-templates.md:113` | — | `M9` | yes |
 | Set a training document in A4 portrait as its primary geometry. | `references/storyline-templates.md:115` | — | `—` | no |
 | Carry exactly one storyline and one genre per document. | `references/storyline-templates.md:13` | — | `—` | no |

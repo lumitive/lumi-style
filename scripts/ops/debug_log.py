@@ -61,6 +61,11 @@ ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
 TOP_KEYS = {"debug_log", "skill_version", "platform", "machine", "created",
             "deliverable", "steps", "commands", "checks", "quality", "errors",
             "notes"}
+# ABSENT AND ONE SAY THE SAME THING. `rounds` arrives with 0.1.601 and a log
+# written before it has no such key — validating it as missing would turn every
+# in-flight build into a red on a field its author never had. The trace schema
+# makes the same distinction for the same reason.
+OPTIONAL_KEYS = {"rounds"}
 CHECK_KINDS = ("design", "prose", "layout")
 
 # --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
@@ -240,13 +245,45 @@ def cmd_init(args):
     # how the first real sample came to name one version in `deliverable` while
     # its last commands checked another — a log that cannot say which file it
     # describes cannot be evaluated from alone, which is the whole purpose.
+    # A BUILD IS N ROUNDS, AND THE RECORD BELONGS TO THE ARTIFACT. The sentence
+    # above — one run of a driver is one build — was the premise, and it is
+    # false: a real build fixes and re-runs. `--restart` therefore destroyed
+    # rounds 1..N-1 of machine-written evidence every time round N began, and
+    # the driver carried only the C1-C8 self-score across. The tell was
+    # operators archiving the log by hand between rounds: this package's own
+    # author did it nine times on one measured build, and both agents of the
+    # 2026-08-25 validation round independently did the same.
+    #
+    # `--resume` keeps everything and counts the round. Nothing else in the
+    # schema had to move: `checks.<kind>` has always been a list because a
+    # checker runs more than once per build, and `validate`'s rule that a
+    # failed command must have been run again and passed could only ever apply
+    # WITHIN one round while the restart stood.
+    if out.exists() and args.resume:
+        log = _load(out)
+        was = log.get("skill_version")
+        # THE ORIGINAL LESSON, MADE MECHANICAL. A log carried across builds once
+        # named one version in `deliverable` while its last commands checked
+        # another. Resuming into a different version is that same log.
+        if was != _skill_version():
+            raise SystemExit(
+                f"FAIL  {out} was written by lumi-style {was} and this is "
+                f"{_skill_version()}. A log that spans two versions cannot say "
+                f"which rules its commands ran under: pass --restart to begin "
+                f"a new record, or move this one aside to keep it.")
+        log["rounds"] = int(log.get("rounds", 1)) + 1
+        _save(out, log)
+        print(f"ok    {out} (round {log['rounds']})")
+        return 0
     if out.exists() and not args.restart:
         raise SystemExit(f"FAIL  {out} already exists. A log is one build's "
-                         f"record: pass --restart to replace it, or move it "
-                         f"aside to keep it.")
+                         f"record: pass --restart to replace it, --resume to "
+                         f"continue it as a further round, or move it aside to "
+                         f"keep it.")
     log = {"debug_log": "1", "skill_version": _skill_version(),
            "platform": args.platform, "machine": sys.platform,
            "created": _now(), "deliverable": deliverable.name,
+           "rounds": 1,
            "steps": [], "commands": [], "checks": {},
            "quality": {}, "errors": [], "notes": []}
     _save(out, log)
@@ -279,7 +316,8 @@ def cmd_run(args):
         def note_failure(log):
             log["commands"].append({"command": " ".join(args.command),
                                     "exit_code": None, "stdout_sha256": None,
-                                    "seconds": secs, "date": stamp})
+                                    "seconds": secs, "date": stamp,
+                                    "round": int(log.get("rounds", 1))})
             log["errors"].append({"stage": label, "message": message,
                                   "date": stamp})
 
@@ -317,11 +355,16 @@ def cmd_run(args):
         err = {"stage": label, "message": message, "date": entry["date"]}
 
     def append(log):
+        # WHICH ROUND RECORDED THIS. A build is N rounds and the log now spans
+        # them, so an entry that cannot say which round it belongs to turns a
+        # cleared failure and a fresh one into the same two lines.
+        entry["round"] = int(log.get("rounds", 1))
         log["commands"].append(entry)
         # `source`, because a hand-typed `step --seconds` lands in this same
         # array in this same shape: "no verdict field for a human to type" is
         # not true of an array that cannot say who measured the number.
-        log["steps"].append({"label": label, "seconds": secs, "source": "run"})
+        log["steps"].append({"label": label, "seconds": secs, "source": "run",
+                             "round": int(log.get("rounds", 1))})
         if err:
             log["errors"].append(err)
 
@@ -335,7 +378,7 @@ def cmd_run(args):
 def cmd_step(args):
     _mutate(pathlib.Path(args.log), lambda log: log["steps"].append(
         {"label": args.label, "seconds": round(args.seconds, 2),
-         "source": "self-reported"}))
+         "source": "self-reported", "round": int(log.get("rounds", 1))}))
     return 0
 
 
@@ -456,7 +499,7 @@ def validate(log) -> list[str]:
     """
     out = []
     for key in log:
-        if key not in TOP_KEYS:
+        if key not in TOP_KEYS | OPTIONAL_KEYS:
             out.append(f"unknown key {key!r} — the key set is closed so no "
                        f"field invites an engagement fact")
     for key in TOP_KEYS - set(log):
@@ -596,6 +639,12 @@ def main(argv):
                    help="a platform id from adapters/platforms.json")
     p.add_argument("--restart", action="store_true",
                    help="replace an existing log for this deliverable")
+    p.add_argument("--resume", action="store_true",
+                   help="continue the existing log as a further round of the "
+                        "same build: everything already recorded is kept and "
+                        "`rounds` goes up by one. A build is N rounds and this "
+                        "is what makes the record the artifact's rather than "
+                        "the round's")
     p.set_defaults(fn=cmd_init)
 
     p = sub.add_parser("run", help="execute a command and record it as evidence; "

@@ -23,7 +23,12 @@ beside the deliverable — `<stem>.debug.json` — through `scripts/ops/debug_lo
 and **never by hand**. The subcommands are the schema, so every platform
 produces the same log:
 
-- `init` at the start, naming the platform from the registry;
+- `init` at the start, naming the platform from the registry — and
+  `init --resume` at the start of every round after the first, because a
+  build is N rounds and the record belongs to the deck rather than to the
+  round. Until 0.1.601 each round restarted the log and carried nothing
+  but the self-score, so a build's earlier evidence survived only if an
+  operator moved the file aside by hand;
 - `run` for **every check or build command** — it executes the command and
   machine-writes the exit code, output digest and timing;
 - `attach` for each checker's JSON output.
