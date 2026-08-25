@@ -1,0 +1,24 @@
+{
+  "version": "0.1.603",
+  "diff_base": "6ae0ad9708aae9141cbe10cd8f29236c309cc577",
+  "spec": "specs/2026-08-25-round-6-retrospective-design.md",
+  "obligations": [
+    "scaffold-render",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "scaffold-render",
+      "command": "python3 scripts/ops/new_deck.py --genre internal --storyline market-analysis --pages 10 --parts A,B,C --no-trace --out fixtures/.scaffold-evidence.html && python3 scripts/check/inspect_layout.py --deliverable fixtures/.scaffold-evidence.html",
+      "exit_code": 0,
+      "stdout_sha256": "1d719140d8598963c5a384c98727fd0e51485c42be4446cff111c8100214bd3f",
+      "date": "2026-08-25"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "Mid-branch on the round-6 retrospective; the board refresh owed is one round driven after the branch lands. This release adds a driver stage that records what drove a build, which is a thing a refreshed board would then be able to say about its own runs \u2014 the evidence improves by waiting rather than by hurrying."
+    }
+  ]
+}

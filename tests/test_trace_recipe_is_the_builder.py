@@ -78,3 +78,51 @@ def test_the_driver_passes_the_entry_path_through():
     assert '"--entry-path"' in src, "the driver defines no --entry-path"
     assert 'argv_nd += ["--entry-path", a.entry_path]' in src, (
         "the driver accepts --entry-path and does not hand it to the scaffold")
+
+
+# --- and the driver, which knew it all along (0.1.603) ----------------------
+
+def test_the_driver_records_the_recipe_it_was_given(tmp_path):
+    """`build.py --script` IS the recipe, and it told the trace nothing.
+
+    `new_deck.py`'s docstring says the builder does not exist at scaffold time
+    and is recorded afterwards by hand — true of the scaffold, false of the
+    driver, which is handed the script on the command line. So every path-B
+    build through the driver was recipe-less until an operator remembered a
+    second command, and the ledger filled with builds that could not say which
+    rules they followed. Both agents of the 2026-08-25 round ran `annotate` by
+    hand afterwards.
+    """
+    import os
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    deck = tmp_path / "d.html"
+    script = tmp_path / "fill.py"
+    script.write_text("# Written against lumi-style 0.1.603\n"
+                      "import sys, pathlib\n"
+                      "pathlib.Path(sys.argv[1])\n", encoding="utf-8")
+    subprocess.run(
+        [sys.executable, str(ROOT / "scripts/ops/build.py"), "--deck", str(deck),
+         "--script", str(script), "--storyline", "gtm", "--entry-path", "B",
+         "--genre", "internal", "--pages", "2", "--fast"],
+        capture_output=True, text=True, cwd=ROOT, env=env)
+    traces = list(tmp_path.glob("t-*.json"))
+    assert traces, "the build opened no trace"
+    rec = json.loads(traces[0].read_text(encoding="utf-8"))
+    assert rec["recipe_hash"], "the driver knew the recipe and recorded none"
+    assert rec["recipe_version"] == "0.1.603"
+
+
+def test_a_build_with_no_script_records_no_recipe(tmp_path):
+    """The counter-red: path A's shape must not acquire a bogus fingerprint."""
+    import os
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    deck = tmp_path / "d.html"
+    subprocess.run(
+        [sys.executable, str(ROOT / "scripts/ops/build.py"), "--deck", str(deck),
+         "--storyline", "gtm", "--entry-path", "A", "--genre", "internal",
+         "--pages", "2", "--fast"],
+        capture_output=True, text=True, cwd=ROOT, env=env)
+    traces = list(tmp_path.glob("t-*.json"))
+    assert traces
+    rec = json.loads(traces[0].read_text(encoding="utf-8"))
+    assert rec.get("recipe_hash") is None
