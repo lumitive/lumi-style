@@ -165,9 +165,11 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-036 · The scored artifact is whichever one sorts first
 
-- status: open
+- status: fixed
 - opened: 0.1.605
-- surface: scripts/ops/run_conformance.py:650, :1093
+- closed: 0.1.609
+- surface: scripts/ops/run_conformance.py (`scored_file`, and the two call
+  sites in `_conformance_trace` and `score`)
 - symptom: `produced` is a sorted glob and `_conformance_trace` scores
   `produced[0]`, so when a task's deliverable pattern matches more than one
   file the scored one is chosen alphabetically. This has never fired, and it
@@ -180,10 +182,20 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   "never used to score", while `:1089` feeds `record["misplaced"][0]` straight
   into the same `produced[0]`. One of those two is wrong and the code is not
   the one that can be read.
-- check: none yet. The selection rule has to be stated before it can be
-  tested — newest, or largest, or refuse to guess when the glob matches more
-  than one — and refusing is the only one of the three that cannot silently
-  score the wrong file.
+- check: python3 -m pytest -q tests/test_scored_file.py — `scored_file()` is
+  the one selector both call sites use, and the rule it states is that **the
+  task's own word outranks the alphabet**: the prompt is searched for each
+  candidate's literal filename, which is exact rather than a guess about shape,
+  and it is `_misplaced`'s rule one directory over. When the prompt settles
+  nothing the caller refuses — the scorer records `not earned` naming every
+  candidate, and the trace stays open — because an ambiguous run recorded as
+  ambiguous is a finding and a wrong file scored silently is not.
+  Deliberate red on the real shape: the five files Claude Code's timed-out
+  T1 left behind, with `_s2.html` sorting first. Reverting to `produced[0]`
+  fails three of the six tests.
+  A sixth test holds every shipped task's prompt to naming a file of the type
+  its deliverable pattern matches — a task added without one gives up the
+  tie-break silently.
 
 ## GAP-035 · D31's bar has never been measured, and its corpus changed meaning mid-branch
 

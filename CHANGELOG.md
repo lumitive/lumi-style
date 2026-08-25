@@ -1,3 +1,156 @@
+## 0.1.609 — four checkers that told the author something untrue about their own document
+
+The round-six retrospective left a queue of findings that were real, verified,
+and not about the board. They share one shape: **a checker or a report telling
+the reader something the document, the run, or the code does not say.** The
+cheapest way to clear each of them was to change the artifact rather than the
+instrument, which is FM-13.
+
+**A colophon that declares its numbers illustrative was reported as having no
+source, on every page.** `writing-rules.md` §4 rule 6 lists `illustrative`,
+`mock`, `proposal value` and `uncalibrated` beside the source markers and rules
+on them in a sentence: *"These are declarations rather than sources, and they
+satisfy the same obligation: a number that says what it is is not a number
+pretending to be measured."* M2 accepts them. D6, which asks a colophon for the
+document's provenance, carried none of them. Measured on
+`fixtures/deck-pass.en.html` with one sentence changed — "all figures
+illustrative; no engagement data" — twenty pages red under main's own checker,
+and the same for "proposal values throughout; uncalibrated". **This package builds decks on
+illustrative data**, so the honest colophon was the failing one, and the
+cheapest way to clear it is a source line that is not true. D6's own comment
+names that failure direction as the dangerous one, fifty-eight lines below the
+list that had it — which is part of why it went unread.
+
+The declaration labels are in D6's vocabulary now, along with `示意`, which the
+Chinese half was also missing. **Not as a blanket superset of `SOURCE_MARKERS`**:
+that list also carries `per`, which occurs in almost any prose and would leave
+D6 unable to fail — repairing an FM-13 by building an FM-01. The new
+`D6_DECLARATION_LABELS` names the half the rule rules on, and `check_repo`'s
+`source-marker parity` guard holds it — **anchored on the rules file, not on
+the constant.** The first version made every assertion a subset test against
+`D6_DECLARATION_LABELS`, so emptying that tuple satisfied all of them vacuously
+and the entire FM-13 above could be reinstated with the guard green; a review
+reproduced it in three lines, and the synthetic-tree tests had made the empty
+set their default. `writing-rules.md` §4 rule 6 now marks each declaration
+bullet in words a reader wants anyway, the guard reads the marking off the
+rules, and the constant is held to it rather than trusted as its record.
+
+**And the words agreeing says nothing about the matching, which is where the
+second half of the defect was.** `check_prose` bounds every non-CJK marker;
+`check_design` bounded none. So teaching D6 `mock` also taught it to pass on
+"mockup of the layout", and teaching it `示意` taught it to pass on `表示意向` —
+"no offer intended", which is precisely what a closing colophon says — plus
+`表示意图` and `提示意义`.
+
+Most of the English half takes a LEADING boundary only: `\bsource` stops
+matching "resourced by the team" and still matches "sourced from" and
+"sources", where a trailing boundary would have broken both, and narrowing a
+checker until correct prose fails it is the direction this release exists to
+reverse. `mock` is the exception and takes both, because "mockup" and "mocked
+up" describe a layout rather than a number and rule 2's own label for this
+declaration is "mock UI". The CJK half carries a measured exclusion list that
+says it is a list, because a general rule for compound boundaries is not
+something this checker can have.
+
+**The two checkers now match the same words differently, and that is
+deliberate.** M2 reads a marker in a figure's window beside a number; D6 reads
+a colophon sentence about a whole document, and a legal disclaimer is a thing
+colophons say and figure captions do not. The parity guard compares the word
+lists and says nothing about the matching, which is how this defect arrived at
+all — so the divergence is named here rather than left for the next reader.
+Fourteen cases, both directions, in a test.
+
+The mechanical sweep then found a fourth copy nobody had guarded:
+`design-rules.md` §9 enumerated the seven English provenance words while the
+checker had read Chinese for releases, and would have gone stale again the same
+day. Per convention 13 the enumeration is deleted rather than corrected — the
+paragraph names the checker and the genre card as the authority, and says the
+one thing a reader needs from it, which is that a deck built on invented figures
+says so in its colophon and owes no source it does not have. Two deliberate reds — dropping the labels from
+D6, and inventing a label the rules never listed — and the fixture verdicts do
+not move, including `deck-degenerate`'s planted D6 failure.
+
+**Whichever file sorted first was the one that got scored.** A deliverable
+pattern is `*.html` on purpose: the prompt names the file and the harness
+accepts what arrives, so several matches is the ordinary case for any agent
+that shows its work. Both call sites took `produced[0]` off a sorted glob. It
+never fired and came four minutes from firing — Claude Code hit the hour cap on
+T1-deck in the 0.1.605 round having written `deck.en.html` plus four working
+files, and `_s2.html` sorts first. It is a shape sprite. The timeout is what
+kept it off the board, which is not a defence.
+
+`scored_file()` is the one selector now, and its rule is `_misplaced`'s rule
+one directory over: **the task's own word outranks the alphabet.** The prompt is
+searched for each candidate's literal filename — exact, rather than a guess
+about shape — and where that settles nothing the caller refuses: the scorer
+records `not earned` naming every candidate, and the trace stays open. An
+ambiguous run recorded as ambiguous is a finding; a wrong file scored silently
+is not. Deliberate red on the real five-file shape; reverting to `produced[0]`
+fails three of six tests.
+
+**Replayed over every scored task directory this machine holds, it refuses
+none of them.** The count depends on a framing worth stating, because two
+readings of it disagreed by seven: `~/Documents/LUMI-Style/_conformance` has 42
+such directories and 35 once `latest/` is set aside as a copy of one round,
+distributing 34/5/2/1 and 28/5/1/1. Either way seven or eight had more than one
+match — two files in five of them, five files in one or two, and **eight files
+in one**, where the scored artifact had been an alphabetical coin toss nobody
+was watching. The in-repo `conformance/results` adds 43 directories, every one
+of them single-match. Zero refusals in every framing, which is the load-bearing
+half: a false refusal on a scorer that already works would be worse than the
+bug. (This paragraph first said eleven multi-match directories and named no
+framing — the same arithmetic mistake, in a release about arithmetic mistakes,
+twice.)
+
+**0.1.604 was a second latent case**, found in the same replay: Claude Code's
+T1 there left `_scaffold.html` sorting first, and only an `over budget` verdict
+kept it off the board. Two near-misses in two consecutive rounds is not a rare
+shape. Closes GAP-036.
+
+**The board called three different things "driven".** (Only the rendered
+board: history rows carry the per-task verdicts, never the roll-up string, so
+nothing downstream — `conformance_fresh()` included — reads these words.) `partial: 1 of 3 driven,
+all pass` was printed about an agent driven three times, two of which wrote
+their deliverable outside the working directory; `not run` was printed about an
+agent run three times and rate-limited on every one. Both hand the agent's
+outcome to the harness's silence, on the artifact this package publishes about
+other people's models. A partial now counts what was **earned**, and an agent
+that ran and earned nothing reads `run, nothing earned: N of M attempted` —
+distinct from `not run`, which stays for an agent nobody drove. The shipped
+board keeps the old words until the next round is driven: re-recording would
+stamp rows for a 2026-08-26 run with today's version, which is the
+misattribution 0.1.605 exists to describe.
+
+**And `attempted` is a recorded field rather than an inference**, which the
+first version of this got backwards in the mirror direction. Reading it off
+"the verdict is not `not attempted`" published `run, nothing earned: 3 of 3
+attempted` about a host where the CLI is not installed — `environment` is
+decided before `drive()` is ever called, and so are `no driver` and `could not
+start`. `score` now writes which kind of not-earned each cell was and the
+roll-up reads it. A scores file written before this carries no such field, so
+it falls back to `not run`, which is the safe direction: never claim an agent
+ran without evidence that it did.
+
+One more thing that comment claimed and the code did not do: `verdicts` was
+appended to only for tasks carrying a score entry, so `len(judged) ==
+len(verdicts)` compared against tasks that were SCORED, and
+`run --drive --task T1-deck` published a bare `pass` about an agent measured on
+a third of the suite. An unscored task joins the denominator now — guarded on
+the agent having some result, so a row that should read `not installed` still
+does.
+
+**And two docstrings said things the code does not do.** `_misplaced`'s ended
+"Never used to score", while `_conformance_trace` falls back to the misplaced
+path when nothing else was produced — the claim is true of the board's verdict
+and false of the trace, and it answered only one of the two questions a reader
+would ask. `conformance_fresh()` argued for a recency gate over a pass gate by
+citing both agents failing T1-deck as a current fact, GAP-001 — which closed at
+0.1.434 and has been cited as open for a hundred and seventy-five releases
+since. The argument did not need it; an argument that leans on a current fact
+rots when the fact does.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.608 — four reviews of the three releases above, and the checks that could not fail
 
 The branch carrying 0.1.605-0.1.607 went through a full review before its pull

@@ -446,7 +446,16 @@ def _misplaced(agent: dict, task: dict, since: float,
     `answers.md` and report the run's own history back to it. Anything it
     misses stays reported as "wrote nothing", which is the honest floor.
 
-    Never used to score. `drive()`'s comment carries the argument.
+    NEVER USED FOR THE BOARD'S VERDICT — and it IS read once, so the flat
+    "never used to score" this said was wrong in the one place it mattered.
+    `score` globs the task directory and never recurses, so a misplaced file
+    sitting in `misplaced/` cannot reach a cell; that is the claim, and
+    `drive()`'s comment carries the argument for it. But `_conformance_trace`
+    falls back to the misplaced path when nothing else was produced, because a
+    trace that records what a run actually built is worth more than a trace
+    left open — and a reader who took the old sentence at face value would
+    have believed no code path touched this list. Two different questions, and
+    the docstring answered only one of them.
     """
     roots = _artifact_roots(agent)
     seen: set[pathlib.Path] = set()
@@ -896,6 +905,62 @@ def cell_spread(fresh: list[dict]) -> tuple[str, str]:
     return cell, worst
 
 
+# Driver verdicts that earn nothing. Split by whether the agent's CLI was ever
+# invoked: `environment` is decided by `environment_check` before `drive()` is
+# called at all, `no driver` means the registry declares no argv, and
+# `could not start` is the OSError from exec — in none of the three did the
+# agent do anything. The rest are the agent's own run going wrong.
+NEVER_RAN = ("could not start", "no driver", "environment")
+DRIVER_FAILURES = ("stall", "over budget", "timeout", "driver failed",
+                   "misplaced") + NEVER_RAN
+
+def scored_file(produced: list[pathlib.Path],
+                task: dict) -> tuple[pathlib.Path | None, str]:
+    """-> (the one file to score, why) out of everything the glob matched.
+
+    THE TASK'S OWN WORD OUTRANKS THE ALPHABET, which is `_misplaced`'s rule one
+    directory over. Both call sites took `produced[0]` off a sorted glob, so
+    when an agent left working files beside its deliverable the scored artifact
+    was whichever name sorted first. A deliverable pattern is `*.html` on
+    purpose — the prompt names the file and the harness accepts what arrives —
+    so several matches is the ordinary case for any agent that shows its work.
+
+    Never fired, and came four minutes from firing: Claude Code hit the hour
+    cap on T1-deck in the 0.1.605 round having written `deck.en.html` plus four
+    working files, and `_s2.html` sorts first — a shape sprite. The timeout is
+    what saved the cell, which is not a defence.
+
+    The prompt is searched for each candidate's literal filename; that is exact
+    rather than a guess about shape. When it settles nothing, the caller is
+    told so and refuses rather than picking — an ambiguous run recorded as
+    ambiguous is a finding, and a wrong file scored silently is not.
+    """
+    if not produced:
+        return None, "nothing matched the deliverable pattern"
+    if len(produced) == 1:
+        return produced[0], "the only match"
+    prompt = str(task.get("prompt") or "")
+    if not prompt.strip():
+        return None, ("this task declares no prompt, so nothing can say which "
+                      f"of the {len(produced)} matching files is the "
+                      "deliverable")
+    # BOUNDED, not a substring test. `p.name in prompt` also matched a
+    # candidate whose name is a tail of the named one, so a run that produced
+    # `deck.en.html` alongside a stray `en.html` was refused — the FM-13
+    # direction, inside the repair for one.
+    def _named(p):
+        return re.search(rf"(?<![\w.-]){re.escape(p.name)}(?![\w.-])", prompt)
+    named = [p for p in produced if p.name and _named(p)]
+    if len(named) == 1:
+        return named[0], f"the file the prompt names ({named[0].name})"
+    if len(named) > 1:
+        return None, ("the prompt names more than one of the files that were "
+                      "written: " + ", ".join(sorted(p.name for p in named)))
+    return None, ("the prompt names none of the "
+                  f"{len(produced)} files matching {task['deliverable']!r}: "
+                  + ", ".join(sorted(p.name for p in produced)))
+
+
 def task_fingerprint(task: dict) -> str:
     """What a result is a result *of*.
 
@@ -1089,8 +1154,22 @@ def _conformance_trace(agent: dict, task: dict, wd: pathlib.Path, record: dict) 
         produced = [pathlib.Path(record["misplaced"][0])]
     if (record.get("verdict") not in ("driven", "misplaced")) or not produced:
         return f"trace {tid} opened and left open: the drive did not finish"
+    one, why = scored_file(produced, task)
+    if one is None:
+        # WRITTEN DOWN, not only printed. The note below reaches `drive_one`'s
+        # console and nothing else, so an operator reading the run directory
+        # afterwards found an open trace and `ledger.py` calling it an
+        # abandoned build — which is a claim about the agent, for a refusal
+        # that is the harness's.
+        record["trace_note"] = why
+        try:
+            (wd / "driver.json").write_text(
+                json.dumps(record, indent=2), encoding="utf-8")
+        except OSError:
+            pass
+        return f"trace {tid} opened and left open: {why}"
     argv = [sys.executable, str(tool), "close", "--id", tid,
-            "--deliverable", str(produced[0]), "--agent", agent["id"],
+            "--deliverable", str(one), "--agent", agent["id"],
             "--phase", "build", str(max(1, int(record.get("seconds") or 1)))]
     if record.get("model") and not str(record["model"]).startswith("("):
         argv += ["--model", record["model"]]
@@ -1911,12 +1990,18 @@ def main(argv):
                                       f"driver was very likely killed mid-write"}
                         unscored += 1
                         continue
-                    if record.get("verdict") in ("stall", "over budget",
-                                                 "timeout", "could not start",
-                                                 "no driver", "environment",
-                                                 "driver failed", "misplaced"):
+                    if record.get("verdict") in DRIVER_FAILURES:
                         scores[key] = {
                             "verdict": "not earned",
+                            # WHICH KIND OF NOT-EARNED, kept so the roll-up can
+                            # tell an agent that ran badly from one this host
+                            # never invoked. Without it `environment` — the CLI
+                            # is not installed, checked BEFORE anything is
+                            # launched — read as three attempts that earned
+                            # nothing, on the artifact this package publishes
+                            # about other people's models.
+                            "attempted": ("no" if record.get("verdict")
+                                          in NEVER_RAN else "yes"),
                             # The fingerprint goes in like every other entry, or
                             # the freshness check reads a missing hash as a
                             # changed task and the cell prints "stale" — a
@@ -1965,7 +2050,18 @@ def main(argv):
                                    else f"nothing matching {task['deliverable']}")}
                     unscored += 1
                     continue
-                target = produced[0]
+                target, why = scored_file(produced, task)
+                if target is None:
+                    # AMBIGUOUS IS A RESULT, not a coin toss. Scoring the
+                    # alphabetically-first file would have graded a shape
+                    # sprite as a deck; recording what could not be decided
+                    # leaves the run reviewable.
+                    scores[key] = {
+                        "verdict": "not earned",
+                        "task_hash": asked_fingerprint(task_dir, task),
+                        "detail": f"which file to score is undecidable: {why}"}
+                    unscored += 1
+                    continue
                 # The run directory is wherever the operator put it, which is
                 # usually outside this repository; relative_to() raises there.
                 try:
@@ -2144,13 +2240,27 @@ def main(argv):
         mine = {k.split("/", 1)[1]: v for k, v in scored.items()
                 if k.split("/", 1)[0] == a["id"]}
         cells, verdicts = {}, []
+        scored_here: list[dict] = []
         runs_here = 0
         for t in tasks:
             got = mine.get(t["id"]) or []
             runs_here = max(runs_here, len(got))
             if not got:
                 cells[t["id"]] = "—" if not ok else "not run"
+                # AND IT JOINS THE DENOMINATOR. `verdicts` was appended to only
+                # for tasks that had a score entry, so `len(judged) ==
+                # len(verdicts)` compared against "tasks that were scored" and
+                # an agent measured on one task of three published a bare
+                # `pass` — reachable through `run --drive --task T1-deck`. The
+                # comment below has claimed the opposite since it was written.
+                # Guarded on `mine`, not on the probe: an agent with no scored
+                # task at all must keep falling through to the `not installed`
+                # / `cannot be probed` branch below, which is about the agent
+                # rather than about a run.
+                if mine:
+                    verdicts.append("not attempted")
                 continue
+            scored_here += [s for s in got if isinstance(s, dict)]
             fresh = [s for s in got if s.get("task_hash") == task_fingerprint(t)]
             if not fresh:
                 # The verdict stands, but not for this task. Showing it would be
@@ -2175,11 +2285,27 @@ def main(argv):
             # into `fail` is how a board reports a timeout as a model's defect.
             judged = [v for v in verdicts
                       if v not in ("not attempted", "not earned")]
+            # DRIVEN AND EARNED ARE DIFFERENT WORDS AND WERE THE SAME ONE.
+            # `judged` counts tasks that produced a verdict, and the roll-up
+            # called that "driven" — so the 0.1.605 board reported Hermes as
+            # `partial: 1 of 3 driven, all pass` about an agent driven three
+            # times, two of which wrote their deliverable outside the working
+            # directory, and reported Gemini as `not run` about an agent run
+            # three times and rate-limited on every one. Both readings hand the
+            # agent's failure to the harness's silence.
+            # ATTEMPTED IS A FIELD, NOT AN INFERENCE. Reading it off "the
+            # verdict is not `not attempted`" counted a host with the CLI
+            # uninstalled as three runs that earned nothing; `score` records
+            # which kind of not-earned each cell was, and this reads it.
+            attempted = [v for v in scored_here
+                         if v.get("attempted") in (True, "yes")]
             if not judged:
-                verdict = "not run"
+                verdict = ("not run" if not attempted else
+                           f"run, nothing earned: {len(attempted)} of "
+                           f"{len(verdicts)} attempted")
             elif all(v == "pass" for v in judged):
                 verdict = "pass" if len(judged) == len(verdicts) else \
-                    f"partial: {len(judged)} of {len(verdicts)} driven, all pass"
+                    f"partial: {len(judged)} of {len(verdicts)} earned, all pass"
             elif any(v == "stale" for v in judged) and \
                     not any(v == "fail" for v in judged):
                 verdict = "stale"

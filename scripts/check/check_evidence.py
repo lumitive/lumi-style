@@ -197,9 +197,14 @@ def conformance_fresh() -> bool | None:
     scoreboard is recent enough. Fresh = at least CONFORMANCE_MIN_AGENTS
     distinct agents have rows within CONFORMANCE_STALE_AFTER releases of
     head, each covering all three tasks. The gate binds on the RECENCY of
-    measurement, never on passing — both scored agents currently fail
-    T1-deck (GAP-001), and a pass-gate would block every release forever
-    while inviting exactly the overclaim this gate exists to kill.
+    measurement, never on passing, and the reason is not a claim about any
+    particular round: a pass-gate on a multi-agent board makes every release
+    hostage to somebody else's model, which is how a gate becomes a thing
+    people waive on reflex — exactly the overclaim this one exists to kill.
+    (This paragraph cited GAP-001 as a live example of both agents failing
+    T1-deck. That gap closed at 0.1.434, and the sentence outlived it by well
+    over a hundred releases — an argument that leans on a current fact rots
+    when the fact does.)
     """
     hist = ROOT / "conformance" / "history.json"
     if not hist.exists():

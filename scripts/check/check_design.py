@@ -2190,17 +2190,62 @@ def _agenda_strays(kids) -> list:
 # reported as missing provenance on EVERY page — the checker deciding what the
 # page must say, in a language it could not read. Found on a real deliverable
 # whose author refused to edit correct Chinese to go green, and was right.
+#
+# THE DECLARATION LABELS BELONG HERE TOO, and their absence had the failure
+# direction this comment already warns about. `writing-rules.md` §4 rule 6
+# names `illustrative` / `mock` / `proposal value` / `uncalibrated` beside the
+# source markers and says outright that they "satisfy the same obligation: a
+# number that says what it is is not a number pretending to be measured."
+# `check_prose`'s M2 accepts them; D6 did not, so a colophon reading "all
+# figures illustrative; no engagement data" — the honest colophon for an
+# illustrative deck, and this package builds those — was reported as missing
+# provenance on every page. Measured on `fixtures/deck-pass.en.html` with only
+# that sentence changed: twenty pages red, and the cheapest way to clear it is
+# to write a source line that is not true.
+# NOT a blanket superset of `SOURCE_MARKERS`: that list also carries `per`,
+# which appears in almost any prose and would leave D6 unable to fail. The
+# declaration half is what the rule says satisfies the same obligation, and
+# `check_repo`'s `source-marker parity` guard holds exactly that half.
 D6_PROVENANCE = ("source", "derive from", "derives from", "derived from",
                  "based on", "provenance", "trace to", "traces to",
                  "traces back to", "drawn from", "comes from",
-                 "\u6765\u6e90", "\u51fa\u5904", "\u4f9d\u636e", "\u6458\u81ea")
+                 "illustrative", "mock", "proposal value", "uncalibrated",
+                 "\u6765\u6e90", "\u51fa\u5904", "\u4f9d\u636e", "\u6458\u81ea",
+                 "\u793a\u610f")
+
+# The half of `check_prose.SOURCE_MARKERS` that writing-rules §4 rule 6 calls a
+# declaration rather than a source. Named so a guard can hold D6 to it without
+# dragging in markers whose job is a figure's number rather than a document's
+# footing.
+D6_DECLARATION_LABELS = ("illustrative", "mock", "proposal value",
+                         "uncalibrated", "\u793a\u610f")
 # Built FROM the tuple rather than retyped beside it: the two disagreed the
 # moment one was edited, which is this repository's most-fixed defect class.
 # A CJK term takes no word boundary — CJK characters count as \w, so \b never
 # fires between 数据 and 来源 (check_prose's SOURCE_RE says the same thing).
+# CJK terms that ride inside an ordinary compound. `\b` never fires between
+# CJK characters, so 示意 matched 表示意向 ("no offer intended") and 表示意图
+# and 提示意义 — three ordinary collocations, one of which is exactly what a
+# closing colophon says. MEASURED rather than imagined: the three below are the
+# cases a review found, and the list is a list because a general rule for CJK
+# compound boundaries is not something this checker can have.
+D6_CJK_NOT_PRECEDED_BY = {"\u793a\u610f": "\u8868\u63d0\u6697"}
+# The English terms that need a TRAILING boundary too. Only `mock`: "mockup"
+# and "mocked up" describe a layout rather than a number, and rule 2's own
+# label for this declaration is "mock UI". Everything else keeps the leading
+# boundary alone, so "sourced from" and "sources" go on matching.
+D6_BOTH_BOUNDARIES = ("mock",)
+# A LEADING BOUNDARY on the English half. `source` matched "resourced by the
+# team"; `\bsource` does not, and still matches "sourced from" and "sources",
+# which a trailing boundary would have broken — narrowing a checker until
+# correct prose fails it is the direction this whole release is about.
 D6_PROVENANCE_RE = re.compile("|".join(
-    re.escape(w) if any("\u3400" <= ch <= "\u9fff" for ch in w)
-    else re.escape(w).replace(r"\ ", " ")
+    (rf"(?<![{D6_CJK_NOT_PRECEDED_BY[w]}]){re.escape(w)}"
+     if w in D6_CJK_NOT_PRECEDED_BY else re.escape(w))
+    if any("\u3400" <= ch <= "\u9fff" for ch in w)
+    else (rf"\b{re.escape(w).replace(r'\ ', ' ')}\b"
+          if w in D6_BOTH_BOUNDARIES
+          else rf"\b{re.escape(w).replace(r'\ ', ' ')}")
     for w in D6_PROVENANCE))
 
 

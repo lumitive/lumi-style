@@ -1735,8 +1735,18 @@ def check_source_marker_parity():
         if not rule6:
             raise ValueError("could not locate rule 6's marker list in section 4")
         # Each marker is the first backticked token on its own bullet.
-        rules = {m.group(1).strip().lower()
-                 for m in re.finditer(r"^\s*-\s+`([^`]+)`", rule6.group(0), re.M)}
+        bullets = re.findall(r"^\s*-\s+`([^`]+)`(.*?)(?=^\s*-\s+`|\Z)",
+                             rule6.group(0), re.M | re.S)
+        rules = {b[0].strip().lower() for b in bullets}
+        # THE DECLARATION HALF, READ OFF THE RULES rather than off the script
+        # the guard is checking. The first version anchored it on
+        # `check_design.D6_DECLARATION_LABELS`, and every assertion was a
+        # subset test against that set — so emptying the tuple satisfied all of
+        # them vacuously and the whole FM-13 this release repairs could be
+        # reinstated with the guard green. A review reproduced it in three
+        # lines. An anchor a guarded file owns is not an anchor.
+        declared = {b[0].strip().lower() for b in bullets
+                    if "a declaration" in b[1].lower()}
         src = (ROOT / "scripts/check/check_prose.py").read_text(encoding="utf-8")
         tree = ast.parse(src)
         script = None
@@ -1799,6 +1809,58 @@ def check_source_marker_parity():
         errors.append(
             "check_design.py's D6_PROVENANCE recognises Chinese and "
             "check_prose.py's SOURCE_MARKERS does not")
+
+    # AND THE DECLARATION LABELS, which are the one place the two vocabularies
+    # ARE required to agree. Rule 6 does not merely list `illustrative`, `mock`,
+    # `proposal value` and `uncalibrated` — it rules on them: "These are
+    # declarations rather than sources, and they satisfy the same obligation."
+    # D6 carried none of them, so a colophon reading "all figures illustrative;
+    # no engagement data" — the honest colophon for a deck built on illustrative
+    # data, which this package builds — was reported as missing provenance on
+    # every page. Measured on `fixtures/deck-pass.en.html` with that one
+    # sentence changed: twenty pages red, and the cheapest way to clear it is a
+    # source line that is not true.
+    # Scoped to the declaration half deliberately. `SOURCE_MARKERS` also
+    # carries `per`, which occurs in ordinary prose and would leave D6 unable
+    # to fail at all — a wider guard here would repair one FM-13 by building
+    # an FM-01.
+    if not declared:
+        return errors + [
+            "writing-rules.md section 4 rule 6 marks no bullet as a declaration, "
+            "so there is nothing to hold check_design.py to. The rule's own "
+            "sentence — declarations 'satisfy the same obligation' — is what "
+            "this comparison exists for; losing the marker loses the check."]
+
+    for label in sorted(declared - prov):
+        errors.append(
+            f"writing-rules.md section 4 rule 6 marks {label!r} as a "
+            f"declaration and check_design.py's D6_PROVENANCE does not accept "
+            f"it — a colophon that says what its numbers are is reported as "
+            f"missing a source on every page")
+    for label in sorted(declared - script):
+        errors.append(
+            f"writing-rules.md section 4 rule 6 marks {label!r} as a "
+            f"declaration and check_prose.py's SOURCE_MARKERS does not carry "
+            f"it")
+
+    # The constant in check_design.py is documentation, and it is held to the
+    # rules rather than trusted as their record — it may not quietly shrink.
+    try:
+        labels = None
+        for node in ast.walk(ast.parse(dsrc)):
+            if (isinstance(node, ast.Assign)
+                    and any(getattr(t, "id", None) == "D6_DECLARATION_LABELS"
+                            for t in node.targets)):
+                labels = {w.lower() for w in ast.literal_eval(node.value)}
+        if labels is None:
+            raise ValueError("check_design.py declares no D6_DECLARATION_LABELS")
+    except (ValueError, SyntaxError) as exc:
+        return errors + [f"could not read D6_DECLARATION_LABELS: {exc}"]
+    if labels != declared:
+        errors.append(
+            f"check_design.py's D6_DECLARATION_LABELS is "
+            f"{sorted(labels)} and writing-rules.md section 4 rule 6 marks "
+            f"{sorted(declared)} — the rules are the source, not the script")
     return errors
 
 
