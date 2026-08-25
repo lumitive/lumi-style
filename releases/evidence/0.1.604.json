@@ -1,0 +1,24 @@
+{
+  "version": "0.1.604",
+  "diff_base": "0564d32a09aa8b10f8cdb235c94e31163913e933",
+  "spec": "specs/2026-08-25-round-6-retrospective-design.md",
+  "obligations": [
+    "scaffold-render",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "scaffold-render",
+      "command": "python3 scripts/ops/new_deck.py --genre internal --storyline market-analysis --pages 10 --parts A,B,C --no-trace --out fixtures/.scaffold-evidence.html && python3 scripts/check/inspect_layout.py --deliverable fixtures/.scaffold-evidence.html",
+      "exit_code": 0,
+      "stdout_sha256": "1d719140d8598963c5a384c98727fd0e51485c42be4446cff111c8100214bd3f",
+      "date": "2026-08-25"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The last commit of the round-6 retrospective branch, and the refresh owed is one round driven against the branch as a whole rather than against any one commit inside it. Recording a board now would score agents against a rule surface that changed seven times this week; the honest reading is the next round, which is also the first that will be able to say what drove it and to keep the record of every round it took."
+    }
+  ]
+}

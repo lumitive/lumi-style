@@ -401,3 +401,70 @@ def test_a_fragment_is_not_a_quotation():
             pytest.raises(SystemExit) as exc:
         new_deck.main(["--no-trace", "--lang", "ja", "--lang-asked", "ja"])
     assert "fragment" in str(exc.value), str(exc.value)
+
+
+# --- an omission declared in the outline reaches the page (0.1.604) ---------
+# C5 lets a document declare a deliberate gap, and the declaration is a
+# reader-visible note carrying `data-omitted`. On entry path B the author
+# declares it in the OUTLINE — `check_outline` parses it, reports it, and
+# nothing carried it into the document. Measured on the two decks of the
+# 2026-08-25 round: the one whose author hand-wrote the attribute passed D31,
+# the one who used the outline's own syntax failed it, and the difference was
+# not the documents.
+
+OUTLINE = """genre: internal
+storyline: market-analysis
+
+## Part A
+- A title carrying a fact about 12 markets
+
+omitted: sizing (TAM/SAM/SOM) — the source carries no market sizing
+omitted: customer segments — no segmentation data was commissioned
+"""
+
+
+def _with_outline(tmp_path, text=OUTLINE):
+    path = tmp_path / "outline.md"
+    path.write_text(text, encoding="utf-8")
+    return scaffold("--genre", "internal", "--storyline", "market-analysis",
+                    "--entry-path", "B", "--pages", "2",
+                    "--outline", str(path))
+
+
+def test_a_declared_omission_reaches_the_reader(tmp_path):
+    html = _with_outline(tmp_path)
+    assert 'class="scope-note"' in html, "the outline's omissions reached no page"
+    assert "the source carries no market sizing" in html, (
+        "the author's own reason was replaced by furniture")
+
+
+def test_the_emitted_declaration_uses_the_checklist_s_own_name(tmp_path):
+    """`a in declared` is exact set membership, not a substring test.
+
+    The outline says "sizing (TAM/SAM/SOM)" and "customer segments"; the
+    checklist says "sizing" and "segments". Emitting the author's phrasing
+    verbatim would produce a note that looks right, reads right, and clears
+    nothing — a fix indistinguishable from no fix.
+    """
+    html = _with_outline(tmp_path)
+    scope = check_design.d26_declared_scope(html, "market-analysis")
+    assert "sizing" in scope["declared"]
+    assert "segments" in scope["declared"]
+    assert "sizing" not in scope["missing"]
+    assert "segments" not in scope["missing"]
+    assert scope["hidden"] == []
+
+
+def test_an_omission_with_no_reason_is_not_emitted(tmp_path):
+    """`check_outline` already reports these; the scaffold must not invent one."""
+    html = _with_outline(tmp_path, "genre: internal\nstoryline: market-analysis\n"
+                                   "\n## Part A\n- A title with a fact\n"
+                                   "\nomitted: sizing\n")
+    assert 'data-omitted' not in html
+
+
+def test_no_outline_emits_no_scope_note(tmp_path):
+    """The counter-red: nothing is declared on the author's behalf."""
+    html = scaffold("--genre", "internal", "--storyline", "market-analysis",
+                    "--entry-path", "B", "--pages", "2")
+    assert 'class="scope-note"' not in html

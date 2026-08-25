@@ -1,3 +1,45 @@
+## 0.1.604 — an omission declared in the outline never reached the page
+
+C5 lets a document declare a deliberate gap instead of filling it, and on entry
+path B the author declares it in the outline — `omitted: sizing — the source
+carries no market sizing`, a syntax that exists for exactly this. `check_outline`
+parses it and reports it. `new_deck.py` parsed it too, and threw it away with an
+underscore: `_meta, groups, _om, analyses`. So the declaration reached the
+document on no path at all, and C5's mechanism worked only for an author who
+knew to hand-write the attribute.
+
+**Measured on the two decks of the 2026-08-25 round, this is the whole
+difference between them.** One author hand-wrote `data-omitted` onto a page and
+passed D31; the other used the outline's own syntax and failed it with six
+sections missing. The documents were not different in the way the metric
+implied. Injecting into the delivered deck the two declarations its author had
+already written in their outline takes its missing count from six to five, with
+nothing else touched.
+
+The scaffold now emits one reader-visible `.scope-note` per declared omission,
+on the last content page — not the agenda, which D35 holds to the launch
+sequence, and not the closing, whose contents `page-contracts.md` enumerates so
+that adding to them would be a rule revision rather than a scaffold change. The
+shape copies `build_fixtures.py`'s reference implementation, which is what
+`check_fixtures` already asserts against, and `.scope-note` has shipped in
+`tokens/` since it was written.
+
+**The section name is canonicalised, and that is the half a plausible fix would
+have missed.** D26 tests `a in declared` — exact set membership, not a substring
+— while the two real outlines say "sizing (TAM/SAM/SOM)", "customer segments"
+and "customer decision journey" against a checklist saying "sizing", "segments"
+and "customer journey". Emitting the author's phrasing verbatim would produce a
+note that looks right, reads right and clears nothing. Matching is every word of
+the checklist name present in what the author wrote, because "customer DECISION
+journey" neither contains "customer journey" nor is contained by it; all five
+real phrasings resolve. The author's own wording stays in the sentence a reader
+meets.
+
+An omission with no reason is not emitted: `check_outline` already reports those,
+and a scaffold that supplied the reason would be writing the author's judgement
+for them. Counter-red, green throughout: no outline, no scope note — nothing is
+declared on an author's behalf.
+
 ## 0.1.603 — the driver knew the recipe and told nobody
 
 Path B means "started from a recipe", and the ledger is full of path-B builds
