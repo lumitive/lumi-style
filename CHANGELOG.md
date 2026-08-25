@@ -1,3 +1,39 @@
+## 0.1.596 — one analytical move, one drawing, for everybody, forever
+
+An owner read three platforms' round-5 decks side by side and said the figures
+looked alike. They did, and it was not the agents.
+
+`shape_for` returned **`shapes[0]` of the first matching framework** —
+deterministic on the analytical MOVE alone. Every page that declared `position`
+arrived as `p126-2x2-01`; every `decompose` as `p125-top-down-01`; every
+`compare` as `p156-very-attractiveaveragevery-unattractive-01`. The
+alternatives the scaffold offered in its comment were **siblings of that same
+unit**, so an author who varied the default varied within one visual family.
+
+Measured. Across the four moves an outline can declare, the registry offers 25
+shapes and the scaffold emitted **four** — the same four to every agent, on
+every document, in every round. Of the library's 206 units, **1.9%** were
+reachable. On the three round-5 decks the single `compare` default accounted for
+**56%, 68% and 75%** of each deck's figure references, and the three decks
+shared exactly the three defaults.
+
+The candidate pool is now every shape of every framework that draws the move,
+and the page's own planned title picks among them by digest. Content-derived,
+so it stays reproducible — the same outline rebuilds the same deck byte for
+byte, which `build_fixtures --check` gates on — while two documents about
+different subjects, and two pages of one document, get different drawings.
+Measured after: two outlines declaring the identical four moves now differ on
+three of four figures.
+
+**This did not widen the library, and the entry that says so is GAP-033.** The
+pool is only as wide as `frameworks.json`, which names 23 of 206 units;
+`compare` has three. Assigning the other 183 from their ids is the mistake
+GAP-009 records — `box` is a 2×2 grid with a cycle, `surround` is an arrow — so
+that stays a curation task done against rendered previews, not a patch.
+
+Deliberate-red run: three of the five new tests fail against `pick = 0`, which
+is the previous behaviour exactly.
+
 ## 0.1.595 — the corpus keeps its own numbers now
 
 Two gaps have been open since 0.1.543 waiting for "a second measured document".

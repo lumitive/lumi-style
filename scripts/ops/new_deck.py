@@ -43,6 +43,7 @@ Standard library only.
 from __future__ import annotations
 
 import argparse
+import hashlib  # noqa: E402
 import html
 import json
 import pathlib
@@ -176,7 +177,8 @@ def framework_for(move: str) -> str:
     return f"move={move}; frameworks that draw it: " + " | ".join(parts)
 
 
-def shape_for(move: str, framework: str = "") -> tuple[str, str]:
+def shape_for(move: str, framework: str = "",
+              seed: str = "") -> tuple[str, str]:
     """-> (shape id or "", comment). The question -> framework -> shape chain
     (analysis-rules AR-4, design-rules §4.0) executed to its last link.
 
@@ -190,6 +192,23 @@ def shape_for(move: str, framework: str = "") -> tuple[str, str]:
     lists the alternatives. The choice stays the author's; the default is no
     longer "nothing". A framework drawn natively (funnel, waterfall,
     market-sizing) names no shape and the slot stays a prompt.
+
+    **`seed` is why three decks stopped looking like one deck.** Until 0.1.596
+    this returned `shapes[0]` of the first matching framework — deterministic on
+    the MOVE alone — and the alternatives it listed were siblings of that same
+    unit. Measured after an owner reported that three platforms' decks looked
+    alike: across the four moves an outline can declare, the library offers 25
+    shapes and the scaffold emitted **four**, the same four to everyone. Of 206
+    units, 1.9% were reachable, and every `position` page ever scaffolded
+    arrived as `p126-2x2-01`.
+
+    The candidates are now every shape of every framework that draws the move,
+    and `seed` — the page's own planned title — picks among them.
+    Content-derived, so it stays REPRODUCIBLE (the same outline rebuilds the
+    same deck, which `build_fixtures --check` gates on) while two documents
+    about different things, and two pages of one document, get different
+    drawings. An empty seed keeps the first-shape behaviour for a caller with
+    no content yet.
     """
     if not move:
         return "", ""
@@ -203,14 +222,27 @@ def shape_for(move: str, framework: str = "") -> tuple[str, str]:
     if framework:
         named = [(k, v) for k, v in entries.items() if k == framework]
         hits = named + [h for h in hits if h[0] != framework]
+    # EVERY framework that draws this move, not just the first: the pool an
+    # author chooses from should be the library's answer to the question, not
+    # one entry's first row.
+    pool: list[tuple[str, str]] = []
+    drawn_natively = False
     for k, v in hits:
-        shapes = [x for x in (v.get("shapes") or []) if (ROOT / "assets" / "shapes" / f"{x}.svg").exists()]
-        if shapes:
-            others = ", ".join(shapes[1:4])
-            return shapes[0], (f"{k} drawn with shape {shapes[0]}"
-                               + (f"; alternatives: {others}" if others else "")
-                               + (" — or draw the framework natively" if v.get("drawn") else ""))
-    return "", ""
+        for x in v.get("shapes") or []:
+            if (ROOT / "assets" / "shapes" / f"{x}.svg").exists():
+                pool.append((k, x))
+        drawn_natively = drawn_natively or bool(v.get("drawn"))
+    if not pool:
+        return "", ""
+    # A stable digest of the page's own words, never `random`: the same outline
+    # must rebuild the same deck byte for byte.
+    pick = (int(hashlib.sha256(seed.encode("utf-8")).hexdigest(), 16) % len(pool)
+            if seed else 0)
+    framework_name, shape = pool[pick]
+    others = ", ".join(x for _, x in (pool[:pick] + pool[pick + 1:])[:3])
+    return shape, (f"{framework_name} drawn with shape {shape}"
+                   + (f"; alternatives: {others}" if others else "")
+                   + (" — or draw the framework natively" if drawn_natively else ""))
 
 
 def shape_aspect(shape: str) -> float | None:
@@ -955,7 +987,10 @@ def main(argv):
             move = sec.get("move", "")
             hint = framework_for(move)
             adecl = f' data-analysis="{move}"' if move else ""
-            shape, shape_note = shape_for(move, sec.get("framework", ""))
+            # SEEDED WITH THE PAGE'S OWN TITLE, so two documents about
+            # different subjects do not arrive as the same drawings.
+            shape, shape_note = shape_for(move, sec.get("framework", ""),
+                                          seed=f"{title}|{move}")
             if shape:
                 figure = shape_figure(shape, "what this end names", "and what it leads to")
                 hint = (hint + "; " if hint else "") + shape_note
