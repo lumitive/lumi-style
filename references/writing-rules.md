@@ -234,16 +234,20 @@ LUMI's own seed survives as group 8.
    - `per` — a named system or document
    - `n=` — a sample size
    - `extract` — a dated pull from a named system
-   - `illustrative` — with the three labels rule 2 puts beside it. These are
-     declarations rather than sources, and they satisfy the same obligation:
-     a number that says what it is is not a number pretending to be measured.
-   - `mock`
-   - `proposal value`
-   - `uncalibrated`
+   - `illustrative` — a declaration, with the three labels rule 2 puts beside
+     it. These are declarations rather than sources, and they satisfy the same
+     obligation: a number that says what it is is not a number pretending to be
+     measured. **A declaration satisfies D6 too**, so a deck built on invented
+     figures says so in its colophon and owes no source it does not have —
+     `check_repo`'s `source-marker parity` guard reads the word *declaration*
+     off these bullets and holds `check_design.py` to every one of them.
+   - `mock` — a declaration
+   - `proposal value` — a declaration
+   - `uncalibrated` — a declaration
    - `来源` — the zh marker for "source"; matched without word boundaries,
      because CJK compounds have none
    - `出处` — "provenance / where it came from"
-   - `示意` — the zh illustrative label rule 2 already names
+   - `示意` — a declaration; the zh illustrative label rule 2 already names
    - `实测` — "measured, not promised"; the zh counterpart of a dated position
 
    **The window is the page for an ordinary figure and the block for a range.**

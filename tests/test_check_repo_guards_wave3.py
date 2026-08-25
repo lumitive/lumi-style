@@ -142,10 +142,18 @@ EN_GROUPS = (
 
 def _write_rules(tmp_path, en_groups=EN_GROUPS,
                  zh_list="值得注意的是 · 综上所述",
-                 markers=("source", "as of", "n=")):
+                 markers=("source", "as of", "n="), declarations=()):
+    """`declarations` marks bullets the way the real rule 6 marks them.
+
+    The guard reads the word *declaration* off the rules file rather than off
+    a constant in `check_design.py` — an anchor a guarded file owns is not an
+    anchor, and the first version could be emptied into a vacuous pass.
+    """
     refs = tmp_path / "references"
     refs.mkdir(exist_ok=True)
-    bullets = "\n".join(f"   - `{m}` — what it marks" for m in markers)
+    bullets = "\n".join(
+        f"   - `{m}` — a declaration" if m in declarations
+        else f"   - `{m}` — what it marks" for m in markers)
     (refs / "writing-rules.md").write_text(
         "## 2 · Banned AI-tell phrases (hard block)\n\n"
         f"**[zh-output]** rule data: {zh_list}.\n\n"
@@ -390,11 +398,21 @@ def test_brand_lock_missing_lock_file_fails(tmp_path, monkeypatch):
 # Chinese colophon was reported as missing its provenance on every page.
 
 
-def _write_design_script(root, provenance=("source", "based on")):
+def _write_design_script(root, provenance=("source", "based on"), labels=()):
+    """The stub models the real file, including the constant it must declare.
+
+    `labels` defaults to empty because these trees test the Chinese half: an
+    empty declaration-label set makes no assertions and leaves the CJK
+    comparison the only thing under test. The guard still fails a tree whose
+    check_design.py declares no D6_DECLARATION_LABELS at all — dropping the
+    constant must not be a way past it, which is the whole point of naming it.
+    """
     d = root / "scripts" / "check"
     d.mkdir(parents=True, exist_ok=True)
     (d / "check_design.py").write_text(
-        "D6_PROVENANCE = " + repr(tuple(provenance)) + "\n", encoding="utf-8")
+        "D6_PROVENANCE = " + repr(tuple(provenance)) + "\n"
+        "D6_DECLARATION_LABELS = " + repr(tuple(labels)) + "\n",
+        encoding="utf-8")
 
 
 _ZH_MARKERS = ("source", "as of", "n=", "\u6765\u6e90")
@@ -410,9 +428,13 @@ def test_a_design_vocabulary_blind_to_chinese_fails(tmp_path, monkeypatch):
 
 
 def test_both_vocabularies_reading_chinese_passes(tmp_path, monkeypatch):
-    _write_rules(tmp_path, markers=_ZH_MARKERS)
+    # `declarations` names one bullet: the guard now fails a rules file that
+    # marks none, so a tree exercising only the CJK half still has to say
+    # which marker is a declaration and honour it.
+    _write_rules(tmp_path, markers=_ZH_MARKERS, declarations=("source",))
     _write_prose_script(tmp_path, markers=list(_ZH_MARKERS))
-    _write_design_script(tmp_path, ("source", "based on", "\u6765\u6e90"))
+    _write_design_script(tmp_path, ("source", "based on", "\u6765\u6e90"),
+                         labels=("source",))
     monkeypatch.setattr(check_repo, "ROOT", tmp_path)
     assert check_repo.check_source_marker_parity() == []
 
@@ -425,3 +447,79 @@ def test_a_design_checker_with_no_vocabulary_at_all_fails(tmp_path, monkeypatch)
     monkeypatch.setattr(check_repo, "ROOT", tmp_path)
     errors = check_repo.check_source_marker_parity()
     assert any("D6_PROVENANCE" in e for e in errors), errors
+
+
+def test_rules_marking_no_declaration_at_all_fails(tmp_path, monkeypatch):
+    """Losing the marking loses the check, so losing it is a failure.
+
+    The comparison is a subset test against the declaration set. An empty set
+    satisfies it vacuously, which is exactly how the first version — anchored
+    on a constant in check_design.py — could be switched off by emptying that
+    constant, with the FM-13 it repairs fully reinstated and the guard green.
+    """
+    _write_rules(tmp_path, markers=("source",))
+    _write_prose_script(tmp_path, markers=["source"])
+    _write_design_script(tmp_path, ("source",))
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    errors = check_repo.check_source_marker_parity()
+    assert any("marks no bullet as a declaration" in e for e in errors), errors
+
+
+def test_a_declaration_label_d6_will_not_accept_fails(tmp_path, monkeypatch):
+    """The measured defect: a colophon saying what its numbers ARE, failed.
+
+    writing-rules §4 rule 6 rules on `illustrative` and the three labels beside
+    it — "declarations rather than sources, and they satisfy the same
+    obligation" — and D6 carried none of them, so "all figures illustrative; no
+    engagement data" was reported as missing provenance on every page of a
+    twenty-page deck.
+    """
+    _write_rules(tmp_path, markers=("source", "illustrative"),
+                 declarations=("illustrative",))
+    _write_prose_script(tmp_path, markers=["source", "illustrative"])
+    _write_design_script(tmp_path, ("source",), labels=("illustrative",))
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    errors = check_repo.check_source_marker_parity()
+    assert any("D6_PROVENANCE does not accept it" in e for e in errors), errors
+
+
+def test_a_constant_that_disagrees_with_the_rules_fails(tmp_path, monkeypatch):
+    """The rules are the source; the constant is documentation held to them."""
+    _write_rules(tmp_path, markers=("source", "illustrative"),
+                 declarations=("illustrative",))
+    _write_prose_script(tmp_path, markers=["source", "illustrative"])
+    _write_design_script(tmp_path, ("source", "illustrative", "indicative"),
+                         labels=("illustrative", "indicative"))
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    errors = check_repo.check_source_marker_parity()
+    assert any("the rules are the source, not the script" in e
+               for e in errors), errors
+
+
+def test_an_emptied_constant_no_longer_buys_a_pass(tmp_path, monkeypatch):
+    """The bypass a review found, held shut.
+
+    Emptying `D6_DECLARATION_LABELS` and stripping the labels from
+    D6_PROVENANCE used to satisfy every assertion vacuously.
+    """
+    _write_rules(tmp_path, markers=("source", "illustrative"),
+                 declarations=("illustrative",))
+    _write_prose_script(tmp_path, markers=["source", "illustrative"])
+    _write_design_script(tmp_path, ("source",), labels=())
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    errors = check_repo.check_source_marker_parity()
+    assert any("D6_PROVENANCE does not accept it" in e for e in errors), errors
+
+
+def test_a_tree_declaring_no_labels_at_all_fails(tmp_path, monkeypatch):
+    """Deleting the constant may not be the way past the guard either."""
+    _write_rules(tmp_path, markers=("source", "illustrative"),
+                 declarations=("illustrative",))
+    _write_prose_script(tmp_path, markers=["source", "illustrative"])
+    d = tmp_path / "scripts" / "check"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "check_design.py").write_text(
+        'D6_PROVENANCE = ("source", "illustrative")\n', encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    errors = check_repo.check_source_marker_parity()
+    assert any("declares no D6_DECLARATION_LABELS" in e for e in errors), errors

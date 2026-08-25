@@ -111,6 +111,7 @@ different ways.
 | TIER1_PER_PAGE | `1` |  | (not searched: too short) |
 | TIER1_PAGE_SHARE | `33.0` | percent of a deck's pages that may carry one | (not searched: too short) |
 | CAPTION_NAME_CHARS | `{"full": 100, "split": 60}` |  | (not searched: too short) |
+| D6_CJK_NOT_PRECEDED_BY | `{"\u793a\u610f": "\u8868\u63d0\u6697"}` |  | (not searched: too short) |
 
 ### scripts/check/inspect_layout.py
 

@@ -772,12 +772,19 @@ is read once rather than skipped thirty times. *Reader-requested.*
   it has more. **So the page keeps a source marker somewhere in its own text** —
   the eyebrow, a stat gloss, the takeaway — even when no figure carries a line.
 
-  **The accepted provenance words are the checker's `D6_PROVENANCE`** —
-  source · derives/derived from · based on · provenance · traces (back) to ·
-  drawn from · comes from — the same discipline as the M2/M6 marker list:
-  the list is the contract, and a colophon that gestures with a word off the
-  list ("cited to") reads as missing on every page at once, which is how a
+  **The accepted provenance words are the checker's `D6_PROVENANCE`**, and the
+  scaffold's genre card prints them — this paragraph deliberately does not,
+  because the copy it used to carry listed the seven English words while the
+  checker had read Chinese for releases, and then went stale again the day the
+  declaration labels were added. It is the same discipline as the M2/M6 marker
+  list: the list is the contract, and a colophon that gestures with a word off
+  it ("cited to") reads as missing on every page at once, which is how a
   fifteen-page deck failed D6 fifteen times in its first build.
+  **A declaration is one of them.** §4 rule 6 of `writing-rules.md` rules that
+  `illustrative` / `mock` / `proposal value` / `uncalibrated` satisfy the source
+  obligation, and they satisfy this one: a deck built on invented figures says
+  so in its colophon and owes no source it does not have. Nothing here asks an
+  author to write a provenance they cannot support.
 
 10. **A page states its source once (any genre).** §4 rule 4 asks every figure for a source
 line and the footer contract asks every page for one; on a single-figure page
