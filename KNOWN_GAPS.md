@@ -75,59 +75,93 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
-## GAP-038 · Four gating rows print `ok` on a page that is not there
+## GAP-038 · Two decks report the same clean sheet and are not holding the same amount
 
 - status: open
 - opened: 0.1.605
-- surface: scripts/check/check_design.py (D27, D35, D38 x2)
-- symptom: a gate whose subject is absent from the document reports `ok`,
-  which is indistinguishable from a gate that graded real content and found
-  nothing wrong. Measured on the two unscored decks of the 0.1.605 round:
-  Hermes's carries no agenda page and no page declaring an analysis move, so
-  D27 (`no agenda page`), D35 (`no agenda page`) and D38's two rows (`no
-  launch rows`) all print `ok` beside a detail string that says the opposite.
-  D32 gets the same absence right — `0 of 0 analysis page(s)`, verdict `n/a` —
-  which is what makes this a vocabulary defect rather than a judgement call:
-  the same run of the same script prints both answers for the same shape of
-  emptiness. The cost is a roll-up: two decks both read "zero gating failures"
-  when one of them earned four of its clean rows by leaving out the pages
-  those rows exist to check.
-- check: none yet. `evals/gates.json` already carries `na_means` per gate,
-  which is where the answer belongs — an honest silence is `n/a`, and these
-  four are silences. Fixing it moves rows out of `ok`, so it needs a corpus
-  sweep first: any deliverable whose clean sheet depends on one of these four
-  will change verdict, and that is the finding rather than a regression.
+- surface: conformance/CONFORMANCE.md (the verdict column),
+  scripts/ops/run_conformance.py (`cell_spread`, the roll-up)
+- symptom: "zero gating failures" is the sentence a board's reader takes away,
+  and it does not say how much was held. Measured on the two unscored decks of
+  the 0.1.605 round: five gates have nothing to grade on Hermes's — no agenda
+  page (D27, D35), no launch rows (D38's two gating rows), no page declaring an
+  analysis move (D32) — against Claude Code's, where all five grade real
+  content including six analysis pages. Four of the five print `ok`.
+- **the first version of this entry called that a gate-vocabulary defect and
+  was wrong, which is worth keeping rather than deleting.** It read the four
+  `ok`s as absence laundered into a pass. `check_design.py` carries the
+  opposite ruling in writing at the D27 and D35 rows — *"a MEASURED absence and
+  passes… n/a here would trip the blind-gates rule, which is for a gate that
+  could not look, not for one that looked and found nothing to hold"* — and
+  points at `inspect_layout`'s `deck_structure` as the check that asks whether
+  a deck should have an agenda at all. That is a coherent design and this entry
+  is not entitled to reverse it in passing.
+  What survives the correction is narrower and still true: `deck_structure`
+  requires an agenda only once a deck is divided into parts, deliberately,
+  because the owner's own accepted intro decks have none — so a deck with no
+  part openers and no agenda is exempt everywhere. Run over Hermes's deck it
+  reports `ok`. Nothing gates it, nothing reports it, and the board prints the
+  same two words over both decks.
+  Verified: the same pattern appears in Cursor's trace (`D32` n/a, `D27`/`D35`/
+  `D38` ok), so this is about the roll-up rather than about one agent.
+- check: none, and the fix is not a new gate. What the board cannot currently
+  say is how many of a document's gates had a subject — a "held" count beside
+  the verdict, which `check_design` already computes per row and throws away
+  at the roll-up. A pass over twelve held gates and a pass over eight are
+  different results, and printing one number would separate them without
+  ruling on anybody's agenda.
 
-## GAP-037 · The board's own staleness clause froze for fourteen releases
+## GAP-037 · The board's own staleness clause froze for twenty-four releases
 
 - status: fixed
 - opened: 0.1.605
 - closed: 0.1.607
-- surface: conformance/CONFORMANCE.md, scripts/lib/stamps.py:62,
-  scripts/ops/run_conformance.py:1347 (render)
+- surface: conformance/CONFORMANCE.md, scripts/lib/stamps.py (the
+  CONFORMANCE.md stamp row), scripts/ops/run_conformance.py (`render`,
+  `board_header`, `cmd_restamp`) — named rather than cited by line, because the
+  first version of this entry cited `:1347 (render)` and the same commit
+  inserted sixty lines above it
 - symptom: `render()` writes `skill <v> · newest run <r> · N releases behind`,
   and N is correct at the moment the board is generated. Every release after
   that hand-bumps the stamp, because `stamps.py` requires `skill {v}` and the
   regex matches a substring — so the version moves and the clause does not.
-  Measured across 0.1.592 through 0.1.605: the header said `3 releases behind`
-  fourteen times running while the real distance grew from 3 to 26. The
-  evidence gate knew (`CONFORMANCE_STALE_AFTER = 15` had been crossed eleven
-  releases earlier and every one of them wrote a waiver); the board, which is
-  the public artifact, kept printing 3. A frozen number is worse than no
-  number, because it reads as a measurement.
-  A second shape of the same defect ships in this very release: with the board
+  Measured across 0.1.581 through 0.1.604 by walking the file's whole history
+  for the longest span carrying one unchanged clause: the header said `3
+  releases behind` twenty-four releases running. It was TRUE when written at
+  0.1.581 and wrong for the twenty-three after it, understating a distance that
+  reached 26 — already 14 by 0.1.592. (The first measurement said fourteen
+  releases and "grew from three": it had counted a `git log -14` sample rather
+  than the file's history, and read the first entry's value as the whole span's.
+  This same defect, one layer up.) The evidence gate knew —
+  `conformance_fresh()` answers False from 0.1.596 onward, and each of the nine
+  releases 0.1.596-0.1.604 wrote a waiver — but the board is the public
+  artifact and it kept printing 3. A frozen number is worse than no number,
+  because it reads as a measurement.
+  A second shape of the same defect shipped in this branch: with the board
   fresh, `behind == 0` and the clause is omitted entirely, so the next stamp
   bump produces a header that discloses nothing at all rather than something
   wrong.
 - check: python3 scripts/check/check_repo.py (`board staleness clause`) — it
-  recomputes the distance from the board's own run id and the CHANGELOG and
-  holds the header to it, so neither a frozen number nor an omitted clause can
-  ship. `run_conformance.py restamp` rewrites that one line and runs in
-  `release.py`'s realigners, so the recomputation happens in the same step that
-  invalidated it rather than being remembered. Both failure shapes have a
-  deliberate-red run; a third red found the guard reading the board from one
-  tree and the CHANGELOG from another, which is why `_releases_between` now
-  takes the root it should look in.
+  recomputes the distance through the generator's own `board_header` and
+  `_board_run_version` and holds the header to it by equality, so a frozen
+  number, an omitted clause, and a leftover clause on a fresh board all fail.
+  `run_conformance.py restamp` rewrites that one line and runs in `release.py`'s
+  realigners, so the recomputation happens in the step that invalidated it
+  rather than being remembered.
+  **Where a distance cannot be computed the guard FAILS.** The first version
+  returned `[]` there, and `cmd_restamp` declines on the same input — one
+  predicate consulted twice, so nothing was watching: a review reproduced the
+  whole original defect through that hole with both reporting success. FM-01,
+  and `check_prose`'s `blind` verdict is the precedent.
+  Reds: frozen clause, missing clause, leftover clause, uncomputable distance,
+  a restamp that does not write, a restamp that always says "releases", and a
+  restamp that mishandles a missing board — all fail before the fix and pass
+  after. Two more were not planted: the guard's first test read the board from
+  one tree and the CHANGELOG from another (hence `_releases_between(root=)`),
+  and a review's mutation test found `cmd_restamp` had never once been observed
+  writing anything, because its only test ran against a board that was already
+  correct — and against the REAL repository, so a red run corrupted the tracked
+  file. Every test in that file now runs in a synthetic tree.
 
 ## GAP-036 · The scored artifact is whichever one sorts first
 

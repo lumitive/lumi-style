@@ -91,9 +91,29 @@ def test_the_distance_is_counted_in_changelog_headings():
 
 
 def test_the_header_keeps_the_word_the_stamp_guard_matches():
-    """`skill <version>` is this file's version stamp. Dropping it for a
-    better-reading word would redden CI the first time anyone regenerated the
-    board — a trap laid by a cosmetic edit."""
-    src = (pathlib.Path(__file__).resolve().parents[1]
-           / "scripts" / "ops" / "run_conformance.py").read_text(encoding="utf-8")
-    assert 'f"skill {record[\'version\']} · newest run' in src
+    """`skill <version>` is this file's version stamp.
+
+    Dropping it for a better-reading word would redden CI the first time
+    anyone regenerated the board — a trap laid by a cosmetic edit.
+
+    ASSERTED ON THE OUTPUT, NOT ON THE SOURCE. This grepped
+    `run_conformance.py` for the f-string literal, so extracting the header
+    into one `board_header()` — which is the fix for that format having been
+    transcribed three times — broke a test whose subject had not changed. A
+    test that reads source text is coupled to how the answer is spelled
+    rather than to what it is.
+    """
+    m = _rc()
+    stale = m.board_header("0.1.607", "0.1.605")
+    assert stale.startswith("# LUMI style conformance · skill 0.1.607")
+    assert "newest run 0.1.605" in stale and "releases behind" in stale
+    # A fresh board says the stamp and nothing else, which is the other half
+    # of what the stamp guard has to find.
+    assert m.board_header("0.1.607", "0.1.607") == \
+        "# LUMI style conformance · skill 0.1.607"
+
+
+def test_the_header_says_one_release_in_the_singular():
+    """A distance of one is `1 release behind`, and it is easy to lose."""
+    m = _rc()
+    assert "1 release behind" in m.board_header("0.1.607", "0.1.606")

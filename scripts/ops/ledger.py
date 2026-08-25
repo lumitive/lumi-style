@@ -85,6 +85,12 @@ TRIGGER_N = 3          # pieces of the same evidence before a candidate is draft
 QUEUE_CAPACITY = 5     # per cycle; the rest are deferred, never dropped
 
 
+# The day the suite stopped writing into the tracked store. Nothing pytest
+# wrote can be dated after it, so the population `suite_artifact` describes is
+# CLOSED and finite — which is what makes a shape heuristic tolerable at all.
+SUITE_LEAK_STOPPED = "2026-08-26"
+
+
 def suite_artifact(t) -> bool:
     """A trace the test suite wrote, not a build anybody made.
 
@@ -93,24 +99,34 @@ def suite_artifact(t) -> bool:
     throwaway two-page scaffold in the TRACKED store. `preflight.py` runs the
     suite and `release.py` stages with `git add -A`, so they were committed.
 
-    THE FINGERPRINT IS THE SCAFFOLD'S, NOT THE FILE'S DATE OR NAME. A build
-    that reached a document has content pages; this one never does, because
-    the helper opens the trace and never fills or closes it. All four
-    conditions together, so a real build that happens to be abandoned early
-    still counts as a build:
-    zero pages · path B · no recipe · never closed.
+    **WHAT THIS CANNOT DISTINGUISH, said plainly because the first version of
+    this docstring claimed the opposite.** It said four conditions together
+    protect a real build. They do not: `trace.py cmd_open` sets `pages=0`,
+    `closed_at=None` and `recipe_hash=None` on EVERY trace it opens, and
+    `entry_path == "B"` is what most real builds use — so three of the four are
+    just the initial state of any trace, and a real path-B build abandoned
+    before `annotate --recipe` ran matches exactly. What actually separates the
+    two populations is the date, and it only works because the leak has a stop:
+    after `SUITE_LEAK_STOPPED` the suite writes elsewhere, so nothing written
+    from that day on can be one of these however it is shaped.
 
     Measured when this was written: 182 of 199 build records matched, across
-    sixteen `skill_version`s. They are NOT deleted — a trace store is a record,
-    and the honest fix for a bad denominator is to name what is in it, not to
-    delete until the number reads better. `--with-suite-artifacts` puts them
-    back for anyone auditing this decision.
+    sixteen distinct `skill_version`s (not sixteen releases — the span is
+    0.1.532 and then most of 0.1.586-0.1.605).
+
+    They are NOT deleted — a trace store is a record, and the honest fix for a
+    bad denominator is to name what is in it, not to delete until the number
+    reads better. `--with-suite-artifacts` puts them back everywhere, including
+    in `--json` and `--board`.
     """
+    if not isinstance(t, dict):
+        return False
     return (t.get("source") == "build"
             and t.get("entry_path") == "B"
             and not (t.get("pages") or 0)
             and not t.get("recipe_hash")
-            and not t.get("closed_at"))
+            and not t.get("closed_at")
+            and (t.get("opened_at") or "") < SUITE_LEAK_STOPPED)
 
 
 def load(include_suite_artifacts: bool = False):
@@ -125,6 +141,11 @@ def load(include_suite_artifacts: bool = False):
     if include_suite_artifacts:
         return out
     return [t for t in out if not suite_artifact(t)]
+
+
+def set_aside_count() -> int:
+    """-> how many records the filter is holding back, for the disclosure."""
+    return sum(1 for t in load(True) if suite_artifact(t))
 
 
 def ledger_failing(traces):
@@ -181,6 +202,18 @@ def ledger_beats(traces):
     agreed and then quietly departed from is not a review, and the number says
     how far the built document walked from the storyline somebody approved.
     """
+    # BUILDS, NOT TRACES. The label has said `build(s)` since this was written
+    # and the denominator was `len(traces)`, which includes every conformance
+    # record — so `4 of 251 build(s)` counted 52 rows that are not builds at
+    # all. Caught by a review checking the sentence against the division.
+    #
+    # `in (None, "build")` rather than `== "build"`: `source` is required by
+    # the schema and every one of the 251 tracked records carries it, so the
+    # None arm covers hand-written fixtures alone. Excluding them instead
+    # would have been this function's tests deciding its semantics, which is
+    # backwards — and the defect being fixed is 52 conformance rows, not an
+    # absent field.
+    traces = [t for t in traces if t.get("source") in (None, "build")]
     reviewed = [t for t in traces if t.get("outline_reviewed")]
     drifted = [t for t in traces
                if (t.get("titles_changed_after_approval") or 0) > 0]
@@ -444,10 +477,21 @@ def main():
     a = ap.parse_args()
 
     traces = load(a.with_suite_artifacts)
-    set_aside = 0 if a.with_suite_artifacts else sum(
-        1 for t in load(True) if suite_artifact(t))
+    set_aside = 0 if a.with_suite_artifacts else set_aside_count()
+    # SAID OUT LOUD ON EVERY EXIT, NOT JUST THE ONE A HUMAN READS. Each of the
+    # four paths below carries a denominator, and the first version disclosed
+    # the filter on one of them — so `--json` handed a machine `"traces": 69`
+    # with nothing to learn 182 from, `--board` printed `28 of 69 run(s)`, and
+    # a store holding only set-aside records announced "no traces yet" over
+    # hundreds of files. Filtering silently is the defect this filter exists to
+    # repair; doing it on three exits out of four is the same defect, quieter.
+    aside = (f"       {set_aside} suite artifact(s) set aside and still on "
+             f"disk — traces pytest opened before it had a store of its own; "
+             f"--with-suite-artifacts counts them") if set_aside else ""
     if a.json:
-        print(json.dumps({"traces": len(traces), "failing": ledger_failing(traces),
+        print(json.dumps({"traces": len(traces),
+                          "suite_artifacts_set_aside": set_aside,
+                          "failing": ledger_failing(traces),
                           "instruments": ledger_instruments(traces),
                           "recipes": ledger_recipes(traces),
                           "beats": ledger_beats(traces),
@@ -461,13 +505,18 @@ def main():
               "builds have run.\n\nThat is a true state, not a clean bill of "
               "health — an empty ledger and a healthy one look identical from "
               "here, which is why the queue rules exist.")
+        if aside:
+            print(aside)
         return
 
     if a.board:
         rows = board(traces)
         print(f"efficiency board — {len(rows)} of {len(traces)} run(s) qualify "
               f"(a run with a failing gate is not on the board: a thin deck is "
-              f"cheap and worthless)\n")
+              f"cheap and worthless)")
+        if aside:
+            print(aside)
+        print()
         for r in sorted(rows, key=lambda r: r["tokens_per_page"]):
             print(f"  {r['tokens_per_page']:>9.1f} tokens/page  "
                   f"{r['charged_seconds']:>5}s charged  "
@@ -484,15 +533,11 @@ def main():
         return
 
     print(f"{len(traces)} trace(s)")
-    # SAID OUT LOUD OR NOT AT ALL. Every denominator below is a claim about how
-    # this package is used, and for sixteen releases most of it was pytest:
-    # `4 of 251 build(s) record a reviewed outline` described a corpus of
-    # seventeen real builds. Filtering silently would fix the number and repeat
-    # the defect, which was a number nobody could see the composition of.
-    if set_aside:
-        print(f"       {set_aside} suite artifact(s) set aside and still on "
-              f"disk — traces pytest opened before it had a store of its own; "
-              f"--with-suite-artifacts counts them")
+    # Every denominator below is a claim about how this package is used, and
+    # across sixteen `skill_version`s most of it was pytest: `4 of 251` records
+    # of a reviewed outline described a store of seventeen real builds.
+    if aside:
+        print(aside)
     print()
     print("LEDGER 1 · which metric keeps failing")
     rows = ledger_failing(traces)
@@ -579,8 +624,19 @@ def main():
             print(f"       {clause} yielded {n}x")
         print("       (a severity-led rule starves high-frequency low-severity "
               "harms; this count is how that prediction gets tested)")
+    # THE FILTER'S OVERLAP WITH THIS LINE IS TOTAL, so this is the one number
+    # that must name both populations. Every record `suite_artifact` sets aside
+    # is unclosed, so filtering them takes them out of `abandoned` and nowhere
+    # else — a review measured the result: 21 reported where the store holds
+    # 204. Fixing one denominator by breaking the signal the ledger exists to
+    # raise is not a fix.
     print(f"       {len(abandoned)} abandoned build(s) — an unclosed trace is "
           f"the record of one")
+    if set_aside:
+        print(f"       and {set_aside} more unclosed records set aside as "
+              f"suite artifacts, which every one of them is: the filter and "
+              f"this count select the same field, so it is stated rather than "
+              f"subtracted")
 
     drafts = candidates(traces)
     print(f"\nCANDIDATE QUEUE — {sum(d['state'] == 'queued' for d in drafts)} "

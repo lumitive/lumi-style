@@ -1343,6 +1343,33 @@ def _findings(runs) -> list[str]:
     return out
 
 
+def board_header(version: str, ran_at: str | None,
+                 root: pathlib.Path | None = None) -> str:
+    """-> the board's `# ` line, for the one version and the one run.
+
+    THE ONE PLACE THE HEADER'S SHAPE IS WRITTEN. It was three: `render` built
+    it, `cmd_restamp` rebuilt it to rewrite it, and `check_repo`'s guard
+    rebuilt it again to compare — three transcriptions of one format, inside
+    the fix for a drift defect. A review named it before it could cost
+    anything: change `render`'s title and `cmd_restamp` would have silently
+    rewritten it back on the next release.
+
+    `skill <version>` STAYS, and stays first: it is this file's version stamp
+    and `check_version_citations` matches `skill {v}` on it.
+    """
+    behind = _releases_between(ran_at, version, root)
+    stamp = (f"skill {version}" if not behind else
+             f"skill {version} · newest run {ran_at} · "
+             f"{behind} release{'' if behind == 1 else 's'} behind")
+    return f"# LUMI style conformance · {stamp}"
+
+
+def board_run_id_line(text: str) -> str | None:
+    """-> the board's `Runs ` line, from the generated block."""
+    return next((ln for ln in text.splitlines()[:8]
+                 if ln.startswith("Runs ")), None)
+
+
 def cmd_restamp(version: str) -> int:
     """Recompute the board's header line for a new skill version.
 
@@ -1352,43 +1379,69 @@ def cmd_restamp(version: str) -> int:
     and the current release — a quantity that goes stale every time anybody
     ships anything.
 
-    This exists because the alternative had been running for fourteen releases.
-    `stamps.py` requires `skill {v}` in this file, the pattern is a substring
-    match, and the cheapest edit that satisfies it moves the version and leaves
-    `newest run 0.1.578 · 3 releases behind` frozen underneath — which is what
-    0.1.592 through 0.1.604 each shipped, while the real distance grew to
-    twenty-six. Called from `release.py`'s realigners, so no release can bump
-    the stamp without recomputing the clause it invalidates.
+    This exists because the alternative had been running for two dozen
+    releases. `stamps.py` requires `skill {v}` in this file, the pattern is a
+    substring match, and the cheapest edit that satisfies it moves the version
+    and leaves `newest run 0.1.578 · 3 releases behind` frozen underneath —
+    which is what 0.1.581 through 0.1.604 each shipped, twenty-four releases of
+    one unchanged sentence. It was true when written at 0.1.581 and wrong for
+    the twenty-three after it, understating a distance that reached 26.
+
+    Called from `release.py`'s realigners, so no release can bump the stamp
+    without recomputing the clause it invalidates. The ORDER is load-bearing
+    and not for the reason first written here: `stamp()` aborts the release
+    when the OLD version string is absent from a stamped file, so a restamp
+    running first would rewrite `skill <old>` and the stamp step would exit
+    saying it could not find it.
     """
     path = ROOT / "conformance" / "CONFORMANCE.md"
     if not path.exists():
         print(f"FAIL  {path} does not exist")
         return 1
-    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines(keepends=True)
     hi = next((i for i, ln in enumerate(lines[:6]) if ln.startswith("# ")), None)
-    ri = next((i for i, ln in enumerate(lines[:8]) if ln.startswith("Runs ")), None)
-    if hi is None or ri is None:
+    runs = board_run_id_line(text)
+    if hi is None or runs is None:
         print("FAIL  conformance/CONFORMANCE.md has no `# ` header or no "
               "`Runs ` line; it is not in the shape report --record writes")
         return 1
-    m = re.search(r"(\d+\.\d+\.\d+)", lines[ri])
-    if not m:
-        print(f"FAIL  the Runs line names no version: {lines[ri].strip()!r}")
+    # THROUGH `_board_run_version`, NOT A SECOND REGEX. The generator's own
+    # answer has a `scores.json` fallback for a run id that carries no version
+    # — `results/latest` is the documented case — and a second, lossier reader
+    # here would have failed the repo on a board `report --record` wrote
+    # correctly, with a message accusing the file of the wrong shape. That
+    # makes every release impossible and invites a hand-edit of a good file.
+    ran_at = _board_run_version({"run_id": runs})
+    if not ran_at:
+        print(f"FAIL  the board's run names no version and no scores.json "
+              f"reachable from it does either, so its distance from {version} "
+              f"cannot be computed: {runs.strip()!r}")
         return 1
-    ran_at = m.group(1)
-    behind = _releases_between(ran_at, version)
-    if behind is None:
-        # A run older than this CHANGELOG carries. Leaving the header alone is
-        # the honest answer; inventing a distance would not be.
-        print(f"note  the board's run ({ran_at}) predates this CHANGELOG; "
-              f"header left as written")
+    # WHICH SIDE IS MISSING IS THE WHOLE DIAGNOSIS. `_releases_between` returns
+    # None when EITHER argument is absent from the CHANGELOG, and the first
+    # version of this blamed the board unconditionally — so `restamp --version
+    # 0.1.608` on a repo at 0.1.607 reported that the board's run predated the
+    # CHANGELOG, sending a reader to look at run directories.
+    released = re.findall(r"^##\s+(\d+\.\d+\.\d+)",
+                          (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"),
+                          re.M)
+    if version not in released:
+        print(f"FAIL  {version} is not a CHANGELOG heading, so there is no "
+              f"release to measure the board against. Write the entry first.")
+        return 1
+    if ran_at not in released:
+        # A board older than this CHANGELOG carries. Leaving the header alone
+        # is the honest answer and inventing a distance would not be — but it
+        # is NOT silence: `check_repo`'s guard fails on the same state, so the
+        # release stops here rather than shipping an unchecked clause.
+        print(f"note  the board's run ({ran_at}) is not a release this "
+              f"CHANGELOG carries, so no distance is computable; header left "
+              f"as written. The board staleness guard fails on this state.")
         return 0
-    stamp = (f"skill {version}" if behind == 0 else
-             f"skill {version} · newest run {ran_at} · "
-             f"{behind} release{'' if behind == 1 else 's'} behind")
-    new = f"# LUMI style conformance · {stamp}\n"
+    new = board_header(version, ran_at, ROOT) + "\n"
     if lines[hi] == new:
-        print(f"ok    board header already reads {stamp!r}")
+        print(f"ok    board header already reads {new.strip()!r}")
         return 0
     was = lines[hi].strip()
     lines[hi] = new
@@ -1404,16 +1457,9 @@ def render(record: dict) -> str:
     # anything at. That is the same claim `built_version` exists to stop a cell
     # from making, made by the page the cells sit on.
     ran_at = _board_run_version(record)
-    behind = _releases_between(ran_at, record["version"])
-    # `skill <version>` STAYS, and stays first: it is this file's version stamp
-    # and check_version_citations matches `skill {v}` on it. Dropping the word
-    # for a better-reading "instrument" would have reddened CI the first time
-    # anyone regenerated the board — a trap laid by a cosmetic edit.
-    stamp = (f"skill {record['version']}" if behind is None or behind == 0 else
-             f"skill {record['version']} · newest run {ran_at} · "
-             f"{behind} release{'' if behind == 1 else 's'} behind")
+    header = board_header(record["version"], ran_at)
     dated = f" · run {record['run_date']}" if record.get("run_date") else ""
-    lines = [f"# LUMI style conformance · {stamp}", "",
+    lines = [header, "",
              f"Runs {record['run_id']}{dated} · {record['host']} · "
              f"{record['detected']} of {record['agents']} agents detected · "
              f"up to n={record['repeat']} per agent · "

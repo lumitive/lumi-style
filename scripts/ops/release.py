@@ -133,11 +133,17 @@ REALIGNERS = [
     # THE BOARD'S STALENESS CLAUSE IS RECOMPUTED, NEVER CARRIED FORWARD. The
     # stamp step above bumps `skill <v>` in conformance/CONFORMANCE.md by a
     # substring match, which leaves `newest run <r> · N releases behind` frozen
-    # at whatever it said when the board was last generated — 0.1.592 through
-    # 0.1.604 each shipped `3 releases behind` while the real distance grew to
-    # twenty-six. `restamp` rewrites that one line from the run id the file
-    # already carries; the table, the failures and the history are untouched.
-    # Runs after the stamp step because it needs the new version to be current.
+    # at whatever it said when the board was last generated — 0.1.581 through
+    # 0.1.604 each shipped `3 releases behind`, twenty-four releases running.
+    # It was true when written at 0.1.581 and wrong for the twenty-three after
+    # it, understating a distance that reached twenty-six. `restamp` rewrites
+    # that one line from the run id the file already carries; the table, the
+    # failures and the history are untouched.
+    # ORDER: after the stamp step, and not because restamp needs the new
+    # version — it reads that from the CHANGELOG, which main() has already
+    # required to match the release. `stamp()` aborts when the OLD version
+    # string is absent from a stamped file, so a restamp running first would
+    # rewrite `skill <old>` and the stamp step would exit unable to find it.
     ["python3", "scripts/ops/run_conformance.py", "restamp"],
 ]
 
@@ -306,6 +312,18 @@ def main():
         if proc.returncode != 0:
             sys.exit(f"   {' '.join(cmd)} failed:\n{proc.stdout}{proc.stderr}")
         print(f"   ran {' '.join(cmd)}")
+        # AND WHAT IT SAID. Output was printed only on failure, which is right
+        # for a `--check` that either passes or does not, and wrong for a
+        # REALIGNER, whose whole job is to change something. `restamp` exits 0
+        # on three different outcomes — rewrote the clause, already correct,
+        # declined to compute one — and distinguishes them in stdout alone, so
+        # the log read `ran … restamp` for all three and an operator could not
+        # tell a recomputed header from a skipped one. Realigners only: a
+        # generator that writes its artefact silently has nothing to add, and
+        # seventeen of them each printing a line would bury the one that does.
+        if cmd in REALIGNERS:
+            for line in proc.stdout.strip().splitlines():
+                print(f"     {line}")
 
     print("\n3. evidence")
     if not a.dry_run:

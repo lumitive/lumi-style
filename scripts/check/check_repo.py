@@ -3410,29 +3410,30 @@ def check_board_staleness_clause():
     is a stamp and does not count it as a touch, which is right for a stamp and
     is why nothing else was ever going to see this.
 
-    Measured before this guard: 0.1.592 through 0.1.604 shipped the header
-    `newest run 0.1.578 · 3 releases behind` FOURTEEN TIMES RUNNING while the
-    real distance grew from three to twenty-six. A frozen number is worse than
-    no number, because it reads as a measurement — and the omitted form has the
-    same defect from the other side: when the board is fresh the clause is left
-    out entirely, so the next stamp bump produces a header that discloses
-    nothing rather than something wrong.
+    Measured before this guard, by walking the file's whole history for the
+    longest span carrying one unchanged clause: `newest run 0.1.578 · 3
+    releases behind` shipped in TWENTY-FOUR consecutive releases, 0.1.581
+    through 0.1.604. It was true when written at 0.1.581 and wrong for the
+    twenty-three after it, understating a distance that reached 26 — it was
+    already 14 by 0.1.592.
 
-    CLAUDE.md convention 13: the number stays only because it is in a parity
-    guard with the code as one side. Nothing here is remembered — the distance
-    is recomputed from the CHANGELOG and the board's own run id, through
-    `run_conformance`'s function rather than a second copy of it.
+    A frozen number is worse than no number, because it reads as a
+    measurement — and the omitted form has the same defect from the other
+    side: when the board is fresh the clause is left out entirely, so the next
+    stamp bump produces a header that discloses nothing rather than something
+    wrong.
+
+    CLAUDE.md convention 13: the numbers above stay only because the guard
+    below recomputes rather than remembers. Both the header's format and the
+    run-version reading come from `run_conformance` — `board_header` and
+    `_board_run_version`, the generator's own — so this compares the file
+    against what would be written, not against a third transcription.
     """
     path = ROOT / "conformance" / "CONFORMANCE.md"
     if not path.exists():
         return ["conformance/CONFORMANCE.md is missing"]
-    lines = path.read_text(encoding="utf-8").splitlines()
-    header = next((ln for ln in lines[:6] if ln.startswith("# ")), None)
-    runs = next((ln for ln in lines[:8] if ln.startswith("Runs ")), None)
-    if header is None or runs is None:
-        return ["conformance/CONFORMANCE.md: no `# ` header or no `Runs ` line "
-                "in the generated block — the board is not in the shape "
-                "run_conformance.py report --record writes"]
+    text = path.read_text(encoding="utf-8")
+    header = next((ln for ln in text.splitlines()[:6] if ln.startswith("# ")), None)
 
     try:
         import run_conformance
@@ -3440,36 +3441,49 @@ def check_board_staleness_clause():
         return [f"could not import run_conformance to recompute the "
                 f"board's staleness: {exc}"]
 
-    found = re.search(r"(\d+\.\d+\.\d+)", runs)
-    if not found:
-        return [f"conformance/CONFORMANCE.md: the Runs line names no version, "
-                f"so the board cannot say what it measured: {runs.strip()!r}"]
-    ran_at = found.group(1)
+    runs = run_conformance.board_run_id_line(text)
+    if header is None or runs is None:
+        return ["conformance/CONFORMANCE.md: no `# ` header or no `Runs ` line "
+                "in the generated block — the board is not in the shape "
+                "run_conformance.py report --record writes"]
+
     released = re.findall(r"^##\s+(\d+\.\d+\.\d+)",
                           (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"),
                           re.M)
     if not released:
         return ["CHANGELOG.md: no '## X.Y.Z' release headings found"]
     current = released[0]
-    behind = run_conformance._releases_between(ran_at, current, ROOT)
-    if behind is None:
-        # Not a failure to invent: a run version the CHANGELOG does not carry
-        # is a board from before this history, and saying so is the honest
-        # answer. The guard's job is the clause, not the archaeology.
-        return []
 
-    expected = (f"skill {current}" if behind == 0 else
-                f"skill {current} · newest run {ran_at} · "
-                f"{behind} release{'' if behind == 1 else 's'} behind")
-    if expected in header:
+    ran_at = run_conformance._board_run_version({"run_id": runs})
+    # UNMEASURABLE IS A FAILURE, NOT A PASS. This returned [] on both of the
+    # states below, and `cmd_restamp` declines on exactly the same inputs — so
+    # the guard could not back up the realigner: whatever made one go quiet
+    # made the other go quiet too. A review reproduced the whole 0.1.581-0.1.604
+    # defect through that hole with the guard reporting green. FM-01 is the
+    # entry, and check_prose's `blind` verdict is the precedent: a measurement
+    # that did not happen must not read like one that did.
+    if not ran_at:
+        return [f"conformance/CONFORMANCE.md: the Runs line names no version "
+                f"and no reachable scores.json supplies one, so the header's "
+                f"distance from {current} is unchecked: {runs.strip()!r}. "
+                f"Regenerate the board from a run whose id names a released "
+                f"version."]
+    if ran_at not in released:
+        return [f"conformance/CONFORMANCE.md: the board names run {ran_at!r}, "
+                f"which is not a release this CHANGELOG carries, so its "
+                f"distance from {current} cannot be computed and the header's "
+                f"clause is unchecked. Regenerate the board from a run whose "
+                f"id names a released version."]
+
+    expected = run_conformance.board_header(ran_at=ran_at, version=current,
+                                            root=ROOT)
+    if header.strip() == expected.strip():
         return []
-    return [f"conformance/CONFORMANCE.md: the header says "
-            f"{header.split('·', 1)[-1].strip()!r}, and the board's run "
-            f"({ran_at}) is {behind} release(s) behind {current}. It should "
-            f"read {expected!r}. Regenerate it "
-            f"(run_conformance.py report --record) rather than editing the "
-            f"line — a hand-corrected clause is the same defect one release "
-            f"later."]
+    return [f"conformance/CONFORMANCE.md: the header reads {header.strip()!r} "
+            f"and should read {expected.strip()!r}. Regenerate it "
+            f"(run_conformance.py restamp, which release.py runs) rather than "
+            f"editing the line — a hand-corrected clause is the same defect "
+            f"one release later."]
 
 
 def check_gating_claims():
