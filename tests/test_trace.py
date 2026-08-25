@@ -17,9 +17,14 @@ TRACE_PY = ROOT / "scripts" / "ops" / "trace.py"
 # THE STORE THE ENVIRONMENT NAMES, not the tracked one. These tests drive the
 # real CLI and then clean up after themselves — which works until one fails
 # midway and leaves its record in `evals/traces/`, where `ledger.py` counts it
-# as an abandoned build and `bar_replay.py` reads its shape. conftest redirects
-# the whole suite to a scratch directory (0.1.606); this follows it rather than
-# hard-coding the path the redirect exists to protect.
+# among the abandoned builds and every denominator in the report shifts.
+# (NOT `bar_replay.py`: it reads `evals/thresholds.json` and never opens the
+# store. That claim was the first draft's, it was retracted in conftest.py and
+# in test_the_suite_leaves_no_trace.py, and the same commit shipped it into
+# this third file — which is convention 12's whole point about sweeping
+# mechanically rather than by memory.)
+# conftest redirects the whole suite to a scratch directory; this follows it
+# rather than hard-coding the path the redirect exists to protect.
 STORE = pathlib.Path(os.environ.get("LUMI_TRACES") or (ROOT / "evals" / "traces"))
 sys.path.insert(0, str(ROOT / "scripts" / "lib"))
 

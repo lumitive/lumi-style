@@ -14,8 +14,12 @@ import io
 
 # Scaffolds under test open traces into a scratch store, never the tracked
 # one (new_deck opens a trace whenever a storyline is given, since 0.1.531).
-# An autouse fixture rather than a module-level environment edit, so the
-# redirect cannot leak into test_trace.py's subprocesses.
+# An autouse fixture, which now layers on top of conftest's suite-wide
+# redirect rather than standing alone. Its original reason — "so the redirect
+# cannot leak into test_trace.py's subprocesses" — was answered the other way:
+# the leak was not this file's redirect escaping, it was every OTHER file
+# having none, so the redirect moved to conftest and test_trace.py follows it.
+# This stays because a per-module scratch store keeps these tests independent.
 import pathlib  # noqa: E402
 import re
 

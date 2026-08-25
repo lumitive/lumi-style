@@ -1,4 +1,107 @@
-## 0.1.607 — the board said "3 releases behind" fourteen times while it fell twenty-six
+## 0.1.608 — four reviews of the three releases above, and the checks that could not fail
+
+The branch carrying 0.1.605-0.1.607 went through a full review before its pull
+request, four readers over the same three commits. What they found is a release
+of its own, because two of the three new instruments **could not have failed**
+and one of them was going to make every future release impossible.
+
+**The guard and its own repair went silent on the same input.** The board
+staleness guard returned `[]` when the distance could not be computed;
+`cmd_restamp` declines on exactly that input. One predicate consulted twice, so
+nothing was watching — a reviewer rebuilt the whole 0.1.581-0.1.604 defect
+through the hole with the guard reporting green and the realigner reporting
+success, and the test I had written *enshrined* the silence as intended. FM-01,
+and `check_prose`'s `blind` verdict is the standing precedent: a measurement
+that did not happen must not read like one that did. It fails there now.
+
+**Both new readers would have failed the repository on a board the generator
+writes correctly.** `_board_run_version` has a documented fallback for a run id
+that carries no version — `results/latest` is the case it exists for, and it
+has had a test since it was written — and my guard and `restamp` each
+re-derived the run version with a bare regex on the `Runs` line instead. A
+correct board makes the guard red and, through the realigner, `sys.exit`s the
+release, with a message telling the operator the file is the wrong shape. Both
+read it through the generator's own function now.
+
+**The header format was written three times inside the fix for a drift
+defect.** `render` built it, `restamp` rebuilt it to rewrite it, the guard
+rebuilt it again to compare. Change the title in one and `restamp` silently
+rewrites `render`'s output back on the next release. There is one
+`board_header()` now, all three call it, and a test asserts the literal appears
+once. That extraction immediately broke a test that greps `run_conformance.py`
+for the old f-string — a test coupled to how an answer is spelled rather than
+to what it is — so that one asserts on output now too.
+
+**`cmd_restamp` had never once been observed writing anything.** Its only test
+ran against the shipped board, which was already correct, so it took the early
+return every time. A reviewer's mutation test proved it: deleting the write,
+forcing the plural, turning the missing-board refusal into success — all three
+left the suite green. The same test drove the real CLI against the **real
+repository**, so a red run rewrote the tracked board to `skill 0.1.328 · 277
+releases behind` and the next `check_repo` failed on damage the suite had done.
+That is 0.1.606's own rule — the suite must not write into what it measures —
+broken in the same branch. Every test in that file runs in a synthetic tree now,
+and the four mutations fail.
+
+**`ledger.py`'s report path had the same shape one level up.** `suite_artifact`
+and `load` were well covered; what a reader sees was not tested at all, and four
+mutations survived: the `--with-suite-artifacts` flag ignored in the report, the
+disclosure line deleted, the JSON key dropped, the set-aside count hidden from
+the abandoned line. Each fails a test now.
+
+**And `suite_artifact` was fingerprinting the wrong thing.** It matched on
+shape — zero pages, path B, no recipe, never closed — and its docstring claimed
+the four together protect a real build. `trace.py cmd_open` writes three of
+those four on **every** trace it opens, and path B is what most real builds use,
+so the predicate read "any build that has just started". Worse, every record it
+removed was unclosed, which is precisely what LEDGER 3 counts: the filter took
+them out of `abandoned` and out of nothing else, reporting 21 where the store
+holds 204 — a denominator fixed by deleting the signal the ledger exists to
+raise. The predicate is bounded to the closed population by date now, and the
+abandoned line names both. 0.1.606's entry above carries the corrected account.
+
+**Nine false claims in prose, and the count matters more than any of them.**
+The reviews checked every number on the branch against the code and the data.
+`fourteen releases` was a `git log -14` sample reported as the length of a run —
+it is twenty-four, 0.1.581 through 0.1.604, true when written and wrong for the
+twenty-three after (0.1.607's commit SUBJECT still carries the wrong number: it
+is taken from the heading at commit time, and rewriting a landed release commit
+to correct prose is a worse trade than leaving the entry to say so); `grew from three` read the first entry's value as the whole
+span's, and it was already fourteen by 0.1.592; `eleven releases` of waivers is
+nine; `two more traces were staged` is six; `4 of 69` became `4 of 17` when a
+denominator that said `build(s)` stopped dividing by conformance rows; the
+spec's `178 of 247` was 182 of 199; `t-ffb5eec9da61.json` was cited as committed
+and was never committed; a `render` line citation rotted inside the commit that
+wrote it; and `tests/test_trace.py` shipped the very `bar_replay.py` claim that
+two other files in the same commit exist to retract. **A release whose subject
+is a number nobody recomputed had nine of its own.** Convention 12 says sweep
+mechanically rather than by memory, and grepping for `fourteen` after fixing
+`fourteen` is still memory.
+
+**GAP-038 is withdrawn as written.** It called four gating rows that pass on an
+absent agenda a defect in the gate vocabulary. `check_design.py` argues the
+opposite at those rows in writing, and a reviewer pointed at it: a measured
+absence passes, and `n/a` is for a gate that could not look. What survives is
+narrower — `deck_structure` deliberately requires an agenda only once a deck has
+parts, so a deck with neither is exempt everywhere, and the board prints the
+same two words over a deck holding twelve gates and one holding eight. The entry
+now carries the correction and what a fix would have to be, which is a held
+count beside the verdict rather than a new gate.
+
+Smaller, from the same reviews: `conftest.py` used `setdefault`, so an operator
+who exports `LUMI_TRACES` at a real corpus and runs pytest got the original
+defect aimed at a store that matters, with every test passing — it assigns and
+says so now; `restamp` blamed the board when the missing side was the `--version`
+argument; `release.py` printed `ran … restamp` identically for "rewrote it",
+"already correct" and "declined", so the realigner's only report channel was a
+swallowed stdout — it prints a realigner's output now, and only a realigner's,
+since a generator that writes its artefact silently has nothing to add and
+seventeen of them would bury the one that does; and `ledger.load` raised on a
+store file that parses as JSON but is not an object.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
+## 0.1.607 — the board said "3 releases behind" twenty-four releases running, while it fell twenty-six
 
 `run_conformance.render()` writes `skill <v> · newest run <r> · N releases
 behind`, and N is right at the moment it is generated. Every release after that
@@ -9,18 +112,28 @@ was going to catch it, because `check_evidence` presumes a small change to a
 stamped file IS the stamp and does not count it as a touch — correct for a
 stamp, and the reason this ran unnoticed.
 
-Lined up, the fourteen releases say it better than a description:
+Lined up, the releases say it better than a description:
 
 | shipped in | the header said |
 |---|---|
-| 0.1.592 | `skill 0.1.592 · newest run 0.1.578 · 3 releases behind` |
-| … twelve more, each with the version bumped and the clause untouched | |
+| 0.1.581 | `skill 0.1.581 · newest run 0.1.578 · 3 releases behind` |
+| … twenty-two more, each with the version bumped and the clause untouched | |
 | 0.1.604 | `skill 0.1.604 · newest run 0.1.578 · 3 releases behind` |
 
-The real distance at the end was twenty-six. The evidence gate knew — the board
-had crossed `CONFORMANCE_STALE_AFTER = 15` eleven releases earlier and every
-one of them wrote a waiver — but the waiver lives in a JSON file and the board
-is the artifact anyone reads, and it kept printing 3. **A frozen number is worse
+Twenty-four releases, one unchanged sentence, and a real distance of twenty-six
+by the end.
+
+**The first draft of this entry said fourteen, and how it got there is the
+defect in miniature.** It counted the sample that happened to be on screen —
+`git log -14` — and reported the length of the sample as the length of the run.
+The measurement that produced twenty-four walks the file's whole history and
+finds the longest span with an identical clause, which is a question about the
+data rather than about what was convenient to look at. In a release about a
+number that froze because nobody recomputed it, the entry's own number was
+wrong for the same reason. The evidence gate knew — `conformance_fresh()`
+answers False from 0.1.596 onward, and each of the nine releases 0.1.596
+through 0.1.604 wrote a waiver — but the waiver lives in a JSON file and the
+board is the artifact anyone reads, and it kept printing 3. **A frozen number is worse
 than no number, because it reads as a measurement.**
 
 **The omitted form is the same defect from the other side, and it shipped in
@@ -77,12 +190,41 @@ stayed a per-file habit instead of a suite-wide guarantee.
 
 **The 182 traces already in the store are set aside, not deleted.** A trace
 store is a record, and deleting history until a counter reads better is the move
-this package refuses everywhere else. `ledger.suite_artifact` recognises them on
-four conditions together — zero pages, path B, no recipe, never closed — and the
-report prints how many it set aside; `--with-suite-artifacts` puts them back for
-anyone auditing the decision. All four conditions matter, because one short of
-the fingerprint is a real build abandoned early, and dropping those would trade
-one bad denominator for another. That is four of the five tests.
+this package refuses everywhere else. `ledger.suite_artifact` recognises them,
+the report prints how many it set aside on every exit it has, and
+`--with-suite-artifacts` puts them back for anyone auditing the decision.
+
+**What recognises them is the DATE, and the first version of this said
+otherwise.** It fingerprinted the shape — zero pages, path B, no recipe, never
+closed — and claimed the four together protected a real build. A review took
+that apart by reading `trace.py`: `cmd_open` writes `pages=0`, `closed_at=None`
+and `recipe_hash=None` on every trace it opens, and path B is what most real
+builds use, so three of the four are simply the initial state of anything. A
+real path-B build abandoned before `annotate --recipe` ran matched exactly, and
+one was sitting untracked in the store while the review was running. The
+predicate now also requires `opened_at` to precede the day the leak stopped,
+which is the condition that can be true of the legacy set and can never be true
+of anything written from here on. The population is closed; the heuristic is
+bounded to it.
+
+**And the disclosure had to reach the abandoned count, which is where filtering
+hurt most.** Every record the filter removes is unclosed, so the filter and
+LEDGER 3 select the same field: taking the artifacts out of the denominator took
+them out of `abandoned` and out of nothing else, reporting 21 where the store
+holds 204. That is not a denominator fixed, it is the signal the ledger exists
+to raise, deleted. The line names both populations now. `--json` and `--board`
+carry the count too, and a store holding nothing but artifacts no longer prints
+"no traces yet" over hundreds of files — three of the four exits were filtering
+in silence, which is the defect the filter was written to repair.
+
+One more denominator was wrong before any of this and is fixed with it:
+`ledger_beats` divided by every trace while its sentence said `build(s)`, so
+`4 of 251 build(s)` counted fifty-two conformance rows that are not builds. It
+divides by build records now, and prints `4 of 17`. It excludes conformance
+records rather than requiring `source == "build"`, because the first attempt
+did the latter and reddened three of that function's own tests, whose
+hand-written fixtures carry no `source` — every one of the 251 tracked records
+does, so tightening further would have let the tests decide the semantics.
 
 **What the leak actually cost is the finding, and it is not what the first draft
 of this entry said.** That draft claimed `bar_replay.py` drafts thresholds off
@@ -94,7 +236,7 @@ line of the report that has one:
 
 | the ledger said | the corpus actually is |
 |---|---|
-| 4 of 251 build(s) record a reviewed outline | 4 of 69 |
+| 4 of 251 build(s) record a reviewed outline | 4 of 17 |
 | 203 abandoned build(s) | 21 |
 | 235 build(s) are path B with no recipe | 53 |
 
@@ -103,15 +245,24 @@ releases they were mostly findings about pytest. **LEDGER 1 did not move at
 all** — a trace opened and never closed carries no verdicts — which is both why
 this hid for so long and why the `bar_replay` claim was wrong on its face.
 
-Deliberate red, four runs. Disabling the conftest redirect fails both new store
-tests, and the failing run demonstrates itself: it left `t-ffb5eec9da61.json` in
-`evals/traces/`, which is the defect, committed by the test that exists to catch
-it. Loosening `suite_artifact` by one condition fails the false-positive test;
-making `load()` delete rather than filter fails two. The store test asserts the
-outcome rather than the setting — it runs `trace.py open` as a subprocess with
-the suite's environment and counts the tracked directory on both sides, after a
-review pointed out that the first version asserted only that the variable was
-set, which would pass just as happily if `trace.py` stopped reading it.
+Deliberate red, and the first one demonstrated itself: disabling the conftest
+redirect failed both new store tests, and the failing run wrote a fresh
+`source: build` trace into `evals/traces/` — the defect, produced by the test
+that exists to catch it. (It was deleted before this commit; the ten traces
+0.1.605 added are named in that release's own diff.) Loosening `suite_artifact`
+by one condition fails the fingerprint test in each of six directions; removing
+the date cutoff fails the population test; making `load()` delete rather than
+filter fails two; and four separate mutations of the report path — the flag
+ignored, the disclosure deleted, the JSON key dropped, the set-aside count
+hidden from the abandoned line — each fail one.
+
+The store test asserts the outcome rather than the setting: it runs
+`trace.py open` as a subprocess with the suite's environment and counts the
+tracked directory on both sides. The first version asserted only that
+`LUMI_TRACES` was set, which would pass just as happily if `trace.py` stopped
+reading it — a review said so, and a second review then showed the whole report
+path had the same problem one level up, with `suite_artifact` and `load` well
+covered and nothing at all exercising what a reader sees.
 
 GAP-023's open half is answered; its location half — `TRACES` resolving to the
 install directory, so a driven agent's record lands inside the package — is
@@ -149,15 +300,20 @@ again, and everything the first attempt had SCORED was withdrawn: four history
 rows and four conformance traces. A row stamped with a version its agent never
 read is a claim, and the board is where this package makes its most public ones.
 
-**The board had also been lying about how stale it was, and it takes fourteen
-releases lined up to see it.** `render()` writes `newest run <r> · N releases
+**The board had also been lying about how stale it was, and it takes the
+whole file's history lined up to see it.** `render()` writes `newest run <r> · N releases
 behind`, correct the moment it is generated; every release after that hand-bumps
 the stamp, and because the stamp pattern is a substring match the version moves
-while the clause stays. From 0.1.592 to 0.1.604 the header said **`3 releases
-behind` fourteen times running**, while the real distance grew from three to
-twenty-six. The evidence gate knew — it had been demanding a waiver since eleven
-releases in — but the board is the artifact anyone reads, and it kept printing 3.
+while the clause stays. From 0.1.581 to 0.1.604 the header said **`3 releases
+behind` twenty-four releases running** — true when written at 0.1.581 and wrong
+for the twenty-three after it, understating a distance that was already fourteen
+by 0.1.592 and reached twenty-six. The evidence gate knew — `conformance_fresh()` answers False from
+0.1.596 onward, and each of the nine releases 0.1.596 through 0.1.604 wrote a
+waiver — but the board is the artifact anyone reads, and it kept printing 3.
 GAP-037; the fix is a guard rather than a promise, and it is the next release.
+(This paragraph first said fourteen releases, 0.1.592 onward. That was the size
+of the `git log -14` sample it was read off, not the size of the run; 0.1.607
+measured the file's whole history and corrected it here.)
 
 **The withdrawal is not total, and the two survivors are named here rather than
 left to be noticed.** Cursor's 1004-second T1 in the table below, and Gemini
@@ -216,15 +372,24 @@ prints one word for all of them:
   agent's deck as Hermes's, and the owner reviewed the wrong cover page.
 
   **The two zeroes are not the same zero, and the second review of this release
-  caught the sentence above implying they were (GAP-038).** Run the design gates over both
-  decks: five of them have nothing to grade on Hermes's — no agenda page (D27,
-  D35), no launch rows (D38 twice), no page declaring an analysis move (D32) —
-  against Claude Code's, where all five grade real content, including six
-  analysis pages. Only D32 says so; the other four print `ok` on the absence,
-  which is how a document earns four clean gating rows by leaving out the pages
-  they exist to check. That is a defect in the gate vocabulary rather than a
-  finding about either agent, and closing it moves rows out of `ok` across the
-  whole corpus, so it is recorded rather than fixed here.
+  caught the sentence above implying they were (GAP-038).** Run the design
+  gates over both decks: five of them have nothing to grade on Hermes's — no
+  agenda page (D27, D35), no launch rows (D38 twice), no page declaring an
+  analysis move (D32) — against Claude Code's, where all five grade real
+  content, including six analysis pages.
+
+  A first draft of this paragraph called the four `ok`s a defect in the gate
+  vocabulary. Checking that against the code retired it: `check_design.py`
+  argues the opposite at those rows in writing — a measured absence passes, and
+  `n/a` is for a gate that could not look rather than one that looked and found
+  nothing to hold — and points at `inspect_layout`'s `deck_structure` as the
+  check that asks whether a deck owes an agenda at all. What is left is
+  narrower and survives: that check requires an agenda only once a deck has
+  parts, deliberately, because the owner's own accepted intro decks have
+  neither — so a deck with no part openers is exempt everywhere, and run over
+  this one it reports `ok` too. Both decks are clean, and the board has no way
+  to say that one of them was holding less. GAP-038 carries the correction and
+  what a fix would have to be.
 * **Gemini CLI earned nothing** — HTTP 429 on all three, a free-tier quota. It
   passed T3 in the earlier attempt, which is how one knows the ceiling is the
   quota and not the agent.
@@ -242,8 +407,10 @@ Four conformance traces join `evals/traces/`, two of them left open. An unclosed
 trace is the record of an abandoned build, and closing them to tidy the ledger
 would make it say something untrue.
 
-**Two more traces were staged with them, and finding out where they came from is
-the round's own small lesson.** The first draft of this entry blamed the evidence
+**Six more traces were staged with them, and finding out where they came from
+is the round's own small lesson.** (The first version of this paragraph said
+two. Ten trace files entered this commit: four `source: conformance`, two of
+them open, and six `source: build` leak records.) The first draft of this entry blamed the evidence
 gate's `scaffold-render` obligation, which carries `--no-trace` and cannot open
 one. The review that caught it reproduced the real producer and so did I: the
 test suite drives `build.py` through a helper that passes no environment, so

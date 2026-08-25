@@ -58,12 +58,17 @@ them:
 
 - The stamp mechanism forces a hand edit to a GENERATED file every release
   (`stamps.py` requires `skill {v}` in `conformance/CONFORMANCE.md`), and the
-  cheapest edit destroys the "N releases behind" disclosure the generator
-  writes. `check_evidence` then exempts the change by name as stamp-sized.
-  Recorded as a gap; not fixed here.
+  cheapest edit FREEZES the "N releases behind" disclosure the generator writes
+  rather than removing it — which is worse, because a frozen number reads as a
+  measurement. Twenty-four releases, 0.1.581 through 0.1.604, shipped one
+  unchanged clause: true when written and wrong for the twenty-three after.
+  `check_evidence` then exempts the change by name as stamp-sized. Recorded as
+  GAP-037 and closed by a guard plus a `restamp` realigner.
 - The test suite was writing `source: build` traces into the tracked store on
-  every run. 178 of the store's 247 records are that leak; the release that
-  stops it cites this file.
+  every run. **182 of the store's 199 `source: build` records** are that leak,
+  across sixteen distinct `skill_version`s; the release that stops it cites
+  this file. (An earlier draft said 178 of 247 — a different denominator, all
+  records rather than build records, and wrong on both numbers.)
 - `produced[0]` picks the scored artifact alphabetically, and one agent's
   timeout left five HTML files whose first is a shape sprite. Latent; recorded.
 
@@ -73,3 +78,24 @@ No cell was re-driven to improve a verdict. The one thing re-driven is the whole
 round, because the first attempt measured the wrong version of the rules — which
 made the reading harder rather than kinder. No bar moved, and no trace was
 closed to tidy the ledger.
+
+## What the pre-PR review found, and why it is in the record
+
+Four readers over the three commits, before the pull request. Two of the three
+new instruments could not have failed, and one would have made every future
+release impossible by failing the repository on a board the generator writes
+correctly. The findings are in 0.1.608's entry; what belongs here is the shape
+of them, because it recurs:
+
+- **A guard and the fix it backs must not share a predicate.** Both went quiet
+  on the same input, so neither was watching.
+- **A test that runs the real command against the real tree damages the tree
+  when it goes red** — and the assertion happens after the write.
+- **A test can cover a function completely and cover nothing a reader sees.**
+  `suite_artifact` and `load` were held; the report they feed was not, and four
+  mutations of it survived the suite.
+- **A fingerprint made of a thing's initial state matches everything new.**
+  Three of `suite_artifact`'s four conditions are what `trace.py` writes on
+  every open.
+- **Nine false numbers shipped in a branch about a number nobody recomputed.**
+  Sweeping by grep after fixing by hand is still memory.
