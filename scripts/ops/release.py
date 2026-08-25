@@ -130,6 +130,15 @@ def generators():
 # did it three times in one afternoon.
 REALIGNERS = [
     ["python3", "scripts/check/check_rule_coverage.py", "--relocate"],
+    # THE BOARD'S STALENESS CLAUSE IS RECOMPUTED, NEVER CARRIED FORWARD. The
+    # stamp step above bumps `skill <v>` in conformance/CONFORMANCE.md by a
+    # substring match, which leaves `newest run <r> · N releases behind` frozen
+    # at whatever it said when the board was last generated — 0.1.592 through
+    # 0.1.604 each shipped `3 releases behind` while the real distance grew to
+    # twenty-six. `restamp` rewrites that one line from the run id the file
+    # already carries; the table, the failures and the history are untouched.
+    # Runs after the stamp step because it needs the new version to be current.
+    ["python3", "scripts/ops/run_conformance.py", "restamp"],
 ]
 
 

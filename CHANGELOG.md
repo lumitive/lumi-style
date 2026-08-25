@@ -1,3 +1,62 @@
+## 0.1.607 — the board said "3 releases behind" fourteen times while it fell twenty-six
+
+`run_conformance.render()` writes `skill <v> · newest run <r> · N releases
+behind`, and N is right at the moment it is generated. Every release after that
+bumps the stamp: `stamps.py` declares `skill {v}` as this file's stamp position,
+the pattern is a substring match, and the cheapest edit that satisfies it moves
+the version and leaves the clause underneath exactly where it was. Nothing else
+was going to catch it, because `check_evidence` presumes a small change to a
+stamped file IS the stamp and does not count it as a touch — correct for a
+stamp, and the reason this ran unnoticed.
+
+Lined up, the fourteen releases say it better than a description:
+
+| shipped in | the header said |
+|---|---|
+| 0.1.592 | `skill 0.1.592 · newest run 0.1.578 · 3 releases behind` |
+| … twelve more, each with the version bumped and the clause untouched | |
+| 0.1.604 | `skill 0.1.604 · newest run 0.1.578 · 3 releases behind` |
+
+The real distance at the end was twenty-six. The evidence gate knew — the board
+had crossed `CONFORMANCE_STALE_AFTER = 15` eleven releases earlier and every
+one of them wrote a waiver — but the waiver lives in a JSON file and the board
+is the artifact anyone reads, and it kept printing 3. **A frozen number is worse
+than no number, because it reads as a measurement.**
+
+**The omitted form is the same defect from the other side, and it shipped in
+this branch.** When a board is fresh the generator leaves the clause out, so
+0.1.606's stamp bump produced `skill 0.1.606` and nothing else — a header that
+discloses nothing rather than something wrong. The guard fired on it
+immediately, which is as good a deliberate-red run as could be arranged: the
+release that introduced the check was caught by it.
+
+Two pieces, and neither remembers anything. `run_conformance.py restamp`
+recomputes that one line from the run id the file already carries — the table,
+the failure list and the history are the run's and stay untouched — and it sits
+in `release.py`'s realigners, so the recomputation happens in the step that
+invalidated it. `check_repo`'s `board staleness clause` holds the shipped file
+to the same arithmetic, which is CLAUDE.md convention 13's parity-guard pattern
+with the code as one side.
+
+Deliberate red, three runs, and the third is the useful one. A guard that only
+looks at a wrong number passes the missing-clause case; a `restamp` that
+rewrites the file instead of the line fails the idempotence test. The third was
+not planted: the first test of the guard failed because it read the board from
+the temporary tree and the CHANGELOG from the real one — a shared helper that
+hard-codes its own `ROOT` is not shared. `_releases_between` takes the root to
+look in now, and there is still one implementation of the arithmetic.
+
+**What this does not fix** is that the board's newest run is filed under two
+numbers: the directory and the `newest run` clause say 0.1.578, while every row
+that run recorded is stamped 0.1.580. `_board_run_version` prefers the run id,
+so the guard holds the file to what the generator produces and the discrepancy
+survives on both sides of it. GAP-037 records the clause; the two numbers are
+the run directory's naming and belong with the harness.
+
+Closes GAP-037.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.606 — the suite wrote into the store it was measuring, and the store's numbers were mostly the suite
 
 `trace.py` resolves `LUMI_TRACES` and falls back to the checkout's

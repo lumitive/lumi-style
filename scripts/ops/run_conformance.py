@@ -1259,17 +1259,23 @@ def _board_run_version(record: dict) -> str | None:
     return sorted(found, key=_ver_key)[-1] if found else None
 
 
-def _releases_between(older: str | None, newer: str | None) -> int | None:
+def _releases_between(older: str | None, newer: str | None,
+                      root: pathlib.Path | None = None) -> int | None:
     """-> how many CHANGELOG headings separate two versions, or None.
 
     Counted from the CHANGELOG rather than from arithmetic on the patch number,
     because the distance that matters is how many rule revisions have landed
     since — not how far apart two integers are.
+
+    `root` because this is `check_repo`'s arithmetic too, and a shared function
+    that hard-codes its own ROOT is not shared — the guard read the board from
+    one tree and the CHANGELOG from another, which its first test found in the
+    first minute. One implementation, told where to look.
     """
     if not older or not newer:
         return None
     try:
-        text = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+        text = ((root or ROOT) / "CHANGELOG.md").read_text(encoding="utf-8")
     except OSError:
         return None
     versions = re.findall(r"^##\s+(\d+\.\d+\.\d+)", text, re.M)
@@ -1335,6 +1341,60 @@ def _findings(runs) -> list[str]:
                     (detail or "no metric named"))
             out.append(f"`{key}` · **{verdict}** · {tail}")
     return out
+
+
+def cmd_restamp(version: str) -> int:
+    """Recompute the board's header line for a new skill version.
+
+    NOT a re-render of the board: the table, the failure list and the history
+    are the run's and stay exactly as recorded. Only the header changes, and
+    only because it is the one line that is about the DISTANCE between the run
+    and the current release — a quantity that goes stale every time anybody
+    ships anything.
+
+    This exists because the alternative had been running for fourteen releases.
+    `stamps.py` requires `skill {v}` in this file, the pattern is a substring
+    match, and the cheapest edit that satisfies it moves the version and leaves
+    `newest run 0.1.578 · 3 releases behind` frozen underneath — which is what
+    0.1.592 through 0.1.604 each shipped, while the real distance grew to
+    twenty-six. Called from `release.py`'s realigners, so no release can bump
+    the stamp without recomputing the clause it invalidates.
+    """
+    path = ROOT / "conformance" / "CONFORMANCE.md"
+    if not path.exists():
+        print(f"FAIL  {path} does not exist")
+        return 1
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    hi = next((i for i, ln in enumerate(lines[:6]) if ln.startswith("# ")), None)
+    ri = next((i for i, ln in enumerate(lines[:8]) if ln.startswith("Runs ")), None)
+    if hi is None or ri is None:
+        print("FAIL  conformance/CONFORMANCE.md has no `# ` header or no "
+              "`Runs ` line; it is not in the shape report --record writes")
+        return 1
+    m = re.search(r"(\d+\.\d+\.\d+)", lines[ri])
+    if not m:
+        print(f"FAIL  the Runs line names no version: {lines[ri].strip()!r}")
+        return 1
+    ran_at = m.group(1)
+    behind = _releases_between(ran_at, version)
+    if behind is None:
+        # A run older than this CHANGELOG carries. Leaving the header alone is
+        # the honest answer; inventing a distance would not be.
+        print(f"note  the board's run ({ran_at}) predates this CHANGELOG; "
+              f"header left as written")
+        return 0
+    stamp = (f"skill {version}" if behind == 0 else
+             f"skill {version} · newest run {ran_at} · "
+             f"{behind} release{'' if behind == 1 else 's'} behind")
+    new = f"# LUMI style conformance · {stamp}\n"
+    if lines[hi] == new:
+        print(f"ok    board header already reads {stamp!r}")
+        return 0
+    was = lines[hi].strip()
+    lines[hi] = new
+    path.write_text("".join(lines), encoding="utf-8")
+    print(f"restamped the board header: {was!r} -> {new.strip()!r}")
+    return 0
 
 
 def render(record: dict) -> str:
@@ -1415,7 +1475,8 @@ def render(record: dict) -> str:
 
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("command", choices=["validate", "detect", "run", "score", "report"])
+    ap.add_argument("command", choices=["validate", "detect", "run", "score",
+                                        "report", "restamp"])
     # Repeatable, and only `report` may take more than one. A scoreboard built
     # from a single directory erases every agent that directory does not
     # contain: recording the Claude Code run turned Cursor's row from a
@@ -1424,6 +1485,9 @@ def main(argv):
     # a collision, so re-running one agent replaces its own row and nobody
     # else's.
     ap.add_argument("--run", action="append", default=None)
+    ap.add_argument("--version", default=None,
+                    help="restamp: the skill version the header should name "
+                         "(default: the newest CHANGELOG heading)")
     ap.add_argument("--agent", action="append", default=None,
                     help="prepare (or report) this agent even if no CLI answers "
                          "its probe — IDEs and API models are driven by hand. "
@@ -1483,6 +1547,19 @@ def main(argv):
     except (OSError, ValueError, KeyError) as exc:          # noqa: BLE001
         print(f"FAIL  conformance suite does not parse: {exc}")
         return 1
+
+    if args.command == "restamp":
+        version = args.version
+        if not version:
+            found = re.findall(r"^##\s+(\d+\.\d+\.\d+)",
+                               (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"),
+                               re.M)
+            if not found:
+                print("FAIL  no '## X.Y.Z' heading in CHANGELOG.md and no "
+                      "--version given")
+                return 1
+            version = found[0]
+        return cmd_restamp(version)
 
     if args.command == "validate":
         hist = ROOT / "conformance" / "history.json"
