@@ -1,0 +1,8 @@
+{
+ "version": "0.1.606",
+ "diff_base": "e0b55c12c3888bdcc60ce384f757c8abcdcbb158",
+ "spec": "specs/2026-08-26-board-refresh-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}

@@ -85,7 +85,35 @@ TRIGGER_N = 3          # pieces of the same evidence before a candidate is draft
 QUEUE_CAPACITY = 5     # per cycle; the rest are deferred, never dropped
 
 
-def load():
+def suite_artifact(t) -> bool:
+    """A trace the test suite wrote, not a build anybody made.
+
+    Until the suite got its own store, `tests/test_fewer_round_trips.py` drove
+    `build.py` with no environment, so every run of pytest opened a trace of a
+    throwaway two-page scaffold in the TRACKED store. `preflight.py` runs the
+    suite and `release.py` stages with `git add -A`, so they were committed.
+
+    THE FINGERPRINT IS THE SCAFFOLD'S, NOT THE FILE'S DATE OR NAME. A build
+    that reached a document has content pages; this one never does, because
+    the helper opens the trace and never fills or closes it. All four
+    conditions together, so a real build that happens to be abandoned early
+    still counts as a build:
+    zero pages · path B · no recipe · never closed.
+
+    Measured when this was written: 182 of 199 build records matched, across
+    sixteen `skill_version`s. They are NOT deleted — a trace store is a record,
+    and the honest fix for a bad denominator is to name what is in it, not to
+    delete until the number reads better. `--with-suite-artifacts` puts them
+    back for anyone auditing this decision.
+    """
+    return (t.get("source") == "build"
+            and t.get("entry_path") == "B"
+            and not (t.get("pages") or 0)
+            and not t.get("recipe_hash")
+            and not t.get("closed_at"))
+
+
+def load(include_suite_artifacts: bool = False):
     if not TRACES.exists():
         return []
     out = []
@@ -94,7 +122,9 @@ def load():
             out.append(json.loads(path.read_text(encoding="utf-8")))
         except json.JSONDecodeError:
             continue
-    return out
+    if include_suite_artifacts:
+        return out
+    return [t for t in out if not suite_artifact(t)]
 
 
 def ledger_failing(traces):
@@ -408,9 +438,14 @@ def main():
     ap.add_argument("--board", action="store_true",
                     help="cost per content page, quality-gated")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--with-suite-artifacts", action="store_true",
+                    help="include the traces pytest wrote into the store "
+                         "before it had one of its own (see suite_artifact)")
     a = ap.parse_args()
 
-    traces = load()
+    traces = load(a.with_suite_artifacts)
+    set_aside = 0 if a.with_suite_artifacts else sum(
+        1 for t in load(True) if suite_artifact(t))
     if a.json:
         print(json.dumps({"traces": len(traces), "failing": ledger_failing(traces),
                           "instruments": ledger_instruments(traces),
@@ -448,7 +483,17 @@ def main():
             print(line)
         return
 
-    print(f"{len(traces)} trace(s)\n")
+    print(f"{len(traces)} trace(s)")
+    # SAID OUT LOUD OR NOT AT ALL. Every denominator below is a claim about how
+    # this package is used, and for sixteen releases most of it was pytest:
+    # `4 of 251 build(s) record a reviewed outline` described a corpus of
+    # seventeen real builds. Filtering silently would fix the number and repeat
+    # the defect, which was a number nobody could see the composition of.
+    if set_aside:
+        print(f"       {set_aside} suite artifact(s) set aside and still on "
+              f"disk — traces pytest opened before it had a store of its own; "
+              f"--with-suite-artifacts counts them")
+    print()
     print("LEDGER 1 · which metric keeps failing")
     rows = ledger_failing(traces)
     for mid, ids in rows[:10]:

@@ -564,14 +564,20 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   helper that was caught: `tests/test_new_deck.py` already does this per file,
   and a per-file fix leaves the next file that drives a build free to do it
   again.
-  **What is NOT decided here is the ones already tracked.** They are records of
-  builds that happened, of documents nobody kept, and `ledger.py` counts them
-  as abandoned beside real ones — so they distort any reading of that number.
-  Deleting corpus history to improve a counter is the move this package refuses
-  everywhere else, so the decision is the owner's and the measurement is
-  written down for whoever takes it: count the tracked `source: build` traces
-  with no `closed_at` and no `recipe_hash`, and compare against the builds the
-  ledger is supposed to describe.
+  **The ones already tracked are answered without deleting any of them.** They
+  are not records of builds that happened — that was this entry's own reading
+  and it was wrong; they are records of a two-page scaffold pytest opened and
+  never filled. Measured: **182 of the 199 `source: build` records**, matching
+  on all four of zero pages, path B, no recipe and never closed, across sixteen
+  `skill_version`s. The distortion was not one number but every denominator in
+  the report — `4 of 251 build(s) record a reviewed outline` about a corpus of
+  seventeen, `203 abandoned build(s)` about roughly twenty, `235 path B with no
+  recipe` about fifty-three. `ledger.suite_artifact` now sets them aside, prints
+  the count it set aside, and `--with-suite-artifacts` puts them back; nothing
+  is deleted, which is a test of its own. What LEDGER 1 counts did not move at
+  all, because a trace that never closed carries no verdicts — which is also
+  why the first draft of this fix blamed `bar_replay.py` and was wrong: it
+  reads `evals/thresholds.json` and has never opened the store.
 - **that evidence had two causes and this entry named one of them.** Three
   records from one task is not the store's location at all — it is the trace
   LIFECYCLE: the driver re-scaffolded every round and the scaffold opened a

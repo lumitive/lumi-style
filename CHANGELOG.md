@@ -1,3 +1,65 @@
+## 0.1.606 — the suite wrote into the store it was measuring, and the store's numbers were mostly the suite
+
+`trace.py` resolves `LUMI_TRACES` and falls back to the checkout's
+`evals/traces/`. `tests/test_fewer_round_trips.py` drives `build.py` through a
+helper that passes no environment, so every run of pytest opened a
+`source: build` trace of a throwaway two-page scaffold in the **tracked** store.
+`preflight.py` runs the suite and `release.py` stages with `git add -A`, so they
+were committed — 0.1.604 shipped four of them, and the store turns out to have
+been collecting them across sixteen different `skill_version`s.
+
+**The redirect goes in `conftest.py`, at import rather than in a fixture.** Test
+modules resolve the store path at import time — several of them treat it as a
+constant — so a session fixture arrives after the module that needed it. Per
+file would not do either: the leak was one helper in one file, and the next file
+to drive a build would have been free to repeat it. `tests/test_new_deck.py`
+already redirected itself, which is how the pattern was known and also how it
+stayed a per-file habit instead of a suite-wide guarantee.
+
+**The 182 traces already in the store are set aside, not deleted.** A trace
+store is a record, and deleting history until a counter reads better is the move
+this package refuses everywhere else. `ledger.suite_artifact` recognises them on
+four conditions together — zero pages, path B, no recipe, never closed — and the
+report prints how many it set aside; `--with-suite-artifacts` puts them back for
+anyone auditing the decision. All four conditions matter, because one short of
+the fingerprint is a real build abandoned early, and dropping those would trade
+one bad denominator for another. That is four of the five tests.
+
+**What the leak actually cost is the finding, and it is not what the first draft
+of this entry said.** That draft claimed `bar_replay.py` drafts thresholds off
+the store's shape distribution; a review checked, and it reads
+`evals/thresholds.json` and has never opened the store — the same defect
+CLAUDE.md convention 14 exists for, in a release about a defect that reached a
+commit unread. The real cost is that **the leak was the denominator**, in every
+line of the report that has one:
+
+| the ledger said | the corpus actually is |
+|---|---|
+| 4 of 251 build(s) record a reviewed outline | 4 of 69 |
+| 203 abandoned build(s) | 21 |
+| 235 build(s) are path B with no recipe | 53 |
+
+Those lines are read as findings about how this package is used. For sixteen
+releases they were mostly findings about pytest. **LEDGER 1 did not move at
+all** — a trace opened and never closed carries no verdicts — which is both why
+this hid for so long and why the `bar_replay` claim was wrong on its face.
+
+Deliberate red, four runs. Disabling the conftest redirect fails both new store
+tests, and the failing run demonstrates itself: it left `t-ffb5eec9da61.json` in
+`evals/traces/`, which is the defect, committed by the test that exists to catch
+it. Loosening `suite_artifact` by one condition fails the false-positive test;
+making `load()` delete rather than filter fails two. The store test asserts the
+outcome rather than the setting — it runs `trace.py open` as a subprocess with
+the suite's environment and counts the tracked directory on both sides, after a
+review pointed out that the first version asserted only that the variable was
+set, which would pass just as happily if `trace.py` stopped reading it.
+
+GAP-023's open half is answered; its location half — `TRACES` resolving to the
+install directory, so a driven agent's record lands inside the package — is
+untouched and keeps the entry open.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.605 — the board, driven at last, and what it says
 
 Nine consecutive releases waived `conformance-freshness` — 0.1.596 through
