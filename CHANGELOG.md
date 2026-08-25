@@ -1,3 +1,33 @@
+## 0.1.597 — the verdict line is the one an author acts on
+
+A validation round drove three agents at 0.1.596 and one of them took eighteen
+build rounds. Its own report named the cost, and both items were things this
+package already knew and did not say in the line that was being read.
+
+**`figure_clipped` named pages, not elements.** 0.1.594 taught the PAGE REPORT
+to say which element went outside its viewBox — `at <text.axname-y '…'>` — and
+left the VERDICT saying "3 pages draw outside a figure's own viewBox". The
+verdict is the line that gates, the line an author acts on, and the line an
+agent reads. So the build did what the element name exists to prevent: it
+hand-measured bounding boxes to find elements the renderer already knew, and
+spent **three of its eighteen rounds** doing it.
+
+It now names one element per clipped page — one per page, not one overall,
+because that build had three. `starved_column` in the same function has done
+this since it shipped; the difference was never a principle, only that nobody
+carried the detail across.
+
+**`content_spill` said a page ran past the footer and not which block.** The
+same report: *"the checker does not say the table is the only overflowing
+block"* — a table shrunk from 12px to 9px across several rounds hunting the
+offender. `deepestWho` has been measured on every page since the probe was
+written and reached no verdict. It does now: `— deepest: p11 .notes by 24px`.
+
+Deliberate-red runs: both tests fail with the detail removed. The first removal
+attempt did not match the source and the test stayed green — which is the third
+time in this run of releases that a planted failure silently failed to plant,
+and the reason each one is re-checked rather than assumed.
+
 ## 0.1.596 — one analytical move, one drawing, for everybody, forever
 
 An owner read three platforms' round-5 decks side by side and said the figures

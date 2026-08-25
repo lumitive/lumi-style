@@ -115,3 +115,66 @@ def test_the_passing_fixture_keeps_its_axis_names_inside():
         capture_output=True, text=True, cwd=ROOT)
     assert r.returncode == 0, f"exited {r.returncode}\n{r.stderr[-800:]}"
     assert "FIGURE CLIPPED" not in r.stdout, r.stdout[-1200:]
+
+
+def test_the_verdict_line_names_the_element_on_every_clipped_page(tmp_path):
+    """The verdict line is the one an author acts on, and it named only pages.
+
+    0.1.594 taught the PAGE REPORT to say which element went outside and left
+    the verdict saying "3 pages". Measured in a validation round: a build spent
+    three of its eighteen rounds hand-measuring bounding boxes to find elements
+    the renderer already knew, and its own report named this as the cost.
+
+    One per page, not one overall — that build had three clipped pages.
+    """
+    pytest.importorskip("playwright", reason="renders")
+    deck = tmp_path / "multi.en.html"
+    pages = "".join(
+        f'<section class="page" id="{pid}"><div class="body stack"><div class="fill">'
+        f'<div class="fig"><svg viewBox="0 0 640 300" role="img" aria-label="t">'
+        f'<rect class="f-acc" x="20" y="20" width="600" height="60"/>'
+        f'<text x="{x}" y="150" class="{cls}" style="font-size:18px">{txt}</text>'
+        f'</svg><div class="cap"><span class="n">Figure {i}</span> A title</div></div>'
+        f'</div></div></section>'
+        for i, (pid, x, cls, txt) in enumerate(
+            [("p11", 560, "axname-y", "utilisation by tier"),
+             ("p12", 480, "fval", "a much longer runaway value label")], 1))
+    deck.write_text(
+        '<!doctype html><html lang="en"><head><meta charset="utf-8"><style>'
+        '.page{width:1280px;height:720px}.fig svg{width:640px;height:300px}'
+        '</style></head><body data-geometry="landscape" data-genre="internal">'
+        + pages + "</body></html>", encoding="utf-8")
+    out = subprocess.run(
+        [sys.executable, str(LAYOUT), "--deliverable", str(deck)],
+        capture_output=True, text=True, cwd=ROOT).stdout
+    line = next((x for x in out.splitlines() if "FAIL" in x and "figure_clipped" in x), "")
+    assert line, "figure_clipped did not fail on a deck with two clipped pages\n" + out[-900:]
+    for pid, cls in (("p11", "text.axname-y"), ("p12", "text.fval")):
+        assert pid in line and cls in line, (
+            f"the verdict line does not name {pid}'s element:\n{line}")
+
+
+def test_a_spilling_page_names_the_block_that_runs_deepest(tmp_path):
+    """`deepestWho` has been measured on every page since the probe was written
+    and never reached the verdict. A build shrank a table from 12px to 9px over
+    several rounds hunting the block that spilled, and its report asked for
+    exactly this line."""
+    pytest.importorskip("playwright", reason="renders")
+    deck = tmp_path / "spill.en.html"
+    deck.write_text(
+        '<!doctype html><html lang="en"><head><meta charset="utf-8"><style>'
+        '.page{width:1280px;height:720px;position:relative}'
+        '.foot{position:absolute;bottom:24px;left:64px;right:64px}'
+        '</style></head><body data-geometry="landscape" data-genre="internal">'
+        '<section class="page" id="p4"><div class="body stack"><div class="fill">'
+        '<div class="notes">' + "<p>a long row of table text</p>" * 60 + "</div>"
+        '</div></div><div class="foot"><span class="conf">Internal</span>'
+        "<span>4</span></div></section></body></html>", encoding="utf-8")
+    out = subprocess.run(
+        [sys.executable, str(LAYOUT), "--deliverable", str(deck)],
+        capture_output=True, text=True, cwd=ROOT).stdout
+    line = next((x for x in out.splitlines()
+                 if "FAIL" in x and "content_spill" in x), "")
+    assert line, "content_spill did not fail on a spilling page\n" + out[-900:]
+    assert "deepest:" in line and "p4 ." in line, (
+        "the verdict does not name the block that runs deepest:\n" + line)

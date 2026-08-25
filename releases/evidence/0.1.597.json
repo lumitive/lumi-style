@@ -1,0 +1,24 @@
+{
+  "version": "0.1.597",
+  "diff_base": "b1eece2727387250d4573a536372f3cfb6ced4f1",
+  "spec": "waived: two report lines carrying detail the probe already measured, both from a validation round that named the cost in its own report. The field cases and the deliberate-red runs are in the CHANGELOG entry.",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "f04602e1e4dabf54880d35f1a127e018812a9c892b096ad3bdbb2f17779ea4dd",
+      "date": "2026-08-25"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board is stale and this release does not refresh it. Round 6 drove three agents against 0.1.596 today; this release repairs two report lines that round measured the cost of, and the natural next evidence is the re-run it enables — recording a synthetic round now would be a weaker copy of evidence about to exist. 0.1.596 carried the same waiver and round 6 duly happened."
+    }
+  ]
+}
