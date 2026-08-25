@@ -1,0 +1,31 @@
+{
+  "version": "0.1.596",
+  "diff_base": "8d9fc51079ae5cea8c4e11d6e44a8f78b6b3b494",
+  "spec": "waived: one change, from an owner-reported defect measured across three decks. The field case, the numbers and the deliberate-red run are in the CHANGELOG entry; the part deliberately NOT fixed is GAP-033.",
+  "obligations": [
+    "scaffold-render",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "f04602e1e4dabf54880d35f1a127e018812a9c892b096ad3bdbb2f17779ea4dd",
+      "date": "2026-08-25"
+    },
+    {
+      "id": "scaffold-render",
+      "command": "python3 scripts/ops/new_deck.py --genre internal --storyline market-analysis --pages 10 --parts A,B,C --no-trace --out fixtures/.scaffold-evidence.html && python3 scripts/check/inspect_layout.py --deliverable fixtures/.scaffold-evidence.html",
+      "exit_code": 0,
+      "stdout_sha256": "1d719140d8598963c5a384c98727fd0e51485c42be4446cff111c8100214bd3f",
+      "date": "2026-08-25"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board is stale and this release does not refresh it. A conformance round drives several agents at real cost, and round 6 runs three of them against exactly this version within the day — recording a synthetic round now would be a second, weaker copy of evidence that is about to exist. The obligation fired because the regenerated reference tables moved with the version stamp; the change itself is one function in new_deck.py, covered by scaffold-render above, which ran and exited 0. If round 6 does not happen, this waiver is what should be pointed at."
+    }
+  ]
+}

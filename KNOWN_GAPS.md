@@ -75,6 +75,28 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-033 · The framework registry reaches 23 of the library's 206 shapes
+
+- status: open
+- opened: 0.1.596
+- surface: assets/frameworks.json, scripts/ops/new_deck.py (`shape_for`)
+- symptom: 0.1.596 stopped the scaffold handing every document the same four
+  drawings — the pool is now every shape of every framework that draws the
+  declared move, picked by a digest of the page's own title. But the pool is
+  only as wide as the registry, and the registry names **23 of 206 units**.
+  `compare` has three, so a compare-heavy deck still repeats: measured on three
+  round-5 decks, the single `compare` default accounted for **56%, 68% and 75%**
+  of each deck's figure references.
+- why it is not simply widened: a framework entry says which shapes DRAW that
+  relation, and that is a judgement about each unit — GAP-009 records what
+  happens when it is made from names or tags instead of from the rendered
+  drawing (`box` is a 2×2 grid with a cycle; `surround` is an arrow;
+  `p012-footnotesource` is a cube). Assigning 183 units to moves from their ids
+  would repeat that mistake at eight times the scale.
+- check: the units classified against the rendered previews, twelve at a time,
+  the way GAP-009 was closed — and `compare`'s pool measured afterwards, since
+  it is the move that dominates every deck.
+
 ## GAP-032 · `correlate` is in the move vocabulary and in no framework
 
 - status: open
