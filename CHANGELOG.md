@@ -1,3 +1,50 @@
+## 0.1.601 — nine rounds of evidence, deleted by the tenth
+
+`build.py` restarted the debug log on every round and carried the C1-C8
+self-score across by hand. The premise was written in its own source — *one run
+of this driver IS one build* — and it is false. A build fixes and re-runs; the
+round is not the thing the record is about. So every round destroyed its
+predecessors' exit codes, timings, output digests and attached checker reports,
+and a five-round build shipped with one round's evidence.
+
+**The tell is an operator archiving the record by hand.** This file's own
+history says the author did it nine times on one measured build. Both agents of
+the 2026-08-25 validation round independently did the same — one wrote
+`debug-r1` through `debug-r6-final` beside the deck — and neither knew the other
+had. When two strangers invent the same workaround, the workaround is the
+design.
+
+**The record now belongs to the artifact and the round is a field on it.**
+`debug_log init --resume` keeps everything and counts the round; every command
+and step carries the round that produced it. Nothing else in the schema had to
+move, and that is the point: `checks.<kind>` has always been a list *because a
+checker runs more than once per build*, and `validate`'s rule that a failed
+command must have been run again and passed could only ever apply within one
+round while the restart stood. Both affordances were written years apart and
+the restart made them unreachable. A failure cleared three rounds later now
+reads as cleared.
+
+Resuming into a different skill version is refused, naming the version that
+wrote the log: that is the original lesson — a log carried across builds once
+named one version in `deliverable` while its last commands checked another —
+made mechanical rather than left as a comment. `rounds` joins the schema as an
+OPTIONAL key so a log written before this release does not read as malformed.
+
+**`--keep-log` is gone.** Its documented behaviour was "let init refuse", which
+killed the driver before a stage ran; it appeared nowhere else in the package.
+The destructive act is the one that should need a flag, so `--new-build` starts
+a fresh record and continuing is the default. Fifty lines of carry-forward
+defence went with it, along with its own failure class: a `quality` that was a
+list read as an empty dict, a carried `5` refused on the way back and dropped
+silently, a parse error that lost the judgement it was rescuing.
+
+Deliberate red, planted first: a second round that erased the first, a cleared
+failure that still read red, and a `--new-build` flag argparse rejected. The
+counter-red — `init` with no flag still refuses to overwrite silently — was
+green before and after, and green-then-red still validates as red.
+
+Design record: `specs/2026-08-25-round-6-retrospective-design.md`.
+
 ## 0.1.600 — a scope note declares an absence; it does not cover one
 
 C5 lets a document declare a deliberate gap instead of filling it, and the

@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.600"
+  version: "0.1.601"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -709,7 +709,11 @@ the deliverable — `<stem>.debug.json` in the same folder — through
 (design: `specs/2026-08-12-debug-mode-design.md`; the subcommands are the
 schema, so every platform produces the same log):
 
-- `init <deliverable> --platform <registry id>` at the start;
+- `init <deliverable> --platform <registry id>` at the start, and
+  `--resume` on every round after the first — the log spans a build's
+  rounds and stamps each entry with the round that produced it, so a
+  failure cleared three rounds later reads as cleared. `build.py` does
+  this for you; `--new-build` is how you start a fresh record on purpose;
 - `run <log> --label <step> -- <command>` for **every check or build command**
   — it executes the command and machine-writes exit code, output digest and
   timing, so the log is evidence, not claims;

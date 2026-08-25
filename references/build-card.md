@@ -1,4 +1,4 @@
-# LUMI build card · 0.1.600
+# LUMI build card · 0.1.601
 
 > **GENERATED** by `scripts/build/build_card.py` from `evals/rule-coverage.json`, `evals/gates.json` and `tokens/`. `--check` runs in CI. Never hand-edit: edit the rule, or the register, and regenerate.
 
@@ -149,7 +149,7 @@ Only the rules a script can fail you for, from the register. The full contract �
 - **`deck_structure`** Open a deck with a cover and end it with a closing page. — `references/storyline-templates.md:497`
 - **`page_height`** Render every section at exactly the page geometry's height. — `references/design-rules.md:1241`
 - **`page_height`** Make each page a fixed box, scaled and letterboxed. — `references/design-rules.md:1522`
-- **`privacy_terms`** Carry none of the engagement's out-of-bounds terms in a deliverable, and name the list so the check can be attempted at all. — `references/operating-rules.md:232`
+- **`privacy_terms`** Carry none of the engagement's out-of-bounds terms in a deliverable, and name the list so the check can be attempted at all. — `references/operating-rules.md:237`
 - **`reserve_overspent`** Treat the title block's reserved height as a ceiling. — `references/design-rules.md:1424`
 - **`role_split`** Render every repeating role exactly one way across the deck. — `references/brand.md:235`
 - **`role_split`** Render each repeated role exactly one way across the document. — `references/design-rules.md:1368`
