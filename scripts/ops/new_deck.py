@@ -115,6 +115,61 @@ def _field(key: str, rest: str) -> str:
     return m.group(1).strip() if m else ""
 
 
+def outline_omissions(path: pathlib.Path | None):
+    """-> [{section, reason}] the outline DECLARED out of scope, canonicalised.
+
+    C5 lets a document declare a deliberate gap instead of filling it, and the
+    declaration is a reader-visible note carrying `data-omitted`. On entry path
+    B the author declares it in the OUTLINE, whose syntax exists for exactly
+    this — and `outline_sections` above threw the parsed result away with an
+    underscore, so the declaration reached the checker on no path at all.
+    Measured on the two decks of the 2026-08-25 validation round: the author
+    who hand-wrote the attribute passed D31, the author who used the outline's
+    own syntax failed it, and the difference was not the documents.
+
+    **The section is canonicalised to the checklist's own name**, because
+    D26 tests `a in declared` — exact set membership, not a substring. An
+    outline saying "sizing (TAM/SAM/SOM)" or "customer segments" against a
+    checklist saying "sizing" and "segments" would otherwise produce a note
+    that looks right, reads right, and clears nothing: a fix indistinguishable
+    from no fix. The author's own wording stays in the sentence a reader meets.
+    """
+    if path is None:
+        return []
+    sys.path.insert(0, str(ROOT / "scripts" / "check"))
+    import check_outline
+    _meta, _groups, omissions, _analyses = check_outline.parse(
+        path.read_text(encoding="utf-8"))
+    checklist = deliverable_registry.TYPICAL_SECTIONS.get(
+        _meta.get("storyline", ""), ())
+    out = []
+    for om in omissions:
+        said, reason = om.get("section", ""), om.get("reason", "")
+        # A DECLARATION WITHOUT A REASON IS NOT EMITTED. `check_outline`
+        # already reports it, and a scaffold that supplied the reason would be
+        # writing the author's judgement for them.
+        if not reason:
+            continue
+        name = said
+        words = set(re.findall(r"[\w']+", said.lower()))
+        for entry in checklist:
+            alts = deliverable_registry.section_alts(entry)
+            # EVERY WORD OF THE CHECKLIST NAME, present in what the author
+            # wrote — not a substring test, which is defeated by the ordinary
+            # way people write these: "customer DECISION journey" contains
+            # neither "customer journey" nor is contained by it. Measured on the
+            # two outlines of the 2026-08-25 round, whose three phrasings were
+            # "sizing (TAM/SAM/SOM)", "customer segments" and "customer
+            # decision journey".
+            if any(a in said or said in a
+                   or set(re.findall(r"[\w']+", a.lower())) <= words
+                   for a in alts):
+                name = deliverable_registry.section_name(entry)
+                break
+        out.append({"section": name, "said": said, "reason": reason})
+    return out
+
+
 def outline_sections(path: pathlib.Path | None):
     """-> [{title, move, finding, implication}] from the analysis beat, or [].
 
@@ -892,6 +947,7 @@ def main(argv):
     parts = [x.strip() for x in args.parts.split(",") if x.strip()]
     mark = wordmark(args.wordmark)
     plan = outline_sections(args.outline)
+    omissions = outline_omissions(args.outline)
     # THE OUTLINE KNOWS HOW MANY PAGES THERE ARE. `--pages` defaulted to a
     # literal whatever the outline said, so a ten-title plan silently emitted
     # six content pages and four findings had nowhere to go -- silently,
@@ -1043,6 +1099,18 @@ def main(argv):
             else:
                 cells_open = ("    <div class=\"fill\">\n" + block
                               + "\n    </div>\n    <div class=\"fill\">")
+            # THE OUTLINE'S DECLARED OMISSIONS, ON THE LAST CONTENT PAGE.
+            # Not the agenda — D35 gates that page to the launch sequence — and
+            # not the closing, whose contents `page-contracts.md` enumerates, so
+            # adding to them is a rule revision rather than a scaffold change.
+            # The shape copies `build_fixtures.py`'s reference implementation,
+            # which is what `check_fixtures` already asserts against.
+            scope_notes = ""
+            if omissions and pi == len(parts) - 1 and i == count - 1:
+                scope_notes = "\n" + "\n".join(
+                    f'      <p class="scope-note" data-omitted="{o["section"]}">'
+                    f'This deck does not cover {o["said"]}: {o["reason"]}.</p>'
+                    for o in omissions)
             out.append(f'''<section class="page" id="p{n}"{adecl}>
   {g}
   <div class="body {lay}">
@@ -1065,7 +1133,7 @@ def main(argv):
            above. Run together in one caption the two read as one sentence, and
            the line break lands in the source so the name never appears to
            wrap. -->
-      <p class="take">{take}</p>
+      <p class="take">{take}</p>{scope_notes}
     </div>
   </div>
   {foot(n, total)}
