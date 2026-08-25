@@ -177,6 +177,25 @@ truthful enumeration — and the author reworded a correct sentence to pass the
 gate. A false positive that edits prose is worse than a miss, because nothing
 downstream records that it happened.
 
+0.1.598 adds three more, all found in one week and all in the figure gates. The
+rules say a figure "puts numbers on a scale"; the script decided that with a
+regex admitting any three characters before the first digit, so `AP2`, `x402`,
+`R1`, `P0` and `Q3` were quantities, and two of them in one drawing made a 2x2
+of quadrant tags a scaled figure. Two independent builds then edited their
+DELIVERABLES to silence it — one added axis names to diagrams that have no
+scale, the other merged a figure's labels into one `<text>` so its
+`textContent` ran past a fourteen-character ceiling. The rules also say ink may
+not land on ink; the script decided that on bounding boxes, and SVG's initial
+`fill` is black, so a stroke-only connector was a solid mark the size of its own
+diagonal and a third build rerouted two arrows as elbows. The semantic test was
+available in both cases and written down in one of them: `references/design-rules.md`
+§8 has prescribed `isPointInFill` corner-testing since it was written, and
+nothing in the probe called it.
+
+The tell each time was the same and it is worth naming: **the author changed the
+document rather than the drawing's argument.** A fix that makes a page no better
+to read is a fix aimed at a checker.
+
 ## FM-14 · A metric demoted for not failing a small corpus was the lock on one that gates
 
 - detection: a threshold is set on a quantity, and a related quantity that

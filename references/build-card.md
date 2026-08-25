@@ -1,4 +1,4 @@
-# LUMI build card · 0.1.597
+# LUMI build card · 0.1.598
 
 > **GENERATED** by `scripts/build/build_card.py` from `evals/rule-coverage.json`, `evals/gates.json` and `tokens/`. `--check` runs in CI. Never hand-edit: edit the rule, or the register, and regenerate.
 
@@ -101,12 +101,12 @@ Only the rules a script can fail you for, from the register. The full contract �
 ### Every page (55)
 
 - **`D12`** Carry the handling terms and origin on every page, opening with the seal-red shield handling marker. — `SKILL.md:625`
-- **`D12`** Carry the handling terms and the document's origin on every page. — `references/design-rules.md:1041`
-- **`D12`** Put the confidentiality line then the organisation's site left of the footer rule. — `references/design-rules.md:1042`
+- **`D12`** Carry the handling terms and the document's origin on every page. — `references/design-rules.md:1050`
+- **`D12`** Put the confidentiality line then the organisation's site left of the footer rule. — `references/design-rules.md:1051`
 - **`D14`** Let no unreplaced placeholder or author slot survive into the delivered document. — `SKILL.md:264`
-- **`D14`** Let no author placeholder reach the reader. — `references/design-rules.md:1078`
+- **`D14`** Let no author placeholder reach the reader. — `references/design-rules.md:1087`
 - **`D14`** Ship no [TO FILL] placeholder in a finished document. — `references/storyline-templates.md:566`
-- **`D15`** Never print a repository or file path in a footer source line. — `references/design-rules.md:1070`
+- **`D15`** Never print a repository or file path in a footer source line. — `references/design-rules.md:1079`
 - **`D20`** Copy the shipped token block into the document rather than inventing a palette. — `SKILL.md:395`
 - **`D20`** Sizes may be set per page; colour tokens may not be redefined. — `SKILL.md:402`
 - **`D20`** Copy the shipped colour token values exactly into the deliverable. — `references/design-rules.md:35`
@@ -114,13 +114,13 @@ Only the rules a script can fail you for, from the register. The full contract �
 - **`D20`** Never use warm cream as the canvas. — `references/design-rules.md:60`
 - **`D20`** Use #1D1D1F for the dark canvas and #2C2C2E for its cards. — `references/design-rules.md:62`
 - **`D22`** Give every page one of the layouts tokens/ defines. — `references/design-rules.md:418`
-- **`D22`** Give every page a layout class the shipped tokens define. — `references/design-rules.md:1439`
+- **`D22`** Give every page a layout class the shipped tokens define. — `references/design-rules.md:1453`
 - **`D24`** Ship every image inside the file as a data: URI, never as a link. — `SKILL.md:437`
-- **`D24`** Embed every image in the file as a data: URI rather than linking it. — `references/design-rules.md:1553`
+- **`D24`** Embed every image in the file as a data: URI rather than linking it. — `references/design-rules.md:1567`
 - **`D25`** Name every image's source and licence terms in the document. — `SKILL.md:438`
-- **`D25`** Name every image's origin and terms on the page. — `references/design-rules.md:1557`
-- **`D25`** Name the licence for any image that is not public domain or CC0. — `references/design-rules.md:1560`
-- **`D33`** Take every icon from the two sets this package ships; never draw one ad hoc. — `references/design-rules.md:1129`
+- **`D25`** Name every image's origin and terms on the page. — `references/design-rules.md:1571`
+- **`D25`** Name the licence for any image that is not public domain or CC0. — `references/design-rules.md:1574`
+- **`D33`** Take every icon from the two sets this package ships; never draw one ad hoc. — `references/design-rules.md:1138`
 - **`D39`** Carry one mark twice — the cover's and the closing's are the same mark. — `references/brand.md:364`
 - **`D40`** Carry the locked field globe on the cover and the closing unless the document declares the replacement the owner asked for. — `references/storyline-templates.md:532`
 - **`M12`** Keep an English deliverable free of Chinese in text a reader sees. — `references/writing-rules.md:39`
@@ -140,20 +140,20 @@ Only the rules a script can fail you for, from the register. The full contract �
 - **`M9`** Bind the em-dash ban on training material exactly as on sales material. — `references/storyline-templates.md:113`
 - **`M9`** Use no em dashes or en dashes in sales, marketing, consulting or training deliverables; internal analysis alone is exempt. — `references/writing-rules.md:391`
 - **`M9`** Exempt a digit-to-digit range from the dash ban, but write a letter-digit span as "C1 to C8". — `references/writing-rules.md:399`
-- **`collision`** Let nothing land on anything: no text on text and no text on any drawn element. — `references/design-rules.md:1392`
-- **`content_hidden`** Never clamp or hide overflow in a title block. — `references/design-rules.md:1419`
-- **`content_spill`** Keep the deepest ink on a page above the footer rule. — `references/design-rules.md:1507`
+- **`collision`** Let nothing land on anything: no text on text and no text on any drawn element. — `references/design-rules.md:1406`
+- **`content_hidden`** Never clamp or hide overflow in a title block. — `references/design-rules.md:1433`
+- **`content_spill`** Keep the deepest ink on a page above the footer rule. — `references/design-rules.md:1521`
 - **`datum`** Start the content area at the same height on every page of a geometry. — `references/brand.md:253`
-- **`datum`** Start content at one datum per geometry. — `references/design-rules.md:1358`
+- **`datum`** Start content at one datum per geometry. — `references/design-rules.md:1372`
 - **`deck_structure`** Open a deck with a cover and end it with a closing page, each carrying the single vector mark. — `SKILL.md:663`
 - **`deck_structure`** Open a deck with a cover and end it with a closing page. — `references/storyline-templates.md:497`
-- **`page_height`** Render every section at exactly the page geometry's height. — `references/design-rules.md:1232`
-- **`page_height`** Make each page a fixed box, scaled and letterboxed. — `references/design-rules.md:1508`
+- **`page_height`** Render every section at exactly the page geometry's height. — `references/design-rules.md:1241`
+- **`page_height`** Make each page a fixed box, scaled and letterboxed. — `references/design-rules.md:1522`
 - **`privacy_terms`** Carry none of the engagement's out-of-bounds terms in a deliverable, and name the list so the check can be attempted at all. — `references/operating-rules.md:232`
-- **`reserve_overspent`** Treat the title block's reserved height as a ceiling. — `references/design-rules.md:1410`
+- **`reserve_overspent`** Treat the title block's reserved height as a ceiling. — `references/design-rules.md:1424`
 - **`role_split`** Render every repeating role exactly one way across the deck. — `references/brand.md:235`
-- **`role_split`** Render each repeated role exactly one way across the document. — `references/design-rules.md:1354`
-- **`title_two_lines`** Keep a title to one line where it fits and never past two. — `references/design-rules.md:1166`
+- **`role_split`** Render each repeated role exactly one way across the document. — `references/design-rules.md:1368`
+- **`title_two_lines`** Keep a title to one line where it fits and never past two. — `references/design-rules.md:1175`
 - **`title_two_lines`** Set no word ceiling on a title; the only limit is the two-line budget. — `references/storyline-templates.md:633`
 
 ### The cover (2)
@@ -178,30 +178,30 @@ Only the rules a script can fail you for, from the register. The full contract �
 - **`opener_pacing`** Target about five content pages between part openers and never run past six without a seam. — `references/storyline-templates.md:593`
 - **`opener_subject_mark`** Use the filled koboyo silhouettes for part-opener subject marks only. — `SKILL.md:459`
 - **`opener_subject_mark`** Allow at most one oversized filled subject silhouette on a part opener. — `references/design-rules.md:413`
-- **`opener_subject_mark`** Use the filled silhouette set only for part-opener subject marks. — `references/design-rules.md:1097`
-- **`opener_subject_mark`** Make an opener's subject mark fill-based, never stroke-based. — `references/design-rules.md:1156`
+- **`opener_subject_mark`** Use the filled silhouette set only for part-opener subject marks. — `references/design-rules.md:1106`
+- **`opener_subject_mark`** Make an opener's subject mark fill-based, never stroke-based. — `references/design-rules.md:1165`
 - **`opener_subject_mark`** Permit exactly one oversized filled silhouette, carrying no text, on an opener. — `references/storyline-templates.md:585`
 - **`opener_subject_mark`** Give each part opener its own subject silhouette; two parts may not share one. — `references/storyline-templates.md:588`
 
 ### A content page (19)
 
-- **`D20`** Retint a library shape only along the accent ladder, never by introducing a colour. — `references/design-rules.md:1027`
-- **`D21`** Have every mark that encodes a quantity declare that quantity in the markup. — `references/design-rules.md:817`
+- **`D20`** Retint a library shape only along the accent ladder, never by introducing a colour. — `references/design-rules.md:1036`
+- **`D21`** Have every mark that encodes a quantity declare that quantity in the markup. — `references/design-rules.md:826`
 - **`D32`** Follow the question to framework to shape chain, drawing a declared move with the library shapes that framework names. — `references/analysis-rules.md:107`
-- **`D37`** Keep the caption below a figure to the number and the name; the source line goes inside the drawing. — `references/design-rules.md:701`
-- **`D37`** Put the source line inside the drawing, not in the caption beside it. — `references/design-rules.md:702`
-- **`caption_name_wrap`** Hold a figure's name to one line at the document's geometry, shortening it rather than setting it smaller. — `references/design-rules.md:690`
+- **`D37`** Keep the caption below a figure to the number and the name; the source line goes inside the drawing. — `references/design-rules.md:710`
+- **`D37`** Put the source line inside the drawing, not in the caption beside it. — `references/design-rules.md:711`
+- **`caption_name_wrap`** Hold a figure's name to one line at the document's geometry, shortening it rather than setting it smaller. — `references/design-rules.md:699`
 - **`content_hidden`** Never clamp or hide overflow on the title block. — `SKILL.md:492`
 - **`figure_axis_named`** Name the axes of any figure that puts numbers on a scale, with the shipped classes. — `references/design-rules.md:641`
-- **`figure_axis_orientation`** Set the y-axis name upright reading bottom to top at the left of its axis, and the x-axis name level below its line. — `references/design-rules.md:649`
-- **`figure_axis_overlap`** Keep both axis names clear of the region the marks occupy. — `references/design-rules.md:654`
-- **`figure_clipped`** Keep every drawn element inside its figure's viewBox. — `references/design-rules.md:1334`
-- **`figure_distorts`** Draw a mark's length in proportion to its declared value, with no minimum-width floor. — `references/design-rules.md:819`
-- **`figure_viewbox`** Edit a figure's viewBox with the shape, so the box a figure declares is the box it draws in. — `references/design-rules.md:1335`
+- **`figure_axis_orientation`** Set the y-axis name upright reading bottom to top at the left of its axis, and the x-axis name level below its line. — `references/design-rules.md:658`
+- **`figure_axis_overlap`** Keep both axis names clear of the region the marks occupy. — `references/design-rules.md:663`
+- **`figure_clipped`** Keep every drawn element inside its figure's viewBox. — `references/design-rules.md:1343`
+- **`figure_distorts`** Draw a mark's length in proportion to its declared value, with no minimum-width floor. — `references/design-rules.md:828`
+- **`figure_viewbox`** Edit a figure's viewBox with the shape, so the box a figure declares is the box it draws in. — `references/design-rules.md:1344`
 - **`reserve_overspent`** Shorten the title text when the title block does not fit. — `SKILL.md:491`
 - **`reserve_overspent`** Treat the title reserve as a ceiling — two title lines plus one support line — and shorten text rather than grow it. — `references/brand.md:260`
-- **`role_weight`** Render a repeating block's row name at title weight, not body weight. — `references/design-rules.md:852`
-- **`starved_column`** Start side-by-side cells on one line with comparable weight. — `references/design-rules.md:1481`
+- **`role_weight`** Render a repeating block's row name at title weight, not body weight. — `references/design-rules.md:861`
+- **`starved_column`** Start side-by-side cells on one line with comparable weight. — `references/design-rules.md:1495`
 - **`title_two_lines`** Keep a headline within two lines at the design viewport. — `references/design-rules.md:385`
 - **`visual_absent`** Carry at least one visual block on every content page. — `SKILL.md:474`
 

@@ -646,6 +646,15 @@ axis name. *Owner ruling 2026-08-22, taken knowing the cost: every document
 built before the classes shipped fails this until it is rebuilt, the accepted
 reference among them (10 of its 10 scaled figures). See GAP-027.*
 
+**And "a number on a scale" means a quantity, not a name with a digit in it.**
+This sentence exists because the rule never said, so the script's regex became
+the rule by default — and it admitted `AP2`, `x402`, `R1` and `Q3`, which made
+a 2x2 of quadrant tags a figure that scales numbers. Two builds then added axis
+names to diagrams that have no scale rather than argue with a gate (FM-13). A
+value carries a unit, a currency or a sign; a category tag carries a letter in
+front of its digits. What still cannot be separated by pattern is a digit-LED
+name — `5G` beside `3.5x` — and that is GAP-034 rather than a guess.
+
 **An axis NAME sits outside the plot, and the vertical one reads upward.** The
 horizontal axis's name goes below its line, level. The vertical axis's name goes
 to the LEFT of its line, set upright reading bottom to top — `tokens/` ships
@@ -1338,7 +1347,12 @@ A layout is verified only across the **matrix**, not at a point:
   2. **Every label inside its own shape, at the corners.** Test the text's four
      bbox corners with `isPointInFill`, not the midline: against a sloped edge the
      midline fits while the corners cross, which is exactly how a sentence in a
-     diamond passed inspection and read as struck through.
+     diamond passed inspection and read as struck through. **The ink-on-ink
+     check works the same way from 0.1.598**, and did not before: it compared
+     bounding boxes, so a stroke-only connector — black by SVG's initial fill,
+     and as wide as its own diagonal — collided with every diamond it pointed
+     at, and a build spent a round rerouting arrows as elbows. This section had
+     prescribed the remedy for years and the probe had never called it.
   3. **Re-run both after any type-size change.** Raising the type floor moved
      seven labels out of their boxes at once. §7's language axis already said to
      re-inspect fixed-coordinate SVG boxes after a text change; a size change is

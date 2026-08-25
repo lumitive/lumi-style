@@ -1,0 +1,24 @@
+{
+  "version": "0.1.598",
+  "diff_base": "0bcc5e16d36feb0d315f8b1b561d23742b5931f5",
+  "spec": "specs/2026-08-25-round-6-retrospective-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "f04602e1e4dabf54880d35f1a127e018812a9c892b096ad3bdbb2f17779ea4dd",
+      "date": "2026-08-25"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board is stale and this release does not refresh it. This release is the retrospective ON round 6 \u2014 it repairs three figure gates that two agents of that round hit and worked around by editing their deliverables. Re-running the multi-agent board now would score agents against the checkers this branch is still changing, and the six remaining releases touch the driver, the trace and the scaffold that every conformance task runs through. The honest refresh is one round driven after the branch lands, and it is the next thing owed. 0.1.596 and 0.1.597 carried this waiver and round 6 duly happened; the same reasoning applies here, one branch later."
+    }
+  ]
+}

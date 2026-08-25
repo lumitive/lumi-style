@@ -246,6 +246,20 @@ PROBE = r"""
   // dimensions must clear it. Calibrated on the accepted reference deck and
   // this package's own passing fixture, which must report zero.
   const GLYPH_OVERLAP_W = 20, GLYPH_OVERLAP_H = 6;
+  // A VALUE IS A QUANTITY, NOT A NAME THAT HAPPENS TO CONTAIN A DIGIT. The
+  // prefix was `[^\d]{0,3}`, which admits any three characters — so `AP2`,
+  // `x402`, `R1`, `P0`, `Q3`, `S3`, `H100`, `v1.2` and `T+1` all read as
+  // numbers on a scale, and two of them in one drawing made a 2x2 of quadrant
+  // tags "a figure that scales numbers". Both builds of the 2026-08-25
+  // validation round then edited their DOCUMENTS to silence it: one added axis
+  // names to 2x2s that have no scale, the other merged a figure's labels into
+  // one <text> so its textContent ran past the fourteen-character ceiling.
+  // FM-13 — a false positive that edits the deliverable is worse than a miss.
+  // So: a LETTER may not lead the digits, and the currencies that legitimately
+  // do are named. What this still cannot separate is a digit-LED name from a
+  // measured one — `5G`, `4K` and a bare `2024` are the same shape as `3.5x`
+  // and `4.2m` — and that is recorded rather than guessed at (KNOWN_GAPS).
+  const VALUE_TEXT = /^(?:US\$|RMB|HK\$|[^\p{L}\d]){0,3}[\d][\d.,\s]*[^\d]{0,4}$/u;
   const ROLE_WEIGHT_SELECTORS = __ROLE_WEIGHT_SELECTORS__;
   const AGENDA_WORDS = __AGENDA_WORDS__;
   const TEXT_SEL = 'p,li,dt,dd,h1,h2,td,th,.k,.v,.g,.say,.gd,.key,.note,.listhead,'
@@ -801,8 +815,9 @@ PROBE = r"""
         // required the digits to come first and allowed only Latin units, so
         // `US$4.2m`, `41％` and `4.2亿` all read as "not a number" — which
         // silently exempted every Chinese-language figure from the check.
-        if (v.length <= 14 && /\d/.test(v)
-            && /^[^\d]{0,3}[\d][\d.,\s]*[^\d]{0,4}$/.test(v)) numeric++;
+        // The predicate itself is `VALUE_TEXT`, named so a test can run the
+        // probe's own regex rather than a copy of it.
+        if (v.length <= 14 && /\d/.test(v) && VALUE_TEXT.test(v)) numeric++;
       });
       // TWO, not three. This package's own bar charts carry exactly two value
       // labels, so a bar of three made `figScaled` zero on all ten figures of
@@ -890,10 +905,21 @@ PROBE = r"""
         const oy = Math.min(r.bottom, py1) - Math.max(r.top, py0);
         const vertical = /vertical/.test(getComputedStyle(n).writingMode);
         const wantsVertical = n.classList.contains('axname-y');
+        // THE MOVE, not just the overlap. The finding used to carry the page,
+        // the name and the size of the intersection — everything except the
+        // one thing the author has to decide. A 2026-08 build spent three
+        // rounds moving one label by trial and said so in its report. The
+        // direction is not a guess: design-rules §4 already fixes it, an x
+        // name below its line and a y name to the left of its, so the shortest
+        // legal move is the distance to the far edge of the plot in that one
+        // direction.
+        const clear = wantsVertical
+          ? {dir: 'left', by: Math.ceil(inPageUnits(r.right - px0))}
+          : {dir: 'down', by: Math.ceil(inPageUnits(py1 - r.top))};
         axisNames.push({
           text: (n.textContent || '').trim().slice(0, 40),
           over: (ox > GLYPH_OVERLAP_W && oy > GLYPH_OVERLAP_H)
-                ? {w: inPageUnits(ox), h: inPageUnits(oy)} : null,
+                ? {w: inPageUnits(ox), h: inPageUnits(oy), clear} : null,
           misturned: vertical !== wantsVertical,
         });
       }
@@ -933,9 +959,28 @@ PROBE = r"""
         const r = e.getBoundingClientRect();
         if (r.width < 3 || r.height < 3) return;
         marks.push({tag: e.tagName.toLowerCase(), x: r.x, y: r.y,
-                    w: r.width, h: r.height,
+                    w: r.width, h: r.height, el: e,
                     txt: (e.textContent || '').trim().slice(0, 24)});
       });
+      // WHERE THE INK ACTUALLY IS, not where the box is. Two axis-aligned
+      // rectangles intersecting says nothing about a diagonal connector
+      // crossing a diamond: they share a bbox corner and no ink. SVG's initial
+      // `fill` is BLACK, so a stroke-only <line> computes a fill and was
+      // admitted as a solid mark whose extent is its whole diagonal — a 2026-08
+      // build lost a round rerouting two arrows as elbows to silence exactly
+      // that. design-rules.md §8 has prescribed `isPointInFill` corner-testing
+      // for figures since it was written and nothing in this file called it.
+      // Unmeasurable KEEPS the finding: a silent skip is not a pass.
+      const inkAt = (m, cx, cy) => {
+        const el = m.el, ctm = el.getScreenCTM && el.getScreenCTM();
+        if (!ctm || !el.isPointInFill) return true;
+        const p = new DOMPoint(cx, cy).matrixTransform(ctm.inverse());
+        if (el.isPointInFill(p)) return true;
+        const cs = getComputedStyle(el);
+        const stroked = cs.stroke && cs.stroke !== 'none'
+                        && parseFloat(cs.strokeWidth) > 0;
+        return stroked && el.isPointInStroke ? el.isPointInStroke(p) : false;
+      };
       for (let i = 0; i < marks.length; i++) {
         for (let j = i + 1; j < marks.length; j++) {
           const a = marks[i], b = marks[j];
@@ -959,8 +1004,23 @@ PROBE = r"""
           // reference failed three pages the first time this ran. What a
           // reader sees as broken is ABSOLUTE — ink the size of a word, not a
           // fraction of a glyph.
-          if (ox < 12 || oy < 12) continue;
-          figInk.push({w: Math.round(ox), h: Math.round(oy),
+          // CONFIRM ON THE GEOMETRY BEFORE MEASURING THE FLOOR. Sample the
+          // intersection and keep only the part where BOTH marks really paint;
+          // the confirmed extent is then what the floor above is applied to,
+          // so the number finally means what its comment says it means.
+          const x0 = Math.max(a.x, b.x), y0 = Math.max(a.y, b.y);
+          const step = Math.max(2, Math.min(ox, oy) / 12);
+          let cx0 = Infinity, cy0 = Infinity, cx1 = -Infinity, cy1 = -Infinity;
+          for (let px = x0 + step / 2; px < x0 + ox; px += step)
+            for (let py = y0 + step / 2; py < y0 + oy; py += step)
+              if (inkAt(a, px, py) && inkAt(b, px, py)) {
+                cx0 = Math.min(cx0, px); cy0 = Math.min(cy0, py);
+                cx1 = Math.max(cx1, px); cy1 = Math.max(cy1, py);
+              }
+          if (!isFinite(cx0)) continue;          // the boxes met; the ink did not
+          const cw = cx1 - cx0 + step, ch = cy1 - cy0 + step;
+          if (cw < 12 || ch < 12) continue;
+          figInk.push({w: Math.round(cw), h: Math.round(ch),
                        a: a.txt || a.tag, b: b.txt || b.tag});
         }
       }
@@ -3829,7 +3889,9 @@ def deliverable_verdicts(rows, consistency):
     add("figure_axis_overlap", _axis_names_over_plot(live), not axis_declared,
         lambda h: (f"{len(h)} axis name(s) lie across the plot they name: "
                    + ", ".join(f"{x['id']} {x['text']!r} "
-                               f"({x['over']['w']}x{x['over']['h']}px)"
+                               f"({x['over']['w']}x{x['over']['h']}px — move it "
+                               f"{x['over']['clear']['by']}px "
+                               f"{x['over']['clear']['dir']})"
                                for x in h[:3])))
     add("figure_axis_orientation", _axis_names_misturned(live), not axis_declared,
         lambda h: (f"{len(h)} axis name(s) face the wrong way — the y name "

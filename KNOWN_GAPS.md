@@ -75,6 +75,28 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-034 · A digit-LED name still reads as a value on a scale
+
+- status: open — **observed, and deliberately not guessed at**
+- opened: 0.1.598
+- surface: scripts/check/inspect_layout.py (`VALUE_TEXT`, the `figScaled`
+  loop), which feeds the gating `figure_axis_named`
+- symptom: 0.1.598 stopped a LETTER-led name — `AP2`, `x402`, `R1`, `P0`,
+  `Q3`, `H100`, `v1.2`, `T+1` — from counting as a quantity, because two of
+  them in one drawing made a 2x2 of quadrant tags "a figure that puts numbers
+  on a scale" and two independent builds edited their deliverables to silence
+  it. A DIGIT-led name is untouched: `5G`, `4K` and a bare `2024` still count.
+  That is not an oversight. They are the same shape as `3.5x` and `4.2m`,
+  which are measurements, so no pattern separates the two and a fix here would
+  be a guess dressed as a rule — the FM-13 move, committed while fixing FM-13.
+- the cost, stated: a timeline of year labels, or a network-generation
+  comparison, is still asked for axis names it may not need.
+- check: does any document on record carry a figure whose only qualifying
+  texts are digit-led names? Run `figScaled`/`figUnnamedAxes` over the corpus
+  and read the texts that produced each count. Two such documents is the
+  documented case convention 2 asks for; until then this is a note, not a
+  change.
+
 ## GAP-033 · The framework registry reaches 23 of the library's 206 shapes
 
 - status: open
