@@ -91,7 +91,22 @@ FURNITURE = re.compile(r"^\d+\s*/\s*\d+$|^figure\s*\d+$|^\d{4}-\d{2}(-\d{2})?$",
                        re.I)
 # The package's own version stamp rides every colophon. It is provenance, not a
 # claim the contract has to authorise.
-VERSION = re.compile(r"\b\d+\.\d+\.\d+\b")
+# THE LEADING BOUNDARY WAS THE BUG. `\b` before the first digit is satisfied by
+# a space and defeated by a letter, so `v0.1.597` kept its stamp and `\b597`
+# then matched QUANTITY: a colophon typed with a `v` invented an unsourced
+# number and tripped the gate that guards red line 1, while the bare form went
+# through. Which way it fell depended on how the author typed a version string
+# nobody reads as a claim (0.1.599).
+VERSION = re.compile(r"(?<![\w.])v?\d+\.\d+\.\d+(?!\d)", re.I)
+# A caption ordinal, a page number and a step number are the document's own
+# apparatus. `FURNITURE` above has said so since it was written — and it is
+# consulted only in the PROPER-NOUN branch, so the quantity branch never saw
+# it. `Figure 3` was invisible only because QUANTITY's last alternative needs
+# two digits; `Figure 10` was a claim about a quantity. Four words, each one
+# already declared furniture somewhere in this file, and no more: `table`,
+# `exhibit` and `section` are speculation until a document produces one
+# (convention 2).
+ORDINAL_LABEL = re.compile(r"\b(?:figure|fig\.?|page|step)\s*0*\d+\b", re.I)
 STOP_NOUNS = frozenset("""
 The This That These Those Source Sources Every Each Which What When Where Why
 Not Note Only One Two Three Four Five Six Seven Eight Nine Ten Part Page Figure
@@ -131,6 +146,12 @@ def _visible(html: str) -> str:
     # Both are furniture: without these two the check reported `08` eighteen
     # times, once per source line, and `02`/`03`/`04` once per numbered stage.
     s = re.sub(r"\b\d{4}-\d{2}(?:-\d{2})?\b", " ", s)
+    # BEFORE the ordinal strip below rather than instead of it: this one takes
+    # the whole label ("Figure 10", "Page 00"), that one takes a bare
+    # zero-padded ordinal wherever it stands. The lookahead below cannot do
+    # this job — `(?<![\d.])0\d(?![\d.])` is defeated by the full stop in
+    # "Page 00." and never saw a two-digit caption at all.
+    s = ORDINAL_LABEL.sub(" ", s)
     # BEFORE the ordinal strip below, which would otherwise take the `00` out of
     # `22:00` and leave a bare `22` that the clock rule in `facts()` can no
     # longer recognise. Two strips in two files is not duplication here: this
