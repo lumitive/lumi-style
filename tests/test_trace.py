@@ -619,3 +619,83 @@ def test_a_trace_opened_before_the_shape_field_still_closes(tmp_path):
         capture_output=True, text=True, env=env, cwd=ROOT)
     assert p.returncode == 0, p.stderr[-600:]
     assert isinstance(json.loads(stored.read_text()).get("shape"), dict)
+
+
+# --- one document, one trace (0.1.602) --------------------------------------
+# A build is N rounds and the driver re-scaffolds each one, so a five-round
+# build opened five traces; `--fast` — the loop the build card recommends —
+# closes none of them, so four were left abandoned. The local store held 28.
+
+def test_a_second_scaffold_over_the_same_deck_reuses_its_trace(tmp_path):
+    """Identity is the document, not the round that produced it."""
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    deck = tmp_path / "deck.en.html"
+    def scaffold():
+        out = subprocess.run(
+            [sys.executable, str(ROOT / "scripts/ops/new_deck.py"),
+             "--storyline", "gtm", "--genre", "internal", "--pages", "2",
+             "--entry-path", "B", "--out", str(deck)],
+            capture_output=True, text=True, env=env, cwd=ROOT, check=True)
+        raw = deck.read_text(encoding="utf-8")
+        m = re.search(r'data-trace="(t-[0-9a-f]{12})"', raw)
+        assert m, out.stdout + out.stderr
+        return m.group(1)
+    first, second = scaffold(), scaffold()
+    assert first == second, "the second round opened a new trace for one deck"
+    traces = sorted(p.name for p in tmp_path.glob("t-*.json"))
+    assert len(traces) == 1, f"one deck left {len(traces)} traces: {traces}"
+
+
+def test_close_accumulates_phase_seconds(tmp_path):
+    """`phase stop` adds and `close --phase` assigned, so a re-close lost time.
+
+    A build's checks phase is the sum of its rounds' check runs; overwriting it
+    reports the last round and calls it the build.
+    """
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    tid = subprocess.run(
+        [sys.executable, str(TRACE_PY), "open", "--genre", "internal",
+         "--storyline", "proposal", "--entry-path", "B"],
+        capture_output=True, text=True, env=env, cwd=ROOT, check=True).stdout.strip()
+    deck = tmp_path / "d.en.html"
+    deck.write_text("<html><body></body></html>", encoding="utf-8")
+    for _ in range(2):
+        subprocess.run([sys.executable, str(TRACE_PY), "close", "--id", tid,
+                        "--deliverable", str(deck), "--phase", "checks", "3"],
+                       capture_output=True, text=True, env=env, cwd=ROOT, check=True)
+    rec = json.loads((tmp_path / f"{tid}.json").read_text(encoding="utf-8"))
+    assert rec["phase_seconds"]["checks"] == 6, (
+        f"a second close overwrote the first's seconds: {rec['phase_seconds']}")
+
+
+def test_a_fixing_loop_leaves_one_trace_and_closes_it(tmp_path):
+    """The whole loop, end to end: two fixing rounds and a delivery round.
+
+    `--fast` is the loop the build card recommends and it does not close a
+    trace, which was correct — an author's iteration is not a delivery reading.
+    What was wrong is that each round also OPENED one, so a five-round build
+    left four records the ledger counted as abandoned builds. Reuse makes the
+    two facts consistent: the trace stays open across the loop and the delivery
+    round closes it.
+    """
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    deck = tmp_path / "deck.en.html"
+    for _ in range(3):
+        subprocess.run(
+            [sys.executable, str(ROOT / "scripts/ops/new_deck.py"),
+             "--storyline", "gtm", "--genre", "internal", "--pages", "2",
+             "--entry-path", "B", "--out", str(deck)],
+            capture_output=True, text=True, env=env, cwd=ROOT, check=True)
+    traces = sorted(tmp_path.glob("t-*.json"))
+    assert len(traces) == 1, f"a three-round loop left {len(traces)} traces"
+    tid = traces[0].stem
+    subprocess.run([sys.executable, str(TRACE_PY), "phase", "stop", "build",
+                    "--id", tid], capture_output=True, text=True, env=env, cwd=ROOT)
+    subprocess.run([sys.executable, str(TRACE_PY), "close", "--id", tid,
+                    "--deliverable", str(deck), "--phase", "checks", "5"],
+                   capture_output=True, text=True, env=env, cwd=ROOT, check=True)
+    records = [json.loads(p.read_text(encoding="utf-8"))
+               for p in tmp_path.glob("t-*.json")]
+    abandoned = [t["trace_id"] for t in records if not t.get("closed_at")]
+    assert abandoned == [], f"the loop left an abandoned record: {abandoned}"
+    assert records[0]["phase_seconds"]["checks"] == 5

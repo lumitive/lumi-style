@@ -187,6 +187,14 @@ def render() -> str:
       "`--debug-log` writes the execution log as a side effect rather than one "
       "wrapped command per turn.")
     w("")
+    w("**Run it as many rounds as the build needs.** The record is the deck's, "
+      "not the round's: re-running the driver on the same `--deck` continues "
+      "the debug log (each entry stamped with its round) and reuses the "
+      "document's trace, so the build clock accumulates and the loop leaves no "
+      "abandoned record. `--new-build` starts a fresh record on purpose; "
+      "`--keep-scaffold` re-fills a deck without scaffolding over it, which is "
+      "what you want when a fill script is what changed.")
+    w("")
     w("**Placing labels on a library shape?** `assets/shapes/geometry.json` "
       "carries every unit's viewBox, the four `use` attributes that put it on "
       "frame, and its aspect. All 206 origins are non-zero, so composing "

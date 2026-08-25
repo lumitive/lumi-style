@@ -483,6 +483,14 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   2026-08-21 run measured it: Cursor's single T1-deck task opened **three**
   `source: build` traces in this repository (17:44:29, 17:45:21, 17:49:01),
   all left open, none of them a build of anything this repository ships.
+- **that evidence had two causes and this entry named one of them.** Three
+  records from one task is not the store's location at all — it is the trace
+  LIFECYCLE: the driver re-scaffolded every round and the scaffold opened a
+  fresh trace each time, while `--fast` (the documented author's loop) closed
+  none of them. That half closed at 0.1.602, where a trace became the
+  document's rather than the round's. The location half — `TRACES` resolving
+  to the install directory, so a driven agent's record lands in the package —
+  is untouched, and is why this stays open.
   Two harms, one mechanical and one statistical. `release.py` stages with
   `git add -A`, so a stranger's traces are one release away from being
   committed as the owner's. And `ledger.py --board` reads every stored trace,

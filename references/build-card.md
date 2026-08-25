@@ -1,4 +1,4 @@
-# LUMI build card · 0.1.601
+# LUMI build card · 0.1.602
 
 > **GENERATED** by `scripts/build/build_card.py` from `evals/rule-coverage.json`, `evals/gates.json` and `tokens/`. `--check` runs in CI. Never hand-edit: edit the rule, or the register, and regenerate.
 
@@ -29,6 +29,8 @@ python3 scripts/ops/build.py --deck <out.html> --script <fill.py> \
 **`--entry-path` is not optional in practice.** A is the four-beat discussion, B starts from a recipe. Without it the scaffold opens NO TRACE, which looks exactly like the deliberate `--no-trace` opt-out and is only caught at the end, by `check_deliverable` reporting the build `unmeasured` after every stage has already run. It used to be guessed from whether an `--outline` was present, and an outline is used on both paths, so replays were recorded as original builds.
 
 `--fast` while fixing (the declared stage only, every gate still running); `--deliver` on the last round (full matrix, and the contact sheet whose path it prints — look at it, that is the last gate). `--debug-log` writes the execution log as a side effect rather than one wrapped command per turn.
+
+**Run it as many rounds as the build needs.** The record is the deck's, not the round's: re-running the driver on the same `--deck` continues the debug log (each entry stamped with its round) and reuses the document's trace, so the build clock accumulates and the loop leaves no abandoned record. `--new-build` starts a fresh record on purpose; `--keep-scaffold` re-fills a deck without scaffolding over it, which is what you want when a fill script is what changed.
 
 **Placing labels on a library shape?** `assets/shapes/geometry.json` carries every unit's viewBox, the four `use` attributes that put it on frame, and its aspect. All 206 origins are non-zero, so composing against an estimated one draws outside the viewBox — that is `figure_clipped`, and a rebuild round. It also says what share of the figure box a unit will ink: **160 of the 206 come in under 55%**, and the scaffold says so at the moment you pick one.
 

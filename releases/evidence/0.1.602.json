@@ -1,0 +1,24 @@
+{
+  "version": "0.1.602",
+  "diff_base": "e0f45eb02f53870b5a8f97c32f066898370a1ad7",
+  "spec": "specs/2026-08-25-round-6-retrospective-design.md",
+  "obligations": [
+    "scaffold-render",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "scaffold-render",
+      "command": "python3 scripts/ops/new_deck.py --genre internal --storyline market-analysis --pages 10 --parts A,B,C --no-trace --out fixtures/.scaffold-evidence.html && python3 scripts/check/inspect_layout.py --deliverable fixtures/.scaffold-evidence.html",
+      "exit_code": 0,
+      "stdout_sha256": "1d719140d8598963c5a384c98727fd0e51485c42be4446cff111c8100214bd3f",
+      "date": "2026-08-25"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "Mid-branch on the round-6 retrospective, and this release is the reason the refresh must wait rather than an excuse for waiting: it changes what a trace counts, so every efficiency figure a refreshed board would record means something different before and after this commit. Refreshing now would put both readings in one table under one name. One round driven after the branch lands is the next thing owed."
+    }
+  ]
+}
