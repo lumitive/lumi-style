@@ -3691,6 +3691,59 @@ def consistency_print(label, c):
     return unmeasured
 
 
+def _deepest_blocks(hits) -> str:
+    """-> ` — p11 .notes by 24px; ...`, naming the block that runs deepest.
+
+    `deepestWho` has been measured on every page since the probe was written
+    and never reached the verdict, so a spilling page said "runs past the
+    footer rule" and left the author to find which of a dozen blocks was doing
+    it. Measured in a validation round: a build shrank a table from 12px to 9px
+    across several rounds looking for the one that spilled, and its report
+    asked for exactly this — *"the checker does not say the table is the only
+    overflowing block"*.
+    """
+    named = [f"{r.get('id')} .{r.get('deepestWho')} by {round(r.get('spillPx', 0))}px"
+             for r in hits[:4] if r.get("deepestWho")]
+    if not named:
+        return ""
+    more = "" if len(hits) <= 4 else f" (+{len(hits) - 4} more)"
+    return " — deepest: " + "; ".join(named) + more
+
+
+def _worst_clipped(hits) -> str:
+    """-> ` — worst: <tag.class 'text'>, N units out`, or "".
+
+    THE VERDICT LINE IS THE ONE AN AUTHOR ACTS ON, and it named only pages.
+    0.1.594 taught the page report to say which element went outside; this
+    line was left saying "3 pages", and an agent reading it did what the
+    element name exists to prevent — measured in a validation round, where a
+    build spent **three of its eighteen rounds** hand-measuring bounding boxes
+    to find elements the renderer already knew.
+
+    `starved_column` above has done this since it shipped; the difference was
+    never a principle, only that nobody had carried the detail across.
+    """
+    # ONE PER PAGE, not one overall. The build that paid for this line had
+    # three clipped pages and had to hand-measure each; naming only the worst
+    # would have saved it one of the three.
+    named = []
+    for r in hits[:4]:
+        worst = None
+        for c in r.get("clipped") or []:
+            if worst is None or c.get("over", 0) > worst.get("over", 0):
+                worst = c
+        if not worst or not worst.get("tag"):
+            continue
+        who = worst["tag"] + (f".{worst['cls']}" if worst.get("cls") else "")
+        if worst.get("text"):
+            who += f" {worst['text']!r}"
+        named.append(f"{r.get('id')} <{who}> {worst.get('over')} units out")
+    if not named:
+        return ""
+    more = "" if len(hits) <= 4 else f" (+{len(hits) - 4} more)"
+    return " — " + "; ".join(named) + more
+
+
 def deliverable_verdicts(rows, consistency):
     """The gating findings for one file at one geometry, as {name: (verdict, detail)}.
 
@@ -3714,7 +3767,8 @@ def deliverable_verdicts(rows, consistency):
                    f"it: " + _fmt_ids(h) + " — "
                    + "; ".join(x for r in h[:2] for x in r["starved"][:2])))
     add("content_spill", _spilling(live), not footed,
-        lambda h: f"{len(h)} pages run past the footer rule: " + _fmt_ids(h))
+        lambda h: (f"{len(h)} pages run past the footer rule: " + _fmt_ids(h)
+                   + _deepest_blocks(h)))
     add("page_height", _too_tall(live), not live,
         lambda h: f"{len(h)} pages exceed the page box: " + _fmt_ids(h))
     add("content_hidden", _hiding(live), not live,
@@ -3730,8 +3784,9 @@ def deliverable_verdicts(rows, consistency):
         lambda h: f"{len(h)} pages carry a drawing whose viewBox does not parse: "
                   + _fmt_ids(h))
     add("figure_clipped", [r for r in live if r.get("clipped")], not drawn,
-        lambda h: f"{len(h)} pages draw outside a figure's own viewBox, which "
-                  f"clips it away unseen: " + _fmt_ids(h))
+        lambda h: (f"{len(h)} pages draw outside a figure's own viewBox, which "
+                   f"clips it away unseen: " + _fmt_ids(h)
+                   + _worst_clipped(h)))
     # A BAND WHOSE ROW COLLAPSED. Decidable, not aesthetic: the cells are
     # measured against the band's own box, and text outside the box it belongs
     # to is on top of whatever is beneath it.
