@@ -474,7 +474,7 @@ def genre_card(genre: str) -> str:
             read that block whole; fix everything it names in one pass -->"""
 
 
-def open_trace(genre, geometry, storyline, entry_path):
+def open_trace(genre, geometry, storyline, entry_path, out_path=None):
     """-> a trace id, or None when no trace could be opened (and why, on
     stderr). The scaffold is where a build begins, so the record opens here
     and the build clock starts here; check_deliverable.py stops the clock and
@@ -498,8 +498,16 @@ def open_trace(genre, geometry, storyline, entry_path):
     the file fingerprinted was the PLAN while the script that produced every
     page was fingerprinted by nothing — and an outline carries no version
     stamp, so those builds read as `unknown` vintage for ever. The builder does
-    not exist yet at scaffold time; it is recorded afterwards with
-    `trace.py annotate --id <id> --recipe <build script>`.
+    not exist yet at scaffold time; it is recorded afterwards — `build.py` does
+    it from `--script`, which is the file that actually produced the pages.
+
+    **A trace belongs to the DOCUMENT, not to the round that scaffolded it**
+    (0.1.602). A build is N rounds and the driver re-scaffolds each one, so
+    this opened a fresh trace every round; `--fast` — the loop the build card
+    recommends — closes none of them, so N-1 were left abandoned and the build
+    clock covered only the last round. The local store had collected 28. When
+    the deck being written already carries a `data-trace` that resolves in the
+    store, that id is reused and the clock is left running.
     """
     if not storyline:
         print("<!-- no trace opened: a trace declares its storyline, and none "
@@ -514,6 +522,29 @@ def open_trace(genre, geometry, storyline, entry_path):
         return None
     import subprocess
     tool = pathlib.Path(__file__).with_name("trace.py")
+    # THE DECK'S OWN RECORD, IF IT HAS ONE. Reused whether or not it is closed:
+    # identity is the document, and a mid-loop delivery round that closes the
+    # trace must not send the next round back to opening a new one.
+    if out_path is not None:
+        existing = pathlib.Path(out_path)
+        if existing.is_file():
+            import re as _re
+            m = _re.search(r'data-trace="(t-[0-9a-f]{12})"',
+                           existing.read_text(encoding="utf-8"))
+            # Resolved through `trace.py`'s OWN store resolver rather than a
+            # path rebuilt here: `LUMI_TRACES`, the state directory and an
+            # in-repo `evals/traces` all answer to it, and a second copy of
+            # that answer is the shadow-implementation defect this package
+            # keeps closing.
+            if m:
+                found = subprocess.run(
+                    [sys.executable, str(tool), "annotate", "--id", m.group(1)],
+                    capture_output=True, text=True)
+                if found.returncode == 0:
+                    print(f"<!-- trace {m.group(1)} reused: one document, one "
+                          f"record; the build clock is already running -->",
+                          file=sys.stderr)
+                    return m.group(1)
     stage = deliverable_registry.STAGE_OF.get(geometry, "16x9")
     argv = [sys.executable, str(tool), "open", "--genre", genre,
             "--storyline", storyline, "--entry-path", entry_path,
@@ -874,7 +905,7 @@ def main(argv):
     apparatus = 1 if args.genre == "training" else 0
     total = args.pages + 3 + len(parts) + apparatus
     trace_id = None if args.no_trace else open_trace(
-        args.genre, args.geometry, args.storyline, args.entry_path)
+        args.genre, args.geometry, args.storyline, args.entry_path, args.out)
     out = [preamble(args.genre, args.geometry, args.storyline, trace_id,
                     args.lang, args.lang_asked)]
 

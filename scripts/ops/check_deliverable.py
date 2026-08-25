@@ -648,6 +648,15 @@ def main(argv=None) -> int:
         stopped = subprocess.run(stop, capture_output=True, text=True)
         if stopped.returncode == 0:
             print(stopped.stdout.strip())
+        else:
+            # SAY SO. A clock that could not be stopped means the build phase
+            # is missing from the record, and this branch swallowed the reason
+            # — so a `--keep-scaffold` round, which starts no clock because it
+            # runs no scaffold, produced a trace with no build time and no
+            # explanation anywhere. A record with a hole in it should say where
+            # the hole came from.
+            print(f"note  phase stop build: {stopped.stderr.strip()}",
+                  file=sys.stderr)
         close = [sys.executable, str(ROOT / "scripts/ops/trace.py"), "close",
                  "--id", trace_id, "--deliverable", str(a.file),
                  "--phase", "checks", str(checks_seconds)]

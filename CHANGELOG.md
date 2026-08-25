@@ -1,3 +1,44 @@
+## 0.1.602 — one document, one trace; the loop was opening a new one every round
+
+The same false premise as 0.1.601, one file over. The scaffold opens a trace,
+the driver re-scaffolds every round, and `--fast` — the loop `references/build-card.md`
+recommends — closes none of them. So a five-round build opened five records and
+closed one, and `ledger.py` counted the other four as abandoned builds. The
+local store had 28. The build clock covered the last round only, which is why
+one build reports 26 seconds for work that took an hour.
+
+**A trace belongs to the document.** When the deck being scaffolded already
+carries a `data-trace` that resolves in the store, that id is reused and the
+clock is left running — whether or not it is closed, because identity is the
+document and a mid-loop delivery round must not send the next round back to
+opening a new one. `--fast` still does not close, and that stays right: an
+author's iteration is not a delivery reading. What changes is that the two facts
+are now consistent — the record stays open across the loop and the delivery
+round closes it.
+
+`close --phase` now ADDS where it assigned, matching `phase stop` two hundred
+lines above it. A build's checks phase is the sum of its rounds' check runs;
+assigning reported the last round and called it the build. On a fresh trace,
+adding to zero is setting, so nothing else moves.
+
+**And a clock that could not be stopped now says so.** `check_deliverable`
+printed the stop command's output on success and swallowed it on failure, so a
+`--keep-scaffold` round — which starts no clock, because it runs no scaffold —
+produced a trace with no build time and no explanation anywhere. A record with a
+hole in it should say where the hole came from. That was GAP-023's other half:
+the entry attributes "three traces from one task, all left open" to the store's
+location, and the location is only half the cause.
+
+**This changes what the corpus counts.** A trace was a build round and is now a
+document, so `ledger.py`'s denominators, the abandoned count and D31's "11 FAIL
+of 32 recorded" all mean something different from this commit forward. That is
+the reason no bar moves anywhere on this branch (GAP-035).
+
+Deliberate red, planted first: a second scaffold over one deck that opened a
+second trace, and a second close that overwrote the first's seconds. The
+end-to-end test is the loop itself — three rounds, one trace, closed, with the
+checks phase summed.
+
 ## 0.1.601 — nine rounds of evidence, deleted by the tenth
 
 `build.py` restarted the debug log on every round and carried the C1-C8

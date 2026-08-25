@@ -271,7 +271,13 @@ def cmd_close(a):
             sys.exit(f"--phase {phase}: {seconds!r} is not a number of seconds")
         if value <= 0:
             sys.exit(f"--phase {phase}: {seconds!r} must be a positive number")
-        rec["phase_seconds"][phase] = int(value) if value.is_integer() else value
+        # ACCUMULATE, like `phase stop` two hundred lines up. A build is N
+        # rounds and one trace now spans them (0.1.602), so the checks phase is
+        # the sum of the rounds' check runs; assigning reported the last round
+        # and called it the build. A fresh trace is unaffected — adding to zero
+        # is setting.
+        total = rec["phase_seconds"].get(phase, 0) + value
+        rec["phase_seconds"][phase] = int(total) if float(total).is_integer() else total
     for k in ("model", "effort", "agent", "corpus_id"):
         if getattr(a, k, None) is not None:
             rec[k] = getattr(a, k)
