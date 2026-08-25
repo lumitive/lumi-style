@@ -1,3 +1,63 @@
+## 0.1.598 — a name with a digit in it is not a number on a scale
+
+The sixth validation round drove two agents on two platforms from one source
+document. Both delivered green, both wrote a report, and six findings are the
+same finding reached independently — which is this repository's own threshold
+for acting. The expensive three are here, and they share a shape: **a gate
+misfired and the author edited the DELIVERABLE to satisfy it.** FM-13 already
+names that as worse than a miss, because nothing downstream records it. Three
+shipped instances are recorded there now.
+
+**`figure_axis_named` counted names as quantities.** The rules say a figure
+"puts numbers on a scale"; the probe decided it with a regex admitting any three
+characters before the first digit, so `AP2`, `x402`, `R1`, `P0` and `Q3` were
+values, and two of them in one drawing made a 2x2 of quadrant tags a scaled
+figure. One build added axis names to diagrams that have no scale; the other
+merged a figure's labels into a single `<text>` so its `textContent` ran past
+the fourteen-character ceiling. The predicate is now `VALUE_TEXT`, a letter may
+not lead the digits, and the currencies that legitimately do are named. The
+rule in `design-rules.md` §4 gained the sentence it never had — the script's
+regex had been the definition by default.
+
+*The proof is a pair of runs on the two delivered documents.* With both
+workarounds reverted, 0.1.597 fails `figure_axis_named` on each and 0.1.598
+reports `n/a` on each: the same documents, one checker that forces a rewrite
+and one that does not. Neither author had to change anything a reader sees.
+
+**`figure_ink_collision` compared boxes, not ink.** SVG's initial `fill` is
+black, so a stroke-only connector was admitted as a solid mark the size of its
+own diagonal, and it collided with every diamond it pointed at. A build lost a
+round rerouting two arrows as elbows. The check now confirms an intersection by
+sampling it with `isPointInFill` (and `isPointInStroke` for stroked geometry)
+and measures the floor against the confirmed extent — which is what
+`design-rules.md` §8 has prescribed since it was written, and what the probe had
+never called. Deliberate red: the reverted round-three state of the real deck
+reproduces `'polygon' over 'line'` at 15x21px under 0.1.597 and is clean here;
+the broken fixture's genuine `rect` over `polygon` stays red.
+
+**`figure_axis_overlap` was investigated and left alone.** The design carried a
+fourth fix, on the report that a library-shape figure has no in-viewBox position
+its axis name can occupy. Measured, that is false of the artifact it was claimed
+from: the 2x2 occupies 79.5% x 78.4% of its drawing and both names already sit
+inside the viewBox, clear of the shape. The gate fired on a name lying across
+the quadrants, which is what it is for. What the round actually paid for was not
+knowing which way to move, so the finding now carries the shortest legal move —
+`move it 132px down` — in the direction §4 already fixes. The stop condition
+written into the plan is what produced this: tuning a threshold until both
+fixtures agreed would have been FM-13 committed while fixing FM-13.
+
+Deliberate-red runs, each confirmed to fire before the fix: the classifier test
+first failed because the probe had no named predicate, then on the twelve names
+it was counting; the axis-message test on a planted overlap; the ink test on the
+real deck. Every fixture verdict holds — `check_fixtures` still finds a fixture
+that can fail all 66 graded verdicts. What a digit-LED name does (`5G`, a bare
+`2024`) is unchanged and is GAP-034, because it is the same shape as `3.5x` and
+no pattern separates them.
+
+Design record: `specs/2026-08-25-round-6-retrospective-design.md`, which carries
+the whole round's verified findings — including the two report diagnoses that
+turned out to be wrong and are deliberately not implemented.
+
 ## 0.1.597 — the verdict line is the one an author acts on
 
 A validation round drove three agents at 0.1.596 and one of them took eighteen
