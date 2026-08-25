@@ -14,6 +14,13 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TRACE_PY = ROOT / "scripts" / "ops" / "trace.py"
+# THE STORE THE ENVIRONMENT NAMES, not the tracked one. These tests drive the
+# real CLI and then clean up after themselves — which works until one fails
+# midway and leaves its record in `evals/traces/`, where `ledger.py` counts it
+# as an abandoned build and `bar_replay.py` reads its shape. conftest redirects
+# the whole suite to a scratch directory (0.1.606); this follows it rather than
+# hard-coding the path the redirect exists to protect.
+STORE = pathlib.Path(os.environ.get("LUMI_TRACES") or (ROOT / "evals" / "traces"))
 sys.path.insert(0, str(ROOT / "scripts" / "lib"))
 
 import trace_schema as trace  # noqa: E402 — after the path insert, deliberately
@@ -93,7 +100,7 @@ def test_open_then_close_round_trip(tmp_path, monkeypatch):
         capture_output=True, text=True, cwd=ROOT)
     assert opened.returncode == 0
     tid = opened.stdout.strip()
-    stored = ROOT / "evals" / "traces" / f"{tid}.json"
+    stored = STORE / f"{tid}.json"
     try:
         rec = json.loads(stored.read_text(encoding="utf-8"))
         assert rec["closed_at"] is None, "an open trace has no closing time — an "\
@@ -196,7 +203,7 @@ def test_a_trace_whose_stage_contradicts_the_document_is_refused(tmp_path):
         assert p.returncode != 0
         assert "landscape" in p.stderr and "a4" in p.stderr
     finally:
-        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+        (STORE / f"{tid}.json").unlink(missing_ok=True)
 
 
 def test_a_trace_whose_stage_agrees_closes(tmp_path):
@@ -205,7 +212,7 @@ def test_a_trace_whose_stage_agrees_closes(tmp_path):
         p = _close(tid, ROOT / "fixtures" / "deck-pass.en.html")
         assert p.returncode == 0, p.stderr
     finally:
-        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+        (STORE / f"{tid}.json").unlink(missing_ok=True)
 
 
 def test_the_trace_vocabularies_are_the_registry_s_own_objects():
@@ -251,14 +258,14 @@ def test_a_recipe_is_fingerprinted_and_its_own_version_is_read(tmp_path):
     r.write_text("# built with lumi-style 0.1.457\nprint('x')\n")
     tid = _open_with(r).stdout.strip()
     try:
-        rec = json.loads((ROOT / "evals" / "traces" / f"{tid}.json").read_text())
+        rec = json.loads((STORE / f"{tid}.json").read_text())
         assert rec["recipe_hash"] and len(rec["recipe_hash"]) == 12
         assert rec["recipe_version"] == "0.1.457"
         assert rec["skill_version"] != "0.1.457", (
             "the trace's own version is HEAD; that is the whole reason the "
             "recipe needs a separate one")
     finally:
-        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+        (STORE / f"{tid}.json").unlink(missing_ok=True)
 
 
 def test_an_unstamped_recipe_reads_unknown_and_not_current(tmp_path):
@@ -268,13 +275,13 @@ def test_an_unstamped_recipe_reads_unknown_and_not_current(tmp_path):
     r.write_text("print('no stamp anywhere')\n")
     tid = _open_with(r).stdout.strip()
     try:
-        rec = json.loads((ROOT / "evals" / "traces" / f"{tid}.json").read_text())
+        rec = json.loads((STORE / f"{tid}.json").read_text())
         assert rec["recipe_hash"] and rec["recipe_version"] is None
         ledger = _ledger_states(tmp_path)
         state = ledger.ledger_recipes([rec])[0]["state"]
         assert state == "unknown"
     finally:
-        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+        (STORE / f"{tid}.json").unlink(missing_ok=True)
 
 
 def test_the_ledger_tells_the_four_states_apart(tmp_path):
@@ -321,7 +328,7 @@ def test_close_reads_the_tokens_from_a_machine_emitted_usage_file(tmp_path):
                                  "cache_read_input_tokens": 12000}),
                      encoding="utf-8")
     tid = _open(tmp_path, "16x9")
-    stored = ROOT / "evals" / "traces" / f"{tid}.json"
+    stored = STORE / f"{tid}.json"
     try:
         p = _close_with(tid, ROOT / "fixtures" / "deck-pass.en.html",
                         "--usage", str(usage))
@@ -337,7 +344,7 @@ def test_a_usage_file_that_is_not_json_is_refused_not_crashed_on(tmp_path):
     usage = tmp_path / "usage.json"
     usage.write_text("not json {", encoding="utf-8")
     tid = _open(tmp_path, "16x9")
-    stored = ROOT / "evals" / "traces" / f"{tid}.json"
+    stored = STORE / f"{tid}.json"
     try:
         p = _close_with(tid, ROOT / "fixtures" / "deck-pass.en.html",
                         "--usage", str(usage))
@@ -357,7 +364,7 @@ def test_a_usage_file_missing_a_token_key_is_refused(tmp_path):
     usage = tmp_path / "usage.json"
     usage.write_text(json.dumps({"input_tokens": 41000}), encoding="utf-8")
     tid = _open(tmp_path, "16x9")
-    stored = ROOT / "evals" / "traces" / f"{tid}.json"
+    stored = STORE / f"{tid}.json"
     try:
         p = _close_with(tid, ROOT / "fixtures" / "deck-pass.en.html",
                         "--usage", str(usage))
@@ -374,7 +381,7 @@ def test_a_usage_file_with_a_non_integer_count_is_refused(tmp_path):
     usage.write_text(json.dumps({"input_tokens": "41000",
                                  "output_tokens": 9000}), encoding="utf-8")
     tid = _open(tmp_path, "16x9")
-    stored = ROOT / "evals" / "traces" / f"{tid}.json"
+    stored = STORE / f"{tid}.json"
     try:
         p = _close_with(tid, ROOT / "fixtures" / "deck-pass.en.html",
                         "--usage", str(usage))
@@ -387,7 +394,7 @@ def test_a_usage_file_with_a_non_integer_count_is_refused(tmp_path):
 
 def test_a_usage_file_that_does_not_exist_is_refused(tmp_path):
     tid = _open(tmp_path, "16x9")
-    stored = ROOT / "evals" / "traces" / f"{tid}.json"
+    stored = STORE / f"{tid}.json"
     try:
         p = _close_with(tid, ROOT / "fixtures" / "deck-pass.en.html",
                         "--usage", str(tmp_path / "gone.json"))
@@ -439,7 +446,7 @@ def test_the_geometry_cross_check_reads_the_real_body_not_the_decoy(tmp_path):
         p = _close(tid, doc)
         assert p.returncode == 0, p.stderr
     finally:
-        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+        (STORE / f"{tid}.json").unlink(missing_ok=True)
 
 
 def test_annotate_writes_the_link_fields_and_only_those(tmp_path):
@@ -453,11 +460,11 @@ def test_annotate_writes_the_link_fields_and_only_those(tmp_path):
              "--corpus-id", "D15", "--review-ref", "reviews/scores.json 0.1.508 D15"],
             capture_output=True, text=True, cwd=ROOT)
         assert p.returncode == 0, p.stderr
-        rec = json.loads((ROOT / "evals" / "traces" / f"{tid}.json").read_text())
+        rec = json.loads((STORE / f"{tid}.json").read_text())
         assert rec["corpus_id"] == "D15"
         assert rec["review_ref"].startswith("reviews/scores.json")
     finally:
-        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+        (STORE / f"{tid}.json").unlink(missing_ok=True)
 
 
 # --phase wrote strings until 0.1.524. argparse handed both elements of the
@@ -482,13 +489,13 @@ def test_close_parses_phase_seconds_as_numbers_and_ledger_can_sum_them(tmp_path)
              "--phase", "build", "12", "--phase", "checks", "3.5"],
             capture_output=True, text=True, cwd=ROOT)
         assert p.returncode == 0, p.stderr
-        rec = json.loads((ROOT / "evals" / "traces" / f"{tid}.json")
+        rec = json.loads((STORE / f"{tid}.json")
                          .read_text(encoding="utf-8"))
         assert rec["phase_seconds"] == {"build": 12, "checks": 3.5}
         assert sum(v for k, v in rec["phase_seconds"].items()
                    if k in ("build", "checks")) == 15.5
     finally:
-        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+        (STORE / f"{tid}.json").unlink(missing_ok=True)
 
 
 def test_close_refuses_a_phase_that_is_not_a_number(tmp_path):
@@ -501,7 +508,7 @@ def test_close_refuses_a_phase_that_is_not_a_number(tmp_path):
             capture_output=True, text=True, cwd=ROOT)
         assert p.returncode != 0 and "not a number" in p.stderr
     finally:
-        (ROOT / "evals" / "traces" / f"{tid}.json").unlink(missing_ok=True)
+        (STORE / f"{tid}.json").unlink(missing_ok=True)
 
 
 # 0.1.531 — the loop writes the phases itself: the scaffold starts the build
