@@ -2299,7 +2299,16 @@ def measure(path):
         "D21_data_contract": d21_data_contract(raw),
         "D24_images_embedded": d24_images_embedded(raw),
         "D25_image_provenance": d25_image_provenance(raw),
-        "D26_declared_scope": d26_declared_scope(raw, _storyline_of(raw)),
+        "D26_declared_scope": (_ds := d26_declared_scope(raw, _storyline_of(raw))),
+        # THE NUMBER, UNDER THE NAME THE VERDICT USES. `trace.py`'s close step
+        # records a threshold reading only for a key named after the metric
+        # (`value = row.get(mid)`), and D31's value lived inside a dict keyed
+        # D26. So the metric at the top of the ledger's failing table had no
+        # threshold history at all, and `ledger_instruments` could form no
+        # opinion about it in either direction — "a real weakness, or a bar set
+        # wrong" was unanswerable by construction rather than by lack of data.
+        "D31_undeclared_sections": (None if _ds["missing"] is None
+                                    else len(_ds["missing"])),
         "D27_agenda_mirror": (d27 := d27_agenda_mirror(raw)),
         "D27_detail": (d27 or {}).get("orphans"),
         "D28_takeaway": (d28 := d28_takeaway(raw)),
@@ -2464,6 +2473,15 @@ def d24_images_embedded(raw):
 _SCOPE_NOTE = re.compile(
     r"<([a-z]+)\b([^>]*\bdata-omitted\s*=\s*[\"\']([^\"\']*)[\"\'][^>]*)>(.*?)</\1>",
     re.I | re.S)
+# A scope note by ROLE, whether or not it carries the declaration. Subtracted
+# from the coverage corpus: a sentence whose job is to say what the document
+# does not cover must not be the thing that makes it covered. Matching on the
+# class as well as the attribute is deliberate — a note written without
+# `data-omitted` is an undeclared omission, and it should read as one rather
+# than as coverage supplied by its own apology.
+_SCOPE_NOTE_ROLE = re.compile(
+    r"<([a-z]+)\b[^>]*class=\"(?:[^\"]*\s)?scope-note(?:\s[^\"]*)?\"[^>]*>"
+    r"(.*?)</\1>", re.I | re.S)
 _INVISIBLE = re.compile(
     r"display\s*:\s*none|visibility\s*:\s*hidden|\bhidden\b|aria-hidden\s*=\s*"
     r"[\"\']true[\"\']", re.I)
@@ -2509,7 +2527,23 @@ def d26_declared_scope(raw, storyline=None):
     if expected is None:
         return {"storyline": storyline, "missing": None, "hidden": hidden,
                 "declared": sorted(declared)}
-    text = markup.strip_tags(raw).lower()
+    # THE CORPUS IS WHAT A READER MEETS, MINUS WHAT THE DOCUMENT SAYS IT DOES
+    # NOT COVER. Two defects lived on this one line and they compound.
+    #
+    # `strip_tags` keeps what is BETWEEN the tags, so a `<style>` block's own
+    # text counted: injecting one CSS comment naming three sections took a
+    # status report's `missing` from three to zero. `markup.reader_text` was
+    # written for exactly this at 0.1.594, when a stylesheet comment silenced
+    # D25, and it never reached this second call site.
+    #
+    # And a scope note's own BODY was in the corpus, so a note reading "this
+    # deck states no target customer" satisfied `target customer` before
+    # `declared` was ever consulted — measured, deleting the `data-omitted`
+    # attribute changed nothing, which made the declaration decorative and the
+    # `declared` branch a thing that had never once been load-bearing (FM-01,
+    # inside the metric). A note declares; it does not cover.
+    text = markup.reader_text(
+        _SCOPE_NOTE_ROLE.sub(" ", _SCOPE_NOTE.sub(" ", raw))).lower()
     missing = [section_name(sec) for sec in expected
                if not any(a in text or a in declared
                           for a in section_alts(sec))]

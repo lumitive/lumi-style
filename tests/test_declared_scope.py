@@ -112,3 +112,74 @@ def test_one_note_may_declare_several_absences():
 # The D31 row itself is held by check_fixtures: deck-pass declares its six
 # absences in one sentence and reads ok; deck-broken carries the same absences
 # undeclared and reads FAIL.
+
+
+# --- the corpus, and what a declaration is for (0.1.600) --------------------
+# Two defects at one line. D26 built its corpus with `strip_tags`, which keeps
+# what is BETWEEN tags — including a stylesheet's own text — and it consulted
+# the whole document before it consulted `declared`, so a scope note covered
+# the very sections it declared out of scope. Both were found by reading the
+# code during the round-6 retrospective; both reds were planted first.
+
+def test_a_stylesheet_comment_does_not_cover_a_section():
+    """The corpus is what a READER meets.
+
+    `markup.reader_text` was written for exactly this at 0.1.594, when a CSS
+    comment containing "screenshot of" silenced D25's image-provenance gate. It
+    never reached this call site, so a rule about coverage could be satisfied
+    by a sentence in a file no reader opens.
+    """
+    css = ('<style>/* target customer and channel economics are styled '
+           'here */</style>')
+    r = _scope(GTM.format(extra=css))
+    assert "target customer" in r["missing"], (
+        "a stylesheet comment covered a section the document never wrote")
+
+
+def test_a_scope_note_declares_rather_than_covers():
+    """The note's own body must not satisfy what the note excludes.
+
+    Otherwise `data-omitted` is decorative: removing the attribute changes
+    nothing, because the sentence beneath it already names the section. That is
+    FM-01's shape — a branch that has never been load-bearing — sitting inside
+    the metric.
+    """
+    prose = ('<p class="scope-note">This deck states no target customer: it '
+             'was commissioned separately.</p>')
+    r = _scope(GTM.format(extra=prose))
+    assert "target customer" in r["missing"], (
+        "prose naming an omission counted as covering it")
+
+
+def test_the_declaration_is_what_clears_the_section():
+    """The counter-red: a real declaration must still clear it."""
+    note = ('<p class="scope-note" data-omitted="target customer">This deck '
+            'states no target customer: it was commissioned separately.</p>')
+    r = _scope(GTM.format(extra=note))
+    assert "target customer" not in r["missing"]
+    assert "target customer" in r["declared"]
+
+
+def test_the_report_carries_a_number_the_trace_can_record():
+    """D31 could never become an instrument suspect, structurally.
+
+    `trace.py`'s close step records a threshold reading only when the report
+    dict carries a key named for the metric — `value = row.get(mid)` — and the
+    only key here was `D26_declared_scope`, whose value is a dict. So D31 sat
+    at the top of the ledger's failing table with no threshold history at all,
+    and "a real weakness, or a bar set wrong" was a question the ledger was
+    unable to answer about it in either direction.
+    """
+    import json
+    import subprocess
+    import sys
+    out = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/check/check_design.py"),
+         str(ROOT / "fixtures/deck-broken.en.html"), "--json"],
+        capture_output=True, text=True, cwd=ROOT)
+    row = json.loads(out.stdout)
+    row = row[0] if isinstance(row, list) else row
+    assert "D31_undeclared_sections" in row, (
+        "the report has no key named for D31, so no trace can record its value")
+    assert isinstance(row["D31_undeclared_sections"], int), (
+        "the value must be a number: trace.py records int/float and nothing else")

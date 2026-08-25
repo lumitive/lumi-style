@@ -1,0 +1,15 @@
+{
+ "version": "0.1.600",
+ "diff_base": "943b18ae53bd4b67dd06c68f65cc6cc531fe6d90",
+ "spec": "specs/2026-08-25-round-6-retrospective-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Mid-branch on the round-6 retrospective, which is still changing the checkers every conformance task is scored by; a board refreshed now would record agents against a moving ruler. This release changes what a completeness section may be satisfied BY, which is exactly the kind of surface a refreshed board should be measured against — after the branch lands, not during it. The refresh is the next thing owed."
+  }
+ ]
+}
