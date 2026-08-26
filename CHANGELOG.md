@@ -1,3 +1,102 @@
+## 0.1.612 — a colour name that resolves to nothing renders black, and every gate called it clean
+
+The owner opened a conformance deck this package had passed and said two pages
+were drawing in black instead of green. They were.
+
+`fill="var(--bg1)"`, seven times, in a document whose token block declares
+`--bg` and never `--bg1`. To a browser that is not an error: the property is
+invalid at computed-value time, the element takes the INITIAL value, and for
+`fill` on an SVG shape the initial value is **black**. Confirmed in Chromium on
+the artifact — `getComputedStyle(shape).fill` is `rgb(0, 0, 0)`, on four of four
+shapes on page 11 and three of eight on page 8.
+
+**It is worse than a wrong colour.** The three dark quadrant labels of a 2×2 —
+"Watch", "Park", "Plan" — sit on black and are effectively unreadable, and so is
+every row of a four-row decision table. That is content lost, not a palette
+slip, on a deck the board reports as `pass (14 held)`.
+
+**Why nothing saw it, which is the more useful half.** D20 compares the values a
+document DECLARES against `tokens/` — it has nothing to say about a name the
+document never declared at all. D1 measures a declared text colour against a
+declared surface, and the surface here declares nothing, so it reported `0`:
+the number it prints when a document is clean. A check that could not look,
+printing what a check that looked prints.
+
+D19 already says the thing that catches it — *every reference in this document
+resolves inside this document* — and asserted it of icon `<use>` targets, block
+classes, opener classes and the globe runtime. It is a FIFTH assertion, and the
+five prose statements of D19 that enumerated four have been swept. A `var()` naming no custom
+property is the same sentence, and `check_repo` has held THIS repository to
+exactly that rule for releases: every `var()` in `tokens/` must resolve to a
+property `tokens/` defines. This is that sentence turned to face the
+deliverable, which is the turn D19's block-class assertion already makes.
+
+**A fallback is a definition.** `var(--x, #123456)` names what to use when the
+property is absent, so it renders what its author asked for, and counting it
+would be a checker failing a document that did the right thing. What that means
+for a NESTED fallback is decided by the browser and this now matches it: in
+`var(--a, var(--b))` the inner name is the last resort, so if `--b` is undeclared
+too the whole thing is black — `--b` is what gets reported.
+
+**A review found a second shipped deliverable with the same defect**, unreported
+until now: an r6 conformance artifact with thirteen `<rect
+style="fill:var(--wash);stroke:var(--line)">` and neither name declared
+anywhere in it. Thirteen black boxes carrying labels. Two documents, twenty
+uses, and no gate had anything to say about either.
+
+**The first version of this check could not see the shape that caused the bug,
+and how it was written is the whole lesson.** Its regex ended the fallback at
+the first `)`, so in `var(--a, var(--b))` the outer match swallowed the inner
+one and NEITHER name was examined. The docstring illustrated the rule with
+`var(--display, Georgia, serif)`. The string in the deck is `var(--display,
+var(--sans))` — a real instance was read, and then a paraphrase of it was what
+the pattern got written against, and the paraphrase happens to be the one form
+the regex handled. So the planted red went green. CLAUDE.md convention 15, in
+the release that cites convention 15. Fallbacks are decided by counting
+parentheses now, and the depth does not matter.
+
+**Declarations and uses were read from different surfaces**, which cost four
+false positives a review measured in Chromium — all four render correctly and
+all four were reported dangling: a property declared in an inline `style=`
+attribute (which this package's own scaffold emits), one declared with
+`@property`, a `var()` inside a `<pre><code>` example, and one in a `data-`
+attribute. Both sides now read the same surfaces: `<style>` bodies, `style=`
+attributes, and the SVG presentation attributes a browser resolves as CSS.
+`VAR(` in capitals was a missing `re.I`.
+
+**And the gate failed without saying what failed.** Every sibling assertion in
+D19's report names its object; this one printed a number. The counts
+`_dangling_vars` computes were built and thrown away, leaving an author to diff
+131 `var()` names against their own token block. It names them now.
+
+Deliberate red, five runs — delete the check, count fallbacks as dangling, scan
+comments again, drop it from the gating total, and revert the nesting fix — plus
+a six-case comparison against Chromium in which the checker flags exactly the
+fills that compute to `rgb(0, 0, 0)`. Two reds were not planted. **The first run
+failed all three of this package's own fixtures**, on a note in
+`tokens/lumi-layouts.css` reading "`var(--accent)` until 0.1.367", prose about a
+retired property inside a CSS comment — a gate whose first act is to fail the
+passing fixture is the mistake D19's own docstring warns about, made again four
+hundred lines below it. And the nesting red above.
+
+**One thing this deliberately cannot see**, said here rather than left to be
+inferred: a declaration is any `--x:` in a CSS surface, with no notion of
+whether its selector matches or its `@media` applies — so a property declared
+only inside `@media print` counts as declared while rendering black on screen.
+Deciding that needs the cascade, which is a browser's job.
+
+**A failed gate is never counted as having nothing to grade.** Adding a second,
+independent assertion to D19 collided with the held count 0.1.610 shipped: the
+metric's declared subject names the first assertion's tally, so a document with
+no icon `<use>` reported `FAIL D19_vocabulary` and was counted, in the same run,
+as having given D19 nothing to check. The invariant is universal and holds for
+every gate rather than the one that exposed it, and D19's subject is now the
+document itself. GAP-039 records what the collision revealed and this release
+does not fix: `since` is one field per METRIC, so an assertion written today
+inside a metric dated 0.1.409 binds every deliverable back to 0.1.409.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.611 — the board carries its held counts, and re-scoring says what it cost
 
 **The board shows the numbers now**, which took one local command rather than a

@@ -124,3 +124,34 @@ def test_a_document_that_carries_an_image_does_hold_them():
     assert r["D25_image_provenance"]["rasters"] > 0
     held, _ = check_design.held_gates(r, verdicts)
     assert {"D24_images_embedded", "D25_image_provenance"} <= held
+
+
+def test_a_gate_that_failed_is_never_counted_as_having_nothing_to_grade():
+    """The invariant that holds for every gate, not just the one that broke it.
+
+    D19 grew a second, independent assertion — a `var()` naming no custom
+    property — and its declared subject still named the first one's count. So a
+    document with no `<use>` element reported `FAIL D19_vocabulary` and was
+    counted as having given D19 nothing to check, in the same run.
+    """
+    # `D27_agenda_mirror` declares its own measurement as its subject, so
+    # blanking it is what makes the two answers collide. (D19, which exposed
+    # this, now declares `always` and cannot show it any more.)
+    r, verdicts = _graded(PASS)
+    failed = dict(verdicts)
+    failed["D27_agenda_mirror"] = "FAIL"
+    stripped = dict(r)
+    stripped["D27_agenda_mirror"] = None      # the declared subject, absent
+    held, vacuous = check_design.held_gates(stripped, failed)
+    assert "D27_agenda_mirror" in held, (
+        "a gate reported FAIL and was counted as having nothing to grade")
+    assert "D27_agenda_mirror" not in vacuous
+
+
+def test_the_invariant_does_not_rescue_an_n_a():
+    """`n/a` still means nothing was graded; only a FAIL proves otherwise."""
+    r, verdicts = _graded(PASS)
+    na = dict(verdicts)
+    na["D32_shape_use"] = "n/a"
+    held, vacuous = check_design.held_gates(r, na)
+    assert "D32_shape_use" in vacuous

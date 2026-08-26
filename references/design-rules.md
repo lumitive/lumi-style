@@ -38,6 +38,19 @@ in the document for you. A document may set its own SIZES — design per page �
 but a colour token that disagrees with the shipped value is a different design
 language under the same variable names, and `check_design.py`'s D20 fails it.
 
+**And a colour NAME the document never declares renders black, which D20 cannot
+see and D19 does.** `fill="var(--bg1)"` in a document whose block declares
+`--bg` is not an error to a browser: the declaration is invalid at
+computed-value time, the element takes the property's initial value, and for an
+SVG `fill` that value is black. Two pages of a deck this package had passed drew
+their figures in black this way, and a second shipped deliverable had thirteen
+more — the labels on those panels sit on black and are unreadable, so it is
+content lost rather than a palette slip. D20 compares the values a document
+DECLARES against the shipped ones and has nothing to say about a name that was
+never declared at all. **Use the names the token block defines, or give the
+`var()` a fallback**: `var(--x, #123456)` renders what you asked for and is not
+a dangling reference.
+
 **One declared exception: a trademark mark keeps its owner's colours.** A
 platform logo on **any page that names third-party products** — a get-started
 page, an ecosystem page, a BP's protocol or partner page (scope widened at

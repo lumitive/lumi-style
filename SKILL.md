@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.611"
+  version: "0.1.612"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -626,8 +626,9 @@ the ones a draft trips first: **D12**, the handling terms and origin
 every page owes (the terms open with the seal-red `shield` handling marker —
 the rendering ships in `tokens/`, the gate is the terms); **D14**, any slot
 left for yourself; **D15**, a file path in a footer; and **D19**, a reference
-that does not resolve inside the document — an icon pointing at no symbol, or
-a `data-globe` mark with no runtime to turn it. `python3 scripts/check/check_prose.py <file>` grades the prose, and the
+that does not resolve inside the document — an icon pointing at no symbol, a
+`data-globe` mark with no runtime to turn it, or a `var(--x)` naming a colour
+the document never declared, which does not render as nothing but as BLACK. `python3 scripts/check/check_prose.py <file>` grades the prose, and the
 language pair is two questions rather than one. **M12 fails on Chinese in text a
 reader sees** when the document declares English, and reports `blind` — which
 also fails — when it declares no language at all. **M16 fails a document

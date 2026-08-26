@@ -58,7 +58,7 @@
    "family": "self-reference",
    "severity": "gate",
    "since": "0.1.409",
-   "subject": "D19_vocabulary.used"
+   "subject": "always"
   },
   "D1_contrast": {
    "checker": "design",

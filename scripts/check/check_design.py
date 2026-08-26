@@ -22,7 +22,8 @@ metric. Four of them were arithmetic:
     D12 commercial footer  handling terms and origin on every page (**gates**)
     D14 placeholders       slots the author left for themselves (**gates**)
     D15 footer path        no repository path reaches a footer (**gates**)
-    D19 vocabulary         icons, blocks, openers and the globe runtime
+    D19 vocabulary         icons, blocks, openers, the globe runtime, and
+                           a var() naming no custom property
                            resolve inside this document (**gates**)
     D20 palette fidelity   the colour tokens it declares are the ones
                            tokens/ ships (**gates**)
@@ -1087,12 +1088,13 @@ def _element_body(raw, match):
 def d19_vocabulary(raw):
     """Every reference in this document resolves inside this document.
 
-    **This gates.** Four assertions, none of them a judgement about a page:
+    **This gates.** Five assertions, none of them a judgement about a page:
 
     1. an icon `<use href="#x">` has a `<symbol id="x">` here;
     2. a block class is used with the children tokens/ renders it through;
     3. a part opener carries `class="page opener"`;
-    4. a `[data-globe]` figure has the globe runtime in this document.
+    4. a `[data-globe]` figure has the globe runtime in this document;
+    5. a `var(--x)` with no fallback has a `--x` declared here.
 
     All four are what a deliverable got wrong while passing every other check
     in this file. The icon sprite lives in the reference fixture's BODY, so a
@@ -1183,7 +1185,143 @@ def d19_vocabulary(raw):
             "bad_blocks": bad_blocks, "bad_arity": [],
             "openers_missing_class": openers,
             "globe_marks": marked, "globe_no_runtime": globe_no_runtime,
-            "globe_marks_missing_hook": still_marks}
+            "globe_marks_missing_hook": still_marks,
+            "dangling_vars": _dangling_vars(raw)}
+
+
+# The attributes a browser resolves as CSS. `style=` is a declaration block;
+# the rest are SVG presentation attributes, which is how this package paints
+# — `new_deck.py` emits `fill="var(--tx2)"` — and where the reported defect
+# lived. Anything else on the page is prose, and prose is not a reference.
+_CSS_ATTRS = ("style", "fill", "stroke", "stop-color", "flood-color",
+              "lighting-color", "color")
+
+
+def _css_surfaces(raw) -> str:
+    """-> only the text a browser reads as CSS, comments already stripped.
+
+    Declarations and uses were read from DIFFERENT surfaces: `css_of()` reads
+    `<style>` blocks, while the scan for `var()` ran over the whole document.
+    So a `var()` in a `<pre><code>` example, or in a `data-` attribute, was a
+    reference; and a property declared in an inline `style="--x:…"` — which
+    this package's own scaffold emits — was not a declaration. Both directions
+    were measured on synthetic documents that render correctly in Chromium and
+    were reported dangling. A checker failing a document that did the right
+    thing is the direction this package treats as the dangerous one.
+    """
+    parts = [_uncommented(b) for b in
+             re.findall(r"<style[^>]*>(.*?)</style>", raw, re.S | re.I)]
+    # A DOCUMENTED EXAMPLE IS NOT A DECLARATION. `<pre>`/`<code>` hold markup
+    # a reader is meant to see rather than markup a browser applies, and
+    # `<script>` holds strings; a `var()` in any of them resolves nothing and
+    # obliges nothing.
+    body = re.sub(r"<(script|pre|code|textarea)\b.*?</\1>", " ", raw,
+                  flags=re.S | re.I)
+    attrs = "|".join(_CSS_ATTRS)
+    for m in re.finditer(rf'\b(?:{attrs})\s*=\s*(["\'])(.*?)\1', body,
+                         re.S | re.I):
+        parts.append(m.group(2))
+    return "\n".join(parts)
+
+
+def _var_uses(css: str) -> list[tuple[str, bool]]:
+    r"""-> [(name, has_fallback), …] for every `var()`, NESTED ONES INCLUDED.
+
+    `var\(\s*(--[\w-]+)\s*([^)]*)\)` cannot do this, and the miss was the
+    reported deck's own shape. `[^)]*` stops at the first `)`, so in
+    `var(--display, var(--sans))` the outer match swallows the inner one,
+    `finditer` resumes past it, and NEITHER name is examined. Verified in
+    Chromium: that string computes to `rgb(0, 0, 0)` — black, exactly the
+    defect — and the first version of this check returned nothing for it.
+
+    **How that got written is the lesson.** The docstring illustrated the
+    fallback rule with `var(--display, Georgia, serif)`. The string in the deck
+    is `var(--display, var(--sans))`. A real instance was read and then a
+    paraphrase of it was what the pattern was written against — and the
+    paraphrase happens to be the one form the regex handles, so the planted red
+    went green. CLAUDE.md convention 15, in the release that cites convention 15.
+
+    Every `var(` is found on its own and its fallback decided by counting
+    parentheses forward from it, so nesting is depth-independent.
+    """
+    out = []
+    for m in re.finditer(r"var\(\s*(--[\w-]+)", css, re.I):
+        depth, i, comma = 1, m.end(), False
+        while i < len(css) and depth:
+            ch = css[i]
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+            elif ch == "," and depth == 1:
+                comma = True
+                break
+            i += 1
+        out.append((m.group(1), comma))
+    return out
+
+
+def _dangling_vars(raw) -> list[str]:
+    """-> `var(--x)` used with no `--x` declared and no fallback. Sorted.
+
+    THE FIFTH REFERENCE, and the one a reader can see. `var(--undefined)` with
+    no fallback is not an error to a browser: the property is invalid at
+    computed-value time and the element falls back to the INITIAL value. For
+    `fill` on an SVG shape the initial value is **black**.
+
+    Reported by the owner, looking at a deck this package had passed. Two pages
+    of a conformance deck rendered their drawings in black instead of the brand
+    green — page 11's four shapes and three of page 8's eight — because the
+    author wrote `fill="var(--bg1)"` seven times and the token block declares
+    `--bg`, never `--bg1`. Confirmed in a browser: `getComputedStyle(...).fill`
+    is `rgb(0, 0, 0)`. Every gate passed the document, including D20, which
+    compares the values a document DECLARES against `tokens/` and has nothing
+    to say about a name it never declared at all, and D1, which measures a
+    declared text colour against a declared surface and had no surface to
+    measure — so it printed `0`, which is what it prints when a document is
+    clean. A review then found a SECOND shipped deliverable with the same
+    defect, thirteen black boxes in an r6 conformance artifact.
+
+    `check_repo` has held THIS repository to this rule for releases — every
+    `var()` in `tokens/` must resolve to a custom property `tokens/` defines.
+    This is that sentence turned to face the deliverable, which is the same
+    turn D19's block-class assertion already makes.
+
+    **A fallback is a definition.** `var(--display, var(--sans))` names what to
+    use when the property is absent, so it renders what its author asked for
+    and is not a dangling reference.
+
+    **What this deliberately cannot see**, so that nobody reads its silence as
+    more than it is: a declaration is any `--x:` in a CSS surface, with no
+    notion of whether its selector matches or its `@media` applies. So
+    `@media print { :root { --x: … } }` counts as declared while rendering
+    black on screen. Deciding that needs the cascade, which is a browser's job
+    — `inspect_layout` is where a rendered-geometry question belongs, and this
+    one is left named rather than half-answered.
+    """
+    css = _css_surfaces(raw)
+    declared = set(re.findall(r"(--[\w-]+)\s*:", css))
+    # `@property --x { … }` is the standards-track declaration and its name is
+    # followed by `{`, so the `:` scan cannot see it.
+    declared |= set(re.findall(r"@property\s+(--[\w-]+)", raw, re.I))
+    dangling: dict[str, int] = {}
+    for name, has_fallback in _var_uses(css):
+        if name in declared or has_fallback:
+            continue
+        dangling[name] = dangling.get(name, 0) + 1
+    return [f"{n} ({c}x)" for n, c in sorted(dangling.items())]
+
+
+def _uncommented(text: str) -> str:
+    r"""-> the text with CSS and HTML comments blanked.
+
+    Applied to `<style>` bodies rather than the whole document: `/\*.*?\*/`
+    over prose opens a fake comment at any glob path (`scripts/*.py`) and
+    closes it at the next `*/`, blanking whatever lies between. No document in
+    the corpus does that today; scoping it costs nothing and removes the shape.
+    """
+    text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
+    return re.sub(r"<!--.*?-->", " ", text, flags=re.S)
 
 
 def d12_commercial_footer(raw, site=None):
@@ -2910,7 +3048,8 @@ def grade(r):
     vo = r["D19_vocabulary"]
     vo_bad = (len(vo["dangling"]) + len(vo["bad_blocks"]) + len(vo["bad_arity"])
               + len(vo["openers_missing_class"])
-              + int(vo["globe_no_runtime"])) if vo else None
+              + int(vo["globe_no_runtime"])
+              + len(vo["dangling_vars"])) if vo else None
     rows.append(("D19_vocabulary", vo_bad, "=0 (gates)",
                  vo_bad == 0, vo is None))
     v = r["D9_layout_variety"]
@@ -2997,7 +3136,16 @@ def held_gates(r, verdicts, root=None) -> tuple[set, set]:
     held, vacuous = set(), set()
     for name in gates:
         subject = (declared.get(name) or {}).get("subject")
-        if verdicts.get(name) == "n/a" or _subject_absent(r, subject):
+        # A GATE THAT FAILED OBVIOUSLY HAD SOMETHING TO GRADE. Without this a
+        # metric could report FAIL and be counted as having nothing to check in
+        # the same run — which D19 did the moment it grew a second, independent
+        # assertion: a document with no `<use>` element made its declared
+        # subject falsy while the new one had just failed on three dangling
+        # colour names. The invariant is universal and cheap, and it holds for
+        # every gate rather than for the one that exposed it.
+        if verdicts.get(name) == "FAIL":
+            held.add(name)
+        elif verdicts.get(name) == "n/a" or _subject_absent(r, subject):
             vacuous.add(name)
         else:
             held.add(name)
@@ -3194,6 +3342,11 @@ def main(argv):
                     print("        this document carries NO <symbol> at all — the "
                           "sprite lives in the reference fixture's BODY, and a "
                           "document assembled from its <head> alone has none of it")
+            for dv in (vv.get("dangling_vars") or [])[:6]:
+                print(f"        {dv} names no custom property this document "
+                      f"declares — an unresolvable var() with no fallback is "
+                      f"invalid at computed-value time, so the element takes "
+                      f"the INITIAL value; for an SVG fill that is BLACK")
             if vv["globe_no_runtime"]:
                 print(f"        {vv['globe_marks']} [data-globe] figure(s) and no "
                       f"globe runtime in this document — the marks are still "

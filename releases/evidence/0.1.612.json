@@ -1,0 +1,18 @@
+{
+  "version": "0.1.612",
+  "diff_base": "04fee52ac6668448497ce82c268079d35f35c3be",
+  "spec": "specs/2026-08-26-board-refresh-design.md",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "f04602e1e4dabf54880d35f1a127e018812a9c892b096ad3bdbb2f17779ea4dd",
+      "date": "2026-08-26"
+    }
+  ],
+  "waivers": []
+}

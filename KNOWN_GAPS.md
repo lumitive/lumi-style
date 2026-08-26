@@ -75,6 +75,31 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-039 · A new gating assertion inherits its metric's `since`, and binds every deliverable back to it
+
+- status: open
+- opened: 0.1.612
+- surface: evals/gates.json (`since`), scripts/check/check_design.py
+  (any metric carrying more than one assertion)
+- symptom: `since` exists so that a document built before a rule was written
+  reports `not held` rather than failing — CLAUDE.md's example is a deck
+  accepted at 0.1.449 failed by a rule written after it, where "the failure
+  read exactly like a defect". It is one field per METRIC. D19's fifth
+  assertion — a `var()` naming no custom property — was written at 0.1.612 and
+  landed inside a metric whose `since` reads `0.1.409`, so it now binds every
+  deliverable back three years of releases. Any assertion added to an existing
+  metric does the same, silently, and adding a metric instead is the only way
+  to date a rule honestly today.
+  The reverse also holds and is why this is not simply "always add a metric":
+  D19's four original assertions genuinely do date from 0.1.409, and splitting
+  them out to give the fifth its own date would relabel four rules that did not
+  change.
+- check: none. The fix is a schema change — `since` per assertion rather than
+  per metric — which means every checker that reports a row would have to say
+  which of its assertions produced the failure, and that is a larger contract
+  than this entry should decide. Recorded so the next release that grows an
+  existing metric knows it is making this trade rather than discovering it.
+
 ## GAP-038 · Two decks report the same clean sheet and are not holding the same amount
 
 - status: fixed

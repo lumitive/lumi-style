@@ -181,7 +181,8 @@ commercial requirement on the artifact, **D14** (no `[TO FILL]`, `[TBD]` or
 `{{…}}` reaching the reader) asks whether the document is finished, **D15**
 (no repository path in a footer) is D12's mirror, and **D19** (every reference
 resolves inside the document — an icon pointing at no symbol, a `data-globe`
-mark with no runtime) asks whether the markup can render itself, and **D20**
+mark with no runtime, a `var()` naming a colour the document never declared)
+asks whether the markup can render itself, and **D20**
 (the colour tokens it declares are the ones `tokens/` ships) asks whether the
 palette is LUMI's at all, and **D21** (a figure that declares the
 data it draws is held to it) asks whether the drawing agrees with its own
