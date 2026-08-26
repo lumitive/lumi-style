@@ -1,0 +1,15 @@
+{
+ "version": "0.1.623",
+ "diff_base": "a47982773e3d767f648729fce28ae5cf3cbe3508",
+ "spec": "specs/2026-08-27-agent-evals-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Third on this branch, after 0.1.622's entry said the second would be the last — that sentence is corrected there rather than left standing, because a waiver whose stated terms quietly change is how nine of them stopped being read in 0.1.596-0.1.604. The reason here is the strongest of the three and is this release's own subject: until 0.1.623 the history-to-trace join was keyed on a model string the two sides never spell alike, verified against four real driver records as four misses. A round driven before this fix would have been recorded, would have earned nothing, and would have satisfied GAP-041's wording while leaving its column exactly as empty. GAP-041's closing condition was rewritten to name 0.1.623 for that reason. The round is the next thing on this branch and needs the local agent installs updated first, which needs the owner's decision to publish."
+  }
+ ]
+}

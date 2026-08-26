@@ -75,21 +75,46 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
-## GAP-041 · Nine of the twelve configurations on the board have never been measured
+## GAP-042 · A declared trigger nothing computes
 
 - status: open
-- opened: 0.1.621
+- opened: 0.1.623
+- surface: conformance/agent-evals.json (the `triggers` block),
+  scripts/ops/run_conformance.py (`detect --models`)
+- symptom: `vocabulary-changed` is declared as "a `models` probe answers a
+  different set of ids than the one recorded". **Nothing records a set.**
+  `detect --models` prints the live list and discards it; `platforms.json`'s
+  `models` is the argv rather than a vocabulary; and nothing anywhere reads
+  the `triggers` block at all — `agent_evals.py plan` prints a pointer to the
+  file and no more. Found by a pre-PR review, which is CLAUDE.md convention 14:
+  a capability sentence cites the function that implements it.
+- check: none, and the entry now says `computed_by: NOTHING` in the register
+  itself rather than reading as a mechanism. That is the honest interim; a
+  guard over "does anything read this block" would be the phrase-trigger class
+  AG-1 already declined.
+- closes when: `detect --models --record` writes the answered set beside the
+  board and `plan` compares against it. Small, and deliberately not done in the
+  release that found the problem — a fix written in the same breath as the
+  diagnosis is how the branch grew the defect in the first place.
+
+## GAP-041 · No configuration on the board has an earned count
+
+- status: open
+- opened: 0.1.622
 - surface: conformance/CONFIGURATIONS.md, README.md's generated block,
   conformance/agent-evals.json
 - symptom: the configurations board carries ten cells across three agents, and
   every one of them has an EMPTY `earned` column, because no conformance round
-  has yet been recorded with the `config` key 0.1.618 added. So the board
-  orders cells on cost alone, and cost is the axis the register itself says is
-  the weaker one: `tasks_earned` sorts first and is absent everywhere.
-  Nine of the twelve README rows say `not measured here` or `cannot be measured
-  here`. Three of those nine never can be — an IDE with no command line and two
-  chat models behind an API — so the honest count of pending work is six, and
-  five of those six are one install away.
+  has yet been recorded with the `traces` key 0.1.618 added. So the board orders
+  cells on cost alone, and cost is the axis the register itself calls the weaker
+  one: `tasks_earned` sorts first and is absent everywhere.
+  On the README side the same emptiness reads as nine of twelve PLATFORM rows
+  saying `not measured here` or `cannot be measured here`. Three of those nine
+  never can be — an IDE with no command line and two chat models behind an API —
+  so the honest count of pending work is six, and five of those six are one
+  install away. (Platform rows and board cells are different things and an
+  earlier version of this heading conflated them; the register's own `cell_note`
+  is the rule it broke.)
   It is also worth naming what n=1 does here: Claude Code's recommended cell is
   a single run that beat a five-run cell by 16% on tokens per page, which is
   well inside the spread a repeat would show.
@@ -97,8 +122,11 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   and the README block print a dash for an absent axis rather than a zero. The
   gap is the measurement, not the reporting of it.
 - closes when: a round is driven and recorded with `report --record` on a tree
-  at or after 0.1.618, for at least two agents. That is the last stage of the
-  plan in specs/2026-08-26-board-refresh-design.md.
+  at or after **0.1.623**, for at least two agents. Not 0.1.618: the join that
+  0.1.618 wrote was keyed on the model string and could never have matched a
+  row, so a round recorded before 0.1.623 would have satisfied this entry's
+  wording and left the column exactly as empty. That is the last stage of the
+  plan in specs/2026-08-27-agent-evals-design.md.
 
 ## GAP-040 · The durable record of a conformance run carries no model
 

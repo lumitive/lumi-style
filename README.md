@@ -71,22 +71,29 @@ read it, and Gemini CLI gives it precedence over its own directory.
 
 | Agent | Measured configuration | Tasks earned | Cost | Measured |
 |---|---|---|---|---|
-| **Claude Code** | `sonnet` · effort `medium` | — | 10,167 tok/page (n=1) | 2026-08-21 · skill 0.1.542 |
+| **Claude Code** | `sonnet` · effort `medium` | — | 10,167 tok/page (n=1) † | 2026-08-21 · skill 0.1.542 |
 | **Gemini CLI** | not measured here | — | — | — |
 | **OpenAI Codex** | not measured here | — | — | — |
-| **Cursor** | `cursor-grok-4.6-high` | — | 5,398 tok/page (n=2) | 2026-08-26 · skill 0.1.614 |
+| **Cursor** | `cursor-grok-4.6-high` | — | 5,398 tok/page (n=2) † | 2026-08-26 · skill 0.1.614 |
 | **Google Antigravity** | cannot be measured here | — | — | — |
 | **GitHub Copilot** | not measured here | — | — | — |
 | **OpenCode** | not measured here | — | — | — |
 | **Pi** | not measured here | — | — | — |
 | **OpenClaw** | not measured here | — | — | — |
-| **Hermes** | `deepseek-v4-flash` · effort `high` | — | 17,031 tok/page (n=5) | 2026-08-21 · skill 0.1.546 |
+| **Hermes** | `deepseek-v4-flash` · effort `high` | — | 17,031 tok/page (n=5) † | 2026-08-21 · skill 0.1.546 |
 | **Kimi** | cannot be measured here | — | — | — |
 | **DeepSeek** | cannot be measured here | — | — | — |
 
-This is an ordering by **cost among configurations that already cleared the gate line**, not a quality ranking — above that line the checks cannot tell two documents apart. `n` is small on purpose: nothing repeats a run by design, so a single sample cannot separate a flaky agent from a flaky checker. The full board, its axes and what is still unmeasured are in `conformance/CONFIGURATIONS.md` and `conformance/agent-evals.json` in the development repository.
+† **Claude Code** — a cheaper cell exists at 6824.3 tokens/page and is passed over because it recorded no model.
+† **Claude Code** — sonnet · effort high at 5 run(s) is dearer per page and better sampled.
+† **Cursor** — cursor-grok-4.6-high · effort high at 5 run(s) is dearer per page and better sampled.
+† **Hermes** — a cheaper cell exists at 8430.1 tokens/page and is passed over because it recorded no model.
 
-**This package cannot set your model.** Every platform above loads it as a skill, so your agent is already running — with its model and effort already chosen — when it reads `SKILL.md`. The table tells you what to configure once; it is not automation, and calling it that would be a promise no code here can keep.
+**A dash is an absence, never a zero.** In a column headed *Tasks earned* that distinction is the whole cell: no round has yet been recorded carrying which configuration it ran, so no row can say how many tasks its configuration earned. That is a gap in the measurement, not a score of nothing.
+
+**One row per platform, not a league table.** Each row shows that platform's cheapest measured configuration that names a model; the rows are in registry order and are not ranked against each other. Where the numbers ARE ordered — by cost among configurations that already cleared the gate line, which is not a quality ranking, because above that line the checks cannot tell two documents apart — is `conformance/CONFIGURATIONS.md`. `n` is small on purpose: nothing repeats a run by design, so a single sample cannot separate a flaky agent from a flaky checker. The full board, its axes and what is still unmeasured are in `conformance/CONFIGURATIONS.md` and `conformance/agent-evals.json` in the development repository.
+
+**This package cannot set your model.** However your agent loads it — as a skill file, as `AGENTS.md`, or as a prompt you paste — your agent is already running, with its model and effort already chosen, by the time it reads any of it. The table tells you what to configure once; it is not automation, and calling it that would be a promise no code here can keep.
 
 <!-- end generated: measured configurations -->
 
@@ -148,8 +155,11 @@ assets/globe                      the globe component: SVG and canvas back ends 
 fixtures/                         synthetic deliverables the checkers are tested on — a
                                   well-formed one, one with a named defect per page, one
                                   that exists only to fail, and a Chinese prose pair
-conformance/                      fixed task suite · the tracked cross-agent scoreboard ·
-                                  history.json, the dated memory the freshness gate reads
+conformance/                      fixed task suite · CONFORMANCE.md, the per-agent
+                                  scoreboard · CONFIGURATIONS.md, the agent x model x
+                                  effort board · agent-evals.json, its axes · README.md,
+                                  where the two evaluations divide · history.json, the
+                                  dated memory the freshness gate reads
 scripts/                          five drawers + preflight at the top (see scripts/README.md):
                                   check/ (the gates) · build/ (generators + embedders) ·
                                   lib/ (shared implementations) · render/ (geometry→SVG) ·

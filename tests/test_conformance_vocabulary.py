@@ -56,14 +56,17 @@ def test_no_probe_is_the_registry_s_own_reason_verbatim(monkeypatch):
     assert state == "waived" and detail == "`hermes model` opens a picker."
 
 
-def test_a_declared_probe_whose_binary_is_absent_is_waived_not_failed(
-        monkeypatch):
+def test_a_declared_probe_whose_binary_is_absent_is_its_own_state(monkeypatch):
+    """Not `waived`, which is what it returned until a review read the
+    docstring against the code. A waiver is a REASON about the platform; a
+    missing binary is a fact about this machine that one install changes.
+    `detect()` had kept the two apart since it was written."""
     _cli(monkeypatch, _Ran(), installed=False)
     state, detail = rc.vocabulary(_ARGV)
-    assert state == "waived" and "not installed here" in detail
+    assert state == "absent" and "one install away" in detail
 
 
-# THE THREE WAYS IT CANNOT LOOK, each of which returned a clean-looking answer
+# THE WAYS IT CANNOT LOOK, each of which returned a clean-looking answer
 # in some earlier instrument in this repository (FM-24). None may be silent and
 # none may be reported as `waived`, because a waiver is a REASON and these are
 # accidents.

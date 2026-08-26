@@ -1514,12 +1514,14 @@ def vocabulary(agent: dict) -> tuple[str, str]:
     pointed at, and it is deliberately the same shape — a registry argv, or the
     waiver that says why there is none.
 
-    THREE STATES, NEVER TWO. `asked` carries the ids the CLI returned; `waived`
-    carries the registry's reason; `failed` is a declared probe that did not
-    answer here, which is neither of the other two and must not be filed as
-    either. An enumeration that could not run and an agent that cannot enumerate
-    are different facts, and one release of this package existed because a table
-    printed them identically.
+    FOUR STATES, and the fourth is the one a review had to add. `asked` carries
+    the ids the CLI returned; `waived` carries the registry's REASON — a fact
+    about the platform; `absent` is a declared probe whose binary is not on this
+    machine — a fact about the machine, which one install changes; `failed` is a
+    declared, present probe that did not answer, which is an accident. The first
+    version filed `absent` under `waived` while this very docstring said a
+    waiver is a reason and these are not, and `detect()` twelve lines up had
+    kept the same two apart since it was written.
 
     Read-only by construction: the only argv in the registry is
     `cursor-agent --list-models`, and the guard requires a list of strings, so
@@ -1529,7 +1531,8 @@ def vocabulary(agent: dict) -> tuple[str, str]:
     if not argv:
         return "waived", agent.get("models_waiver", "no models probe declared")
     if not shutil.which(argv[0]):
-        return "waived", f"{argv[0]} is not installed here"
+        return "absent", (f"{argv[0]} is not installed here; the registry "
+                          f"declares a probe, so this is one install away")
     try:
         out = subprocess.run(argv, capture_output=True, text=True, timeout=60)
     except Exception as exc:                                    # noqa: BLE001
@@ -2318,7 +2321,11 @@ def main(argv):
             print(f"FAIL  {run_dir} does not exist; run `run` first")
             return 1
         by_id = {t["id"]: t for t in tasks}
-        scores, unscored = {}, 0
+        # ANNOTATED because the cells gained a non-string member at
+        # 0.1.623: `effort_pinned` / `model_pinned` are explicit booleans,
+        # and a dict inferred as `dict[str, str]` rejects them.
+        scores: dict[str, dict[str, Any]] = {}
+        unscored = 0
         for agent_dir in sorted(p for p in run_dir.iterdir() if p.is_dir()):
             for task_dir in sorted(p for p in agent_dir.iterdir() if p.is_dir()):
                 task = by_id.get(task_dir.name)
@@ -2569,7 +2576,7 @@ def main(argv):
         # file's own driver test already warns about: a cell that says nothing
         # about the model reads as a claim about the agent rather than about
         # one of its configurations.
-        for key, entry in scores.items():
+        for key, cell_entry in scores.items():
             agent_id, _, task_id = key.partition("/")
             driver = run_dir / agent_id / task_id / "driver.json"
             if not driver.exists():
@@ -2587,23 +2594,49 @@ def main(argv):
                 # one of the three used to stop the whole scoring run.
                 print(f"note  {driver} does not parse ({exc}); this cell "
                       f"records no model")
-                entry["model"] = "driver record unreadable"
+                cell_entry["model"] = "driver record unreadable"
                 continue
             cell = _model_cell(rec)
             if cell is not None:
-                entry["model"] = cell
+                cell_entry["model"] = cell
             # THE REST OF THE CONFIGURATION, in the same pass and for the same
             # reason its comment gives: a cell whose model is present because
             # one branch remembered and whose effort is missing because another
             # forgot is worse than a column that is not there. `effort` reached
             # `driver.json` and the trace and nothing else, so the board could
             # show which model ran and never at what reasoning tier.
+            # `model_ran` rides along BESIDE the display cell. `cell_entry["model"]`
+            # is `_model_cell()`'s sentence — built for a board column, and
+            # correct there — so a reader comparing a pin against it compares a
+            # pin against prose. A review found `agent_evals` doing exactly
+            # that; the raw id is what a comparison needs and only this pass
+            # has it.
             for key, source in (("effort", "effort"),
                                 ("model_asked", "model"),
+                                ("model_ran", "model_ran"),
                                 ("trace_id", "trace_id")):
                 value = rec.get(source)
-                if value is not None:
-                    entry[key] = value
+                if value is None:
+                    continue
+                # THE SENTINELS DO NOT TRAVEL AS VALUES. `score` writes
+                # `(not pinned)` and `(the CLI's default)` where nothing was
+                # pinned, and they are answers rather than absences — but they
+                # are answers in a DISPLAY field, and `history.json`'s `config`
+                # is a record of what a run was configured as, held to the
+                # schema's own effort tuple by `validate`. Carrying the
+                # sentinel through put `(not pinned)` into that field and the
+                # next unpinned round would have turned CI red on a row the
+                # harness itself wrote. It is recorded as an explicit `false`
+                # instead, so "nobody pinned this" and "this predates the
+                # field" stay different facts — which is what 0.1.617's entry
+                # asked for and what the parenthesis was doing the wrong way.
+                if str(value).startswith("("):
+                    if key == "effort":
+                        cell_entry["effort_pinned"] = False
+                    elif key == "model_asked":
+                        cell_entry["model_pinned"] = False
+                    continue
+                cell_entry[key] = value
         # BEFORE THE BYTES GO. The pin note has to read the file it is about
         # to lose, and it has to print on the empty-scores exit too — that is
         # the case where the pin is destroyed completely rather than partially,
@@ -2859,7 +2892,7 @@ def main(argv):
             # `grok-4.6-high` and `cursor` on Auto are two different runs
             # wearing one name, which is why the 36 rows before this field
             # cannot be read as a comparison of anything.
-            per_config: dict[str, dict[str, dict[str, str]]] = {}
+            per_config: dict[str, dict[str, dict]] = {}
             per_trace: dict[str, dict[str, str]] = {}
             instruments: set[str] = set()
             for key, value in scored_doc.items():
@@ -2876,9 +2909,16 @@ def main(argv):
                 # Named `configured` rather than `cell`: `cell` is a `str |
                 # None` earlier in this function, and reusing it here is how
                 # mypy caught the shadow on the first run.
-                configured = {k: value[k]
-                              for k in ("model", "effort", "model_asked")
-                              if value.get(k)}
+                configured: dict = {
+                    k: value[k]
+                    for k in ("model", "model_ran", "effort", "model_asked")
+                    if value.get(k)}
+                # An explicit `false` is a value, so `if value.get(k)` would
+                # drop it — which is the bug that would turn "nobody pinned
+                # this" back into silence one layer down.
+                for k in ("effort_pinned", "model_pinned"):
+                    if k in value:
+                        configured[k] = value[k]
                 if configured:
                     per_config.setdefault(agent_id, {})[task_id] = configured
                 if value.get("trace_id"):

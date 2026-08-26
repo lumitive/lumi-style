@@ -69,9 +69,11 @@ side.
 
 ## What this separation does not give the user
 
-**It cannot set your model.** All twelve registered platforms load this package
-as a *skill*: the agent is already running, with its model and effort already
-fixed, when it reads `SKILL.md`. There is no code path by which any register
+**It cannot set your model.** Nine of the twelve registered platforms load this
+package as a skill file, Codex reads `AGENTS.md`, and the two `prompt`-tier
+platforms have `prompts/lumi-style-core.md` pasted into a chat. On every route
+the agent is already running, with its model and effort already fixed, when it
+reads anything this package ships. There is no code path by which any register
 here changes a session. README's generated block tells a person what to
 configure once, and calling that automation would be a promise no code here can
 keep.

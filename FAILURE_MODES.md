@@ -448,8 +448,10 @@ every quarter.)
   per row, so a stale recommendation is visible to a reader without a gate; and
   `agent_evals.py plan` names the unmeasured cells on demand. The
   vocabulary-changed trigger in `conformance/agent-evals.json` is the narrow
-  version that WAS accepted — it reports, and it can only fire for the one
-  platform whose CLI can be asked.
+  version that was accepted in PRINCIPLE and is **not built** — its entry says
+  so in its own `computed_by`, and GAP-042 holds it. When it is built it will
+  report rather than gate, and it can only ever fire for the one platform whose
+  CLI can be asked.
 
 ## FM-23 · A prose guard over cross-boundary references
 

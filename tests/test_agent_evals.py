@@ -70,14 +70,29 @@ def test_the_median_is_the_median_not_the_mean():
 
 # --- the history join --------------------------------------------------------
 
-def _row(config=None, tasks=None, **kw):
+def _row(config=None, tasks=None, traces=None, **kw):
     r = {"skill_version": "0.1.620", "agent": "cursor", "date": "2026-08-26",
          "run_dir": "~/x", "scores_sha256": "0" * 64,
          "tasks": tasks or {"T1-deck": "pass"}}
     if config:
         r["config"] = config
+    if traces:
+        r["traces"] = traces
     r.update(kw)
     return r
+
+
+# THE SHAPES `score` ACTUALLY WRITES. Every test of this join used a clean model
+# id until a review ran the real chain: `scores.json`'s `model` is
+# `_model_cell()`'s DISPLAY sentence, and a trace carries the raw pin. The old
+# tests passed on a shape the harness never produces, and the join they were
+# proving could not have matched one real row.
+_DISPLAY = {
+    "confirmed, worded differently":
+        "cursor-grok-4.6-high (asked cursor-grok-4.6-xhigh)",
+    "nothing confirmed it": "asked deepseek-v4-flash, unconfirmed",
+    "auto routed": "Auto",
+}
 
 
 def test_a_history_row_predating_the_configuration_field_joins_to_nothing():
@@ -90,51 +105,101 @@ def test_a_history_row_predating_the_configuration_field_joins_to_nothing():
 
 def test_an_unconfigured_row_does_not_credit_the_model_unknown_cell():
     """The dangerous half of the same case, and the one a planted red found the
-    first test could not see. Five real traces record no model, so a cell keyed
+    first test could not see. Five real cells record no model, so a cell keyed
     `(agent, None, None)` EXISTS — and a pre-0.1.618 history row, pooled under
-    the agent alone, lands in exactly it. The row would then credit tasks to a
-    configuration that is not a configuration."""
+    the agent alone, lands in exactly it."""
     rows = agent_evals.cells([_trace("t-1", "cursor", None, None)], [_row()])
     assert len(rows) == 1 and rows[0]["model"] is None
-    assert rows[0]["tasks_earned"] is None, (
-        "a row that never recorded what it was run as credited the cell whose "
-        "model is unknown")
+    assert rows[0]["tasks_earned"] is None
 
 
-def test_the_earned_count_reaches_the_cell_it_was_configured_as():
+@pytest.mark.parametrize("shape", sorted(_DISPLAY))
+def test_the_earned_count_joins_on_the_trace_id_whatever_the_model_reads(shape):
+    """The load-bearing one. The join must not depend on the two sides
+    spelling one model the same way, because they never do."""
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "cursor-grok-4.6-xhigh", "xhigh")],
+        [_row(traces={"T1-deck": "t-1"},
+              config={"T1-deck": {"model": _DISPLAY[shape], "effort": "xhigh"}})])
+    assert rows[0]["tasks_earned"] == 1, (
+        f"the {shape!r} score cell did not reach its own trace")
+    assert rows[0]["tasks_attempted"] == 1
+
+
+def test_a_row_with_a_configuration_but_no_trace_id_joins_to_nothing():
+    """`config` alone is not a key. A row that names what it was run as, and
+    not WHICH run, cannot be attributed to a cell without guessing."""
     rows = agent_evals.cells(
         [_trace("t-1", "cursor", "m", "high")],
         [_row(config={"T1-deck": {"model": "m", "effort": "high"}})])
-    assert rows[0]["tasks_earned"] == 1 and rows[0]["tasks_attempted"] == 1
+    assert rows[0]["tasks_earned"] is None
 
 
 def test_a_task_attempted_and_not_passed_is_attempted_not_earned():
     rows = agent_evals.cells(
-        [_trace("t-1", "cursor", "m", "high")],
+        [_trace("t-1", "cursor", "m", "high"),
+         _trace("t-2", "cursor", "m", "high")],
         [_row(tasks={"T1-deck": "fail", "T2": "pass"},
+              traces={"T1-deck": "t-1", "T2": "t-2"},
               config={"T1-deck": {"model": "m", "effort": "high"},
                       "T2": {"model": "m", "effort": "high"}})])
     assert rows[0]["tasks_earned"] == 1 and rows[0]["tasks_attempted"] == 2
 
 
 def test_a_run_that_announced_a_model_nobody_asked_for_is_flagged():
-    """0.1.614's finding, made an axis: a cell whose runs did not honour their
-    pin is not measuring the configuration it is filed under."""
+    """0.1.614's finding, made an axis. Compared against `model_ran`, the raw
+    id the CLI announced — comparing a pin to a board's display sentence made
+    this `False` for every real shape, invisible only because the join missed
+    first."""
     rows = agent_evals.cells(
         [_trace("t-1", "cursor", "grok-4.6-high", "high")],
-        [_row(config={"T1-deck": {"model": "grok-4.6-high", "effort": "high",
-                                  "model_asked": "composer-2.5"}})])
+        [_row(traces={"T1-deck": "t-1"},
+              config={"T1-deck": {"model": "composer-2.5 (asked grok-4.6-high)",
+                                  "model_ran": "composer-2.5",
+                                  "model_asked": "grok-4.6-high",
+                                  "effort": "high"}})])
     assert rows[0]["effort_honoured"] is False
 
 
-# --- ordering ----------------------------------------------------------------
+def test_a_run_that_did_what_it_was_told_is_honoured():
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "grok-4.6-high", "high")],
+        [_row(traces={"T1-deck": "t-1"},
+              config={"T1-deck": {"model": "grok-4.6-high",
+                                  "model_ran": "grok-4.6-high",
+                                  "model_asked": "grok-4.6-high",
+                                  "effort": "high"}})])
+    assert rows[0]["effort_honoured"] is True
+
+
+def test_an_unpinned_run_is_neither_honoured_nor_dishonoured():
+    """Three answers. An unpinned run cannot dishonour a pin, and calling it
+    `True` would let 'nobody asked for anything' wear the same word as 'the CLI
+    did what it was told'."""
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", None, None)],
+        [_row(traces={"T1-deck": "t-1"},
+              config={"T1-deck": {"model": "Auto"}})])
+    assert rows[0]["effort_honoured"] is None
+
+
+def test_one_dishonoured_run_marks_the_whole_cell():
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "m", "high"),
+         _trace("t-2", "cursor", "m", "high")],
+        [_row(tasks={"T1": "pass", "T2": "pass"},
+              traces={"T1": "t-1", "T2": "t-2"},
+              config={"T1": {"model_ran": "m", "model_asked": "m"},
+                      "T2": {"model_ran": "other", "model_asked": "m"}})])
+    assert rows[0]["effort_honoured"] is False
+
 
 def test_earned_outranks_cost():
     rows = agent_evals.cells(
         [_trace("t-1", "a", "cheap", "high", out=100),
          _trace("t-2", "b", "dear", "high", out=90000)],
-        [_row(agent="b", config={"T1-deck": {"model": "dear",
-                                             "effort": "high"}})])
+        [_row(agent="b", traces={"T1-deck": "t-2"},
+              config={"T1-deck": {"model": "dear", "effort": "high"}})])
     assert rows[0]["model"] == "dear", (
         "a cell that earned a task outranks a cheaper cell that earned none")
 
@@ -143,8 +208,8 @@ def test_a_cell_missing_an_axis_sorts_last_on_it_rather_than_vanishing():
     rows = agent_evals.cells(
         [_trace("t-1", "a", "unmeasured", "high", out=100),
          _trace("t-2", "b", "earned", "high", out=90000)],
-        [_row(agent="b", config={"T1-deck": {"model": "earned",
-                                             "effort": "high"}})])
+        [_row(agent="b", traces={"T1-deck": "t-2"},
+              config={"T1-deck": {"model": "earned", "effort": "high"}})])
     assert len(rows) == 2, "a dropped cell reads as a cell that scored badly"
 
 
