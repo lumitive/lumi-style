@@ -77,8 +77,9 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-038 · Two decks report the same clean sheet and are not holding the same amount
 
-- status: open
+- status: fixed
 - opened: 0.1.605
+- closed: 0.1.610
 - surface: conformance/CONFORMANCE.md (the verdict column),
   scripts/ops/run_conformance.py (`cell_spread`, the roll-up)
 - symptom: "zero gating failures" is the sentence a board's reader takes away,
@@ -104,12 +105,35 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   same two words over both decks.
   Verified: the same pattern appears in Cursor's trace (`D32` n/a, `D27`/`D35`/
   `D38` ok), so this is about the roll-up rather than about one agent.
-- check: none, and the fix is not a new gate. What the board cannot currently
-  say is how many of a document's gates had a subject — a "held" count beside
-  the verdict, which `check_design` already computes per row and throws away
-  at the roll-up. A pass over twelve held gates and a pass over eight are
-  different results, and printing one number would separate them without
-  ruling on anybody's agenda.
+- check: python3 -m pytest -q tests/test_gates_held.py tests/test_board_verdict_words.py,
+  and `check_repo.py`'s `vacuous gates` guard. The fix is a count, not a gate:
+  `check_design.held_gates()` reports how many gating rows had a subject, the
+  report carries it, and the board's cell prints `pass (18 held)`. Nothing
+  changes verdict and no document goes red — measured on the two decks, one
+  holds 15 of 18 and the other 10, and the third (the only agent that earned
+  all three tasks) holds 14. None of the three carries an image or a figure
+  declaring its data, so three gates grade nothing on any of them.
+  **The set is DECLARED and held COMPLETE, because it cannot be discovered.**
+  Three probe designs failed first: blanking whole measurements found four of
+  the six; blanking sub-fields too produced five false positives (emptying a
+  VIOLATION list makes a row pass for being clean); and `D33_icon_provenance`
+  settled it — its row prints the violation count, so a document with no icon
+  renders byte-identically to one whose icons are perfect. No probe can find
+  that. Every one of the eighteen gating rows now declares `subject` in
+  `evals/gates.json` as `key`, `key.field`, or `always`, and the guard fails a
+  gating row that declares nothing — so a nineteenth gate is a decision rather
+  than a silent `held`. Declaring them all surfaced two more nobody had seen:
+  `D21_data_contract` grades nothing on a deck where no figure declares its
+  data, and `D22_layout_vocabulary` reads a measurement that is not its own
+  name.
+  The probe survives as a cross-check: a gate it catches passing over an
+  absence may not claim `always`. Four deliberate reds on the register plus
+  five synthetic-tree tests — the guard's first draft had none, and its early
+  `return []` on a fixture-less tree meant the house pattern for red-testing a
+  guard was the one input that made it green.
+  Absent rather than zero: a scores file written before the field existed
+  prints no count at all, because "not recorded" and "nothing was graded" are
+  the distinction the number exists to draw.
 
 ## GAP-037 · The board's own staleness clause froze for twenty-four releases
 

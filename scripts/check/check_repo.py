@@ -1171,6 +1171,179 @@ def _privacy_branch_gates(src: str) -> bool:
     return False
 
 
+def _probe_vacuous(check_design, gating, path) -> tuple[dict, set]:
+    """-> ({gate: what its absence is}, the gating rows this document holds).
+
+    Blanks each measurement in turn — the whole key, and each non-empty count
+    or list inside a dict measurement — then re-grades and watches which gating
+    rows keep saying `ok` with a CHANGED value. A row that still passes when
+    the thing it grades is gone is a row that can pass over an absence.
+
+    Sub-fields matter because absence has two shapes here: `D27_agenda_mirror`
+    is None when there is no agenda, while `D25_image_provenance` is a dict
+    reporting zero images. The first version probed only whole keys and missed
+    the second — found not by a reviewer but by asking the probe what it could
+    not see.
+    """
+    r0 = check_design.measure(path)
+    rows0 = check_design.grade(r0)
+    verdicts = {n: v for n, _, _, v in rows0}
+    values0 = {n: val for n, val, _, _ in rows0}
+    gates = gating.gating_metrics(verdicts, ROOT)
+    found: dict[str, str] = {}
+
+    def run(mutate, label):
+        probe = {k: (dict(v) if isinstance(v, dict) else v)
+                 for k, v in r0.items()}
+        try:
+            mutate(probe)
+            rows = check_design.grade(probe)
+        except Exception:  # noqa: BLE001, S110 — see below
+            # A row that cannot do without this measurement RAISES rather than
+            # passing, which is the opposite of what the probe looks for and is
+            # not a finding. Deliberately not logged: one clean run blanks
+            # forty measurements and most of them raise somewhere.
+            return
+        for name, value, _, verdict in rows:
+            if (name in gates and verdict == "ok"
+                    and value != values0.get(name)):
+                found.setdefault(name, label)
+
+    for key in [k for k in r0 if r0[k] is not None]:
+        run(lambda probe, k=key: probe.__setitem__(k, None), key)
+    # WHOLE KEYS ONLY, and the reason is worth keeping. A first version also
+    # blanked each count and list INSIDE a dict measurement, to catch the other
+    # shape of absence — `D25_image_provenance` is a dict reporting zero images
+    # rather than a None. It found five more gates and every one was a false
+    # positive: emptying `D12_commercial_footer.missing_terms` empties the
+    # VIOLATION list, so the row passes because the document is clean, not
+    # because there was nothing to grade. Nothing in the shape of the data
+    # separates "the subject count" from "the violation count" — only the
+    # checker knows which is which, which is what `subject` is for.
+    #
+    # So this guard catches the None shape, exactly and with no false
+    # positives, and a count-shaped subject is DECLARED and validated below
+    # rather than discovered. That limit is stated here instead of being left
+    # for someone to infer from a guard that quietly sees half the cases.
+    return found, gates
+
+
+def check_vacuous_gates():
+    """Every gate declares what it grades, so a clean sheet can say how much.
+
+    "Zero gating failures" is the sentence a board's reader takes away and it
+    does not say how much was checked. The 2026-08-26 conformance round
+    published it over a deck holding fifteen gates and one holding ten: the
+    second had no agenda page and no page declaring an analysis move, so those
+    rows printed `ok` over pages that are not in the document. That is a
+    deliberate ruling — a measured absence passes, and `n/a` is for a gate that
+    could not look — and the missing thing was the count.
+
+    **DECLARED, because it cannot be discovered.** The first version of this
+    guard probed: it blanked each measurement in turn and watched which gating
+    rows kept saying `ok`. That found four, and a review found two more it
+    structurally could not — absence has a second shape, a measurement that is
+    PRESENT and reports zero of what it grades (`D25_image_provenance` says
+    `rasters: 0`, prints "no images", and passes). Worse, `D33_icon_provenance`
+    prints its VIOLATION count, so zeroing its subject changes the row not at
+    all: there is no observable signal, and no probe can ever find it. Only the
+    checker knows which field is the subject, so every gating row says so in
+    `evals/gates.json` and this guard holds the set COMPLETE.
+
+    `subject` is `key`, `key.field`, or the literal `always` — the last being a
+    positive claim that the subject is the document itself. A gating row with
+    no declaration fails, which is what makes a nineteenth gate a decision
+    rather than a silent `held`.
+
+    The probe survives as a CROSS-CHECK: a gate the checker demonstrably passes
+    over an absence may not be declared `always`.
+    """
+    try:
+        import check_design
+        import gate_registry
+        import gating
+        declared = gate_registry.load(ROOT)
+    except Exception as exc:                                        # noqa: BLE001
+        return [f"could not load the gate register: {exc}"]
+
+    fixtures = sorted(p for p in (ROOT / "fixtures").glob("*.html")
+                      if not p.name.startswith("."))
+    measured: list[tuple[str, dict, set]] = []
+    for path in fixtures:
+        try:
+            r = check_design.measure(path)
+            verdicts = {n: v for n, _, _, v in check_design.grade(r)}
+        except Exception:  # noqa: BLE001, S112 — a prose fixture, not a design one
+            # `measure()` raises Unmeasurable on a document with no <style>
+            # block, which the Chinese prose fixtures are by design.
+            continue
+        measured.append((path.name, r, gating.gating_metrics(verdicts, ROOT)))
+    if not measured:
+        return ["no fixture could be measured, so no gating row was checked "
+                "for a declaration — this guard would have reported green "
+                "over nothing, which is the shape it exists to catch"]
+
+    errors = []
+    every_gate = {n for _, _, gates in measured for n in gates}
+    for name in sorted(every_gate):
+        subject = (declared.get(name) or {}).get("subject")
+        if not subject:
+            errors.append(
+                f"{name} gates a deliverable and evals/gates.json declares no "
+                f"`subject` — what it grades, as `key`, `key.field`, or "
+                f"`always` when the subject is the document itself. Without "
+                f"one it is counted as held on a document that gave it "
+                f"nothing to check")
+            continue
+        if subject == "always":
+            continue
+        key, _, field = subject.partition(".")
+        for fixture, r, _ in measured:
+            if key not in r:
+                errors.append(
+                    f"{name} declares subject {subject!r}, and check_design's "
+                    f"measure() produces no {key!r} ({fixture})")
+                break
+            if field and r[key] is not None and not isinstance(r[key], dict):
+                errors.append(
+                    f"{name} declares subject {subject!r}, and {key!r} is not "
+                    f"a record with fields ({fixture})")
+                break
+            if field and isinstance(r[key], dict) and field not in r[key]:
+                errors.append(
+                    f"{name} declares subject {subject!r}, and {key!r} has no "
+                    f"{field!r} field ({fixture})")
+                break
+
+    # THE CROSS-CHECK. Blank each whole measurement and re-grade: a gating row
+    # that keeps saying `ok` with a changed value has just been shown passing
+    # over an absence, so it cannot be one whose subject is always there.
+    for fixture, r, gates in measured:
+        rows0 = check_design.grade(r)
+        values0 = {n: val for n, val, _, _ in rows0}
+        for key in [k for k in r if r[k] is not None]:
+            probe = dict(r)
+            probe[key] = None
+            try:
+                rows = check_design.grade(probe)
+            except Exception:  # noqa: BLE001, S112 — see below
+                # A row that cannot do without this measurement RAISES, which
+                # is the opposite of what this looks for. It also abandons the
+                # other rows in the same call, so the cross-check is partial by
+                # construction — it can only ever confirm, never clear, and the
+                # completeness requirement above is what actually holds the set.
+                continue
+            for name, value, _, verdict in rows:
+                if (name in gates and verdict == "ok"
+                        and value != values0.get(name)
+                        and (declared.get(name) or {}).get("subject") == "always"):
+                    errors.append(
+                        f"{name} declares subject `always` and passes over the "
+                        f"absence of {key!r} on {fixture} — the subject is not "
+                        f"the document itself")
+    return sorted(set(errors))
+
+
 def check_gate_declarations():
     """`evals/gates.json` says what each verdict is; the checkers say the same.
 
@@ -4569,6 +4742,7 @@ CHECKS = (
     ("scoring sheet parity", check_scoring_sheet_parity),
     ("metric id ranges", check_metric_id_ranges),
     ("gating claims", check_gating_claims),
+    ("vacuous gates", check_vacuous_gates),
     ("board staleness clause", check_board_staleness_clause),
     ("prose gating claims", check_prose_gating_claims),
     ("verdict names", check_verdict_names),

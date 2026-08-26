@@ -1,3 +1,139 @@
+## 0.1.610 — a clean sheet that says how much it held, and a caption fixed without re-dating the photograph
+
+Two questions the owner asked about the round-six retrospective, both of which
+were left open because the answer was a product decision rather than a repair.
+
+**"Zero gating failures" never said how much was checked.** Two decks in the 2026-08-26 conformance round both earned that sentence. One
+carried an agenda page, part openers and pages declaring an analysis move, so
+**fifteen** of the eighteen gating rows had something to grade. The other had
+none of them, so five more of its rows graded nothing: four printing `ok` over a
+page that is not in the document, and one reading `n/a`. **Ten held.** The board
+printed the same two words over both.
+
+**The four rows are right to pass, and an earlier draft of this called them a
+defect.** `check_design` argues the ruling where it is made — a measured absence
+passes, and `n/a` is for a gate that could not look rather than one that looked
+and found nothing to hold — and a deck may legitimately have no agenda: the two
+intro decks the owner accepted have none. What was missing was the number, which
+the checker computes per row and the roll-up threw away.
+
+So the cell says it: `pass (15 held)`. No new gate, no rule change, no document
+goes red. On the round's three decks it reads 15, 14 and 10 out of 18 — and the
+14 is Cursor, the only agent that earned all three tasks, which is the kind of
+thing a roll-up should not be able to hide. None of the three carries an image
+or a figure declaring its data, so three gates grade nothing on any of them.
+
+**The set of gates that can pass over an absence is DISCOVERED, never listed.**
+`check_repo`'s new `vacuous gates` guard blanks each measurement `measure()`
+produces, one at a time, and watches which gating rows keep saying `ok` with a
+changed value. Every one it finds must declare in `evals/gates.json` which
+measurement it grades; a declaration naming something the checker does not
+produce fails, and so does a declaration on a gate that stopped being vacuous. A
+hand-written list here would have been FM-05 inside the guard written to prevent
+it.
+
+**And then the probe turned out to be the wrong instrument, which took three
+attempts to see.** It runs over every fixture rather than one, because a gate
+already vacuous on the baseline cannot be seen to BECOME vacuous — probing
+`deck-pass` alone missed `D25_image_provenance`, which grades nothing there
+since that fixture carries no image. Probing sub-fields as well as whole
+measurements produced five false positives, because emptying
+`D12_commercial_footer.missing_terms` empties the VIOLATION list and the row
+then passes for being clean rather than for having nothing to check. And the
+case that settled it: **`D33_icon_provenance` prints its violation count, so a
+document with no icon at all renders byte-identically to one whose icons are
+perfect.** There is no observable signal. No probe can ever find it.
+
+So the register is complete instead. **Every one of the eighteen gating rows
+declares what it grades** — `key`, `key.field`, or the literal `always` when the
+subject is the document itself — and the guard requires the set to be total, so
+a nineteenth gate is a decision rather than a silent `held`. Declaring them all
+found two more nobody had noticed: `D21_data_contract` grades nothing on a deck
+where no figure declares its data, which is all three of the round's decks, and
+`D22_layout_vocabulary` reads a measurement that is not its own name. The probe
+survives as a cross-check — a gate the checker demonstrably passes over an
+absence may not claim `always` — and its limits are written where it runs
+rather than left to be inferred from a guard that quietly sees half the cases.
+
+Deliberate red, four runs on the register — a gating row with no declaration,
+a measurement that does not exist, a dotted subject whose field does not exist,
+and `always` on a gate the probe catches passing over an absence — and three on
+the redraw, below. Two more were not planted. A test in the new file carried a
+conditional that always evaluated False, so its loop body never ran; a review
+then found a SECOND one in the same file, `assert X or True`, which survived the
+pass that reported catching the first. Two tests that could not fail, in the
+release about a count that could not be seen.
+
+**The guard itself shipped without the synthetic-tree tests convention 11 asks
+for, and the reason is worth recording.** Its early `return []` on a tree with
+no fixture meant the house pattern for red-testing a guard — a `tmp_path` tree
+with `ROOT` monkeypatched — was exactly the input that made it green. The guard
+about checks that pass over nothing passed over nothing. It now reports that
+state as a finding, and there are five synthetic-tree tests.
+
+**Absent rather than zero.** A scores file written before the field existed
+prints no count at all, because "we did not record it" and "nothing was graded"
+are the very distinction the number exists to draw — a genuine zero prints
+`(0 held)`. The shipped board therefore shows no counts until the run
+directories are scored again; `score --run <dir>` fills the field from
+artifacts already on disk and invokes no agent, which is worth saying because
+an earlier draft of this paragraph said the counts cost a driven round.
+
+**And where two runs disagree the cell prints the range.** `_held_note` first
+took the maximum while the verdict is the worst of the runs — the most
+flattering count beside the least flattering word, inside the function whose
+documented purpose is that a spread is a different claim from an agreement. It
+also computed the count at one return only, so both multi-run cells, the ones
+that most need it, lost it entirely.
+
+**The board's caption was fixed without re-dating the photograph.**
+0.1.609 changed what the generator writes — `partial: 1 of 3 driven` became
+`1 of 3 earned`, because that agent was driven three times — and the shipped
+board went on carrying the old words. Regenerating it with `--record` was the
+obvious move and the wrong one: a board is a photograph of one measurement
+session, and every history row carries which version of the rules its agents
+were read against. Recording an August run today stamps its rows with today's
+version and claims those agents read rules that did not exist when they ran,
+which is the misattribution 0.1.605 exists to describe.
+
+`report --redraw` is the narrow answer. The table, the failure list and the
+header render from the run directory that is still on disk; `history.json` is
+never opened; nothing is re-scored, so no verdict can change — only how it is
+written. Same shape as the `restamp` that 0.1.607 built for the header, one
+line down. Run over the current board it changed the two verdict cells and the header's
+version stamp, and left the hand-written history below the generated marker
+untouched. (This said "exactly two lines" and there were three; the header is
+rewritten because it carries the stamp, which is correct behaviour and was
+simply not counted.)
+
+Deliberate red, three runs: let `--redraw` fall through to `--record` (two
+tests fail, one of them on history being rewritten), drop the held count from
+the cell, and make an unrecorded count read as zero.
+
+**Two more defects a review found in the redraw, both green.** `write_board`
+reports rather than raises, so a board whose generated markers are gone came
+back as a `FAIL ` string — which was printed, followed by "the board already
+reads this way" as the last line, and exit 0. A wrapper reading the tail or the
+status saw success over a refusal. And nothing compared the run named on the
+command line with the run the board is a rendering of, so `--redraw --run
+<another round>` rewrote the table with a different session's verdicts, left
+thirty-six history rows describing the old one, and offered
+"conformance/history.json untouched" as the reassurance. Redraw rewrites how a
+measurement is worded, never which measurement it is; both now refuse, as does
+`--redraw --record`, which used to drop the `--record` in silence.
+
+**And the release tool now refuses to commit twice for one version.** Two
+guards assume one commit per release, and the sequence that breaks it is the
+ordinary one: `release.py` COMMITS, so a red preflight, a fix and a re-run leave
+two behind. It happened three times in the session that produced 0.1.605-0.1.610
+— the lesson was written down after the first, which is how a rule that needs a
+tool announces itself. `release.py` reads HEAD's subject and exits with the
+`git reset --soft HEAD~1` that folds the run into the existing commit.
+
+Closes GAP-038.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.609 — four checkers that told the author something untrue about their own document
 
 The round-six retrospective left a queue of findings that were real, verified,

@@ -296,6 +296,27 @@ def main():
                  f"Write the entry first: the commit subject is taken FROM it, "
                  f"so that the two cannot disagree.")
 
+    # ONE COMMIT PER RELEASE, ENFORCED RATHER THAN REMEMBERED. Two guards
+    # assume it — `check_commit_convention` holds a CHANGELOG-touching subject
+    # to the newest heading, and `check_evidence.py --init` finds the previous
+    # release by its subject prefix — and a second commit for one version
+    # breaks both. It happens for a mundane reason: this script COMMITS, so a
+    # red preflight, a fix, and a re-run leave two. That sequence is the normal
+    # one. It cost three squashes in a single session, with the lesson written
+    # down after the first, which is how a rule that needs a tool announces
+    # itself.
+    head = subprocess.run(["git", "log", "--format=%s", "-1"],
+                          capture_output=True, text=True, cwd=ROOT)
+    if head.returncode == 0 and head.stdout.startswith(f"{new} "):
+        sys.exit(
+            f"HEAD is already a {new} commit: {head.stdout.strip()[:70]!r}\n"
+            f"    Committing again would put two commits on one release, which "
+            f"the commit-convention guard and check_evidence --init both "
+            f"assume cannot happen.\n"
+            f"    Fold this run into it instead:\n"
+            f"      git reset --soft HEAD~1 && python3 scripts/ops/release.py "
+            f"--version {new} ...")
+
     print(f"release {old} -> {new}")
     print(f"  subject will be: {new} — {heading_summary[:60]}...")
 

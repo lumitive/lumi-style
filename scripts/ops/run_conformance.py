@@ -860,6 +860,31 @@ def _ver_key(v: str) -> tuple[int, ...]:
     return tuple(int(x) for x in v.split("."))
 
 
+def _held_note(fresh: list[dict]) -> str:
+    """-> " (N held)", " (N-M held)", or "" when no result recorded it.
+
+    Empty rather than zero, because "not recorded" and "nothing was graded" are
+    the very distinction this number exists to draw — a scores file written
+    before the field existed prints no parenthesis, and a genuine zero prints
+    `(0 held)`.
+
+    THE RANGE, NOT THE MAXIMUM. This returned `max(counts)` while the cell's
+    verdict is the WORST of the runs, so two runs that graded 15 and 10 gates
+    rendered as `2 runs, all pass (15 held)` — the most flattering count beside
+    the least flattering verdict, in the function whose whole documented
+    purpose is that a spread is a different claim from an agreement. Two runs
+    that held different amounts produced different artifacts, which is the very
+    thing this number was added to expose.
+    """
+    counts = sorted({s["design"]["gates_held"] for s in fresh
+                     if isinstance(s.get("design"), dict)
+                     and s["design"].get("gates_held") is not None})
+    if not counts:
+        return ""
+    return (f" ({counts[0]} held)" if len(counts) == 1
+            else f" ({counts[0]}-{counts[-1]} held)")
+
+
 def cell_spread(fresh: list[dict]) -> tuple[str, str]:
     """-> (cell text, governing verdict) for one task's fresh results.
 
@@ -893,16 +918,28 @@ def cell_spread(fresh: list[dict]) -> tuple[str, str]:
             base = (worst if worst == "pass" or not latest_detail
                     else f"{worst}: {latest_detail}")
             return (base + " · skill changed between builds: "
-                    + ", ".join(f"{next(iter(by_build[b]))}@{b}" for b in builds),
+                    + ", ".join(f"{next(iter(by_build[b]))}@{b}" for b in builds)
+                    + _held_note(fresh),
                     worst)
         cell = worst if worst == "pass" else (f"{worst}: {detail}" if detail else worst)
+        # THE COUNT ON THIS PATH TOO. It was computed only at the final return,
+        # so the two multi-run cells — the ones that most need to say how much
+        # each run held — lost it entirely.
         return (cell + f" · {len(fresh)} runs UNSTABLE: "
-                + ", ".join(f"{v}×{seen.count(v)}" for v in sorted(set(seen))),
+                + ", ".join(f"{v}×{seen.count(v)}" for v in sorted(set(seen)))
+                + _held_note(fresh),
                 worst)
     cell = worst if worst == "pass" else (f"{worst}: {detail}" if detail else worst)
     if len(fresh) > 1:
         cell += f" · {len(fresh)} runs, all {worst}"
-    return cell, worst
+    # HOW MANY GATES HAD A SUBJECT, in the cell that claims them. A clean sheet
+    # over eighteen gates and a clean sheet over thirteen print the same word,
+    # and the 2026-08-26 round published that pair side by side: one deck
+    # carried an agenda, part openers and pages declaring an analysis move; the
+    # other had none of them, so five of its clean rows graded nothing at all.
+    # The rows are right to pass — a measured absence passes, deliberately —
+    # and the roll-up was where the number went missing.
+    return cell + _held_note(fresh), worst
 
 
 # Driver verdicts that earn nothing. Split by whether the agent's CLI was ever
@@ -1661,6 +1698,12 @@ def main(argv):
     ap.add_argument("--hard-cap", type=int, default=DRIVE_HARD_CAP,
                     help=f"with run --drive: seconds no amount of progress can "
                          f"extend a task past (default {DRIVE_HARD_CAP})")
+    ap.add_argument("--redraw", action="store_true",
+                    help="rewrite the board's generated block from the named "
+                         "run WITHOUT touching conformance/history.json — for "
+                         "when the wording changed and the measurement did "
+                         "not. `--record` would stamp the run's history rows "
+                         "with today's version.")
     ap.add_argument("--record", action="store_true",
                     help="with report: append one row per scored agent per run "
                          "to conformance/history.json — the tracked memory the "
@@ -2096,6 +2139,20 @@ def main(argv):
                         one = score_checks(kind, target, task.get("genre"))
                         raw_runs[kind] = one.pop("_run")
                         entry[kind] = one
+                        # HOW MANY GATES HAD A SUBJECT. "Zero gating failures"
+                        # does not say how much was held, and the 2026-08-26
+                        # round published it over a deck holding eighteen gates
+                        # and one holding thirteen — the second had no agenda
+                        # page and no page declaring an analysis move, so five
+                        # of its clean rows graded nothing. Not a defect in
+                        # those rows (a measured absence passes, deliberately);
+                        # a number the roll-up was throwing away.
+                        report = ((raw_runs[kind].get("reports") or [{}])[0]
+                                  or {})
+                        if report.get("gates_held") is not None:
+                            entry[kind]["gates_held"] = len(report["gates_held"])
+                            entry[kind]["gates_not_graded"] = len(
+                                report.get("gates_with_nothing_to_grade") or [])
                         # A checker that could not be read has not scored this
                         # artifact. The flag was written into the record and
                         # never looked at, so a crashed checker scored `pass`.
@@ -2349,6 +2406,60 @@ def main(argv):
               "structural": sum(1 for r in rows if r["verdict"] == "cannot be probed"),
               "task_ids": [t["id"] for t in tasks], "rows": rows}
     print(render(record))
+
+    if args.redraw:
+        # THE TABLE WITHOUT THE HISTORY. A board is a photograph of one
+        # measurement session, and every history row carries which version of
+        # the rules its agents were measured against — so `--record` on an old
+        # run stamps those rows with TODAY's version and claims the agents read
+        # rules that did not exist when they ran. That is the misattribution
+        # 0.1.605 exists to describe, and it is why the shipped board kept
+        # wording the generator no longer produces.
+        #
+        # Redrawing is the narrow answer: the table, the failure list and the
+        # header come from the run directory that is still on disk, and
+        # `history.json` is not opened at all. Nothing is re-scored — the same
+        # `scores.json` renders — so no verdict can change, only how it is
+        # written. Same shape as `restamp`, one line up.
+        board = ROOT / "conformance" / "CONFORMANCE.md"
+        # WHICH RUN THE BOARD IS ALREADY ABOUT. Nothing compared them, so
+        # `--redraw --run <any other round>` rewrote the table with a different
+        # session's verdicts, left thirty-six history rows describing the old
+        # one, and reported success — with "conformance/history.json untouched"
+        # as the reassurance. Redrawing is for when the WORDING changed and the
+        # measurement did not; a different measurement is `--record`'s job.
+        try:
+            standing = board_run_id_line(board.read_text(encoding="utf-8")) or ""
+        except OSError as exc:
+            print(f"FAIL  {board} cannot be read: {exc}")
+            return 1
+        if standing.strip() and record["run_id"] not in standing:
+            print(f"FAIL  the board is a rendering of {standing.strip()!r} and "
+                  f"--run names {record['run_id']}. Redraw rewrites how a "
+                  f"measurement is worded, never which measurement it is; "
+                  f"recording a different run is `--record`.")
+            return 1
+        if args.record:
+            print("FAIL  --redraw and --record together: one rewrites the "
+                  "table only, the other appends history rows. Pick one.")
+            return 1
+        before = board.read_text(encoding="utf-8")
+        outcome = write_board(record)
+        print(outcome)
+        # BRANCHED ON WHAT write_board SAID, not on whether the file moved.
+        # It reports rather than raises — a board with no generated region
+        # returns a `FAIL ` string — and diffing the file against itself then
+        # printed "the board already reads this way" underneath, as the last
+        # line, with exit 0. A wrapper reading the tail or the status saw
+        # success over a refusal.
+        if outcome.startswith(("FAIL", "note")):
+            return 1
+        if board.read_text(encoding="utf-8") == before:
+            print("ok    the board already reads this way; nothing rewritten")
+        else:
+            print("redrew the board's generated block from "
+                  f"{record['run_id']}; conformance/history.json untouched")
+        return 0
 
     if args.record:
         print(write_board(record))
