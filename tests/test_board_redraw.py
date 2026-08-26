@@ -160,3 +160,34 @@ def test_redraw_and_record_together_is_refused(tmp_path, monkeypatch, capsys):
         ["report", "--redraw", "--record", "--run", str(run)]) == 1
     assert "Pick one" in capsys.readouterr().out
     assert history.read_text(encoding="utf-8") == before
+
+
+def test_the_marker_names_the_command_not_a_flag(tmp_path, monkeypatch):
+    """A board written by `--redraw` was stamped as written by `--record`.
+
+    This is the release where the difference is load-bearing: redraw's whole
+    argument is that it deliberately does not touch history, and the board's
+    own first line said it had been recorded.
+    """
+    board, _, run = _tree(tmp_path, monkeypatch)
+    run_conformance.main(["report", "--redraw", "--run", str(run)])
+    text = board.read_text(encoding="utf-8")
+    assert run_conformance.BOARD_OPEN in text
+    assert "--record" not in text.splitlines()[0]
+
+
+def test_a_board_carrying_the_old_marker_is_still_readable(tmp_path,
+                                                           monkeypatch):
+    """Every board on disk was written with the previous form.
+
+    Refusing them would have meant regenerating a file to make it readable,
+    which is the trade a marker change must not impose.
+    """
+    board, _, run = _tree(tmp_path, monkeypatch)
+    board.write_text(board.read_text(encoding="utf-8").replace(
+        run_conformance.BOARD_OPEN, run_conformance.BOARD_OPEN_LEGACY, 1),
+        encoding="utf-8")
+    assert run_conformance.main(["report", "--redraw", "--run", str(run)]) == 0
+    text = board.read_text(encoding="utf-8")
+    assert "| Agent One" in text
+    assert "Hand-written, left as written." in text
