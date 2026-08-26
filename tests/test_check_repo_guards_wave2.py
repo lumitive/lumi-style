@@ -108,6 +108,12 @@ def _platform_record(**over):
         "path_verified": True,
         "docs": "https://example.invalid/docs",
         "probe": ["claude", "--version"],
+        # A vocabulary state since 0.1.619: what the agent can be RUN AS is
+        # claimed the same way as whether it is there at all. The real
+        # `claude-code` record carries the waiver rather than the argv, because
+        # that CLI has no listing command; this fixture carries the argv so the
+        # positive branch is the one under test here.
+        "models": ["claude", "--list-models"],
         "capability_verified": True,
     }
     record.update(over)
@@ -428,3 +434,35 @@ def test_probe_vocabulary_diverged_visual_carriers_fail(tmp_path, monkeypatch):
     errors = check_repo.check_probe_vocabulary()
     assert len(errors) == 1
     assert "visual vocabulary has diverged" in errors[0]
+
+
+def test_platform_manifest_a_platform_claiming_no_vocabulary_state_fails(
+        tmp_path, monkeypatch):
+    """Neither a models probe nor a reason for having none. Twelve platforms
+    ship here and eleven cannot enumerate their models — for three DIFFERENT
+    reasons (no listing command, an interactive picker, nobody has installed
+    it). A record that says nothing publishes those three as one."""
+    record = _platform_record()
+    del record["models"]
+    _manifest_tree(tmp_path, monkeypatch, records=[record])
+    errors = check_repo.check_platform_manifest()
+    assert len(errors) == 1
+    assert "model vocabulary probe" in errors[0] and "models_waiver" in errors[0]
+
+
+def test_platform_manifest_a_vocabulary_waiver_is_accepted(tmp_path, monkeypatch):
+    record = _platform_record(
+        models_waiver="`hermes model` opens an interactive picker.")
+    del record["models"]
+    _manifest_tree(tmp_path, monkeypatch, records=[record])
+    assert check_repo.check_platform_manifest() == []
+
+
+def test_platform_manifest_a_models_probe_written_as_a_string_fails(
+        tmp_path, monkeypatch):
+    """The same defect the probe field had: a string is indexed character-wise,
+    so `argv[0]` is `c` and `shutil.which` reports the agent as absent."""
+    _platform = _platform_record(models="claude --list-models")
+    _manifest_tree(tmp_path, monkeypatch, records=[_platform])
+    errors = check_repo.check_platform_manifest()
+    assert any("models must be a list of strings" in e for e in errors)

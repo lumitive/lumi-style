@@ -2383,6 +2383,15 @@ def check_platform_manifest():
             ("path_verified", "path_waiver", "install path"),
             ("docs", "docs_waiver", "documentation URL"),
             ("probe", "probe_waiver", "CLI probe"),
+            # WHAT THE AGENT CAN BE RUN AS, asked the same way it is asked
+            # whether the agent is there at all. One of the twelve can answer
+            # read-only (`cursor-agent --list-models`); the other eleven carry a
+            # waiver naming WHICH kind of silence it is — a CLI with no listing
+            # command, a picker that needs a TUI, or a CLI nobody here has
+            # installed. The three are different facts and the waiver has to say
+            # which, because "no vocabulary" and "nobody looked" read identically
+            # in a table.
+            ("models", "models_waiver", "model vocabulary probe"),
             # The tier was the ONE claim here with no verification field, and it
             # is the claim that decides whether an agent may call a deliverable
             # verified. Ten records asserted `full` — "the agent runs the
@@ -2400,10 +2409,10 @@ def check_platform_manifest():
             missing = (value is not True
                        if flag in ("path_verified", "capability_verified")
                        else (not value))
-            if flag == "probe" and value and not (
+            if flag in ("probe", "models") and value and not (
                     isinstance(value, list) and all(isinstance(x, str) for x in value)):
                 errors.append(
-                    f"adapters/platforms.json: {pid} probe must be a list of strings; "
+                    f"adapters/platforms.json: {pid} {flag} must be a list of strings; "
                     f"a string is indexed character-wise and publishes an installed "
                     f"agent as not installed")
             if missing and not entry.get(waiver):
