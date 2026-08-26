@@ -860,6 +860,152 @@ def _ver_key(v: str) -> tuple[int, ...]:
     return tuple(int(x) for x in v.split("."))
 
 
+def _history_rows() -> tuple[list, str | None]:
+    """-> (rows, why they could not be read). Never both empty-and-fine.
+
+    `json.JSONDecodeError` subclasses `ValueError`, so one `except` around the
+    parse turned "this file is a merge conflict" into "nothing is wrong" —
+    which is the shape every finding in this area has. A tracked file that two
+    branches both append to is the likeliest thing in this repository to arrive
+    unparseable, and it is the only evidence store there is.
+    """
+    hist = ROOT / "conformance" / "history.json"
+    if not hist.exists():
+        return [], None                    # a first run has no rows to break
+    try:
+        rows = json.loads(hist.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return [], f"{hist} could not be read ({exc})"
+    if not isinstance(rows, list):
+        return [], (f"{hist} holds a {type(rows).__name__}, not a list of rows "
+                    f"— `null`, a number and an object all parse as JSON")
+    return rows, None
+
+
+def _rows_for(rows: list, run_dir: pathlib.Path) -> list[dict]:
+    """-> the history rows describing this run directory, spelling aside.
+
+    RESOLVED, not string-compared. `_portable` collapses `$HOME` to `~` and
+    nothing else, so the same directory recorded absolutely and given
+    relatively read as two — and `history.json` holds thirteen different
+    spellings across its rows, some `~`-prefixed and some relative. Passing
+    this function the path in the exact form the file records was the case that
+    found nothing.
+
+    A RELATIVE row is relative to ROOT, not to the process's directory: the
+    recorded ones (`conformance/results/latest`) were written from the
+    repository root and `score` may be run from anywhere.
+    """
+    def resolved(text: str) -> pathlib.Path | None:
+        try:
+            path = pathlib.Path(text).expanduser()
+            if not path.is_absolute():
+                path = ROOT / path
+            return path.resolve()
+        except (OSError, RuntimeError, ValueError):
+            # expanduser() raises RuntimeError on `~nosuchuser`, resolve()
+            # raises ValueError on an embedded NUL, and the fallback that was
+            # written for "a path this machine cannot resolve" caught neither.
+            return None
+
+    here = resolved(str(run_dir))
+    out = []
+    for row in rows:
+        if not isinstance(row, dict) or not row.get("run_dir"):
+            continue
+        there = resolved(str(row["run_dir"]))
+        if here is not None and there == here:
+            out.append(row)
+        elif here is None and _portable(str(row["run_dir"])) == _portable(str(run_dir)):
+            out.append(row)
+    return out
+
+
+def _pin_guard(run_dir: pathlib.Path) -> list[str]:
+    """Read BEFORE `scores.json` is rewritten; keep the bytes; say what happens.
+
+    `report --record` writes `scores_sha256` into every history row, and the
+    code that does it says why: the run directory lives outside this repository
+    and is gitignored, so **the digest is the whole of what makes a row
+    evidence rather than an assertion**. Re-scoring rewrites the file and every
+    pinned digest silently stops resolving.
+
+    Found by doing it — refreshing the board's held counts broke all four rows
+    of the 2026-08-26 run in one command that reported nothing but success, and
+    the verdicts happened to be identical, which is exactly when such a break
+    goes unnoticed.
+
+    THREE THINGS THE FIRST VERSION GOT WRONG, all the same mistake in different
+    clothes — a check that could not look printing what a clean check prints:
+
+    * It ran AFTER the write, so its advice ("keep the previous file") named a
+      remedy the command had already made impossible. It now runs before, and
+      copies the file rather than recommending that someone should have.
+    * It ran after the `if not scores` early return, so the one case where the
+      pin is destroyed COMPLETELY — `scores.json` replaced by `{}` — was the
+      one case it never reported. That is reachable by pointing `--run` one
+      directory too high.
+    * It compared the current file against the recorded digests, so it claimed
+      "a re-score replaced the bytes" on every later invocation too, including
+      ones that changed nothing. Reading before the write is what lets it tell
+      "this command broke them" from "they were already unresolved".
+
+    Reported, never a gate: re-scoring with newer instruments is a legitimate
+    thing to do, and refusing it would be worse than naming what it costs.
+    """
+    scores = run_dir / "scores.json"
+    rows, unreadable = _history_rows()
+    if unreadable:
+        return [f"note  {unreadable}; this re-score's effect on the pinned "
+                f"digests is UNKNOWN, not clean."]
+    mine = _rows_for(rows, run_dir)
+    if not mine:
+        return []
+    try:
+        before = hashlib.sha256(scores.read_bytes()).hexdigest()
+    except OSError:
+        # No scores.json to replace, and rows that pin one: they were already
+        # unresolvable before this command touched anything.
+        pinned = [r for r in mine if r.get("scores_sha256")]
+        return ([f"note  {len(pinned)} history row(s) pin a scores.json this "
+                 f"run directory no longer has."] if pinned else [])
+
+    breaking = [r for r in mine if r.get("scores_sha256") == before]
+    already = [r for r in mine
+               if r.get("scores_sha256") not in (None, before)]
+    out = []
+    if breaking:
+        keep = run_dir / f"scores.{_kept_suffix(mine)}.json"
+        note = ""
+        if not keep.exists():
+            try:
+                shutil.copy2(scores, keep)
+                note = f" The bytes they name are kept at {keep.name}."
+            except OSError as exc:
+                note = f" They could not be kept beside it ({exc})."
+        else:
+            note = f" The bytes they name were already kept at {keep.name}."
+        out.append(
+            f"note  {len(breaking)} history row(s) pin the scores.json this "
+            f"command is about to replace, and will stop resolving to it.{note}")
+        out.append(
+            "      `report --record` is not the remedy: it would stamp fresh "
+            "rows with TODAY's skill version over agents that read an older one.")
+    if already:
+        out.append(
+            f"note  {len(already)} history row(s) already pinned a different "
+            f"scores.json before this command ran.")
+    return out
+
+
+def _kept_suffix(rows: list[dict]) -> str:
+    """-> a name for the preserved file, from what the rows say measured it."""
+    versions = sorted({str(r.get("instrument_version") or r.get("skill_version"))
+                       for r in rows if r.get("instrument_version")
+                       or r.get("skill_version")})
+    return f"{versions[-1]}-instruments" if versions else "superseded"
+
+
 def _held_note(fresh: list[dict]) -> str:
     """-> " (N held)", " (N-M held)", or "" when no result recorded it.
 
@@ -1321,7 +1467,16 @@ def score_recall(task: dict, text: str) -> dict:
 # the rendered output in by hand, which is how "What this table is not" came to
 # appear in that file THREE times — the section was re-appended at every refresh
 # and nobody diffed a document they had just generated.
-BOARD_OPEN = "<!-- generated by run_conformance.py report --record -->"
+# NAMES THE COMMAND, NOT ONE OF ITS FLAGS. This read `report --record`, so a
+# board written by `report --redraw` was stamped as having been recorded — and
+# this is the release where the difference is load-bearing, since redraw's whole
+# argument is that it deliberately does not touch history. A reader auditing
+# whether history rows should exist for a board was told, by the board, that
+# they were.
+BOARD_OPEN = "<!-- generated by run_conformance.py report -->"
+# The form written before that, still accepted when splitting an existing file
+# so a board on disk does not have to be regenerated to be readable.
+BOARD_OPEN_LEGACY = "<!-- generated by run_conformance.py report --record -->"
 BOARD_CLOSE = "<!-- end generated -->"
 
 
@@ -1341,10 +1496,11 @@ def write_board(record: dict) -> str:
         # half down with it (the synthetic trees the record tests build have
         # no board at all).
         return f"note  the board was not written: {exc}"
-    if BOARD_OPEN not in text or BOARD_CLOSE not in text:
+    opener = next((m for m in (BOARD_OPEN, BOARD_OPEN_LEGACY) if m in text), None)
+    if opener is None or BOARD_CLOSE not in text:
         return (f"FAIL  {path.name} carries no generated region; add "
                 f"{BOARD_OPEN} and {BOARD_CLOSE} around its header and table")
-    head, rest = text.split(BOARD_OPEN, 1)
+    head, rest = text.split(opener, 1)
     _, tail = rest.split(BOARD_CLOSE, 1)
     path.write_text(head + BOARD_OPEN + "\n" + render_board(record) + "\n"
                     + BOARD_CLOSE + tail, encoding="utf-8")
@@ -2245,6 +2401,11 @@ def main(argv):
                     driver.read_text(encoding="utf-8")).get("model")
             except ValueError:
                 pass
+        # BEFORE THE BYTES GO. The pin note has to read the file it is about
+        # to lose, and it has to print on the empty-scores exit too — that is
+        # the case where the pin is destroyed completely rather than partially,
+        # and it was the one case the first version could not reach.
+        pin_notes = _pin_guard(run_dir)
         (run_dir / "scores.json").write_text(
             json.dumps(scores, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         for key, s in sorted(scores.items()):
@@ -2254,9 +2415,13 @@ def main(argv):
             print(f"  NOT MEASURED: nothing under {run_dir} matched a known agent and "
                   f"task; `run` writes that layout, and a scoreboard of zero rows is "
                   f"not a scoreboard of passes")
+            for line in pin_notes:
+                print(line)
             return 1
         print(f"\n{len(scores) - unscored} scored, {unscored} not scored "
               f"-> {run_dir / 'scores.json'}")
+        for line in pin_notes:
+            print(line)
         return 1 if any(s["verdict"] != "pass" for s in scores.values()) else 0
 
     # report
