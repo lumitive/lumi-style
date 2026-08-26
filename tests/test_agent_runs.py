@@ -1,18 +1,19 @@
 """What a configuration costs — the agent half, moved out of the document half.
 
-These thirteen tests were in `tests/test_ledger.py`, patching `ledger.matrix`
-and `ledger.PRICES`, because the model x effort cost matrix lived in the tool
-that answers three questions about DOCUMENTS. The code moved to
-`scripts/lib/agent_runs.py` and the tests moved with it — a test that patches a
-name is a test that pins where the name lives, and leaving them behind would
-have kept the seam open in the one place that would have failed loudly.
+These thirteen tests were in `tests/test_ledger.py`, calling `ledger.matrix`,
+`ledger.render_matrix` and `ledger.board`, because the model x effort cost
+matrix lived in the tool that answers three questions about DOCUMENTS. The code
+moved to `scripts/lib/agent_runs.py` and the tests moved with it. They would
+have kept passing where they were — `ledger` re-exports the three names — and
+that is the reason to move them: a test that keeps working through a re-export
+is a test that records the old home as the real one.
 
 The load-bearing one is `test_a_run_with_a_failing_gate_is_not_on_the_board`:
 the DOCUMENT's verdict is the admission ticket to the AGENT's board. Lose it and
 the cheapest way to the top of the board is to write thinner decks.
 """
 import agent_runs
-import pytest  # noqa: F401 — several moved tests take fixtures
+import pytest
 
 
 def _trace(tid="t-000000000001", **kw):
@@ -164,3 +165,27 @@ def test_a_run_without_input_tokens_counts_for_tokens_but_not_for_cost():
 # completeness has — is a countable fact rather than an invisible choice, and
 # nothing counted it. `titles_changed_after_approval` is the sharper of the
 # two: a review agreed and then departed from is not a review.
+
+
+# `load_prices` had no test of its own, and its two failure states are the
+# whole reason it is a function rather than a `json.loads`. Both are pinned by
+# repointing `PRICES` — the module reads it at call time, so a monkeypatch of
+# the module attribute is the real path and not a stand-in.
+
+def test_no_price_table_is_none_rather_than_an_empty_table(tmp_path, monkeypatch):
+    monkeypatch.setattr(agent_runs, "PRICES", tmp_path / "absent.json")
+    assert agent_runs.load_prices() is None, (
+        "an empty dict here would make 'no table' and 'a table pricing nothing' "
+        "the same value, and render_matrix says different words for each")
+
+
+def test_an_unparseable_price_table_exits_rather_than_pricing_nothing(
+        tmp_path, monkeypatch):
+    bad = tmp_path / "prices.local.json"
+    bad.write_text('{"opus-5": {"in": 5.0,\n', encoding="utf-8")
+    monkeypatch.setattr(agent_runs, "PRICES", bad)
+    with pytest.raises(SystemExit) as caught:
+        agent_runs.load_prices()
+    message = str(caught.value)
+    assert "not JSON" in message and "prices.local.json" in message, (
+        f"the exit must name the file and the fault; it said {message!r}")

@@ -1408,6 +1408,13 @@ def _conformance_trace(agent: dict, task: dict, wd: pathlib.Path, record: dict) 
     if opened.returncode != 0:
         return f"no trace: {opened.stderr.strip()[:120]}"
     tid = opened.stdout.strip()
+    # THE ID GOES INTO THE RECORD, not only into the sentence this returns.
+    # The trace holds what a run COST; `history.json` holds what it EARNED, and
+    # joining them meant matching on (agent, date) — a heuristic that is wrong
+    # the first time two agents run on one day. The id is the key, and this is
+    # the only place that knows it. Written before anything can fail below, so
+    # a run that opens a trace and then dies still says which one it opened.
+    record["trace_id"] = tid
     produced = [wd / n for n in record.get("produced") or []]
     # A MISPLACED ARTIFACT STILL ANSWERS THE COST QUESTION. The two boards ask
     # different things and only one of them cares where the file went: the
@@ -2505,6 +2512,18 @@ def main(argv):
             cell = _model_cell(rec)
             if cell is not None:
                 entry["model"] = cell
+            # THE REST OF THE CONFIGURATION, in the same pass and for the same
+            # reason its comment gives: a cell whose model is present because
+            # one branch remembered and whose effort is missing because another
+            # forgot is worse than a column that is not there. `effort` reached
+            # `driver.json` and the trace and nothing else, so the board could
+            # show which model ran and never at what reasoning tier.
+            for key, source in (("effort", "effort"),
+                                ("model_asked", "model"),
+                                ("trace_id", "trace_id")):
+                value = rec.get(source)
+                if value is not None:
+                    entry[key] = value
         # BEFORE THE BYTES GO. The pin note has to read the file it is about
         # to lose, and it has to print on the empty-scores exit too — that is
         # the case where the pin is destroyed completely rather than partially,

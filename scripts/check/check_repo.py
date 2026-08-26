@@ -416,8 +416,18 @@ def check_trace_schema():
             errors.append(f"{name!r} is in both {a} and {b}; the sides partition "
                           f"the fields and may not overlap")
 
+    # THE TRACKED STORE, RESOLVED BY HAND, ON PURPOSE. `trace_store.traces_dir()`
+    # is the right answer for every OTHER caller and the wrong one here: it
+    # honours `LUMI_TRACES`, and `tests/conftest.py` points that at an empty
+    # scratch directory for the whole suite. A review asked for the call and it
+    # was measured before being declined — the live-repo test would have walked
+    # 0 files instead of the 255 this checkout tracks, and reported clean. The
+    # guard asks whether THIS REPOSITORY's committed traces validate, so it reads
+    # the committed path. `tests/test_trace_field_partition.py` pins that.
     traces = ROOT / "evals" / "traces"
     if not traces.exists():
+        # A legal state, not a silence: a synthetic tree and a fresh install both
+        # have no store, and the partition above was already checked without one.
         return errors
     for path in sorted(traces.glob("*.json")):
         try:

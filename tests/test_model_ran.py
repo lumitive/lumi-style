@@ -212,3 +212,137 @@ def test_a_driver_record_that_cannot_be_read_says_so(tmp_path, monkeypatch,
     assert "does not parse" in capsys.readouterr().out
     scored = json.loads((run / "scores.json").read_text(encoding="utf-8"))
     assert scored["a1/T1"]["model"] == "driver record unreadable"
+
+
+def test_the_whole_configuration_reaches_the_scores_file(tmp_path, monkeypatch):
+    """`effort` reached `driver.json` and the trace and nothing else.
+
+    So the board could say which model ran and never at what reasoning tier —
+    and `report --record`, which reads `scores.json`, had nothing to carry into
+    a history row. The three fields ride in the SAME pass as `model`, for the
+    reason that pass's own comment gives: a cell whose model is present because
+    one branch remembered and whose effort is missing because another forgot is
+    worse than a column that is not there.
+    """
+    (tmp_path / "SKILL.md").write_text(
+        '---\nmetadata:\n  version: "0.1.999"\n---\n', encoding="utf-8")
+    (tmp_path / "adapters").mkdir()
+    (tmp_path / "adapters" / "platforms.json").write_text(json.dumps(
+        {"platforms": [{"id": "a1", "name": "Agent One", "capability": "prompt"}]}),
+        encoding="utf-8")
+    tasks = tmp_path / "conformance" / "tasks"
+    tasks.mkdir(parents=True)
+    (tasks / "T1.json").write_text(json.dumps(
+        {"id": "T1", "prompt": "write answers.md", "min_capability": "prompt",
+         "score": ["recall"], "deliverable": "*.md",
+         "answers": {"the output language": [r"\benglish\b"]}}),
+        encoding="utf-8")
+    run = tmp_path / "run1"
+    (run / "a1" / "T1").mkdir(parents=True)
+    (run / "a1" / "T1" / "answers.md").write_text(
+        "the output language is English\n", encoding="utf-8")
+    (run / "a1" / "T1" / "driver.json").write_text(json.dumps(
+        {"verdict": "driven", "model": "cursor-grok-4.6-high",
+         "model_ran": "Cursor Grok 4.6", "effort": "high",
+         "trace_id": "t-abcdef012345", "seconds": 1}), encoding="utf-8")
+    for attr, value in (("ROOT", tmp_path),
+                        ("REGISTRY", tmp_path / "adapters" / "platforms.json"),
+                        ("TASKS", tasks),
+                        ("RESULTS", tmp_path / "conformance" / "results")):
+        monkeypatch.setattr(run_conformance, attr, value)
+    run_conformance.main(["score", "--run", str(run)])
+    cell = json.loads((run / "scores.json").read_text(encoding="utf-8"))["a1/T1"]
+    assert cell["model"] == "Cursor Grok 4.6 (asked cursor-grok-4.6-high)"
+    assert cell["effort"] == "high"
+    assert cell["model_asked"] == "cursor-grok-4.6-high"
+    assert cell["trace_id"] == "t-abcdef012345"
+
+
+def _score_one(tmp_path, monkeypatch, driver):
+    """Drive `score` over one synthetic task carrying the given driver record."""
+    (tmp_path / "SKILL.md").write_text(
+        '---\nmetadata:\n  version: "0.1.999"\n---\n', encoding="utf-8")
+    (tmp_path / "adapters").mkdir(exist_ok=True)
+    (tmp_path / "adapters" / "platforms.json").write_text(json.dumps(
+        {"platforms": [{"id": "a1", "name": "Agent One", "capability": "prompt"}]}),
+        encoding="utf-8")
+    tasks = tmp_path / "conformance" / "tasks"
+    tasks.mkdir(parents=True, exist_ok=True)
+    (tasks / "T1.json").write_text(json.dumps(
+        {"id": "T1", "prompt": "write answers.md", "min_capability": "prompt",
+         "score": ["recall"], "deliverable": "*.md",
+         "answers": {"the output language": [r"\benglish\b"]}}),
+        encoding="utf-8")
+    run = tmp_path / "run1"
+    (run / "a1" / "T1").mkdir(parents=True, exist_ok=True)
+    (run / "a1" / "T1" / "answers.md").write_text(
+        "the output language is English\n", encoding="utf-8")
+    (run / "a1" / "T1" / "driver.json").write_text(json.dumps(driver),
+                                                   encoding="utf-8")
+    for attr, value in (("ROOT", tmp_path),
+                        ("REGISTRY", tmp_path / "adapters" / "platforms.json"),
+                        ("TASKS", tasks),
+                        ("RESULTS", tmp_path / "conformance" / "results")):
+        monkeypatch.setattr(run_conformance, attr, value)
+    run_conformance.main(["score", "--run", str(run)])
+    return json.loads((run / "scores.json").read_text(encoding="utf-8"))["a1/T1"]
+
+
+def test_an_unpinned_effort_is_carried_as_written_not_dropped(tmp_path,
+                                                              monkeypatch):
+    """`(not pinned)` is an answer and reaches the cell as one.
+
+    Dropping it would make "nobody pinned an effort" and "this scores file
+    predates the field" the same absence — two states, one string, which is the
+    shape FM-24 names. The first version of this test re-implemented the
+    attaching loop in the test body and so tested a copy of the logic rather
+    than the logic; it passed against a `score` that carried nothing.
+    """
+    cell = _score_one(tmp_path, monkeypatch, {
+        "verdict": "driven", "model": "(the CLI's default)",
+        "model_ran": "Auto", "effort": "(not pinned)", "seconds": 1})
+    assert cell["effort"] == "(not pinned)"
+    assert cell["model"] == "Auto"
+
+
+def test_a_driver_record_predating_the_field_carries_no_effort_key(tmp_path,
+                                                                   monkeypatch):
+    """Absent, not invented — the other side of the same distinction."""
+    cell = _score_one(tmp_path, monkeypatch, {
+        "verdict": "driven", "model": "(the CLI's default)",
+        "model_ran": "Auto", "seconds": 1})
+    assert "effort" not in cell
+    assert "trace_id" not in cell
+
+
+def test_the_trace_id_is_recorded_into_the_driver_record(tmp_path, monkeypatch):
+    """The join key, written where it is the only thing that knows it.
+
+    The trace holds what a run COST; `history.json` holds what it EARNED. The
+    join was `(agent, date)`, which is wrong the first time two agents run on
+    one day. `_conformance_trace` opens the trace and knew the id, and returned
+    only a sentence about it.
+
+    Reachable without driving an agent: the helper shells out to `trace.py`
+    itself, so a task with a storyline and a redirected store exercises the real
+    path. Every other test here hand-writes `driver.json` and so cannot see this
+    line at all — deleting it left them all green.
+    """
+    store = tmp_path / "traces"
+    store.mkdir()
+    monkeypatch.setenv("LUMI_TRACES", str(store))
+    wd = tmp_path / "wd"
+    wd.mkdir()
+    record = {"verdict": "driven", "produced": [], "seconds": 3,
+              "model": "m", "effort": "high"}
+    run_conformance._conformance_trace(
+        {"id": "a1"},
+        {"id": "T1", "deliverable": "*.md", "storyline": "market-analysis",
+         "genre": "internal"},
+        wd, record)
+    tid = record.get("trace_id")
+    assert tid, "the id the helper opened was not recorded"
+    assert isinstance(tid, str) and tid.startswith("t-")
+    written = list(store.glob("*.json"))
+    assert written, "no trace was opened"
+    assert json.loads(written[0].read_text())["trace_id"] == tid

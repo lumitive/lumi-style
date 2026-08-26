@@ -1,3 +1,70 @@
+## 0.1.617 — the reasoning tier a run used reached the trace and nowhere a board could read it
+
+Second of the approved stages. `effort` was recorded in `driver.json` and copied
+into the trace, and stopped there — not `scores.json`, not the board, not
+`history.json`. So a board could say which model ran and never at what reasoning
+tier, and `report --record`, which reads `scores.json`, had nothing to carry into
+a row even once a row was ready to hold it.
+
+`effort`, the model that was ASKED for, and the trace id now ride into the score
+cell **in the same pass that already attaches the model** — for the reason that
+pass's own comment gives: a cell whose model is present because one branch
+remembered and whose effort is missing because another forgot is worse than a
+column that is not there.
+
+**The trace id is the join key, and it is written where the only thing that knows
+it lives.** The trace holds what a run COST; `history.json` holds what it EARNED.
+Joining them meant matching on `(agent, date)` — a heuristic that is wrong the
+first time two agents run on one day, which is every driven round this package
+has. `_conformance_trace` opened the trace, knew the id, and returned only a
+sentence about it. It records it now, before anything below can fail, so a run
+that opens a trace and then dies still says which one it opened.
+
+**Absent stays absent.** A driver record written before these fields existed
+carries no `effort` key, and the cell gets none — inventing `(not pinned)` for it
+would make "nobody pinned an effort" and "this record predates the field" the
+same string, which is FM-24's shape. `(not pinned)` is itself an answer and is
+carried through as written.
+
+Deliberate red, three runs: drop the whole attach, invent an absent effort, and
+delete the line that records the trace id. **The third did not plant on the first
+attempt** — every test in the file hand-writes `driver.json`, so none of them
+reaches `_conformance_trace` and deleting the line left all fifteen green. It is
+reachable without driving an agent, because the helper shells out to `trace.py`
+itself; a task with a storyline and `LUMI_TRACES` redirected exercises the real
+path. A fourth red was not planted: one test re-implemented the attaching loop in
+its own body and so tested a copy of the logic rather than the logic, passing
+against a `score` that carried nothing. It drives `score` now.
+
+**Five findings from the pre-merge review of 0.1.616 land here, and one of them
+was declined after being measured.** Two were sentences written about code
+nobody re-read: the moved tests were described as "patching `ledger.matrix` and
+`ledger.PRICES`" in both the entry and the test file's own docstring, and they
+patch nothing — they call the names. The real argument for moving them is the
+opposite one and is now what both say: `ledger` re-exports the three names, so
+the suite kept passing where it was, and a suite that survives a move records the
+old address as the real one. The partition's contract comment was contradicted by
+the two files it cited — `board()` divides by `content_pages` and
+`ledger_signals()` prints producer fields — so it names three uses now instead of
+two rules, with the prohibition that has teeth kept separate: no verdict crosses
+the line. `load_prices` gained the two tests its two failure states deserved
+(absent table → `None`, unparseable table → exit), and the first mutation planted
+for the second was a dud — `return {} or sys.exit(...)` still exits.
+
+**The declined one.** The review asked for `check_repo.py`'s hand-built
+`ROOT / "evals" / "traces"` to become `trace_store.traces_dir(ROOT)`, calling the
+hand-resolution an FM-24. Measured before answering: `traces_dir` honours
+`LUMI_TRACES`, `tests/conftest.py` redirects the whole suite to an empty scratch
+store, and the live-repo test would have walked **0 files against the 255 this
+checkout tracks** and reported clean — FM-24 arriving inside the fix for FM-24.
+The call site keeps its hand-resolution, now says why, and
+`test_the_guard_reads_the_tracked_store_not_the_redirected_one` counts the
+records the guard actually validates so the next reader gets an argument instead
+of a blank line. Its deliberate red is the review's own suggestion, applied: the
+test fails naming the count.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.616 — the cost of a model was being measured inside the tool that grades documents
 
 First of the stages the owner approved for separating the multi-agent evaluation
@@ -21,10 +88,10 @@ reward the behaviour every other check here exists to catch. Lose that sentence
 in a move and the cheapest route to the top of the board becomes writing thinner
 decks. The docstring carrying it travelled with the function.
 
-**Thirteen tests moved too**, because they patched `ledger.matrix` and
-`ledger.PRICES` — a test that patches a name pins where the name lives, and
-leaving them behind would have held the seam open in the one place that fails
-loudly. One of them could not move: it asserted ACROSS the seam, checking that an
+**Thirteen tests moved too**, and the reason is that they would NOT have
+broken where they were: `ledger` re-exports the three names, so the whole file
+kept passing against the old home. A suite that survives a move through a
+re-export is a suite recording the old address as the real one. One of them could not move: it asserted ACROSS the seam, checking that an
 unclosed trace both counts as an abandoned build (a document fact) and stays off
 the cost board (an agent fact). It is two tests now, one on each side, and the
 fact that it could not be moved whole is the clearest evidence the two questions
@@ -34,19 +101,22 @@ were tangled.
 list of stores-that-must-ask-`state_dir` moved its row rather than dropping it —
 a list that loses a member when the file it names moves is how such a list rots.
 
-**A trace's two populations are now a declared partition.** One flat record holds
-the document's facts and the producer's as siblings, and nothing said which was
-which. `trace_schema` declares `DOCUMENT_FIELDS`, `PRODUCER_FIELDS` and
+**A trace's three populations are now a declared partition.** One flat record
+holds the document's facts, the producer's and the run's own as siblings, and
+nothing said which was which. `trace_schema` declares `DOCUMENT_FIELDS`, `PRODUCER_FIELDS` and
 `RUN_FIELDS`, and `check_trace_schema` asserts they are disjoint and together
 exhaust `FIELDS` — a partition rather than two lists, because a list can omit a
 member in silence and a field assigned to neither side would simply never be
-anybody's. The contract it holds is one-directional and stated where it lives: a
-document reader may read producer fields only to GROUP, an agent reader may read
-document fields only to QUALIFY.
+anybody's. The contract it holds is stated where it lives, and its first draft was wrong
+in a way worth recording: it allowed two uses across the line, and a review found
+both of the files it named breaking them. `board()` divides by `content_pages` —
+a document field — because a rate needs a denominator, and `ledger_signals()`
+prints producer fields under its own heading. The comment now names three uses
+(QUALIFY, NORMALIZE, REPORT) and one prohibition with teeth: no verdict crosses
+the line. A document's grade may not depend on which model wrote it.
 
 Deliberate red, three runs: a field belonging to no side, a field claimed by two,
-and a side claiming a field the schema does not declare. Seven synthetic-tree
-tests, and one of them is the FM-24 question asked of the new guard — the older
+and a side claiming a field the schema does not declare. Seven tests, one of them synthetic-tree, and that one is the FM-24 question asked of the new guard — the older
 half of `check_trace_schema` returns `[]` for a tree with no `evals/traces/`,
 which is right for the store and wrong for the schema, so a first draft would
 have made every synthetic tree a green pass over an unchecked partition. The
