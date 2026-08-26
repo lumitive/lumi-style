@@ -1,3 +1,55 @@
+## 0.1.621 — the recommendation reaches the user where the user looks
+
+Sixth of the approved stages, and the owner's own decision about where it goes:
+a block in README's *Install & use* section, one row per platform this package
+claims, naming the model and effort each was measured at.
+
+**Generated, `--check` in CI, and that is what makes vendor model strings safe
+in a consumer file.** README ships to users. A hand-written table of model names
+in it would be a rotting claim with no forcing function — the class of defect
+this repository has spent twenty-six releases fixing. `build_readme_configs.py`
+derives the block from the same traces and history the configurations board
+reads, so the two cannot disagree, and every row carries `n`, the date and the
+skill version its runs read. A stale row is visibly stale rather than quietly
+wrong.
+
+**Three rows have a measurement today; the other nine say which kind of absence
+they are.** `not measured here` is a machine away. `cannot be measured here`
+never will be — an IDE with no command line, two chat models behind an API. The
+platform table above it learned that distinction the hard way and this block
+inherits it.
+
+**The paragraph below the block gained a sentence.** README already said it is
+not a claim that any model produces good output. That now says so about the new
+table explicitly: it orders configurations by cost *among those that already
+cleared the gate line*, and above that line the checks cannot tell two documents
+apart. A cheaper row is a cheaper row.
+
+**The block says what the package cannot do, in the block.** Every platform
+loads this as a skill, so the agent is already running with its model and effort
+chosen when it reads `SKILL.md`. The table tells a person what to configure
+once. Calling it automation would be a promise no code here can keep, and the
+sentence saying so is inside the generated text rather than beside it, where a
+later edit would separate them.
+
+Deliberate red, six runs: append instead of splice, read a missing marker
+silently, collapse the two absences, drop the sample size, drop a platform's
+row, and drop the effort. **Two did not plant on the first attempt, for the same
+reason, and it is the reason this release exists.** The suite writes to a
+scratch trace store, so the real store is EMPTY under pytest: two tests called
+`rows_for_readme()` bare, looped over zero rows and passed without looking — in
+a file whose whole subject is generators that go quiet. `rows_for_readme` takes
+injected cells now, and the test that iterates rows asserts it saw one first.
+
+**`conformance-freshness` is waived here, and the waiver names its payer.** The
+board's refresh is the last stage of this same plan. Driving it now would record
+rows against a schema still moving — 0.1.618 added the history row's `config`
+three releases ago — and the emptiness is visible rather than implied: the new
+configurations board shows a column of dashes under `earned`, which is what an
+unmeasured axis looks like when it is not allowed to guess.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.620 — the multi-agent evaluation is its own tool, its own register, its own board
 
 Fifth of the approved stages, and the one the owner asked for by name: the
