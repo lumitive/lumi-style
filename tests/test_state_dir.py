@@ -71,7 +71,12 @@ def test_no_store_resolves_its_own_path():
     """
     stores = {
         "scripts/lib/corpus.py": "corpus.local.json",
-        "scripts/ops/ledger.py": "prices.local.json",
+        # The price table moved with the cost matrix it prices: an AGENT
+        # evaluation that had been living inside the DOCUMENT ledger. The row
+        # moves rather than being deleted — this list is what stops a store
+        # from quietly resolving its own path again, and dropping an entry
+        # because the file it names moved is how such a list loses members.
+        "scripts/lib/agent_runs.py": "prices.local.json",
         "scripts/ops/review_scores.py": "scores.json",
         "scripts/lib/trace_store.py": "traces",
     }

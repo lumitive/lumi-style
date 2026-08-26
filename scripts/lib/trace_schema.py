@@ -129,6 +129,40 @@ FIELDS: dict[str, object] = {
 }
 
 
+# WHOSE FACT IS IT. One flat record holds two populations, and until this
+# partition existed nothing said which was which — a reader could group a
+# document by its model or grade a model by its pages and no guard would
+# notice. Declared as a PARTITION rather than two lists, because a list can
+# omit a member in silence and a partition cannot: `check_trace_schema` asserts
+# these are disjoint and together exhaust FIELDS, so a field added to the
+# schema must be assigned a side or CI goes red.
+#
+# The contract the partition exists to hold, and neither half is mechanical:
+#   * a DOCUMENT reader (`ledger.py`) may read PRODUCER fields only to GROUP,
+#     never to grade — which model wrote it is not a fact about the document;
+#   * an AGENT reader (`agent_runs.py`) may read DOCUMENT fields only to
+#     QUALIFY, never to describe the agent — that is `board()`'s admission
+#     ticket, a failing gate keeps a cheap thin deck off the cost board.
+# The direction runs one way. A tighter check would be FM-01 pretending to
+# judge intent.
+DOCUMENT_FIELDS = frozenset({
+    "genre", "storyline", "geometry", "pages", "content_pages",
+    "gates", "graded", "thresholds", "shape", "corpus_id", "review_ref",
+    "outline_reviewed", "titles_changed_after_approval",
+})
+PRODUCER_FIELDS = frozenset({
+    "agent", "model", "effort", "input_tokens", "output_tokens",
+    "phase_seconds", "refused_to_emit", "principle_yields",
+})
+# The run itself: neither the document's nor the producer's, and naming them
+# keeps the two sets above honest instead of letting provenance drift into
+# whichever half a reader reached for first.
+RUN_FIELDS = frozenset({
+    "trace_id", "opened_at", "closed_at", "source", "skill_version",
+    "recipe_hash", "recipe_version", "entry_path",
+})
+
+
 def validate(rec):
     """Return a list of reasons this record is not a legal trace."""
     errors = []
