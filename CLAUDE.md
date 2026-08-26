@@ -84,10 +84,16 @@ authority, and a guard with no entry there does not run.
 
 **Every verdict a deliverable can receive is declared in `evals/gates.json`**,
 with the concept it belongs to (`family`), the release that introduced it
-(`since`), and whether an `n/a` from it is an honest silence (`na_means`) or a
-measurement that did not happen. `checker` and `severity` are held to the
-checkers themselves by the `gate declarations` guard, so the register adds
-knowledge and cannot contradict. **A gate binds a document built at or after its
+(`since`), whether an `n/a` from it is an honest silence (`na_means`) or a
+measurement that did not happen, and — on every GATING row — what it grades
+(`subject`), so a clean sheet can say how much it held rather than only that it
+was clean. `checker` and `severity` are held to the
+checkers themselves by the `gate declarations` guard, and `subject` by
+`vacuous gates`, so the register adds knowledge and cannot contradict.
+(`subject` is `key`, `key.field`, or the literal `always`. It is declared
+rather than discovered because absence has a shape no probe can see: a gate
+whose row prints its VIOLATION count renders identically on a document that
+gave it nothing and one whose subject is flawless.) **A gate binds a document built at or after its
 `since`** — an older deliverable reports `not held`, which is neither a pass nor
 a failure — and a document with no version stamp is held to everything, because
 an absent stamp must not become an exemption. This exists because the gate set

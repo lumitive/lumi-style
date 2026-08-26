@@ -10,6 +10,8 @@ import re
 import subprocess
 import sys
 
+import pytest
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 RELEASE = ROOT / "scripts" / "ops" / "release.py"
 sys.path.insert(0, str(ROOT / "scripts" / "ops"))
@@ -76,3 +78,40 @@ def test_nothing_in_release_pipes_a_verification():
     assert "shell=True" not in src
     assert "|" not in re.sub(r"#.*|\"\"\".*?\"\"\"", "", src, flags=re.S).replace(
         "||", "").replace("|=", "")
+
+
+def test_release_refuses_a_second_commit_for_one_version(tmp_path, monkeypatch,
+                                                         capsys):
+    """One commit per release, enforced rather than remembered.
+
+    Two guards assume it — `check_commit_convention` holds a CHANGELOG-touching
+    subject to the newest heading, and `check_evidence --init` finds the
+    previous release by subject prefix. A second commit breaks both, and the
+    sequence that produces one is the ordinary one: this script COMMITS, so a
+    red preflight, a fix and a re-run leave two behind. It cost three squashes
+    in a single session with the lesson written down after the first, which is
+    how a rule that needs a tool announces itself.
+    """
+    import subprocess
+
+    import release
+
+    monkeypatch.setattr(release, "ROOT", tmp_path)
+
+    def fake_run(argv, **kw):
+        if argv[:3] == ["git", "log", "--format=%s"]:
+            return subprocess.CompletedProcess(
+                argv, 0, stdout="0.1.999 — a release already committed\n",
+                stderr="")
+        raise AssertionError(f"unexpected command {argv}")
+
+    monkeypatch.setattr(release.subprocess, "run", fake_run)
+    monkeypatch.setattr(release, "current_version", lambda: "0.1.998")
+    monkeypatch.setattr(release, "newest_changelog_heading",
+                        lambda: ("0.1.999", "a release already committed"))
+    monkeypatch.setattr(sys, "argv",
+                        ["release.py", "--version", "0.1.999", "--dry-run"])
+    with pytest.raises(SystemExit) as exc:
+        release.main()
+    assert "already a 0.1.999 commit" in str(exc.value)
+    assert "git reset --soft HEAD~1" in str(exc.value)

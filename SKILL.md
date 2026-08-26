@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.609"
+  version: "0.1.610"
 ---
 
 # LUMI Style · Design Language & Writing Style

@@ -2967,6 +2967,70 @@ def grade(r):
             for n, v, t, good, skip in rows]
 
 
+def held_gates(r, verdicts, root=None) -> tuple[set, set]:
+    """-> (the gating rows that had something to grade, the ones that did not).
+
+    "Zero gating failures" is the sentence a board's reader takes away, and it
+    does not say how much was held. Two decks of the 2026-08-26 conformance
+    round both earned it: one had an agenda page, part openers and pages
+    declaring an analysis move, so eighteen gates had a subject; the other had
+    none of those, and four of its clean rows are gates printing `ok` over an
+    absence with a fifth reading `n/a`.
+
+    **This is not a defect in those four rows.** A measured absence passing is
+    a deliberate ruling written into D27 and D35 in words — `n/a` is for a gate
+    that could not look, not for one that looked and found nothing to hold —
+    and a deck may legitimately have no agenda: the two intro decks the owner
+    accepted have none. What was missing is the count beside the verdict, so a
+    reader can tell a pass over eighteen from a pass over fifteen.
+
+    The set is DECLARED in `evals/gates.json` (`subject`) rather than written
+    here, and `check_repo`'s `vacuous gates` guard discovers it by blanking
+    each measurement in turn and watching which gating rows keep saying `ok` —
+    so a fifth cannot arrive undeclared, and a declaration naming a
+    measurement `measure()` does not produce fails too.
+    """
+    import gate_registry
+    import gating
+    declared = gate_registry.load(root or ROOT)
+    gates = gating.gating_metrics(verdicts, root or ROOT)
+    held, vacuous = set(), set()
+    for name in gates:
+        subject = (declared.get(name) or {}).get("subject")
+        if verdicts.get(name) == "n/a" or _subject_absent(r, subject):
+            vacuous.add(name)
+        else:
+            held.add(name)
+    return held, vacuous
+
+
+def _subject_absent(r, subject) -> bool:
+    """Did the thing this gate grades fail to appear at all?
+
+    Two shapes, because absence has two. `D27_agenda_mirror` is None when the
+    document has no agenda page; `D25_image_provenance` is a dict that is
+    present and says `rasters: 0`, which is a document with no images and a
+    gate with nothing to check. `subject` names either the measurement or a
+    `key.field` inside it, and `check_repo`'s `vacuous gates` guard validates
+    the path against what `measure()` actually produces.
+    """
+    if not subject or subject == "always":
+        # `always` is a positive claim, not a missing declaration: the subject
+        # is the document itself — its text, its pages — so there is no shape
+        # of deliverable this gate can be silent over. `check_repo`'s guard
+        # requires EVERY gating row to say one or the other, because a gate
+        # with no declaration would be counted held on a document that gave it
+        # nothing, which is the whole defect.
+        return False
+    key, _, field = subject.partition(".")
+    value = r.get(key)
+    if value is None:
+        return True
+    if field:
+        return not (isinstance(value, dict) and value.get(field))
+    return False
+
+
 def _d_number(name: str) -> int:
     """The D number in a verdict name, for ordering a summary line.
 
@@ -3008,6 +3072,15 @@ def main(argv):
             continue
         _rows = grade(r)
         r["verdicts"] = {n: v for n, _, _, v in _rows}
+        # HOW MANY GATES HAD A SUBJECT, beside what they said. "Zero gating
+        # failures" is the sentence a reader takes away and it does not say how
+        # much was held; a board printed it over a deck holding eighteen gates
+        # and one holding thirteen. Reported through the report rather than
+        # recomputed by each consumer, because the answer needs the gate
+        # register and the raw measurement together.
+        _held, _vacuous = held_gates(r, r["verdicts"])
+        r["gates_held"] = sorted(_held)
+        r["gates_with_nothing_to_grade"] = sorted(_vacuous)
         # The TARGET string, so a caller can tell a metric that could have
         # failed from one whose target is literally "reported" and therefore
         # cannot. check_fixtures.py needs exactly that to say which verdicts it

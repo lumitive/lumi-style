@@ -117,3 +117,51 @@ def test_a_partial_counts_every_task_not_only_the_scored_ones(
     """
     v = _verdict(tmp_path, monkeypatch, capsys, {"T1": "pass"})
     assert v == "partial: 1 of 3 earned, all pass"
+
+
+# ------------------------------------------------------- the held count
+
+
+def _run(held=None, verdict="pass", **extra):
+    row = {"verdict": verdict, **extra}
+    if held is not None:
+        row["design"] = {"gates_held": held}
+    return row
+
+
+def test_the_cell_carries_the_count_and_omits_it_when_unrecorded():
+    """Absent rather than zero: "not recorded" is not "nothing was graded"."""
+    assert run_conformance._held_note([_run(15)]) == " (15 held)"
+    assert run_conformance._held_note([_run()]) == ""
+    assert run_conformance._held_note(
+        [{"verdict": "pass", "design": {"exit": 0}}]) == ""
+    # A genuine zero is a measurement and prints.
+    assert run_conformance._held_note([_run(0)]) == " (0 held)"
+    cell, worst = run_conformance.cell_spread([_run()])
+    assert cell == "pass" and worst == "pass"
+    assert run_conformance.cell_spread([_run(13)])[0] == "pass (13 held)"
+
+
+def test_two_runs_that_held_different_amounts_render_the_range():
+    """`max` paired the most flattering count with the least flattering verdict.
+
+    `cell_spread`'s whole documented purpose is that a spread is a different
+    claim from an agreement, and two runs that graded different amounts
+    produced different artifacts — which is what this number was added to
+    expose.
+    """
+    assert run_conformance._held_note([_run(15), _run(10)]) == " (10-15 held)"
+    cell, _ = run_conformance.cell_spread([_run(15), _run(10)])
+    assert cell == "pass · 2 runs, all pass (10-15 held)"
+
+
+def test_the_multi_run_cells_keep_the_count():
+    """It was computed at the final return only, so both spread paths lost it."""
+    unstable, _ = run_conformance.cell_spread(
+        [_run(15), _run(10, verdict="fail")])
+    assert "UNSTABLE" in unstable and "(10-15 held)" in unstable
+    changed, _ = run_conformance.cell_spread(
+        [_run(15, built_version="0.1.600"),
+         _run(10, verdict="fail", built_version="0.1.601")])
+    assert "skill changed between builds" in changed
+    assert "(10-15 held)" in changed
