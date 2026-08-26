@@ -1997,6 +1997,34 @@ def main(argv):
                             raise ValueError(f"history[{i}] missing {key!r}")
                     if not isinstance(r["tasks"], dict):
                         raise ValueError(f"history[{i}].tasks is not a dict")
+                    # The optional per-task maps are keyed by task id, like
+                    # `tasks` and `built`. A row that names a task in `config`
+                    # which `tasks` does not hold is describing a run that was
+                    # never scored, and that is the shape a hand edit takes.
+                    for key in ("config", "traces"):
+                        if key not in r:
+                            continue
+                        if not isinstance(r[key], dict):
+                            raise ValueError(
+                                f"history[{i}].{key} is not a dict")
+                        stray = sorted(set(r[key]) - set(r["tasks"]))
+                        if stray:
+                            raise ValueError(
+                                f"history[{i}].{key} names {stray} which "
+                                f"history[{i}].tasks does not")
+                    for task_id, conf in (r.get("config") or {}).items():
+                        if not isinstance(conf, dict):
+                            raise ValueError(
+                                f"history[{i}].config[{task_id!r}] is not a dict")
+                        # The effort tuple is IMPORTED for the reason stated at
+                        # its other use in this file: a second copy of it drifted
+                        # once and cost a real run.
+                        eff = conf.get("effort")
+                        if eff is not None and eff not in trace_schema.ENUMS["effort"]:
+                            raise ValueError(
+                                f"history[{i}].config[{task_id!r}].effort is "
+                                f"{eff!r}, not one of "
+                                f"{sorted(trace_schema.ENUMS['effort'])}")
             except (json.JSONDecodeError, ValueError) as exc:
                 print(f"FAIL  conformance/history.json does not parse: {exc}")
                 return 1
@@ -2773,6 +2801,14 @@ def main(argv):
                       f"from this run")
                 return 1
             per_built: dict[str, dict[str, str]] = {}
+            # WHAT THE CELL WAS RUN AS, and the key that joins it to its cost.
+            # A verdict without its configuration is a fact about an agent id,
+            # and an agent id is not a thing anybody can run — `cursor` at
+            # `grok-4.6-high` and `cursor` on Auto are two different runs
+            # wearing one name, which is why the 36 rows before this field
+            # cannot be read as a comparison of anything.
+            per_config: dict[str, dict[str, dict[str, str]]] = {}
+            per_trace: dict[str, dict[str, str]] = {}
             instruments: set[str] = set()
             for key, value in scored_doc.items():
                 agent_id, _, task_id = key.partition("/")
@@ -2782,6 +2818,19 @@ def main(argv):
                     per_built.setdefault(agent_id, {})[task_id] = value["built_version"]
                 if value.get("instrument_version"):
                     instruments.add(value["instrument_version"])
+                # ABSENT STAYS ABSENT — a cell scored before 0.1.617 carries
+                # none of these, and an invented "(unknown)" would make "nobody
+                # recorded it" and "this predates the field" the same string.
+                # Named `configured` rather than `cell`: `cell` is a `str |
+                # None` earlier in this function, and reusing it here is how
+                # mypy caught the shadow on the first run.
+                configured = {k: value[k]
+                              for k in ("model", "effort", "model_asked")
+                              if value.get(k)}
+                if configured:
+                    per_config.setdefault(agent_id, {})[task_id] = configured
+                if value.get("trace_id"):
+                    per_trace.setdefault(agent_id, {})[task_id] = value["trace_id"]
             # PORTABLE, like the board's run id. 0.1.568 collapsed the home
             # directory in what `report` RENDERS and missed what it RECORDS, so
             # every history row kept writing the operator's username into a
@@ -2801,6 +2850,10 @@ def main(argv):
                     row["instrument_version"] = sorted(instruments, key=_ver_key)[-1]
                 if per_built.get(agent_id):
                     row["built"] = per_built[agent_id]
+                if per_config.get(agent_id):
+                    row["config"] = per_config[agent_id]
+                if per_trace.get(agent_id):
+                    row["traces"] = per_trace[agent_id]
                 if not any(r.get("agent") == agent_id
                            and r.get("run_dir") == where
                            and r.get("scores_sha256") == digest

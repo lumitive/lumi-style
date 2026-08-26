@@ -1,3 +1,46 @@
+## 0.1.618 — a history row named the agent and never what the agent was run as
+
+Third of the approved stages. `conformance/history.json` is this package's
+tracked memory of every conformance round, and thirty-six rows deep it still
+recorded the agent's **id**. An id is not a thing anybody can run: `cursor` on
+Auto and `cursor` pinned to `cursor-grok-4.6-high` are two different runs
+wearing one name, and 0.1.614 found them producing two different outcomes on the
+same task. So none of the thirty-six rows can be read as a comparison of
+anything, and the board built from them could not say why two rows disagreed.
+
+A row now carries two optional per-task maps, keyed like `built` before them:
+
+* **`config`** — the model, the reasoning tier, and the model that was ASKED
+  for. The third is there because 0.1.614's whole finding was the gap between
+  the two: a run announcing a name the CLI does not list is not the run that was
+  pinned.
+* **`traces`** — the trace id, which is the join key. The trace holds what a run
+  COST; the history row holds what it EARNED. Joining them meant matching on
+  `(agent, date)`, a heuristic wrong the first time two agents run on one day —
+  which is every driven round this package has ever done.
+
+**Absent stays absent, and there is no backfill.** A cell scored before 0.1.617
+carries none of these fields and the row gets no key at all; the thirty-six
+existing rows stay exactly as written. Inventing `(unknown)` for them would make
+"nobody recorded it" and "this predates the field" the same string, which is
+FM-24's shape — and the second planted red below is that exact mutation.
+
+**`validate` grew the row checks, because `history.json` is a file an operator
+can open.** A `config` or `traces` naming a task the row's own `tasks` does not
+hold is describing a run that was never scored, and that is the shape a hand
+edit takes. The effort tuple is IMPORTED from `trace_schema` rather than
+retyped, for the reason its other use in this file already gives: it was retyped
+once, 0.1.554 widened one copy and left the other at three, and a run pinned to
+`xhigh` could be driven and could not be recorded.
+
+Deliberate red, three runs: drop `config` from the row, invent a placeholder for
+an absent field, and stop checking the effort tuple in `validate`. Ten tests,
+and they drive `report --record` and `validate` end to end rather than
+re-implementing the row-building loop in their own bodies — stage 2 had a red
+that failed to plant for exactly that reason.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.617 — the reasoning tier a run used reached the trace and nowhere a board could read it
 
 Second of the approved stages. `effort` was recorded in `driver.json` and copied
