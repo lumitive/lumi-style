@@ -1507,6 +1507,49 @@ def detect(agent: dict) -> tuple[bool, str]:
         return False, f"probe failed: {exc.__class__.__name__}"
 
 
+def vocabulary(agent: dict) -> tuple[str, str]:
+    """-> (state, detail) for what this agent can be RUN AS.
+
+    `detect` answers whether the agent is there; this answers what it can be
+    pointed at, and it is deliberately the same shape — a registry argv, or the
+    waiver that says why there is none.
+
+    THREE STATES, NEVER TWO. `asked` carries the ids the CLI returned; `waived`
+    carries the registry's reason; `failed` is a declared probe that did not
+    answer here, which is neither of the other two and must not be filed as
+    either. An enumeration that could not run and an agent that cannot enumerate
+    are different facts, and one release of this package existed because a table
+    printed them identically.
+
+    Read-only by construction: the only argv in the registry is
+    `cursor-agent --list-models`, and the guard requires a list of strings, so
+    nothing here can compose a command out of operator input.
+    """
+    argv = agent.get("models")
+    if not argv:
+        return "waived", agent.get("models_waiver", "no models probe declared")
+    if not shutil.which(argv[0]):
+        return "waived", f"{argv[0]} is not installed here"
+    try:
+        out = subprocess.run(argv, capture_output=True, text=True, timeout=60)
+    except Exception as exc:                                    # noqa: BLE001
+        return "failed", f"{' '.join(argv)}: {exc.__class__.__name__}"
+    if out.returncode != 0:
+        return "failed", (f"{' '.join(argv)} exited {out.returncode}: "
+                          f"{(out.stderr or out.stdout).strip()[:80]}")
+    # An id is the first whitespace-delimited token of a line that carries one.
+    # Cursor prints `id - Display Name`; a line with no ` - ` is a heading or a
+    # blank, and is skipped rather than being recorded as an id called
+    # "Available".
+    ids = [line.split(" - ", 1)[0].strip() for line in out.stdout.splitlines()
+           if " - " in line and not line.startswith(" ")]
+    if not ids:
+        return "failed", (f"{' '.join(argv)} answered, and nothing in its output "
+                          f"parses as an id — an empty vocabulary from a working "
+                          f"probe is a parse failure, not an empty CLI")
+    return "asked", ", ".join(ids)
+
+
 def score_checks(kind: str, path: pathlib.Path, genre: str | None = None) -> dict:
     """Run one checker, honouring the task's declared genre.
 
@@ -1893,6 +1936,12 @@ def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("command", choices=["validate", "detect", "run", "score",
                                         "report", "restamp"])
+    ap.add_argument("--models", action="store_true",
+                    help="with `detect`: also ask each agent what it can be RUN "
+                         "AS. Opt-in because it shells out a second time per "
+                         "agent and `detect` is the cheap answer to 'is it "
+                         "there'. Eleven of the twelve answer from the registry "
+                         "waiver without running anything.")
     # Repeatable, and only `report` may take more than one. A scoreboard built
     # from a single directory erases every agent that directory does not
     # contain: recording the Claude Code run turned Cursor's row from a
@@ -2057,6 +2106,9 @@ def main(argv):
         for a in agents:
             ok, note = probed[a["id"]]
             print(f"  {a['id']:16} {'available' if ok else 'not exercised':14} {note}")
+            if args.models:
+                state, detail = vocabulary(a)
+                print(f"  {'':16} models {state:8} {detail}")
         print(f"\n{sum(1 for v in probed.values() if v[0])} of {len(agents)} available here")
         return 0
 

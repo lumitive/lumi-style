@@ -1,3 +1,60 @@
+## 0.1.619 — the registry said whether an agent was there, never what it could be run as
+
+Fourth of the approved stages, and the one that establishes the fact 0.1.618
+made a place for. `adapters/platforms.json` has always answered "is this agent
+installed" — `probe`, with a `probe_waiver` when there is nothing to ask. It
+answered nothing about what the agent can be POINTED AT, so every board this
+package has published named an agent id, and an id is not a thing anybody can
+run.
+
+`models` and `models_waiver` join the registry on exactly the `probe` pattern,
+including the guard entry that makes a missing one fail CI. **Measured
+2026-08-27: one of the twelve can answer read-only.** `cursor-agent
+--list-models` returns 23 ids. The other eleven carry a waiver, and the waivers
+say WHICH silence it is, because three different facts would otherwise print
+identically:
+
+* **No listing command.** `claude --help` documents `--model` as taking an alias
+  or a full name and prints no set; `gemini --help` offers `--list-extensions`
+  and `--list-sessions` and no model equivalent. For these two the vocabulary is
+  whatever the operator pinned.
+* **A picker, not a listing.** `hermes model`'s own help says "Interactively
+  select your inference provider and default model". `--refresh` re-fetches every
+  provider's live list *into that picker*. Reading it means driving a TUI.
+* **Nobody has looked.** Codex, Copilot, OpenCode, Pi and OpenClaw are not
+  installed on the machine that maintains this registry, so whether their CLIs
+  can enumerate models is UNKNOWN. Filing that as "cannot" would make it the same
+  claim as the first two, and it is not.
+
+**`detect --models` is the reader**, opt-in because it shells a second time per
+agent while `detect` is the cheap answer to "is it there". It returns three
+states and never two: `asked` with the ids, `waived` with the registry's reason,
+and **`failed`** — a declared probe that did not answer here. That third one is
+the whole discipline: a probe that exits nonzero, raises, or answers text
+nothing parses is FM-24's shape, and reporting any of them as `waived` would
+turn an accident into a reason.
+
+The parser was written against the real output rather than an imagined one
+(convention 15). Cursor prints `id - Display Name` under a bare `Available
+models` heading, and the first draft's "first token of each line" would have
+recorded a model called `Available` — permanently, in every reader downstream.
+
+**The listing confirmed a registry note rather than contradicting it.** Cursor's
+`extra` has said since 0.1.554 that Grok tops out at `xhigh` and that `max`
+belongs to other families. The 23 ids include `kimi-k3-max` and `glm-5.2-max`
+and no `cursor-grok-4.6-max`.
+
+Deliberate red, four runs: an unparseable answer reported as an empty
+vocabulary, a nonzero exit filed as a waiver, the heading line recorded as an
+id, and the guard entry deleted. **The fourth did not plant on the first
+attempt** — the test asserting every platform declares a state reads the
+registry, which was complete, so it could not see the guard go away. It plants
+against the synthetic manifest tree instead, and the existing wave-2 fixture
+gained the field it now owes. `build_entrypoints.py --check` produces no diff:
+an install note says how to install, not what to run.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.618 — a history row named the agent and never what the agent was run as
 
 Third of the approved stages. `conformance/history.json` is this package's

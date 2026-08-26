@@ -49,6 +49,8 @@
     "claude",
     "--version"
    ],
+   "models": null,
+   "models_waiver": "No listing command. `claude --help` documents `--model` as taking an alias or a full name and offers nothing that prints the set, so the vocabulary here is whatever the operator pinned. `--effort` is the exception and is a closed five-value tuple, which is why trace_schema can enumerate effort and not model.",
    "drive": [
     "claude",
     "-p",
@@ -87,6 +89,8 @@
     "gemini",
     "--version"
    ],
+   "models": null,
+   "models_waiver": "No listing command. `gemini --help` offers `--list-extensions` and `--list-sessions` and no model equivalent; `-m/--model` takes a free string. There is also no effort concept here to enumerate.",
    "drive": [
     "gemini",
     "--skip-trust",
@@ -119,6 +123,8 @@
     "codex",
     "--version"
    ],
+   "models": null,
+   "models_waiver": "Not installed on the machine that maintains this registry, so whether its CLI can enumerate models read-only is UNKNOWN rather than absent. Recording it as absent would make 'this CLI cannot list models' and 'nobody has looked' the same claim.",
    "docs": "https://developers.openai.com/codex/skills/",
    "extra": [
     "Codex also reads `AGENTS.md` from the project root by convention, so a checkout in the working tree is picked up without any install."
@@ -140,6 +146,10 @@
    "probe": [
     "cursor-agent",
     "--version"
+   ],
+   "models": [
+    "cursor-agent",
+    "--list-models"
    ],
    "drive": [
     "cursor-agent",
@@ -176,6 +186,8 @@
    "invoke": "restart the agent session after copying so Antigravity re-detects the skill",
    "probe": null,
    "probe_waiver": "Antigravity ships as an IDE, not a CLI on PATH. The conformance harness cannot invoke it headlessly and will record it as not exercised.",
+   "models": null,
+   "models_waiver": "An IDE, not a CLI on PATH — the same reason as probe_waiver. There is no command to ask.",
    "docs": "https://antigravity.google/docs/skills",
    "extra": [
     "The workspace path is `.agent/skills/` — **singular `agent`** — and is deliberately not the shared `.agents/skills/` convention every other platform here uses. Do not conflate them.",
@@ -201,6 +213,8 @@
     "copilot",
     "--version"
    ],
+   "models": null,
+   "models_waiver": "Not installed on the machine that maintains this registry, so whether its CLI can enumerate models read-only is UNKNOWN rather than absent. Recording it as absent would make 'this CLI cannot list models' and 'nobody has looked' the same claim.",
    "docs": "https://docs.github.com/en/copilot/concepts/agents/about-agent-skills",
    "extra": [
     "Agent skills are a **different mechanism** from `.github/copilot-instructions.md`; you do not need the latter. A generated pointer file ships at that path anyway, for repositories that are checked out rather than installed.",
@@ -226,6 +240,8 @@
     "opencode",
     "--version"
    ],
+   "models": null,
+   "models_waiver": "Not installed on the machine that maintains this registry, so whether its CLI can enumerate models read-only is UNKNOWN rather than absent. Recording it as absent would make 'this CLI cannot list models' and 'nobody has looked' the same claim.",
    "docs": "https://opencode.ai/docs/skills/",
    "extra": [
     "Project-level equivalents are `.opencode/skills/`, `.agents/skills/` and `.claude/skills/`, searched upward from the working directory to the git worktree root."
@@ -249,6 +265,8 @@
     "pi",
     "--version"
    ],
+   "models": null,
+   "models_waiver": "Not installed on the machine that maintains this registry, so whether its CLI can enumerate models read-only is UNKNOWN rather than absent. Recording it as absent would make 'this CLI cannot list models' and 'nobody has looked' the same claim.",
    "docs": "https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/skills.md",
    "extra": [
     "Pi discovers a directory containing `SKILL.md`; the skill name comes from the `name` frontmatter field. Project installs go in `.agents/skills/` and are honoured after project trust is granted."
@@ -272,6 +290,8 @@
     "openclaw",
     "--version"
    ],
+   "models": null,
+   "models_waiver": "Not installed on the machine that maintains this registry, so whether its CLI can enumerate models read-only is UNKNOWN rather than absent. Recording it as absent would make 'this CLI cannot list models' and 'nobody has looked' the same claim.",
    "docs": "https://docs.openclaw.ai/tools/skills",
    "extra": [
     "OpenClaw finds `SKILL.md` anywhere under a configured root, up to six levels deep.",
@@ -295,6 +315,8 @@
     "hermes",
     "--version"
    ],
+   "models": null,
+   "models_waiver": "`hermes model` is the only model surface and its own help says 'Interactively select your inference provider and default model' — it opens a picker, so the harness cannot read it without driving a TUI. `--refresh` re-fetches every provider's live list into that picker and still presents it interactively.",
    "drive": [
     "hermes",
     "--yolo"
@@ -325,6 +347,8 @@
    "invoke": "paste the core prompt as the system prompt (API: the system field; web: the first message)",
    "probe": null,
    "probe_waiver": "A chat model behind an API, not a CLI. The harness cannot invoke it without credentials and will record it as not exercised.",
+   "models": null,
+   "models_waiver": "A chat model behind an API with no CLI, the same reason as probe_waiver. Its vocabulary is one model, chosen by whoever holds the key.",
    "docs": null,
    "docs_waiver": "No vendor documentation to cite: the prompt tier is a property of how the model is used, not a feature the vendor documents.",
    "capability_verified": false,
@@ -341,6 +365,8 @@
    "invoke": "put the core prompt in messages[0] (role=system); re-inject at the start of each long session",
    "probe": null,
    "probe_waiver": "Same as Kimi: an API chat model with no CLI to probe.",
+   "models": null,
+   "models_waiver": "Same as Kimi: an API chat model with no CLI to ask.",
    "docs": null,
    "docs_waiver": "Same as Kimi.",
    "extra": [
