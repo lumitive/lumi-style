@@ -1,0 +1,15 @@
+{
+ "version": "0.1.622",
+ "diff_base": "9308a2839d436626f469be8c004bf488c88c7c88",
+ "spec": "specs/2026-08-26-board-refresh-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Second and last waiver on this branch, and the debt now has a ledger id rather than a promise: GAP-041, opened by this release, states what is unmeasured and names the round that closes it. This release adds no code — it writes down a boundary five earlier releases moved — so a round driven for it would measure nothing this release changed. The round is the next and final stage of specs/2026-08-26-board-refresh-design.md, and it is what closes GAP-041."
+  }
+ ]
+}

@@ -41,7 +41,9 @@ python3 scripts/check/check_fixtures.py        # run the checkers against the fi
 python3 scripts/check/check_js.py              # node --check over the 8 tracked .js files + 3 embedded probes
 python3 scripts/check/check_evidence.py        # --init | record --id X | --check: the evidence gate (see below)
 python3 scripts/ops/review_scores.py         # the six human dimensions over time; --check validates
-python3 scripts/ops/run_conformance.py       # validate | detect | run [--drive] | score | report [--record] (local only: no keys in CI)
+python3 scripts/ops/run_conformance.py       # validate | detect [--models] | run [--drive] | score | report [--record] (local only: no keys in CI)
+python3 scripts/ops/agent_evals.py           # board [--write|--check] | suggest --agent ID | plan — the MULTI-AGENT evals, separate on purpose
+python3 scripts/build/build_readme_configs.py  # README's measured-configuration block; --check in CI
 python3 -m pytest -q                     # the test suite under tests/; gates in CI
 python3 -m ruff check .                  # lint + the S security rules; gates in CI
 python3 -m mypy                          # type-check (check_untyped_defs floor); gates in CI
@@ -275,6 +277,19 @@ Three entry points load these rules, and each restates part of them:
 declares which side of the repository split each tracked file is on, and three
 guards (`shipped closure`, `cross-boundary paths`, and the reachability
 computation in `scripts/lib/shipped.py`) hold the tree to it.
+
+**The agent evaluation is a separate register and a separate tool, and
+`conformance/README.md` is where that boundary is written down.** `evals/` and
+`ledger.py` answer whether a DOCUMENT is good; `conformance/agent-evals.json`
+and `agent_evals.py` answer whether a CONFIGURATION — `agent x model x effort`,
+never an agent id — is worth running. The Score Evals declare axes and an
+ordering and **no numbers**: the bar is already `evals/gates.json`, applied by
+`agent_runs.board()` as an admission ticket, and a cost board without that
+ticket rewards writing thinner decks. `run_conformance.py` did NOT move with the
+analysis — four of its five couplings are to things that are not agent
+evaluation at all. Two mechanisms were declined rather than left open, in
+FAILURE_MODES' *Abandoned gates*: an enum of model names (FM-25) and binding the
+release gate to the configurations board (FM-26).
 
 `adapters/platforms.json` is the **platform registry** — the single source of
 install paths, capability tiers and entry files for every platform this package

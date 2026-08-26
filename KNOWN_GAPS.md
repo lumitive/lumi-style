@@ -75,10 +75,36 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
-## GAP-040 · The durable record of a conformance run carries no model
+## GAP-041 · Nine of the twelve configurations on the board have never been measured
 
 - status: open
+- opened: 0.1.621
+- surface: conformance/CONFIGURATIONS.md, README.md's generated block,
+  conformance/agent-evals.json
+- symptom: the configurations board carries ten cells across three agents, and
+  every one of them has an EMPTY `earned` column, because no conformance round
+  has yet been recorded with the `config` key 0.1.618 added. So the board
+  orders cells on cost alone, and cost is the axis the register itself says is
+  the weaker one: `tasks_earned` sorts first and is absent everywhere.
+  Nine of the twelve README rows say `not measured here` or `cannot be measured
+  here`. Three of those nine never can be — an IDE with no command line and two
+  chat models behind an API — so the honest count of pending work is six, and
+  five of those six are one install away.
+  It is also worth naming what n=1 does here: Claude Code's recommended cell is
+  a single run that beat a five-run cell by 16% on tokens per page, which is
+  well inside the spread a repeat would show.
+- check: `agent_evals.py plan` prints which cells are unmeasured, and the board
+  and the README block print a dash for an absent axis rather than a zero. The
+  gap is the measurement, not the reporting of it.
+- closes when: a round is driven and recorded with `report --record` on a tree
+  at or after 0.1.618, for at least two agents. That is the last stage of the
+  plan in specs/2026-08-26-board-refresh-design.md.
+
+## GAP-040 · The durable record of a conformance run carries no model
+
+- status: fixed
 - opened: 0.1.614
+- closed: 0.1.618
 - surface: conformance/history.json (row schema),
   scripts/ops/run_conformance.py (the `--record` block)
 - symptom: 0.1.614 taught the driver to record which model actually ran, and it
@@ -94,12 +120,18 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   transcripts happened still to be on disk five days later. Delete those
   directories and nothing in this repository could ever have found it, or can
   find the next one.
-- check: none. Adding the field is easy; deciding what the thirty-six existing
-  rows say is not — they were written before anything recorded a model, so
-  they are honestly unknown rather than default, and `validate` would have to
-  accept a row without one indefinitely. That is the same honest-silence
-  distinction `na_means` needed, which is the third instance IDEA-19 says it is
-  waiting for.
+- check: `run_conformance.py validate`, which gates in CI. A row's optional
+  `config` map carries the model, the reasoning tier and the model that was
+  ASKED for, per task; `traces` carries the trace id, which turns the
+  history-to-cost join from a `(agent, date)` heuristic — wrong the first time
+  two agents run on one day, which is every driven round this package has —
+  into a key.
+- how the thirty-six were answered: they are not backfilled and not defaulted.
+  A row written before the field carries no key at all, and `agent_evals.py`
+  attributes it to NO cell rather than to `(agent, None, None)`, which would
+  have silently pooled runs pinned to different models. That is the same
+  honest-silence distinction `na_means` needed, and it is the third instance
+  IDEA-19 was waiting for.
 
 ## GAP-039 · A new gating assertion inherits its metric's `since`, and binds every deliverable back to it
 

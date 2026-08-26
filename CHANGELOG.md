@@ -1,3 +1,65 @@
+## 0.1.622 — the separation is written down, and two mechanisms are declined rather than left open
+
+Seventh of the approved stages, and the one with no code in it. Five releases
+moved a seam; a seam that lives only in five commit messages has to be
+reconstructed by the next reader, and reconstruction is how a boundary drifts.
+
+**`conformance/README.md`** states where the line runs: which question each tool
+answers, what moved and what deliberately did not, the three uses that cross the
+trace partition legitimately (QUALIFY, NORMALIZE, REPORT) and the one that never
+may (GRADE), and four things the separation does not give a user. `CLAUDE.md`
+gained the two new commands and a paragraph pointing at it.
+
+**The load-bearing sentence, in the file that owns it:** a cost board without a
+quality line rewards writing less. Tokens per page falls fastest for whoever
+writes the thinnest deck, which is the behaviour every other check here exists
+to catch. The admission ticket is the whole defence, and its argument now lives
+in three places that cannot all be lost at once — `board()`'s docstring, the
+Score Evals register, and this file.
+
+**GAP-040 closes**, against 0.1.618 rather than against today: that is the
+release whose code did it. Its own entry gained the citation. What made it worth
+a ledger id is stated there — a run directory is never committed, so a history
+row is the only part of a run this repository keeps, and a row that outlives its
+evidence can no longer say what produced it.
+
+**GAP-041 opens for what is not measured**, which is the honest reading of a
+board that has ten cells and an empty `earned` column. It also names the number
+a reader should not be soothed about: nine of twelve README rows carry no
+measurement, three of those nine never can, so the real pending work is six — of
+which five are one install away.
+
+**Two mechanisms declined, with reasons, so they are decisions instead of a
+quarterly re-debate.**
+
+* **FM-25 — an enum of model names.** Model names rot faster than this
+  repository can sweep them; only one of the twelve platforms can be ASKED what
+  it offers, so an enum would be one real vocabulary and eleven guesses dressed
+  the same; and `effort` is closed for a reason that does not transfer — five
+  values describing a dial, not a product catalogue. The defect an enum was
+  proposed against is a run announcing a name nobody asked for, and
+  `model_asked` beside `model` catches exactly that, which is how 0.1.614 found
+  one.
+* **FM-26 — binding the release gate to the configurations board.**
+  `conformance_fresh()` binds on recency, which is a fact about this
+  repository's diligence. Reading the new board would make it bind on a vendor's
+  deprecation, so a model id retired elsewhere would redden every release here.
+  **A gate that fires for reasons outside the author's control is a gate people
+  waive on reflex**, and the measurement is on record: nine consecutive
+  releases waived `conformance-freshness` and the waivers stopped being read.
+
+**`conformance-freshness` is waived a second and last time, and the difference
+from the first is that the debt now has a ledger id.** GAP-041 states what is
+unmeasured and names the round that closes it, which is convention 10's rule
+rather than a promise in prose. This release adds no code, so a round driven for
+it would measure nothing it changed.
+
+No deliberate red: this release adds no gate. What it adds is the answer to
+"why is it built this way", which is the thing the previous six releases could
+only imply.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.621 — the recommendation reaches the user where the user looks
 
 Sixth of the approved stages, and the owner's own decision about where it goes:
@@ -214,6 +276,13 @@ A row now carries two optional per-task maps, keyed like `built` before them:
   COST; the history row holds what it EARNED. Joining them meant matching on
   `(agent, date)`, a heuristic wrong the first time two agents run on one day —
   which is every driven round this package has ever done.
+
+**This closes GAP-040**, which named the defect in the sharpest available terms:
+`scores.json` lives in a run directory outside this tree and is never committed,
+so a history row is the only part of a run the repository keeps — and a row that
+outlives its own evidence could no longer say what produced it. The 0.1.605
+timing table was confounded by a model change and was only catchable because the
+transcripts happened still to be on disk five days later.
 
 **Absent stays absent, and there is no backfill.** A cell scored before 0.1.617
 carries none of these fields and the row gets no key at all; the thirty-six
