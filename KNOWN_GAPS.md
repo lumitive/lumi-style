@@ -75,6 +75,32 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-040 · The durable record of a conformance run carries no model
+
+- status: open
+- opened: 0.1.614
+- surface: conformance/history.json (row schema),
+  scripts/ops/run_conformance.py (the `--record` block)
+- symptom: 0.1.614 taught the driver to record which model actually ran, and it
+  reaches `scores.json` and the rendered board. It does not reach a history
+  row: those carry `agent`, `date`, `run_dir`, `scores_sha256`,
+  `skill_version`, `instrument_version` and `tasks`, and no model. **The
+  history is the only part of a run this repository keeps.** `scores.json`
+  lives in the run directory, which is outside the tree and never committed —
+  the digest pins it precisely so that a row is evidence, and a row that
+  survives its own evidence can no longer say what produced it.
+  Measured by what it cost: a three-row timing table published at 0.1.605 was
+  confounded by a model change and could only be discovered because the
+  transcripts happened still to be on disk five days later. Delete those
+  directories and nothing in this repository could ever have found it, or can
+  find the next one.
+- check: none. Adding the field is easy; deciding what the thirty-six existing
+  rows say is not — they were written before anything recorded a model, so
+  they are honestly unknown rather than default, and `validate` would have to
+  accept a row without one indefinitely. That is the same honest-silence
+  distinction `na_means` needed, which is the third instance IDEA-19 says it is
+  waiting for.
+
 ## GAP-039 · A new gating assertion inherits its metric's `since`, and binds every deliverable back to it
 
 - status: open
