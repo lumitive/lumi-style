@@ -400,6 +400,57 @@ Declined enforcement mechanisms, recorded with reasons so they are not
 re-proposed. (Declining is a decision; an undocumented decline gets re-argued
 every quarter.)
 
+## FM-25 · An enum of model names in the trace schema
+
+- detection: `model` is free text in `scripts/lib/trace_schema.py`, so a typo
+  in a `--model` pin is recorded and never questioned, and two spellings of one
+  model make two cells on the configurations board.
+- proposed, twice: close the field to a maintained set of model ids, updated on
+  a cadence, the way `effort` is closed to five values.
+- DECLINED, 2026-08-27 (and previously when the field was written). Three
+  reasons, and the first two are the ones that recur.
+  **Model names rot faster than this repository can sweep them.** Cursor's own
+  listing returned 23 ids on the day this was written, spanning four families,
+  and an enum would be a maintenance tax with no defect behind it — the trace
+  schema's own comment says so, and nothing since has produced the documented
+  case convention 2 requires.
+  **Only one of the twelve platforms can be ASKED.** `cursor-agent
+  --list-models` answers read-only; `claude` and `gemini` have no listing
+  command, `hermes model` opens a picker, and five more are not installed on
+  the machine that maintains the registry. An enum would therefore be one
+  vendor's real vocabulary and eleven guesses wearing the same clothes.
+  **`effort` is closed for a reason that does not transfer.** It is five values
+  that describe a dial, not a product catalogue, and the tuple is imported by
+  every reader rather than retyped — it drifted once, at 0.1.554, and cost a
+  driveable run that could not be recorded.
+- prevention: `model_asked` beside `model`, added 0.1.617. The defect an enum
+  was proposed against is a run announcing a name nobody asked for, and
+  recording both halves catches exactly that — 0.1.614 found one this way —
+  without asserting a vocabulary this package cannot read.
+
+## FM-26 · Binding the release gate to the configurations board
+
+- detection: a release could ship while the multi-agent board says an agent's
+  measured configuration no longer exists — a vendor deprecated the model id.
+- proposed: extend `check_evidence.conformance_fresh()` to read
+  `conformance/CONFIGURATIONS.md` and fail a release whose recommended
+  configurations are stale or unavailable.
+- DECLINED, 2026-08-27. `conformance_fresh` binds on RECENCY and deliberately
+  not on passing: it asks whether anybody has measured lately, which is a fact
+  about this repository's diligence. The proposal would make it bind on a
+  VENDOR's decision, so a model id retired in another company would turn every
+  release here red until somebody drove a round. **A gate that fires for
+  reasons outside the author's control is a gate people waive on reflex**, and
+  this repository has the measurement: nine consecutive releases waived
+  `conformance-freshness` in 0.1.596–0.1.604 and the waivers stopped being
+  read. Widening what can fire it would have made that worse, not better.
+- prevention: the board and README both print `n`, a date and the skill version
+  per row, so a stale recommendation is visible to a reader without a gate; and
+  `agent_evals.py plan` names the unmeasured cells on demand. The
+  vocabulary-changed trigger in `conformance/agent-evals.json` is the narrow
+  version that WAS accepted — it reports, and it can only fire for the one
+  platform whose CLI can be asked.
+
 ## FM-23 · A prose guard over cross-boundary references
 
 - detection: a shipped markdown file naming a path the projection does not
