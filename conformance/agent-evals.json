@@ -1,0 +1,69 @@
+{
+ "$note": "The multi-agent Score Evals: what a CONFIGURATION is scored on, kept separate from every other register in this package on purpose. evals/gates.json holds the verdicts a DELIVERABLE can receive; evals/thresholds.json holds the bars a document is held to. This file holds neither. It declares the axes along which agent x model x effort cells are ordered, and it deliberately carries NO numbers: the bar a run is held to is already the gate line in evals/gates.json, which board() applies as the admission ticket, and inventing a second bar would need a documented case under CLAUDE.md convention 2. Repository language: English only (red line).",
+ "$separation": "conformance/README.md states where the boundary runs and why the driver did not move with the analysis.",
+ "version": 1,
+ "cell": ["agent", "model", "effort"],
+ "cell_note": "An agent id alone is not a configuration. Measured 0.1.614: two runs of one agent id on one task, pinned differently, produced different outcomes. Every axis below is reported per cell, never per agent.",
+ "axes": [
+  {
+   "id": "runs",
+   "means": "how many closed traces this cell has",
+   "direction": "context",
+   "note": "Not a quality axis and never ordered on. It is printed beside every other number because n=1 is structural here: nothing repeats a run by design, so a single sample cannot separate a flaky agent from a flaky checker."
+  },
+  {
+   "id": "tasks_earned",
+   "means": "conformance tasks this cell both attempted and earned a verdict on",
+   "direction": "higher is better",
+   "source": "conformance/history.json, joined to a trace by the row's `traces` key",
+   "note": "Earned is not passed. A task never attempted is not a task failed, and a driver that timed out leaves a draft rather than a result. Rows recorded before 0.1.618 carry no configuration and cannot contribute to any cell."
+  },
+  {
+   "id": "quality_line",
+   "means": "whether the cell's runs clear the gate line at all",
+   "direction": "admission, not a score",
+   "source": "evals/gates.json, applied by scripts/lib/agent_runs.py board()",
+   "note": "THIS IS THE ONLY BAR, and it is borrowed rather than invented. A run with a failing gate is not on the board; since 0.1.620 a run that recorded no gates at all is not either, because a run nobody measured is the cheapest thin deck there is. Above the line the checks cannot tell two documents apart, which is why everything below this axis is cost and not quality."
+  },
+  {
+   "id": "tokens_per_page",
+   "means": "median output tokens per content page across the cell's runs",
+   "direction": "lower is better",
+   "note": "A rate, so it needs a document field as its denominator — that is the NORMALIZE use the trace partition allows. Median rather than mean: one timed-out run would otherwise move a cell more than five clean ones."
+  },
+  {
+   "id": "seconds_per_page",
+   "means": "median charged seconds per content page",
+   "direction": "lower is better",
+   "note": "Charged means the build and checks phases. Discussion and outline are not charged: the thinking a user was asked to do is not the pipeline's cost, and counting it would push every reader back toward the template path."
+  },
+  {
+   "id": "effort_honoured",
+   "means": "whether the model the run announced is the model that was asked for",
+   "direction": "must hold",
+   "source": "the `model` and `model_asked` keys of a history row's `config`",
+   "note": "Added because 0.1.614 found a run announcing a name its own CLI does not list. A cell whose runs did not honour their pin is not measuring the configuration it is filed under, whatever its numbers say."
+  }
+ ],
+ "ordering": ["tasks_earned desc", "tokens_per_page asc"],
+ "ordering_note": "Ties are printed as ties and never broken by a third axis. This is an ordering by COST among configurations that already cleared the gate line, and it is not a quality ranking — above that line the checks cannot tell two documents apart. A cell missing an axis sorts last on it rather than being dropped, because a dropped cell reads as a cell that scored badly.",
+ "triggers": [
+  {
+   "id": "major-rule-change",
+   "means": "a release touched the rule surface AND the board is stale",
+   "computed_from": ["the TOUCH_MAP set in scripts/check/check_evidence.py", "CONFORMANCE_STALE_AFTER in scripts/ops/run_conformance.py"],
+   "note": "Computed rather than scheduled. This repository ships ten to twenty-five releases a day, so a weekly cadence would fire against a version nobody was asking about. Both halves come from constants that already exist; neither is a new number."
+  },
+  {
+   "id": "vocabulary-changed",
+   "means": "a `models` probe answers a different set of ids than the one recorded",
+   "computed_from": ["the `models` argv in adapters/platforms.json"],
+   "note": "One of the twelve platforms can answer read-only. For the other eleven this trigger can never fire, and the board says so rather than implying their vocabulary is stable."
+  },
+  {
+   "id": "operator-asked",
+   "means": "the builder ran the tool",
+   "note": "Listed so the set is complete. It is the trigger that has fired for every round this package has driven."
+  }
+ ]
+}

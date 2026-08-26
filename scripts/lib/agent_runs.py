@@ -40,7 +40,6 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
     if _p not in _bs_sys.path:
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
-# isort: on
 
 # The effort vocabulary is the schema's, never retyped here — a second literal
 # copy is the drift the genre enum already grew once, one domain over.
@@ -68,7 +67,17 @@ def board(traces):
     for t in traces:
         if not t.get("closed_at"):
             continue
-        if any(str(v).upper() == "FAIL" for v in (t.get("gates") or {}).values()):
+        gates = t.get("gates") or {}
+        # NO GATES IS NOT A PASS. `any()` over an empty dict is False, so a run
+        # that recorded no verdicts at all cleared the quality line vacuously —
+        # and the whole reason this line exists is that a cheap thin deck must
+        # not reach a cost board. A run nobody measured is the cheapest deck
+        # there is. No trace on disk hits this today (measured 2026-08-27: 0 of
+        # 31 admitted rows); the branch existed and would have opened the moment
+        # a driver timed out before the checks ran.
+        if not gates:
+            continue
+        if any(str(v).upper() == "FAIL" for v in gates.values()):
             continue
         pages = t.get("content_pages") or 0
         out = t.get("output_tokens")

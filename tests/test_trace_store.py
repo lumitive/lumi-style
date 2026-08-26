@@ -22,8 +22,15 @@ def test_writer_and_ledger_agree_under_the_override(tmp_path, monkeypatch):
     monkeypatch.setenv("LUMI_TRACES", str(tmp_path))
     monkeypatch.syspath_prepend(str(ROOT / "scripts" / "ops"))
     monkeypatch.syspath_prepend(str(ROOT / "scripts" / "lib"))
-    tr, led = _fresh("trace"), _fresh("ledger")
-    assert tr.TRACES == led.TRACES == tmp_path
+    tr, store = _fresh("trace"), _fresh("trace_store")
+    # `ledger.TRACES` was the second half of this assertion until 0.1.620, when
+    # the loader moved to `trace_store` and the constant became a name nothing
+    # read. The claim is unchanged and is now made against the module that
+    # actually resolves the store for every reader.
+    assert tr.TRACES == store.traces_dir() == tmp_path
+    led = _fresh("ledger")
+    assert led.load() == [], (
+        "the ledger reads the store the override names, and it is empty")
 
 
 def test_the_default_is_the_tracked_directory_when_there_is_one(tmp_path, monkeypatch):

@@ -80,7 +80,7 @@ def test_load_sets_them_aside_and_the_flag_puts_them_back(tmp_path, monkeypatch)
     (store / "b.json").write_text(json.dumps(_trace(
         trace_id="t-leak", pages=0, recipe_hash=None, closed_at=None)),
         encoding="utf-8")
-    monkeypatch.setattr(ledger, "TRACES", store)
+    monkeypatch.setenv("LUMI_TRACES", str(store))
 
     assert [t["trace_id"] for t in ledger.load()] == ["t-real"]
     assert sorted(t["trace_id"] for t in ledger.load(True)) == ["t-leak", "t-real"]
@@ -93,7 +93,6 @@ def test_nothing_is_deleted(tmp_path, monkeypatch):
     (store / "b.json").write_text(json.dumps(_trace(
         trace_id="t-leak", pages=0, recipe_hash=None, closed_at=None)),
         encoding="utf-8")
-    monkeypatch.setattr(ledger, "TRACES", store)
     ledger.load()
     assert (store / "b.json").exists()
 
@@ -116,7 +115,12 @@ def _store(tmp_path, monkeypatch, n_leak=3, n_real=2):
     for i in range(n_real):
         (store / f"real{i}.json").write_text(json.dumps(
             _trace(trace_id=f"t-real{i}")), encoding="utf-8")
-    monkeypatch.setattr(ledger, "TRACES", store)
+    # THE REAL REDIRECT, not a module attribute. `load` moved to `trace_store`
+    # at 0.1.620 and resolves the store at call time, so patching a module
+    # attribute stopped redirecting anything and eight of these tests read an
+    # empty store while asserting against a populated one. `LUMI_TRACES` is the mechanism
+    # `references/operating-rules.md` documents, and it survives the next move.
+    monkeypatch.setenv("LUMI_TRACES", str(store))
     return store
 
 
@@ -189,5 +193,5 @@ def test_a_store_file_that_is_not_an_object_does_not_crash(tmp_path, monkeypatch
     store = tmp_path / "traces"
     store.mkdir()
     (store / "bad.json").write_text('["not an object"]', encoding="utf-8")
-    monkeypatch.setattr(ledger, "TRACES", store)
+    monkeypatch.setenv("LUMI_TRACES", str(store))
     assert ledger.load() == [["not an object"]]

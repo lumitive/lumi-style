@@ -1,3 +1,90 @@
+## 0.1.620 — the multi-agent evaluation is its own tool, its own register, its own board
+
+Fifth of the approved stages, and the one the owner asked for by name: the
+evaluation of AGENTS is separated from the evals and tools that grade
+DOCUMENTS. Three new files and one CI step.
+
+* **`scripts/ops/agent_evals.py`** — `board`, `suggest --agent`, `plan`, and
+  `board --check`. It measures and never drives; driving stays with
+  `run_conformance.py`, which is the owner's second decision (the analysis
+  separates, the driver stays put).
+* **`conformance/agent-evals.json`** — the Score Evals. Six axes, an ordering,
+  and **no numbers**. The bar a run is held to is already `evals/gates.json`,
+  applied as `board()`'s admission ticket, and inventing a second one would need
+  a documented case that does not exist. A test asserts no axis carries a
+  threshold, floor, ceiling or target, and another asserts every axis says which
+  way it points (convention 4).
+* **`conformance/CONFIGURATIONS.md`** — generated, `--check` in CI. **Ten cells
+  across three agents today**, ordered by tasks earned then tokens per page.
+
+**The cell is `agent × model × effort`, and that is the whole point.** An agent
+id is not a thing anybody can run: 0.1.614 measured two runs of one id on one
+task, pinned differently, producing different outcomes. Every board this package
+had published named the id.
+
+**Three answers, never two, everywhere the tool gives one.** `measured here` /
+`not measured here` / `cannot be measured here`. An agent nobody has driven and
+an agent that cannot be driven at all are different facts, and printing them
+identically is how a board reads as ten pieces of pending work when six of them
+will never be done.
+
+**`suggest` was wrong on its first run and the run is what found it.** Runs that
+recorded no model pool into a cell whose model reads `—`, that cell can be the
+cheapest, and Claude Code's was: the answer was `effort high`, which no user can
+act on. A named cell wins now, and the sentence says a cheaper unnamed one was
+passed over rather than silently improving the headline number. It also says
+when a one-run cell beat a five-run one — named rather than corrected, because a
+minimum-n bar would be the invented threshold convention 2 forbids.
+
+**A latent hole in the admission ticket closed.** `any()` over an empty dict is
+False, so a run that recorded NO gates cleared the quality line vacuously — and
+a run nobody measured is the cheapest thin deck there is. Zero of the 31
+admitted rows on disk hit it (measured 2026-08-27), so this closes a branch
+rather than moving a number; it would have opened the first time a driver timed
+out before the checks ran. **Eleven tests broke on the fix**, and that is the
+finding: every fixture in the two files carried `gates: {}`, so the suite had
+been proving the admission ticket worked while holding no ticket.
+
+**`suite_artifact`, `load` and `set_aside_count` moved to `trace_store`.** They
+are about which records the STORE holds, which is neither a document question
+nor an agent one, and the new tool needed the same filter. The three choices
+were a second copy, an import of the document tool by the agent tool, or the
+right home. `ledger.TRACES` is deleted rather than aliased: after the move
+nothing read it, and a module constant naming a directory the module no longer
+opens invites exactly the patch that broke eight tests here — they patched a
+module attribute, the loader began resolving the store at call time, and they
+read an empty store while asserting against a populated one. They use
+`LUMI_TRACES` now, which is the documented mechanism and survives the next move.
+
+**Why this is derived and not the weekly dictionary that was asked for.** The
+tool's docstring carries the four reasons; the decisive one is that this package
+cannot set a model. All twelve platforms load it as a SKILL — the agent is
+already running, with its model and effort already fixed, when it reads
+`SKILL.md` — so a curated table would be advice the package has no code path to
+act on. What it can do is measure runs that happened and let the rows go stale
+visibly, which is what every row's `n`, date and skill version are for.
+
+**The board carries no version stamp, and `--check` is what taught that.** The
+first draft stamped the checkout's version across the header, and the release
+that shipped this went red on its own gate: a board going stale because a number
+changed elsewhere, which is GAP-037's shape one file over. A header stamp would
+also have claimed a measurement of rules the rows were not measured against.
+Each row carries the skill version its own runs read.
+
+Deliberate red, six runs: key the cell on the agent alone, take the mean
+instead of the median, let an unnamed cheaper cell win silently, read a missing
+board as agreement, and pool an unconfigured history row under the agent.
+**The fifth did not plant** — the test that should have caught it asserted
+against a cell whose model was named, and the mutation only bites where a cell's
+model is unknown, which five real traces are. That case has its own test now, as does the
+header stamp. Twenty-six tests. What is deliberately NOT tested here is that the SHIPPED
+board equals the shipped derivation: the suite writes to a scratch trace store,
+so the assertion would compare the tracked board against an empty one. That
+claim is the CI step, and like `run_conformance validate` beside it, it verifies
+the derivation and never the measurement.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.619 — the registry said whether an agent was there, never what it could be run as
 
 Fourth of the approved stages, and the one that establishes the fact 0.1.618
