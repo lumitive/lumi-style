@@ -1,3 +1,40 @@
+## 0.1.615 — the model name a review read backwards, and I published
+
+0.1.614 said the field it added had caught something on its first outing: two runs
+pinned to `cursor-grok-4.6-high`, the one that died announcing `Cursor Grok 4.6`
+and the one that succeeded announcing `Cursor Grok 4.6 High`. A first draft
+called that a display-name-versus-id difference and glossed it away; a review
+called it a tier apart with the pin unhonoured on the failing attempt. **The
+review's reading shipped, and it is backwards.**
+
+`cursor-agent --list-models` settles it in one line: the display name of
+`cursor-grok-4.6-high` is **`Cursor Grok 4.6`**, with no `High`. So the run that
+FAILED announced exactly the right name, and the run that SUCCEEDED announced a
+string that appears nowhere in the CLI's own list. The published sentence
+asserted a direction the evidence points the other way down.
+
+What the record supports is narrower and is the part worth keeping: **one pin,
+two announcements, one of them matching nothing the CLI publishes.** The field
+records what a CLI says about itself. That is evidence and it is not an
+identifier — the board prints it as the answer because it is the only answer
+there is, not because it is canonical. Nothing here can say which of the two runs
+got which model, and the entry now says so instead of guessing.
+
+**The lesson is about where the check went.** 0.1.614's own subject is that a
+record must say what actually ran rather than what was asked, and both wrong
+readings of it were about wording rather than about the vendor's own list — which
+was one read-only command away and which neither draft ran. A review verified
+that the two strings differed and inferred what the difference meant; verifying
+the difference is not verifying the inference.
+
+Also in this release: the verification round the owner asked for. Cursor at
+`cursor-grok-4.6-high` against 0.1.614 earns T1-deck with **zero dangling colour
+names, zero gating failures, and sixteen of eighteen gates held** — the black
+figures reported against the 0.1.605 deck are gone, confirmed on a pinned model
+rather than on `Auto`.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.614 — the board recorded which model was asked for and never which one ran
 
 The owner asked which model a verification run had used. The answer was in the
@@ -45,15 +82,23 @@ credit refuses the first call; this did not, and re-running the same pin on the
 same task ten minutes later succeeded in 1457 seconds — so whatever it was, it
 was that moment rather than that account.
 
-**And the field caught something on its first real outing, which a first draft
-of this paragraph glossed away.** Both runs were pinned to
-`cursor-grok-4.6-high`. The one that died announced `Cursor Grok 4.6`; the one
-that succeeded announced `Cursor Grok 4.6 High`. That is a tier apart, not a
-wording difference — so "the same model" is what the two runs were ASKED for
-and not what the records establish, and the pin was very likely not honoured on
-the attempt that failed. The draft called it "a display name where the flag
-takes an id" and buried the one live finding this field has produced. A review
-read the two records and caught it.
+**And the field caught something on its first real outing, though it took two
+wrong readings to say what.** Both runs were pinned to `cursor-grok-4.6-high`.
+The one that died announced `Cursor Grok 4.6`; the one that succeeded announced
+`Cursor Grok 4.6 High`. A first draft called that "a display name where the
+flag takes an id", which glossed a difference away; a review called it a tier
+apart with the pin unhonoured on the failing attempt, which asserted a
+direction. **Both are wrong, and `cursor-agent --list-models` settles it**: the
+display name of `cursor-grok-4.6-high` is `Cursor Grok 4.6`, with no `High`.
+So the failing run announced exactly the right name and the SUCCEEDING one
+announced a string that is not a display name Cursor lists at all.
+
+What the record supports is narrower and is the useful part: **one pin, two
+announcements, one of them matching nothing the CLI itself publishes.** The
+field records what a CLI says about itself, which is evidence and is not an
+identifier — the board prints it as the answer because it is the only answer
+there is, not because it is canonical. Recorded rather than resolved: nothing
+here can say which of the two runs got which model.
 
 The retry is also what the release note about `resource_exhausted` was missing.
 The first draft of this paragraph called it a quota problem on the strength of
