@@ -1,3 +1,59 @@
+## 0.1.616 — the cost of a model was being measured inside the tool that grades documents
+
+First of the stages the owner approved for separating the multi-agent evaluation
+from the package's own. This one moves code and changes no behaviour.
+
+**`ledger.py` answers three questions about DOCUMENTS** — which metric keeps
+failing, which instrument is suspect, what to change next. Its model x effort
+cost matrix answers a fourth, about AGENTS: what a configuration costs to produce
+a page that cleared the bar. `board()`, `matrix()`, `cell_cost()`,
+`load_prices()` and `render_matrix()` were in that file only because the traces
+they read were already open there. They now live in `scripts/lib/agent_runs.py`.
+
+Output is **byte-identical** on all three of `ledger.py`, `--board` and `--json`,
+which is the whole acceptance test for a move. `--board` is kept and still
+renders, through the import; the tool that will own it is the next stage.
+
+**The qualification argument moved with the code, and that was the point of
+moving it carefully.** A run with a failing gate is not on the cost board at all,
+because a thin deck is cheap and worthless and a board that admitted one would
+reward the behaviour every other check here exists to catch. Lose that sentence
+in a move and the cheapest route to the top of the board becomes writing thinner
+decks. The docstring carrying it travelled with the function.
+
+**Thirteen tests moved too**, because they patched `ledger.matrix` and
+`ledger.PRICES` — a test that patches a name pins where the name lives, and
+leaving them behind would have held the seam open in the one place that fails
+loudly. One of them could not move: it asserted ACROSS the seam, checking that an
+unclosed trace both counts as an abandoned build (a document fact) and stays off
+the cost board (an agent fact). It is two tests now, one on each side, and the
+fact that it could not be moved whole is the clearest evidence the two questions
+were tangled.
+
+`prices.local.json` moved with the matrix that prices, and `tests/test_state_dir.py`'s
+list of stores-that-must-ask-`state_dir` moved its row rather than dropping it —
+a list that loses a member when the file it names moves is how such a list rots.
+
+**A trace's two populations are now a declared partition.** One flat record holds
+the document's facts and the producer's as siblings, and nothing said which was
+which. `trace_schema` declares `DOCUMENT_FIELDS`, `PRODUCER_FIELDS` and
+`RUN_FIELDS`, and `check_trace_schema` asserts they are disjoint and together
+exhaust `FIELDS` — a partition rather than two lists, because a list can omit a
+member in silence and a field assigned to neither side would simply never be
+anybody's. The contract it holds is one-directional and stated where it lives: a
+document reader may read producer fields only to GROUP, an agent reader may read
+document fields only to QUALIFY.
+
+Deliberate red, three runs: a field belonging to no side, a field claimed by two,
+and a side claiming a field the schema does not declare. Seven synthetic-tree
+tests, and one of them is the FM-24 question asked of the new guard — the older
+half of `check_trace_schema` returns `[]` for a tree with no `evals/traces/`,
+which is right for the store and wrong for the schema, so a first draft would
+have made every synthetic tree a green pass over an unchecked partition. The
+partition is checked before the store is opened.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.615 — the model name a review read backwards, and I published
 
 0.1.614 said the field it added had caught something on its first outing: two runs

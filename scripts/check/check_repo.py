@@ -387,10 +387,38 @@ def check_trace_schema():
     if not trace_schema.FIELDS:
         return ["trace_schema defines no FIELDS — the guard would pass vacuously"]
 
+    # THE PARTITION FIRST, because it holds regardless of what is on disk. One
+    # flat record carries two populations — the document's and the producer's —
+    # and nothing said which was which until `agent_runs.py` split the cost
+    # matrix out of the document ledger. Declared as a partition rather than
+    # two lists: a list can omit a member in silence, so a field added to
+    # FIELDS and assigned to neither side would simply never be anybody's.
+    errors = []
+    sides = {"DOCUMENT_FIELDS": trace_schema.DOCUMENT_FIELDS,
+             "PRODUCER_FIELDS": trace_schema.PRODUCER_FIELDS,
+             "RUN_FIELDS": trace_schema.RUN_FIELDS}
+    union = set().union(*sides.values())
+    declared = set(trace_schema.FIELDS)
+    for name in sorted(declared - union):
+        errors.append(
+            f"trace_schema.FIELDS declares {name!r} and no side claims it — "
+            f"a trace field is the document's, the producer's or the run's, "
+            f"and a reader that cannot tell will group a document by its model "
+            f"or grade a model by its pages")
+    for name in sorted(union - declared):
+        errors.append(
+            f"the field partition claims {name!r}, which trace_schema.FIELDS "
+            f"does not declare")
+    for a, b in (("DOCUMENT_FIELDS", "PRODUCER_FIELDS"),
+                 ("DOCUMENT_FIELDS", "RUN_FIELDS"),
+                 ("PRODUCER_FIELDS", "RUN_FIELDS")):
+        for name in sorted(sides[a] & sides[b]):
+            errors.append(f"{name!r} is in both {a} and {b}; the sides partition "
+                          f"the fields and may not overlap")
+
     traces = ROOT / "evals" / "traces"
     if not traces.exists():
-        return []
-    errors = []
+        return errors
     for path in sorted(traces.glob("*.json")):
         try:
             rec = json.loads(path.read_text(encoding="utf-8"))
@@ -3128,7 +3156,7 @@ SIBLING_MODULES = (
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",
     "checker_report", "secret_patterns", "corpus", "gating",
     "gate_registry", "stamps", "trace_store", "shipped",
-    "state_dir",
+    "state_dir", "agent_runs",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
