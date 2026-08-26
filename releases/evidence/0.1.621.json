@@ -1,7 +1,7 @@
 {
  "version": "0.1.621",
  "diff_base": "4c0bcba366079c4717054953927948bb291f8d8a",
- "spec": "specs/2026-08-26-board-refresh-design.md",
+ "spec": "specs/2026-08-27-agent-evals-design.md",
  "obligations": [
   "conformance-freshness"
  ],

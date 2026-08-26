@@ -87,12 +87,26 @@ def test_load_sets_them_aside_and_the_flag_puts_them_back(tmp_path, monkeypatch)
 
 
 def test_nothing_is_deleted(tmp_path, monkeypatch):
-    """Set aside means set aside. The store is a record; the report is a reading."""
+    """Set aside means set aside. The store is a record; the report is a reading.
+
+    **This test could not fail for one release.** The 0.1.620 sweep replaced
+    `monkeypatch.setattr(ledger, "TRACES", store)` with the `LUMI_TRACES`
+    redirect in three places and deleted it here without a replacement, so
+    `load()` read conftest's empty scratch directory and the assertion held
+    because the test had written the file itself two lines earlier. A review
+    planted `path.unlink()` in `trace_store.load()` — the exact mutation this
+    exists to catch — and it stayed green.
+    """
     store = tmp_path / "traces"
     store.mkdir()
     (store / "b.json").write_text(json.dumps(_trace(
         trace_id="t-leak", pages=0, recipe_hash=None, closed_at=None)),
         encoding="utf-8")
+    monkeypatch.setenv("LUMI_TRACES", str(store))
+    read = ledger.load(True)
+    assert [t["trace_id"] for t in read] == ["t-leak"], (
+        "the loader did not read this store, so nothing below is a claim "
+        "about it")
     ledger.load()
     assert (store / "b.json").exists()
 

@@ -1,3 +1,126 @@
+## 0.1.623 — the pre-PR review found a join that could never have matched a row
+
+Eighth on the branch, and the reason the review runs before the pull request
+rather than after it. Four readers over the seven releases. The local gate
+sheet was clean apart from the freshness waiver below, and every one of the
+findings here is something a clean sheet cannot see. Each
+was verified against the code before it was acted on.
+
+**The load-bearing defect: the earned column could never have been filled.**
+`agent_evals.earned()` keyed a history row on `(agent, model, effort)` and
+`cells()` keyed a trace the same way — and **the two sides never spell one model
+the same.** A trace gets the raw pin (`run_conformance.py` hands
+`record["model"]` straight to `trace.py close`); a score cell gets
+`_model_cell()`'s DISPLAY sentence, built for a board column:
+`cursor-grok-4.6-high (asked cursor-grok-4.6-xhigh)`, or `asked
+deepseek-v4-flash, unconfirmed` when nothing confirmed it. Verified against four
+real `driver.json` shapes: **four joins, four misses.**
+
+What that cost, had it merged: `tasks_earned` is the register's PRIMARY sort
+key, so the board would have ordered on cost alone, permanently, while claiming
+otherwise. And GAP-041's closing condition — a round driven and recorded — would
+have run, produced nothing, and read as if the gap were somebody's laziness.
+Both release waivers on this branch promise that round as the fix.
+
+**The join is the trace id now**, which is what 0.1.617 recorded it for and what
+four files already asserted it was. That claim is true today and was not when it
+was written.
+
+**Second defect in the same function**, invisible only because the join missed
+first: `honoured` compared the pin against the display sentence, so it computed
+`False` for every real shape. It compares against `model_ran`, the raw id the
+CLI announced, which now rides beside the display cell. It also has three
+answers instead of two — an unpinned run cannot dishonour a pin, and calling
+that `True` let "nobody asked for anything" wear the same word as "the CLI did
+what it was told".
+
+**Every test of that join used a clean model id — a shape `score` never
+writes.** Convention 15 exactly: the pattern was written against imagined
+material, so the planted red never visited the branch the defect lived on. Nine
+tests are rewritten against the three shapes the harness actually produces, and
+they are parameterized over all three.
+
+**Two commits on this branch contradicted each other.** 0.1.617 recorded
+`(not pinned)` into a score cell as a deliberate answer; 0.1.618 taught
+`validate` — a CI step — to hold `config.effort` to the schema's five tiers.
+Nothing ran both, so **the next unpinned round would have turned CI red on a row
+the harness itself wrote**. Confirmed by running it. The sentinel is recorded as
+an explicit `effort_pinned: false` now, which keeps 0.1.617's distinction (an
+absent key and an unpinned run stay different facts) without putting prose in an
+enum field. A round-trip test drives score → record → validate, because the two
+halves shipped a release apart and neither test suite crossed the seam.
+
+**A test disarmed by 0.1.620's own sweep.** The mechanical rename replaced
+`monkeypatch.setattr(ledger, "TRACES", …)` with the `LUMI_TRACES` redirect in
+three places and deleted it from `test_nothing_is_deleted` without a
+replacement. The test then read an empty scratch store and asserted a file it
+had written itself two lines earlier. The reviewer planted `path.unlink()` in
+`trace_store.load()` — the exact mutation it exists to catch — and it stayed
+green. It now asserts it read the store before it asserts anything about it, and
+the planted deletion reddens seven tests.
+
+**The README block had a second copy of the selection rule** and threw away both
+caveats `pick()` computes — so the one file that reaches a user was the one
+place the two things the tool exists to say went unsaid. `pick()` and
+`describe()` are shared now. The caveats render as footnotes below the table
+rather than inside a cell, because inlined they made one cell three lines wide,
+which is its own way of not saying them. And the caveat naming a better-sampled
+cell prints the effort too: without it, two cells differing only by effort
+rendered as `cursor-grok-4.6-high … is dearer than cursor-grok-4.6-high`.
+
+**Smaller, all verified:**
+
+* `vocabulary()` filed a missing binary as `waived` while its own docstring said
+  a waiver is a REASON and an accident is not. Four states now — `absent` is a
+  fact about this machine that one install changes.
+* **"All twelve platforms load it as a SKILL" is wrong for three**, in five
+  files including the one that ships. Codex reads `AGENTS.md`; Kimi and DeepSeek
+  are `prompt` tier and get `prompts/lumi-style-core.md` pasted into a chat. The
+  argument survives — on every route the agent is already running when it reads
+  anything of ours — but the mechanism named did not.
+* **`vocabulary-changed` described a comparison nothing can make.** Nothing
+  records a vocabulary; `detect --models` prints the live set and discards it,
+  and nothing reads the `triggers` block at all. Its entry says
+  `computed_by: NOTHING` now, GAP-042 holds it, and FM-26's sentence leaning on
+  it is corrected. Its `computed_from` also cited `CONFORMANCE_STALE_AFTER` in
+  the wrong file.
+* **All seven entries cited a design record about other work.**
+  `specs/2026-08-26-board-refresh-design.md` was written for 0.1.605/0.1.608 and
+  contains the word "stage" zero times. `specs/2026-08-27-agent-evals-design.md`
+  is the record this branch should have had before it started, and says so in
+  its own first paragraph.
+* `test_agent_runs.py` claimed `ledger` re-exports all three moved names. It
+  re-exports `board`, `render_matrix` and `load_prices` and not `matrix` or
+  `cell_cost`, so the file would have split seven passing / six erroring — a
+  worse outcome than either whole answer, and the better argument for the move.
+* Three counts: GAP-041 was opened by 0.1.622 not 0.1.621; its heading counted
+  PLATFORM rows and called them configurations, which is the rule its own
+  register states; "five real traces" was five of ten cells and thirteen traces.
+* `max()` over version strings is lexicographic, so `0.1.99` outranked
+  `0.1.100`. Every value on the board today is correct by accident of
+  three-digit patch numbers. Latent, fixed, and the comparator tolerates an
+  absent version rather than raising.
+* Convention 12 sweep: README's file map called `conformance/` one scoreboard
+  when it now holds two; `CLAUDE.md` described the platform registry without the
+  field 0.1.619 added; and README's block claimed to be "an ordering by cost"
+  when it is one row per platform in registry order — true of
+  `CONFIGURATIONS.md`, which really is sorted.
+
+**`conformance-freshness` is waived a third time, and 0.1.622's "second and
+last" is corrected in place rather than left to rot.** The reason here is this
+release's own subject: a round driven before the join was fixed would have been
+recorded, earned nothing, and satisfied GAP-041's wording while leaving its
+column exactly as empty. That entry's closing condition now names 0.1.623.
+
+Deliberate red, seven runs: put the join back on the model string, compare the
+pin to the display sentence, call an unpinned run honoured, let the sentinel
+travel into the enum field, drop the README caveats, drop the effort from a
+caveat, and file an absent binary as a waiver. **The fifth did not plant** —
+nothing asserted the caveats reach the reader, which is how they were lost in
+the first place.
+
+Design record: `specs/2026-08-27-agent-evals-design.md`.
+
 ## 0.1.622 — the separation is written down, and two mechanisms are declined rather than left open
 
 Seventh of the approved stages, and the one with no code in it. Five releases
@@ -48,8 +171,12 @@ quarterly re-debate.**
   waive on reflex**, and the measurement is on record: nine consecutive
   releases waived `conformance-freshness` and the waivers stopped being read.
 
-**`conformance-freshness` is waived a second and last time, and the difference
-from the first is that the debt now has a ledger id.** GAP-041 states what is
+**`conformance-freshness` is waived a second time, and the debt now has a ledger
+id rather than a promise in prose.** *(This sentence said "second and last" when
+it shipped. It was wrong: 0.1.623 waived it a third time, for a reason that
+release explains and that is better than either of these. Corrected here rather
+than left standing — a waiver whose terms quietly change is how nine of them
+stopped being read.)* GAP-041 states what is
 unmeasured and names the round that closes it, which is convention 10's rule
 rather than a promise in prose. This release adds no code, so a round driven for
 it would measure nothing it changed.
@@ -58,7 +185,7 @@ No deliberate red: this release adds no gate. What it adds is the answer to
 "why is it built this way", which is the thing the previous six releases could
 only imply.
 
-Design record: `specs/2026-08-26-board-refresh-design.md`.
+Design record: `specs/2026-08-27-agent-evals-design.md`.
 
 ## 0.1.621 — the recommendation reaches the user where the user looks
 
@@ -110,7 +237,7 @@ three releases ago — and the emptiness is visible rather than implied: the new
 configurations board shows a column of dashes under `earned`, which is what an
 unmeasured axis looks like when it is not allowed to guess.
 
-Design record: `specs/2026-08-26-board-refresh-design.md`.
+Design record: `specs/2026-08-27-agent-evals-design.md`.
 
 ## 0.1.620 — the multi-agent evaluation is its own tool, its own register, its own board
 
@@ -172,10 +299,11 @@ read an empty store while asserting against a populated one. They use
 
 **Why this is derived and not the weekly dictionary that was asked for.** The
 tool's docstring carries the four reasons; the decisive one is that this package
-cannot set a model. All twelve platforms load it as a SKILL — the agent is
-already running, with its model and effort already fixed, when it reads
-`SKILL.md` — so a curated table would be advice the package has no code path to
-act on. What it can do is measure runs that happened and let the rows go stale
+cannot set a model. Nine platforms load it as a skill file, Codex reads
+`AGENTS.md`, and the two `prompt`-tier platforms get `prompts/lumi-style-core.md`
+pasted into a chat — and on every route the agent is already running, with its
+model and effort already fixed, when it reads anything this package ships. So a
+curated table would be advice the package has no code path to act on. What it can do is measure runs that happened and let the rows go stale
 visibly, which is what every row's `n`, date and skill version are for.
 
 **The board carries no version stamp, and `--check` is what taught that.** The
@@ -190,14 +318,16 @@ instead of the median, let an unnamed cheaper cell win silently, read a missing
 board as agreement, and pool an unconfigured history row under the agent.
 **The fifth did not plant** — the test that should have caught it asserted
 against a cell whose model was named, and the mutation only bites where a cell's
-model is unknown, which five real traces are. That case has its own test now, as does the
-header stamp. Twenty-six tests. What is deliberately NOT tested here is that the SHIPPED
+model is unknown, which five of the ten CELLS are — thirteen traces, and the
+first version of this sentence said five traces. That case has its own test now, as does the
+header stamp. Twenty-six tests, and 0.1.623 rewrote nine of them after a review
+showed the join they proved could never have matched a real row. What is deliberately NOT tested here is that the SHIPPED
 board equals the shipped derivation: the suite writes to a scratch trace store,
 so the assertion would compare the tracked board against an empty one. That
 claim is the CI step, and like `run_conformance validate` beside it, it verifies
 the derivation and never the measurement.
 
-Design record: `specs/2026-08-26-board-refresh-design.md`.
+Design record: `specs/2026-08-27-agent-evals-design.md`.
 
 ## 0.1.619 — the registry said whether an agent was there, never what it could be run as
 
@@ -254,7 +384,7 @@ against the synthetic manifest tree instead, and the existing wave-2 fixture
 gained the field it now owes. `build_entrypoints.py --check` produces no diff:
 an install note says how to install, not what to run.
 
-Design record: `specs/2026-08-26-board-refresh-design.md`.
+Design record: `specs/2026-08-27-agent-evals-design.md`.
 
 ## 0.1.618 — a history row named the agent and never what the agent was run as
 
@@ -304,7 +434,7 @@ and they drive `report --record` and `validate` end to end rather than
 re-implementing the row-building loop in their own bodies — stage 2 had a red
 that failed to plant for exactly that reason.
 
-Design record: `specs/2026-08-26-board-refresh-design.md`.
+Design record: `specs/2026-08-27-agent-evals-design.md`.
 
 ## 0.1.617 — the reasoning tier a run used reached the trace and nowhere a board could read it
 
@@ -371,7 +501,7 @@ records the guard actually validates so the next reader gets an argument instead
 of a blank line. Its deliberate red is the review's own suggestion, applied: the
 test fails naming the count.
 
-Design record: `specs/2026-08-26-board-refresh-design.md`.
+Design record: `specs/2026-08-27-agent-evals-design.md`.
 
 ## 0.1.616 — the cost of a model was being measured inside the tool that grades documents
 
@@ -396,10 +526,13 @@ reward the behaviour every other check here exists to catch. Lose that sentence
 in a move and the cheapest route to the top of the board becomes writing thinner
 decks. The docstring carrying it travelled with the function.
 
-**Thirteen tests moved too**, and the reason is that they would NOT have
-broken where they were: `ledger` re-exports the three names, so the whole file
-kept passing against the old home. A suite that survives a move through a
-re-export is a suite recording the old address as the real one. One of them could not move: it asserted ACROSS the seam, checking that an
+**Thirteen tests moved too**, and the reason is that the file would otherwise
+have split in half without saying so: `ledger` re-exports `board`,
+`render_matrix` and `load_prices` — the three its own report needs — and not
+`matrix` or `cell_cost`. Seven would have gone on passing against the old
+address and six would have raised `AttributeError`. (The first version of this
+sentence said all thirteen would have passed. Corrected at 0.1.623, by a
+review.) One of them could not move: it asserted ACROSS the seam, checking that an
 unclosed trace both counts as an abandoned build (a document fact) and stays off
 the cost board (an agent fact). It is two tests now, one on each side, and the
 fact that it could not be moved whole is the clearest evidence the two questions
@@ -430,7 +563,7 @@ which is right for the store and wrong for the schema, so a first draft would
 have made every synthetic tree a green pass over an unchecked partition. The
 partition is checked before the store is opened.
 
-Design record: `specs/2026-08-26-board-refresh-design.md`.
+Design record: `specs/2026-08-27-agent-evals-design.md`.
 
 ## 0.1.615 — the model name a review read backwards, and I published
 

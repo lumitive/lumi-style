@@ -91,6 +91,27 @@ def test_no_row_carries_a_cost_without_its_sample_size():
         assert "(n=" in row, row
 
 
+def test_the_caveats_the_tool_computes_reach_the_reader():
+    """**The finding this file exists to prevent from recurring.** The block
+    had its own copy of the selection rule, so the two things `pick()` was
+    built to say — a cheaper cell passed over, a better-sampled cell beaten —
+    were computed and then thrown away in the one file a user reads.
+
+    They render as footnotes rather than inside the cell: inlined they made one
+    cell three lines wide, which is its own way of not saying them.
+    """
+    cheap_unnamed = dict(_CELLS[0], model=None, tokens_per_page=100.0, runs=1)
+    deep = dict(_CELLS[0], effort="low", tokens_per_page=99000.0, runs=9)
+    notes: list[str] = []
+    rows = brc.rows_for_readme(cells=[cheap_unnamed, _CELLS[0], deep],
+                               registry=brc.load_registry(), notes=notes)
+    assert any("†" in r for r in rows), "the row does not point at its notes"
+    joined = " ".join(notes)
+    assert "passed over because it recorded no model" in joined
+    assert "better sampled" in joined and "effort low" in joined, (
+        "a caveat naming only the model reads as a cell contradicting itself")
+
+
 def test_a_measured_row_names_the_model_the_effort_and_when(capsys):
     row = next(r for r in _rows() if "tok/page" in r)
     for owed in ("grok-high", "effort", "high", "3 of 3", "n=5",

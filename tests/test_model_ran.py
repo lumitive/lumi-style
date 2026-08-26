@@ -288,21 +288,31 @@ def _score_one(tmp_path, monkeypatch, driver):
     return json.loads((run / "scores.json").read_text(encoding="utf-8"))["a1/T1"]
 
 
-def test_an_unpinned_effort_is_carried_as_written_not_dropped(tmp_path,
-                                                              monkeypatch):
-    """`(not pinned)` is an answer and reaches the cell as one.
+def test_an_unpinned_effort_is_recorded_as_a_false_not_as_a_sentinel(
+        tmp_path, monkeypatch):
+    """"Nobody pinned an effort" is an answer and reaches the cell as one — as
+    `effort_pinned: false`, not as the string `(not pinned)`.
 
-    Dropping it would make "nobody pinned an effort" and "this scores file
-    predates the field" the same absence — two states, one string, which is the
-    shape FM-24 names. The first version of this test re-implemented the
-    attaching loop in the test body and so tested a copy of the logic rather
-    than the logic; it passed against a `score` that carried nothing.
+    **0.1.617 shipped it as the string and 0.1.618 made that a CI failure.**
+    `report --record` copies the cell into a history row, and `validate` holds
+    `config.effort` to the schema's five tiers — so the next unpinned round
+    would have turned CI red on a row the harness itself had written. A review
+    found it before one ran.
+
+    The distinction 0.1.617 was protecting survives, and this is the half that
+    matters: dropping the sentinel silently would make "nobody pinned an
+    effort" and "this scores file predates the field" the same absence, which
+    is FM-24's shape. An explicit `false` is neither.
     """
     cell = _score_one(tmp_path, monkeypatch, {
         "verdict": "driven", "model": "(the CLI's default)",
         "model_ran": "Auto", "effort": "(not pinned)", "seconds": 1})
-    assert cell["effort"] == "(not pinned)"
+    assert cell["effort_pinned"] is False and "effort" not in cell
+    assert cell["model_pinned"] is False and "model_asked" not in cell
     assert cell["model"] == "Auto"
+    assert cell["model_ran"] == "Auto", (
+        "the raw id must ride beside the display cell; a comparison against "
+        "`model` compares a pin against a board's prose")
 
 
 def test_a_driver_record_predating_the_field_carries_no_effort_key(tmp_path,

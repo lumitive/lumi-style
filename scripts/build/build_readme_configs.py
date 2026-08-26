@@ -12,8 +12,12 @@ version its runs read, so a stale row is visibly stale rather than quietly
 wrong.
 
 **What it cannot do, said here because README says it too.** This package
-cannot set a user's model. Every platform loads it as a SKILL, and the agent is
-already running with its model and effort fixed when it reads `SKILL.md`. The
+cannot set a user's model. Nine platforms load it as a skill file, Codex reads
+`AGENTS.md`, and Kimi and DeepSeek get `prompts/lumi-style-core.md` pasted into
+a chat — and on every one of those routes the agent is ALREADY RUNNING, with its
+model and effort already fixed, when it reads anything of ours. The route
+differs; the timing does not. A first draft said "every platform loads it as a
+SKILL", which is wrong for three of the twelve and was caught by a review. The
 block tells a person what to configure; nothing here configures anything.
 
 The derivation is `agent_evals.py`'s and is not re-implemented: one tool owns
@@ -52,7 +56,7 @@ def load_registry() -> list[dict]:
     )["platforms"]
 
 
-def rows_for_readme(cells=None, registry=None) -> list[str]:
+def rows_for_readme(cells=None, registry=None, notes=None) -> list[str]:
     """-> one markdown row per platform README claims.
 
     `cells` and `registry` are injectable because the suite writes to a scratch
@@ -67,12 +71,16 @@ def rows_for_readme(cells=None, registry=None) -> list[str]:
                                   agent_evals.load_history())
     if registry is None:
         registry = load_registry()
+    if notes is None:
+        notes = []
 
-    out = []
+    out: list[str] = []
     for entry in registry:
-        state, _detail = agent_evals.suggest(entry["id"], cells, registry)
-        mine = [c for c in cells if c["agent"] == entry["id"] and c["model"]]
-        if state != agent_evals.MEASURED or not mine:
+        # ONE SELECTION RULE, `agent_evals.pick()`'s. This function had its own
+        # copy of it and dropped both caveats the tool exists to say, in the one
+        # file that reaches a user.
+        state, best, caveats = agent_evals.pick(entry["id"], cells, registry)
+        if best is None:
             # THE TWO ABSENCES STAY DIFFERENT. `not measured here` is a machine
             # away; `cannot be measured here` never will be — an IDE with no
             # command line, or a chat model behind an API. Printing them
@@ -81,20 +89,29 @@ def rows_for_readme(cells=None, registry=None) -> list[str]:
             # conformance/CONFORMANCE.md.
             out.append(f"| **{entry['name']}** | {state} | — | — | — |")
             continue
-        best = mine[0]
-        what = " · ".join(x for x in (
-            f"`{best['model']}`",
-            best["effort"] and f"effort `{best['effort']}`") if x)
         earned = ("—" if best["tasks_earned"] is None
                   else f"{best['tasks_earned']} of {best['tasks_attempted']}")
+        cost = f"{best['tokens_per_page']:,.0f} tok/page (n={best['runs']})"
+        # The caveats go BELOW the table, not into the cell. Inlined they made
+        # one cell three lines wide and the table unreadable, which is its own
+        # way of not saying them. Dropping them is what the review found: the
+        # README printed `10,167 tok/page (n=1)` for a cell a five-run cell had
+        # beaten on sampling, and said neither thing.
+        mark = " †" if caveats else ""
+        what = " · ".join(
+            f"`{x}`" for x in (best["model"],) if x) + (
+            f" · effort `{best['effort']}`" if best["effort"] else "")
         out.append(
-            f"| **{entry['name']}** | {what} | {earned} | "
-            f"{best['tokens_per_page']:,.0f} tok/page (n={best['runs']}) | "
+            f"| **{entry['name']}** | {what} | {earned} | {cost}{mark} | "
             f"{best['measured']} · skill {best['skill_version']} |")
+        for caveat in caveats:
+            notes.append(f"† **{entry['name']}** — {caveat}.")
     return out
 
 
 def block() -> str:
+    notes: list[str] = []
+    rows = rows_for_readme(notes=notes)
     lines = [
         MARK,
         "",
@@ -103,21 +120,33 @@ def block() -> str:
         "",
         "| Agent | Measured configuration | Tasks earned | Cost | Measured |",
         "|---|---|---|---|---|",
-        *rows_for_readme(),
+        *rows,
         "",
-        "This is an ordering by **cost among configurations that already "
-        "cleared the gate line**, not a quality ranking — above that line the "
-        "checks cannot tell two documents apart. `n` is small on purpose: "
+        *([*notes, ""] if notes else []),
+        "**A dash is an absence, never a zero.** In a column headed *Tasks "
+        "earned* that distinction is the whole cell: no round has yet been "
+        "recorded carrying which configuration it ran, so no row can say how "
+        "many tasks its configuration earned. That is a gap in the "
+        "measurement, not a score of nothing.",
+        "",
+        "**One row per platform, not a league table.** Each row shows that "
+        "platform's cheapest measured configuration that names a model; the "
+        "rows are in registry order and are not ranked against each other. "
+        "Where the numbers ARE ordered — by cost among configurations that "
+        "already cleared the gate line, which is not a quality ranking, "
+        "because above that line the checks cannot tell two documents apart — "
+        "is `conformance/CONFIGURATIONS.md`. `n` is small on purpose: "
         "nothing repeats a run by design, so a single sample cannot separate a "
         "flaky agent from a flaky checker. The full board, its axes and what "
         "is still unmeasured are in `conformance/CONFIGURATIONS.md` and "
         "`conformance/agent-evals.json` in the development repository.",
         "",
-        "**This package cannot set your model.** Every platform above loads it "
-        "as a skill, so your agent is already running — with its model and "
-        "effort already chosen — when it reads `SKILL.md`. The table tells you "
-        "what to configure once; it is not automation, and calling it that "
-        "would be a promise no code here can keep.",
+        "**This package cannot set your model.** However your agent loads it — "
+        "as a skill file, as `AGENTS.md`, or as a prompt you paste — your agent "
+        "is already running, with its model and effort already chosen, by the "
+        "time it reads any of it. The table tells you what to configure once; "
+        "it is not automation, and calling it that would be a promise no code "
+        "here can keep.",
         "",
         END,
     ]

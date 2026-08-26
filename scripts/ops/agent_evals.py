@@ -17,11 +17,14 @@ things make that the wrong shape, and none of them is effort:
      weekly search; it would be a human ritual the package could not hold.
   2. One of the twelve registered platforms can enumerate its models read-only
      (`detect --models` reports which, and why the other eleven cannot).
-  3. **The decisive one: this package cannot set a model.** All twelve platforms
-     load it as a SKILL — an agent is already running, with its model and effort
-     already fixed, when it reads `SKILL.md`. There is no code path by which a
-     dictionary entry changes a user's session, so a curated table would be
-     advice this package could not act on.
+  3. **The decisive one: this package cannot set a model.** Nine platforms load
+     it as a skill file, Codex reads `AGENTS.md`, and the two `prompt`-tier
+     platforms get `prompts/lumi-style-core.md` pasted into a chat. On every one
+     of those routes the agent is ALREADY RUNNING, with its model and effort
+     already fixed, when it reads anything this package ships — the entry file
+     differs, the timing does not. There is no code path by which a dictionary
+     entry changes a user's session, so a curated table would be advice this
+     package could not act on.
   4. `trace_schema` decided `model` stays free text, because model names rot and
      an enum of them is a maintenance tax with no defect behind it. Reversing
      that needs a documented case, and the dictionary has none.
@@ -73,6 +76,23 @@ MEASURED, UNMEASURED, UNMEASURABLE = (
     "measured here", "not measured here", "cannot be measured here")
 
 
+def _ver_key(v: str) -> tuple[int, ...]:
+    """-> a sortable version, tolerantly.
+
+    `max()` over version STRINGS is lexicographic, so `0.1.99` outranks
+    `0.1.100`. Every cell on the board today happens to have three-digit patch
+    numbers, so nothing was visibly wrong and nothing would have been until the
+    thousandth release. A trace with no version sorts lowest rather than
+    raising: `run_conformance._ver_key` is the same idea and is not imported
+    here, because importing the driver into the analysis is the coupling this
+    whole separation exists to undo.
+    """
+    try:
+        return tuple(int(x) for x in (v or "").split("."))
+    except ValueError:
+        return ()
+
+
 def load_evals() -> dict:
     """The axes register. A hard exit rather than a default: a board rendered
     from a built-in fallback would be a board nobody declared."""
@@ -91,36 +111,66 @@ def load_history() -> list[dict]:
     return json.loads(HISTORY.read_text(encoding="utf-8"))
 
 
-def earned(history: list[dict]) -> dict[tuple, dict]:
-    """-> per (agent, model, effort) what the conformance rounds earned.
+def earned(history: list[dict]) -> dict[str, dict]:
+    """-> per TRACE ID what the conformance rounds earned.
 
-    Keyed on the CONFIGURATION, which is why a row needs the `config` key added
-    at 0.1.618. The thirty-six rows written before it carry an agent id and
-    nothing else, and an agent id is not a configuration: they contribute to no
-    cell rather than to a cell called `(agent, None, None)`, because that cell
-    would silently pool runs pinned to different models.
+    **Keyed on the trace id, not on the configuration, and the first version of
+    this function was keyed on the configuration and could never have matched a
+    single row.** The two sides carry different strings for one model: a trace
+    records the raw pin (`run_conformance.py` passes `record["model"]` straight
+    to `trace.py close`), while `scores.json` records `_model_cell()`'s DISPLAY
+    sentence — `cursor-grok-4.6-high (asked cursor-grok-4.6-xhigh)`, or
+    `asked deepseek-v4-flash, unconfirmed` when nothing confirmed it. A join on
+    those was a join that missed whenever the two differed, which is every
+    interesting case, and it would have left `tasks_earned` absent forever
+    while GAP-041 named the round that fills it as its closing condition.
+
+    The trace id is a key rather than a string that happens to agree, which is
+    what 0.1.617 recorded it for and what four files already said it was.
+
+    Rows written before 0.1.618 carry no `traces` map and contribute nothing —
+    not to a cell keyed on the agent alone, which would silently pool runs
+    pinned to different models.
     """
-    out: dict[tuple, dict] = {}
+    out: dict[str, dict] = {}
     for row in history:
+        joins = row.get("traces") or {}
         config = row.get("config") or {}
         for task_id, verdict in (row.get("tasks") or {}).items():
-            cell_config = config.get(task_id)
-            if not cell_config:
+            tid = joins.get(task_id)
+            if not tid:
                 continue
-            key = (row["agent"], cell_config.get("model"),
-                   cell_config.get("effort"))
-            cell = out.setdefault(key, {"earned": 0, "attempted": 0,
-                                        "honoured": True, "tasks": set()})
+            cell = out.setdefault(tid, {"earned": 0, "attempted": 0,
+                                        "honoured": None, "tasks": set()})
             cell["attempted"] += 1
             cell["tasks"].add(task_id)
             if verdict == "pass":
                 cell["earned"] += 1
-            asked = cell_config.get("model_asked")
-            if asked and cell_config.get("model") and asked not in (
-                    cell_config["model"], cell_config["model"].removeprefix(
-                        "cursor-")):
-                cell["honoured"] = False
+            cell["honoured"] = _honoured(config.get(task_id) or {},
+                                         cell["honoured"])
     return out
+
+
+def _honoured(cell_config: dict, so_far) -> bool | None:
+    """-> did the run announce the model that was asked for?
+
+    THREE ANSWERS. `None` when nothing was pinned or nothing recorded the pin —
+    an unpinned run cannot dishonour a pin, and calling that `True` would let
+    "nobody asked for anything" wear the same word as "the CLI did what it was
+    told". Once any run in a cell says `False` the cell stays `False`.
+
+    The comparison is against `model_ran`, the raw id the CLI announced, and NOT
+    against `model` — which in a score cell is a display sentence built for a
+    board column. Comparing a pin to a sentence made this return `False` for
+    every real shape, and it was invisible only because the join missed first.
+    """
+    if so_far is False:
+        return False
+    asked = cell_config.get("model_asked")
+    ran = cell_config.get("model_ran") or cell_config.get("model")
+    if not asked or not ran:
+        return so_far
+    return so_far is not False and asked in str(ran)
 
 
 def cells(traces, history) -> list[dict]:
@@ -138,25 +188,31 @@ def cells(traces, history) -> list[dict]:
             continue
         by_key[(t["agent"], t.get("model"), t.get("effort"))].append((t, row))
 
-    scores = earned(history)
+    scored = earned(history)
     out = []
     for key, runs in by_key.items():
         agent_id, model, effort = key
         per_page = [r["tokens_per_page"] for _t, r in runs]
         seconds = [r["charged_seconds"] / r["content_pages"] for _t, r in runs
                    if r["charged_seconds"]]
-        got = scores.get(key)
+        # Summed over the cell's OWN traces, by id. A cell is a set of runs and
+        # each run either has a history row or does not; adding them is the
+        # whole of the join now that its key is stable.
+        mine = [scored[t["trace_id"]] for t, _r in runs
+                if t["trace_id"] in scored]
+        honoured = [m["honoured"] for m in mine if m["honoured"] is not None]
         out.append({
             "agent": agent_id, "model": model, "effort": effort,
             "runs": len(runs),
             "tokens_per_page": round(statistics.median(per_page), 1),
             "seconds_per_page": round(statistics.median(seconds), 1)
             if seconds else None,
-            "tasks_earned": got["earned"] if got else None,
-            "tasks_attempted": got["attempted"] if got else None,
-            "effort_honoured": got["honoured"] if got else None,
+            "tasks_earned": sum(m["earned"] for m in mine) if mine else None,
+            "tasks_attempted": sum(m["attempted"] for m in mine) if mine else None,
+            "effort_honoured": all(honoured) if honoured else None,
             "measured": max(t.get("closed_at") or "" for t, _r in runs)[:10],
-            "skill_version": max(t.get("skill_version") or "" for t, _r in runs),
+            "skill_version": max((t.get("skill_version") or ""
+                                  for t, _r in runs), key=_ver_key),
         })
     # A cell missing an axis sorts LAST on it rather than being dropped: a
     # dropped cell reads as a cell that scored badly.
@@ -165,38 +221,49 @@ def cells(traces, history) -> list[dict]:
     return out
 
 
-def suggest(agent_id: str, rows: list[dict], registry: list[dict]) -> tuple[str, str]:
-    """-> (state, sentence) for one agent. Three states, never two."""
+def pick(agent_id: str, rows: list[dict],
+         registry: list[dict]) -> tuple[str, dict | None, list[str]]:
+    """-> (state, the cell to recommend or None, the caveats about it).
+
+    **One selection rule, and both readers call it.** The README generator had a
+    second copy: it threw `suggest()`'s answer away, recomputed the pick, and
+    printed neither caveat — so the file whose whole point is reaching the user
+    was the one place the two things the tool exists to say went unsaid. A
+    review found it. A duplicated selection rule is the defect this repository
+    spends most of its releases on, and it had grown one inside the release that
+    forbade it.
+    """
     known = {a["id"]: a for a in registry}
     if agent_id not in known:
-        return UNMEASURABLE, (f"{agent_id!r} is not a platform this package "
-                              f"claims. adapters/platforms.json is the roster.")
+        return UNMEASURABLE, None, [
+            f"{agent_id!r} is not a platform this package claims. "
+            f"adapters/platforms.json is the roster."]
     mine = [r for r in rows if r["agent"] == agent_id]
     if not mine:
         entry = known[agent_id]
         if not entry.get("probe") and not entry.get("drive"):
-            return UNMEASURABLE, (
-                entry.get("probe_waiver") or "no probe and no driver declared")
-        return UNMEASURED, ("installed here or not, no closed trace of this "
-                            "agent has cleared the gate line")
+            return UNMEASURABLE, None, [
+                entry.get("probe_waiver") or "no probe and no driver declared"]
+        return UNMEASURED, None, [
+            "installed here or not, no closed trace of this agent has cleared "
+            "the gate line"]
     # THE CHEAPEST CELL IS NOT THE ANSWER IF IT NAMES NOTHING TO TYPE. Runs
     # whose model was never recorded pool into a cell whose model reads `—`,
     # and that cell can be the cheapest — claude-code's was, on the first run of
     # this command, and it answered "effort high", which no user can act on. A
-    # named cell wins, and the sentence says when a cheaper unnamed one was
-    # passed over so the number is not silently improved.
+    # named cell wins, and a caveat says when a cheaper unnamed one was passed
+    # over so the number is not silently improved.
     named = [r for r in mine if r["model"]]
     if not named:
-        return UNMEASURED, (
+        return UNMEASURED, None, [
             f"{len(mine)} qualifying run(s), and not one recorded which model "
-            f"produced it — a configuration nobody can be told to repeat")
+            f"produced it — a configuration nobody can be told to repeat"]
     best = named[0]
-    what = " · ".join(x for x in (best["model"], best["effort"]
-                                  and f"effort {best['effort']}") if x)
-    note = f"{best['runs']} run(s), {best['tokens_per_page']} tokens/page"
+    caveats = []
     if named[0] is not mine[0]:
-        note += (f"; a cheaper cell exists at {mine[0]['tokens_per_page']} and "
-                 f"is passed over because it recorded no model")
+        caveats.append(
+            f"a cheaper cell exists at {mine[0]['tokens_per_page']} tokens/page "
+            f"and is passed over because it recorded no model")
     # n=1 BEATING n=5 IS SAID OUT LOUD, not corrected. Nothing repeats a run by
     # design, so a single sample cannot separate a flaky agent from a flaky
     # checker — and adding a minimum-n bar to fix it would be inventing a
@@ -204,9 +271,32 @@ def suggest(agent_id: str, rows: list[dict], registry: list[dict]) -> tuple[str,
     # forbids. Naming the fact is the honest move available.
     deeper = [r for r in named[1:] if r["runs"] > best["runs"]]
     if deeper:
-        note += (f"; {deeper[0]['model']} at {deeper[0]['runs']} run(s) is "
-                 f"dearer per page and better sampled")
-    return MEASURED, f"{what} — {note}"
+        caveats.append(
+            f"{describe(deeper[0])} at {deeper[0]['runs']} run(s) is dearer "
+            f"per page and better sampled")
+    return MEASURED, best, caveats
+
+
+def describe(cell: dict) -> str:
+    """-> the configuration as a person would type it.
+
+    Model AND effort. Printing the model alone made a caveat name the winning
+    cell's own model — `cursor-grok-4.6-high at 5 run(s) is dearer than
+    cursor-grok-4.6-high`, which is two cells differing only by effort
+    rendering as self-contradiction.
+    """
+    return " · ".join(x for x in (
+        cell["model"], cell["effort"] and f"effort {cell['effort']}") if x)
+
+
+def suggest(agent_id: str, rows: list[dict], registry: list[dict]) -> tuple[str, str]:
+    """-> (state, sentence) for one agent. Three states, never two."""
+    state, best, caveats = pick(agent_id, rows, registry)
+    if best is None:
+        return state, caveats[0]
+    note = "; ".join([f"{best['runs']} run(s), {best['tokens_per_page']} "
+                      f"tokens/page", *caveats])
+    return state, f"{describe(best)} — {note}"
 
 
 def render(rows: list[dict], evals: dict) -> str:

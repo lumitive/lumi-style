@@ -18,6 +18,11 @@ import shutil
 import pytest
 import run_conformance as rc
 
+# THE REAL ROOT, captured at import. The helpers below monkeypatch `rc.ROOT`,
+# so a second helper reading `rc.ROOT` in the same test copies from the first
+# helper's synthetic tree and fails on a directory that was never there.
+_REAL_ROOT = rc.ROOT
+
 
 def _tree(tmp_path, scores):
     root = tmp_path / "repo"
@@ -25,7 +30,7 @@ def _tree(tmp_path, scores):
     (root / "conformance" / "history.json").write_text("[]", encoding="utf-8")
     (root / "conformance" / "CONFORMANCE.md").write_text("# x\n", encoding="utf-8")
     (root / "SKILL.md").write_text('version: "0.1.999"\n', encoding="utf-8")
-    shutil.copytree(rc.ROOT / "adapters", root / "adapters")
+    shutil.copytree(_REAL_ROOT / "adapters", root / "adapters")
     run = tmp_path / "run"
     run.mkdir()
     (run / "scores.json").write_text(json.dumps(scores), encoding="utf-8")
@@ -85,8 +90,8 @@ def _validate(tmp_path, monkeypatch, rows):
     (root / "conformance").mkdir(parents=True)
     (root / "conformance" / "history.json").write_text(
         json.dumps(rows), encoding="utf-8")
-    shutil.copytree(rc.ROOT / "adapters", root / "adapters")
-    shutil.copytree(rc.ROOT / "conformance" / "tasks",
+    shutil.copytree(_REAL_ROOT / "adapters", root / "adapters")
+    shutil.copytree(_REAL_ROOT / "conformance" / "tasks",
                     root / "conformance" / "tasks")
     monkeypatch.setattr(rc, "ROOT", root)
     return rc.main(["validate"])
@@ -132,3 +137,33 @@ def test_validate_rejects_an_effort_outside_the_schema_s_own_tuple(
 def test_validate_rejects_a_per_task_map_that_is_not_a_map(
         tmp_path, monkeypatch, key):
     assert _validate(tmp_path, monkeypatch, _row(**{key: ["T1-deck"]})) == 1
+
+
+# THE ROUND TRIP, because the two halves shipped one release apart and
+# contradicted each other. 0.1.617 wrote `(not pinned)` into a score cell as a
+# deliberate answer; 0.1.618 taught `validate` to hold `config.effort` to the
+# schema's five tiers. Nothing ran both, so the next unpinned round would have
+# turned CI red on a row the harness itself wrote. These drive score → record →
+# validate in one test for that reason.
+
+def test_an_unpinned_round_records_a_row_that_validate_accepts(
+        tmp_path, monkeypatch):
+    row = _record(tmp_path, monkeypatch, {
+        "cursor/T1-deck": {"verdict": "pass", "model": "Auto",
+                           "model_ran": "Auto", "effort_pinned": False,
+                           "model_pinned": False, "trace_id": "t-0123456789ab"}})
+    assert row["config"]["T1-deck"]["effort_pinned"] is False
+    assert "effort" not in row["config"]["T1-deck"]
+    fresh = tmp_path / "again"
+    fresh.mkdir()
+    assert _validate(fresh, monkeypatch, [row]) == 0, (
+        "the row the harness just wrote must survive its own CI gate")
+
+
+def test_a_sentinel_reaching_the_effort_field_is_still_refused(
+        tmp_path, monkeypatch, capsys):
+    """The guard stays. What changed is that the harness stopped producing the
+    thing it refuses — a hand edit still cannot."""
+    assert _validate(tmp_path, monkeypatch,
+                     _row(config={"T1-deck": {"effort": "(not pinned)"}})) == 1
+    assert "(not pinned)" in capsys.readouterr().out

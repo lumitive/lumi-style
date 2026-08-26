@@ -3,10 +3,15 @@
 These thirteen tests were in `tests/test_ledger.py`, calling `ledger.matrix`,
 `ledger.render_matrix` and `ledger.board`, because the model x effort cost
 matrix lived in the tool that answers three questions about DOCUMENTS. The code
-moved to `scripts/lib/agent_runs.py` and the tests moved with it. They would
-have kept passing where they were — `ledger` re-exports the three names — and
-that is the reason to move them: a test that keeps working through a re-export
-is a test that records the old home as the real one.
+moved to `scripts/lib/agent_runs.py` and the tests moved with it.
+
+**The reason is that the file would have split in half, silently.** `ledger`
+re-exports `board`, `render_matrix` and `load_prices` — the three its own
+report needs — and NOT `matrix` or `cell_cost`. So seven of these would have
+gone on passing against the old address and six would have raised
+`AttributeError`, which is a worse outcome than either whole answer. (An earlier
+version of this paragraph said all thirteen would have passed, which is the
+same class of unread claim a review has now caught twice on this branch.)
 
 The load-bearing one is `test_a_run_with_a_failing_gate_is_not_on_the_board`:
 the DOCUMENT's verdict is the admission ticket to the AGENT's board. Lose it and
