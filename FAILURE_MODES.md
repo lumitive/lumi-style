@@ -23,6 +23,11 @@ Shipped instances: 0.1.390 (three checkers found incapable of failing),
 0.1.403-0.1.404, 0.1.386 ("a check that skips is not a check that passed"),
 0.1.368, 0.1.361, 0.1.358.
 
+**FM-24 is the specialization that the prevention line above does not reach**,
+and 0.1.608 and 0.1.611 both cited this entry when they hit it. A planted red is
+planted where the measurement succeeds, so it never visits the branch where a
+check cannot look at all — six more instances, 0.1.608 through 0.1.612.
+
 ## FM-02 · The guard in the wrong language or layer
 
 - detection: a fix verified in the layer that was easy to check rather than
@@ -440,6 +445,69 @@ with zero content pages sitting green on the board. **This is not drift — the
 list was short the day it was written, and every release that added a gate
 widened the gap without touching it.** It is FM-01's neighbour: FM-01 is a check
 that cannot fail, this is a check that fires and is not asked.
+
+## FM-24 · The check that printed a clean result because it could not look
+
+- detection: ask of every check, "if the thing I measure is not there, what do
+  I print?" — and compare that answer, literally, with what it prints when a
+  document is clean. If the two are the same string, the same number or the
+  same empty list, this is the defect. It is a question about the UNMEASURABLE
+  branch, so no amount of exercising the normal path finds it
+- prevention: three answers, never two — measured-and-clean, measured-and-bad,
+  and could-not-measure — with the third counting as a failure. `check_prose`'s
+  `blind` verdict is the shipped precedent and `references/writing-rules.md` §0
+  states the reasoning: *"Silence is not an exemption; it is the cheapest one
+  there would be."* `evals/gates.json`'s `na_means` is the same distinction one
+  layer up, declaring per gate whether an `n/a` is an honest silence or a
+  measurement that did not happen. Convention 11 now asks the question of every
+  new gate; IDEA-19 carries the mechanical half that does not exist yet
+
+**A SPECIALIZATION OF FM-01, not a rival to it.** FM-01 is the check that could
+not fail; this is the branch on which that happens even after a deliberate red
+was planted and watched. Two release entries reached for FM-01 when they hit
+this — 0.1.608 and 0.1.611 both say so — and they were right; what they had no
+word for is WHY the convention that answers FM-01 did not cover them. A planted
+red is planted where the measurement SUCCEEDS: a violation is put in front of
+the check and the check sees it. The defect lives where the check sees nothing,
+which the red never visits. So a check can be red-tested, green in CI, correct
+on every document anybody tried, and blind. FM-01's `prevention` line is
+necessary and is not sufficient, and that sentence is what this entry adds.
+
+**Six instances across 0.1.608-0.1.612, and no test found one of them.** Five
+were named by pre-PR review agents told to ask the detection question; the sixth
+surfaced when the owner opened a delivered file, saw black where green belonged,
+and asked why nothing had caught it.
+
+| release | what it could not look at | what it printed |
+|---|---|---|
+| 0.1.608 | the distance between the board's run and head could not be computed | `[]`, which `check_repo` prints as `ok`. Its companion is not a check and belongs beside it: `cmd_restamp`, the realigner that guard backs, declined on the same input — one predicate consulted twice, so nothing was watching either way |
+| 0.1.610 | no fixture to probe, which is the shape every synthetic-tree test creates | `[]` → `ok`, over zero gates checked. The guard about checks that pass over nothing passed over nothing |
+| 0.1.610 | `write_board` refused to write, and reports rather than raises | printed the refusal, then `the board already reads this way` as the LAST line, and exited 0 |
+| 0.1.611 | `history.json` unparseable — `JSONDecodeError` subclasses `ValueError` | nothing, on a tracked file two branches both append to and the only evidence store there is |
+| 0.1.611 | the scores file replaced by `{}`, the pin destroyed completely | nothing: the branch returned before the check, so the total case was the one case it could never reach |
+| 0.1.612 | no surface to measure text against, because the surface was a colour name the document never declared (`D1_contrast`) | `0` — the number it prints for a perfect document |
+
+**The 0.1.612 instance is the one to remember**, because it left the repository.
+Two pages of a shipped deck drew their figures in black, the labels on them
+unreadable, and `D1_contrast` printed the number it prints for a perfect
+document. The owner found it by opening the file. A second deliverable had
+thirteen more of the same, unreported since it was built.
+
+**What is NOT this class, ruled twice and worth keeping straight.** A check that
+measured its whole subject and found nothing in it is a measured absence, and it
+passes: `n/a` is for a check that could not look, never for one that looked and
+found nothing to hold (0.1.608 withdrawing GAP-038, restated at 0.1.610). D20
+sat in an early draft of this table and does not belong: it compares every
+colour token a document DECLARES and none differed, which is a complete
+measurement of its subject. That the subject excludes a name never declared is a
+coverage gap, which is a different and much commoner thing.
+
+**Why it recurs**: the code has two answers where it needs three, so
+"could not measure" has nowhere to go and lands in "passed". It is invisible
+from the inside — reading the code uses the model that wrote it, which is
+convention 15's argument about patterns and holds equally about silences.
+Reviewers find one every round when told to ask the question; nobody found one
+while writing.
 
 ## AG-1 · "Every CHANGELOG deferral must cite a ledger id" as a mechanical gate
 
