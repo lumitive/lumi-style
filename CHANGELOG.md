@@ -1,3 +1,65 @@
+## 0.1.613 — the branch a deliberate red never visits, written down
+
+Four of the last five releases repaired instruments, and read together the
+repairs are one repair. **A check that cannot complete its measurement returns
+the same value as a check that measured and found nothing wrong.** Six instances
+between 0.1.608 and 0.1.612, and the class now has a name: FM-24, with each
+instance, what it could not look at, and what it printed instead.
+
+**It is a specialization of FM-01 rather than a rival to it**, and the first
+draft of this entry got that wrong. FM-01 is the check that could not fail;
+0.1.608 and 0.1.611 both reached for FM-01 when they hit this, and they were
+right. What they had no word for is why the convention that answers FM-01 did
+not cover them: **a planted red is planted where the measurement SUCCEEDS.** A
+violation is put in front of the check and the check sees it. The defect lives
+where the check sees nothing, which the red never visits — so a check can be
+red-tested, green in CI, correct on every document anybody tried, and blind.
+Five of the six shipped with a planted red; the sixth predates the convention.
+FM-01's prevention is necessary and not sufficient, and that sentence is the
+whole of what this entry adds.
+
+**Convention 11 now asks the second question.** Not "can it go red" but "what
+does it print when the thing it measures is not there", compared *literally*
+against what it prints on a clean document. Same string, same number, same empty
+list — that is the defect. It is in the convention rather than only in the
+registry because the convention is what a release has to satisfy, and because
+the evidence is that nobody asks it unprompted: five were named by review agents
+told to ask it, one surfaced when the owner opened a delivered file and asked
+why nothing had caught what she could see, and no test found any of them.
+
+**The instance that left the repository** is the one worth remembering. Two
+pages of a shipped deck drew their figures in black, the labels on them
+unreadable, and `D1_contrast` printed `0` — the number it prints for a perfect
+document — because the surface it measures text against was a colour name the
+document never declared.
+
+**What is NOT this class matters as much**, and a review caught the entry
+getting it wrong. D20 sat in the first draft of the table beside D1. It does not
+belong: it compares every colour token a document DECLARES, none differed, and
+that is a complete measurement of its subject. That the subject excludes a name
+never declared is a coverage gap — a different and much commoner thing — and
+this package ruled exactly that twice, withdrawing GAP-038 at 0.1.608 on the
+principle that a measured absence passes and `n/a` is for a check that could not
+look. Keeping D20 in would have put a new registry entry in conflict with a
+ruling defended in writing five releases earlier.
+
+**Three answers, never two**, with the third counting as a failure. The package
+has the vocabulary twice: `check_prose`'s `blind` verdict, whose reasoning is
+stated in `references/writing-rules.md` §0 — *"Silence is not an exemption; it
+is the cheapest one there would be"* — and `evals/gates.json`'s `na_means`.
+IDEA-19 carries the half that is missing, and it is narrower than the first
+draft claimed: `check_repo` already turns a raise and a `None` into findings,
+and twenty-two of its fifty-seven guards catch their own read failures. The gap
+is that a guard which never CONSIDERS its unmeasurable branch returns `[]`, and
+`[]` is what a clean guard returns — so nothing separates "reported blindness"
+from "never thought about it", and two guards proved it. The reason it waits is
+in the entry: `na_means` needed the same honest-silence distinction, was added
+at 0.1.562, and carried a wrong value for M12 until 0.1.575 — thirteen releases
+of a field that looked authoritative and stated a superseded rule.
+
+No gate changes and no document's verdict moves. This release is a registry
+entry, a backlog item and one paragraph of a convention.
+
 ## 0.1.612 — a colour name that resolves to nothing renders black, and every gate called it clean
 
 The owner opened a conformance deck this package had passed and said two pages

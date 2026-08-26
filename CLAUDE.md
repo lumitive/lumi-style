@@ -438,12 +438,27 @@ repo itself.)
     fails CI. A declined enforcement mechanism goes to FAILURE_MODES'
     "Abandoned gates" with its reason, so it is a decision instead of a
     quarterly re-debate.
-11. **A new gate ships with a deliberate-red run.** Plant a violation, watch
-    the gate fail, remove it, record the exercise in the CHANGELOG entry.
-    Guards additionally get synthetic-tree tests with at least one failing
-    fixture (`tests/test_check_repo_guards.py` is the pattern). This repo has
-    shipped three checks that ran green and were later found incapable of
-    failing; a gate's first proof is that it can go red.
+11. **A new gate ships with a deliberate-red run, and answers what it prints
+    when it cannot look.** Plant a violation, watch the gate fail, remove it,
+    record the exercise in the CHANGELOG entry. Guards additionally get
+    synthetic-tree tests with at least one failing fixture
+    (`tests/test_check_repo_guards.py` is the pattern). This repo has shipped
+    three checks that ran green and were later found incapable of failing; a
+    gate's first proof is that it can go red.
+    **The second proof is the unmeasurable branch, and it is a different
+    question.** Ask what the check prints when the thing it measures is not
+    there, and compare that answer *literally* with what it prints on a clean
+    document. If the two are the same string, number or empty list, the check
+    is blind and says it is clean — FM-24, six shipped instances in
+    0.1.608-0.1.612, every one a check that could fail and had been seen
+    failing. **A planted red is planted where the measurement SUCCEEDS**, so it
+    never visits the branch this lives on; FM-24 is FM-01's specialization
+    rather than a rival, and FM-01's prevention is necessary and not
+    sufficient. Three answers, never two, and the third counts as a failure:
+    `check_prose`'s `blind` verdict is the precedent and `evals/gates.json`'s
+    `na_means` is the same distinction one layer up. Reading the code does not
+    find these — reading uses the model that wrote them, which is convention
+    15's argument about patterns and holds equally about silences.
 12. **Changing a fact means sweeping its restatements — mechanically, not by
     memory.** Run `python3 scripts/check/claim_sweep.py` before committing and
     read the claims touching what you changed. This is convention 3's problem in

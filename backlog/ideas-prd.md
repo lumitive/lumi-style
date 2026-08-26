@@ -657,6 +657,54 @@ inside the Chinese-output diagnosis the owner froze pending her team.
 
 ---
 
+## IDEA-19 · A guard that forgets it could not look is indistinguishable from a clean one
+
+**Problem.** FM-24 records six checks that printed a clean result because they
+could not complete a measurement. Two of them are `check_repo` guards, and the
+reason both survived is not that the channel is missing — an early draft of this
+entry said so and was wrong. `check_repo.main()` turns a raised exception and a
+`None` return into findings, with a comment stating why (*"A guard that returns
+nothing at all is not a guard that found nothing"*), and twenty-two of the
+fifty-seven guards catch their own read or parse failure and return a
+`could not …` finding; ten of them say `pass vacuously` in the comment beside it.
+
+The gap is narrower and it is the one that bit. **A guard that simply does not
+think about its unmeasurable branch returns `[]`, and `[]` is what a clean guard
+returns.** Nothing distinguishes "this guard chose to report blindness" from
+"this guard never considered it". And where a guard does report it, blindness
+and a genuine failure both print `FAIL` with a sentence, so a reader cannot tell
+a broken repository from an unreadable one, and no count exists of how many
+guards have thought about it at all.
+
+**Evidence.** 0.1.608's `check_board_staleness_clause` returned `[]` when the
+distance could not be computed — the same input on which the realigner it backs
+declines, so a reviewer rebuilt the whole original defect through the hole with
+both reporting success. 0.1.610's `check_vacuous_gates` returned `[]` on a tree
+with no fixture, which is the shape every synthetic-tree test creates: the house
+pattern for red-testing a guard was the one input that turned it green. Both are
+fixed by hand, one guard at a time, by remembering — and twenty-two of
+fifty-seven having remembered is the measurement of how well that works.
+
+**What it would be.** A guard returns findings and, separately, says whether it
+ran. `check_repo` prints a third verdict — `blind`, borrowed from `check_prose`
+rather than coined, because a second word for one idea is a second idea — and
+exits non-zero on it, so an unrunnable guard stops a release instead of joining
+the green count. The register would carry, per guard, whether a blind result is
+ever legitimate, the way `na_means` does for a gate. The useful by-product is a
+count: how many guards have declared what they do when they cannot look.
+
+**Why it is not simply done.** Every guard in `check_repo`'s `CHECKS` tuple
+returns a bare list today — how many is whatever that tuple holds, never a
+number written here — so the change is to their shared contract rather than to
+any one of them. It also needs a decision this entry cannot make alone: several
+guards legitimately do not apply to a synthetic tree and are written to skip
+one, and they must be able to say so without failing. That is the same
+honest-silence distinction `evals/gates.json` needed for `na_means`, which was
+added at 0.1.562 and carried a WRONG value for M12 until 0.1.575 — thirteen
+releases of a field that looked authoritative and stated a superseded rule. Two
+guard instances is a thin basis for a contract that has to get that right;
+better designed when a third arrives.
+
 ## IDEA-18 · The scaffold hands the author six plausible numbers, and only an optional flag can catch them
 
 **Problem.** A bare scaffold's visible prose carries `41`, `312`, `12`, `190`,
