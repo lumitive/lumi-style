@@ -105,6 +105,11 @@ jobs:
       # derivation and never the measurement — the same limit `validate` above
       # has, said in the same words on purpose.
       - run: python3 scripts/ops/agent_evals.py board --check
+      # README ships to users, so the one table in it that names vendor model
+      # strings is generated from the same derivation and held to it here. A
+      # hand-written version of this block would be a rotting claim in a
+      # consumer file with no forcing function.
+      - run: python3 scripts/build/build_readme_configs.py --check
       # What CI cannot execute must be recorded as an execution, not a
       # sentence (GAP-002, closed 0.1.425). Red since 0.1.425 after one
       # warn-only release proved every failure shape fires.
