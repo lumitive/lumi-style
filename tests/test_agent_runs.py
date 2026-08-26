@@ -18,7 +18,13 @@ import pytest
 
 def _trace(tid="t-000000000001", **kw):
     base = {"trace_id": tid, "closed_at": "2026-08-16T00:00:00+00:00",
-            "gates": {}, "graded": {}, "thresholds": {},
+            # A PASSING GATE, not an empty dict. Every fixture in this file
+            # carried `{}` and every one of them reached the board through
+            # `any({}.values())` being False — the suite was proving the
+            # admission ticket worked while holding no ticket. A test that
+            # means "nobody measured this run" now says `gates={}` out loud.
+            "gates": {"D12_commercial_footer": "ok"},
+            "graded": {}, "thresholds": {},
             "principle_yields": [], "refused_to_emit": None,
             "content_pages": 10, "output_tokens": 30000,
             "phase_seconds": {"build": 300}}
@@ -189,3 +195,14 @@ def test_an_unparseable_price_table_exits_rather_than_pricing_nothing(
     message = str(caught.value)
     assert "not JSON" in message and "prices.local.json" in message, (
         f"the exit must name the file and the fault; it said {message!r}")
+
+
+def test_a_run_that_recorded_no_gates_at_all_is_not_on_the_board():
+    """The admission ticket's own hole. `any()` over an empty dict is False, so
+    until 0.1.620 a run that recorded NO verdicts cleared the quality line
+    vacuously — and a run nobody measured is the cheapest thin deck there is.
+    Measured 2026-08-27: 0 of the 31 admitted rows on disk, so this closes a
+    branch rather than changing a number. It would have opened the first time a
+    driver timed out before the checks ran."""
+    assert agent_runs.board([_trace(gates={})]) == []
+    assert len(agent_runs.board([_trace(gates={"D12_commercial_footer": "ok"})])) == 1

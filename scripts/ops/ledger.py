@@ -72,9 +72,31 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # The effort vocabulary and the price store went with the cost matrix — they
 # were only ever read by it. `agent_runs` imports them from the same one place
 # this file did, so nothing was retyped on the way out.
-from trace_store import traces_dir  # noqa: E402 — the SAME store trace.py writes
+# The store's own facts come from the store's own module. `suite_artifact`,
+# `load` and `set_aside_count` lived here until 0.1.620 only because this was
+# the first reader; they are about WHICH RECORDS THE STORE HOLDS, which is
+# neither a document question nor an agent one. `agent_evals.py` needed the
+# same filter, and the choice was a second copy, an import of the document
+# tool by the agent tool, or the right home. This is the right home.
+from trace_store import (  # noqa: E402 — the SAME store trace.py writes
+    SUITE_LEAK_STOPPED,
+    load,
+    set_aside_count,
+    suite_artifact,
+)
 
-TRACES = traces_dir(ROOT)
+# Re-exported rather than dropped: `SUITE_LEAK_STOPPED` and `suite_artifact`
+# are cited by name in this file's own disclosure line and by the tests that
+# were written against them here. A name that moves and leaves nothing behind
+# is how a move becomes a breakage in somebody else's file.
+__all__ = ["SUITE_LEAK_STOPPED", "load", "set_aside_count",
+           "suite_artifact"]
+
+# `TRACES` is gone rather than kept as an alias. It was assigned here and,
+# after the move, read by nothing — and a module constant naming a directory
+# the module no longer opens is a name that invites exactly the patch these
+# tests had to stop making.
+
 # THE COST MATRIX MOVED, and the import is the whole of what is left of it here.
 # `board`, `matrix`, `cell_cost`, `load_prices` and `render_matrix` are an AGENT
 # evaluation — what a configuration costs to produce a page that cleared the bar
@@ -86,69 +108,6 @@ from agent_runs import board, load_prices, render_matrix  # noqa: E402
 
 TRIGGER_N = 3          # pieces of the same evidence before a candidate is drafted
 QUEUE_CAPACITY = 5     # per cycle; the rest are deferred, never dropped
-
-
-# The day the suite stopped writing into the tracked store. Nothing pytest
-# wrote can be dated after it, so the population `suite_artifact` describes is
-# CLOSED and finite — which is what makes a shape heuristic tolerable at all.
-SUITE_LEAK_STOPPED = "2026-08-26"
-
-
-def suite_artifact(t) -> bool:
-    """A trace the test suite wrote, not a build anybody made.
-
-    Until the suite got its own store, `tests/test_fewer_round_trips.py` drove
-    `build.py` with no environment, so every run of pytest opened a trace of a
-    throwaway two-page scaffold in the TRACKED store. `preflight.py` runs the
-    suite and `release.py` stages with `git add -A`, so they were committed.
-
-    **WHAT THIS CANNOT DISTINGUISH, said plainly because the first version of
-    this docstring claimed the opposite.** It said four conditions together
-    protect a real build. They do not: `trace.py cmd_open` sets `pages=0`,
-    `closed_at=None` and `recipe_hash=None` on EVERY trace it opens, and
-    `entry_path == "B"` is what most real builds use — so three of the four are
-    just the initial state of any trace, and a real path-B build abandoned
-    before `annotate --recipe` ran matches exactly. What actually separates the
-    two populations is the date, and it only works because the leak has a stop:
-    after `SUITE_LEAK_STOPPED` the suite writes elsewhere, so nothing written
-    from that day on can be one of these however it is shaped.
-
-    Measured when this was written: 182 of 199 build records matched, across
-    sixteen distinct `skill_version`s (not sixteen releases — the span is
-    0.1.532 and then most of 0.1.586-0.1.605).
-
-    They are NOT deleted — a trace store is a record, and the honest fix for a
-    bad denominator is to name what is in it, not to delete until the number
-    reads better. `--with-suite-artifacts` puts them back everywhere, including
-    in `--json` and `--board`.
-    """
-    if not isinstance(t, dict):
-        return False
-    return (t.get("source") == "build"
-            and t.get("entry_path") == "B"
-            and not (t.get("pages") or 0)
-            and not t.get("recipe_hash")
-            and not t.get("closed_at")
-            and (t.get("opened_at") or "") < SUITE_LEAK_STOPPED)
-
-
-def load(include_suite_artifacts: bool = False):
-    if not TRACES.exists():
-        return []
-    out = []
-    for path in sorted(TRACES.glob("*.json")):
-        try:
-            out.append(json.loads(path.read_text(encoding="utf-8")))
-        except json.JSONDecodeError:
-            continue
-    if include_suite_artifacts:
-        return out
-    return [t for t in out if not suite_artifact(t)]
-
-
-def set_aside_count() -> int:
-    """-> how many records the filter is holding back, for the disclosure."""
-    return sum(1 for t in load(True) if suite_artifact(t))
 
 
 def ledger_failing(traces):

@@ -15,7 +15,13 @@ import ledger  # noqa: E402 — after the path insert, deliberately
 
 def _trace(tid="t-000000000001", **kw):
     base = {"trace_id": tid, "closed_at": "2026-08-16T00:00:00+00:00",
-            "gates": {}, "graded": {}, "thresholds": {},
+            # A PASSING GATE, not an empty dict. Every fixture in this file
+            # carried `{}` and every one of them reached the board through
+            # `any({}.values())` being False — the suite was proving the
+            # admission ticket worked while holding no ticket. A test that
+            # means "nobody measured this run" now says `gates={}` out loud.
+            "gates": {"D12_commercial_footer": "ok"},
+            "graded": {}, "thresholds": {},
             "principle_yields": [], "refused_to_emit": None,
             "content_pages": 10, "output_tokens": 30000,
             "phase_seconds": {"build": 300}}
