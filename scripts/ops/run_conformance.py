@@ -785,7 +785,14 @@ def drive(agent, task, prompt_dir, model=None, base=DRIVE_BASE_BUDGET,
                 "produced": [p.name for p in produced],
                 "misplaced": misplaced,
                 "digest": hashlib.sha256(out).hexdigest(),
+                # WHAT WAS PINNED. `--model x` is a request, and this is it.
                 "model": model or "(the CLI's default)",
+                # WHAT ACTUALLY RAN, read out of the CLI's own stream. The two
+                # are different facts and only the first was kept, so a board
+                # cell said "(the CLI's default)" over a run whose model nobody
+                # could name afterwards — on a board whose argument is that a
+                # cell states what produced it. None when the CLI does not say.
+                "model_ran": _model_from_transcript(text),
                 # The matrix axis. Recorded as what was PINNED: an effort the
                 # CLI could not be told is "(not pinned)", never the requested
                 # value, because a board cell is a claim about what ran.
@@ -1184,6 +1191,90 @@ def _two_counts(usage: object) -> dict | None:
         i, o = usage.get(keys[0]), usage.get(keys[1])
         if all(isinstance(v, int) and not isinstance(v, bool) for v in (i, o)):
             return {"input_tokens": i, "output_tokens": o}
+    return None
+
+
+def _model_cell(rec: dict) -> str | None:
+    """-> what the board's model column should say for one driven task.
+
+    WHAT RAN OUTRANKS WHAT WAS ASKED. `model` is the request and reads
+    `(the CLI's default)` when nothing was pinned; `model_ran` is what the CLI
+    said it used. A board cell states what produced it, so the answer wins over
+    the ask — and the ask is kept beside it when the two differ, because `Auto`
+    routes and a run pinned to nothing is not the same claim as a run pinned to
+    whatever Auto happened to choose.
+
+    A function rather than four lines inline so the rule can be tested for what
+    it decides instead of for how it is spelled.
+    """
+    ran, asked = rec.get("model_ran"), rec.get("model")
+    pinned = bool(asked) and not str(asked).startswith("(")
+    if ran:
+        # CONFIRMED. The ask rides along when it was pinned and worded
+        # differently — `Auto` routing to a model is not the same claim as
+        # pinning it, and neither is a pin the CLI answered under another name.
+        return f"{ran} (asked {asked})" if pinned and ran != asked else ran
+    # NOTHING CONFIRMED IT, and BOTH unconfirmed shapes say so. A pinned model
+    # with no answer printed exactly what a confirmed one prints; the first fix
+    # repaired that and left the unpinned case returning `(the CLI's default)`
+    # — the very string this release exists to abolish, byte-identical to what
+    # the pre-fix board printed, and the ordinary case for two of the four
+    # agents on it, since Gemini and Hermes announce no model at all. A review
+    # caught the second half, and a test of mine had asserted it as correct.
+    return f"asked {asked}, unconfirmed" if pinned else "unconfirmed"
+
+
+def _model_from_transcript(text: str) -> str | None:
+    """-> the model the CLI says it ran, out of its own output, else None.
+
+    **WHAT WAS PINNED AND WHAT RAN ARE DIFFERENT FACTS, and the record kept
+    only the first.** `--model` is a request; with no request the field read
+    `(the CLI's default)`, which is a description of the ASK rather than an
+    answer. Cursor's stream says `"model":"Auto"` on its `system`/`init` line,
+    and Auto routes — so the board's model column said "default" over runs
+    whose model nobody can now name, on a board whose whole argument is that a
+    cell states what produced it.
+
+    Found when the owner asked which model a verification run had used and the
+    answer was in the transcript, in a field the driver had never read.
+
+    Both stream shapes: NDJSON, one object per line (Cursor's `stream-json`),
+    and a single object (Claude Code's `json`). The first `model` a `system`
+    or `init` record carries wins, because that is the session's own
+    announcement; a later per-message `model` would be one turn's.
+    """
+    body = text.strip()
+    if not body:
+        return None
+    # WHICH SILENCE. `None` covered six states — no transcript, unparseable
+    # text, an init record with no `model`, a blank one, a non-string one, and
+    # a CLI that genuinely announces nothing. The first two mean nothing ran to
+    # be asked; the last is Gemini and Hermes every time. They are not the same
+    # fact and the caller could not tell them apart.
+    for line in body.splitlines():
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            doc = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(doc, dict):
+            continue
+        if doc.get("type") in ("system", "init") or doc.get("subtype") == "init":
+            model = doc.get("model")
+            if isinstance(model, str) and model.strip():
+                return model.strip()
+    # A single-object transcript, read from the front the way the usage
+    # reader does — the object may be followed by a CLI warning line.
+    head = body.find("{")
+    if head >= 0:
+        try:
+            doc, _ = json.JSONDecoder().raw_decode(body[head:])
+        except ValueError:
+            return None
+        if isinstance(doc, dict) and isinstance(doc.get("model"), str):
+            return doc["model"].strip() or None
     return None
 
 
@@ -2397,10 +2488,23 @@ def main(argv):
             if not driver.exists():
                 continue
             try:
-                entry["model"] = json.loads(
-                    driver.read_text(encoding="utf-8")).get("model")
-            except ValueError:
-                pass
+                rec = json.loads(driver.read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError, ValueError) as exc:
+                # SAID, NOT SWALLOWED. This `continue`d in silence, so the
+                # cell rendered `—` — which is what a HAND-DRIVEN task prints,
+                # the case the comment above calls "honestly records nothing".
+                # A run killed at its hard cap leaves a truncated driver.json,
+                # and that is FM-24's `history.json` instance one file over, in
+                # a release that touched this very line. `OSError` and a decode
+                # error join `ValueError`: unreadable is unreadable, and only
+                # one of the three used to stop the whole scoring run.
+                print(f"note  {driver} does not parse ({exc}); this cell "
+                      f"records no model")
+                entry["model"] = "driver record unreadable"
+                continue
+            cell = _model_cell(rec)
+            if cell is not None:
+                entry["model"] = cell
         # BEFORE THE BYTES GO. The pin note has to read the file it is about
         # to lose, and it has to print on the empty-scores exit too — that is
         # the case where the pin is destroyed completely rather than partially,

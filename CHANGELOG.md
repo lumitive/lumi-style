@@ -1,3 +1,120 @@
+## 0.1.614 — the board recorded which model was asked for and never which one ran
+
+The owner asked which model a verification run had used. The answer was in the
+transcript, in a field the driver had never read — and finding it retracted a
+claim this package published two releases ago.
+
+**`--model x` is a request; the record kept only the request.** With nothing
+pinned the field read `(the CLI's default)`, which describes the ask rather than
+answering it. Cursor announces `"model":"Auto"` on its stream's `system`/`init`
+line, and **Auto routes** — so a board cell said "default" over a run whose
+model nobody could name afterwards, on a board whose whole argument is that a
+cell states what produced it. `built_version` and `instrument_version` exist for
+exactly this — and both of them reach the tracked history, which is the part of
+this repair that does not (GAP-040, below).
+
+`drive` now records `model_ran` beside `model`, read out of the CLI's own
+stream, and the board's column prefers the answer over the ask — keeping the ask
+beside it when the two differ, because a run pinned to nothing and a run pinned
+to whatever Auto chose are not the same claim. `None` when the CLI says nothing,
+which is Gemini and Hermes; a model that was not announced is not guessed.
+
+**Twenty-five runs recovered a real model name from transcripts already on
+disk**, and one of them is why this release exists. 0.1.605 published a
+three-row timing table for Cursor's T1-deck — 1813s, 1004s, 677s — and read it
+as one agent getting faster under repaired rules, *"the first evidence for
+0.1.598's figure repairs from outside the branch that made them"*. The recovered
+models are **Cursor Grok 4.6 Extra High** for the 1813s row and **Auto** for the
+other two. The largest drop, 1813 to 1004, is exactly the step where the model
+changed. The table is confounded, the board could not have shown it, and the
+sentence is retracted in place at 0.1.605's own entry rather than quietly
+dropped.
+
+The 1004→677 comparison survives — both Auto — and says nothing about figure
+repairs on its own.
+
+**The proof that the recording works is a run that failed.** A verification
+round pinned to `cursor-grok-4.6-high` died after 473 seconds on
+`RetriableError: [resource_exhausted]`, three retries, nothing written. What
+that error means is not recorded here, because the evidence does not settle it:
+gRPC's `RESOURCE_EXHAUSTED` covers an account's quota and a server's capacity
+alike, the run had done 76 tool calls over 430 working seconds before the three
+retries arrived inside a 21-second window, and the same account had finished a
+792-second run on the same task twenty-two minutes earlier. An account out of
+credit refuses the first call; this did not, and re-running the same pin on the
+same task ten minutes later succeeded in 1457 seconds — so whatever it was, it
+was that moment rather than that account.
+
+**And the field caught something on its first real outing, which a first draft
+of this paragraph glossed away.** Both runs were pinned to
+`cursor-grok-4.6-high`. The one that died announced `Cursor Grok 4.6`; the one
+that succeeded announced `Cursor Grok 4.6 High`. That is a tier apart, not a
+wording difference — so "the same model" is what the two runs were ASKED for
+and not what the records establish, and the pin was very likely not honoured on
+the attempt that failed. The draft called it "a display name where the flag
+takes an id" and buried the one live finding this field has produced. A review
+read the two records and caught it.
+
+The retry is also what the release note about `resource_exhausted` was missing.
+The first draft of this paragraph called it a quota problem on the strength of
+the word alone; gRPC's `RESOURCE_EXHAUSTED` covers an account's credit and a
+server's capacity alike, and reading it as the first was a claim about
+behaviour nobody had checked.
+
+**And the first version of the column was itself an FM-24**, in the release
+written immediately after FM-24 was written. A model PINNED with no answer from
+the CLI printed exactly what a confirmed one prints — `deepseek-v4-flash`
+either way — so a request read as a measurement, on the very column this
+release exists to make truthful. It is the ordinary case for two of the four
+agents on the board, since Gemini and Hermes announce no model at all. Caught by
+asking FM-24's own detection question of this function: *what does it print
+when the thing it measures is not there?* The answer was "the same thing".
+Unconfirmed now reads `asked <model>, unconfirmed`, and the six states the
+column can be in produce six different strings.
+
+Deliberate red, five runs that plant: let a blank model count as an answer,
+take a per-message `model` over the session's announcement, print an
+unconfirmed ask as an answer, print `(the CLI's default)` for the unpinned one,
+and swallow an unreadable driver record. **A sixth does not plant and this says
+so rather than implying otherwise**: deleting the line that records the field
+in `drive()` leaves the whole suite green, because every test reaches the
+extractor or the scorer and none reaches the driver, which would need a stubbed
+subprocess. The pinned run above exercised it for real, and a one-off run in an
+untracked directory is evidence a reader cannot re-run — the honest statement is
+that this line is covered by observation and not by the suite. Two
+did not plant first time. The ordering fixture had the init line before the
+per-message one, so a scan taking whatever came first passed it; and every test
+called the extractor directly, so deleting the line that puts its answer into
+`driver.json` left all of them green — the field would exist and reach no
+record, which is the shape FM-24 names one level up. The scorer's rule is a
+function now and is tested for what it decides rather than how it is spelled,
+after two source-grep tests were written and removed for being the thing 0.1.611
+fixed. The driver's own line is exercised by the pinned run above, whose record
+is the evidence.
+
+**The board is refreshed in this release rather than left owing one**, since
+its subject is a column on that board. Four cells moved and one of them is a
+verdict: Cursor's T1-deck goes `pass` to **`fail`**, because 0.1.612's new gate
+catches the black-figure defect the owner reported in that very deck. That is
+`built_version 0.1.604` scored by `instrument_version 0.1.614` — today's
+instruments over an August artifact, which the board's own prose already covers
+(*"a `pass` that later reads `fail` most often means the earlier run measured
+less"*) and which every cell records per row. The model column now reads
+`claude-opus-5[1m]`, `Auto`, and `unconfirmed` for the two agents that announce
+nothing, where all four said `(the CLI's default)` before.
+
+**What this does not reach is the part that lasts.** `model_ran` gets into
+`scores.json` and the rendered board; a history row still carries no model at
+all. The history is the only part of a run this repository keeps — `scores.json`
+lives in the run directory, outside the tree, which is why a row pins its digest
+in the first place. So the confounding above was recoverable only because the
+transcripts happened still to be on disk five days later, and the next one might
+not be. GAP-040, with the reason it is not fixed here: thirty-six existing rows
+predate anything that recorded a model, and calling them anything but unknown
+would be inventing the field's history.
+
+Design record: `specs/2026-08-26-board-refresh-design.md`.
+
 ## 0.1.613 — the branch a deliberate red never visits, written down
 
 Four of the last five releases repaired instruments, and read together the
@@ -901,6 +1018,15 @@ repaired rules. Its timing is the sharpest reading the round produced:
 The same agent, the same task, a third of the time it took two rounds ago. That
 is one sample and not a trend, and it is the first evidence for 0.1.598's figure
 repairs from outside the branch that made them.
+
+> **RETRACTED at 0.1.614.** This table is confounded and the board could not
+> show it. The driver recorded which model was ASKED for and never which one
+> RAN, so all three rows read "(the CLI's default)" — and recovering the answer
+> from the transcripts still on disk gives **Cursor Grok 4.6 Extra High** for
+> the 1813s row and **Auto** for the other two. The largest drop, 1813 to 1004,
+> is exactly the step where the model changed. The 1004→677 comparison holds
+> (both Auto); nothing here is evidence about 0.1.598's figure repairs, and the
+> sentence claiming it was is withdrawn.
 
 **And the other deck-building agent went the other way, which the table above
 would hide.** Claude Code drove T1 in 1022.9 seconds at 0.1.580 and finished;
