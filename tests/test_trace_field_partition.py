@@ -81,3 +81,34 @@ def test_every_field_a_producer_reader_uses_is_on_the_producer_side():
     assert {"model", "effort"} <= trace_schema.PRODUCER_FIELDS
     assert "gates" in trace_schema.DOCUMENT_FIELDS, (
         "the board's admission ticket is a document fact and must stay one")
+
+
+# The guard must NOT follow `LUMI_TRACES`. This is the one call site in the
+# repository where hand-resolving `evals/traces` is correct, and a reviewer
+# asked for `trace_store.traces_dir(ROOT)` instead. Measured before declining:
+# `conftest.py` redirects the whole suite to an empty scratch store, so that
+# call would have walked zero files against 255 tracked ones and returned
+# clean — FM-24 arriving inside the fix for FM-24. Without this test the next
+# reader makes the same request and nothing argues back.
+
+def test_the_guard_reads_the_tracked_store_not_the_redirected_one(monkeypatch):
+    import os
+    assert os.environ.get("LUMI_TRACES"), (
+        "conftest redirects the suite's store; if that stops being true this "
+        "test is measuring nothing")
+    tracked = list((check_repo.ROOT / "evals" / "traces").glob("*.json"))
+    redirected = list(pathlib.Path(os.environ["LUMI_TRACES"]).glob("*.json"))
+    assert len(tracked) > len(redirected), (
+        "the two stores must differ for this test to be able to fail")
+
+    seen = []
+    real = trace_schema.validate
+    def _watch(rec):
+        seen.append(rec)
+        return real(rec)
+
+    monkeypatch.setattr(trace_schema, "validate", _watch)
+    check_repo.check_trace_schema()
+    assert len(seen) == len(tracked), (
+        f"the guard validated {len(seen)} traces; the tracked store holds "
+        f"{len(tracked)}. It followed LUMI_TRACES.")

@@ -129,22 +129,38 @@ FIELDS: dict[str, object] = {
 }
 
 
-# WHOSE FACT IS IT. One flat record holds two populations, and until this
-# partition existed nothing said which was which — a reader could group a
-# document by its model or grade a model by its pages and no guard would
-# notice. Declared as a PARTITION rather than two lists, because a list can
-# omit a member in silence and a partition cannot: `check_trace_schema` asserts
-# these are disjoint and together exhaust FIELDS, so a field added to the
-# schema must be assigned a side or CI goes red.
+# WHOSE FACT IS IT. One flat record holds three populations — the document's,
+# the producer's, and the run's own — and until this partition existed nothing
+# said which was which. Declared as a PARTITION rather than as lists, because a
+# list can omit a member in silence and a partition cannot: `check_trace_schema`
+# asserts the three are disjoint and together exhaust FIELDS, so a field added
+# to the schema must be assigned a side or CI goes red.
 #
-# The contract the partition exists to hold, and neither half is mechanical:
-#   * a DOCUMENT reader (`ledger.py`) may read PRODUCER fields only to GROUP,
-#     never to grade — which model wrote it is not a fact about the document;
-#   * an AGENT reader (`agent_runs.py`) may read DOCUMENT fields only to
-#     QUALIFY, never to describe the agent — that is `board()`'s admission
-#     ticket, a failing gate keeps a cheap thin deck off the cost board.
-# The direction runs one way. A tighter check would be FM-01 pretending to
-# judge intent.
+# **What a reader may do with the other side's fields.** The first draft of this
+# comment allowed two uses and a review found both of its own examples breaking
+# them, in the two files it named. The honest list is three:
+#
+#   * QUALIFY — `agent_runs.board()` reads `gates`, a document field, to decide
+#     whether a run is admitted at all. A failing gate keeps a cheap thin deck
+#     off the cost board, which is the one thing stopping the board from
+#     rewarding thinner decks.
+#   * NORMALIZE — `agent_runs.board()` divides by `content_pages`, a document
+#     field, because a rate needs a denominator. `tokens_per_page` is a fact
+#     about the producer expressed per unit of document, and calling that
+#     forbidden would forbid the board's headline number.
+#   * REPORT — `ledger.ledger_signals()` reads `refused_to_emit` and
+#     `principle_yields`, producer fields, and prints them under its own
+#     heading. It neither groups nor grades: a refusal to emit is a fact about
+#     the run that the document tool is the place to notice.
+#
+# What no reader may do is GRADE across the line: a document's verdict may not
+# depend on which model wrote it, and an agent's standing may not be read off
+# one document's quality. That is the sentence with teeth, and it is the one
+# `run_conformance.py` states as the product claim — a deliverable is held to
+# one bar whichever model wrote it.
+#
+# None of this is mechanical, and a tighter check would be FM-01 pretending to
+# judge intent. What IS mechanical is that every field has a side.
 DOCUMENT_FIELDS = frozenset({
     "genre", "storyline", "geometry", "pages", "content_pages",
     "gates", "graded", "thresholds", "shape", "corpus_id", "review_ref",

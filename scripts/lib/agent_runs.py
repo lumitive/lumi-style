@@ -5,8 +5,8 @@
 failing, which instrument is suspect, what to change next. The model x effort
 cost matrix answers a different one, and it sat in that file only because the
 traces it reads were already open there. The owner asked for the two to stop
-being one tool; this module is the agent half, and `scripts/ops/agent_evals.py`
-is its command surface.
+being one tool; this module is the agent half. The tool that will own it is the
+next stage — until then `ledger.py --board` still renders through here.
 
 **The qualification argument moves with the code, because losing it is the
 expensive half.** A run with a failing gate is not on this board at all. A thin
@@ -23,12 +23,15 @@ derivation goes stale the day the price does.
 import collections
 import json
 import pathlib
-
-# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
-import pathlib as _bs_pathlib  # noqa: E402
+import pathlib as _bs_pathlib  # noqa: E402 — the bootstrap's, see below
 import statistics
 import sys
-import sys as _bs_sys  # noqa: E402
+import sys as _bs_sys  # noqa: E402 — the bootstrap's, see below
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+# The two aliased imports sit above with the rest rather than under this marker:
+# the sorter interleaves them either way, and a marker line introducing imports
+# that are not there reads worse than a marker introducing the block that is.
 
 _SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
                      if p.name == "scripts")
@@ -37,6 +40,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
     if _p not in _bs_sys.path:
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+# isort: on
 
 # The effort vocabulary is the schema's, never retyped here — a second literal
 # copy is the drift the genre enum already grew once, one domain over.
