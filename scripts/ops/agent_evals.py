@@ -133,7 +133,7 @@ def earned(history: list[dict]) -> dict[str, dict]:
     pinned to different models.
     """
     out: dict[str, dict] = {}
-    for row in history:
+    for row in _latest_per_round(history):
         joins = row.get("traces") or {}
         config = row.get("config") or {}
         for task_id, verdict in (row.get("tasks") or {}).items():
@@ -151,6 +151,33 @@ def earned(history: list[dict]) -> dict[str, dict]:
     return out
 
 
+def _latest_per_round(history: list[dict]) -> list[dict]:
+    """-> one row per (agent, run directory) — the last one recorded.
+
+    **`report --record` appends rather than replaces when a round is
+    re-driven.** Its idempotence key is `(agent, run_dir, scores_sha256)`, so a
+    re-drive into the same directory changes the digest and lands a SECOND row.
+    Summing both counts one round twice: a review appended cursor's earlier r17
+    row and the board printed `6 of 6` for a three-task round.
+
+    `conformance/history.json` already carries nine duplicate `(agent, run_dir)`
+    pairs from before any of this existed. They were harmless while nothing
+    joined them to a trace and they are not harmless now.
+
+    The LAST row wins, because `--record` appends and a re-drive supersedes what
+    it re-drove. Rows with no `run_dir` — none today — are each their own round
+    rather than colliding on `None`.
+    """
+    latest: dict[tuple, dict] = {}
+    order: list[tuple] = []
+    for i, row in enumerate(history):
+        key = (row.get("agent"), row.get("run_dir") or f"#{i}")
+        if key not in latest:
+            order.append(key)
+        latest[key] = row
+    return [latest[k] for k in order]
+
+
 def _sibling_trace(row: dict, task_id: str) -> str | None:
     """-> the trace of a task run at the SAME PINS in the same round, if one is.
 
@@ -161,11 +188,29 @@ def _sibling_trace(row: dict, task_id: str) -> str | None:
     would have read `1 of 1` for an agent that earned three.
 
     A history row is ONE round of ONE agent, so two of its tasks carrying the
-    same pins were the same configuration by construction. The comparison is on
-    `model_asked` and `effort` — **the operator's pins, not the CLI's answer** —
-    because the answer is a display sentence and comparing those is the defect
-    0.1.623 exists to fix. A task with no pins recorded matches nothing, rather
-    than matching every other unpinned task in the row.
+    same pins were **asked for** the same configuration. That is the claim, and
+    the first draft of this docstring said "were the same configuration by
+    construction" — which the row it was written for contradicts: cursor's r17
+    round pinned all three tasks to `cursor-grok-4.6-high` and the CLI answered
+    `Cursor Grok 4.6 High` twice and `Cursor Grok 4.6` once. The pins are the
+    operator's intent and a configuration is what was asked for, so the join
+    stands; what does not stand is calling the answers identical.
+
+    **The disagreement is not swallowed — it is spent on `effort_honoured`.**
+    Every joined task's own `model_ran` goes through `_honoured`, so a task that
+    announced something the pin does not cover leaves the cell unconfirmed
+    rather than silently inheriting its sibling's confirmation.
+
+    The comparison is on `model_asked` and `effort` — never the CLI's answer,
+    which is a display sentence and comparing those is the defect 0.1.623 fixed.
+    A task with no pins recorded matches nothing, rather than matching every
+    other unpinned task in the row.
+
+    Only the deck task declares a storyline today, so `joins` never holds more
+    than one entry. If a second task ever opens a trace, which sibling a task
+    borrows becomes insertion-order dependent — noted rather than guarded,
+    because a rule for choosing between two traces of one round needs a round
+    that has two.
     """
     config = row.get("config") or {}
     joins = row.get("traces") or {}
@@ -183,53 +228,89 @@ def _sibling_trace(row: dict, task_id: str) -> str | None:
 def _honoured(cell_config: dict, so_far) -> bool | None:
     """-> did the run announce the model that was asked for?
 
-    THREE ANSWERS. `None` when nothing was pinned or nothing recorded the pin —
-    an unpinned run cannot dishonour a pin, and calling that `True` would let
+    THREE ANSWERS, folded over a cell's tasks. `None` when nothing was pinned,
+    nothing recorded the pin, or the two names are merely COMPATIBLE — an
+    unpinned run cannot dishonour a pin, and calling that `True` would let
     "nobody asked for anything" wear the same word as "the CLI did what it was
-    told". Once any run in a cell says `False` the cell stays `False`.
+    told". Once any task says `False` the cell stays `False`.
 
-    The comparison is against `model_ran`, the raw id the CLI announced, and NOT
-    against `model` — which in a score cell is a display sentence built for a
-    board column. Comparing a pin to a sentence made this return `False` for
-    every real shape, and it was invisible only because the join missed first.
+    The comparison is against `model_ran`, the raw id the CLI announced, and
+    never against `model`, which in a score cell is a display sentence built for
+    a board column. It also no longer FALLS BACK to `model` when `model_ran` is
+    absent: the fallback compared a pin to that sentence, and a sentence
+    beginning with the answer would have read as confirmation of it.
     """
     if so_far is False:
         return False
-    asked = cell_config.get("model_asked")
-    ran = cell_config.get("model_ran") or cell_config.get("model")
-    if not asked or not ran:
+    verdict = _same_model(cell_config.get("model_asked"),
+                          cell_config.get("model_ran"))
+    if verdict is None:
+        # NO EVIDENCE DOES NOT OVERWRITE EVIDENCE. A task whose pin and answer
+        # are merely compatible leaves the cell where it was; it neither
+        # confirms nor spends the confirmation another task already gave.
         return so_far
-    return so_far is not False and _same_model(asked, ran)
+    return verdict if verdict is False else (so_far is not False)
 
 
-def _norm(name: str) -> str:
-    """-> a model name with the punctuation and case a vendor varies removed.
+def _tokens(name) -> list[str]:
+    """-> a model name as the words a vendor spells it with.
 
-    `cursor-grok-4.6-high` and `Cursor Grok 4.6 High` are ONE model spelled two
-    ways — the id you pin and the name the CLI answers with. Compared literally
-    they do not match, and the first real round reported cursor's pin as
-    dishonoured on that basis alone. Which is 0.1.614's finding wearing the
-    opposite sign: there a display name hid a real substitution, here it
-    invented one.
-
-    Only case and non-alphanumerics go. The level survives, which is the
-    distinction that has to: `cursorgrok46high` is NOT a substring of
-    `cursorgrok46xhigh`, so a run pinned to `high` and answered at `xhigh`
-    still reads as dishonoured.
+    Tokens rather than a squashed string, because squashing is what made
+    `cursor-grok-4.6-high` and `cursor-grok-4.6-high-fast` the same model — and
+    `adapters/cursor.md` says in this repository's own words that EVERY id has
+    a `-fast` twin. A rule that merges every twin is not a rule.
     """
-    return "".join(c for c in name.lower() if c.isalnum())
+    out, run = [], ""
+    for ch in str(name or "").lower():
+        if ch.isalnum():
+            run += ch
+        elif run:
+            out.append(run)
+            run = ""
+    return out + ([run] if run else [])
 
 
-def _same_model(asked: str, ran: str) -> bool:
-    """-> is the model that ran the model that was asked for?
+def _run_of(short: list[str], long: list[str]) -> bool:
+    """-> is `short` a CONTIGUOUS run of tokens inside `long`?
 
-    Containment rather than equality, in both directions, because the two names
-    are at different granularities and either can be the longer: `opus` is an
-    alias that answers as `claude-opus-5`, and `cursor-grok-4.6` is a pin the
-    driver composes a level onto before the CLI answers `Cursor Grok 4.6 High`.
+    Contiguous, not a scattered subsequence. Scattered let
+    `cursor-grok-4.6-high` sit inside `Cursor Grok 4.6 Extra High` by stepping
+    over `extra` — and that pair is `-high` against `-xhigh`, the one
+    substitution this comparison exists to catch.
     """
-    a, r = _norm(asked), _norm(str(ran))
-    return bool(a) and bool(r) and (a in r or r in a)
+    return any(long[i:i + len(short)] == short
+               for i in range(len(long) - len(short) + 1))
+
+
+def _same_model(asked, ran) -> bool | None:
+    """-> True honoured, False substituted, **None not established**.
+
+    THREE ANSWERS, because a pin and the name a CLI answers with are two
+    vocabularies that are only sometimes comparable:
+
+    * **the same tokens** — honoured. `cursor-grok-4.6-high` and
+      `Cursor Grok 4.6 High` are the same words.
+    * **one a contiguous run of tokens inside the other** — NOT ESTABLISHED, and this is the
+      answer the first version did not have. `opus` is an alias that answers as
+      `claude-opus-5`; `cursor-grok-4.6-high` answered as `Cursor Grok 4.6` on
+      one task and `Cursor Grok 4.6 High` on two others IN ONE ROUND; and
+      `cursor-grok-4.6-high-fast` contains every token of
+      `cursor-grok-4.6-high`. The first two are almost certainly honoured, the
+      third is certainly not, and nothing available here separates them. So it
+      says so. Guessing `True` printed `honoured` over a `-fast` twin, and
+      `adapters/cursor.md` records that every id has one.
+    * **anything else** — substituted. `high` against `xhigh`, `grok` against
+      `composer`.
+
+    `None` is not a soft `False`: `_honoured` folds it as no evidence and the
+    board prints a dash, which is `na_means`'s discipline one layer down.
+    """
+    a, r = _tokens(asked), _tokens(ran)
+    if not a or not r:
+        return None
+    if a == r:
+        return True
+    return None if _run_of(a, r) or _run_of(r, a) else False
 
 
 def cells(traces, history) -> list[dict]:

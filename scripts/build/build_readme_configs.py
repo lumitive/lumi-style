@@ -124,10 +124,9 @@ def block() -> str:
         "",
         *([*notes, ""] if notes else []),
         "**A dash is an absence, never a zero.** In a column headed *Tasks "
-        "earned* that distinction is the whole cell: no round has yet been "
-        "recorded carrying which configuration it ran, so no row can say how "
-        "many tasks its configuration earned. That is a gap in the "
-        "measurement, not a score of nothing.",
+        "earned* that distinction is the whole cell: a dash means no round "
+        "carrying that configuration has been recorded for the agent, not that "
+        "it earned nothing. It is a gap in the measurement.",
         "",
         "**One row per platform, not a league table.** Each row shows that "
         "platform's cheapest measured configuration that names a model; the "

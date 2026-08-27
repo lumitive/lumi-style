@@ -411,26 +411,41 @@ def test_an_unpinned_sibling_does_not_borrow_a_trace_it_cannot_be_matched_to():
         "the traced task counts; its unpinned sibling has nothing to match on")
 
 
-# ONE MODEL, TWO SPELLINGS. You pin an id and the CLI answers with a display
-# name. Compared literally they do not match, and the first real round reported
-# cursor's honoured pin as dishonoured on that basis alone — 0.1.614's finding
-# wearing the opposite sign: there a display name hid a real substitution, here
-# it invented one. Every pair below is from a real driver.json or a real
-# `cursor-agent --list-models` id, not from an imagined shape.
+# ONE MODEL, TWO SPELLINGS — and sometimes two models, one spelling. You pin an
+# id and the CLI answers with a display name. Compared literally an honoured pin
+# reads as substituted; compared by squashed string, `cursor-grok-4.6-high` and
+# `cursor-grok-4.6-high-fast` read as the same model, and `adapters/cursor.md`
+# says EVERY id has a `-fast` twin. Three answers is what the material forces.
+#
+# Every id below is real: from a `driver.json` this repository recorded, or from
+# `cursor-agent --list-models` run on 2026-08-27.
 
-@pytest.mark.parametrize("asked,ran,same", [
+@pytest.mark.parametrize("asked,ran,verdict", [
+    # The same words. This is the only shape that CONFIRMS anything.
     ("cursor-grok-4.6-high", "Cursor Grok 4.6 High", True),
-    ("opus", "claude-opus-5", True),
-    ("cursor-grok-4.6", "Cursor Grok 4.6 High", True),
-    # THE DISTINCTION THAT MUST SURVIVE NORMALISING. A run pinned to `high` and
-    # answered at `xhigh` is a substitution, and both spellings of it stay
-    # distinguishable because only case and punctuation are removed.
-    ("cursor-grok-4.6-high", "Cursor Grok 4.6 Extra High", False),
+    # A substitution: `high` is not `xhigh`, in either spelling. The token run
+    # must be contiguous or `Extra High` would be reached by stepping over
+    # `Extra`, which is the one pair this check exists for.
     ("cursor-grok-4.6-high", "cursor-grok-4.6-xhigh", False),
+    ("cursor-grok-4.6-high", "Cursor Grok 4.6 Extra High", False),
     ("grok-4.6-high", "composer-2.5", False),
+    # NOT ESTABLISHED. An alias, a display name that drops the level, and a
+    # `-fast` twin are indistinguishable from here — the first two are almost
+    # certainly honoured and the third certainly is not, so none of them may
+    # claim to be.
+    ("opus", "claude-opus-5", None),
+    ("cursor-grok-4.6-high", "Cursor Grok 4.6", None),
+    ("cursor-grok-4.6-high", "cursor-grok-4.6-high-fast", None),
+    ("cursor-grok-4.5-low", "cursor-grok-4.5-low-fast", None),
+    ("kimi-k3-low", "Kimi K3", None),
+    ("composer-2.5", "Composer 2.5 Fast", None),
+    # Nothing to compare is nothing to claim, and neither argument may crash.
+    (None, "Cursor Grok 4.6", None),
+    ("cursor-grok-4.6-high", None, None),
+    ("", "Cursor Grok 4.6", None),
 ])
-def test_a_pin_and_the_name_the_cli_answers_with(asked, ran, same):
-    assert agent_evals._same_model(asked, ran) is same
+def test_a_pin_and_the_name_the_cli_answers_with(asked, ran, verdict):
+    assert agent_evals._same_model(asked, ran) is verdict
 
 
 def test_the_real_rounds_honoured_pin_reads_as_honoured():
@@ -443,3 +458,85 @@ def test_the_real_rounds_honoured_pin_reads_as_honoured():
                   "model_ran": "Cursor Grok 4.6 High",
                   "model_asked": "cursor-grok-4.6-high", "effort": "high"}})])
     assert rows[0]["effort_honoured"] is True
+
+
+def test_a_sibling_that_announced_a_different_name_leaves_the_cell_unconfirmed():
+    """The committed r17 row is this case: three tasks pinned to
+    `cursor-grok-4.6-high`, answered `Cursor Grok 4.6 High` twice and
+    `Cursor Grok 4.6` once. The pins are what a configuration IS, so the join
+    stands — but the cell must not print `honoured` on the strength of the two
+    that agreed while a third said something else."""
+    rows = agent_evals.cells(
+        [_trace("t-deck", "cursor", "cursor-grok-4.6-high", "high")],
+        [_row(tasks={"T1-deck": "pass", "T2": "pass", "T3": "pass"},
+              traces={"T1-deck": "t-deck"},
+              config={
+                  "T1-deck": {"model_asked": "cursor-grok-4.6-high",
+                              "model_ran": "Cursor Grok 4.6 High",
+                              "effort": "high"},
+                  "T2": {"model_asked": "cursor-grok-4.6-high",
+                         "model_ran": "Cursor Grok 4.6 High", "effort": "high"},
+                  "T3": {"model_asked": "cursor-grok-4.6-high",
+                         "model_ran": "Cursor Grok 4.6", "effort": "high"}})])
+    assert rows[0]["tasks_earned"] == 3, "the join is on the pins and stands"
+    assert rows[0]["effort_honoured"] is True, (
+        "two tasks confirmed exactly and the third is compatible rather than "
+        "contradictory — compatible must not spend the confirmation, and must "
+        "not withdraw it either")
+
+
+def test_one_task_announcing_a_substitution_marks_the_whole_cell():
+    rows = agent_evals.cells(
+        [_trace("t-deck", "cursor", "cursor-grok-4.6-high", "high")],
+        [_row(tasks={"T1-deck": "pass", "T2": "pass"},
+              traces={"T1-deck": "t-deck"},
+              config={
+                  "T1-deck": {"model_asked": "cursor-grok-4.6-high",
+                              "model_ran": "Cursor Grok 4.6 High",
+                              "effort": "high"},
+                  "T2": {"model_asked": "cursor-grok-4.6-high",
+                         "model_ran": "Composer 2.5", "effort": "high"}})])
+    assert rows[0]["effort_honoured"] is False
+
+
+def test_a_cell_whose_every_task_is_only_compatible_claims_nothing():
+    rows = agent_evals.cells(
+        [_trace("t-deck", "claude-code", "opus", "high")],
+        [_row(agent="claude-code", traces={"T1-deck": "t-deck"},
+              config={"T1-deck": {"model_asked": "opus",
+                                  "model_ran": "claude-opus-5",
+                                  "effort": "high"}})])
+    assert rows[0]["effort_honoured"] is None, (
+        "an alias answering under its full name confirms nothing on its own")
+
+
+def test_a_re_recorded_round_is_counted_once():
+    """`report --record`'s idempotence key includes the score digest, so a
+    RE-DRIVE into the same directory appends a second row rather than replacing
+    the first. A review appended cursor's earlier r17 row and the board printed
+    `6 of 6` for a three-task round."""
+    first = _row(traces={"T1-deck": "t-1"}, run_dir="~/runs/r17",
+                 config={"T1-deck": {"model_asked": "m", "effort": "high"}})
+    again = _row(traces={"T1-deck": "t-1"}, run_dir="~/runs/r17",
+                 scores_sha256="1" * 64,
+                 config={"T1-deck": {"model_asked": "m", "effort": "high"}})
+    rows = agent_evals.cells([_trace("t-1", "cursor", "m", "high")],
+                             [first, again])
+    assert rows[0]["tasks_earned"] == 1 and rows[0]["tasks_attempted"] == 1
+
+
+def test_two_agents_in_one_run_directory_are_two_rounds():
+    """The key is (agent, run_dir). A round drives several agents into one
+    directory and each gets its own row; collapsing on the directory alone
+    would erase all but one."""
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "m", "high"),
+         _trace("t-2", "hermes", "m", "high")],
+        [_row(agent="cursor", run_dir="~/runs/r17", traces={"T": "t-1"},
+              tasks={"T": "pass"},
+              config={"T": {"model_asked": "m", "effort": "high"}}),
+         _row(agent="hermes", run_dir="~/runs/r17", traces={"T": "t-2"},
+              tasks={"T": "pass"},
+              config={"T": {"model_asked": "m", "effort": "high"}})])
+    assert {r["agent"] for r in rows} == {"cursor", "hermes"}
+    assert all(r["tasks_earned"] == 1 for r in rows)
