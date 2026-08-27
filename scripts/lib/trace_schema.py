@@ -86,7 +86,7 @@ SHAPE_TEXT_KEYS = ("geometry",)
 
 # Fields introduced after traces were already being stored. Absent is legal;
 # present must still be the declared type.
-ADDED_LATER = frozenset({"shape"})
+ADDED_LATER = frozenset({"shape", "cli_version"})
 
 FIELDS: dict[str, object] = {
     "trace_id": str, "opened_at": str, "closed_at": (str, type(None)),
@@ -101,6 +101,15 @@ FIELDS: dict[str, object] = {
     "recipe_hash": (str, type(None)), "recipe_version": (str, type(None)),
     "titles_changed_after_approval": int, "geometry": (str, type(None)),
     "model": (str, type(None)), "effort": (str, type(None)),
+    # WHICH BUILD OF THE AGENT. `agent` names a platform and `model` names what
+    # it was pointed at; neither says which version of the CLI did the work,
+    # and a CLI updates on its own schedule. Two rounds of one configuration
+    # measured a week apart were driven by `2026.08.11-e8db854` and
+    # `2026.08.25-3e8eec8`, so any difference between them has a third possible
+    # cause that nothing recorded. Free text for the same reason `model` is:
+    # every vendor spells a build differently and an enum of them would be a
+    # maintenance tax with no defect behind it.
+    "cli_version": (str, type(None)),
     "agent": (str, type(None)), "pages": int, "content_pages": int,
     "phase_seconds": dict, "input_tokens": (int, type(None)),
     # `cost_usd` was here and is gone. It is tokens times a price, and a
@@ -167,7 +176,7 @@ DOCUMENT_FIELDS = frozenset({
     "outline_reviewed", "titles_changed_after_approval",
 })
 PRODUCER_FIELDS = frozenset({
-    "agent", "model", "effort", "input_tokens", "output_tokens",
+    "agent", "model", "effort", "cli_version", "input_tokens", "output_tokens",
     "phase_seconds", "refused_to_emit", "principle_yields",
 })
 # The run itself: neither the document's nor the producer's, and naming them

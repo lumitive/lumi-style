@@ -278,7 +278,7 @@ def cmd_close(a):
         # is setting.
         total = rec["phase_seconds"].get(phase, 0) + value
         rec["phase_seconds"][phase] = int(total) if float(total).is_integer() else total
-    for k in ("model", "effort", "agent", "corpus_id"):
+    for k in ("model", "effort", "agent", "cli_version", "corpus_id"):
         if getattr(a, k, None) is not None:
             rec[k] = getattr(a, k)
     if a.usage is not None:
@@ -524,6 +524,12 @@ def main():
     c.add_argument("--model")
     c.add_argument("--effort", choices=ENUMS["effort"])
     c.add_argument("--agent")
+    c.add_argument("--cli-version", dest="cli_version",
+                   help="which build of the agent's CLI did the work. Supplied "
+                        "rather than probed here: this process is not the one "
+                        "that ran the agent, and asking a CLI its version after "
+                        "the fact answers about today rather than about the "
+                        "run.")
     c.add_argument("--corpus-id", dest="corpus_id")
     c.add_argument("--usage", type=pathlib.Path,
                    help="a machine-emitted usage JSON (the API's own dump); "

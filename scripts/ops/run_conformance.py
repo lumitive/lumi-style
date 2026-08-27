@@ -1456,6 +1456,8 @@ def _conformance_trace(agent: dict, task: dict, wd: pathlib.Path, record: dict) 
         argv += ["--model", record["model"]]
     if record.get("effort") and not str(record["effort"]).startswith("("):
         argv += ["--effort", record["effort"]]
+    if record.get("cli_version"):
+        argv += ["--cli-version", str(record["cli_version"])]
     if isinstance(record.get("usage"), dict):
         usage_path = wd / "usage.json"
         usage_path.write_text(json.dumps(record["usage"]) + "\n", encoding="utf-8")
@@ -2236,6 +2238,17 @@ def main(argv):
                            base=args.budget,
                            effort=effort_per.get(a["id"], effort_all),
                            hard_cap=args.hard_cap)
+            # WHICH BUILD OF THE CLI DID IT, taken from the probe this run
+            # already made BEFORE driving — not re-probed here, which would
+            # answer about now rather than about the run. `agent` names a
+            # platform and `model` names what it was pointed at; neither says
+            # which binary. Two rounds of one configuration a week apart were
+            # driven by `2026.08.11-e8db854` and `2026.08.25-3e8eec8`, so a
+            # difference between them had a third possible cause that nothing
+            # recorded.
+            probe_ok, probe_note = probed.get(a["id"], (False, ""))
+            if probe_ok and probe_note:
+                record["cli_version"] = probe_note
             # WRITTEN TWICE, ON PURPOSE, AND THE FIRST WRITE IS NOT THE ONE
             # THAT MATTERS. `_conformance_trace` mutates `record` — it puts the
             # trace id in — and this file was serialized BEFORE that, so the id
