@@ -107,11 +107,14 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   `cursor-grok-4.6-high` / `high`, 3 of 3, pin honoured, from round r17 driven
   against installs updated to the published 0.1.623. Nine cells still have none.
   The entry stays OPEN because its condition was two agents, and the second did
-  not produce a joinable trace: Claude Code ran past the deck budget, so it has
-  no admitted run, and its other two tasks open no trace to join to. That is the
-  structural finding this round paid for — **an agent whose deck task fails
-  contributes no cost measurement at all**, so its stalest cell keeps winning
-  the README row.
+  not produce a joinable trace: Claude Code's deck run died on a dropped
+  connection (`terminal_reason: api_error` at 1795s, under its 1800s base
+  budget), so its trace was never closed and `board()` does not admit an open
+  one. That is the structural finding this round paid for — **an agent whose
+  deck task leaves no CLOSED trace contributes no cost measurement at all**, so
+  its stalest cell keeps winning the README row. Not "whose deck task fails":
+  hermes's deck failed in the same round, misplaced, and still produced a closed
+  trace the board admits.
 - symptom: the configurations board carried ten cells across three agents, and
   every one of them had an EMPTY `earned` column, because no conformance round
   had been recorded with the `traces` key 0.1.618 added. So the board orders

@@ -88,7 +88,7 @@ read it, and Gemini CLI gives it precedence over its own directory.
 † **Claude Code** — sonnet · effort high at 5 run(s) is dearer per page and better sampled.
 † **Hermes** — a cheaper cell exists at 8430.1 tokens/page and is passed over because it recorded no model.
 
-**A dash is an absence, never a zero.** In a column headed *Tasks earned* that distinction is the whole cell: no round has yet been recorded carrying which configuration it ran, so no row can say how many tasks its configuration earned. That is a gap in the measurement, not a score of nothing.
+**A dash is an absence, never a zero.** In a column headed *Tasks earned* that distinction is the whole cell: a dash means no round carrying that configuration has been recorded for the agent, not that it earned nothing. It is a gap in the measurement.
 
 **One row per platform, not a league table.** Each row shows that platform's cheapest measured configuration that names a model; the rows are in registry order and are not ranked against each other. Where the numbers ARE ordered — by cost among configurations that already cleared the gate line, which is not a quality ranking, because above that line the checks cannot tell two documents apart — is `conformance/CONFIGURATIONS.md`. `n` is small on purpose: nothing repeats a run by design, so a single sample cannot separate a flaky agent from a flaky checker. The full board, its axes and what is still unmeasured are in `conformance/CONFIGURATIONS.md` and `conformance/agent-evals.json` in the development repository.
 

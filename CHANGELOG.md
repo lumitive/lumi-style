@@ -1,3 +1,85 @@
+## 0.1.625 — a comparison that called two models one, and a legend the table above it falsified
+
+The second pre-PR review of this work, and it found the first round's numbers
+printing three things that were not so. All confirmed against the recorded data
+before they were acted on; two are corrections to 0.1.624's own entry, made in
+place.
+
+**`_same_model` merged Cursor's `-fast` twins**, and `adapters/cursor.md` says
+in this repository's own words that EVERY id has one. The rule was containment
+after squashing a name to letters and digits, so `cursor-grok-4.6-high` matched
+`cursor-grok-4.6-high-fast`; `composer-2.5` matched `Composer 2.5 Fast`;
+`kimi-k3-low` matched `Kimi K3`, which is `kimi-k3-max`'s display name. That is
+0.1.614's finding restored rather than fixed — a display name hiding a real
+substitution — and the board printed **honoured** over it.
+
+**It has three answers now, because two is what the material refuses.** Names
+tokenize instead of squashing, and a comparison is: the same tokens → honoured;
+one a CONTIGUOUS run of tokens inside the other → **not established**; anything
+else → substituted. Contiguous matters: a scattered match reached
+`Cursor Grok 4.6 Extra High` from `cursor-grok-4.6-high` by stepping over
+`Extra`, and that pair is `-high` against `-xhigh`, the one substitution this
+check exists for. `opus` answering as `claude-opus-5`, a display name dropping
+its level, and a `-fast` twin are all "not established" — the first two almost
+certainly honoured, the third certainly not, and nothing available here
+separates them, so none of them claims to be. Thirteen pairs are pinned in a
+table and every id in it is real.
+
+**The sibling join was claiming more than it knows, and the committed row says
+so.** Its docstring said two tasks with matching pins "were the same
+configuration by construction". Cursor's r17 round pinned all three tasks to
+`cursor-grok-4.6-high` and the CLI answered `Cursor Grok 4.6 High` twice and
+`Cursor Grok 4.6` once. The join still stands — a configuration is what was
+ASKED for, and the pins are the operator's intent — but the disagreement is
+spent on `effort_honoured` rather than swallowed: every joined task's own
+`model_ran` goes through the comparison, so a task announcing something the pin
+does not cover leaves the cell unconfirmed instead of inheriting its sibling's
+confirmation.
+
+**A re-recorded round would have counted twice.** `report --record`'s
+idempotence key includes the score digest, so a RE-DRIVE into the same directory
+appends a second row rather than replacing the first — and `history.json`
+already carries nine duplicate `(agent, run_dir)` pairs from before any of this
+existed, harmless only while nothing joined them to a trace. A review appended
+cursor's earlier r17 row and the board printed **`6 of 6` for a three-task
+round**. Rows now collapse to the last one per `(agent, run_dir)`; two agents
+driven into one directory stay two rounds, which is the case a naive collapse on
+the directory would erase.
+
+**README shipped a sentence its own table falsified nine lines above.** The dash
+legend said "no round has yet been recorded carrying which configuration it
+ran" — under a Cursor row reading `3 of 3`. It is generated, so `--check` could
+never catch it: a block that states a fact about the WHOLE table is a claim the
+table can falsify, and the legend now explains what one cell's dash means
+instead. `CONFIGURATIONS.md`'s equivalent line had the conditional wording
+right, so the two copies had drifted apart in the release that wrote both.
+
+**Two claims in 0.1.624's entry were wrong about the run, corrected there.**
+Claude Code's deck did not run past its budget — `terminal_reason: api_error`,
+"Connection lost mid-response", at 1795s against an 1800s base. And "an agent
+whose deck task FAILS contributes no cost measurement" is refuted by the same
+round: hermes's deck was misplaced, which is a failure, and still produced a
+closed trace the board admits at 11123.6 tokens per page — the
+`hermes | — | — | 2` row 0.1.624 added. `run_conformance.py` opens a trace for a
+misplaced run deliberately, under a comment saying a misplaced artifact still
+answers the cost question. The true statement is about a CLOSED trace, and
+Claude Code's was never closed.
+
+**Not changed, and said rather than left implied:** the cursor cell's `n=7`
+includes the drive that was abandoned when the trace-id defect was found. It is
+a real run at those pins that really cost what it cost, so it stays — deleting a
+trace to make a denominator read better is the move this repository refuses
+elsewhere. Two never-closed orphans from the discarded drives
+(`t-3c3a820d0308`, `t-cc277dbb1c9e`) are in the store carrying no agent and no
+model; the board does not admit them, and they are round debris rather than
+records of anything.
+
+Deliberate red, four runs: stop deduping rounds, return `True` from the
+comparison, let the token run skip a word, and let "compatible" count as
+confirmed. Fifty-four tests in the tool's file.
+
+Design record: `specs/2026-08-27-agent-evals-design.md`.
+
 ## 0.1.624 — the first measured round, and the two defects it found before it could be one
 
 The last stage of the approved plan, and it took three drives to produce one
@@ -13,8 +95,12 @@ withdraw four history rows and four traces because the agents read a version
 before the one the board claimed, and `skill_version()` reads the checkout
 rather than the install, so nothing catches it. Cursor earned all three tasks —
 including T1-deck, which it FAILED at 0.1.605 on `D19_vocabulary`, the dangling
-colour reference behind the black figures. Claude Code earned T2 and T3 and ran
-past its budget on the deck. Hermes wrote two deliverables outside the working
+colour reference behind the black figures. Claude Code earned T2 and T3 and lost its deck run
+to a dropped connection — `terminal_reason: api_error`, "Connection lost
+mid-response", at 1795s against an 1800s base budget, so it stopped UNDER
+budget rather than over it. (Corrected at 0.1.625: the first version said "ran
+past its budget", which is a different fact about the same configuration and
+belongs to the 0.1.605 round.) Hermes wrote two deliverables outside the working
 directory again. Gemini was rate-limited on all three, exactly as before.
 
 **The round found what no test had: the join key never reached disk.**
@@ -46,14 +132,17 @@ the opposite sign: there a display name hid a real substitution, here it
 invented one. The comparison drops case and punctuation and nothing else, which
 keeps the distinction that has to survive: `cursorgrok46high` is not a substring
 of `cursorgrok46xhigh`, so a run pinned to `high` and answered at `xhigh` still
-reads as dishonoured. All six pairs in the test are real — from a `driver.json`
-or from `cursor-agent --list-models`.
+reads as dishonoured. (0.1.625 replaced this comparison after a review showed it merged
+Cursor's `-fast` twins; two of the six pairs were also not real ids.)
 
 **GAP-041 does not close, and the reason is worth more than the closure.** Its
 condition was two agents, and only one produced a joinable trace: Claude Code's
-deck task ran past the budget, so it has no admitted run, and its other two
-tasks open no trace to join to. **An agent whose deck task fails contributes no
-cost measurement at all** — which is why README still recommends Claude Code at
+deck run died on a dropped connection, so its trace was never CLOSED and
+`board()` does not admit an open one. **An agent whose deck task leaves no
+closed trace contributes no cost measurement at all** — narrowed at 0.1.625,
+because hermes's deck FAILED in this same round, misplaced, and still produced a
+closed trace the board admits at 11123.6 tokens per page, which is the
+`hermes | — | — | 2` row this release added — which is why README still recommends Claude Code at
 `sonnet · effort medium`, measured 2026-08-21 against skill 0.1.542. The row
 says that date and that version, which is the disclosure working; it is still a
 six-day-old recommendation for an agent that ran today.
