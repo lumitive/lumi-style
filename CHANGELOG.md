@@ -1,3 +1,64 @@
+## 0.1.631 — the trace store had no dictionary, and three times more files than records
+
+The owner is building an analysis service over `evals/traces/` and asked how the
+files are named, why they are JSON, and whether a dictionary can exist. Two
+artifacts answer it, both generated, both `--check` in CI.
+
+**The load-bearing fact is a count.** The directory holds **273 files and 91
+records**. The other 182 are build traces pytest leaked into the tracked store
+before 2026-08-26, set aside by `trace_store.suite_artifact()` — **a rule that
+lived only in code and in CHANGELOG prose**. A service reading the directory
+would get a denominator three times too large, which this repository has already
+been wrong about once: `ledger.py` reported "4 of 251 build(s) record a reviewed
+outline" over a store holding seventeen. `index.jsonl` carries `suite_artifact`
+as a COLUMN so the filter travels with the data instead of staying tribal.
+
+* **`evals/traces/README.md`** — the store's two counts and the gap between
+  them, then every field with its type, its population, whether a person may
+  edit it, how many records carry it, one REAL example value, and a
+  `trace_schema.py:<line>` citation. The meanings are cited and never copied: a
+  second copy of thirty descriptions is the drift this repository has fixed
+  twenty-six times, and it would be the first thing to rot.
+* **`evals/traces/index.jsonl`** — one line per trace, ordered by `opened_at`
+  because the ids are uuid4-derived and sort randomly, so nowhere else in the
+  store says what happened in what order. Summary fields only; the three verdict
+  blocks are 44% of the store's bytes and stay in the trace each line points at.
+
+**`annotations` is the one field a person is the authority on.** The owner asked
+for hand-editable fields. A note and a set of tags are not measurements — they
+are why a run was made and what the operator wants to remember, and nobody else
+can know either. Written by `trace.py annotate --note/--tag`, and safe to hand-
+edit because `check_trace_schema` validates every committed trace: a broken edit
+reddens CI rather than corrupting a reader. It is typed for that reason — two
+keys, both optional, and a third is a schema invented in a text editor.
+
+**The English-only red line is relaxed for that field, and the relaxation is a
+decision rather than a hole.** `check_repo`'s guard already excluded
+`evals/traces/`, and its stated reason — *"a closed schema that has nowhere to
+put prose"* — **stopped being true the moment `annotations` gave it somewhere**.
+The reason is now narrower and written where a contributor will find it: `evals/`
+is development-side, so no trace reaches a reader of the published package, and
+an operator's note about their own run is neither rule prose nor rule data.
+
+**JSON stays, and the reason is now recorded because the question was asked.**
+Nothing anywhere had ever justified the format — 0.1.462's entry argues verdict
+provenance and a closed schema and never serialization. A trace is a
+machine-written record with exact types (`null` is not `""`, an int is not a
+string) and three nested maps of seventy-seven entries. Markdown needs a parser
+and loses the types; XML costs more bytes for the same thing.
+
+Deliberate red, nine runs: drop the suite-artifact column, report zero failures
+for an open trace, sort the index by id, put a verdict block in the column list,
+count records where the preface counts files, offer `gates` as hand-editable,
+and remove each of the three annotation type checks. **Two did not plant on the
+first attempt.** The verdict-block one could not: a final projection over
+`INDEX_FIELDS` makes a stray column structurally impossible, so the test was
+asserting something the code guarantees — it asserts the COLUMN LIST now, which
+is what actually decides. The annotation one had no test driving `validate` at
+all.
+
+Design record: `specs/2026-08-28-trace-store-readable-design.md`.
+
 ## 0.1.630 — a trace was written in place, so a crash mid-write read as a run that never happened
 
 The owner is building an analysis service over the trace store and asked how the

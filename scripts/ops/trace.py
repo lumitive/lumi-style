@@ -463,6 +463,27 @@ def cmd_annotate(a):
         rec["corpus_id"] = a.corpus_id
     if a.review_ref:
         rec["review_ref"] = a.review_ref
+    if a.note is not None or a.tag:
+        # THE ONE THING A PERSON IS THE AUTHORITY ON. `--note` and `--tag` are
+        # not measurements — they are why the run was made and what the
+        # operator wants to remember — so they belong here rather than beside
+        # the verdict flags that deliberately do not exist. Written through a
+        # command AND safe to edit by hand: `check_trace_schema` validates
+        # every committed trace, so a broken edit reddens CI instead of
+        # corrupting a reader.
+        ann = dict(rec.get("annotations") or {})
+        if a.note is not None:
+            ann["note"] = a.note
+        if a.tag:
+            # ADDED, not replaced, and de-duplicated in the order met. A second
+            # `--tag` run that silently dropped the first is how a label set
+            # becomes whatever the last operator happened to type.
+            seen = list(ann.get("tags") or [])
+            for t in a.tag:
+                if t not in seen:
+                    seen.append(t)
+            ann["tags"] = seen
+        rec["annotations"] = ann
     if a.recipe is not None:
         if not a.recipe.is_file():
             sys.exit(f"--recipe {a.recipe} is not a file. A recipe nobody can "
@@ -475,8 +496,11 @@ def cmd_annotate(a):
                   f"not the same as current.", file=sys.stderr)
     _fail_if_invalid(rec)
     _save(rec)
+    ann = rec.get("annotations") or {}
     print(f"{a.id}: corpus_id={rec['corpus_id']} review_ref={rec['review_ref']} "
-          f"recipe={rec['recipe_version'] or 'unstamped'}")
+          f"recipe={rec['recipe_version'] or 'unstamped'} "
+          f"tags={','.join(ann.get('tags') or []) or '—'} "
+          f"note={'yes' if ann.get('note') else '—'}")
 
 def cmd_validate(_a):
     if not TRACES.exists():
@@ -578,6 +602,13 @@ def main():
     an.add_argument("--id", required=True)
     an.add_argument("--corpus-id", dest="corpus_id")
     an.add_argument("--review-ref", dest="review_ref")
+    an.add_argument("--note",
+                    help="a sentence about this run, from the person who made "
+                         "it. Not a verdict — there is no flag for one of "
+                         "those anywhere in this tool.")
+    an.add_argument("--tag", action="append", default=[],
+                    help="a label. Repeatable, added to whatever the trace "
+                         "already carries rather than replacing it.")
     # The builder, fingerprinted once it exists. See cmd_annotate's docstring
     # for why this cannot be done at open.
     an.add_argument("--recipe", type=pathlib.Path,
