@@ -1,0 +1,8 @@
+{
+ "version": "0.1.629",
+ "diff_base": "43e664b995104deabd794e5e3f0b930fc845e919",
+ "spec": "specs/2026-08-27-agent-evals-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}

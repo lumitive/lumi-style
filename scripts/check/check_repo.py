@@ -3745,7 +3745,20 @@ def check_board_staleness_clause():
         return ["CHANGELOG.md: no '## X.Y.Z' release headings found"]
     current = released[0]
 
-    ran_at = run_conformance._board_run_version({"run_id": runs})
+    # `read_scores=False`: the scores fallback opens a file OUTSIDE this
+    # repository, so it answers on the machine that drove the run and never on
+    # the runner. A guard whose verdict depends on which machine runs it cannot
+    # back preflight's claim that local green and CI green are one thing — and
+    # this one was lenient locally, which is the wrong direction for the run
+    # that exists to catch things early.
+    ran_at = run_conformance._board_run_version({"run_id": runs},
+                                                read_scores=False)
+    if ran_at is None:
+        # `render` writes `· scored at X` when the run id carries no version,
+        # so the fact is in this file rather than in a directory only one
+        # machine has. A board with neither is one the runner cannot check.
+        m = re.search(r"·\s*scored at\s*(\d+\.\d+\.\d+)", runs)
+        ran_at = m.group(1) if m else None
     # UNMEASURABLE IS A FAILURE, NOT A PASS. This returned [] on both of the
     # states below, and `cmd_restamp` declines on exactly the same inputs — so
     # the guard could not back up the realigner: whatever made one go quiet

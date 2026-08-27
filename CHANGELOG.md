@@ -1,3 +1,46 @@
+## 0.1.629 — preflight said local green is CI green, and for one guard it was not
+
+CI failed PR #179 on a step all thirty-four local ones had passed. That is not
+an ordinary red: `preflight.py` exists to make "local green" and "CI green" one
+claim, and here they were two.
+
+**The guard's verdict depended on which machine ran it.**
+`check_board_staleness_clause` resolves the version a board's run was scored at,
+and `_board_run_version` falls back to reading a `scores.json` **inside the run
+directory** — which lives outside this repository. On the machine that drove the
+run it opens; on the runner it does not. So a board whose run id carries no
+version PASSED here and FAILED there.
+
+**And the leniency ran the wrong way.** The local run is the one meant to catch
+things early, and it was the permissive one.
+
+**What triggered it was ordinary and will recur.** Eight `report --record` calls
+for eight single-tier probes each rewrote `conformance/CONFORMANCE.md`, so the
+board ended up describing `r19-xhigh-3` — one agent, one task — instead of the
+last full round. The board is redrawn from `r17-0.1.623`, whose id names a
+released version; re-recording it appended **zero** history rows, because the
+scores digest was unchanged, which is what makes the redraw safe.
+
+**The fix is not to make the checker lenient — it is to put the fact in the
+file.** `render` now writes `· scored at X` into the Runs line whenever the run
+id does not carry a version, and the checker reads it from there with
+`read_scores=False`. Both machines read the same committed bytes and neither
+opens a directory.
+
+That keeps the case a test has guarded since 0.1.581: `results/latest` is a run
+id `report --record` legitimately writes, and a guard that failed on it once
+made every release impossible through the realigner. It still passes — but
+through the generator's own output rather than through a file only one machine
+has. **The test now drives `render` instead of hand-writing the line**, which is
+what let the old one pass while the generator and the checker disagreed about
+where the version lives.
+
+Deliberate red, two runs: let the checker read the run directory again, and stop
+the generator stamping the resolved version. Two new tests, one of which BUILDS
+the scores.json the fallback would have read and asserts the guard fails anyway.
+
+Design record: `specs/2026-08-27-agent-evals-design.md`.
+
 ## 0.1.628 — the review recomputed every number in the entry, and four of them were wrong
 
 The pre-merge review of 0.1.626–0.1.627 recomputed each figure the benchmark

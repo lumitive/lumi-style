@@ -127,14 +127,44 @@ def test_an_uncomputable_distance_fails_rather_than_passing(tmp_path, monkeypatc
     assert "unchecked" in errors[0]
 
 
-def test_a_versionless_run_id_is_read_through_the_generator(tmp_path, monkeypatch):
+def test_a_versionless_run_id_carries_its_version_in_the_line(tmp_path,
+                                                              monkeypatch):
     """`results/latest` is a board `report --record` writes, not a broken file.
 
-    `_board_run_version` falls back to the newest `instrument_version` in the
-    run's scores.json for exactly this case. A second, lossier reader here
-    failed the repository on a correct board — and, through the realigner,
-    made every release impossible.
+    It used to be readable only through `_board_run_version`'s scores fallback,
+    which opens a file in the RUN DIRECTORY — outside this repository, present
+    on the machine that drove the run and absent on the runner. The checker was
+    therefore lenient here and strict there. `render` writes `· scored at X`
+    into the line instead, so the fact is in the committed file and both
+    machines read the same thing.
+
+    Driven through `render` rather than hand-writing the line, because
+    hand-writing it is what let the old version of this test pass while the
+    generator and the checker disagreed.
     """
+    run_dir = tmp_path / "results" / "latest"
+    run_dir.mkdir(parents=True)
+    (run_dir / "scores.json").write_text(
+        '{"a/T1": {"instrument_version": "0.1.578"}}', encoding="utf-8")
+    rendered = run_conformance.render({
+        "version": "0.1.604", "run_id": f"`{run_dir}`", "run_date": "2026-08-23",
+        "host": "darwin", "agents": 1, "detected": 1, "repeat": 1,
+        "structural": 0, "findings": [], "task_ids": ["T1"], "rows": []})
+    runs_line = run_conformance.board_run_id_line(rendered)
+    assert runs_line and "scored at 0.1.578" in runs_line, runs_line
+
+    _both(tmp_path, monkeypatch,
+          "# LUMI style conformance · skill 0.1.604 · newest run 0.1.578 · "
+          "26 releases behind",
+          runs_line,
+          ["0.1.604"] + [f"0.1.{n}" for n in range(603, 577, -1)])
+    assert check_repo.check_board_staleness_clause() == []
+
+
+def test_a_hand_written_versionless_line_is_refused(tmp_path, monkeypatch):
+    """Neither a version in the id nor one in the line. That is the board a
+    runner cannot check, and it must not depend on whether a directory happens
+    to exist beside it."""
     run_dir = tmp_path / "results" / "latest"
     run_dir.mkdir(parents=True)
     (run_dir / "scores.json").write_text(
@@ -144,7 +174,8 @@ def test_a_versionless_run_id_is_read_through_the_generator(tmp_path, monkeypatc
           "26 releases behind",
           f"Runs `{run_dir}` · run 2026-08-23 · darwin",
           ["0.1.604"] + [f"0.1.{n}" for n in range(603, 577, -1)])
-    assert check_repo.check_board_staleness_clause() == []
+    errors = check_repo.check_board_staleness_clause()
+    assert errors and "names no version" in errors[0]
 
 
 # -------------------------------------------------------------- the restamp
@@ -257,3 +288,44 @@ def test_the_header_has_one_author(tmp_path, monkeypatch):
         "run_conformance.board_header")
     assert len(re.findall(r"release\{'' if behind == 1 else 's'\}", src)) == 1, (
         "the singular/plural rule is written more than once")
+
+
+# THE GUARD MUST ANSWER THE SAME ON BOTH MACHINES. `_board_run_version`'s
+# fallback opens a scores.json inside the RUN DIRECTORY, which lives outside
+# this repository: it resolves on the machine that drove the run and never on
+# the CI runner. A board naming a run with no version in its id therefore passed
+# here and failed there — with preflight, whose premise is that local green and
+# CI green are one claim, reporting green.
+
+def test_a_run_id_without_a_version_fails_even_when_its_scores_are_readable(
+        tmp_path, monkeypatch):
+    """The run directory is BUILT here, so the fallback would succeed if the
+    guard used it. It must fail anyway, because CI has no such directory."""
+    run_dir = tmp_path / "runs" / "r19-xhigh-3"
+    run_dir.mkdir(parents=True)
+    (run_dir / "scores.json").write_text(
+        '{"cursor/T1-deck": {"verdict": "pass", "instrument_version": "0.1.626"}}',
+        encoding="utf-8")
+    board = _both(tmp_path, monkeypatch,
+                  "# LUMI style conformance · skill 0.1.628 · newest run "
+                  "0.1.626 · 2 releases behind",
+                  f"Runs `{run_dir}` · run 2026-08-27 · darwin",
+                  ["0.1.628", "0.1.627", "0.1.626"])
+    assert board.exists()
+    # The fallback CAN answer here — that is the point of building the file.
+    assert run_conformance._board_run_version(
+        {"run_id": f"`{run_dir}`"}) == "0.1.626"
+    assert run_conformance._board_run_version(
+        {"run_id": f"`{run_dir}`"}, read_scores=False) is None
+    errors = check_repo.check_board_staleness_clause()
+    assert errors and "names no version" in errors[0], (
+        "the guard consulted a file CI cannot open, so it was lenient on the "
+        "machine that drove the run and strict on the one that gates the merge")
+
+
+def test_a_run_id_carrying_its_version_still_passes(tmp_path, monkeypatch):
+    _both(tmp_path, monkeypatch,
+          "# LUMI style conformance · skill 0.1.628 · newest run 0.1.626 · "
+          "2 releases behind",
+          RUNS.format(v="0.1.626"), ["0.1.628", "0.1.627", "0.1.626"])
+    assert check_repo.check_board_staleness_clause() == []

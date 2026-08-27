@@ -1672,16 +1672,33 @@ def write_board(record: dict) -> str:
 
 
 
-def _board_run_version(record: dict) -> str | None:
+def _board_run_version(record: dict, read_scores: bool = True) -> str | None:
     """-> the skill version the rendered runs were produced at: from the run
     id when it carries one, else from the newest `instrument_version` in the
     scores. The fallback exists because `results/latest` carries no version
     in its name, and a board rendered from it read "skill 0.1.527" over a run
     scored at 0.1.522 — the exact claim the comment above render() says this
-    field exists to stop."""
+    field exists to stop.
+
+    **`read_scores=False` is for the CHECKER, and the split is a local/CI
+    divergence rather than a preference.** The fallback opens a file in the run
+    directory, which lives outside this repository: it resolves on the machine
+    that drove the run and never in CI. So a board naming a run id with no
+    version in it PASSED `check_board_staleness_clause` locally and FAILED it on
+    the runner — with preflight, whose whole premise is that local green and CI
+    green are one claim, reporting green. It happened: eight `report --record`
+    calls left the board describing `r19-xhigh-3`, and the divergence was found
+    by CI rather than by the thirty-four steps that exist to prevent that.
+
+    The leniency also runs the wrong way. The local run is the one meant to
+    catch things early, and it was the lenient one.
+    """
     m = re.search(r"(\d+\.\d+\.\d+)", str(record.get("run_id") or ""))
     if m:
         return m.group(1)
+    if not read_scores:
+        return None
+
     found: list[str] = []
     for r in re.findall(r"`([^`]+)`", str(record.get("run_id") or "")):
         f = pathlib.Path(r).expanduser() / "scores.json"
@@ -1895,8 +1912,22 @@ def render(record: dict) -> str:
     ran_at = _board_run_version(record)
     header = board_header(record["version"], ran_at)
     dated = f" · run {record['run_date']}" if record.get("run_date") else ""
+    # THE RESOLVED VERSION, WRITTEN INTO THE LINE when the run id does not
+    # carry one. `results/latest` is a run id `report --record` legitimately
+    # writes, and the only other place its version can be read is a scores.json
+    # in the run DIRECTORY — outside this repository, present on the machine
+    # that drove the run and absent on the runner. So the checker was lenient
+    # here and strict there, and preflight's claim that local green and CI green
+    # are one thing did not hold: a board describing `r19-xhigh-3` passed all
+    # thirty-four steps and reddened the merge.
+    #
+    # Putting it in the line moves the fact INTO the committed file, so both
+    # machines read the same thing and neither has to open a directory.
+    ran_at = _board_run_version(record)
+    stamped = (f" · scored at {ran_at}"
+               if ran_at and ran_at not in str(record["run_id"]) else "")
     lines = [header, "",
-             f"Runs {record['run_id']}{dated} · {record['host']} · "
+             f"Runs {record['run_id']}{dated}{stamped} · {record['host']} · "
              f"{record['detected']} of {record['agents']} agents detected · "
              f"up to n={record['repeat']} per agent · "
              f"{record['structural']} of {record['agents']} can never answer a CLI probe",
