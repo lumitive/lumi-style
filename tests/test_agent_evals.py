@@ -691,3 +691,51 @@ def test_the_board_prints_the_cli_build():
         [_trace("t-1", "cursor", "m", "high", cli_version="2026.08.25-3e8eec8")],
         [])
     assert "2026.08.25-3e8eec8" in agent_evals.render(rows, _EVALS)
+
+
+def test_the_newest_release_is_found_by_version_order_not_alphabetically():
+    """`0.1.99` outranks `0.1.100` as a string. `_ver_key` exists for exactly
+    this and the change that created this call site left it with no callers at
+    all, so nothing protected the one place that needed it."""
+    rows = [_cell(model="ninety-nine", skill_version="0.1.99",
+                  tokens_per_page=100.0),
+            _cell(model="one-hundred", skill_version="0.1.100",
+                  tokens_per_page=9000.0)]
+    _state, best, _c = agent_evals.pick("cursor", rows, _REGISTRY)
+    assert best is not None and best["model"] == "one-hundred", (
+        "0.1.100 is the newer release; a string comparison says 0.1.99")
+
+
+def test_an_empty_cli_version_is_an_absence_not_a_second_cell():
+    """`close --cli-version ""` stores the empty string — the copy loop tests
+    `is not None` and the schema type-checks and no more. `render` prints both
+    `""` and `None` as a dash, so one configuration became two rows showing the
+    same thing with two different medians."""
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "m", "high", out=1000, cli_version=""),
+         _trace("t-2", "cursor", "m", "high", out=9000, cli_version=None),
+         _trace("t-3", "cursor", "m", "high", out=5000, cli_version="  ")], [])
+    assert len(rows) == 1 and rows[0]["runs"] == 3
+    assert rows[0]["cli_version"] is None
+
+
+def test_a_padded_cli_version_matches_its_bare_form():
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "m", "high", cli_version="2026.08.25-3e8eec8"),
+         _trace("t-2", "cursor", "m", "high", cli_version=" 2026.08.25-3e8eec8 ")],
+        [])
+    assert len(rows) == 1, "one build spelled two ways became two cells"
+
+
+def test_the_board_states_the_spread_its_own_table_shows():
+    """The note said 99.4%, which is the spread of RAW charged seconds, under a
+    table printing s/page. A block that states a fact about the whole table is a
+    claim the table can falsify — 0.1.625 fixed the same shape in README."""
+    text = agent_evals.render([], _EVALS)
+    assert "spread it 124.0%" in text, (
+        "the s/page note must quote the s/page spread, not the raw seconds'")
+    # 99.4% still appears, inside the parenthesis recording the correction —
+    # asserted on the CLAIM rather than on the absence of a number, because
+    # deleting the old figure would delete the record of having been wrong.
+    claim = text.split("**`s/page` orders nothing.**")[1].split("(")[0]
+    assert "99.4" not in claim

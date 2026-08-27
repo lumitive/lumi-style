@@ -374,8 +374,14 @@ def cells(traces, history) -> list[dict]:
         row = admitted.get(t.get("trace_id"))
         if row is None or not t.get("agent"):
             continue
+        # STRIPPED, and an empty string is an absence. `close --cli-version ""`
+        # stores `""`, the schema type-checks the field and nothing else, and
+        # `render` prints both `""` and `None` as a dash — so one configuration
+        # rendered as two identical-looking rows with two medians. Operator
+        # reachable only; the harness's own guards cannot produce it.
+        cli = (t.get("cli_version") or "").strip() or None
         by_key[(t["agent"], t.get("model"), t.get("effort"),
-                t.get("skill_version"), t.get("cli_version"))].append((t, row))
+                t.get("skill_version"), cli)].append((t, row))
 
     scored = earned(history)
     out = []
@@ -487,7 +493,13 @@ def pick(agent_id: str, rows: list[dict],
     # and better sampled" the way the first version did, offers a measurement of
     # rules that no longer exist. The newest release with a named cell wins, and
     # the row already prints which one it is.
-    newest = max(r["skill_version"] or "" for r in named)
+    # `_ver_key`, NOT a bare `max()` over strings. The function two hundred
+    # lines up exists for exactly this and its docstring names the hazard word
+    # for word — and the change that created this call site left it with no
+    # callers at all, so nothing was protecting the one place that needed it.
+    # `0.1.99` outranks `0.1.100` lexicographically, and every patch number in
+    # the store is three digits today.
+    newest = max((r["skill_version"] or "" for r in named), key=_ver_key)
     named = [r for r in named if (r["skill_version"] or "") == newest]
     # EVERYTHING below compares within one release. `mine` spans all of them,
     # and a caveat pointing at another release's cell offers an alternative
@@ -610,7 +622,12 @@ def render(rows: list[dict], evals: dict) -> str:
               "write, so they are a column rather than a divisor.",
               "",
               "**`s/page` orders nothing.** The same four repeats spread it "
-              "99.4%: it measures server load and retries, not the "
+              "124.0% — the row two above says so itself, 95.2 to 258.6 around "
+              "a median of 131.8. (This sentence said 99.4% until 0.1.628, "
+              "which is the spread of the RAW charged seconds; dividing them "
+              "by a page count the agent chose made it worse, not better, and "
+              "the table the sentence sits under could be used to check it.) "
+              "It measures server load and retries, not the "
               "configuration. It is printed because a run's duration is a real "
               "cost to whoever waits for it, and with its range so that nobody "
               "reads a middle value as a ranking.",

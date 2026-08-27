@@ -43,7 +43,7 @@ Ordered by tasks_earned desc, tokens_per_page asc. **This is an ordering by cost
 
 **`output tokens` is the reference number, and `tokens/page` is the same measurement divided by a moving denominator.** Over four repeats of one configuration, output tokens spread 16.5%, content pages 12.5%, and the ratio of the two 32.3% — the division compounds both. Pages are what the agent chose to write, so they are a column rather than a divisor.
 
-**`s/page` orders nothing.** The same four repeats spread it 99.4%: it measures server load and retries, not the configuration. It is printed because a run's duration is a real cost to whoever waits for it, and with its range so that nobody reads a middle value as a ranking.
+**`s/page` orders nothing.** The same four repeats spread it 124.0% — the row two above says so itself, 95.2 to 258.6 around a median of 131.8. (This sentence said 99.4% until 0.1.628, which is the spread of the RAW charged seconds; dividing them by a page count the agent chose made it worse, not better, and the table the sentence sits under could be used to check it.) It measures server load and retries, not the configuration. It is printed because a run's duration is a real cost to whoever waits for it, and with its range so that nobody reads a middle value as a ranking.
 
 **The skill version AND the CLI build are part of a cell's identity.** A cell pooling runs from several releases would average three rulers and name one: measured on `cursor-grok-4.6-high`, 12.8% of the headline number was the ruler rather than the agent. The CLI updates on its own schedule — two rounds of one configuration a week apart ran under different builds — so it is a column rather than a footnote. A dash there means the run predates the field.
 
