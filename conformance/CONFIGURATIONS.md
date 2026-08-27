@@ -7,15 +7,15 @@ Ordered by tasks_earned desc, tokens_per_page asc. **This is an ordering by cost
 
 | agent | model | effort | runs | tokens/page | s/page | earned | pinned | measured |
 |---|---|---|---|---|---|---|---|---|
+| cursor | cursor-grok-4.6-high | high | 7 | 6290.1 | 158.6 | 3 of 3 | honoured | 2026-08-27 · skill 0.1.623 |
 | cursor | cursor-grok-4.6-high | — | 2 | 5398.3 | 211.3 | — | — | 2026-08-26 · skill 0.1.614 |
-| cursor | cursor-grok-4.6-high | high | 5 | 5576.4 | 148.2 | — | — | 2026-08-21 · skill 0.1.546 |
 | claude-code | — | high | 2 | 6824.3 | 128.6 | — | — | 2026-08-22 · skill 0.1.552 |
 | cursor | — | — | 5 | 7704.2 | 144.2 | — | — | 2026-08-26 · skill 0.1.613 |
 | hermes | — | high | 2 | 8430.1 | 104.0 | — | — | 2026-08-21 · skill 0.1.550 |
 | claude-code | sonnet | medium | 1 | 10167.0 | 124.9 | — | — | 2026-08-21 · skill 0.1.542 |
 | claude-code | sonnet | high | 5 | 12124.2 | 186.7 | — | — | 2026-08-21 · skill 0.1.546 |
+| hermes | — | — | 2 | 13098.2 | 143.6 | — | — | 2026-08-27 · skill 0.1.623 |
 | claude-code | — | — | 3 | 13138.1 | 178.8 | — | — | 2026-08-23 · skill 0.1.580 |
-| hermes | — | — | 1 | 15072.8 | 161.8 | — | — | 2026-08-25 · skill 0.1.605 |
 | hermes | deepseek-v4-flash | high | 5 | 17031.0 | 197.3 | — | — | 2026-08-21 · skill 0.1.546 |
 
 A dash is an absence, never a zero. `earned` is empty for a cell whose conformance rounds predate 0.1.618, when a history row began recording what it was run as; `pinned` is empty for the same reason.

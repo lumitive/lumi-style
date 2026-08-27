@@ -137,7 +137,7 @@ def earned(history: list[dict]) -> dict[str, dict]:
         joins = row.get("traces") or {}
         config = row.get("config") or {}
         for task_id, verdict in (row.get("tasks") or {}).items():
-            tid = joins.get(task_id)
+            tid = joins.get(task_id) or _sibling_trace(row, task_id)
             if not tid:
                 continue
             cell = out.setdefault(tid, {"earned": 0, "attempted": 0,
@@ -149,6 +149,35 @@ def earned(history: list[dict]) -> dict[str, dict]:
             cell["honoured"] = _honoured(config.get(task_id) or {},
                                          cell["honoured"])
     return out
+
+
+def _sibling_trace(row: dict, task_id: str) -> str | None:
+    """-> the trace of a task run at the SAME PINS in the same round, if one is.
+
+    **Most tasks open no trace at all.** `trace.py` opens one for a build, and
+    only the deck task declares a storyline — the harness prints "no trace: the
+    task declares no storyline" for the other two. So a join on the trace id
+    alone can never count more than one task per round, and `tasks_earned`
+    would have read `1 of 1` for an agent that earned three.
+
+    A history row is ONE round of ONE agent, so two of its tasks carrying the
+    same pins were the same configuration by construction. The comparison is on
+    `model_asked` and `effort` — **the operator's pins, not the CLI's answer** —
+    because the answer is a display sentence and comparing those is the defect
+    0.1.623 exists to fix. A task with no pins recorded matches nothing, rather
+    than matching every other unpinned task in the row.
+    """
+    config = row.get("config") or {}
+    joins = row.get("traces") or {}
+    mine = config.get(task_id) or {}
+    pins = (mine.get("model_asked"), mine.get("effort"))
+    if not all(pins):
+        return None
+    for other, tid in joins.items():
+        theirs = config.get(other) or {}
+        if (theirs.get("model_asked"), theirs.get("effort")) == pins:
+            return tid
+    return None
 
 
 def _honoured(cell_config: dict, so_far) -> bool | None:
@@ -170,7 +199,37 @@ def _honoured(cell_config: dict, so_far) -> bool | None:
     ran = cell_config.get("model_ran") or cell_config.get("model")
     if not asked or not ran:
         return so_far
-    return so_far is not False and asked in str(ran)
+    return so_far is not False and _same_model(asked, ran)
+
+
+def _norm(name: str) -> str:
+    """-> a model name with the punctuation and case a vendor varies removed.
+
+    `cursor-grok-4.6-high` and `Cursor Grok 4.6 High` are ONE model spelled two
+    ways — the id you pin and the name the CLI answers with. Compared literally
+    they do not match, and the first real round reported cursor's pin as
+    dishonoured on that basis alone. Which is 0.1.614's finding wearing the
+    opposite sign: there a display name hid a real substitution, here it
+    invented one.
+
+    Only case and non-alphanumerics go. The level survives, which is the
+    distinction that has to: `cursorgrok46high` is NOT a substring of
+    `cursorgrok46xhigh`, so a run pinned to `high` and answered at `xhigh`
+    still reads as dishonoured.
+    """
+    return "".join(c for c in name.lower() if c.isalnum())
+
+
+def _same_model(asked: str, ran: str) -> bool:
+    """-> is the model that ran the model that was asked for?
+
+    Containment rather than equality, in both directions, because the two names
+    are at different granularities and either can be the longer: `opus` is an
+    alias that answers as `claude-opus-5`, and `cursor-grok-4.6` is a pin the
+    driver composes a level onto before the CLI answers `Cursor Grok 4.6 High`.
+    """
+    a, r = _norm(asked), _norm(str(ran))
+    return bool(a) and bool(r) and (a in r or r in a)
 
 
 def cells(traces, history) -> list[dict]:

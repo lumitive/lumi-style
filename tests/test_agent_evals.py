@@ -361,3 +361,85 @@ def test_the_board_carries_no_version_stamp(capsys):
     assert "0.1.500" not in head, "the header borrowed a row's version"
     assert "no version stamp on this board on purpose" in head
     assert "0.1.500" in text, "the row must still carry its own"
+
+
+# MOST TASKS OPEN NO TRACE. `trace.py` opens one for a build, and only the deck
+# task declares a storyline — the harness says so out loud on every round: "no
+# trace: the task declares no storyline". A join on the trace id alone would
+# therefore have counted one task per round however many an agent earned, which
+# the first real round showed: cursor earned three and could have reported one.
+
+def test_a_task_with_no_trace_joins_its_siblings_run_at_the_same_pins():
+    """A history row is ONE round of ONE agent, so two tasks carrying the same
+    pins were the same configuration by construction."""
+    rows = agent_evals.cells(
+        [_trace("t-deck", "cursor", "cursor-grok-4.6-high", "high")],
+        [_row(tasks={"T1-deck": "pass", "T2": "pass", "T3": "pass"},
+              traces={"T1-deck": "t-deck"},
+              config={t: {"model": "Cursor Grok 4.6 High (asked ...)",
+                          "model_asked": "cursor-grok-4.6-high",
+                          "effort": "high"}
+                      for t in ("T1-deck", "T2", "T3")})])
+    assert rows[0]["tasks_earned"] == 3 and rows[0]["tasks_attempted"] == 3
+
+
+def test_a_task_run_at_different_pins_does_not_borrow_its_sibling_s_trace():
+    rows = agent_evals.cells(
+        [_trace("t-deck", "cursor", "cursor-grok-4.6-high", "high")],
+        [_row(tasks={"T1-deck": "pass", "T2": "pass"},
+              traces={"T1-deck": "t-deck"},
+              config={"T1-deck": {"model_asked": "cursor-grok-4.6-high",
+                                  "effort": "high"},
+                      "T2": {"model_asked": "composer-2.5",
+                             "effort": "low"}})])
+    assert rows[0]["tasks_earned"] == 1 and rows[0]["tasks_attempted"] == 1
+
+
+def test_an_unpinned_sibling_does_not_borrow_a_trace_it_cannot_be_matched_to():
+    """Not "every other unpinned task in the row" — that would make an unpinned
+    round credit its whole task list to one arbitrary trace. The task that owns
+    a trace still counts, because a trace records its own agent, model and
+    effort; what cannot be inferred is which OTHER tasks ran the same way."""
+    rows = agent_evals.cells(
+        [_trace("t-deck", "hermes", "deepseek-v4-flash", "high")],
+        [_row(agent="hermes", tasks={"T1-deck": "pass", "T2": "pass"},
+              traces={"T1-deck": "t-deck"},
+              config={"T1-deck": {"model_pinned": False,
+                                  "effort_pinned": False},
+                      "T2": {"model_pinned": False, "effort_pinned": False}})])
+    assert rows[0]["tasks_earned"] == 1 and rows[0]["tasks_attempted"] == 1, (
+        "the traced task counts; its unpinned sibling has nothing to match on")
+
+
+# ONE MODEL, TWO SPELLINGS. You pin an id and the CLI answers with a display
+# name. Compared literally they do not match, and the first real round reported
+# cursor's honoured pin as dishonoured on that basis alone — 0.1.614's finding
+# wearing the opposite sign: there a display name hid a real substitution, here
+# it invented one. Every pair below is from a real driver.json or a real
+# `cursor-agent --list-models` id, not from an imagined shape.
+
+@pytest.mark.parametrize("asked,ran,same", [
+    ("cursor-grok-4.6-high", "Cursor Grok 4.6 High", True),
+    ("opus", "claude-opus-5", True),
+    ("cursor-grok-4.6", "Cursor Grok 4.6 High", True),
+    # THE DISTINCTION THAT MUST SURVIVE NORMALISING. A run pinned to `high` and
+    # answered at `xhigh` is a substitution, and both spellings of it stay
+    # distinguishable because only case and punctuation are removed.
+    ("cursor-grok-4.6-high", "Cursor Grok 4.6 Extra High", False),
+    ("cursor-grok-4.6-high", "cursor-grok-4.6-xhigh", False),
+    ("grok-4.6-high", "composer-2.5", False),
+])
+def test_a_pin_and_the_name_the_cli_answers_with(asked, ran, same):
+    assert agent_evals._same_model(asked, ran) is same
+
+
+def test_the_real_rounds_honoured_pin_reads_as_honoured():
+    """End of the same argument, through the public path."""
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "cursor-grok-4.6-high", "high")],
+        [_row(traces={"T1-deck": "t-1"},
+              config={"T1-deck": {
+                  "model": "Cursor Grok 4.6 High (asked cursor-grok-4.6-high)",
+                  "model_ran": "Cursor Grok 4.6 High",
+                  "model_asked": "cursor-grok-4.6-high", "effort": "high"}})])
+    assert rows[0]["effort_honoured"] is True

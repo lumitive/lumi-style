@@ -103,9 +103,18 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 - opened: 0.1.622
 - surface: conformance/CONFIGURATIONS.md, README.md's generated block,
   conformance/agent-evals.json
-- symptom: the configurations board carries ten cells across three agents, and
-  every one of them has an EMPTY `earned` column, because no conformance round
-  has yet been recorded with the `traces` key 0.1.618 added. So the board orders
+- 0.1.624 update: **one cell has an earned count now** — cursor at
+  `cursor-grok-4.6-high` / `high`, 3 of 3, pin honoured, from round r17 driven
+  against installs updated to the published 0.1.623. Nine cells still have none.
+  The entry stays OPEN because its condition was two agents, and the second did
+  not produce a joinable trace: Claude Code ran past the deck budget, so it has
+  no admitted run, and its other two tasks open no trace to join to. That is the
+  structural finding this round paid for — **an agent whose deck task fails
+  contributes no cost measurement at all**, so its stalest cell keeps winning
+  the README row.
+- symptom: the configurations board carried ten cells across three agents, and
+  every one of them had an EMPTY `earned` column, because no conformance round
+  had been recorded with the `traces` key 0.1.618 added. So the board orders
   cells on cost alone, and cost is the axis the register itself calls the weaker
   one: `tasks_earned` sorts first and is absent everywhere.
   On the README side the same emptiness reads as nine of twelve PLATFORM rows

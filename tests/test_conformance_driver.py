@@ -1034,3 +1034,60 @@ def test_the_effort_vocabulary_has_exactly_one_definition():
     # And the shared tuple actually covers what the CLIs accept.
     for level in ("xhigh", "max"):
         assert level in trace_schema.ENUMS["effort"], level
+
+
+def test_the_trace_id_reaches_the_driver_record_on_disk(tmp_path, monkeypatch):
+    """The join key must survive the FILE, which is the only thing `score`
+    reads.
+
+    `_conformance_trace` puts the trace id into `record`, and until 0.1.624 the
+    caller had already serialized `driver.json` — so the id reached memory and
+    never reached disk, and the first round driven after 0.1.617 shipped it
+    carried a `trace_id` in no score cell at all. The test that was supposed to
+    hold this called the helper directly and read the returned dict, which is
+    exactly the seam the defect lived on.
+
+    Driven end to end through `run --drive`, against a fake CLI that writes a
+    deck, for the reason the test above this one gives about call sites.
+    """
+    run_dir = tmp_path / "run"
+    store = tmp_path / "traces"
+    store.mkdir()
+    monkeypatch.setenv("LUMI_TRACES", str(store))
+    fake = tmp_path / "fake-cli"
+    fake.write_text(
+        '#!/bin/sh\nprintf "<html><body>deck</body></html>" > deck.en.html\n',
+        encoding="utf-8")
+    fake.chmod(0o755)
+    # The whole SKILL_SURFACE, because `environment_check` requires all of it
+    # and a blocked agent is never driven at all — which is a different test's
+    # subject and would make this one pass for the wrong reason.
+    skill = tmp_path / "skill"
+    for rel in rc.SKILL_SURFACE:
+        target = skill / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.suffix:
+            target.write_text("stub\n", encoding="utf-8")
+        else:
+            target.mkdir(exist_ok=True)
+
+    agents = [{"id": "faker", "name": "Faker", "capability": "full",
+               "drive": [str(fake), "-p"], "drive_skill_flag": "--add-dir",
+               "skill_paths": [str(skill)], "probe": ["true"]}]
+    tasks = [{"id": "T1-deck", "prompt": "build", "deliverable": "*.html",
+              "min_capability": "full", "score": ["design"],
+              "storyline": "market-analysis", "genre": "internal"}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: tasks)
+    monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
+
+    rc.main(["run", "--drive", "--run", str(run_dir)])
+    record = json.loads((run_dir / "faker" / "T1-deck" / "driver.json")
+                        .read_text(encoding="utf-8"))
+    written = list(store.glob("*.json"))
+    assert written, "the drive opened no trace, so this proves nothing"
+    assert record.get("trace_id"), (
+        "driver.json carries no trace_id; `score` reads this file, so the "
+        "join key never reaches a score cell")
+    assert record["trace_id"] == json.loads(
+        written[0].read_text(encoding="utf-8"))["trace_id"]
