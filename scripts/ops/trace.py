@@ -39,6 +39,7 @@ from __future__ import annotations
 import argparse
 import datetime as _dt
 import json
+import os
 import pathlib
 import re
 import sys
@@ -104,9 +105,24 @@ def _load(trace_id):
 
 
 def _save(rec):
-    TRACES.mkdir(parents=True, exist_ok=True)
-    _path(rec["trace_id"]).write_text(json.dumps(rec, indent=1, sort_keys=True) + "\n",
-                                      encoding="utf-8")
+    """Write a trace, whole, or not at all.
+
+    TMP + `os.replace`, the idiom this repository already carries at
+    `debug_log.py`'s `_write` and for the same reason. A bare `write_text`
+    truncates on a crash mid-write, and `trace_store.load()` swallows the
+    resulting `JSONDecodeError` and skips the file — so a damaged record reads
+    as a record that was never made. That is FM-24's shape in the data layer:
+    the loss and the absence print the same thing, which is nothing.
+
+    Every mutation here is load → change → validate → REWRITE THE WHOLE FILE,
+    so this is not a rare path; it runs on every phase stop and every close.
+    """
+    path = _path(rec["trace_id"])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(rec, indent=1, sort_keys=True) + "\n",
+                   encoding="utf-8")
+    os.replace(tmp, path)
 
 
 def _checker_json(script, deliverable, extra=()):
@@ -123,9 +139,28 @@ def _checker_json(script, deliverable, extra=()):
         return None, False
     return run["reports"], True
 
+def _fresh_id() -> str:
+    """-> a trace id no file in the store already carries.
+
+    Twelve hex characters is 48 bits, and `_save` overwrites whatever is at the
+    path it builds — so a collision would destroy a record silently and leave
+    two runs believing they own one id. The store is small enough that the
+    probability is remote and the check is one `exists()`, which is the wrong
+    trade to skip: the cost of the guard is nothing and the cost of the event is
+    a record that cannot be recovered.
+    """
+    for _ in range(8):
+        candidate = "t-" + uuid.uuid4().hex[:12]
+        if not _path(candidate).exists():
+            return candidate
+    sys.exit("eight generated trace ids were all already in the store. That is "
+             "not chance at this size — check that the store is what you think "
+             "it is before opening anything else.")
+
+
 def cmd_open(a):
     rec: dict[str, object] = dict.fromkeys(FIELDS)
-    rec.update(trace_id="t-" + uuid.uuid4().hex[:12], opened_at=_now(), closed_at=None,
+    rec.update(trace_id=_fresh_id(), opened_at=_now(), closed_at=None,
                source=a.source, skill_version=_skill_version(), genre=a.genre,
                storyline=a.storyline, entry_path=a.entry_path,
                outline_reviewed=False, titles_changed_after_approval=0,
