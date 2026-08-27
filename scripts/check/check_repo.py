@@ -225,8 +225,18 @@ def _json_manifests():
     """-> the tracked .json files this repository writes by hand or generates.
 
     Tracked, so a local scratch file is not scanned; and json only, because the
-    prose globs already cover markdown. Traces are excluded: `evals/traces/`
-    is machine-written against a closed schema that has nowhere to put prose.
+    prose globs already cover markdown. Traces are excluded, and the reason
+    changed at 0.1.631: it was "a closed schema with nowhere to put prose",
+    which stopped being true the moment `annotations` gave it somewhere. The
+    reason now is narrower and deliberate — `evals/` is development-side
+    (`adapters/shipped.json`), so no trace reaches a reader of the published
+    package, and an operator's note about their own run is neither rule prose
+    nor rule data. It is the one place in this repository where the owner may
+    write in the language she thinks in.
+
+    That is a decision rather than a hole, and `evals/traces/README.md` states
+    it where a contributor will find it. Everything else in a trace is a
+    measurement with no natural language in it at all.
     """
     if not (ROOT / ".git").exists():
         return []

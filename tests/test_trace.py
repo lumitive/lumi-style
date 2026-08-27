@@ -793,3 +793,39 @@ def test_a_store_that_answers_taken_every_time_is_a_hard_exit(tmp_path,
     with pytest.raises(SystemExit) as caught:
         trace_mod._fresh_id()
     assert "eight generated trace ids" in str(caught.value)
+
+
+# `annotations` IS THE FIELD A PERSON EDITS BY HAND, and a hand edit is exactly
+# where a shape goes wrong. The schema types it for that reason: a broken edit
+# reddens CI instead of reaching a reader.
+
+@pytest.mark.parametrize("bad,why", [
+    ({"note": 12}, "a note is a sentence a person wrote"),
+    ({"tags": "benchmark"}, "tags is a list, not one string"),
+    ({"tags": ["ok", 3]}, "a label is a string"),
+    ({"verdict": "pass"}, "a third key is a schema invented in an editor"),
+])
+def test_a_malformed_annotation_is_refused(bad, why):
+    import trace_schema
+    rec = dict.fromkeys(trace_schema.FIELDS)
+    rec.update(trace_id="t-0123456789ab", opened_at="2026-08-28T00:00:00+00:00",
+               closed_at=None, source="build", skill_version="0.1.631",
+               genre="internal", storyline="proposal", entry_path="B",
+               outline_reviewed=False, titles_changed_after_approval=0,
+               geometry="16x9", pages=0, content_pages=0, phase_seconds={},
+               gates={}, graded={}, thresholds={}, principle_yields=[],
+               annotations=bad)
+    assert trace_schema.validate(rec), why
+
+
+def test_a_well_formed_annotation_is_accepted():
+    import trace_schema
+    rec = dict.fromkeys(trace_schema.FIELDS)
+    rec.update(trace_id="t-0123456789ab", opened_at="2026-08-28T00:00:00+00:00",
+               closed_at=None, source="build", skill_version="0.1.631",
+               genre="internal", storyline="proposal", entry_path="B",
+               outline_reviewed=False, titles_changed_after_approval=0,
+               geometry="16x9", pages=0, content_pages=0, phase_seconds={},
+               gates={}, graded={}, thresholds={}, principle_yields=[],
+               annotations={"note": "why this run was made", "tags": ["r19"]})
+    assert trace_schema.validate(rec) == []
