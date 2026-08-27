@@ -8,6 +8,10 @@ Ordered by tasks_earned desc, tokens_per_page asc. **This is an ordering by cost
 | agent | model | effort | skill | cli | n | output tokens | tokens/page | s/page | pages | earned | pinned | measured |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | cursor | cursor-grok-4.6-high | high | 0.1.623 | — | 2 | 63,036 (62,901–63,171) | 7,093 (6,290–7,896) | 179.6 (158.6–200.5) | 8–10 | 3 of 3 | honoured | 2026-08-27 |
+| cursor | cursor-grok-4.6-low | low | 0.1.626 | 2026.08.25-3e8eec8 | 2 | 25,770 (23,041–28,500) | 2,865 (2,850–2,880) | 90.5 (74.7–106.2) | 8–10 | 2 of 2 | honoured | 2026-08-27 |
+| cursor | cursor-grok-4.6-medium | medium | 0.1.626 | 2026.08.25-3e8eec8 | 2 | 36,172 (35,134–37,211) | 3,617 (3,513–3,721) | 78.3 (68.0–88.7) | 10 | 2 of 2 | honoured | 2026-08-27 |
+| cursor | cursor-grok-4.6-high | high | 0.1.626 | 2026.08.25-3e8eec8 | 2 | 39,185 (18,470–59,900) | 3,918 (1,847–5,990) | 111.1 (108.0–114.2) | 10 | 2 of 2 | honoured | 2026-08-27 |
+| cursor | cursor-grok-4.6-xhigh | xhigh | 0.1.626 | 2026.08.25-3e8eec8 | 2 | 65,340 (63,867–66,813) | 7,332 (6,681–7,983) | 131.6 (119.6–143.6) | 8–10 | 2 of 2 | honoured | 2026-08-27 |
 | cursor | cursor-grok-4.6-low | low | 0.1.625 | 2026.08.25-3e8eec8 | 1 | 34,368 | 3,437 | 88.3 | 10 | 1 of 1 | honoured | 2026-08-27 |
 | cursor | cursor-grok-4.6-medium | medium | 0.1.625 | 2026.08.25-3e8eec8 | 1 | 32,144 | 4,018 | 133.9 | 8 | 1 of 1 | honoured | 2026-08-27 |
 | cursor | cursor-grok-4.6-high | high | 0.1.625 | 2026.08.25-3e8eec8 | 1 | 47,460 | 4,746 | 103.9 | 10 | 1 of 1 | — | 2026-08-27 |

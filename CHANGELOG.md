@@ -1,3 +1,80 @@
+## 0.1.627 — twelve runs said three of the four tiers are indistinguishable, and a human said the difference is in the figures
+
+The four-tier round, finished properly: **twelve runs, three per tier**, one
+agent, one task, one CLI build. The first report of it was made at n=1 per tier
+and was wrong in both directions; both retractions are below.
+
+**The two batches are pooled, and the justification is checkable rather than
+convenient.** Four runs landed at skill 0.1.625 and eight at 0.1.626, because a
+release shipped between them. Diffed: the surface an agent reads differs by
+**seven lines in seven files, every one a version stamp**. The board still keys
+cells by release — that rule is right in general — and this is an analysis-time
+judgement with the diff behind it. The second batch was driven INTERLEAVED
+(low, medium, high, xhigh, twice) rather than blocked, so drift over two and a
+half hours lands on every tier instead of on whichever ran last.
+
+**Cost: only Extra High separates.**
+
+| tier | output tokens, min – median – max | spread |
+|---|---|---|
+| low | 23,041 – 28,500 – 34,368 | 40% |
+| medium | 32,144 – 35,134 – 37,211 | 14% |
+| high | 18,470 – 47,460 – 59,900 | **87%** |
+| xhigh | 63,867 – 66,813 – 76,072 | 18% |
+
+Low and medium overlap by 2,224; medium and high by 18,741. Only high and
+xhigh are clear of each other, by 3,967 — and xhigh's cheapest run is dearer
+than every one of the other nine runs. **Low, medium and high cannot be told
+apart on this evidence.**
+
+**Quality: every one of the twelve passed every GATING check.** The differences
+sit in the `graded` and `reported` metrics, which report a direction and never
+gate. Low missed one in **3 of 3** runs — `M8_length_cv`, sentence-length
+variety, below its 0.50 floor every time — against 1 of 3 for each of the other
+tiers, and those three are all the same metric, `M2_number_sourcing`.
+
+**What a person saw, which is the finding that matters.** The owner read all
+twelve decks. Low is visibly weaker; medium and high are hard to tell apart;
+xhigh is slightly better; and **the entire difference is in the figures** — what
+each page draws, how it is dimensioned, how numbers and words share it. Filed as
+IDEA-20, with the one mechanical signal that corroborates it:
+`layout_top_share` runs 40–90% across the twelve with no relation to tier, and
+the cheapest `high` run passed every gate with **80% of its pages on one
+layout**.
+
+**So the recommendation is medium**, and it is not what this package's own board
+would say. Against medium: high costs **+35%** for "about the same", xhigh
+**+90%** for "slightly better", and low saves 19% by giving up the figures —
+which `SKILL.md` puts at about 80% of a content page. Medium is the cheapest
+tier at the quality plateau.
+
+**The board would recommend low.** It orders by cost among configurations that
+cleared the gate line, all four cleared it, and low is cheapest. That is not a
+defect; it is the sentence `conformance/agent-evals.json` has carried since it
+was written — *above that line the checks cannot tell two documents apart* —
+costing something for the first time. A configurations board cannot recommend a
+configuration on quality until a human read is bound to a CELL rather than to a
+document. `review_scores.py` already holds the human dimensions; what is missing
+is the join.
+
+**Two retractions from the n=1 report.** "Zero failures at every tier" was four
+clean draws out of twelve. "Cost rises monotonically and n=1 is enough" rested
+on a ±8.25% noise floor measured on ONE configuration — while `high`'s own
+spread across three runs is **87%**.
+
+**Repeat noise is not a constant, and that is the methodological result.** Across
+four tiers of one model on one task it ran 14%, 18%, 40% and 87%. There is no
+floor to measure once and reuse. n=1 produced a clean, monotonic, plausible and
+false answer; n=3 was enough to learn which tiers are indistinguishable, which
+is itself the useful finding. Separating low from medium from high would need
+far more than three, because the gaps between them are smaller than one tier's
+own variation.
+
+No code changed. `conformance/history.json` gains eight rows, the trace store
+eight records, and the board is redrawn from them.
+
+Design record: `specs/2026-08-27-agent-evals-design.md`.
+
 ## 0.1.626 — a cell that pooled three rulers, and a noise floor that was one measurement
 
 The owner asked for four Cursor reasoning tiers to be measured against each
