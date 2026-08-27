@@ -1091,3 +1091,95 @@ def test_the_trace_id_reaches_the_driver_record_on_disk(tmp_path, monkeypatch):
         "join key never reaches a score cell")
     assert record["trace_id"] == json.loads(
         written[0].read_text(encoding="utf-8"))["trace_id"]
+
+
+def test_the_cli_build_reaches_the_trace(tmp_path, monkeypatch):
+    """`agent` names a platform, `model` names what it was pointed at, and
+    until 0.1.626 nothing said which BINARY did the work — while the binary
+    updates on its own schedule. Two rounds of one configuration a week apart
+    ran under `2026.08.11-e8db854` and `2026.08.25-3e8eec8`, so a difference
+    between them had a third cause nothing had recorded.
+
+    Taken from the probe this run already made BEFORE driving, never re-probed
+    at close: asking a CLI its version afterwards answers about now.
+    """
+    run_dir = tmp_path / "run"
+    store = tmp_path / "traces"
+    store.mkdir()
+    monkeypatch.setenv("LUMI_TRACES", str(store))
+    fake = tmp_path / "fake-cli"
+    fake.write_text(
+        '#!/bin/sh\nprintf "<html><body>deck</body></html>" > deck.en.html\n',
+        encoding="utf-8")
+    fake.chmod(0o755)
+    skill = tmp_path / "skill"
+    for rel in rc.SKILL_SURFACE:
+        target = skill / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.suffix:
+            target.write_text("stub\n", encoding="utf-8")
+        else:
+            target.mkdir(exist_ok=True)
+
+    agents = [{"id": "faker", "name": "Faker", "capability": "full",
+               "drive": [str(fake), "-p"], "drive_skill_flag": "--add-dir",
+               "skill_paths": [str(skill)], "probe": ["true"]}]
+    tasks = [{"id": "T1-deck", "prompt": "build", "deliverable": "*.html",
+              "min_capability": "full", "score": ["design"],
+              "storyline": "market-analysis", "genre": "internal"}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: tasks)
+    monkeypatch.setattr(rc, "detect", lambda a: (True, "2026.08.25-3e8eec8"))
+
+    rc.main(["run", "--drive", "--run", str(run_dir)])
+    written = list(store.glob("*.json"))
+    assert written, "the drive opened no trace, so this proves nothing"
+    trace = json.loads(written[0].read_text(encoding="utf-8"))
+    assert trace.get("cli_version") == "2026.08.25-3e8eec8", (
+        f"the probed build did not reach the trace: {trace.get('cli_version')!r}")
+
+
+def test_an_unprobeable_agent_is_never_driven_so_the_cli_column_cannot_lie(
+        tmp_path, monkeypatch, capsys):
+    """`detect` returns `(False, "not installed")` and that string is a
+    DIAGNOSIS, not a version — writing it would put "not installed" in a column
+    headed `cli` on a row that plainly ran.
+
+    It cannot happen, and this pins WHY rather than pinning the guard: an agent
+    whose probe fails is not driven at all, so there is no trace to mislabel.
+    The first version of this test asserted the guard's effect on a trace and
+    failed because no trace exists — which is the answer, not the problem.
+    """
+    run_dir = tmp_path / "run"
+    store = tmp_path / "traces"
+    store.mkdir()
+    monkeypatch.setenv("LUMI_TRACES", str(store))
+    fake = tmp_path / "fake-cli"
+    fake.write_text(
+        '#!/bin/sh\nprintf "<html><body>deck</body></html>" > deck.en.html\n',
+        encoding="utf-8")
+    fake.chmod(0o755)
+    skill = tmp_path / "skill"
+    for rel in rc.SKILL_SURFACE:
+        target = skill / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.suffix:
+            target.write_text("stub\n", encoding="utf-8")
+        else:
+            target.mkdir(exist_ok=True)
+    agents = [{"id": "faker", "name": "Faker", "capability": "full",
+               "drive": [str(fake), "-p"], "drive_skill_flag": "--add-dir",
+               "skill_paths": [str(skill)], "probe": ["true"]}]
+    tasks = [{"id": "T1-deck", "prompt": "build", "deliverable": "*.html",
+              "min_capability": "full", "score": ["design"],
+              "storyline": "market-analysis", "genre": "internal"}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: tasks)
+    monkeypatch.setattr(rc, "detect", lambda a: (False, "probe failed: OSError"))
+
+    rc.main(["run", "--drive", "--run", str(run_dir)])
+    assert not list(store.glob("*.json")), (
+        "an agent whose CLI could not be probed was driven anyway, and its "
+        "trace can now carry a diagnosis where a version belongs")
+    assert "nothing to prepare" in capsys.readouterr().out, (
+        "the harness must SAY it drove nothing rather than passing quietly")

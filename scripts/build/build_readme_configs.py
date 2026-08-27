@@ -91,7 +91,15 @@ def rows_for_readme(cells=None, registry=None, notes=None) -> list[str]:
             continue
         earned = ("—" if best["tasks_earned"] is None
                   else f"{best['tasks_earned']} of {best['tasks_attempted']}")
-        cost = f"{best['tokens_per_page']:,.0f} tok/page (n={best['runs']})"
+        # OUTPUT TOKENS FIRST, the ratio second. Over four repeats of one
+        # configuration output tokens spread 16.5% and the ratio 32.3% —
+        # dividing by a page count the agent chose compounds two movements.
+        # Both are printed because a reader comparing agents wants the rate and
+        # a reader budgeting one build wants the total.
+        cost = (f"{best['output_tokens']:,.0f} out-tok · "
+                f"{best['tokens_per_page']:,.0f}/page (n={best['runs']})"
+                if best.get("output_tokens") is not None
+                else f"{best['tokens_per_page']:,.0f} tok/page (n={best['runs']})")
         # The caveats go BELOW the table, not into the cell. Inlined they made
         # one cell three lines wide and the table unreadable, which is its own
         # way of not saying them. Dropping them is what the review found: the

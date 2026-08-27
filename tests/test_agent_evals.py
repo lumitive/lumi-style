@@ -354,6 +354,10 @@ def test_the_board_carries_no_version_stamp(capsys):
     text = agent_evals.render(
         [{"agent": "cursor", "model": "m", "effort": "high", "runs": 1,
           "tokens_per_page": 1.0, "seconds_per_page": 1.0,
+          "output_tokens": 10, "output_tokens_range": (10, 10),
+          "cli_version": None,
+          "tokens_per_page_range": (1.0, 1.0),
+          "seconds_per_page_range": (1.0, 1.0), "content_pages_range": (10, 10),
           "tasks_earned": None, "tasks_attempted": None,
           "effort_honoured": None, "measured": "2026-08-26",
           "skill_version": "0.1.500"}], _EVALS)
@@ -428,6 +432,15 @@ def test_an_unpinned_sibling_does_not_borrow_a_trace_it_cannot_be_matched_to():
     # `Extra`, which is the one pair this check exists for.
     ("cursor-grok-4.6-high", "cursor-grok-4.6-xhigh", False),
     ("cursor-grok-4.6-high", "Cursor Grok 4.6 Extra High", False),
+    # THE OTHER HALF OF THAT PAIR, and it is a real run: pinned to
+    # `cursor-grok-4.6-xhigh`, answered `Cursor Grok 4.6 Extra High`, and the
+    # board printed **not honoured** until `Extra High` was read as one
+    # spelling of `xhigh` — a value in `trace_schema.ENUMS["effort"]`, which is
+    # a tuple this package owns, not a vendor model alias.
+    ("cursor-grok-4.6-xhigh", "Cursor Grok 4.6 Extra High", True),
+    ("cursor-grok-4.6-low", "Cursor Grok 4.6 Low", True),
+    ("cursor-grok-4.6-medium", "Cursor Grok 4.6 Medium", True),
+    ("cursor-grok-4.6-xhigh", "cursor-grok-4.6-xhigh-fast", None),
     ("grok-4.6-high", "composer-2.5", False),
     # NOT ESTABLISHED. An alias, a display name that drops the level, and a
     # `-fast` twin are indistinguishable from here — the first two are almost
@@ -540,3 +553,141 @@ def test_two_agents_in_one_run_directory_are_two_rounds():
               config={"T": {"model_asked": "m", "effort": "high"}})])
     assert {r["agent"] for r in rows} == {"cursor", "hermes"}
     assert all(r["tasks_earned"] == 1 for r in rows)
+
+
+# THE SKILL VERSION IS PART OF A CELL'S IDENTITY. Without it one row averaged
+# runs measured under three different rulers and printed the newest version's
+# number over all of them — measured on the real store, 12.8% of that cell's
+# headline was the ruler rather than the agent.
+
+def test_two_skill_versions_are_two_cells():
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "m", "high", out=1000, skill_version="0.1.542"),
+         _trace("t-2", "cursor", "m", "high", out=9000, skill_version="0.1.623")],
+        [])
+    assert len(rows) == 2
+    assert {r["skill_version"] for r in rows} == {"0.1.542", "0.1.623"}
+    assert {r["tokens_per_page"] for r in rows} == {100.0, 900.0}, (
+        "pooling would have printed one median for both rulers")
+
+
+def test_a_cell_reports_the_output_tokens_beside_the_ratio():
+    """`output_tokens` is the reference. Over four repeats of one
+    configuration, output tokens spread 16.5% and the same measurement divided
+    by content pages spread 32.3% — the denominator moves too."""
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "m", "high", out=40000, pages=8),
+         _trace("t-2", "cursor", "m", "high", out=40000, pages=10)], [])
+    assert rows[0]["output_tokens"] == 40000
+    assert rows[0]["output_tokens_range"] == (40000, 40000)
+    assert rows[0]["tokens_per_page_range"] == (4000.0, 5000.0), (
+        "identical token counts, and the ratio still moved 25%")
+    assert rows[0]["content_pages_range"] == (8, 10)
+
+
+def test_every_reported_middle_carries_its_range():
+    """A median printed alone invites a reader to order two cells that overlap
+    completely. `s/page` spread 99.4% over four repeats of one configuration."""
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "m", "high", out=1000),
+         _trace("t-2", "cursor", "m", "high", out=9000)], [])
+    for middle, rng in (("output_tokens", "output_tokens_range"),
+                        ("tokens_per_page", "tokens_per_page_range"),
+                        ("seconds_per_page", "seconds_per_page_range")):
+        assert rows[0][rng] is not None, f"{middle} has no range beside it"
+        lo, hi = rows[0][rng]
+        assert lo <= rows[0][middle] <= hi
+
+
+def test_the_board_prints_the_range_not_only_the_middle():
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "m", "high", out=1000),
+         _trace("t-2", "cursor", "m", "high", out=9000)], [])
+    text = agent_evals.render(rows, _EVALS)
+    assert "(100–900)" in text or "(100.0–900.0)" in text, (
+        f"the spread is not on the board: {text}")
+
+
+# ONE RULER PER RECOMMENDATION. Cells carry their skill version now, so an
+# agent has one cell per configuration PER RELEASE — and an older cell is not
+# an alternative anybody can choose. The first version of `pick()` cited one:
+# "cursor-grok-4.6-high at 4 run(s) is dearer per page and better sampled",
+# pointing at a measurement of skill 0.1.542's rules.
+
+def _cell(**kw):
+    base = {"agent": "cursor", "model": "m", "effort": "high", "runs": 1,
+            "tokens_per_page": 1000.0, "seconds_per_page": 10.0,
+            "output_tokens": 10000, "output_tokens_range": (10000, 10000),
+            "tokens_per_page_range": (1000.0, 1000.0),
+            "seconds_per_page_range": (10.0, 10.0),
+            "content_pages_range": (10, 10), "cli_version": None,
+            "tasks_earned": None,
+            "tasks_attempted": None, "effort_honoured": None,
+            "measured": "2026-08-27", "skill_version": "0.1.625"}
+    base.update(kw)
+    return base
+
+
+def test_the_recommendation_comes_from_the_newest_release_measured():
+    rows = [_cell(model="new", skill_version="0.1.625", tokens_per_page=9000.0),
+            _cell(model="old", skill_version="0.1.542", tokens_per_page=100.0)]
+    _state, best, _c = agent_evals.pick("cursor", rows, _REGISTRY)
+    assert best is not None and best["model"] == "new", (
+        "the cheaper cell measures rules that no longer exist")
+
+
+def test_no_caveat_points_at_another_release():
+    """Asserted on the NUMBER, not on the version string — the caveats quote a
+    tokens-per-page figure and never a release, so checking for "0.1.542" in
+    them passed on code that offered the 0.1.542 cell. A planted red found it.
+    """
+    rows = [_cell(model="new", skill_version="0.1.625", tokens_per_page=9000.0),
+            _cell(model=None, skill_version="0.1.542", tokens_per_page=100.0),
+            _cell(model="old", skill_version="0.1.542", runs=9,
+                  tokens_per_page=50.0)]
+    _state, _best, caveats = agent_evals.pick("cursor", rows, _REGISTRY)
+    joined = " ".join(caveats)
+    for other_release_number in ("100", "50", "old"):
+        assert other_release_number not in joined, (
+            f"a caveat offered an alternative from another release: {caveats}")
+
+
+def test_the_sentence_names_the_release_it_was_measured_against():
+    _state, detail = agent_evals.suggest("cursor", [_cell()], _REGISTRY)
+    assert "skill 0.1.625" in detail
+    assert "10,000 output tokens" in detail, "the reference number is missing"
+
+
+# THE CLI BUILD IS PART OF A CELL'S IDENTITY TOO. `agent` names a platform and
+# `model` names what it was pointed at; neither says which binary did the work,
+# and a CLI updates on its own schedule. Two rounds of one configuration a week
+# apart ran under `2026.08.11-e8db854` and `2026.08.25-3e8eec8`.
+
+def test_two_cli_builds_are_two_cells():
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "m", "high", out=1000,
+                cli_version="2026.08.11-e8db854"),
+         _trace("t-2", "cursor", "m", "high", out=9000,
+                cli_version="2026.08.25-3e8eec8")], [])
+    assert len(rows) == 2
+    assert {r["cli_version"] for r in rows} == {"2026.08.11-e8db854",
+                                                "2026.08.25-3e8eec8"}
+
+
+def test_a_run_predating_the_field_is_its_own_cell_not_folded_into_a_named_one():
+    """"We did not record which binary" is not the same run as "we did". Folding
+    the unrecorded ones into whichever named cell they resemble would invent the
+    fact the field was added to stop inventing."""
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "m", "high", out=1000),
+         _trace("t-2", "cursor", "m", "high", out=9000,
+                cli_version="2026.08.25-3e8eec8")], [])
+    assert len(rows) == 2
+    assert None in {r["cli_version"] for r in rows}
+
+
+def test_the_board_prints_the_cli_build():
+    rows = agent_evals.cells(
+        [_trace("t-1", "cursor", "m", "high", cli_version="2026.08.25-3e8eec8")],
+        [])
+    assert "2026.08.25-3e8eec8" in agent_evals.render(rows, _EVALS)

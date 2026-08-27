@@ -2099,7 +2099,16 @@ ENTRY_STAMP = stamps.ENTRY_STAMP
 # Same contract as check_prose.py's NOT_MECHANIZED: a documented exception is a
 # reviewable state; an undocumented one is a mistake nobody noticed.
 # Files that legitimately carry version numbers belonging to other projects.
-THIRD_PARTY_VERSION_LINES = {"conformance/CONFORMANCE.md": re.compile(r"^\|")}
+# A table row in either scoreboard carries somebody else's release number —
+# "Claude Code 2.1.225", or a CLI build like "2026.08.25-3e8eec8" that this
+# guard's pattern reads as a version because it is three dot-separated numbers.
+# CONFIGURATIONS.md joined at 0.1.626, when the CLI build became a column: its
+# rows reddened the release that added them, and waiving the build ids one by
+# one would mean editing this file every time an agent updates.
+THIRD_PARTY_VERSION_LINES = {
+    "conformance/CONFORMANCE.md": re.compile(r"^\|"),
+    "conformance/CONFIGURATIONS.md": re.compile(r"^\|"),
+}
 
 VERSION_CITATION_WAIVERS = {
     # An upstream npm package version, pinned so the vendored marks can be

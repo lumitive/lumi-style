@@ -1,3 +1,86 @@
+## 0.1.626 — a cell that pooled three rulers, and a noise floor that was one measurement
+
+The owner asked for four Cursor reasoning tiers to be measured against each
+other. Answering that needed three things the board could not do, and the
+answering found two defects in the board and one in how the round was driven.
+
+**A cell is `agent × model × effort × skill version × CLI build` now.** It was
+the first three, and `skill_version` printed as `max()` of whatever the row had
+pooled — so one row could average runs measured under three different rulers
+and name only the newest. Measured on the cell this was found in:
+`cursor-grok-4.6-high` read 6290 tokens per page over seven runs spanning
+0.1.542 to 0.1.623, and 7093 over the two that actually ran under 0.1.623.
+**12.8% of the headline was the ruler rather than the agent.** Separated, the
+same configuration reads 43,313 output tokens at 0.1.542 and 63,036 at 0.1.623
+— a 45% rise the pooled cell was averaging away, and a question the board could
+not previously be asked.
+
+**The CLI build joined the schema and the key at the owner's instruction**, and
+justified itself within the hour. `agent` names a platform and `model` names
+what it was pointed at; neither says which binary did the work, and a CLI
+updates on its own schedule — the two rounds a week apart ran under
+`2026.08.11-e8db854` and `2026.08.25-3e8eec8`. `cli_version` is a PRODUCER
+field, free text for the same reason `model` is, taken from the probe made
+BEFORE driving rather than re-asked at close: asking a CLI its version
+afterwards answers about now.
+
+**`output_tokens` is the reference number and `tokens/page` is the same
+measurement divided by a moving denominator.** Over four repeats of one
+configuration output tokens spread 16.5%, content pages 12.5%, and the ratio of
+the two 32.3%. Pages are what the agent chose to write — a fact about the
+output, not noise to divide away — so both are printed and neither is hidden.
+
+**Every number on the board carries its range.** A median printed alone invites
+a reader to order two cells that overlap completely, and one of these cannot
+order anything at all: charged seconds spread **99.4%** across four repeats of
+one configuration. It stays on the board, because a run's duration is a real
+cost to whoever waits for it, and it stays beside its range so nobody reads the
+middle as a ranking.
+
+**One ruler per recommendation.** Cells split by release, so `pick()` was
+offering an older cell as a cheaper alternative — a measurement of rules that no
+longer exist, which nobody can choose. Everything it compares now sits inside
+one release, and the sentence names which.
+
+**`Extra High` is one spelling of `xhigh`.** The first real xhigh run read
+**not honoured** on the board: pinned to `cursor-grok-4.6-xhigh`, answered
+`Cursor Grok 4.6 Extra High`, and called a substitution. `xhigh` is a member of
+`trace_schema.ENUMS["effort"]` — a tuple this package owns rather than a vendor
+model alias — so the pair collapses to one token. The catch that matters
+survives: `high` against `Extra High` is still two different token lists and
+still reads as substituted.
+
+**`pick()` trusted its caller to have sorted**, which `cells()` does and a test
+did not — which is how a planted red failed to plant. It sorts, through the same
+`_ordering` function `cells()` uses, so the register's ordering has one
+implementation.
+
+**The operator error, recorded because it is the kind that repeats.** The
+driver was edited WHILE the four-tier round was driving, so the first tier ran
+under code that did not yet record the CLI build and the other three did — and
+the cell key includes that field, so the four-way comparison would have split on
+the very axis added to protect it. The tier was re-driven. **Do not edit the
+driver during a round**; each task spawns a fresh process and picks up whatever
+is on disk.
+
+**The CLI column reddened the release that added it**, and the guard was
+right to fire: `2026.08.25-3e8eec8` is three dot-separated numbers, which
+`check_version_citations` reads as a release this repository never made.
+`CONFIGURATIONS.md` joins `CONFORMANCE.md` in the table of files whose TABLE
+ROWS carry somebody else's version — scoped to rows rather than to the file,
+because exempting the file would also exempt a real miscitation in its prose,
+which is the mistake the existing entry's own comment records having made once.
+
+Deliberate red, twelve runs across four files: drop the skill version from the
+key, drop the CLI build from the key, stop carrying the build into the trace,
+drop the close flag, stop reporting output tokens, collapse the ranges, print a
+middle without its range, let the pick range over every release, let a caveat
+point at another release, drop the release from the sentence, stop reading
+`Extra High` as `xhigh`, and drop the new scoreboard from the
+third-party-version table.
+
+Design record: `specs/2026-08-27-agent-evals-design.md`.
+
 ## 0.1.625 — a comparison that called two models one, and a legend the table above it falsified
 
 The second pre-PR review of this work, and it found the first round's numbers

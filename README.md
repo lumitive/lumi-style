@@ -71,22 +71,18 @@ read it, and Gemini CLI gives it precedence over its own directory.
 
 | Agent | Measured configuration | Tasks earned | Cost | Measured |
 |---|---|---|---|---|
-| **Claude Code** | `sonnet` · effort `medium` | — | 10,167 tok/page (n=1) † | 2026-08-21 · skill 0.1.542 |
+| **Claude Code** | `sonnet` · effort `high` | — | 114,222 out-tok · 14,278/page (n=1) | 2026-08-21 · skill 0.1.546 |
 | **Gemini CLI** | not measured here | — | — | — |
 | **OpenAI Codex** | not measured here | — | — | — |
-| **Cursor** | `cursor-grok-4.6-high` · effort `high` | 3 of 3 | 6,290 tok/page (n=7) | 2026-08-27 · skill 0.1.623 |
+| **Cursor** | `cursor-grok-4.6-low` · effort `low` | 1 of 1 | 34,368 out-tok · 3,437/page (n=1) | 2026-08-27 · skill 0.1.625 |
 | **Google Antigravity** | cannot be measured here | — | — | — |
 | **GitHub Copilot** | not measured here | — | — | — |
 | **OpenCode** | not measured here | — | — | — |
 | **Pi** | not measured here | — | — | — |
 | **OpenClaw** | not measured here | — | — | — |
-| **Hermes** | `deepseek-v4-flash` · effort `high` | — | 17,031 tok/page (n=5) † | 2026-08-21 · skill 0.1.546 |
+| **Hermes** | `deepseek-v4-flash` · effort `high` | — | 144,952 out-tok · 16,106/page (n=1) | 2026-08-21 · skill 0.1.546 |
 | **Kimi** | cannot be measured here | — | — | — |
 | **DeepSeek** | cannot be measured here | — | — | — |
-
-† **Claude Code** — a cheaper cell exists at 6824.3 tokens/page and is passed over because it recorded no model.
-† **Claude Code** — sonnet · effort high at 5 run(s) is dearer per page and better sampled.
-† **Hermes** — a cheaper cell exists at 8430.1 tokens/page and is passed over because it recorded no model.
 
 **A dash is an absence, never a zero.** In a column headed *Tasks earned* that distinction is the whole cell: a dash means no round carrying that configuration has been recorded for the agent, not that it earned nothing. It is a gap in the measurement.
 

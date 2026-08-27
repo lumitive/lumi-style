@@ -466,3 +466,42 @@ def test_platform_manifest_a_models_probe_written_as_a_string_fails(
     _manifest_tree(tmp_path, monkeypatch, records=[_platform])
     errors = check_repo.check_platform_manifest()
     assert any("models must be a list of strings" in e for e in errors)
+
+
+# check_version_citations and the second scoreboard. A CLI build id like
+# `2026.08.25-3e8eec8` is three dot-separated numbers, so the guard's pattern
+# reads it as a release this repository never made. `CONFIGURATIONS.md` gained
+# a `cli` column at 0.1.626 and reddened the release that added it.
+
+def _citation_tree(tmp_path, monkeypatch, files):
+    (tmp_path / "CHANGELOG.md").write_text(
+        "## 0.1.626 — a heading\n\nbody\n", encoding="utf-8")
+    for rel_path, text in files.items():
+        target = tmp_path / rel_path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    monkeypatch.setattr(check_repo, "md_files",
+                        lambda: [tmp_path / p for p in files])
+    # This guard also checks that every ENTRY_STAMP file exists, and a
+    # synthetic tree has none of them. Narrowed to the citation half rather
+    # than stubbing the other, so a change to either is still visible here.
+    return [e for e in check_repo.check_version_citations() if "cites version" in e]
+
+
+def test_a_cli_build_in_a_scoreboard_row_is_not_read_as_a_release(
+        tmp_path, monkeypatch):
+    errors = _citation_tree(tmp_path, monkeypatch, {
+        "conformance/CONFIGURATIONS.md":
+            "# board\n\n| cursor | m | high | 0.1.626 | 2026.08.25-3e8eec8 |\n"})
+    assert errors == [], errors
+
+
+def test_the_same_build_id_in_prose_still_fails(tmp_path, monkeypatch):
+    """Scoped to table rows, not to the file. Exempting the whole file would
+    also exempt a genuine miscitation in its prose — which is the mistake the
+    CONFORMANCE.md entry's own comment records having made once."""
+    errors = _citation_tree(tmp_path, monkeypatch, {
+        "conformance/CONFIGURATIONS.md":
+            "# board\n\nmeasured against skill 2026.08.25 throughout\n"})
+    assert errors and "2026.08.25" in errors[0]

@@ -260,14 +260,35 @@ def _tokens(name) -> list[str]:
     `adapters/cursor.md` says in this repository's own words that EVERY id has
     a `-fast` twin. A rule that merges every twin is not a rule.
     """
-    out, run = [], ""
+    raw, run = [], ""
     for ch in str(name or "").lower():
         if ch.isalnum():
             run += ch
         elif run:
-            out.append(run)
+            raw.append(run)
             run = ""
-    return out + ([run] if run else [])
+    if run:
+        raw.append(run)
+    # ONE SPELLING OF ONE EFFORT LEVEL, and it is not a model alias. `xhigh` is
+    # a member of `trace_schema.ENUMS["effort"]` — a tuple this package owns —
+    # and `cursor-agent --list-models` prints it as `Extra High`. Without this
+    # the first real xhigh run read **not honoured** on the board: pinned to
+    # `cursor-grok-4.6-xhigh`, answered `Cursor Grok 4.6 Extra High`, and
+    # called a substitution. Collapsing the pair rather than expanding it keeps
+    # the catch that matters — `high` against `Extra High` remains two
+    # different token lists and still reads as substituted.
+    out: list[str] = []
+    skip = False
+    for i, tok in enumerate(raw):
+        if skip:
+            skip = False
+            continue
+        if tok == "extra" and i + 1 < len(raw) and raw[i + 1] == "high":
+            out.append("xhigh")
+            skip = True
+        else:
+            out.append(tok)
+    return out
 
 
 def _run_of(short: list[str], long: list[str]) -> bool:
@@ -314,11 +335,38 @@ def _same_model(asked, ran) -> bool | None:
 
 
 def cells(traces, history) -> list[dict]:
-    """-> one row per (agent, model, effort), ordered as the register says.
+    """-> one row per (agent, model, effort, SKILL VERSION).
+
+    **The skill version and the CLI build are part of the key, and leaving
+    either out hides a real distortion.** The first version grouped without it and printed
+    `max()` of the versions it had pooled, so one row could average runs
+    measured under three different rulers and name only the newest. Measured on
+    the cell this was found in: cursor at `cursor-grok-4.6-high` read 6290
+    tokens per page over seven runs spanning 0.1.542 to 0.1.623, and 7093 over
+    the two that actually ran under 0.1.623 — **12.8% of the headline number
+    was the ruler, not the agent.** That is the misattribution 0.1.605 exists
+    to describe, one file over.
+
+    It also makes the board answer a question it could not: whether a release
+    made a configuration cheaper or dearer. A pooled cell cannot.
+
+    The CLI build joined the key at 0.1.626 for the same reason one axis over:
+    two rounds of one configuration a week apart ran under
+    `2026.08.11-e8db854` and `2026.08.25-3e8eec8`, and a difference between
+    them had a cause nothing recorded. A trace written before the field exists
+    carries `None`, which is its own cell rather than being folded into a
+    named one — "we did not record it" is not the same run as "we did".
 
     Qualification is `agent_runs.board()`'s and is not re-implemented here: one
     quality line, borrowed from `evals/gates.json`, so a thin deck that cannot
     reach the cost board cannot set a median here either.
+
+    **`output_tokens` is reported beside `tokens_per_page` and is the steadier
+    of the two.** Measured over four repeats of one configuration: output
+    tokens spread 16.5%, content pages 12.5%, and the ratio of them 32.3% —
+    dividing a steady numerator by a moving denominator compounds both. Pages
+    are what the agent chose to write, which is a fact about the output rather
+    than noise to divide away, so both are printed and neither is hidden.
     """
     by_key: dict[tuple, list] = collections.defaultdict(list)
     admitted = {r["trace_id"]: r for r in agent_runs.board(traces)}
@@ -326,13 +374,17 @@ def cells(traces, history) -> list[dict]:
         row = admitted.get(t.get("trace_id"))
         if row is None or not t.get("agent"):
             continue
-        by_key[(t["agent"], t.get("model"), t.get("effort"))].append((t, row))
+        by_key[(t["agent"], t.get("model"), t.get("effort"),
+                t.get("skill_version"), t.get("cli_version"))].append((t, row))
 
     scored = earned(history)
     out = []
     for key, runs in by_key.items():
-        agent_id, model, effort = key
+        agent_id, model, effort, version, cli = key
         per_page = [r["tokens_per_page"] for _t, r in runs]
+        out_tokens = [r["output_tokens"] for _t, r in runs
+                      if r["output_tokens"] is not None]
+        pages = [r["content_pages"] for _t, r in runs]
         seconds = [r["charged_seconds"] / r["content_pages"] for _t, r in runs
                    if r["charged_seconds"]]
         # Summed over the cell's OWN traces, by id. A cell is a set of runs and
@@ -351,14 +403,38 @@ def cells(traces, history) -> list[dict]:
             "tasks_attempted": sum(m["attempted"] for m in mine) if mine else None,
             "effort_honoured": all(honoured) if honoured else None,
             "measured": max(t.get("closed_at") or "" for t, _r in runs)[:10],
-            "skill_version": max((t.get("skill_version") or ""
-                                  for t, _r in runs), key=_ver_key),
+            "skill_version": version,
+            "cli_version": cli,
+            # THE SPREAD, NOT ONLY THE MIDDLE. A median with no range beside it
+            # invites a reader to order two cells that overlap completely.
+            # Measured on repeats of ONE configuration: charged seconds spread
+            # 99.4% across four runs, which is a number that can order nothing,
+            # and it had been printing as a single value like the rest.
+            "output_tokens": round(statistics.median(out_tokens))
+            if out_tokens else None,
+            "output_tokens_range": (min(out_tokens), max(out_tokens))
+            if out_tokens else None,
+            "tokens_per_page_range": (round(min(per_page), 1),
+                                      round(max(per_page), 1)),
+            "seconds_per_page_range": (round(min(seconds), 1),
+                                       round(max(seconds), 1))
+            if seconds else None,
+            "content_pages_range": (min(pages), max(pages)),
         })
     # A cell missing an axis sorts LAST on it rather than being dropped: a
     # dropped cell reads as a cell that scored badly.
-    out.sort(key=lambda c: (-(c["tasks_earned"] if c["tasks_earned"] is not None
-                              else -1), c["tokens_per_page"]))
+    out.sort(key=_ordering)
     return out
+
+
+def _ordering(cell: dict) -> tuple:
+    """The register's ordering, as one function both readers call.
+
+    `tasks_earned desc, tokens_per_page asc`. It was a lambda inside `cells()`
+    and `pick()` re-derived "cheapest" by trusting the list it was handed.
+    """
+    earned_ = cell["tasks_earned"]
+    return (-(earned_ if earned_ is not None else -1), cell["tokens_per_page"])
 
 
 def pick(agent_id: str, rows: list[dict],
@@ -378,7 +454,14 @@ def pick(agent_id: str, rows: list[dict],
         return UNMEASURABLE, None, [
             f"{agent_id!r} is not a platform this package claims. "
             f"adapters/platforms.json is the roster."]
-    mine = [r for r in rows if r["agent"] == agent_id]
+    # SORTED HERE, not assumed. `pick` reads `mine[0]` as "the cheapest" and
+    # `named[0]` as "the cheapest that names a model", which is only true if
+    # the caller happened to have sorted — `cells()` does, and a test calling
+    # `pick` directly did not, which is how a planted red failed to plant. A
+    # function whose correctness depends on its caller's habits is a function
+    # that will be called wrongly.
+    mine = sorted((r for r in rows if r["agent"] == agent_id),
+                  key=_ordering)
     if not mine:
         entry = known[agent_id]
         if not entry.get("probe") and not entry.get("drive"):
@@ -398,6 +481,18 @@ def pick(agent_id: str, rows: list[dict],
         return UNMEASURED, None, [
             f"{len(mine)} qualifying run(s), and not one recorded which model "
             f"produced it — a configuration nobody can be told to repeat"]
+    # ONE RULER. Cells carry their skill version since 0.1.626, so an agent now
+    # has one cell per configuration PER RELEASE — and an older cell is not an
+    # alternative a reader can choose. Recommending it, or citing it as "dearer
+    # and better sampled" the way the first version did, offers a measurement of
+    # rules that no longer exist. The newest release with a named cell wins, and
+    # the row already prints which one it is.
+    newest = max(r["skill_version"] or "" for r in named)
+    named = [r for r in named if (r["skill_version"] or "") == newest]
+    # EVERYTHING below compares within one release. `mine` spans all of them,
+    # and a caveat pointing at another release's cell offers an alternative
+    # nobody can pick.
+    mine = [r for r in mine if (r["skill_version"] or "") == newest]
     best = named[0]
     caveats = []
     if named[0] is not mine[0]:
@@ -409,6 +504,7 @@ def pick(agent_id: str, rows: list[dict],
     # checker — and adding a minimum-n bar to fix it would be inventing a
     # threshold with no documented case behind it, which is what convention 2
     # forbids. Naming the fact is the honest move available.
+    # Same ruler only — `named` was already narrowed to the newest release.
     deeper = [r for r in named[1:] if r["runs"] > best["runs"]]
     if deeper:
         caveats.append(
@@ -434,9 +530,12 @@ def suggest(agent_id: str, rows: list[dict], registry: list[dict]) -> tuple[str,
     state, best, caveats = pick(agent_id, rows, registry)
     if best is None:
         return state, caveats[0]
-    note = "; ".join([f"{best['runs']} run(s), {best['tokens_per_page']} "
-                      f"tokens/page", *caveats])
-    return state, f"{describe(best)} — {note}"
+    head = f"{best['runs']} run(s)"
+    if best.get("output_tokens") is not None:
+        head += f", {best['output_tokens']:,} output tokens"
+    head += (f", {best['tokens_per_page']}/page, measured against skill "
+             f"{best['skill_version']}")
+    return state, f"{describe(best)} — {'; '.join([head, *caveats])}"
 
 
 def render(rows: list[dict], evals: dict) -> str:
@@ -464,26 +563,67 @@ def render(rows: list[dict], evals: dict) -> str:
              "cleared the gate line, not a quality ranking** — above that line "
              "the checks cannot tell two documents apart.",
              "",
-             "| agent | model | effort | runs | tokens/page | s/page | earned | "
-             "pinned | measured |",
-             "|---|---|---|---|---|---|---|---|---|"]
+             "| agent | model | effort | skill | cli | n | output tokens | "
+             "tokens/page | s/page | pages | earned | pinned | measured |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+
+    def span(middle, rng, fmt="{:,.0f}"):
+        """-> `median (min–max)`, or the median alone when n is 1.
+
+        A median with no range beside it invites a reader to order two cells
+        that overlap completely. Measured over four repeats of ONE
+        configuration: charged seconds spread 99.4%.
+        """
+        if middle is None:
+            return "—"
+        lo, hi = rng or (middle, middle)
+        if lo == hi:
+            return fmt.format(middle)
+        return f"{fmt.format(middle)} ({fmt.format(lo)}–{fmt.format(hi)})"
+
     for r in rows:
         earned_cell = ("—" if r["tasks_earned"] is None
                        else f"{r['tasks_earned']} of {r['tasks_attempted']}")
         pinned = {True: "honoured", False: "**not honoured**",
                   None: "—"}[r["effort_honoured"]]
+        pages_lo, pages_hi = r["content_pages_range"]
         lines.append(
             f"| {r['agent']} | {r['model'] or '—'} | {r['effort'] or '—'} | "
-            f"{r['runs']} | {r['tokens_per_page']} | "
-            f"{r['seconds_per_page'] if r['seconds_per_page'] is not None else '—'} | "
-            f"{earned_cell} | {pinned} | {r['measured']} · skill "
-            f"{r['skill_version']} |")
+            f"{r['skill_version'] or '—'} | {r.get('cli_version') or '—'} | "
+            f"{r['runs']} | "
+            f"{span(r['output_tokens'], r['output_tokens_range'])} | "
+            f"{span(r['tokens_per_page'], r['tokens_per_page_range'])} | "
+            f"{span(r['seconds_per_page'], r['seconds_per_page_range'], '{:,.1f}')} | "
+            f"{pages_lo if pages_lo == pages_hi else f'{pages_lo}–{pages_hi}'} | "
+            f"{earned_cell} | {pinned} | {r['measured']} |")
     if not rows:
-        lines.append("| — | — | — | — | — | — | — | — | — |")
+        lines.append("| — | — | — | — | — | — | — | — | — | — | — | — | — |")
         lines.append("")
         lines.append("**No cell has a qualifying run.** That is a statement "
                      "about this store, not about the agents.")
     lines += ["",
+              "**`output tokens` is the reference number, and `tokens/page` is "
+              "the same measurement divided by a moving denominator.** Over "
+              "four repeats of one configuration, output tokens spread 16.5%, "
+              "content pages 12.5%, and the ratio of the two 32.3% — the "
+              "division compounds both. Pages are what the agent chose to "
+              "write, so they are a column rather than a divisor.",
+              "",
+              "**`s/page` orders nothing.** The same four repeats spread it "
+              "99.4%: it measures server load and retries, not the "
+              "configuration. It is printed because a run's duration is a real "
+              "cost to whoever waits for it, and with its range so that nobody "
+              "reads a middle value as a ranking.",
+              "",
+              "**The skill version AND the CLI build are part of a cell's "
+              "identity.** A cell pooling runs from several releases would "
+              "average three rulers and name one: measured on "
+              "`cursor-grok-4.6-high`, 12.8% of the headline number was the "
+              "ruler rather than the agent. The CLI updates on its own "
+              "schedule — two rounds of one configuration a week apart ran "
+              "under different builds — so it is a column rather than a "
+              "footnote. A dash there means the run predates the field.",
+              "",
               "A dash is an absence, never a zero. `earned` is empty for a cell "
               "whose conformance rounds predate 0.1.618, when a history row "
               "began recording what it was run as; `pinned` is empty for the "
