@@ -12,6 +12,8 @@ import re
 import subprocess
 import sys
 
+import pytest
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TRACE_PY = ROOT / "scripts" / "ops" / "trace.py"
 # THE STORE THE ENVIRONMENT NAMES, not the tracked one. These tests drive the
@@ -711,3 +713,83 @@ def test_a_fixing_loop_leaves_one_trace_and_closes_it(tmp_path):
     abandoned = [t["trace_id"] for t in records if not t.get("closed_at")]
     assert abandoned == [], f"the loop left an abandoned record: {abandoned}"
     assert records[0]["phase_seconds"]["checks"] == 5
+
+
+# A TRACE IS WRITTEN WHOLE OR NOT AT ALL. A bare `write_text` truncates on a
+# crash mid-write, and `trace_store.load()` swallows the JSONDecodeError and
+# skips the file — so a damaged record reads as one that was never made. The
+# loss and the absence print the same thing, which is nothing.
+
+def test_a_write_that_dies_midway_leaves_the_previous_record_intact(
+        tmp_path, monkeypatch):
+    """The tmp file is what dies; the record is untouched until `os.replace`."""
+    import trace as trace_mod
+    store = tmp_path / "traces"
+    store.mkdir()
+    monkeypatch.setattr(trace_mod, "TRACES", store)
+    rec = {"trace_id": "t-0123456789ab", "opened_at": "2026-08-28T00:00:00+00:00"}
+    trace_mod._save(rec)
+    before = (store / "t-0123456789ab.json").read_text(encoding="utf-8")
+
+    real = pathlib.Path.write_text
+
+    def _die(self, *a, **k):
+        real(self, *a, **k)
+        if self.name.endswith(".tmp"):
+            raise OSError("disk full")
+        return None
+
+    monkeypatch.setattr(pathlib.Path, "write_text", _die)
+    with pytest.raises(OSError):
+        trace_mod._save({**rec, "closed_at": "2026-08-28T01:00:00+00:00"})
+    monkeypatch.setattr(pathlib.Path, "write_text", real)
+
+    after = (store / "t-0123456789ab.json").read_text(encoding="utf-8")
+    assert after == before, "the half-written record replaced the whole one"
+    assert json.loads(after), "the record no longer parses"
+
+
+def test_no_temporary_file_survives_a_successful_write(tmp_path, monkeypatch):
+    import trace as trace_mod
+    store = tmp_path / "traces"
+    store.mkdir()
+    monkeypatch.setattr(trace_mod, "TRACES", store)
+    trace_mod._save({"trace_id": "t-0123456789ab", "opened_at": "x"})
+    assert [p.name for p in store.iterdir()] == ["t-0123456789ab.json"]
+
+
+# TWELVE HEX IS 48 BITS, and `_save` overwrites whatever is at the path it
+# builds. A collision would destroy one record and leave two runs believing
+# they own one id.
+
+def test_open_never_reuses_an_id_the_store_already_holds(tmp_path, monkeypatch):
+    import trace as trace_mod
+    store = tmp_path / "traces"
+    store.mkdir()
+    monkeypatch.setattr(trace_mod, "TRACES", store)
+    taken = "t-aaaaaaaaaaaa"
+    (store / f"{taken}.json").write_text("{}", encoding="utf-8")
+
+    handed = iter([taken, taken, "t-bbbbbbbbbbbb"])
+
+    class _Fake:
+        hex = property(lambda self: next(handed)[2:] + "00000000000000000000")
+
+    monkeypatch.setattr(trace_mod.uuid, "uuid4", lambda: _Fake())
+    assert trace_mod._fresh_id() == "t-bbbbbbbbbbbb"
+    assert (store / f"{taken}.json").read_text(encoding="utf-8") == "{}", (
+        "the taken id's record was overwritten")
+
+
+def test_a_store_that_answers_taken_every_time_is_a_hard_exit(tmp_path,
+                                                              monkeypatch):
+    """Eight collisions is not chance at this size. Looping forever or
+    overwriting would both be worse than saying so."""
+    import trace as trace_mod
+    store = tmp_path / "traces"
+    store.mkdir()
+    monkeypatch.setattr(trace_mod, "TRACES", store)
+    monkeypatch.setattr(trace_mod.pathlib.Path, "exists", lambda self: True)
+    with pytest.raises(SystemExit) as caught:
+        trace_mod._fresh_id()
+    assert "eight generated trace ids" in str(caught.value)

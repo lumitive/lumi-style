@@ -1,3 +1,45 @@
+## 0.1.630 — a trace was written in place, so a crash mid-write read as a run that never happened
+
+The owner is building an analysis service over the trace store and asked how the
+files are named, why they are JSON, and whether a dictionary can exist. Measuring
+that turned up two things about the store itself that a service would inherit,
+and they are cheaper to fix before anything is built on them than after.
+
+**A trace was written in place.** `_save` was a bare `write_text`, and every
+mutation of a trace is load → change → validate → REWRITE THE WHOLE FILE — so it
+runs on every phase stop and every close, not on a rare path. A crash partway
+truncates the file, and `trace_store.load()` swallows the resulting
+`JSONDecodeError` and skips it. **The damaged record and a record that was never
+made print the same thing, which is nothing.** That is FM-24's shape in the data
+layer rather than in a checker.
+
+It writes to a temporary file and `os.replace`s, which is the idiom this
+repository already carries in `debug_log.py` — put there for the same reason,
+after a half-written log was measured under the parallel build protocol.
+
+**A trace id was never checked against the store.** Twelve hex characters is 48
+bits and `_save` overwrites whatever is at the path it builds, so a collision
+would destroy one record and leave two runs believing they own one id. `cmd_open`
+draws until it finds an id no file holds. Eight collisions is a hard exit rather
+than a loop or an overwrite: at this size it is not chance, and the honest
+response to "the store is not what you think it is" is to stop.
+
+Neither defect has fired. Both were found by reading the store to answer a
+question about documenting it, and both cost one line to close.
+
+Deliberate red, three runs: put the bare `write_text` back, stop checking
+whether an id is taken, and let the exhausted case return an id instead of
+exiting. The first is asserted by killing the write after the temporary file
+lands and checking the previous record is byte-identical.
+
+**Not changed, and the reason is recorded because the question was asked.** The
+trace stays JSON. It is a machine-written record with exact types — `null` is
+not `""`, an int is not a string — and three nested verdict maps holding
+seventy-seven entries. Markdown would need a parser and would lose the types;
+XML costs more bytes for the same thing and reads no better. The store's real
+problem is that nothing describes it and nothing indexes it, which is a
+documentation and navigation problem and is the next release's subject.
+
 ## 0.1.629 — preflight said local green is CI green, and for one guard it was not
 
 CI failed PR #179 on a step all thirty-four local ones had passed. That is not
