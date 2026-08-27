@@ -1,3 +1,81 @@
+## 0.1.628 — the review recomputed every number in the entry, and four of them were wrong
+
+The pre-merge review of 0.1.626–0.1.627 recomputed each figure the benchmark
+entry published. Most held. Four did not, and one of them was arithmetically
+impossible on its face. All corrections are made in 0.1.627's entry in place,
+each saying what it said before.
+
+**The medium/high overlap was 18,741 and is 5,067.** It was computed as
+`medium.max − high.min` while the 2,224 in the same sentence used the interval
+intersection — two formulas, one sentence. **18,741 is larger than medium's
+entire range**, which no overlap can be, so it was checkable without any data at
+all. What is actually true is stronger: medium sits ENTIRELY INSIDE high, so
+their overlap is medium's whole width, and a tier contained in another is not a
+tier you can tell apart.
+
+**"Those three are all the same metric" was false**, and the paragraph around it
+flattered low twice over. Medium's single failing run missed two metrics, not
+one; and low's three runs missed three different metrics, not just
+`M8_length_cv`. The entry now carries the per-tier table instead of the
+sentence, which is what should have been there — the claim was a summary of four
+numbers that fit in four rows.
+
+**"Four clean draws out of twelve"** was neither: three of the four drawn were
+clean, and six of the twelve are.
+
+**"Seven lines in seven files"** counted one surface without saying which.
+Sixteen tracked files each moved by one line; seven of them are what a Cursor
+agent loads. The substantive claim — every moved line is a version stamp, no
+rule prose and no token value — is unchanged and was verified independently.
+
+**A thirteenth qualifying run existed and the entry did not mention it.** Same
+configuration, no miss of any kind, excluded only because its CLI build is null.
+Naming it matters because a reader recomputing from the store finds it, and
+because including it would have argued the entry's case HARDER — low's spread
+goes from 40% to 51%. An exclusion that helps your argument is the one to
+declare.
+
+**The board falsified its own note.** `s/page orders nothing. The same four
+repeats spread it 99.4%` — 99.4% is the spread of the RAW charged seconds; the
+s/page spread is **124.0%**, and the row two lines above the note prints
+`131.8 (95.2–258.6)`, from which anyone can compute it. This is the shape
+0.1.625 fixed in README, in the file that fixed it.
+
+**Four code defects, each found by the review and each verified before it was
+acted on.**
+
+* **`_ver_key` had no callers.** The change that added `newest = max(...)` over
+  version STRINGS deleted the one call to the function whose docstring names
+  that exact hazard — `0.1.99` outranks `0.1.100`. Dead code beside a live bug,
+  which is worse than either.
+* **The probe banner was sliced to 40 characters at the source.** That is a
+  board column's width, applied where the string is READ — and since 0.1.626 the
+  same string is `cli_version`. Hermes' banner is 89 characters and the slice
+  removes exactly the discriminating half: `upstream 8d30c204 · local 057dcdf2`.
+  Two builds under one version tag would have landed in one cell, which is the
+  fold the field was added to prevent. Truncation moved to the two places that
+  display it.
+* **A named agent bypasses the probe, and the missing build was dropped in
+  silence.** `--agent x` drives regardless — the selection consults the probe
+  only when no agent is named — so a probe timeout left the key absent and the
+  run joined the "nobody recorded which binary" cell beside runs that predate
+  the field. Those are different facts. The console says which, and the driver
+  record carries the reason.
+* **An empty `cli_version` was a second cell.** `close --cli-version ""` stores
+  the empty string, the schema type-checks it and no more, and the board renders
+  `""` and `None` identically as a dash — so one configuration appeared as two
+  rows showing the same thing with two different medians. Whitespace did the
+  same. Operator-reachable only; the harness's own guards cannot produce it.
+
+Deliberate red, five runs: find the newest release alphabetically, key on the
+raw CLI string, quote the raw-seconds spread in the s/page note, slice the
+banner at the source, and drop a named agent's missing build in silence.
+**The fourth did not plant** — the test that should have caught it monkeypatches
+`detect` wholesale, so the slice inside `detect` never ran. It is driven through
+the real function against a real probe binary now.
+
+Design record: `specs/2026-08-27-agent-evals-design.md`.
+
 ## 0.1.627 — twelve runs said three of the four tiers are indistinguishable, and a human said the difference is in the figures
 
 The four-tier round, finished properly: **twelve runs, three per tier**, one
@@ -6,8 +84,10 @@ and was wrong in both directions; both retractions are below.
 
 **The two batches are pooled, and the justification is checkable rather than
 convenient.** Four runs landed at skill 0.1.625 and eight at 0.1.626, because a
-release shipped between them. Diffed: the surface an agent reads differs by
-**seven lines in seven files, every one a version stamp**. The board still keys
+release shipped between them. Diffed: sixteen tracked files each changed by exactly
+one line and **every one of those lines is a version stamp** — no rule prose and
+no token value moved. (Seven of the sixteen are what a Cursor agent loads, which
+is the number this said at 0.1.627 without naming the surface it meant.) The board still keys
 cells by release — that rule is right in general — and this is an analysis-time
 judgement with the diff behind it. The second batch was driven INTERLEAVED
 (low, medium, high, xhigh, twice) rather than blocked, so drift over two and a
@@ -22,16 +102,32 @@ half hours lands on every tier instead of on whichever ran last.
 | high | 18,470 – 47,460 – 59,900 | **87%** |
 | xhigh | 63,867 – 66,813 – 76,072 | 18% |
 
-Low and medium overlap by 2,224; medium and high by 18,741. Only high and
-xhigh are clear of each other, by 3,967 — and xhigh's cheapest run is dearer
-than every one of the other nine runs. **Low, medium and high cannot be told
+Low and medium overlap by 2,224. **Medium sits entirely INSIDE high** — high
+spans 18,470–59,900 and medium 32,144–37,211 — so their overlap is medium's
+whole width, 5,067. Only high and xhigh are clear of each other, by 3,967, and
+xhigh's cheapest run is dearer than every one of the other nine runs.
+(Corrected at 0.1.628: this said 18,741, computed as `medium.max − high.min`
+while the 2,224 beside it used the intersection. 18,741 exceeds medium's entire
+range, which no overlap can. The conclusion is unchanged and the right figure
+argues it harder — a tier contained in another is not one you can tell apart.) **Low, medium and high cannot be told
 apart on this evidence.**
 
 **Quality: every one of the twelve passed every GATING check.** The differences
 sit in the `graded` and `reported` metrics, which report a direction and never
-gate. Low missed one in **3 of 3** runs — `M8_length_cv`, sentence-length
-variety, below its 0.50 floor every time — against 1 of 3 for each of the other
-tiers, and those three are all the same metric, `M2_number_sourcing`.
+gate. Low missed something in **3 of 3** runs and the other tiers in 1 of 3
+each, but the counts alone flatter low:
+
+| tier | runs with a miss | what was missed |
+|---|---|---|
+| low | 3 of 3 | `M8_length_cv`×3, `D31_undeclared_sections`×2, `M11_title_uniformity`×1 |
+| medium | 1 of 3 | `M11_title_uniformity`, `M2_number_sourcing` |
+| high | 1 of 3 | `M2_number_sourcing` |
+| xhigh | 1 of 3 | `M2_number_sourcing` |
+
+Low is the only tier that missed `M8_length_cv` — sentence-length variety, below
+its 0.50 floor every time — and the only one with more than one kind of miss.
+(Corrected at 0.1.628: this said the upper tiers' misses were "all the same
+metric", and medium's single failing run missed two.)
 
 **What a person saw, which is the finding that matters.** The owner read all
 twelve decks. Low is visibly weaker; medium and high are hard to tell apart;
@@ -57,8 +153,10 @@ configuration on quality until a human read is bound to a CELL rather than to a
 document. `review_scores.py` already holds the human dimensions; what is missing
 is the join.
 
-**Two retractions from the n=1 report.** "Zero failures at every tier" was four
-clean draws out of twelve. "Cost rises monotonically and n=1 is enough" rested
+**Two retractions from the n=1 report.** "Zero failures at every tier" drew
+three clean runs out of the four it saw — low's missed `M8_length_cv` — and six
+of the twelve are clean. (Corrected at 0.1.628 from "four clean draws out of
+twelve": it was neither the draw nor the population.) "Cost rises monotonically and n=1 is enough" rested
 on a ±8.25% noise floor measured on ONE configuration — while `high`'s own
 spread across three runs is **87%**.
 
@@ -69,6 +167,14 @@ false answer; n=3 was enough to learn which tiers are indistinguishable, which
 is itself the useful finding. Separating low from medium from high would need
 far more than three, because the gaps between them are smaller than one tier's
 own variation.
+
+**A thirteenth qualifying low run is set aside, and this says so.** Same
+agent, same pins, same release, no miss of any kind, 21,126 output tokens over
+8 pages — excluded from the twelve only because its `cli_version` is null, being
+the run from the tier that was re-driven after the driver was edited mid-round.
+It is on the board in its own cell. Including it would move low's minimum from
+23,041 to 21,126 and its spread from 40% to 51%, which argues this entry's case
+harder rather than softer; a reader recomputing from the store will find it.
 
 No code changed. `conformance/history.json` gains eight rows, the trace store
 eight records, and the board is redrawn from them.

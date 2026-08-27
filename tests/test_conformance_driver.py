@@ -1183,3 +1183,116 @@ def test_an_unprobeable_agent_is_never_driven_so_the_cli_column_cannot_lie(
         "trace can now carry a diagnosis where a version belongs")
     assert "nothing to prepare" in capsys.readouterr().out, (
         "the harness must SAY it drove nothing rather than passing quietly")
+
+
+def test_the_whole_probe_banner_is_recorded_not_a_board_column_of_it(
+        tmp_path, monkeypatch):
+    """`detect` sliced its answer to 40 characters — a board column's width
+    applied at the source. Since 0.1.626 that string is also `cli_version`, and
+    Hermes' banner is 89 characters whose discriminating half is the tail:
+    `Hermes Agent v0.20.5 (2026.8.19) · upstr` drops `upstream 8d30c204 · local
+    057dcdf2`, so two builds carrying one version tag land in one cell.
+    """
+    run_dir = tmp_path / "run"
+    store = tmp_path / "traces"
+    store.mkdir()
+    monkeypatch.setenv("LUMI_TRACES", str(store))
+    fake = tmp_path / "fake-cli"
+    fake.write_text(
+        '#!/bin/sh\nprintf "<html><body>deck</body></html>" > deck.en.html\n',
+        encoding="utf-8")
+    fake.chmod(0o755)
+    skill = tmp_path / "skill"
+    for rel in rc.SKILL_SURFACE:
+        target = skill / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.suffix:
+            target.write_text("stub\n", encoding="utf-8")
+        else:
+            target.mkdir(exist_ok=True)
+    long_banner = ("Hermes Agent v0.20.5 (2026.8.19) · upstream 8d30c204 · "
+                   "local 057dcdf2 (+1 carried commit)")
+    assert len(long_banner) > 40, "the fixture must exceed the old slice"
+
+    agents = [{"id": "faker", "name": "Faker", "capability": "full",
+               "drive": [str(fake), "-p"], "drive_skill_flag": "--add-dir",
+               "skill_paths": [str(skill)], "probe": ["true"]}]
+    tasks = [{"id": "T1-deck", "prompt": "build", "deliverable": "*.html",
+              "min_capability": "full", "score": ["design"],
+              "storyline": "market-analysis", "genre": "internal"}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: tasks)
+    monkeypatch.setattr(rc, "detect", lambda a: (True, long_banner))
+
+    rc.main(["run", "--drive", "--run", str(run_dir)])
+    written = list(store.glob("*.json"))
+    assert written
+    assert json.loads(written[0].read_text())["cli_version"] == long_banner
+
+
+def test_a_named_agent_whose_probe_failed_says_the_build_was_not_recorded(
+        tmp_path, monkeypatch, capsys):
+    """`--agent x` drives whether or not the probe answered — the selection
+    consults `probed` only when no agent was named. The build was then dropped
+    in silence and the run joined the "nobody recorded which binary" cell,
+    beside runs that predate the field. Different facts; the console says which.
+    """
+    run_dir = tmp_path / "run"
+    store = tmp_path / "traces"
+    store.mkdir()
+    monkeypatch.setenv("LUMI_TRACES", str(store))
+    fake = tmp_path / "fake-cli"
+    fake.write_text(
+        '#!/bin/sh\nprintf "<html><body>deck</body></html>" > deck.en.html\n',
+        encoding="utf-8")
+    fake.chmod(0o755)
+    skill = tmp_path / "skill"
+    for rel in rc.SKILL_SURFACE:
+        target = skill / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.suffix:
+            target.write_text("stub\n", encoding="utf-8")
+        else:
+            target.mkdir(exist_ok=True)
+    agents = [{"id": "faker", "name": "Faker", "capability": "full",
+               "drive": [str(fake), "-p"], "drive_skill_flag": "--add-dir",
+               "skill_paths": [str(skill)], "probe": ["true"]}]
+    tasks = [{"id": "T1-deck", "prompt": "build", "deliverable": "*.html",
+              "min_capability": "full", "score": ["design"],
+              "storyline": "market-analysis", "genre": "internal"}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: tasks)
+    monkeypatch.setattr(rc, "detect",
+                        lambda a: (False, "probe failed: TimeoutExpired"))
+
+    rc.main(["run", "--drive", "--run", str(run_dir), "--agent", "faker"])
+    printed = capsys.readouterr().out
+    assert "the CLI build was not recorded" in printed, printed
+    record = json.loads((run_dir / "faker" / "T1-deck" / "driver.json")
+                        .read_text(encoding="utf-8"))
+    assert "cli_version" not in record
+    assert "TimeoutExpired" in record["cli_version_note"]
+
+
+def test_detect_returns_the_whole_banner_and_the_board_shortens_it(tmp_path,
+                                                                   monkeypatch):
+    """Driven through the REAL `detect`, against a real probe binary.
+
+    The test above this one monkeypatches `detect`, so it cannot see the slice
+    that used to live inside it — a planted red proved exactly that by staying
+    green. Truncation belongs where a thing is displayed; the same string is
+    recorded as `cli_version`, and a build id cut to a column's width cannot
+    tell two builds apart.
+    """
+    banner = ("Hermes Agent v0.20.5 (2026.8.19) · upstream 8d30c204 · "
+              "local 057dcdf2 (+1 carried commit)")
+    probe = tmp_path / "probe"
+    probe.write_text(f'#!/bin/sh\necho "{banner}"\necho "second line"\n',
+                     encoding="utf-8")
+    probe.chmod(0o755)
+    ok, note = rc.detect({"id": "faker", "probe": [str(probe)]})
+    assert ok
+    assert note == banner, f"the banner was altered: {note!r}"
+    assert len(note) > 40, "the fixture must exceed the old slice"
+    assert rc._short(note) == banner[:39] + "…", "the board column is unbounded"
+    assert rc._short("short one") == "short one"

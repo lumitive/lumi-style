@@ -1504,9 +1504,27 @@ def detect(agent: dict) -> tuple[bool, str]:
         return False, "not installed"
     try:
         out = subprocess.run(probe, capture_output=True, text=True, timeout=20)
-        return True, (out.stdout or out.stderr).strip().splitlines()[0][:40]
+        # THE WHOLE FIRST LINE. It was sliced to 40 characters here, which is a
+        # BOARD COLUMN's width applied at the source — and since 0.1.626 this
+        # string is also what `cli_version` records. Hermes' banner is 89
+        # characters and the slice removed exactly the discriminating half:
+        # `Hermes Agent v0.20.5 (2026.8.19) · upstr` drops `upstream 8d30c204 ·
+        # local 057dcdf2`, so two different builds carrying one version tag
+        # would land in one cell — the fold the field exists to prevent. The
+        # truncation moved to the two places that DISPLAY it.
+        return True, (out.stdout or out.stderr).strip().splitlines()[0]
     except Exception as exc:                                # noqa: BLE001
         return False, f"probe failed: {exc.__class__.__name__}"
+
+
+def _short(note: str, width: int = 40) -> str:
+    """-> the probe banner at a board column's width.
+
+    Truncation belongs where a thing is DISPLAYED, not where it is read: the
+    same string is recorded as `cli_version`, and a build id cut off at 40
+    characters is a build id that cannot tell two builds apart.
+    """
+    return note if len(note) <= width else note[:width - 1] + "…"
 
 
 def vocabulary(agent: dict) -> tuple[str, str]:
@@ -2247,8 +2265,21 @@ def main(argv):
             # difference between them had a third possible cause that nothing
             # recorded.
             probe_ok, probe_note = probed.get(a["id"], (False, ""))
-            if probe_ok and probe_note:
-                record["cli_version"] = probe_note
+            if probe_ok and probe_note.strip():
+                record["cli_version"] = probe_note.strip()
+            else:
+                # SAID, NOT DROPPED. `--agent x` drives whether or not the
+                # probe answered — the selection above consults `probed` only
+                # when no agent was named — so a 20-second probe timeout used
+                # to leave this key absent in silence, and the run joined the
+                # "nobody recorded which binary" cell beside runs that predate
+                # the field. Those are different facts and the console now says
+                # which this is.
+                record["cli_version_note"] = (
+                    f"not recorded: the {a['id']} probe did not answer "
+                    f"({probe_note or 'no output'})")
+                print(f"  note  {a['id']}: the CLI build was not recorded — "
+                      f"{probe_note or 'the probe gave no output'}")
             # WRITTEN TWICE, ON PURPOSE, AND THE FIRST WRITE IS NOT THE ONE
             # THAT MATTERS. `_conformance_trace` mutates `record` — it puts the
             # trace id in — and this file was serialized BEFORE that, so the id
@@ -2792,7 +2823,7 @@ def main(argv):
                 verdict = "stale"
             else:
                 verdict = "fail"
-            cli = note if ok else "driven by hand"
+            cli = _short(note) if ok else "driven by hand"
         else:
             # Six of the ten "not installed" rows are a machine away; four can
             # never answer a CLI probe at all — an IDE with no command line and
@@ -2801,7 +2832,7 @@ def main(argv):
             structural = not a.get("probe")
             verdict = ("cannot be probed" if structural
                        else "not installed" if not ok else "not run")
-            cli = note if ok else "—"
+            cli = _short(note) if ok else "—"
         # The models behind this row's cells, deduplicated and in the order
         # met. Usually one; more than one means the row mixes configurations
         # and the board says so instead of averaging them into a verdict.
