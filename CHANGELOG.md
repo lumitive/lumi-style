@@ -1,3 +1,70 @@
+## 0.1.624 — the first measured round, and the two defects it found before it could be one
+
+The last stage of the approved plan, and it took three drives to produce one
+honest row. `conformance/CONFIGURATIONS.md` now carries an EARNED count for the
+first time: **cursor at `cursor-grok-4.6-high`, effort `high` — 3 of 3, pin
+honoured, n=7, 6290 tokens per page.** It sorts first, which means the ordering
+the register declared eight releases ago finally does something: `tasks_earned`
+outranks cost, and until this round nothing had a `tasks_earned`.
+
+**Round r17, four agents, twelve cells, driven against installs updated to the
+published 0.1.623.** That update is not a footnote: the 0.1.605 round had to
+withdraw four history rows and four traces because the agents read a version
+before the one the board claimed, and `skill_version()` reads the checkout
+rather than the install, so nothing catches it. Cursor earned all three tasks —
+including T1-deck, which it FAILED at 0.1.605 on `D19_vocabulary`, the dangling
+colour reference behind the black figures. Claude Code earned T2 and T3 and ran
+past its budget on the deck. Hermes wrote two deliverables outside the working
+directory again. Gemini was rate-limited on all three, exactly as before.
+
+**The round found what no test had: the join key never reached disk.**
+`_conformance_trace` puts the trace id into `record`, and the caller had already
+serialized `driver.json`. `score` reads that file. So the id 0.1.617 added
+reached memory and nothing else, and **the first round driven after it shipped
+carried a `trace_id` in none of its twelve score cells.** The record is written
+twice now — the first write survives so a crash inside the trace helper still
+leaves a driver record, and the second carries the id.
+
+The test that should have held this called the helper directly and read the
+returned dict, which is precisely the seam the defect lived on. It is an
+end-to-end drive against a fake CLI now, and it reads the file.
+
+**Second defect: most tasks open no trace at all.** `trace.py` opens one for a
+build, and only the deck task declares a storyline — the harness prints "no
+trace: the task declares no storyline" for the other two, on every round it has
+ever run. So a join on the trace id alone counts at most ONE task per round, and
+cursor's 3 of 3 would have read `1 of 1`. A history row is one round of one
+agent, so two of its tasks carrying the same pins were the same configuration by
+construction; a task with no trace now joins a sibling whose pins match. The
+comparison is on `model_asked` and `effort` — the operator's pins, never the
+CLI's answer.
+
+**Third: the honoured check called an honoured pin dishonoured.** Cursor asked
+for `cursor-grok-4.6-high` and the CLI answered `Cursor Grok 4.6 High` — one
+model, two spellings, and comparing them literally is 0.1.614's finding wearing
+the opposite sign: there a display name hid a real substitution, here it
+invented one. The comparison drops case and punctuation and nothing else, which
+keeps the distinction that has to survive: `cursorgrok46high` is not a substring
+of `cursorgrok46xhigh`, so a run pinned to `high` and answered at `xhigh` still
+reads as dishonoured. All six pairs in the test are real — from a `driver.json`
+or from `cursor-agent --list-models`.
+
+**GAP-041 does not close, and the reason is worth more than the closure.** Its
+condition was two agents, and only one produced a joinable trace: Claude Code's
+deck task ran past the budget, so it has no admitted run, and its other two
+tasks open no trace to join to. **An agent whose deck task fails contributes no
+cost measurement at all** — which is why README still recommends Claude Code at
+`sonnet · effort medium`, measured 2026-08-21 against skill 0.1.542. The row
+says that date and that version, which is the disclosure working; it is still a
+six-day-old recommendation for an agent that ran today.
+
+Deliberate red, five runs: drop the second `driver.json` write, remove the
+sibling join, remove its pin check, and compare model names without normalising
+(twice — the parametrized pairs and the end-to-end path). Forty-two tests in the
+tool's file.
+
+Design record: `specs/2026-08-27-agent-evals-design.md`.
+
 ## 0.1.623 — the pre-PR review found a join that could never have matched a row
 
 Eighth on the branch, and the reason the review runs before the pull request

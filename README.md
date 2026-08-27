@@ -74,7 +74,7 @@ read it, and Gemini CLI gives it precedence over its own directory.
 | **Claude Code** | `sonnet` · effort `medium` | — | 10,167 tok/page (n=1) † | 2026-08-21 · skill 0.1.542 |
 | **Gemini CLI** | not measured here | — | — | — |
 | **OpenAI Codex** | not measured here | — | — | — |
-| **Cursor** | `cursor-grok-4.6-high` | — | 5,398 tok/page (n=2) † | 2026-08-26 · skill 0.1.614 |
+| **Cursor** | `cursor-grok-4.6-high` · effort `high` | 3 of 3 | 6,290 tok/page (n=7) | 2026-08-27 · skill 0.1.623 |
 | **Google Antigravity** | cannot be measured here | — | — | — |
 | **GitHub Copilot** | not measured here | — | — | — |
 | **OpenCode** | not measured here | — | — | — |
@@ -86,7 +86,6 @@ read it, and Gemini CLI gives it precedence over its own directory.
 
 † **Claude Code** — a cheaper cell exists at 6824.3 tokens/page and is passed over because it recorded no model.
 † **Claude Code** — sonnet · effort high at 5 run(s) is dearer per page and better sampled.
-† **Cursor** — cursor-grok-4.6-high · effort high at 5 run(s) is dearer per page and better sampled.
 † **Hermes** — a cheaper cell exists at 8430.1 tokens/page and is passed over because it recorded no model.
 
 **A dash is an absence, never a zero.** In a column headed *Tasks earned* that distinction is the whole cell: no round has yet been recorded carrying which configuration it ran, so no row can say how many tasks its configuration earned. That is a gap in the measurement, not a score of nothing.

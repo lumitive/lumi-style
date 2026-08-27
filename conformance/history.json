@@ -514,5 +514,137 @@
     },
     "scores_sha256": "a1ba756f692b36af88a2c37a02a9d7a5927206ab8185c1761669eacad3f6d169",
     "instrument_version": "0.1.605"
+  },
+  {
+    "skill_version": "0.1.623",
+    "agent": "claude-code",
+    "date": "2026-08-27",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/r17-0.1.623",
+    "tasks": {
+      "T1-deck": "not earned",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "19080600b73448bc545409eb3cd1404df5d6f8d7a61836f768d2c35674f5e84e",
+    "instrument_version": "0.1.623",
+    "config": {
+      "T1-deck": {
+        "model": "claude-opus-5 (asked opus)",
+        "model_ran": "claude-opus-5",
+        "effort": "high",
+        "model_asked": "opus"
+      },
+      "T2-deaify": {
+        "model": "claude-opus-5 (asked opus)",
+        "model_ran": "claude-opus-5",
+        "effort": "high",
+        "model_asked": "opus"
+      },
+      "T3-recall": {
+        "model": "claude-opus-5 (asked opus)",
+        "model_ran": "claude-opus-5",
+        "effort": "high",
+        "model_asked": "opus"
+      }
+    }
+  },
+  {
+    "skill_version": "0.1.623",
+    "agent": "cursor",
+    "date": "2026-08-27",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/r17-0.1.623",
+    "tasks": {
+      "T1-deck": "pass",
+      "T2-deaify": "pass",
+      "T3-recall": "pass"
+    },
+    "scores_sha256": "19080600b73448bc545409eb3cd1404df5d6f8d7a61836f768d2c35674f5e84e",
+    "instrument_version": "0.1.623",
+    "built": {
+      "T1-deck": "0.1.623"
+    },
+    "config": {
+      "T1-deck": {
+        "model": "Cursor Grok 4.6 High (asked cursor-grok-4.6-high)",
+        "model_ran": "Cursor Grok 4.6 High",
+        "effort": "high",
+        "model_asked": "cursor-grok-4.6-high"
+      },
+      "T2-deaify": {
+        "model": "Cursor Grok 4.6 High (asked cursor-grok-4.6-high)",
+        "model_ran": "Cursor Grok 4.6 High",
+        "effort": "high",
+        "model_asked": "cursor-grok-4.6-high"
+      },
+      "T3-recall": {
+        "model": "Cursor Grok 4.6 (asked cursor-grok-4.6-high)",
+        "model_ran": "Cursor Grok 4.6",
+        "effort": "high",
+        "model_asked": "cursor-grok-4.6-high"
+      }
+    },
+    "traces": {
+      "T1-deck": "t-27454887ad61"
+    }
+  },
+  {
+    "skill_version": "0.1.623",
+    "agent": "gemini-cli",
+    "date": "2026-08-27",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/r17-0.1.623",
+    "tasks": {
+      "T1-deck": "not earned",
+      "T2-deaify": "not earned",
+      "T3-recall": "not earned"
+    },
+    "scores_sha256": "19080600b73448bc545409eb3cd1404df5d6f8d7a61836f768d2c35674f5e84e",
+    "instrument_version": "0.1.623",
+    "config": {
+      "T1-deck": {
+        "model": "unconfirmed",
+        "effort_pinned": false,
+        "model_pinned": false
+      },
+      "T2-deaify": {
+        "model": "unconfirmed",
+        "effort_pinned": false,
+        "model_pinned": false
+      },
+      "T3-recall": {
+        "model": "unconfirmed",
+        "effort_pinned": false,
+        "model_pinned": false
+      }
+    }
+  },
+  {
+    "skill_version": "0.1.623",
+    "agent": "hermes",
+    "date": "2026-08-27",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/r17-0.1.623",
+    "tasks": {
+      "T1-deck": "not earned",
+      "T2-deaify": "pass",
+      "T3-recall": "not earned"
+    },
+    "scores_sha256": "19080600b73448bc545409eb3cd1404df5d6f8d7a61836f768d2c35674f5e84e",
+    "instrument_version": "0.1.623",
+    "config": {
+      "T1-deck": {
+        "model": "unconfirmed",
+        "effort_pinned": false,
+        "model_pinned": false
+      },
+      "T2-deaify": {
+        "model": "unconfirmed",
+        "effort_pinned": false,
+        "model_pinned": false
+      },
+      "T3-recall": {
+        "model": "unconfirmed",
+        "effort_pinned": false,
+        "model_pinned": false
+      }
+    }
   }
 ]

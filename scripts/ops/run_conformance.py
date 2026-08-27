@@ -2236,9 +2236,19 @@ def main(argv):
                            base=args.budget,
                            effort=effort_per.get(a["id"], effort_all),
                            hard_cap=args.hard_cap)
+            # WRITTEN TWICE, ON PURPOSE, AND THE FIRST WRITE IS NOT THE ONE
+            # THAT MATTERS. `_conformance_trace` mutates `record` — it puts the
+            # trace id in — and this file was serialized BEFORE that, so the id
+            # 0.1.617 added reached memory and never reached disk. `score`
+            # reads the file, so the join key was absent from every score cell
+            # of the first round driven after it shipped. The first write stays
+            # because a crash inside the trace helper must still leave a driver
+            # record; the second is what carries the id.
             (wd / "driver.json").write_text(
                 json.dumps(record, indent=2) + "\n", encoding="utf-8")
             note = _conformance_trace(a, t, wd, record)
+            (wd / "driver.json").write_text(
+                json.dumps(record, indent=2) + "\n", encoding="utf-8")
             with counts_lock:
                 driven += record["verdict"] == "driven"
             # WHICH MODEL AND WHICH LEVEL, SAID OUT LOUD. The record has
