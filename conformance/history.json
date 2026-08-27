@@ -746,5 +746,205 @@
     "traces": {
       "T1-deck": "t-bb467a621eb8"
     }
+  },
+  {
+    "skill_version": "0.1.626",
+    "agent": "cursor",
+    "date": "2026-08-27",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/r19-low-2",
+    "tasks": {
+      "T1-deck": "pass"
+    },
+    "scores_sha256": "c3449227038f89763b1274c5bf160787ff4ac75cf7b4d29f1dcedfde9339bb89",
+    "instrument_version": "0.1.626",
+    "built": {
+      "T1-deck": "0.1.625"
+    },
+    "config": {
+      "T1-deck": {
+        "model": "Cursor Grok 4.6 Low (asked cursor-grok-4.6-low)",
+        "model_ran": "Cursor Grok 4.6 Low",
+        "effort": "low",
+        "model_asked": "cursor-grok-4.6-low"
+      }
+    },
+    "traces": {
+      "T1-deck": "t-1836fa6415fb"
+    }
+  },
+  {
+    "skill_version": "0.1.626",
+    "agent": "cursor",
+    "date": "2026-08-27",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/r19-low-3",
+    "tasks": {
+      "T1-deck": "pass"
+    },
+    "scores_sha256": "4664aa69bf64df77a66b9a84c1e0586ffc06b147603a391a7fb18dc95d6fa0f1",
+    "instrument_version": "0.1.626",
+    "built": {
+      "T1-deck": "0.1.625"
+    },
+    "config": {
+      "T1-deck": {
+        "model": "Cursor Grok 4.6 Low (asked cursor-grok-4.6-low)",
+        "model_ran": "Cursor Grok 4.6 Low",
+        "effort": "low",
+        "model_asked": "cursor-grok-4.6-low"
+      }
+    },
+    "traces": {
+      "T1-deck": "t-58c90f9a3497"
+    }
+  },
+  {
+    "skill_version": "0.1.626",
+    "agent": "cursor",
+    "date": "2026-08-27",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/r19-medium-2",
+    "tasks": {
+      "T1-deck": "pass"
+    },
+    "scores_sha256": "1a5f6b833d99de02c78bb4b9893eaf3775ca77f89583eb8ee2c6e6847e4bc8ab",
+    "instrument_version": "0.1.626",
+    "built": {
+      "T1-deck": "0.1.625"
+    },
+    "config": {
+      "T1-deck": {
+        "model": "Cursor Grok 4.6 Medium (asked cursor-grok-4.6-medium)",
+        "model_ran": "Cursor Grok 4.6 Medium",
+        "effort": "medium",
+        "model_asked": "cursor-grok-4.6-medium"
+      }
+    },
+    "traces": {
+      "T1-deck": "t-a17ace72db19"
+    }
+  },
+  {
+    "skill_version": "0.1.626",
+    "agent": "cursor",
+    "date": "2026-08-27",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/r19-medium-3",
+    "tasks": {
+      "T1-deck": "pass"
+    },
+    "scores_sha256": "2a0132a2afa5b9843dbb34f566d1ee6cddfc8f001728bf931ddab57372d576e4",
+    "instrument_version": "0.1.626",
+    "built": {
+      "T1-deck": "0.1.625"
+    },
+    "config": {
+      "T1-deck": {
+        "model": "Cursor Grok 4.6 Medium (asked cursor-grok-4.6-medium)",
+        "model_ran": "Cursor Grok 4.6 Medium",
+        "effort": "medium",
+        "model_asked": "cursor-grok-4.6-medium"
+      }
+    },
+    "traces": {
+      "T1-deck": "t-465a2894f778"
+    }
+  },
+  {
+    "skill_version": "0.1.626",
+    "agent": "cursor",
+    "date": "2026-08-27",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/r19-high-2",
+    "tasks": {
+      "T1-deck": "pass"
+    },
+    "scores_sha256": "1519a186f15a5493d879871c093c68edba8a143aaa0fd95779e42ccd60b6cfeb",
+    "instrument_version": "0.1.626",
+    "built": {
+      "T1-deck": "0.1.625"
+    },
+    "config": {
+      "T1-deck": {
+        "model": "Cursor Grok 4.6 High (asked cursor-grok-4.6-high)",
+        "model_ran": "Cursor Grok 4.6 High",
+        "effort": "high",
+        "model_asked": "cursor-grok-4.6-high"
+      }
+    },
+    "traces": {
+      "T1-deck": "t-67b0947fdbac"
+    }
+  },
+  {
+    "skill_version": "0.1.626",
+    "agent": "cursor",
+    "date": "2026-08-27",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/r19-high-3",
+    "tasks": {
+      "T1-deck": "pass"
+    },
+    "scores_sha256": "6e7158a3fd0ce29d7b3dc5cce47f9b2ec32f75d1c4e29e63c7386186e9985ffa",
+    "instrument_version": "0.1.626",
+    "built": {
+      "T1-deck": "0.1.625"
+    },
+    "config": {
+      "T1-deck": {
+        "model": "Cursor Grok 4.6 High (asked cursor-grok-4.6-high)",
+        "model_ran": "Cursor Grok 4.6 High",
+        "effort": "high",
+        "model_asked": "cursor-grok-4.6-high"
+      }
+    },
+    "traces": {
+      "T1-deck": "t-1166dfdf7f9b"
+    }
+  },
+  {
+    "skill_version": "0.1.626",
+    "agent": "cursor",
+    "date": "2026-08-27",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/r19-xhigh-2",
+    "tasks": {
+      "T1-deck": "pass"
+    },
+    "scores_sha256": "0ff48808f241ce022cce30883b7bf3b370d235169f47e5dc91db81ddee23304d",
+    "instrument_version": "0.1.626",
+    "built": {
+      "T1-deck": "0.1.625"
+    },
+    "config": {
+      "T1-deck": {
+        "model": "Cursor Grok 4.6 Extra High (asked cursor-grok-4.6-xhigh)",
+        "model_ran": "Cursor Grok 4.6 Extra High",
+        "effort": "xhigh",
+        "model_asked": "cursor-grok-4.6-xhigh"
+      }
+    },
+    "traces": {
+      "T1-deck": "t-39bcbd5844ac"
+    }
+  },
+  {
+    "skill_version": "0.1.626",
+    "agent": "cursor",
+    "date": "2026-08-27",
+    "run_dir": "~/Documents/LUMI-Style/_conformance/r19-xhigh-3",
+    "tasks": {
+      "T1-deck": "pass"
+    },
+    "scores_sha256": "3a2fd95b9f37987bea78c4eda9e6d09262b2207c2e06dcd68c3dbc5efcf65a5e",
+    "instrument_version": "0.1.626",
+    "built": {
+      "T1-deck": "0.1.625"
+    },
+    "config": {
+      "T1-deck": {
+        "model": "Cursor Grok 4.6 Extra High (asked cursor-grok-4.6-xhigh)",
+        "model_ran": "Cursor Grok 4.6 Extra High",
+        "effort": "xhigh",
+        "model_asked": "cursor-grok-4.6-xhigh"
+      }
+    },
+    "traces": {
+      "T1-deck": "t-94e81bd2747c"
+    }
   }
 ]

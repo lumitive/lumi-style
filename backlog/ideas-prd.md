@@ -733,3 +733,50 @@ without a contract.
 
 **What would close it.** Two builds where a scaffold sample number reached a
 reader. Until then this is a hazard with one recorded near-miss, not a defect.
+
+## IDEA-20 · The figure is where a reasoning tier's quality actually shows, and nothing in this package chooses one on purpose
+
+**Problem.** The owner read all twelve decks from the 0.1.626 four-tier round
+and reported: Low is visibly weaker, Medium and High are hard to tell apart,
+Extra High is slightly better — and **the whole difference sits in the figures**,
+in how each page's drawing is chosen, dimensioned and labelled. Not in the
+prose, not in the layout, not in the palette.
+
+That is the part this package leaves most to chance. `assets/frameworks.json`
+maps question → framework → shape and the ghost-deck beat names one per section,
+but nothing reasons from the CONTENT of a page to the drawing that would make a
+reader understand it fastest: which comparison the figure is really making, what
+belongs on each axis, whether the numbers or the words carry the point, and
+whether two thin figures should have been one.
+
+**Evidence.** Twelve runs, one task, four tiers, every one passing every gating
+check. The mechanical difference the checks CAN see is `layout_top_share` — the
+share of pages using one layout — and it runs 40–90% with no relation to tier.
+One `high` run spent 18,470 output tokens (a third of its tier's dearest run),
+passed every gate, and put **80% of its pages on one layout**. The checks read
+that deck as equal to the one that cost three times as much; a person does not.
+
+**Why this is worth a design pass rather than a rule.** The obvious move —
+another prose rule saying "choose the right figure" — is the shape convention 2
+forbids: a direction with no way to tell whether it was followed. What the
+owner's read suggests is closer to an analysis beat with its own inputs: read
+the page's content, name the comparison, then pick the shape from that, and say
+in the figure itself what the reader is meant to take from it.
+
+**What to investigate.**
+- Whether the ghost-deck beat can take the page's DATA as an input rather than
+  only its analytical move, so the framework is chosen from what is being
+  compared.
+- Whether the exemplar notes (`references/exemplars/mckinsey-design-notes.md`)
+  carry enough about axis choice and figure-internal hierarchy to act at
+  composition time, or whether they need a figure-level companion.
+- Whether `layout_top_share` and `shape.figures` can become a REPORTED signal a
+  human review is anchored to, rather than an observation nobody reads.
+
+**What this is not.** Not a new gate. The thing it would improve is the thing
+`SKILL.md` says metrics can never settle — whether a page reads as intentional.
+
+**Filed 2026-08-27** from the owner's read of the four-tier round. Related:
+[[IDEA-19]] on guards that forget they could not look, and the standing limit in
+`conformance/agent-evals.json` that above the gate line the checks cannot tell
+two documents apart.
