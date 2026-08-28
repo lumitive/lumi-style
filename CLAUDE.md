@@ -563,7 +563,7 @@ repo itself.)
     new guard.** The register maps fact → owning module → the definition names,
     the retired private spellings, and the non-`def` shapes it owns;
     `check_one_home` reads it, and a waiver is a written decision that must name
-    a reason and must still be needed. **Adding the tenth fact is one entry.**
+    a reason and must still be needed. **Adding the next fact is one entry.**
     This is a rule about the rule: before 0.1.634 the mechanism was two
     hand-written guards for two facts, so consolidating a third meant writing a
     third guard — the duplication being refused, one layer up, in the code that
@@ -571,8 +571,12 @@ repo itself.)
     and 15 in this specific setting: **plant the duplicate first** and watch the
     guard name the owner, and **give every pattern a `selftest` string it must
     match**, because a regex that has quietly stopped matching prints exactly
-    what a clean tree prints. The register itself is held to its owners — a
-    `def` name the owner does not define, a missing owner, a dead waiver and a
-    pattern that no longer matches its own selftest are all findings, on the
-    same reasoning: an entry that guards nothing is worse than no entry, because
-    it reads as coverage.
+    what a clean tree prints. The register itself is held to its owners, and the list of ways
+    it can go blind is `check_one_home`'s docstring rather than this sentence —
+    a `def` name the owner does not define, a fact that declares nothing to look
+    for, a key the schema does not define, two facts owning one name, a missing
+    owner, a dead waiver, a pattern that no longer matches its own selftest, and
+    a scan that visited no files are all findings, on one reasoning: an entry
+    that guards nothing is worse than no entry, because it reads as coverage.
+    That list grew by four the first time a review looked at it, which is why
+    the authority is the code.

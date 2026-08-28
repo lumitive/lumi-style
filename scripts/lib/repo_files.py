@@ -72,7 +72,15 @@ def run_git(*args: str, root: pathlib.Path | None = None,
     """
     p = subprocess.run(["git", *args], cwd=_root(root),
                        capture_output=capture, text=True)
-    return p.returncode, (p.stdout.strip() if capture else "")
+    if not capture:
+        return p.returncode, ""
+    # STDERR IS WHERE GIT PUTS THE REASON. Returning stdout alone made
+    # `release.py`'s "git commit failed:" print nothing after the colon,
+    # because a refusing hook and git's own `fatal:` lines go to stderr.
+    out = p.stdout.strip()
+    if p.returncode != 0 and p.stderr.strip():
+        out = (out + "\n" + p.stderr.strip()).strip()
+    return p.returncode, out
 
 
 def _ls(args: list[str], root: pathlib.Path | None,

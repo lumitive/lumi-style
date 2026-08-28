@@ -193,7 +193,7 @@ def render_index(records: list[dict]) -> str:
                    for r in index_rows(records))
 
 
-def render_dictionary(records: list[dict]) -> str:
+def render_dictionary(records: list[dict], files: int | None = None) -> str:
     kept = [r for r in records if not trace_store.suite_artifact(r)]
     aside = len(records) - len(kept)
     closed = sum(1 for r in kept if r.get("closed_at"))
@@ -225,9 +225,17 @@ def render_dictionary(records: list[dict]) -> str:
         "",
         "## Read this before you count anything",
         "",
-        f"The directory holds **{len(records)} JSON files** and "
-        f"**{len(kept)} records**."
-        + ("" if aside else
+        # THE MEASURED COUNT, not the record count wearing its label.
+        # `trace_store.load()` skips a file it cannot parse, so printing
+        # `len(records)` as "JSON files" is the conflation this whole preface
+        # exists to end — and it shipped in the artifact while the honest
+        # number went to the console.
+        f"The directory holds **{files if files is not None else len(records)} "
+        f"JSON files** and **{len(kept)} records**."
+        # THE SENTENCE IS ABOUT FILES, so the condition must be too. It hung
+        # on `aside` — set-aside artifacts — while claiming every FILE is a
+        # record, which is false the moment one cannot be parsed.
+        + ("" if (aside or (files is not None and files != len(records))) else
            " Every file is a record — but that has not always been true, and "
            "the sentence below is why the check that guarantees it still runs.")
         + (f" The difference — **{aside} files** — is build traces that pytest "
@@ -356,7 +364,7 @@ def main(argv=None) -> int:
         # conflation 0.1.631 was written about, reproduced in the artifact.
         print(f"note  {TRACES} holds {files} file(s) and {len(records)} "
               f"record(s) — {files - len(records)} could not be read")
-    want = {DICT_OUT: render_dictionary(records),
+    want = {DICT_OUT: render_dictionary(records, files),
             INDEX_OUT: render_index(records)}
 
     # A LABEL, not a path computation. `relative_to` RAISES when the artifact

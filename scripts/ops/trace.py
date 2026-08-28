@@ -106,7 +106,7 @@ def _write_json(path, doc):
     The phase CLOCK was written in place while the trace beside it was written
     atomically, so a crash between the two banked the seconds and left the
     clock running — and the next `phase stop` added the whole span again,
-    because line 274 accumulates. A truncated clock also made every later
+    because `phase_seconds` accumulates. A truncated clock also made every later
     phase command die in an uncaught `JSONDecodeError` naming neither traces
     nor phases.
     """
@@ -296,14 +296,20 @@ def cmd_phase(a):
     errors = validate(rec)
     if errors:
         sys.exit("refusing to write an invalid trace:\n  " + "\n  ".join(errors))
-    # THE CLOCK FIRST, so a replay cannot double-count. `phase_seconds`
-    # accumulates, so banking the seconds and then failing to clear the clock
-    # made the next `phase stop` add the whole span a second time.
+    # TWO ORDERED WRITES CANNOT BE ATOMIC, and the order chooses which failure
+    # a crash produces. 0.1.640 put the clock first to stop a replay
+    # double-counting; a review showed that trades a checkable wrong number for
+    # a LOST span — the trace keeps its old total, the clock is gone, and the
+    # replay tells the operator the phase "was never started", which is a false
+    # statement about a phase that was. The trace goes first again: a doubled
+    # figure can be caught against a wall clock, and `charged_seconds` feeding
+    # the cost board must not silently shrink. GAP-043 holds the single-write
+    # design (the open clock inside the record) that removes the window.
+    _save(rec)
     if clocks:
         _write_json(path, clocks)
     else:
         path.unlink(missing_ok=True)
-    _save(rec)
     print(f"{a.name} +{seconds}s (total {rec['phase_seconds'][a.name]}s)")
 
 

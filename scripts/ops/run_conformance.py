@@ -600,10 +600,10 @@ def drive(agent, task, prompt_dir, model=None, base=DRIVE_BASE_BUDGET,
     # states: only a recorded vocabulary can refuse, and an agent nobody has
     # probed is UNVALIDATED — said out loud, because "checked and fine" and
     # "never checked" printed the same nothing until 0.1.640.
-    state, why = agent_capability.validate_pin(agent, model, ROOT)
-    if state == agent_capability.REFUSED:
+    pin_state, why = agent_capability.validate_pin(agent, model, ROOT)
+    if pin_state == agent_capability.REFUSED:
         return {"verdict": "driver refused", "detail": why}
-    if state == agent_capability.UNVALIDATED:
+    if pin_state == agent_capability.UNVALIDATED:
         print(f"  note  {why}", flush=True)
     if model:
         argv += ["--model", model]
@@ -829,6 +829,11 @@ def drive(agent, task, prompt_dir, model=None, base=DRIVE_BASE_BUDGET,
                 "digest": hashlib.sha256(out).hexdigest(),
                 # WHAT WAS PINNED. `--model x` is a request, and this is it.
                 "model": model or "(the CLI's default)",
+                # WHETHER THE REQUEST WAS CHECKED AGAINST A VOCABULARY. The
+                # third state went to the console and nowhere else, so one
+                # scroll later a pin validated against a recorded vocabulary
+                # and one never checkable read the same on the board.
+                "pin_state": pin_state,
                 # WHAT ACTUALLY RAN, read out of the CLI's own stream. The two
                 # are different facts and only the first was kept, so a board
                 # cell said "(the CLI's default)" over a run whose model nobody
@@ -2314,6 +2319,12 @@ def main(argv):
                 json.dumps(record, indent=2) + "\n", encoding="utf-8")
             with counts_lock:
                 driven += record["verdict"] == "driven"
+                # A REFUSAL IS A TASK THAT DID NOT RUN, and the `NOTHING RAN`
+                # guard below keys on `skipped`. 0.1.640 made the refusal
+                # VISIBLE and left it counting as nothing, so a run where every
+                # task was refused still printed `drove 0 task(s)` and exited 0
+                # — which is the half of that finding the fix did not close.
+                skipped += record["verdict"] == "driver refused"
             # WHICH MODEL AND WHICH LEVEL, SAID OUT LOUD. The record has
             # carried both since the driver was written and the console has
             # never printed either, so a round could be reported as "at high

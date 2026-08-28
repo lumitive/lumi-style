@@ -548,12 +548,13 @@ def render(rows: list[dict], evals: dict) -> str:
              "version its own runs were measured against.",
              "",
              "Ordered by " + ", ".join(evals["ordering"]) +
-             ". **Above the read, this is an ordering by COST among "
+             ". **Below the read, this remains an ordering by COST among "
              "configurations that already cleared the gate line, not a quality "
              "ranking** — the checks cannot tell two documents apart up there, "
-             "which is exactly why a human read leads the sort and a cell "
+             "which is exactly why a human read LEADS the sort and a cell "
              "without one falls back to cost. The sentence said `by cost` flat "
-             "until a review read it against the ordering it interpolates.",
+             "until a review read it against the ordering it interpolates, and "
+             "then said `above the read`, which is where nothing sits.",
              "",
              "| agent | model | effort | skill | cli | n | read | "
              "output tokens | tokens/page | s/page | pages | earned | pinned | "
@@ -747,8 +748,17 @@ def main(argv=None) -> int:
               "--models --record` writes one, and until then the "
               "`vocabulary-changed` trigger has nothing to compare against.")
     else:
-        for aid, entry in sorted(recorded.items()):
-            offered = set(entry.get("ids") or [])
+        for aid in sorted(recorded):
+            # THROUGH `offered()`, not by re-deriving the field. This read
+            # `entry.get("ids") or []`, which is the validation that function
+            # exists to do: a string id set counted its CHARACTERS as models,
+            # and an entry with no `ids` printed "offers 0" — indistinguishable
+            # from a probe that found nothing.
+            ids, problem = agent_capability.offered(aid, ROOT)
+            if problem:
+                print(f"  {aid:16} {problem}")
+                continue
+            offered = set(ids or [])
             used = {r["model"] for r in rows
                     if r["agent"] == aid and r["model"]}
             # A MODEL MEASURED THAT THE CLI NO LONGER OFFERS is the thing worth
@@ -758,7 +768,7 @@ def main(argv=None) -> int:
             print(f"  {aid:16} offers {len(offered):>3} model(s), "
                   f"{len(used)} measured"
                   + (f" — RETIRED: {', '.join(retired)}" if retired else "")
-                  + f"  (asked {entry.get('asked_on', '?')})")
+                  + f"  (asked {recorded[aid].get('asked_on', '?')})")
     print("\nAxes and triggers: conformance/agent-evals.json. Driving a cell "
           "is `run_conformance.py run --drive`; this tool measures and never "
           "drives.")

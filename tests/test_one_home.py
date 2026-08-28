@@ -158,7 +158,7 @@ def test_a_pattern_that_stopped_matching_its_selftest_is_a_finding(tmp_path, mon
 
 
 def test_a_fact_declaring_nothing_to_look_for_is_a_finding(tmp_path, monkeypatch):
-    """Nine facts stripped of their arrays left the LIVE guard returning `[]`.
+    """Every fact stripped of its arrays left the LIVE guard returning `[]`.
 
     The register's own argument for `selftest`, one level up: an entry that has
     quietly stopped naming anything reads as coverage.
@@ -208,23 +208,69 @@ def test_the_live_register_still_declares_what_the_consolidation_moved():
     test asserting them; the migration made the subject a JSON file that no
     test read. Deleting the two `visible-text` patterns passed every test in
     this suite and every guard in check_repo.
+
+    THE WHOLE SET, not a sample. The first version of this test named nine ids
+    while the register held ten, so the fact added by the release that WROTE
+    the test — `repository-root` — could be deleted in silence along with the
+    defect it guards. It pins every fact and every owned name now: an entry
+    removed on purpose is a decision, and a decision belongs in the diff.
     """
     import json
     reg = json.loads((check_repo.ROOT / "evals/single-source.json")
                      .read_text(encoding="utf-8"))
     facts = {f["id"]: f for f in reg["facts"]}
-    # Each of these consolidated a defect a release paid for; the entry is the
-    # only thing keeping it consolidated.
-    assert set(facts) >= {"colour-arithmetic", "css-token-reading",
-                          "visible-text", "package-version",
-                          "platform-registry", "conformance-history",
-                          "gate-register", "agent-capability", "asking-git"}
-    assert len(facts["visible-text"]["patterns"]) == 2      # tags, CJK space
-    assert len(facts["package-version"]["patterns"]) == 3   # stamp x2, releases
-    assert facts["asking-git"]["patterns"]                  # the git invocation
-    assert "contrast_hex" in facts["colour-arithmetic"]["defs"]
-    assert "same_model" in facts["agent-capability"]["defs"]
-    assert "read_rows" in facts["conformance-history"]["defs"]
+    expected = {
+        "colour-arithmetic": (
+            ["srgb_linear", "srgb_encode", "luma255", "contrast_from_luma",
+             "contrast255", "hex_to_rgb", "contrast_hex", "mix255"], 0),
+        "css-token-reading": (
+            ["strip_comments", "css_block", "css_vars", "rule_vars"], 0),
+        "visible-text": (
+            ["body_tag", "body_attr", "strip_tags", "visible_text",
+             "reader_text", "join_cjk"], 2),
+        "package-version": (
+            ["skill_version_in", "skill_version", "ver_key", "sort_key",
+             "releases", "releases_between"], 3),
+        "platform-registry": (
+            ["registry_doc", "platforms", "platform_by_id", "platform_ids"], 2),
+        "conformance-history": (["read_rows"], 1),
+        "gate-register": (["families", "held"], 1),
+        "agent-capability": (
+            ["probe_models", "recorded_vocabularies", "offered",
+             "record_vocabularies", "effort_style", "declared_efforts",
+             "effort_refusal", "effort_in_model", "compose_model",
+             "validate_pin", "model_tokens", "same_model"], 1),
+        "asking-git": (
+            ["run_git", "tracked_files", "untracked_files", "ignored_files"], 1),
+        "repository-root": (["repo_root"], 0),
+    }
+    assert set(facts) == set(expected), "a fact was added or removed"
+    for fid, (defs, patterns) in expected.items():
+        assert facts[fid]["defs"] == defs, fid
+        assert len(facts[fid].get("patterns", [])) == patterns, fid
+
+
+def test_every_pattern_matches_the_shape_it_was_written_for():
+    """The selftest is the LINE THE SHAPE TOOK, not a line I invented.
+
+    A selftest written by the same hand as the regex proves only that the two
+    agree — convention 15, in the mechanism built to enforce convention 15.
+    Four of eleven patterns matched nothing anywhere in the repository, and the
+    `history.json` one had never matched the real material at all: the shape it
+    was written for put the path in a variable and read it on the next line.
+    Every pattern that guards a shape which no longer exists now carries the
+    line it did exist as, and `seen_in` says where.
+    """
+    import json
+    import re
+    reg = json.loads((check_repo.ROOT / "evals/single-source.json")
+                     .read_text(encoding="utf-8"))
+    for fact in reg["facts"]:
+        for pat in fact.get("patterns", []):
+            assert re.search(pat["regex"], pat["selftest"]), fact["id"]
+            # A selftest that is a fragment of the regex's own prose proves
+            # nothing; the ones drawn from history say so and are checkable.
+            assert len(pat["selftest"]) >= 20, (fact["id"], pat["what"])
 
 
 def test_a_pattern_that_does_not_compile_is_a_finding(tmp_path, monkeypatch):

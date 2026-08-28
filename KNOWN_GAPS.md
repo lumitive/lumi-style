@@ -75,6 +75,33 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-043 · Two ordered writes decide which failure a crash produces
+
+- status: open
+- opened: 0.1.641
+- surface: scripts/ops/trace.py (`cmd_phase`, `_write_json`)
+- symptom: `phase stop` banks the seconds into the trace and clears the phase
+  clock, and they are two files. Whichever goes first, a crash between them
+  leaves a wrong record. Clock first loses the span outright — the trace keeps
+  its old total, the clock is gone, and the replay tells the operator the phase
+  "was never started", a false statement about a phase that was; and
+  `charged_seconds` feeds the cost board, so the loss reads as a cheaper build.
+  Trace first double-counts on replay, because `phase_seconds` accumulates.
+  0.1.640 chose the first and a review showed it is the worse one, so 0.1.641
+  chose the second: a doubled figure is checkable against a wall clock and a
+  lost one is not.
+- the fix that removes the window rather than choosing between its two shapes:
+  **carry the open clock inside the trace record** — an `open_phases` field —
+  so banking the seconds and clearing the clock are one `os.replace`. That is a
+  `trace_schema` change (a field, its dictionary row, the schema guard) and is
+  deliberately not folded into a review-response release.
+- both writes are atomic individually since 0.1.640, so neither file can be
+  found truncated; what remains is only the ordering.
+- check: a test that patches `_save` to raise, runs `phase stop`, and asserts
+  the replay banks the span exactly once — which is decidable only once the
+  clock lives inside the record, and is the reason this is a gap rather than a
+  fix.
+
 ## GAP-042 · A declared trigger nothing computes
 
 - status: fixed
@@ -98,7 +125,7 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   something a reader cannot select any more.
 - what is deliberately not recorded: a waived or failed probe. Writing an empty
   set for those would make "this CLI offers nothing" and "we could not ask" the
-  same row, which is the distinction `vocabulary()` keeps four states for.
+  same row, which is the distinction `probe_models()` keeps four states for.
 - still true, and stated in the register: one of the twelve platforms can
   answer read-only, so this trigger can only ever fire for that one.
 

@@ -58,7 +58,7 @@ def test_the_suite_artifact_filter_travels_as_a_column():
 
 
 def test_the_index_carries_no_verdict_blocks():
-    """They are 44% of the store's bytes and they belong in the trace, which
+    """They are the bulk of the store's bytes and they belong in the trace, which
     every index line points at."""
     rows = btd.index_rows([_rec("t-000000000001",
                                 gates={"D12_commercial_footer": "FAIL"})])
@@ -203,3 +203,37 @@ def test_the_preface_says_files_once_outnumbered_records(tmp_path):
     assert "251" in text and "seventeen" in text, (
         "the preface dropped the incident that justifies the filter")
     assert "suite_artifact" in text
+
+# 0.1.641 — three checks 0.1.640 added and did not test. A mutation review
+# deleted each and the whole suite stayed green.
+
+def test_a_store_that_is_not_there_is_a_refusal_not_an_empty_render(tmp_path, monkeypatch):
+    """The path that can blank the tracked index during a release.
+
+    `release.py` re-runs every `--check` generator WITHOUT `--check`, so a
+    resolved store pointing elsewhere would have written an empty index over
+    the tracked one and exited 0 — and `path.parent.mkdir` would have created
+    the directory `state_dir` uses to decide where the store lives.
+    """
+    absent = tmp_path / "not-here"
+    monkeypatch.setattr(btd, "TRACES", absent)
+    monkeypatch.setattr(btd, "DICT_OUT", absent / "README.md")
+    monkeypatch.setattr(btd, "INDEX_OUT", absent / "index.jsonl")
+    assert btd.main([]) == 1
+    assert not absent.exists()
+
+
+def test_the_preface_counts_files_and_records_separately(tmp_path):
+    """`trace_store.load()` skips a file it cannot parse, so a record count
+    printed as a file count is the conflation this preface exists to end."""
+    text = btd.render_dictionary([_rec("t-000000000001")], files=2)
+    assert "**2 JSON files**" in text and "**1 records**" in text
+    assert "Every file is a record" not in text
+
+
+def test_no_row_cites_line_zero(tmp_path):
+    """The assertion below used to be `count(...) >= len(FIELDS)`, which
+    `trace_schema.py:0` satisfied for every field — the code says so in its own
+    comment, and the test it describes stayed as it was."""
+    text = btd.render_dictionary([_rec("t-000000000001")])
+    assert "trace_schema.py:0" not in text
