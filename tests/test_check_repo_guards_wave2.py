@@ -5,7 +5,7 @@ a passing tree and at least one failing tree per exercised failure mode, because
 a guard tested only against the live repo cannot demonstrate that a rewritten
 `return []` would be noticed. All seven guards here have a file surface small
 enough to synthesize fully, so none needs the mutated-real-repo fallback.
-Module-level tables bound at import from the real ROOT — PLATFORMS and the
+Module-level tables bound at import from the real ROOT — ENTRY_STAMP and the
 waiver dicts — are monkeypatched alongside ROOT; the guard logic under test is
 unchanged.
 """
@@ -60,8 +60,9 @@ def test_output_default_diverging_resolver_fails(tmp_path, monkeypatch):
 
 
 # check_stale_promises — a future-tense sentence may not name a shipped release.
-# PLATFORMS is bound at import from the real ROOT, so it is repointed too: the
-# registry is deliberately part of this guard's scan surface.
+# The registry is deliberately part of this guard's scan surface, and since
+# 0.1.641 it is resolved from ROOT by `platform_registry.path` rather than from
+# a module constant bound at import — so pointing ROOT here is enough.
 
 def _promise_tree(tmp_path, monkeypatch, notes, registry_note="nothing pending"):
     (tmp_path / "CHANGELOG.md").write_text("## 0.1.1\n\n- shipped.\n")
@@ -71,7 +72,6 @@ def _promise_tree(tmp_path, monkeypatch, notes, registry_note="nothing pending")
     platforms = adapters / "platforms.json"
     platforms.write_text(json.dumps({"platforms": [{"id": "x", "note": registry_note}]}))
     monkeypatch.setattr(check_repo, "ROOT", tmp_path)
-    monkeypatch.setattr(check_repo, "PLATFORMS", platforms)
 
 
 def test_stale_promises_retrospective_and_unshipped_future_pass(tmp_path, monkeypatch):
@@ -134,7 +134,6 @@ def _manifest_tree(tmp_path, monkeypatch, records=None, orphan=None):
     platforms = adapters / "platforms.json"
     platforms.write_text(json.dumps(data))
     monkeypatch.setattr(check_repo, "ROOT", tmp_path)
-    monkeypatch.setattr(check_repo, "PLATFORMS", platforms)
 
 
 def test_platform_manifest_fully_verified_record_passes(tmp_path, monkeypatch):

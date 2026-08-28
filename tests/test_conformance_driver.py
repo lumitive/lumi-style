@@ -400,6 +400,68 @@ def test_a_blocked_agent_is_never_driven(tmp_path, monkeypatch, capsys):
     assert record["verdict"] == "environment"
 
 
+def test_a_task_that_dies_inside_a_driver_thread_is_counted_and_fails(
+        tmp_path, monkeypatch, capsys):
+    """`threading.excepthook` ignores SystemExit and prints the rest into
+    interleaved output; neither counter moved either way, so a run where every
+    task died reported `drove 0 task(s)` and exited 0."""
+    skill = tmp_path / "skill"
+    (skill / "references").mkdir(parents=True)
+    (skill / "tokens").mkdir()
+    for rel in ("SKILL.md", "AGENTS.md", "references/brand.md",
+                "tokens/lumi-theme.css"):
+        (skill / rel).write_text("x", encoding="utf-8")
+    agents = [{"id": "fake", "name": "Fake", "capability": "full",
+               "drive": ["/bin/true"], "probe": ["true"],
+               "skill_paths": [str(skill)]}]
+    tasks = [{"id": "T3-recall", "prompt": "answer", "deliverable": "*.md",
+              "min_capability": "prompt", "score": ["recall"],
+              "answers": {"q": ["a"]}}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: tasks)
+    monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
+    monkeypatch.setattr(rc, "environment_check", lambda a: [])
+
+    def boom(*_a, **_k):
+        raise RuntimeError("the driver fell over")
+    monkeypatch.setattr(rc, "drive", boom)
+    code = rc.main(["run", "--drive", "--run", str(tmp_path / "run")])
+    out = capsys.readouterr().out
+    assert "CRASHED" in out and "the driver fell over" in out
+    assert code == 1
+
+
+def test_a_run_where_every_task_was_refused_does_not_report_success(
+        tmp_path, monkeypatch, capsys):
+    """A refusal is a task that did not run, and `NOTHING RAN` keys on that.
+
+    0.1.640 made the refusal visible and left it counting as nothing, so a run
+    where every task was refused printed `drove 0 task(s)` and exited 0 — the
+    half of the finding the fix did not close.
+    """
+    skill = tmp_path / "skill"
+    (skill / "references").mkdir(parents=True)
+    (skill / "tokens").mkdir()
+    for rel in ("SKILL.md", "AGENTS.md", "references/brand.md",
+                "tokens/lumi-theme.css"):
+        (skill / rel).write_text("x", encoding="utf-8")
+    agents = [{"id": "fake", "name": "Fake", "capability": "full",
+               "drive": ["/bin/true"], "drive_effort_in_model": "{model}-{effort}",
+               "probe": ["true"], "skill_paths": [str(skill)]}]
+    tasks = [{"id": "T3-recall", "prompt": "answer", "deliverable": "*.md",
+              "min_capability": "prompt", "score": ["recall"],
+              "answers": {"q": ["a"]}}]
+    monkeypatch.setattr(rc, "load_agents", lambda: agents)
+    monkeypatch.setattr(rc, "load_tasks", lambda: tasks)
+    monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
+    monkeypatch.setattr(rc, "environment_check", lambda a: [])
+    code = rc.main(["run", "--drive", "--effort", "high",
+                    "--run", str(tmp_path / "run")])
+    out = capsys.readouterr().out
+    assert "driver refused" in out and "NOTHING RAN" in out
+    assert code == 1
+
+
 def test_a_run_where_nothing_could_be_driven_does_not_report_success(
         tmp_path, monkeypatch, capsys):
     # `driven` counts only successes and skipped agents incremented nothing, so

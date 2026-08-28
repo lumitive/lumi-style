@@ -2169,7 +2169,6 @@ def check_source_marker_parity():
     return errors
 
 
-PLATFORMS = ROOT / "adapters" / "platforms.json"
 
 # entry point -> the regex its version stamp must match, with {v} the version.
 # A position, not a substring: the first version of this guard asked only whether
@@ -2396,7 +2395,7 @@ def check_stale_promises():
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     shipped = set(versioning.releases(text=changelog))
     errors = []
-    scanned = (list(md_files()) + [PLATFORMS]
+    scanned = (list(md_files()) + [platform_registry.path(ROOT)]
                + [ROOT / p for p in (".cursor/rules/lumi-style.mdc",
                                      ".well-known/skills/index.json",
     # The geography registries' bilingual names. Every `z` field is what
@@ -2912,14 +2911,18 @@ def check_one_home():
 
     Three answers, not two (FM-24), and the list below was SHORT until 0.1.640.
     Every one of these is a way for the guard to print a clean tree's output
-    while looking at nothing, so every one is a finding: a register that cannot
-    be read, one that declares no facts, an owner that is not there, a `def`
-    name the owner does not define, a pattern its own `selftest` no longer
-    matches, a waiver nothing needed — and the three a review found missing: a
-    FACT that declares nothing to look for, a key the schema does not define
-    (one `def` for `defs` disarmed an entry in silence), and a SCAN that visited
-    no files at all. The first six are the register going blind; the last is the
-    guard going blind, which is a different question and was not asked.
+    while looking at nothing, so every one is a finding.
+
+    THE REGISTER GOING BLIND: it cannot be read; it declares no facts; a fact
+    declares no defs, no retired_defs and no patterns; a fact carries a key the
+    schema does not define (one `def` for `defs` disarmed an entry in silence);
+    two facts own one name (the second used to overwrite the first, and the
+    scan then accused the FIRST fact's owner); an owner is not there; a `def`
+    name the owner does not define; a pattern no longer matches its own
+    `selftest`; a waiver nothing needed.
+
+    THE GUARD GOING BLIND, which is a different question and was not asked
+    until a review asked it: a SCAN that visited no files at all.
     """
     errors = []
     try:
@@ -2949,7 +2952,7 @@ def check_one_home():
             errors.append(f"single-source `{fid}` carries {stray}, which the "
                           f"schema does not define — a misspelt key is an entry "
                           f"that guards nothing and says nothing")
-        # AN ENTRY WITH NOTHING TO LOOK FOR. Nine facts stripped of their defs
+        # AN ENTRY WITH NOTHING TO LOOK FOR. Every fact stripped of its defs
         # and patterns left this guard returning exactly what it returns on a
         # clean tree, which is the register's own `selftest` argument one level
         # up: a rule that has quietly stopped naming anything is invisible.
@@ -2965,7 +2968,7 @@ def check_one_home():
             continue
         owner_text = (ROOT / owner).read_text(encoding="utf-8")
         for name in fact.get("defs", []):
-            if not re.search(rf"^\s*def {re.escape(name)}\(", owner_text, re.M):
+            if not re.search(rf"^\s*(?:async\s+)?def {re.escape(name)}\(", owner_text, re.M):
                 errors.append(f"single-source `{fid}` owns {name}(), which "
                               f"{owner} does not define — the fact moved or "
                               f"was renamed, and the entry now guards a name "
@@ -2980,7 +2983,7 @@ def check_one_home():
         for name in fact.get("retired_defs", []):
             # The other direction: a retired spelling the owner has taken BACK
             # would make this entry forbid the shared implementation itself.
-            if re.search(rf"^\s*def {re.escape(name)}\(", owner_text, re.M):
+            if re.search(rf"^\s*(?:async\s+)?def {re.escape(name)}\(", owner_text, re.M):
                 errors.append(f"single-source `{fid}` retires {name}(), which "
                               f"{owner} defines — a retired name the owner uses "
                               f"is not retired")
@@ -3026,7 +3029,7 @@ def check_one_home():
         for name, (fid, owner) in owners.items():
             if name_of == owner:
                 continue
-            if not re.search(rf"^\s*def {re.escape(name)}\(", text, re.M):
+            if not re.search(rf"^\s*(?:async\s+)?def {re.escape(name)}\(", text, re.M):
                 continue
             if (name_of, fid) in waivers:
                 used.add((name_of, fid))
@@ -3053,6 +3056,11 @@ def check_one_home():
         errors.append(f"single-source scanned {scanned} file(s) under scripts/, "
                       f"which is no more than the owners themselves — a scan "
                       f"with nothing to look at is not a scan that passed")
+    # WHAT THIS FLOOR DOES NOT CATCH, said rather than left to be discovered:
+    # it is total blindness only. Nine owners against eighty-odd files means a
+    # scan that lost most of the tree still clears it. A floor from git's own
+    # listing would be tighter and would make every synthetic-tree test in
+    # tests/test_one_home.py need a repository, which is a worse trade.
     for key in waivers:
         if key not in used:
             errors.append(f"single-source waiver for {key[0]} / `{key[1]}` "

@@ -793,3 +793,49 @@ def test_a_store_that_answers_taken_every_time_is_a_hard_exit(tmp_path,
     with pytest.raises(SystemExit) as caught:
         trace_mod._fresh_id()
     assert "eight generated trace ids" in str(caught.value)
+
+# 0.1.641 — the write ORDER of `phase stop`, reversed twice in two days with no
+# test red either way. GAP-043 holds the single-write design that removes the
+# window; until then the order is a decision, and a decision needs a test.
+
+def test_a_crash_between_the_two_writes_keeps_the_span(tmp_path, monkeypatch):
+    """Trace first, clock second: a crash double-counts on replay, which is
+    checkable against a wall clock. Clock first LOSES the span — the trace
+    keeps its old total, the clock is gone, and the replay says the phase "was
+    never started", which is false and reads as a cheaper build on the board.
+    """
+    import argparse
+    import trace as trace_mod
+    store = tmp_path / "traces"
+    store.mkdir()
+    monkeypatch.setattr(trace_mod, "TRACES", store)
+    monkeypatch.setattr(trace_mod, "CLOCKS", tmp_path / "clocks", raising=False)
+    trace_mod._save(_legal())
+    args = argparse.Namespace(id="t-0123456789ab", name="build", action="start")
+    trace_mod.cmd_phase(args)
+    clock = trace_mod._clock_path("t-0123456789ab")
+    assert clock.exists(), "the clock did not start"
+
+    real_write = trace_mod._write_json
+    order: list[str] = []
+    def _note_clock(path, doc):
+        order.append("clock")
+        return real_write(path, doc)
+
+    monkeypatch.setattr(trace_mod, "_write_json", _note_clock)
+    real_save = trace_mod._save
+
+    def _save_then_die(record):
+        order.append("trace")
+        real_save(record)
+        raise OSError("crash after the trace is banked")
+
+    monkeypatch.setattr(trace_mod, "_save", _save_then_die)
+    with pytest.raises(OSError):
+        trace_mod.cmd_phase(argparse.Namespace(
+            id="t-0123456789ab", name="build", action="stop"))
+    assert order == ["trace"], order
+    banked = json.loads((store / "t-0123456789ab.json").read_text())
+    assert banked["phase_seconds"].get("build"), "the span was lost"
+    assert clock.exists(), "the clock was cleared before the trace was safe"
+

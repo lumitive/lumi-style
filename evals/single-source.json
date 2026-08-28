@@ -99,7 +99,7 @@
      "selftest": "rel = re.findall(r\"^##\\s+(\\d+\\.\\d+\\.\\d+)\", changelog, re.M)"
     }
    ],
-   "why": "seven readers of one stamp with five regexes and three failure behaviours, which disagreed on a real document: a SKILL.md carrying another `*_version:` key above the stamp gave the unanchored ones the NEIGHBOUR's value. Three orderings, one of which raised where another returned (). Two `_releases_between` differing by SIGN. And six independent scans of the CHANGELOG's headings, one of them into a set, which cannot answer `newest`."
+   "why": "every tool read the stamp for itself, with regexes that disagreed on a real document: a SKILL.md carrying another `*_version:` key above the stamp gave the unanchored ones the NEIGHBOUR's value. Three orderings, one of which raised where another returned (). Two `_releases_between` differing by SIGN. And independent scans of the CHANGELOG's headings, one of them into a set, which cannot answer `newest`. The counts are deliberately absent: the first version of this sentence said seven readers and the register found an eighth and a ninth in the same release."
   },
   {
    "id": "platform-registry",
@@ -123,7 +123,7 @@
      "selftest": "raw = (ROOT / \"adapters\" / \"platforms.json\").read_text(encoding=\"utf-8\")"
     }
    ],
-   "why": "five parsers of one registry - the driver, the agent evaluation, two generators and the debug log - and only ONE of them checked that what came back was a non-empty list. That one was inside check_repo, which is the wrong direction for a discipline to travel: the guard was careful and the tools that depend on the registry were not.",
+   "why": "every tool that used the registry parsed it for itself - the driver, the agent evaluation, two generators, the debug log - and not one checked that what came back was a non-empty list. The only careful reader was inside check_repo, which is the wrong direction for a discipline to travel: the GUARD was careful and the tools that DEPEND on the registry were not.",
    "note": "`load_agents`, `load_registry` and `_load_platforms` survive as one-line delegations rather than being retired: they are the seams the tests monkeypatch, and a delegation is not a second implementation. What the patterns refuse is opening the file again."
   },
   {
@@ -140,7 +140,7 @@
      "selftest": "raw = (ROOT / \"conformance\" / \"history.json\").read_text(encoding=\"utf-8\")"
     }
    ],
-   "why": "four readers, four answers to the same damaged file: one named which of absent / unreadable / not-a-list had happened, one raised whatever `json` raised, one caught JSONDecodeError but not OSError and never checked the shape, and the path that WRITES caught nothing at all."
+   "why": "every reader of this file answered a damaged one differently: one named which of absent / unreadable / not-a-list had happened, one raised whatever `json` raised, one caught JSONDecodeError but not OSError and never checked the shape, one checked the shape and not the OS, and the path that WRITES caught nothing at all."
   },
   {
    "id": "gate-register",
@@ -208,7 +208,7 @@
      "note": "the ARGV LITERAL, not `subprocess.run([\"git\"` \u2014 the first version required the two adjacent, and two callers that built the list into a variable first were invisible to it while the release claimed the consolidation was total."
     }
    ],
-   "why": "sixteen invocations, three identical `git(*args)` helpers copied into three files, and thirteen spellings of `git ls-files` whose FAILURE handling disagreed. Most said `a scan that did not run is not a scan that passed`; two returned an empty list, one of them feeding the English-only red line, so the guard scanned nothing and printed what it prints on a clean tree. Five split on newlines, which is a bug waiting for a filename with a newline in it. A review then found two more the first pattern could not see, because they assembled the argv before calling."
+   "why": "sixteen invocations, three identical `git(*args)` helpers copied into three files, and a `git ls-files` in every guard that needed one, whose FAILURE handling disagreed. Most said `a scan that did not run is not a scan that passed`; two returned an empty list, one of them feeding the English-only red line, so the guard scanned nothing and printed what it prints on a clean tree. Several split on newlines, which is a bug waiting for a filename with a newline in it. A review then found two more the first pattern could not see, because they assembled the argv before calling."
   },
   {
    "id": "repository-root",
@@ -218,7 +218,10 @@
     "repo_root"
    ],
    "why": "the consolidation grew five identical private `_root` helpers in the five modules written to end private copies, and the register could not see them because no fact declared the name. One had already diverged, anchoring on its own data file rather than on SKILL.md.",
-   "note": "the module-level `ROOT` constants are NOT this fact: they are computed before any sibling can be imported, and three of them carry comments explaining their form."
+   "note": "the module-level `ROOT` constants are NOT this fact: they are computed before any sibling can be imported, and three of them carry comments explaining their form.",
+   "retired_defs": [
+    "_root"
+   ]
   }
  ],
  "waivers": [

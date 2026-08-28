@@ -25,6 +25,16 @@ lib/            imported, never gates by itself
   shipped         which side of the repository split a file is on
   state_dir       where an operator's stores live ($LUMI_STATE / ~/.lumi)
   trace_store     the ONE trace-store resolver, writer and readers alike
+  versioning      the ONE reader of SKILL.md's stamp and the release list
+  platform_registry  the ONE reader of adapters/platforms.json
+  history         the ONE reader of conformance/history.json
+  agent_capability   what an agent can be RUN AS: vocabulary, effort, model names
+  repo_files      the ONE way to ask git, and the ONE repository root
+
+  Not the whole drawer: `ls scripts/lib` is the list, and this map names the
+  modules a reader most often looks for. Which facts have ONE home, and which
+  names carry them, is `evals/single-source.json` — the register `check_one_home`
+  reads.
 
 render/         geometry becomes SVG
   globe_svg       a static globe frame; re-exports geo_frame for its callers
@@ -73,10 +83,14 @@ artifact `build_fixtures` generates, so its `FIXTURE` read stays inside
 fixture generator could not import while the fixture was absent or stale.
 Nothing else imports `ops/` (tests do). `lib/` modules DO import each other —
 `geo_frame → geo_projection`, `checker_report → deliverable_registry`,
-`gating → gate_registry`, `trace_schema → deliverable_registry`, and
-`corpus`/`trace_store` → `state_dir` — each of them a shared definition with one
-owner, which is what `lib/` is for. What no module in it may do is import from
-`ops/`, `check/` or `build/`.
+`gating → gate_registry`, `trace_schema → deliverable_registry`,
+`corpus`/`trace_store` → `state_dir`, `gate_registry → versioning`, and the
+four consolidated readers plus `shipping` → `repo_files` for the one repository
+root — each of them a shared definition with one owner, which is what `lib/` is
+for. The edges are not enumerated exhaustively here on purpose: this list was
+six short the release after the consolidation that created them, and
+`check_bootstrap` is what actually holds the rule. What no module in `lib/` may
+do is import from `ops/`, `check/` or `build/`.
 
 History note: this tree was flat (36 files, counting the registry that
 arrived with the hardening) until 0.1.438–0.1.440. The

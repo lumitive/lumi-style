@@ -1,3 +1,124 @@
+## 0.1.641 — the selftests agreed with the regexes and with nothing else, and the fix that lost a span
+
+Round two of the review, on 0.1.640's fixes. Seven of them hold up under
+reproduction. Three left a new hole, and two of those are worse than what they
+replaced — which is the case for reviewing a repair rather than trusting it.
+
+**Four of eleven patterns in the register matched nothing anywhere in the
+repository, and one had never matched the real material at all.** The `selftest`
+requirement 0.1.634 introduced proves that a regex agrees with a string written
+by the same hand, in the same object, at the same moment — convention 15's
+warning, inside the mechanism built to enforce convention 15. The
+`conformance-history` pattern looked for `"history.json").read_text`; the shape
+it was written for put the path in a variable and read it on the next line, in
+three places. It could never have fired. **Every pattern now carries the line
+the shape ACTUALLY took**, copied out of the release before the consolidation,
+with `seen_in` naming where it lived — and one of the rewritten patterns
+immediately found a private path construction still in `check_repo.py`.
+
+**A fact could be deleted from the register in silence, and the one that could
+was the one 0.1.640 added.** The pinning test named nine ids over a register
+holding ten, so `repository-root` — written for the defect that release
+discovered — could be removed along with the guard it provides. Verified by
+deleting it and re-growing a diverged `repo_root` in `history.py`: green, 57
+guards, 22 tests. The test pins every fact and every owned name now.
+
+**The trace fix chose the wrong failure.** 0.1.640 cleared the phase clock
+before saving the trace, so a replay could not double-count. A review ran the
+crash: the span is destroyed instead, the trace keeps its old total, and the
+replay tells the operator the phase "was never started" — a false statement
+about a phase that was, on a number that feeds the cost board. **Two ordered
+writes cannot be atomic**, and the order only chooses which wrong record a crash
+produces. The trace goes first again, because a doubled figure can be caught
+against a wall clock and a lost one cannot. GAP-043 holds the design that
+removes the window rather than choosing inside it — the open clock inside the
+record, one `os.replace` — and says why it is not folded into a release about
+someone else's findings.
+
+**The dictionary printed a record count under the label "JSON files", in the
+section titled "Read this before you count anything".** 0.1.640 taught `main()`
+to measure both and print the honest note to the console; the ARTIFACT, which is
+what a consuming service reads, still said `{len(records)} JSON files`. And the
+sentence "Every file is a record" hung on the set-aside count rather than on
+whether the two numbers agree.
+
+**A failed `git status` would have committed the owner's uncommitted work.**
+`run_git(...)[1]` took stdout and dropped the exit code, so every owner-owned
+path read clean and the `add -A` two lines down staged them — in the block that
+exists because 0.1.547 committed 413 lines of her spec exactly that way. Its own
+comment says the exclusion is code "rather than a note to remember at commit
+time"; a failed git turned it back into the note. `add` and `reset` now check
+their exit codes too, and a `git log` that cannot answer stops the release
+rather than falling through to "HEAD is not a duplicate".
+
+**Also from round two**: the board re-derived `entry.get("ids")` by hand instead
+of calling the function that validates it, so a string id set counted its
+CHARACTERS as models and a damaged entry printed "offers 0" — the same shape as
+the two git callers that assembled their argv before calling, one layer up. The
+pin state reached the console and never the record, so a pin checked against a
+real vocabulary and one never checkable read identically on the board; it is a
+field now. `record_vocabularies` wrote a tracked store with a bare `write_text`,
+in the release that taught the reader to report a damaged one. And an `async def`
+copy was invisible to both halves of the drift scan.
+
+**A refusal was visible and still counted as nothing.** 0.1.640 replaced the
+swallowed `sys.exit` with a returned verdict, and stopped there: `driver
+refused` moved neither counter, so the `NOTHING RAN` guard — which keys on
+`skipped` — could not fire, and a run where every task was refused still printed
+`drove 0 task(s)` and exited 0. That is the sentence the 0.1.640 entry used to
+describe the defect, still true of half of it. A refusal counts as a task that
+did not run now, and a run of nothing but refusals exits 1.
+
+**The vocabulary reader validated the document and not its entries.** A store
+holding `{"cursor": "oops"}` passed the new check and then raised
+`AttributeError` from the WRITE path — after the probes were paid for, which is
+the sentence three lines above that line. And `run_git` discarded stderr, so
+`release.py`'s "git commit failed:" printed nothing after the colon, because a
+refusing hook and git's own `fatal:` go there.
+
+**The fact added to stop five copies could not see the spelling that made
+them.** `repository-root` declared `repo_root` and no `retired_defs`, and what
+recurred five times was `def _root`. The retired spelling is declared now — the
+mechanism was already there and the entry did not use it.
+
+**And the register's own `why` fields still carried the counts the docstrings
+had just deleted**, in the file 0.1.640 edited to fix exactly that. Four of
+them. The sweep corrected the module and left the register, which is the same
+shape one layer down: `scripts/README.md`'s drawer map was missing all five new
+modules and six of the eleven import edges, and CLAUDE.md's convention 19 read
+as a complete list of the ways the guard can go blind while the code had grown
+four more.
+
+**Two limits are now written down rather than left to be found.** The scan floor
+catches total blindness and not an eighty-percent loss, and a floor from git's
+listing would make every synthetic-tree test need a repository. `effort_refusal`
+cannot fire against today's registry, which 0.1.640 already said; round two
+confirmed it and the sentence stands.
+
+**A mutation review deleted every check 0.1.640 added, one at a time, and ran
+1,731 tests against each.** Four survived deletion with the suite green: the
+trace dictionary's three refusals — including the one that stops an empty index
+being written over the tracked one during a release — and the driver thread's
+crash counting. `ver_key`'s new strictness survived too: the only string any
+test fed it was one the OLD implementation already refused, so none of the four
+shapes its docstring names was covered. All five are tested now, and the
+phase-clock ORDER is pinned by a test that injects a crash between the two
+writes — an ordering reversed twice in two days, with nothing red either time,
+is a decision that needs one.
+
+**One process finding, and it is mine.** Round two ran against a working tree I
+was editing at the same time, so two reviewers reported files changing under
+them and one reported a defect that existed only in a half-finished edit. A
+review reads a state; it should be given a committed one. The next round runs
+against a commit or a separate worktree.
+
+Deliberate red for each: a register with a fact deleted, a narrowed
+regex-plus-selftest pair that passes while a real copy is planted, a store with
+one unparseable file, a store whose ENTRY is damaged, a run in which every task
+is refused, and a crash injected between the two phase writes in both orders.
+
+Design record: `specs/2026-08-28-one-home-design.md`.
+
 ## 0.1.640 — six readers on the branch about one home, and the guard had the hole it was written to close
 
 The owner asked for a full review of 0.1.630–0.1.639 before merging. Six readers
@@ -41,7 +162,7 @@ callers and this is now a shared module. `sort_key`'s "never raises" was false
 for a non-`str`; `gate_registry` caught a `TypeError` that could not occur and
 not the `AttributeError` that could.
 
-**Eight of Cursor's twenty-three recorded model ids were invisible to the fix
+**Seven of Cursor's twenty-three recorded model ids were invisible to the fix
 0.1.637 shipped.** `effort_in_model` read the last dash-segment, and every
 `-fast` twin ends in `fast` — so `cursor-grok-4.6-high-fast` still recorded
 `(not pinned)` and still landed in a cell of its own, which is the exact defect
@@ -117,8 +238,10 @@ cites. `conformance/README.md` said six axes over a register with seven. A
 `KNOWN_GAPS` entry promised "nothing is deleted" one release before 182 were.
 A CI comment and three module docstrings carried counts their own releases
 corrected — including this branch's, whose 0.1.635 entry announced an eighth
-reader while the module docstring beside it still said seven. Four numbers were
-deleted rather than corrected (convention 13), and the counts in the committed
+reader while the module docstring beside it still said seven. Numbers were
+deleted rather than corrected wherever the sentence survived without them
+(convention 13) — how many is the diff's to say, and an earlier draft of this
+sentence counted them wrong in both directions — and the counts in the committed
 0.1.636 and 0.1.638 entries are corrected in place, on 0.1.628's precedent.
 
 **Also**: `platform_registry` raised an undeclared `AttributeError` on a

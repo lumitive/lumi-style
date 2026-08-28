@@ -42,6 +42,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import json  # noqa: E402
+import os  # noqa: E402
 import pathlib  # noqa: E402
 import shutil  # noqa: E402
 import subprocess  # noqa: E402
@@ -124,6 +125,15 @@ def recorded_vocabularies(
     if not isinstance(doc, dict):
         return {}, (f"{path} holds a {type(doc).__name__}, not a map of agent "
                     f"id to vocabulary")
+    # THE ENTRIES TOO, not only the document. Validating the outer mapping and
+    # returning the inner values raw left `record_vocabularies`'s
+    # `(prior.get(aid) or {}).get("ids")` to raise on `{"cursor": "oops"}` —
+    # in the WRITE path, after the probes had been paid for, which is the
+    # sentence three lines above it.
+    bad = sorted(k for k, v in doc.items() if not isinstance(v, dict))
+    if bad:
+        return {}, (f"{path} records {bad} as something other than a "
+                    f"vocabulary — an entry, not the document, is damaged")
     return doc, None
 
 
@@ -177,8 +187,13 @@ def record_vocabularies(answered: dict,
                          + (f"gone {gone} " if gone else "")
                          + (f"new {arrived}" if arrived else ""))
     prior.update(answered)
-    path.write_text(json.dumps(prior, indent=1, sort_keys=True) + "\n",
-                    encoding="utf-8")
+    # TMP + REPLACE, the idiom `trace.py` carries for the same reason: a bare
+    # write truncates on a crash, and this release taught the READER to report
+    # a damaged store while leaving the writer able to produce one.
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(prior, indent=1, sort_keys=True) + "\n",
+                   encoding="utf-8")
+    os.replace(tmp, path)
     return lines
 
 

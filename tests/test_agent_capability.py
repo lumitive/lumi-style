@@ -88,7 +88,7 @@ def test_an_agent_nobody_probed_is_not_judged_and_says_so(tmp_path):
     assert ac.offered("cursor", root) == (None, None)
 
 
-def test_a_waived_probe_records_nothing_rather_than_an_empty_set(tmp_path):
+def test_a_damaged_entry_is_not_the_honest_absence_it_used_to_join(tmp_path):
     """A damaged entry is NOT the honest absence it used to join silently."""
     root = _vocab(tmp_path, {"hermes": {"ids": None}})
     ids, problem = ac.offered("hermes", root)

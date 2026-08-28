@@ -154,7 +154,7 @@ def test_palette_parity_non_colour_css_var_is_not_mirrored(tmp_path, monkeypatch
 
 
 # check_version_citations — stamps at their declared position, citations
-# resolving to CHANGELOG headings, waivers honored. ENTRY_STAMP, PLATFORMS and
+# resolving to CHANGELOG headings, waivers honored. ENTRY_STAMP and
 # the waiver table are data tables bound at import, so they are monkeypatched
 # to fit the synthetic tree; the guard logic under test is unchanged.
 
@@ -168,7 +168,6 @@ def _citation_tree(tmp_path, monkeypatch, skill_version=V, extra_md=""):
     if extra_md:
         (tmp_path / "notes.md").write_text(extra_md)
     monkeypatch.setattr(check_repo, "ROOT", tmp_path)
-    monkeypatch.setattr(check_repo, "PLATFORMS", adapters / "platforms.json")
     monkeypatch.setattr(check_repo, "ENTRY_STAMP", {"SKILL.md": r'^\s*version:\s*"{v}"'})
 
 

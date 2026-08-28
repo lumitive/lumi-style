@@ -225,6 +225,20 @@ def run(cmd, *, capture=True):
     return subprocess.run(cmd, cwd=ROOT, capture_output=capture, text=True)
 
 
+def _dirty(rel: str) -> bool:
+    """Does this path have uncommitted work? A git failure is not a `no`.
+
+    This read `run_git(...)[1]` — stdout, exit code discarded — so a failed
+    `git status` made every owner-owned path look clean and the `add -A` below
+    staged them. That block exists because 0.1.547 committed 413 lines of the
+    owner's spec exactly that way.
+    """
+    rc, out = repo_files.run_git("status", "--porcelain", "--", rel, root=ROOT)
+    if rc != 0:
+        sys.exit(f"   cannot ask git about {rel}; refusing to stage anything")
+    return bool(out)
+
+
 def current_version() -> str:
     return versioning.skill_version(ROOT)
 
@@ -287,7 +301,13 @@ def main():
     # down after the first, which is how a rule that needs a tool announces
     # itself.
     rc, head = repo_files.run_git("log", "--format=%s", "-1", root=ROOT)
-    if rc == 0 and head.startswith(f"{new} "):
+    if rc != 0:
+        # THE THIRD ANSWER. `rc == 0 and …` let a git failure fall through to
+        # "not a duplicate", which silently disarms the refusal two pieces of
+        # machinery depend on.
+        sys.exit("   cannot read HEAD's subject, so the double-commit refusal "
+                 "cannot run. Fix git before releasing.")
+    if head.startswith(f"{new} "):
         sys.exit(
             f"HEAD is already a {new} commit: {head[:70]!r}\n"
             f"    Committing again would put two commits on one release, which "
@@ -395,7 +415,7 @@ def main():
     # here would quietly overrule that.
     print("\n5. restated claims — the ones in the files this release touches")
     # `--changed HEAD`: the staged release diff, not the whole tree. The full
-    # sweep printed 280 lines and its last two were what a reader saw.
+    # sweep printed hundreds of lines and its last two were what a reader saw.
     sweep = run(["python3", "scripts/check/claim_sweep.py", "--counts", "--changed", "HEAD"])
     body = (sweep.stdout or "").strip().splitlines()
     print("   " + "\n   ".join(body[:40]) + ("\n   …" if len(body) > 40 else ""))
@@ -416,12 +436,16 @@ def main():
     # 16, which is why this script exists at all), so the exclusion is code
     # rather than a note to remember at commit time.
     held = [rel for rel in OWNER_OWNED
-            if repo_files.run_git("status", "--porcelain", "--", rel,
-                                  root=ROOT)[1]]
-    repo_files.run_git("add", "-A", root=ROOT, capture=False)
+            if _dirty(rel)]
+    rc, _ = repo_files.run_git("add", "-A", root=ROOT, capture=False)
+    if rc != 0:
+        sys.exit("   git add failed; nothing was committed")
     for owned in held:
-        repo_files.run_git("reset", "-q", "HEAD", "--", owned,
-                           root=ROOT, capture=False)
+        rc, _ = repo_files.run_git("reset", "-q", "HEAD", "--", owned,
+                                   root=ROOT, capture=False)
+        if rc != 0:
+            sys.exit(f"   git reset failed for {owned}; it is still staged and "
+                     f"this release will not commit it for her")
         print(f"   left alone: {owned} (owner-owned; not this release's to commit)")
     subject = f"{new} — {heading_summary}"
     rc, out = repo_files.run_git(

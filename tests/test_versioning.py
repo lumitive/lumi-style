@@ -49,11 +49,35 @@ def test_ordering_is_numeric_not_lexicographic():
     assert max(["0.1.99", "0.1.100"], key=versioning.sort_key) == "0.1.100"
 
 
+def test_the_strings_a_truncated_stamp_takes_are_refused():
+    """`int()` alone accepted all four, and each is a document escaping a rule.
+
+    `"0.1"` is the named case: `(0, 1) >= (0, 1, 449)` is False, so
+    `gate_registry.held` would have answered NOT held — an exemption from the
+    whole gate set, handed out by the function written to refuse exactly that.
+    None of the four appeared in a test until a mutation review reverted the
+    strictness and watched 1,731 tests stay green.
+    """
+    for bad in ("0.1", "0.1.2.3", " 0.1.5\n", "0_1.2.3", "0.1.\uff15", "0.1.-5"):
+        with pytest.raises(ValueError):
+            versioning.ver_key(bad)
+
+
+def test_a_truncated_stamp_does_not_buy_an_exemption():
+    name = next(n for n, g in gate_registry.load().items()
+                if g["since"] != gate_registry.ALWAYS)
+    assert gate_registry.held(name, "0.1") is True
+    assert gate_registry.held(name, "0.1.1") is False      # genuinely older
+
+
 def test_the_two_keys_differ_on_garbage_and_that_is_the_point():
     with pytest.raises(ValueError):
         versioning.ver_key("not-a-version")
     assert versioning.sort_key("not-a-version") == ()
     assert versioning.sort_key(None) == ()
+    # "never raises" was false for a non-str until 0.1.640, and the inputs come
+    # from JSON records where two call sites do not coerce.
+    assert versioning.sort_key(5) == ()          # type: ignore[arg-type]
     assert sorted(["0.1.2", "", "0.1.10"], key=versioning.sort_key)[0] == ""
 
 

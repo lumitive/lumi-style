@@ -60,7 +60,7 @@ def traces_dir(root: pathlib.Path | None = None) -> pathlib.Path:
 SUITE_LEAK_STOPPED = "2026-08-26"
 
 
-def suite_artifact(t) -> bool:
+def suite_artifact(t: object) -> bool:
     """A trace the test suite wrote, not a build anybody made.
 
     Until the suite got its own store, `tests/test_fewer_round_trips.py` drove
@@ -103,7 +103,7 @@ def suite_artifact(t) -> bool:
             and (t.get("opened_at") or "") < SUITE_LEAK_STOPPED)
 
 
-def load(include_suite_artifacts: bool = False):
+def load(include_suite_artifacts: bool = False) -> list[dict]:
     if not traces_dir().exists():
         return []
     out = []

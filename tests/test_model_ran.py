@@ -78,6 +78,12 @@ def test_the_cell_prefers_what_ran():
                  "model_ran": "cursor-grok-4.6-high"}) == "cursor-grok-4.6-high"
     assert cell({"model": "opus", "model_ran": "claude-opus-5"}) == \
         "claude-opus-5 (asked opus)"
+    # ONE MODEL, TWO SPELLINGS. `ran != asked` printed these as a substitution;
+    # `same_model` is the tokeniser that knows they are the same words, and no
+    # test used a pair on which the two disagree until a mutation review
+    # reverted the change and watched the suite stay green.
+    assert cell({"model": "cursor-grok-4.6-high",
+                 "model_ran": "Cursor Grok 4.6 High"}) == "Cursor Grok 4.6 High"
 
 
 def test_an_unconfirmed_ask_never_prints_as_an_answer():
