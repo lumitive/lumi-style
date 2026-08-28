@@ -54,9 +54,10 @@ def _tree(tmp_path):
 
 
 def _patch(monkeypatch, root):
+    # `REGISTRY` was a dead constant here — 0.1.640 deleted it, and the roster
+    # now comes from `platform_registry.platforms(ROOT)`, so patching ROOT is
+    # what points the driver at this tree.
     monkeypatch.setattr(run_conformance, "ROOT", root)
-    monkeypatch.setattr(run_conformance, "REGISTRY",
-                        root / "adapters" / "platforms.json")
     monkeypatch.setattr(run_conformance, "TASKS", root / "conformance" / "tasks")
     monkeypatch.setattr(run_conformance, "RESULTS",
                         root / "conformance" / "results")

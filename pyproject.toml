@@ -59,9 +59,13 @@ warn_redundant_casts = true
 module = ["playwright.*", "PIL", "PIL.*"]
 ignore_missing_imports = true
 
-# The ratchet: shared libraries are held strict from birth.
+# The ratchet: shared libraries are held strict from birth. The comment said
+# so while the list named two, and the 0.1.634-0.1.638 consolidation added five
+# more shared modules without joining it — which is the same omission one layer
+# up from the register those modules exist to fill.
 [[tool.mypy.overrides]]
-module = ["color_math", "css_tokens"]
+module = ["color_math", "css_tokens", "versioning", "platform_registry",
+          "history", "agent_capability", "repo_files"]
 disallow_untyped_defs = true
 
 [tool.pytest.ini_options]

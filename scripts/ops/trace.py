@@ -100,11 +100,27 @@ def _load(trace_id):
     return json.loads(p.read_text(encoding="utf-8"))
 
 
+def _write_json(path, doc):
+    """The same tmp + `os.replace` as `_save`, for the file beside the trace.
+
+    The phase CLOCK was written in place while the trace beside it was written
+    atomically, so a crash between the two banked the seconds and left the
+    clock running — and the next `phase stop` added the whole span again,
+    because line 274 accumulates. A truncated clock also made every later
+    phase command die in an uncaught `JSONDecodeError` naming neither traces
+    nor phases.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")
+    os.replace(tmp, path)
+
+
 def _save(rec):
     """Write a trace, whole, or not at all.
 
     TMP + `os.replace`, the idiom this repository already carries at
-    `debug_log.py`'s `_write` and for the same reason. A bare `write_text`
+    `debug_log.py`'s `_save` and for the same reason. A bare `write_text`
     truncates on a crash mid-write, and `trace_store.load()` swallows the
     resulting `JSONDecodeError` and skips the file — so a damaged record reads
     as a record that was never made. That is FM-24's shape in the data layer:
@@ -257,14 +273,19 @@ def cmd_phase(a):
     if a.name not in PHASES:
         sys.exit(f"phase {a.name!r} is not one of {PHASES}")
     path = _clock_path(a.id)
-    clocks = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    try:
+        clocks = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    except (OSError, ValueError) as exc:
+        sys.exit(f"the phase clock {path} could not be read ({exc}). Delete it "
+                 f"to start the phase again; the trace itself is untouched.")
+    if not isinstance(clocks, dict):
+        sys.exit(f"the phase clock {path} is not a map of phase to start time")
     now = _dt.datetime.now(_dt.UTC)
     if a.action == "start":
         if a.name in clocks:
             sys.exit(f"phase {a.name!r} is already running since {clocks[a.name]}")
         clocks[a.name] = now.isoformat(timespec="seconds")
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(clocks, indent=1) + "\n", encoding="utf-8")
+        _write_json(path, clocks)
         print(f"{a.name} started")
         return
     if a.name not in clocks:
@@ -275,11 +296,14 @@ def cmd_phase(a):
     errors = validate(rec)
     if errors:
         sys.exit("refusing to write an invalid trace:\n  " + "\n  ".join(errors))
-    _save(rec)
+    # THE CLOCK FIRST, so a replay cannot double-count. `phase_seconds`
+    # accumulates, so banking the seconds and then failing to clear the clock
+    # made the next `phase stop` add the whole span a second time.
     if clocks:
-        path.write_text(json.dumps(clocks, indent=1) + "\n", encoding="utf-8")
+        _write_json(path, clocks)
     else:
         path.unlink(missing_ok=True)
+    _save(rec)
     print(f"{a.name} +{seconds}s (total {rec['phase_seconds'][a.name]}s)")
 
 
@@ -435,7 +459,7 @@ def _fail_if_invalid(rec):
 # the record closed and the exemption honest, and costs one join.
 #
 # Optional in every direction: the file need not exist, a trace need not appear
-# in it, and nothing reads it to decide anything.
+# in it, and no run's behaviour depends on it.
 # RESOLVED, NOT HARD-CODED, for the same reason the store itself is: `evals/`
 # is development-side and this file ships. A hard-coded path would point, in an
 # installed skill, at a directory the projection does not carry — which the

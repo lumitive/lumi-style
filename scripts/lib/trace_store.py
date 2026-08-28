@@ -83,10 +83,15 @@ def suite_artifact(t) -> bool:
     sixteen distinct `skill_version`s (not sixteen releases — the span is
     0.1.532 and then most of 0.1.586-0.1.605).
 
-    They are NOT deleted — a trace store is a record, and the honest fix for a
-    bad denominator is to name what is in it, not to delete until the number
-    reads better. `--with-suite-artifacts` puts them back everywhere, including
-    in `--json` and `--board`.
+    SET ASIDE, not deleted — by this function. `--with-suite-artifacts` puts
+    them back everywhere, including in `--json` and `--board`.
+
+    The 182 measured above WERE deleted, at 0.1.632, by the owner's decision:
+    they were pytest's own build traces, records of nothing that happened, and
+    keeping them meant keeping a denominator every reader had to be warned
+    about. This classifier stays because the next test run writes more. What
+    changed is that setting one aside is no longer the end of its life, and
+    this paragraph said the opposite for one release.
     """
     if not isinstance(t, dict):
         return False

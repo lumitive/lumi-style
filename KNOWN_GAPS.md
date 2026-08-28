@@ -777,8 +777,13 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   the report — `4 of 251 build(s) record a reviewed outline` about a corpus of
   seventeen, `203 abandoned build(s)` about roughly twenty, `235 path B with no
   recipe` about fifty-three. `ledger.suite_artifact` now sets them aside, prints
-  the count it set aside, and `--with-suite-artifacts` puts them back; nothing
-  is deleted, which is a test of its own. What LEDGER 1 counts did not move at
+  the count it set aside, and `--with-suite-artifacts` puts them back.
+- 0.1.632 update: **"nothing is deleted" stopped being true, by the owner's
+  decision.** The 182 set-aside artifacts were deleted outright — they were
+  pytest's own build traces, records of nothing that happened, and keeping them
+  meant keeping a denominator every reader had to be warned about. The
+  `suite_artifact` classifier stays, because the next test run writes more; what
+  changed is that setting one aside is no longer the end of its life. What LEDGER 1 counts did not move at
   all, because a trace that never closed carries no verdicts — which is also
   why the first draft of this fix blamed `bar_replay.py` and was wrong: it
   reads `evals/thresholds.json` and has never opened the store.

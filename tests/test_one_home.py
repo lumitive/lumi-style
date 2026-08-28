@@ -157,6 +157,76 @@ def test_a_pattern_that_stopped_matching_its_selftest_is_a_finding(tmp_path, mon
     assert len(errors) == 1 and "selftest" in errors[0]
 
 
+def test_a_fact_declaring_nothing_to_look_for_is_a_finding(tmp_path, monkeypatch):
+    """Nine facts stripped of their arrays left the LIVE guard returning `[]`.
+
+    The register's own argument for `selftest`, one level up: an entry that has
+    quietly stopped naming anything reads as coverage.
+    """
+    reg = _register()
+    for key in ("defs", "retired_defs", "patterns"):
+        reg["facts"][0].pop(key, None)
+    errors = _run(tmp_path, monkeypatch, register=reg)
+    assert len(errors) == 1 and "nothing to look for" in errors[0]
+
+
+def test_a_key_the_schema_does_not_define_is_a_finding(tmp_path, monkeypatch):
+    """`def` for `defs` disarmed an entry in silence — the likeliest editing
+    mistake on a register whose promise is that a fact is one entry."""
+    reg = _register()
+    reg["facts"][0]["def"] = reg["facts"][0].pop("defs")
+    errors = _run(tmp_path, monkeypatch, register=reg)
+    assert any("schema does not define" in e for e in errors)
+
+
+def test_two_facts_owning_one_name_is_a_finding(tmp_path, monkeypatch):
+    """Otherwise the second silently overwrites the first, and the scan then
+    accuses the FIRST fact's owner of copying its own implementation."""
+    reg = _register()
+    reg["facts"].append({
+        "id": "second", "fact": "another", "owner": "scripts/lib/color_math.py",
+        "defs": ["srgb_linear"], "why": "x"})
+    errors = _run(tmp_path, monkeypatch, register=reg,
+                  extra="def srgb_linear(c):\n    return c\n")
+    assert any("both own srgb_linear()" in e for e in errors)
+
+
+def test_a_scan_that_visited_nothing_is_a_finding(tmp_path, monkeypatch):
+    """The guard going blind, which is a different question from the register
+    going blind and was not asked until 0.1.640: a tree holding only the owner
+    produced exactly what a clean repository produces."""
+    monkeypatch.setattr(check_repo, "ROOT", _tree(tmp_path))
+    (tmp_path / "scripts/consumer.py").unlink()
+    errors = check_repo.check_one_home()
+    assert len(errors) == 1 and "not a scan that passed" in errors[0]
+
+
+def test_the_live_register_still_declares_what_the_consolidation_moved():
+    """The register is DATA now, so deleting a pattern is a silent edit.
+
+    `check_no_shadow_markup` had its regexes in the guard's own source and a
+    test asserting them; the migration made the subject a JSON file that no
+    test read. Deleting the two `visible-text` patterns passed every test in
+    this suite and every guard in check_repo.
+    """
+    import json
+    reg = json.loads((check_repo.ROOT / "evals/single-source.json")
+                     .read_text(encoding="utf-8"))
+    facts = {f["id"]: f for f in reg["facts"]}
+    # Each of these consolidated a defect a release paid for; the entry is the
+    # only thing keeping it consolidated.
+    assert set(facts) >= {"colour-arithmetic", "css-token-reading",
+                          "visible-text", "package-version",
+                          "platform-registry", "conformance-history",
+                          "gate-register", "agent-capability", "asking-git"}
+    assert len(facts["visible-text"]["patterns"]) == 2      # tags, CJK space
+    assert len(facts["package-version"]["patterns"]) == 3   # stamp x2, releases
+    assert facts["asking-git"]["patterns"]                  # the git invocation
+    assert "contrast_hex" in facts["colour-arithmetic"]["defs"]
+    assert "same_model" in facts["agent-capability"]["defs"]
+    assert "read_rows" in facts["conformance-history"]["defs"]
+
+
 def test_a_pattern_that_does_not_compile_is_a_finding(tmp_path, monkeypatch):
     reg = _register(patterns=[{"regex": "([unclosed", "what": "x",
                                "selftest": "y"}])

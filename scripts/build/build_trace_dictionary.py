@@ -17,13 +17,15 @@ reader outside this repository will ever look.
   or an analysis service that should not have to reimplement this package's
   filters to get a correct denominator.
 
-**The preface is the load-bearing part.** The store holds far more files than it
-holds records: `trace_store.suite_artifact()` sets aside build traces that pytest
-leaked into the tracked directory before 2026-08-26, and that rule lives in code
-and in CHANGELOG prose and nowhere a consumer would find it. A reader who counts
-the files gets a denominator three times too large — which is not hypothetical:
-`ledger.py` once reported "4 of 251 builds" over a store holding seventeen. The
-index carries `suite_artifact` as a column so the filter travels with the data.
+**The preface is the load-bearing part.** The store HELD far more files than
+records when this was written: `trace_store.suite_artifact()` sets aside build
+traces that pytest leaked into the tracked directory before 2026-08-26, and that
+rule lived in code and in CHANGELOG prose and nowhere a consumer would find it.
+A reader who counted files got a denominator three times too large — not
+hypothetical: `ledger.py` once reported "4 of 251 builds" over a store holding
+seventeen. 0.1.632 deleted the 182 leaked files, so the two numbers now agree;
+the preface counts both, because the next test run can separate them again. The index carries `suite_artifact` as a column so the filter
+travels with the data.
 """
 import argparse
 import collections
@@ -47,7 +49,13 @@ import trace_schema  # noqa: E402
 import trace_store  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-TRACES = ROOT / "evals" / "traces"
+# THE STORE THE READER ACTUALLY READ. The output paths were hard-coded to
+# `evals/traces/` while the input came through `trace_store`'s resolver, so
+# `LUMI_TRACES` pointing elsewhere made this read zero records and write them
+# over the tracked index — and `release.py` re-runs every `--check` generator
+# without `--check` on every release, then stages with `git add -A`. The
+# comment below stated the rule; the two lines under it broke it.
+TRACES = trace_store.traces_dir()
 # Same resolver the writer uses; a reader that hard-coded the
 # development path would find nothing in an installed skill.
 NOTES = state_dir.store("trace-notes.json",
@@ -58,8 +66,9 @@ INDEX_OUT = TRACES / "index.jsonl"
 # WHAT A PERSON MAY EDIT INSIDE A TRACE, and it is deliberately short. `trace.py` has
 # no flag for supplying a verdict, which is the same discipline
 # `check_evidence.py` enforces one layer up — a human never types "pass". These
-# three are the ones a person is the AUTHORITY on: what a build was for, which
-# review it belongs to, and what the operator wants to remember about it.
+# are the ones a person is the AUTHORITY on: what a build was for and which
+# review it belongs to. (There were three until 0.1.632 moved the operator's
+# note into its own sidecar; the count outlived the field by one release.)
 # Everything else is a measurement, and hand-editing a measurement is not an
 # edit, it is a forgery. A note about the run is neither — it lives in
 # `evals/trace-notes.json`, outside the closed schema, so the trace keeps the
@@ -68,8 +77,9 @@ INDEX_OUT = TRACES / "index.jsonl"
 HAND_EDITABLE = ("corpus_id", "review_ref")
 
 # The columns the index carries. Verdict blocks are excluded on purpose: they
-# are 44% of the store's bytes and they belong in the trace, which the index
-# points at.
+# are the bulk of the store's bytes and they belong in the trace, which the
+# index points at. (The share was written here as a number and was wrong two
+# releases later, because 0.1.632 changed the denominator — convention 13.)
 INDEX_FIELDS = ("trace_id", "path", "opened_at", "closed_at", "source", "agent",
                 "model", "effort", "cli_version", "skill_version", "genre",
                 "storyline", "entry_path", "geometry", "pages", "content_pages",
@@ -188,6 +198,15 @@ def render_dictionary(records: list[dict]) -> str:
     aside = len(records) - len(kept)
     closed = sum(1 for r in kept if r.get("closed_at"))
     lines_at = _schema_lines()
+    # A CITATION OR A REFUSAL, never `:0`. `.get(name, 0)` rendered a field the
+    # scanner could not locate as a citation to line zero — in the column this file
+    # exists to provide — and the test's `>=` count could not tell that from a
+    # working scanner.
+    missing = sorted(set(trace_schema.FIELDS) - set(lines_at))
+    if missing:
+        raise SystemExit(f"FAIL  the schema scan located no line for {missing} "
+                         f"— the `declared at` column would cite line 0, which "
+                         f"is not a citation")
     by_source = collections.Counter(r.get("source") for r in kept)
     fill: collections.Counter = collections.Counter()
     for rec in kept:
@@ -296,7 +315,7 @@ def render_dictionary(records: list[dict]) -> str:
             f"| `{name}` | {typ}{later} | {_side(name)} | "
             f"{'**yes**' if name in HAND_EDITABLE else 'no'} | "
             f"{fill.get(name, 0)} of {len(kept)} | {_example(name, kept)} | "
-            f"`trace_schema.py:{lines_at.get(name, 0)}` |")
+            f"`scripts/lib/trace_schema.py:{lines_at[name]}` |")
     out += [
         "",
         "## What is not here",
@@ -320,7 +339,23 @@ def main(argv=None) -> int:
                     help="verify the tracked renders are current (CI)")
     args = ap.parse_args(argv)
 
+    # A STORE THAT IS NOT THERE IS NOT A STORE WITH NOTHING IN IT. Writing
+    # under that condition is how an empty index replaces a full one, and
+    # `path.parent.mkdir` below would CREATE the directory `state_dir` uses to
+    # decide where the store lives — moving every other reader onto the empty
+    # one.
+    if not TRACES.is_dir():
+        print(f"FAIL  {TRACES} does not exist, so there is no store to render. "
+              f"Nothing was written.")
+        return 1
     records = trace_store.load(include_suite_artifacts=True)
+    files = len(list(TRACES.glob("*.json")))
+    if files != len(records):
+        # THE DENOMINATOR THIS FILE EXISTS FOR. `trace_store.load` skips a file
+        # it cannot parse, so counting records and calling them files is the
+        # conflation 0.1.631 was written about, reproduced in the artifact.
+        print(f"note  {TRACES} holds {files} file(s) and {len(records)} "
+              f"record(s) — {files - len(records)} could not be read")
     want = {DICT_OUT: render_dictionary(records),
             INDEX_OUT: render_index(records)}
 
@@ -338,14 +373,14 @@ def main(argv=None) -> int:
                   + " is stale or missing; re-run without --check")
             return 1
         print(f"ok    the trace dictionary and index are current "
-              f"({len(records)} file(s))")
+              f"({files} file(s), {len(records)} record(s))")
         return 0
 
     for path, text in want.items():
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
     print(f"wrote {where(DICT_OUT)} and {where(INDEX_OUT)} "
-          f"({len(records)} file(s))")
+          f"({files} file(s), {len(records)} record(s))")
     return 0
 
 

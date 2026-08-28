@@ -33,7 +33,7 @@ where it is.
 
 ## The one bar, borrowed rather than invented
 
-`conformance/agent-evals.json` declares six axes and **no numbers**. The bar a
+`conformance/agent-evals.json` declares the axes and **no numbers** — how many is whatever that file holds today, and 0.1.633 added the seventh. The bar a
 run is held to is already the gate line in `evals/gates.json`, which
 `agent_runs.board()` applies as an admission ticket: a run with a failing gate
 is not on the cost board, and since 0.1.620 a run that recorded no gates at all

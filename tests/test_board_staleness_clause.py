@@ -231,7 +231,7 @@ def test_restamp_refuses_a_version_the_changelog_does_not_carry(tmp_path,
                                                                 capsys):
     """Naming the side that is actually missing.
 
-    `_releases_between` returns None when EITHER argument is absent, and the
+    `versioning.releases_between` returns None when EITHER argument is absent, and the
     first version blamed the board unconditionally — so asking for a version
     that has no CHANGELOG entry reported that the BOARD predated the file, and
     sent a reader to look at run directories.

@@ -70,22 +70,52 @@ def _vocab(tmp_path, doc):
 
 def test_a_pin_is_refused_against_a_recorded_vocabulary(tmp_path):
     root = _vocab(tmp_path, {"cursor": {"ids": ["cursor-grok-4.6-high"]}})
-    assert ac.validate_pin(CURSOR, "cursor-grok-4.6-high", root)[0] is True
-    ok, why = ac.validate_pin(CURSOR, "cursor-grok-4.6-max", root)
-    assert ok is False and "does not offer" in why
+    assert ac.validate_pin(CURSOR, "cursor-grok-4.6-high", root)[0] == ac.OK
+    state, why = ac.validate_pin(CURSOR, "cursor-grok-4.6-max", root)
+    assert state == ac.REFUSED and "does not offer" in why
 
 
-def test_an_agent_nobody_probed_is_not_judged(tmp_path):
-    """No evidence is not evidence of absence — the whole reason the probe
-    keeps `waived` and `failed` apart from an empty list."""
+def test_an_agent_nobody_probed_is_not_judged_and_says_so(tmp_path):
+    """No evidence is not evidence of absence — but it is not `ok` either.
+
+    Both returned `(True, "")` and printed nothing, so the check working and
+    the check not running looked identical at the point the driver's own
+    comment says the check matters most.
+    """
     root = _vocab(tmp_path, {})
-    assert ac.validate_pin(CURSOR, "anything-at-all", root) == (True, "")
-    assert ac.offered("cursor", root) is None
+    state, why = ac.validate_pin(CURSOR, "anything-at-all", root)
+    assert state == ac.UNVALIDATED and "no recorded vocabulary" in why
+    assert ac.offered("cursor", root) == (None, None)
 
 
 def test_a_waived_probe_records_nothing_rather_than_an_empty_set(tmp_path):
+    """A damaged entry is NOT the honest absence it used to join silently."""
     root = _vocab(tmp_path, {"hermes": {"ids": None}})
-    assert ac.offered("hermes", root) is None
+    ids, problem = ac.offered("hermes", root)
+    assert ids is None and problem and "damaged entry" in problem
+    assert ac.validate_pin(HERMES, "anything", root)[0] == ac.UNVALIDATED
+
+
+def test_a_store_that_cannot_be_read_is_named_not_ignored(tmp_path):
+    (tmp_path / "conformance").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "conformance/vocabularies.json").write_text("<<<<<<< HEAD",
+                                                            encoding="utf-8")
+    doc, problem = ac.recorded_vocabularies(tmp_path)
+    assert doc == {} and problem and "could not be read" in problem
+    for body in ("null", "[]"):
+        (tmp_path / "conformance/vocabularies.json").write_text(body,
+                                                                encoding="utf-8")
+        _doc, problem = ac.recorded_vocabularies(tmp_path)
+        assert problem and "not a map" in problem
+
+
+def test_the_fast_twins_carry_their_level(tmp_path):
+    """Eight of Cursor's twenty-three recorded ids are `-fast` twins, and
+    reading only the last segment found the level on none of them."""
+    for model, level in (("cursor-grok-4.6-high-fast", "high"),
+                         ("cursor-grok-4.6-medium-fast", "medium"),
+                         ("cursor-grok-4.6-fast", None)):
+        assert ac.effort_in_model(CURSOR, model) == level
 
 
 def test_a_changed_vocabulary_is_named_on_both_sides(tmp_path):
@@ -93,12 +123,30 @@ def test_a_changed_vocabulary_is_named_on_both_sides(tmp_path):
     lines = ac.record_vocabularies({"cursor": {"ids": ["b", "c"]}}, root)
     assert len(lines) == 1
     assert "gone ['a']" in lines[0] and "new ['c']" in lines[0]
-    assert ac.offered("cursor", root) == ["b", "c"]
+    assert ac.offered("cursor", root) == (["b", "c"], None)
 
 
 def test_an_unchanged_vocabulary_says_nothing(tmp_path):
     root = _vocab(tmp_path, {"cursor": {"ids": ["a"]}})
     assert ac.record_vocabularies({"cursor": {"ids": ["a"]}}, root) == []
+
+
+def test_a_damaged_store_refuses_the_write_rather_than_losing_the_probes(tmp_path):
+    """`prior.update()` on a damaged store threw away probes already paid for."""
+    import pytest
+    (tmp_path / "conformance").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "conformance/vocabularies.json").write_text("{oops",
+                                                            encoding="utf-8")
+    with pytest.raises(SystemExit):
+        ac.record_vocabularies({"cursor": {"ids": ["a"]}}, tmp_path)
+
+
+def test_the_effort_waiver_is_returned_and_not_only_the_refusal(tmp_path):
+    """The second channel of `declared_efforts`, asserted nowhere until a
+    review looked: without it no caller can say WHY a platform has none."""
+    levels, waiver = ac.declared_efforts(GEMINI)
+    assert levels is None and waiver and "no reasoning level" in waiver
+    assert ac.declared_efforts(HERMES)[1] is None
 
 
 def test_the_model_comparator_keeps_its_three_answers():

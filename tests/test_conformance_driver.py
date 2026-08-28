@@ -188,8 +188,8 @@ def test_every_shipped_driver_is_an_argv_list_driven_non_interactively(tmp_path)
     # Not a hand-kept list of platform ids: the set is every record that
     # declares a driver, so adding one to the registry brings it under this
     # test instead of past it.
-    agents = [a for a in json.loads(
-        rc.REGISTRY.read_text(encoding="utf-8"))["platforms"] if a.get("drive")]
+    import platform_registry
+    agents = [a for a in platform_registry.platforms() if a.get("drive")]
     assert len(agents) >= 3, "the shipped drivers went missing from the registry"
     for a in agents:
         argv = a["drive"]
@@ -652,14 +652,18 @@ def test_effort_without_a_model_refuses_to_run(tmp_path):
     as "Cursor at high effort" when Cursor had run on the server's default model
     at the server's default level, and the matrix row the flag exists to fill was
     dropped without a word. Owner ruling 2026-08-22: pin it, or fail.
+
+    A VERDICT, NOT `sys.exit`, since 0.1.640: this runs in a driver thread, and
+    `threading.excepthook` ignores SystemExit — so the refusal printed nothing,
+    moved neither counter, and the run reported `drove 0 task(s)` and exited 0.
     """
-    import pytest
     argv = [sys.executable, "-c",
             "import sys,pathlib; pathlib.Path('a.md').write_text(' '.join(sys.argv[1:]))"]
     agent = dict(_agent(argv), drive_effort_in_model="{model}-{effort}")
-    with pytest.raises(SystemExit) as exc:
-        rc.drive(agent, TASK, tmp_path, effort="high")
-    assert "no --model" in str(exc.value)
+    out = rc.drive(agent, TASK, tmp_path, effort="high")
+    assert out["verdict"] == "driver refused"
+    assert "no --model" in out["detail"]
+    assert not (tmp_path / "a.md").exists()      # nothing was driven
 
 
 def test_effort_with_a_model_still_composes(tmp_path):

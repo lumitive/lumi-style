@@ -1,3 +1,147 @@
+## 0.1.640 — six readers on the branch about one home, and the guard had the hole it was written to close
+
+The owner asked for a full review of 0.1.630–0.1.639 before merging. Six readers
+in parallel — code, silent failures, test coverage, comments, interface design,
+and this repository's own conventions. Every finding below was reproduced before
+it was acted on; one was not reproducible and is recorded as such.
+
+**The register could be emptied and the guard would report a clean tree.**
+`check_one_home`'s docstring enumerated five ways it could go blind. A fact that
+names an existing owner and declares no `defs`, no `retired_defs` and no
+`patterns` was the sixth: it visits no loop body, appends no error, and prints
+what a clean repository prints. Verified by stripping all nine facts of their
+arrays — `[]`, byte-identical to green. **One misspelt key was enough** (`def`
+for `defs`), which is the likeliest editing mistake on a register whose whole
+promise is that adding a fact is one entry. Three checks now: an entry that
+declares nothing, a key the schema does not define, and two facts owning one
+name — which used to overwrite silently and then accuse the FIRST fact's owner
+of copying its own implementation.
+
+**And the guard itself could go blind, which is a different question.** A tree
+whose `scripts/` holds only the owner files scanned nothing and said nothing.
+The six checks above are the REGISTER going blind; the scan is the GUARD going
+blind, and it was not asked. It counts what it visited now.
+
+**Nothing asserted that the live register still declares what the consolidation
+moved into it.** `check_no_shadow_markup` kept its regexes in its own source
+with a test asserting them; making the subject a JSON file that no test reads
+was a real loss of protection, and deleting the two `visible-text` patterns
+passed every test and every guard. `tests/test_one_home.py` now pins the fact
+ids and the patterns each carries.
+
+**`ver_key` did not refuse what its docstring exists to refuse.** `int()` alone
+accepted `"0.1"` — two parts — and `(0, 1) >= (0, 1, 449)` is False, so a
+truncated stamp would have been EXEMPTED from the whole gate set by the one
+function written to make that impossible. Also accepted: leading whitespace, PEP 515
+underscores, full-width digits. `gate_registry.held` catches this error and
+answers *held*, so every string `ver_key` did not refuse was a document
+escaping a rule. Latent — `fingerprint.version_in`'s regex constrains what
+reaches it today — and closed anyway, because "latent" is a property of the
+callers and this is now a shared module. `sort_key`'s "never raises" was false
+for a non-`str`; `gate_registry` caught a `TypeError` that could not occur and
+not the `AttributeError` that could.
+
+**Eight of Cursor's twenty-three recorded model ids were invisible to the fix
+0.1.637 shipped.** `effort_in_model` read the last dash-segment, and every
+`-fast` twin ends in `fast` — so `cursor-grok-4.6-high-fast` still recorded
+`(not pinned)` and still landed in a cell of its own, which is the exact defect
+that release says it closes, for the ids `adapters/cursor.md` says always exist.
+It reads the last two segments now, and two is a limit rather than a scan,
+because a model whose NAME contains a level word would otherwise be misread.
+
+**Two prose sites credited `effort_refusal` with a catch it does not make.**
+Cursor's declared list CONTAINS `max` — `max` ids exist for other families — so
+what refuses `cursor-grok-4.6-max` is `validate_pin`, against the recorded
+vocabulary. Worse, with today's registry `effort_refusal` cannot fire from the
+CLI at all: every driveable platform declares a superset of the five levels a
+trace can record. It stays, for a platform that declares FEWER, and now says so
+out loud rather than leaving a check nothing reaches to be rediscovered.
+
+**`validate_pin` had two answers where it needed three.** A pin checked against
+a real vocabulary and a pin never checked at all both returned `(True, "")` and
+printed nothing — the check working and the check not running, indistinguishable,
+at the point the driver's own comment says the check matters most. `ok` /
+`refused` / `unvalidated`, and the driver prints the third.
+
+**`conformance/vocabularies.json` had none of the discipline its sibling got.**
+It is tracked, every probe round appends to it, and it was read with a bare
+`json.loads`: three damaged shapes gave three uncaught exceptions, one of them
+mid-drive and one of them in the WRITE path, after the probes had been paid for.
+It has `history.read_rows`'s shape now, and a damaged entry no longer joins the
+honest "nobody asked" absence — which had quietly reverted the pin check to
+unarmed.
+
+**A refusal inside a driver thread printed nothing.** `drive()` used `sys.exit`
+for the un-pinnable-effort case, and `threading.excepthook` ignores `SystemExit`
+by design: the thread died silently, neither counter moved, and the run reported
+`drove 0 task(s)` and exited 0. It returns the refusal verdict it already had a
+channel for, and an escaped exception of any kind is now a counted crash and a
+non-zero exit.
+
+**`build_trace_dictionary.py` read a resolved store and wrote a hard-coded one.**
+With `LUMI_TRACES` pointing elsewhere it read zero records and would have
+overwritten the tracked 50 KB index with nothing, printed `wrote … (0 file(s))`
+and exited 0 — and `release.py` re-runs every `--check` generator without
+`--check` on each release, then stages with `git add -A`. Its `mkdir` also
+created the directory `state_dir` uses to decide where the store lives. Both
+outputs come from the resolver now, a store that is not there is a refusal
+rather than a write, and the count says files AND records, because
+`trace_store.load()` skips what it cannot parse and calling records "files" is
+the conflation 0.1.631 was written about.
+
+**The phase clock was written in place beside an atomically written trace.** A
+crash between them banked the seconds and left the clock running, and
+`phase_seconds` accumulates, so the next `phase stop` added the whole span
+again. The clock is written the same way now and cleared BEFORE the trace, so a
+replay cannot double-count; a truncated clock is a sentence rather than an
+uncaught `JSONDecodeError` naming neither traces nor phases.
+
+**The git consolidation was not the total it claimed.** Two callers built the
+argv into a variable before calling, so the register's pattern could not see
+them — one of them splitting on newlines in the file that uses the shared reader
+correctly ten lines earlier. The untracked listing had nowhere to go at all, and
+`check_evidence` read a FAILED listing as a clean tree, inside the evidence gate.
+`untracked_files` exists, the pattern matches the argv literal wherever it is
+built, and `run_git` grew the non-capturing mode `release.py` needed.
+
+**Five copies of one function, in the five modules written to end copies.** Each
+new module grew a private `_root`, and the register could not see them because
+no fact declared the name — one had already diverged, anchoring on its own data
+file rather than on `SKILL.md`. `repo_root` is a fact now.
+
+**Ten prose defects, and they are the branch's own subject.** A board header and
+the README block both said the configurations board is "ordered by cost, not a
+quality ranking" while interpolating an ordering whose first key is a human's
+read — in the one file a user reads, which is the precedent 0.1.634's entry
+cites. `conformance/README.md` said six axes over a register with seven. A
+`KNOWN_GAPS` entry promised "nothing is deleted" one release before 182 were.
+A CI comment and three module docstrings carried counts their own releases
+corrected — including this branch's, whose 0.1.635 entry announced an eighth
+reader while the module docstring beside it still said seven. Four numbers were
+deleted rather than corrected (convention 13), and the counts in the committed
+0.1.636 and 0.1.638 entries are corrected in place, on 0.1.628's precedent.
+
+**Also**: `platform_registry` raised an undeclared `AttributeError` on a
+document that is not a mapping; `_tracked_stems` let a git FAILURE buy the
+filesystem-glob fallback whose own comment records finding 206 files that
+`.gitignore` excluded from every clone; three dead path constants — the seed of
+the next private reader — are gone; a test asserted `"read" in text` where the
+neighbouring sentence contains the word, so it could not fail; the five new
+shared modules joined the mypy strict ratchet whose comment already said
+"shared libraries are held strict from birth".
+
+**One finding was not reproducible and is recorded rather than acted on.** A
+reviewer reported that two modules changed on disk mid-review to return `None`
+instead of `[]`. The working tree was clean and both still return `[]`. Reported
+here because a review's own errors belong in the record beside its findings.
+
+Deliberate red for each new check: a gutted register, a misspelt key, two facts
+owning one name, a scan with nothing to scan, a redirected trace store, a
+damaged vocabulary in both the read and the write path, and a `-fast` twin whose
+level was invisible.
+
+Design record: `specs/2026-08-28-one-home-design.md`.
+
 ## 0.1.639 — the register is a convention now, not only a mechanism
 
 Owner-directed, and the smallest release in this run: **maintenance convention
@@ -39,8 +183,8 @@ installs updated first — GAP-041 holds that round and it is the owner's call.
 The last fact on the audit's list, and the one with the most copies.
 
 **Sixteen invocations, three identical `git(*args)` helpers in three files, and
-thirteen spellings of `git ls-files`.** The helpers were the same four lines
-each. The listings were not: their FAILURE handling disagreed. Most said the
+a `git ls-files` in every guard that needed one.** The helpers were the same
+four lines each. The listings were not: their FAILURE handling disagreed. Most said the
 right thing — *a scan that did not run is not a scan that passed*, a sentence
 this repository has written into six guards — and **two returned an empty list.**
 One of those is `_json_manifests`, which feeds the English-only red line: with
@@ -54,9 +198,11 @@ nothing was swept, and `_json_manifests` RAISES, which `main()` already reports
 as that guard's own failure. A tarball checkout with no index stays a third
 answer and still returns `[]`, because that one is genuinely nothing to scan.
 
-**`-z` always.** Five callers split on newlines, which is a bug waiting for a
+**`-z` always.** Callers split on newlines, which is a bug waiting for a
 filename with a newline in it. One reader makes the safe spelling the only
-spelling, and a test now creates such a file and reads it back.
+spelling, and a test now creates such a file and reads it back. (How many
+callers is not stated here: this entry said five, a review counted nine, and
+0.1.640 found three the release had not moved at all.)
 
 Deliberate red: a private `subprocess.run(["git", …])` planted in an unrelated
 script named its owner; a `.git` directory that git refuses made
@@ -135,12 +281,12 @@ Design record: `specs/2026-08-28-one-home-design.md`.
 Three files with more readers than they have writers, and in each case the
 discipline was in the wrong place.
 
-**`adapters/platforms.json` was parsed five ways, and only one of the five
-asked whether it got anything back.** That one is inside `check_repo`, which is
-exactly the wrong direction for a discipline to travel: the GUARD checked that
-`platforms` was a non-empty list, while the driver, the agent evaluation and
-two generators each read `json.loads(...)["platforms"]` and would have carried
-on with `[]` — a repository with no platforms, which is a sentence no reader
+**`adapters/platforms.json` was parsed by every tool that used it, and not
+one of those asked whether it got anything back.** The only careful reader was
+inside `check_repo`, which is exactly the wrong direction for a discipline to
+travel: the GUARD checked that `platforms` was a non-empty list, while the
+driver, the agent evaluation, two generators and the debug log each read
+`json.loads(...)["platforms"]` and would have carried on with `[]` — a repository with no platforms, which is a sentence no reader
 would question. `scripts/lib/platform_registry.py` is the reader now, and the
 guard's wrapper survives only to keep its own error wording. It is deliberately
 NOT `run_conformance.load_agents`, which was the closest thing to a shared

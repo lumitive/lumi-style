@@ -80,7 +80,7 @@ def test_no_page_declaring_a_move_is_not_measured(move):
 # --- one metric name, one computation ---------------------------------------
 
 def test_the_median_matches_eval_corpus_on_the_same_report():
-    """Two computations under one name is what the `no shadow math` guard is
+    """Two computations under one name is what the `one home` guard is
     about, and a corpus holding both compares numbers that are not the same
     number. The selectors disagreed when the first geometry entry was empty."""
     pages = [_page(f"p{i}", vis=v) for i, v in enumerate([35, 46, 61, 72], 4)]

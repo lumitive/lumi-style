@@ -62,7 +62,6 @@ def _tree(tmp_path, monkeypatch):
                       (tasks / "T1.json").read_text(encoding="utf-8")))}}),
         encoding="utf-8")
     for attr, value in (("ROOT", tmp_path),
-                        ("REGISTRY", tmp_path / "adapters" / "platforms.json"),
                         ("TASKS", tasks),
                         ("RESULTS", tmp_path / "conformance" / "results")):
         monkeypatch.setattr(run_conformance, attr, value)

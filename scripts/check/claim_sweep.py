@@ -50,7 +50,6 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 import argparse  # noqa: E402
 import pathlib  # noqa: E402
 import re  # noqa: E402
-import subprocess  # noqa: E402
 import sys  # noqa: E402
 
 import repo_files  # noqa: E402 — the one way to ask git
@@ -117,19 +116,22 @@ def changed_since(ref: str) -> set[str] | None:
     untracked files, or None when git cannot answer.
 
     Convention 12 says "read the claims touching what you changed", and the
-    whole sweep prints two hundred and eighty lines; a reader who has to
+    whole sweep prints hundreds of lines; a reader who has to
     find their own twenty in it reads none. `--changed` is the filter that
     convention named and nobody had built — the P1 item the refactor design
     listed as "claim_sweep extension" and the audit found untouched.
     """
     out: set[str] = set()
-    for argv in (["git", "diff", "--name-only", ref],
-                 ["git", "diff", "--name-only", "--cached"],
-                 ["git", "ls-files", "--others", "--exclude-standard"]):
-        p = subprocess.run(argv, cwd=ROOT, capture_output=True, text=True)
-        if p.returncode != 0:
+    for args in (("diff", "--name-only", "-z", ref),
+                 ("diff", "--name-only", "-z", "--cached")):
+        rc, names = repo_files.run_git(*args, root=ROOT)
+        if rc != 0:
             return None
-        out.update(line for line in p.stdout.splitlines() if line)
+        out.update(n for n in names.split("\0") if n)
+    untracked, problem = repo_files.untracked_files(root=ROOT)
+    if problem:
+        return None
+    out.update(untracked)
     return out
 
 

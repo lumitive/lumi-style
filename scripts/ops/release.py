@@ -416,16 +416,20 @@ def main():
     # 16, which is why this script exists at all), so the exclusion is code
     # rather than a note to remember at commit time.
     held = [rel for rel in OWNER_OWNED
-            if run(["git", "status", "--porcelain", "--", rel]).stdout.strip()]
-    run(["git", "add", "-A"], capture=False)
+            if repo_files.run_git("status", "--porcelain", "--", rel,
+                                  root=ROOT)[1]]
+    repo_files.run_git("add", "-A", root=ROOT, capture=False)
     for owned in held:
-        run(["git", "reset", "-q", "HEAD", "--", owned], capture=False)
+        repo_files.run_git("reset", "-q", "HEAD", "--", owned,
+                           root=ROOT, capture=False)
         print(f"   left alone: {owned} (owner-owned; not this release's to commit)")
     subject = f"{new} — {heading_summary}"
-    proc = run(["git", "commit", "-m", subject, "-m",
-                "Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"])
-    if proc.returncode != 0:
-        sys.exit(f"   git commit failed:\n{proc.stdout}{proc.stderr}")
+    rc, out = repo_files.run_git(
+        "commit", "-m", subject, "-m",
+        "Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
+        root=ROOT)
+    if rc != 0:
+        sys.exit(f"   git commit failed:\n{out}")
     print(f"   committed: {subject[:80]}")
 
     # The last thing a release says is how much finished work has still not
