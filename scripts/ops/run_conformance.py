@@ -371,6 +371,47 @@ def environment_check(agent):
     return []
 
 
+def occupied_by_another_cell(wd: pathlib.Path, model, effort) -> str | None:
+    """-> why this directory already holds a DIFFERENT cell, or None.
+
+    `<run>/<agent>/<task>` cannot express two configurations of one agent, and
+    the driver clears the directory before driving — so a second cell driven
+    into the same run destroyed the first in silence. The operator's answer has
+    been four hand-named run directories since 2026-08-21: `r18-low`,
+    `r18-medium`, `r18-high`, `r18-xhigh`, and `matrix-2026-08-21/` with the
+    level built in by hand above the agent.
+
+    Refusing is the interim, not the fix. The per-cell layout removes the
+    collision rather than reporting it; until then a run that would overwrite a
+    different configuration stops BEFORE a second of budget is spent, on the
+    same reasoning the pin check states one screen up — asked before the budget
+    is spent, not by the CLI afterwards.
+
+    A record that cannot be read is not a refusal: an unreadable `driver.json`
+    means the previous drive left nothing to compare, and clearing it is what
+    the clear is for.
+    """
+    record = wd / "driver.json"
+    if not record.exists():
+        return None
+    try:
+        prior = json.loads(record.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(prior, dict):
+        return None
+    was = (prior.get("model"), prior.get("effort"))
+    if not any(was):
+        return None
+    now = (model or "(the CLI's default)", effort or "(not pinned)")
+    if was == now:
+        return None
+    return (f"{wd.parent.name}/{wd.name} holds model {was[0]!r} at effort "
+            f"{was[1]!r} and this run would drive {now[0]!r} at {now[1]!r} — "
+            f"two configurations, one directory. Use a different --run, or "
+            f"--replace to overwrite the earlier one.")
+
+
 def parse_budget(text: str | None) -> tuple[int, int]:
     """-> (floor, ceiling) seconds from `FLOOR[:CEILING]`.
 
@@ -2018,6 +2059,12 @@ def main(argv):
              "twelve-page deck, so proving the driver works should not cost a "
              "deck")
     p_run.add_argument(
+        "--replace", action="store_true",
+        help="overwrite a run directory that already holds a DIFFERENT "
+             "configuration. Without it such a run is refused before anything "
+             "is spent — `<run>/<agent>/<task>` cannot express two cells of one "
+             "agent, and clearing it silently destroyed the earlier one")
+    p_run.add_argument(
         "--drive", action="store_true",
         help="actually invoke each agent, in a temporary directory OUTSIDE this "
              "repository, instead of writing a prompt for a person to invoke")
@@ -2280,6 +2327,7 @@ def main(argv):
         # prompts is milliseconds and it is the part that must be deterministic:
         # a reader looking at the tree afterwards should find it laid out the
         # same way every time, whatever order the agents finished in.
+        collisions: list[str] = []
         plan: list[tuple[dict, dict, pathlib.Path]] = []
         for a in wanted:
             for t in tasks:
@@ -2289,6 +2337,16 @@ def main(argv):
                     continue
                 wd = run_dir / a["id"] / t["id"]
                 if args.drive and wd.exists():
+                    # REFUSED BEFORE ANYTHING IS SPENT, unless the operator says
+                    # otherwise. Clearing is right for re-running the SAME cell
+                    # and was silently destroying a different one.
+                    if not args.replace:
+                        clash = occupied_by_another_cell(
+                            wd, model_per.get(a["id"], model_all),
+                            effort_per.get(a["id"], effort_all))
+                        if clash:
+                            collisions.append(clash)
+                            continue
                     # Cleared before driving: whatever is in here afterwards
                     # was produced by THIS drive or by nothing.
                     shutil.rmtree(wd)
@@ -2297,6 +2355,16 @@ def main(argv):
                 if "input" in t:
                     (wd / "input.md").write_text(t["input"], encoding="utf-8")
                 plan.append((a, t, wd))
+
+        # THE WHOLE RUN, not the colliding task. A round that drove two of its
+        # three tasks and refused the third would leave a run directory nobody
+        # can read as one measurement.
+        if collisions:
+            print(f"FAIL  {len(collisions)} task(s) would overwrite a different "
+                  f"configuration; nothing was driven.")
+            for line in collisions:
+                print(f"        {line}")
+            return 1
 
         driven = skipped = 0
         # ONE WORKER PER AGENT, and the agents run at once. Three agents on one
