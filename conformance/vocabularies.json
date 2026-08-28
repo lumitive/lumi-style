@@ -1,0 +1,31 @@
+{
+ "cursor": {
+  "asked_on": "2026-08-28",
+  "cli_version": "2026.08.25-3e8eec8",
+  "ids": [
+   "auto",
+   "cursor-grok-4.6-high-fast",
+   "composer-2.5",
+   "cursor-grok-4.5-high",
+   "cursor-grok-4.5-high-fast",
+   "cursor-grok-4.6-low",
+   "cursor-grok-4.6-low-fast",
+   "cursor-grok-4.6-medium",
+   "cursor-grok-4.6-medium-fast",
+   "cursor-grok-4.6-high",
+   "cursor-grok-4.6-xhigh",
+   "cursor-grok-4.6-xhigh-fast",
+   "composer-2.5-fast",
+   "cursor-grok-4.5-low",
+   "cursor-grok-4.5-low-fast",
+   "cursor-grok-4.5-medium",
+   "cursor-grok-4.5-medium-fast",
+   "kimi-k3-low",
+   "kimi-k3-high",
+   "kimi-k3-max",
+   "kimi-k2.7-code",
+   "glm-5.2-high",
+   "glm-5.2-max"
+  ]
+ }
+}

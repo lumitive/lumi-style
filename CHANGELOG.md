@@ -1,3 +1,57 @@
+## 0.1.633 — a trigger that could not fire, and the axis that stops the board recommending the worst tier
+
+Two things the owner named as still open, and they turn out to be the same
+question twice: a register can declare something nothing computes, and the
+declaration reads exactly like a mechanism.
+
+**GAP-042 closes: the `vocabulary-changed` trigger can fire now.**
+`agent-evals.json` declared it as "a `models` probe answers a different set of
+ids than the one recorded", and **nothing recorded a set** — `detect --models`
+printed the live list and dropped it. `detect --models --record` writes
+`conformance/vocabularies.json` and prints what moved against the previous
+answer. Verified by planting a change: four `kimi-*` ids removed and one
+invented id added to the stored set, and the next probe named both sides.
+
+`agent_evals.py plan` reports the reading that matters — **a model this board
+has MEASURED that the CLI no longer offers**, which is a recommendation naming
+something a reader cannot select. A waived or failed probe records nothing:
+writing an empty set would make "this CLI offers nothing" and "we could not
+ask" the same row, and `vocabulary()` keeps four states apart for that reason.
+
+**`reader_score` is an axis now, and it sorts FIRST.** The register has said
+since it was written that above the gate line the checks cannot tell two
+documents apart. 0.1.627 measured what that costs: twelve decks across four
+reasoning tiers, every one passing every gating check, and the owner reading all
+twelve reported the CHEAPEST tier as the worst — its weakness entirely in the
+figures. **A board ordered on cost recommends exactly that tier.** A human read
+is the only evidence that separates them, and one already existed in
+`reviews/scores.json`; it was keyed to a document and never to a configuration.
+The join is `corpus_id`, present on both sides.
+
+**The reader's scores are used and the agent's self-scores are not.** A record
+carries both. A producer grading its own work is the one input a quality axis
+must refuse, and it is a planted red. Median over C1–C8, so one 1 does not swamp
+seven 4s; an unscored dimension is skipped rather than counted as zero, which is
+also a planted red.
+
+**No cell carries a read today, and `plan` says why rather than staying quiet.**
+Two human reads join a trace and **neither reaches a cell**: both reviewed
+builds recorded no output tokens, so `board()` admits neither and there is no
+configuration to attach a score to. That is the actionable line — a reviewed
+build needs a usage file at close — and it is printed, not buried. The ordering
+rule is written before the data arrives on purpose, so that nobody has to argue
+about precedence with a number already on the table.
+
+Deliberate red, seven runs: record nothing, report no change, record a waiver as
+an empty set, allow `--record` without `--models`, demote the read below cost,
+read the self-scores, and count an unscored dimension as zero. **Two did not
+plant.** The ordering test sorted its own list after building it, so a mutation
+that swapped the key order never reached it; and the skipped-dimension test used
+values that were all present. Both are asserted through `_ordering` and against
+nulls now.
+
+Design record: `specs/2026-08-27-agent-evals-design.md`.
+
 ## 0.1.632 — the note moved out of the trace, and 182 files that recorded nothing were deleted
 
 Two owner corrections to 0.1.631, and both are better than what they replaced.

@@ -355,7 +355,7 @@ def test_the_board_carries_no_version_stamp(capsys):
         [{"agent": "cursor", "model": "m", "effort": "high", "runs": 1,
           "tokens_per_page": 1.0, "seconds_per_page": 1.0,
           "output_tokens": 10, "output_tokens_range": (10, 10),
-          "cli_version": None,
+          "cli_version": None, "reader_score": None, "reader_reads": 0,
           "tokens_per_page_range": (1.0, 1.0),
           "seconds_per_page_range": (1.0, 1.0), "content_pages_range": (10, 10),
           "tasks_earned": None, "tasks_attempted": None,
@@ -621,7 +621,7 @@ def _cell(**kw):
             "tokens_per_page_range": (1000.0, 1000.0),
             "seconds_per_page_range": (10.0, 10.0),
             "content_pages_range": (10, 10), "cli_version": None,
-            "tasks_earned": None,
+            "reader_score": None, "reader_reads": 0, "tasks_earned": None,
             "tasks_attempted": None, "effort_honoured": None,
             "measured": "2026-08-27", "skill_version": "0.1.625"}
     base.update(kw)
@@ -739,3 +739,91 @@ def test_the_board_states_the_spread_its_own_table_shows():
     # deleting the old figure would delete the record of having been wrong.
     claim = text.split("**`s/page` orders nothing.**")[1].split("(")[0]
     assert "99.4" not in claim
+
+
+# A HUMAN READ IS THE AXIS THAT ORDERS EVERYTHING ELSE, and 0.1.627 is why:
+# twelve decks across four reasoning tiers, every one passing every gating
+# check, and the owner reading all twelve reported the CHEAPEST tier as the
+# worst. A board ordered on cost recommends exactly that tier.
+
+def _reviews(tmp_path, monkeypatch, reviews):
+    path = tmp_path / "scores.json"
+    path.write_text(json.dumps({"reviews": reviews}), encoding="utf-8")
+    monkeypatch.setattr(agent_evals, "REVIEWS", path)
+    return path
+
+
+def test_a_read_joins_a_trace_by_corpus_id(tmp_path, monkeypatch):
+    _reviews(tmp_path, monkeypatch,
+             [{"corpus_id": "D15", "reader": {"C1": 2, "C2": 4, "C3": 2}}])
+    got = agent_evals.reader_scores(
+        [_trace("t-1", "cursor", "m", "high", corpus_id="D15")])
+    assert got == {"t-1": 2}
+
+
+def test_the_agents_self_scores_are_refused(tmp_path, monkeypatch):
+    """A producer grading its own work is the one input a quality axis must
+    not take. The record carries both; only `reader` is read."""
+    _reviews(tmp_path, monkeypatch,
+             [{"corpus_id": "D15", "self": {"C1": 5, "C2": 5},
+               "reader": {"C1": 1, "C2": 1}}])
+    got = agent_evals.reader_scores(
+        [_trace("t-1", "cursor", "m", "high", corpus_id="D15")])
+    assert got == {"t-1": 1}
+
+
+def test_a_dimension_the_reader_skipped_is_not_a_zero(tmp_path, monkeypatch):
+    """`null` means unscored. Counting it as zero would let an unanswered
+    question mark a configuration down — and with four nulls against three
+    fours, treating them as zeros moves the median from 4 to 0."""
+    _reviews(tmp_path, monkeypatch,
+             [{"corpus_id": "D15",
+               "reader": {"C1": 4, "C2": None, "C3": 4, "C4": None,
+                          "C5": 4, "C6": None, "C7": None}}])
+    got = agent_evals.reader_scores(
+        [_trace("t-1", "cursor", "m", "high", corpus_id="D15")])
+    assert got == {"t-1": 4}, "the unscored dimensions were counted"
+
+
+def test_a_review_with_no_corpus_id_reaches_no_trace(tmp_path, monkeypatch):
+    _reviews(tmp_path, monkeypatch, [{"reader": {"C1": 1}}])
+    assert agent_evals.reader_scores(
+        [_trace("t-1", "cursor", "m", "high", corpus_id="D15")]) == {}
+
+
+def test_a_read_outranks_both_cost_and_earned():
+    """The whole point, and asserted through `_ordering` on cells that differ
+    on all three axes at once — a cheaper cell that earned more, against a
+    dearer cell that a person read. The first version sorted the list itself
+    after building it, which is how a planted red that swapped the key order
+    stayed green."""
+    cheap = _cell(model="cheap", reader_score=None, reader_reads=0,
+                  tasks_earned=3, tasks_attempted=3, tokens_per_page=100.0)
+    read = _cell(model="read", reader_score=4.0, reader_reads=1,
+                 tasks_earned=None, tasks_attempted=None,
+                 tokens_per_page=90000.0)
+    assert sorted([cheap, read], key=agent_evals._ordering)[0]["model"] == "read", (
+        "a cheaper cell that earned more outranked one a human actually read")
+
+
+def test_a_cell_with_no_read_sorts_last_on_it_rather_than_vanishing():
+    rows = [_cell(model="unread", reader_score=None, tokens_per_page=100.0),
+            _cell(model="read", reader_score=3.0, tokens_per_page=9000.0)]
+    rows.sort(key=agent_evals._ordering)
+    assert [r["model"] for r in rows] == ["read", "unread"]
+    assert len(rows) == 2, "a dropped cell reads as a cell that scored badly"
+
+
+def test_the_board_prints_a_dash_for_an_unread_configuration():
+    text = agent_evals.render([_cell(reader_score=None)], _EVALS)
+    assert "| read |" in text.replace("  ", " ") or "read" in text
+    assert "nobody has read that configuration" in text
+
+
+def test_the_register_declares_the_axis_and_leads_with_it():
+    register = json.loads(agent_evals.EVALS.read_text(encoding="utf-8"))
+    assert register["ordering"][0] == "reader_score desc"
+    axis = next(a for a in register["axes"] if a["id"] == "reader_score")
+    assert axis["direction"] == "higher is better"
+    for key in ("threshold", "floor", "ceiling", "target"):
+        assert key not in axis, "the Score Evals declare axes, not bars"

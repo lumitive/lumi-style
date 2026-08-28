@@ -16,6 +16,13 @@
    "note": "Not a quality axis and never ordered on. It is printed beside every other number because n=1 is structural here: nothing repeats a run by design, so a single sample cannot separate a flaky agent from a flaky checker."
   },
   {
+   "id": "reader_score",
+   "means": "a human reader's median C1-C8 score for a document this cell produced",
+   "direction": "higher is better",
+   "source": "reviews/scores.json, joined to a trace by corpus_id and to a cell by that trace",
+   "note": "THE ONLY AXIS THAT CAN SEPARATE TWO DOCUMENTS ABOVE THE GATE LINE, and the reason it now sorts first. Measured at 0.1.627: twelve decks across four reasoning tiers, every one passing every gating check, and the owner reading all twelve reported the CHEAPEST tier as the worst — its weakness entirely in the figures. A board ordered on cost recommends exactly that tier. The READER's scores are used and the agent's self-scores are not: a producer grading its own work is the one input a quality axis must refuse. Median over the dimensions, so one 1 does not swamp seven 4s and one 4 does not rescue seven 1s."
+  },
+  {
    "id": "tasks_earned",
    "means": "conformance tasks this cell both attempted and earned a verdict on",
    "direction": "higher is better",
@@ -50,10 +57,11 @@
   }
  ],
  "ordering": [
+  "reader_score desc",
   "tasks_earned desc",
   "tokens_per_page asc"
  ],
- "ordering_note": "Ties are printed as ties and never broken by a third axis. This is an ordering by COST among configurations that already cleared the gate line, and it is not a quality ranking — above that line the checks cannot tell two documents apart. A cell missing an axis sorts last on it rather than being dropped, because a dropped cell reads as a cell that scored badly.",
+ "ordering_note": "Ties are printed as ties and never broken by a further axis. A cell missing an axis sorts last on it rather than being dropped, because a dropped cell reads as a cell that scored badly. `reader_score` leads because it measures the thing itself; the two below it are proxies, and the release that added it is the one that measured what ordering on a proxy costs. Below the read, this remains an ordering by COST among configurations that already cleared the gate line, which is not a quality ranking.",
  "triggers": [
   {
    "id": "major-rule-change",
@@ -67,12 +75,12 @@
   },
   {
    "id": "vocabulary-changed",
-   "means": "a `models` probe would answer a different set of ids than the one recorded",
+   "means": "a `models` probe answers a different set of ids than the one recorded",
    "computed_from": [
     "the `models` argv in adapters/platforms.json"
    ],
-   "note": "One of the twelve platforms can answer read-only. For the other eleven this trigger could never fire even once it is built, and the board says so rather than implying their vocabulary is stable.",
-   "computed_by": "NOTHING, and this entry says so rather than reading as a mechanism. `run_conformance.py detect --models` prints the live set and discards it; nothing stores a set to compare against, and nothing reads this block. It is declared here because the axis it would feed is declared here, and a trigger nobody can fire is a smaller lie than a trigger described as working. Recorded as GAP-042."
+   "note": "One of the twelve platforms can answer read-only, so this can only ever fire for it. The other eleven carry a models_waiver and the board says so rather than implying their vocabulary is stable.",
+   "computed_by": "`run_conformance.py detect --models --record` writes conformance/vocabularies.json and prints what changed against the previous set; `agent_evals.py plan` reports any model this board has MEASURED that the CLI no longer offers. GAP-042, which named this entry as describing a comparison nothing could make, is closed by 0.1.633."
   },
   {
    "id": "operator-asked",

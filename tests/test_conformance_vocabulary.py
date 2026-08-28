@@ -10,6 +10,7 @@ The three states are the point. `waived` is the registry's own reason, `asked`
 is what the CLI returned, and `failed` is a declared probe that did not answer
 HERE — which is neither of the other two.
 """
+import json
 import subprocess
 
 import run_conformance as rc
@@ -107,3 +108,63 @@ def test_the_registry_declares_a_vocabulary_state_for_every_platform():
         assert a.get("models") or a.get("models_waiver"), (
             f"{a['id']} declares neither a models probe nor a reason for "
             f"having none")
+
+
+# GAP-042: the `vocabulary-changed` trigger was declared and nothing stored a
+# vocabulary to compare against — `detect --models` printed the live list and
+# dropped it, so the register described a comparison no code could make.
+
+def _detect_tree(tmp_path, monkeypatch, ids, prior=None):
+    (tmp_path / "conformance").mkdir(parents=True, exist_ok=True)
+    if prior is not None:
+        (tmp_path / "conformance" / "vocabularies.json").write_text(
+            json.dumps(prior), encoding="utf-8")
+    monkeypatch.setattr(rc, "ROOT", tmp_path)
+    monkeypatch.setattr(rc, "load_agents", lambda: [
+        {"id": "faker", "name": "Faker", "capability": "full",
+         "probe": ["true"], "models": ["true"]}])
+    monkeypatch.setattr(rc, "load_tasks", lambda: [])
+    monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
+    monkeypatch.setattr(rc, "vocabulary", lambda a: ("asked", ", ".join(ids)))
+    return tmp_path / "conformance" / "vocabularies.json"
+
+
+def test_an_answered_vocabulary_is_recorded(tmp_path, monkeypatch):
+    out = _detect_tree(tmp_path, monkeypatch, ["a-1", "b-2"])
+    rc.main(["detect", "--models", "--record"])
+    doc = json.loads(out.read_text(encoding="utf-8"))
+    assert doc["faker"]["ids"] == ["a-1", "b-2"]
+    assert doc["faker"]["cli_version"] == "fake 1.0"
+
+
+def test_a_changed_vocabulary_names_what_moved(tmp_path, monkeypatch, capsys):
+    _detect_tree(tmp_path, monkeypatch, ["a-1", "c-3"],
+                 prior={"faker": {"ids": ["a-1", "b-2"]}})
+    rc.main(["detect", "--models", "--record"])
+    printed = capsys.readouterr().out
+    assert "CHANGED faker" in printed
+    assert "b-2" in printed and "c-3" in printed
+
+
+def test_an_unchanged_vocabulary_says_nothing(tmp_path, monkeypatch, capsys):
+    _detect_tree(tmp_path, monkeypatch, ["a-1"], prior={"faker": {"ids": ["a-1"]}})
+    rc.main(["detect", "--models", "--record"])
+    assert "CHANGED" not in capsys.readouterr().out
+
+
+def test_a_waived_agent_records_no_empty_vocabulary(tmp_path, monkeypatch):
+    """A waiver and a failed probe are not vocabularies. Recording them as
+    empty sets would make "this CLI offers nothing" and "we could not ask" the
+    same row — which is the distinction `vocabulary()` has four states for."""
+    out = _detect_tree(tmp_path, monkeypatch, [])
+    monkeypatch.setattr(rc, "vocabulary", lambda a: ("waived", "no CLI to ask"))
+    rc.main(["detect", "--models", "--record"])
+    assert json.loads(out.read_text(encoding="utf-8")) == {}
+
+
+def test_record_without_models_is_refused(tmp_path, monkeypatch, capsys):
+    """There is nothing to record until the probes have been asked, and
+    writing an empty file would look like a measurement."""
+    _detect_tree(tmp_path, monkeypatch, ["a-1"])
+    assert rc.main(["detect", "--record"]) == 1
+    assert "--record needs --models" in capsys.readouterr().out
