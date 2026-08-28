@@ -25,7 +25,6 @@ what a configuration costs, and this only renders its answer for the twelve
 platforms README claims.
 """
 import argparse
-import json
 import pathlib
 import pathlib as _bs_pathlib  # noqa: E402 — the bootstrap's, see below
 import sys
@@ -41,6 +40,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import agent_evals  # noqa: E402
+import platform_registry  # noqa: E402
 import trace_store  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -51,9 +51,7 @@ END = "<!-- end generated: measured configurations -->"
 
 
 def load_registry() -> list[dict]:
-    return json.loads(
-        (ROOT / "adapters" / "platforms.json").read_text(encoding="utf-8")
-    )["platforms"]
+    return platform_registry.platforms(ROOT)
 
 
 def rows_for_readme(cells=None, registry=None, notes=None) -> list[str]:

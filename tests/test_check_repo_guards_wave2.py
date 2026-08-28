@@ -476,6 +476,16 @@ def test_platform_manifest_a_models_probe_written_as_a_string_fails(
 def _citation_tree(tmp_path, monkeypatch, files):
     (tmp_path / "CHANGELOG.md").write_text(
         "## 0.1.626 — a heading\n\nbody\n", encoding="utf-8")
+    # A REGISTRY IN THE SYNTHETIC TREE, since 0.1.636. `_load_platforms` used a
+    # module-level path frozen at import, so it read the REAL registry from a
+    # tree that had none — the guard read one file from here and another from
+    # the repository, which is the defect KNOWN_GAPS records under exactly this
+    # shape. Now that it reads the tree it is pointed at, the tree has to be
+    # complete: without this, the guard returned its registry error and the
+    # citation assertions below passed on an empty list.
+    (tmp_path / "adapters").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "adapters/platforms.json").write_text(
+        '{"platforms": [{"id": "alpha"}]}', encoding="utf-8")
     for rel_path, text in files.items():
         target = tmp_path / rel_path
         target.parent.mkdir(parents=True, exist_ok=True)

@@ -100,6 +100,64 @@
     }
    ],
    "why": "seven readers of one stamp with five regexes and three failure behaviours, which disagreed on a real document: a SKILL.md carrying another `*_version:` key above the stamp gave the unanchored ones the NEIGHBOUR's value. Three orderings, one of which raised where another returned (). Two `_releases_between` differing by SIGN. And six independent scans of the CHANGELOG's headings, one of them into a set, which cannot answer `newest`."
+  },
+  {
+   "id": "platform-registry",
+   "fact": "the platform roster and every capability claim on it",
+   "owner": "scripts/lib/platform_registry.py",
+   "defs": [
+    "registry_doc",
+    "platforms",
+    "platform_by_id",
+    "platform_ids"
+   ],
+   "patterns": [
+    {
+     "regex": "json\\.loads\\((?:[^()]|\\([^()]*\\))*\\)\\s*\\[\\s*[\"']platforms[\"']\\s*\\]",
+     "what": "a private parse of the platform roster",
+     "selftest": "agents = json.loads(REGISTRY.read_text(encoding=\"utf-8\"))[\"platforms\"]"
+    },
+    {
+     "regex": "[\"']platforms\\.json[\"']\\s*\\)?\\s*\\.read_text",
+     "what": "a private read of adapters/platforms.json",
+     "selftest": "raw = (ROOT / \"adapters\" / \"platforms.json\").read_text(encoding=\"utf-8\")"
+    }
+   ],
+   "why": "five parsers of one registry - the driver, the agent evaluation, two generators and the debug log - and only ONE of them checked that what came back was a non-empty list. That one was inside check_repo, which is the wrong direction for a discipline to travel: the guard was careful and the tools that depend on the registry were not.",
+   "note": "`load_agents`, `load_registry` and `_load_platforms` survive as one-line delegations rather than being retired: they are the seams the tests monkeypatch, and a delegation is not a second implementation. What the patterns refuse is opening the file again."
+  },
+  {
+   "id": "conformance-history",
+   "fact": "the conformance history rows, and whether they can be trusted",
+   "owner": "scripts/lib/history.py",
+   "defs": [
+    "read_rows"
+   ],
+   "patterns": [
+    {
+     "regex": "[\"']history\\.json[\"']\\s*\\)?\\s*\\.read_text",
+     "what": "a private read of conformance/history.json",
+     "selftest": "raw = (ROOT / \"conformance\" / \"history.json\").read_text(encoding=\"utf-8\")"
+    }
+   ],
+   "why": "four readers, four answers to the same damaged file: one named which of absent / unreadable / not-a-list had happened, one raised whatever `json` raised, one caught JSONDecodeError but not OSError and never checked the shape, and the path that WRITES caught nothing at all."
+  },
+  {
+   "id": "gate-register",
+   "fact": "what this package knows about a verdict",
+   "owner": "scripts/lib/gate_registry.py",
+   "defs": [
+    "families",
+    "held"
+   ],
+   "patterns": [
+    {
+     "regex": "json\\.loads\\((?:[^()]|\\([^()]*\\))*\\)\\s*\\[\\s*[\"']gates[\"']\\s*\\]",
+     "what": "a private parse of evals/gates.json",
+     "selftest": "reg = json.loads((ROOT / \"evals/gates.json\").read_text(encoding=\"utf-8\"))[\"gates\"]"
+    }
+   ],
+   "why": "`build_card` parsed the register itself and imported nothing - a fourth answer to the file whose own module comment records `three functions with three different answers to the same broken file` as the reason gate_registry exists."
   }
  ],
  "waivers": [

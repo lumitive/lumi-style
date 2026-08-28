@@ -1,3 +1,59 @@
+## 0.1.636 — the careful reader was in the guard, and the four tools that depend on the file each had a careless one
+
+Three files with more readers than they have writers, and in each case the
+discipline was in the wrong place.
+
+**`adapters/platforms.json` was parsed five ways, and only one of the five
+asked whether it got anything back.** That one is inside `check_repo`, which is
+exactly the wrong direction for a discipline to travel: the GUARD checked that
+`platforms` was a non-empty list, while the driver, the agent evaluation and
+two generators each read `json.loads(...)["platforms"]` and would have carried
+on with `[]` — a repository with no platforms, which is a sentence no reader
+would question. `scripts/lib/platform_registry.py` is the reader now, and the
+guard's wrapper survives only to keep its own error wording. It is deliberately
+NOT `run_conformance.load_agents`, which was the closest thing to a shared
+reader: importing the driver into the analysis is the coupling the
+agent-evaluation split exists to undo, and a module below both is what lets
+them share the reading without sharing the driving.
+
+**`conformance/history.json` had four readers and four answers to one damaged
+file.** One named which of absent / unreadable / not-a-list had happened; one
+raised whatever `json` raised; one caught `JSONDecodeError` but not `OSError`
+and never asked about the shape — so an unreadable file raised out of the
+evidence gate and a `null` history counted zero agents and reported the board
+FRESH. **And the path that WRITES caught nothing at all**, so a history damaged
+by a merge would have taken a run's results down with it after the run was paid
+for. `scripts/lib/history.py` returns `(rows, problem)`, which is the shape that
+keeps three answers apart; what to DO about a problem stays with the caller, and
+`record` now refuses before it writes.
+
+**`evals/gates.json` had a fourth parser** in `build_card.py`, which imported
+`gate_registry` not at all — in the generator standing beside the module whose
+own comment records *"three functions with three different answers to the same
+broken file"* as the reason that module exists.
+
+**And two `ROOT`s that would rather be wrong than raise.** `parents[2]` returns
+a path when the file changes drawers; it is simply the wrong one, and a wrong
+root reads as a repository with nothing in it. Both now use the named form,
+which raises.
+
+**One test was passing on an empty list.** `check_version_citations` read the
+platform registry through a path frozen at import, so pointed at a synthetic
+tree it read the tree's CHANGELOG and the REPOSITORY's registry — the two-trees
+defect `KNOWN_GAPS` records under this exact shape. Reading the tree it is
+given made the guard return its registry error first, which is how the fixture
+turned out to have been incomplete all along: one of its two assertions was
+`errors == []`, and it had been true for the wrong reason.
+
+Deliberate red for each new register entry: a private read of the roster, a
+private parse of it, a private read of the history, a private parse of the gate
+register, and a second `held()` — every one named its owner, and the tree went
+clean when they were removed. `tests/test_history_reader.py` asserts the three
+answers directly, because two of the four old readers could not tell absence
+from damage and neither could their tests.
+
+Design record: `specs/2026-08-28-one-home-design.md`.
+
 ## 0.1.635 — one file, two answers about its own version, and the eighth reader the register found
 
 The first fact to move into `evals/single-source.json`, and it is the one the

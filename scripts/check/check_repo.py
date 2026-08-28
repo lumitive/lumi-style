@@ -38,6 +38,7 @@ import check_privacy  # noqa: E402 — the OR-8 terms reader, shared
 import color_math  # noqa: E402 — after the bootstrap, deliberately
 import deliverable_registry  # noqa: E402 — the storyline vocabulary, for prompt parity
 import gating  # noqa: E402
+import platform_registry  # noqa: E402 — the one registry reader
 import secret_patterns  # noqa: E402 — the one credential table, shared with check_privacy
 import stamps  # noqa: E402 — after the bootstrap
 import trace_schema  # noqa: E402 — the one definition, shared with scripts/ops/trace.py
@@ -2231,12 +2232,14 @@ VERSION_CITATION_WAIVERS = {
 
 
 def _load_platforms():
-    """The platform registry, or an explanatory failure. Never a silent {}."""
-    raw = PLATFORMS.read_text(encoding="utf-8")
-    data = json.loads(raw)
-    if not isinstance(data.get("platforms"), list) or not data["platforms"]:
-        raise ValueError("platforms.json declares no platforms")
-    return data
+    """The platform registry, or an explanatory failure. Never a silent {}.
+
+    THE DISCIPLINE MOVED DOWN at 0.1.636, it did not move away: this guard had
+    the only reader that checked what came back, and the five tools that DEPEND
+    on the registry each had one that did not. `platform_registry` is the
+    reader now, and this wrapper is what keeps the guard's own error wording.
+    """
+    return platform_registry.registry_doc(ROOT)
 
 
 # A retired value may appear without a withdrawal marker only with a reason.
@@ -3339,7 +3342,8 @@ SIBLING_MODULES = (
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",
     "checker_report", "secret_patterns", "corpus", "gating",
     "gate_registry", "stamps", "trace_store", "shipped",
-    "state_dir", "agent_runs", "versioning",
+    "state_dir", "agent_runs", "versioning", "platform_registry",
+    "history",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.

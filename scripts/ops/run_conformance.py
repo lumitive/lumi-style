@@ -78,7 +78,9 @@ import checker_report  # noqa: E402
 import eval_corpus  # noqa: E402
 import fingerprint  # noqa: E402
 import gating  # noqa: E402
+import history  # noqa: E402
 import output_dir  # noqa: E402
+import platform_registry  # noqa: E402
 import trace_schema  # noqa: E402
 import versioning  # noqa: E402
 from check_prose import GENRES  # noqa: E402
@@ -861,23 +863,12 @@ def load_tasks() -> list[dict]:
 def _history_rows() -> tuple[list, str | None]:
     """-> (rows, why they could not be read). Never both empty-and-fine.
 
-    `json.JSONDecodeError` subclasses `ValueError`, so one `except` around the
-    parse turned "this file is a merge conflict" into "nothing is wrong" —
-    which is the shape every finding in this area has. A tracked file that two
-    branches both append to is the likeliest thing in this repository to arrive
-    unparseable, and it is the only evidence store there is.
+    The reading moved to `scripts/lib/history.py` at 0.1.636, because this
+    function's discipline was the careful one of four and the other three —
+    including the `record` path in this same file, which WRITES — each had a
+    different one. The seam stays so the tests that patch it still can.
     """
-    hist = ROOT / "conformance" / "history.json"
-    if not hist.exists():
-        return [], None                    # a first run has no rows to break
-    try:
-        rows = json.loads(hist.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as exc:
-        return [], f"{hist} could not be read ({exc})"
-    if not isinstance(rows, list):
-        return [], (f"{hist} holds a {type(rows).__name__}, not a list of rows "
-                    f"— `null`, a number and an object all parse as JSON")
-    return rows, None
+    return history.read_rows(ROOT)
 
 
 def _rows_for(rows: list, run_dir: pathlib.Path) -> list[dict]:
@@ -1482,7 +1473,7 @@ def asked_fingerprint(task_dir: pathlib.Path, task: dict) -> str:
 
 
 def load_agents() -> list[dict]:
-    return json.loads(REGISTRY.read_text(encoding="utf-8"))["platforms"]
+    return platform_registry.platforms(ROOT)
 
 
 def detect(agent: dict) -> tuple[bool, str]:
@@ -2058,12 +2049,13 @@ def main(argv):
         return cmd_restamp(version)
 
     if args.command == "validate":
-        hist = ROOT / "conformance" / "history.json"
+        hist = history.path(ROOT)
         if hist.exists():
+            rows, problem = history.read_rows(ROOT)
+            if problem:
+                print(f"FAIL  {problem}")
+                return 1
             try:
-                rows = json.loads(hist.read_text(encoding="utf-8"))
-                if not isinstance(rows, list):
-                    raise ValueError("history must be a JSON list")
                 for i, r in enumerate(rows):
                     for key in ("skill_version", "agent", "date", "run_dir",
                                 "tasks", "scores_sha256"):
@@ -2965,9 +2957,15 @@ def main(argv):
         # appended twice.
         import datetime
         import hashlib
-        hist_path = ROOT / "conformance" / "history.json"
-        history = (json.loads(hist_path.read_text(encoding="utf-8"))
-                   if hist_path.exists() else [])
+        hist_path = history.path(ROOT)
+        # THE PATH THAT WRITES read the file with no guard at all until 0.1.636:
+        # a history damaged by a merge raised out of `record`, after the run had
+        # already been paid for, and took its results with it. Refusing before
+        # the write is the whole point of asking first.
+        rows_now, problem = history.read_rows(ROOT)
+        if problem:
+            print(f"FAIL  {problem}; nothing recorded from this run")
+            return 1
         added = 0
         for name in runs:
             f = pathlib.Path(name) / "scores.json"
@@ -3043,13 +3041,13 @@ def main(argv):
                 if not any(r.get("agent") == agent_id
                            and r.get("run_dir") == where
                            and r.get("scores_sha256") == digest
-                           for r in history):
-                    history.append(row)
+                           for r in rows_now):
+                    rows_now.append(row)
                     added += 1
-        hist_path.write_text(json.dumps(history, indent=2) + "\n",
+        hist_path.write_text(json.dumps(rows_now, indent=2) + "\n",
                              encoding="utf-8")
         print(f"\nrecorded {added} new history row(s) -> "
-              f"{hist_path.relative_to(ROOT)} ({len(history)} total)")
+              f"{hist_path.relative_to(ROOT)} ({len(rows_now)} total)")
     return 0
 
 
