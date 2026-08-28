@@ -1,3 +1,59 @@
+## 0.1.635 — one file, two answers about its own version, and the eighth reader the register found
+
+The first fact to move into `evals/single-source.json`, and it is the one the
+audit measured hardest: **the package's own version had seven readers, five
+parse rules and three failure behaviours.**
+
+**They disagreed on a real document.** Given a SKILL.md carrying another
+`*_version:` key above the stamp, the unanchored readers return the
+NEIGHBOUR's value and the anchored ones return the stamp — one file, two
+answers, and no test would ever have shown it because every fixture was clean.
+The failures diverged too: `SystemExit`, the string `"unknown"`, and an
+uncaught `IndexError` from a `.split()` that assumed the stamp was there. And
+`"unknown"` was not inert — it was written into a trace's `skill_version`,
+which the version comparators then had to sort.
+
+**`scripts/lib/versioning.py` is the one home**, and it keeps the strictest of
+the seven regexes: anchored to the line start and closed by the quote, the only
+one that cannot match a neighbouring key.
+
+**Three questions, deliberately not one function.** `ver_key` RAISES on a
+string that is not a version, because `gate_registry.held` catches that and
+answers *held* — an unparseable stamp must not become an exemption, and a
+tolerant key would have compared `() >= (0, 1, 449)`, exempted the document
+from every gate, and reported nothing. `sort_key` never raises and sorts an
+unparseable version lowest, because ordering a board's cells wants a bottom row
+rather than a traceback. `skill_version_in` answers about TEXT, because the
+published package's SKILL.md arrives over the network and is not a file here.
+The two `_releases_between` implementations differed by SIGN — one signed, one
+absolute — which no caller could see from either name; the shared one is signed,
+says which way, and the board's caller takes `abs` with its reason at the site.
+
+**The register found an eighth reader nobody had counted**, in
+`build_entrypoints.py`: a line scan, in the generator that writes eighteen
+files. It also found `newest_changelog_heading`, a ninth scan of the release
+list that needed the summary as well as the number — so `newest_heading` is part
+of the fact rather than an excuse for a private copy. This is the register
+paying for itself in the first release that used it: the audit that preceded it
+had found seven, by reading.
+
+**One waiver, and it is a decision rather than an omission.**
+`check_repo.check_versions` keeps a deliberately looser regex, because it is the
+guard ON the stamp: the shared reader requires the closing quote and would
+report a malformed stamp as no stamp at all, and a guard that cannot see the
+broken shape cannot say what is broken about it. The reason is written at the
+site and in the register, and `check_one_home` fails if the waiver ever stops
+being needed.
+
+Deliberate red: a `def skill_version` planted in an unrelated script, a private
+stamp regex, and a private scan of the release headings — all three named the
+owner, and the tree went clean when they were removed. The old divergences are
+asserted directly in `tests/test_versioning.py`: the neighboured document now
+has one answer, and `gate_registry.held` still refuses to exempt a document
+whose stamp does not parse.
+
+Design record: `specs/2026-08-28-one-home-design.md`.
+
 ## 0.1.634 — two guards that were one idea, and three names no module owned
 
 The owner asked why the model vocabulary, the pinned model and the model that

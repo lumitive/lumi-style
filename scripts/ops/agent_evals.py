@@ -59,6 +59,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import agent_runs  # noqa: E402
 import trace_store  # noqa: E402
+import versioning  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 EVALS = ROOT / "conformance" / "agent-evals.json"
@@ -74,23 +75,6 @@ END = "<!-- end generated -->"
 # them identically is how a board reads as pending work when it is not.
 MEASURED, UNMEASURED, UNMEASURABLE = (
     "measured here", "not measured here", "cannot be measured here")
-
-
-def _ver_key(v: str) -> tuple[int, ...]:
-    """-> a sortable version, tolerantly.
-
-    `max()` over version STRINGS is lexicographic, so `0.1.99` outranks
-    `0.1.100`. Every cell on the board today happens to have three-digit patch
-    numbers, so nothing was visibly wrong and nothing would have been until the
-    thousandth release. A trace with no version sorts lowest rather than
-    raising: `run_conformance._ver_key` is the same idea and is not imported
-    here, because importing the driver into the analysis is the coupling this
-    whole separation exists to undo.
-    """
-    try:
-        return tuple(int(x) for x in (v or "").split("."))
-    except ValueError:
-        return ()
 
 
 def load_evals() -> dict:
@@ -556,13 +540,13 @@ def pick(agent_id: str, rows: list[dict],
     # and better sampled" the way the first version did, offers a measurement of
     # rules that no longer exist. The newest release with a named cell wins, and
     # the row already prints which one it is.
-    # `_ver_key`, NOT a bare `max()` over strings. The function two hundred
-    # lines up exists for exactly this and its docstring names the hazard word
-    # for word — and the change that created this call site left it with no
-    # callers at all, so nothing was protecting the one place that needed it.
-    # `0.1.99` outranks `0.1.100` lexicographically, and every patch number in
-    # the store is three digits today.
-    newest = max((r["skill_version"] or "" for r in named), key=_ver_key)
+    # `versioning.sort_key`, NOT a bare `max()` over strings: `0.1.99` outranks
+    # `0.1.100` lexicographically, and every patch number in the store is three
+    # digits today, so nothing would look wrong until the thousandth release.
+    # The comparator was a private copy here until 0.1.635, beside a second copy
+    # in the driver — with a comment arguing correctly against importing the
+    # DRIVER, which is an argument for a shared home rather than for a copy.
+    newest = max((r["skill_version"] or "" for r in named), key=versioning.sort_key)
     named = [r for r in named if (r["skill_version"] or "") == newest]
     # EVERYTHING below compares within one release. `mine` spans all of them,
     # and a caveat pointing at another release's cell offers an alternative

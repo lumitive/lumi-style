@@ -55,6 +55,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import corpus  # noqa: E402
 import state_dir  # noqa: E402 — one answer for operator-owned stores
+import versioning  # noqa: E402
 from deliverable_registry import GENRES  # noqa: E402
 
 STORE = state_dir.store("scores.json", root=ROOT,
@@ -127,8 +128,7 @@ def validate(store) -> list[str]:
     if dims != ["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8"]:
         return [f"{STORE} declares dimensions {dims!r}; the rubric "
                 f"defines C1-C8 and the store may not disagree with it"]
-    releases = set(re.findall(r"^##\s+(\d+\.\d+\.\d+)", CHANGELOG.read_text(
-        encoding="utf-8"), re.M))
+    releases = set(versioning.releases(ROOT))
 
     LEGACY_DIMS = ["H1", "H2", "H3", "H4", "H5", "H6"]
     for i, rec in enumerate(store.get("reviews", [])):

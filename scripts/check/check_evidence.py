@@ -53,6 +53,7 @@ import sys  # noqa: E402
 from typing import Any  # noqa: E402
 
 import stamps  # noqa: E402 — after the bootstrap
+import versioning  # noqa: E402
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if p.name == "scripts").parent
@@ -188,8 +189,7 @@ def validate_maps() -> list[str]:
 
 
 def releases_in_changelog() -> list[str]:
-    return re.findall(r"^##\s+(\d+\.\d+\.\d+)",
-                      (ROOT / "CHANGELOG.md").read_text("utf-8"), re.M)
+    return versioning.releases(ROOT)
 
 
 def conformance_fresh() -> bool | None:

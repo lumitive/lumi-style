@@ -41,6 +41,7 @@ import gating  # noqa: E402
 import secret_patterns  # noqa: E402 — the one credential table, shared with check_privacy
 import stamps  # noqa: E402 — after the bootstrap
 import trace_schema  # noqa: E402 — the one definition, shared with scripts/ops/trace.py
+import versioning  # noqa: E402 — the one version reader and comparator
 from css_tokens import css_block, css_vars  # noqa: E402, F401 — css_block is API for tests/tools
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
@@ -161,13 +162,18 @@ def check_versions():
     headers carry the same number, so a rule revision bumps all five together."""
     errors = []
     skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+    # DELIBERATELY LOOSER than `versioning.SKILL_STAMP`, and waived in
+    # `evals/single-source.json` for that reason: the shared reader requires the
+    # closing quote and would report a malformed stamp as no stamp at all. The
+    # guard that checks the stamp has to be able to READ a broken one in order
+    # to say what is broken about it.
     m = re.search(r"^\s*version:\s*[\"']?(\d+\.\d+\.\d+)", skill, re.M)
     if not m:
         return ["SKILL.md: no metadata.version found in frontmatter"]
     skill_version = m.group(1)
 
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    released = re.findall(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M)
+    released = versioning.releases(text=changelog)
     if not released:
         return ["CHANGELOG.md: no '## X.Y.Z' release headings found"]
 
@@ -2380,7 +2386,7 @@ def check_stale_promises():
     this file globs `*.md`.
     """
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    shipped = set(re.findall(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M))
+    shipped = set(versioning.releases(text=changelog))
     errors = []
     scanned = (list(md_files()) + [PLATFORMS]
                + [ROOT / p for p in (".cursor/rules/lumi-style.mdc",
@@ -2535,7 +2541,7 @@ def check_version_citations():
        scripts/ and the entry points.
     """
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    headings = set(re.findall(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M))
+    headings = set(versioning.releases(text=changelog))
     if not headings:
         return ["CHANGELOG.md: no '## X.Y.Z' release headings found"]
     newest = re.search(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M)
@@ -3000,7 +3006,7 @@ def check_ledgers():
     fm_text = (ROOT / "FAILURE_MODES.md").read_text(encoding="utf-8")
     ideas_text = (ROOT / "backlog/ideas-prd.md").read_text(encoding="utf-8")
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    releases = re.findall(r"^##\s+(\d+\.\d+\.\d+)", changelog, re.M)
+    releases = versioning.releases(text=changelog)
 
     def section_of(version):
         m = re.search(rf"^##\s+{re.escape(version)}\b.*?(?=^##\s|\Z)",
@@ -3333,7 +3339,7 @@ SIBLING_MODULES = (
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",
     "checker_report", "secret_patterns", "corpus", "gating",
     "gate_registry", "stamps", "trace_store", "shipped",
-    "state_dir", "agent_runs",
+    "state_dir", "agent_runs", "versioning",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
@@ -3887,9 +3893,7 @@ def check_board_staleness_clause():
                 "in the generated block — the board is not in the shape "
                 "run_conformance.py report --record writes"]
 
-    released = re.findall(r"^##\s+(\d+\.\d+\.\d+)",
-                          (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"),
-                          re.M)
+    released = versioning.releases(ROOT)
     if not released:
         return ["CHANGELOG.md: no '## X.Y.Z' release headings found"]
     current = released[0]

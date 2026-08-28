@@ -73,7 +73,7 @@ import deliverable_registry  # noqa: E402
 import embed_font  # noqa: E402
 import embed_globe  # noqa: E402
 import embed_shapes  # noqa: E402
-import fingerprint  # noqa: E402
+import versioning  # noqa: E402
 
 # ONE ICON PER PAGE, ROTATED — not because rotation is right, but because the
 # same icon on every page is demonstrably wrong and a scaffold teaches by what
@@ -1182,7 +1182,7 @@ def main(argv):
     <div class="attrs">
       <div><span class="k">Label</span><span class="v">value</span></div>
     </div>
-    <p class="colophon">Built with lumi-style {fingerprint.skill_version()} &#183; source: WHERE THE
+    <p class="colophon">Built with lumi-style {versioning.skill_version()} &#183; source: WHERE THE
     NUMBERS CAME FROM.</p>
   </div>
   {foot(total, total)}

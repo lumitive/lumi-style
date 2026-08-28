@@ -83,11 +83,17 @@ def test_an_unparseable_run_id_reads_none_rather_than_guessing():
 
 
 def test_the_distance_is_counted_in_changelog_headings():
-    """How many rule revisions have landed since, not arithmetic on integers."""
-    m = _rc()
-    assert m._releases_between("0.1.454", "0.1.456") == 2
-    assert m._releases_between("0.1.454", None) is None
-    assert m._releases_between("9.9.9", "0.1.456") is None
+    """How many rule revisions have landed since, not arithmetic on integers.
+
+    The function moved to `versioning` at 0.1.635, where it is SIGNED; the two
+    copies it replaced differed by exactly that, and the board's caller takes
+    `abs` at the site with its reason written there.
+    """
+    import versioning
+    assert versioning.releases_between("0.1.454", "0.1.456") == 2
+    assert versioning.releases_between("0.1.456", "0.1.454") == -2
+    assert versioning.releases_between("0.1.454", None) is None
+    assert versioning.releases_between("9.9.9", "0.1.456") is None
 
 
 def test_the_header_keeps_the_word_the_stamp_guard_matches():
