@@ -5,7 +5,7 @@ It lives in scripts/lib/ rather than beside the CLI for a specific reason: the
 emergency-merge path runs a trusted closure of checker code, and a guard that
 reached into scripts/ops/ would make the emergency run execute the pull
 request's own copy of the thing it is checking. A shared definition also keeps
-this repository's `no shadow math` rule — a second copy of a field list is the
+this repository's `one home` rule — a second copy of a field list is the
 defect most of its releases exist to fix.
 """
 from __future__ import annotations

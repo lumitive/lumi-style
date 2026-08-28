@@ -1,3 +1,58 @@
+## 0.1.634 — two guards that were one idea, and three names no module owned
+
+The owner asked why the model vocabulary, the pinned model and the model that
+ran are fetched by three separate code paths, asked for one function, and then
+asked the question that is worth more: **is the same design fault elsewhere in
+the tree?** It is, in nine classes. She chose to fix all of them, and to keep
+capability, intent and observation apart rather than merge them.
+
+**The rule ships before the cleanups it protects.** Extraction without a guard
+has a half-life here: 0.1.621's README generator re-derived a rule that had
+already been consolidated, in the one file a user reads, and dropped both of its
+caveats. So the first commit is the guard, and every extraction after it lands
+under a rule that already exists.
+
+**`check_one_home` replaces `check_no_shadow_math` and `check_no_shadow_markup`,
+which were two hand-written copies of one idea.** That is the fault being fixed,
+one layer up: consolidating a fact meant writing a third guard. The register is
+`evals/single-source.json` — fact → owner → the `defs` it owns, the
+`retired_defs` the extraction removed, `patterns` for shapes that are not
+`def`s, and waivers that name a reason. Adding a fact is now an entry.
+
+**Two things the old guards could not do.** A pattern now carries a `selftest`
+string it must match, because a regex that has quietly stopped matching prints
+exactly what a clean tree prints (FM-24) — and the CJK-space pattern was
+precisely that: it matched only the escaped spelling of the range, while
+`markup.py`, its own owner, writes the range with the characters themselves, so
+a copy of the line actually in the tree could never have been seen. It keys on
+the shape now, and the test proves both spellings. And an entry is held to its
+owner: a `def` name the owner does not define is a finding, not a silent skip.
+
+**That liveness check found three dead names on its first run.** `_lin`,
+`_luma` and `_vars` were guarded as if owned, and no module has defined them
+since 0.1.420 — they are the pre-extraction private spellings, so they are
+declared as `retired_defs`: nothing may define them, the owner included. Two
+public functions that nothing guarded (`hex_to_rgb`, `mix255`) were added on the
+same pass.
+
+**And one name meaning two things.** `check_privacy.reader_text` and
+`markup.reader_text` are different corpora — the privacy scan deliberately keeps
+what only a machine reads, because a phone number inside a `<style>` comment has
+still left the document, while `markup.reader_text` removes exactly that. The
+privacy one is `actionable_text` now, and both docstrings say why they are not
+each other. Merging them would have been the tempting wrong answer.
+
+Deliberate red, one run per failure class the register has — how many is whatever `tests/test_one_home.py` holds today: a re-grown copy, a retired spelling, a private
+strip-tags, a private CJK-space rule in each of its two spellings, a waiver that
+matched nothing, a waiver with no reason, an unreadable register, an empty one,
+a missing owner, a `def` the owner does not define, a retired name the owner
+took back, a pattern that no longer matches its selftest, and one that does not
+compile. `check_secret_patterns_parity` deliberately stays a guard of its own:
+its table is computed at runtime from `secret_patterns.MARKERS` rather than
+declared, so an entry could only restate it, and the register says so.
+
+Design record: `specs/2026-08-28-one-home-design.md`.
+
 ## 0.1.633 — a trigger that could not fire, and the axis that stops the board recommending the worst tier
 
 Two things the owner named as still open, and they turn out to be the same

@@ -140,7 +140,7 @@ def measure(path: pathlib.Path, with_render: bool,
     out["content_pages"] = pages
     # READ from check_design, never recomputed. D9 already decides which pages
     # count and how the split family merges; a second implementation here would
-    # be the `no shadow math` guard's territory, and the two copies would
+    # be the `one home` guard's territory, and the two copies would
     # disagree on exactly the documents this bar is meant to separate.
     layout_top_share = (d.get("D9_layout_variety") or {}).get("top_share")
     out["prose_only_share"] = round(len(vis.get("prose_only") or []) / pages, 3)

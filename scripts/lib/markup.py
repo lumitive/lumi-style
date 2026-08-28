@@ -73,7 +73,7 @@ def body_attr(html: str, name: str) -> str | None:
 # unescape, each a little different (one lowercased, one collapsed whitespace,
 # one did neither), found by the 2026-08-20 audit. A private copy of a shared
 # operation is how 0.1.492 and 0.1.505 happened, so the operation lives here
-# and the `no shadow markup` guard refuses a fifth copy.
+# and the `one home` guard refuses a fifth copy.
 _TAG_RE = re.compile(r"<[^>]+>")
 _CJK_GAP_RE = re.compile(r"(?<=[一-鿿]) (?=[一-鿿])")
 
@@ -108,7 +108,7 @@ def reader_text(fragment: str, sep: str = " ") -> str:
 
     **`SKIP_RE`, not a second pattern of its own.** The first version of this
     function carried its own near-copy — `<style\b[^>]*>` against SKIP_RE's
-    `<style\b` — in the module whose `no shadow markup` guard exists to refuse
+    `<style\b` — in the module whose entry in the `one home` register exists to refuse
     exactly that.
 
     **What it does not do**, stated because a caller will otherwise assume it:

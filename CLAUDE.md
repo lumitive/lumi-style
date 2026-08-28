@@ -75,8 +75,8 @@ grades, the text ladder's contrast floor,
 ban-list parity, that every statement of the output-directory default names the
 same literal directory, that every generated artifact and fixture is current, that the
 checkers still produce the expected verdicts on both fixtures, that the
-vendored assets are intact, that no script re-grows a private copy of the
-shared color/CSS implementations (`color_math.py` / `css_tokens.py`), that
+vendored assets are intact, that no script re-grows a private copy of a fact
+`evals/single-source.json` gives one home to, that
 the three ledgers parse and no GAP/FM/IDEA citation dangles, that the release
 commit's subject carries its version (HEAD only — history is not
 retroactively reddened), and that no credential-shaped string ships in a

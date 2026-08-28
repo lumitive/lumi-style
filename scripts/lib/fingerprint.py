@@ -9,7 +9,7 @@ reads `stale: task changed` instead of reporting an answer to a question nobody
 is asking. `trace.py` needs exactly that about a build's RECIPE.
 
 The alternative was a second sha256-of-sorted-json in a second file, which is
-the `no shadow math` guard's territory: a second copy of an implementation is
+the `one home` guard's territory: a second copy of an implementation is
 this repository's most-fixed defect class, and a fingerprint that differs
 between two callers is worse than no fingerprint, because both sides report
 matches.

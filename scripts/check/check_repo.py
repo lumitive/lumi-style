@@ -2826,31 +2826,6 @@ def check_rubric_unbuilt_claims():
     return errors
 
 
-def check_no_shadow_markup():
-    """No script re-grows a private strip-tags. The operation is
-    `markup.strip_tags` / `markup.visible_text` / `markup.join_cjk`.
-
-    The 2026-08-20 audit found four private strip-tags regexes
-    and two of the CJK-space rule, each a little different, in a tree whose
-    markup.py docstring lists the defects that class of duplication produced.
-    """
-    errors = []
-    tag_re = re.compile(r"""re\.(?:sub|compile)\(\s*r?["']<\[\^>\]\+>["']""")
-    cjk_re = re.compile(r"""\(\?<=\[\\u4e00-\\u9fff\]\) \(\?=\[\\u4e00-\\u9fff\]\)""")
-    for path in sorted(p for p in (ROOT / "scripts").rglob("*.py")
-                       if "__pycache__" not in p.parts):
-        if path.name == "markup.py":
-            continue
-        text = path.read_text(encoding="utf-8")
-        for regex, what in ((tag_re, "a private strip-tags"),
-                            (cjk_re, "a private CJK-space rule")):
-            for m in regex.finditer(text):
-                line = text[:m.start()].count("\n") + 1
-                errors.append(f"{rel(path)}:{line}: {what} — the shared "
-                              f"implementation is scripts/lib/markup.py")
-    return errors
-
-
 def check_secret_patterns_parity():
     """One credential table. The repo guard and the deliverable checker both
     import scripts/lib/secret_patterns.py; a `re.compile(` anywhere else under
@@ -2881,36 +2856,128 @@ def check_secret_patterns_parity():
     return errors
 
 
-def check_no_shadow_math():
-    """No script re-grows a private copy of the shared color or CSS readers.
+def check_one_home():
+    """One implementation per fact, and `evals/single-source.json` is the list.
 
     0.1.415's escape shape: a fix landed in one of several duplicated
     implementations while the same class stayed live in the others. 0.1.420
-    extracted the one implementation into color_math.py / css_tokens.py; this
-    guard is what keeps "one" true. It scans for the definition names — an
-    import or a call is fine, a fresh `def` is the drift.
+    extracted the one implementation; this guard is what keeps "one" true. It
+    scans definition NAMES — an import or a call is fine, a fresh `def` is the
+    drift — and, for shapes that are not `def`s, regexes the register declares.
+    `retired_defs` are the private spellings the extraction removed: nothing
+    may define them, the owner included.
+
+    It replaces `check_no_shadow_math` and `check_no_shadow_markup`, which were
+    two hand-written copies of one idea: consolidating a fact meant writing a
+    third guard, which is the fault this repository keeps paying for, one layer
+    up. Adding a fact is now a JSON entry.
+
+    Three answers, not two (FM-24). A register that cannot be read, an owner
+    that is not there, a `def` name the owner does not define, a pattern its own
+    `selftest` no longer matches, and a waiver nothing needed are all findings —
+    every one of them is a way for this guard to print a clean tree's output
+    while looking at nothing.
     """
-    shared = {"color_math.py", "css_tokens.py"}
-    owners = {
-        "_lin": "color_math.py", "_luma": "color_math.py",
-        "srgb_linear": "color_math.py", "srgb_encode": "color_math.py",
-        "luma255": "color_math.py", "contrast255": "color_math.py",
-        "contrast_hex": "color_math.py", "contrast_from_luma": "color_math.py",
-        "css_vars": "css_tokens.py", "css_block": "css_tokens.py",
-        "rule_vars": "css_tokens.py", "strip_comments": "css_tokens.py",
-        "_vars": "css_tokens.py",
-    }
     errors = []
+    try:
+        reg = json.loads((ROOT / "evals/single-source.json").read_text(
+            encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"evals/single-source.json could not be read ({exc}) — the "
+                f"single-source register is what this guard scans FOR, so an "
+                f"unreadable one is a scan that did not run"]
+    facts = reg.get("facts") or []
+    if not facts:
+        return ["evals/single-source.json declares no facts — an empty register "
+                "makes this guard pass every tree there is"]
+
+    owners = {}          # def name -> (fact id, owner path)
+    patterns = []        # (compiled, fact id, owner path, what)
+    owner_files = set()
+    for fact in facts:
+        fid, owner = fact.get("id", "?"), fact.get("owner", "")
+        if not (ROOT / owner).is_file():
+            errors.append(f"single-source `{fid}` names owner {owner!r}, which "
+                          f"is not a file — an owner nobody can find guards "
+                          f"nothing")
+            continue
+        owner_files.add(owner)
+        owner_text = (ROOT / owner).read_text(encoding="utf-8")
+        for name in fact.get("defs", []):
+            if not re.search(rf"^\s*def {re.escape(name)}\(", owner_text, re.M):
+                errors.append(f"single-source `{fid}` owns {name}(), which "
+                              f"{owner} does not define — the fact moved or "
+                              f"was renamed, and the entry now guards a name "
+                              f"nothing owns")
+                continue
+            owners[name] = (fid, owner)
+        for name in fact.get("retired_defs", []):
+            # The other direction: a retired spelling the owner has taken BACK
+            # would make this entry forbid the shared implementation itself.
+            if re.search(rf"^\s*def {re.escape(name)}\(", owner_text, re.M):
+                errors.append(f"single-source `{fid}` retires {name}(), which "
+                              f"{owner} defines — a retired name the owner uses "
+                              f"is not retired")
+                continue
+            owners[name] = (fid, owner)
+        for pat in fact.get("patterns", []):
+            try:
+                rx = re.compile(pat["regex"])
+            except (re.error, KeyError) as exc:
+                errors.append(f"single-source `{fid}` carries a pattern that "
+                              f"does not compile ({exc})")
+                continue
+            selftest = pat.get("selftest")
+            if selftest is None or not rx.search(selftest):
+                errors.append(f"single-source `{fid}` pattern "
+                              f"{pat.get('what', pat['regex'])!r} does not "
+                              f"match its own selftest — a regex that has "
+                              f"stopped matching the shape it names prints "
+                              f"exactly what a clean tree prints")
+                continue
+            patterns.append((rx, fid, owner, pat.get("what", "a private copy")))
+
+    waivers = {(w.get("path"), w.get("fact")): w for w in reg.get("waivers", [])}
+    for (wpath, _wfact), w in waivers.items():
+        if not w.get("reason"):
+            errors.append(f"single-source waiver for {wpath} carries no reason "
+                          f"— an exemption nobody wrote down is an omission")
+        if not (ROOT / str(wpath)).is_file():
+            errors.append(f"single-source waiver names {wpath}, which is not a "
+                          f"file")
+    used = set()
+
     for path in sorted(p for p in (ROOT / "scripts").rglob("*.py")
                        if "__pycache__" not in p.parts):
-        if path.name in shared:
-            continue
+        name_of = rel(path)
         text = path.read_text(encoding="utf-8")
-        for name, owner in owners.items():
-            if re.search(rf"^\s*def {re.escape(name)}\(", text, re.M):
-                errors.append(
-                    f"{rel(path)} defines {name}() — the shared implementation "
-                    f"lives in scripts/{owner}; import it instead of copying it")
+        for name, (fid, owner) in owners.items():
+            if name_of == owner:
+                continue
+            if not re.search(rf"^\s*def {re.escape(name)}\(", text, re.M):
+                continue
+            if (name_of, fid) in waivers:
+                used.add((name_of, fid))
+                continue
+            errors.append(
+                f"{name_of} defines {name}() — the shared implementation lives "
+                f"in {owner}; import it instead of copying it")
+        for rx, fid, owner, what in patterns:
+            if name_of == owner:
+                continue
+            for m in rx.finditer(text):
+                if (name_of, fid) in waivers:
+                    used.add((name_of, fid))
+                    break
+                line = text[:m.start()].count("\n") + 1
+                errors.append(f"{name_of}:{line}: {what} — the shared "
+                              f"implementation is {owner}")
+
+    for key in waivers:
+        if key not in used:
+            errors.append(f"single-source waiver for {key[0]} / `{key[1]}` "
+                          f"matched nothing — an exemption that outlived its "
+                          f"reason is an exemption nobody decided")
     return errors
 
 
@@ -4929,9 +4996,8 @@ CHECKS = (
     ("review scores", check_review_scores),
     ("source-marker parity", check_source_marker_parity),
     ("brand lock", check_brand_lock),
-    ("no shadow math", check_no_shadow_math),
+    ("one home", check_one_home),
     ("secret patterns parity", check_secret_patterns_parity),
-    ("no shadow markup", check_no_shadow_markup),
     ("rubric unbuilt claims", check_rubric_unbuilt_claims),
     ("prompt parity", check_prompt_parity),
     ("entry restatement ceiling", check_entry_restatement_ceiling),
