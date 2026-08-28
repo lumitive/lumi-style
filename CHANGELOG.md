@@ -1,3 +1,52 @@
+## 0.1.642 — the round that verified the vocabulary, and the price it wrote beside a real deck
+
+The owner published 0.1.641, updated the installs, and asked for a conformance
+round driving Claude Code and Cursor only — Hermes deferred — to verify that
+model and effort are acquired by one set of functions.
+
+**They are, and the round demonstrates each layer.** One probe answered what
+each CLI OFFERS: Cursor listed twenty-three ids, Claude Code returned the
+registry's written waiver, and both came from `agent_capability.probe_models`.
+One function composed both axes into `cursor-grok-4.6-high` and one validated
+that id against the recorded vocabulary before argv was built. The same pair
+refused `--effort max` — `cursor-grok-4.6-max` is not an id Cursor offers — and
+the driver returned `driver refused` without creating a working directory.
+`same_model` read `Cursor Grok 4.6 High` against the pin `cursor-grok-4.6-high`
+as one model, so the board says `honoured` rather than reporting a substitution.
+
+**The third pin state earned its release.** `claude-code has no recorded
+vocabulary, so 'opus' was not checked against one` printed on all three of its
+tasks — the state 0.1.641 added because "checked and fine" and "never checked"
+had been the same silence.
+
+**Two findings the round produced, and neither is about the vocabulary.**
+
+**The pin state reached `driver.json` and stopped there.** The history row's
+`config` map is built from a key whitelist, and nobody widened it, so the field
+0.1.641 added to end a silence was silent one layer further out. Fixed here.
+This round's two rows honestly lack it — the recorder de-duplicates on
+`(agent, run_dir, scores_sha256)`, and hand-editing a machine record to
+back-fill a field is the thing 0.1.641 refused to do to a trace.
+
+**And the cost axis has no home for cache reads (GAP-044).** Cursor's newer CLI
+build reported this task as 1,389 output tokens and **899,968 cache reads**;
+`trace_schema` has a field for the first and none for the second, so the run
+entered the board at 139 tokens per page against 6,290–7,896 for the same
+configuration on earlier builds — forty-five times cheaper, first in the
+ordering, and therefore the configuration README recommends. **The deck is not
+in doubt**: 632,268 bytes, twelve pages, ten of them content, fifteen held gates
+passed. What is wrong is the price written beside it. The fix is a schema field
+plus a decision about what the cost axis should count once the number exists,
+and that decision changes what the board recommends, so it is the owner's.
+
+**Claude Code's deck task went over budget** at 3600.9s and left its trace open,
+so it earned two of three and contributes no cost cell — which is the structural
+finding GAP-041 already records: an agent whose deck task leaves no CLOSED trace
+contributes no cost measurement at all.
+
+The conformance board is fresh again: its newest run is 0.1.641, so the
+`conformance-freshness` waiver three releases carried is discharged.
+
 ## 0.1.641 — the selftests agreed with the regexes and with nothing else, and the fix that lost a span
 
 Round two of the review, on 0.1.640's fixes. Seven of them hold up under

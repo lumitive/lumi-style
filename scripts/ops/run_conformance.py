@@ -3019,7 +3019,14 @@ def main(argv):
                 # mypy caught the shadow on the first run.
                 configured: dict = {
                     k: value[k]
-                    for k in ("model", "model_ran", "effort", "model_asked")
+                    for k in ("model", "model_ran", "effort", "model_asked",
+                              # 0.1.642: the pin state reached `driver.json`
+                              # and stopped there, so the history row could
+                              # not say whether a run's model was checked
+                              # against a recorded vocabulary — which is the
+                              # defect 0.1.641 fixed one layer in, repeated
+                              # one layer out by a whitelist nobody widened.
+                              "pin_state")
                     if value.get(k)}
                 # An explicit `false` is a value, so `if value.get(k)` would
                 # drop it — which is the bug that would turn "nobody pinned
