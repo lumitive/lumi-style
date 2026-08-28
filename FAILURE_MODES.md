@@ -403,7 +403,7 @@ every quarter.)
 ## FM-25 · An enum of model names in the trace schema
 
 - detection: `model` is free text in `scripts/lib/trace_schema.py`, so a typo
-  in a `--model` pin is recorded and never questioned, and two spellings of one
+  in a `--cell` pin is recorded and never questioned, and two spellings of one
   model make two cells on the configurations board.
 - proposed, twice: close the field to a maintained set of model ids, updated on
   a cadence, the way `effort` is closed to five values.
@@ -599,6 +599,32 @@ Declined 0.1.417. The input is this repository's own tracked workflow;
 splitting the commands would make preflight run something other than what CI
 runs — the one failure that file exists to prevent. Kept with a targeted
 `noqa: S602` pointing at the in-file justification.
+
+## AG-8 · A single maximum-duration flag for a driven run
+
+Declined 0.1.644, and declined against an explicit owner instruction, which is
+why the reasoning is here rather than in a commit message. She read `--budget`
+and `--hard-cap` as redundant and asked for one `maxbudget`. Half of that
+reading is right and the other half would restore a measured failure.
+
+**One number cannot say both things.** `_run_with_budget` grants the FLOOR
+outright — silence inside it is normal, because an agent composing one long
+message emits nothing for minutes — and past it renews only while there are
+signs of life, up to a CEILING renewal may never pass. A single maximum deletes
+the floor, and a stall detector that fires inside it kills the healthy case to
+catch the sick one. That is not hypothetical: `DRIVE_TIMEOUT = 1800` killed
+Hermes on 2026-08-21 while it was still working — its deck's mtime is six
+seconds before the driver record's, and it was inside the repair loop for its
+third gate when the kill landed.
+
+**What was true in the complaint, and what was done instead.** Two peer integers
+with no stated relationship read as two names for one thing. `--budget
+FLOOR[:CEILING]` is one parameter carrying one policy, with the relationship
+visible in the colon, and `--budget 3600:3600` is expressible and means floor =
+ceiling, i.e. no renewal — said in the help text so choosing it is a choice
+rather than an accident. The owner's complaint was about presentation and the
+presentation is fixed; the semantics she proposed are the ones this entry
+declines.
 
 ## AG-7 · A quote-parity guard over the entry points
 

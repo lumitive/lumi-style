@@ -141,15 +141,15 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 - opened: 0.1.623
 - closed: 0.1.633
 - surface: conformance/agent-evals.json (the `triggers` block),
-  scripts/ops/run_conformance.py (`detect --models`)
+  scripts/ops/run_conformance.py (`detect --ask-models`)
 - symptom: `vocabulary-changed` is declared as "a `models` probe answers a
   different set of ids than the one recorded". **Nothing records a set.**
-  `detect --models` prints the live list and discards it; `platforms.json`'s
+  `detect --models` (renamed `--ask-models` at 0.1.644) printed the live list and discarded it; `platforms.json`'s
   `models` is the argv rather than a vocabulary; and nothing anywhere reads
   the `triggers` block at all — `agent_evals.py plan` prints a pointer to the
   file and no more. Found by a pre-PR review, which is CLAUDE.md convention 14:
   a capability sentence cites the function that implements it.
-- check: `run_conformance.py detect --models --record` writes
+- check: `run_conformance.py detect --ask-models --record` writes
   `conformance/vocabularies.json` and prints what moved against the previous
   set — verified by planting a change in a recorded set and watching the next
   probe name both the four ids that vanished and the one that arrived.

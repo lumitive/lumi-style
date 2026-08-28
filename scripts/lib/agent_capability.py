@@ -334,13 +334,13 @@ def validate_pin(agent: dict, model: str | None,
     if ids is None:
         return UNVALIDATED, (f"{agent['id']} has no recorded vocabulary, so "
                              f"{model!r} was not checked against one — "
-                             f"`run_conformance.py detect --models --record`")
+                             f"`run_conformance.py detect --ask-models --record`")
     if model in ids:
         return OK, ""
     return REFUSED, (f"{agent['id']} does not offer {model!r}. Its last recorded "
                      f"vocabulary ({len(ids)} ids) has "
                      f"{', '.join(sorted(ids)[:4])}…; re-probe with "
-                     f"`run_conformance.py detect --models --record` if the CLI "
+                     f"`run_conformance.py detect --ask-models --record` if the CLI "
                      f"has changed")
 
 

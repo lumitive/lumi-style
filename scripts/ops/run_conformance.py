@@ -75,6 +75,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import agent_capability  # noqa: E402
+import agent_cell  # noqa: E402 — the one cell constructor and its CLI spelling
 import checker_report  # noqa: E402
 import eval_corpus  # noqa: E402
 import fingerprint  # noqa: E402
@@ -370,46 +371,47 @@ def environment_check(agent):
     return []
 
 
-def _per_agent(values, flag: str, known: set[str],
-               allowed: tuple[str, ...] | None = None) -> tuple[str | None, dict]:
-    """-> (the value for every agent, {agent id: its own value}).
+def parse_budget(text: str | None) -> tuple[int, int]:
+    """-> (floor, ceiling) seconds from `FLOOR[:CEILING]`.
 
-    `x` sets the default; `agent=x` sets one agent's. Both may appear.
+    ONE PARAMETER FOR ONE POLICY. Two peer integers with no stated relationship
+    read as two names for one thing, which is how the owner read them. They are
+    not: the floor is granted outright and renewal may not shorten it, the
+    ceiling is what renewal may never pass, and `_run_with_budget` needs both.
+    A single maximum would delete the floor — the failure `DRIVE_TIMEOUT = 1800`
+    produced on 2026-08-21, killing Hermes six seconds before its deck's mtime.
 
-    A horse race pins a different model per CLI — `opus`, `cursor-grok-4.6`,
-    an Anthropic id through Hermes — and one global flag could not say that, so
-    three agents had to be driven in three invocations and the concurrency
-    added in 0.1.556 had nothing to do. Every id has to resolve, on the same
-    reasoning as `--agent`: a typo that silently pins nobody is the failure
-    mode `--effort` already produced once, reported as a level that was never
-    applied.
+    A suffix of `m` or `h` is accepted on either half, because `30m` is what an
+    operator means and `1800` is what the code needs.
     """
-    default: str | None = None
-    per: dict[str, str] = {}
-    for raw in values or []:
-        agent, sep, value = str(raw).partition("=")
-        if not sep:
-            agent, value = "", raw
-        if allowed and value not in allowed:
-            # WHAT THIS TUPLE IS, said out loud since 0.1.637. It is what a
-            # TRACE can record, not what a CLI accepts: Hermes takes eight
-            # levels and this harness can store five, so `--reasoning ultra` is
-            # refusable here while being perfectly good on the command line.
-            # Whether the CLI accepts a level is `agent_capability`'s question
-            # and is asked separately, per agent, before the run starts.
-            sys.exit(f"FAIL  {flag} {raw!r}: {value!r} is not one of "
-                     + "|".join(allowed)
-                     + (" — the levels a trace can record, which is a smaller "
-                        "question than what a CLI accepts"
-                        if flag == "--effort" else ""))
-        if not agent:
-            default = value
-        elif agent not in known:
-            sys.exit(f"FAIL  {flag} {raw!r}: no platform in the registry with "
-                     f"id {agent!r}")
-        else:
-            per[agent] = value
-    return default, per
+    if not text:
+        return DRIVE_BASE_BUDGET, DRIVE_HARD_CAP
+    parts = str(text).split(":")
+    if len(parts) > 2:
+        raise ValueError(f"--budget {text!r}: expected FLOOR or FLOOR:CEILING")
+
+    def seconds(piece: str) -> int:
+        raw = piece.strip().lower()
+        if not raw:
+            raise ValueError(f"--budget {text!r}: an empty half")
+        mult = {"m": 60, "h": 3600}.get(raw[-1], 1)
+        number = raw[:-1] if mult != 1 else raw
+        try:
+            value = int(number)
+        except ValueError:
+            raise ValueError(f"--budget {text!r}: {piece!r} is not a duration"
+                             ) from None
+        if value <= 0:
+            raise ValueError(f"--budget {text!r}: {piece!r} is not positive")
+        return value * mult
+
+    floor = seconds(parts[0])
+    ceiling = seconds(parts[1]) if len(parts) == 2 else max(floor, DRIVE_HARD_CAP)
+    if ceiling < floor:
+        raise ValueError(f"--budget {text!r}: the ceiling ({ceiling}s) is below "
+                         f"the floor ({floor}s), so renewal could never happen "
+                         f"and the floor could never be spent")
+    return floor, ceiling
 
 
 def _artifact_roots(agent: dict) -> list[pathlib.Path]:
@@ -1951,88 +1953,121 @@ def render(record: dict) -> str:
 
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("command", choices=["validate", "detect", "run", "score",
-                                        "report", "restamp"])
-    ap.add_argument("--models", action="store_true",
-                    help="with `detect`: also ask each agent what it can be RUN "
-                         "AS. Opt-in because it shells out a second time per "
-                         "agent and `detect` is the cheap answer to 'is it "
-                         "there'. Eleven of the twelve answer from the registry "
-                         "waiver without running anything.")
-    # Repeatable, and only `report` may take more than one. A scoreboard built
-    # from a single directory erases every agent that directory does not
-    # contain: recording the Claude Code run turned Cursor's row from a
-    # measured `fail` into `not installed`, which is the false absence this
-    # file's own closing paragraph says it exists to avoid. Later --run wins on
-    # a collision, so re-running one agent replaces its own row and nobody
-    # else's.
-    ap.add_argument("--run", action="append", default=None)
-    ap.add_argument("--version", default=None,
-                    help="restamp: the skill version the header should name "
-                         "(default: the newest CHANGELOG heading)")
-    ap.add_argument("--agent", action="append", default=None,
-                    help="prepare (or report) this agent even if no CLI answers "
-                         "its probe — IDEs and API models are driven by hand. "
-                         "Repeatable: `--agent a --agent b` runs both. It took "
-                         "one value until 0.1.550, so three of them silently "
-                         "kept the last and a three-agent round drove one agent")
-    ap.add_argument("--task", default=None,
-                    help="with run: only this task id. The suite is three tasks "
-                         "and one of them is a twelve-page deck, so proving the "
-                         "driver works should not cost a deck")
-    ap.add_argument("--drive", action="store_true",
-                    help="with run: actually invoke each agent, in a temporary "
-                         "directory OUTSIDE this repository, instead of writing "
-                         "a prompt for a person to invoke by hand")
-    ap.add_argument("--model", action="append", default=None, metavar="[AGENT=]ID",
-                    help="with run --drive: pin the model and record which one. "
-                         "Repeatable, and `<agent>=<id>` pins one agent — a "
-                         "horse race between three CLIs has three different "
-                         "model ids and one global flag could not express it, "
-                         "which meant the agents had to be driven one at a time. "
-                         "Left off, each CLI picks its own default and the run "
-                         "records that it did — a comparison needs the pin, a "
-                         "check of what a user actually gets does not")
-    # `xhigh` and `max` are real levels: `claude --effort` documents
-    # low|medium|high|xhigh|max and `hermes --reasoning` adds none|minimal|ultra.
-    # Cursor spells its top level `xhigh` inside the model id and has no `max`
-    # for Grok 4.6 at all. Refusing them here meant the highest effort a
-    # comparison could ask for was `high`, on every agent.
-    # Not `choices`: the value may be `<agent>=<level>` now, and argparse would
-    # reject that before anything could split it. `_per_agent` validates.
-    ap.add_argument("--effort", action="append", default=None,
-                    metavar="[AGENT=]LEVEL",
-                    help="with run --drive: pin the reasoning effort through the "
-                         "agent's `drive_effort_flag` and record it. This is the "
-                         "second axis of the model×effort matrix (K1); an agent "
-                         "whose registry record names no effort flag records "
-                         "the level as not pinned. Repeatable as "
-                         "`<agent>=<level>`, and one of "
-                         "low|medium|high|xhigh|max")
-    ap.add_argument("--budget", "--timeout", dest="budget", type=int,
-                    default=DRIVE_BASE_BUDGET,
-                    help=f"with run --drive: seconds one task gets outright "
-                         f"(default {DRIVE_BASE_BUDGET}). Past it the run "
-                         f"continues while it shows signs of life, never past "
-                         f"--hard-cap")
-    ap.add_argument("--hard-cap", type=int, default=DRIVE_HARD_CAP,
-                    help=f"with run --drive: seconds no amount of progress can "
-                         f"extend a task past (default {DRIVE_HARD_CAP})")
-    ap.add_argument("--redraw", action="store_true",
-                    help="rewrite the board's generated block from the named "
-                         "run WITHOUT touching conformance/history.json — for "
-                         "when the wording changed and the measurement did "
-                         "not. `--record` would stamp the run's history rows "
-                         "with today's version.")
-    ap.add_argument("--record", action="store_true",
-                    help="write this run's result into the tracked record. "
-                         "With `report`: one history row per scored agent per "
-                         "run, which is what the evidence gate's freshness "
-                         "obligation reads. With `detect --models`: the "
-                         "answered vocabularies, so a later probe can say what "
-                         "CHANGED — without a stored set the "
-                         "`vocabulary-changed` trigger in agent-evals.json "
-                         "describes a comparison nothing can make.")
+    # A VERB TAKES THE NOUNS IT ACTS ON AND NOTHING ELSE, and subparsers make
+    # that mechanical instead of aspirational. Under one flat parser ten of the
+    # twelve flags belonged to exactly one command anyway — and the two that did
+    # not were the two that misled: `--model`/`--effort` were parsed before the
+    # dispatch, so `score --effort high` was validated and then silently
+    # discarded while `score --effort banana` exited 1. A CLI that refuses a
+    # value it will not use is a CLI whose shape nobody can read.
+    #
+    #   selection — what it acts on:  --run --agent --task --cell --version
+    #   action    — what it does:     --drive --record --redraw --ask-models
+    #   limit     — what it may spend: --budget
+    sub = ap.add_subparsers(dest="command", required=True, metavar="COMMAND")
+
+    p_validate = sub.add_parser(
+        "validate", help="parse the suite and the history; the CI step")
+    p_detect = sub.add_parser(
+        "detect", help="which agents answer a probe on this machine")
+    p_run = sub.add_parser(
+        "run", help="prepare or drive the agents over the tasks")
+    p_score = sub.add_parser("score", help="grade one run directory")
+    p_report = sub.add_parser("report", help="render the board from run(s)")
+    p_restamp = sub.add_parser(
+        "restamp", help="recompute the board's header for a new version")
+    del p_validate                       # takes the repository and nothing else
+
+    p_detect.add_argument(
+        "--ask-models", dest="ask_models", action="store_true",
+        help="also ask each agent what it can be RUN AS. Opt-in because it "
+             "shells out a second time per agent and `detect` is the cheap "
+             "answer to 'is it there'. Eleven of the twelve answer from the "
+             "registry waiver without running anything. (Named `--models` "
+             "until 0.1.644, one letter from `--model`, which meant something "
+             "unrelated on another verb.)")
+    p_detect.add_argument(
+        "--record", action="store_true",
+        help="write the answered vocabularies to conformance/vocabularies.json, "
+             "so a later probe can say what CHANGED — without a stored set the "
+             "`vocabulary-changed` trigger describes a comparison nothing can "
+             "make. Needs --ask-models: there is nothing to record until the "
+             "probes have been asked.")
+
+    for parser in (p_run, p_score):
+        parser.add_argument("--run", action="append", default=None,
+                            metavar="DIR",
+                            help="the run directory. A bare name is a run ID "
+                                 "resolved under the results root, not a path "
+                                 "against the working directory")
+    p_report.add_argument(
+        "--run", action="append", default=None, metavar="DIR",
+        help="repeatable: `report` is the only verb that merges runs. A "
+             "scoreboard built from one directory erases every agent that "
+             "directory does not contain, and later --run wins on a collision, "
+             "so re-running one agent replaces its own row and nobody else's")
+
+    p_run.add_argument(
+        "--agent", action="append", default=None, metavar="ID",
+        help="drive this agent even if no CLI answers its probe — IDEs and API "
+             "models are driven by hand. Repeatable; every name has to resolve, "
+             "so a typo among three is named rather than silently dropping two")
+    p_run.add_argument(
+        "--task", default=None, metavar="ID",
+        help="only this task id. The suite is three tasks and one of them is a "
+             "twelve-page deck, so proving the driver works should not cost a "
+             "deck")
+    p_run.add_argument(
+        "--drive", action="store_true",
+        help="actually invoke each agent, in a temporary directory OUTSIDE this "
+             "repository, instead of writing a prompt for a person to invoke")
+    # ONE FLAG FOR ONE CONFIGURATION. `--model` and `--effort` were two flags
+    # whose values had to agree by convention, and for a platform that spells
+    # the level inside the model id they were never two things at all —
+    # `drive_effort_in_model` composes `cursor-grok-4.6-high` from both halves.
+    # Two flags also made one agent at two levels inexpressible: `--effort
+    # cursor=low --effort cursor=high` kept the last, silently.
+    p_run.add_argument(
+        "--cell", action="append", default=None, metavar="[AGENT=]MODEL[@EFFORT]",
+        help="the configuration to run: a model, optionally a level after `@`, "
+             "optionally one agent before `=`. Repeatable — `--cell "
+             "claude-code=opus@high --cell cursor=cursor-grok-4.6@high` is a "
+             "horse race; a bare `--cell opus@high` is the default for every "
+             "agent. Left off, each CLI picks its own and the run records that "
+             "it did. Levels: "
+             + "|".join(trace_schema.ENUMS["effort"]))
+    # ONE PARAMETER, ONE POLICY. These were two peer integers with no stated
+    # relationship, which reads as two names for one thing — and the owner read
+    # it that way. They are not: `_run_with_budget` grants the FLOOR outright
+    # and renews on signs of life up to the CEILING. `DRIVE_TIMEOUT = 1800`
+    # killed Hermes on 2026-08-21 six seconds before its deck's mtime, inside
+    # the repair loop for its third gate; one number deletes the floor and a
+    # quiet first minute kills a healthy run.
+    p_run.add_argument(
+        "--budget", default=None, metavar="FLOOR[:CEILING]",
+        help=f"seconds a task gets outright, and the ceiling renewal may never "
+             f"pass (default {DRIVE_BASE_BUDGET}:{DRIVE_HARD_CAP}). Past the "
+             f"floor a run continues while it shows signs of life. "
+             f"`--budget {DRIVE_HARD_CAP}:{DRIVE_HARD_CAP}` means floor = "
+             f"ceiling, i.e. no renewal — expressible on purpose, so choosing "
+             f"it is a choice")
+
+    p_report.add_argument(
+        "--record", action="store_true",
+        help="write one history row per scored agent per run — what the "
+             "evidence gate's freshness obligation reads")
+    p_report.add_argument(
+        "--redraw", action="store_true",
+        help="rewrite the board's generated block from the named run WITHOUT "
+             "touching conformance/history.json — for when the wording changed "
+             "and the measurement did not. `--record` would stamp the run's "
+             "history rows with today's version")
+
+    p_restamp.add_argument(
+        "--version", default=None,
+        help="the skill version the header should name (default: the newest "
+             "CHANGELOG heading)")
+
     args = ap.parse_args(argv)
 
     try:
@@ -2108,20 +2143,42 @@ def main(argv):
     # taking the first: an operator who passes two to `score` means to score
     # two, and scoring one of them without a word is the kind of silent
     # narrowing this harness is otherwise careful about.
-    runs = args.run or []
+    # `getattr`, because a verb that takes no --run no longer HAS the attribute:
+    # that is the point of subparsers, and reading it unconditionally is the
+    # flat parser's habit surviving the change that removed it.
+    runs = getattr(args, "run", None) or []
     if args.command in ("run", "score") and len(runs) > 1:
         print(f"FAIL  {args.command} acts on one --run directory; {len(runs)} given. "
               f"Only `report` merges runs.")
         return 1
 
     known_ids = {a["id"] for a in agents}
-    model_all, model_per = _per_agent(args.model, "--model", known_ids)
-    # THE TUPLE IS IMPORTED, NOT RETYPED. It was retyped, and the copies drifted
-    # in one release: 0.1.554 widened this one and left `trace_schema`'s at
-    # three, so a run pinned to `xhigh` could be driven and could not be
-    # recorded.
-    effort_all, effort_per = _per_agent(
-        args.effort, "--effort", known_ids, trace_schema.ENUMS["effort"])
+    # RESOLVED ONLY FOR THE VERB THAT SPENDS. `--cell` lives on `run` alone now,
+    # so there is nothing to parse for `score` or `report` and nothing for them
+    # to ignore.
+    model_all = effort_all = None
+    model_per: dict[str, str] = {}
+    effort_per: dict[str, str] = {}
+    if args.command == "run":
+        for raw in args.cell or []:
+            try:
+                # THE TUPLE IS PASSED, NOT RETYPED. It was retyped once and the
+                # copies drifted in one release: 0.1.554 widened the driver's
+                # and left `trace_schema`'s at three, so a run pinned to `xhigh`
+                # could be driven and could not be recorded.
+                agent_id, model, effort = agent_cell.parse_pin(
+                    raw, known_ids, trace_schema.ENUMS["effort"])
+            except agent_cell.CellError as exc:
+                print(f"FAIL  {exc}")
+                return 1
+            if agent_id is None:
+                model_all = model if model is not None else model_all
+                effort_all = effort if effort is not None else effort_all
+            else:
+                if model is not None:
+                    model_per[agent_id] = model
+                if effort is not None:
+                    effort_per[agent_id] = effort
     probed = {a["id"]: detect(a) for a in agents}
     if args.command == "detect":
         import datetime
@@ -2129,7 +2186,7 @@ def main(argv):
         for a in agents:
             ok, note = probed[a["id"]]
             print(f"  {a['id']:16} {'available' if ok else 'not exercised':14} {note}")
-            if args.models:
+            if args.ask_models:
                 state, detail = agent_capability.probe_models(a)
                 print(f"  {'':16} models {state:8} {detail}")
                 if state == "asked":
@@ -2146,8 +2203,8 @@ def main(argv):
             # the agents that ANSWERED are written: a waiver and a failed probe
             # are not vocabularies, and recording them as empty sets would make
             # "this CLI offers nothing" and "we could not ask" the same row.
-            if not args.models:
-                print("FAIL  --record needs --models: there is nothing to "
+            if not args.ask_models:
+                print("FAIL  --record needs --ask-models: there is nothing to "
                       "record until the probes have been asked.")
                 return 1
             for line in agent_capability.record_vocabularies(answered, ROOT):
@@ -2159,6 +2216,11 @@ def main(argv):
         return 0
 
     if args.command == "run":
+        try:
+            budget_floor, budget_ceiling = parse_budget(args.budget)
+        except ValueError as exc:
+            print(f"FAIL  {exc}")
+            return 1
         # A DRIVEN run gets its own dated directory by default, and `latest`
         # becomes a symlink to it. Under the old default every drive wrote
         # into `results/latest`, so a new driver.json (timeout, nothing
@@ -2277,9 +2339,9 @@ def main(argv):
                 return
             record = drive(a, t, wd,
                            model=model_per.get(a["id"], model_all),
-                           base=args.budget,
+                           base=budget_floor,
                            effort=effort_per.get(a["id"], effort_all),
-                           hard_cap=args.hard_cap)
+                           hard_cap=budget_ceiling)
             # WHICH BUILD OF THE CLI DID IT, taken from the probe this run
             # already made BEFORE driving — not re-probed here, which would
             # answer about now rather than about the run. `agent` names a

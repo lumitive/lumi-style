@@ -112,7 +112,7 @@ def test_the_registry_declares_a_vocabulary_state_for_every_platform():
 
 
 # GAP-042: the `vocabulary-changed` trigger was declared and nothing stored a
-# vocabulary to compare against — `detect --models` printed the live list and
+# vocabulary to compare against — `detect --ask-models` printed the live list and
 # dropped it, so the register described a comparison no code could make.
 
 def _detect_tree(tmp_path, monkeypatch, ids, prior=None):
@@ -132,7 +132,7 @@ def _detect_tree(tmp_path, monkeypatch, ids, prior=None):
 
 def test_an_answered_vocabulary_is_recorded(tmp_path, monkeypatch):
     out = _detect_tree(tmp_path, monkeypatch, ["a-1", "b-2"])
-    rc.main(["detect", "--models", "--record"])
+    rc.main(["detect", "--ask-models", "--record"])
     doc = json.loads(out.read_text(encoding="utf-8"))
     assert doc["faker"]["ids"] == ["a-1", "b-2"]
     assert doc["faker"]["cli_version"] == "fake 1.0"
@@ -141,7 +141,7 @@ def test_an_answered_vocabulary_is_recorded(tmp_path, monkeypatch):
 def test_a_changed_vocabulary_names_what_moved(tmp_path, monkeypatch, capsys):
     _detect_tree(tmp_path, monkeypatch, ["a-1", "c-3"],
                  prior={"faker": {"ids": ["a-1", "b-2"]}})
-    rc.main(["detect", "--models", "--record"])
+    rc.main(["detect", "--ask-models", "--record"])
     printed = capsys.readouterr().out
     assert "CHANGED faker" in printed
     assert "b-2" in printed and "c-3" in printed
@@ -149,7 +149,7 @@ def test_a_changed_vocabulary_names_what_moved(tmp_path, monkeypatch, capsys):
 
 def test_an_unchanged_vocabulary_says_nothing(tmp_path, monkeypatch, capsys):
     _detect_tree(tmp_path, monkeypatch, ["a-1"], prior={"faker": {"ids": ["a-1"]}})
-    rc.main(["detect", "--models", "--record"])
+    rc.main(["detect", "--ask-models", "--record"])
     assert "CHANGED" not in capsys.readouterr().out
 
 
@@ -159,7 +159,7 @@ def test_a_waived_agent_records_no_empty_vocabulary(tmp_path, monkeypatch):
     same row — which is the distinction `probe_models()` has four states for."""
     out = _detect_tree(tmp_path, monkeypatch, [])
     monkeypatch.setattr(rc.agent_capability, "probe_models", lambda a: ("waived", "no CLI to ask"))
-    rc.main(["detect", "--models", "--record"])
+    rc.main(["detect", "--ask-models", "--record"])
     assert json.loads(out.read_text(encoding="utf-8")) == {}
 
 
@@ -168,4 +168,4 @@ def test_record_without_models_is_refused(tmp_path, monkeypatch, capsys):
     writing an empty file would look like a measurement."""
     _detect_tree(tmp_path, monkeypatch, ["a-1"])
     assert rc.main(["detect", "--record"]) == 1
-    assert "--record needs --models" in capsys.readouterr().out
+    assert "--record needs --ask-models" in capsys.readouterr().out

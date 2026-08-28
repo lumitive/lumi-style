@@ -16,7 +16,7 @@ things make that the wrong shape, and none of them is effort:
      workflows here have no schedule. Nothing in this package can perform a
      weekly search; it would be a human ritual the package could not hold.
   2. One of the twelve registered platforms can enumerate its models read-only
-     (`detect --models` reports which, and why the other eleven cannot).
+     (`detect --ask-models` reports which, and why the other eleven cannot).
   3. **The decisive one: this package cannot set a model.** Nine platforms load
      it as a skill file, Codex reads `AGENTS.md`, and the two `prompt`-tier
      platforms get `prompts/lumi-style-core.md` pasted into a chat. On every one
@@ -746,7 +746,7 @@ def main(argv=None) -> int:
 
     # WHAT THE RECORDED VOCABULARIES SAY. The `vocabulary-changed` trigger was
     # declared with nothing storing a vocabulary to compare against (GAP-042);
-    # `detect --models --record` writes one now, and this is where a person
+    # `detect --ask-models --record` writes one now, and this is where a person
     # sees whether the set an agent offers has moved under a measurement.
     recorded, vocab_problem = agent_capability.recorded_vocabularies(ROOT)
     print()

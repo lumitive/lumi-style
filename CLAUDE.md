@@ -41,7 +41,7 @@ python3 scripts/check/check_fixtures.py        # run the checkers against the fi
 python3 scripts/check/check_js.py              # node --check over the 8 tracked .js files + 3 embedded probes
 python3 scripts/check/check_evidence.py        # --init | record --id X | --check: the evidence gate (see below)
 python3 scripts/ops/review_scores.py         # the six human dimensions over time; --check validates
-python3 scripts/ops/run_conformance.py       # validate | detect [--models] | run [--drive] | score | report [--record] (local only: no keys in CI)
+python3 scripts/ops/run_conformance.py       # validate | detect [--ask-models] | run [--drive --cell] | score | report [--record] (local only: no keys in CI)
 python3 scripts/ops/agent_evals.py           # board [--write|--check] | suggest --agent ID | plan — the MULTI-AGENT evals, separate on purpose
 python3 scripts/build/build_readme_configs.py  # README's measured-configuration block; --check in CI
 python3 -m pytest -q                     # the test suite under tests/; gates in CI
