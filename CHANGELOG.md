@@ -1,3 +1,50 @@
+## 0.1.646 — a third of the file was one function, and every command in it could only be reached through argv
+
+The owner's root complaint was that the tool has no domain abstraction, and that
+this is why iteration and testing keep costing more. The measurable half of that
+is one number: **`main()` was 1,210 lines — a third of the file** — holding the
+argument parser, the dispatch, and five of the six command bodies. Only
+`restamp` had a handler. So every command was reachable only through argv, and
+only after a shared preamble, which is why ninety-two tests monkeypatch module
+globals to get at behaviour that has nothing to do with globals.
+
+**`main()` is 172 lines now**: build the parser, load the suite, dispatch. The
+five bodies are `cmd_validate`, `cmd_detect`, `cmd_run`, `cmd_score` and
+`cmd_report`, beside the `cmd_restamp` that was already there. No flag changed,
+no message changed, no test expectation changed.
+
+**`cmd_score` is the one worth naming**: 348 lines that read a run directory and
+the task list and nothing else. It was reachable only through argv for no reason
+at all.
+
+**`cmd_run` takes `args` whole rather than eight parameters**, and that is a
+decision rather than laziness. It is the verb that spends, it needs the most
+nouns, and a mechanical move that renames nothing cannot collide with a local.
+
+**Which is exactly what went wrong once, and the test caught it.** `cmd_report`
+was first extracted with a parameter named `record` — and the body already had a
+local `record`, the board record dict, which is always truthy. `if record:`
+stopped meaning "the operator passed `--record`" and started meaning "there is a
+board record", so **`--redraw` refused itself with "pick one"** on every
+invocation. Two tests went red immediately. The parameter is `write_history`
+now. Reading the diff would not have found it; the move looked correct, and it
+was the name that was wrong.
+
+One typing consequence worth recording because it is a property of extraction
+rather than of this code: pulling a body out of `main()` narrows what mypy can
+infer. `record["run_id"] not in standing` type-checked inside `main()` and did
+not once the dict's literal was in scope — the value type is a union. The fix is
+one `str(...)`, and the lesson is that a body inside a 1,210-line function is
+not type-checked the way the same body is once it has a signature.
+
+Fourth of the stages in `specs/2026-08-28-conformance-cell-design.md`, and the
+one complaint 6 is actually about. What it buys is that the five commands are
+now functions with parameters: a test can call `cmd_score(tasks, run_dir)`
+instead of building argv and patching three globals to reach it. The migration
+of the existing tests onto that seam is deliberately NOT in this release — the
+extraction is worth having on its own, and mixing a 1,000-line move with a
+test rewrite would make both unreviewable.
+
 ## 0.1.645 — a second configuration in one directory destroyed the first, and said nothing
 
 `<run>/<agent>/<task>` cannot express two cells of one agent, and the driver
