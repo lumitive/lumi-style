@@ -1,0 +1,15 @@
+{
+ "version": "0.1.639",
+ "diff_base": "356c4b7fa7b7df06a8948e6dd0e51a4957427dad",
+ "spec": "",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board's newest run is 0.1.623 and this is the sixteenth release after it, so the freshness window closed at this release rather than at anything it changed: every rule-surface file in the diff moved by exactly one line, its version stamp, and the only substantive change is CLAUDE.md maintenance convention 19 — a rule for changing this repository, not one a deliverable or an agent is measured against. UNCONFIRMED: no agent has been measured against the rule surface since 0.1.623, so the configurations board's cells and README's recommended configuration describe 0.1.623's rules. Closing it means driving at least two agents over every task with the local installs updated first; GAP-041 holds that round and it is the owner's decision to spend."
+  }
+ ]
+}

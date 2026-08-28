@@ -1,3 +1,39 @@
+## 0.1.639 — the register is a convention now, not only a mechanism
+
+Owner-directed, and the smallest release in this run: **maintenance convention
+19.** Consolidating a fact is an entry in `evals/single-source.json`, never a
+new guard.
+
+The mechanism shipped at 0.1.634 and the five releases after it used it, but
+the operating instruction lived only in those entries — and a CHANGELOG entry is
+what a later session believes rather than what it reads first. The convention
+list is where a maintainer looks before changing this repository, so that is
+where the rule belongs.
+
+It is a rule about the rule. Before 0.1.634 the anti-duplication mechanism was
+two hand-written guards for two facts, which meant consolidating a third fact
+required writing a third guard — **the duplication being refused, one layer up,
+in the code that refuses it.** The convention names the two obligations that
+come with an entry, both of them conventions 11 and 15 in this particular
+setting: plant the duplicate FIRST and watch the guard name the owner, and give
+every pattern a `selftest` string it must match, because a regex that has
+quietly stopped matching prints exactly what a clean tree prints.
+
+No code changed and no gate was added, so there is no deliberate red to record:
+`check_one_home` and its planted failures shipped at 0.1.634 and are unchanged.
+
+**One waiver, and it is about the board rather than about this change.** The
+conformance board's newest run is 0.1.623 and this is the sixteenth release
+after it, so the freshness window closed HERE — at the first release past the
+threshold, not at anything this one touched. Every rule-surface file in the diff
+changed by exactly one line, its version stamp; the only substantive change is a
+maintenance convention for this repository, which is not a rule any agent is
+measured against. What is unconfirmed is stated in the evidence file: no agent
+has been measured against the rule surface since 0.1.623, so the configurations
+board and README's recommended configuration describe 0.1.623's rules. Closing
+it means driving at least two agents over every task, which needs the local
+installs updated first — GAP-041 holds that round and it is the owner's call.
+
 ## 0.1.638 — thirteen ways to ask git which files exist, and two of them answered "none"
 
 The last fact on the audit's list, and the one with the most copies.
