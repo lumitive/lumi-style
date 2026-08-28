@@ -33,7 +33,11 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 import pathlib  # noqa: E402
 import sys  # noqa: E402
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]
+# NAMED, not counted: `parents[2]` returns a WRONG path when this file moves
+# drawers, and a wrong path is read as a repository with nothing in it. The
+# form below raises instead, which is the failure a reader can act on.
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 # A release commit is one whose subject opens with its version. That is
 # `check_commit_convention`'s rule, and reusing it means this counter cannot
 # drift from what the repository calls a release.

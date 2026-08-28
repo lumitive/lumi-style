@@ -58,10 +58,16 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import agent_runs  # noqa: E402
+import history  # noqa: E402
+import platform_registry  # noqa: E402
 import trace_store  # noqa: E402
 import versioning  # noqa: E402
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]
+# NAMED, not counted: `parents[2]` returns a WRONG path when this file moves
+# drawers, and a wrong path is read as a repository with nothing in it. The
+# form below raises instead, which is the failure a reader can act on.
+ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
+            if p.name == "scripts").parent
 EVALS = ROOT / "conformance" / "agent-evals.json"
 BOARD = ROOT / "conformance" / "CONFIGURATIONS.md"
 HISTORY = ROOT / "conformance" / "history.json"
@@ -90,9 +96,15 @@ def load_evals() -> dict:
 
 
 def load_history() -> list[dict]:
-    if not HISTORY.exists():
-        return []
-    return json.loads(HISTORY.read_text(encoding="utf-8"))
+    """-> the conformance history rows, or a hard exit naming the damage.
+
+    A board scored from a history that did not parse would be a board scored
+    from nothing, and the reader keeps absence and damage apart so this can.
+    """
+    rows, problem = history.read_rows(ROOT)
+    if problem:
+        raise SystemExit(f"FAIL  {problem}")
+    return rows
 
 
 def earned(history: list[dict]) -> dict[str, dict]:
@@ -761,9 +773,7 @@ def main(argv=None) -> int:
         print(text, end="")
         return 0
 
-    registry = json.loads(
-        (ROOT / "adapters" / "platforms.json").read_text(encoding="utf-8")
-    )["platforms"]
+    registry = platform_registry.platforms(ROOT)
 
     if args.command == "suggest":
         if not args.agent:

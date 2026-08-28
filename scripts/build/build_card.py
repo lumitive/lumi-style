@@ -51,6 +51,7 @@ import pathlib  # noqa: E402
 import re  # noqa: E402
 import sys  # noqa: E402
 
+import gate_registry  # noqa: E402
 import versioning  # noqa: E402
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
@@ -69,8 +70,14 @@ def _register() -> list[dict]:
 
 
 def _gates() -> dict:
-    return json.loads((ROOT / "evals/gates.json")
-                      .read_text(encoding="utf-8"))["gates"]
+    """The register, through its own module.
+
+    This parsed `evals/gates.json` itself and imported nothing — a fourth
+    answer to the same file, in the generator whose own neighbour records
+    "three functions with three different answers to the same broken file" as
+    the reason `gate_registry` exists.
+    """
+    return gate_registry.load(ROOT)
 
 
 def _version() -> str:

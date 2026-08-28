@@ -52,6 +52,7 @@ import subprocess  # noqa: E402
 import sys  # noqa: E402
 from typing import Any  # noqa: E402
 
+import history  # noqa: E402
 import stamps  # noqa: E402 — after the bootstrap
 import versioning  # noqa: E402
 
@@ -206,17 +207,18 @@ def conformance_fresh() -> bool | None:
     over a hundred releases — an argument that leans on a current fact rots
     when the fact does.)
     """
-    hist = ROOT / "conformance" / "history.json"
-    if not hist.exists():
+    if not history.path(ROOT).exists():
         return None
-    try:
-        rows = json.loads(hist.read_text("utf-8"))
-    except json.JSONDecodeError:
+    rows, problem = history.read_rows(ROOT)
+    if problem:
         # Fail closed and named: a corrupt history reads as stale, which
         # obliges fresh measurement rather than quietly un-arming the gate.
         # (run_conformance.py validate fails CI on the same corruption.)
-        print("note  conformance/history.json does not parse; treating the "
-              "board as stale")
+        # It also catches an OSError and a history that is not a list, neither
+        # of which this reached before 0.1.636 — an unreadable file raised out
+        # of the evidence gate, and a `null` history counted zero agents and
+        # reported the board fresh.
+        print(f"note  {problem}; treating the board as stale")
         return False
     recent = set(releases_in_changelog()[:CONFORMANCE_STALE_AFTER + 1])
     agents = {r.get("agent") for r in rows

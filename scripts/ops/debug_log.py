@@ -81,6 +81,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import checker_report  # noqa: E402 — after the bootstrap
+import platform_registry  # noqa: E402
 import versioning  # noqa: E402
 
 # C1-C8, matching the store review_scores.py validates. This said C1-C8 for
@@ -131,8 +132,7 @@ def _is_iso(value):
 
 
 def _platform_ids():
-    reg = json.loads((ROOT / "adapters" / "platforms.json").read_text(encoding="utf-8"))
-    return {p["id"] for p in reg["platforms"]}
+    return platform_registry.platform_ids(ROOT)
 
 
 def _read_json(path, what):
