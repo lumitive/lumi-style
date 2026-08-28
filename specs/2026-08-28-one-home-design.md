@@ -1,7 +1,7 @@
 # One home per fact, and a guard that keeps it one
 
-Date: 2026-08-28 · Status: in progress; the releases that implement it cite
-this file.
+Date: 2026-08-28 · Status: implemented across 0.1.634–0.1.638, whose
+CHANGELOG entries cite this file.
 
 ## What was asked
 

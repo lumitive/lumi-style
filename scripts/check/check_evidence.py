@@ -53,6 +53,7 @@ import sys  # noqa: E402
 from typing import Any  # noqa: E402
 
 import history  # noqa: E402
+import repo_files  # noqa: E402
 import stamps  # noqa: E402 — after the bootstrap
 import versioning  # noqa: E402
 
@@ -234,8 +235,7 @@ def newest_section() -> str:
 
 
 def git(*args: str) -> tuple[int, str]:
-    p = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
-    return p.returncode, p.stdout.strip()
+    return repo_files.run_git(*args, root=ROOT)
 
 
 def find_release_commit(version: str) -> str | None:

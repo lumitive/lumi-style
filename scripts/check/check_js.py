@@ -49,6 +49,9 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
     if _p not in _bs_sys.path:
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import repo_files  # noqa: E402 — the one way to ask git
+
 # --- end bootstrap ---
 
 def embedded_probes(module):
@@ -66,11 +69,11 @@ def embedded_probes(module):
 
 
 def tracked_js():
-    p = subprocess.run(["git", "ls-files", "*.js"], cwd=ROOT,
-                       capture_output=True, text=True)
-    if p.returncode != 0:
-        raise RuntimeError(f"git ls-files failed: {p.stderr.strip()}")
-    return [f for f in p.stdout.splitlines() if f.strip()]
+    names, problem = repo_files.tracked_files("*.js", root=ROOT,
+                                              what="JavaScript scan")
+    if problem:
+        raise RuntimeError(problem)
+    return names
 
 
 def node_check(source):

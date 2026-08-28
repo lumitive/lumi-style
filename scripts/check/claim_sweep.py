@@ -35,11 +35,25 @@ releases. Nobody was looking, because looking meant remembering to grep.
 """
 from __future__ import annotations
 
-import argparse
-import pathlib
-import re
-import subprocess
-import sys
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import argparse  # noqa: E402
+import pathlib  # noqa: E402
+import re  # noqa: E402
+import subprocess  # noqa: E402
+import sys  # noqa: E402
+
+import repo_files  # noqa: E402 — the one way to ask git
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 
@@ -87,14 +101,13 @@ CITE_RE = re.compile(r"\b([\w./-]+\.(?:py|md|json|css|js|sh|ya?ml)):(\d+)(?:-(\d
 
 
 def tracked() -> list[str]:
-    listed = subprocess.run(["git", "ls-files"], cwd=ROOT,
-                            capture_output=True, text=True)
-    if listed.returncode != 0:
-        print("git ls-files failed; nothing swept", file=sys.stderr)
+    listed, problem = repo_files.tracked_files(root=ROOT, what="claim sweep")
+    if problem:
+        print(f"{problem}; nothing swept", file=sys.stderr)
         return []
     # Prose and code only. A claim about this repository is made in a sentence
     # or a comment; a topology file has numbers and says nothing.
-    return [p for p in listed.stdout.splitlines()
+    return [p for p in listed
             if p and p.endswith((".md", ".py"))
             and not any(p.startswith(f) for f in FROZEN + GENERATED)]
 
