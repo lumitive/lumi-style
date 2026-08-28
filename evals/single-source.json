@@ -197,16 +197,28 @@
    "defs": [
     "run_git",
     "tracked_files",
+    "untracked_files",
     "ignored_files"
    ],
    "patterns": [
     {
-     "regex": "subprocess\\.run\\(\\s*\\[\\s*[\"']git[\"']",
+     "regex": "\\[\\s*[\"']git[\"']",
      "what": "a private git invocation",
-     "selftest": "p = subprocess.run([\"git\", \"ls-files\"], cwd=ROOT, capture_output=True, text=True)"
+     "selftest": "p = subprocess.run([\"git\", \"ls-files\"], cwd=ROOT)",
+     "note": "the ARGV LITERAL, not `subprocess.run([\"git\"` \u2014 the first version required the two adjacent, and two callers that built the list into a variable first were invisible to it while the release claimed the consolidation was total."
     }
    ],
-   "why": "sixteen invocations, three identical `git(*args)` helpers copied into three files, and thirteen spellings of `git ls-files` whose FAILURE handling disagreed. Most said `a scan that did not run is not a scan that passed`; two returned an empty list, one of them feeding the English-only red line, so the guard scanned nothing and printed what it prints on a clean tree. Five split on newlines, which is a bug waiting for a filename with a newline in it."
+   "why": "sixteen invocations, three identical `git(*args)` helpers copied into three files, and thirteen spellings of `git ls-files` whose FAILURE handling disagreed. Most said `a scan that did not run is not a scan that passed`; two returned an empty list, one of them feeding the English-only red line, so the guard scanned nothing and printed what it prints on a clean tree. Five split on newlines, which is a bug waiting for a filename with a newline in it. A review then found two more the first pattern could not see, because they assembled the argv before calling."
+  },
+  {
+   "id": "repository-root",
+   "fact": "where the repository root is, for a module that was told nothing",
+   "owner": "scripts/lib/repo_files.py",
+   "defs": [
+    "repo_root"
+   ],
+   "why": "the consolidation grew five identical private `_root` helpers in the five modules written to end private copies, and the register could not see them because no fact declared the name. One had already diverged, anchoring on its own data file rather than on SKILL.md.",
+   "note": "the module-level `ROOT` constants are NOT this fact: they are computed before any sibling can be imported, and three of them carry comments explaining their form."
   }
  ],
  "waivers": [

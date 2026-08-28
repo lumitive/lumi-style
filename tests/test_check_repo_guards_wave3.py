@@ -313,6 +313,10 @@ def _scores_tree(tmp_path, overrides=None):
     # comes from `versioning.releases`, not from a regex of its own.
     shutil.copyfile(REAL_SCRIPTS / "lib" / "versioning.py",
                     scripts / "lib" / "versioning.py")
+    # and the repository-root reader (0.1.640): five modules had grown five
+    # copies of it, so `versioning` imports one home now.
+    shutil.copyfile(REAL_SCRIPTS / "lib" / "repo_files.py",
+                    scripts / "lib" / "repo_files.py")
     (tmp_path / "CHANGELOG.md").write_text("## 0.1.1\n\n- first.\n", encoding="utf-8")
     record = {"release": "0.1.1", "genre": "sales", "corpus_id": "A1",
               "self": dict.fromkeys(DIMS, 4), "reader": dict.fromkeys(DIMS, 4),

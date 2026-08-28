@@ -258,7 +258,6 @@ def _scorable(tmp_path, monkeypatch, with_artifact=True):
          "instrument_version": "0.1.605", "tasks": {"T1": "pass"}}]),
         encoding="utf-8")
     for attr, value in (("ROOT", tmp_path),
-                        ("REGISTRY", tmp_path / "adapters" / "platforms.json"),
                         ("TASKS", tasks),
                         ("RESULTS", tmp_path / "conformance" / "results")):
         monkeypatch.setattr(run_conformance, attr, value)

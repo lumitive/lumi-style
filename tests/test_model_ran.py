@@ -166,7 +166,6 @@ def test_score_writes_the_model_that_ran_into_the_scores_file(tmp_path,
         {"verdict": "driven", "model": "(the CLI's default)",
          "model_ran": "Auto", "seconds": 1}), encoding="utf-8")
     for attr, value in (("ROOT", tmp_path),
-                        ("REGISTRY", tmp_path / "adapters" / "platforms.json"),
                         ("TASKS", tasks),
                         ("RESULTS", tmp_path / "conformance" / "results")):
         monkeypatch.setattr(run_conformance, attr, value)
@@ -204,7 +203,6 @@ def test_a_driver_record_that_cannot_be_read_says_so(tmp_path, monkeypatch,
     (run / "a1" / "T1" / "driver.json").write_text(
         '{"verdict": "driven", "model', encoding="utf-8")   # truncated mid-write
     for attr, value in (("ROOT", tmp_path),
-                        ("REGISTRY", tmp_path / "adapters" / "platforms.json"),
                         ("TASKS", tasks),
                         ("RESULTS", tmp_path / "conformance" / "results")):
         monkeypatch.setattr(run_conformance, attr, value)
@@ -246,7 +244,6 @@ def test_the_whole_configuration_reaches_the_scores_file(tmp_path, monkeypatch):
          "model_ran": "Cursor Grok 4.6", "effort": "high",
          "trace_id": "t-abcdef012345", "seconds": 1}), encoding="utf-8")
     for attr, value in (("ROOT", tmp_path),
-                        ("REGISTRY", tmp_path / "adapters" / "platforms.json"),
                         ("TASKS", tasks),
                         ("RESULTS", tmp_path / "conformance" / "results")):
         monkeypatch.setattr(run_conformance, attr, value)
@@ -280,7 +277,6 @@ def _score_one(tmp_path, monkeypatch, driver):
     (run / "a1" / "T1" / "driver.json").write_text(json.dumps(driver),
                                                    encoding="utf-8")
     for attr, value in (("ROOT", tmp_path),
-                        ("REGISTRY", tmp_path / "adapters" / "platforms.json"),
                         ("TASKS", tasks),
                         ("RESULTS", tmp_path / "conformance" / "results")):
         monkeypatch.setattr(run_conformance, attr, value)

@@ -83,9 +83,11 @@ jobs:
       # check because it measures the passing fixture to read the row tables.
       - run: python3 scripts/build/build_eval_inventory.py --check
       # The trace store's dictionary and index. Every field's meaning otherwise
-      # lives only in a comment inside trace_schema.py, and the directory holds
-      # three times more files than records — a reader who counts files gets a
-      # denominator this repository has already been wrong about once.
+      # lives only in a comment inside trace_schema.py. The directory held
+      # three times more files than records when this step was added at
+      # 0.1.631; 0.1.632 deleted the 182 that recorded nothing, so it is one
+      # file per record today — which is a fact that can change again, and the
+      # generated README is where it is counted rather than here.
       - run: python3 scripts/build/build_trace_dictionary.py --check
       # The rule register and the page contracts generated from it. The
       # register is hand-written, so the check is that it has not gone stale

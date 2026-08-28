@@ -46,16 +46,14 @@ import pathlib  # noqa: E402
 import shutil  # noqa: E402
 import subprocess  # noqa: E402
 
+import repo_files  # noqa: E402 — one repository root
+
 VOCAB_RELATIVE = "conformance/vocabularies.json"
 
 FLAG, IN_MODEL, NONE = "flag", "in_model", "none"
 
 
-def _root(root: pathlib.Path | None = None) -> pathlib.Path:
-    if root is not None:
-        return root
-    return next(p for p in pathlib.Path(__file__).resolve().parents
-                if (p / "SKILL.md").exists())
+_root = repo_files.repo_root
 
 
 # --- capability: what does this CLI offer? -----------------------------------
@@ -105,27 +103,55 @@ def vocab_path(root: pathlib.Path | None = None) -> pathlib.Path:
     return _root(root) / VOCAB_RELATIVE
 
 
-def recorded_vocabularies(root: pathlib.Path | None = None) -> dict:
-    """-> {agent id: {ids, asked_on, ...}}; empty when nothing has been asked."""
+def recorded_vocabularies(
+        root: pathlib.Path | None = None) -> tuple[dict, str | None]:
+    """-> ({agent id: {ids, asked_on, ...}}, problem). Absent is not a problem.
+
+    `history.read_rows`'s shape, for the same reason and on the same kind of
+    file: `conformance/vocabularies.json` is tracked and every probe round
+    appends to it, which is the shape most likely to arrive from a merge
+    unparseable. Until 0.1.640 this was a bare `json.loads` — a damaged store
+    raised `JSONDecodeError` out of `validate_pin` mid-drive, and a store
+    holding `null` or a list raised `AttributeError` from the `.get` below.
+    """
     path = vocab_path(root)
     if not path.exists():
-        return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+        return {}, None
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        return {}, f"{path} could not be read ({exc})"
+    if not isinstance(doc, dict):
+        return {}, (f"{path} holds a {type(doc).__name__}, not a map of agent "
+                    f"id to vocabulary")
+    return doc, None
 
 
-def offered(agent_id: str, root: pathlib.Path | None = None) -> list[str] | None:
-    """-> the ids this CLI last offered, or None if it was never asked.
+def offered(agent_id: str,
+            root: pathlib.Path | None = None) -> tuple[list[str] | None, str | None]:
+    """-> (the ids this CLI last offered, a problem). None ids = never asked.
 
     None and `[]` are different answers and the caller must be able to tell
     them apart: a waived or failed probe records NOTHING, because writing an
     empty set would make "this CLI offers nothing" and "we could not ask" the
     same row.
+
+    THREE ABSENCES, not two, since 0.1.640. Never asked is `(None, None)`; a
+    store that cannot be read is `(None, problem)`; and an entry whose `ids` is
+    not a list is `(None, problem)` too — it used to join the honest absence
+    silently, which turned a corrupted record into an unarmed pin check.
     """
-    entry = recorded_vocabularies(root).get(agent_id)
+    doc, problem = recorded_vocabularies(root)
+    if problem:
+        return None, problem
+    entry = doc.get(agent_id)
     if not entry:
-        return None
-    ids = entry.get("ids")
-    return list(ids) if isinstance(ids, list) else None
+        return None, None
+    ids = entry.get("ids") if isinstance(entry, dict) else None
+    if not isinstance(ids, list):
+        return None, (f"{vocab_path(root)} records {agent_id} with no list of "
+                      f"ids — a damaged entry, not an agent nobody asked")
+    return list(ids), None
 
 
 def record_vocabularies(answered: dict,
@@ -135,7 +161,11 @@ def record_vocabularies(answered: dict,
     Only agents that ANSWERED belong in `answered`; see `offered` for why.
     """
     path = vocab_path(root)
-    prior = recorded_vocabularies(root)
+    prior, problem = recorded_vocabularies(root)
+    if problem:
+        # BEFORE THE WRITE, because the probes have already been paid for and
+        # `prior.update()` on a damaged store threw them away.
+        raise SystemExit(f"FAIL  {problem}; nothing recorded")
     lines = []
     for aid, asked in sorted(answered.items()):
         was = (prior.get(aid) or {}).get("ids")
@@ -188,8 +218,16 @@ def effort_refusal(agent: dict, level: str) -> str | None:
     A REFUSAL, not a permission. Three cases and only one of them refuses:
 
     * the agent declares a list and the level is not in it — refused, naming the
-      list. This is what `--effort max` against Cursor now hits before a working
-      directory is built.
+      list. **Not the `--effort max` case**, which this docstring claimed until
+      a review checked it: Cursor's list CONTAINS `max`, because `max` ids exist
+      for other families, and what refuses `cursor-grok-4.6-max` is
+      `validate_pin` against the recorded vocabulary. With today's registry
+      every driveable platform declares a superset of the five levels a trace
+      can record, so this branch cannot fire from the CLI at all. It is here for
+      a platform that declares FEWER — the shape the registry is free to grow
+      the day a CLI drops a level — and `tests/test_agent_capability.py` drives
+      it with exactly that agent. A check nothing reaches today is worth saying
+      out loud rather than leaving to be rediscovered.
     * the agent declares a list and the level is in it — fine.
     * the agent declares no effort vocabulary at all — NOT refused. Gemini has
       no reasoning level, and a horse race that passes one default `--effort`
@@ -214,23 +252,33 @@ def effort_in_model(agent: dict, model: str | None) -> str | None:
     """-> the level a composed model id already carries, or None.
 
     Registry-driven rather than guessed: only a platform whose template ENDS in
-    `{effort}` can carry one, and the level has to be one the recorded
-    vocabulary shows as a sibling suffix. `cursor-grok-4.6-high` carries `high`;
-    `cursor-grok-4.6` carries nothing.
+    `{effort}` can carry one, and the level has to be one the agent's `efforts`
+    list declares. `cursor-grok-4.6-high` carries `high`; `cursor-grok-4.6`
+    carries nothing, and its `4.6` is not a level — the first implementation
+    read it as one.
+
+    THE LAST TWO SEGMENTS, not the last. `adapters/cursor.md` records that
+    EVERY Cursor id has a `-fast` twin, and the recorded vocabulary has eight
+    of twenty-three: `cursor-grok-4.6-high-fast` ends in `fast`, so reading
+    only the final segment found the level on none of them and put every twin
+    back in the `(not pinned)` cell this function exists to empty. Two is the
+    limit rather than "scan until a level appears", because a model whose NAME
+    contains a level word would otherwise be misread from arbitrarily far in.
     """
     template = agent.get("drive_effort_in_model")
     if not template or not model or not template.endswith("{effort}"):
         return None
-    levels, _ = declared_efforts(agent)
+    levels, _waiver = declared_efforts(agent)
     if not levels:
         return None
     prefix = template[:-len("{effort}")].replace("{model}", "")
     if not prefix:
         return None
-    tail = model.rpartition(prefix)[2]
-    # A LEVEL, not merely a suffix. `cursor-grok-4.6` ends in `4.6` and carries
-    # no effort at all; without this the version number was read as one.
-    return tail if tail in levels else None
+    segments = model.split(prefix)
+    for segment in reversed(segments[-2:]):
+        if segment in levels:
+            return segment
+    return None
 
 
 def compose_model(agent: dict, model: str | None,
@@ -244,32 +292,46 @@ def compose_model(agent: dict, model: str | None,
     return model, False
 
 
-def validate_pin(agent: dict, model: str | None,
-                 root: pathlib.Path | None = None) -> tuple[bool, str]:
-    """-> (is this model id one the CLI offers, the sentence saying otherwise).
+OK, REFUSED, UNVALIDATED = "ok", "refused", "unvalidated"
 
-    Answered ONLY from a recorded vocabulary. An agent nobody has probed gets
-    `True` with an empty reason: this is a check against evidence, and inventing
-    a verdict where there is no evidence is the failure mode the four-state
-    probe above exists to avoid.
+
+def validate_pin(agent: dict, model: str | None,
+                 root: pathlib.Path | None = None) -> tuple[str, str]:
+    """-> (OK | REFUSED | UNVALIDATED, the sentence for the last two).
+
+    Answered ONLY from a recorded vocabulary. An agent nobody has probed is
+    UNVALIDATED, never OK: this is a check against evidence, and inventing a
+    verdict where there is no evidence is the failure mode the four-state probe
+    above exists to avoid.
+
+    THREE STATES SINCE 0.1.640, and the third is the one a review found
+    missing. A pin validated against a real vocabulary and a pin never checked
+    at all both returned `(True, "")` and printed nothing — the same output for
+    the check working and the check not running, at the point the module's own
+    comment says the check matters most. A damaged store joined them silently,
+    which reverted the pin check to unarmed on the run it was written to stop.
     """
     if not model:
-        return True, ""
-    ids = offered(agent["id"], root)
+        return OK, ""
+    ids, problem = offered(agent["id"], root)
+    if problem:
+        return UNVALIDATED, problem
     if ids is None:
-        return True, ""
+        return UNVALIDATED, (f"{agent['id']} has no recorded vocabulary, so "
+                             f"{model!r} was not checked against one — "
+                             f"`run_conformance.py detect --models --record`")
     if model in ids:
-        return True, ""
-    return False, (f"{agent['id']} does not offer {model!r}. Its last recorded "
-                   f"vocabulary ({len(ids)} ids) has "
-                   f"{', '.join(sorted(ids)[:4])}…; re-probe with "
-                   f"`run_conformance.py detect --models --record` if the CLI "
-                   f"has changed")
+        return OK, ""
+    return REFUSED, (f"{agent['id']} does not offer {model!r}. Its last recorded "
+                     f"vocabulary ({len(ids)} ids) has "
+                     f"{', '.join(sorted(ids)[:4])}…; re-probe with "
+                     f"`run_conformance.py detect --models --record` if the CLI "
+                     f"has changed")
 
 
 # --- observation: are these two names the same model? ------------------------
 
-def model_tokens(name) -> list[str]:
+def model_tokens(name: str | None) -> list[str]:
     """-> a model name as the words a vendor spells it with.
 
     Tokens rather than a squashed string, because squashing is what made
@@ -320,7 +382,7 @@ def _run_of(short: list[str], long: list[str]) -> bool:
                for i in range(len(long) - len(short) + 1))
 
 
-def same_model(asked, ran) -> bool | None:
+def same_model(asked: str | None, ran: str | None) -> bool | None:
     """-> True honoured, False substituted, **None not established**.
 
     THREE ANSWERS, because a pin and the name a CLI answers with are two

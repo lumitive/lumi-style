@@ -215,10 +215,14 @@ def conformance_fresh() -> bool | None:
         # Fail closed and named: a corrupt history reads as stale, which
         # obliges fresh measurement rather than quietly un-arming the gate.
         # (run_conformance.py validate fails CI on the same corruption.)
-        # It also catches an OSError and a history that is not a list, neither
-        # of which this reached before 0.1.636 — an unreadable file raised out
-        # of the evidence gate, and a `null` history counted zero agents and
-        # reported the board fresh.
+        # It also catches an OSError and a history that is not a list,
+        # neither of which this reached before 0.1.636: an unreadable file
+        # raised out of the evidence gate, and `null` or a mapping raised a
+        # TypeError or an AttributeError from the comprehension below. (An
+        # earlier version of this comment said such a history "reported the
+        # board fresh". A review replayed it: no input did — `len(set()) >= 2`
+        # is always False. The gate crashed rather than passing, which is a
+        # different defect and the honest one to record.)
         print(f"note  {problem}; treating the board as stale")
         return False
     recent = set(releases_in_changelog()[:CONFORMANCE_STALE_AFTER + 1])
@@ -275,9 +279,15 @@ def effective_touches(base: str) -> list[str] | None:
         touched.append(path)
     # git diff cannot see a file that was never tracked, and a brand-new
     # script is exactly the kind of change that owes evidence.
-    rc, untracked = git("ls-files", "--others", "--exclude-standard")
-    if rc == 0:
-        touched.extend(p for p in untracked.splitlines() if p)
+    # A FAILED LISTING IS NOT AN EMPTY TREE. `rc == 0` was the only branch, so
+    # a git that could not answer read as "no new files" inside the gate whose
+    # subject is what a release owes evidence for.
+    untracked, problem = repo_files.untracked_files(
+        root=ROOT, what="untracked-file scan")
+    if problem:
+        print(f"FAIL  {problem}")
+        return None
+    touched.extend(untracked)
     if presumed_stamps:
         # The filter is size-blind (a one-line SUBSTANTIVE token edit passes
         # under the same budget as a stamp), so what it presumed is named
@@ -320,12 +330,14 @@ def spec_lines_changed(base: str) -> int:
         if len(parts) == 3:
             total += (0 if parts[0] == "-" else int(parts[0]))
             total += (0 if parts[1] == "-" else int(parts[1]))
-    rc, untracked = git("ls-files", "--others", "--exclude-standard", "--",
-                        "scripts/", "references/", "tokens/")
-    if rc == 0:
-        for p in untracked.splitlines():
-            if p:
-                total += len((ROOT / p).read_text("utf-8").splitlines())
+    untracked, problem = repo_files.untracked_files(
+        "scripts/", "references/", "tokens/", root=ROOT)
+    if problem:
+        # A spec citation is owed above a line threshold; an uncountable tree
+        # must not read as a small change.
+        print(f"note  {problem}; the changed-line count is a floor")
+    for name in untracked:
+        total += len((ROOT / name).read_text("utf-8").splitlines())
     return total
 
 

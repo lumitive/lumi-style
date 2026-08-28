@@ -23,7 +23,7 @@ class _Ran:
 
 
 def _cli(monkeypatch, result, installed=True):
-    monkeypatch.setattr(rc.shutil, "which",
+    monkeypatch.setattr(agent_capability.shutil, "which",
                         lambda _n: "/bin/x" if installed else None)
     monkeypatch.setattr(rc.subprocess, "run", lambda *a, **k: result)
 
@@ -80,7 +80,7 @@ def test_a_probe_that_exits_nonzero_is_failed_and_quotes_the_cli(monkeypatch):
 
 
 def test_a_probe_that_raises_is_failed_and_names_the_exception(monkeypatch):
-    monkeypatch.setattr(rc.shutil, "which", lambda _n: "/bin/x")
+    monkeypatch.setattr(agent_capability.shutil, "which", lambda _n: "/bin/x")
 
     def _boom(*_a, **_k):
         raise subprocess.TimeoutExpired("cursor-agent", 60)
@@ -156,7 +156,7 @@ def test_an_unchanged_vocabulary_says_nothing(tmp_path, monkeypatch, capsys):
 def test_a_waived_agent_records_no_empty_vocabulary(tmp_path, monkeypatch):
     """A waiver and a failed probe are not vocabularies. Recording them as
     empty sets would make "this CLI offers nothing" and "we could not ask" the
-    same row — which is the distinction `vocabulary()` has four states for."""
+    same row — which is the distinction `probe_models()` has four states for."""
     out = _detect_tree(tmp_path, monkeypatch, [])
     monkeypatch.setattr(rc.agent_capability, "probe_models", lambda a: ("waived", "no CLI to ask"))
     rc.main(["detect", "--models", "--record"])

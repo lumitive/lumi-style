@@ -89,7 +89,6 @@ from deliverable_registry import kinds  # noqa: E402
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if p.name == "scripts").parent
-REGISTRY = ROOT / "adapters" / "platforms.json"
 TASKS = ROOT / "conformance" / "tasks"
 IN_REPO_RESULTS = ROOT / "conformance" / "results"
 
@@ -560,8 +559,11 @@ def drive(agent, task, prompt_dir, model=None, base=DRIVE_BASE_BUDGET,
     # ASKED BEFORE THE BUDGET IS SPENT, not by the CLI afterwards. Until 0.1.637
     # nothing compared a pin to what the platform actually offers: `--effort max`
     # against Cursor composed `cursor-grok-4.6-max`, an id that does not exist,
-    # and the run failed after the working directory had been built. The
-    # registry's own prose had said so for eighty releases.
+    # and the run failed after the working directory had been built. THAT case
+    # is caught by `validate_pin` below, against the recorded vocabulary — this
+    # line catches the narrower one, a level the CLI's own declared list
+    # excludes, and a review found both this comment and the module's docstring
+    # crediting it with the catch it does not make.
     refusal = effort and agent_capability.effort_refusal(agent, effort)
     if refusal:
         return {"verdict": "driver refused", "detail": refusal}
@@ -573,11 +575,17 @@ def drive(agent, task, prompt_dir, model=None, base=DRIVE_BASE_BUDGET,
     # had run on the server's default model at the server's default level, and
     # the matrix row it was meant to fill was silently dropped.
     if effort and effort_template and not model:
-        sys.exit(
-            f"FAIL  --effort {effort} was given, but {agent['id']} composes "
-            f"effort into its model id ({effort_template!r}) and no --model was "
-            f"given, so neither axis can be pinned. Pass --model as well, or "
-            f"drop --effort and accept the CLI's defaults.")
+        # RETURNED, NOT `sys.exit`. This is called from a driver THREAD, and
+        # `threading.excepthook` ignores SystemExit by design — so the refusal
+        # written to stop "a whole comparison round reported as Cursor at high
+        # effort" printed nothing at all, incremented neither `driven` nor
+        # `skipped`, and the run reported `drove 0 task(s)` and exited 0.
+        return {"verdict": "driver refused",
+                "detail": (f"--effort {effort} was given, but {agent['id']} "
+                           f"composes effort into its model id "
+                           f"({effort_template!r}) and no --model was given, so "
+                           f"neither axis can be pinned. Pass --model as well, "
+                           f"or drop --effort and accept the CLI's defaults.")}
     model, effort_pinned = agent_capability.compose_model(agent, model, effort)
     # THE LEVEL THE ID ALREADY CARRIES IS THE LEVEL THAT RAN. A model pinned as
     # `cursor-grok-4.6-high` with no `--effort` recorded "(not pinned)" and left
@@ -588,11 +596,15 @@ def drive(agent, task, prompt_dir, model=None, base=DRIVE_BASE_BUDGET,
         carried = agent_capability.effort_in_model(agent, model)
         if carried:
             effort, effort_pinned = carried, True
-    # THE PIN ITSELF, against the vocabulary the CLI last answered with. Only a
-    # recorded vocabulary can refuse: an agent nobody has probed is not judged.
-    ok, why = agent_capability.validate_pin(agent, model, ROOT)
-    if not ok:
+    # THE PIN ITSELF, against the vocabulary the CLI last answered with. Three
+    # states: only a recorded vocabulary can refuse, and an agent nobody has
+    # probed is UNVALIDATED — said out loud, because "checked and fine" and
+    # "never checked" printed the same nothing until 0.1.640.
+    state, why = agent_capability.validate_pin(agent, model, ROOT)
+    if state == agent_capability.REFUSED:
         return {"verdict": "driver refused", "detail": why}
+    if state == agent_capability.UNVALIDATED:
+        print(f"  note  {why}", flush=True)
     if model:
         argv += ["--model", model]
     # Effort is otherwise passed only through a flag the registry names for this
@@ -891,9 +903,11 @@ def _history_rows() -> tuple[list, str | None]:
     """-> (rows, why they could not be read). Never both empty-and-fine.
 
     The reading moved to `scripts/lib/history.py` at 0.1.636, because this
-    function's discipline was the careful one of four and the other three —
-    including the `record` path in this same file, which WRITES — each had a
-    different one. The seam stays so the tests that patch it still can.
+    function's discipline was the careful one and every other reader of that
+    file had its own — including two more in THIS file, the `validate` command
+    and the `record` path, and `record` WRITES. The seam stays because it is
+    this file's name for the operation, not because anything patches it: a
+    review checked, and nothing does.
     """
     return history.read_rows(ROOT)
 
@@ -1222,7 +1236,11 @@ def _model_cell(rec: dict) -> str | None:
         # CONFIRMED. The ask rides along when it was pinned and worded
         # differently — `Auto` routing to a model is not the same claim as
         # pinning it, and neither is a pin the CLI answered under another name.
-        return f"{ran} (asked {asked})" if pinned and ran != asked else ran
+        # `same_model`, not `!=`: the tokeniser is what knows that
+        # `cursor-grok-4.6-high` and `Cursor Grok 4.6 High` are one
+        # model, and a private comparison here printed them as two.
+        differs = pinned and agent_capability.same_model(asked, ran) is not True
+        return f"{ran} (asked {asked})" if differs else ran
     # NOTHING CONFIRMED IT, and BOTH unconfirmed shapes say so. A pinned model
     # with no answer printed exactly what a confirmed one prints; the first fix
     # repaired that and left the unpinned case returning `(the CLI's default)`
@@ -2225,6 +2243,7 @@ def main(argv):
         # measures the interference.
         out_lock = threading.Lock()
         counts_lock = threading.Lock()
+        crashed: list[str] = []
 
         def say(lines: list[str]) -> None:
             """One agent's lines, printed together. Interleaving them line by
@@ -2315,9 +2334,22 @@ def main(argv):
             say(lines)
 
         def drive_agent(a: dict) -> None:
+            # BaseException ON PURPOSE. A thread that dies takes its message
+            # with it — `threading.excepthook` ignores SystemExit entirely and
+            # prints a traceback for the rest into concurrently interleaved
+            # output — and neither counter moved, so a run where every task
+            # died printed `drove 0 task(s)` and exited 0. An escaped exception
+            # is now a counted crash and a non-zero exit.
             for one_a, t, wd in plan:
                 if one_a is a:
-                    drive_one(a, t, wd)
+                    try:
+                        drive_one(a, t, wd)
+                    except BaseException as exc:            # noqa: BLE001
+                        with counts_lock:
+                            crashed.append(f"{a['id']}/{t['id']}: "
+                                           f"{exc.__class__.__name__}: {exc}")
+                        say([f"  CRASHED {a['id']} on {t['id']}: "
+                             f"{exc.__class__.__name__}: {exc}"])
 
         if args.drive and plan:
             by_agent = list(dict.fromkeys(a["id"] for a, _t, _wd in plan))
@@ -2350,6 +2382,11 @@ def main(argv):
                 print(f"note  results/latest was not repointed ({exc}); the run "
                       f"is at {run_dir}")
         print(f"drove {driven} task(s) into {run_dir}; now `score --run {run_dir}`")
+        if crashed:
+            print(f"CRASHED: {len(crashed)} task(s) died inside the driver — "
+                  f"{'; '.join(crashed[:3])}"
+                  + ("…" if len(crashed) > 3 else ""))
+            return 1
         if not driven and skipped:
             # Agent RESULTS are non-deterministic and must not gate a release.
             # The harness being unable to invoke anything is neither: it is

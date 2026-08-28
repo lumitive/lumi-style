@@ -695,7 +695,7 @@ def test_the_board_prints_the_cli_build():
 
 
 def test_the_newest_release_is_found_by_version_order_not_alphabetically():
-    """`0.1.99` outranks `0.1.100` as a string. `_ver_key` exists for exactly
+    """`0.1.99` outranks `0.1.100` as a string. `versioning.sort_key` exists for exactly
     this and the change that created this call site left it with no callers at
     all, so nothing protected the one place that needed it."""
     rows = [_cell(model="ninety-nine", skill_version="0.1.99",
@@ -817,7 +817,11 @@ def test_a_cell_with_no_read_sorts_last_on_it_rather_than_vanishing():
 
 def test_the_board_prints_a_dash_for_an_unread_configuration():
     text = agent_evals.render([_cell(reader_score=None)], _EVALS)
-    assert "| read |" in text.replace("  ", " ") or "read" in text
+    # THE CELL, not the word. The right disjunct was always true — the next
+    # assertion's own sentence contains "read" — so this proved nothing about
+    # the dash it is named for.
+    row = next(ln for ln in text.splitlines() if ln.startswith("| cursor "))
+    assert "| — |" in row or "| - |" in row
     assert "nobody has read that configuration" in text
 
 

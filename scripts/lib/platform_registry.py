@@ -3,12 +3,12 @@
 
 `adapters/platforms.json` is the single source of install paths, capability
 tiers, entry files and the model-vocabulary probe for every platform this
-package claims. It was PARSED in five: the driver, the agent evaluation, two
-generators and the debug log, each spelling `json.loads(...)["platforms"]` for
-itself, with only one of the five checking that what came back was a non-empty
-list. That one lived inside `check_repo`, which is the wrong direction for a
-shared discipline to travel: the guard had the careful reader and the tools that
-DEPEND on the registry had the careless ones.
+package claims. Every tool that used it parsed it for itself — the driver, the
+agent evaluation, two generators, the debug log — each spelling
+`json.loads(...)["platforms"]`, and not one of them checked that what came back
+was a non-empty list. The only reader that did was inside `check_repo`, which is
+the wrong direction for a shared discipline to travel: the GUARD was careful and
+the five tools that DEPEND on the registry were not.
 
 Not merely a convenience. `run_conformance.load_agents()` was the closest thing
 to a shared reader, and importing it is the coupling the agent-evaluation split
@@ -36,14 +36,12 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 import json  # noqa: E402
 import pathlib  # noqa: E402
 
+import repo_files  # noqa: E402 — one repository root
+
 RELATIVE = "adapters/platforms.json"
 
 
-def _root(root: pathlib.Path | None = None) -> pathlib.Path:
-    if root is not None:
-        return root
-    return next(p for p in pathlib.Path(__file__).resolve().parents
-                if (p / RELATIVE).exists())
+_root = repo_files.repo_root
 
 
 def path(root: pathlib.Path | None = None) -> pathlib.Path:
@@ -58,6 +56,13 @@ def registry_doc(root: pathlib.Path | None = None) -> dict:
     difference every caller here would otherwise get wrong.
     """
     data = json.loads(path(root).read_text(encoding="utf-8"))
+    # THE SHAPE FIRST. `data.get` on a list, a string or `null` raised an
+    # undeclared AttributeError that no caller catches — three failure classes
+    # where the docstring promises two. `history.py` one module over does this
+    # check, and this module was written from it.
+    if not isinstance(data, dict):
+        raise ValueError(f"platforms.json holds a {type(data).__name__}, not a "
+                         f"document with a `platforms` list")
     if not isinstance(data.get("platforms"), list) or not data["platforms"]:
         raise ValueError("platforms.json declares no platforms")
     return data

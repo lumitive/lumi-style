@@ -43,8 +43,6 @@ def _tree(tmp_path):
 def _verdict(tmp_path, monkeypatch, capsys, per_task, attempted=True):
     root = _tree(tmp_path)
     monkeypatch.setattr(run_conformance, "ROOT", root)
-    monkeypatch.setattr(run_conformance, "REGISTRY",
-                        root / "adapters" / "platforms.json")
     monkeypatch.setattr(run_conformance, "TASKS", root / "conformance" / "tasks")
     monkeypatch.setattr(run_conformance, "RESULTS", root / "conformance" / "results")
     run = tmp_path / "run1"

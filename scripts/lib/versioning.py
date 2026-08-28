@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """The package's own version, the release list, and the order they sort in.
 
-WHY THIS MODULE EXISTS. Seven functions read SKILL.md's stamp with five
-different regexes and three different failure behaviours, and they disagreed on
-a real document: given a SKILL.md carrying another `*_version:` key above the
+WHY THIS MODULE EXISTS. Every tool here read SKILL.md's stamp for itself,
+with regexes that disagreed on a real document — how many is deliberately not
+written down, because the first version of this sentence said seven and the
+register found an eighth and a ninth in the same release: given a SKILL.md carrying another `*_version:` key above the
 stamp, the unanchored ones return the NEIGHBOUR's value and the anchored ones
 return the stamp — one file, two answers. Failure diverged too — `SystemExit`,
 the string `"unknown"`, and an uncaught `IndexError` from a `.split()` — and
 `"unknown"` was not inert: it was written into a trace's `skill_version`, which
 is what the ordering functions below then had to compare.
 
-The regex kept here is the strictest of the seven, the only one that cannot
-match a neighbouring key: anchored to the start of a line, and closed by the
-quote.
+The regex kept here is the strictest of them, the only one that cannot match
+a neighbouring key: anchored to the start of a line, and closed by the quote.
 
 THREE QUESTIONS, NOT ONE, and the difference is the point rather than an
 accident of history:
@@ -34,19 +34,31 @@ newest-first, so a positive answer means `older` sits that many releases behind
 returned the signed distance and the other its absolute value — which is a
 difference no caller could have seen from either name.
 """
-import pathlib
-import re
+from __future__ import annotations
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import pathlib  # noqa: E402
+import re  # noqa: E402
+
+import repo_files  # noqa: E402 — one repository root
 
 SKILL_STAMP = re.compile(r'^\s*version:\s*"(\d+\.\d+\.\d+)"', re.M)
 RELEASE_HEADING = re.compile(r"^##\s+(\d+\.\d+\.\d+)", re.M)
 RELEASE_HEADING_FULL = re.compile(r"^##\s+(\d+\.\d+\.\d+) — (.+)$", re.M)
 
 
-def _root(root: pathlib.Path | None = None) -> pathlib.Path:
-    if root is not None:
-        return root
-    return next(p for p in pathlib.Path(__file__).resolve().parents
-                if (p / "SKILL.md").exists())
+_root = repo_files.repo_root
 
 
 def skill_version_in(text: str) -> str | None:
@@ -74,13 +86,23 @@ def skill_version(root: pathlib.Path | None = None) -> str:
 
 
 def ver_key(version: str) -> tuple[int, ...]:
-    """-> a sortable version. Raises ValueError on anything else.
+    """-> a sortable version. Raises ValueError on anything that is not one.
 
     The strict one. `max()` over version STRINGS is lexicographic, so `0.1.99`
     outranks `0.1.100`; every comparison of two versions goes through here or
     through `sort_key`.
+
+    STRICT MEANS STRICT, since 0.1.640. `int()` alone accepted `"0.1"` (two
+    parts — and `(0, 1) >= (0, 1, 449)` is False, so a truncated stamp would
+    have been EXEMPTED from every gate by the one function written to refuse
+    that), `" 0.1.5\n"`, `"0_1.2.3"` — PEP 515 underscores — and full-width
+    digits. `gate_registry.held` catches this error and answers *held*, so
+    every string this does not refuse is a document that escapes a rule.
     """
-    return tuple(int(p) for p in version.split("."))
+    parts = version.split(".") if isinstance(version, str) else []
+    if len(parts) != 3 or not all(p.isascii() and p.isdigit() for p in parts):
+        raise ValueError(f"{version!r} is not a version")
+    return tuple(int(p) for p in parts)
 
 
 def sort_key(version: str | None) -> tuple[int, ...]:
@@ -91,7 +113,7 @@ def sort_key(version: str | None) -> tuple[int, ...]:
     error and refuses the exemption.
     """
     try:
-        return ver_key(version or "")
+        return ver_key(version if isinstance(version, str) else "")
     except ValueError:
         return ()
 

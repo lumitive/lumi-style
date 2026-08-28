@@ -458,7 +458,7 @@ def check_trace_schema():
     # honours `LUMI_TRACES`, and `tests/conftest.py` points that at an empty
     # scratch directory for the whole suite. A review asked for the call and it
     # was measured before being declined — the live-repo test would have walked
-    # 0 files instead of the 255 this checkout tracks, and reported clean. The
+    # 0 files instead of the store this checkout tracks, and reported clean. The
     # guard asks whether THIS REPOSITORY's committed traces validate, so it reads
     # the committed path. `tests/test_trace_field_partition.py` pins that.
     traces = ROOT / "evals" / "traces"
@@ -2527,10 +2527,13 @@ def check_platform_manifest():
                 )
         # THE SECOND AXIS, required of the agents this harness can DRIVE. Effort
         # is not a universal five-value tuple: Hermes accepts eight, Gemini has
-        # no such concept, and Cursor spells the level inside the model id — all
-        # three written down in the adapter notes since 0.1.543, in prose no code
-        # read, while `trace_schema.ENUMS["effort"]` (Claude Code's vocabulary,
-        # and correct for Claude Code) was applied to every platform. Scoped to
+        # no such concept, and Cursor spells the level inside the model id.
+        # Cursor's has been in its note since 0.1.543 and Hermes' since 0.1.557,
+        # in prose no code read; Gemini's was in no note at all until the
+        # `efforts_waiver` written here, which is the worse of the two states
+        # and the one an earlier version of this comment folded into the other.
+        # Meanwhile `trace_schema.ENUMS["effort"]` — Claude Code's vocabulary,
+        # and correct for Claude Code — was applied to every platform. Scoped to
         # `drive` because a platform this harness cannot drive has no effort to
         # pass; absence there is a consequence of a fact the record already
         # states rather than an exemption.
@@ -2907,11 +2910,16 @@ def check_one_home():
     third guard, which is the fault this repository keeps paying for, one layer
     up. Adding a fact is now a JSON entry.
 
-    Three answers, not two (FM-24). A register that cannot be read, an owner
-    that is not there, a `def` name the owner does not define, a pattern its own
-    `selftest` no longer matches, and a waiver nothing needed are all findings —
-    every one of them is a way for this guard to print a clean tree's output
-    while looking at nothing.
+    Three answers, not two (FM-24), and the list below was SHORT until 0.1.640.
+    Every one of these is a way for the guard to print a clean tree's output
+    while looking at nothing, so every one is a finding: a register that cannot
+    be read, one that declares no facts, an owner that is not there, a `def`
+    name the owner does not define, a pattern its own `selftest` no longer
+    matches, a waiver nothing needed — and the three a review found missing: a
+    FACT that declares nothing to look for, a key the schema does not define
+    (one `def` for `defs` disarmed an entry in silence), and a SCAN that visited
+    no files at all. The first six are the register going blind; the last is the
+    guard going blind, which is a different question and was not asked.
     """
     errors = []
     try:
@@ -2926,17 +2934,35 @@ def check_one_home():
         return ["evals/single-source.json declares no facts — an empty register "
                 "makes this guard pass every tree there is"]
 
-    owners = {}          # def name -> (fact id, owner path)
+    owners: dict[str, tuple[str, str]] = {}   # def name -> (fact id, owner)
     patterns = []        # (compiled, fact id, owner path, what)
-    owner_files = set()
+    # THE KEYS THE SCHEMA DEFINES. A misspelling is the likeliest editing
+    # mistake on a register whose whole promise is "adding a fact is one
+    # entry", and `"def"` for `"defs"` produced an entry that guarded nothing
+    # and reported nothing.
+    known_keys = {"id", "fact", "owner", "defs", "retired_defs", "patterns",
+                  "why", "note"}
     for fact in facts:
         fid, owner = fact.get("id", "?"), fact.get("owner", "")
+        stray = sorted(set(fact) - known_keys)
+        if stray:
+            errors.append(f"single-source `{fid}` carries {stray}, which the "
+                          f"schema does not define — a misspelt key is an entry "
+                          f"that guards nothing and says nothing")
+        # AN ENTRY WITH NOTHING TO LOOK FOR. Nine facts stripped of their defs
+        # and patterns left this guard returning exactly what it returns on a
+        # clean tree, which is the register's own `selftest` argument one level
+        # up: a rule that has quietly stopped naming anything is invisible.
+        if not (fact.get("defs") or fact.get("retired_defs")
+                or fact.get("patterns")):
+            errors.append(f"single-source `{fid}` declares no defs, "
+                          f"retired_defs or patterns — an entry with nothing to "
+                          f"look for guards nothing, and reads as coverage")
         if not (ROOT / owner).is_file():
             errors.append(f"single-source `{fid}` names owner {owner!r}, which "
                           f"is not a file — an owner nobody can find guards "
                           f"nothing")
             continue
-        owner_files.add(owner)
         owner_text = (ROOT / owner).read_text(encoding="utf-8")
         for name in fact.get("defs", []):
             if not re.search(rf"^\s*def {re.escape(name)}\(", owner_text, re.M):
@@ -2944,6 +2970,11 @@ def check_one_home():
                               f"{owner} does not define — the fact moved or "
                               f"was renamed, and the entry now guards a name "
                               f"nothing owns")
+                continue
+            if name in owners:
+                errors.append(f"single-source `{fid}` and `{owners[name][0]}` "
+                              f"both own {name}() — one name, two homes, and "
+                              f"the scan below would name the wrong owner")
                 continue
             owners[name] = (fid, owner)
         for name in fact.get("retired_defs", []):
@@ -2953,6 +2984,10 @@ def check_one_home():
                 errors.append(f"single-source `{fid}` retires {name}(), which "
                               f"{owner} defines — a retired name the owner uses "
                               f"is not retired")
+                continue
+            if name in owners:
+                errors.append(f"single-source `{fid}` and `{owners[name][0]}` "
+                              f"both own {name}()")
                 continue
             owners[name] = (fid, owner)
         for pat in fact.get("patterns", []):
@@ -2982,8 +3017,10 @@ def check_one_home():
                           f"file")
     used = set()
 
+    scanned = 0
     for path in sorted(p for p in (ROOT / "scripts").rglob("*.py")
                        if "__pycache__" not in p.parts):
+        scanned += 1
         name_of = rel(path)
         text = path.read_text(encoding="utf-8")
         for name, (fid, owner) in owners.items():
@@ -3008,6 +3045,14 @@ def check_one_home():
                 errors.append(f"{name_of}:{line}: {what} — the shared "
                               f"implementation is {owner}")
 
+    # THE SCAN ITSELF, asked the question the six checks above ask of the
+    # register. A tree whose `scripts/` holds nothing but the owners produced
+    # `[]` — byte-identical to a clean repository — and no test could reach the
+    # state, because every fixture wrote a consumer file.
+    if scanned <= len({o for _f, o in owners.values()}):
+        errors.append(f"single-source scanned {scanned} file(s) under scripts/, "
+                      f"which is no more than the owners themselves — a scan "
+                      f"with nothing to look at is not a scan that passed")
     for key in waivers:
         if key not in used:
             errors.append(f"single-source waiver for {key[0]} / `{key[1]}` "
@@ -4810,13 +4855,16 @@ def _tracked_stems(reldir, suffix=".svg"):
     """
     if not (ROOT / ".git").exists():
         return None
-    # The two conditions deliberately share ONE answer here, unlike everywhere
-    # else in this file: the caller's question is only "can I ask git at all",
-    # and a checkout with no index and a git that will not answer are the same
-    # answer to it.
-    names, problem = repo_files.tracked_files(f"{reldir}/*{suffix}", root=ROOT)
+    names, problem = repo_files.tracked_files(f"{reldir}/*{suffix}", root=ROOT,
+                                              what="shape-library listing")
     if problem:
-        return None
+        # NOT `None`. `None` means "no index to ask", and the caller answers it
+        # by globbing the filesystem — the method whose own comment records
+        # finding 206 files that `.gitignore` excluded from every clone. A git
+        # that FAILS inside a checkout must not buy that fallback, and an
+        # earlier version of this comment argued that the two questions were
+        # one. They are not: one is a tarball, the other is a broken tool.
+        raise RuntimeError(problem)
     return {pathlib.PurePosixPath(f).stem for f in names}
 
 

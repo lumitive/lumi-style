@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """`conformance/history.json`, read in one place, with one discipline.
 
-WHY THIS EXISTS. Four readers, four answers to the same damaged file. One
-checked absence, parse failure and shape and named which had happened; one
-raised whatever `json` raised; one caught `JSONDecodeError` but not `OSError`
-and never asked whether the result was a list; and the `record` path — the one
-that WRITES — caught nothing at all, so a history damaged by a merge would have
-taken the run's own results down with it after the run had been paid for.
+WHY THIS EXISTS. Every reader of this file answered a damaged one
+differently. One checked absence, parse failure and shape and named which had
+happened; one raised whatever `json` raised; one caught `JSONDecodeError` but
+not `OSError` and never asked whether the result was a list; one — the
+`validate` command, in the same file as two of the others — checked the shape
+and not the OS; and the `record` path, the one that WRITES, caught nothing at
+all, so a history damaged by a merge would have taken the run's own results down
+with it after the run had been paid for.
 
 `json.JSONDecodeError` subclasses `ValueError`, so a single `except ValueError`
 around a parse turned "this file is a merge conflict" into "nothing is wrong".
@@ -36,14 +38,12 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 import json  # noqa: E402
 import pathlib  # noqa: E402
 
+import repo_files  # noqa: E402 — one repository root
+
 RELATIVE = "conformance/history.json"
 
 
-def _root(root: pathlib.Path | None = None) -> pathlib.Path:
-    if root is not None:
-        return root
-    return next(p for p in pathlib.Path(__file__).resolve().parents
-                if (p / "SKILL.md").exists())
+_root = repo_files.repo_root
 
 
 def path(root: pathlib.Path | None = None) -> pathlib.Path:

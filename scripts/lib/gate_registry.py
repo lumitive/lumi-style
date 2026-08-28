@@ -114,5 +114,5 @@ def held(name: str, built: str | None, root: pathlib.Path | None = None) -> bool
         return True
     try:
         return versioning.ver_key(built) >= versioning.ver_key(since)
-    except (TypeError, ValueError):
+    except ValueError:
         return True                       # unparseable stamp is not an exemption

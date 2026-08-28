@@ -1,0 +1,15 @@
+{
+ "version": "0.1.640",
+ "diff_base": "0b4bb58097d2aabc73eb38474c19af28483c8686",
+ "spec": "specs/2026-08-28-one-home-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "Carried from 0.1.639 and for the same reason: the board's newest run is 0.1.623 and the freshness window closed there, not at anything this release changed. UNCONFIRMED: no agent has been measured against the rule surface since 0.1.623. This release changes only development-side code — guards, shared readers, the driver's own accounting and prose — and no rule a deliverable or an agent is measured against. Closing it means driving at least two agents over every task with the local installs updated first; GAP-041 holds that round and it is the owner's decision to spend."
+  }
+ ]
+}

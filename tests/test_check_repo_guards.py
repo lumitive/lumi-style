@@ -3,7 +3,7 @@
 How many is whatever this file covers today, never a number written here — a
 count in a docstring is the drift this repository has fixed twenty-six times.
 
-Same discipline as test_no_shadow_math.py: a guard tested only against the
+Same discipline as test_one_home.py: a guard tested only against the
 live repo cannot demonstrate that a rewritten `return []` would be noticed,
 and this repo has shipped exactly that defect (CHANGELOG 0.1.390). Every
 guard here gets a passing tree and at least one failing tree per mode.
