@@ -34,6 +34,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 
+import agent_cell  # noqa: E402 — the one cell constructor
 import check_privacy  # noqa: E402 — the OR-8 terms reader, shared
 import color_math  # noqa: E402 — after the bootstrap, deliberately
 import deliverable_registry  # noqa: E402 — the storyline vocabulary, for prompt parity
@@ -3069,6 +3070,59 @@ def check_one_home():
     return errors
 
 
+def check_cell_axes():
+    """The unit of measurement is declared once and computed from that.
+
+    `conformance/agent-evals.json` has declared `"cell": ["agent", "model",
+    "effort"]` since the register was written, with a note saying an agent id
+    alone is not a configuration — and no code read it. The unit was computed
+    four times instead, in three shapes: a 5-tuple in `agent_evals.cells()`, the
+    3-tuple in its `plan`, and a 2-tuple with the agent dropped in
+    `agent_runs.matrix()`. 0.1.643 gave it one constructor; this guard is what
+    keeps the declaration and the constructor the same statement.
+
+    THE AXES ARE PRODUCER FACTS. `trace_schema.PRODUCER_FIELDS` partitions a
+    trace into what the producer did and what the document is, and a cell axis
+    has to come from the first half — otherwise the day someone wants to slice
+    by `content_pages` the key silently becomes a property of the artifact
+    rather than of who made it.
+
+    Three answers, not two (FM-24): a register that declares NO cell fails
+    rather than skipping, because a parity check with nothing on one side prints
+    exactly what a clean tree prints.
+    """
+    errors = []
+    try:
+        register = json.loads((ROOT / "conformance" / "agent-evals.json")
+                              .read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"conformance/agent-evals.json could not be read ({exc}) — the "
+                f"declaration is one side of this parity check"]
+    declared = register.get("cell")
+    if not isinstance(declared, list) or not declared:
+        return ["conformance/agent-evals.json declares no `cell` axes — a "
+                "parity check with nothing on one side passes every tree "
+                "there is"]
+    if declared != list(agent_cell.AXES):
+        errors.append(
+            f"conformance/agent-evals.json declares cell axes {declared} and "
+            f"scripts/lib/agent_cell.py has {list(agent_cell.AXES)} — the "
+            f"register and the constructor are one statement")
+    producer = trace_schema.PRODUCER_FIELDS
+    for axis in agent_cell.AXES:
+        if axis not in producer:
+            errors.append(
+                f"cell axis {axis!r} is not in trace_schema.PRODUCER_FIELDS — a "
+                f"cell says who made the artifact, never what the artifact is")
+    # INTENT, NEVER OBSERVATION. `model_ran` is what a CLI said it used, and
+    # folding it into the key is the defect 0.1.614, 0.1.623 and 0.1.625 each
+    # paid for; `agent_capability.py`'s docstring is the record.
+    if "model_ran" in agent_cell.AXES:
+        errors.append("`model_ran` is an observation, not an ask; a cell is "
+                      "what was asked for")
+    return errors
+
+
 def check_ledgers():
     """The three ledgers stay parseable, closed entries stay honest, and no
     citation dangles.
@@ -3416,7 +3470,7 @@ SIBLING_MODULES = (
     "checker_report", "secret_patterns", "corpus", "gating",
     "gate_registry", "stamps", "trace_store", "shipped",
     "state_dir", "agent_runs", "versioning", "platform_registry",
-    "history", "agent_capability", "repo_files",
+    "history", "agent_capability", "repo_files", "agent_cell",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
@@ -5069,6 +5123,7 @@ CHECKS = (
     ("review scores", check_review_scores),
     ("source-marker parity", check_source_marker_parity),
     ("brand lock", check_brand_lock),
+    ("cell axes", check_cell_axes),
     ("one home", check_one_home),
     ("secret patterns parity", check_secret_patterns_parity),
     ("rubric unbuilt claims", check_rubric_unbuilt_claims),

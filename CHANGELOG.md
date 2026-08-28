@@ -1,3 +1,69 @@
+## 0.1.643 — the register declared the unit of measurement and no code read it
+
+The owner said the conformance tool's parameters are accreted rather than
+designed, and that the accretion is why iteration and testing keep getting more
+expensive. The diagnosis is one layer under the parameters: **the domain unit is
+wrong at one end of the pipeline.** The board's unit is a CELL — `agent × model
+× effort` — and the driver's unit is the AGENT, with model and effort as two
+scalars hung on it. Every symptom she named grows from that.
+
+**The cell was implemented four times and shared zero times.**
+`conformance/agent-evals.json` has declared `"cell": ["agent", "model",
+"effort"]` since the register was written, with a note saying an agent id alone
+is not a configuration — and **no code read that declaration.** The unit was
+computed instead as a 5-tuple in `agent_evals.cells()`, projected back to the
+declared three two hundred lines below, and built as two members with the agent
+dropped in `agent_runs.matrix()`. No shared constructor, no shared type. That is
+the defect `evals/single-source.json` refuses one layer down: the register
+catches a duplicated IMPLEMENTATION, and nothing caught a duplicated CONCEPT.
+
+**`scripts/lib/agent_cell.py` is the one constructor, and it owns intent only.**
+`agent_capability.py`'s docstring records that merging capability, intent and
+observation is the defect 0.1.614, 0.1.623 and 0.1.625 each paid for. A cell is
+what was ASKED for; `model_ran` and `offered()` never enter it, and
+`cell_of_config` reads `model_asked` rather than `model` — the rule 0.1.623
+established, now living in one place instead of being remembered at each join.
+
+**The ruler is beside the cell, never inside it.** 0.1.626 added
+`skill_version` and `cli_version` to the grouping because pooling releases
+misattributed a headline number by 12.8% — cursor at `cursor-grok-4.6-high` read
+6,290 tokens per page pooled across 0.1.542–0.1.623 and 7,093 under 0.1.623
+alone. That measurement is now `Ruler`'s reason for existing rather than a
+comment on one function, and the invariant it implies is stated: **anything
+computing a median groups on `Measured`; nothing groups on `Cell`.** A cell is
+what you ask for; a measured cell is what you may pool. The two shapes that
+disagreed were disagreeing about exactly this — one folded the ruler in, the
+other dropped half the cell.
+
+**The declaration is a contract now.** `check_cell_axes` holds
+`agent-evals.json`'s `cell` key to the constructor's `AXES`, requires every axis
+to be a member of `trace_schema.PRODUCER_FIELDS` — a cell says who made the
+artifact, never what the artifact is — and refuses `model_ran` as an axis.
+Deliberate red, five runs: an axis dropped from the register, a register that
+declares no cell, a register that does not parse, a document fact used as an
+axis, and observation folded into the key. The third answer is the one the
+guard's own docstring argues for: a register with nothing on one side FAILS
+rather than skipping, because a parity check with nothing to compare prints
+exactly what a clean tree prints.
+
+**The type carries no path, and a guard caught that it nearly did.** The first
+version read the register itself and `check_repo`'s `cross-boundary paths` guard
+refused it in the same minute: `agent_cell.py` reaches the consumer projection
+and `conformance/` does not, so the reference would have resolved in one tree
+and dangled in the other. Reading the register is the guard's job; the type is
+pure.
+
+**The boards did not move, and that is asserted rather than hoped.** The pooled
+keys and the model × effort matrix were captured from the real trace store
+before the change and compared after — 34 keys and 10 cells, identical. The test
+recomputes the old grouping by hand beside the new one so the comparison ships
+rather than living in a session.
+
+This is the first of the stages in `specs/2026-08-28-conformance-cell-design.md`
+and deliberately touches no CLI: the flags, the subcommands and the output
+layout are unchanged. What it buys on its own is that the unit of measurement
+has one definition, and the file that declares it is finally read.
+
 ## 0.1.642 — the round that verified the vocabulary, and the price it wrote beside a real deck
 
 The owner published 0.1.641, updated the installs, and asked for a conformance

@@ -58,6 +58,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import agent_capability  # noqa: E402
+import agent_cell  # noqa: E402
 import agent_runs  # noqa: E402
 import history  # noqa: E402
 import platform_registry  # noqa: E402
@@ -210,13 +211,16 @@ def _sibling_trace(row: dict, task_id: str) -> str | None:
     """
     config = row.get("config") or {}
     joins = row.get("traces") or {}
-    mine = config.get(task_id) or {}
-    pins = (mine.get("model_asked"), mine.get("effort"))
-    if not all(pins):
+    # THE CELL, not a hand-built pin pair (0.1.643). `cell_of_config` reads
+    # `model_asked` rather than `model` for the reason stated above, and it is
+    # now the only place that rule lives; a task with nothing pinned yields
+    # None here and matches nothing, which is what the pair did by `all(pins)`.
+    agent_id = row.get("agent") or "?"
+    mine = agent_cell.cell_of_config(agent_id, config.get(task_id))
+    if mine is None:
         return None
     for other, tid in joins.items():
-        theirs = config.get(other) or {}
-        if (theirs.get("model_asked"), theirs.get("effort")) == pins:
+        if agent_cell.cell_of_config(agent_id, config.get(other)) == mine:
             return tid
     return None
 
@@ -328,14 +332,20 @@ def cells(traces, history) -> list[dict]:
         row = admitted.get(t.get("trace_id"))
         if row is None or not t.get("agent"):
             continue
-        # STRIPPED, and an empty string is an absence. `close --cli-version ""`
-        # stores `""`, the schema type-checks the field and nothing else, and
-        # `render` prints both `""` and `None` as a dash — so one configuration
-        # rendered as two identical-looking rows with two medians. Operator
-        # reachable only; the harness's own guards cannot produce it.
-        cli = (t.get("cli_version") or "").strip() or None
-        by_key[(t["agent"], t.get("model"), t.get("effort"),
-                t.get("skill_version"), cli)].append((t, row))
+        # THE POOLED KEY IS A TYPE NOW (0.1.643). The 5-tuple was built here by
+        # hand, projected back to three members two hundred lines down, and
+        # built as two members with the agent dropped in `agent_runs.matrix` —
+        # one concept, three shapes, no shared constructor. `Measured` carries
+        # the cell and the ruler as separate values and hands back this exact
+        # tuple, in this order; the normalization that used to live in the
+        # comment below now lives in the constructor, for every reader.
+        #
+        # (What the comment said, kept because it is the reason: `close
+        # --cli-version ""` stores `""`, the schema type-checks the field and
+        # nothing else, and `render` prints `""` and `None` alike as a dash — so
+        # one configuration rendered as two identical-looking rows with two
+        # medians.)
+        by_key[agent_cell.measured_of_trace(t).pooled_key()].append((t, row))
 
     scored = earned(history)
     read = reader_scores(traces)
@@ -706,7 +716,8 @@ def main(argv=None) -> int:
         return 0 if state == MEASURED else 1
 
     # plan
-    measured = {(r["agent"], r["model"], r["effort"]) for r in rows}
+    measured = {agent_cell.cell(r["agent"], r["model"], r["effort"]).key()
+                for r in rows}
     print(f"{len(measured)} measured cell(s) across "
           f"{len({r['agent'] for r in rows})} agent(s).\n")
     for a in registry:

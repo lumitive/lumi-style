@@ -243,6 +243,9 @@ def test_the_live_register_still_declares_what_the_consolidation_moved():
         "asking-git": (
             ["run_git", "tracked_files", "untracked_files", "ignored_files"], 1),
         "repository-root": (["repo_root"], 0),
+        "agent-cell": (
+            ["cell", "cell_of_trace", "cell_of_config", "ruler_of_trace",
+             "measured_of_trace"], 1),
     }
     assert set(facts) == set(expected), "a fact was added or removed"
     for fid, (defs, patterns) in expected.items():
