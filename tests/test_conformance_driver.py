@@ -16,7 +16,6 @@ import pathlib
 import sys
 import time
 
-import pytest
 import run_conformance as rc
 
 TASK = {"id": "T-test", "prompt": "write the file", "deliverable": "*.md"}
@@ -455,7 +454,7 @@ def test_a_run_where_every_task_was_refused_does_not_report_success(
     monkeypatch.setattr(rc, "load_tasks", lambda: tasks)
     monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
     monkeypatch.setattr(rc, "environment_check", lambda a: [])
-    code = rc.main(["run", "--drive", "--effort", "high",
+    code = rc.main(["run", "--drive", "--cell", "@high",
                     "--run", str(tmp_path / "run")])
     out = capsys.readouterr().out
     assert "driver refused" in out and "NOTHING RAN" in out
@@ -747,7 +746,7 @@ def test_the_top_efforts_are_expressible():
     for level in ("xhigh", "max"):
         buf = io.StringIO()
         with contextlib.suppress(SystemExit), contextlib.redirect_stderr(buf):
-            rc.main(["run", "--effort", level, "--agent", "no-such-agent"])
+            rc.main(["run", "--cell", f"@{level}", "--agent", "no-such-agent"])
         assert "invalid choice" not in buf.getvalue(), level
 
 
@@ -1044,7 +1043,7 @@ def test_each_agent_can_be_pinned_to_its_own_model(tmp_path, monkeypatch, capsys
     monkeypatch.setattr(rc, "_conformance_trace", lambda *a, **k: "")
 
     rc.main(["run", "--drive", "--run", str(run_dir),
-             "--model", "house-default", "--model", "a1=its-own"])
+             "--cell", "house-default", "--cell", "a1=its-own"])
     want = {"a0": "house-default", "a1": "its-own", "a2": "house-default"}
     for agent, model in want.items():
         record = json.loads((run_dir / agent / "T3-recall" / "driver.json")
@@ -1053,28 +1052,33 @@ def test_each_agent_can_be_pinned_to_its_own_model(tmp_path, monkeypatch, capsys
 
 
 def test_a_pin_for_an_agent_that_does_not_exist_stops_the_run(tmp_path,
-                                                              monkeypatch):
+                                                              monkeypatch,
+                                                              capsys):
     agents = [{"id": "a0", "name": "A0", "capability": "full",
                "drive": ["/bin/true"], "probe": ["true"]}]
     monkeypatch.setattr(rc, "load_agents", lambda: agents)
     monkeypatch.setattr(rc, "load_tasks", lambda: [])
     monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
-    with pytest.raises(SystemExit) as exc:
-        rc.main(["run", "--drive", "--run", str(tmp_path / "r"),
-                 "--model", "typo=opus"])
-    assert "no platform in the registry" in str(exc.value)
+    # A RETURN, NOT AN EXIT, since 0.1.644: the parse lives in `agent_cell`,
+    # which raises rather than exiting — a library that exits cannot be unit
+    # tested, and the CLI decides what to print.
+    code = rc.main(["run", "--drive", "--run", str(tmp_path / "r"),
+                    "--cell", "typo=opus"])
+    assert code == 1
+    assert "no platform in the registry" in capsys.readouterr().out
 
 
-def test_an_effort_level_that_is_not_a_level_stops_the_run(tmp_path, monkeypatch):
+def test_an_effort_level_that_is_not_a_level_stops_the_run(tmp_path, monkeypatch,
+                                                           capsys):
     agents = [{"id": "a0", "name": "A0", "capability": "full",
                "drive": ["/bin/true"], "probe": ["true"]}]
     monkeypatch.setattr(rc, "load_agents", lambda: agents)
     monkeypatch.setattr(rc, "load_tasks", lambda: [])
     monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
-    with pytest.raises(SystemExit) as exc:
-        rc.main(["run", "--drive", "--run", str(tmp_path / "r"),
-                 "--effort", "a0=enormous"])
-    assert "not one of" in str(exc.value)
+    code = rc.main(["run", "--drive", "--run", str(tmp_path / "r"),
+                    "--cell", "a0=enormous@enormous"])
+    assert code == 1
+    assert "not one of" in capsys.readouterr().out
 
 
 def test_the_effort_vocabulary_has_exactly_one_definition():

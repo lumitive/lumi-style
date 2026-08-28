@@ -121,3 +121,50 @@ def test_the_live_store_pools_exactly_as_it_did_before():
     by_type = {agent_cell.measured_of_trace(t).pooled_key() for t in traces
                if admitted.get(t.get("trace_id")) is not None and t.get("agent")}
     assert by_type == by_hand
+
+
+# 0.1.644 — the CLI spelling of a cell. It replaced two flags whose values had
+# to agree by convention, and which could not express one agent at two levels.
+
+@pytest.mark.parametrize("text,want", [
+    ("opus@high",                    (None, "opus", "high")),
+    ("cursor=cursor-grok-4.6@high",  ("cursor", "cursor-grok-4.6", "high")),
+    ("@high",                        (None, None, "high")),
+    ("claude-code=opus",             ("claude-code", "opus", None)),
+    ("  opus@high  ",                (None, "opus", "high")),
+    ("a=b@c@high",                   ("a", "b@c", "high")),
+])
+def test_the_cell_spelling(text, want):
+    known = {"cursor", "claude-code", "a"}
+    assert agent_cell.parse_pin(text, known, ("low", "high")) == want
+
+
+@pytest.mark.parametrize("text,says", [
+    ("",                 "pins nothing"),
+    ("   ",              "pins nothing"),
+    ("typo=opus",        "no platform in the registry"),
+    ("opus@enormous",    "not one of"),
+    ("high",             "did you mean `@high`"),
+    ("=",                "neither a model nor a level"),
+])
+def test_a_cell_that_cannot_be_built_says_why(text, says):
+    with pytest.raises(agent_cell.CellError) as exc:
+        agent_cell.parse_pin(text, {"cursor", "a"}, ("low", "high"))
+    assert says in str(exc.value)
+
+
+def test_one_agent_at_two_levels_is_two_pins_not_the_last_one():
+    """The defect the flag replaced: `--effort cursor=low --effort cursor=high`
+    kept `high` and said nothing, so one agent could never be asked for two."""
+    known = {"cursor"}
+    pins = [agent_cell.parse_pin(t, known, ("low", "high"))
+            for t in ("cursor=m@low", "cursor=m@high")]
+    assert len(set(pins)) == 2
+
+
+def test_the_level_vocabulary_is_the_callers(tmp_path):
+    """`allowed_efforts` is passed in, because what a TRACE can record is a
+    smaller question than what a CLI accepts — Hermes takes eight levels."""
+    assert agent_cell.parse_pin("m@ultra", {"a"}, ())[2] == "ultra"
+    with pytest.raises(agent_cell.CellError):
+        agent_cell.parse_pin("m@ultra", {"a"}, ("low", "high"))

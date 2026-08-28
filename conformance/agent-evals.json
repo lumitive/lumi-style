@@ -80,7 +80,7 @@
     "the `models` argv in adapters/platforms.json"
    ],
    "note": "One of the twelve platforms can answer read-only, so this can only ever fire for it. The other eleven carry a models_waiver and the board says so rather than implying their vocabulary is stable.",
-   "computed_by": "`run_conformance.py detect --models --record` writes conformance/vocabularies.json and prints what changed against the previous set; `agent_evals.py plan` reports any model this board has MEASURED that the CLI no longer offers. GAP-042, which named this entry as describing a comparison nothing could make, is closed by 0.1.633."
+   "computed_by": "`run_conformance.py detect --ask-models --record` writes conformance/vocabularies.json and prints what changed against the previous set; `agent_evals.py plan` reports any model this board has MEASURED that the CLI no longer offers. GAP-042, which named this entry as describing a comparison nothing could make, is closed by 0.1.633."
   },
   {
    "id": "operator-asked",

@@ -183,3 +183,55 @@ def ruler_of_trace(trace: dict) -> Ruler:
 def measured_of_trace(trace: dict) -> Measured:
     """-> the cell and the ruler a trace records, as one value."""
     return Measured(cell_of_trace(trace), ruler_of_trace(trace))
+
+def parse_pin(text: str, known_agents: frozenset | set,
+              allowed_efforts: tuple = ()) -> tuple[str | None, str | None, str | None]:
+    """-> (agent | None, model | None, effort | None) from `[AGENT=]MODEL[@EFFORT]`.
+
+    THE ONE SPELLING OF A CELL ON A COMMAND LINE. It replaces two flags whose
+    values had to agree by convention: `--model cursor=X --effort cursor=high`
+    said one thing in two places, and `--effort cursor=low --effort cursor=high`
+    silently kept the last, so one agent could never be asked for two levels.
+
+    `agent=` is optional and sets one agent's pin; without it the pin is the
+    default for every agent, which is what a horse race between three CLIs with
+    three different model ids needs.
+
+    `@` separates the level and is safe: no model id in any recorded vocabulary
+    contains one. The LAST `@` splits, so a model id that somehow carried one
+    keeps it. `@high` alone pins the level and leaves the model to each CLI;
+    `agent=model` leaves the level to it.
+
+    `allowed_efforts` is the caller's, not this module's, and the distinction is
+    the one `run_conformance` states at the flag: the tuple a caller passes is
+    what a TRACE can record, which is a smaller question than what a CLI
+    accepts. Empty means "do not check here".
+    """
+    raw = str(text or "").strip()
+    if not raw:
+        raise CellError("an empty --cell pins nothing")
+    agent, sep, rest = raw.partition("=")
+    if not sep:
+        agent, rest = "", raw
+    agent = agent.strip()
+    if agent and agent not in known_agents:
+        raise CellError(f"--cell {text!r}: no platform in the registry with id "
+                        f"{agent!r}")
+    model, at, effort = rest.rpartition("@")
+    if not at:
+        model, effort = rest, ""
+    model, effort = model.strip(), effort.strip()
+    if not model and not effort:
+        raise CellError(f"--cell {text!r} names neither a model nor a level")
+    if effort and allowed_efforts and effort not in allowed_efforts:
+        raise CellError(
+            f"--cell {text!r}: {effort!r} is not one of "
+            + "|".join(allowed_efforts)
+            + " — the levels a trace can record, which is a smaller question "
+              "than what a CLI accepts")
+    # A LEVEL WHERE A MODEL SHOULD BE is what an operator types on the first
+    # try; say the fix rather than pinning a model called `high`.
+    if model and not effort and allowed_efforts and model in allowed_efforts:
+        raise CellError(f"--cell {text!r} pins a model named {model!r}; did you "
+                        f"mean `@{model}`?")
+    return (agent or None, model or None, effort or None)

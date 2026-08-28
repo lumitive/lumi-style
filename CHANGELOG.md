@@ -1,3 +1,71 @@
+## 0.1.644 — ten of twelve flags belonged to one command, and the parser did not know it
+
+The owner could not see a design logic across the parameter set, and could not
+see which flag belonged to which subcommand. Both are facts about the data
+rather than matters of taste: **ten of the twelve flags are read by exactly one
+command**, and the parser was flat, so every verb accepted every flag.
+
+**The two that were not read by one command are the two that misled.**
+`--model` and `--effort` were parsed before the dispatch, so `score --effort
+high` was validated and then silently discarded while `score --effort banana`
+exited 1 — a CLI refusing a value it will not use. Under subparsers a flag on
+the wrong verb is an argparse error, and the relationship the owner could not
+read is now structural instead of documented.
+
+**The naming rule, stated in the module rather than implied:** a verb takes the
+nouns it acts on and nothing else. Selection is `--run --agent --task --cell
+--version`; action is `--drive --record --redraw --ask-models`; limit is
+`--budget`. `run` takes cells and a budget because it spends; `score` and
+`report` take run directories because they read what was spent; `detect` takes
+agents because it asks machines; `validate` and `restamp` take the repository.
+
+**`--model` and `--effort` become `--cell [AGENT=]MODEL[@EFFORT]`.** They were
+two flags whose values had to agree by convention, and for a platform that
+spells the level inside its model id they were never two things at all —
+`drive_effort_in_model` composes `cursor-grok-4.6-high` from both halves. Two
+flags also made one agent at two levels inexpressible: `--effort cursor=low
+--effort cursor=high` kept the last, silently, which is why four hand-named run
+directories exist for what should be one invocation. `@` is safe: no id in any
+recorded vocabulary contains one. The parse lives in `agent_cell.parse_pin` and
+RAISES rather than exiting, because a library that exits cannot be unit tested —
+so the six refusals it can produce are a table-driven test rather than six
+`pytest.raises(SystemExit)`.
+
+One of those refusals is convention 15 applied to what an operator actually
+types: `--cell high` pins a model named `high`, so it answers *did you mean
+`@high`?* rather than driving a run against a model that does not exist.
+
+**`--models` becomes `--ask-models`, and the collision is gone.** It was one
+letter from `--model` and meant something unrelated on another verb: one asks a
+CLI what it offers, the other tells it what to be. With `--model` deleted the
+pair cannot recur.
+
+**`--budget` and `--hard-cap` become one `--budget FLOOR[:CEILING]`, and the
+owner's reading of them was half right.** She called them redundant. They are
+not: the floor is granted outright, renewal may not shorten it, and the ceiling
+is what renewal may never pass — `DRIVE_TIMEOUT = 1800` killed Hermes on
+2026-08-21 six seconds before its deck's mtime, inside the repair loop for its
+third gate, and a single maximum restores exactly that. What was true is that
+two peer integers with no stated relationship read as two names for one thing.
+One parameter now carries one policy, with the relationship in the colon, and
+`--budget 3600:3600` is expressible and means no renewal — said in the help text
+so choosing it is a choice. `--timeout` is deleted rather than kept as an alias.
+A ceiling below the floor is refused rather than clamped: clamping would make
+the floor unspendable and say nothing. `FAILURE_MODES.md` records the single
+maximum as declined.
+
+**Behaviour changes worth naming**, because a reader will otherwise find them:
+a flag on the wrong verb now exits **2** (argparse) rather than 1 or 0; a bad
+`--cell` returns 1 with a printed sentence rather than raising `SystemExit`;
+`--record` on `detect` names `--ask-models` in its refusal.
+
+`drive()`'s signature is untouched — thirty tests call it directly, and this
+release is about the CLI. Nine test lines moved to the new flags, which is what
+the census predicted: every argv call site in the repository is command-first,
+so subparsers cost nothing to adopt.
+
+Second of the stages in `specs/2026-08-28-conformance-cell-design.md`.
+
 ## 0.1.643 — the register declared the unit of measurement and no code read it
 
 The owner said the conformance tool's parameters are accreted rather than

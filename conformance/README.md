@@ -79,7 +79,7 @@ configure once, and calling that automation would be a promise no code here can
 keep.
 
 **It cannot maintain a vocabulary it cannot read.** One of the twelve can
-enumerate its models read-only (`run_conformance.py detect --models` prints
+enumerate its models read-only (`run_conformance.py detect --ask-models` prints
 which, and the registry's `models_waiver` says why each of the other eleven
 cannot). For the other eleven, the model names on the board are a record of what
 an operator happened to pin.
