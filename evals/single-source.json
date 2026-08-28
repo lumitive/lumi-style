@@ -158,6 +158,37 @@
     }
    ],
    "why": "`build_card` parsed the register itself and imported nothing - a fourth answer to the file whose own module comment records `three functions with three different answers to the same broken file` as the reason gate_registry exists."
+  },
+  {
+   "id": "agent-capability",
+   "fact": "what an agent can be run as: the vocabulary it offers, how effort reaches it, and whether two model names are the same model",
+   "owner": "scripts/lib/agent_capability.py",
+   "defs": [
+    "probe_models",
+    "recorded_vocabularies",
+    "offered",
+    "record_vocabularies",
+    "effort_style",
+    "declared_efforts",
+    "effort_refusal",
+    "effort_in_model",
+    "compose_model",
+    "validate_pin",
+    "model_tokens",
+    "same_model"
+   ],
+   "retired_defs": [
+    "_same_model"
+   ],
+   "patterns": [
+    {
+     "regex": "[\"']vocabularies\\.json[\"']\\s*\\)?\\s*\\.read_text",
+     "what": "a private read of the recorded vocabularies",
+     "selftest": "raw = (ROOT / \"conformance\" / \"vocabularies.json\").read_text(encoding=\"utf-8\")"
+    }
+   ],
+   "why": "the knowledge AROUND the three model facts was duplicated even though the facts themselves must stay apart: the driver composed effort into a model id and never consulted the vocabulary, nothing validated a pin before spending a run's budget, the effort tuple was Claude Code's five applied to platforms with four, eight and none, and the recorded vocabulary file was opened by two tools with two spellings.",
+   "note": "capability, intent and observation are NOT merged here and merging them is the defect 0.1.614, 0.1.623 and 0.1.625 each paid for. One module owns the vocabulary; three callers ask three questions."
   }
  ],
  "waivers": [

@@ -51,6 +51,14 @@
    ],
    "models": null,
    "models_waiver": "No listing command. `claude --help` documents `--model` as taking an alias or a full name and offers nothing that prints the set, so the vocabulary here is whatever the operator pinned. `--effort` is the exception and is a closed five-value tuple, which is why trace_schema can enumerate effort and not model.",
+   "efforts": [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max"
+   ],
+   "efforts_source": "`claude --help` documents `--effort` as a closed five-value tuple; this is the vocabulary trace_schema enumerates, and it is Claude Code's rather than everyone's.",
    "drive": [
     "claude",
     "-p",
@@ -91,6 +99,7 @@
    ],
    "models": null,
    "models_waiver": "No listing command. `gemini --help` offers `--list-extensions` and `--list-sessions` and no model equivalent; `-m/--model` takes a free string. There is also no effort concept here to enumerate.",
+   "efforts_waiver": "No reasoning level exists to enumerate: `gemini --help` offers `-m/--model` and nothing that sets an effort, so a run here records the CLI's own default and says so.",
    "drive": [
     "gemini",
     "--skip-trust",
@@ -151,6 +160,14 @@
     "cursor-agent",
     "--list-models"
    ],
+   "efforts": [
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max"
+   ],
+   "efforts_source": "The level is spelled inside the model id, so these are the suffixes `cursor-agent --list-models` returns across families, not a per-model promise: Grok 4.6 tops out at `xhigh` and `cursor-grok-4.6-max` does not exist, while `max` ids do exist for other families. WHICH of these a given model accepts is answered against the recorded vocabulary by `validate_pin`, never here.",
    "drive": [
     "cursor-agent",
     "-p",
@@ -317,6 +334,17 @@
    ],
    "models": null,
    "models_waiver": "`hermes model` is the only model surface and its own help says 'Interactively select your inference provider and default model' — it opens a picker, so the harness cannot read it without driving a TUI. `--refresh` re-fetches every provider's live list into that picker and still presents it interactively.",
+   "efforts": [
+    "none",
+    "minimal",
+    "low",
+    "medium",
+    "high",
+    "xhigh",
+    "max",
+    "ultra"
+   ],
+   "efforts_source": "`hermes --reasoning` takes none, minimal, low, medium, high, xhigh, max or ultra - eight, recorded in adapters/hermes.md since 0.1.543 in a sentence no code read. A level this harness cannot RECORD is refused by trace_schema, which is a different question and says so.",
    "drive": [
     "hermes",
     "--yolo"
@@ -331,7 +359,7 @@
     "Hermes files skills by CATEGORY: `~/.hermes/skills/<category>/<name>/SKILL.md`. The category is the installer's choice and nothing depends on it — `creative` is what this package was installed under on the machine that verified this record. `hermes skills list` reports the category it actually loaded.",
     "`--skills` resolves NAMES and installed paths, never arbitrary ones: `--skills lumi-style` and `--skills ~/.hermes/skills/creative/lumi-style` both load it, and `--skills <the repository itself>` exits 1 with `Unknown skill(s)`. Install it (a symlink into the category folder is enough) rather than pointing the flag at a checkout.",
     "`--usage-file <path>` writes the API's own token counts as JSON — `input_tokens`, `output_tokens`, cache and reasoning counts, an estimated cost and the model — to a FILE rather than the transcript, so `run --drive` reads it through `drive_usage_file_flag` instead of parsing stdout. Before 0.1.543 its runs carried quality with no cost: a clean eight-page deck and no row on the efficiency board.",
-    "`--model` names a model THIS INSTALL'S PROVIDER SERVES, not a model in general. Hermes reads its provider from `~/.hermes/config.yaml` (`deepseek`, base_url api.deepseek.com) and its key from `~/.hermes/.env`; pinned to `anthropic/claude-sonnet-4.6` on 2026-08-22 it exited 1 in 6.0s with \"No usable credentials found for provider 'gmi'\". The driver recorded `driver failed` with that sentence, which is the point — a pin the CLI cannot honour is a failed run and not a quiet fallback to the default. `--reasoning` takes none, minimal, low, medium, high, xhigh, max or ultra; this harness offers the five levels every driven CLI shares."
+    "`--model` names a model THIS INSTALL'S PROVIDER SERVES, not a model in general. Hermes reads its provider from `~/.hermes/config.yaml` (`deepseek`, base_url api.deepseek.com) and its key from `~/.hermes/.env`; pinned to `anthropic/claude-sonnet-4.6` on 2026-08-22 it exited 1 in 6.0s with \"No usable credentials found for provider 'gmi'\". The driver recorded `driver failed` with that sentence, which is the point — a pin the CLI cannot honour is a failed run and not a quiet fallback to the default. `--reasoning` takes none, minimal, low, medium, high, xhigh, max or ultra, which `efforts` above records; this harness can PIN only the five a trace can record, which is a smaller question than what the CLI accepts and is said so at the flag."
    ],
    "capability_verified": false,
    "capability_waiver": "Not verified as a CAPABILITY claim: the CLI is installed on the maintenance machine, `run_conformance.py run --drive` drives it since 0.1.542, and it demonstrably reads the skill's own files from a working directory outside the checkout — asked for the light palette's `--acc` value it answered #48633E, which is what `tokens/lumi-theme.css` ships. What `full` additionally claims is that the agent runs check_prose.py, check_design.py and inspect_layout.py itself on a real deliverable, and no run has watched it do that. See conformance/CONFORMANCE.md."

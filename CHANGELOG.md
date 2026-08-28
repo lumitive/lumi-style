@@ -1,3 +1,61 @@
+## 0.1.637 — the registry's prose knew the effort levels and the code did not
+
+The question that started this work, answered the way the owner chose: **one
+module owns the vocabulary, and three callers ask it three different
+questions.**
+
+**Capability, intent and observation stay three facts.** `probe_models` asks
+what a CLI OFFERS; the pin records what we ASKED for; `model_ran` is what the
+CLI SAID it used. 0.1.614 fixed a board that recorded the ask and never the
+answer, 0.1.623 a join that assumed the two strings agree, 0.1.625 a cell that
+pooled runs pinned to different models. Merging them would re-open all three,
+and `scripts/lib/agent_capability.py` says so in its own docstring. What WAS
+duplicated is the knowledge around them, and that is what moved.
+
+**`trace_schema.ENUMS["effort"]`'s five levels are Claude Code's, and they were
+being applied to every platform.** Hermes' `--reasoning` takes eight — none,
+minimal, low, medium, high, xhigh, max, ultra. Cursor spells the level inside
+the model id and Grok 4.6 tops out at `xhigh`. Gemini has no such concept at
+all. **All three were already written down**, in `adapters/hermes.md` and
+`adapters/cursor.md`, in sentences no code has ever read. `efforts` /
+`efforts_waiver` is those sentences as registry data, on the `models` /
+`models_waiver` pattern, and `check_platform_manifest` requires one or the other
+of every platform the harness can DRIVE — scoped there because a platform
+nothing drives has no effort to pass, which is a consequence of a fact the
+record already states rather than an exemption.
+
+**Nothing validated a pin before spending the run's budget on it.** `--effort
+max --model cursor-grok-4.6` composed `cursor-grok-4.6-max`, an id that does not
+exist, and the CLI was what found out — after the working directory was built.
+`validate_pin` asks the recorded vocabulary first, and an agent nobody has
+probed is NOT judged: this is a check against evidence, and inventing a verdict
+where there is none is the failure the four-state probe exists to avoid.
+
+**A refusal, not a permission.** `effort_refusal` returns a sentence only when
+the CLI declares a vocabulary that excludes the level. An agent with no effort
+concept is not refused — a horse race passes one `--effort` to four CLIs and the
+one with no reasoning level must still run, pinning nothing and recording `(not
+pinned)`, which is the honest answer it has given since 0.1.531. And the CLI's
+own `--effort` validation now says what its tuple IS: what a TRACE can record,
+which is a smaller question than what a CLI accepts.
+
+**The level a model id already carries is now recorded.** `--model
+cursor-grok-4.6-high` with no `--effort` recorded `(not pinned)` and left the
+trace's effort null, so two traces sat in a cell of their own beside ten
+identical ones. The id says `high`; recording `high` is reading it. **The board
+does not change**, and that is deliberate: a trace is a machine record of a run
+that happened, and back-filling one would be writing history rather than fixing
+code. The two old rows stay where they are; no new pair will join them. A
+version number is not a level — `cursor-grok-4.6` ends in `4.6`, and the first
+implementation read that as an effort until a test asked.
+
+Deliberate red: a private read of the recorded vocabularies named its owner, and
+a driven platform stripped of its `efforts` declaration failed the manifest
+guard with the sentence above. The `--effort max` refusal was run against the
+real registry and the real recorded vocabulary: `driver refused`, before argv.
+
+Design record: `specs/2026-08-28-one-home-design.md`.
+
 ## 0.1.636 — the careful reader was in the guard, and the four tools that depend on the file each had a careless one
 
 Three files with more readers than they have writers, and in each case the

@@ -292,8 +292,11 @@ FAILURE_MODES' *Abandoned gates*: an enum of model names (FM-25) and binding the
 release gate to the configurations board (FM-26).
 
 `adapters/platforms.json` is the **platform registry** — the single source of
-install paths, capability tiers, entry files and — since 0.1.619 — the model
-vocabulary probe for every platform this package claims. `adapters/*.md` are the per-platform loading notes, one per registry record and
+install paths, capability tiers, entry files, the model vocabulary probe
+(0.1.619) and, since 0.1.637, the EFFORT vocabulary of every platform the
+harness can drive — because effort is not one tuple: one CLI accepts eight
+levels, one spells the level inside the model id, and one has no such
+concept. `adapters/*.md` are the per-platform loading notes, one per registry record and
 **generated** by `scripts/build/build_entrypoints.py` — as are `GEMINI.md`,
 `.github/copilot-instructions.md`, `.cursor/rules/lumi-style.mdc`, the plugin
 manifests and `.well-known/skills/index.json`. Edit the registry, never the

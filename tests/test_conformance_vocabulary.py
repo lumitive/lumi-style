@@ -13,6 +13,7 @@ HERE — which is neither of the other two.
 import json
 import subprocess
 
+import agent_capability  # 0.1.637 — the probe lives here now
 import run_conformance as rc
 
 
@@ -35,7 +36,7 @@ _REAL = ("Available models\n\nauto - Auto (default)\n"
 
 def test_a_declared_probe_that_answers_returns_the_ids(monkeypatch):
     _cli(monkeypatch, _Ran(out=_REAL))
-    state, detail = rc.vocabulary(_ARGV)
+    state, detail = agent_capability.probe_models(_ARGV)
     assert state == "asked"
     assert detail == "auto, cursor-grok-4.6-high, cursor-grok-4.6-xhigh"
 
@@ -46,12 +47,12 @@ def test_the_heading_line_is_not_recorded_as_a_model_called_available(
     15. `Available models` carries no ` - ` and would otherwise have become an
     id, and every reader of this vocabulary would have carried it forever."""
     _cli(monkeypatch, _Ran(out=_REAL))
-    _state, detail = rc.vocabulary(_ARGV)
+    _state, detail = agent_capability.probe_models(_ARGV)
     assert "Available" not in detail
 
 
 def test_no_probe_is_the_registry_s_own_reason_verbatim(monkeypatch):
-    state, detail = rc.vocabulary(
+    state, detail = agent_capability.probe_models(
         {"id": "hermes", "models": None,
          "models_waiver": "`hermes model` opens a picker."})
     assert state == "waived" and detail == "`hermes model` opens a picker."
@@ -63,7 +64,7 @@ def test_a_declared_probe_whose_binary_is_absent_is_its_own_state(monkeypatch):
     missing binary is a fact about this machine that one install changes.
     `detect()` had kept the two apart since it was written."""
     _cli(monkeypatch, _Ran(), installed=False)
-    state, detail = rc.vocabulary(_ARGV)
+    state, detail = agent_capability.probe_models(_ARGV)
     assert state == "absent" and "one install away" in detail
 
 
@@ -74,7 +75,7 @@ def test_a_declared_probe_whose_binary_is_absent_is_its_own_state(monkeypatch):
 
 def test_a_probe_that_exits_nonzero_is_failed_and_quotes_the_cli(monkeypatch):
     _cli(monkeypatch, _Ran(code=2, err="not logged in"))
-    state, detail = rc.vocabulary(_ARGV)
+    state, detail = agent_capability.probe_models(_ARGV)
     assert state == "failed" and "exited 2" in detail and "not logged in" in detail
 
 
@@ -85,7 +86,7 @@ def test_a_probe_that_raises_is_failed_and_names_the_exception(monkeypatch):
         raise subprocess.TimeoutExpired("cursor-agent", 60)
 
     monkeypatch.setattr(rc.subprocess, "run", _boom)
-    state, detail = rc.vocabulary(_ARGV)
+    state, detail = agent_capability.probe_models(_ARGV)
     assert state == "failed" and "TimeoutExpired" in detail
 
 
@@ -96,7 +97,7 @@ def test_a_probe_that_answers_nothing_parseable_is_failed_not_an_empty_set(
     exact shape of every check in this repository that reported clean because it
     could not look."""
     _cli(monkeypatch, _Ran(out="Available models\n\n"))
-    state, detail = rc.vocabulary(_ARGV)
+    state, detail = agent_capability.probe_models(_ARGV)
     assert state == "failed" and "parse" in detail
 
 
@@ -125,7 +126,7 @@ def _detect_tree(tmp_path, monkeypatch, ids, prior=None):
          "probe": ["true"], "models": ["true"]}])
     monkeypatch.setattr(rc, "load_tasks", lambda: [])
     monkeypatch.setattr(rc, "detect", lambda a: (True, "fake 1.0"))
-    monkeypatch.setattr(rc, "vocabulary", lambda a: ("asked", ", ".join(ids)))
+    monkeypatch.setattr(rc.agent_capability, "probe_models", lambda a: ("asked", ", ".join(ids)))
     return tmp_path / "conformance" / "vocabularies.json"
 
 
@@ -157,7 +158,7 @@ def test_a_waived_agent_records_no_empty_vocabulary(tmp_path, monkeypatch):
     empty sets would make "this CLI offers nothing" and "we could not ask" the
     same row — which is the distinction `vocabulary()` has four states for."""
     out = _detect_tree(tmp_path, monkeypatch, [])
-    monkeypatch.setattr(rc, "vocabulary", lambda a: ("waived", "no CLI to ask"))
+    monkeypatch.setattr(rc.agent_capability, "probe_models", lambda a: ("waived", "no CLI to ask"))
     rc.main(["detect", "--models", "--record"])
     assert json.loads(out.read_text(encoding="utf-8")) == {}
 
