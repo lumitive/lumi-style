@@ -4,9 +4,9 @@
 
 ## Read this before you count anything
 
-The directory holds **273 JSON files** and **91 records**. The difference — 182 files — is build traces that pytest leaked into the tracked store before 2026-08-26, set aside by `trace_store.suite_artifact()`.
+The directory holds **91 JSON files** and **91 records**. Every file is a record — but that has not always been true, and the sentence below is why the check that guarantees it still runs.
 
-**A reader who counts files instead of records gets a denominator several times too large.** That is not hypothetical: `ledger.py` once reported "4 of 251 build(s) record a reviewed outline" over a store holding seventeen real builds. `evals/traces/index.jsonl` carries `suite_artifact` as a column so the filter travels with the data instead of living only in this package's code.
+**Counting files instead of records was once several times wrong.** That is not hypothetical: `ledger.py` reported "4 of 251 build(s) record a reviewed outline" over a store holding seventeen real builds, because 182 abandoned two-page scaffolds from the test suite were sitting in the tracked directory. Those files were deleted at 0.1.632 — they recorded nothing: no pages, no tokens, no verdicts, never closed — and `evals/traces/index.jsonl` carries `suite_artifact` as a column so the filter travels with the data instead of living only in this package's code.
 
 Of the 91 records, **67 are closed** — a trace is opened when a build starts and closed when its checks are transcribed, so an open one is a build that was abandoned or is still running. Only closed traces carry verdicts, tokens or timings.
 
@@ -19,46 +19,46 @@ By source: `conformance` 74, `build` 17.
 | `index.jsonl` | one line per trace, summary fields only, ordered by `opened_at`. The ids sort randomly, so this is the only place sequence appears. |
 | `t-<id>.json` | one trace, whole, including the three verdict blocks the index omits. |
 | `.phases/` | local clock state for phases that have started. Gitignored, not part of the record. |
+| `../trace-notes.json` | the operator's own notes and labels, keyed by trace id. Optional, hand-edited, and outside the store on purpose — see below. |
 
 ## The fields
 
 **Three populations, and the partition is enforced.** A trace records facts about the DOCUMENT that was built, the PRODUCER that built it, and the RUN itself; `check_trace_schema` asserts the three are disjoint and together exhaust the schema, so a new field must be assigned a side. What a reader may do across the line is stated in `conformance/README.md`.
 
-**`annotations` may be written in any language.** `evals/` is development-side, so no trace reaches a reader of the published package, and an operator's note about their own run is neither rule prose nor rule data — it is the one place in this repository exempt from the English-only red line, and `check_repo`'s english-only guard excludes `evals/traces/` for exactly that reason. Every other field is a measurement with no natural language in it.
+**A trace holds no prose, and that is what keeps it a record.** `check_repo`'s english-only guard exempts `evals/traces/` on the stated ground that a closed schema has nowhere to put any — so a human note inside a trace would quietly falsify the reason the exemption exists. Notes live in `evals/trace-notes.json` instead, keyed by trace id, optional in every direction, and joined into `index.jsonl` as the `note` and `tags` columns so a reader still has one source. That file may be written in any language; a trace may not.
 
-**Hand-editable** marks the fields a person is the authority on. Everything else is a measurement, and `trace.py` has no flag for supplying one — the same discipline `check_evidence.py` enforces one layer up, where a human never types "pass".
+**Hand-editable** marks the fields a person is the authority on INSIDE a trace — two addresses, `corpus_id` and `review_ref`. Everything else is a measurement, and `trace.py` has no flag for supplying one — the same discipline `check_evidence.py` enforces one layer up, where a human never types "pass".
 
 | field | type | population | hand-editable | present in | example | declared at |
 |---|---|---|---|---|---|---|
-| `agent` | str | null | producer | no | 62 of 91 | `"cursor"` | `trace_schema.py:123` |
-| `annotations` | dict | null *(optional; added after records existed)* | run | **yes** | 0 of 91 | — | `trace_schema.py:122` |
+| `agent` | str | null | producer | no | 62 of 91 | `"cursor"` | `trace_schema.py:113` |
 | `cli_version` | str | null *(optional; added after records existed)* | producer | no | 12 of 91 | `"2026.08.25-3e8eec8"` | `trace_schema.py:112` |
 | `closed_at` | str | null | run | no | 67 of 91 | `"2026-08-21T16:30:41+00:00"` | `trace_schema.py:92` |
-| `content_pages` | int | document | no | 91 of 91 | `8` | `trace_schema.py:123` |
-| `corpus_id` | str | null | document | **yes** | 3 of 91 | `"D16"` | `trace_schema.py:147` |
+| `content_pages` | int | document | no | 91 of 91 | `8` | `trace_schema.py:113` |
+| `corpus_id` | str | null | document | **yes** | 3 of 91 | `"D16"` | `trace_schema.py:137` |
 | `effort` | str | null — one of `low`, `medium`, `high`, `xhigh`, `max` | producer | no | 42 of 91 | `"high"` | `trace_schema.py:103` |
 | `entry_path` | str — one of `A`, `B` | run | no | 91 of 91 | `"B"` | `trace_schema.py:94` |
-| `gates` | dict | document | no | 67 of 91 | `{"D12_commercial_footer": "ok", "D14_placeho…` | `trace_schema.py:130` |
+| `gates` | dict | document | no | 67 of 91 | `{"D12_commercial_footer": "ok", "D14_placeho…` | `trace_schema.py:120` |
 | `genre` | str — one of `sales`, `marketing`, `consulting`, `internal`, `training` | document | no | 91 of 91 | `"internal"` | `trace_schema.py:93` |
 | `geometry` | str | null — one of `16x9`, `a4`, `laptop` | document | no | 91 of 91 | `"16x9"` | `trace_schema.py:102` |
-| `graded` | dict | document | no | 67 of 91 | `{"D10_label_icons": "ok", "D13_lime_as_text"…` | `trace_schema.py:130` |
-| `input_tokens` | int | null | producer | no | 48 of 91 | `272551` | `trace_schema.py:124` |
+| `graded` | dict | document | no | 67 of 91 | `{"D10_label_icons": "ok", "D13_lime_as_text"…` | `trace_schema.py:120` |
+| `input_tokens` | int | null | producer | no | 48 of 91 | `272551` | `trace_schema.py:114` |
 | `model` | str | null | producer | no | 47 of 91 | `"cursor-grok-4.6-high"` | `trace_schema.py:103` |
 | `opened_at` | str | run | no | 91 of 91 | `"2026-08-21T16:30:41+00:00"` | `trace_schema.py:92` |
 | `outline_reviewed` | bool | document | no | 91 of 91 | `false` | `trace_schema.py:94` |
-| `output_tokens` | int | null | producer | no | 48 of 91 | `59717` | `trace_schema.py:129` |
-| `pages` | int | document | no | 91 of 91 | `12` | `trace_schema.py:123` |
-| `phase_seconds` | dict | producer | no | 57 of 91 | `{"build": 2646}` | `trace_schema.py:124` |
-| `principle_yields` | list | producer | no | 0 of 91 | — | `trace_schema.py:146` |
+| `output_tokens` | int | null | producer | no | 48 of 91 | `59717` | `trace_schema.py:119` |
+| `pages` | int | document | no | 91 of 91 | `12` | `trace_schema.py:113` |
+| `phase_seconds` | dict | producer | no | 57 of 91 | `{"build": 2646}` | `trace_schema.py:114` |
+| `principle_yields` | list | producer | no | 0 of 91 | — | `trace_schema.py:136` |
 | `recipe_hash` | str | null | run | no | 16 of 91 | `"9a03f383ba0f"` | `trace_schema.py:101` |
 | `recipe_version` | str | null | run | no | 5 of 91 | `"0.1.506"` | `trace_schema.py:101` |
-| `refused_to_emit` | dict | null | producer | no | 0 of 91 | — | `trace_schema.py:146` |
-| `review_ref` | str | null | document | **yes** | 2 of 91 | `"reviews/scores.json 0.1.513 D16"` | `trace_schema.py:147` |
-| `shape` | dict — keys: `layout_top_share`, `layout_kinds`, `visual_share_median`, `repeated_skeleton_pages`, `figures`, `move_skeleton_clashes`, `text_only_figures` *(optional; added after records existed)* | document | no | 21 of 91 | `{"figures": 9, "layout_kinds": 2, "layout_to…` | `trace_schema.py:145` |
+| `refused_to_emit` | dict | null | producer | no | 0 of 91 | — | `trace_schema.py:136` |
+| `review_ref` | str | null | document | **yes** | 2 of 91 | `"reviews/scores.json 0.1.513 D16"` | `trace_schema.py:137` |
+| `shape` | dict — keys: `layout_top_share`, `layout_kinds`, `visual_share_median`, `repeated_skeleton_pages`, `figures`, `move_skeleton_clashes`, `text_only_figures` *(optional; added after records existed)* | document | no | 21 of 91 | `{"figures": 9, "layout_kinds": 2, "layout_to…` | `trace_schema.py:135` |
 | `skill_version` | str | run | no | 91 of 91 | `"0.1.546"` | `trace_schema.py:93` |
 | `source` | str — one of `build`, `conformance`, `fixture` | run | no | 91 of 91 | `"conformance"` | `trace_schema.py:93` |
 | `storyline` | str — one of `market-analysis`, `gtm`, `status-report`, `due-diligence`, `product-intro`, `training-curriculum`, `proposal`, `pitch-deck` | document | no | 91 of 91 | `"status-report"` | `trace_schema.py:93` |
-| `thresholds` | dict | document | no | 67 of 91 | `{"D28_takeaway": "n/a", "M10_triad_rate": "n…` | `trace_schema.py:130` |
+| `thresholds` | dict | document | no | 67 of 91 | `{"D28_takeaway": "n/a", "M10_triad_rate": "n…` | `trace_schema.py:120` |
 | `titles_changed_after_approval` | int | document | no | 91 of 91 | `0` | `trace_schema.py:102` |
 | `trace_id` | str | run | no | 91 of 91 | `"t-046fde00896a"` | `trace_schema.py:92` |
 

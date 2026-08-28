@@ -505,3 +505,106 @@ def test_the_same_build_id_in_prose_still_fails(tmp_path, monkeypatch):
         "conformance/CONFIGURATIONS.md":
             "# board\n\nmeasured against skill 2026.08.25 throughout\n"})
     assert errors and "2026.08.25" in errors[0]
+
+
+# check_trace_notes — the operator's sidecar. Hand-edited on purpose, which is
+# exactly why it is guarded: a note keyed to an id nobody recorded is a note
+# about nothing, and a third key is a schema invented in a text editor.
+
+def _notes_tree(tmp_path, monkeypatch, doc, trace_ids=("t-0123456789ab",)):
+    (tmp_path / "evals" / "traces").mkdir(parents=True)
+    for tid in trace_ids:
+        (tmp_path / "evals" / "traces" / f"{tid}.json").write_text(
+            "{}", encoding="utf-8")
+    if doc is not None:
+        (tmp_path / "evals" / "trace-notes.json").write_text(
+            json.dumps(doc), encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    return check_repo.check_trace_notes()
+
+
+def test_trace_notes_absent_is_a_legal_state(tmp_path, monkeypatch):
+    """A store with no notes is the normal starting condition."""
+    assert _notes_tree(tmp_path, monkeypatch, None) == []
+
+
+def test_trace_notes_a_well_formed_entry_passes(tmp_path, monkeypatch):
+    assert _notes_tree(tmp_path, monkeypatch, {
+        "t-0123456789ab": {"note": "why this run", "tags": ["r19"]}}) == []
+
+
+def test_trace_notes_an_id_with_no_trace_fails(tmp_path, monkeypatch):
+    errors = _notes_tree(tmp_path, monkeypatch,
+                         {"t-ffffffffffff": {"note": "about nothing"}})
+    assert errors and "names no trace" in errors[0]
+
+
+def test_trace_notes_a_third_key_fails(tmp_path, monkeypatch):
+    errors = _notes_tree(tmp_path, monkeypatch,
+                         {"t-0123456789ab": {"verdict": "pass"}})
+    assert errors and "invented in an editor" in errors[0]
+
+
+def test_trace_notes_a_mistyped_note_fails(tmp_path, monkeypatch):
+    errors = _notes_tree(tmp_path, monkeypatch, {"t-0123456789ab": {"note": 12}})
+    assert errors and "a sentence a person wrote" in errors[0]
+
+
+def test_trace_notes_mistyped_tags_fail(tmp_path, monkeypatch):
+    errors = _notes_tree(tmp_path, monkeypatch,
+                         {"t-0123456789ab": {"tags": "r19"}})
+    assert errors and "a list of labels" in errors[0]
+
+
+def test_trace_notes_a_key_that_is_not_a_trace_id_fails(tmp_path, monkeypatch):
+    errors = _notes_tree(tmp_path, monkeypatch, {"whatever": {"note": "x"}})
+    assert errors and "is not a trace id" in errors[0]
+
+
+def test_trace_notes_that_do_not_parse_are_a_finding_not_a_silence(
+        tmp_path, monkeypatch):
+    (tmp_path / "evals" / "traces").mkdir(parents=True)
+    (tmp_path / "evals" / "trace-notes.json").write_text("{not json",
+                                                         encoding="utf-8")
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    errors = check_repo.check_trace_notes()
+    assert errors and "hand-edited" in errors[0]
+
+
+# THE SIDECAR'S LANGUAGE EXEMPTION IS NARROW, and narrowness is the whole
+# point: `note` is a sentence the owner writes in the language she thinks in;
+# `tags` are labels a machine groups by. Widening it to the FILE re-creates the
+# hole 0.1.631 nearly opened, when a prose field inside a trace would have
+# falsified the reason `evals/traces/` is skipped at all.
+
+def _english_tree(tmp_path, monkeypatch, notes_doc):
+    import subprocess
+    (tmp_path / "evals" / "traces").mkdir(parents=True)
+    (tmp_path / "evals" / "trace-notes.json").write_text(
+        json.dumps(notes_doc, ensure_ascii=False), encoding="utf-8")
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "add", "-A"], cwd=tmp_path, check=True)
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    return check_repo.check_english_only()
+
+
+def test_a_chinese_note_in_the_sidecar_is_allowed(tmp_path, monkeypatch):
+    errors = _english_tree(tmp_path, monkeypatch,
+                           {"t-0123456789ab": {"note": "四档基准的 high 档"}})
+    assert errors == [], errors
+
+
+def test_a_chinese_tag_in_the_sidecar_is_still_refused(tmp_path, monkeypatch):
+    """A label is grouped by a machine and compared across runs. The exemption
+    covers the sentence and nothing else."""
+    errors = _english_tree(tmp_path, monkeypatch,
+                           {"t-0123456789ab": {"tags": ["基准"]}})
+    assert errors and "tags" in errors[0]
+
+
+def test_a_chinese_value_under_an_invented_key_is_refused(tmp_path, monkeypatch):
+    """A key this guard has never heard of gets no exemption. `check_trace_notes`
+    refuses the key separately; neither guard may be the only one looking."""
+    errors = _english_tree(tmp_path, monkeypatch,
+                           {"t-0123456789ab": {"note": "ok", "comment": "中文"}})
+    assert errors and "comment" in errors[0]

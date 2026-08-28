@@ -45,6 +45,15 @@ seventy-seven entries. Markdown needs a parser and loses the types; XML costs
 more bytes for the same thing. The readability problem is real and is a
 NAVIGATION AND DOCUMENTATION problem, so that is where it is fixed.
 
+**The owner corrected this design after the first release, and the correction
+is the better one.** 0.1.631 put an `annotations` field inside the trace and
+then rewrote the english-only exemption's reason to match — editing a
+load-bearing sentence to fit a change instead of declining the change. A
+sidecar (`evals/trace-notes.json`, keyed by trace id, optional) keeps the trace
+a closed record, keeps the exemption's original reason true, and costs one
+join. **The 182 leaked files were deleted at the same time**: nothing cited
+them, and an abandoned two-page scaffold from a test run is not a record.
+
 **Verdicts stay machine-only.** `trace.py` has no `--gate/--verdict/--pass` flag
 by design, the same discipline `check_evidence.py` enforces one layer up. The
 owner asked for hand-editable fields; the answer is one field, `annotations`,

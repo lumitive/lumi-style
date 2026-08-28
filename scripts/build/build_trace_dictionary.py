@@ -42,22 +42,30 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
+import state_dir  # noqa: E402
 import trace_schema  # noqa: E402
 import trace_store  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 TRACES = ROOT / "evals" / "traces"
+# Same resolver the writer uses; a reader that hard-coded the
+# development path would find nothing in an installed skill.
+NOTES = state_dir.store("trace-notes.json",
+                        in_repo=("evals", "trace-notes.json"))
 DICT_OUT = TRACES / "README.md"
 INDEX_OUT = TRACES / "index.jsonl"
 
-# WHAT A PERSON MAY EDIT BY HAND, and it is deliberately short. `trace.py` has
+# WHAT A PERSON MAY EDIT INSIDE A TRACE, and it is deliberately short. `trace.py` has
 # no flag for supplying a verdict, which is the same discipline
 # `check_evidence.py` enforces one layer up — a human never types "pass". These
 # three are the ones a person is the AUTHORITY on: what a build was for, which
 # review it belongs to, and what the operator wants to remember about it.
 # Everything else is a measurement, and hand-editing a measurement is not an
-# edit, it is a forgery.
-HAND_EDITABLE = ("corpus_id", "review_ref", "annotations")
+# edit, it is a forgery. A note about the run is neither — it lives in
+# `evals/trace-notes.json`, outside the closed schema, so the trace keeps the
+# property that makes `check_repo`'s english-only exemption honest: nowhere to
+# put prose.
+HAND_EDITABLE = ("corpus_id", "review_ref")
 
 # The columns the index carries. Verdict blocks are excluded on purpose: they
 # are 44% of the store's bytes and they belong in the trace, which the index
@@ -122,13 +130,27 @@ def _example(name: str, records: list[dict]) -> str:
     return "—"
 
 
-def index_rows(records: list[dict]) -> list[dict]:
+def load_notes() -> dict:
+    """-> the operator's sidecar, or nothing.
+
+    Optional in every direction: the file need not exist, a trace need not
+    appear in it, and nothing reads it to decide anything. It is joined into
+    the index so the SERVICE has one source — the alternative is every consumer
+    re-implementing a join this package already knows how to do.
+    """
+    if not NOTES.exists():
+        return {}
+    return json.loads(NOTES.read_text(encoding="utf-8"))
+
+
+def index_rows(records: list[dict], notes: dict | None = None) -> list[dict]:
     """-> one summary object per trace, ordered by when it was opened.
 
     Ordered by time rather than by id: the ids are uuid4-derived and sort
     randomly, so the directory listing tells a reader nothing about sequence and
     this is the only place sequence appears.
     """
+    notes = load_notes() if notes is None else notes
     rows = []
     for rec in records:
         tid = rec.get("trace_id")
@@ -144,7 +166,7 @@ def index_rows(records: list[dict]) -> list[dict]:
         # FLATTENED into two columns, because the index is one object per line
         # and a nested block in it defeats grep — which is the whole reason a
         # human opens this file rather than the trace.
-        ann = rec.get("annotations") or {}
+        ann = notes.get(tid) or {}
         row["tags"] = ann.get("tags") or []
         row["note"] = ann.get("note")
         row["path"] = f"evals/traces/{tid}.json"
@@ -185,16 +207,27 @@ def render_dictionary(records: list[dict]) -> str:
         "## Read this before you count anything",
         "",
         f"The directory holds **{len(records)} JSON files** and "
-        f"**{len(kept)} records**. The difference — {aside} files — is build "
-        "traces that pytest leaked into the tracked store before 2026-08-26, "
-        "set aside by `trace_store.suite_artifact()`.",
+        f"**{len(kept)} records**."
+        + ("" if aside else
+           " Every file is a record — but that has not always been true, and "
+           "the sentence below is why the check that guarantees it still runs.")
+        + (f" The difference — **{aside} files** — is build traces that pytest "
+           "leaked into the tracked store before 2026-08-26, set aside by "
+           "`trace_store.suite_artifact()`." if aside else ""),
         "",
-        "**A reader who counts files instead of records gets a denominator "
-        "several times too large.** That is not hypothetical: `ledger.py` once "
-        "reported \"4 of 251 build(s) record a reviewed outline\" over a store "
-        "holding seventeen real builds. `evals/traces/index.jsonl` carries "
-        "`suite_artifact` as a column so the filter travels with the data "
-        "instead of living only in this package's code.",
+        ("**A reader who counts files instead of records gets a denominator "
+         f"{aside // max(len(kept), 1) + 1} times too large.**" if aside else
+         "**Counting files instead of records was once several times wrong.**")
+        + " That is not hypothetical: `ledger.py` reported \"4 of 251 build(s) "
+        "record a reviewed outline\" over a store holding seventeen real "
+        "builds, because 182 abandoned two-page scaffolds from the test suite "
+        "were sitting in the tracked directory. "
+        + ("Those files were deleted at 0.1.632 — they recorded nothing: no "
+           "pages, no tokens, no verdicts, never closed — and "
+           if not aside else "")
+        + "`evals/traces/index.jsonl` carries `suite_artifact` as a column so "
+        "the filter travels with the data instead of living only in this "
+        "package's code.",
         "",
         f"Of the {len(kept)} records, **{closed} are closed** — a trace is "
         "opened when a build starts and closed when its checks are "
@@ -216,6 +249,9 @@ def render_dictionary(records: list[dict]) -> str:
         "blocks the index omits. |",
         "| `.phases/` | local clock state for phases that have started. "
         "Gitignored, not part of the record. |",
+        "| `../trace-notes.json` | the operator's own notes and labels, keyed "
+        "by trace id. Optional, hand-edited, and outside the store on "
+        "purpose — see below. |",
         "",
         "## The fields",
         "",
@@ -226,15 +262,18 @@ def render_dictionary(records: list[dict]) -> str:
         "assigned a side. What a reader may do across the line is stated in "
         "`conformance/README.md`.",
         "",
-        "**`annotations` may be written in any language.** `evals/` is "
-        "development-side, so no trace reaches a reader of the published "
-        "package, and an operator's note about their own run is neither rule "
-        "prose nor rule data — it is the one place in this repository exempt "
-        "from the English-only red line, and `check_repo`'s english-only guard "
-        "excludes `evals/traces/` for exactly that reason. Every other field "
-        "is a measurement with no natural language in it.",
+        "**A trace holds no prose, and that is what keeps it a record.** "
+        "`check_repo`'s english-only guard exempts `evals/traces/` on the "
+        "stated ground that a closed schema has nowhere to put any — so a "
+        "human note inside a trace would quietly falsify the reason the "
+        "exemption exists. Notes live in `evals/trace-notes.json` instead, "
+        "keyed by trace id, optional in every direction, and joined into "
+        "`index.jsonl` as the `note` and `tags` columns so a reader still has "
+        "one source. That file may be written in any language; a trace may "
+        "not.",
         "",
-        "**Hand-editable** marks the fields a person is the authority on. "
+        "**Hand-editable** marks the fields a person is the authority on "
+        "INSIDE a trace — two addresses, `corpus_id` and `review_ref`. "
         "Everything else is a measurement, and `trace.py` has no flag for "
         "supplying one — the same discipline `check_evidence.py` enforces one "
         "layer up, where a human never types \"pass\".",

@@ -1,3 +1,60 @@
+## 0.1.632 — the note moved out of the trace, and 182 files that recorded nothing were deleted
+
+Two owner corrections to 0.1.631, and both are better than what they replaced.
+
+**The `annotations` field is withdrawn; a note lives beside the store, not in
+it.** `check_repo`'s english-only guard exempts `evals/traces/` on the stated
+ground that *a closed schema has nowhere to put prose* — and 0.1.631 gave it
+somewhere, then rewrote the exemption's reason to match. That is the wrong way
+round: the sentence was load-bearing, and the change should have been declined
+rather than the reason edited. The owner declined it.
+
+`evals/trace-notes.json` is a sidecar keyed by trace id, **optional in every
+direction** — the file need not exist, a trace need not appear in it, and
+nothing reads it to decide anything. `trace.py note --id X --note … --tag …`
+writes it, `check_trace_notes` guards it, and `index.jsonl` joins it so a reader
+still has one source. The trace keeps the property that makes its exemption
+honest, and the cost is one join.
+
+**The language exemption is now narrow and named**, exactly
+`$.<trace-id>.note`, matched whole — the same shape as the rule register's
+`$.rules[N].quote` beside it. A `note` is a sentence the owner writes in the
+language she thinks in; **`tags` are labels a machine groups by and stay
+English**, and a key this guard has never heard of gets no exemption at all.
+Widening it to the file is a planted red, and it lets a Chinese tag through.
+
+**182 files that recorded nothing are deleted.** They were build traces pytest
+leaked into the tracked store before 2026-08-26 — every one of them `pages: 0`,
+`content_pages: 0`, never closed, no gates, no tokens. Nothing cited them:
+`conformance/history.json` joins none, and no tracked file outside
+`evals/traces/` mentions an id. The store's own argument for keeping them —
+*"a trace store is a record, and the honest fix for a bad denominator is to name
+what is in it"* — is about RECORDS. An abandoned two-page scaffold from a test
+run is not one.
+
+**The directory now holds 91 files and 91 records.** `suite_artifact()` stays as
+the detector, with no live instances, and the dictionary's preface changes shape
+rather than going quiet: it says the counts agree NOW, states the incident that
+justifies the filter, and keeps the number it cost — `ledger.py` reporting "4 of
+251 build(s)" over a store holding seventeen.
+
+**The cross-boundary guard caught the sidecar on its first attempt**, which is
+what it is for: `trace.py` ships and `evals/` does not, so a hard-coded
+`evals/trace-notes.json` would point at nothing in an installed skill. It
+resolves through `state_dir.store` like the trace store itself — a maintainer's
+checkout keeps writing where its data already is, and an installed skill gets
+its own place. The guard that CHECKS the sidecar still reads the committed path,
+because it asks about this repository rather than about an operator's machine.
+
+Deliberate red, eight runs: stop checking that a note's id exists, allow a third
+key, widen the language exemption to the file, remove the exemption entirely,
+stop joining the sidecar into the index, and hide the incident from the preface.
+**Two did not plant on the first attempt** — nothing tested the exemption's
+narrowness or the preface's history, which is how both would have been widened
+later without anyone noticing.
+
+Design record: `specs/2026-08-28-trace-store-readable-design.md`.
+
 ## 0.1.631 — the trace store had no dictionary, and three times more files than records
 
 The owner is building an analysis service over `evals/traces/` and asked how the

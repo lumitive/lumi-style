@@ -225,18 +225,17 @@ def _json_manifests():
     """-> the tracked .json files this repository writes by hand or generates.
 
     Tracked, so a local scratch file is not scanned; and json only, because the
-    prose globs already cover markdown. Traces are excluded, and the reason
-    changed at 0.1.631: it was "a closed schema with nowhere to put prose",
-    which stopped being true the moment `annotations` gave it somewhere. The
-    reason now is narrower and deliberate — `evals/` is development-side
-    (`adapters/shipped.json`), so no trace reaches a reader of the published
-    package, and an operator's note about their own run is neither rule prose
-    nor rule data. It is the one place in this repository where the owner may
-    write in the language she thinks in.
+    prose globs already cover markdown. Traces are excluded: `evals/traces/`
+    is machine-written against a closed schema that has nowhere to put prose.
 
-    That is a decision rather than a hole, and `evals/traces/README.md` states
-    it where a contributor will find it. Everything else in a trace is a
-    measurement with no natural language in it at all.
+    **That sentence is load-bearing and was nearly falsified.** 0.1.631 added an
+    `annotations` field to the trace schema, which gave it exactly somewhere to
+    put prose and left this exemption resting on a reason that had stopped being
+    true. The owner declined the design: an operator's note lives in a SIDECAR
+    (`evals/trace-notes.json`), joined by trace id, so the trace stays a closed
+    machine record and this exemption keeps the reason it was written with. The
+    sidecar carries its own narrow exemption below, named and reasoned
+    separately, which is what an exemption should look like.
     """
     if not (ROOT / ".git").exists():
         return []
@@ -299,6 +298,22 @@ def check_english_only():
             continue                      # the parse guards report their own
         for where, value in _walk_strings(doc):
             if not CJK.search(value):
+                continue
+            # THE OPERATOR'S SIDECAR, exactly `$.<trace-id>.note`. It is the
+            # one file here a person is the AUTHORITY on rather than a reader
+            # of — why a run was made and what to remember about it — and the
+            # owner writes in Chinese. `evals/` is development-side, so nothing
+            # in it reaches a reader of the published package, and a note about
+            # one's own run is neither rule prose nor rule data.
+            #
+            # NARROW ON PURPOSE, and matched whole for the same reason the rule
+            # register's exemption below is: `tags` are labels a machine groups
+            # by and stay English, and a key this guard has never heard of gets
+            # no exemption at all. Widening it to the FILE would re-create the
+            # hole 0.1.631 nearly opened, when an `annotations` field inside a
+            # trace would have falsified the reason `evals/traces/` is skipped.
+            if (rel(path) == "evals/trace-notes.json"
+                    and re.fullmatch(r"\$\.t-[0-9a-f]{12}\.note", where)):
                 continue
             # ONE EXEMPTION, AND IT IS VERIFIED SOMEWHERE ELSE. The rule
             # register's `quote` field holds a VERBATIM substring of the rule
@@ -448,6 +463,63 @@ def check_trace_schema():
         for problem in trace_schema.validate(rec):
             errors.append(f"{rel(path)}: {problem}")
     return errors
+
+def check_trace_notes():
+    """The operator's sidecar names traces that exist and carries nothing else.
+
+    `evals/trace-notes.json` is hand-edited on purpose — it is the one file
+    here a person is the AUTHORITY on, holding why a run was made and what to
+    remember about it. Hand-edited is exactly why it needs a guard: a note
+    keyed to an id nobody recorded is a note about nothing, and a third key is
+    somebody inventing a schema in a text editor.
+
+    The file is OPTIONAL. Absent is a legal state and returns no findings —
+    which is a different answer from "present and empty", and both are legal
+    here because a store with no notes is the normal starting condition.
+    """
+    errors: list[str] = []
+    # The GUARD reads the committed path on purpose, the same way
+    # `check_trace_schema` does: it asks whether THIS REPOSITORY's
+    # tracked sidecar is well formed, not what an operator has in
+    # their state directory.
+    notes = ROOT / "evals" / "trace-notes.json"
+    if not notes.exists():
+        return errors
+    try:
+        doc = json.loads(notes.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"evals/trace-notes.json: not valid JSON ({exc}). It is "
+                f"hand-edited; fix it rather than letting a reader guess."]
+    if not isinstance(doc, dict):
+        return ["evals/trace-notes.json: the top level is a map from trace id "
+                "to that trace's note, not a list"]
+    store = ROOT / "evals" / "traces"
+    for tid, entry in sorted(doc.items()):
+        if not trace_schema.ID.match(tid):
+            errors.append(f"evals/trace-notes.json: {tid!r} is not a trace id")
+            continue
+        if not (store / f"{tid}.json").exists():
+            errors.append(f"evals/trace-notes.json: {tid} names no trace in "
+                          f"evals/traces/ — a note about a run nobody "
+                          f"recorded is a note about nothing")
+        if not isinstance(entry, dict):
+            errors.append(f"evals/trace-notes.json: {tid} holds {entry!r}; it "
+                          f"holds a map with `note` and/or `tags`")
+            continue
+        for key in sorted(set(entry) - {"note", "tags"}):
+            errors.append(f"evals/trace-notes.json: {tid}.{key} is not one of "
+                          f"note, tags — a third key here is a schema "
+                          f"invented in an editor")
+        if "note" in entry and not isinstance(entry["note"], str):
+            errors.append(f"evals/trace-notes.json: {tid}.note is "
+                          f"{entry['note']!r}; it is a sentence a person wrote")
+        if "tags" in entry and not (isinstance(entry["tags"], list)
+                                    and all(isinstance(t, str)
+                                            for t in entry["tags"])):
+            errors.append(f"evals/trace-notes.json: {tid}.tags is "
+                          f"{entry['tags']!r}; it is a list of labels")
+    return errors
+
 
 def check_rule_ids():
     """Every rule family carries a unique, position-independent id.
@@ -4838,6 +4910,7 @@ CHECKS = (
     ("red line parity", check_red_line_parity),
     ("rule ids", check_rule_ids),
     ("trace schema", check_trace_schema),
+    ("trace notes", check_trace_notes),
     ("trace field readers", check_trace_field_readers),
     ("stale promises", check_stale_promises),
     ("platform manifest", check_platform_manifest),

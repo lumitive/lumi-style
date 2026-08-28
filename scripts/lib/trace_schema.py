@@ -86,7 +86,7 @@ SHAPE_TEXT_KEYS = ("geometry",)
 
 # Fields introduced after traces were already being stored. Absent is legal;
 # present must still be the declared type.
-ADDED_LATER = frozenset({"shape", "cli_version", "annotations"})
+ADDED_LATER = frozenset({"shape", "cli_version"})
 
 FIELDS: dict[str, object] = {
     "trace_id": str, "opened_at": str, "closed_at": (str, type(None)),
@@ -110,16 +110,6 @@ FIELDS: dict[str, object] = {
     # every vendor spells a build differently and an enum of them would be a
     # maintenance tax with no defect behind it.
     "cli_version": (str, type(None)),
-    # THE ONE FIELD A PERSON IS THE AUTHORITY ON. Everything else in this
-    # schema is a measurement, and `trace.py` has no flag for supplying one —
-    # the same discipline `check_evidence.py` enforces one layer up, where a
-    # human never types "pass". A note and a set of tags are not measurements;
-    # they are why the run was made and what the operator wants to remember,
-    # and nobody but the operator can know either. Written by `trace.py
-    # annotate --note/--tag` and safe to edit by hand, because
-    # `check_trace_schema` validates every committed trace: a broken edit
-    # reddens CI rather than corrupting a reader.
-    "annotations": (dict, type(None)),
     "agent": (str, type(None)), "pages": int, "content_pages": int,
     "phase_seconds": dict, "input_tokens": (int, type(None)),
     # `cost_usd` was here and is gone. It is tokens times a price, and a
@@ -195,12 +185,6 @@ PRODUCER_FIELDS = frozenset({
 RUN_FIELDS = frozenset({
     "trace_id", "opened_at", "closed_at", "source", "skill_version",
     "recipe_hash", "recipe_version", "entry_path",
-    # A note is about THIS RUN — why it was made, what to remember about it —
-    # rather than about the document that came out or the agent that made it.
-    # The partition forces the choice to be made rather than defaulted, and
-    # this is the side where a human sentence does the least damage: nothing
-    # grades a document or an agent from here.
-    "annotations",
 })
 
 
@@ -252,23 +236,6 @@ def validate(rec):
             errors.append(f"shape.{key} is {value!r}; a shape reading is a "
                           f"number or the key is absent — there is no field "
                           f"for 'not measured' because an absent key IS that")
-    ann = rec.get("annotations")
-    if isinstance(ann, dict):
-        # TYPED, because this is the field a person edits by hand and a hand
-        # edit is exactly where a shape goes wrong. Two keys, both optional; a
-        # third would be somebody inventing a schema in a text editor.
-        for key in sorted(set(ann) - {"note", "tags"}):
-            errors.append(f"annotations.{key} is not one of note, tags — "
-                          f"the field takes a sentence and a set of labels, "
-                          f"and a new key here is a schema invented in an "
-                          f"editor")
-        if "note" in ann and not isinstance(ann["note"], str):
-            errors.append(f"annotations.note is {ann['note']!r}; it is a "
-                          f"sentence a person wrote")
-        if "tags" in ann and not (isinstance(ann["tags"], list)
-                                  and all(isinstance(t, str) for t in ann["tags"])):
-            errors.append(f"annotations.tags is {ann['tags']!r}; it is a list "
-                          f"of labels")
     for phase, seconds in rec.get("phase_seconds", {}).items():
         if phase not in PHASES:
             errors.append(f"phase_seconds has phase {phase!r}, not one of {PHASES}")
