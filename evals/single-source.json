@@ -63,7 +63,50 @@
     }
    ],
    "why": "the 2026-08-20 audit found four private strip-tags regexes and two of the CJK-space rule, each a little different, in a tree whose markup.py docstring already listed what that duplication produced."
+  },
+  {
+   "id": "package-version",
+   "fact": "the version SKILL.md stamps, the release list, and the order two versions sort in",
+   "owner": "scripts/lib/versioning.py",
+   "defs": [
+    "skill_version_in",
+    "skill_version",
+    "ver_key",
+    "sort_key",
+    "releases",
+    "releases_between"
+   ],
+   "retired_defs": [
+    "_skill_version",
+    "_ver_key",
+    "_as_tuple",
+    "_releases_between"
+   ],
+   "patterns": [
+    {
+     "regex": "re\\.(?:search|match|findall|compile)\\(\\s*r?[\"'][^\"']*version:",
+     "what": "a private reader of SKILL.md's version stamp",
+     "selftest": "m = re.search(r'^\\s*version:\\s*\"(\\d+\\.\\d+\\.\\d+)\"', text, re.M)"
+    },
+    {
+     "regex": "split\\(\\s*[\"']version: ",
+     "what": "a private reader of SKILL.md's version stamp",
+     "selftest": "v = text.split('version: \"')[1].split('\"')[0]"
+    },
+    {
+     "regex": "\\^##[^\"']*\\(\\\\d\\+\\\\\\.",
+     "what": "a private reader of the CHANGELOG's release list",
+     "selftest": "rel = re.findall(r\"^##\\s+(\\d+\\.\\d+\\.\\d+)\", changelog, re.M)"
+    }
+   ],
+   "why": "seven readers of one stamp with five regexes and three failure behaviours, which disagreed on a real document: a SKILL.md carrying another `*_version:` key above the stamp gave the unanchored ones the NEIGHBOUR's value. Three orderings, one of which raised where another returned (). Two `_releases_between` differing by SIGN. And six independent scans of the CHANGELOG's headings, one of them into a set, which cannot answer `newest`."
   }
  ],
- "waivers": []
+ "waivers": [
+  {
+   "path": "scripts/check/check_repo.py",
+   "fact": "package-version",
+   "reason": "check_versions is the guard ON the stamp, so it must be able to read a MALFORMED one \u2014 `versioning.SKILL_STAMP` requires the closing quote and would report a broken stamp as no stamp at all. The looser regex is stated at the site with this reason."
+  }
+ ]
 }

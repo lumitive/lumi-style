@@ -51,6 +51,8 @@ import pathlib  # noqa: E402
 import re  # noqa: E402
 import sys  # noqa: E402
 
+import versioning  # noqa: E402
+
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if (p / "SKILL.md").exists())
 TARGET = ROOT / "references" / "build-card.md"
@@ -72,9 +74,7 @@ def _gates() -> dict:
 
 
 def _version() -> str:
-    m = re.search(r'^\s*version:\s*"([\d.]+)"',
-                  (ROOT / "SKILL.md").read_text(encoding="utf-8"), re.M)
-    return m.group(1) if m else "unknown"
+    return versioning.skill_version(ROOT)
 
 
 def _layout_names() -> list[str]:

@@ -57,6 +57,8 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 import json  # noqa: E402
 import pathlib  # noqa: E402
 
+import versioning  # noqa: E402 — the one version comparator
+
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if (p / "SKILL.md").exists())
 REGISTER = "evals/gates.json"
@@ -96,10 +98,6 @@ def families(root: pathlib.Path | None = None) -> dict[str, list[str]]:
     return out
 
 
-def _as_tuple(version: str) -> tuple[int, ...]:
-    return tuple(int(p) for p in version.split("."))
-
-
 def held(name: str, built: str | None, root: pathlib.Path | None = None) -> bool:
     """Does this gate bind a document built at version `built`?
 
@@ -115,6 +113,6 @@ def held(name: str, built: str | None, root: pathlib.Path | None = None) -> bool
     if since == ALWAYS or built is None:
         return True
     try:
-        return _as_tuple(built) >= _as_tuple(since)
+        return versioning.ver_key(built) >= versioning.ver_key(since)
     except (TypeError, ValueError):
         return True                       # unparseable stamp is not an exemption

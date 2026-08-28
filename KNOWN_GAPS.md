@@ -309,7 +309,7 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   a restamp that does not write, a restamp that always says "releases", and a
   restamp that mishandles a missing board — all fail before the fix and pass
   after. Two more were not planted: the guard's first test read the board from
-  one tree and the CHANGELOG from another (hence `_releases_between(root=)`),
+  one tree and the CHANGELOG from another (hence `versioning.releases_between(root=)`),
   and a review's mutation test found `cmd_restamp` had never once been observed
   writing anything, because its only test ran against a board that was already
   correct — and against the REAL repository, so a red run corrupted the tracked

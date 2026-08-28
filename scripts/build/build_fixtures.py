@@ -61,6 +61,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import new_deck  # noqa: E402
+import versioning  # noqa: E402
 from embed_icons import sprite  # noqa: E402
 
 TERMS = "Confidential &#183; internal use &#183; do not forward"
@@ -69,12 +70,7 @@ SITE = "www.example.org"
 # The producing-skill version, for the colophon the cover rule requires. Read
 # from SKILL.md so it cannot drift; the fixtures already regenerate every
 # release because the embedded token block carries the version stamp.
-_version_m = re.search(r'^\s*version:\s*"([^"]+)"',
-                       (ROOT / "SKILL.md").read_text(encoding="utf-8"), re.M)
-if _version_m is None:
-    raise SystemExit("SKILL.md frontmatter carries no version stamp; "
-                     "the fixtures cannot state what produced them")
-VERSION = _version_m.group(1)
+VERSION = versioning.skill_version(ROOT)
 
 # The cover/closing mark, inlined verbatim from the generated asset.
 # The cover/closing mark is the LUMIVATE FIELD GLOBE — the locked brand asset

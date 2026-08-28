@@ -309,6 +309,10 @@ def _scores_tree(tmp_path, overrides=None):
     # score store lives, and without it here the delegate exits on the import.
     shutil.copyfile(REAL_SCRIPTS / "lib" / "state_dir.py",
                     scripts / "lib" / "state_dir.py")
+    # and the version reader (0.1.635): the release list it validates against
+    # comes from `versioning.releases`, not from a regex of its own.
+    shutil.copyfile(REAL_SCRIPTS / "lib" / "versioning.py",
+                    scripts / "lib" / "versioning.py")
     (tmp_path / "CHANGELOG.md").write_text("## 0.1.1\n\n- first.\n", encoding="utf-8")
     record = {"release": "0.1.1", "genre": "sales", "corpus_id": "A1",
               "self": dict.fromkeys(DIMS, 4), "reader": dict.fromkeys(DIMS, 4),

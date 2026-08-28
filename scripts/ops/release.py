@@ -32,7 +32,6 @@ import base64
 import binascii
 import json
 import pathlib
-import re
 import subprocess
 import sys
 
@@ -53,6 +52,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import preflight  # noqa: E402
 import shipping  # noqa: E402 — after the bootstrap
+import versioning  # noqa: E402
 from check_repo import ENTRY_STAMP, TOKEN_STAMPS  # noqa: E402 — after the bootstrap
 
 
@@ -187,8 +187,7 @@ def published_version(timeout: int = 6) -> str | None:
         head = base64.b64decode(proc.stdout).decode("utf-8", "replace")[:4096]
     except (ValueError, binascii.Error):
         return None
-    m = re.search(r'version: "([\d.]+)"', head)
-    return m.group(1) if m else None
+    return versioning.skill_version_in(head)
 
 
 def report_published(now: str) -> None:
@@ -202,7 +201,7 @@ def report_published(now: str) -> None:
     if there == now:
         print(f"ok    the published package carries {there} — nothing to publish.")
         return
-    gap = _releases_between(there, now)
+    gap = versioning.releases_between(there, now)
     if gap is not None and gap < 0:
         # The published package is NEWER. Not arithmetic to report as a
         # negative: it means this checkout is behind its own remote, or
@@ -219,20 +218,6 @@ def report_published(now: str) -> None:
           f"run). It refuses without an out-of-bounds terms list.")
 
 
-def _releases_between(older: str, newer: str) -> int | None:
-    """-> how many release headings sit between two versions, or None.
-
-    Counted from the CHANGELOG rather than from either git history: the
-    projection's commits are rewritten, so their hashes cannot be compared to
-    this repository's at all.
-    """
-    text = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    versions = re.findall(r"^## (\d+\.\d+\.\d+) — ", text, re.M)
-    if older not in versions or newer not in versions:
-        return None
-    return versions.index(older) - versions.index(newer)
-
-
 def run(cmd, *, capture=True):
     """-> CompletedProcess. Never through a shell, never through a pipe: the
     exit code has to come from the process that produced it."""
@@ -240,19 +225,14 @@ def run(cmd, *, capture=True):
 
 
 def current_version() -> str:
-    m = re.search(r'version: "([\d.]+)"',
-                  (ROOT / "SKILL.md").read_text(encoding="utf-8"))
-    if not m:
-        sys.exit("SKILL.md carries no version stamp")
-    return m.group(1)
+    return versioning.skill_version(ROOT)
 
 
 def newest_changelog_heading() -> tuple[str, str]:
-    text = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    m = re.search(r"^## (\d+\.\d+\.\d+) — (.+)$", text, re.M)
-    if not m:
+    head = versioning.newest_heading(ROOT)
+    if head is None:
         sys.exit("CHANGELOG.md has no versioned heading")
-    return m.group(1), m.group(2)
+    return head
 
 
 def stamp(old: str, new: str, dry: bool) -> list[str]:

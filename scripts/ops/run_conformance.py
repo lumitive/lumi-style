@@ -80,6 +80,7 @@ import fingerprint  # noqa: E402
 import gating  # noqa: E402
 import output_dir  # noqa: E402
 import trace_schema  # noqa: E402
+import versioning  # noqa: E402
 from check_prose import GENRES  # noqa: E402
 from deliverable_registry import kinds  # noqa: E402
 
@@ -857,16 +858,6 @@ def load_tasks() -> list[dict]:
     return tasks
 
 
-def skill_version() -> str:
-    """The version of the skill (and so of its checkers) as installed here."""
-    return (ROOT / "SKILL.md").read_text(
-        encoding="utf-8").split('version: "')[1].split('"')[0]
-
-
-def _ver_key(v: str) -> tuple[int, ...]:
-    return tuple(int(x) for x in v.split("."))
-
-
 def _history_rows() -> tuple[list, str | None]:
     """-> (rows, why they could not be read). Never both empty-and-fine.
 
@@ -1062,7 +1053,7 @@ def cell_spread(fresh: list[dict]) -> tuple[str, str]:
         aligned = (None not in by_build and len(by_build) > 1
                    and all(len(v) == 1 for v in by_build.values()))
         if aligned:
-            builds = sorted((b for b in by_build if b is not None), key=_ver_key)
+            builds = sorted((b for b in by_build if b is not None), key=versioning.sort_key)
             latest = builds[-1]
             worst = next(iter(by_build[latest]))
             latest_detail = ", ".join(sorted(
@@ -1709,32 +1700,8 @@ def _board_run_version(record: dict, read_scores: bool = True) -> str | None:
                 continue
             found += [str(v["instrument_version"]) for v in doc.values()
                       if isinstance(v, dict) and v.get("instrument_version")]
-    return sorted(found, key=_ver_key)[-1] if found else None
+    return sorted(found, key=versioning.sort_key)[-1] if found else None
 
-
-def _releases_between(older: str | None, newer: str | None,
-                      root: pathlib.Path | None = None) -> int | None:
-    """-> how many CHANGELOG headings separate two versions, or None.
-
-    Counted from the CHANGELOG rather than from arithmetic on the patch number,
-    because the distance that matters is how many rule revisions have landed
-    since — not how far apart two integers are.
-
-    `root` because this is `check_repo`'s arithmetic too, and a shared function
-    that hard-codes its own ROOT is not shared — the guard read the board from
-    one tree and the CHANGELOG from another, which its first test found in the
-    first minute. One implementation, told where to look.
-    """
-    if not older or not newer:
-        return None
-    try:
-        text = ((root or ROOT) / "CHANGELOG.md").read_text(encoding="utf-8")
-    except OSError:
-        return None
-    versions = re.findall(r"^##\s+(\d+\.\d+\.\d+)", text, re.M)
-    if older not in versions or newer not in versions:
-        return None
-    return abs(versions.index(older) - versions.index(newer))
 
 def _scores_date(runs) -> str | None:
     """-> ISO date of the newest scores.json among the run dirs, or None."""
@@ -1759,8 +1726,8 @@ def _portable(text: str) -> str:
     which is the only machine that can resolve it anyway.
 
     Paired with `expanduser()` wherever a recorded path is read BACK: a run id
-    is not only displayed, `skill_version()` opens it to recover the version of
-    a run whose directory name carries none.
+    is not only displayed, it is opened to recover the version of a run whose
+    directory name carries none.
     """
     home = str(pathlib.Path.home())
     return text.replace(home, "~") if home not in ("", "/") else text
@@ -1810,7 +1777,10 @@ def board_header(version: str, ran_at: str | None,
     `skill <version>` STAYS, and stays first: it is this file's version stamp
     and `check_version_citations` matches `skill {v}` on it.
     """
-    behind = _releases_between(ran_at, version, root)
+    distance = versioning.releases_between(ran_at, version, root)
+    # ABS, because `restamp --version` may name a version OLDER than the
+    # board's run, and the clause says how far apart they are either way.
+    behind = abs(distance) if distance is not None else None
     stamp = (f"skill {version}" if not behind else
              f"skill {version} · newest run {ran_at} · "
              f"{behind} release{'' if behind == 1 else 's'} behind")
@@ -1871,14 +1841,12 @@ def cmd_restamp(version: str) -> int:
               f"reachable from it does either, so its distance from {version} "
               f"cannot be computed: {runs.strip()!r}")
         return 1
-    # WHICH SIDE IS MISSING IS THE WHOLE DIAGNOSIS. `_releases_between` returns
+    # WHICH SIDE IS MISSING IS THE WHOLE DIAGNOSIS. `releases_between` returns
     # None when EITHER argument is absent from the CHANGELOG, and the first
     # version of this blamed the board unconditionally — so `restamp --version
     # 0.1.608` on a repo at 0.1.607 reported that the board's run predated the
     # CHANGELOG, sending a reader to look at run directories.
-    released = re.findall(r"^##\s+(\d+\.\d+\.\d+)",
-                          (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"),
-                          re.M)
+    released = versioning.releases(ROOT)
     if version not in released:
         print(f"FAIL  {version} is not a CHANGELOG heading, so there is no "
               f"release to measure the board against. Write the entry first.")
@@ -2081,9 +2049,7 @@ def main(argv):
     if args.command == "restamp":
         version = args.version
         if not version:
-            found = re.findall(r"^##\s+(\d+\.\d+\.\d+)",
-                               (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"),
-                               re.M)
+            found = versioning.releases(ROOT)
             if not found:
                 print("FAIL  no '## X.Y.Z' heading in CHANGELOG.md and no "
                       "--version given")
@@ -2233,7 +2199,7 @@ def main(argv):
                        else RESULTS / given)
         elif args.drive:
             import datetime
-            run_dir = RESULTS / f"{skill_version()}-{datetime.date.today().isoformat()}"
+            run_dir = RESULTS / f"{versioning.skill_version(ROOT)}-{datetime.date.today().isoformat()}"
         else:
             run_dir = RESULTS / "latest"
         # Created up front. The mkdir moved inside the per-agent loop when run and
@@ -2589,7 +2555,7 @@ def main(argv):
                     target.read_text(encoding="utf-8", errors="replace"))
                 entry: dict[str, Any] = {"artifact": shown,
                                          "task_hash": asked_fingerprint(task_dir, task),
-                                         "instrument_version": skill_version(),
+                                         "instrument_version": versioning.skill_version(ROOT),
                                          "built_version": built_v}
                 failed: list[str] = []
                 verdict_union: dict[str, Any] = {}
@@ -2789,7 +2755,7 @@ def main(argv):
         return 1 if any(s["verdict"] != "pass" for s in scores.values()) else 0
 
     # report
-    version = skill_version()
+    version = versioning.skill_version(ROOT)
     # Merged across every --run given, in the order given, so a second agent's
     # results ADD a row instead of blanking every row the new directory does not
     # contain. Later wins on a collision: re-running one agent replaces its own
@@ -3067,7 +3033,7 @@ def main(argv):
                 # scores carry them (older scores.json rows predate the
                 # fields and stay honestly silent).
                 if instruments:
-                    row["instrument_version"] = sorted(instruments, key=_ver_key)[-1]
+                    row["instrument_version"] = sorted(instruments, key=versioning.sort_key)[-1]
                 if per_built.get(agent_id):
                     row["built"] = per_built[agent_id]
                 if per_config.get(agent_id):

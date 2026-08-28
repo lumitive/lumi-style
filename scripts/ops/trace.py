@@ -41,7 +41,6 @@ import datetime as _dt
 import json
 import os
 import pathlib
-import re
 import sys
 import uuid
 
@@ -73,6 +72,7 @@ import checker_report  # noqa: E402
 import fingerprint  # noqa: E402
 import markup  # noqa: E402
 import state_dir  # noqa: E402
+import versioning  # noqa: E402
 from deliverable_registry import STAGE_OF  # noqa: E402
 from trace_schema import ENUMS, FIELDS, PHASES, validate  # noqa: E402
 from trace_store import traces_dir  # noqa: E402 — one store resolver
@@ -87,11 +87,6 @@ TRACES = traces_dir(ROOT)
 
 def _now():
     return _dt.datetime.now(_dt.UTC).isoformat(timespec="seconds")
-
-
-def _skill_version():
-    m = re.search(r'version: "([\d.]+)"', (ROOT / "SKILL.md").read_text(encoding="utf-8"))
-    return m.group(1) if m else "unknown"
 
 
 def _path(trace_id):
@@ -162,7 +157,7 @@ def _fresh_id() -> str:
 def cmd_open(a):
     rec: dict[str, object] = dict.fromkeys(FIELDS)
     rec.update(trace_id=_fresh_id(), opened_at=_now(), closed_at=None,
-               source=a.source, skill_version=_skill_version(), genre=a.genre,
+               source=a.source, skill_version=versioning.skill_version(ROOT), genre=a.genre,
                storyline=a.storyline, entry_path=a.entry_path,
                outline_reviewed=False, titles_changed_after_approval=0,
                geometry=a.geometry, pages=0, content_pages=0, phase_seconds={},

@@ -81,6 +81,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import checker_report  # noqa: E402 — after the bootstrap
+import versioning  # noqa: E402
 
 # C1-C8, matching the store review_scores.py validates. This said C1-C8 for
 # forty-odd releases after C replaced H — the exact defect the scoring-sheet
@@ -127,14 +128,6 @@ def _is_iso(value):
     except (TypeError, ValueError):
         return False
     return True
-
-
-def _skill_version():
-    m = re.search(r'^\s*version:\s*"(\d+\.\d+\.\d+)"',
-                  (ROOT / "SKILL.md").read_text(encoding="utf-8"), re.M)
-    if not m:
-        raise SystemExit("FAIL  SKILL.md carries no metadata.version")
-    return m.group(1)
 
 
 def _platform_ids():
@@ -265,10 +258,10 @@ def cmd_init(args):
         # THE ORIGINAL LESSON, MADE MECHANICAL. A log carried across builds once
         # named one version in `deliverable` while its last commands checked
         # another. Resuming into a different version is that same log.
-        if was != _skill_version():
+        if was != versioning.skill_version(ROOT):
             raise SystemExit(
                 f"FAIL  {out} was written by lumi-style {was} and this is "
-                f"{_skill_version()}. A log that spans two versions cannot say "
+                f"{versioning.skill_version(ROOT)}. A log that spans two versions cannot say "
                 f"which rules its commands ran under: pass --restart to begin "
                 f"a new record, or move this one aside to keep it.")
         log["rounds"] = int(log.get("rounds", 1)) + 1
@@ -280,7 +273,7 @@ def cmd_init(args):
                          f"record: pass --restart to replace it, --resume to "
                          f"continue it as a further round, or move it aside to "
                          f"keep it.")
-    log = {"debug_log": "1", "skill_version": _skill_version(),
+    log = {"debug_log": "1", "skill_version": versioning.skill_version(ROOT),
            "platform": args.platform, "machine": sys.platform,
            "created": _now(), "deliverable": deliverable.name,
            "rounds": 1,

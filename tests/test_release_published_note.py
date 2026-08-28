@@ -72,7 +72,8 @@ def test_in_sync_says_nothing_to_publish(monkeypatch, capsys):
 
 def test_behind_names_the_gap_and_the_command(monkeypatch, capsys):
     monkeypatch.setattr(release, "published_version", lambda **kw: "0.1.578")
-    monkeypatch.setattr(release, "_releases_between", lambda a, b: 3)
+    monkeypatch.setattr(release.versioning, "releases_between",
+                        lambda a, b, root=None: 3)
     release.report_published("0.1.581")
     out = capsys.readouterr().out
     assert "3 release(s) ahead" in out and "publish.sh --push" in out
@@ -83,7 +84,8 @@ def test_a_newer_published_version_is_not_a_negative_gap(monkeypatch, capsys):
     from elsewhere. Either is worth saying plainly rather than dressing as a
     publishing gap of minus three."""
     monkeypatch.setattr(release, "published_version", lambda **kw: "0.1.581")
-    monkeypatch.setattr(release, "_releases_between", lambda a, b: -3)
+    monkeypatch.setattr(release.versioning, "releases_between",
+                        lambda a, b, root=None: -3)
     release.report_published("0.1.578")
     out = capsys.readouterr().out
     assert "NEWER" in out and "-3" not in out
@@ -99,9 +101,8 @@ def test_an_unaskable_remote_says_so(monkeypatch, capsys):
 def test_the_gap_is_counted_from_the_changelog_not_from_git():
     """The projection's commits are REWRITTEN, so their hashes cannot be
     compared to this repository's at all."""
-    text = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    import re
-    vs = re.findall(r"^## (\d+\.\d+\.\d+) — ", text, re.M)
+    import versioning
+    vs = versioning.releases(ROOT)
     assert len(vs) > 2
-    assert release._releases_between(vs[2], vs[0]) == 2
-    assert release._releases_between("0.0.0", vs[0]) is None
+    assert versioning.releases_between(vs[2], vs[0], ROOT) == 2
+    assert versioning.releases_between("0.0.0", vs[0], ROOT) is None
