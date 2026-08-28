@@ -558,3 +558,21 @@ repo itself.)
     the title (AR-2) — not only its gate results. And **a rebuild reports what it
     dropped**: `check_outline.py --against` and `check_facts.py` both exist to
     make that answerable without waiting for a review.
+
+19. **Consolidating a fact is an entry in `evals/single-source.json`, never a
+    new guard.** The register maps fact → owning module → the definition names,
+    the retired private spellings, and the non-`def` shapes it owns;
+    `check_one_home` reads it, and a waiver is a written decision that must name
+    a reason and must still be needed. **Adding the tenth fact is one entry.**
+    This is a rule about the rule: before 0.1.634 the mechanism was two
+    hand-written guards for two facts, so consolidating a third meant writing a
+    third guard — the duplication being refused, one layer up, in the code that
+    refuses it. Two obligations come with an entry, and they are conventions 11
+    and 15 in this specific setting: **plant the duplicate first** and watch the
+    guard name the owner, and **give every pattern a `selftest` string it must
+    match**, because a regex that has quietly stopped matching prints exactly
+    what a clean tree prints. The register itself is held to its owners — a
+    `def` name the owner does not define, a missing owner, a dead waiver and a
+    pattern that no longer matches its own selftest are all findings, on the
+    same reasoning: an entry that guards nothing is worse than no entry, because
+    it reads as coverage.
