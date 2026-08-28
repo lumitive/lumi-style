@@ -51,6 +51,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import preflight  # noqa: E402
+import repo_files  # noqa: E402
 import shipping  # noqa: E402 — after the bootstrap
 import versioning  # noqa: E402
 from check_repo import ENTRY_STAMP, TOKEN_STAMPS  # noqa: E402 — after the bootstrap
@@ -285,11 +286,10 @@ def main():
     # one. It cost three squashes in a single session, with the lesson written
     # down after the first, which is how a rule that needs a tool announces
     # itself.
-    head = subprocess.run(["git", "log", "--format=%s", "-1"],
-                          capture_output=True, text=True, cwd=ROOT)
-    if head.returncode == 0 and head.stdout.startswith(f"{new} "):
+    rc, head = repo_files.run_git("log", "--format=%s", "-1", root=ROOT)
+    if rc == 0 and head.startswith(f"{new} "):
         sys.exit(
-            f"HEAD is already a {new} commit: {head.stdout.strip()[:70]!r}\n"
+            f"HEAD is already a {new} commit: {head[:70]!r}\n"
             f"    Committing again would put two commits on one release, which "
             f"the commit-convention guard and check_evidence --init both "
             f"assume cannot happen.\n"

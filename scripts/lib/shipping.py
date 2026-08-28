@@ -19,7 +19,6 @@ from __future__ import annotations
 # --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
 import pathlib as _bs_pathlib  # noqa: E402
 import re
-import subprocess
 import sys as _bs_sys  # noqa: E402
 
 _SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
@@ -33,6 +32,8 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 import pathlib  # noqa: E402
 import sys  # noqa: E402
 
+import repo_files  # noqa: E402 — the one way to ask git
+
 # NAMED, not counted: `parents[2]` returns a WRONG path when this file moves
 # drawers, and a wrong path is read as a repository with nothing in it. The
 # form below raises instead, which is the failure a reader can act on.
@@ -45,8 +46,7 @@ RELEASE_SUBJECT = re.compile(r"^\d+\.\d+\.\d+ — ")
 
 
 def _git(*args):
-    p = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
-    return p.returncode, p.stdout.strip()
+    return repo_files.run_git(*args, root=ROOT)
 
 
 def _released_versions(ref):

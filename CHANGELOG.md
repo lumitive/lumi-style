@@ -1,3 +1,41 @@
+## 0.1.638 — thirteen ways to ask git which files exist, and two of them answered "none"
+
+The last fact on the audit's list, and the one with the most copies.
+
+**Sixteen invocations, three identical `git(*args)` helpers in three files, and
+thirteen spellings of `git ls-files`.** The helpers were the same four lines
+each. The listings were not: their FAILURE handling disagreed. Most said the
+right thing — *a scan that did not run is not a scan that passed*, a sentence
+this repository has written into six guards — and **two returned an empty list.**
+One of those is `_json_manifests`, which feeds the English-only red line: with
+git unable to answer, that guard scanned nothing and printed exactly what it
+prints on a clean tree. FM-24, in the guard that enforces red line 1.
+
+`scripts/lib/repo_files.py` returns `(names, problem)`, the shape
+`history.read_rows` uses and for the same reason — inability is not absence, and
+what to do about it belongs to the caller: a guard fails, the claim sweeper says
+nothing was swept, and `_json_manifests` RAISES, which `main()` already reports
+as that guard's own failure. A tarball checkout with no index stays a third
+answer and still returns `[]`, because that one is genuinely nothing to scan.
+
+**`-z` always.** Five callers split on newlines, which is a bug waiting for a
+filename with a newline in it. One reader makes the safe spelling the only
+spelling, and a test now creates such a file and reads it back.
+
+Deliberate red: a private `subprocess.run(["git", …])` planted in an unrelated
+script named its owner; a `.git` directory that git refuses made
+`_json_manifests` raise instead of reporting a clean tree, which is the case the
+old code could not distinguish from success.
+
+**That closes the audit.** Nine classes of one fault, five modules, one register
+and one guard: `evals/single-source.json` holds the colour arithmetic, the CSS
+token reader, the markup text extraction, the package version and release list,
+the platform roster, the conformance history, the gate register, the agent
+vocabulary and now the git questions. Adding the tenth is an entry rather than a
+guard, which was the point.
+
+Design record: `specs/2026-08-28-one-home-design.md`.
+
 ## 0.1.637 — the registry's prose knew the effort levels and the code did not
 
 The question that started this work, answered the way the owner chose: **one

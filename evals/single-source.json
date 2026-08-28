@@ -189,6 +189,24 @@
    ],
    "why": "the knowledge AROUND the three model facts was duplicated even though the facts themselves must stay apart: the driver composed effort into a model id and never consulted the vocabulary, nothing validated a pin before spending a run's budget, the effort tuple was Claude Code's five applied to platforms with four, eight and none, and the recorded vocabulary file was opened by two tools with two spellings.",
    "note": "capability, intent and observation are NOT merged here and merging them is the defect 0.1.614, 0.1.623 and 0.1.625 each paid for. One module owns the vocabulary; three callers ask three questions."
+  },
+  {
+   "id": "asking-git",
+   "fact": "what this repository tracks, and every other question put to git",
+   "owner": "scripts/lib/repo_files.py",
+   "defs": [
+    "run_git",
+    "tracked_files",
+    "ignored_files"
+   ],
+   "patterns": [
+    {
+     "regex": "subprocess\\.run\\(\\s*\\[\\s*[\"']git[\"']",
+     "what": "a private git invocation",
+     "selftest": "p = subprocess.run([\"git\", \"ls-files\"], cwd=ROOT, capture_output=True, text=True)"
+    }
+   ],
+   "why": "sixteen invocations, three identical `git(*args)` helpers copied into three files, and thirteen spellings of `git ls-files` whose FAILURE handling disagreed. Most said `a scan that did not run is not a scan that passed`; two returned an empty list, one of them feeding the English-only red line, so the guard scanned nothing and printed what it prints on a clean tree. Five split on newlines, which is a bug waiting for a filename with a newline in it."
   }
  ],
  "waivers": [

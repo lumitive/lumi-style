@@ -39,6 +39,7 @@ import color_math  # noqa: E402 — after the bootstrap, deliberately
 import deliverable_registry  # noqa: E402 — the storyline vocabulary, for prompt parity
 import gating  # noqa: E402
 import platform_registry  # noqa: E402 — the one registry reader
+import repo_files  # noqa: E402 — the one way to ask git
 import secret_patterns  # noqa: E402 — the one credential table, shared with check_privacy
 import stamps  # noqa: E402 — after the bootstrap
 import trace_schema  # noqa: E402 — the one definition, shared with scripts/ops/trace.py
@@ -246,12 +247,16 @@ def _json_manifests():
     """
     if not (ROOT / ".git").exists():
         return []
-    p = subprocess.run(["git", "ls-files", "-z", "--", "*.json"],
-                       cwd=ROOT, capture_output=True, text=True)
-    if p.returncode != 0:
-        return []
+    # RAISES rather than returning []. This returned an empty list when git
+    # could not be asked, so the English-only red line scanned nothing and
+    # printed what it prints on a clean tree. main() reports a raising guard as
+    # that guard's failure, which is the answer this needs.
+    names, problem = repo_files.tracked_files("*.json", root=ROOT,
+                                              what="tracked-manifest scan")
+    if problem:
+        raise RuntimeError(problem)
     out = []
-    for f in p.stdout.split("\0"):
+    for f in names:
         if not f or f.startswith("evals/traces/"):
             continue
         out.append(ROOT / f)
@@ -3136,17 +3141,13 @@ def check_commit_convention():
     if not (ROOT / ".git").exists():
         return []
 
-    def git(*args):
-        p = subprocess.run(["git", *args], cwd=ROOT,
-                           capture_output=True, text=True)
-        return p.returncode, p.stdout.strip()
-
-    rc, subject = git("log", "-1", "--format=%s")
+    rc, subject = repo_files.run_git("log", "-1", "--format=%s", root=ROOT)
     if rc != 0:
         return []
     target = "HEAD"
     if subject.startswith("Merge "):
-        rc, merged = git("log", "-1", "--format=%s", "HEAD^2")
+        rc, merged = repo_files.run_git("log", "-1", "--format=%s", "HEAD^2",
+                                       root=ROOT)
         if rc == 0:
             target, subject = "HEAD^2", merged
         # A commit merely TITLED "Merge ..." with no second parent falls
@@ -3157,8 +3158,9 @@ def check_commit_convention():
     # pull_request checkout produces every time) the guard saw no files and
     # exited clean — disarmed on exactly the event that runs it (same
     # review). With it, a merge reports its files against its first parent.
-    rc, files = git("diff-tree", "--no-commit-id", "--name-only", "-r",
-                    "-m", "--first-parent", target)
+    rc, files = repo_files.run_git("diff-tree", "--no-commit-id", "--name-only",
+                                   "-r", "-m", "--first-parent", target,
+                                   root=ROOT)
     if rc != 0 or "CHANGELOG.md" not in files.splitlines():
         return []
     m = re.match(r"(\d+\.\d+\.\d+) — ", subject)
@@ -3169,7 +3171,9 @@ def check_commit_convention():
     # The CHANGELOG as of the commit being judged, NOT the working tree:
     # during release prep the next entry exists uncommitted while HEAD is
     # still the previous release, and that window is not a violation.
-    rc, committed_changelog = git("show", f"{target}:CHANGELOG.md")
+    rc, committed_changelog = repo_files.run_git("show",
+                                                 f"{target}:CHANGELOG.md",
+                                                 root=ROOT)
     if rc != 0:
         return []
     newest = re.search(r"^##\s+(\d+\.\d+\.\d+)", committed_changelog, re.M)
@@ -3219,15 +3223,12 @@ def check_secrets():
     """
     if not (ROOT / ".git").exists():
         return []  # a tarball checkout has no listing to scan (documented)
-    p = subprocess.run(["git", "ls-files"], cwd=ROOT,
-                       capture_output=True, text=True)
-    if p.returncode != 0:
+    names, problem = repo_files.tracked_files(root=ROOT, what="secret scan")
+    if problem:
         # A git failure INSIDE a git checkout is a finding, not a skip — the
         # PR #87 review pointed at check_js.py holding the opposite (correct)
         # policy for the identical condition.
-        return [f"git ls-files failed ({p.stderr.strip()[:80]}) — the secret "
-                f"scan did not run, and a scan that did not run is not a "
-                f"scan that passed"]
+        return [problem]
     errors = []
     # The operator's out-of-bounds lists (OR-8: ~/.lumi/terms/*.terms.txt),
     # when this machine has them, are run over the tracked text too. Red
@@ -3237,7 +3238,7 @@ def check_secrets():
     # guard returns findings, not verdicts, so its absence is reported by
     # check_privacy on the deliverable side rather than silently here.
     terms = _operator_terms()
-    for relpath in p.stdout.splitlines():
+    for relpath in names:
         if not relpath or relpath in SECRET_WAIVERS:
             continue
         path = ROOT / relpath
@@ -3315,13 +3316,11 @@ def check_script_paths():
     frozen history and excluded; generated artifacts are scanned too, which
     holds their SOURCE literals honest through the regeneration gate.
     """
-    p = subprocess.run(["git", "ls-files"], cwd=ROOT,
-                       capture_output=True, text=True)
-    if p.returncode != 0:
-        return ["git ls-files failed — the script-path scan did not run, and "
-                "a scan that did not run is not a scan that passed"]
+    names, problem = repo_files.tracked_files(root=ROOT, what="script-path scan")
+    if problem:
+        return [problem]
     errors = []
-    for relpath in p.stdout.splitlines():
+    for relpath in names:
         if not relpath:
             continue
         if any(relpath.startswith(f) for f in SCRIPT_PATH_FROZEN):
@@ -3364,7 +3363,7 @@ SIBLING_MODULES = (
     "checker_report", "secret_patterns", "corpus", "gating",
     "gate_registry", "stamps", "trace_store", "shipped",
     "state_dir", "agent_runs", "versioning", "platform_registry",
-    "history", "agent_capability",
+    "history", "agent_capability", "repo_files",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
@@ -3840,13 +3839,11 @@ def check_metric_id_ranges():
     except (OSError, SyntaxError) as exc:                           # noqa: BLE001
         return [f"could not read the metric vocabularies: {exc}"]
 
-    listed = subprocess.run(["git", "ls-files"], cwd=ROOT,
-                            capture_output=True, text=True)
-    if listed.returncode != 0:
-        return ["git ls-files failed — the metric-range scan did not run, and a "
-                "scan that did not run is not a scan that passed"]
+    names, problem = repo_files.tracked_files(root=ROOT, what="metric-range scan")
+    if problem:
+        return [problem]
     errors = []
-    for relpath in listed.stdout.splitlines():
+    for relpath in names:
         # CHANGELOG and specs/ are frozen history: each entry was true when it
         # was written and is not retroactively corrected.
         if not relpath or any(relpath.startswith(f) for f in SCRIPT_PATH_FROZEN):
@@ -4102,13 +4099,10 @@ def check_shipped_closure():
     except (OSError, ValueError) as exc:                            # noqa: BLE001
         return [f"could not read {shipped.MANIFEST}: {exc}"]
 
-    p = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT,
-                       capture_output=True, text=True)
-    if p.returncode != 0:
-        return [f"git ls-files failed ({p.stderr.strip()[:80]}) — the shipped "
-                f"closure did not run, and a scan that did not run is not a "
-                f"scan that passed"]
-    tracked = [f for f in p.stdout.split("\0") if f]
+    tracked, problem = repo_files.tracked_files(root=ROOT,
+                                               what="shipped-closure scan")
+    if problem:
+        return [problem]
     consumer = shipped.consumer_scripts(ROOT)
     errors = []
     # A rule whose `side` is misspelled disarms the teeth SILENTLY: `side_of`
@@ -4217,13 +4211,11 @@ def check_cross_boundary_paths():
         shipped.manifest(ROOT)
     except (OSError, ValueError) as exc:                            # noqa: BLE001
         return [f"could not read {shipped.MANIFEST}: {exc}"]
-    p = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT,
-                       capture_output=True, text=True)
-    if p.returncode != 0:
-        return [f"git ls-files failed ({p.stderr.strip()[:80]}) — the "
-                f"cross-boundary scan did not run, and a scan that did not run "
-                f"is not a scan that passed"]
-    tracked = {f for f in p.stdout.split("\0") if f}
+    names, problem = repo_files.tracked_files(root=ROOT,
+                                             what="cross-boundary scan")
+    if problem:
+        return [problem]
+    tracked = set(names)
     consumer = shipped.consumer_scripts(ROOT)
     # A directory is reported only when NOTHING under it ships. `evals/` holds
     # `thresholds.json` and `gates.json`, both consumer, so a script naming
@@ -4359,16 +4351,13 @@ def check_local_paths():
     does, and it is what a careless author writes after reading the advice
     below.
     """
-    p = subprocess.run(["git", "ls-files"], cwd=ROOT,
-                       capture_output=True, text=True)
-    if p.returncode != 0:
+    names, problem = repo_files.tracked_files(root=ROOT, what="local-path scan")
+    if problem:
         # A git failure inside a checkout is a finding, not a skip — the same
         # policy check_secrets holds for the identical condition.
-        return [f"git ls-files failed ({p.stderr.strip()[:80]}) — the local-path "
-                f"scan did not run, and a scan that did not run is not a scan "
-                f"that passed"]
+        return [problem]
     errors = []
-    for name in p.stdout.splitlines():
+    for name in names:
         # tests/ by construction: a synthetic tree's fixtures name paths that
         # exist only in tmp_path, and this guard's OWN tests must plant the
         # string it looks for. releases/evidence/ is frozen history.
@@ -4821,11 +4810,14 @@ def _tracked_stems(reldir, suffix=".svg"):
     """
     if not (ROOT / ".git").exists():
         return None
-    p = subprocess.run(["git", "ls-files", "-z", "--", f"{reldir}/*{suffix}"],
-                       cwd=ROOT, capture_output=True, text=True)
-    if p.returncode != 0:
+    # The two conditions deliberately share ONE answer here, unlike everywhere
+    # else in this file: the caller's question is only "can I ask git at all",
+    # and a checkout with no index and a git that will not answer are the same
+    # answer to it.
+    names, problem = repo_files.tracked_files(f"{reldir}/*{suffix}", root=ROOT)
+    if problem:
         return None
-    return {pathlib.PurePosixPath(f).stem for f in p.stdout.split("\0") if f}
+    return {pathlib.PurePosixPath(f).stem for f in names}
 
 
 def check_assets_tracked():
@@ -4856,18 +4848,15 @@ def check_assets_tracked():
     """
     if not (ROOT / ".git").exists():
         return []                    # a tarball checkout has nothing to assert
-    p = subprocess.run(["git", "ls-files", "-o", "-i", "-z",
-                        "--exclude-standard", "assets/"],
-                       cwd=ROOT, capture_output=True, text=True)
-    if p.returncode != 0:
+    names, problem = repo_files.ignored_files("assets/", root=ROOT,
+                                              what="ignored-asset scan")
+    if problem:
         # A repository that has git and cannot be asked is not a repository
         # with nothing to report. Returning [] here would rebuild the exact
         # blind spot this guard exists to close, one level down.
-        return [f"could not ask git which assets are ignored "
-                f"(git ls-files exited {p.returncode}) — this guard did not "
-                f"run, which is not the same as finding nothing"]
+        return [problem]
     errors = []
-    for path in sorted(f for f in p.stdout.split("\0") if f):
+    for path in sorted(names):
         if pathlib.Path(path).name.startswith("."):
             continue
         errors.append(
@@ -4879,12 +4868,11 @@ def check_assets_tracked():
     # that were on disk and untracked — which the ignore-list check above
     # cannot see, because untracked-and-not-ignored is neither state it asks
     # about. A manifest is the package's word about what it ships.
-    tracked = subprocess.run(["git", "ls-files", "-z", "assets/"], cwd=ROOT,
-                             capture_output=True, text=True)
-    if tracked.returncode != 0:
-        return errors + ["could not list tracked assets (git ls-files failed) — "
-                         "the manifest half of this guard did not run"]
-    have = {f for f in tracked.stdout.split("\0") if f}
+    listed, problem = repo_files.tracked_files("assets/", root=ROOT,
+                                               what="tracked-asset scan")
+    if problem:
+        return errors + [problem]
+    have = set(listed)
     row = re.compile(r"^\|\s*`?([\w./-]+\.(?:svg|png|woff2|ttf|otf|json))`?\s*\|")
     for manifest in sorted((ROOT / "assets").rglob("SOURCES.md")):
         rel_dir = manifest.parent.relative_to(ROOT)
