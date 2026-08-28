@@ -359,7 +359,7 @@ def _rendered_shape(runs) -> dict:
     # "several entries carry pages" is the normal case, and the two selectors
     # disagreed whenever the first one was empty: one returned None, the other
     # a median from a different geometry. Two computations under one metric
-    # name is what the `no shadow math` guard is about, and a corpus holding
+    # name is what the `one home` guard is about, and a corpus holding
     # both would compare numbers that are not the same number.
     geometry = next((r for r in doc.get("results", []) if "pages" in r), None)
     if geometry is None or not geometry.get("pages"):

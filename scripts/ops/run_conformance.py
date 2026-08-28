@@ -1167,7 +1167,7 @@ def task_fingerprint(task: dict) -> str:
                 ("prompt", "deliverable", "score", "require", "answers", "input",
                  "genre")}
     # One implementation, shared with trace.py. Two sha256-of-sorted-json is
-    # the `no shadow math` guard's territory, and a fingerprint that differs
+    # the `one home` guard's territory, and a fingerprint that differs
     # between callers is worse than none — both sides would report matches.
     return fingerprint.material_hash(material)
 

@@ -104,7 +104,7 @@ def whole_file(raw: str) -> str:
     return html.unescape(raw)
 
 
-def reader_text(raw: str) -> str:
+def actionable_text(raw: str) -> str:
     """What layer 2 searches: only what a reader sees.
 
     Layer 2 is about contact details a reader could act on, so markup is not
@@ -113,6 +113,13 @@ def reader_text(raw: str) -> str:
     "104 105 1061" is phone-shaped. Six findings on a clean fixture, none of
     them a phone number: exactly the volume that teaches a reader to skip the
     reported section.
+
+    **Not `reader_text`, which is what this was called until 0.1.634.**
+    `markup.reader_text` is a DIFFERENT corpus — visible text minus what only a
+    machine reads — and this scan deliberately keeps the machine-only part: a
+    phone number inside a `<style>` comment has still left the document. One
+    name for two corpora is how the `single-source` register found this, and
+    the two are kept apart rather than merged.
     """
     return markup.strip_tags(raw)
 
@@ -188,7 +195,7 @@ def term_pattern(term: str) -> re.Pattern[str]:
 def scan(raw: str, terms):
     """Layer 1 over the whole file, layer 2 over what a reader sees."""
     text = whole_file(raw)
-    visible = reader_text(raw)
+    visible = actionable_text(raw)
     layer1, layer2 = [], []
     for label, pattern in CREDENTIALS:
         for m in pattern.finditer(text):

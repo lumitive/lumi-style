@@ -102,6 +102,11 @@
    "why": "every reader is development (release.py, build_page_contracts.py, check_rule_coverage.py, check_repo.py); the consumer reads the GENERATED references/page-contracts.md instead"
   },
   {
+   "prefix": "evals/single-source.json",
+   "side": "dev",
+   "why": "the one-home register: check_repo is its only reader, and the duplication it refuses is a development concern"
+  },
+  {
    "prefix": "evals/thresholds.json",
    "side": "consumer",
    "why": "eval_corpus grades a deliverable against it"

@@ -1,0 +1,69 @@
+{
+ "schema": 1,
+ "$comment": "One home per fact, and the names that own it. WHY IT EXISTS: 0.1.415's escape shape is a fix landing in one of several duplicated implementations while the same defect stays live in the others; 0.1.420 extracted the one implementation, and a guard is what keeps \"one\" true. Extraction without a guard has a half-life here - 0.1.621's README generator re-derived a selection rule that had already been consolidated, and dropped both of its caveats. This file is the register `check_one_home` reads, so consolidating a fact is a JSON entry rather than a new guard. FIELDS: `owner` is the module that holds the implementation; `defs` are definition names it owns - a `def` of one of them anywhere else under scripts/ is the drift, while an import or a call is fine; `patterns` are regexes whose matches outside the owner are the drift, for shapes that are not `def`s, and each carries a `selftest` string it MUST match, because a regex that has quietly stopped matching anything prints exactly what a clean tree prints (FM-24); `retired_defs` are the private spellings the extraction REMOVED - the owner must not define them and nothing else may either, which is how the pre-0.1.420 copies stay gone; `why` is the defect the consolidation paid for. An entry whose owner is missing, or which names a `def` the owner does not define, is a finding rather than a silent skip, for the same reason. A waiver is a written decision: it names the file, the fact and the reason, and an unused waiver is itself a finding, because an exemption that outlived its reason is an exemption nobody decided. NOT HERE: `check_secret_patterns_parity`, whose table is computed at runtime from secret_patterns.MARKERS rather than declared - it is already one home, and an entry could only restate it.",
+ "facts": [
+  {
+   "id": "colour-arithmetic",
+   "fact": "sRGB linearisation, luma and contrast",
+   "owner": "scripts/lib/color_math.py",
+   "defs": [
+    "srgb_linear",
+    "srgb_encode",
+    "luma255",
+    "contrast_from_luma",
+    "contrast255",
+    "hex_to_rgb",
+    "contrast_hex",
+    "mix255"
+   ],
+   "why": "0.1.415 fixed one of several contrast implementations and the same class stayed live in the rest; 0.1.420 extracted this module.",
+   "retired_defs": [
+    "_lin",
+    "_luma"
+   ]
+  },
+  {
+   "id": "css-token-reading",
+   "fact": "reading custom properties out of a CSS block",
+   "owner": "scripts/lib/css_tokens.py",
+   "defs": [
+    "strip_comments",
+    "css_block",
+    "css_vars",
+    "rule_vars"
+   ],
+   "why": "the same 0.1.415 shape on the other half of the token path: several readers of one stylesheet, each with its own comment handling.",
+   "retired_defs": [
+    "_vars"
+   ]
+  },
+  {
+   "id": "visible-text",
+   "fact": "turning markup into the text a reader sees",
+   "owner": "scripts/lib/markup.py",
+   "defs": [
+    "body_tag",
+    "body_attr",
+    "strip_tags",
+    "visible_text",
+    "reader_text",
+    "join_cjk"
+   ],
+   "patterns": [
+    {
+     "regex": "re\\.(?:sub|compile)\\(\\s*r?[\"']<\\[\\^>\\]\\+>[\"']",
+     "what": "a private strip-tags",
+     "selftest": "x = re.sub(r\"<[^>]+>\", \" \", raw)"
+    },
+    {
+     "regex": "\\(\\?<=\\[[^\\]]+\\]\\) \\(\\?=\\[[^\\]]+\\]\\)",
+     "what": "a private CJK-space rule",
+     "selftest": "y = re.sub(r\"(?<=[\\u4e00-\\u9fff]) (?=[\\u4e00-\\u9fff])\", \"\", t)",
+     "note": "the shape rather than the range: markup.py spells the range with the characters themselves and a copy is as likely to spell it with escapes, so the guard keys on the lookbehind-space-lookahead shape, which the previous regex - escapes only - could not see."
+    }
+   ],
+   "why": "the 2026-08-20 audit found four private strip-tags regexes and two of the CJK-space rule, each a little different, in a tree whose markup.py docstring already listed what that duplication produced."
+  }
+ ],
+ "waivers": []
+}
