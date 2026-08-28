@@ -1992,906 +1992,480 @@ def render(record: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
-def main(argv):
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    # A VERB TAKES THE NOUNS IT ACTS ON AND NOTHING ELSE, and subparsers make
-    # that mechanical instead of aspirational. Under one flat parser ten of the
-    # twelve flags belonged to exactly one command anyway — and the two that did
-    # not were the two that misled: `--model`/`--effort` were parsed before the
-    # dispatch, so `score --effort high` was validated and then silently
-    # discarded while `score --effort banana` exited 1. A CLI that refuses a
-    # value it will not use is a CLI whose shape nobody can read.
-    #
-    #   selection — what it acts on:  --run --agent --task --cell --version
-    #   action    — what it does:     --drive --record --redraw --ask-models
-    #   limit     — what it may spend: --budget
-    sub = ap.add_subparsers(dest="command", required=True, metavar="COMMAND")
+def cmd_validate(tasks: list[dict], agents: list[dict]) -> int:
+    """Parse the suite and the history. The CI step, and the only
+    verb that reads nothing but the repository.
 
-    p_validate = sub.add_parser(
-        "validate", help="parse the suite and the history; the CI step")
-    p_detect = sub.add_parser(
-        "detect", help="which agents answer a probe on this machine")
-    p_run = sub.add_parser(
-        "run", help="prepare or drive the agents over the tasks")
-    p_score = sub.add_parser("score", help="grade one run directory")
-    p_report = sub.add_parser("report", help="render the board from run(s)")
-    p_restamp = sub.add_parser(
-        "restamp", help="recompute the board's header for a new version")
-    del p_validate                       # takes the repository and nothing else
-
-    p_detect.add_argument(
-        "--ask-models", dest="ask_models", action="store_true",
-        help="also ask each agent what it can be RUN AS. Opt-in because it "
-             "shells out a second time per agent and `detect` is the cheap "
-             "answer to 'is it there'. Eleven of the twelve answer from the "
-             "registry waiver without running anything. (Named `--models` "
-             "until 0.1.644, one letter from `--model`, which meant something "
-             "unrelated on another verb.)")
-    p_detect.add_argument(
-        "--record", action="store_true",
-        help="write the answered vocabularies to conformance/vocabularies.json, "
-             "so a later probe can say what CHANGED — without a stored set the "
-             "`vocabulary-changed` trigger describes a comparison nothing can "
-             "make. Needs --ask-models: there is nothing to record until the "
-             "probes have been asked.")
-
-    for parser in (p_run, p_score):
-        parser.add_argument("--run", action="append", default=None,
-                            metavar="DIR",
-                            help="the run directory. A bare name is a run ID "
-                                 "resolved under the results root, not a path "
-                                 "against the working directory")
-    p_report.add_argument(
-        "--run", action="append", default=None, metavar="DIR",
-        help="repeatable: `report` is the only verb that merges runs. A "
-             "scoreboard built from one directory erases every agent that "
-             "directory does not contain, and later --run wins on a collision, "
-             "so re-running one agent replaces its own row and nobody else's")
-
-    p_run.add_argument(
-        "--agent", action="append", default=None, metavar="ID",
-        help="drive this agent even if no CLI answers its probe — IDEs and API "
-             "models are driven by hand. Repeatable; every name has to resolve, "
-             "so a typo among three is named rather than silently dropping two")
-    p_run.add_argument(
-        "--task", default=None, metavar="ID",
-        help="only this task id. The suite is three tasks and one of them is a "
-             "twelve-page deck, so proving the driver works should not cost a "
-             "deck")
-    p_run.add_argument(
-        "--replace", action="store_true",
-        help="overwrite a run directory that already holds a DIFFERENT "
-             "configuration. Without it such a run is refused before anything "
-             "is spent — `<run>/<agent>/<task>` cannot express two cells of one "
-             "agent, and clearing it silently destroyed the earlier one")
-    p_run.add_argument(
-        "--drive", action="store_true",
-        help="actually invoke each agent, in a temporary directory OUTSIDE this "
-             "repository, instead of writing a prompt for a person to invoke")
-    # ONE FLAG FOR ONE CONFIGURATION. `--model` and `--effort` were two flags
-    # whose values had to agree by convention, and for a platform that spells
-    # the level inside the model id they were never two things at all —
-    # `drive_effort_in_model` composes `cursor-grok-4.6-high` from both halves.
-    # Two flags also made one agent at two levels inexpressible: `--effort
-    # cursor=low --effort cursor=high` kept the last, silently.
-    p_run.add_argument(
-        "--cell", action="append", default=None, metavar="[AGENT=]MODEL[@EFFORT]",
-        help="the configuration to run: a model, optionally a level after `@`, "
-             "optionally one agent before `=`. Repeatable — `--cell "
-             "claude-code=opus@high --cell cursor=cursor-grok-4.6@high` is a "
-             "horse race; a bare `--cell opus@high` is the default for every "
-             "agent. Left off, each CLI picks its own and the run records that "
-             "it did. Levels: "
-             + "|".join(trace_schema.ENUMS["effort"]))
-    # ONE PARAMETER, ONE POLICY. These were two peer integers with no stated
-    # relationship, which reads as two names for one thing — and the owner read
-    # it that way. They are not: `_run_with_budget` grants the FLOOR outright
-    # and renews on signs of life up to the CEILING. `DRIVE_TIMEOUT = 1800`
-    # killed Hermes on 2026-08-21 six seconds before its deck's mtime, inside
-    # the repair loop for its third gate; one number deletes the floor and a
-    # quiet first minute kills a healthy run.
-    p_run.add_argument(
-        "--budget", default=None, metavar="FLOOR[:CEILING]",
-        help=f"seconds a task gets outright, and the ceiling renewal may never "
-             f"pass (default {DRIVE_BASE_BUDGET}:{DRIVE_HARD_CAP}). Past the "
-             f"floor a run continues while it shows signs of life. "
-             f"`--budget {DRIVE_HARD_CAP}:{DRIVE_HARD_CAP}` means floor = "
-             f"ceiling, i.e. no renewal — expressible on purpose, so choosing "
-             f"it is a choice")
-
-    p_report.add_argument(
-        "--record", action="store_true",
-        help="write one history row per scored agent per run — what the "
-             "evidence gate's freshness obligation reads")
-    p_report.add_argument(
-        "--redraw", action="store_true",
-        help="rewrite the board's generated block from the named run WITHOUT "
-             "touching conformance/history.json — for when the wording changed "
-             "and the measurement did not. `--record` would stamp the run's "
-             "history rows with today's version")
-
-    p_restamp.add_argument(
-        "--version", default=None,
-        help="the skill version the header should name (default: the newest "
-             "CHANGELOG heading)")
-
-    args = ap.parse_args(argv)
-
-    try:
-        tasks, agents = load_tasks(), load_agents()
-    except (OSError, ValueError, KeyError) as exc:          # noqa: BLE001
-        print(f"FAIL  conformance suite does not parse: {exc}")
-        return 1
-
-    if args.command == "restamp":
-        version = args.version
-        if not version:
-            found = versioning.releases(ROOT)
-            if not found:
-                print("FAIL  no '## X.Y.Z' heading in CHANGELOG.md and no "
-                      "--version given")
-                return 1
-            version = found[0]
-        return cmd_restamp(version)
-
-    if args.command == "validate":
-        hist = history.path(ROOT)
-        if hist.exists():
-            rows, problem = history.read_rows(ROOT)
-            if problem:
-                print(f"FAIL  {problem}")
-                return 1
-            try:
-                for i, r in enumerate(rows):
-                    for key in ("skill_version", "agent", "date", "run_dir",
-                                "tasks", "scores_sha256"):
-                        if key not in r:
-                            raise ValueError(f"history[{i}] missing {key!r}")
-                    if not isinstance(r["tasks"], dict):
-                        raise ValueError(f"history[{i}].tasks is not a dict")
-                    # The optional per-task maps are keyed by task id, like
-                    # `tasks` and `built`. A row that names a task in `config`
-                    # which `tasks` does not hold is describing a run that was
-                    # never scored, and that is the shape a hand edit takes.
-                    for key in ("config", "traces"):
-                        if key not in r:
-                            continue
-                        if not isinstance(r[key], dict):
-                            raise ValueError(
-                                f"history[{i}].{key} is not a dict")
-                        stray = sorted(set(r[key]) - set(r["tasks"]))
-                        if stray:
-                            raise ValueError(
-                                f"history[{i}].{key} names {stray} which "
-                                f"history[{i}].tasks does not")
-                    for task_id, conf in (r.get("config") or {}).items():
-                        if not isinstance(conf, dict):
-                            raise ValueError(
-                                f"history[{i}].config[{task_id!r}] is not a dict")
-                        # The effort tuple is IMPORTED for the reason stated at
-                        # its other use in this file: a second copy of it drifted
-                        # once and cost a real run.
-                        eff = conf.get("effort")
-                        if eff is not None and eff not in trace_schema.ENUMS["effort"]:
-                            raise ValueError(
-                                f"history[{i}].config[{task_id!r}].effort is "
-                                f"{eff!r}, not one of "
-                                f"{sorted(trace_schema.ENUMS['effort'])}")
-            except (json.JSONDecodeError, ValueError) as exc:
-                print(f"FAIL  conformance/history.json does not parse: {exc}")
-                return 1
-            print(f"ok    {len(tasks)} tasks, {len(agents)} agents in the "
-                  f"registry, {len(rows)} history rows")
-            return 0
-        print(f"ok    {len(tasks)} tasks, {len(agents)} agents in the registry")
-        return 0
-
-    # `run` and `score` act on exactly one directory. Saying so beats quietly
-    # taking the first: an operator who passes two to `score` means to score
-    # two, and scoring one of them without a word is the kind of silent
-    # narrowing this harness is otherwise careful about.
-    # `getattr`, because a verb that takes no --run no longer HAS the attribute:
-    # that is the point of subparsers, and reading it unconditionally is the
-    # flat parser's habit surviving the change that removed it.
-    runs = getattr(args, "run", None) or []
-    if args.command in ("run", "score") and len(runs) > 1:
-        print(f"FAIL  {args.command} acts on one --run directory; {len(runs)} given. "
-              f"Only `report` merges runs.")
-        return 1
-
-    known_ids = {a["id"] for a in agents}
-    # RESOLVED ONLY FOR THE VERB THAT SPENDS. `--cell` lives on `run` alone now,
-    # so there is nothing to parse for `score` or `report` and nothing for them
-    # to ignore.
-    model_all = effort_all = None
-    model_per: dict[str, str] = {}
-    effort_per: dict[str, str] = {}
-    if args.command == "run":
-        for raw in args.cell or []:
-            try:
-                # THE TUPLE IS PASSED, NOT RETYPED. It was retyped once and the
-                # copies drifted in one release: 0.1.554 widened the driver's
-                # and left `trace_schema`'s at three, so a run pinned to `xhigh`
-                # could be driven and could not be recorded.
-                agent_id, model, effort = agent_cell.parse_pin(
-                    raw, known_ids, trace_schema.ENUMS["effort"])
-            except agent_cell.CellError as exc:
-                print(f"FAIL  {exc}")
-                return 1
-            if agent_id is None:
-                model_all = model if model is not None else model_all
-                effort_all = effort if effort is not None else effort_all
-            else:
-                if model is not None:
-                    model_per[agent_id] = model
-                if effort is not None:
-                    effort_per[agent_id] = effort
-    probed = {a["id"]: detect(a) for a in agents}
-    if args.command == "detect":
-        import datetime
-        answered: dict[str, dict] = {}
-        for a in agents:
-            ok, note = probed[a["id"]]
-            print(f"  {a['id']:16} {'available' if ok else 'not exercised':14} {note}")
-            if args.ask_models:
-                state, detail = agent_capability.probe_models(a)
-                print(f"  {'':16} models {state:8} {detail}")
-                if state == "asked":
-                    answered[a["id"]] = {
-                        "ids": [i.strip() for i in detail.split(",")],
-                        "cli_version": note if ok else None,
-                        "asked_on": datetime.date.today().isoformat(),
-                    }
-        if args.record:
-            # RECORDED SO A CHANGE CAN BE SEEN. `agent-evals.json` declared a
-            # `vocabulary-changed` trigger and nothing stored a vocabulary to
-            # compare against — the live list was printed and dropped, so the
-            # trigger described a comparison no code could make (GAP-042). Only
-            # the agents that ANSWERED are written: a waiver and a failed probe
-            # are not vocabularies, and recording them as empty sets would make
-            # "this CLI offers nothing" and "we could not ask" the same row.
-            if not args.ask_models:
-                print("FAIL  --record needs --ask-models: there is nothing to "
-                      "record until the probes have been asked.")
-                return 1
-            for line in agent_capability.record_vocabularies(answered, ROOT):
-                print(line)
-            print(f"\nrecorded {len(answered)} vocabular"
-                  f"{'y' if len(answered) == 1 else 'ies'} -> "
-                  f"conformance/vocabularies.json")
-        print(f"\n{sum(1 for v in probed.values() if v[0])} of {len(agents)} available here")
-        return 0
-
-    if args.command == "run":
+    Extracted from `main()` at 0.1.646 with no change: this was one of
+    five command bodies inlined in a function that had grown to 1,210
+    lines, which is why every one of them could only be reached through
+    argv and only after the shared preamble.
+    """
+    hist = history.path(ROOT)
+    if hist.exists():
+        rows, problem = history.read_rows(ROOT)
+        if problem:
+            print(f"FAIL  {problem}")
+            return 1
         try:
-            budget_floor, budget_ceiling = parse_budget(args.budget)
-        except ValueError as exc:
-            print(f"FAIL  {exc}")
+            for i, r in enumerate(rows):
+                for key in ("skill_version", "agent", "date", "run_dir",
+                            "tasks", "scores_sha256"):
+                    if key not in r:
+                        raise ValueError(f"history[{i}] missing {key!r}")
+                if not isinstance(r["tasks"], dict):
+                    raise ValueError(f"history[{i}].tasks is not a dict")
+                # The optional per-task maps are keyed by task id, like
+                # `tasks` and `built`. A row that names a task in `config`
+                # which `tasks` does not hold is describing a run that was
+                # never scored, and that is the shape a hand edit takes.
+                for key in ("config", "traces"):
+                    if key not in r:
+                        continue
+                    if not isinstance(r[key], dict):
+                        raise ValueError(
+                            f"history[{i}].{key} is not a dict")
+                    stray = sorted(set(r[key]) - set(r["tasks"]))
+                    if stray:
+                        raise ValueError(
+                            f"history[{i}].{key} names {stray} which "
+                            f"history[{i}].tasks does not")
+                for task_id, conf in (r.get("config") or {}).items():
+                    if not isinstance(conf, dict):
+                        raise ValueError(
+                            f"history[{i}].config[{task_id!r}] is not a dict")
+                    # The effort tuple is IMPORTED for the reason stated at
+                    # its other use in this file: a second copy of it drifted
+                    # once and cost a real run.
+                    eff = conf.get("effort")
+                    if eff is not None and eff not in trace_schema.ENUMS["effort"]:
+                        raise ValueError(
+                            f"history[{i}].config[{task_id!r}].effort is "
+                            f"{eff!r}, not one of "
+                            f"{sorted(trace_schema.ENUMS['effort'])}")
+        except (json.JSONDecodeError, ValueError) as exc:
+            print(f"FAIL  conformance/history.json does not parse: {exc}")
             return 1
-        # A DRIVEN run gets its own dated directory by default, and `latest`
-        # becomes a symlink to it. Under the old default every drive wrote
-        # into `results/latest`, so a new driver.json (timeout, nothing
-        # produced) could sit beside a deck from a previous run in the same
-        # directory, and history.json's run_dir pointed at a tree last written
-        # on another day. A run id now names one run.
-        if runs:
-            # A BARE NAME IS A RUN ID, NOT A PATH. `--run r13` used to be taken
-            # literally, so it resolved against the working directory: invoked
-            # from the checkout it wrote the whole run — transcripts, driver
-            # records, an agent's deck — into the repository, which is the one
-            # place the 2026-08-21 directive says conformance results may not
-            # go. The print below claims to say "which root, said out loud" and
-            # it did: it said `r13-phase3`, a bare relative name, which is
-            # exactly the artifacts-nobody-can-find case it exists to prevent.
-            # A value that names a path (absolute, or carrying a separator) is
-            # still honoured as one — that is what an operator pointing at a
-            # scratch directory means.
-            given = pathlib.Path(runs[0]).expanduser()
-            run_dir = (given if given.is_absolute() or len(given.parts) > 1
-                       else RESULTS / given)
-        elif args.drive:
-            import datetime
-            run_dir = RESULTS / f"{versioning.skill_version(ROOT)}-{datetime.date.today().isoformat()}"
-        else:
-            run_dir = RESULTS / "latest"
-        # Created up front. The mkdir moved inside the per-agent loop when run and
-        # score split, so on the case the scoreboard itself documents — few or no
-        # agents detected — `run` announced a directory it had not made and
-        # `score` then reported it missing.
-        run_dir.mkdir(parents=True, exist_ok=True)
-        # WHICH ROOT, said out loud. A run that quietly changed where it writes
-        # is a run whose artifacts a person cannot find, and the two roots are
-        # far apart: one is inside the checkout, the other is the folder the
-        # operator reads deliverables in.
-        print(f"  writing into {run_dir}"
-              + ("" if RESULTS != IN_REPO_RESULTS else
-                 " (the deliverable folder does not exist yet — "
-                 "`output_dir.py --create` moves runs there)"))
-        named = set(args.agent or ())
-        wanted = [a for a in agents
-                  if (a["id"] in named if named else probed[a["id"]][0])]
-        # EVERY NAME HAS TO RESOLVE, not just one of them. A set difference
-        # rather than `if not wanted`: naming three agents and matching one
-        # would otherwise run that one and say nothing about the two typos.
-        missing = sorted(named - {a["id"] for a in agents})
-        if missing:
-            print("FAIL  no platform in the registry with id "
-                  + ", ".join(repr(m) for m in missing))
-            return 1
-        if not wanted:
-            print("no agent detected and no --agent given; nothing to prepare. An IDE "
-                  "or an API model has no CLI to probe — name it with --agent and drive "
-                  "it by hand.")
-            return 1
-        # PREPARED FIRST, SEQUENTIALLY. Making the directories and writing the
-        # prompts is milliseconds and it is the part that must be deterministic:
-        # a reader looking at the tree afterwards should find it laid out the
-        # same way every time, whatever order the agents finished in.
-        collisions: list[str] = []
-        plan: list[tuple[dict, dict, pathlib.Path]] = []
-        for a in wanted:
-            for t in tasks:
-                if CAP_RANK[a["capability"]] < CAP_RANK[t["min_capability"]]:
-                    continue
-                if args.task and t["id"] != args.task:
-                    continue
-                wd = run_dir / a["id"] / t["id"]
-                if args.drive and wd.exists():
-                    # REFUSED BEFORE ANYTHING IS SPENT, unless the operator says
-                    # otherwise. Clearing is right for re-running the SAME cell
-                    # and was silently destroying a different one.
-                    if not args.replace:
-                        clash = occupied_by_another_cell(
-                            wd, model_per.get(a["id"], model_all),
-                            effort_per.get(a["id"], effort_all))
-                        if clash:
-                            collisions.append(clash)
-                            continue
-                    # Cleared before driving: whatever is in here afterwards
-                    # was produced by THIS drive or by nothing.
-                    shutil.rmtree(wd)
-                wd.mkdir(parents=True, exist_ok=True)
-                (wd / "PROMPT.txt").write_text(t["prompt"], encoding="utf-8")
-                if "input" in t:
-                    (wd / "input.md").write_text(t["input"], encoding="utf-8")
-                plan.append((a, t, wd))
-
-        # THE WHOLE RUN, not the colliding task. A round that drove two of its
-        # three tasks and refused the third would leave a run directory nobody
-        # can read as one measurement.
-        if collisions:
-            print(f"FAIL  {len(collisions)} task(s) would overwrite a different "
-                  f"configuration; nothing was driven.")
-            for line in collisions:
-                print(f"        {line}")
-            return 1
-
-        driven = skipped = 0
-        # ONE WORKER PER AGENT, and the agents run at once. Three agents on one
-        # task ran back to back for 74 minutes on 2026-08-21 and share nothing:
-        # separate CLIs, separate temporary directories, separate accounts.
-        # Serial was never a requirement, it was the shape of a `for` loop.
-        #
-        # Tasks WITHIN an agent stay sequential. One CLI driven twice at once
-        # shares an installation, a rate limit and in some cases a session
-        # store, and a horse race whose entrants interfere with themselves
-        # measures the interference.
-        out_lock = threading.Lock()
-        counts_lock = threading.Lock()
-        crashed: list[str] = []
-
-        def say(lines: list[str]) -> None:
-            """One agent's lines, printed together. Interleaving them line by
-            line across three concurrent agents produces a transcript nobody
-            can attribute, which is the console equivalent of the misplaced
-            artifact this harness spent a release learning to name."""
-            with out_lock:
-                for line in lines:
-                    print(line, flush=True)
-
-        def drive_one(a: dict, t: dict, wd: pathlib.Path) -> None:
-            nonlocal driven, skipped
-            # PROVEN BEFORE DRIVEN. A run whose agent cannot read the
-            # rules produces artifacts that look like the agent's judgement
-            # and are not; two such runs were attributed to the agent
-            # before anyone read the transcript that said so.
-            blocked = environment_check(a)
-            if blocked:
-                with counts_lock:
-                    skipped += 1
-                say([f"  SKIPPED {a['id']} on {t['id']}: {blocked[0]}"])
-                (wd / "driver.json").write_text(
-                    json.dumps({"verdict": "environment",
-                                "detail": blocked[0]}, indent=2) + "\n",
-                    encoding="utf-8")
-                return
-            record = drive(a, t, wd,
-                           model=model_per.get(a["id"], model_all),
-                           base=budget_floor,
-                           effort=effort_per.get(a["id"], effort_all),
-                           hard_cap=budget_ceiling)
-            # WHICH BUILD OF THE CLI DID IT, taken from the probe this run
-            # already made BEFORE driving — not re-probed here, which would
-            # answer about now rather than about the run. `agent` names a
-            # platform and `model` names what it was pointed at; neither says
-            # which binary. Two rounds of one configuration a week apart were
-            # driven by `2026.08.11-e8db854` and `2026.08.25-3e8eec8`, so a
-            # difference between them had a third possible cause that nothing
-            # recorded.
-            probe_ok, probe_note = probed.get(a["id"], (False, ""))
-            if probe_ok and probe_note.strip():
-                record["cli_version"] = probe_note.strip()
-            else:
-                # SAID, NOT DROPPED. `--agent x` drives whether or not the
-                # probe answered — the selection above consults `probed` only
-                # when no agent was named — so a 20-second probe timeout used
-                # to leave this key absent in silence, and the run joined the
-                # "nobody recorded which binary" cell beside runs that predate
-                # the field. Those are different facts and the console now says
-                # which this is.
-                record["cli_version_note"] = (
-                    f"not recorded: the {a['id']} probe did not answer "
-                    f"({probe_note or 'no output'})")
-                print(f"  note  {a['id']}: the CLI build was not recorded — "
-                      f"{probe_note or 'the probe gave no output'}")
-            # WRITTEN TWICE, ON PURPOSE, AND THE FIRST WRITE IS NOT THE ONE
-            # THAT MATTERS. `_conformance_trace` mutates `record` — it puts the
-            # trace id in — and this file was serialized BEFORE that, so the id
-            # 0.1.617 added reached memory and never reached disk. `score`
-            # reads the file, so the join key was absent from every score cell
-            # of the first round driven after it shipped. The first write stays
-            # because a crash inside the trace helper must still leave a driver
-            # record; the second is what carries the id.
-            (wd / "driver.json").write_text(
-                json.dumps(record, indent=2) + "\n", encoding="utf-8")
-            note = _conformance_trace(a, t, wd, record)
-            (wd / "driver.json").write_text(
-                json.dumps(record, indent=2) + "\n", encoding="utf-8")
-            with counts_lock:
-                driven += record["verdict"] == "driven"
-                # A REFUSAL IS A TASK THAT DID NOT RUN, and the `NOTHING RAN`
-                # guard below keys on `skipped`. 0.1.640 made the refusal
-                # VISIBLE and left it counting as nothing, so a run where every
-                # task was refused still printed `drove 0 task(s)` and exited 0
-                # — which is the half of that finding the fix did not close.
-                skipped += record["verdict"] == "driver refused"
-            # WHICH MODEL AND WHICH LEVEL, SAID OUT LOUD. The record has
-            # carried both since the driver was written and the console has
-            # never printed either, so a round could be reported as "at high
-            # effort" when neither axis was pinned and nothing on screen
-            # disagreed. It is printed on FINISHING rather than on starting,
-            # now that several are in flight at once: a line that announces an
-            # intention is not a line that reports what happened.
-            lines = [f"  {a['id']} on {t['id']} "
-                     f"(model {record.get('model', '?')}, "
-                     f"effort {record.get('effort', '?')})"]
-            if note:
-                lines.append(f"    {note}")
-            lines.append(f"    {record['verdict']}"
-                         + (f" in {record['seconds']}s, wrote "
-                            f"{', '.join(record['produced']) or 'nothing'}"
-                            if "seconds" in record
-                            else f" — {record.get('detail', '')}"))
-            say(lines)
-
-        def drive_agent(a: dict) -> None:
-            # BaseException ON PURPOSE. A thread that dies takes its message
-            # with it — `threading.excepthook` ignores SystemExit entirely and
-            # prints a traceback for the rest into concurrently interleaved
-            # output — and neither counter moved, so a run where every task
-            # died printed `drove 0 task(s)` and exited 0. An escaped exception
-            # is now a counted crash and a non-zero exit.
-            for one_a, t, wd in plan:
-                if one_a is a:
-                    try:
-                        drive_one(a, t, wd)
-                    except BaseException as exc:            # noqa: BLE001
-                        with counts_lock:
-                            crashed.append(f"{a['id']}/{t['id']}: "
-                                           f"{exc.__class__.__name__}: {exc}")
-                        say([f"  CRASHED {a['id']} on {t['id']}: "
-                             f"{exc.__class__.__name__}: {exc}"])
-
-        if args.drive and plan:
-            by_agent = list(dict.fromkeys(a["id"] for a, _t, _wd in plan))
-            print(f"  driving {len(by_agent)} agent(s) concurrently: "
-                  f"{', '.join(by_agent)} — output appears as each finishes",
-                  flush=True)
-            threads = [threading.Thread(target=drive_agent, args=(a,))
-                       for a in wanted if any(x is a for x, _t, _w in plan)]
-            for th in threads:
-                th.start()
-            for th in threads:
-                th.join()
-        if not args.drive:
-            print(f"prepared {run_dir}; invoke each agent against its PROMPT.txt, then "
-                  f"`score --run {run_dir}`. `--drive` runs them here instead.")
-            return 0
-        # `latest` points at the newest dated run — only when the run lives
-        # under results/ (a `--run` elsewhere is the caller's directory, and a
-        # relative link to it would dangle), and never fatally: ten CI runs
-        # went red at 0.1.528 because this tried to link inside a directory
-        # CI does not have, and a symlink is a convenience, not a result.
-        latest = RESULTS / "latest"
-        if run_dir.parent == RESULTS and run_dir != latest:
-            try:
-                if latest.is_symlink() or (latest.exists() and not latest.is_dir()):
-                    latest.unlink()
-                if not latest.exists():
-                    latest.symlink_to(run_dir.name)
-            except OSError as exc:
-                print(f"note  results/latest was not repointed ({exc}); the run "
-                      f"is at {run_dir}")
-        print(f"drove {driven} task(s) into {run_dir}; now `score --run {run_dir}`")
-        if crashed:
-            print(f"CRASHED: {len(crashed)} task(s) died inside the driver — "
-                  f"{'; '.join(crashed[:3])}"
-                  + ("…" if len(crashed) > 3 else ""))
-            return 1
-        if not driven and skipped:
-            # Agent RESULTS are non-deterministic and must not gate a release.
-            # The harness being unable to invoke anything is neither: it is
-            # deterministic, operator-fixable, and the condition this release
-            # added a function to detect.
-            print(f"NOTHING RAN: all {skipped} task(s) were blocked before "
-                  f"driving. That is an environment finding, not a result — fix "
-                  f"the install path or the drive flag and run again.")
-            return 1
-        # DRIVING IS NOT SCORING, and this exit code says only that the driver
-        # ran. Whether the artifacts pass is `score`'s answer, and it is
-        # deliberately not folded in here: agent output is non-deterministic by
-        # this file's own opening paragraph, so a release that blocked on it
-        # would block on something that is not the release.
+        print(f"ok    {len(tasks)} tasks, {len(agents)} agents in the "
+              f"registry, {len(rows)} history rows")
         return 0
+    print(f"ok    {len(tasks)} tasks, {len(agents)} agents in the registry")
+    return 0
 
-    if args.command == "score":
-        if not runs:
-            print("FAIL  score needs --run DIR")
-            return 1
-        run_dir = pathlib.Path(runs[0])
-        if not run_dir.exists():
-            print(f"FAIL  {run_dir} does not exist; run `run` first")
-            return 1
-        by_id = {t["id"]: t for t in tasks}
-        # ANNOTATED because the cells gained a non-string member at
-        # 0.1.623: `effort_pinned` / `model_pinned` are explicit booleans,
-        # and a dict inferred as `dict[str, str]` rejects them.
-        scores: dict[str, dict[str, Any]] = {}
-        unscored = 0
-        for agent_dir in sorted(p for p in run_dir.iterdir() if p.is_dir()):
-            for task_dir in sorted(p for p in agent_dir.iterdir() if p.is_dir()):
-                task = by_id.get(task_dir.name)
-                if task is None:
-                    scores[f"{agent_dir.name}/{task_dir.name}"] = {
-                        "verdict": "unknown task",
-                        "detail": "no task of this id; a renamed task silently "
-                                  "erased every prior result for it"}
-                    unscored += 1
-                    continue
-                # sorted: glob yields in filesystem order, so an agent that also
-                # left notes.md made the scored artifact depend on directory
-                # ordering — non-reproducible for a reason unrelated to model
-                # non-determinism, which this harness is careful to bound.
-                produced = sorted(f for f in task_dir.glob(task["deliverable"])
-                                  if f.name not in ("input.md",))
-                key = f"{agent_dir.name}/{task_dir.name}"
 
-                # AN INTERRUPTED RUN DOES NOT EARN A VERDICT. The board already
-                # says so — 0.1.450 withdrew a recorded `fail` by hand because
-                # the agent had been killed mid-run and what was scored was a
-                # draft — and until now the rule lived only in a person's
-                # judgement. `run --drive` can now produce that situation
-                # automatically: a task that hits its timeout is killed while
-                # writing, and the half-file it leaves scores exactly like a
-                # finished one. The same agent had produced a complete deck for
-                # this task in 699s and hit a 1500s ceiling on the next run, so
-                # this is not a rare shape.
-                #
-                # The driver's own record decides, because it is the only thing
-                # that knows. A hand-driven task has no driver.json and is
-                # scored as it always was.
-                driver = task_dir / "driver.json"
-                if driver.exists():
-                    try:
-                        record = json.loads(driver.read_text(encoding="utf-8"))
-                    except ValueError as exc:
-                        # A process killed while writing can leave a half
-                        # driver.json as easily as a half deliverable, and
-                        # `record = {}` turned that into the outcome this block
-                        # exists to prevent: a draft scored as a result.
-                        scores[key] = {
-                            "verdict": "not earned",
-                            "task_hash": asked_fingerprint(task_dir, task),
-                            "detail": f"driver.json does not parse ({exc}); the "
-                                      f"driver was very likely killed mid-write"}
-                        unscored += 1
-                        continue
-                    if record.get("verdict") in DRIVER_FAILURES:
-                        scores[key] = {
-                            "verdict": "not earned",
-                            # WHICH KIND OF NOT-EARNED, kept so the roll-up can
-                            # tell an agent that ran badly from one this host
-                            # never invoked. Without it `environment` — the CLI
-                            # is not installed, checked BEFORE anything is
-                            # launched — read as three attempts that earned
-                            # nothing, on the artifact this package publishes
-                            # about other people's models.
-                            "attempted": ("no" if record.get("verdict")
-                                          in NEVER_RAN else "yes"),
-                            # The fingerprint goes in like every other entry, or
-                            # the freshness check reads a missing hash as a
-                            # changed task and the cell prints "stale" — a
-                            # timeout reported as a question nobody asked.
-                            "task_hash": asked_fingerprint(task_dir, task),
-                            "detail": (
-                                f"the driver reports 'misplaced': the artifact "
-                                f"was written to {record['misplaced'][0]}, "
-                                f"outside the working directory, and is not "
-                                f"scored from there"
-                                if record.get("verdict") == "misplaced"
-                                and record.get("misplaced")
-                                else f"the driver reports "
-                                     f"{record['verdict']!r}"
-                                     + (f" after {record['seconds']}s"
-                                        if record.get("seconds") else "")
-                                     + " — whatever it left behind is a draft, "
-                                       "and a draft is not a result")}
-                        unscored += 1
-                        continue
-                if not produced:
-                    # No artifact is NOT a pass. It is the most common real
-                    # outcome — an agent that answered in chat instead of
-                    # writing a file — and it has to read as a failure to
-                    # produce, never as an absent finding.
-                    #
-                    # UNLESS NOTHING WAS EVER DRIVEN HERE. A hand-driven agent
-                    # is one an operator invokes task by task, and the two they
-                    # did not reach are not two failures: 0.1.450's board
-                    # marked Cursor **fail** on a day it produced a passing
-                    # deck, because two prompts it was never given scored as
-                    # missing deliverables. The board's own prose already draws
-                    # this line for absent AGENTS ("printing the two
-                    # identically made the board read as ten pieces of pending
-                    # work when only six are") and the roll-up did not draw it
-                    # for absent RUNS. An untouched directory — the prompt this
-                    # harness wrote and nothing else — is the evidence.
-                    left = {f.name for f in task_dir.iterdir()}
-                    untouched = not (left - {"PROMPT.txt", "input.md"})
-                    scores[key] = {
-                        "verdict": "not attempted" if untouched
-                        else "no deliverable",
-                        "task_hash": asked_fingerprint(task_dir, task),
-                        "detail": ("the prompt was never driven here"
-                                   if untouched
-                                   else f"nothing matching {task['deliverable']}")}
-                    unscored += 1
-                    continue
-                target, why = scored_file(produced, task)
-                if target is None:
-                    # AMBIGUOUS IS A RESULT, not a coin toss. Scoring the
-                    # alphabetically-first file would have graded a shape
-                    # sprite as a deck; recording what could not be decided
-                    # leaves the run reviewable.
+def cmd_detect(agents: list[dict], probed: dict, ask_models: bool,
+               record: bool) -> int:
+    """Which agents answer a probe here, and optionally what each one
+    can be RUN AS.
+
+    Extracted from `main()` at 0.1.646, unchanged. `probed` is passed in
+    rather than computed: the caller already probed every agent once, and
+    probing twice would shell out twice per agent to answer a question
+    whose answer it holds.
+    """
+    import datetime
+    answered: dict[str, dict] = {}
+    for a in agents:
+        ok, note = probed[a["id"]]
+        print(f"  {a['id']:16} {'available' if ok else 'not exercised':14} {note}")
+        if ask_models:
+            state, detail = agent_capability.probe_models(a)
+            print(f"  {'':16} models {state:8} {detail}")
+            if state == "asked":
+                answered[a["id"]] = {
+                    "ids": [i.strip() for i in detail.split(",")],
+                    "cli_version": note if ok else None,
+                    "asked_on": datetime.date.today().isoformat(),
+                }
+    if record:
+        # RECORDED SO A CHANGE CAN BE SEEN. `agent-evals.json` declared a
+        # `vocabulary-changed` trigger and nothing stored a vocabulary to
+        # compare against — the live list was printed and dropped, so the
+        # trigger described a comparison no code could make (GAP-042). Only
+        # the agents that ANSWERED are written: a waiver and a failed probe
+        # are not vocabularies, and recording them as empty sets would make
+        # "this CLI offers nothing" and "we could not ask" the same row.
+        if not ask_models:
+            print("FAIL  --record needs --ask-models: there is nothing to "
+                  "record until the probes have been asked.")
+            return 1
+        for line in agent_capability.record_vocabularies(answered, ROOT):
+            print(line)
+        print(f"\nrecorded {len(answered)} vocabular"
+              f"{'y' if len(answered) == 1 else 'ies'} -> "
+              f"conformance/vocabularies.json")
+    print(f"\n{sum(1 for v in probed.values() if v[0])} of {len(agents)} available here")
+    return 0
+
+
+def cmd_score(tasks: list[dict], runs: list[str]) -> int:
+    """Grade one run directory against the suite.
+
+    Extracted from `main()` at 0.1.646, unchanged. The largest of the
+    five inlined bodies and the most self-contained: it reads a run
+    directory and the task list, and nothing else — which is why it was
+    reachable only through argv for no reason at all.
+    """
+    if not runs:
+        print("FAIL  score needs --run DIR")
+        return 1
+    run_dir = pathlib.Path(runs[0])
+    if not run_dir.exists():
+        print(f"FAIL  {run_dir} does not exist; run `run` first")
+        return 1
+    by_id = {t["id"]: t for t in tasks}
+    # ANNOTATED because the cells gained a non-string member at
+    # 0.1.623: `effort_pinned` / `model_pinned` are explicit booleans,
+    # and a dict inferred as `dict[str, str]` rejects them.
+    scores: dict[str, dict[str, Any]] = {}
+    unscored = 0
+    for agent_dir in sorted(p for p in run_dir.iterdir() if p.is_dir()):
+        for task_dir in sorted(p for p in agent_dir.iterdir() if p.is_dir()):
+            task = by_id.get(task_dir.name)
+            if task is None:
+                scores[f"{agent_dir.name}/{task_dir.name}"] = {
+                    "verdict": "unknown task",
+                    "detail": "no task of this id; a renamed task silently "
+                              "erased every prior result for it"}
+                unscored += 1
+                continue
+            # sorted: glob yields in filesystem order, so an agent that also
+            # left notes.md made the scored artifact depend on directory
+            # ordering — non-reproducible for a reason unrelated to model
+            # non-determinism, which this harness is careful to bound.
+            produced = sorted(f for f in task_dir.glob(task["deliverable"])
+                              if f.name not in ("input.md",))
+            key = f"{agent_dir.name}/{task_dir.name}"
+
+            # AN INTERRUPTED RUN DOES NOT EARN A VERDICT. The board already
+            # says so — 0.1.450 withdrew a recorded `fail` by hand because
+            # the agent had been killed mid-run and what was scored was a
+            # draft — and until now the rule lived only in a person's
+            # judgement. `run --drive` can now produce that situation
+            # automatically: a task that hits its timeout is killed while
+            # writing, and the half-file it leaves scores exactly like a
+            # finished one. The same agent had produced a complete deck for
+            # this task in 699s and hit a 1500s ceiling on the next run, so
+            # this is not a rare shape.
+            #
+            # The driver's own record decides, because it is the only thing
+            # that knows. A hand-driven task has no driver.json and is
+            # scored as it always was.
+            driver = task_dir / "driver.json"
+            if driver.exists():
+                try:
+                    record = json.loads(driver.read_text(encoding="utf-8"))
+                except ValueError as exc:
+                    # A process killed while writing can leave a half
+                    # driver.json as easily as a half deliverable, and
+                    # `record = {}` turned that into the outcome this block
+                    # exists to prevent: a draft scored as a result.
                     scores[key] = {
                         "verdict": "not earned",
                         "task_hash": asked_fingerprint(task_dir, task),
-                        "detail": f"which file to score is undecidable: {why}"}
+                        "detail": f"driver.json does not parse ({exc}); the "
+                                  f"driver was very likely killed mid-write"}
                     unscored += 1
                     continue
-                # The run directory is wherever the operator put it, which is
-                # usually outside this repository; relative_to() raises there.
-                try:
-                    shown = str(target.relative_to(ROOT))
-                except ValueError:
-                    shown = str(target)
-                # IDEA-8's record half: task_hash pins the question;
-                # these two pin the ruler and the artifact's own vintage. The
-                # colophon regex reads the "built with lumi-style X.Y.Z" line
-                # a LUMI deliverable carries; absent (markdown answers), the
-                # build vintage is honestly unknown.
-                built_v = fingerprint.version_in(
-                    target.read_text(encoding="utf-8", errors="replace"))
-                entry: dict[str, Any] = {"artifact": shown,
-                                         "task_hash": asked_fingerprint(task_dir, task),
-                                         "instrument_version": versioning.skill_version(ROOT),
-                                         "built_version": built_v}
-                failed: list[str] = []
-                verdict_union: dict[str, Any] = {}
-                # The parsed reports, kept out of the score entry: the
-                # Evals below read the same two checkers this loop runs.
-                raw_runs: dict[str, dict] = {}
-                layout_verdicts: dict = {}
-                for kind in task["score"]:
-                    if kind == "recall":
-                        entry["recall"] = score_recall(
-                            task, target.read_text(encoding="utf-8", errors="replace"))
-                        if entry["recall"]["missed"]:
-                            failed.append(f"recall {entry['recall']['score']}"
-                                          f"/{entry['recall']['of']}")
-                    else:
-                        one = score_checks(kind, target, task.get("genre"))
-                        raw_runs[kind] = one.pop("_run")
-                        entry[kind] = one
-                        # HOW MANY GATES HAD A SUBJECT. "Zero gating failures"
-                        # does not say how much was held, and the 2026-08-26
-                        # round published it over a deck holding eighteen gates
-                        # and one holding thirteen — the second had no agenda
-                        # page and no page declaring an analysis move, so five
-                        # of its clean rows graded nothing. Not a defect in
-                        # those rows (a measured absence passes, deliberately);
-                        # a number the roll-up was throwing away.
-                        report = ((raw_runs[kind].get("reports") or [{}])[0]
-                                  or {})
-                        if report.get("gates_held") is not None:
-                            entry[kind]["gates_held"] = len(report["gates_held"])
-                            entry[kind]["gates_not_graded"] = len(
-                                report.get("gates_with_nothing_to_grade") or [])
-                        # A checker that could not be read has not scored this
-                        # artifact. The flag was written into the record and
-                        # never looked at, so a crashed checker scored `pass`.
-                        if entry[kind].get("unparseable"):
-                            failed.append(f"{kind} emitted no parseable report")
-                        elif entry[kind]["exit"] != 0:
-                            # Written into the record four times and read none.
-                            # `require` names two metrics of eighteen, so an
-                            # artifact failing sixteen others scored `pass` —
-                            # the same defect as the unread `unparseable` flag,
-                            # in the release that fixed that one.
-                            failed.append(f"{kind} exited {entry[kind]['exit']}")
-                        verdict_union.update(entry[kind]["verdicts"])
-                        # Kept apart as well as merged: every key the layout
-                        # report returns under `--deliverable` is a gating
-                        # verdict by construction, and their names are words
-                        # rather than prefixed ids, so the prefix rule that
-                        # finds D-and-M gates cannot recognise them.
-                        if kind == "layout":
-                            layout_verdicts = dict(entry[kind]["verdicts"])
-                # `require` is checked ONCE, against the union of every checker's
-                # verdicts. Per-kind it needed `got is not None` to skip the other
-                # checker's metrics, and that clause also swallowed the case this
-                # harness most needs to catch: a required metric that reported
-                # nothing at all. check_design returns UNMEASURABLE for a document
-                # using none of LUMI's tokens, so an agent emitting exactly that
-                # scored green on the scoreboard.
-                require = task.get("require") or {}
-                if require == "all-gating":
-                    # EVERY GATE THIS PACKAGE HOLDS A DELIVERABLE TO, read from
-                    # the checkers rather than listed here. The hand-written
-                    # list this replaced named six metrics; ten design metrics
-                    # gate and fifteen layout verdicts do, so a deck could fail
-                    # D19, D1, D3, D4 and eleven layout checks and still score
-                    # `pass`. The owner found one by opening it.
-                    # `gating` raises on an unreadable register rather than
-                    # answering the empty set, which used to mean "nothing is
-                    # required". Turned into a finding here: a scoring pass
-                    # that cannot read the gate set must say so, not discard a
-                    # run that has already driven every agent.
-                    try:
-                        require = dict.fromkeys(
-                            gating.gating_metrics(verdict_union), "ok")
-                    except (OSError, ValueError, KeyError) as exc:
-                        failed.append(f"the gate register could not be read "
-                                      f"({exc}); nothing could be required")
-                        require = {}
-                    require.update(dict.fromkeys(layout_verdicts, "ok"))
-                for metric, want in require.items():
-                    got = verdict_union.get(metric)
-                    if got is None:
-                        failed.append(f"{metric} never reported")
-                    elif got not in (want, "n/a"):
-                        failed.append(f"{metric}={got}")
-                # THE EVALS THRESHOLDS, which no conformance run had ever
-                # applied. They are what this package means by a deliverable
-                # being good enough — page count, prose-only share, figures per
-                # content page, list density, visual share — and a task that
-                # scores three checkers and none of these is scoring the
-                # markup, not the document.
-                if task.get("evals"):
-                    failed += _eval_misses(target, task.get("genre"),
-                                           design=raw_runs.get("design"),
-                                           layout=raw_runs.get("layout"))
-                entry["verdict"] = "pass" if not failed else "fail"
-                entry["failed"] = failed
-                scores[key] = entry
-        # WHICH MODEL PRODUCED THE CELL, carried out of the driver record into
-        # the score so the board can say it. Attached in one pass rather than
-        # in each of the four places a score entry is born, because a cell
-        # whose model is missing because one branch forgot it is worse than no
-        # column at all. A hand-driven task has no driver.json and honestly
-        # records nothing.
-        #
-        # This became material the day it was written: one run drove three
-        # agents, and one of them was pinned to a small model because the
-        # account's free-tier quota for the larger ones was spent. Three rows
-        # on one table, two of them the CLI's default and one a lite tier, with
-        # nothing on the board to tell them apart — which is the reading this
-        # file's own driver test already warns about: a cell that says nothing
-        # about the model reads as a claim about the agent rather than about
-        # one of its configurations.
-        for key, cell_entry in scores.items():
-            agent_id, _, task_id = key.partition("/")
-            driver = run_dir / agent_id / task_id / "driver.json"
-            if not driver.exists():
+                if record.get("verdict") in DRIVER_FAILURES:
+                    scores[key] = {
+                        "verdict": "not earned",
+                        # WHICH KIND OF NOT-EARNED, kept so the roll-up can
+                        # tell an agent that ran badly from one this host
+                        # never invoked. Without it `environment` — the CLI
+                        # is not installed, checked BEFORE anything is
+                        # launched — read as three attempts that earned
+                        # nothing, on the artifact this package publishes
+                        # about other people's models.
+                        "attempted": ("no" if record.get("verdict")
+                                      in NEVER_RAN else "yes"),
+                        # The fingerprint goes in like every other entry, or
+                        # the freshness check reads a missing hash as a
+                        # changed task and the cell prints "stale" — a
+                        # timeout reported as a question nobody asked.
+                        "task_hash": asked_fingerprint(task_dir, task),
+                        "detail": (
+                            f"the driver reports 'misplaced': the artifact "
+                            f"was written to {record['misplaced'][0]}, "
+                            f"outside the working directory, and is not "
+                            f"scored from there"
+                            if record.get("verdict") == "misplaced"
+                            and record.get("misplaced")
+                            else f"the driver reports "
+                                 f"{record['verdict']!r}"
+                                 + (f" after {record['seconds']}s"
+                                    if record.get("seconds") else "")
+                                 + " — whatever it left behind is a draft, "
+                                   "and a draft is not a result")}
+                    unscored += 1
+                    continue
+            if not produced:
+                # No artifact is NOT a pass. It is the most common real
+                # outcome — an agent that answered in chat instead of
+                # writing a file — and it has to read as a failure to
+                # produce, never as an absent finding.
+                #
+                # UNLESS NOTHING WAS EVER DRIVEN HERE. A hand-driven agent
+                # is one an operator invokes task by task, and the two they
+                # did not reach are not two failures: 0.1.450's board
+                # marked Cursor **fail** on a day it produced a passing
+                # deck, because two prompts it was never given scored as
+                # missing deliverables. The board's own prose already draws
+                # this line for absent AGENTS ("printing the two
+                # identically made the board read as ten pieces of pending
+                # work when only six are") and the roll-up did not draw it
+                # for absent RUNS. An untouched directory — the prompt this
+                # harness wrote and nothing else — is the evidence.
+                left = {f.name for f in task_dir.iterdir()}
+                untouched = not (left - {"PROMPT.txt", "input.md"})
+                scores[key] = {
+                    "verdict": "not attempted" if untouched
+                    else "no deliverable",
+                    "task_hash": asked_fingerprint(task_dir, task),
+                    "detail": ("the prompt was never driven here"
+                               if untouched
+                               else f"nothing matching {task['deliverable']}")}
+                unscored += 1
                 continue
+            target, why = scored_file(produced, task)
+            if target is None:
+                # AMBIGUOUS IS A RESULT, not a coin toss. Scoring the
+                # alphabetically-first file would have graded a shape
+                # sprite as a deck; recording what could not be decided
+                # leaves the run reviewable.
+                scores[key] = {
+                    "verdict": "not earned",
+                    "task_hash": asked_fingerprint(task_dir, task),
+                    "detail": f"which file to score is undecidable: {why}"}
+                unscored += 1
+                continue
+            # The run directory is wherever the operator put it, which is
+            # usually outside this repository; relative_to() raises there.
             try:
-                rec = json.loads(driver.read_text(encoding="utf-8"))
-            except (OSError, UnicodeDecodeError, ValueError) as exc:
-                # SAID, NOT SWALLOWED. This `continue`d in silence, so the
-                # cell rendered `—` — which is what a HAND-DRIVEN task prints,
-                # the case the comment above calls "honestly records nothing".
-                # A run killed at its hard cap leaves a truncated driver.json,
-                # and that is FM-24's `history.json` instance one file over, in
-                # a release that touched this very line. `OSError` and a decode
-                # error join `ValueError`: unreadable is unreadable, and only
-                # one of the three used to stop the whole scoring run.
-                print(f"note  {driver} does not parse ({exc}); this cell "
-                      f"records no model")
-                cell_entry["model"] = "driver record unreadable"
+                shown = str(target.relative_to(ROOT))
+            except ValueError:
+                shown = str(target)
+            # IDEA-8's record half: task_hash pins the question;
+            # these two pin the ruler and the artifact's own vintage. The
+            # colophon regex reads the "built with lumi-style X.Y.Z" line
+            # a LUMI deliverable carries; absent (markdown answers), the
+            # build vintage is honestly unknown.
+            built_v = fingerprint.version_in(
+                target.read_text(encoding="utf-8", errors="replace"))
+            entry: dict[str, Any] = {"artifact": shown,
+                                     "task_hash": asked_fingerprint(task_dir, task),
+                                     "instrument_version": versioning.skill_version(ROOT),
+                                     "built_version": built_v}
+            failed: list[str] = []
+            verdict_union: dict[str, Any] = {}
+            # The parsed reports, kept out of the score entry: the
+            # Evals below read the same two checkers this loop runs.
+            raw_runs: dict[str, dict] = {}
+            layout_verdicts: dict = {}
+            for kind in task["score"]:
+                if kind == "recall":
+                    entry["recall"] = score_recall(
+                        task, target.read_text(encoding="utf-8", errors="replace"))
+                    if entry["recall"]["missed"]:
+                        failed.append(f"recall {entry['recall']['score']}"
+                                      f"/{entry['recall']['of']}")
+                else:
+                    one = score_checks(kind, target, task.get("genre"))
+                    raw_runs[kind] = one.pop("_run")
+                    entry[kind] = one
+                    # HOW MANY GATES HAD A SUBJECT. "Zero gating failures"
+                    # does not say how much was held, and the 2026-08-26
+                    # round published it over a deck holding eighteen gates
+                    # and one holding thirteen — the second had no agenda
+                    # page and no page declaring an analysis move, so five
+                    # of its clean rows graded nothing. Not a defect in
+                    # those rows (a measured absence passes, deliberately);
+                    # a number the roll-up was throwing away.
+                    report = ((raw_runs[kind].get("reports") or [{}])[0]
+                              or {})
+                    if report.get("gates_held") is not None:
+                        entry[kind]["gates_held"] = len(report["gates_held"])
+                        entry[kind]["gates_not_graded"] = len(
+                            report.get("gates_with_nothing_to_grade") or [])
+                    # A checker that could not be read has not scored this
+                    # artifact. The flag was written into the record and
+                    # never looked at, so a crashed checker scored `pass`.
+                    if entry[kind].get("unparseable"):
+                        failed.append(f"{kind} emitted no parseable report")
+                    elif entry[kind]["exit"] != 0:
+                        # Written into the record four times and read none.
+                        # `require` names two metrics of eighteen, so an
+                        # artifact failing sixteen others scored `pass` —
+                        # the same defect as the unread `unparseable` flag,
+                        # in the release that fixed that one.
+                        failed.append(f"{kind} exited {entry[kind]['exit']}")
+                    verdict_union.update(entry[kind]["verdicts"])
+                    # Kept apart as well as merged: every key the layout
+                    # report returns under `--deliverable` is a gating
+                    # verdict by construction, and their names are words
+                    # rather than prefixed ids, so the prefix rule that
+                    # finds D-and-M gates cannot recognise them.
+                    if kind == "layout":
+                        layout_verdicts = dict(entry[kind]["verdicts"])
+            # `require` is checked ONCE, against the union of every checker's
+            # verdicts. Per-kind it needed `got is not None` to skip the other
+            # checker's metrics, and that clause also swallowed the case this
+            # harness most needs to catch: a required metric that reported
+            # nothing at all. check_design returns UNMEASURABLE for a document
+            # using none of LUMI's tokens, so an agent emitting exactly that
+            # scored green on the scoreboard.
+            require = task.get("require") or {}
+            if require == "all-gating":
+                # EVERY GATE THIS PACKAGE HOLDS A DELIVERABLE TO, read from
+                # the checkers rather than listed here. The hand-written
+                # list this replaced named six metrics; ten design metrics
+                # gate and fifteen layout verdicts do, so a deck could fail
+                # D19, D1, D3, D4 and eleven layout checks and still score
+                # `pass`. The owner found one by opening it.
+                # `gating` raises on an unreadable register rather than
+                # answering the empty set, which used to mean "nothing is
+                # required". Turned into a finding here: a scoring pass
+                # that cannot read the gate set must say so, not discard a
+                # run that has already driven every agent.
+                try:
+                    require = dict.fromkeys(
+                        gating.gating_metrics(verdict_union), "ok")
+                except (OSError, ValueError, KeyError) as exc:
+                    failed.append(f"the gate register could not be read "
+                                  f"({exc}); nothing could be required")
+                    require = {}
+                require.update(dict.fromkeys(layout_verdicts, "ok"))
+            for metric, want in require.items():
+                got = verdict_union.get(metric)
+                if got is None:
+                    failed.append(f"{metric} never reported")
+                elif got not in (want, "n/a"):
+                    failed.append(f"{metric}={got}")
+            # THE EVALS THRESHOLDS, which no conformance run had ever
+            # applied. They are what this package means by a deliverable
+            # being good enough — page count, prose-only share, figures per
+            # content page, list density, visual share — and a task that
+            # scores three checkers and none of these is scoring the
+            # markup, not the document.
+            if task.get("evals"):
+                failed += _eval_misses(target, task.get("genre"),
+                                       design=raw_runs.get("design"),
+                                       layout=raw_runs.get("layout"))
+            entry["verdict"] = "pass" if not failed else "fail"
+            entry["failed"] = failed
+            scores[key] = entry
+    # WHICH MODEL PRODUCED THE CELL, carried out of the driver record into
+    # the score so the board can say it. Attached in one pass rather than
+    # in each of the four places a score entry is born, because a cell
+    # whose model is missing because one branch forgot it is worse than no
+    # column at all. A hand-driven task has no driver.json and honestly
+    # records nothing.
+    #
+    # This became material the day it was written: one run drove three
+    # agents, and one of them was pinned to a small model because the
+    # account's free-tier quota for the larger ones was spent. Three rows
+    # on one table, two of them the CLI's default and one a lite tier, with
+    # nothing on the board to tell them apart — which is the reading this
+    # file's own driver test already warns about: a cell that says nothing
+    # about the model reads as a claim about the agent rather than about
+    # one of its configurations.
+    for key, cell_entry in scores.items():
+        agent_id, _, task_id = key.partition("/")
+        driver = run_dir / agent_id / task_id / "driver.json"
+        if not driver.exists():
+            continue
+        try:
+            rec = json.loads(driver.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, ValueError) as exc:
+            # SAID, NOT SWALLOWED. This `continue`d in silence, so the
+            # cell rendered `—` — which is what a HAND-DRIVEN task prints,
+            # the case the comment above calls "honestly records nothing".
+            # A run killed at its hard cap leaves a truncated driver.json,
+            # and that is FM-24's `history.json` instance one file over, in
+            # a release that touched this very line. `OSError` and a decode
+            # error join `ValueError`: unreadable is unreadable, and only
+            # one of the three used to stop the whole scoring run.
+            print(f"note  {driver} does not parse ({exc}); this cell "
+                  f"records no model")
+            cell_entry["model"] = "driver record unreadable"
+            continue
+        cell = _model_cell(rec)
+        if cell is not None:
+            cell_entry["model"] = cell
+        # THE REST OF THE CONFIGURATION, in the same pass and for the same
+        # reason its comment gives: a cell whose model is present because
+        # one branch remembered and whose effort is missing because another
+        # forgot is worse than a column that is not there. `effort` reached
+        # `driver.json` and the trace and nothing else, so the board could
+        # show which model ran and never at what reasoning tier.
+        # `model_ran` rides along BESIDE the display cell. `cell_entry["model"]`
+        # is `_model_cell()`'s sentence — built for a board column, and
+        # correct there — so a reader comparing a pin against it compares a
+        # pin against prose. A review found `agent_evals` doing exactly
+        # that; the raw id is what a comparison needs and only this pass
+        # has it.
+        for key, source in (("effort", "effort"),
+                            ("model_asked", "model"),
+                            ("model_ran", "model_ran"),
+                            ("trace_id", "trace_id")):
+            value = rec.get(source)
+            if value is None:
                 continue
-            cell = _model_cell(rec)
-            if cell is not None:
-                cell_entry["model"] = cell
-            # THE REST OF THE CONFIGURATION, in the same pass and for the same
-            # reason its comment gives: a cell whose model is present because
-            # one branch remembered and whose effort is missing because another
-            # forgot is worse than a column that is not there. `effort` reached
-            # `driver.json` and the trace and nothing else, so the board could
-            # show which model ran and never at what reasoning tier.
-            # `model_ran` rides along BESIDE the display cell. `cell_entry["model"]`
-            # is `_model_cell()`'s sentence — built for a board column, and
-            # correct there — so a reader comparing a pin against it compares a
-            # pin against prose. A review found `agent_evals` doing exactly
-            # that; the raw id is what a comparison needs and only this pass
-            # has it.
-            for key, source in (("effort", "effort"),
-                                ("model_asked", "model"),
-                                ("model_ran", "model_ran"),
-                                ("trace_id", "trace_id")):
-                value = rec.get(source)
-                if value is None:
-                    continue
-                # THE SENTINELS DO NOT TRAVEL AS VALUES. `score` writes
-                # `(not pinned)` and `(the CLI's default)` where nothing was
-                # pinned, and they are answers rather than absences — but they
-                # are answers in a DISPLAY field, and `history.json`'s `config`
-                # is a record of what a run was configured as, held to the
-                # schema's own effort tuple by `validate`. Carrying the
-                # sentinel through put `(not pinned)` into that field and the
-                # next unpinned round would have turned CI red on a row the
-                # harness itself wrote. It is recorded as an explicit `false`
-                # instead, so "nobody pinned this" and "this predates the
-                # field" stay different facts — which is what 0.1.617's entry
-                # asked for and what the parenthesis was doing the wrong way.
-                if str(value).startswith("("):
-                    if key == "effort":
-                        cell_entry["effort_pinned"] = False
-                    elif key == "model_asked":
-                        cell_entry["model_pinned"] = False
-                    continue
-                cell_entry[key] = value
-        # BEFORE THE BYTES GO. The pin note has to read the file it is about
-        # to lose, and it has to print on the empty-scores exit too — that is
-        # the case where the pin is destroyed completely rather than partially,
-        # and it was the one case the first version could not reach.
-        pin_notes = _pin_guard(run_dir)
-        (run_dir / "scores.json").write_text(
-            json.dumps(scores, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        for key, s in sorted(scores.items()):
-            extra = f" ({', '.join(s.get('failed', []))})" if s.get("failed") else ""
-            print(f"  {key:38} {s['verdict']}{extra}")
-        if not scores:
-            print(f"  NOT MEASURED: nothing under {run_dir} matched a known agent and "
-                  f"task; `run` writes that layout, and a scoreboard of zero rows is "
-                  f"not a scoreboard of passes")
-            for line in pin_notes:
-                print(line)
-            return 1
-        print(f"\n{len(scores) - unscored} scored, {unscored} not scored "
-              f"-> {run_dir / 'scores.json'}")
+            # THE SENTINELS DO NOT TRAVEL AS VALUES. `score` writes
+            # `(not pinned)` and `(the CLI's default)` where nothing was
+            # pinned, and they are answers rather than absences — but they
+            # are answers in a DISPLAY field, and `history.json`'s `config`
+            # is a record of what a run was configured as, held to the
+            # schema's own effort tuple by `validate`. Carrying the
+            # sentinel through put `(not pinned)` into that field and the
+            # next unpinned round would have turned CI red on a row the
+            # harness itself wrote. It is recorded as an explicit `false`
+            # instead, so "nobody pinned this" and "this predates the
+            # field" stay different facts — which is what 0.1.617's entry
+            # asked for and what the parenthesis was doing the wrong way.
+            if str(value).startswith("("):
+                if key == "effort":
+                    cell_entry["effort_pinned"] = False
+                elif key == "model_asked":
+                    cell_entry["model_pinned"] = False
+                continue
+            cell_entry[key] = value
+    # BEFORE THE BYTES GO. The pin note has to read the file it is about
+    # to lose, and it has to print on the empty-scores exit too — that is
+    # the case where the pin is destroyed completely rather than partially,
+    # and it was the one case the first version could not reach.
+    pin_notes = _pin_guard(run_dir)
+    (run_dir / "scores.json").write_text(
+        json.dumps(scores, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    for key, s in sorted(scores.items()):
+        extra = f" ({', '.join(s.get('failed', []))})" if s.get("failed") else ""
+        print(f"  {key:38} {s['verdict']}{extra}")
+    if not scores:
+        print(f"  NOT MEASURED: nothing under {run_dir} matched a known agent and "
+              f"task; `run` writes that layout, and a scoreboard of zero rows is "
+              f"not a scoreboard of passes")
         for line in pin_notes:
             print(line)
-        return 1 if any(s["verdict"] != "pass" for s in scores.values()) else 0
+        return 1
+    print(f"\n{len(scores) - unscored} scored, {unscored} not scored "
+          f"-> {run_dir / 'scores.json'}")
+    for line in pin_notes:
+        print(line)
+    return 1 if any(s["verdict"] != "pass" for s in scores.values()) else 0
 
+
+def cmd_report(tasks: list[dict], agents: list[dict], probed: dict,
+               runs: list[str], write_history: bool,
+               redraw: bool) -> int:
+    """Render the board from one or more run directories, and
+    optionally write the history rows the evidence gate reads.
+
+    Extracted from `main()` at 0.1.646, unchanged. The only verb that
+    merges runs: a scoreboard built from one directory erases every
+    agent that directory does not contain, which is how recording a
+    Claude Code run once turned Cursor's measured row into `not
+    installed`.
+    """
     # report
     version = versioning.skill_version(ROOT)
     # Merged across every --run given, in the order given, so a second agent's
@@ -3040,7 +2614,7 @@ def main(argv):
               "task_ids": [t["id"] for t in tasks], "rows": rows}
     print(render(record))
 
-    if args.redraw:
+    if redraw:
         # THE TABLE WITHOUT THE HISTORY. A board is a photograph of one
         # measurement session, and every history row carries which version of
         # the rules its agents were measured against — so `--record` on an old
@@ -3066,13 +2640,16 @@ def main(argv):
         except OSError as exc:
             print(f"FAIL  {board} cannot be read: {exc}")
             return 1
-        if standing.strip() and record["run_id"] not in standing:
+        # `str(...)`: extracting this body let mypy infer the record's
+        # value type from its literal, which is a union — inside `main()`
+        # the same expression was untyped and unchecked.
+        if standing.strip() and str(record["run_id"]) not in standing:
             print(f"FAIL  the board is a rendering of {standing.strip()!r} and "
                   f"--run names {record['run_id']}. Redraw rewrites how a "
                   f"measurement is worded, never which measurement it is; "
                   f"recording a different run is `--record`.")
             return 1
-        if args.record:
+        if write_history:
             print("FAIL  --redraw and --record together: one rewrites the "
                   "table only, the other appends history rows. Pick one.")
             return 1
@@ -3094,7 +2671,7 @@ def main(argv):
                   f"{record['run_id']}; conformance/history.json untouched")
         return 0
 
-    if args.record:
+    if write_history:
         print(write_board(record))
         # One row per scored agent per run directory, pinned to the artifact
         # by digest: the scores.json stays untracked (results/ is gitignored
@@ -3202,6 +2779,498 @@ def main(argv):
         print(f"\nrecorded {added} new history row(s) -> "
               f"{hist_path.relative_to(ROOT)} ({len(rows_now)} total)")
     return 0
+
+
+def cmd_run(tasks: list[dict], agents: list[dict], probed: dict,
+            runs: list[str], args) -> int:
+    """Prepare, or drive, every planned agent over every planned task.
+
+    Extracted from `main()` at 0.1.646. The one verb that SPENDS, and
+    the one that needs the most nouns — which is why `args` is passed
+    whole rather than unpacked into eight parameters: the body reads
+    them exactly as it did, and a mechanical move that renames nothing
+    cannot collide with a local. (It nearly did in `cmd_report`, where
+    a parameter named `record` shadowed the board record dict and made
+    `--redraw` refuse itself. Caught by a test, not by reading.)
+    """
+    known_ids = {a["id"] for a in agents}
+    # RESOLVED ONLY FOR THE VERB THAT SPENDS. `--cell` lives on `run` alone now,
+    # so there is nothing to parse for `score` or `report` and nothing for them
+    # to ignore.
+    model_all = effort_all = None
+    model_per: dict[str, str] = {}
+    effort_per: dict[str, str] = {}
+    for raw in args.cell or []:
+        try:
+            # THE TUPLE IS PASSED, NOT RETYPED. It was retyped once and the
+            # copies drifted in one release: 0.1.554 widened the driver's
+            # and left `trace_schema`'s at three, so a run pinned to `xhigh`
+            # could be driven and could not be recorded.
+            agent_id, model, effort = agent_cell.parse_pin(
+                raw, known_ids, trace_schema.ENUMS["effort"])
+        except agent_cell.CellError as exc:
+            print(f"FAIL  {exc}")
+            return 1
+        if agent_id is None:
+            model_all = model if model is not None else model_all
+            effort_all = effort if effort is not None else effort_all
+        else:
+            if model is not None:
+                model_per[agent_id] = model
+            if effort is not None:
+                effort_per[agent_id] = effort
+    try:
+        budget_floor, budget_ceiling = parse_budget(args.budget)
+    except ValueError as exc:
+        print(f"FAIL  {exc}")
+        return 1
+    # A DRIVEN run gets its own dated directory by default, and `latest`
+    # becomes a symlink to it. Under the old default every drive wrote
+    # into `results/latest`, so a new driver.json (timeout, nothing
+    # produced) could sit beside a deck from a previous run in the same
+    # directory, and history.json's run_dir pointed at a tree last written
+    # on another day. A run id now names one run.
+    if runs:
+        # A BARE NAME IS A RUN ID, NOT A PATH. `--run r13` used to be taken
+        # literally, so it resolved against the working directory: invoked
+        # from the checkout it wrote the whole run — transcripts, driver
+        # records, an agent's deck — into the repository, which is the one
+        # place the 2026-08-21 directive says conformance results may not
+        # go. The print below claims to say "which root, said out loud" and
+        # it did: it said `r13-phase3`, a bare relative name, which is
+        # exactly the artifacts-nobody-can-find case it exists to prevent.
+        # A value that names a path (absolute, or carrying a separator) is
+        # still honoured as one — that is what an operator pointing at a
+        # scratch directory means.
+        given = pathlib.Path(runs[0]).expanduser()
+        run_dir = (given if given.is_absolute() or len(given.parts) > 1
+                   else RESULTS / given)
+    elif args.drive:
+        import datetime
+        run_dir = RESULTS / f"{versioning.skill_version(ROOT)}-{datetime.date.today().isoformat()}"
+    else:
+        run_dir = RESULTS / "latest"
+    # Created up front. The mkdir moved inside the per-agent loop when run and
+    # score split, so on the case the scoreboard itself documents — few or no
+    # agents detected — `run` announced a directory it had not made and
+    # `score` then reported it missing.
+    run_dir.mkdir(parents=True, exist_ok=True)
+    # WHICH ROOT, said out loud. A run that quietly changed where it writes
+    # is a run whose artifacts a person cannot find, and the two roots are
+    # far apart: one is inside the checkout, the other is the folder the
+    # operator reads deliverables in.
+    print(f"  writing into {run_dir}"
+          + ("" if RESULTS != IN_REPO_RESULTS else
+             " (the deliverable folder does not exist yet — "
+             "`output_dir.py --create` moves runs there)"))
+    named = set(args.agent or ())
+    wanted = [a for a in agents
+              if (a["id"] in named if named else probed[a["id"]][0])]
+    # EVERY NAME HAS TO RESOLVE, not just one of them. A set difference
+    # rather than `if not wanted`: naming three agents and matching one
+    # would otherwise run that one and say nothing about the two typos.
+    missing = sorted(named - {a["id"] for a in agents})
+    if missing:
+        print("FAIL  no platform in the registry with id "
+              + ", ".join(repr(m) for m in missing))
+        return 1
+    if not wanted:
+        print("no agent detected and no --agent given; nothing to prepare. An IDE "
+              "or an API model has no CLI to probe — name it with --agent and drive "
+              "it by hand.")
+        return 1
+    # PREPARED FIRST, SEQUENTIALLY. Making the directories and writing the
+    # prompts is milliseconds and it is the part that must be deterministic:
+    # a reader looking at the tree afterwards should find it laid out the
+    # same way every time, whatever order the agents finished in.
+    collisions: list[str] = []
+    plan: list[tuple[dict, dict, pathlib.Path]] = []
+    for a in wanted:
+        for t in tasks:
+            if CAP_RANK[a["capability"]] < CAP_RANK[t["min_capability"]]:
+                continue
+            if args.task and t["id"] != args.task:
+                continue
+            wd = run_dir / a["id"] / t["id"]
+            if args.drive and wd.exists():
+                # REFUSED BEFORE ANYTHING IS SPENT, unless the operator says
+                # otherwise. Clearing is right for re-running the SAME cell
+                # and was silently destroying a different one.
+                if not args.replace:
+                    clash = occupied_by_another_cell(
+                        wd, model_per.get(a["id"], model_all),
+                        effort_per.get(a["id"], effort_all))
+                    if clash:
+                        collisions.append(clash)
+                        continue
+                # Cleared before driving: whatever is in here afterwards
+                # was produced by THIS drive or by nothing.
+                shutil.rmtree(wd)
+            wd.mkdir(parents=True, exist_ok=True)
+            (wd / "PROMPT.txt").write_text(t["prompt"], encoding="utf-8")
+            if "input" in t:
+                (wd / "input.md").write_text(t["input"], encoding="utf-8")
+            plan.append((a, t, wd))
+
+    # THE WHOLE RUN, not the colliding task. A round that drove two of its
+    # three tasks and refused the third would leave a run directory nobody
+    # can read as one measurement.
+    if collisions:
+        print(f"FAIL  {len(collisions)} task(s) would overwrite a different "
+              f"configuration; nothing was driven.")
+        for line in collisions:
+            print(f"        {line}")
+        return 1
+
+    driven = skipped = 0
+    # ONE WORKER PER AGENT, and the agents run at once. Three agents on one
+    # task ran back to back for 74 minutes on 2026-08-21 and share nothing:
+    # separate CLIs, separate temporary directories, separate accounts.
+    # Serial was never a requirement, it was the shape of a `for` loop.
+    #
+    # Tasks WITHIN an agent stay sequential. One CLI driven twice at once
+    # shares an installation, a rate limit and in some cases a session
+    # store, and a horse race whose entrants interfere with themselves
+    # measures the interference.
+    out_lock = threading.Lock()
+    counts_lock = threading.Lock()
+    crashed: list[str] = []
+
+    def say(lines: list[str]) -> None:
+        """One agent's lines, printed together. Interleaving them line by
+        line across three concurrent agents produces a transcript nobody
+        can attribute, which is the console equivalent of the misplaced
+        artifact this harness spent a release learning to name."""
+        with out_lock:
+            for line in lines:
+                print(line, flush=True)
+
+    def drive_one(a: dict, t: dict, wd: pathlib.Path) -> None:
+        nonlocal driven, skipped
+        # PROVEN BEFORE DRIVEN. A run whose agent cannot read the
+        # rules produces artifacts that look like the agent's judgement
+        # and are not; two such runs were attributed to the agent
+        # before anyone read the transcript that said so.
+        blocked = environment_check(a)
+        if blocked:
+            with counts_lock:
+                skipped += 1
+            say([f"  SKIPPED {a['id']} on {t['id']}: {blocked[0]}"])
+            (wd / "driver.json").write_text(
+                json.dumps({"verdict": "environment",
+                            "detail": blocked[0]}, indent=2) + "\n",
+                encoding="utf-8")
+            return
+        record = drive(a, t, wd,
+                       model=model_per.get(a["id"], model_all),
+                       base=budget_floor,
+                       effort=effort_per.get(a["id"], effort_all),
+                       hard_cap=budget_ceiling)
+        # WHICH BUILD OF THE CLI DID IT, taken from the probe this run
+        # already made BEFORE driving — not re-probed here, which would
+        # answer about now rather than about the run. `agent` names a
+        # platform and `model` names what it was pointed at; neither says
+        # which binary. Two rounds of one configuration a week apart were
+        # driven by `2026.08.11-e8db854` and `2026.08.25-3e8eec8`, so a
+        # difference between them had a third possible cause that nothing
+        # recorded.
+        probe_ok, probe_note = probed.get(a["id"], (False, ""))
+        if probe_ok and probe_note.strip():
+            record["cli_version"] = probe_note.strip()
+        else:
+            # SAID, NOT DROPPED. `--agent x` drives whether or not the
+            # probe answered — the selection above consults `probed` only
+            # when no agent was named — so a 20-second probe timeout used
+            # to leave this key absent in silence, and the run joined the
+            # "nobody recorded which binary" cell beside runs that predate
+            # the field. Those are different facts and the console now says
+            # which this is.
+            record["cli_version_note"] = (
+                f"not recorded: the {a['id']} probe did not answer "
+                f"({probe_note or 'no output'})")
+            print(f"  note  {a['id']}: the CLI build was not recorded — "
+                  f"{probe_note or 'the probe gave no output'}")
+        # WRITTEN TWICE, ON PURPOSE, AND THE FIRST WRITE IS NOT THE ONE
+        # THAT MATTERS. `_conformance_trace` mutates `record` — it puts the
+        # trace id in — and this file was serialized BEFORE that, so the id
+        # 0.1.617 added reached memory and never reached disk. `score`
+        # reads the file, so the join key was absent from every score cell
+        # of the first round driven after it shipped. The first write stays
+        # because a crash inside the trace helper must still leave a driver
+        # record; the second is what carries the id.
+        (wd / "driver.json").write_text(
+            json.dumps(record, indent=2) + "\n", encoding="utf-8")
+        note = _conformance_trace(a, t, wd, record)
+        (wd / "driver.json").write_text(
+            json.dumps(record, indent=2) + "\n", encoding="utf-8")
+        with counts_lock:
+            driven += record["verdict"] == "driven"
+            # A REFUSAL IS A TASK THAT DID NOT RUN, and the `NOTHING RAN`
+            # guard below keys on `skipped`. 0.1.640 made the refusal
+            # VISIBLE and left it counting as nothing, so a run where every
+            # task was refused still printed `drove 0 task(s)` and exited 0
+            # — which is the half of that finding the fix did not close.
+            skipped += record["verdict"] == "driver refused"
+        # WHICH MODEL AND WHICH LEVEL, SAID OUT LOUD. The record has
+        # carried both since the driver was written and the console has
+        # never printed either, so a round could be reported as "at high
+        # effort" when neither axis was pinned and nothing on screen
+        # disagreed. It is printed on FINISHING rather than on starting,
+        # now that several are in flight at once: a line that announces an
+        # intention is not a line that reports what happened.
+        lines = [f"  {a['id']} on {t['id']} "
+                 f"(model {record.get('model', '?')}, "
+                 f"effort {record.get('effort', '?')})"]
+        if note:
+            lines.append(f"    {note}")
+        lines.append(f"    {record['verdict']}"
+                     + (f" in {record['seconds']}s, wrote "
+                        f"{', '.join(record['produced']) or 'nothing'}"
+                        if "seconds" in record
+                        else f" — {record.get('detail', '')}"))
+        say(lines)
+
+    def drive_agent(a: dict) -> None:
+        # BaseException ON PURPOSE. A thread that dies takes its message
+        # with it — `threading.excepthook` ignores SystemExit entirely and
+        # prints a traceback for the rest into concurrently interleaved
+        # output — and neither counter moved, so a run where every task
+        # died printed `drove 0 task(s)` and exited 0. An escaped exception
+        # is now a counted crash and a non-zero exit.
+        for one_a, t, wd in plan:
+            if one_a is a:
+                try:
+                    drive_one(a, t, wd)
+                except BaseException as exc:            # noqa: BLE001
+                    with counts_lock:
+                        crashed.append(f"{a['id']}/{t['id']}: "
+                                       f"{exc.__class__.__name__}: {exc}")
+                    say([f"  CRASHED {a['id']} on {t['id']}: "
+                         f"{exc.__class__.__name__}: {exc}"])
+
+    if args.drive and plan:
+        by_agent = list(dict.fromkeys(a["id"] for a, _t, _wd in plan))
+        print(f"  driving {len(by_agent)} agent(s) concurrently: "
+              f"{', '.join(by_agent)} — output appears as each finishes",
+              flush=True)
+        threads = [threading.Thread(target=drive_agent, args=(a,))
+                   for a in wanted if any(x is a for x, _t, _w in plan)]
+        for th in threads:
+            th.start()
+        for th in threads:
+            th.join()
+    if not args.drive:
+        print(f"prepared {run_dir}; invoke each agent against its PROMPT.txt, then "
+              f"`score --run {run_dir}`. `--drive` runs them here instead.")
+        return 0
+    # `latest` points at the newest dated run — only when the run lives
+    # under results/ (a `--run` elsewhere is the caller's directory, and a
+    # relative link to it would dangle), and never fatally: ten CI runs
+    # went red at 0.1.528 because this tried to link inside a directory
+    # CI does not have, and a symlink is a convenience, not a result.
+    latest = RESULTS / "latest"
+    if run_dir.parent == RESULTS and run_dir != latest:
+        try:
+            if latest.is_symlink() or (latest.exists() and not latest.is_dir()):
+                latest.unlink()
+            if not latest.exists():
+                latest.symlink_to(run_dir.name)
+        except OSError as exc:
+            print(f"note  results/latest was not repointed ({exc}); the run "
+                  f"is at {run_dir}")
+    print(f"drove {driven} task(s) into {run_dir}; now `score --run {run_dir}`")
+    if crashed:
+        print(f"CRASHED: {len(crashed)} task(s) died inside the driver — "
+              f"{'; '.join(crashed[:3])}"
+              + ("…" if len(crashed) > 3 else ""))
+        return 1
+    if not driven and skipped:
+        # Agent RESULTS are non-deterministic and must not gate a release.
+        # The harness being unable to invoke anything is neither: it is
+        # deterministic, operator-fixable, and the condition this release
+        # added a function to detect.
+        print(f"NOTHING RAN: all {skipped} task(s) were blocked before "
+              f"driving. That is an environment finding, not a result — fix "
+              f"the install path or the drive flag and run again.")
+        return 1
+    # DRIVING IS NOT SCORING, and this exit code says only that the driver
+    # ran. Whether the artifacts pass is `score`'s answer, and it is
+    # deliberately not folded in here: agent output is non-deterministic by
+    # this file's own opening paragraph, so a release that blocked on it
+    # would block on something that is not the release.
+    return 0
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    # A VERB TAKES THE NOUNS IT ACTS ON AND NOTHING ELSE, and subparsers make
+    # that mechanical instead of aspirational. Under one flat parser ten of the
+    # twelve flags belonged to exactly one command anyway — and the two that did
+    # not were the two that misled: `--model`/`--effort` were parsed before the
+    # dispatch, so `score --effort high` was validated and then silently
+    # discarded while `score --effort banana` exited 1. A CLI that refuses a
+    # value it will not use is a CLI whose shape nobody can read.
+    #
+    #   selection — what it acts on:  --run --agent --task --cell --version
+    #   action    — what it does:     --drive --record --redraw --ask-models
+    #   limit     — what it may spend: --budget
+    sub = ap.add_subparsers(dest="command", required=True, metavar="COMMAND")
+
+    p_validate = sub.add_parser(
+        "validate", help="parse the suite and the history; the CI step")
+    p_detect = sub.add_parser(
+        "detect", help="which agents answer a probe on this machine")
+    p_run = sub.add_parser(
+        "run", help="prepare or drive the agents over the tasks")
+    p_score = sub.add_parser("score", help="grade one run directory")
+    p_report = sub.add_parser("report", help="render the board from run(s)")
+    p_restamp = sub.add_parser(
+        "restamp", help="recompute the board's header for a new version")
+    del p_validate                       # takes the repository and nothing else
+
+    p_detect.add_argument(
+        "--ask-models", dest="ask_models", action="store_true",
+        help="also ask each agent what it can be RUN AS. Opt-in because it "
+             "shells out a second time per agent and `detect` is the cheap "
+             "answer to 'is it there'. Eleven of the twelve answer from the "
+             "registry waiver without running anything. (Named `--models` "
+             "until 0.1.644, one letter from `--model`, which meant something "
+             "unrelated on another verb.)")
+    p_detect.add_argument(
+        "--record", action="store_true",
+        help="write the answered vocabularies to conformance/vocabularies.json, "
+             "so a later probe can say what CHANGED — without a stored set the "
+             "`vocabulary-changed` trigger describes a comparison nothing can "
+             "make. Needs --ask-models: there is nothing to record until the "
+             "probes have been asked.")
+
+    for parser in (p_run, p_score):
+        parser.add_argument("--run", action="append", default=None,
+                            metavar="DIR",
+                            help="the run directory. A bare name is a run ID "
+                                 "resolved under the results root, not a path "
+                                 "against the working directory")
+    p_report.add_argument(
+        "--run", action="append", default=None, metavar="DIR",
+        help="repeatable: `report` is the only verb that merges runs. A "
+             "scoreboard built from one directory erases every agent that "
+             "directory does not contain, and later --run wins on a collision, "
+             "so re-running one agent replaces its own row and nobody else's")
+
+    p_run.add_argument(
+        "--agent", action="append", default=None, metavar="ID",
+        help="drive this agent even if no CLI answers its probe — IDEs and API "
+             "models are driven by hand. Repeatable; every name has to resolve, "
+             "so a typo among three is named rather than silently dropping two")
+    p_run.add_argument(
+        "--task", default=None, metavar="ID",
+        help="only this task id. The suite is three tasks and one of them is a "
+             "twelve-page deck, so proving the driver works should not cost a "
+             "deck")
+    p_run.add_argument(
+        "--replace", action="store_true",
+        help="overwrite a run directory that already holds a DIFFERENT "
+             "configuration. Without it such a run is refused before anything "
+             "is spent — `<run>/<agent>/<task>` cannot express two cells of one "
+             "agent, and clearing it silently destroyed the earlier one")
+    p_run.add_argument(
+        "--drive", action="store_true",
+        help="actually invoke each agent, in a temporary directory OUTSIDE this "
+             "repository, instead of writing a prompt for a person to invoke")
+    # ONE FLAG FOR ONE CONFIGURATION. `--model` and `--effort` were two flags
+    # whose values had to agree by convention, and for a platform that spells
+    # the level inside the model id they were never two things at all —
+    # `drive_effort_in_model` composes `cursor-grok-4.6-high` from both halves.
+    # Two flags also made one agent at two levels inexpressible: `--effort
+    # cursor=low --effort cursor=high` kept the last, silently.
+    p_run.add_argument(
+        "--cell", action="append", default=None, metavar="[AGENT=]MODEL[@EFFORT]",
+        help="the configuration to run: a model, optionally a level after `@`, "
+             "optionally one agent before `=`. Repeatable — `--cell "
+             "claude-code=opus@high --cell cursor=cursor-grok-4.6@high` is a "
+             "horse race; a bare `--cell opus@high` is the default for every "
+             "agent. Left off, each CLI picks its own and the run records that "
+             "it did. Levels: "
+             + "|".join(trace_schema.ENUMS["effort"]))
+    # ONE PARAMETER, ONE POLICY. These were two peer integers with no stated
+    # relationship, which reads as two names for one thing — and the owner read
+    # it that way. They are not: `_run_with_budget` grants the FLOOR outright
+    # and renews on signs of life up to the CEILING. `DRIVE_TIMEOUT = 1800`
+    # killed Hermes on 2026-08-21 six seconds before its deck's mtime, inside
+    # the repair loop for its third gate; one number deletes the floor and a
+    # quiet first minute kills a healthy run.
+    p_run.add_argument(
+        "--budget", default=None, metavar="FLOOR[:CEILING]",
+        help=f"seconds a task gets outright, and the ceiling renewal may never "
+             f"pass (default {DRIVE_BASE_BUDGET}:{DRIVE_HARD_CAP}). Past the "
+             f"floor a run continues while it shows signs of life. "
+             f"`--budget {DRIVE_HARD_CAP}:{DRIVE_HARD_CAP}` means floor = "
+             f"ceiling, i.e. no renewal — expressible on purpose, so choosing "
+             f"it is a choice")
+
+    p_report.add_argument(
+        "--record", action="store_true",
+        help="write one history row per scored agent per run — what the "
+             "evidence gate's freshness obligation reads")
+    p_report.add_argument(
+        "--redraw", action="store_true",
+        help="rewrite the board's generated block from the named run WITHOUT "
+             "touching conformance/history.json — for when the wording changed "
+             "and the measurement did not. `--record` would stamp the run's "
+             "history rows with today's version")
+
+    p_restamp.add_argument(
+        "--version", default=None,
+        help="the skill version the header should name (default: the newest "
+             "CHANGELOG heading)")
+
+    args = ap.parse_args(argv)
+
+    try:
+        tasks, agents = load_tasks(), load_agents()
+    except (OSError, ValueError, KeyError) as exc:          # noqa: BLE001
+        print(f"FAIL  conformance suite does not parse: {exc}")
+        return 1
+
+    if args.command == "restamp":
+        version = args.version
+        if not version:
+            found = versioning.releases(ROOT)
+            if not found:
+                print("FAIL  no '## X.Y.Z' heading in CHANGELOG.md and no "
+                      "--version given")
+                return 1
+            version = found[0]
+        return cmd_restamp(version)
+
+    if args.command == "validate":
+        return cmd_validate(tasks, agents)
+
+    # `run` and `score` act on exactly one directory. Saying so beats quietly
+    # taking the first: an operator who passes two to `score` means to score
+    # two, and scoring one of them without a word is the kind of silent
+    # narrowing this harness is otherwise careful about.
+    # `getattr`, because a verb that takes no --run no longer HAS the attribute:
+    # that is the point of subparsers, and reading it unconditionally is the
+    # flat parser's habit surviving the change that removed it.
+    runs = getattr(args, "run", None) or []
+    if args.command in ("run", "score") and len(runs) > 1:
+        print(f"FAIL  {args.command} acts on one --run directory; {len(runs)} given. "
+              f"Only `report` merges runs.")
+        return 1
+
+    probed = {a["id"]: detect(a) for a in agents}
+    if args.command == "detect":
+        return cmd_detect(agents, probed, args.ask_models, args.record)
+
+    if args.command == "run":
+        return cmd_run(tasks, agents, probed, runs, args)
+
+    if args.command == "score":
+        return cmd_score(tasks, runs)
+
+    return cmd_report(tasks, agents, probed, runs,
+                      args.record, args.redraw)
 
 
 if __name__ == "__main__":
