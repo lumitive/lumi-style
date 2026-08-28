@@ -43,6 +43,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 # The effort vocabulary is the schema's, never retyped here — a second literal
 # copy is the drift the genre enum already grew once, one domain over.
+import agent_cell  # noqa: E402 — the one cell constructor
 import state_dir  # noqa: E402 — one answer for operator-owned stores
 from trace_schema import ENUMS  # noqa: E402
 
@@ -114,7 +115,11 @@ def matrix(traces):
     efforts = (*ENUMS["effort"], "?")
     cells: dict[tuple[str, str], list[dict]] = collections.defaultdict(list)
     for r in board(traces):
-        cells[(r["model"] or "?", r["effort"] or "?")].append(r)
+        # A NAMED PROJECTION (0.1.643). This built the key by hand and the
+        # reason the agent is dropped was written nowhere; `Cell.drop_agent`
+        # carries both. `board()`'s rows have no agent, so the cell is
+        # reconstructed with a placeholder one that the projection discards.
+        cells[agent_cell.Cell("?", r["model"], r["effort"]).drop_agent()].append(r)
     models = sorted({m for m, _ in cells})
     return models, efforts, dict(cells)
 

@@ -222,6 +222,28 @@
    "retired_defs": [
     "_root"
    ]
+  },
+  {
+   "id": "agent-cell",
+   "fact": "the unit of measurement: agent x model x effort, and the ruler beside it",
+   "owner": "scripts/lib/agent_cell.py",
+   "defs": [
+    "cell",
+    "cell_of_trace",
+    "cell_of_config",
+    "ruler_of_trace",
+    "measured_of_trace"
+   ],
+   "patterns": [
+    {
+     "regex": "\\(\\s*t\\[[\"']agent[\"']\\]\\s*,\\s*t\\.get\\([\"']model[\"']\\)",
+     "what": "a hand-built cell tuple",
+     "selftest": "        by_key[(t[\"agent\"], t.get(\"model\"), t.get(\"effort\"),",
+     "seen_in": "scripts/ops/agent_evals.py before 0.1.643, where the 5-tuple was assembled inline"
+    }
+   ],
+   "why": "the register at conformance/agent-evals.json declared the unit and no code read it; the unit was computed four times in three shapes instead - a 5-tuple in agent_evals.cells(), the declared 3-tuple in its plan, and a 2-tuple with the agent dropped in agent_runs.matrix(). No shared constructor, so the downstream join had to re-derive `these two tasks were the same configuration` from a pin pair.",
+   "note": "the axes themselves are held to the register by check_repo's `cell axes` guard, which is a parity check and not a duplication check - the two answer different questions and both are needed."
   }
  ],
  "waivers": [
