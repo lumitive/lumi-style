@@ -601,3 +601,86 @@ def test_assets_tracked_tarball_checkout_asserts_nothing(tmp_path, monkeypatch):
     (tmp_path / "assets").mkdir()
     monkeypatch.setattr(check_repo, "ROOT", tmp_path)
     assert check_repo.check_assets_tracked() == []
+
+
+# check_cell_axes — the register's declared cell and the constructor's AXES are
+# one statement, and a register that cannot be read is not a pass.
+#
+# Shipped at 0.1.643 with its five red runs performed and none of them kept, so
+# the guard's own proof lived in a session transcript. Convention 11's second
+# half is the reason the last two exist: a skip and a clean tree print the same
+# empty list, so the branches where the check CANNOT LOOK are asserted to say
+# something else.
+
+def _register_tree(tmp_path, cell=("agent", "model", "effort"), raw=None):
+    conf = tmp_path / "conformance"
+    conf.mkdir()
+    body = raw if raw is not None else json.dumps(
+        {"cell": list(cell) if cell is not None else None, "axes": []})
+    (conf / "agent-evals.json").write_text(body, encoding="utf-8")
+    return tmp_path
+
+
+def test_cell_axes_agreeing_register_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _register_tree(tmp_path))
+    assert check_repo.check_cell_axes() == []
+
+
+def test_cell_axes_a_narrowed_register_fails_naming_both_sides(tmp_path, monkeypatch):
+    """The register dropping an axis is the drift this guard exists for: the
+    board would go on grouping by three while the declaration said two."""
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _register_tree(tmp_path, cell=("agent", "model")))
+    errors = check_repo.check_cell_axes()
+    assert errors
+    assert any("'effort'" in e and "agent_cell.py" in e for e in errors)
+
+
+def test_cell_axes_a_reordered_register_fails(tmp_path, monkeypatch):
+    """The axes are a tuple, not a set — `pooled_key` is positional."""
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _register_tree(tmp_path, cell=("model", "effort", "agent")))
+    assert check_repo.check_cell_axes()
+
+
+def test_cell_axes_an_absent_register_fails_rather_than_skipping(tmp_path, monkeypatch):
+    """One side of a parity check missing is not the other side agreeing."""
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    errors = check_repo.check_cell_axes()
+    assert errors
+    assert any("could not be read" in e for e in errors)
+
+
+def test_cell_axes_an_empty_declaration_fails_rather_than_skipping(tmp_path, monkeypatch):
+    """FM-24 exactly: `cell: []` compared against anything is vacuously fine,
+    and would print what a correct register prints."""
+    for name, empty in (("list", []), ("null", None)):
+        root = tmp_path / name
+        root.mkdir()
+        monkeypatch.setattr(check_repo, "ROOT", _register_tree(root, cell=empty))
+        errors = check_repo.check_cell_axes()
+        assert errors, f"cell: {empty!r} passed"  # noqa
+        assert any("declares no `cell` axes" in e for e in errors)
+
+
+def test_cell_axes_an_unparseable_register_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _register_tree(tmp_path, raw="{not json"))
+    assert any("could not be read" in e for e in check_repo.check_cell_axes())
+
+
+def test_cell_axes_the_blind_answers_differ_from_the_clean_one(tmp_path, monkeypatch):
+    """Stated as the literal comparison, so a later `return []` in either
+    branch fails here rather than passing every tree there is."""
+    ok = tmp_path / "ok"
+    ok.mkdir()
+    monkeypatch.setattr(check_repo, "ROOT", _register_tree(ok))
+    clean = check_repo.check_cell_axes()
+    for name, kw in (("gone", None), ("empty", {"cell": []}),
+                     ("broken", {"raw": "{"})):
+        root = tmp_path / name
+        root.mkdir()
+        if kw is not None:
+            _register_tree(root, **kw)
+        monkeypatch.setattr(check_repo, "ROOT", root)
+        assert check_repo.check_cell_axes() != clean, name

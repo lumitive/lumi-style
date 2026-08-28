@@ -371,15 +371,43 @@ def environment_check(agent):
     return []
 
 
-def occupied_by_another_cell(wd: pathlib.Path, model, effort) -> str | None:
-    """-> why this directory already holds a DIFFERENT cell, or None.
+def recorded_axes(agent: dict, model, effort) -> tuple[str | None, str | None, bool]:
+    """-> the (model, effort, effort_pinned) that a drive of this ask RECORDS.
+
+    ONE implementation, called twice: by `drive()` when it writes `driver.json`,
+    and by `occupied_by_another_cell` when it compares against one. It was
+    written once and read once, so the comparison read a RAW ask against a
+    COMPOSED record and refused every re-run of an identical cell on any agent
+    whose axes are transformed between the two — `cursor-grok-4.6@high` records
+    `cursor-grok-4.6-high`, and 0.1.645 told the operator that was a second
+    configuration. The tests exercised `opus@high`, which survives composition
+    unchanged, so the one platform the design record singles out as the reason a
+    composed slug is wrong is the one the check was wrong about.
+
+    THE LEVEL THE ID ALREADY CARRIES IS THE LEVEL THAT RAN. A model pinned as
+    `cursor-grok-4.6-high` with no effort recorded "(not pinned)" and left the
+    trace's effort null — so two traces sat in a cell of their own beside ten
+    identical ones that had been given both halves. The id says `high`;
+    recording `high` is reading it, not guessing.
+    """
+    model, effort_pinned = agent_capability.compose_model(agent, model, effort)
+    if not effort_pinned:
+        carried = agent_capability.effort_in_model(agent, model)
+        if carried:
+            effort, effort_pinned = carried, True
+    return model, effort, effort_pinned
+
+
+def occupied_by_another_cell(
+        agent: dict, wd: pathlib.Path, model, effort,
+) -> tuple[str | None, str | None]:
+    """-> (why this directory already holds a DIFFERENT cell, what could not be read).
 
     `<run>/<agent>/<task>` cannot express two configurations of one agent, and
     the driver clears the directory before driving — so a second cell driven
     into the same run destroyed the first in silence. The operator's answer has
-    been four hand-named run directories since 2026-08-21: `r18-low`,
-    `r18-medium`, `r18-high`, `r18-xhigh`, and `matrix-2026-08-21/` with the
-    level built in by hand above the agent.
+    been hand-named run directories since 2026-08-21, and `matrix-2026-08-21/`
+    with the level built in by hand above the agent.
 
     Refusing is the interim, not the fix. The per-cell layout removes the
     collision rather than reporting it; until then a run that would overwrite a
@@ -387,29 +415,46 @@ def occupied_by_another_cell(wd: pathlib.Path, model, effort) -> str | None:
     same reasoning the pin check states one screen up — asked before the budget
     is spent, not by the CLI afterwards.
 
-    A record that cannot be read is not a refusal: an unreadable `driver.json`
-    means the previous drive left nothing to compare, and clearing it is what
-    the clear is for.
+    THREE ANSWERS, NOT TWO, and the third is the one convention 11 asks for.
+    A `driver.json` that cannot be read is not a refusal — the previous drive
+    left nothing to compare, and clearing it is what the clear is for — but it
+    returned the same bare `None` as a clean directory, so a corrupt record, a
+    drive killed mid-write, and a record from before 0.1.617 all deleted a
+    measurement while printing exactly what an empty directory prints. The note
+    is not fatal and does not stop the run; it says which of the two happened.
+
+    THE ASK IS COMPOSED BEFORE IT IS COMPARED. `driver.json` records the model
+    `compose_model` produced and the effort the id back-filled, so comparing a
+    raw ask against it refused every identical re-run on every agent whose axes
+    are transformed — see `recorded_axes`.
     """
     record = wd / "driver.json"
     if not record.exists():
-        return None
+        return None, None
     try:
         prior = json.loads(record.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return None
+    except (OSError, ValueError) as exc:
+        return None, (f"{wd.parent.name}/{wd.name} holds a driver record that "
+                      f"cannot be read ({exc}), so what it measured is unknown "
+                      f"— it will be cleared, not compared.")
     if not isinstance(prior, dict):
-        return None
+        return None, (f"{wd.parent.name}/{wd.name} holds a driver record that "
+                      f"is not an object, so what it measured is unknown — it "
+                      f"will be cleared, not compared.")
     was = (prior.get("model"), prior.get("effort"))
     if not any(was):
-        return None
-    now = (model or "(the CLI's default)", effort or "(not pinned)")
+        # ABSENT STAYS ABSENT. A record written before 0.1.617 carries no pins
+        # at all; there is nothing to disagree with, and saying so every run
+        # would train the operator to read past the notes that matter.
+        return None, None
+    model, effort, pinned = recorded_axes(agent, model, effort)
+    now = (model or "(the CLI's default)", effort if pinned else "(not pinned)")
     if was == now:
-        return None
+        return None, None
     return (f"{wd.parent.name}/{wd.name} holds model {was[0]!r} at effort "
             f"{was[1]!r} and this run would drive {now[0]!r} at {now[1]!r} — "
             f"two configurations, one directory. Use a different --run, or "
-            f"--replace to overwrite the earlier one.")
+            f"--replace to overwrite the earlier one."), None
 
 
 def parse_budget(text: str | None) -> tuple[int, int]:
@@ -624,21 +669,13 @@ def drive(agent, task, prompt_dir, model=None, base=DRIVE_BASE_BUDGET,
         # effort" printed nothing at all, incremented neither `driven` nor
         # `skipped`, and the run reported `drove 0 task(s)` and exited 0.
         return {"verdict": "driver refused",
-                "detail": (f"--effort {effort} was given, but {agent['id']} "
+                "detail": (f"effort {effort} was asked for, but {agent['id']} "
                            f"composes effort into its model id "
-                           f"({effort_template!r}) and no --model was given, so "
-                           f"neither axis can be pinned. Pass --model as well, "
-                           f"or drop --effort and accept the CLI's defaults.")}
-    model, effort_pinned = agent_capability.compose_model(agent, model, effort)
-    # THE LEVEL THE ID ALREADY CARRIES IS THE LEVEL THAT RAN. A model pinned as
-    # `cursor-grok-4.6-high` with no `--effort` recorded "(not pinned)" and left
-    # the trace's effort null — so two traces sat in a cell of their own beside
-    # ten identical ones that had been given both halves. The id says `high`;
-    # recording `high` is reading it, not guessing.
-    if not effort_pinned:
-        carried = agent_capability.effort_in_model(agent, model)
-        if carried:
-            effort, effort_pinned = carried, True
+                           f"({effort_template!r}) and no model was named, so "
+                           f"neither axis can be pinned. Name one — `--cell "
+                           f"{agent['id']}=MODEL@{effort}` — or drop the "
+                           f"`@{effort}` and accept the CLI's defaults.")}
+    model, effort, effort_pinned = recorded_axes(agent, model, effort)
     # THE PIN ITSELF, against the vocabulary the CLI last answered with. Three
     # states: only a recorded vocabulary can refuse, and an agent nobody has
     # probed is UNVALIDATED — said out loud, because "checked and fine" and
@@ -2800,6 +2837,7 @@ def cmd_run(tasks: list[dict], agents: list[dict], probed: dict,
     model_all = effort_all = None
     model_per: dict[str, str] = {}
     effort_per: dict[str, str] = {}
+    pinned: dict[str | None, str] = {}
     for raw in args.cell or []:
         try:
             # THE TUPLE IS PASSED, NOT RETYPED. It was retyped once and the
@@ -2811,6 +2849,25 @@ def cmd_run(tasks: list[dict], agents: list[dict], probed: dict,
         except agent_cell.CellError as exc:
             print(f"FAIL  {exc}")
             return 1
+        # ONE CELL PER AGENT, SAID OUT LOUD. `--cell` makes two cells of one
+        # agent SAYABLE; the per-cell layout (GAP-045) is what will drive them,
+        # and until then `<run>/<agent>/<task>` has nowhere to put the second.
+        # Merging the two silently is what `--effort cursor=low --effort
+        # cursor=high` did, and this release exists partly because that was
+        # presented as fixed. Worse, a half-merge invents a cell nobody asked
+        # for: `--cell opus@high --cell sonnet` resolved to sonnet AT HIGH,
+        # because a None axis did not clear the previous one.
+        seen = None if agent_id is None else agent_id
+        if seen in pinned:
+            which = (f"--cell for {agent_id!r}" if agent_id
+                     else "a --cell naming no agent")
+            print(f"FAIL  {which} was given twice "
+                  f"({pinned[seen]!r} then {raw!r}). One run drives one cell "
+                  f"per agent: `<run>/<agent>/<task>` has no level for a "
+                  f"second (KNOWN_GAPS GAP-045). Drive them into two --run "
+                  f"directories.")
+            return 1
+        pinned[seen] = raw
         if agent_id is None:
             model_all = model if model is not None else model_all
             effort_all = effort if effort is not None else effort_all
@@ -2879,11 +2936,14 @@ def cmd_run(tasks: list[dict], agents: list[dict], probed: dict,
               "or an API model has no CLI to probe — name it with --agent and drive "
               "it by hand.")
         return 1
-    # PREPARED FIRST, SEQUENTIALLY. Making the directories and writing the
-    # prompts is milliseconds and it is the part that must be deterministic:
-    # a reader looking at the tree afterwards should find it laid out the
-    # same way every time, whatever order the agents finished in.
+    # PLANNED IN FULL BEFORE ANYTHING IS TOUCHED, and that order is the whole
+    # point. Clearing inside the loop that COLLECTS collisions means a clash
+    # found on the last agent aborts a run whose earlier directories have
+    # already been deleted — "nothing was driven" is true and beside the point,
+    # because the measurement it was protecting is gone. Two passes: decide,
+    # then act.
     collisions: list[str] = []
+    unreadable: list[str] = []
     plan: list[tuple[dict, dict, pathlib.Path]] = []
     for a in wanted:
         for t in tasks:
@@ -2892,24 +2952,18 @@ def cmd_run(tasks: list[dict], agents: list[dict], probed: dict,
             if args.task and t["id"] != args.task:
                 continue
             wd = run_dir / a["id"] / t["id"]
-            if args.drive and wd.exists():
+            if args.drive and wd.exists() and not args.replace:
                 # REFUSED BEFORE ANYTHING IS SPENT, unless the operator says
                 # otherwise. Clearing is right for re-running the SAME cell
                 # and was silently destroying a different one.
-                if not args.replace:
-                    clash = occupied_by_another_cell(
-                        wd, model_per.get(a["id"], model_all),
-                        effort_per.get(a["id"], effort_all))
-                    if clash:
-                        collisions.append(clash)
-                        continue
-                # Cleared before driving: whatever is in here afterwards
-                # was produced by THIS drive or by nothing.
-                shutil.rmtree(wd)
-            wd.mkdir(parents=True, exist_ok=True)
-            (wd / "PROMPT.txt").write_text(t["prompt"], encoding="utf-8")
-            if "input" in t:
-                (wd / "input.md").write_text(t["input"], encoding="utf-8")
+                clash, note = occupied_by_another_cell(
+                    a, wd, model_per.get(a["id"], model_all),
+                    effort_per.get(a["id"], effort_all))
+                if note:
+                    unreadable.append(note)
+                if clash:
+                    collisions.append(clash)
+                    continue
             plan.append((a, t, wd))
 
     # THE WHOLE RUN, not the colliding task. A round that drove two of its
@@ -2921,6 +2975,22 @@ def cmd_run(tasks: list[dict], agents: list[dict], probed: dict,
         for line in collisions:
             print(f"        {line}")
         return 1
+    for note in unreadable:
+        print(f"  note  {note}")
+
+    # PREPARED SEQUENTIALLY. Making the directories and writing the prompts is
+    # milliseconds and it is the part that must be deterministic: a reader
+    # looking at the tree afterwards should find it laid out the same way every
+    # time, whatever order the agents finished in.
+    for _a, t, wd in plan:
+        # Cleared before driving: whatever is in here afterwards was produced
+        # by THIS drive or by nothing.
+        if args.drive and wd.exists():
+            shutil.rmtree(wd)
+        wd.mkdir(parents=True, exist_ok=True)
+        (wd / "PROMPT.txt").write_text(t["prompt"], encoding="utf-8")
+        if "input" in t:
+            (wd / "input.md").write_text(t["input"], encoding="utf-8")
 
     driven = skipped = 0
     # ONE WORKER PER AGENT, and the agents run at once. Three agents on one

@@ -53,15 +53,21 @@ alone.
 
 ## The evidence that settles the shape
 
-Thirty run directories under the owner's conformance folder. **Sixteen encode a
-cell in the run id by hand** — `r18-low`, `r18-medium`, `r18-high`, `r18-xhigh`,
-`r19-{low,medium,high,xhigh}-{2,3}`, `0.1.613-grok46high`, `0.1.614-grok46-2020`
-— and `matrix-2026-08-21/` is the missing directory level, built by hand a month
-ago:
+Thirty run directories under the owner's conformance folder. **Fifteen encode a
+cell in the run id by hand** — `r18-{low,medium,high,xhigh}`,
+`r19-{low,medium,high,xhigh}-{2,3}`, `0.1.613-grok46high-2026-08-26`,
+`0.1.613-grok46high-retry-1802`, `0.1.614-grok46-2020` — and
+`matrix-2026-08-21/` is the missing directory level, built by hand a month ago,
+with eight subdirectories of which five name a level:
 
 ```
-matrix-2026-08-21/{low,medium,high,high-loop}/<agent>/T1-deck/
+matrix-2026-08-21/<level>/<agent>/T1-deck/
 ```
+
+(This section said sixteen and four until 0.1.647, which counted the disk
+rather than the sentence. The argument does not turn on the number, which is
+why nobody checked it — and is exactly convention 13's case for a figure that
+names its authority instead.)
 
 The layout is not a proposal. It is the promotion of an operator workaround that
 has been in daily use since 2026-08-21, and it exists because
@@ -181,9 +187,12 @@ Each is one release that leaves `python3 scripts/preflight.py` green.
    which is complaints 4 and 5 as a fact about the data.
 3. **The collision refusal.** Until the layout arrives, a second cell driven into
    an occupied directory is refused before a second of budget is spent, rather
-   than destroying the first in silence.
+   than destroying the first in silence. Shipped at 0.1.645 with two defects
+   0.1.647 fixed — it cleared directories inside the pass that was still
+   collecting collisions, and compared a raw ask against a composed record —
+   and tracked as GAP-045 until the layout withdraws it.
 4. **The extraction.** Five inlined command bodies become handlers; `main()`
-   falls from 1,123 lines to about sixty. This is the release complaint 6 is
+   falls from 1,210 lines to 170. This is the release complaint 6 is
    actually about.
 5. **The history key** — `scores.json` keyed by cell, one history row per
    `(agent, cell, run_dir)`, and `_latest_per_round` widened in the same commit.
