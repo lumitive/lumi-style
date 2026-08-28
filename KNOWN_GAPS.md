@@ -75,6 +75,39 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-044 · The cost axis has no home for cache reads, so a cached run reads as a cheap one
+
+- status: open
+- opened: 0.1.642
+- surface: scripts/lib/trace_schema.py (`FIELDS`), scripts/ops/run_conformance.py
+  (`_usage_from`), conformance/CONFIGURATIONS.md, README's generated block
+- symptom: the board orders configurations by `output_tokens` per content page.
+  Measured 2026-08-28 on one task, one agent, one model, one effort: Cursor's
+  `2026.08.25-3e8eec8` build reported `outputTokens 1389` and
+  `cacheReadTokens 899968`, while the same configuration on earlier builds
+  reported 16k-73k output and no cache line at all. `trace_schema.FIELDS`
+  carries `input_tokens` and `output_tokens` and nothing else, so the cache
+  reads are dropped at the door and the run entered the board at **139
+  tokens/page against 6,290-7,896 for its own predecessors** — forty-five times
+  cheaper, first in the ordering, and therefore the configuration the README
+  block recommends.
+- the artifact is NOT in doubt: the deck is 632,268 bytes, twelve pages, ten of
+  them content, and it passed fifteen held gates. What is wrong is the price
+  written beside it.
+- why it is a gap and not a fix: the fix is a schema change — `cache_read_tokens`
+  and `cache_write_tokens` in `FIELDS` and in `ADDED_LATER`, the dictionary row,
+  the usage reader, and a decision about what the cost axis SHOULD count once
+  the number exists (output alone, or a weighted total). That decision is the
+  owner's, because it changes what the board recommends.
+- until then the board's own defence is the `cli` column: cells are already
+  split by CLI build, so a reader can see that the cheap row and the dear rows
+  came from different instruments. Nothing makes them incomparable in the
+  ORDERING, which is the half that misleads.
+- check: two traces of one configuration whose usage shapes differ must not be
+  ordered against each other without the cache line, and a cell whose
+  tokens/page is an order of magnitude from its own configuration's other cells
+  is reported rather than ranked.
+
 ## GAP-043 · Two ordered writes decide which failure a crash produces
 
 - status: open

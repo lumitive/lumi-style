@@ -7,6 +7,7 @@ Ordered by reader_score desc, tasks_earned desc, tokens_per_page asc. **Below th
 
 | agent | model | effort | skill | cli | n | read | output tokens | tokens/page | s/page | pages | earned | pinned | measured |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| cursor | cursor-grok-4.6-high | high | 0.1.641 | 2026.08.25-3e8eec8 | 1 | — | 1,389 | 139 | 111.4 | 10 | 3 of 3 | honoured | 2026-08-28 |
 | cursor | cursor-grok-4.6-high | high | 0.1.623 | — | 2 | — | 63,036 (62,901–63,171) | 7,093 (6,290–7,896) | 179.6 (158.6–200.5) | 8–10 | 3 of 3 | honoured | 2026-08-27 |
 | cursor | cursor-grok-4.6-low | low | 0.1.626 | 2026.08.25-3e8eec8 | 2 | — | 25,770 (23,041–28,500) | 2,865 (2,850–2,880) | 90.5 (74.7–106.2) | 8–10 | 2 of 2 | honoured | 2026-08-27 |
 | cursor | cursor-grok-4.6-medium | medium | 0.1.626 | 2026.08.25-3e8eec8 | 2 | — | 36,172 (35,134–37,211) | 3,617 (3,513–3,721) | 78.3 (68.0–88.7) | 10 | 2 of 2 | honoured | 2026-08-27 |

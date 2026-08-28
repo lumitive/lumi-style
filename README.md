@@ -74,7 +74,7 @@ read it, and Gemini CLI gives it precedence over its own directory.
 | **Claude Code** | `sonnet` · effort `high` | — | 114,222 out-tok · 14,278/page (n=1) | 2026-08-21 · skill 0.1.546 |
 | **Gemini CLI** | not measured here | — | — | — |
 | **OpenAI Codex** | not measured here | — | — | — |
-| **Cursor** | `cursor-grok-4.6-low` · effort `low` | 2 of 2 | 25,770 out-tok · 2,865/page (n=2) | 2026-08-27 · skill 0.1.626 |
+| **Cursor** | `cursor-grok-4.6-high` · effort `high` | 3 of 3 | 1,389 out-tok · 139/page (n=1) | 2026-08-28 · skill 0.1.641 |
 | **Google Antigravity** | cannot be measured here | — | — | — |
 | **GitHub Copilot** | not measured here | — | — | — |
 | **OpenCode** | not measured here | — | — | — |
