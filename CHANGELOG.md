@@ -1,3 +1,44 @@
+## 0.1.645 — a second configuration in one directory destroyed the first, and said nothing
+
+`<run>/<agent>/<task>` cannot express two cells of one agent, and the driver
+clears the directory before driving. So a second configuration driven into the
+same run **deleted the first with no message** — not merged, not refused,
+removed.
+
+**The evidence is on the operator's disk.** Thirty run directories, and sixteen
+encode a configuration in the run id by hand: `r18-low`, `r18-medium`,
+`r18-high`, `r18-xhigh`, `r19-{low,medium,high,xhigh}-{2,3}`,
+`0.1.613-grok46high`, `0.1.614-grok46-2020`. And `matrix-2026-08-21/` is the
+missing directory level, built by hand a month ago —
+`{low,medium,high,high-loop}/<agent>/T1-deck` — four cells driven as four
+invocations into four hand-made subdirectories. The workaround has been in daily
+use since 2026-08-21; nobody had written down what it was working around.
+
+**Until the per-cell layout lands, the run refuses.** A planned task whose
+directory already holds a DIFFERENT `(model, effort)` stops the whole run before
+a second of budget is spent — the reasoning `validate_pin` states one screen up:
+asked before the budget is spent, not by the CLI afterwards. The whole run, not
+the colliding task: a round that drove two of three and refused the third leaves
+a directory nobody can read as one measurement. `--replace` is the explicit
+overwrite.
+
+**Three things are deliberately NOT collisions**, because a refusal that strands
+a directory is worse than the clear it replaced: re-running the same cell (which
+is what the clear is for), a `driver.json` that cannot be read (the previous
+drive left nothing to compare), and a record from before 0.1.617 that carries no
+pins at all — absent stays absent.
+
+Planted first, end to end: one cell driven at `low`, a second at `high` into the
+same run — refused, exit 1, and the first cell's record still on disk with its
+own model and effort. Then the same command with `--replace`, which drives and
+overwrites. Six unit cases beside it, written against the shape `drive()`
+actually writes rather than an imagined one.
+
+This is an interim by design. The per-cell layout removes the collision instead
+of reporting it, and withdraws this refusal; the release that does so will say
+which release added it. Third of the stages in
+`specs/2026-08-28-conformance-cell-design.md`.
+
 ## 0.1.644 — ten of twelve flags belonged to one command, and the parser did not know it
 
 The owner could not see a design logic across the parameter set, and could not

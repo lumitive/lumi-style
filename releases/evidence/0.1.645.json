@@ -1,0 +1,8 @@
+{
+ "version": "0.1.645",
+ "diff_base": "cb601034086373982030ef763feb9ef7330b18c9",
+ "spec": "specs/2026-08-28-conformance-cell-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}
