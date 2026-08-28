@@ -72,6 +72,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 import checker_report  # noqa: E402
 import fingerprint  # noqa: E402
 import markup  # noqa: E402
+import state_dir  # noqa: E402
 from deliverable_registry import STAGE_OF  # noqa: E402
 from trace_schema import ENUMS, FIELDS, PHASES, validate  # noqa: E402
 from trace_store import traces_dir  # noqa: E402 — one store resolver
@@ -431,6 +432,73 @@ def _fail_if_invalid(rec):
 
 
 
+# THE OPERATOR'S OWN FILE, BESIDE THE STORE AND NOT IN IT. A trace is a closed
+# machine record with nowhere to put prose, which is the stated reason
+# `check_repo`'s english-only guard exempts `evals/traces/` at all — so putting
+# a human note INSIDE a trace would have quietly falsified that reason. The
+# owner declined the field for exactly that. A sidecar keyed by trace id keeps
+# the record closed and the exemption honest, and costs one join.
+#
+# Optional in every direction: the file need not exist, a trace need not appear
+# in it, and nothing reads it to decide anything.
+# RESOLVED, NOT HARD-CODED, for the same reason the store itself is: `evals/`
+# is development-side and this file ships. A hard-coded path would point, in an
+# installed skill, at a directory the projection does not carry — which the
+# `cross-boundary paths` guard caught on the first attempt. `state_dir.store`
+# keeps a maintainer's checkout writing where its data already is and gives an
+# installed skill its own place.
+NOTES = state_dir.store("trace-notes.json",
+                        in_repo=("evals", "trace-notes.json"))
+
+
+def _notes() -> dict:
+    if not NOTES.exists():
+        return {}
+    try:
+        return json.loads(NOTES.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        sys.exit(f"{NOTES} does not parse ({exc}). It is hand-edited on "
+                 f"purpose; fix the JSON rather than letting a reader guess.")
+
+
+def cmd_note(a):
+    """Attach a note or labels to a trace, in the sidecar.
+
+    Not a verdict, and it is in a different file from the verdicts for the same
+    reason `trace.py` has no `--pass` flag: the two kinds of writing should not
+    look alike. What a person is the AUTHORITY on is why a run was made and
+    what to remember about it; everything a trace holds is a measurement.
+    """
+    if not _path(a.id).exists():
+        sys.exit(f"no such trace: {a.id}. A note about a run nobody recorded "
+                 f"is a note about nothing.")
+    notes = _notes()
+    entry = dict(notes.get(a.id) or {})
+    if a.note is not None:
+        entry["note"] = a.note
+    if a.tag:
+        # ADDED, not replaced, and de-duplicated in the order met. A second run
+        # that silently dropped the first is how a label set becomes whatever
+        # the last operator happened to type.
+        seen = list(entry.get("tags") or [])
+        for t in a.tag:
+            if t not in seen:
+                seen.append(t)
+        entry["tags"] = seen
+    if not entry:
+        sys.exit("nothing to write: pass --note or --tag.")
+    notes[a.id] = entry
+    NOTES.parent.mkdir(parents=True, exist_ok=True)
+    tmp = NOTES.with_name(f"{NOTES.name}.{os.getpid()}.tmp")
+    tmp.write_text(json.dumps(notes, indent=1, sort_keys=True,
+                              ensure_ascii=False) + "\n", encoding="utf-8")
+    os.replace(tmp, NOTES)
+    print(f"{a.id}: tags={','.join(entry.get('tags') or []) or '—'} "
+          f"note={'yes' if entry.get('note') else '—'} -> "
+          f"{NOTES.name}")
+    return 0
+
+
 def cmd_annotate(a):
     """Link fields only. `corpus_id` and `review_ref` join a build to the
     measurement corpus and to the review that scored it — they are addresses,
@@ -463,27 +531,6 @@ def cmd_annotate(a):
         rec["corpus_id"] = a.corpus_id
     if a.review_ref:
         rec["review_ref"] = a.review_ref
-    if a.note is not None or a.tag:
-        # THE ONE THING A PERSON IS THE AUTHORITY ON. `--note` and `--tag` are
-        # not measurements — they are why the run was made and what the
-        # operator wants to remember — so they belong here rather than beside
-        # the verdict flags that deliberately do not exist. Written through a
-        # command AND safe to edit by hand: `check_trace_schema` validates
-        # every committed trace, so a broken edit reddens CI instead of
-        # corrupting a reader.
-        ann = dict(rec.get("annotations") or {})
-        if a.note is not None:
-            ann["note"] = a.note
-        if a.tag:
-            # ADDED, not replaced, and de-duplicated in the order met. A second
-            # `--tag` run that silently dropped the first is how a label set
-            # becomes whatever the last operator happened to type.
-            seen = list(ann.get("tags") or [])
-            for t in a.tag:
-                if t not in seen:
-                    seen.append(t)
-            ann["tags"] = seen
-        rec["annotations"] = ann
     if a.recipe is not None:
         if not a.recipe.is_file():
             sys.exit(f"--recipe {a.recipe} is not a file. A recipe nobody can "
@@ -496,11 +543,8 @@ def cmd_annotate(a):
                   f"not the same as current.", file=sys.stderr)
     _fail_if_invalid(rec)
     _save(rec)
-    ann = rec.get("annotations") or {}
     print(f"{a.id}: corpus_id={rec['corpus_id']} review_ref={rec['review_ref']} "
-          f"recipe={rec['recipe_version'] or 'unstamped'} "
-          f"tags={','.join(ann.get('tags') or []) or '—'} "
-          f"note={'yes' if ann.get('note') else '—'}")
+          f"recipe={rec['recipe_version'] or 'unstamped'}")
 
 def cmd_validate(_a):
     if not TRACES.exists():
@@ -597,18 +641,24 @@ def main():
                         "same reason there is none for typing a verdict.")
     c.set_defaults(func=cmd_close)
 
+    nt = sub.add_parser("note", help="attach a note or labels to a trace, in "
+                        "evals/trace-notes.json — never in the trace")
+    nt.add_argument("--id", required=True)
+    nt.add_argument("--note",
+                    help="a sentence about this run, from the person who made "
+                         "it. Any language: the sidecar is development-side and "
+                         "an operator's note is neither rule prose nor rule "
+                         "data.")
+    nt.add_argument("--tag", action="append", default=[],
+                    help="a label. Repeatable, added to what the trace already "
+                         "carries rather than replacing it.")
+    nt.set_defaults(func=cmd_note)
+
     an = sub.add_parser("annotate", help="link a closed trace to its corpus "
                         "id and review — addresses, never verdicts")
     an.add_argument("--id", required=True)
     an.add_argument("--corpus-id", dest="corpus_id")
     an.add_argument("--review-ref", dest="review_ref")
-    an.add_argument("--note",
-                    help="a sentence about this run, from the person who made "
-                         "it. Not a verdict — there is no flag for one of "
-                         "those anywhere in this tool.")
-    an.add_argument("--tag", action="append", default=[],
-                    help="a label. Repeatable, added to whatever the trace "
-                         "already carries rather than replacing it.")
     # The builder, fingerprinted once it exists. See cmd_annotate's docstring
     # for why this cannot be done at open.
     an.add_argument("--recipe", type=pathlib.Path,

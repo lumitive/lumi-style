@@ -13,7 +13,6 @@ reason the artifacts exist.
 import json
 
 import build_trace_dictionary as btd
-import pytest
 import trace_schema
 
 
@@ -83,17 +82,13 @@ def test_an_open_trace_reports_no_fail_count_rather_than_zero():
     assert rows[0]["fail_count"] is None
 
 
-def test_annotations_flatten_into_two_columns():
+def test_a_note_flattens_into_two_columns():
     """One object per line is the point; a nested block in it defeats grep,
     which is why a human opens the index instead of the trace."""
-    rows = btd.index_rows([_rec("t-000000000001",
-                                annotations={"note": "why", "tags": ["a"]})])
+    rows = btd.index_rows([_rec("t-000000000001")],
+                          notes={"t-000000000001": {"note": "why",
+                                                    "tags": ["a"]}})
     assert rows[0]["note"] == "why" and rows[0]["tags"] == ["a"]
-
-
-def test_a_trace_with_no_annotations_still_has_the_columns():
-    rows = btd.index_rows([_rec("t-000000000001")])
-    assert rows[0]["note"] is None and rows[0]["tags"] == []
 
 
 def test_every_line_parses_on_its_own():
@@ -133,12 +128,15 @@ def test_the_hand_editable_column_matches_the_allow_list():
     assert "| no |" in row, "a verdict block was offered as hand-editable"
 
 
-def test_the_language_exemption_is_stated_where_a_contributor_reads_it():
-    """`check_repo`'s english-only guard excludes `evals/traces/`. Its stated
-    reason was "a closed schema with nowhere to put prose", which stopped being
-    true when `annotations` gave it somewhere."""
+def test_the_language_rule_is_stated_where_a_contributor_reads_it():
+    """`check_repo`'s english-only guard excludes `evals/traces/` because a
+    closed schema has nowhere to put prose. 0.1.631 nearly falsified that by
+    adding a prose field; the owner declined it. The dictionary states which
+    file may carry a language and which may not, because the distinction is
+    only obvious once you know it was nearly lost."""
     text = btd.render_dictionary([_rec("t-000000000001")])
-    assert "any language" in text and "English-only" in text
+    assert "trace-notes.json" in text
+    assert "any language; a trace may" in text
 
 
 def test_an_enum_field_lists_its_values():
@@ -197,25 +195,11 @@ def test_the_render_reads_no_clock():
 # `build_trace_dictionary.py --check` is a CI step for exactly that claim.
 
 
-@pytest.mark.parametrize("name", ["annotations"])
-def test_the_new_field_is_in_the_partition(name):
-    sides = (trace_schema.DOCUMENT_FIELDS, trace_schema.PRODUCER_FIELDS,
-             trace_schema.RUN_FIELDS)
-    assert sum(name in side for side in sides) == 1
-
-
-def test_the_column_list_itself_excludes_the_verdict_blocks():
-    """The test above asserts the OUTPUT has no verdict blocks, and the final
-    projection makes that structurally true — so a planted `row["gates"] = …`
-    could not break it. This asserts the thing that actually decides: the
-    column list. Adding `gates` to `INDEX_FIELDS` is the real mistake, and it
-    would put 44% of the store's bytes into a file meant to be greppable."""
-    for banned in ("gates", "graded", "thresholds"):
-        assert banned not in btd.INDEX_FIELDS
-
-
-def test_every_declared_column_is_produced():
-    """The mirror. A column named and never filled would be a header over
-    nothing."""
-    rows = btd.index_rows([_rec("t-000000000001")])
-    assert list(rows[0]) == list(btd.INDEX_FIELDS)
+def test_the_preface_says_files_once_outnumbered_records(tmp_path):
+    """The 182 leaked scaffolds are deleted, so the counts now agree — and a
+    preface that simply agreed would teach a reader nothing about why the
+    filter still runs. It states the history and the number it cost."""
+    text = btd.render_dictionary([_rec("t-000000000001")])
+    assert "251" in text and "seventeen" in text, (
+        "the preface dropped the incident that justifies the filter")
+    assert "suite_artifact" in text

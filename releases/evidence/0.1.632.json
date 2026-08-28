@@ -1,0 +1,8 @@
+{
+ "version": "0.1.632",
+ "diff_base": "fc6ab37dc337a6001ae4d99be7a7c265ce1ac9d1",
+ "spec": "specs/2026-08-28-trace-store-readable-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}
