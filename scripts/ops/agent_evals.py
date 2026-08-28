@@ -334,6 +334,46 @@ def _same_model(asked, ran) -> bool | None:
     return None if _run_of(a, r) or _run_of(r, a) else False
 
 
+REVIEWS = ROOT / "reviews" / "scores.json"
+
+
+def reader_scores(traces) -> dict[str, float]:
+    """-> per TRACE ID the median of a human reader's C1–C8 scores.
+
+    **The axis the board could not have.** `agent_evals.json` has said since it
+    was written that above the gate line the checks cannot tell two documents
+    apart, and 0.1.627 measured what that costs: twelve decks, four tiers,
+    every one passing every gate, and the owner reading all twelve reported the
+    cheapest tier as the WORST. Ordering on cost alone recommends it.
+
+    A human read is the only evidence that separates them, and one already
+    exists in `reviews/scores.json` — it was simply keyed to a document and
+    never to a configuration. The join is `corpus_id`, present on both sides.
+
+    THE READER'S SCORES, NOT THE AGENT'S SELF-SCORES. A record carries both;
+    `self` is the producer grading its own work, which is the one input a
+    quality axis must not take. Median rather than mean over C1–C8: a single 1
+    on one dimension should not swamp seven 4s, and a single 4 should not
+    rescue seven 1s.
+
+    Absent dimensions are skipped, not counted as zero — a reader who did not
+    score C2 has not scored it badly.
+    """
+    if not REVIEWS.exists():
+        return {}
+    doc = json.loads(REVIEWS.read_text(encoding="utf-8"))
+    by_corpus: dict[str, list[float]] = {}
+    for review in doc.get("reviews") or []:
+        cid = review.get("corpus_id")
+        marks = [v for v in (review.get("reader") or {}).values()
+                 if isinstance(v, (int, float)) and not isinstance(v, bool)]
+        if cid and marks:
+            by_corpus.setdefault(cid, []).extend(marks)
+    return {t["trace_id"]: statistics.median(by_corpus[t["corpus_id"]])
+            for t in traces
+            if t.get("corpus_id") in by_corpus and t.get("trace_id")}
+
+
 def cells(traces, history) -> list[dict]:
     """-> one row per (agent, model, effort, SKILL VERSION).
 
@@ -384,6 +424,7 @@ def cells(traces, history) -> list[dict]:
                 t.get("skill_version"), cli)].append((t, row))
 
     scored = earned(history)
+    read = reader_scores(traces)
     out = []
     for key, runs in by_key.items():
         agent_id, model, effort, version, cli = key
@@ -399,12 +440,15 @@ def cells(traces, history) -> list[dict]:
         mine = [scored[t["trace_id"]] for t, _r in runs
                 if t["trace_id"] in scored]
         honoured = [m["honoured"] for m in mine if m["honoured"] is not None]
+        marks = [read[t["trace_id"]] for t, _r in runs if t["trace_id"] in read]
         out.append({
             "agent": agent_id, "model": model, "effort": effort,
             "runs": len(runs),
             "tokens_per_page": round(statistics.median(per_page), 1),
             "seconds_per_page": round(statistics.median(seconds), 1)
             if seconds else None,
+            "reader_score": round(statistics.median(marks), 1) if marks else None,
+            "reader_reads": len(marks),
             "tasks_earned": sum(m["earned"] for m in mine) if mine else None,
             "tasks_attempted": sum(m["attempted"] for m in mine) if mine else None,
             "effort_honoured": all(honoured) if honoured else None,
@@ -436,11 +480,30 @@ def cells(traces, history) -> list[dict]:
 def _ordering(cell: dict) -> tuple:
     """The register's ordering, as one function both readers call.
 
-    `tasks_earned desc, tokens_per_page asc`. It was a lambda inside `cells()`
-    and `pick()` re-derived "cheapest" by trusting the list it was handed.
+    `reader_score desc, tasks_earned desc, tokens_per_page asc`.
+
+    **A HUMAN READ OUTRANKS BOTH, and 0.1.627 is why.** Twelve decks, four
+    reasoning tiers, every one passing every gating check — and the owner
+    reading all twelve reported the CHEAPEST tier as the worst, its weakness
+    entirely in the figures. A board ordered on cost recommends exactly that
+    tier. The register has said since it was written that above the gate line
+    the checks cannot tell two documents apart; this is the axis that can, and
+    it sits first because a measurement of the thing itself outranks a proxy
+    for it.
+
+    No cell carries one today — the two reviewed builds recorded no output
+    tokens, so neither reaches the cost board at all. The rule is written now
+    rather than when the first score arrives, so that nobody has to argue about
+    precedence with a number already on the table.
+
+    A cell missing an axis sorts LAST on it rather than being dropped, which is
+    the same convention the other two follow.
     """
+    read = cell.get("reader_score")
     earned_ = cell["tasks_earned"]
-    return (-(earned_ if earned_ is not None else -1), cell["tokens_per_page"])
+    return (-(read if read is not None else -1),
+            -(earned_ if earned_ is not None else -1),
+            cell["tokens_per_page"])
 
 
 def pick(agent_id: str, rows: list[dict],
@@ -575,9 +638,10 @@ def render(rows: list[dict], evals: dict) -> str:
              "cleared the gate line, not a quality ranking** — above that line "
              "the checks cannot tell two documents apart.",
              "",
-             "| agent | model | effort | skill | cli | n | output tokens | "
-             "tokens/page | s/page | pages | earned | pinned | measured |",
-             "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+             "| agent | model | effort | skill | cli | n | read | "
+             "output tokens | tokens/page | s/page | pages | earned | pinned | "
+             "measured |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
 
     def span(middle, rng, fmt="{:,.0f}"):
         """-> `median (min–max)`, or the median alone when n is 1.
@@ -603,17 +667,29 @@ def render(rows: list[dict], evals: dict) -> str:
             f"| {r['agent']} | {r['model'] or '—'} | {r['effort'] or '—'} | "
             f"{r['skill_version'] or '—'} | {r.get('cli_version') or '—'} | "
             f"{r['runs']} | "
-            f"{span(r['output_tokens'], r['output_tokens_range'])} | "
+            + (f"**{r['reader_score']}** (n={r['reader_reads']}) | "
+               if r.get("reader_score") is not None else "— | ")
+            + f"{span(r['output_tokens'], r['output_tokens_range'])} | "
             f"{span(r['tokens_per_page'], r['tokens_per_page_range'])} | "
             f"{span(r['seconds_per_page'], r['seconds_per_page_range'], '{:,.1f}')} | "
             f"{pages_lo if pages_lo == pages_hi else f'{pages_lo}–{pages_hi}'} | "
             f"{earned_cell} | {pinned} | {r['measured']} |")
     if not rows:
-        lines.append("| — | — | — | — | — | — | — | — | — | — | — | — | — |")
+        lines.append("| — | — | — | — | — | — | — | — | — | — | — | — | — | — |")
         lines.append("")
         lines.append("**No cell has a qualifying run.** That is a statement "
                      "about this store, not about the agents.")
     lines += ["",
+              "**`read` is a human's median C1–C8 score, and it orders "
+              "everything else.** Above the gate line the checks cannot tell "
+              "two documents apart — measured at 0.1.627, where twelve decks "
+              "across four reasoning tiers all passed every gate and the "
+              "cheapest tier was, on reading, the worst. A dash means nobody "
+              "has read that configuration's output, not that it read badly. "
+              "The reader's scores are used and the agent's self-scores are "
+              "not: a producer grading its own work is the one input a quality "
+              "axis must refuse.",
+              "",
               "**`output tokens` is the reference number, and `tokens/page` is "
               "the same measurement divided by a moving denominator.** Over "
               "four repeats of one configuration, output tokens spread 16.5%, "
@@ -720,6 +796,51 @@ def main(argv=None) -> int:
     for a in registry:
         state, detail = suggest(a["id"], rows, registry)
         print(f"  {a['id']:16} {state:22} {detail}")
+    # HUMAN READS THAT CANNOT REACH A CELL. A read is the axis that orders
+    # everything else, and it is worthless if it cannot be attached — so the
+    # ones that exist and land nowhere are the actionable line here, not a
+    # footnote. Today both do: the two reviewed builds recorded no output
+    # tokens, so `board()` admits neither and neither becomes a cell at all.
+    read = reader_scores(trace_store.load())
+    placed = sum(1 for r in rows if r.get("reader_score") is not None)
+    print()
+    if not read:
+        print("  no human read is joined to any trace. `reviews/scores.json` "
+              "joins by `corpus_id`; a review without one, or a build whose "
+              "trace never recorded one, reaches no configuration.")
+    else:
+        print(f"  {len(read)} human read(s) joined to a trace, {placed} of "
+              f"them on a cell.")
+        if placed < len(read):
+            print(f"  {len(read) - placed} read(s) reach no cell: the trace is "
+                  f"not on the cost board — unclosed, no gates recorded, or no "
+                  f"output tokens — so there is no configuration to attach the "
+                  f"score to. A reviewed build needs a usage file at close.")
+
+    # WHAT THE RECORDED VOCABULARIES SAY. The `vocabulary-changed` trigger was
+    # declared with nothing storing a vocabulary to compare against (GAP-042);
+    # `detect --models --record` writes one now, and this is where a person
+    # sees whether the set an agent offers has moved under a measurement.
+    vocab = ROOT / "conformance" / "vocabularies.json"
+    print()
+    if not vocab.exists():
+        print("  no vocabulary recorded yet — `run_conformance.py detect "
+              "--models --record` writes one, and until then the "
+              "`vocabulary-changed` trigger has nothing to compare against.")
+    else:
+        recorded = json.loads(vocab.read_text(encoding="utf-8"))
+        for aid, entry in sorted(recorded.items()):
+            offered = set(entry.get("ids") or [])
+            used = {r["model"] for r in rows
+                    if r["agent"] == aid and r["model"]}
+            # A MODEL MEASURED THAT THE CLI NO LONGER OFFERS is the thing worth
+            # printing: it means a recommendation on this board names something
+            # a reader cannot select any more.
+            retired = sorted(m for m in used if m not in offered)
+            print(f"  {aid:16} offers {len(offered):>3} model(s), "
+                  f"{len(used)} measured"
+                  + (f" — RETIRED: {', '.join(retired)}" if retired else "")
+                  + f"  (asked {entry.get('asked_on', '?')})")
     print("\nAxes and triggers: conformance/agent-evals.json. Driving a cell "
           "is `run_conformance.py run --drive`; this tool measures and never "
           "drives.")

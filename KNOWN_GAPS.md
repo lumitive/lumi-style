@@ -77,8 +77,9 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-042 · A declared trigger nothing computes
 
-- status: open
+- status: fixed
 - opened: 0.1.623
+- closed: 0.1.633
 - surface: conformance/agent-evals.json (the `triggers` block),
   scripts/ops/run_conformance.py (`detect --models`)
 - symptom: `vocabulary-changed` is declared as "a `models` probe answers a
@@ -88,14 +89,18 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   the `triggers` block at all — `agent_evals.py plan` prints a pointer to the
   file and no more. Found by a pre-PR review, which is CLAUDE.md convention 14:
   a capability sentence cites the function that implements it.
-- check: none, and the entry now says `computed_by: NOTHING` in the register
-  itself rather than reading as a mechanism. That is the honest interim; a
-  guard over "does anything read this block" would be the phrase-trigger class
-  AG-1 already declined.
-- closes when: `detect --models --record` writes the answered set beside the
-  board and `plan` compares against it. Small, and deliberately not done in the
-  release that found the problem — a fix written in the same breath as the
-  diagnosis is how the branch grew the defect in the first place.
+- check: `run_conformance.py detect --models --record` writes
+  `conformance/vocabularies.json` and prints what moved against the previous
+  set — verified by planting a change in a recorded set and watching the next
+  probe name both the four ids that vanished and the one that arrived.
+  `agent_evals.py plan` reports any model this board has MEASURED that the CLI
+  no longer offers, which is the reading that matters: a recommendation naming
+  something a reader cannot select any more.
+- what is deliberately not recorded: a waived or failed probe. Writing an empty
+  set for those would make "this CLI offers nothing" and "we could not ask" the
+  same row, which is the distinction `vocabulary()` keeps four states for.
+- still true, and stated in the register: one of the twelve platforms can
+  answer read-only, so this trigger can only ever fire for that one.
 
 ## GAP-041 · No configuration on the board has an earned count
 

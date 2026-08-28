@@ -2062,9 +2062,14 @@ def main(argv):
                          "not. `--record` would stamp the run's history rows "
                          "with today's version.")
     ap.add_argument("--record", action="store_true",
-                    help="with report: append one row per scored agent per run "
-                         "to conformance/history.json — the tracked memory the "
-                         "evidence gate's freshness obligation reads")
+                    help="write this run's result into the tracked record. "
+                         "With `report`: one history row per scored agent per "
+                         "run, which is what the evidence gate's freshness "
+                         "obligation reads. With `detect --models`: the "
+                         "answered vocabularies, so a later probe can say what "
+                         "CHANGED — without a stored set the "
+                         "`vocabulary-changed` trigger in agent-evals.json "
+                         "describes a comparison nothing can make.")
     args = ap.parse_args(argv)
 
     try:
@@ -2157,12 +2162,50 @@ def main(argv):
         args.effort, "--effort", known_ids, trace_schema.ENUMS["effort"])
     probed = {a["id"]: detect(a) for a in agents}
     if args.command == "detect":
+        import datetime
+        answered: dict[str, dict] = {}
         for a in agents:
             ok, note = probed[a["id"]]
             print(f"  {a['id']:16} {'available' if ok else 'not exercised':14} {note}")
             if args.models:
                 state, detail = vocabulary(a)
                 print(f"  {'':16} models {state:8} {detail}")
+                if state == "asked":
+                    answered[a["id"]] = {
+                        "ids": [i.strip() for i in detail.split(",")],
+                        "cli_version": note if ok else None,
+                        "asked_on": datetime.date.today().isoformat(),
+                    }
+        if args.record:
+            # RECORDED SO A CHANGE CAN BE SEEN. `agent-evals.json` declared a
+            # `vocabulary-changed` trigger and nothing stored a vocabulary to
+            # compare against — the live list was printed and dropped, so the
+            # trigger described a comparison no code could make (GAP-042). Only
+            # the agents that ANSWERED are written: a waiver and a failed probe
+            # are not vocabularies, and recording them as empty sets would make
+            # "this CLI offers nothing" and "we could not ask" the same row.
+            if not args.models:
+                print("FAIL  --record needs --models: there is nothing to "
+                      "record until the probes have been asked.")
+                return 1
+            vocab = ROOT / "conformance" / "vocabularies.json"
+            prior = (json.loads(vocab.read_text(encoding="utf-8"))
+                     if vocab.exists() else {})
+            for aid, asked in sorted(answered.items()):
+                was = (prior.get(aid) or {}).get("ids")
+                now = list(asked["ids"])
+                if isinstance(was, list) and was != now:
+                    gone = sorted(set(was) - set(now))
+                    arrived = sorted(set(now) - set(was))
+                    print(f"  CHANGED {aid}: "
+                          + (f"gone {gone} " if gone else "")
+                          + (f"new {arrived}" if arrived else ""))
+            prior.update(answered)
+            vocab.write_text(json.dumps(prior, indent=1, sort_keys=True) + "\n",
+                             encoding="utf-8")
+            print(f"\nrecorded {len(answered)} vocabular"
+                  f"{'y' if len(answered) == 1 else 'ies'} -> "
+                  f"conformance/vocabularies.json")
         print(f"\n{sum(1 for v in probed.values() if v[0])} of {len(agents)} available here")
         return 0
 

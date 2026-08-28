@@ -86,7 +86,12 @@ trace carries the raw pin. See below.
 6. README's generated block and its generator — 0.1.621
 7. `conformance/README.md`, GAP-041, FM-25, FM-26 — 0.1.622
 8. what the pre-PR review found — 0.1.623
-9. the first measured round — **not done**; it needs the local installs updated,
+9. the vocabulary trigger and the human-read axis — 0.1.633. `detect --models
+   --record` stores what a CLI offers, so `vocabulary-changed` can fire; and
+   `reader_score` joins `reviews/scores.json` to a cell by `corpus_id` and
+   leads the ordering, because 0.1.627 measured what ordering on cost alone
+   costs — the cheapest tier was, on reading, the worst.
+10. the first measured round — **not done**; it needs the local installs updated,
    which needs the releases published, which needs the owner's say-so. GAP-041
    holds it.
 
