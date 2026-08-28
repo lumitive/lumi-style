@@ -723,7 +723,12 @@ def test_effort_without_a_model_refuses_to_run(tmp_path):
     agent = dict(_agent(argv), drive_effort_in_model="{model}-{effort}")
     out = rc.drive(agent, TASK, tmp_path, effort="high")
     assert out["verdict"] == "driver refused"
-    assert "no --model" in out["detail"]
+    # THE FLAG IT NAMES HAS TO EXIST. This asserted `"no --model" in detail`,
+    # so it went on passing after 0.1.644 deleted `--model` — the sentence was
+    # still telling the operator to pass a flag that exits 2, and the test was
+    # pinning the wrong half of it. It names the spelling now.
+    assert "no model was named" in out["detail"]
+    assert "--cell" in out["detail"] and "--model" not in out["detail"]
     assert not (tmp_path / "a.md").exists()      # nothing was driven
 
 

@@ -756,7 +756,7 @@ def main(argv=None) -> int:
         print(f"  {vocab_problem}")
     elif not recorded:
         print("  no vocabulary recorded yet — `run_conformance.py detect "
-              "--models --record` writes one, and until then the "
+              "--ask-models --record` writes one, and until then the "
               "`vocabulary-changed` trigger has nothing to compare against.")
     else:
         for aid in sorted(recorded):

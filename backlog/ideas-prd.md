@@ -734,6 +734,34 @@ without a contract.
 **What would close it.** Two builds where a scaffold sample number reached a
 reader. Until then this is a hazard with one recorded near-miss, not a defect.
 
+## IDEA-21 · The conformance tests reach a command through argv and three patched globals, and now they do not have to
+
+**Problem.** 0.1.646 gave the five conformance commands signatures —
+`cmd_validate`, `cmd_detect`, `cmd_run`, `cmd_score`, `cmd_report` — because
+until then every one of them was reachable only through `main()`, and only after
+a shared preamble. The tests were written against that. Thirty-seven of them
+reach into module globals, ninety-four `monkeypatch.setattr` calls between them,
+to get at behaviour that has nothing to do with globals: patching `TASKS` and
+`load_agents` and `detect` in order to ask what `score` does with a run
+directory.
+
+**Why it was not done in the same release.** Mixing a thousand-line mechanical
+move with a test rewrite makes both unreviewable, and the move's whole claim was
+that nothing changed. It held: no flag, no message, no test expectation moved.
+The seam earned its first use one release later, when 0.1.647 needed to prove
+that a refused run leaves every other measurement on disk — a fact about the
+LOOP, which no test calling the check on one directory could see, and which
+`cmd_run(tasks, agents, probed, runs, args)` states in four lines.
+
+**What it is worth.** Not a rewrite for its own sake. The specific cases worth
+moving are the ones where a patched global is standing in for a parameter that
+now exists — those tests are asserting the wiring rather than the behaviour, and
+they go green when the wiring changes underneath them. A test that patches a
+global to control an actual global (`ROOT`, `RESULTS`) is right as it is.
+
+**Cost.** Per test, minutes. The reason to do it in batches is that each batch
+is a chance to notice a test that was never asserting what its name says.
+
 ## IDEA-20 · The figure is where a reasoning tier's quality actually shows, and nothing in this package chooses one on purpose
 
 **Problem.** The owner read all twelve decks from the 0.1.626 four-tier round

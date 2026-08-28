@@ -75,6 +75,35 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-045 · A run directory cannot hold two configurations, so the tool refuses instead of storing
+
+- status: open
+- opened: 0.1.647
+- surface: scripts/ops/run_conformance.py (`occupied_by_another_cell`,
+  `recorded_axes`, the planning pass in `cmd_run`), tests/test_cell_collision.py
+- symptom: `<run>/<agent>/<task>` has no level for the cell, so driving one
+  agent at two efforts into one run is not expressible. The operator's answer
+  has been hand-named run directories since 2026-08-21 — fifteen of the thirty
+  on disk encode a configuration in the run id, and `matrix-2026-08-21/` is the
+  missing directory level built by hand.
+- what ships instead: a refusal. 0.1.645 stops a run whose directory already
+  holds a different `(model, effort)` before any budget is spent, and 0.1.647
+  fixed the two defects in that refusal — it was clearing directories inside
+  the pass that collected collisions, and comparing a raw ask against a
+  composed record.
+- why it is a gap and not a fix: the fix is the per-cell layout,
+  `<run>/<agent>/<cell>/<task>` with a `cell.json` beside it, which removes the
+  collision rather than reporting it. It depends on the history key (`scores.json`
+  keyed by cell, one history row per `(agent, cell, run_dir)`) because without
+  it the layout pools two configurations into one row or discards one — and on
+  a decision the owner has not made: her hand-built tree puts the cell ABOVE the
+  agent and the design record puts it below. Both are stages 5 and 6 of
+  `specs/2026-08-28-conformance-cell-design.md`.
+- check: driving one agent at two cells into one `--run` must produce two
+  measurements and two history rows. Today it produces a refusal, which is
+  honest and is not the capability.
+- the release that lands the layout withdraws the refusal and cites this id.
+
 ## GAP-044 · The cost axis has no home for cache reads, so a cached run reads as a cheap one
 
 - status: open

@@ -1,3 +1,104 @@
+## 0.1.647 — the refusal deleted what it was protecting, and refused four cells it should have driven
+
+Two readers went over 0.1.643–0.1.646 before the pull request — one on the
+code, one on this repository's own conventions — and everything they found is
+fixed below. Two were defects in 0.1.645's own new code, and both are the shape
+this repository keeps paying for: **the check was right and its surroundings
+were wrong**, and **the tests exercised the one input that could not fail**.
+Every finding was verified against the code before it was acted on, and one was
+half wrong: the count of ten flags belonging to one command is correct, and only
+the pair the entry then named is not.
+
+**A refused run was deleting the measurements it existed to protect.**
+`shutil.rmtree(wd)` ran inside the same pass that was still *collecting*
+collisions, so a clash found on the last agent aborted a run whose earlier
+directories had already been emptied. `FAIL … nothing was driven` was true and
+beside the point: two agents, the second colliding, and the first agent's deck,
+transcript and driver record were gone — replaced by a bare `PROMPT.txt`, which
+is the tell. Planted first and confirmed on the shipped code before the fix. The
+release now plans in full, refuses, and only then touches the disk.
+
+**And it refused every identical re-run on the two platforms whose axes are
+transformed.** `driver.json` records the model `compose_model` produced and the
+effort the model id back-filled; the check compared the **raw ask** against it.
+So `--cell cursor=cursor-grok-4.6@high` over a directory holding exactly that
+cell read `'cursor-grok-4.6-high'` against `'cursor-grok-4.6'` and called it two
+configurations. Four false refusals across the registry, all on cursor and
+gemini-cli. `recorded_axes` is now the single implementation of ask → recorded,
+called by `drive()` when it writes the record and by the check when it compares
+one, with a `evals/single-source.json` entry so a third copy fails CI rather
+than a run.
+
+**The tests could not have caught either.** Every case pinned `opus` at `high`
+— a cell that survives composition unchanged — which is convention 15 exactly:
+cursor is the platform the design record singles out as the reason a composed
+slug is wrong, and it is the platform this check was wrong about. And every case
+called the function on one directory, so nothing looked at the loop.
+`tests/test_cell_collision.py` now covers both composing platforms and both
+loops — how many cases is whatever that file holds today — and three of them
+call `cmd_run`, the seam 0.1.646 bought, earning its first use one release
+later.
+
+**A record that cannot be read now says so.** It is still not a refusal, for the
+reason the entry gave: the previous drive left nothing to compare. But it
+returned the same bare `None` as a clean directory, so a corrupt record, a drive
+killed mid-write and an empty directory printed identical nothing while one of
+the three lost a measurement. Three answers, not two — `check_prose`'s `blind`
+is the precedent, and FM-24 is the class.
+
+**`check_cell_axes` ships its red runs.** 0.1.643 performed all five and kept
+none, so the guard's only proof was a session transcript. Seven synthetic-tree
+tests now, six of which go red against a gutted `return []`, and one of which
+states the FM-24 comparison literally: the absent, empty and unparseable
+registers must each print something a correct register does not.
+
+**The rename left three sentences behind, and one of them was a live
+instruction.** `agent_evals.py plan` printed `run_conformance.py detect
+--models --record` on the path a fresh checkout takes — the flag exits 2 — and
+the same release had corrected that file's docstring and the comment nine lines
+above it. That is convention 12's own named shape: 0.1.451 missed a line
+eighty-six below the one it had just fixed. The driver's effort refusal told the
+operator to "Pass `--model` as well", which no longer exists; it names `--cell`
+now. **A test was watching that sentence and did not notice** — it asserted
+`"no --model" in detail`, which is a substring of the wrong half, so it went on
+passing while the message it guarded instructed the operator to type a flag that
+exits 2. It now asserts that the detail names `--cell` and does NOT name
+`--model`, which is the assertion that could have failed.
+
+**`--cell` given twice for one agent is refused rather than half-merged.** The
+resolution loop kept the last pin, silently — which is exactly what `--effort
+cursor=low --effort cursor=high` did, and 0.1.644 presented `--cell` as the fix
+for it. It is not: the fix is the per-cell layout, and `<run>/<agent>/<task>`
+has nowhere to put a second cell. Worse, the half-merge invented cells nobody
+asked for — `--cell opus@high --cell sonnet` resolved to **sonnet at high**,
+because a `None` axis did not clear the previous one. The refusal names GAP-045
+and says to use two `--run` directories. What `--cell` buys today is that the
+ask is SAYABLE; the layout is what will honour it, and the 0.1.644 entry now
+says so.
+
+**Four counts in 0.1.646's and 0.1.644's entries were wrong** and are corrected
+in place: `main()` is 170 lines, not 172; `cmd_score` is 354, not 348; the
+"ninety-two tests" that monkeypatch module globals are thirty-seven tests making
+ninety-four calls — the noun was wrong, and it was the number the release's
+argument rested on. The count of ten flags belonging to one command stands; the
+two it then NAMED do not. `--model` and `--effort` are read by one command; the
+two read by more than one are `--record` and `--run`. Both facts are true and
+the entry stated the second as the first.
+
+**Three counts in 0.1.645's entry were wrong**, found by the same review and
+corrected in place. Sixteen run directories encode a configuration in the run
+id; it is **fifteen** — the enumeration named fourteen and omitted
+`0.1.613-grok46high-retry-1802`. `matrix-2026-08-21/` holds **eight**
+subdirectories, not four, five of which name a level. And its planted-red claim
+that "the first cell's record [is] still on disk" was true only of the
+directory that collided, which is the defect above.
+
+GAP-045 records that the refusal is still an interim; the per-cell layout
+withdraws it, and IDEA-21 holds the test migration 0.1.646 deferred. No new
+stage: this is the third and fourth stages of
+`specs/2026-08-28-conformance-cell-design.md` made correct, and that record now
+says what each of them shipped wrong.
+
 ## 0.1.646 — a third of the file was one function, and every command in it could only be reached through argv
 
 The owner's root complaint was that the tool has no domain abstraction, and that
@@ -5,15 +106,16 @@ this is why iteration and testing keep costing more. The measurable half of that
 is one number: **`main()` was 1,210 lines — a third of the file** — holding the
 argument parser, the dispatch, and five of the six command bodies. Only
 `restamp` had a handler. So every command was reachable only through argv, and
-only after a shared preamble, which is why ninety-two tests monkeypatch module
-globals to get at behaviour that has nothing to do with globals.
+only after a shared preamble — which is why thirty-seven tests reach into
+module globals to get at behaviour that has nothing to do with globals, with
+ninety-four `monkeypatch.setattr` calls between them.
 
-**`main()` is 172 lines now**: build the parser, load the suite, dispatch. The
+**`main()` is 170 lines now**: build the parser, load the suite, dispatch. The
 five bodies are `cmd_validate`, `cmd_detect`, `cmd_run`, `cmd_score` and
 `cmd_report`, beside the `cmd_restamp` that was already there. No flag changed,
 no message changed, no test expectation changed.
 
-**`cmd_score` is the one worth naming**: 348 lines that read a run directory and
+**`cmd_score` is the one worth naming**: 354 lines that read a run directory and
 the task list and nothing else. It was reachable only through argv for no reason
 at all.
 
@@ -43,7 +145,7 @@ now functions with parameters: a test can call `cmd_score(tasks, run_dir)`
 instead of building argv and patching three globals to reach it. The migration
 of the existing tests onto that seam is deliberately NOT in this release — the
 extraction is worth having on its own, and mixing a 1,000-line move with a
-test rewrite would make both unreviewable.
+test rewrite would make both unreviewable. It lives under IDEA-21.
 
 ## 0.1.645 — a second configuration in one directory destroyed the first, and said nothing
 
@@ -52,13 +154,14 @@ clears the directory before driving. So a second configuration driven into the
 same run **deleted the first with no message** — not merged, not refused,
 removed.
 
-**The evidence is on the operator's disk.** Thirty run directories, and sixteen
-encode a configuration in the run id by hand: `r18-low`, `r18-medium`,
-`r18-high`, `r18-xhigh`, `r19-{low,medium,high,xhigh}-{2,3}`,
-`0.1.613-grok46high`, `0.1.614-grok46-2020`. And `matrix-2026-08-21/` is the
-missing directory level, built by hand a month ago —
-`{low,medium,high,high-loop}/<agent>/T1-deck` — four cells driven as four
-invocations into four hand-made subdirectories. The workaround has been in daily
+**The evidence is on the operator's disk.** Thirty run directories, and fifteen
+encode a configuration in the run id by hand: `r18-{low,medium,high,xhigh}`,
+`r19-{low,medium,high,xhigh}-{2,3}`, `0.1.613-grok46high-2026-08-26`,
+`0.1.613-grok46high-retry-1802`, `0.1.614-grok46-2020`. And
+`matrix-2026-08-21/` is the missing directory level, built by hand a month ago —
+`<level>/<agent>/T1-deck` — eight hand-made subdirectories, five of which name a
+level. (This paragraph said sixteen and four; corrected at 0.1.647, which found
+them by counting the disk rather than the sentence.) The workaround has been in daily
 use since 2026-08-21; nobody had written down what it was working around.
 
 **Until the per-cell layout lands, the run refuses.** A planned task whose
@@ -78,7 +181,9 @@ pins at all — absent stays absent.
 Planted first, end to end: one cell driven at `low`, a second at `high` into the
 same run — refused, exit 1, and the first cell's record still on disk with its
 own model and effort. Then the same command with `--replace`, which drives and
-overwrites. Six unit cases beside it, written against the shape `drive()`
+overwrites. (That held for the directory that COLLIDED and for no other: every
+directory the loop had already passed was cleared before the refusal fired.
+0.1.647 is the fix.) Six unit cases beside it, written against the shape `drive()`
 actually writes rather than an imagined one.
 
 This is an interim by design. The per-cell layout removes the collision instead
@@ -93,7 +198,8 @@ see which flag belonged to which subcommand. Both are facts about the data
 rather than matters of taste: **ten of the twelve flags are read by exactly one
 command**, and the parser was flat, so every verb accepted every flag.
 
-**The two that were not read by one command are the two that misled.**
+**The two flags read by more than one command are `--record` and `--run`.**
+The two that MISLED are a different pair, and their fault is a different one:
 `--model` and `--effort` were parsed before the dispatch, so `score --effort
 high` was validated and then silently discarded while `score --effort banana`
 exited 1 — a CLI refusing a value it will not use. Under subparsers a flag on
@@ -112,8 +218,11 @@ two flags whose values had to agree by convention, and for a platform that
 spells the level inside its model id they were never two things at all —
 `drive_effort_in_model` composes `cursor-grok-4.6-high` from both halves. Two
 flags also made one agent at two levels inexpressible: `--effort cursor=low
---effort cursor=high` kept the last, silently, which is why four hand-named run
-directories exist for what should be one invocation. `@` is safe: no id in any
+--effort cursor=high` kept the last, silently, which is why fifteen hand-named run
+directories exist for what should be one invocation. (`--cell` makes that ask
+SAYABLE; the per-cell layout is what will drive it, and 0.1.647 made the
+interim refuse the second pin rather than repeat the silent narrowing this
+sentence describes. GAP-045.) `@` is safe: no id in any
 recorded vocabulary contains one. The parse lives in `agent_cell.parse_pin` and
 RAISES rather than exiting, because a library that exits cannot be unit tested —
 so the six refusals it can produce are a table-driven test rather than six
