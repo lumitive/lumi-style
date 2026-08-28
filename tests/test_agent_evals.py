@@ -11,6 +11,7 @@ produced different outcomes.
 """
 import json
 
+import agent_capability  # 0.1.637 — the comparator lives here now
 import agent_evals
 import pytest
 
@@ -458,7 +459,7 @@ def test_an_unpinned_sibling_does_not_borrow_a_trace_it_cannot_be_matched_to():
     ("", "Cursor Grok 4.6", None),
 ])
 def test_a_pin_and_the_name_the_cli_answers_with(asked, ran, verdict):
-    assert agent_evals._same_model(asked, ran) is verdict
+    assert agent_capability.same_model(asked, ran) is verdict
 
 
 def test_the_real_rounds_honoured_pin_reads_as_honoured():

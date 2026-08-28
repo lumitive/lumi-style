@@ -57,6 +57,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
+import agent_capability  # noqa: E402
 import agent_runs  # noqa: E402
 import history  # noqa: E402
 import platform_registry  # noqa: E402
@@ -238,96 +239,14 @@ def _honoured(cell_config: dict, so_far) -> bool | None:
     """
     if so_far is False:
         return False
-    verdict = _same_model(cell_config.get("model_asked"),
-                          cell_config.get("model_ran"))
+    verdict = agent_capability.same_model(cell_config.get("model_asked"),
+                                          cell_config.get("model_ran"))
     if verdict is None:
         # NO EVIDENCE DOES NOT OVERWRITE EVIDENCE. A task whose pin and answer
         # are merely compatible leaves the cell where it was; it neither
         # confirms nor spends the confirmation another task already gave.
         return so_far
     return verdict if verdict is False else (so_far is not False)
-
-
-def _tokens(name) -> list[str]:
-    """-> a model name as the words a vendor spells it with.
-
-    Tokens rather than a squashed string, because squashing is what made
-    `cursor-grok-4.6-high` and `cursor-grok-4.6-high-fast` the same model — and
-    `adapters/cursor.md` says in this repository's own words that EVERY id has
-    a `-fast` twin. A rule that merges every twin is not a rule.
-    """
-    raw, run = [], ""
-    for ch in str(name or "").lower():
-        if ch.isalnum():
-            run += ch
-        elif run:
-            raw.append(run)
-            run = ""
-    if run:
-        raw.append(run)
-    # ONE SPELLING OF ONE EFFORT LEVEL, and it is not a model alias. `xhigh` is
-    # a member of `trace_schema.ENUMS["effort"]` — a tuple this package owns —
-    # and `cursor-agent --list-models` prints it as `Extra High`. Without this
-    # the first real xhigh run read **not honoured** on the board: pinned to
-    # `cursor-grok-4.6-xhigh`, answered `Cursor Grok 4.6 Extra High`, and
-    # called a substitution. Collapsing the pair rather than expanding it keeps
-    # the catch that matters — `high` against `Extra High` remains two
-    # different token lists and still reads as substituted.
-    out: list[str] = []
-    skip = False
-    for i, tok in enumerate(raw):
-        if skip:
-            skip = False
-            continue
-        if tok == "extra" and i + 1 < len(raw) and raw[i + 1] == "high":
-            out.append("xhigh")
-            skip = True
-        else:
-            out.append(tok)
-    return out
-
-
-def _run_of(short: list[str], long: list[str]) -> bool:
-    """-> is `short` a CONTIGUOUS run of tokens inside `long`?
-
-    Contiguous, not a scattered subsequence. Scattered let
-    `cursor-grok-4.6-high` sit inside `Cursor Grok 4.6 Extra High` by stepping
-    over `extra` — and that pair is `-high` against `-xhigh`, the one
-    substitution this comparison exists to catch.
-    """
-    return any(long[i:i + len(short)] == short
-               for i in range(len(long) - len(short) + 1))
-
-
-def _same_model(asked, ran) -> bool | None:
-    """-> True honoured, False substituted, **None not established**.
-
-    THREE ANSWERS, because a pin and the name a CLI answers with are two
-    vocabularies that are only sometimes comparable:
-
-    * **the same tokens** — honoured. `cursor-grok-4.6-high` and
-      `Cursor Grok 4.6 High` are the same words.
-    * **one a contiguous run of tokens inside the other** — NOT ESTABLISHED, and this is the
-      answer the first version did not have. `opus` is an alias that answers as
-      `claude-opus-5`; `cursor-grok-4.6-high` answered as `Cursor Grok 4.6` on
-      one task and `Cursor Grok 4.6 High` on two others IN ONE ROUND; and
-      `cursor-grok-4.6-high-fast` contains every token of
-      `cursor-grok-4.6-high`. The first two are almost certainly honoured, the
-      third is certainly not, and nothing available here separates them. So it
-      says so. Guessing `True` printed `honoured` over a `-fast` twin, and
-      `adapters/cursor.md` records that every id has one.
-    * **anything else** — substituted. `high` against `xhigh`, `grok` against
-      `composer`.
-
-    `None` is not a soft `False`: `_honoured` folds it as no evidence and the
-    board prints a dash, which is `na_means`'s discipline one layer down.
-    """
-    a, r = _tokens(asked), _tokens(ran)
-    if not a or not r:
-        return None
-    if a == r:
-        return True
-    return None if _run_of(a, r) or _run_of(r, a) else False
 
 
 REVIEWS = ROOT / "reviews" / "scores.json"
@@ -815,14 +734,13 @@ def main(argv=None) -> int:
     # declared with nothing storing a vocabulary to compare against (GAP-042);
     # `detect --models --record` writes one now, and this is where a person
     # sees whether the set an agent offers has moved under a measurement.
-    vocab = ROOT / "conformance" / "vocabularies.json"
+    recorded = agent_capability.recorded_vocabularies(ROOT)
     print()
-    if not vocab.exists():
+    if not recorded:
         print("  no vocabulary recorded yet — `run_conformance.py detect "
               "--models --record` writes one, and until then the "
               "`vocabulary-changed` trigger has nothing to compare against.")
     else:
-        recorded = json.loads(vocab.read_text(encoding="utf-8"))
         for aid, entry in sorted(recorded.items()):
             offered = set(entry.get("ids") or [])
             used = {r["model"] for r in rows

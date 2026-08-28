@@ -74,6 +74,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
+import agent_capability  # noqa: E402
 import checker_report  # noqa: E402
 import eval_corpus  # noqa: E402
 import fingerprint  # noqa: E402
@@ -391,8 +392,17 @@ def _per_agent(values, flag: str, known: set[str],
         if not sep:
             agent, value = "", raw
         if allowed and value not in allowed:
+            # WHAT THIS TUPLE IS, said out loud since 0.1.637. It is what a
+            # TRACE can record, not what a CLI accepts: Hermes takes eight
+            # levels and this harness can store five, so `--reasoning ultra` is
+            # refusable here while being perfectly good on the command line.
+            # Whether the CLI accepts a level is `agent_capability`'s question
+            # and is asked separately, per agent, before the run starts.
             sys.exit(f"FAIL  {flag} {raw!r}: {value!r} is not one of "
-                     + "|".join(allowed))
+                     + "|".join(allowed)
+                     + (" — the levels a trace can record, which is a smaller "
+                        "question than what a CLI accepts"
+                        if flag == "--effort" else ""))
         if not agent:
             default = value
         elif agent not in known:
@@ -547,7 +557,14 @@ def drive(agent, task, prompt_dir, model=None, base=DRIVE_BASE_BUDGET,
     # deliberate comparison into the matrix's unknown column.
     effort_template = agent.get("drive_effort_in_model")
     effort_flag = agent.get("drive_effort_flag")
-    effort_pinned = False
+    # ASKED BEFORE THE BUDGET IS SPENT, not by the CLI afterwards. Until 0.1.637
+    # nothing compared a pin to what the platform actually offers: `--effort max`
+    # against Cursor composed `cursor-grok-4.6-max`, an id that does not exist,
+    # and the run failed after the working directory had been built. The
+    # registry's own prose had said so for eighty releases.
+    refusal = effort and agent_capability.effort_refusal(agent, effort)
+    if refusal:
+        return {"verdict": "driver refused", "detail": refusal}
     # AN EFFORT THAT CANNOT BE APPLIED IS AN ERROR, NOT A FOOTNOTE. An agent
     # that spells effort inside its model id needs BOTH halves; given only
     # `--effort`, the old code composed nothing, pinned nothing, and recorded
@@ -561,11 +578,21 @@ def drive(agent, task, prompt_dir, model=None, base=DRIVE_BASE_BUDGET,
             f"effort into its model id ({effort_template!r}) and no --model was "
             f"given, so neither axis can be pinned. Pass --model as well, or "
             f"drop --effort and accept the CLI's defaults.")
-    if model and effort and effort_template:
-        model = effort_template.format(model=model, effort=effort)
-        effort_pinned = True
-    elif effort and effort_flag:
-        effort_pinned = True
+    model, effort_pinned = agent_capability.compose_model(agent, model, effort)
+    # THE LEVEL THE ID ALREADY CARRIES IS THE LEVEL THAT RAN. A model pinned as
+    # `cursor-grok-4.6-high` with no `--effort` recorded "(not pinned)" and left
+    # the trace's effort null — so two traces sat in a cell of their own beside
+    # ten identical ones that had been given both halves. The id says `high`;
+    # recording `high` is reading it, not guessing.
+    if not effort_pinned:
+        carried = agent_capability.effort_in_model(agent, model)
+        if carried:
+            effort, effort_pinned = carried, True
+    # THE PIN ITSELF, against the vocabulary the CLI last answered with. Only a
+    # recorded vocabulary can refuse: an agent nobody has probed is not judged.
+    ok, why = agent_capability.validate_pin(agent, model, ROOT)
+    if not ok:
+        return {"verdict": "driver refused", "detail": why}
     if model:
         argv += ["--model", model]
     # Effort is otherwise passed only through a flag the registry names for this
@@ -1509,52 +1536,6 @@ def _short(note: str, width: int = 40) -> str:
     return note if len(note) <= width else note[:width - 1] + "…"
 
 
-def vocabulary(agent: dict) -> tuple[str, str]:
-    """-> (state, detail) for what this agent can be RUN AS.
-
-    `detect` answers whether the agent is there; this answers what it can be
-    pointed at, and it is deliberately the same shape — a registry argv, or the
-    waiver that says why there is none.
-
-    FOUR STATES, and the fourth is the one a review had to add. `asked` carries
-    the ids the CLI returned; `waived` carries the registry's REASON — a fact
-    about the platform; `absent` is a declared probe whose binary is not on this
-    machine — a fact about the machine, which one install changes; `failed` is a
-    declared, present probe that did not answer, which is an accident. The first
-    version filed `absent` under `waived` while this very docstring said a
-    waiver is a reason and these are not, and `detect()` twelve lines up had
-    kept the same two apart since it was written.
-
-    Read-only by construction: the only argv in the registry is
-    `cursor-agent --list-models`, and the guard requires a list of strings, so
-    nothing here can compose a command out of operator input.
-    """
-    argv = agent.get("models")
-    if not argv:
-        return "waived", agent.get("models_waiver", "no models probe declared")
-    if not shutil.which(argv[0]):
-        return "absent", (f"{argv[0]} is not installed here; the registry "
-                          f"declares a probe, so this is one install away")
-    try:
-        out = subprocess.run(argv, capture_output=True, text=True, timeout=60)
-    except Exception as exc:                                    # noqa: BLE001
-        return "failed", f"{' '.join(argv)}: {exc.__class__.__name__}"
-    if out.returncode != 0:
-        return "failed", (f"{' '.join(argv)} exited {out.returncode}: "
-                          f"{(out.stderr or out.stdout).strip()[:80]}")
-    # An id is the first whitespace-delimited token of a line that carries one.
-    # Cursor prints `id - Display Name`; a line with no ` - ` is a heading or a
-    # blank, and is skipped rather than being recorded as an id called
-    # "Available".
-    ids = [line.split(" - ", 1)[0].strip() for line in out.stdout.splitlines()
-           if " - " in line and not line.startswith(" ")]
-    if not ids:
-        return "failed", (f"{' '.join(argv)} answered, and nothing in its output "
-                          f"parses as an id — an empty vocabulary from a working "
-                          f"probe is a parse failure, not an empty CLI")
-    return "asked", ", ".join(ids)
-
-
 def score_checks(kind: str, path: pathlib.Path, genre: str | None = None) -> dict:
     """Run one checker, honouring the task's declared genre.
 
@@ -2126,7 +2107,7 @@ def main(argv):
             ok, note = probed[a["id"]]
             print(f"  {a['id']:16} {'available' if ok else 'not exercised':14} {note}")
             if args.models:
-                state, detail = vocabulary(a)
+                state, detail = agent_capability.probe_models(a)
                 print(f"  {'':16} models {state:8} {detail}")
                 if state == "asked":
                     answered[a["id"]] = {
@@ -2146,21 +2127,8 @@ def main(argv):
                 print("FAIL  --record needs --models: there is nothing to "
                       "record until the probes have been asked.")
                 return 1
-            vocab = ROOT / "conformance" / "vocabularies.json"
-            prior = (json.loads(vocab.read_text(encoding="utf-8"))
-                     if vocab.exists() else {})
-            for aid, asked in sorted(answered.items()):
-                was = (prior.get(aid) or {}).get("ids")
-                now = list(asked["ids"])
-                if isinstance(was, list) and was != now:
-                    gone = sorted(set(was) - set(now))
-                    arrived = sorted(set(now) - set(was))
-                    print(f"  CHANGED {aid}: "
-                          + (f"gone {gone} " if gone else "")
-                          + (f"new {arrived}" if arrived else ""))
-            prior.update(answered)
-            vocab.write_text(json.dumps(prior, indent=1, sort_keys=True) + "\n",
-                             encoding="utf-8")
+            for line in agent_capability.record_vocabularies(answered, ROOT):
+                print(line)
             print(f"\nrecorded {len(answered)} vocabular"
                   f"{'y' if len(answered) == 1 else 'ies'} -> "
                   f"conformance/vocabularies.json")

@@ -2520,6 +2520,27 @@ def check_platform_manifest():
                     f"adapters/platforms.json: {pid} has no {what} and no {waiver} "
                     f"explaining why — an unverified claim must say so"
                 )
+        # THE SECOND AXIS, required of the agents this harness can DRIVE. Effort
+        # is not a universal five-value tuple: Hermes accepts eight, Gemini has
+        # no such concept, and Cursor spells the level inside the model id — all
+        # three written down in the adapter notes since 0.1.543, in prose no code
+        # read, while `trace_schema.ENUMS["effort"]` (Claude Code's vocabulary,
+        # and correct for Claude Code) was applied to every platform. Scoped to
+        # `drive` because a platform this harness cannot drive has no effort to
+        # pass; absence there is a consequence of a fact the record already
+        # states rather than an exemption.
+        if entry.get("drive") and not (entry.get("efforts")
+                                       or entry.get("efforts_waiver")):
+            errors.append(
+                f"adapters/platforms.json: {pid} declares `drive` but neither "
+                f"`efforts` nor `efforts_waiver` — the harness would pin a "
+                f"level from a tuple that is not this CLI's vocabulary")
+        if entry.get("efforts") and not (
+                isinstance(entry["efforts"], list)
+                and all(isinstance(x, str) for x in entry["efforts"])):
+            errors.append(
+                f"adapters/platforms.json: {pid} efforts must be a list of "
+                f"strings")
 
     # No orphans: an install note nobody points at is a note nobody maintains.
     on_disk = {rel(p) for p in (ROOT / "adapters").glob("*.md")}
@@ -3343,7 +3364,7 @@ SIBLING_MODULES = (
     "checker_report", "secret_patterns", "corpus", "gating",
     "gate_registry", "stamps", "trace_store", "shipped",
     "state_dir", "agent_runs", "versioning", "platform_registry",
-    "history",
+    "history", "agent_capability",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
