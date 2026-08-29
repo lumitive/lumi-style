@@ -115,3 +115,53 @@ def test_release_refuses_a_second_commit_for_one_version(tmp_path, monkeypatch,
         release.main()
     assert "already a 0.1.999 commit" in str(exc.value)
     assert "git reset --soft HEAD~1" in str(exc.value)
+
+
+# THE SPEC LINE SURVIVES `--init`, and until 0.1.648 it did not.
+#
+# `release.py` carries a hand-written spec line across the `--init` rewrite only
+# when the rewritten file has none. `--init` does not write "none" — when the
+# diff is large enough to need a spec it writes a PLACEHOLDER, which is a
+# non-empty string, so `not doc.get("spec")` was False on exactly the releases
+# the branch exists for. The waiver was dropped and the release failed on the
+# rule it had already answered: twice in one session at 0.1.648, a full
+# preflight each time.
+#
+# The comment above that branch describes this failure happening to the WAIVERS
+# field and says the spec line needed the same treatment. It got the treatment
+# and not the test, and the treatment did not work.
+
+def test_the_placeholder_is_a_name_both_files_can_read():
+    """A literal in two files is the drift this repository counts. The carry
+    has to ask "is this still unanswered", which it cannot do against a string
+    only the writer knows."""
+    import check_evidence
+    assert check_evidence.SPEC_PLACEHOLDER
+    assert "waived" in check_evidence.SPEC_PLACEHOLDER
+    source = (pathlib.Path(__file__).resolve().parents[1]
+              / "scripts" / "ops" / "release.py").read_text(encoding="utf-8")
+    assert "check_evidence.SPEC_PLACEHOLDER" in source, (
+        "release.py must ask check_evidence what unanswered looks like, "
+        "never carry its own copy of the sentence")
+    assert check_evidence.SPEC_PLACEHOLDER not in source, (
+        "a second copy of the placeholder is the drift the constant removes")
+
+
+def test_the_carry_treats_the_placeholder_as_unanswered():
+    """The condition itself, evaluated the way release.py evaluates it. Written
+    as the truth table rather than by calling the script, because reaching that
+    branch means running a whole release."""
+    import check_evidence
+    placeholder = check_evidence.SPEC_PLACEHOLDER
+    kept = "waived: the owner's ruling on GAP-044, not a design record"
+
+    def carries(after_init: str) -> bool:
+        # release.py's branch, verbatim in shape.
+        return bool(kept and after_init in ("", placeholder))
+
+    assert carries(placeholder), (
+        "the placeholder means the rewrite has not answered the question, and "
+        "this is the case that was silently dropping waivers")
+    assert carries("")
+    assert not carries("specs/2026-08-28-conformance-cell-design.md"), (
+        "a real spec written by --init must not be overwritten by an older one")

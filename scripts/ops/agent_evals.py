@@ -82,6 +82,23 @@ END = "<!-- end generated -->"
 # them identically is how a board reads as pending work when it is not.
 MEASURED, UNMEASURED, UNMEASURABLE = (
     "measured here", "not measured here", "cannot be measured here")
+# A FOURTH STATE, because "measured once" and "measured enough to act on" are
+# different answers and printed as one. See MIN_RUNS_TO_RECOMMEND.
+UNDERSAMPLED = "measured, not yet enough to recommend"
+
+# THE OWNER'S RULING, 2026-08-29, and the reason is about WHEN the data is
+# collected rather than about statistics. A conformance round is driven only at
+# a large version step — never every release — so a cell does not accumulate
+# runs over time: whatever one collection session gives it is all it will ever
+# have. A bar of three therefore also says how many rounds a session must
+# drive, and "wait for more" is not an option that exists here.
+#
+# The case behind it (convention 2 needs one): at 0.1.641 a single cursor run
+# entered the board at 139 output tokens per page against 6,290-7,896 for its
+# own predecessors and became the recommended configuration. The cell it beat
+# had two runs spread 18,470-59,900 - a 3x internal spread - so one sample
+# could not have separated a real gain from that spread. GAP-044.
+MIN_RUNS_TO_RECOMMEND = 3
 
 
 def load_evals() -> dict:
@@ -498,17 +515,30 @@ def pick(agent_id: str, rows: list[dict],
         caveats.append(
             f"a cheaper cell exists at {mine[0]['tokens_per_page']} tokens/page "
             f"and is passed over because it recorded no model")
-    # n=1 BEATING n=5 IS SAID OUT LOUD, not corrected. Nothing repeats a run by
-    # design, so a single sample cannot separate a flaky agent from a flaky
-    # checker — and adding a minimum-n bar to fix it would be inventing a
-    # threshold with no documented case behind it, which is what convention 2
-    # forbids. Naming the fact is the honest move available.
+    # n=1 BEATING n=5 IS SAID OUT LOUD as well as barred. Until 0.1.648 this
+    # comment argued AGAINST a minimum-n bar — "inventing a threshold with no
+    # documented case behind it" — and that was right when it was written and
+    # is not now: the owner ruled one (MIN_RUNS_TO_RECOMMEND) with a case, and
+    # a comment left arguing against the code beside it is the drift this
+    # repository spends most of its releases on.
     # Same ruler only — `named` was already narrowed to the newest release.
     deeper = [r for r in named[1:] if r["runs"] > best["runs"]]
     if deeper:
         caveats.append(
             f"{describe(deeper[0])} at {deeper[0]['runs']} run(s) is dearer "
             f"per page and better sampled")
+    # THE FLOOR IS ON THE RECOMMENDATION, NOT ON THE ROW. The cell and its
+    # numbers are still returned — hiding them would answer "not measured",
+    # which is false and is the two-answers-where-there-are-three mistake this
+    # file makes elsewhere. What changes is the STATE: a caller asking "what
+    # should I configure" is told this is not yet an answer.
+    if best["runs"] < MIN_RUNS_TO_RECOMMEND:
+        caveats.insert(0, (
+            f"{best['runs']} run(s) at skill {best['skill_version']}; "
+            f"{MIN_RUNS_TO_RECOMMEND} are needed before a configuration is "
+            f"recommended, and a round is driven only at a large version step, "
+            f"so the three are driven together or not at all"))
+        return UNDERSAMPLED, best, caveats
     return MEASURED, best, caveats
 
 

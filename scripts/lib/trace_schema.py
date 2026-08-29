@@ -86,7 +86,12 @@ SHAPE_TEXT_KEYS = ("geometry",)
 
 # Fields introduced after traces were already being stored. Absent is legal;
 # present must still be the declared type.
-ADDED_LATER = frozenset({"shape", "cli_version"})
+ADDED_LATER = frozenset({"shape", "cli_version",
+                         # 0.1.648. Every trace closed before it has neither,
+                         # and that is an honest absence rather than a zero:
+                         # the counts were being read off the transcript and
+                         # thrown away, not reported as nothing.
+                         "cache_read_tokens", "cache_write_tokens"})
 
 FIELDS: dict[str, object] = {
     "trace_id": str, "opened_at": str, "closed_at": (str, type(None)),
@@ -117,6 +122,13 @@ FIELDS: dict[str, object] = {
     # it derives from are right there. Prefer deleting the number: the board
     # computes cost at report time from a dated price table when one exists.
     "output_tokens": (int, type(None)),
+    # THE OTHER HALF OF THE BILL. Optional where the two above are not: a CLI
+    # that reports no cache line is one that does not SAY, not one that read
+    # nothing, and `None` is that answer. Recorded rather than ordered on —
+    # the cost axis is output tokens per page by the owner's ruling, and these
+    # exist so a later change of that ruling has data to change to.
+    "cache_read_tokens": (int, type(None)),
+    "cache_write_tokens": (int, type(None)),
     "gates": dict, "graded": dict, "thresholds": dict,
     # THE DOCUMENT'S SHAPE, so the corpus can grow its own baseline.
     #
@@ -177,6 +189,7 @@ DOCUMENT_FIELDS = frozenset({
 })
 PRODUCER_FIELDS = frozenset({
     "agent", "model", "effort", "cli_version", "input_tokens", "output_tokens",
+    "cache_read_tokens", "cache_write_tokens",
     "phase_seconds", "refused_to_emit", "principle_yields",
 })
 # The run itself: neither the document's nor the producer's, and naming them

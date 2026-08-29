@@ -1280,8 +1280,8 @@ def task_fingerprint(task: dict) -> str:
     return fingerprint.material_hash(material)
 
 
-def _two_counts(usage: object) -> dict | None:
-    """-> {input_tokens, output_tokens} from a vendor's usage object, else None.
+def _token_counts(usage: object) -> dict | None:
+    """-> the token counts from a vendor's usage object, else None.
 
     TWO SPELLINGS, because vendors do not agree and a reader that knows one of
     them reports "no usage" for the other in silence. Claude Code and Hermes
@@ -1289,16 +1289,44 @@ def _two_counts(usage: object) -> dict | None:
     same shape, and its runs carried a clean eight-page deck and no cost row
     until this looked for both.
 
-    Two integers or nothing, either way. A count that cannot be read is a count
-    that was not returned, and `None` says so — never zero, which would put a
-    free run on the cost board.
+    FOUR COUNTS SINCE 0.1.648, AND ONLY TWO ARE REQUIRED. Every Cursor
+    transcript in the operator's store carries `cacheReadTokens` and every
+    Claude Code one carries `cache_read_input_tokens` — back to 2026-08-23,
+    the oldest kept — and this function read neither, so the cache half of
+    every bill was dropped at the door. It went unnoticed while the numbers
+    were the same shape; it became visible when one run reported 1,389 output
+    tokens beside 899,968 cache reads and entered the cost board forty-five
+    times cheaper than its own predecessors (GAP-044).
+
+    The cache counts are OPTIONAL and the two originals are not. A CLI that
+    reports no cache line is not a CLI that read nothing from cache — it is
+    one that does not say — and `None` is that answer. Requiring them would
+    have made every usage file written before this release unreadable, which
+    is the opposite of recording more.
+
+    Two integers or nothing for the required pair, either way. A count that
+    cannot be read is a count that was not returned, and `None` says so —
+    never zero, which would put a free run on the cost board.
     """
     if not isinstance(usage, dict):
         return None
-    for keys in (("input_tokens", "output_tokens"), ("inputTokens", "outputTokens")):
-        i, o = usage.get(keys[0]), usage.get(keys[1])
-        if all(isinstance(v, int) and not isinstance(v, bool) for v in (i, o)):
-            return {"input_tokens": i, "output_tokens": o}
+
+    def whole(v: object) -> bool:
+        return isinstance(v, int) and not isinstance(v, bool)
+
+    # (input, output, cache read, cache write) per vendor, in one table so a
+    # third vendor is a row rather than a branch.
+    for spelling in (("input_tokens", "output_tokens",
+                      "cache_read_input_tokens", "cache_creation_input_tokens"),
+                     ("inputTokens", "outputTokens",
+                      "cacheReadTokens", "cacheWriteTokens")):
+        i, o = usage.get(spelling[0]), usage.get(spelling[1])
+        if not (whole(i) and whole(o)):
+            continue
+        read, write = usage.get(spelling[2]), usage.get(spelling[3])
+        return {"input_tokens": i, "output_tokens": o,
+                "cache_read_tokens": read if whole(read) else None,
+                "cache_write_tokens": write if whole(write) else None}
     return None
 
 
@@ -1422,7 +1450,7 @@ def _usage_from_transcript(text: str) -> dict | None:
             doc = json.loads(chunk)
         except json.JSONDecodeError:
             continue
-        counts = _two_counts(doc.get("usage") if isinstance(doc, dict) else None)
+        counts = _token_counts(doc.get("usage") if isinstance(doc, dict) else None)
         if counts:
             return counts
     return None
@@ -1496,7 +1524,7 @@ def _usage_from_file(path: pathlib.Path) -> dict | None:
     if not isinstance(doc, dict):
         return None
     # The report may be the counts themselves or wrap them in `usage`.
-    return _two_counts(doc) or _two_counts(doc.get("usage"))
+    return _token_counts(doc) or _token_counts(doc.get("usage"))
 
 
 def _conformance_trace(agent: dict, task: dict, wd: pathlib.Path, record: dict) -> str:

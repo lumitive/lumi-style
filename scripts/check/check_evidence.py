@@ -161,6 +161,15 @@ STAMPED_PREFIXES: tuple[tuple[str, int], ...] = tuple(
 OVERCLAIM = ("all gates green", "gates green", "all checks pass",
              "every gate", "fully verified")
 
+# THE PLACEHOLDER IS A NAME because a caller has to be able to ASK whether the
+# spec line is still unanswered. `release.py` carries a hand-written spec across
+# `--init` only when the rewritten file has none — and this string is not none,
+# it is truthy, so the carry never fired and every release that waived the spec
+# by hand lost the waiver on the next run. The comment in `release.py` describes
+# that exact failure, one field to the left, and the fix it describes did not
+# work for this field. Exported at 0.1.648.
+SPEC_PLACEHOLDER = "REQUIRED: name a specs/*.md file (or 'waived: <reason>')"
+
 SPEC_LINE_THRESHOLD = 150  # changed lines above which a spec citation is owed
 
 
@@ -395,7 +404,7 @@ def cmd_init(version: str | None) -> int:
     obligations = obligations_for(touched)
     spec = ""
     if spec_lines_changed(base) > SPEC_LINE_THRESHOLD:
-        spec = "REQUIRED: name a specs/*.md file (or 'waived: <reason>')"
+        spec = SPEC_PLACEHOLDER
     doc: dict[str, Any] = {
         "version": v,
         "diff_base": base,

@@ -219,14 +219,19 @@ def cmd_refuse(a):
 
 
 def _read_usage(path):
-    """-> (input_tokens, output_tokens), read from a machine-emitted usage dump.
+    """-> the token counts, read from a machine-emitted usage dump.
 
     A typed token count is a typed verdict about the bill, so there is no flag
     for one: the numbers come from the API's own usage JSON, unedited. Extra
     keys are tolerated and ignored — a real usage dump carries more than these
-    two — but both token counts must be present and integral, and every
+    — but the two ORIGINAL counts must be present and integral, and every
     refusal names exactly what is wrong: "could not read" must never look
     like "read, and there were no tokens".
+
+    THE CACHE COUNTS ARE OPTIONAL, and the asymmetry is the point. Requiring
+    them would make every usage file written before 0.1.648 unreadable, and a
+    CLI that reports no cache line is not one that read nothing from cache —
+    it is one that does not say. `None` is that answer; zero would be a claim.
     """
     try:
         raw = path.read_text(encoding="utf-8")
@@ -242,7 +247,7 @@ def _read_usage(path):
     if not isinstance(data, dict):
         sys.exit(f"--usage: {path} holds a JSON {type(data).__name__}, not the "
                  f"usage object an API emits.")
-    counts = []
+    out: dict[str, int | None] = {}
     for key in ("input_tokens", "output_tokens"):
         if key not in data:
             sys.exit(f"--usage: {path} has no {key!r}. Both token counts are "
@@ -252,8 +257,19 @@ def _read_usage(path):
         if isinstance(value, bool) or not isinstance(value, int):
             sys.exit(f"--usage: {key!r} in {path} is {value!r} "
                      f"({type(value).__name__}); an integer is required.")
-        counts.append(value)
-    return counts[0], counts[1]
+        out[key] = value
+    for key in ("cache_read_tokens", "cache_write_tokens"):
+        value = data.get(key)
+        # PRESENT AND WRONG IS STILL A REFUSAL. Absent is legal; a string where
+        # an integer belongs is a dump nobody should vouch for, and letting it
+        # through as None would record "the CLI did not say" about a CLI that
+        # said something unreadable.
+        if key in data and (isinstance(value, bool)
+                            or not isinstance(value, int)):
+            sys.exit(f"--usage: {key!r} in {path} is {value!r} "
+                     f"({type(value).__name__}); an integer or absent.")
+        out[key] = value if key in data else None
+    return out
 
 
 # Open phase clocks live beside the traces, outside version control (the
@@ -343,7 +359,7 @@ def cmd_close(a):
         if getattr(a, k, None) is not None:
             rec[k] = getattr(a, k)
     if a.usage is not None:
-        rec["input_tokens"], rec["output_tokens"] = _read_usage(a.usage)
+        rec.update(_read_usage(a.usage))
     # The two readings that need a browser arrive from the tool that ran one.
     # Supplied like `--usage` and for the same reason: re-rendering here to
     # re-derive a number `check_deliverable` already holds would double the

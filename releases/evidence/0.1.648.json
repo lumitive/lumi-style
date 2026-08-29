@@ -1,0 +1,8 @@
+{
+ "version": "0.1.648",
+ "diff_base": "2a8f50c48cabd920ab8f51ca6d1bd84ea61df19f",
+ "spec": "waived: no design record — the change is the owner's ruling of 2026-08-29 on an open ledger entry (GAP-044), not a design this package chose. The cost axis stays output tokens per content page; the cache counts are recorded and not counted; three rounds are required before any configuration is recommended. The reasoning, the two corrected claims and the release tool's own repair that never fired are in the CHANGELOG entry and in GAP-044, which is where a ruling on a gap belongs.",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}
