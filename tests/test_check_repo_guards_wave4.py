@@ -1,7 +1,9 @@
 """Wave 4: the reorganization's enabling guards, both directions."""
+import json as _json
 import subprocess
 
 import check_repo
+import trace_schema
 
 BOOTSTRAP_STUB = (
     "# --- scripts path " + "bootstrap (canonical) ---\n"
@@ -482,3 +484,127 @@ def test_the_privacy_gate_is_checked_where_its_gating_actually_lives(tmp_path,
         'if kind == "PRIVACY_RENAMED":\n    gating.append("x")\n')
     errors = check_repo.check_gate_declarations()
     assert len(errors) == 1 and "privacy_terms" in errors[0]
+
+
+# --- trace field writers: a declared field must record something ----------
+# The mirror of `trace field readers`. Fill rate over stored traces, not static
+# analysis of writers — the red-team review killed the static method. A field
+# empty on every trace, not in ADDED_LATER, unwaived → red. Dead waivers (a
+# waived field now filled, or gone from FIELDS) → red too. FM-24: no FIELDS,
+# WAIVERS not a dict, or an empty store each fail rather than pass vacuously.
+
+
+def _trace_tree(tmp_path, traces):
+    """A ROOT whose evals/traces holds the given records (list of dicts)."""
+    d = tmp_path / "evals" / "traces"
+    d.mkdir(parents=True, exist_ok=True)
+    for i, rec in enumerate(traces):
+        (d / f"t-{i:012x}.json").write_text(_json.dumps(rec))
+    return tmp_path
+
+
+def _full_record(**over):
+    """A record with every FIELDS key filled with a plausible non-empty value,
+    so the guard sees full coverage unless a test empties a field."""
+    rec: dict[str, object] = {}
+    for f, typ in trace_schema.FIELDS.items():
+        rec[f] = 1 if typ is int or typ == (int, type(None)) else \
+            [] if typ is list else {} if typ is dict else f"{f}-val"
+    # lists/dicts must be NON-empty to count as filled
+    for f, typ in trace_schema.FIELDS.items():
+        if typ is list:
+            rec[f] = ["x"]
+        elif typ is dict:
+            rec[f] = {"x": 1}
+    rec.update(over)
+    return rec
+
+
+def test_trace_writers_full_coverage_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _trace_tree(tmp_path, [_full_record()]))
+    monkeypatch.setattr(trace_schema, "WRITER_WAIVERS", {})
+    assert check_repo.check_trace_field_writers() == []
+
+
+def test_trace_writers_empty_field_without_waiver_is_red(tmp_path, monkeypatch):
+    # principle_yields empty on every trace, no waiver -> names it.
+    rec = _full_record(principle_yields=[])
+    monkeypatch.setattr(check_repo, "ROOT", _trace_tree(tmp_path, [rec]))
+    monkeypatch.setattr(trace_schema, "WRITER_WAIVERS", {})
+    errors = check_repo.check_trace_field_writers()
+    assert any("principle_yields" in e and "records nothing" in e for e in errors)
+
+
+def test_trace_writers_empty_field_with_waiver_passes(tmp_path, monkeypatch):
+    rec = _full_record(principle_yields=[])
+    monkeypatch.setattr(check_repo, "ROOT", _trace_tree(tmp_path, [rec]))
+    monkeypatch.setattr(trace_schema, "WRITER_WAIVERS",
+                        {"principle_yields": "waited on the --assess hook"})
+    assert check_repo.check_trace_field_writers() == []
+
+
+def test_trace_writers_dead_waiver_on_filled_field_is_red(tmp_path, monkeypatch):
+    # genre is filled, but a waiver claims it is empty -> dead waiver.
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _trace_tree(tmp_path, [_full_record()]))
+    monkeypatch.setattr(trace_schema, "WRITER_WAIVERS", {"genre": "stale"})
+    errors = check_repo.check_trace_field_writers()
+    assert any("genre" in e and "filled" in e for e in errors)
+
+
+def test_trace_writers_dead_waiver_on_missing_field_is_red(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _trace_tree(tmp_path, [_full_record()]))
+    monkeypatch.setattr(trace_schema, "WRITER_WAIVERS", {"ghost_field": "stale"})
+    errors = check_repo.check_trace_field_writers()
+    assert any("ghost_field" in e and "no longer declares" in e for e in errors)
+
+
+def test_trace_writers_added_later_field_is_skipped(tmp_path, monkeypatch):
+    # A field in ADDED_LATER empty on every trace is an honest absence, not red.
+    added = next(iter(trace_schema.ADDED_LATER))
+    rec = _full_record(**{added: None})
+    monkeypatch.setattr(check_repo, "ROOT", _trace_tree(tmp_path, [rec]))
+    monkeypatch.setattr(trace_schema, "WRITER_WAIVERS", {})
+    errors = check_repo.check_trace_field_writers()
+    assert not any(f"{added!r}" in e for e in errors)
+
+
+def test_trace_writers_empty_store_is_a_finding(tmp_path, monkeypatch):
+    # FM-24: scanning zero traces is not a clean tree.
+    (tmp_path / "evals" / "traces").mkdir(parents=True)
+    monkeypatch.setattr(check_repo, "ROOT", tmp_path)
+    monkeypatch.setattr(trace_schema, "WRITER_WAIVERS", {})
+    errors = check_repo.check_trace_field_writers()
+    assert errors and "scans nothing" in errors[0]
+
+
+def test_trace_writers_waivers_not_a_dict_is_a_finding(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _trace_tree(tmp_path, [_full_record()]))
+    monkeypatch.setattr(trace_schema, "WRITER_WAIVERS", None)
+    errors = check_repo.check_trace_field_writers()
+    assert errors and "not a dict" in errors[0]
+
+
+def test_trace_writers_falsy_field_value_is_not_empty(tmp_path, monkeypatch):
+    # A recorded 0 / False is DATA, not absence. outline_reviewed=False on every
+    # trace, titles_changed_after_approval=0 on every trace — both faithfully
+    # written; the guard must NOT flag them. (Regression: the first emptiness
+    # test treated falsy scalars as empty and reddened these on a normal corpus.)
+    rec = _full_record(outline_reviewed=False, titles_changed_after_approval=0)
+    monkeypatch.setattr(check_repo, "ROOT", _trace_tree(tmp_path, [rec]))
+    monkeypatch.setattr(trace_schema, "WRITER_WAIVERS", {})
+    errors = check_repo.check_trace_field_writers()
+    assert not any("outline_reviewed" in e for e in errors)
+    assert not any("titles_changed_after_approval" in e for e in errors)
+
+
+def test_trace_writers_no_fields_is_a_finding(tmp_path, monkeypatch):
+    # FM-24 fourth branch: FIELDS absent → fail, not a vacuous pass.
+    monkeypatch.setattr(check_repo, "ROOT",
+                        _trace_tree(tmp_path, [_full_record()]))
+    monkeypatch.setattr(trace_schema, "FIELDS", {})
+    errors = check_repo.check_trace_field_writers()
+    assert errors and "no FIELDS" in errors[0]
