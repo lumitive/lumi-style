@@ -74,7 +74,7 @@ read it, and Gemini CLI gives it precedence over its own directory.
 | **Claude Code** | `sonnet` · effort `high` — *not yet recommended* | — | 114,222 out-tok · 14,278/page (n=1) † | 2026-08-21 · skill 0.1.546 |
 | **Gemini CLI** | not measured here | — | — | — |
 | **OpenAI Codex** | not measured here | — | — | — |
-| **Cursor** | `cursor-grok-4.6-high` · effort `high` — *not yet recommended* | 3 of 3 | 1,389 out-tok · 139/page (n=1) † | 2026-08-28 · skill 0.1.641 |
+| **Cursor** | `cursor-grok-4.6-high` · effort `high` | 8 of 9 | 53,675 out-tok · 5,536/page (n=3) | 2026-08-29 · skill 0.1.648 |
 | **Google Antigravity** | cannot be measured here | — | — | — |
 | **GitHub Copilot** | not measured here | — | — | — |
 | **OpenCode** | not measured here | — | — | — |
@@ -85,7 +85,6 @@ read it, and Gemini CLI gives it precedence over its own directory.
 | **DeepSeek** | cannot be measured here | — | — | — |
 
 † **Claude Code** — 1 run(s) at skill 0.1.546; 3 are needed before a configuration is recommended, and a round is driven only at a large version step, so the three are driven together or not at all.
-† **Cursor** — 1 run(s) at skill 0.1.641; 3 are needed before a configuration is recommended, and a round is driven only at a large version step, so the three are driven together or not at all.
 † **Hermes** — 1 run(s) at skill 0.1.546; 3 are needed before a configuration is recommended, and a round is driven only at a large version step, so the three are driven together or not at all.
 
 **A dash is an absence, never a zero.** In a column headed *Tasks earned* that distinction is the whole cell: a dash means no round carrying that configuration has been recorded for the agent, not that it earned nothing. It is a gap in the measurement.

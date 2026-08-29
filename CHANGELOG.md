@@ -1,3 +1,62 @@
+## 0.1.649 — three rounds said the cheap run was a fluke, and one --run value meant two directories
+
+**The three-round bar earned itself on the round that armed it.** 0.1.648 ruled
+that no configuration is recommended below three rounds, because a conformance
+round is driven at a large version step and never every release — a cell does
+not accumulate runs, so a collection session drives three or the cell is never
+answerable. The first collection under that rule was three cursor rounds at
+`cursor-grok-4.6-high · high`, driven sequentially on 2026-08-29:
+
+| | output tokens | cache read | deck bytes |
+|---|---|---|---|
+| r1 | 53,675 | 9,153,152 | 656,047 |
+| r2 | 44,288 | 6,516,608 | 642,005 |
+| r3 | 56,595 | 9,134,208 | 650,788 |
+| the 0.1.641 run | **1,389** | 899,968 | 632,268 |
+
+**5,536 tokens per page (5,368–7,074, n=3)**, which overlaps 0.1.623's
+6,290–7,896 almost exactly: this configuration costs what it has always cost.
+The single run that entered the board at **139** is thirty-two times below the
+cheapest of three, for a deck the same size — an outlier, not a gain, and under
+the old rule it was already the configuration README recommended to every user.
+Cursor is now the one platform on the board with a recommendation; claude-code
+and hermes carry one round each and say so.
+
+Driven SEQUENTIALLY on purpose. The board records seconds per page and three
+concurrent runs of one agent would inflate all three; the spread came out at
+102.1–112.9s, a tenth of the token spread, which is only readable because
+nothing was competing. Scores: r2 and r3 took all three tasks, r1 took two
+(T3-recall, recall 4/5). All three decks passed.
+
+**And the collection found a defect the tool had been routing around for a
+hundred releases.** `run --run 0.1.648-r1` writes to the deliverable folder;
+`score --run 0.1.648-r1` looked in the working directory and answered
+**"does not exist; run `run` first"** — a wrong diagnosis of a run that existed
+and had just been driven. Four call sites resolved a `--run` value four ways:
+`run` expanded `~` and resolved a bare name under the results root, `score` did
+neither, two readers of the board's history did neither, and a third expanded
+`~` alone.
+
+Nobody had hit it because **`run`'s closing line prints the absolute path for
+the next command**. The tool was working around its own defect in its own
+output, so the only way to meet it was to type the run id you had just passed
+to `run` — which is what a person does and what a pasted line never does. That
+generalises past this bug: **a defect a tool routes around in its own output is
+a defect nothing will report.**
+
+`resolve_run` is the one implementation, with an `evals/single-source.json`
+entry (the thirteenth) so a fifth spelling fails CI rather than a collection.
+The rule it states — a bare name is a run id, a value carrying a separator is a
+path — is also where the 2026-08-21 directive lives: taken literally and invoked
+from the checkout, `--run r13` writes a whole run into the repository, which is
+the one place conformance results may not go.
+
+Deliberate red, both halves: `score` restored to `pathlib.Path(runs[0])` fails
+the parity test that reads the source for a hand-built run path; the results
+root removed from `resolve_run` fails the bare-name test; a second copy planted
+in another module is named by `one home` with its owner. Five cases in
+`tests/test_run_resolution.py`.
+
 ## 0.1.648 — the cache half of every bill was read and thrown away, and one run was recommending a configuration
 
 Three things the owner ruled after reading GAP-044, and the third is the one

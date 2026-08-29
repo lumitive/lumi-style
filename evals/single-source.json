@@ -262,6 +262,24 @@
    ],
    "why": "0.1.645 compared a RAW ask against a COMPOSED record and refused every identical re-run on cursor and gemini-cli - four false refusals across the registry. The transformation had one implementation and one reader; the second reader wrote its own.",
    "note": "distinct from `agent-cell`, which owns the ask. This owns the ask's IMAGE under the registry - what the drive could actually pin, which is the intent/observation line agent_capability.py's docstring records."
+  },
+  {
+   "id": "run-directory-resolution",
+   "fact": "what a --run value names: a run id under the results root, or a path",
+   "owner": "scripts/ops/run_conformance.py",
+   "defs": [
+    "resolve_run"
+   ],
+   "patterns": [
+    {
+     "regex": "pathlib\\.Path\\(runs\\[0\\]\\)",
+     "what": "a run directory built without the resolver",
+     "selftest": "    run_dir = pathlib.Path(runs[0])",
+     "seen_in": "scripts/ops/run_conformance.py's cmd_score before 0.1.649, where it resolved against the working directory while cmd_run resolved under the results root"
+    }
+   ],
+   "why": "four call sites, four behaviours: `run` expanded ~ and resolved a bare name under the results root, `score` did neither and reported `does not exist; run run first` about a directory that existed, two history readers did neither, and a third expanded ~ only. Unnoticed for a hundred releases because run prints the absolute path for the next command - the tool routed its operator around its own defect.",
+   "note": "the rule itself (bare name = run id, a separator or leading slash = path) is stated once in resolve_run's docstring, which is also where the 2026-08-21 directive about where results may be written is enforced."
   }
  ],
  "waivers": [

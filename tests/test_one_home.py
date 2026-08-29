@@ -247,6 +247,7 @@ def test_the_live_register_still_declares_what_the_consolidation_moved():
             ["cell", "cell_of_trace", "cell_of_config", "ruler_of_trace",
              "measured_of_trace"], 1),
         "recorded-axes": (["recorded_axes"], 1),
+        "run-directory-resolution": (["resolve_run"], 1),
     }
     assert set(facts) == set(expected), "a fact was added or removed"
     for fid, (defs, patterns) in expected.items():
