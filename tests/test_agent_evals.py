@@ -224,7 +224,12 @@ _REGISTRY: list[dict] = [
 
 
 def test_an_agent_with_a_measured_cell_is_told_what_to_run():
-    rows = agent_evals.cells([_trace("t-1", "cursor", "grok-high", "high")], [])
+    # THREE TRACES, because the subject is "is the user told what to type" and
+    # not sampling. One trace would now answer UNDERSAMPLED (0.1.648), and a
+    # test that asserts the state it happens to get is testing the fixture.
+    rows = agent_evals.cells(
+        [_trace(f"t-{i}", "cursor", "grok-high", "high") for i in (1, 2, 3)],
+        [])
     state, detail = agent_evals.suggest("cursor", rows, _REGISTRY)
     assert state == agent_evals.MEASURED
     assert "grok-high" in detail and "effort high" in detail
@@ -251,9 +256,12 @@ def test_an_agent_the_package_does_not_claim_says_so():
 def test_a_cheapest_cell_that_names_no_model_is_not_the_recommendation():
     """It was, on this command's first run: claude-code's cheapest cell had no
     model and the answer was `effort high`, which no user can act on."""
+    # Three of the named cell for the same reason as above: the subject is
+    # which cell wins, not how many runs it has.
     rows = agent_evals.cells(
-        [_trace("t-1", "cursor", None, "high", out=100),
-         _trace("t-2", "cursor", "grok-high", "high", out=9000)], [])
+        [_trace("t-0", "cursor", None, "high", out=100)]
+        + [_trace(f"t-{i}", "cursor", "grok-high", "high", out=9000)
+           for i in (1, 2, 3)], [])
     state, detail = agent_evals.suggest("cursor", rows, _REGISTRY)
     assert state == agent_evals.MEASURED and "grok-high" in detail
     assert "passed over" in detail, (
@@ -832,3 +840,67 @@ def test_the_register_declares_the_axis_and_leads_with_it():
     assert axis["direction"] == "higher is better"
     for key in ("threshold", "floor", "ceiling", "target"):
         assert key not in axis, "the Score Evals declare axes, not bars"
+
+
+# THE THREE-ROUND FLOOR (0.1.648). The owner ruled it on 2026-08-29, and the
+# reason is about WHEN the data is collected rather than about statistics: a
+# conformance round is driven at a large version step and never every release,
+# so a cell does not accumulate runs over time. Three is therefore also how
+# many rounds one collection session must drive — "wait for more" is not an
+# option that exists.
+#
+# The case: at 0.1.641 a single cursor run entered the board at 139 output
+# tokens per page against 6,290-7,896 for its own predecessors and became the
+# recommended configuration. The cell it beat had two runs spread 18,470-59,900
+# — a 3x internal spread one sample cannot be separated from. GAP-044.
+
+def test_one_run_is_measured_but_not_recommended():
+    state, best, caveats = agent_evals.pick(
+        "cursor", [_cell(runs=1)], _REGISTRY)
+    assert state == agent_evals.UNDERSAMPLED
+    assert best is not None, (
+        "the row is still measured — hiding it would answer `not measured`, "
+        "which is false")
+    assert any("3 are needed" in c for c in caveats)
+
+
+def test_the_floor_is_three_and_two_does_not_clear_it():
+    """Stated as the boundary rather than as `< MIN`, so a change to the
+    constant fails here and has to be made on purpose."""
+    assert agent_evals.MIN_RUNS_TO_RECOMMEND == 3
+    below = agent_evals.pick("cursor", [_cell(runs=2)], _REGISTRY)[0]
+    at = agent_evals.pick("cursor", [_cell(runs=3)], _REGISTRY)[0]
+    assert below == agent_evals.UNDERSAMPLED
+    assert at == agent_evals.MEASURED
+
+
+def test_the_undersampled_caveat_leads(mixed=None):
+    """It goes FIRST. README renders caveats in order under the table, and the
+    one that says `do not act on this yet` reading third under two notes about
+    sampling is the same as not saying it."""
+    rows = [_cell(model="cheap", runs=1, tokens_per_page=100.0),
+            _cell(model="dear", runs=2, tokens_per_page=900.0)]
+    _state, _best, caveats = agent_evals.pick("cursor", rows, _REGISTRY)
+    assert caveats and "3 are needed" in caveats[0]
+
+
+def test_the_floor_does_not_reach_back_into_another_release():
+    """A cell with three runs at an OLD release must not rescue the newest
+    release's single run — `pick` narrows to one ruler first, and the floor
+    must not be the thing that undoes that."""
+    rows = [_cell(model="new", skill_version="0.1.625", runs=1),
+            _cell(model="old", skill_version="0.1.542", runs=9,
+                  tokens_per_page=10.0)]
+    state, best, _c = agent_evals.pick("cursor", rows, _REGISTRY)
+    assert best is not None and best["model"] == "new"
+    assert state == agent_evals.UNDERSAMPLED, (
+        "an older well-sampled cell is not an alternative anybody can choose")
+
+
+def test_the_four_states_are_four_distinct_strings():
+    """FM-24's shape one layer up: two states printing one string is a state
+    that cannot be seen. `UNDERSAMPLED` was added beside three that already
+    existed and must not collide with any of them."""
+    states = (agent_evals.MEASURED, agent_evals.UNMEASURED,
+              agent_evals.UNMEASURABLE, agent_evals.UNDERSAMPLED)
+    assert len(set(states)) == 4

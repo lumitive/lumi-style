@@ -107,6 +107,14 @@ def rows_for_readme(cells=None, registry=None, notes=None) -> list[str]:
         what = " · ".join(
             f"`{x}`" for x in (best["model"],) if x) + (
             f" · effort `{best['effort']}`" if best["effort"] else "")
+        # UNDER THE FLOOR IS SHOWN AND LABELLED, not hidden and not silently
+        # promoted. A row whose cell has fewer runs than the bar carries its
+        # numbers exactly as before — they were measured and they are real —
+        # with the word that stops a reader treating them as an answer. Hiding
+        # the row would say "not measured", which is false; printing it plain
+        # is what put a single run into README as a recommendation.
+        if state == agent_evals.UNDERSAMPLED:
+            what = f"{what} — *not yet recommended*"
         out.append(
             f"| **{entry['name']}** | {what} | {earned} | {cost}{mark} | "
             f"{best['measured']} · skill {best['skill_version']} |")
@@ -122,7 +130,12 @@ def block() -> str:
         MARK,
         "",
         "**Which model and effort to run it with — measured, not curated.** "
-        "Cells with no measurement say so; none is a guess.",
+        "Cells with no measurement say so; none is a guess. A configuration is "
+        "recommended only once three rounds have measured it — a round is "
+        "driven at a large version step and never every release, so a cell "
+        "does not accumulate runs over time and one sample cannot separate a "
+        "real gain from an agent's own spread. Rows below that bar are shown "
+        "with what was measured and marked *not yet recommended*.",
         "",
         "| Agent | Measured configuration | Tasks earned | Cost | Measured |",
         "|---|---|---|---|---|",
@@ -141,9 +154,9 @@ def block() -> str:
         "by a human's read first, and below that by cost among the "
         "configurations that cleared the gate line — cost is not a quality "
         "ranking, which is exactly why a read leads it and why the checks "
-        "cannot tell two documents apart up there. `n` is small on purpose: "
-        "nothing repeats a run by design, so a single sample cannot separate a "
-        "flaky agent from a flaky checker. The full board, its axes and what "
+        "cannot tell two documents apart up there. `n` is the number of rounds "
+        "behind a row, and it is what the three-round bar above is counting. "
+        "The full board, its axes and what "
         "is still unmeasured are in `conformance/CONFIGURATIONS.md` and "
         "`conformance/agent-evals.json` in the development repository.",
         "",

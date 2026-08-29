@@ -546,12 +546,49 @@ def test_a_task_without_a_storyline_opens_no_trace(tmp_path, monkeypatch):
     assert not (tmp_path / "traces").exists()
 
 
+NO_CACHE = {"cache_read_tokens": None, "cache_write_tokens": None}
+
+
 def test_usage_is_read_from_a_json_transcript_and_only_when_both_counts_are_integers():
     tail = '{"result": "ok", "usage": {"input_tokens": 1200, "output_tokens": 340}}'
-    assert rc._usage_from_transcript("noise\n" + tail) == {"input_tokens": 1200,
-                                                          "output_tokens": 340}
+    assert rc._usage_from_transcript("noise\n" + tail) == {
+        "input_tokens": 1200, "output_tokens": 340, **NO_CACHE}
     assert rc._usage_from_transcript('{"usage": {"input_tokens": 1}}') is None
     assert rc._usage_from_transcript("plain text transcript") is None
+
+
+def test_the_cache_counts_are_read_in_both_vendors_spellings():
+    """Read off the real transcripts, not invented: Cursor writes
+    `cacheReadTokens`/`cacheWriteTokens`, Claude Code writes
+    `cache_read_input_tokens`/`cache_creation_input_tokens`. Every stored
+    transcript of both carries them, and until 0.1.648 neither was read."""
+    assert rc._token_counts({"inputTokens": 7814, "outputTokens": 1389,
+                             "cacheReadTokens": 899968,
+                             "cacheWriteTokens": 0}) == {
+        "input_tokens": 7814, "output_tokens": 1389,
+        "cache_read_tokens": 899968, "cache_write_tokens": 0}
+    assert rc._token_counts({"input_tokens": 192, "output_tokens": 55499,
+                             "cache_read_input_tokens": 12036950,
+                             "cache_creation_input_tokens": 174275}) == {
+        "input_tokens": 192, "output_tokens": 55499,
+        "cache_read_tokens": 12036950, "cache_write_tokens": 174275}
+
+
+def test_a_missing_cache_count_is_none_and_never_zero():
+    """A CLI that reports no cache line is not one that read nothing from
+    cache. Zero would be a claim; None is the honest answer, and it is the
+    difference between the two that GAP-044 turned on."""
+    got = rc._token_counts({"input_tokens": 1, "output_tokens": 2})
+    assert got == {"input_tokens": 1, "output_tokens": 2, **NO_CACHE}
+    assert got["cache_read_tokens"] is not 0  # noqa: F632 — the point is identity
+
+
+def test_an_unreadable_cache_count_does_not_take_the_required_pair_down():
+    """The two originals are required and the cache pair is not, so a garbage
+    cache value must not turn a readable bill into no bill at all."""
+    assert rc._token_counts({"inputTokens": 5, "outputTokens": 6,
+                             "cacheReadTokens": "lots"}) == {
+        "input_tokens": 5, "output_tokens": 6, **NO_CACHE}
 
 
 def test_a_usage_dump_reaches_the_trace(tmp_path, monkeypatch):
@@ -817,14 +854,14 @@ RESULT = ('{"is_error":false,"num_turns":14,'
 
 def test_usage_is_read_when_the_object_is_last():
     assert rc._usage_from_transcript("chatter\n" + RESULT) == {
-        "input_tokens": 24, "output_tokens": 26911}
+        "input_tokens": 24, "output_tokens": 26911, **NO_CACHE}
 
 
 def test_usage_is_read_when_a_warning_follows_the_object():
     # The real shape, taken from a 2026-08-21 matrix run.
     text = RESULT + "\nWarning: no stdin data received in 3s, proceeding without it.\n"
     assert rc._usage_from_transcript(text) == {
-        "input_tokens": 24, "output_tokens": 26911}
+        "input_tokens": 24, "output_tokens": 26911, **NO_CACHE}
 
 
 def test_a_transcript_with_no_object_is_still_none():
@@ -853,7 +890,8 @@ def test_usage_is_read_from_a_file_the_cli_wrote(tmp_path):
             "pathlib.Path('answers.md').write_text('done')"]
     agent = dict(_agent(argv), drive_usage_file_flag="--usage-file")
     out = rc.drive(agent, TASK, tmp_path)
-    assert out["usage"] == {"input_tokens": 17952, "output_tokens": 12}
+    assert out["usage"] == {"input_tokens": 17952, "output_tokens": 12,
+                            **NO_CACHE}
 
 
 def test_a_usage_file_that_was_never_written_is_none(tmp_path):
@@ -876,29 +914,34 @@ def test_a_usage_file_with_non_integer_counts_is_not_believed(tmp_path):
 # runs carried a clean eight-page deck with no row on the cost board.
 
 def test_camel_case_usage_is_read_too():
+    # THIS FIXTURE CARRIED `cacheReadTokens` ALL ALONG and the assertion said
+    # it was dropped, which is what the code did and what GAP-044 was about:
+    # the count was in front of the test that proved it was thrown away.
     text = ('{"type":"result","result":"ok","usage":'
             '{"inputTokens":19051,"outputTokens":73,"cacheReadTokens":2944}}')
     assert rc._usage_from_transcript(text) == {
-        "input_tokens": 19051, "output_tokens": 73}
+        "input_tokens": 19051, "output_tokens": 73,
+        "cache_read_tokens": 2944, "cache_write_tokens": None}
 
 
 def test_snake_case_still_wins_when_both_are_present():
     # Not a real shape, but the order must be deterministic rather than
     # whichever key the dict happens to yield first.
-    assert rc._two_counts({"input_tokens": 1, "output_tokens": 2,
-                           "inputTokens": 9, "outputTokens": 9}) == {
-        "input_tokens": 1, "output_tokens": 2}
+    assert rc._token_counts({"input_tokens": 1, "output_tokens": 2,
+                             "inputTokens": 9, "outputTokens": 9}) == {
+        "input_tokens": 1, "output_tokens": 2, **NO_CACHE}
 
 
 def test_a_usage_file_of_bare_counts_is_read(tmp_path):
     p = tmp_path / "u.json"
     p.write_text('{"inputTokens": 5, "outputTokens": 6}', encoding="utf-8")
-    assert rc._usage_from_file(p) == {"input_tokens": 5, "output_tokens": 6}
+    assert rc._usage_from_file(p) == {"input_tokens": 5, "output_tokens": 6,
+                                      **NO_CACHE}
 
 
 def test_partial_counts_are_refused():
-    assert rc._two_counts({"inputTokens": 5}) is None
-    assert rc._two_counts({"input_tokens": 5, "output_tokens": None}) is None
+    assert rc._token_counts({"inputTokens": 5}) is None
+    assert rc._token_counts({"input_tokens": 5, "output_tokens": None}) is None
 
 
 def test_every_flag_lands_before_the_trailing_prompt(tmp_path):

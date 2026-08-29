@@ -111,23 +111,40 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 - surface: scripts/lib/trace_schema.py (`FIELDS`), scripts/ops/run_conformance.py
   (`_usage_from`), conformance/CONFIGURATIONS.md, README's generated block
 - symptom: the board orders configurations by `output_tokens` per content page.
-  Measured 2026-08-28 on one task, one agent, one model, one effort: Cursor's
-  `2026.08.25-3e8eec8` build reported `outputTokens 1389` and
-  `cacheReadTokens 899968`, while the same configuration on earlier builds
-  reported 16k-73k output and no cache line at all. `trace_schema.FIELDS`
-  carries `input_tokens` and `output_tokens` and nothing else, so the cache
-  reads are dropped at the door and the run entered the board at **139
-  tokens/page against 6,290-7,896 for its own predecessors** — forty-five times
-  cheaper, first in the ordering, and therefore the configuration the README
-  block recommends.
+  Measured 2026-08-28 on one task, one agent, one model, one effort: Cursor
+  reported `outputTokens 1389` beside `cacheReadTokens 899968`, and the run
+  entered the board at **139 tokens/page against 6,290-7,896 for its own
+  predecessors** — forty-five times cheaper, first in the ordering, and
+  therefore the configuration the README block recommended.
+- TWO CLAIMS IN THE FIRST VERSION OF THIS ENTRY WERE WRONG, corrected at
+  0.1.648 by reading the transcripts instead of the summary (convention 14):
+  * *"earlier builds reported no cache line at all"* — false. **Every** Cursor
+    transcript in the operator's store carries `cacheReadTokens`, and every
+    Claude Code one carries `cache_read_input_tokens`, back to the oldest kept
+    (2026-08-23). The counts were always emitted and always dropped; nothing
+    about them is new.
+  * *"Cursor's `2026.08.25-3e8eec8` build"* — the change is not the build. The
+    0.1.626 rows carry the **same** CLI build and read 3,918 tokens/page. The
+    variable between them is the SKILL version, 0.1.626 to 0.1.641, which is
+    the window the scaffold and assembly work landed in. All three counters
+    fell together (input 7,814 against 117k-1.2M, cache read 900k against
+    1.4M-11.5M, output 1,389 against 7.7k-94k) for a deck of the same size,
+    which is what a genuinely cheaper build looks like and not what a moved
+    counter looks like.
 - the artifact is NOT in doubt: the deck is 632,268 bytes, twelve pages, ten of
   them content, and it passed fifteen held gates. What is wrong is the price
   written beside it.
-- why it is a gap and not a fix: the fix is a schema change — `cache_read_tokens`
-  and `cache_write_tokens` in `FIELDS` and in `ADDED_LATER`, the dictionary row,
-  the usage reader, and a decision about what the cost axis SHOULD count once
-  the number exists (output alone, or a weighted total). That decision is the
-  owner's, because it changes what the board recommends.
+- HALF FIXED at 0.1.648, and the halves were separated on purpose. The schema
+  change shipped — `cache_read_tokens` and `cache_write_tokens` in `FIELDS` and
+  `ADDED_LATER`, both vendor spellings in the usage reader, the dictionary row,
+  and the counts carried onto every run row. **The ordering did not change**:
+  the owner ruled 2026-08-29 that the cost axis stays output tokens per content
+  page, so these are recorded and not counted. What remains open is only
+  whether that ruling should ever change, and it cannot be decided on one run
+  of one configuration.
+- what actually addressed the harm is not the schema at all: the single run was
+  being RECOMMENDED, and `agent_evals.MIN_RUNS_TO_RECOMMEND` (0.1.648) now
+  requires three rounds before any configuration is recommended anywhere.
 - until then the board's own defence is the `cli` column: cells are already
   split by CLI build, so a reader can see that the cheap row and the dear rows
   came from different instruments. Nothing makes them incomparable in the

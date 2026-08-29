@@ -1,3 +1,97 @@
+## 0.1.648 — the cache half of every bill was read and thrown away, and one run was recommending a configuration
+
+Three things the owner ruled after reading GAP-044, and the third is the one
+that mattered.
+
+**The cost axis stays output tokens per content page.** That is the ruling, and
+nothing here changes the ordering. What changes is that the numbers the ordering
+does NOT use are recorded rather than dropped at the door, so a later ruling has
+data to change to instead of a year of runs to redo.
+
+**Both vendors have always reported the cache counts.** `_token_counts` (was
+`_two_counts`) reads `cacheReadTokens`/`cacheWriteTokens` and
+`cache_read_input_tokens`/`cache_creation_input_tokens`, and
+`trace_schema.FIELDS` carries `cache_read_tokens` and `cache_write_tokens` in
+`ADDED_LATER`. They are OPTIONAL where the two originals are not: a CLI that
+reports no cache line is not one that read nothing from cache, and requiring
+them would have made every usage file written before today unreadable. `None`
+is that answer; zero would be a claim.
+
+**The tell was already in the test suite.** `test_camel_case_usage_is_read_too`
+has carried `"cacheReadTokens":2944` in its fixture since the day it was
+written, and asserted the reader returned the two counts without it. The number
+was sitting in front of the test that proved it was being thrown away.
+
+**Two claims in GAP-044 were wrong**, and both are corrected there by reading
+the transcripts rather than the summary of them — convention 14, in the entry
+whose whole subject is a number nobody checked:
+
+* *"earlier builds reported no cache line at all"* — false. Every stored Cursor
+  transcript carries one, back to the oldest kept.
+* *"Cursor's `2026.08.25-3e8eec8` build"* — the build is not the variable. The
+  0.1.626 rows carry the **same** build and read 3,918 tokens/page. What changed
+  between them is the SKILL, 0.1.626 to 0.1.641, and all three counters fell
+  together for a deck of the same size — which is what a genuinely cheaper build
+  looks like, not what a moved counter looks like.
+
+**And the actual harm was never the schema.** A single run had become the
+configuration README recommends. `agent_evals.MIN_RUNS_TO_RECOMMEND = 3` is the
+owner's ruling of 2026-08-29, and its reason is about WHEN the data is collected
+rather than about statistics: **a conformance round is driven at a large version
+step and never every release, so a cell does not accumulate runs over time.**
+Whatever one collection session gives a cell is all it will ever have, so the
+bar is also how many rounds a session must drive — "wait for more" is not an
+option that exists here.
+
+`pick()` returns a fourth state, `UNDERSAMPLED`, and still returns the cell:
+hiding the row would answer "not measured", which is false and is the
+two-answers-where-there-are-three mistake this file makes elsewhere. README
+prints the measurement and marks it *not yet recommended*, with a caveat that
+leads the list rather than sitting third.
+
+**Today that is every agent**, and the emptiness is the honest state of the
+evidence: the only cells with three or more runs are all at skill 0.1.542, a
+hundred releases back, and `pick()` narrows to the newest release first — an
+older well-sampled cell is not an alternative anybody can choose.
+
+**The comment that argued against this bar is gone.** It said adding one would
+be "inventing a threshold with no documented case behind it, which is what
+convention 2 forbids", and that was correct when it was written: there was no
+case. There is now — an owner ruling and a measured instance — and a comment
+left arguing against the code beside it is the drift this repository spends most
+of its releases on.
+
+Deliberate red, planted first and after the tests existed: the floor set to 0, 2
+and 4 fails four, three and five cases; restored to 3, all pass. The cache reader
+with its two keys forced back to `None` fails the two cases that read them. And
+one methodological note worth keeping — **the first planted red lied**. `3` and
+`9` are the same number of bytes, `cp` restored the file within the same second,
+and Python read a stale `__pycache__` for a source whose recorded mtime and size
+both still matched: the guard reported MIN=9 while the file on disk said 3. The
+runs above clear `__pycache__` between mutations.
+
+**And the release tool's own repair for this was written and never worked.**
+Shipping the above needed a spec waiver, `release.py --init` dropped it, and the
+release failed on the rule it had already answered — twice, a full preflight
+each time. There is a branch for exactly this: it carries a hand-written spec
+line across the rewrite, added after the same thing happened to the WAIVERS
+field, with a comment saying the spec line "was not carried, which is this
+comment's own lesson one field to the left". It reads `not doc.get("spec")` —
+and `--init` does not write nothing, it writes a **placeholder sentence**, which
+is truthy. The branch was False on precisely the releases it exists for.
+
+`check_evidence.SPEC_PLACEHOLDER` is now a name rather than a literal, and the
+carry asks whether the field is still *unanswered* rather than whether it is
+*empty*. The test asserts the truth table and that `release.py` holds no second
+copy of the sentence; planted red by restoring the old condition. The general
+shape is worth more than the fix: **a repair written from a comment rather than
+from a run is a repair nobody watched fail**, which is convention 15 about
+patterns, applied to a bug fix.
+
+GAP-044 is half closed and says which half. The cost axis is settled; what it
+should count if the ruling ever changes is not, and cannot be decided on one run
+of one configuration — which is the same sentence as the bar.
+
 ## 0.1.647 — the refusal deleted what it was protecting, and refused four cells it should have driven
 
 Two readers went over 0.1.643–0.1.646 before the pull request — one on the

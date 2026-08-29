@@ -98,6 +98,13 @@ def board(traces):
                      "effort": t.get("effort"), "content_pages": pages,
                      "tokens_per_page": round(out / pages, 1),
                      "input_tokens": inp, "output_tokens": out,
+                     # CARRIED, NOT COUNTED. `tokens_per_page` above is output
+                     # over pages and stays that way — the owner's ruling on
+                     # the cost axis (GAP-044). These ride along so the number
+                     # a later ruling would need is on the row rather than
+                     # thrown away at the door, which is where it was.
+                     "cache_read_tokens": t.get("cache_read_tokens"),
+                     "cache_write_tokens": t.get("cache_write_tokens"),
                      "opened_at": t.get("opened_at"),
                      "charged_seconds": charged})
     return rows

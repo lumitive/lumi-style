@@ -50,6 +50,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
+import check_evidence  # noqa: E402 — for SPEC_PLACEHOLDER
 import preflight  # noqa: E402
 import repo_files  # noqa: E402
 import shipping  # noqa: E402 — after the bootstrap
@@ -373,7 +374,14 @@ def main():
         doc = json.loads(path.read_text(encoding="utf-8"))
         if a.spec:
             doc["spec"] = a.spec
-        elif kept_spec and not doc.get("spec"):
+        # UNANSWERED IS NOT THE SAME AS EMPTY, and reading it as empty is why
+        # this carry never fired. `--init` writes a PLACEHOLDER when the diff
+        # is large enough to need a spec line, and a placeholder is truthy — so
+        # `not doc.get("spec")` was False on exactly the releases this branch
+        # exists for, the hand-written waiver was dropped, and the release
+        # failed on the same rule it had already answered. Twice in one session
+        # at 0.1.648, sixteen minutes of preflight each.
+        elif kept_spec and doc.get("spec", "") in ("", check_evidence.SPEC_PLACEHOLDER):
             doc["spec"] = kept_spec
             print("   carried the spec line across --init")
         if kept_waivers and not doc.get("waivers"):
