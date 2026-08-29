@@ -1,0 +1,8 @@
+{
+ "version": "0.1.651",
+ "diff_base": "83dc1ef92cfaeaef11a070e85807a3e6e2238842",
+ "spec": "specs/2026-08-30-trace-declaration-parity-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}

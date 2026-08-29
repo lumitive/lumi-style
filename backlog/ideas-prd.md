@@ -734,6 +734,50 @@ without a contract.
 **What would close it.** Two builds where a scaffold sample number reached a
 reader. Until then this is a hazard with one recorded near-miss, not a defect.
 
+## IDEA-22 · Four shape sub-keys and the reader_score axis are declared but the study that would use them has not run
+
+**Problem.** The baseline audit (2026-08-30) found four `shape` sub-keys
+(`visual_share_median`, `repeated_skeleton_pages`, `move_skeleton_clashes`,
+`text_only_figures`) at 0/96, and the board's first sort key `reader_score`
+carrying 0 live cells (it joins reviews by `corpus_id`, filled on 3/96, and
+those three have empty output_tokens so they never reach the cost board). It is
+tempting to call these dead and delete them. They are not dead — they are
+DORMANT. `evals/thresholds.json:227` records that the four bars were **refused
+as gates in writing** (a red-team pass cleared them with two mechanical rewrites
+adding no fact), and that "the agreement study — these numbers against the
+owner's H1–H6 scores — is what would earn [promotion], and it has not been run."
+`corpus_id` also carries three incompatible vocabularies (thresholds A1/R1 vs
+reviews D15/D16, traces D15-D17), so the join cannot close.
+
+**Why not now — and what the decision is.** Deleting removes the data interface
+of a deferred study; keeping without running the study leaves the board's top
+sort key inert. The owner's call: run the agreement study (H1-H6 vs these
+numbers over documents already measured), OR consolidate corpus_id to one
+vocabulary and wire the join, OR formally retire the axis. Each is a decision,
+not a mechanical change. `check_trace_field_writers` (0.1.650) deliberately does
+NOT flag these — they are sparse-or-sub-key, not structurally dead — so they sit
+visible but unheld until the owner picks a direction.
+
+## IDEA-23 · The skill depends on 13 uncontrolled external things; the axiom "depend on nothing outside its own control" needs each given a home
+
+**Problem.** The baseline external-dependency census found 3 controlled deps
+(the in-repo tracked files gates actually read) and 13 uncontrolled ones —
+`~/.lumi/terms`, `node`, Playwright/Chromium, the publish remote +
+git-filter-repo (all on gate paths), plus `~/.lumi/traces`, corpus.local,
+prices.local, the `~/Documents` delivery/corpus/results dirs, and the platform
+CLIs. The owner tightened the first axiom to "depend on nothing outside its own
+control." Today missing `~/.lumi`/`~/Documents` degrades the eval/rebuild
+pipeline silently but does not crash (it falls back in-repo); the only hard
+blocks are check_privacy's declared-terms half and the publish terms list.
+
+**Why not now — and what the decision is.** Each uncontrolled dependency needs a
+per-item ruling: controlled (bring it in-repo or generate it), or explicitly
+demoted to *material* (a fact source the skill reads but does not rely on the
+continued existence of). That is 13 owner decisions, not a mechanical sweep. The
+census is the input; the rulings are the work. GAP-047 (check_secrets) and
+GAP-049 (~/.lumi/traces unheld) are two concrete instances already broken out;
+this IDEA is the umbrella decision about the class.
+
 ## IDEA-21 · The conformance tests reach a command through argv and three patched globals, and now they do not have to
 
 **Problem.** 0.1.646 gave the five conformance commands signatures —
