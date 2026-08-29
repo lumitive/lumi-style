@@ -4,13 +4,13 @@
 
 ## Read this before you count anything
 
-The directory holds **93 JSON files** and **93 records**. Every file is a record — but that has not always been true, and the sentence below is why the check that guarantees it still runs.
+The directory holds **96 JSON files** and **96 records**. Every file is a record — but that has not always been true, and the sentence below is why the check that guarantees it still runs.
 
 **Counting files instead of records was once several times wrong.** That is not hypothetical: `ledger.py` reported "4 of 251 build(s) record a reviewed outline" over a store holding seventeen real builds, because 182 abandoned two-page scaffolds from the test suite were sitting in the tracked directory. Those files were deleted at 0.1.632 — they recorded nothing: no pages, no tokens, no verdicts, never closed — and `evals/traces/index.jsonl` carries `suite_artifact` as a column so the filter travels with the data instead of living only in this package's code.
 
-Of the 93 records, **68 are closed** — a trace is opened when a build starts and closed when its checks are transcribed, so an open one is a build that was abandoned or is still running. Only closed traces carry verdicts, tokens or timings.
+Of the 96 records, **71 are closed** — a trace is opened when a build starts and closed when its checks are transcribed, so an open one is a build that was abandoned or is still running. Only closed traces carry verdicts, tokens or timings.
 
-By source: `conformance` 76, `build` 17.
+By source: `conformance` 79, `build` 17.
 
 ## Where to start
 
@@ -31,38 +31,38 @@ By source: `conformance` 76, `build` 17.
 
 | field | type | population | hand-editable | present in | example | declared at |
 |---|---|---|---|---|---|---|
-| `agent` | str | null | producer | no | 63 of 93 | `"cursor"` | `scripts/lib/trace_schema.py:118` |
-| `cache_read_tokens` | int | null *(optional; added after records existed)* | producer | no | 0 of 93 | — | `scripts/lib/trace_schema.py:130` |
-| `cache_write_tokens` | int | null *(optional; added after records existed)* | producer | no | 0 of 93 | — | `scripts/lib/trace_schema.py:131` |
-| `cli_version` | str | null *(optional; added after records existed)* | producer | no | 13 of 93 | `"2026.08.25-3e8eec8"` | `scripts/lib/trace_schema.py:117` |
-| `closed_at` | str | null | run | no | 68 of 93 | `"2026-08-21T16:30:41+00:00"` | `scripts/lib/trace_schema.py:97` |
-| `content_pages` | int | document | no | 93 of 93 | `8` | `scripts/lib/trace_schema.py:118` |
-| `corpus_id` | str | null | document | **yes** | 3 of 93 | `"D16"` | `scripts/lib/trace_schema.py:149` |
-| `effort` | str | null — one of `low`, `medium`, `high`, `xhigh`, `max` | producer | no | 43 of 93 | `"high"` | `scripts/lib/trace_schema.py:108` |
-| `entry_path` | str — one of `A`, `B` | run | no | 93 of 93 | `"B"` | `scripts/lib/trace_schema.py:99` |
-| `gates` | dict | document | no | 68 of 93 | `{"D12_commercial_footer": "ok", "D14_placeho…` | `scripts/lib/trace_schema.py:132` |
-| `genre` | str — one of `sales`, `marketing`, `consulting`, `internal`, `training` | document | no | 93 of 93 | `"internal"` | `scripts/lib/trace_schema.py:98` |
-| `geometry` | str | null — one of `16x9`, `a4`, `laptop` | document | no | 93 of 93 | `"16x9"` | `scripts/lib/trace_schema.py:107` |
-| `graded` | dict | document | no | 68 of 93 | `{"D10_label_icons": "ok", "D13_lime_as_text"…` | `scripts/lib/trace_schema.py:132` |
-| `input_tokens` | int | null | producer | no | 49 of 93 | `272551` | `scripts/lib/trace_schema.py:119` |
-| `model` | str | null | producer | no | 48 of 93 | `"cursor-grok-4.6-high"` | `scripts/lib/trace_schema.py:108` |
-| `opened_at` | str | run | no | 93 of 93 | `"2026-08-21T16:30:41+00:00"` | `scripts/lib/trace_schema.py:97` |
-| `outline_reviewed` | bool | document | no | 93 of 93 | `false` | `scripts/lib/trace_schema.py:99` |
-| `output_tokens` | int | null | producer | no | 49 of 93 | `59717` | `scripts/lib/trace_schema.py:124` |
-| `pages` | int | document | no | 93 of 93 | `12` | `scripts/lib/trace_schema.py:118` |
-| `phase_seconds` | dict | producer | no | 58 of 93 | `{"build": 2646}` | `scripts/lib/trace_schema.py:119` |
-| `principle_yields` | list | producer | no | 0 of 93 | — | `scripts/lib/trace_schema.py:148` |
-| `recipe_hash` | str | null | run | no | 16 of 93 | `"9a03f383ba0f"` | `scripts/lib/trace_schema.py:106` |
-| `recipe_version` | str | null | run | no | 5 of 93 | `"0.1.506"` | `scripts/lib/trace_schema.py:106` |
-| `refused_to_emit` | dict | null | producer | no | 0 of 93 | — | `scripts/lib/trace_schema.py:148` |
-| `review_ref` | str | null | document | **yes** | 2 of 93 | `"reviews/scores.json 0.1.513 D16"` | `scripts/lib/trace_schema.py:149` |
-| `shape` | dict — keys: `layout_top_share`, `layout_kinds`, `visual_share_median`, `repeated_skeleton_pages`, `figures`, `move_skeleton_clashes`, `text_only_figures` *(optional; added after records existed)* | document | no | 22 of 93 | `{"figures": 9, "layout_kinds": 2, "layout_to…` | `scripts/lib/trace_schema.py:147` |
-| `skill_version` | str | run | no | 93 of 93 | `"0.1.546"` | `scripts/lib/trace_schema.py:98` |
-| `source` | str — one of `build`, `conformance`, `fixture` | run | no | 93 of 93 | `"conformance"` | `scripts/lib/trace_schema.py:98` |
-| `storyline` | str — one of `market-analysis`, `gtm`, `status-report`, `due-diligence`, `product-intro`, `training-curriculum`, `proposal`, `pitch-deck` | document | no | 93 of 93 | `"status-report"` | `scripts/lib/trace_schema.py:98` |
-| `thresholds` | dict | document | no | 68 of 93 | `{"D28_takeaway": "n/a", "M10_triad_rate": "n…` | `scripts/lib/trace_schema.py:132` |
-| `titles_changed_after_approval` | int | document | no | 93 of 93 | `0` | `scripts/lib/trace_schema.py:107` |
-| `trace_id` | str | run | no | 93 of 93 | `"t-046fde00896a"` | `scripts/lib/trace_schema.py:97` |
+| `agent` | str | null | producer | no | 66 of 96 | `"cursor"` | `scripts/lib/trace_schema.py:118` |
+| `cache_read_tokens` | int | null *(optional; added after records existed)* | producer | no | 3 of 96 | `9153152` | `scripts/lib/trace_schema.py:130` |
+| `cache_write_tokens` | int | null *(optional; added after records existed)* | producer | no | 3 of 96 | `0` | `scripts/lib/trace_schema.py:131` |
+| `cli_version` | str | null *(optional; added after records existed)* | producer | no | 16 of 96 | `"2026.08.25-3e8eec8"` | `scripts/lib/trace_schema.py:117` |
+| `closed_at` | str | null | run | no | 71 of 96 | `"2026-08-21T16:30:41+00:00"` | `scripts/lib/trace_schema.py:97` |
+| `content_pages` | int | document | no | 96 of 96 | `8` | `scripts/lib/trace_schema.py:118` |
+| `corpus_id` | str | null | document | **yes** | 3 of 96 | `"D16"` | `scripts/lib/trace_schema.py:149` |
+| `effort` | str | null — one of `low`, `medium`, `high`, `xhigh`, `max` | producer | no | 46 of 96 | `"high"` | `scripts/lib/trace_schema.py:108` |
+| `entry_path` | str — one of `A`, `B` | run | no | 96 of 96 | `"B"` | `scripts/lib/trace_schema.py:99` |
+| `gates` | dict | document | no | 71 of 96 | `{"D12_commercial_footer": "ok", "D14_placeho…` | `scripts/lib/trace_schema.py:132` |
+| `genre` | str — one of `sales`, `marketing`, `consulting`, `internal`, `training` | document | no | 96 of 96 | `"internal"` | `scripts/lib/trace_schema.py:98` |
+| `geometry` | str | null — one of `16x9`, `a4`, `laptop` | document | no | 96 of 96 | `"16x9"` | `scripts/lib/trace_schema.py:107` |
+| `graded` | dict | document | no | 71 of 96 | `{"D10_label_icons": "ok", "D13_lime_as_text"…` | `scripts/lib/trace_schema.py:132` |
+| `input_tokens` | int | null | producer | no | 52 of 96 | `272551` | `scripts/lib/trace_schema.py:119` |
+| `model` | str | null | producer | no | 51 of 96 | `"cursor-grok-4.6-high"` | `scripts/lib/trace_schema.py:108` |
+| `opened_at` | str | run | no | 96 of 96 | `"2026-08-21T16:30:41+00:00"` | `scripts/lib/trace_schema.py:97` |
+| `outline_reviewed` | bool | document | no | 96 of 96 | `false` | `scripts/lib/trace_schema.py:99` |
+| `output_tokens` | int | null | producer | no | 52 of 96 | `59717` | `scripts/lib/trace_schema.py:124` |
+| `pages` | int | document | no | 96 of 96 | `12` | `scripts/lib/trace_schema.py:118` |
+| `phase_seconds` | dict | producer | no | 61 of 96 | `{"build": 2646}` | `scripts/lib/trace_schema.py:119` |
+| `principle_yields` | list | producer | no | 0 of 96 | — | `scripts/lib/trace_schema.py:148` |
+| `recipe_hash` | str | null | run | no | 16 of 96 | `"9a03f383ba0f"` | `scripts/lib/trace_schema.py:106` |
+| `recipe_version` | str | null | run | no | 5 of 96 | `"0.1.506"` | `scripts/lib/trace_schema.py:106` |
+| `refused_to_emit` | dict | null | producer | no | 0 of 96 | — | `scripts/lib/trace_schema.py:148` |
+| `review_ref` | str | null | document | **yes** | 2 of 96 | `"reviews/scores.json 0.1.513 D16"` | `scripts/lib/trace_schema.py:149` |
+| `shape` | dict — keys: `layout_top_share`, `layout_kinds`, `visual_share_median`, `repeated_skeleton_pages`, `figures`, `move_skeleton_clashes`, `text_only_figures` *(optional; added after records existed)* | document | no | 25 of 96 | `{"figures": 9, "layout_kinds": 3, "layout_to…` | `scripts/lib/trace_schema.py:147` |
+| `skill_version` | str | run | no | 96 of 96 | `"0.1.546"` | `scripts/lib/trace_schema.py:98` |
+| `source` | str — one of `build`, `conformance`, `fixture` | run | no | 96 of 96 | `"conformance"` | `scripts/lib/trace_schema.py:98` |
+| `storyline` | str — one of `market-analysis`, `gtm`, `status-report`, `due-diligence`, `product-intro`, `training-curriculum`, `proposal`, `pitch-deck` | document | no | 96 of 96 | `"status-report"` | `scripts/lib/trace_schema.py:98` |
+| `thresholds` | dict | document | no | 71 of 96 | `{"D28_takeaway": "n/a", "M10_triad_rate": "n…` | `scripts/lib/trace_schema.py:132` |
+| `titles_changed_after_approval` | int | document | no | 96 of 96 | `0` | `scripts/lib/trace_schema.py:107` |
+| `trace_id` | str | run | no | 96 of 96 | `"t-046fde00896a"` | `scripts/lib/trace_schema.py:97` |
 
 ## What is not here
 

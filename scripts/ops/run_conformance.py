@@ -371,6 +371,36 @@ def environment_check(agent):
     return []
 
 
+def resolve_run(value) -> pathlib.Path:
+    """-> the run directory a `--run` value names.
+
+    ONE implementation, and there were four. `run` expanded `~` and resolved a
+    bare name under the results root; `score` did neither, so `run --run r1`
+    wrote to the deliverable folder and `score --run r1` looked in the working
+    directory and said **"does not exist; run `run` first"** — a wrong
+    diagnosis of a run that existed. Two readers of the board's own history did
+    the same, and a third expanded `~` and nothing else, so a recorded
+    `~/Documents/...` row resolved for one of them.
+
+    Nobody hit it because `run`'s closing line prints the ABSOLUTE path for the
+    next command: the tool was routing its operator around its own defect. It
+    surfaced the first time a person typed the run id they had just passed to
+    `run` (2026-08-29, the three-round cursor collection).
+
+    A BARE NAME IS A RUN ID, NOT A PATH. `--run r13` taken literally resolves
+    against the working directory, and invoked from the checkout that writes a
+    whole run — transcripts, driver records, an agent's deck — into the
+    repository, which is the one place the 2026-08-21 directive says
+    conformance results may not go. A value that NAMES a path (absolute, or
+    carrying a separator) is still honoured as one: that is what an operator
+    pointing at a scratch directory means.
+    """
+    given = pathlib.Path(value).expanduser()
+    if given.is_absolute() or len(given.parts) > 1:
+        return given
+    return RESULTS / given
+
+
 def recorded_axes(agent: dict, model, effort) -> tuple[str | None, str | None, bool]:
     """-> the (model, effort, effort_pinned) that a drive of this ask RECORDS.
 
@@ -1795,7 +1825,7 @@ def _board_run_version(record: dict, read_scores: bool = True) -> str | None:
 
     found: list[str] = []
     for r in re.findall(r"`([^`]+)`", str(record.get("run_id") or "")):
-        f = pathlib.Path(r).expanduser() / "scores.json"
+        f = resolve_run(r) / "scores.json"
         if f.exists():
             try:
                 doc = json.loads(f.read_text(encoding="utf-8"))
@@ -1811,7 +1841,7 @@ def _scores_date(runs) -> str | None:
     import datetime
     stamps = []
     for r in runs:
-        f = pathlib.Path(r) / "scores.json"
+        f = resolve_run(r) / "scores.json"
         if f.exists():
             stamps.append(f.stat().st_mtime)
     if not stamps:
@@ -1846,7 +1876,7 @@ def _findings(runs) -> list[str]:
     with the table derived from the same file."""
     out = []
     for r in runs:
-        f = pathlib.Path(r) / "scores.json"
+        f = resolve_run(r) / "scores.json"
         if not f.exists():
             continue
         try:
@@ -2174,7 +2204,7 @@ def cmd_score(tasks: list[dict], runs: list[str]) -> int:
     if not runs:
         print("FAIL  score needs --run DIR")
         return 1
-    run_dir = pathlib.Path(runs[0])
+    run_dir = resolve_run(runs[0])
     if not run_dir.exists():
         print(f"FAIL  {run_dir} does not exist; run `run` first")
         return 1
@@ -2916,20 +2946,10 @@ def cmd_run(tasks: list[dict], agents: list[dict], probed: dict,
     # directory, and history.json's run_dir pointed at a tree last written
     # on another day. A run id now names one run.
     if runs:
-        # A BARE NAME IS A RUN ID, NOT A PATH. `--run r13` used to be taken
-        # literally, so it resolved against the working directory: invoked
-        # from the checkout it wrote the whole run — transcripts, driver
-        # records, an agent's deck — into the repository, which is the one
-        # place the 2026-08-21 directive says conformance results may not
-        # go. The print below claims to say "which root, said out loud" and
-        # it did: it said `r13-phase3`, a bare relative name, which is
-        # exactly the artifacts-nobody-can-find case it exists to prevent.
-        # A value that names a path (absolute, or carrying a separator) is
-        # still honoured as one — that is what an operator pointing at a
-        # scratch directory means.
-        given = pathlib.Path(runs[0]).expanduser()
-        run_dir = (given if given.is_absolute() or len(given.parts) > 1
-                   else RESULTS / given)
+        # THE RULE ITSELF IS IN `resolve_run`, with the reason. It lived here
+        # and only here, which is why the three commands that READ a run
+        # directory each resolved it differently.
+        run_dir = resolve_run(runs[0])
     elif args.drive:
         import datetime
         run_dir = RESULTS / f"{versioning.skill_version(ROOT)}-{datetime.date.today().isoformat()}"
