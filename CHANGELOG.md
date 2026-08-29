@@ -1,3 +1,51 @@
+## 0.1.650 — a declared trace field that records nothing is now caught, and two are waived with their trigger
+
+**One slice of a bigger gap, and the entry says so up front.** A baseline audit
+(the artifact of 2026-08-30) found the trace layer's declaration and record sides
+systematically disconnected — Evals declare data the trace does not keep. This
+release makes ONE instance enforceable: `principle_yields` and `refused_to_emit`,
+declared fields with a validator and a writer subcommand, empty on all 96 stored
+traces for 187 releases because their writers (`trace.py yield`/`refuse`) are
+subcommands no pipeline ever invokes. It does not fill them; it makes their
+emptiness a *declared* state rather than a silent one. The four sibling instances
+the baseline names (shape dead sub-keys, reader_score's dead axis, real-build
+cost, the missing per-record integrity check) are NOT covered here and are
+tracked separately — this release only makes the one gap held.
+
+**`check_trace_field_writers`**, the mirror of `check_trace_field_readers`. A
+declared field is red iff it is empty on every stored trace, is not in
+`ADDED_LATER`, and has no `WRITER_WAIVERS` entry. The criterion is fill rate, not
+static analysis of who writes what — a three-reviewer pass killed a first static
+design that measured "the writer subcommand is mentioned in a pipeline file"
+rather than "a pipeline records the field," and so under-caught (it passed
+`corpus_id`/`review_ref`, which share the disease). Fill rate reads the data, not
+the code, and is immune to that class.
+
+**`WRITER_WAIVERS`** (in `trace_schema.py`, beside `FIELDS`/`ADDED_LATER`) is the
+ADDED_LATER move applied to fill rate: a field may be empty only with a reason
+naming what would fill it. Both entries cite PRINCIPLES.md §3 (the constitution's
+collide-and-exit clause, where `cmd_refuse`'s own help points) and the
+`--assess` hook that would wire them; deleting the fields would remove the only
+data-layer home a constitutional yield/refusal has. The reverse is held too
+(convention 19): a waiver over a now-filled or no-longer-declared field is a dead
+waiver and fails.
+
+**Deliberate red, planted first.** Removing the `principle_yields` waiver turns
+the guard red naming the field; restoring it goes green. A code review caught a
+real defect before ship: the first emptiness test counted a recorded `0`/`False`
+as empty (`0 == False` in Python), which would have reddened
+`titles_changed_after_approval` (0 on 94/96) and `outline_reviewed` (False on
+92/96) — faithfully-written fields — on any corpus with no non-zero event, the
+common case. Fixed to treat only `None` and empty containers as absence,
+matching `validate`'s own notion of a present value; a regression test stores
+falsy-on-every-trace and asserts no flag. Ten synthetic-tree tests cover every
+mode including the four FM-24 branches (no FIELDS, waivers not a dict, empty
+store, and "scanned N empty" vs "scanned nothing").
+
+First of the roadmap the baseline set (R4); the sibling instances get their own
+ledger ids in a following release. Cites
+`specs/2026-08-30-trace-declaration-parity-design.md`.
+
 ## 0.1.649 — three rounds said the cheap run was a fluke, and one --run value meant two directories
 
 **The three-round bar earned itself on the round that armed it.** 0.1.648 ruled

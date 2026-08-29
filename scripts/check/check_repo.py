@@ -5032,6 +5032,108 @@ def check_trace_field_readers():
             f"nobody uses" for f in sorted(unread)]
 
 
+def check_trace_field_writers():
+    """No field the trace schema declares records nothing on every trace.
+
+    The mirror of `check_trace_field_readers`, one field over. That guard caught
+    a field nobody READS; this catches a field nobody FILLS — the exact shape
+    `principle_yields`/`refused_to_emit` took for 187 releases: a validator, a
+    writer subcommand, and no pipeline that ever calls it, so the column is empty
+    on every trace while looking like coverage (FM-24).
+
+    THE CRITERION IS FILL RATE, not static analysis of who writes what. A first
+    design read `trace.py` for writer subcommands and pipeline argv; a red-team
+    review proved it measured "the subcommand is mentioned in a pipeline file,"
+    not "the pipeline records the field," and so under-caught (it passed
+    `corpus_id`/`review_ref`/`outline_reviewed`, which share the disease). It was
+    also defeatable by a comment and already out of step with `cmd_open`'s
+    `fromkeys`. Fill rate measures the disease itself and is immune to all of it:
+    it reads the data, not the code that writes it.
+
+    A field is red iff it is EMPTY ON EVERY STORED TRACE, is not in
+    `ADDED_LATER` (a newly added field is an honest absence, not a hole), and has
+    no `WRITER_WAIVERS` entry. Zero is the only non-arbitrary threshold
+    (convention 6): a floor of zero is a line the data either crosses or does
+    not; any positive threshold would be an invented bar, and a sparse field
+    (`corpus_id` at 3/96) is alive, not dead.
+
+    THE REVERSE IS HELD TOO (convention 19): a `WRITER_WAIVERS` entry naming a
+    field that is now filled, or not in `FIELDS`, is a dead waiver and fails — an
+    approved silence over a closed hole is the same "looks like coverage" defect.
+
+    Three answers, not two (FM-24): `FIELDS` absent, `WRITER_WAIVERS` not a dict,
+    or the trace store visited no readable file each fail rather than pass
+    vacuously. The store being empty is legal elsewhere (an installed skill has
+    none), so "scanned N traces, these were empty" is the measurement and
+    "scanned nothing" is the finding — a guard that reads zero traces would find
+    every field empty and must not mistake that for a verdict.
+    """
+    import json as _json
+    fields = getattr(trace_schema, "FIELDS", None)
+    if not fields:
+        return ["trace_schema declares no FIELDS — the guard would pass vacuously"]
+    added_later: frozenset = getattr(trace_schema, "ADDED_LATER", frozenset())
+    waivers = getattr(trace_schema, "WRITER_WAIVERS", None)
+    if not isinstance(waivers, dict):
+        return ["trace_schema.WRITER_WAIVERS is not a dict — the waiver ledger "
+                "this guard reads is missing or malformed"]
+
+    store = ROOT / "evals" / "traces"
+    fill = dict.fromkeys(fields, 0)
+    scanned = 0
+    for path in sorted(store.glob("*.json")):
+        try:
+            rec = _json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if not isinstance(rec, dict):
+            continue
+        scanned += 1
+        for f in fields:
+            v = rec.get(f)
+            # A recorded 0 / 0.0 / False is DATA, not absence — `outline_reviewed`
+            # is False on 92 of 96 traces and `titles_changed_after_approval` is
+            # 0 on 94, both faithfully written. Only None and empty
+            # containers/strings are "nothing recorded", which matches
+            # `trace_schema.validate`'s notion of a present value and keeps the
+            # two genuinely-empty fields (`principle_yields` stored `[]`,
+            # `refused_to_emit` stored `None`) caught. Treating falsy scalars as
+            # empty would redden a field on any corpus that happened to hold no
+            # non-zero event — the common case — which is a false positive the
+            # review caught before it shipped.
+            empty = v is None or (isinstance(v, (str, list, dict, tuple))
+                                  and len(v) == 0)
+            if not empty:
+                fill[f] += 1
+    if scanned == 0:
+        return ["evals/traces/ held no readable trace — a fill-rate guard that "
+                "scans nothing finds every field empty, which is not a verdict; "
+                "'scanned nothing' is a finding, not a clean tree"]
+
+    errors = []
+    # Empty on every trace, not an honest late arrival, no waiver -> red.
+    for f in sorted(fields):
+        if fill[f] > 0 or f in added_later or f in waivers:
+            continue
+        errors.append(
+            f"trace field {f!r} is empty on all {scanned} stored traces, is not "
+            f"in ADDED_LATER, and has no WRITER_WAIVERS entry — a declared field "
+            f"that records nothing looks like coverage and is not. Wire a "
+            f"writer, or add a WRITER_WAIVERS entry naming what would fill it")
+    # Dead waiver: waives a field that is now filled or no longer declared.
+    for f in sorted(waivers):
+        if f not in fields:
+            errors.append(
+                f"WRITER_WAIVERS names {f!r}, which trace_schema.FIELDS no longer "
+                f"declares — a waiver over a field that is gone is dead coverage")
+        elif fill.get(f, 0) > 0:
+            errors.append(
+                f"WRITER_WAIVERS still waives {f!r}, but it is filled on "
+                f"{fill[f]} of {scanned} traces now — the hole closed; remove the "
+                f"waiver so it cannot read as coverage over nothing")
+    return errors
+
+
 def check_frameworks():
     """The framework dictionary resolves, and every entry can be used.
 
@@ -5106,6 +5208,7 @@ CHECKS = (
     ("trace schema", check_trace_schema),
     ("trace notes", check_trace_notes),
     ("trace field readers", check_trace_field_readers),
+    ("trace field writers", check_trace_field_writers),
     ("stale promises", check_stale_promises),
     ("platform manifest", check_platform_manifest),
     ("retired values", check_retired_values),

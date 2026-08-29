@@ -93,6 +93,43 @@ ADDED_LATER = frozenset({"shape", "cli_version",
                          # thrown away, not reported as nothing.
                          "cache_read_tokens", "cache_write_tokens"})
 
+# WHY A DECLARED FIELD MAY BE EMPTY ON EVERY TRACE, stated rather than left to
+# rot. `check_trace_field_writers` (check_repo) holds every declared field to
+# recording SOMETHING across the stored traces — the mirror of
+# `check_trace_field_readers`, which caught a field nobody read. The disease it
+# guards against is FM-24's exact shape one field over: a column with a
+# validator and no data prints what a clean tree prints (empty on every trace)
+# while looking like coverage. `principle_yields`/`refused_to_emit` were
+# 0-of-96 for 187 releases for exactly this reason — their writers `trace.py
+# yield`/`refuse` are subcommands no build or conformance pipeline ever invokes.
+# Their authority is PRINCIPLES.md §3 (the constitution's collide-and-exit
+# clause), which `cmd_refuse`'s own help string cites.
+#
+# A waiver here is the ADDED_LATER move applied to fill rate rather than to
+# vintage: a field may be empty on every trace ONLY with a reason that names
+# what would fill it. No waiver, no data -> the guard is red. And the reverse is
+# held (convention 19): a waiver for a field that IS now filled, or no longer
+# exists, is a dead waiver and fails — an approved silence over a hole that
+# closed is the same "looks like coverage" defect. This is not a place to
+# silence the guard; it is the ledger that turns an invisible hole into a
+# tracked debt with a named trigger.
+WRITER_WAIVERS: dict[str, str] = {
+    "principle_yields":
+        "The data-layer home of PRINCIPLES.md §3 (record which principle was "
+        "yielded, per build). Its writer `trace.py yield` is invoked by no "
+        "pipeline, so it is empty until an explicit-yield event in the build "
+        "tool is wired to call it (the `--assess` family is the natural hook). "
+        "Not deleted — deleting it removes the only place a constitutional "
+        "yield can be counted; kept as a debt with this trigger.",
+    "refused_to_emit":
+        "PRINCIPLES.md §3's other half: the clauses that collided and the "
+        "stage, when a build refuses to emit rather than break a rule. Writer "
+        "`trace.py refuse` is invoked by no pipeline. Activates when the "
+        "renderer/build tool machine-writes a refusal — the same 'a verdict is "
+        "transcribed, never typed' philosophy the shape readings follow. Kept "
+        "for the reason above.",
+}
+
 FIELDS: dict[str, object] = {
     "trace_id": str, "opened_at": str, "closed_at": (str, type(None)),
     "source": str, "skill_version": str, "genre": str, "storyline": str,
