@@ -75,6 +75,108 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   but `scripts/ops/new_deck.py`'s preamble defines all eight among its 211
   classes, and the scaffold is what a deliverable is built from.
 
+## GAP-050 · --fast skips the whole trace close, and a test writes into the real ~/Documents
+
+- status: open
+- opened: 0.1.651
+- surface: scripts/ops/check_deliverable.py (`if trace_id and not a.fast`),
+  tests/test_conformance_driver.py (`test_the_top_efforts_are_expressible`)
+- symptom: two coupled record-robustness holes the baseline found. (1) `--fast`
+  skips the entire close block — closed_at unwritten, phase clocks orphaned
+  (65 measured), verdict/shape/tokens unrecorded, and a dangling trace_id can be
+  waved through; the author's inner loop can produce a "tested" deck with no
+  openable record. (2) `test_the_top_efforts_are_expressible` writes to the real
+  `~/Documents/LUMI-Style/_conformance/latest` instead of a tmp dir, so it broke
+  on 2026-08-30 against a dangling `latest` symlink left by a hand-deleted
+  results dir (`mkdir(exist_ok=True)` raises FileExistsError on a dangling
+  symlink). The test depends on operator machine state.
+- why it is a gap and not a fix: (1) --fast is the author's fast loop by design;
+  the fix is to close-with-a-partial-marker rather than skip, which needs a
+  `partial` trace state the schema does not have. (2) the test should use
+  tmp_path; small, but bundled here as the same record-robustness theme.
+- check: a --fast build should leave a closeable record (partial-marked); the
+  effort test should pass regardless of ~/Documents contents.
+
+## GAP-046 · A closed trace with empty content passes every check (no per-record completeness gate)
+
+- status: open
+- opened: 0.1.651
+- surface: scripts/check/check_repo.py (`check_trace_schema`), scripts/lib/trace_schema.py (`validate`)
+- symptom: `check_trace_schema` validates a stored trace's TYPES and enums only;
+  `null`/empty-dict are legal by design (absent is not measured). So a trace that
+  closed but wrote no gates/tokens/shape/phase_seconds is fully valid and CI is
+  green over it. "The record exists" and "the record has content" have no
+  machine check between them. Measured: of 96 stored traces, closed_at is filled
+  on 71 but many carry empty producer/shape fields.
+- relation to 0.1.650: `check_trace_field_writers` (GAP this closes a sibling of)
+  holds the SCHEMA-and-fill-rate axis — a declared field empty on EVERY trace.
+  This gap is the orthogonal per-RECORD axis: one trace empty where a peer is
+  full. The two are complementary, not the same.
+- why it is a gap and not a fix: a per-record completeness gate needs a policy
+  for which fields a given (source, entry_path) owes — conformance owes
+  model/effort, a real build does not (GAP-048). That policy is the design work.
+- check: a trace closed with source=conformance but no model/effort should be a
+  finding; a real-build trace with the same nulls should not.
+
+## GAP-047 · check_secrets skips the client-name scan silently when no terms list is present
+
+- status: open
+- opened: 0.1.651
+- surface: scripts/check/check_repo.py (`_operator_terms`, `check_secrets`)
+- symptom: `_operator_terms()` returns `[]` when `~/.lumi/terms/*.terms.txt` is
+  absent, so `check_secrets` scans credential SHAPES (SECRET_PATTERNS, unaffected)
+  but runs NO client-name scan and reports green. The 2026-08-20 audit found a
+  city name in eight tracked files — exactly what this half catches. Contrast
+  check_privacy, which reports `not_attempted` (non-zero) with no list: "could
+  not run is not passed." The two readers of the same list disagree.
+- why it is a gap and not a simple fix: check_secrets runs in CI, where
+  `~/.lumi/terms` does not exist. A blunt "hard-fail with no list" would make CI
+  permanently red. The fix must distinguish a machine that HAS the terms
+  directory but an empty/missing list (should report) from CI's structural
+  absence (legal, but said out loud) — a design decision, not a one-liner.
+  publish.sh step-0 forces a terms list at publish time, so the hole is
+  local-development-only, but it is real there.
+- check: on a machine with `~/.lumi/terms` present but empty, check_secrets must
+  not silently pass its client-name half.
+
+## GAP-048 · A real build records no model/effort/usage; cost evidence exists only for conformance runs
+
+- status: open
+- opened: 0.1.651
+- surface: scripts/ops/check_deliverable.py (the close call), scripts/ops/build.py
+- symptom: `check_deliverable.py`'s trace close passes only the three shape
+  readings — not `--model/--effort/--agent/--cli-version/--usage`. So a
+  `source=build` trace has null producer/cost fields; the cost board draws only
+  on conformance's synthetic runs and is blank for real delivery. Measured: model
+  filled on 51/96, tokens on 52/96, all via the conformance path.
+- why it is accept-and-track, not fix: verified structurally unobtainable inline
+  — build.py has no --model/--effort (a session agent would have to self-report,
+  which is unverifiable), and usage lives only in the whole-session transcript,
+  unfinished when the build closes, a different source from conformance's single
+  --usage dump. The honest state is: these nulls on a real build are an honest
+  absence, not a defect. A later session-cost join (post-hoc, by session id) is
+  the only path to filling them; that is the deferred work.
+- check: none owed while accepted; if a join is built, a real-build trace gains
+  non-null tokens.
+
+## GAP-049 · The operator trace store (~/.lumi/traces) is held by no check
+
+- status: open
+- opened: 0.1.651
+- surface: scripts/check/check_repo.py (`check_trace_schema`, hardcoded to
+  ROOT/evals/traces)
+- symptom: the schema guard reads only `evals/traces/` (deliberately — the
+  emergency-merge trust boundary). The operator's real store `~/.lumi/traces`
+  gets no CI/validate coverage; measured 64 of 91 records there are unclosed,
+  with 65 orphan phase clocks. Schema drift or corruption in that store is
+  invisible.
+- why it is a gap and not a fix: the hardcoding is intentional and correct for
+  the trust boundary; a mitigation would be an operator-run (not CI) validate
+  pass over the state store, which needs a home that does not reintroduce the
+  boundary problem. Design work, low urgency.
+- check: an operator-side `trace.py validate --store` over ~/.lumi/traces would
+  surface the unclosed/orphaned records.
+
 ## GAP-045 · A run directory cannot hold two configurations, so the tool refuses instead of storing
 
 - status: open

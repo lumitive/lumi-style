@@ -1,3 +1,33 @@
+## 0.1.651 — the baseline's sibling gaps get ledger ids, so "still open" is tracked, not prose
+
+0.1.650 made ONE instance of the declaration–record gap enforceable and
+promised its four siblings would get ledger ids (convention 10: a deferral
+named in prose is invisible to the next session). This registers them, plus the
+concrete defects the 2026-08-30 baseline audit found across all four of its
+dimensions. No code changes — this is the ledger batch the roadmap owed.
+
+**Five KNOWN_GAPS opened:** GAP-046 (a closed trace with empty content passes
+every check — the per-record axis orthogonal to 0.1.650's per-field one),
+GAP-047 (check_secrets skips the client-name scan silently with no terms list —
+the 2026-08-20 city-name incident's mechanism, local-development-only because
+publish.sh forces a list), GAP-048 (a real build records no model/effort/usage
+— accept-and-track, verified structurally unobtainable inline), GAP-049 (the
+operator trace store ~/.lumi/traces is held by no check — the emergency-merge
+trust boundary is why), GAP-050 (--fast skips the whole trace close, and a test
+writes into the real ~/Documents).
+
+**Two IDEA entries opened:** IDEA-22 (four dormant shape sub-keys and the
+reader_score axis — thresholds.json:227 records they were refused as gates
+pending an agreement study that has not run; delete/run-study/retire is an owner
+decision), IDEA-23 (the 13 uncontrolled external dependencies the tightened
+axiom names — each needs a per-item controlled-or-material ruling).
+
+Every entry carries file:line and a measured number, verified in the baseline
+audit. Each is the tracked debt convention 10 asks for; the guard at 0.1.650
+plus these ids mean every diagnosis the audit made is now either held or has an
+id, and none is a silence. Cites
+`specs/2026-08-30-trace-declaration-parity-design.md`.
+
 ## 0.1.650 — a declared trace field that records nothing is now caught, and two are waived with their trigger
 
 **One slice of a bigger gap, and the entry says so up front.** A baseline audit
