@@ -1,3 +1,24 @@
+## 0.1.654 — a conformance test stops writing into the operator's real ~/Documents
+
+`test_the_top_efforts_are_expressible` called `rc.main(["run", ...])`, whose
+`run` creates a results directory under the real
+`~/Documents/LUMI-Style/_conformance/` before it fails on the unknown agent it
+passes. So the test wrote into the owner's real Documents and depended on
+operator machine state — it broke on 2026-08-30 against a dangling `latest`
+symlink a hand-deleted results dir left behind (`mkdir(exist_ok=True)` raises
+`FileExistsError` on a dangling symlink). It now pins `rc.RESULTS` to `tmp_path`,
+so it writes nowhere real and passes regardless of what is under ~/Documents.
+
+This is **GAP-050 part 2**, split out and shipped first on the R8 review's
+recommendation: it shares no surface with part 1 (the `--fast` partial-mark
+schema work, `specs/2026-08-30-fast-partial-close-design.md`) and was the urgent
+half — it touched the owner's real files. GAP-050 is narrowed to part 1.
+
+No behaviour change to any shipped script; a test-hygiene fix (convention 7's
+scaffold-never-fixture kin: a test must not depend on operator machine state).
+Verified: the unpinned test resolves `rc.RESULTS` to
+`~/Documents/LUMI-Style/_conformance`; pinned, it stays under `tmp_path`.
+
 ## 0.1.653 — the full-span review's leftover polish, bundled: two stale statuses, one asymmetry made a decision, four cosmetics
 
 A doc-and-cosmetic cleanup from the 0.1.641 → 0.1.652 full-span review (three
