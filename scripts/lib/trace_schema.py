@@ -86,6 +86,17 @@ SHAPE_TEXT_KEYS = ("geometry",)
 
 # Fields introduced after traces were already being stored. Absent is legal;
 # present must still be the declared type.
+#
+# Membership here also PERMANENTLY withdraws a field from
+# check_trace_field_writers' fill-rate guard (it skips `f in ADDED_LATER`).
+# That is deliberate — an honest late arrival must not redden as "never
+# recorded" — but note the asymmetry with WRITER_WAIVERS: a waiver carries a
+# dead-waiver reverse check (a waived-but-filled field is itself a finding),
+# ADDED_LATER does not. So if a field here regressed to recording nothing on
+# every trace, the guard would stay green. The exposure is bounded: these are
+# absence-heavy by nature (cache counts: "None is the answer, zero would be a
+# claim"), and a field that becomes reliably filled is a candidate to move OUT
+# of ADDED_LATER into a plain declaration, where the guard covers it again.
 ADDED_LATER = frozenset({"shape", "cli_version",
                          # 0.1.648. Every trace closed before it has neither,
                          # and that is an honest absence rather than a zero:

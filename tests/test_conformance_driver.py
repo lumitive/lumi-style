@@ -580,7 +580,7 @@ def test_a_missing_cache_count_is_none_and_never_zero():
     difference between the two that GAP-044 turned on."""
     got = rc._token_counts({"input_tokens": 1, "output_tokens": 2})
     assert got == {"input_tokens": 1, "output_tokens": 2, **NO_CACHE}
-    assert got["cache_read_tokens"] is not 0  # noqa: F632 — the point is identity
+    assert got["cache_read_tokens"] is None  # absent cache reads are None, not 0
 
 
 def test_an_unreadable_cache_count_does_not_take_the_required_pair_down():

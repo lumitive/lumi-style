@@ -4,8 +4,9 @@
 it — see "What this does not do." The four sibling instances get ledger ids and
 stay open.)*
 
-Date: 2026-08-30 · Status: design under owner review; not yet implemented.
-The release that implements it will cite this file.
+Date: 2026-08-30 · Status: IMPLEMENTED at 0.1.650 (`check_trace_field_writers`
++ `WRITER_WAIVERS`, which cite this file); 0.1.651 registered the sibling
+instances as ledger ids. This file stays as the design record.
 
 ## What was asked
 
