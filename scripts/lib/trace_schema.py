@@ -105,7 +105,10 @@ ADDED_LATER = frozenset({"shape", "cli_version",
                          "cache_read_tokens", "cache_write_tokens",
                          # 0.1.655. A --fast round marks it; every trace closed
                          # before it is a full delivery whose absence reads False.
-                         "partial"})
+                         "partial",
+                         # 0.1.658. Absolute phase intervals for R7's build-cost
+                         # window; empty on every trace opened before it.
+                         "phase_windows"})
 
 # WHY A DECLARED FIELD MAY BE EMPTY ON EVERY TRACE, stated rather than left to
 # rot. `check_trace_field_writers` (check_repo) holds every declared field to
@@ -172,7 +175,14 @@ FIELDS: dict[str, object] = {
     # maintenance tax with no defect behind it.
     "cli_version": (str, type(None)),
     "agent": (str, type(None)), "pages": int, "content_pages": int,
-    "phase_seconds": dict, "input_tokens": (int, type(None)),
+    "phase_seconds": dict,
+    # The ABSOLUTE start/stop of each clocked phase, {phase: [[start, stop], …]},
+    # accumulated across rounds beside phase_seconds (whose values ARE these
+    # intervals' durations). It exists so a real build's token cost can be read
+    # from the session transcript over exactly the build turns and re-derived by
+    # anyone from the same window — the number carries its own evidence (R7).
+    "phase_windows": dict,
+    "input_tokens": (int, type(None)),
     # `cost_usd` was here and is gone. It is tokens times a price, and a
     # stored derivation goes stale the day the price does — while the tokens
     # it derives from are right there. Prefer deleting the number: the board
@@ -246,7 +256,7 @@ DOCUMENT_FIELDS = frozenset({
 PRODUCER_FIELDS = frozenset({
     "agent", "model", "effort", "cli_version", "input_tokens", "output_tokens",
     "cache_read_tokens", "cache_write_tokens",
-    "phase_seconds", "refused_to_emit", "principle_yields",
+    "phase_seconds", "phase_windows", "refused_to_emit", "principle_yields",
 })
 # The run itself: neither the document's nor the producer's, and naming them
 # keeps the two sets above honest instead of letting provenance drift into
@@ -313,6 +323,22 @@ def validate(rec):
         if isinstance(seconds, bool) or not isinstance(seconds, (int, float)) or seconds < 0:
             errors.append(f"phase_seconds[{phase!r}] must be a non-negative number, "
                           f"got {seconds!r}")
+    # phase_windows: {phase: [[start_iso, stop_iso], …]}. The intervals whose
+    # durations phase_seconds records; a real build's token cost is read over
+    # them (R7). Validated in the same shape as phase_seconds so a malformed
+    # window cannot silently reach the cost reader.
+    for phase, spans in (rec.get("phase_windows") or {}).items():
+        if phase not in PHASES:
+            errors.append(f"phase_windows has phase {phase!r}, not one of {PHASES}")
+        if not isinstance(spans, list):
+            errors.append(f"phase_windows[{phase!r}] must be a list of "
+                          f"[start, stop] pairs, got {spans!r}")
+            continue
+        for span in spans:
+            if (not isinstance(span, list) or len(span) != 2
+                    or not all(isinstance(t, str) for t in span)):
+                errors.append(f"phase_windows[{phase!r}] entry {span!r} must be "
+                              f"a [start_iso, stop_iso] pair of strings")
     for y in rec.get("principle_yields", []):
         if not isinstance(y, dict) or set(y) != {"yielded", "for", "stage"}:
             errors.append(f"principle_yields entry {y!r} must be "

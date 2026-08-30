@@ -76,6 +76,29 @@ def test_yield_entry_must_name_real_clauses_and_a_known_stage():
     assert any("unknown stage" in e for e in trace.validate(rec))
 
 
+def test_phase_stop_persists_the_interval_not_only_its_length(tmp_path, monkeypatch):
+    """R7: `phase stop` records the absolute [start, stop] window beside the
+    duration, so a real build's token cost can be read over exactly these turns
+    and re-derived. ADDED_LATER exempts phase_windows from the fill-rate guard,
+    so nothing automatic catches this regressing — this is the deliberate-red
+    that proves the append happens."""
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    tid = subprocess.run(
+        [sys.executable, str(TRACE_PY), "open", "--genre", "internal",
+         "--storyline", "status-report", "--entry-path", "A"],
+        capture_output=True, text=True, env=env).stdout.strip()
+    subprocess.run([sys.executable, str(TRACE_PY), "phase", "start", "build",
+                    "--id", tid], capture_output=True, text=True, env=env)
+    subprocess.run([sys.executable, str(TRACE_PY), "phase", "stop", "build",
+                    "--id", tid], capture_output=True, text=True, env=env)
+    rec = json.loads((tmp_path / f"{tid}.json").read_text(encoding="utf-8"))
+    spans = rec["phase_windows"]["build"]
+    assert len(spans) == 1 and len(spans[0]) == 2
+    assert all(isinstance(t, str) for t in spans[0]), "the interval is two ISO strings"
+    assert rec["phase_seconds"]["build"] >= 1, "the duration is still recorded too"
+    assert trace.validate(rec) == []
+
+
 def test_phase_seconds_vocabulary_is_closed():
     rec = _legal()
     rec["phase_seconds"] = {"build": 100, "polish": 20}

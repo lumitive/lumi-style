@@ -1,3 +1,102 @@
+## 0.1.658 — a real build records its own cost, read from its session over the build window
+
+GAP-048 stood as "a real build records no cost — accept it, structurally
+unobtainable inline." **The owner corrected the premise and it held:** a real
+build's token usage IS written to the session transcript every turn, it is the
+platform's own numbers (transcribed, not self-reported), and the build's slice of
+it is complete when the build closes. R7 (spec
+`2026-08-30-real-build-cost-design.md`, four spec revisions and three red-team
+passes, one empirical on this session's real 18 MB transcript) fills it.
+
+**The number carries its own evidence.** `phase stop` already computes each
+phase's start and stop and kept only the duration; it now persists the interval
+too, in a new `phase_windows` field (PRODUCER partition beside `phase_seconds`,
+`ADDED_LATER`). At full close, `check_deliverable` reads THIS build's own Claude
+Code session (`CLAUDE_CODE_SESSION_ID` → the transcript) over the **build
+window** — the union of the `build` intervals — and records real `input`,
+`output`, `cache_read` and `cache_write` tokens, the dominant `model`, and
+`effort`. Because the window is recorded on the trace, anyone can re-run the
+reader over the same window and transcript and get the same number: it is
+evidence-backed, not asserted. `session_cost.build_window_cost` does the read —
+deduped by `message.id` (the trap that inflates 2.5–3.6×), mapped to the close's
+field names via the existing `HERMES_FIELD` (one home), **preserving `None` for a
+cache field no in-window record carried** (a `0` would be a false claim of no
+cache).
+
+**Four integrity properties, deliberately:** (1) *reproducible* — the recorded
+window makes the number re-derivable; (2) *not collapsed* — the four token kinds
+stay four fields, priced differently, output the billable signal; (3) *scope
+stated* — it is **build-phase cost**, the repo's own boundary (`agent_runs.py:97`
+already excludes discussion/outline on the time axis; `operating-rules.md:192`
+says why), not "total authoring" dressed as precise; (4) *multi-model honest* — the
+output-token-dominant model is recorded only above an 80% share, else `null` (the
+board's `?` bucket), and the full per-model split stays re-derivable from the
+window, so no dead share field is stored.
+
+**OR-8c throughout, and each cause says WHICH:** an absent session id is not a
+Claude Code build, a missing transcript is honest absence, an *unreadable trace*
+is a defect and says so (not "no session on this machine", which would be a false
+statement about the operator's machine), an ambiguous session id is named, and a
+malformed window degrades rather than raising — a cost read must never fail a
+delivery whose document is fine. Never a silent `0`. Claude Code only for
+now (it exposes the session id and a per-turn transcript); Cursor's
+end-of-session total has no window and Hermes builds are not driven by its store,
+so those record null honestly (GAP-048's named residual).
+
+**And a gate defect this release surfaced, fixed here.** Preflight refused the
+first attempt with a `conformance-freshness` obligation. The cause was not this
+release: `references/build-card.md` is GENERATED and version-stamped every
+release, but was missing from `stamps.GENERATED_STAMPED` — so the evidence gate
+read its `# LUMI build card · X.Y.Z` header as a `references/` **rule change**
+and obliged a full multi-agent conformance round on every release that touched
+it. 0.1.657 waived one without knowing why. This is the exact loss
+`stamps.py`'s own docstring records happening once before (to `PRINCIPLES.md`),
+recurring. Fixed by listing it, plus a general test — any generated,
+version-stamped file under `references/` must be stamp-listed — so a third
+recurrence cannot be quiet. Mutation-verified: removing the entry reddens both
+tests.
+
+
+**What the pre-PR review caught, and why it mattered.** Three reviewers ran over
+this release; two independently found the same two defects, both of which would
+have shipped a number that looked right. **(1) A session's cost is not in one
+file.** Claude Code writes subagent turns to `<session>/subagents/*.jsonl`; the
+first implementation read only the main transcript and so dropped a measured
+**median 9%** of a build's tokens — 59% on the worst session — while reporting
+the remainder as the whole bill, with no error and no note. That is this module's
+own docstring warning ("reporting the cheaper half is how a 130 became a 37") one
+directory over, and it is exactly the failure a cost number must not have: wrong,
+and indistinguishable from right. And the same defect survived one directory deeper: subagent transcripts nest as
+`<sid>/subagents/workflows/wf_x/agent-y.jsonl`, so a flat glob missed MORE of
+them than it found (638 vs 621 on this machine, 4-7.6% of a session's output
+tokens) — caught by a third reviewer looking at the real layout again, fixed with
+`rglob`, and now pinned by a test of the DISCOVERY layer, which had no coverage
+at all and is exactly where the bug hid from the first two reviews.
+`build_window_cost` now takes a LIST of
+transcripts like `claude()` does, dedups across them, and reports how many it
+read so a future layout change shows up as a count. **(2) The producer and the
+consumer contradicted each other.** The reader spells "the CLI did not say" as
+`None`; `trace.py close --usage` spells it as an *absent key* and refuses a
+present `null` — so a build whose window carried no cache figures aborted its
+close, failing a delivery whose document was fine. The writer now drops nulls,
+and a test pins that junction, which nothing had covered. Also fixed: one flag
+gated both cache fields (writing `cache_write_tokens: 0` — the "0 claim over
+did-not-say" the design forbids), exceptions from the reader escaped into the
+close, four different causes printed one generic note, an out-of-vocabulary
+effort vanished silently, and the new stamps test could pass while inspecting
+zero files (FM-24, in the test written to prevent a third silent loss).
+
+**Deliberate red (conventions 11/15, load-bearing here):** `ADDED_LATER`
+permanently withdraws `phase_windows` from the fill-rate guard, so nothing
+automatic catches `phase stop` regressing to never-append — the mechanism that
+produces the evidence. `test_phase_stop_persists_the_interval_not_only_its_length`
+proves the append; `validate` rejects a malformed `phase_windows`;
+`test_build_window_cost.py` proves the window carves the slice, dedups, preserves
+`None`, records the dominant model and `null` on a split, and returns `None`
+out-of-window. A None-vs-`{}` guard (the `shape` pattern) was caught in review:
+`dict.fromkeys` leaves the field `None`, which has no `setdefault`. Closes
+GAP-048 for Claude Code. Cites `specs/2026-08-30-real-build-cost-design.md`.
+
 ## 0.1.657 — the rule a borrowed tool must obey: degrade, or fail loudly, never silently
 
 The 2026-08-30 dependency census found thirteen things the package uses that live

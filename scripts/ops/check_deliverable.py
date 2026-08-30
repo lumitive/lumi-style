@@ -41,10 +41,12 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import argparse  # noqa: E402
 import json  # noqa: E402
+import os  # noqa: E402
 import pathlib  # noqa: E402
 import statistics  # noqa: E402
 import subprocess  # noqa: E402
 import sys  # noqa: E402
+import tempfile  # noqa: E402
 import time  # noqa: E402
 
 import checker_report  # noqa: E402
@@ -53,6 +55,8 @@ import fingerprint  # noqa: E402
 import gate_registry  # noqa: E402
 import inspect_layout  # noqa: E402
 import markup  # noqa: E402
+import session_cost  # noqa: E402
+import trace_schema  # noqa: E402
 import trace_store  # noqa: E402
 from deliverable_registry import GENRES, kinds  # noqa: E402
 
@@ -337,6 +341,64 @@ def _text_share(signature: str) -> int:
             except ValueError:
                 return 0
     return 0
+
+
+def _build_cost(trace_id: str) -> dict | None:
+    """-> {usage, model, effort, transcripts} for THIS build, read from its own
+    Claude Code session over the build window (the trace's
+    `phase_windows["build"]`), or None (R7/GAP-048).
+
+    OR-8c, and each cause SAYS WHICH: an absent session id is not a Claude Code
+    build (honest), a missing transcript is honest, but an unreadable trace file
+    is a DEFECT and must not print "no session on this machine" — that is a false
+    statement about the operator's machine, pointing debugging the wrong way.
+    Nothing here raises: a cost read must never fail a delivery whose document is
+    fine. The number is re-derivable by anyone from the recorded window + the
+    transcripts, which is what makes it evidence-backed rather than asserted."""
+    sid = os.environ.get("CLAUDE_CODE_SESSION_ID")
+    if not sid:
+        print("note  build cost: no CLAUDE_CODE_SESSION_ID — not a Claude Code "
+              "build, recorded nothing (R7/OR-8c)", file=sys.stderr)
+        return None
+    base = pathlib.Path.home() / ".claude" / "projects"
+    hits = list(base.glob(f"*/{sid}.jsonl")) if base.is_dir() else []
+    if len(hits) > 1:
+        print(f"note  build cost: session {sid} matches {len(hits)} transcripts "
+              f"— ambiguous, recorded nothing", file=sys.stderr)
+        return None
+    if not hits:
+        print(f"note  build cost: no transcript for session {sid} — recorded "
+              f"nothing (R7/OR-8c)", file=sys.stderr)
+        return None
+    # A SESSION'S COST IS NOT IN ONE FILE. Subagent turns live beside the main
+    # transcript; reading only the main file dropped a measured median 9% of a
+    # build's tokens and reported the rest as the whole bill.
+    # rglob, NOT glob: subagent transcripts nest further —
+    # `<sid>/subagents/workflows/wf_<id>/agent-<id>.jsonl` — and a flat glob
+    # missed MORE of them than it found (638 vs 621 measured on this machine,
+    # 4-7.6% of a session's output tokens). The same defect one directory
+    # deeper, found only because a reviewer looked at the real layout again.
+    subagents = sorted((hits[0].parent / sid / "subagents").rglob("*.jsonl"))
+    try:
+        rec = json.loads((trace_store.traces_dir() / f"{trace_id}.json")
+                         .read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        print(f"note  build cost: trace {trace_id} could not be read "
+              f"({type(exc).__name__}) — the trace store, not the session, is "
+              f"the problem", file=sys.stderr)
+        return None
+    intervals = (rec.get("phase_windows") or {}).get("build") or []
+    if not intervals:
+        print(f"note  build cost: trace {trace_id} has no clocked build window "
+              f"— recorded nothing (R7/OR-8c)", file=sys.stderr)
+        return None
+    try:
+        return session_cost.build_window_cost([hits[0], *subagents], intervals)
+    except (OSError, ValueError, TypeError, MemoryError) as exc:
+        print(f"note  build cost: the session could not be read over the build "
+              f"window ({type(exc).__name__}: {exc}) — recorded nothing",
+              file=sys.stderr)
+        return None
 
 
 def _rendered_shape(runs) -> dict:
@@ -659,6 +721,8 @@ def main(argv=None) -> int:
             # the hole came from.
             print(f"note  phase stop build: {stopped.stderr.strip()}",
                   file=sys.stderr)
+        cost_file = None  # a real build's usage dump, cleaned up after the close
+        cost_counts: dict = {}  # what it held, for the note if the close fails
         if a.fast:
             # A LOOP READING IS NOT A DELIVERY. Mark the trace partial rather
             # than close it: cheap (no checker re-run, no closed_at, no shape),
@@ -683,7 +747,52 @@ def main(argv=None) -> int:
                               ("--move-skeleton-clashes", "move_skeleton_clashes")):
                 if shape.get(key) is not None:
                     step += [flag, str(shape[key])]
-        proc = subprocess.run(step, capture_output=True, text=True)
+            # R7/GAP-048: record what THIS build cost, read from its own session
+            # over the build window. The tokens are the platform's own (the API's
+            # usage records), so they are transcribed, not typed. OR-8c: no
+            # session / no window -> record nothing and say so.
+            cost = _build_cost(trace_id)
+            if cost:
+                tmp = tempfile.NamedTemporaryFile(
+                    "w", suffix=".usage.json", delete=False, encoding="utf-8")
+                # DROP THE NULLS. `_read_usage` spells "the CLI did not say" as
+                # an ABSENT key and refuses a present null — so dumping None
+                # verbatim aborted the close on a build whose document was fine.
+                # Two well-guarded functions whose guards contradicted each other.
+                cost_counts = {k: v for k, v in cost["usage"].items()
+                               if v is not None}
+                json.dump(cost_counts, tmp)
+                tmp.close()
+                cost_file = tmp.name
+                step += ["--usage", cost_file]
+                if cost["model"]:
+                    step += ["--model", cost["model"]]
+                if cost["effort"] is None:
+                    pass
+                elif cost["effort"] in trace_schema.ENUMS["effort"]:
+                    step += ["--effort", cost["effort"]]
+                else:
+                    print(f"note  build cost: the session reports effort "
+                          f"{cost['effort']!r}, outside "
+                          f"{trace_schema.ENUMS['effort']} — not recorded",
+                          file=sys.stderr)
+            # No `else` note here on purpose: `_build_cost` prints the reason it
+            # could not read, and a generic line on top of a specific one told
+            # the operator two things, the second contradicting the first.
+        proc = None
+        try:
+            proc = subprocess.run(step, capture_output=True, text=True)
+        finally:
+            # Cleaned up on EVERY path, including a raise. The counts go into the
+            # note rather than being left on disk: keeping the file so an error
+            # could name it left one temp file per failed close, forever, each
+            # holding a build's token counts.
+            if cost_file:
+                if proc is None or proc.returncode != 0:
+                    print(f"note  build cost (not recorded — the close did not "
+                          f"succeed): {json.dumps(cost_counts)}",
+                          file=sys.stderr)
+                pathlib.Path(cost_file).unlink(missing_ok=True)
         print(proc.stdout.strip() or proc.stderr.strip())
         worst = max(worst, proc.returncode)
     return worst
