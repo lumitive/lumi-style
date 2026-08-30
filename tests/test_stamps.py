@@ -12,6 +12,9 @@ round. Every release stamps `PRINCIPLES.md`, and the evidence gate could not
 tell that stamp from an edit, so once the board went stale every release would
 owe a conformance round for having changed no rule at all.
 """
+import pathlib
+import re
+
 import check_evidence
 import check_repo
 import stamps
@@ -43,6 +46,44 @@ def test_principles_md_is_the_case_that_was_wrong():
     assert "references/PRINCIPLES.md" in stamps.ENTRY_STAMP
     assert any("references/PRINCIPLES.md".startswith(p)
                for p, _ in check_evidence.STAMPED_PREFIXES)
+
+
+def test_build_card_is_the_case_that_was_wrong_the_second_time():
+    """Named for the same reason PRINCIPLES.md is: `references/build-card.md` is
+    GENERATED and stamped every release, but was missing from GENERATED_STAMPED
+    until 0.1.658 — so the evidence gate read its version header as a
+    `references/` rule change and obliged a full conformance round on every
+    release that touched it (0.1.657 waived one without knowing why)."""
+    assert "references/build-card.md" in stamps.GENERATED_STAMPED
+    assert any("references/build-card.md".startswith(p)
+               for p, _ in check_evidence.STAMPED_PREFIXES)
+
+
+def test_every_generated_stamped_file_under_references_is_excluded():
+    """The general form, so a third loss cannot happen quietly: any generated
+    artifact that carries a version stamp must be stamp-listed, or its stamp
+    reads as a rule change under an obligation-bearing prefix."""
+    root = pathlib.Path(__file__).resolve().parents[1]
+    prefixes = [p for p, _ in check_evidence.STAMPED_PREFIXES]
+    visited = []
+    for path in (root / "references").glob("*.md"):
+        head = path.read_text(encoding="utf-8")[:400]
+        if "**GENERATED**" not in head:
+            continue
+        rel = f"references/{path.name}"
+        # a generated file with no version in its header carries no stamp
+        if not re.search(r"\d+\.\d+\.\d+", head.splitlines()[0]):
+            continue
+        visited.append(rel)
+        assert any(rel.startswith(p) for p in prefixes), (
+            f"{rel} is generated and version-stamped but the evidence gate "
+            f"would read its stamp as a rule change")
+    # A SCAN THAT MATCHED NOTHING IS NOT A PASS. Both heuristics above key on
+    # the header's wording; if it is reworded this loop silently inspects zero
+    # files and reports green — FM-24, in the very test written to stop a third
+    # silent loss. `check_one_home`'s selftest strings are the same discipline.
+    assert visited, ("the generated-file scan matched no file — its heuristics "
+                     "no longer fit the headers, so it is guarding nothing")
 
 
 def test_the_token_files_are_all_stamped_paths():

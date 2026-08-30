@@ -177,23 +177,34 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-048 · A real build records no model/effort/usage; cost evidence exists only for conformance runs
 
-- status: open
+- status: fixed
 - opened: 0.1.651
-- surface: scripts/ops/check_deliverable.py (the close call), scripts/ops/build.py
-- symptom: `check_deliverable.py`'s trace close passes only the three shape
-  readings — not `--model/--effort/--agent/--cli-version/--usage`. So a
-  `source=build` trace has null producer/cost fields; the cost board draws only
-  on conformance's synthetic runs and is blank for real delivery. Measured: model
-  filled on 51/96, tokens on 52/96, all via the conformance path.
-- why it is accept-and-track, not fix: verified structurally unobtainable inline
-  — build.py has no --model/--effort (a session agent would have to self-report,
-  which is unverifiable), and usage lives only in the whole-session transcript,
-  unfinished when the build closes, a different source from conformance's single
-  --usage dump. The honest state is: these nulls on a real build are an honest
-  absence, not a defect. A later session-cost join (post-hoc, by session id) is
-  the only path to filling them; that is the deferred work.
-- check: none owed while accepted; if a join is built, a real-build trace gains
-  non-null tokens.
+- closed: 0.1.658
+- surface: scripts/ops/check_deliverable.py, scripts/ops/session_cost.py,
+  scripts/ops/trace.py, scripts/lib/trace_schema.py
+- symptom: a `source=build` trace closed with null producer/cost fields; the cost
+  board drew only on conformance's synthetic runs and was blank for real
+  delivery. The 0.1.651 note called this "accept-and-track: structurally
+  unobtainable inline" — **the owner corrected that premise**: a real build's
+  usage IS written to the session transcript every turn, and it is the platform's
+  own numbers (transcribed, not self-reported).
+- fixed at 0.1.658 (R7, spec `2026-08-30-real-build-cost-design.md`): `phase stop`
+  persists the absolute interval of each clocked phase (`phase_windows`); at full
+  close `check_deliverable` reads THIS build's own Claude Code session over the
+  build window and records real `input/output/cache` tokens, the dominant
+  `model`, and `effort`. The number is re-derivable from the recorded window + the
+  transcript, so it is evidence-backed. It is **build-phase cost**, mirroring the
+  time axis (`agent_runs.py:97` already excludes discussion/outline).
+- residual (partial): Claude Code only — it exposes `CLAUDE_CODE_SESSION_ID` and a
+  per-turn transcript. Cursor exposes only an end-of-session total (no window),
+  and a real build is not driven by Hermes's own store; those record null,
+  honestly (OR-8c: the reader degrades and says so). A multi-model build window
+  records the dominant model or null (never a false single label). Effort is read
+  where the transcript carries it.
+- check: the DISCOVERY layer (which transcripts are read, incl. nested
+  `subagents/workflows/`) and the SUMMING layer are both covered in
+  tests/test_build_window_cost.py; the interval append in tests/test_trace.py.
+  No session window records nothing and says so.
 
 ## GAP-049 · The operator trace store (~/.lumi/traces) is held by no check
 

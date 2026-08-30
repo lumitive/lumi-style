@@ -177,6 +177,7 @@ def cmd_open(a):
                storyline=a.storyline, entry_path=a.entry_path,
                outline_reviewed=False, titles_changed_after_approval=0,
                geometry=a.geometry, pages=0, content_pages=0, phase_seconds={},
+               phase_windows={},
                gates={}, graded={}, thresholds={}, shape={},
                principle_yields=[], refused_to_emit=None,
                recipe_hash=None, recipe_version=None)
@@ -309,6 +310,18 @@ def cmd_phase(a):
     started = _dt.datetime.fromisoformat(clocks.pop(a.name))
     seconds = max(1, round((now - started).total_seconds()))
     rec["phase_seconds"][a.name] = rec["phase_seconds"].get(a.name, 0) + seconds
+    # PERSIST THE INTERVAL, not only its length (R7). Both ends are already in
+    # hand; keeping them lets a real build's token cost be read over exactly
+    # these turns and re-derived by anyone. A re-stop after a crash appends a
+    # superset interval — unioning is idempotent and the reader dedups by
+    # message.id, so tokens are not double-counted (unlike phase_seconds).
+    # NOT setdefault: `dict.fromkeys` / an old trace leaves the key present but
+    # None (the same state cmd_close guards for `shape`), and None has no
+    # setdefault. Normalise to a dict first.
+    if not isinstance(rec.get("phase_windows"), dict):
+        rec["phase_windows"] = {}
+    rec["phase_windows"].setdefault(a.name, []).append(
+        [started.isoformat(timespec="seconds"), now.isoformat(timespec="seconds")])
     errors = validate(rec)
     if errors:
         sys.exit("refusing to write an invalid trace:\n  " + "\n  ".join(errors))

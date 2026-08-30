@@ -1,0 +1,8 @@
+{
+ "version": "0.1.658",
+ "diff_base": "372f9bc8ddc901cd555a20295e9da6e0597eb566",
+ "spec": "specs/2026-08-30-real-build-cost-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}
