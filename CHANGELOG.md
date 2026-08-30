@@ -1,3 +1,37 @@
+## 0.1.653 — the full-span review's leftover polish, bundled: two stale statuses, one asymmetry made a decision, four cosmetics
+
+A doc-and-cosmetic cleanup from the 0.1.641 → 0.1.652 full-span review (three
+agents, one per domain). That review found **no correctness defect** across
+eleven releases; these are the MEDIUM/LOW leftovers it surfaced, none of which
+changes behaviour. No new gate, so no deliberate-red — the retrospective is the
+documented case (convention 2).
+
+**Two stale spec statuses corrected (the convention-14 shape, one layer out in
+design records).** `specs/2026-08-30-trace-declaration-parity-design.md` said
+"not yet implemented" though 0.1.650 implemented and cited it; it now says
+IMPLEMENTED at 0.1.650. (The secrets spec's matching staleness was fixed inside
+0.1.652.) Neither spec is cited as authority anywhere, so this is accuracy, not
+an authority reversal.
+
+**One asymmetry made a conscious decision, not an accident.** `ADDED_LATER`
+(`trace_schema.py`) permanently withdraws a field from
+`check_trace_field_writers`' fill-rate guard, but — unlike `WRITER_WAIVERS` —
+carries no dead-value reverse check, so a field here that regressed to recording
+nothing would stay green. The exposure is bounded (these fields are
+absence-heavy by nature), and the comment now says so and names the exit: a
+field that becomes reliably filled moves OUT of `ADDED_LATER` into a plain
+declaration, where the guard covers it again.
+
+**Four cosmetics.** The fill-rate emptiness test drops a dead `tuple` arm
+(`json.loads` never yields tuples); `check_trace_field_writers` drops a
+redundant local `import json as _json` for the module-level `json`; a dead
+`mixed=None` parameter leaves `test_the_undersampled_caveat_leads` (it risks a
+future fixture-not-found collection error); and an `assert … is not 0  # F632`
+becomes `assert … is None`, which states the real intent (absent cache reads are
+`None`, not `0`) without the identity-comparison lint.
+
+Cites the review; no `specs/` file of its own (it implements nothing new).
+
 ## 0.1.652 — the client-name scan now says when it had nothing to search for, and both its readers agree
 
 `check_secrets`' client-name half (red line 9 — no engagement term in a tracked

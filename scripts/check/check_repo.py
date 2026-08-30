@@ -5108,7 +5108,6 @@ def check_trace_field_writers():
     "scanned nothing" is the finding — a guard that reads zero traces would find
     every field empty and must not mistake that for a verdict.
     """
-    import json as _json
     fields = getattr(trace_schema, "FIELDS", None)
     if not fields:
         return ["trace_schema declares no FIELDS — the guard would pass vacuously"]
@@ -5123,7 +5122,7 @@ def check_trace_field_writers():
     scanned = 0
     for path in sorted(store.glob("*.json")):
         try:
-            rec = _json.loads(path.read_text(encoding="utf-8"))
+            rec = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             continue
         if not isinstance(rec, dict):
@@ -5141,7 +5140,7 @@ def check_trace_field_writers():
             # empty would redden a field on any corpus that happened to hold no
             # non-zero event — the common case — which is a false positive the
             # review caught before it shipped.
-            empty = v is None or (isinstance(v, (str, list, dict, tuple))
+            empty = v is None or (isinstance(v, (str, list, dict))
                                   and len(v) == 0)
             if not empty:
                 fill[f] += 1

@@ -874,7 +874,7 @@ def test_the_floor_is_three_and_two_does_not_clear_it():
     assert at == agent_evals.MEASURED
 
 
-def test_the_undersampled_caveat_leads(mixed=None):
+def test_the_undersampled_caveat_leads():
     """It goes FIRST. README renders caveats in order under the table, and the
     one that says `do not act on this yet` reading third under two notes about
     sampling is the same as not saying it."""
