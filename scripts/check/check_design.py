@@ -1363,9 +1363,21 @@ def d12_commercial_footer(raw, site=None):
 # because a single pair of either is markup or arithmetic, never a slot.
 PLACEHOLDER = re.compile(
     r"\[[^\]\n]{0,60}\]|\{\{[^}\n]{0,60}\}\}|<<[^>\n]{0,60}>>", re.I)
+# The markers were English-only until 0.1.659, and the cost was measured on the
+# release that made this gate the SOLE enforcement of the measure slot: a deck
+# carrying four unfilled Chinese slots printed `ok D14_placeholders 0` — byte
+# identical to a finished document. That is FM-24 in a gate, and D12 eleven
+# hundred lines down already learned the same lesson ("the zh half was missing
+# until the first real Chinese deliverable"). A deliverable is authored in the
+# reader's language, so a marker list in one language is a gate that reads one
+# language and reports clean on the rest.
 PLACEHOLDER_MARKERS = re.compile(
     r"to\s*fill|to[-\s]?do\b|\btbd\b|\btba\b|fill[-\s]?in|\binsert\b|placeholder"
-    r"|\bx{2,}\b|lorem|\bname here\b|your\s+\w+\s+here|^\s*$", re.I)
+    r"|\bx{2,}\b|lorem|\bname here\b|your\s+\w+\s+here"
+    r"|待填|待补|待定|填写|占位|此处填|待确认"
+    r"|\u8981\u5165\u529b|\u672a\u5b9a"
+    # zh / ja: the ways an author writes "fill this in" in a CJK deliverable.
+    r"|^\s*$", re.I)
 # `[...]` and `[…]` are deliberately NOT markers. Bracketed ellipsis is the
 # standard editorial mark for an elision inside a quotation, which a consulting
 # document uses legitimately, and a gate that fails on it is a gate people learn

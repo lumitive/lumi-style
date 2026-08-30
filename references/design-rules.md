@@ -401,6 +401,54 @@ look like it.
   from the title line, and left bare antitheses that read as AI filler.) Prefer
   hairline-separated rows over card boxes: on a dark canvas, borders are
   furniture; hierarchy comes from the ink ladder;
+
+- **On a quantitative page the support line states the measure: unit and period.**
+  On a content page whose section declares a QUANTITATIVE analytical move
+  (`compare`, `decompose`, `bridge`, `correlate` — `analysis-rules.md` AR-1),
+  the support line names what is counted and over what span: "Global buyout
+  assets under management" or "Revenue by segment, $ million, 2022-25" rather
+  than a sentence about the topic.
+  *Why this scope and not every figure*: a `position` page — a 2x2, a SWOT, a
+  9-box — has no unit and no period, and `references/exemplars/` EX-2 records
+  the market 2x2 as one of two pages the owner accepted outright. Requiring a
+  measure of every figure would red-line an accepted anchor, which is the defect
+  the four shape bars were refused for.
+  *The scope is the MOVE, and it is not a perfect proxy for "has a measure"*:
+  `decompose` is quantitative for a waterfall, a Mekko or a market sizing and is
+  NOT for an issue tree, which decomposes hypotheses. So an issue-tree page
+  arrives with a slot it does not want. **That is not a defect in the
+  mechanism**: the slot is a prompt, and `D14` asks only that an unresolved one
+  never reach the reader — the author fills it where there is a measure and
+  DELETES it where there is not. Both are resolutions; only shipping the
+  bracket is refused.
+  *Provenance*: IBCS Top Ten rule 2 — a published standard, since 2024-07 the
+  basis of ISO/AWI 24896 — reads "Titles identify pages, charts, and tables.
+  Name at least organizational unit(s), measure(s), and time period(s)", and its
+  rule 1 puts the MESSAGE at the top of the page, separate from that title. That
+  pair is this package's `h2.t` + `p.sup`. Measured on material this package did
+  not supply: Bain's Global PE Report 2025 carries a measure line on 43 of 43
+  exhibits, BCG's Widening AI Value Gap on 8 of 10 — the two without are
+  qualitative frameworks.
+  *And how wide the rule reaches, stated rather than left to be assumed*: it
+  binds a page that DECLARES a quantitative move, and the declaration is
+  optional and non-gating (`analysis-rules.md` AR-3: `check_outline` reports
+  declaration coverage and never judges content). So an outline that omits its
+  `analysis:` lines produces a deck no page of which is ever asked for a
+  measure, with every check green. That is the reach the rule actually has —
+  "quantitative pages the author chose to label", not "quantitative pages" —
+  and it is written here because silence about an exemption is the cheapest
+  exemption there is.
+  *And why there is no metric for it*: a measure line is a NOUN PHRASE NAMING A
+  QUANTITY, which is not decidable from tokens. A unit-and-period predicate was
+  built and then measured against real material: it false-failed **5 of 7** real
+  McKinsey and Bain measure lines, including Bain Figure 2's "Global buyout
+  assets under management", which carries neither token — and it went green on
+  the scaffold's own example placeholder. So the rule is carried the way the
+  package carries what a generator can hand over: `new_deck.py` emits the slot
+  as a bracketed `[TO FILL: …]`, and **D14, which already gates, refuses to let
+  an unfilled one reach the reader.** A slot the generator emits is a rule that
+  happens; 0.1.522 measured the same thing the other way — row labels x56 and
+  stat blocks 11/11 landed automatically against 0 benchmark lines over 14 pages.
 - **Every page has one focal element, and it is not the title.** The thing the
   eye lands on before it starts reading: a display number with its gloss, a
   claim set at display size, or a figure composed to dominate its cell. Which of

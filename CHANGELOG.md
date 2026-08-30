@@ -1,3 +1,99 @@
+## 0.1.659 — a quantitative page is handed its measure slot, and the gate that already exists refuses an unfilled one
+
+The owner asked whether her four checks — visual share, repeated skeletons,
+shape ambiguity, text-only figures — can judge "McKinsey grade", and if not, how
+to design checks that are rational rather than dependent on human feeling. The
+research is `specs/2026-08-31-insight-metrics-design.md`; this release ships the
+one item that survived three reviews.
+
+**The answer to the question**: those four measure QUANTITY (how much ink, how
+much repetition), and McKinsey grade lives in RELATIONS. But the four are kept
+as reported and NOT deleted — and one reason is new: the repo's own red-team
+record shows `rect_only_share` and `shape_kinds_min`, which are what "shape
+ambiguity" and "text-only figures" correspond to, **caught** the cosmetic
+exploit that cleared the other four bars.
+
+**What ships is a slot, not a check.** On a content page whose section declares
+a quantitative move (`compare`, `decompose`, `bridge`, `correlate`),
+`new_deck.py` now seeds the support line as `[TO FILL: the measure, its unit,
+and the period]` instead of prose. A `position` page — a 2x2, a SWOT, a 9-box —
+keeps the prose seed, because it has no unit and no period and EX-2 records the
+market 2x2 as a page the owner accepted outright. The scope is the MOVE and is
+not a perfect proxy for "has a measure": `decompose` is quantitative for a
+waterfall and is not for an issue tree, which decomposes hypotheses, so an
+issue-tree page arrives with a slot it does not want. That is not a defect in
+the mechanism — `D14` asks only that an UNRESOLVED slot never reach the reader,
+and deleting it is as valid a resolution as filling it. An earlier draft of this
+entry claimed the scope "exempts framework pages by construction"; the review
+proved that false and it is corrected here rather than left standing. **No new metric,
+no new gate, no new vocabulary**: `D14_placeholders` already gates on a slot
+reaching the reader, so an unfilled measure line fails the deliverable through
+machinery that has been there all along.
+
+**Why there is no metric, stated because it was built and then refuted.** A
+unit-and-period predicate (`D42_measure_line`) was implemented, wired, tested and
+registered — and then measured against real material, where it **false-failed 5
+of 7 genuine McKinsey and Bain measure lines**, including Bain Figure 2's
+"Global buyout assets under management", which carries neither token. It also
+went **green on the scaffold's own example placeholder**. A measure line is a
+noun phrase naming a quantity, which is not decidable from tokens — the class
+AG-1 and FM-23 refused twice. The metric was removed rather than weakened;
+`evals/rule-coverage.json` RC-491 records the rule as deliberately unchecked
+with that reason.
+
+**Independent corroboration, not invention.** IBCS Top Ten rule 2 — a published
+standard, since 2024-07 the basis of ISO/AWI 24896 — asks a title to "name at
+least organizational unit(s), measure(s), and time period(s)", and its rule 1
+puts the message at the top of the page, separate from that title. That pair is
+this package's `h2.t` + `p.sup`. On material this package did not supply, Bain's
+Global PE Report 2025 carries a measure line on 43 of 43 exhibits and BCG's
+Widening AI Value Gap on 8 of 10 — the two without are qualitative frameworks,
+which is why the rule is scoped by the declared move.
+
+**It reaches all twelve platforms.** Ten run the checks; two (`kimi`,
+`deepseek`) get one pasted context. The scaffold cannot reach those, so
+`prompts/lumi-style-core.md` carries the same rule and the same framework-page
+exemption. The generation side is the half that serves the product goal — 0.1.522
+measured why: row labels x56 and stat blocks 11/11 landed automatically against
+**0 benchmark lines over 14 pages**, because what a generator hands over gets
+used and what an author must remember does not.
+
+**And the escape the pre-PR review found, which falsified this release's own
+central claim.** "D14 refuses to let an unfilled one reach the reader" was stated
+in three files and was **false in any non-English deliverable**:
+`PLACEHOLDER_MARKERS` was English-only, so a deck carrying four unfilled Chinese
+slots printed `ok D14_placeholders 0` — byte-identical to a finished document.
+That is FM-24 inside a gate, and D12 already learned it ("the zh half was missing
+until the first real Chinese deliverable: a public roadshow deck failed all
+nineteen pages"). The markers now carry their CJK spellings, with a test in both
+directions — an unfilled `[待填…]` is caught, and a year, a citation mark and a
+filled Chinese measure line are not. **This is the finding that mattered most:
+the owner's own deliverables are Chinese**, so the release would have shipped a
+mechanism that did nothing for the documents it was built for.
+
+Two smaller ones from the same review: an outline move outside AR-1's five (a
+typo, or a missing space before the first pipe, which the parser's `(\S+)`
+swallows) shipped an invalid `data-analysis` and a quantitative page silently got
+no measure slot — `new_deck.py` now says so on stderr; and `design-rules.md` §3
+now states the rule's real reach, that the declaration is optional and
+non-gating, so "quantitative pages" is not read as wider than "quantitative pages
+the author chose to label".
+
+**Deliberate red (conventions 11/15):** the unfilled slot fails `D14` on a
+freshly scaffolded deck (verified end to end); a filled line passes, including
+the real Bain lines the removed predicate rejected; a `position` page keeps
+prose; and the slot is asserted to fit inside D14's 60-character window — the
+first one was 63 and **slipped through silently**, which is a placeholder the
+gate cannot see. The tracked fixtures cannot exercise this path — only the BROKEN fixture
+declares an analytical move, deliberately (`build_fixtures.py:755`: a graded
+metric no fixture can fail is refused) — so an end-to-end test generates a deck
+through the real scaffold and asserts both halves: the quantitative page arrives
+with the slot, the framework page does not, and D14 sees it in the generated
+markup rather than in a string. Without it the change would have shipped
+verified by hand. Adding the rule shifted 182 line citations in
+`evals/rule-coverage.json`; they were re-synced from the checker's own output
+rather than by hand (convention 12).
+
 ## 0.1.658 — a real build records its own cost, read from its session over the build window
 
 GAP-048 stood as "a real build records no cost — accept it, structurally

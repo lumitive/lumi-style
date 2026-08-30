@@ -191,7 +191,19 @@ def outline_sections(path: pathlib.Path | None):
         if not t:
             continue
         rest = str(a.get("rest", ""))
-        by_title[t] = {"move": str(a.get("move", "")),
+        move = str(a.get("move", ""))
+        # SAY SO. `check_outline` validates the vocabulary and this tool does
+        # not run it, so a typo (`comparison`) or a missing space before the
+        # first pipe (`compare|finding:` — the parser's `(\S+)` swallows the
+        # delimiter) shipped an invalid `data-analysis` and a page that is
+        # quantitative silently never got asked for its measure.
+        if move and move not in check_outline.ANALYTICAL_MOVES:
+            print(f"note  outline: analysis move {move!r} is not one of "
+                  f"{check_outline.ANALYTICAL_MOVES} — the page ships the "
+                  f"declaration but gets no framework, no shape and no measure "
+                  f"slot. Check for a typo or a missing space before the pipe.",
+                  file=sys.stderr)
+        by_title[t] = {"move": move,
                        "finding": _field("finding", rest),
                        "implication": _field("implication", rest),
                        "framework": _field("framework", rest)}
@@ -204,6 +216,53 @@ def outline_sections(path: pathlib.Path | None):
                         "implication": d.get("implication", ""),
                         "framework": d.get("framework", "")})
     return out
+
+
+# The support line's SEED, chosen by the declared analytical move. A page whose
+# move is quantitative owes a measure — unit and period — because that is what
+# a reader needs before they can read the drawing at all (design-rules §3;
+# IBCS Top Ten rule 2, the basis of ISO/AWI 24896, asks a title to name the
+# organizational unit, the measure and the time period). A framework page has
+# neither, so it keeps the prose seed: requiring a measure of every figure
+# would red-line the market 2x2 that EX-2 records as an accepted page.
+#
+# This is a SLOT, not a check. The measured lesson this follows is 0.1.522's:
+# row labels x56 and stat blocks 11/11 landed automatically while benchmark
+# lines came to 0 over 14 pages — "what a stylesheet can carry gets applied".
+# A rule the generator does not emit is a rule that does not happen.
+# DERIVED from AR-1's vocabulary, not a fourth copy of it. The five moves
+# already live in `analysis-rules.md`, `check_outline.ANALYTICAL_MOVES` and
+# `assets/frameworks.json`; a literal tuple here would route a sixth move to
+# prose silently and every check would stay green.
+def _quantitative_moves() -> tuple[str, ...]:
+    """-> AR-1's moves whose finding is a quantity.
+
+    DERIVED from the one vocabulary, not a fourth copy of it: the five moves
+    already live in `analysis-rules.md`, `check_outline.ANALYTICAL_MOVES` and
+    `assets/frameworks.json`. A literal tuple here would route a sixth move to
+    prose silently and leave every check green. `check_outline` is imported
+    lazily because this module reaches it through the scripts/check path it
+    inserts at call time.
+    """
+    sys.path.insert(0, str(ROOT / "scripts" / "check"))
+    import check_outline
+    return tuple(m for m in check_outline.ANALYTICAL_MOVES if m != "position")
+SUP_PROSE = "The support line, one sentence and not a summary."
+# A BRACKETED SLOT, not an example. Two reasons, both measured.
+# (1) An example satisfies any token test written against it, so a metric
+#     graded on "unit and period tokens" went green on this very placeholder.
+# (2) A measure line is a NOUN PHRASE NAMING A QUANTITY, and that is not
+#     decidable from tokens: "Global buyout assets under management" (Bain,
+#     Figure 2) carries neither a unit nor a period, and a unit-and-period
+#     predicate false-failed 5 of 7 real McKinsey and Bain measure lines.
+#     So there is no new check here — the slot is handed over, and D14, which
+#     already GATES, refuses to let an unfilled one reach the reader.
+SUP_MEASURE = "[TO FILL: the measure, its unit, and the period]"
+
+
+def sup_for(move: str) -> str:
+    """-> the support-line seed for a page declaring `move`."""
+    return SUP_MEASURE if move in _quantitative_moves() else SUP_PROSE
 
 
 def framework_for(move: str) -> str:
@@ -1076,6 +1135,7 @@ def main(argv):
             take = sec.get("implication") or "The line the reader carries off this page."
             move = sec.get("move", "")
             hint = framework_for(move)
+            sup = sup_for(move)
             adecl = f' data-analysis="{move}"' if move else ""
             # SEEDED WITH THE PAGE'S OWN TITLE, so two documents about
             # different subjects do not arrive as the same drawings.
@@ -1121,7 +1181,7 @@ def main(argv):
            thing, so replace it with this page's own subject.
            `embed_icons.py --search <term>` finds one among 2007. -->
       <h2 class="t">{title}</h2>
-      <p class="sup">The support line, one sentence and not a summary.</p>
+      <p class="sup">{sup}</p>
     </div>
 {cells_open}{fignote}
       <div class="fig">{figure}

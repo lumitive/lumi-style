@@ -289,8 +289,15 @@ Say "uncertain" plainly.
 **A page earns its place by a finding, and a finding is a fact put through
 an analytical move** — compare (against a benchmark), decompose (MECE),
 position (2x2/SWOT with independent axes), correlate, or bridge (waterfall).
-Title = the finding; `.take` = the implication for THIS reader; the ask =
-the action. A SWOT of restated facts or a 2x2 hugging its diagonal is
+Title = the finding; `.sup` = the measure; `.take` = the implication for
+THIS reader; the ask = the action. **On a page whose move is quantitative
+(compare / decompose / bridge / correlate) the support line names what is
+counted, in what unit, over what period** — "Revenue by segment, $ million,
+2022-25", not a sentence about the topic. A `position` page (2x2, SWOT, 9-box)
+has no unit and no period and keeps a prose support line. Where a page's move is
+quantitative but the page itself has no measure — an issue tree decomposes
+hypotheses, not quantities — write the support line as prose; what is refused is
+shipping an unresolved `[TO FILL: ...]`, never the absence of a measure. A SWOT of restated facts or a 2x2 hugging its diagonal is
 decoration wearing an analysis's clothes. **The register follows the
 audience**: buyer economics for sales, imperative procedure for training,
 judgement with stated confidence for consulting. **Internal metrics reach a
@@ -515,6 +522,6 @@ quality), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.658** snapshot, cut 2026-08-19. It is self-contained by
+> This file is the **0.1.659** snapshot, cut 2026-08-19. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

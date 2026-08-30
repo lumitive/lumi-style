@@ -1,298 +1,403 @@
-# 让"麦肯锡水准"变成可判定的检查 — 研究报告与指标设计
+# Making "McKinsey grade" decidable — research, independent validation, design
 
-Date: 2026-08-31 · Status: research + design, owner-scoped to **no implementation**.
-The release that implements any part of this will cite this file.
+Date: 2026-08-31 · Status: **rev2 — substantially corrected by three reviews
+(red team, blue team, independent internet validation).** rev1's diagnosis
+stands; its design is retired and rebuilt. §8 is the landing order.
 
-## 缘起
+## Why this exists
 
-Owner 的产品目标是让用户在任何 AI Agent 上都能交付**麦肯锡咨询顾问水准**的交付物，
-并为此设计了四个检查项（画面占比、雷同页数、图形歧义、纯文字图）。她提出两问：
-这四个指标能否判断"达到麦肯锡水准"？若不能，如何设计**科学、理性、不依赖人的情感
-判断**的检查项？并要求从 8 份麦肯锡报告中学习"洞察 Loop"。
+The owner's product goal: **let a user on ANY AI agent deliver
+McKinsey-consultant-grade deliverables.** She designed four checks — visual
+share, repeated skeletons, shape ambiguity, text-only figures — and asked
+whether they can judge "McKinsey grade", and if not, how to design checks that
+are rational rather than dependent on human feeling.
 
-Owner 另有一条纠正，本文据此调整了整个第 3 节：**"我描述的五段（数据分析→总结→
-假设→探索判断→结果预测）不是最佳实践，请调查咨询顾问洞察 Loop 的真正最佳实践。"**
-
----
-
-## 1 · 四个指标为什么判不了"麦肯锡水准"
-
-它们量的是**数量**，不是**关系**。
-
-| 指标 | 实际在数什么 |
-|---|---|
-| 画面占比 | 图形占版面的中位数 |
-| 雷同页数 | 多少页共用一个骨架 |
-| 图形歧义 | 同一骨架被用于几种不同分析动作 |
-| 纯文字图 | 多少"图"其实只是文字块 |
-
-**数量型指标的通病，包内有实测记录**（`evals/thresholds.json` 的 `status_note`）：
-一次红队把被否掉的文档，只做两处纯装饰改动——每个 `<li>` 重新标成 `.vows`、每页贴
-一个空心矩形 SVG——就**清过了全部四条线**，内容一个字未变、一个观点未加。另有
-`layout_top_share` 的实测：被接受的锚样本 A1 得 78.6，**比两个被否的样本都差**，任何
-在这条轴上划的线都会误杀 A1。
-
-**这不是 owner 品味的问题。** 画面占比恰恰是包内麦肯锡研究 `references/exemplars/
-mckinsey-design-notes.md` EX-1 的"装置 2"（一个主图占据每页 50–70%）。**直觉是对的，
-错的是把它当闸门。** 一个能被满足的数字会终结真正的审视——这是 0.1.339 页面填充率
-门禁被撤销时留下的教训，包内五处引用它。
+> **rev1's largest failure:** the words "any AI agent" appeared once and were
+> never mentioned again, while all four proposed metrics were checkers — which
+> run only where scripts run. Red team CR-1. **rev2 makes tier reach a required
+> field of every proposal.**
 
 ---
 
-## 2 · 麦肯锡真正在做的是"关系"（8 份报告实测）
+## 1 · Diagnosis (rev1, retained)
 
-| 属性 | 实测覆盖 | 可判定性 |
+The four metrics measure **quantity**, not **relation**. Quantity is satisfiable
+by decoration: the repo's own red team took a rejected document, re-tagged every
+`<li>` as `.vows` and pasted one empty rect per page, and **cleared all four
+bars** with no fact and no idea added (`evals/thresholds.json` status_note).
+Separately, the accepted anchor A1 reads 78.6 on `layout_top_share` — **worse
+than both faulted documents** — so any bar on that axis red-lines it.
+
+**This is not a failure of the owner's taste.** Visual share is device 2 of the
+package's own McKinsey study (`references/exemplars/mckinsey-design-notes.md`
+EX-1: one exhibit dominates 50–70% of every content page). The instinct is
+right; treating it as a gate is what is wrong.
+
+### Two factual errors rev1 made here (red team M-3, corrected)
+
+- The four bars the red team cleared were `prose_only_share`,
+  `figures_per_content_page`, `list_items_per_content_page`,
+  `visual_share_median` — **not the owner's four**. And the same note records
+  that `rect_only_share` and `shape_kinds_min` **saw** the exploit — those are
+  the metrics the owner's "shape ambiguity" and "text-only figures" correspond
+  to. **Two of the owner's four intuitions map to metrics that caught the
+  attack.** This strengthens rev1's own conclusion (keep them reported).
+- The 81.0 / 16.5 separation is measured **at two different geometries** (a4 vs
+  16x9; the same rejected document reads 17.0 at laptop width). The separation
+  is weaker than rev1 stated.
+
+---
+
+## 2 · Measured: McKinsey, and an independent corpus
+
+**McKinsey, 8 reports, 61 exhibits**: assertion titles 61/61; two-tier caption
+100%; source line 100%; derived callouts >=14/61; numeric density one digit
+token per 7–11 words.
+
+**Independent corpus (new this round, not owner-supplied):**
+
+| Source | Exhibits | Assertion title | Measure line | Source line |
+|---|---|---|---|---|
+| Bain, *Global PE Report 2025* | 43 | 43/43 | **43/43** | **43/43** |
+| BCG, *The Widening AI Value Gap* | 10 | 10/10 | 8/10 | **10/10** |
+| Deloitte, *Tech Trends 2025* | — | **topic-titled** | none | present |
+
+**Deloitte is the counter-example**: its figures are concept diagrams, not data
+exhibits. **These conventions are genre-specific, not universal.**
+
+---
+
+## 3 · Independent standards (the most important new evidence)
+
+**IBCS** (International Business Communication Standards; non-profit
+association founded 2004, ~12,400 members; **since 2024-07 the basis of
+ISO/AWI 24896**), Top Ten rules 1 and 2, verbatim:
+
+> **1. Messages** — "Reports and presentations have messages. Present them at
+> the top of each slide or report page."
+> **2. Titles** — "Titles identify pages, charts, and tables. **Name at least
+> organizational unit(s), measure(s), and time period(s).**"
+
+**This is the same two-part structure this design derived independently** — an
+assertion at the top, a measure line beneath. IBCS additionally requires the
+**organizational unit**, which this design omits. IBCS's variance notation
+(AC/PL/PY/FC) presupposes a reference scenario — i.e. "compare needs a reference
+value" also appears in a published standard.
+
+**Academic corroboration**: the same convention exists in engineering
+communication as **assertion–evidence** (Michael Alley, Penn State), and it has
+been tested: 111 participants, same recorded talk; on comprehension of complex
+concepts the assertion–evidence group scored higher, **p=0.010 and p=0.038**,
+but **p=0.078 (not significant)** on the summed essay score. Real but modest.
+
+**Harm evidence**: Kong, Liu & Karahalios (CHI 2019) — readers' **recall follows
+the title, not the chart**, and even when a title contradicts its visualization
+most readers still rate the visualization impartial. This is the strongest
+justification for checking that a title's number is supported, and equally a
+warning that titles are a persuasion instrument.
+
+### Methodology correction (red team H-1)
+
+rev1 wrote "the consulting standard (Minto pyramid + hypothesis-driven)" and
+**attributed the pair's distinguishing claim to the authority that does not make
+it.** The correct statement is **three orders**:
+
+> **The problem-solving method is hypothesis-first; the analysis runs
+> bottom-up; the presentation runs top-down.**
+
+- "hypothesis -> test -> conclude" belongs to **hypothesis-driven problem
+  solving** (McKinsey's 7 steps: define -> issue tree -> **storyline and ghost
+  deck** -> workplan -> analyse -> synthesise -> build commitment; note the
+  storyline precedes the data work). **It is not Minto.**
+- **Minto's core is not "answer first"** but three structural rules: (i) an idea
+  at any level is the **summary** of the ideas below it; (ii) ideas in a group
+  must be the **same kind** (MECE); (iii) ideas in a group must be **logically
+  ordered**. **Answer-first is a consequence of (i). The three rules are the
+  checkable part.**
+- rev1 omitted **horizontal logic** — the sequence of titles is itself the
+  argument and must read alone. That is a third scale between page and section,
+  and it is partly checkable.
+
+**The package already holds the correct version**: `eval-rubric.md:325-333` (C2)
+encodes Minto's rules (ii) and (iii) verbatim. **rev1's summary of the standard
+was thinner than the rubric it cited.**
+
+---
+
+## 4 · Measured on a real deliverable (with new baselines)
+
+| Property | LUMI real deliverable | Independent corpus | Verdict |
+|---|---|---|---|
+| Assertion titles | **83.3%** (M1) | McKinsey 100% | already strong |
+| **In-figure source line** | **7/7 = 100%** | Bain 43/43, BCG 10/10 | **already met — not a gap** |
+| `.take` implication line | 10, each answering "so what for you" | — | already strong |
+| **Measure line (unit + period)** | **1 of 15 `.sup`** on the pass fixture | Bain 43/43; IBCS rule 2 | **real gap** |
+| Declared move draws a shape (D32) | **9 of 10 pages fail** | — | **real gap (generation side)** |
+| Page numbers inside the figure (D29) | 3 of 7 figure pages carry none | — | real gap, but see §6 M-C |
+
+> **rev1 error**: it proposed a source-line check as a gap. **It is not** — the
+> real deliverable is at 100%, matching both independent corpora. Only the test
+> fixture lacks them. **Removed from the proposal.**
+
+---
+
+## 5 · The structural finding, the principle, and its ceiling
+
+Insight checks are all **consistency checks** (declared vs delivered);
+consistency needs a **declaration**; declarations are optional, so the checks
+idle. `f-data` is declared on **1 of 60 figures across three shipped decks**
+(rev1 said "0", over-generalised). GAP-031 records a deck deleting its entire
+implication rung with every gate green.
+
+**The principle** (the only class surviving every written refusal in
+`FAILURE_MODES.md`):
+
+> **Penalise only a contradiction between what the document declares and what it
+> delivers. The target is always zero.**
+
+The package's own words (`check_outline.py:202-205`; rev1 cited the wrong line
+and altered the sense): "It is a CONSISTENCY check, never a judgement: it asks
+whether the artifact still says what its own plan says … It cannot and does not
+ask whether **either is good**."
+
+### The ceiling, which must be stated (red team M-1 + independent counter-evidence)
+
+**The Columbia Accident Investigation Board faulted a briefing slide that was
+formally well-formed** — title, hierarchy, evidence beneath. **Form checking
+would have passed it.** A document can satisfy every metric here and be a set of
+unrelated true statements — **which is FM-16 (gate-clean, value-thin) reproduced
+one layer up**, the very failure mode this design cites.
+
+**What this method cannot reach**, and what therefore stays with the reviewer:
+horizontal logic (C2(1)); MECE (C2(4)); the governing message and whether the
+summary summarises the body (C1(1)(4)(5)); implication quality (all of AR-2);
+framework fit (AR-4); actionability (C6(1)); whether the counter-argument is
+named and answered (C6(3)); whether the figure form matches the comparison the
+title makes (C8(1)).
+
+**In one sentence: these checks raise the floor from "not obviously broken" to
+"internally consistent". They do not measure argument quality and are not
+evidence of it.**
+
+---
+
+## 6 · The metrics (rev2: one promoted, one demoted, one deferred, one deleted)
+
+### M-A · The measure line — the best-evidenced item. SHIPPING THIS ROUND
+
+- **What it measures**: on a content page whose section declares a QUANTITATIVE
+  move (`compare`, `decompose`, `bridge`, `correlate` — AR-1), the `.sup`
+  support line names the measure: a **unit** token and a **period** token.
+- **Why not "every figure"** (red team CR-3): a framework page — 2x2, SWOT,
+  issue tree — has no unit and no period. `frameworks.json` holds 11 frameworks
+  (position 3, decompose 5, bridge 2, compare 1, correlate 0). EX-2 records the
+  market 2x2 as one of only two pages the owner accepted outright. **Requiring a
+  measure of every figure would red-line an accepted anchor — the same defect
+  the four shape bars were refused for.** Scoping to the DECLARED move exempts
+  framework pages by construction.
+- **Use the existing `.sup`, mint nothing** (blue team): a new caption measure
+  line collides with an owner ruling of 2026-08-22 (`design-rules.md` §4 rule 8:
+  the caption holds the number and the name and nothing else) and with two gates
+  (`D37_caption_scope`, `caption_name_wrap`). `.sup` is emitted by the scaffold
+  on every content page (`new_deck.py:1120`) and measured present on **56 of 56
+  figure pages** across four documents.
+- **Tier reach**: the scaffold hands the slot over -> **12/12 platforms**; the
+  prompt tier carries it in the page recipe; the checker confirms -> 10/12.
+  **Generation side first, check side second.**
+- **Reported, not gating**: the baseline is **1 of 15**. Gating now would
+  red-line every stored document including the accepted anchor, and
+  `eval-rubric.md`'s promotion rule asks for two releases of real documents
+  first.
+- **Language symmetry**: the unit list must carry CJK units and the period list
+  CJK periods, or the metric measures less on a Chinese document while printing
+  the same clean row. `check_prose`'s `blind` verdict is the precedent.
+
+### M-B · A planned implication must land. NEXT RELEASE
+
+- Every `implication:` declared in the analysis beat must appear in **some**
+  element of its page.
+- **Gate only true absence** (all three reviews converge): the 0.60 overlap band
+  is a similarity judgement, closer to the refused rule than rev1 admitted.
+- **Not in conflict with the earlier refusal**: `2026-08-19` refused *judging
+  whether the take is good*; this asks only whether the sentence arrived. The
+  implementation must cite that refusal or it trips FM-15.
+- **rev1 error**: it said "wire `check_outline --against` into the pipeline".
+  **`build.py:310-316` already runs it**, and `build.py:311-313` is a written
+  decision explaining why it is not inside `check_deliverable`. The real gaps
+  are that the outline is **optional** and that the finding is a **note** that
+  never reaches the exit code.
+- **Prerequisite**: `check_outline.py` has no version binding and `gates.json`
+  has no `outline` family, so a gating verdict there would redden history.
+- **Independent warning**: a ghost deck is a **hypothesis, not a contract**;
+  consulting sources warn of people turning hypotheses into false facts. A
+  second reason to gate absence only.
+
+### M-C · Title numbers must be supported. DEMOTED TO REPORTED
+
+**Refuted on real material.** Implemented to rev1's spec, it flagged 17 of 29
+title numbers on the reference document with only 1–2 genuine defects;
+independently it produced **26% false positives on Bain** (11% after year
+normalisation) and **failed a correct BCG exhibit**: the title "Only 5% of
+Companies Get Substantial Value from AI, While 60% Lag" over a chart showing 14%
+and 46% — **60% is a sum the reader performs**.
+
+Three legitimate cases it cannot satisfy: **derived ratios** (`3.6x` — which
+this design itself identifies as a McKinsey signature), **sums**, and
+**zero-findings** ("0 renderers support v1.0" — **an absence cannot be drawn**,
+and that was rev1's headline example). With structural counts, CJK measure
+words, identifier digits (`P0`), ratio denominators and abbreviated years, there
+are **at least eight false-positive classes**.
+
+**Worse, gating it creates the wrong gradient**: the cheapest fix for a flagged
+page is to **delete the number from the title**, destroying the assertion M1
+exists to reward. **The gate would push titles toward labels.**
+
+Kept as reported — Kong et al.'s harm evidence is real — but **never gating**.
+
+### M-D · A declared move must satisfy its input shape. DEFERRED TO BACKLOG
+
+`f-data`'s schema (`{"series":[{"label","value"}]}`) **can express none of
+AR-1's five input shapes**: compare cannot mark which point is the reference,
+decompose has no total, position has one value per point, bridge has no
+before/after, correlate has no pairing. This is a schema revision to a contract
+already shipped in the wild — three or four releases, not an extension of D21.
+
+It is also **blind to the misuse AR-4 names**: for `position` it verifies "two
+axes exist" while the failure is "the axes are not independent", so it prints
+identically for a real and a fake 2x2 — FM-24.
+
+**Also**: this package's five moves match neither **Zelazny's** five comparisons
+(component, item, time series, frequency distribution, correlation) nor IBCS's
+set — "position" and "bridge" are not Zelazny's. `analysis-rules.md` must record
+the taxonomy as **this package's own**, not as an industry standard.
+
+### M-E · Source line. DELETED
+
+The real deliverable is at **7/7 = 100%**, matching Bain 43/43 and BCG 10/10.
+Not a gap.
+
+### Structural fixes (unchanged from rev1 except as noted)
+
+- **C2a** (blue team, measured): `d21_data_contract` **skips the value check
+  when `value is None`**, so a scaffold emitting a label-only contract would
+  **pass forever** — the gate would look activated and grade nothing, **FM-24
+  dressed as a fix**. C2 must first make D21 reject a contract with no measured
+  point.
+- **C2b**: `f-data` **cannot be a universal default** — shape-library figures,
+  the globe, 2x2s and icon rows have no values. Emit per figure kind and declare
+  the absence with `data-figure-kind="schematic"`, giving D21 three states.
+- **C3**: `correlate` has **zero entries** in `frameworks.json`; `driver-tree`
+  is classified differently in two files; **`waterfall` is double-classified
+  inside `analysis-rules.md` itself** (:39 decompose vs :53 bridge); and
+  `check_repo.py:5197`'s frameworks guard **only checks that a move is one of
+  the five and never that a move has an entry**, so `correlate: 0` passes
+  silently — a second FM-24 sitting under C3.
+
+### The owner's four metrics: keep as reported, do not gate, do not delete
+
+Reasons unchanged, and strengthened: two of the four correspond to the metrics
+that **caught** the repo's own red-team exploit (§1).
+
+---
+
+## 7 · How a metric could ever be validated (rev1's §7 largely retired)
+
+- **`bar_replay.py` does not apply** (red team H-2): it replays a **threshold**,
+  and every metric here is a target-0 contradiction count with no bar. It also
+  exits non-zero when no judged document carries the reading — a new metric must
+  first be **measured into `thresholds.json`'s corpus block**, a step rev1 never
+  scheduled.
+- **The promotion rule was misquoted** (H-3): `eval-rubric.md:592` is
+  **M1-specific**, and its text is "two releases of real documents read against
+  it", stronger than rev1's paraphrase.
+- **It depends on blind review, which the owner has ruled out.** So these
+  metrics **have no owner-independent promotion path today.** The substitute the
+  directive asks for: a metric earns promotion when it fires on a document that
+  an already-accepted gate independently faults, with zero firings on the
+  accepted anchors.
+- **`eval_agreement.py` has been run** (M-4; rev1 said "never"):
+  `measured.local.json` exists and the study now produces three joined rows.
+  Its `PREDICTS` table maps only to {C2, C3, C4} — **no metric even claims to
+  predict C1, C6 or C8**, which is a stronger argument for this work than the
+  one rev1 made.
+- **Still true, and now first**: `corpus.local.json` registers the same file as
+  both A1 and D5, and R1 and D3, while `eval_agreement.py:127` keys the join on
+  filename — **the two anchors are silently overwritten inside the study.** Two
+  lines, and it is the precondition for everything in this section.
+
+---
+
+## 8 · Landing order
+
+| # | Item | Tier reach | Status |
+|---|---|---|---|
+| 0 | De-duplicate `corpus.local.json` (2 lines) | — | owed |
+| **1** | **M-A measure line**: rule + scaffold slot + prompt recipe. **No check** — see the refutation below | **12/12 generation; enforcement via the existing D14 gate** | **shipped 0.1.659** |
+| 2 | C2a: D21 rejects a contract with no measured point (3 lines) | 10/12 | next |
+| 3 | M-B implication landed (needs an outline family + `since`) | 10/12 | next |
+| 4 | C2b: per-figure-kind `f-data` + `schematic` declaration | 12/12 | later |
+| 5 | C3: correlate / driver-tree / waterfall / the toothless guard | 12/12 | later |
+| 6 | M-C title numbers (**reported only**) | 10/12 | later |
+| — | M-D input shapes -> `backlog/ideas-prd.md` | — | deferred |
+
+**Only item 1 ships this release**: it has the strongest evidence (IBCS/ISO,
+Bain 43/43, an experimental result), the slot already exists, it is **the only
+proposal whose generation side reaches 12/12**, and it needs no new markup, no
+token change and touches no written ruling.
+
+## 8b · The metric that was built and refuted (recorded, so it is not re-proposed)
+
+`D42_measure_line` was implemented, wired into `measure()`/`grade()`, registered
+in `evals/gates.json` and tested, and then **removed before shipping**. The
+record, so a later session need not re-derive it:
+
+**The predicate**: on a page whose declared move is quantitative, the `.sup`
+support line must contain a UNIT token and a PERIOD token, from these two closed
+vocabularies:
+
+```
+unit   : % $ EUR GBP JPY USD RMB CNY bn mn billion million thousand trillion
+         CAGR index ppt bps "per <word>"
+         万 亿 千 倍 元 美元 人次 占比
+period : 19xx 20xx Q1-Q4 H1-H2 FYnn "past/last/next/trailing N"
+         monthly quarterly annual YTD MoM YoY
+         年 季度 月度 至今 近N
+```
+
+**The test**: seven real measure lines, transcribed from the reports, run through
+the predicate.
+
+| measure line (verbatim) | source | verdict |
 |---|---|---|
-| 图表标题是完整结论句（有限动词 + 句号），非名词标签 | **61/61 = 100%** | 高 |
-| **两层标题**：第 1 行结论，第 2 行度量（单位+期间+样本量） | **100%** | **最高** |
-| 度量行含单位（`%` / `$ billion` / `GDP multiple` / `CAGR` / `index`） | ~100% | 高 |
-| 度量行含期间（`2024` / `2022–25` / `past 12 months`） | ~100% | 高 |
-| 来源行 `Source:`（多为多来源 itemized） | **100%**（20/20、6/6、23、24） | 高 |
-| 推导型标注：图上写着数据系列里没有的计算值（`3.6×`、`2.8×`、`Average 2000–24 = 9.2`、`(+185)`） | ≥14/61 图 | 中 |
-| 基准画进图里（虚线/菱形/空心圆＝均值与峰值），而非在旁边叙述 | 横截面图全部 | 中 |
-| 数字与基准同句配对（`compared with just 4 percent`、`four times as fast`） | 约 2/3 数字句 | 中 |
-| 数字密度 | 每 7–11 词一个数字 token | 高 |
+| Global buyout assets under management | Bain Fig 2 | **false-fail** |
+| Share of North American buyout value, by deal type and size (deal entry years 2014-24) | Bain Fig 7 | **false-fail** |
+| Share of US middle-market leveraged buyout loan issuance, by debt type | Bain Fig 13 | **false-fail** |
+| Use of AI by respondents' organizations, % of respondents | State of AI Ex 1 | **false-fail** |
+| Household debt liabilities, GDP multiple | Balance sheet Ex 12 | **false-fail** |
+| Financial depth 2017, % | mck-21 p4 | pass |
+| Incremental revenue and market cap between 2022 and 2025, $ billion | Arenas E3 | pass |
 
-样本：`the-state-of-ai-in-2025`、`executive-summary-the-race-takes-off…arenas`、
-`agents-robots-and-us…europe`、`the-global-balance-sheet-2026`。
+**5 of 7 false-failed.** Relaxing the conjunction to `unit OR period` still
+false-failed 3 of 7 (rows 1, 3 and 5) while flagging 0 of 3 prose control lines,
+so the failure is not the conjunction — it is that **a measure line is a noun
+phrase naming a quantity, and Bain Figure 2's carries neither token**. That is
+the semantic class AG-1 and FM-23 refused twice.
 
-**最锋利的单一判别器：两层标题。** 普通 deck 只有一行标题且是标签（"各区域收入"）；
-麦肯锡有两行，**标签被降到第二行，好让第一行承载结论**。
+**And it self-satisfied.** The scaffold's first placeholder read "What is
+counted, in what unit, over what period — e.g. Revenue by segment, $ million,
+2022-25". It contains `$` and `2022`, so the metric went **green on an unfilled
+placeholder** — a check satisfied by the very slot it was written to police.
 
----
+**Why this is recorded rather than summarised**: "the metric was tried and
+refuted" is the strongest claim in 0.1.659, and a claim a later session cannot
+reproduce is one it will re-propose. Convention 11 asks a deliberate-red to be a
+recorded artifact; this is the same obligation for a deliberate *retirement*.
 
-## 3 · 咨询业真正的洞察 Loop（对 owner 五段描述的修正）
+## 9 · Explicitly not doing
 
-Owner 的五段描述的是**做分析的工作顺序**。咨询业标准（Minto 金字塔原理 + 假设驱动
-解题）的关键区别是：
-
-> **工作顺序是"假设 → 验证 → 结论"；表达顺序是倒过来的——结论先行（answer-first）。**
-
-包内已有这条的痕迹但只作人工评分项：`eval-rubric.md:320` C1②"读者在证据出现之前
-就知道它服务于哪个问题（SCQA 或 answer-first 均可）"。
-
-8 份报告的实测把它分成**两个尺度**：
-
-**页面尺度（观察到 100%）**
-`标题＝结论` + `副标＝度量` + `图＝证据（基准画在图内）` + `标注＝推导值` +
-`来源行` + `so-what 段（不引入新数据）`。**页面上没有"假设"这一段**——因为结论先行。
-
-**章节尺度（观察到）**
-假设作为大标题出现 → 定义总体 → **连续 N 张图各检验同一假设的一个驱动因子（同一双
-序列切分）** → 结果/预测收尾。
-实例：State of AI pp.14–21，假设"雄心大的组织收益最大"，定义"高绩效者＝6% 受访者"，
-随后 6 张图分别检验转型雄心（3.6×）、增长目标、流程重构（2.8×）、agent 规模化、
-高管归属（3.0×）、管理实践，全部用 `n=109 vs n=1,884` 同一切分，p28 收于预测。
-另一实例：Balance sheet pp.30–33，四情景 → 各经济体定位 → 摇摆因子阈值 →
-"What to watch for / Questions for business leaders" 作为图表的结构行。
-
-### 对设计的直接影响（两条）
-
-1. **不要在页面上检查"有没有假设"。** 假设属于**分析节拍**，而包内 AR-3
-   (`references/analysis-rules.md:77`) 已经定义了它：
-   `analysis: <move> | finding: <标题句> | implication: <take 句>`。
-   **AR-2 的三级阶梯（finding → implication → action）对页面而言是正确的，不需要
-   补"假设"级。**
-2. **真正缺的是章节尺度的假设—检验—结论链**，LUMI 中无任何对应物（见 §6 D 类）。
-
----
-
-## 4 · 包内已有的洞察学说 —— 与它大面积未被检查的事实
-
-- `references/analysis-rules.md`：AR-1 五种分析动作（各带**输入形状**与"缺失时的
-  征兆"）、AR-2 洞察阶梯、AR-3 分析节拍、AR-4 框架选择、AR-5 读者结果规则。
-- `references/eval-rubric.md`：人工维度 **C1–C8 本身就是麦肯锡评判维度**
-  （C1 结论先行、C2 标题成链、C3 页面纵向逻辑、C4 证据与来源、C6 可行动性、
-  C8 图表质量）。
-- `references/page-contracts.md:10`：**490 条规则，152 条有指标，92 条判罚，
-  338 条没有任何自动检查**；论证页（PC-5）最差，178 条里 133 条无检查。
-- `FAILURE_MODES.md` FM-16「Gate-clean, value-thin」：门禁全绿而人工价值维度
-  打 1–2 分，已是一个具名失败模式。
-
-### 在 owner 真实交付物上的实测
-
-对 `a2ui-multiprotocol-landscape.0.1.586.zh-Hans.html`：
-
-| 检查 | 结果 |
-|---|---|
-| M1 结论式标题 | **83.3%**（目标 ≥70%）——文字端强 |
-| `.take` 推论行 | 10 条，均在回答"对你意味着什么"——文字端强 |
-| **D32** 声明的分析动作要画出库内图形 | **不合格：10 个分析页中 9 个没画** |
-| **D29** 页面数字进图形 | 7 个图页中 **3 个**，图内没有本页任何数字 |
-| D21 图形数据契约 | "通过"，但全文 **0 处声明** → 空转 |
-
-**诊断：洞察写在了文字里，没有进入图形。** 这正是 EX-1 说的麦肯锡差别，也正是
-`check_design.py` D29 注释引用的读者原话——**"没有把数字和矢量图结合＝没有洞察"**。
-
-### 本研究最重要的结构性发现
-
-洞察类检查**全部是一致性检查**（declared vs delivered）；一致性检查需要文档先
-**声明**；而**声明是可选的**，于是检查在真实文档上大多空转：
-
-- `D21` 数据契约 opt-in → 真实文档 0 处声明 → 恒"通过"。
-- `check_outline --against`（检查"计划的洞察有没有活到成品"）**能判不合格，但不在
-  `check_deliverable` 流水线里**，是一个要人单独去跑的工具。
-- **GAP-031** 已记录：一份 deck 把 `.take` 推论层整层删光，所有门禁仍然全绿。
-
----
-
-## 5 · 设计原则
-
-对照 `FAILURE_MODES.md` 已明文拒绝的做法——AG-1 / FM-23（判断一句话的语义，两次
-拒绝）、FM-26（作者不可控的触发条件，会被反射性豁免，有九个版本的实测）、比率型
-门禁（`check_prose.grade` 的规则："一行判罚当且仅当其目标为零"）、代理指标门禁
-（`_has_fact` 的自述："一个会判罚的指标会被满足"）——**只有一类幸存**：
-
-> **只对"文档自己声明的"与"文档实际交付的"之间的矛盾判罚。目标值恒为 0，不设比率线。**
-
-包内自己的原话（`check_outline.py:200`）：
-
-> 这是一致性检查，从不是 judgement：它问的是**这份成品是否还在说它自己的计划所说
-> 的**……它不能也不会问两者哪个更好。
-
-**为什么刷不过去**：要满足一个矛盾检查，必须让两半真正一致——要么改结论，要么补
-证据。装饰性改动无法制造一致性。现有真正生效的门禁全属此类：D21、D27、D32、
-`check_facts`。
-
----
-
-## 6 · 指标设计
-
-### A 类 · 可判罚（矛盾型，目标 = 0）
-
-#### A1 · 标题里的数字必须在本页证据中出现
-
-- **量什么**：页面标题中的每个**数量** token，必须出现在该页的证据里（图形 `<text>`
-  节点 / stat 块 / `f-data` 数据契约）。找不到的计 1。
-- **可判定**：纯数字比对，不涉及语义。
-- **刷不过去**：要满足它必须**把数字放进证据**——正是麦肯锡装置 6（"每个量化的东西
-  都带着它的数字"）。
-- **依据**：`eval-rubric.md:340` C3② 现标为 `human · **the hold on figure-text
-  hallucination**`；其**数字半边其实可判定**。D29 已做**反方向**（页面数字→图形）
-  且仅报告。
-- **实测（本研究）**：真实交付物 20 个标题数字中 **13 个**在本页证据中找不到。
-- **约定 15 已发现的两类误判，规格必须排除**：
-  1. **版本号不是数量**：`v1.0`、`0.1.658` 必须排除，否则"0 个官方渲染器支持 v1.0"
-     会因 `1.0` 找不到而误判。
-  2. **结构性计数**："先分清 **3** 类主张"——若图形画了三个组，这个 3 是**结构**
-     而非文本。规格需定：图形中**被画出的同类元素个数**可满足该计数，否则会误杀
-     正确页面。
-- **不可见时**（FM-24 第三种答案）：页面无标题 / 无证据块 → 报 `not measured`，
-  **不得**与"零缺陷"打印相同结果。
-- **绑定版本**：`gates.json` 的 `since` 机制。实测缺失率 65%，若立即判罚会红掉全部
-  存量文档；`since` 使旧文档报 `not held`，这是包内已有的正确处理。
-
-#### A2 · 图形必须有度量行
-
-- **量什么**：每个图形需同时有**结论行**与**度量行**；度量行须含单位 token 与期间
-  token。缺度量行的图形计 1。
-- **可判定**：单位与期间是闭合词表（`%`、`$`、`CAGR`、`index`、年份、`past N`…）。
-- **刷不过去**：要满足必须写出真实的单位与期间。
-- **依据**：麦肯锡实测 **100%**，且是研究指认的**最锋利单一判别器**。
-- **不可见时**：文档无图形 → `n/a` 且须在 `gates.json` 声明 `na_means`（"这份文档
-  没有图形"），否则按 FM-24 属于"没测量"而非"诚实沉默"。
-
-#### A3 · 声明的分析动作必须满足其输入形状
-
-- **量什么**：AR-1 已为每个动作定义输入形状——compare＝一个值 + ≥1 参照值；
-  decompose＝总量 + 分项；position＝两个独立轴；bridge＝前值 + 后值 + 归因构成；
-  correlate＝成对观测。页面声明了动作却不满足其输入形状的，计 1。
-- **可判定**：结构比对，非语义。
-- **刷不过去**：要满足必须**真的提供参照值 / 分项 / 前后值**。
-- **依据**：`analysis-rules.md:24-54` 原文；是 D21（声明的数据 vs 画出的图）与
-  D32（声明的动作 vs 画出的图形）同一模式向"分析动作的输入"延伸。
-- **强依赖**：需要图形声明其数据（`f-data`）。实测真实文档 **0 处声明** → 若不先做
-  C2 结构修复，此项恒空转。**这是 A3 不能先于 C2 落地的原因。**
-
-#### A4 · 计划的推论必须落地
-
-- **量什么**：分析节拍中声明的每条 `implication:`，必须出现在该页**任一元素**中
-  （不限 `.take`）。未落地的计 1。
-- **可判定**：文本存在性比对（已有 `_matches` 的 0.60 内容词重合判据可复用）。
-- **刷不过去**：要满足必须**把那句话写进页面**。
-- **依据**：**GAP-031 自己提出的候选修法**原文——"候选项在 `check_outline
-  --against` 上：一条计划中的推论完全没有到达任何页面、任何元素，而不只是'不在
-  takeaway 里'"。
-- **注意**：`specs/2026-08-19-analysis-plan-binding-design.md` 明确**拒绝**过
-  "gating on the implication rung"，理由是"它是对散文的判断"。**本设计不与之冲突**：
-  被拒绝的是判断推论**写得好不好**；A4 判的是计划里的那句话**在不在**，是存在性
-  而非质量。规格须显式引用该拒绝并说明区别，否则触犯 FM-15（"推翻书面拒绝而不引用
-  它"）。
-
-**A 类四条的共同性质**：目标恒为 0（非比率）；不判断"这句话是什么意思"；完全在作者
-控制内；不可见时输出**第三种答案**；每条附一次故意种红。
-
-### B 类 · 只报告
-
-`assertion_title_rate`（M1 已存在）、`derived_callout_density`（图上有数据系列里
-没有的推导值）、`benchmark_overlay_presence`（基准是否画进图内）、
-`comparison_anchor_rate`（数字是否与基准同句配对）、`source_line_coverage`（每图
-来源行覆盖）。
-
-这五条 + owner 原有四条构成**洞察仪表盘**：不判罚，供人判断，并作为一致性研究的输入。
-
-### C 类 · 比任何新指标都重要的三处结构修复
-
-1. **把 `check_outline --against` 接进 `check_deliverable` 流水线。** 它已经能判不
-   合格，只是没人跑——这是 GAP-031 的根因，也是 A4 的前置。
-2. **让图形数据契约（`f-data`）成为脚手架默认。** 否则 D21 与 A3 在真实文档上永远
-   空转（实测 0 处声明）。**这是本研究发现的最大杠杆**：它一次性激活一条已存在的
-   门禁和一条新指标。
-3. **修 `correlate` 死动作。** AR-1 声明了它，`assets/frameworks.json` 里**零条目**，
-   D32 只能跳过；且 `driver-tree` 在 AR-1 归 correlate、在 frameworks.json 归
-   decompose，两处矛盾。**一个声明了却画不出来的动作，是给作者挖的坑。**
-
-### D 类 · 章节尺度（本研究新发现，先入规则不设检查）
-
-麦肯锡的**假设—检验链**（一个假设 → N 张图各验一个驱动因子 → 结果/预测）在 LUMI 中
-无对应物。建议写入 `analysis-rules.md` 作为 **AR-6 生成侧规则，暂不设检查**。
-
-理由是包内自己的判词（`references/exemplars/karpathy-notes.md:12`）："`references/
-exemplars/` 正是知识去变惰性的地方"，而其记录的正确解法是**"让计划成为构建的输入"**
-——即先进 AR-3 的分析节拍，而非先造指标。
-
-### 对 owner 原有四个指标的处置
-
-**保留为报告项，不判罚，不删除。** 四条理由：
-1. 画面占比＝EX-1 装置 2，是真实的麦肯锡属性；
-2. 实测有区分力（被接受 81.0 vs 被否 16.5）；
-3. 包内已两次**书面拒绝**其门禁化，推翻书面拒绝需"有记录的案例"（约定 2），目前没有；
-4. 删除会触犯 FM-14（"因为小语料没让它失败就降级一个指标，等于拆掉锁、留下门"）。
-
----
-
-## 7 · 验证方式（新指标如何被证明有效，而不是被相信）
-
-包内已有机制，本设计不新造：
-
-1. **`bar_replay.py <metric> <bar>`** —— 否决器。若一条线**误杀被接受的文档**
-   （contradiction）或**放过被否的文档**（permissive），退出非零。它只能证伪。
-2. **`eval_agreement.py`** —— 一致性研究，已内置 `PREDICTS` 假设表（机器读数 →
-   人工维度 C1–C8），**输出是分歧清单而非相关系数**。**从未跑过一次**，因为没有
-   一行可 join 的数据。
-3. **晋升规则**（`eval-rubric.md:592`）："只有当一次评审显示它抓到了人没抓到的
-   东西，才晋升为门禁，这需要两个版本的真实文档。"
-
-**前置障碍**：`corpus_id` 三套词表互不相容——`thresholds.json` 用 `A1/R1`，
-`reviews/scores.json` 用 `D15/D16`，96 条 trace 中 93 条为 null；且
-`evals/corpus.local.json` 把**同一份文件同时登记为 A1 和 D5**、R1 和 D3。
-**统一口径是让"这份交付物到底好不好"这条通路接通的唯一前提。**
-
----
-
-## 8 · 建议的落地顺序（若 owner 决定实施）
-
-1. **C2**（数据契约进脚手架）—— 最大杠杆，一次激活 D21 与 A3。
-2. **C1**（`check_outline --against` 进流水线）+ **A4** —— 关掉 GAP-031。
-3. **A2**（度量行）—— 最锋利的判别器，且不依赖任何其他改动。
-4. **A1**（标题数字）—— 需先解决版本号与结构性计数两类误判。
-5. **C3**（修 correlate）+ **D**（AR-6 写入规则）。
-6. **A3** —— 必须在 C2 之后。
-7. B 类仪表盘 + corpus_id 统一口径 → 才谈得上一致性研究与晋升。
-
-## 9 · 明确不做
-
-- 不把 owner 的四个指标改成门禁（书面拒绝在先，且无新案例）。
-- 不做任何"判断一句话是什么意思"的检查（AG-1、FM-23 两次拒绝该类）。
-- 不加页面级"假设"检查（咨询表达是结论先行，假设属分析节拍）。
-- 本轮不写实现代码（owner 已定边界）。
+- Not gating the owner's four metrics.
+- No check that decides what a sentence means (AG-1, FM-23 refused this twice).
+- No page-level hypothesis check (presentation is answer-first; the hypothesis
+  belongs to the analysis beat).
+- **Not gating M-C** — it would push titles toward labels.
+- **Not claiming this measures argument quality** (§5 ceiling).
