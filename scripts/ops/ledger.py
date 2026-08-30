@@ -175,7 +175,11 @@ def ledger_beats(traces):
     # would have been this function's tests deciding its semantics, which is
     # backwards — and the defect being fixed is 52 conformance rows, not an
     # absent field.
-    traces = [t for t in traces if t.get("source") in (None, "build")]
+    # A --fast (partial) round reviewed no storyline; counting it would inflate
+    # the "N of M builds recorded a reviewed outline" denominator with rounds
+    # that never reached the review beat (R8/GAP-050).
+    traces = [t for t in traces
+              if t.get("source") in (None, "build") and not t.get("partial")]
     reviewed = [t for t in traces if t.get("outline_reviewed")]
     drifted = [t for t in traces
                if (t.get("titles_changed_after_approval") or 0) > 0]
@@ -196,7 +200,11 @@ def ledger_signals(traces):
     for t in traces:
         for y in t.get("principle_yields") or []:
             yields[y["yielded"]] += 1
-    abandoned = [t["trace_id"] for t in traces if not t.get("closed_at")]
+    # A partial (--fast) trace has no closed_at but is NOT abandoned — it is a
+    # known fast-loop record (R8/GAP-050, Option B). Exclude it on the explicit
+    # flag, not on any emergent property.
+    abandoned = [t["trace_id"] for t in traces
+                 if not t.get("closed_at") and not t.get("partial")]
     return refusals, yields, abandoned
 
 
@@ -213,6 +221,8 @@ def ledger_shape(traces):
     """
     out: dict[str, list] = {}
     for t in traces:
+        if t.get("partial"):
+            continue  # a fast round's one geometry is not a delivery shape
         for key, value in (t.get("shape") or {}).items():
             if isinstance(value, (int, float)) and not isinstance(value, bool):
                 out.setdefault(key, []).append(value)
@@ -448,6 +458,10 @@ def main():
     # raise is not a fix.
     print(f"       {len(abandoned)} abandoned build(s) — an unclosed trace is "
           f"the record of one")
+    partials = [t for t in traces if t.get("partial")]
+    if partials:
+        print(f"       {len(partials)} partial record(s) — a --fast iteration "
+              f"round marked but not delivered; not abandoned, not a delivery")
     if set_aside:
         print(f"       and {set_aside} more unclosed records set aside as "
               f"suite artifacts, which every one of them is: the filter and "

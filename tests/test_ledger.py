@@ -111,3 +111,29 @@ def test_an_unclosed_trace_is_an_abandoned_build():
     t = _trace(closed_at=None)
     _r, _y, abandoned = ledger.ledger_signals([t])
     assert abandoned == [t["trace_id"]]
+
+
+def test_a_partial_trace_is_not_abandoned():
+    """A --fast round leaves closed_at null but marks partial (R8/GAP-050,
+    Option B). It is a known fast-loop record, not an abandoned build — and it
+    is excluded on the explicit flag, so it is not one of the ~6 emergent
+    exclusions either."""
+    t = _trace(closed_at=None, partial=True)
+    _r, _y, abandoned = ledger.ledger_signals([t])
+    assert abandoned == [], "a partial trace must not read as abandoned"
+
+
+def test_a_partial_trace_is_not_a_reviewed_build_denominator():
+    """It reviewed no storyline, so counting it would inflate beat-4 coverage."""
+    full = _trace(tid="t-000000000001", source="build", outline_reviewed=True)
+    part = _trace(tid="t-000000000002", source="build", closed_at=None,
+                  partial=True, outline_reviewed=False)
+    beats = ledger.ledger_beats([full, part])
+    assert beats["total"] == 1, "a partial round is not a delivered build"
+
+
+def test_a_partial_trace_does_not_seed_the_shape_distribution():
+    """A fast round measured one geometry; it is not a delivery shape."""
+    part = _trace(closed_at=None, partial=True,
+                  shape={"visual_share_median": 0.9})
+    assert ledger.ledger_shape([part]) == {}

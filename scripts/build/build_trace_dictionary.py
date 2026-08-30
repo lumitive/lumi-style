@@ -80,7 +80,8 @@ HAND_EDITABLE = ("corpus_id", "review_ref")
 # are the bulk of the store's bytes and they belong in the trace, which the
 # index points at. (The share was written here as a number and was wrong two
 # releases later, because 0.1.632 changed the denominator — convention 13.)
-INDEX_FIELDS = ("trace_id", "path", "opened_at", "closed_at", "source", "agent",
+INDEX_FIELDS = ("trace_id", "path", "opened_at", "closed_at", "partial",
+                "source", "agent",
                 "model", "effort", "cli_version", "skill_version", "genre",
                 "storyline", "entry_path", "geometry", "pages", "content_pages",
                 "output_tokens", "input_tokens", "charged_seconds",

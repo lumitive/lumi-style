@@ -102,7 +102,10 @@ ADDED_LATER = frozenset({"shape", "cli_version",
                          # and that is an honest absence rather than a zero:
                          # the counts were being read off the transcript and
                          # thrown away, not reported as nothing.
-                         "cache_read_tokens", "cache_write_tokens"})
+                         "cache_read_tokens", "cache_write_tokens",
+                         # 0.1.655. A --fast round marks it; every trace closed
+                         # before it is a full delivery whose absence reads False.
+                         "partial"})
 
 # WHY A DECLARED FIELD MAY BE EMPTY ON EVERY TRACE, stated rather than left to
 # rot. `check_trace_field_writers` (check_repo) holds every declared field to
@@ -153,6 +156,11 @@ FIELDS: dict[str, object] = {
     # composed from a conversation), and None is not "current".
     "recipe_hash": (str, type(None)), "recipe_version": (str, type(None)),
     "titles_changed_after_approval": int, "geometry": (str, type(None)),
+    # A --fast (iteration) round MARKS the trace partial rather than closing it:
+    # True = a fast-loop record (clock stopped, no closed_at, no verdicts, no
+    # shape — it measured one geometry and reviewed no storyline); False = a full
+    # delivery close set it; None = a trace from before the field existed.
+    "partial": (bool, type(None)),
     "model": (str, type(None)), "effort": (str, type(None)),
     # WHICH BUILD OF THE AGENT. `agent` names a platform and `model` names what
     # it was pointed at; neither says which version of the CLI did the work,
@@ -245,7 +253,7 @@ PRODUCER_FIELDS = frozenset({
 # whichever half a reader reached for first.
 RUN_FIELDS = frozenset({
     "trace_id", "opened_at", "closed_at", "source", "skill_version",
-    "recipe_hash", "recipe_version", "entry_path",
+    "recipe_hash", "recipe_version", "entry_path", "partial",
 })
 
 

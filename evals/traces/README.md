@@ -31,38 +31,39 @@ By source: `conformance` 79, `build` 17.
 
 | field | type | population | hand-editable | present in | example | declared at |
 |---|---|---|---|---|---|---|
-| `agent` | str | null | producer | no | 66 of 96 | `"cursor"` | `scripts/lib/trace_schema.py:166` |
-| `cache_read_tokens` | int | null *(optional; added after records existed)* | producer | no | 3 of 96 | `9153152` | `scripts/lib/trace_schema.py:178` |
-| `cache_write_tokens` | int | null *(optional; added after records existed)* | producer | no | 3 of 96 | `0` | `scripts/lib/trace_schema.py:179` |
-| `cli_version` | str | null *(optional; added after records existed)* | producer | no | 16 of 96 | `"2026.08.25-3e8eec8"` | `scripts/lib/trace_schema.py:165` |
-| `closed_at` | str | null | run | no | 71 of 96 | `"2026-08-21T16:30:41+00:00"` | `scripts/lib/trace_schema.py:145` |
-| `content_pages` | int | document | no | 96 of 96 | `8` | `scripts/lib/trace_schema.py:166` |
-| `corpus_id` | str | null | document | **yes** | 3 of 96 | `"D16"` | `scripts/lib/trace_schema.py:197` |
-| `effort` | str | null — one of `low`, `medium`, `high`, `xhigh`, `max` | producer | no | 46 of 96 | `"high"` | `scripts/lib/trace_schema.py:156` |
-| `entry_path` | str — one of `A`, `B` | run | no | 96 of 96 | `"B"` | `scripts/lib/trace_schema.py:147` |
-| `gates` | dict | document | no | 71 of 96 | `{"D12_commercial_footer": "ok", "D14_placeho…` | `scripts/lib/trace_schema.py:180` |
-| `genre` | str — one of `sales`, `marketing`, `consulting`, `internal`, `training` | document | no | 96 of 96 | `"internal"` | `scripts/lib/trace_schema.py:146` |
-| `geometry` | str | null — one of `16x9`, `a4`, `laptop` | document | no | 96 of 96 | `"16x9"` | `scripts/lib/trace_schema.py:155` |
-| `graded` | dict | document | no | 71 of 96 | `{"D10_label_icons": "ok", "D13_lime_as_text"…` | `scripts/lib/trace_schema.py:180` |
-| `input_tokens` | int | null | producer | no | 52 of 96 | `272551` | `scripts/lib/trace_schema.py:167` |
-| `model` | str | null | producer | no | 51 of 96 | `"cursor-grok-4.6-high"` | `scripts/lib/trace_schema.py:156` |
-| `opened_at` | str | run | no | 96 of 96 | `"2026-08-21T16:30:41+00:00"` | `scripts/lib/trace_schema.py:145` |
-| `outline_reviewed` | bool | document | no | 96 of 96 | `false` | `scripts/lib/trace_schema.py:147` |
-| `output_tokens` | int | null | producer | no | 52 of 96 | `59717` | `scripts/lib/trace_schema.py:172` |
-| `pages` | int | document | no | 96 of 96 | `12` | `scripts/lib/trace_schema.py:166` |
-| `phase_seconds` | dict | producer | no | 61 of 96 | `{"build": 2646}` | `scripts/lib/trace_schema.py:167` |
-| `principle_yields` | list | producer | no | 0 of 96 | — | `scripts/lib/trace_schema.py:196` |
-| `recipe_hash` | str | null | run | no | 16 of 96 | `"9a03f383ba0f"` | `scripts/lib/trace_schema.py:154` |
-| `recipe_version` | str | null | run | no | 5 of 96 | `"0.1.506"` | `scripts/lib/trace_schema.py:154` |
-| `refused_to_emit` | dict | null | producer | no | 0 of 96 | — | `scripts/lib/trace_schema.py:196` |
-| `review_ref` | str | null | document | **yes** | 2 of 96 | `"reviews/scores.json 0.1.513 D16"` | `scripts/lib/trace_schema.py:197` |
-| `shape` | dict — keys: `layout_top_share`, `layout_kinds`, `visual_share_median`, `repeated_skeleton_pages`, `figures`, `move_skeleton_clashes`, `text_only_figures` *(optional; added after records existed)* | document | no | 25 of 96 | `{"figures": 9, "layout_kinds": 3, "layout_to…` | `scripts/lib/trace_schema.py:195` |
-| `skill_version` | str | run | no | 96 of 96 | `"0.1.546"` | `scripts/lib/trace_schema.py:146` |
-| `source` | str — one of `build`, `conformance`, `fixture` | run | no | 96 of 96 | `"conformance"` | `scripts/lib/trace_schema.py:146` |
-| `storyline` | str — one of `market-analysis`, `gtm`, `status-report`, `due-diligence`, `product-intro`, `training-curriculum`, `proposal`, `pitch-deck` | document | no | 96 of 96 | `"status-report"` | `scripts/lib/trace_schema.py:146` |
-| `thresholds` | dict | document | no | 71 of 96 | `{"D28_takeaway": "n/a", "M10_triad_rate": "n…` | `scripts/lib/trace_schema.py:180` |
-| `titles_changed_after_approval` | int | document | no | 96 of 96 | `0` | `scripts/lib/trace_schema.py:155` |
-| `trace_id` | str | run | no | 96 of 96 | `"t-046fde00896a"` | `scripts/lib/trace_schema.py:145` |
+| `agent` | str | null | producer | no | 66 of 96 | `"cursor"` | `scripts/lib/trace_schema.py:174` |
+| `cache_read_tokens` | int | null *(optional; added after records existed)* | producer | no | 3 of 96 | `9153152` | `scripts/lib/trace_schema.py:186` |
+| `cache_write_tokens` | int | null *(optional; added after records existed)* | producer | no | 3 of 96 | `0` | `scripts/lib/trace_schema.py:187` |
+| `cli_version` | str | null *(optional; added after records existed)* | producer | no | 16 of 96 | `"2026.08.25-3e8eec8"` | `scripts/lib/trace_schema.py:173` |
+| `closed_at` | str | null | run | no | 71 of 96 | `"2026-08-21T16:30:41+00:00"` | `scripts/lib/trace_schema.py:148` |
+| `content_pages` | int | document | no | 96 of 96 | `8` | `scripts/lib/trace_schema.py:174` |
+| `corpus_id` | str | null | document | **yes** | 3 of 96 | `"D16"` | `scripts/lib/trace_schema.py:205` |
+| `effort` | str | null — one of `low`, `medium`, `high`, `xhigh`, `max` | producer | no | 46 of 96 | `"high"` | `scripts/lib/trace_schema.py:164` |
+| `entry_path` | str — one of `A`, `B` | run | no | 96 of 96 | `"B"` | `scripts/lib/trace_schema.py:150` |
+| `gates` | dict | document | no | 71 of 96 | `{"D12_commercial_footer": "ok", "D14_placeho…` | `scripts/lib/trace_schema.py:188` |
+| `genre` | str — one of `sales`, `marketing`, `consulting`, `internal`, `training` | document | no | 96 of 96 | `"internal"` | `scripts/lib/trace_schema.py:149` |
+| `geometry` | str | null — one of `16x9`, `a4`, `laptop` | document | no | 96 of 96 | `"16x9"` | `scripts/lib/trace_schema.py:158` |
+| `graded` | dict | document | no | 71 of 96 | `{"D10_label_icons": "ok", "D13_lime_as_text"…` | `scripts/lib/trace_schema.py:188` |
+| `input_tokens` | int | null | producer | no | 52 of 96 | `272551` | `scripts/lib/trace_schema.py:175` |
+| `model` | str | null | producer | no | 51 of 96 | `"cursor-grok-4.6-high"` | `scripts/lib/trace_schema.py:164` |
+| `opened_at` | str | run | no | 96 of 96 | `"2026-08-21T16:30:41+00:00"` | `scripts/lib/trace_schema.py:148` |
+| `outline_reviewed` | bool | document | no | 96 of 96 | `false` | `scripts/lib/trace_schema.py:150` |
+| `output_tokens` | int | null | producer | no | 52 of 96 | `59717` | `scripts/lib/trace_schema.py:180` |
+| `pages` | int | document | no | 96 of 96 | `12` | `scripts/lib/trace_schema.py:174` |
+| `partial` | bool | null *(optional; added after records existed)* | run | no | 0 of 96 | — | `scripts/lib/trace_schema.py:163` |
+| `phase_seconds` | dict | producer | no | 61 of 96 | `{"build": 2646}` | `scripts/lib/trace_schema.py:175` |
+| `principle_yields` | list | producer | no | 0 of 96 | — | `scripts/lib/trace_schema.py:204` |
+| `recipe_hash` | str | null | run | no | 16 of 96 | `"9a03f383ba0f"` | `scripts/lib/trace_schema.py:157` |
+| `recipe_version` | str | null | run | no | 5 of 96 | `"0.1.506"` | `scripts/lib/trace_schema.py:157` |
+| `refused_to_emit` | dict | null | producer | no | 0 of 96 | — | `scripts/lib/trace_schema.py:204` |
+| `review_ref` | str | null | document | **yes** | 2 of 96 | `"reviews/scores.json 0.1.513 D16"` | `scripts/lib/trace_schema.py:205` |
+| `shape` | dict — keys: `layout_top_share`, `layout_kinds`, `visual_share_median`, `repeated_skeleton_pages`, `figures`, `move_skeleton_clashes`, `text_only_figures` *(optional; added after records existed)* | document | no | 25 of 96 | `{"figures": 9, "layout_kinds": 3, "layout_to…` | `scripts/lib/trace_schema.py:203` |
+| `skill_version` | str | run | no | 96 of 96 | `"0.1.546"` | `scripts/lib/trace_schema.py:149` |
+| `source` | str — one of `build`, `conformance`, `fixture` | run | no | 96 of 96 | `"conformance"` | `scripts/lib/trace_schema.py:149` |
+| `storyline` | str — one of `market-analysis`, `gtm`, `status-report`, `due-diligence`, `product-intro`, `training-curriculum`, `proposal`, `pitch-deck` | document | no | 96 of 96 | `"status-report"` | `scripts/lib/trace_schema.py:149` |
+| `thresholds` | dict | document | no | 71 of 96 | `{"D28_takeaway": "n/a", "M10_triad_rate": "n…` | `scripts/lib/trace_schema.py:188` |
+| `titles_changed_after_approval` | int | document | no | 96 of 96 | `0` | `scripts/lib/trace_schema.py:158` |
+| `trace_id` | str | run | no | 96 of 96 | `"t-046fde00896a"` | `scripts/lib/trace_schema.py:148` |
 
 ## What is not here
 
