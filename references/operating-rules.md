@@ -276,6 +276,31 @@ instead. Nothing is created by asking where a store is — a directory appears o
 an explicit write and never on an import or a read. This is `OR-8`'s rule for
 the out-of-bounds list, generalised to everything else with the same shape.
 
+## 8c · An uncontrolled dependency degrades or fails loudly, never silently
+
+*Serves: **GOAL**.* · id `OR-8c`
+
+The deliverable path is standard-library only, so a deck depends on nothing
+outside this repository. Everything else — the browser that renders a check, the
+platform CLIs a conformance run drives, the operator stores of `OR-8`/`OR-8b`,
+the publish remote — is a tool the package READS but must not RELY on. The rule
+that keeps "reads" from becoming "relies": **when an uncontrolled dependency is
+absent, the tool degrades to a controlled in-repo fallback OR fails loudly — it
+never silently changes a verdict.** A silent pass computed over a missing source
+is the one outcome forbidden; a borrowed tool is a decision, a silent wrong
+answer is a defect.
+
+This is the rule the 2026-08-30 dependency census earned
+(`specs/2026-08-30-dependency-rulings-design.md`). Of thirteen uncontrolled
+dependencies, eleven are *material* — their absence degrades or refuses out loud
+(a browser check is an evidence-gated operator step, not a silent CI pass; a
+results directory falls back to `conformance/results/`; the out-of-bounds list
+refuses at `check_privacy`/publish and, since 0.1.652, `check_secrets`) — one is
+already in-repo, and one (the out-of-bounds list) cannot be controlled at all
+because client names cannot ship, so it is made loud instead. The single place
+this rule is not yet met is the operator trace store diverging from the in-repo
+copy unseen (`KNOWN_GAPS.md` GAP-049), which is why that gap stays open.
+
 ## 9 · An agent that cannot run the checks may not call a deliverable verified
 
 *Serves: **P-2**.* · id `OR-9`

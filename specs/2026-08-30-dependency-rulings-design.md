@@ -1,7 +1,8 @@
 # The 13 uncontrolled dependencies, ruled
 
-Date: 2026-08-30 · Status: rulings proposed for owner confirmation. Roadmap item
-R13 (IDEA-23). The axiom this serves: "depend on nothing outside its own control."
+Date: 2026-08-30 · Status: rulings CONFIRMED by the owner 2026-08-30 and recorded — the
+negative rule is `OR-8c`, IDEA-23 is resolved, GAP-049 is the one follow-up.
+Roadmap item R13 (IDEA-23). The axiom this serves: "depend on nothing outside its own control."
 
 ## The frame that decides most of it
 
@@ -66,13 +67,13 @@ nothing says so. That is the single concrete follow-up — it is already its own
 ledger id (GAP-049), and it is the lone instance where the axiom is not yet met.
 It is small and independent; it can be its own release.
 
-## Owner confirmation this needs
-1. Accept the **material** classification for #1–#12 (the alternative — bringing
-   any in-repo — has no defect behind it, convention 2, and #1/#12 cannot be).
-2. Accept promoting the negative rule to `operating-rules.md` (degrade-or-be-loud,
-   never silently mislead).
-3. GAP-049 (#6) as the one follow-up worth a release.
+## Owner confirmation — GIVEN 2026-08-30
+The owner confirmed all three:
+1. The **material** classification for #1–#12 is accepted (bringing any in-repo
+   has no defect behind it, convention 2, and #1/#12 cannot be).
+2. The negative rule is promoted to `references/operating-rules.md` as `OR-8c`
+   (degrade-or-be-loud, never silently mislead).
+3. GAP-049 (#6) is the one follow-up worth its own release.
 
-Nothing here is executed yet — it is 13 rulings and one sentence, put to the
-owner because "material vs controlled" is a decision, not a mechanical change.
-IDEA-23 stays open until these are confirmed, then closes to the rulings.
+IDEA-23 is resolved to these rulings (0.1.657); GAP-049 stays open as the single
+place the rule is not yet met.

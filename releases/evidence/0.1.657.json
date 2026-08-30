@@ -1,0 +1,15 @@
+{
+ "version": "0.1.657",
+ "diff_base": "7f0524964d113af52febee11d328858d965b4c8d",
+ "spec": "specs/2026-08-30-dependency-rulings-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "OR-8c is a maintenance rule about how the tooling behaves when an uncontrolled dependency is absent; it does not change what a deliverable must contain or how it must look, so the model-comparison board's staleness does not bear on this release. A board refresh is an operator task that drives the platform CLIs (a material dependency this very rule governs), owed at a big-version milestone and tracked separately."
+  }
+ ]
+}
