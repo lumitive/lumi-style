@@ -105,26 +105,35 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   (part 1, pending); the effort test passes regardless of ~/Documents contents
   (part 2, done — tests/test_conformance_driver.py).
 
-## GAP-046 · A closed trace with empty content passes every check (no per-record completeness gate)
+## GAP-046 · A closed conformance trace dropped model_ran, so unpinned runs pooled into a junk cost cell
 
-- status: open
+- status: fixed
 - opened: 0.1.651
-- surface: scripts/check/check_repo.py (`check_trace_schema`), scripts/lib/trace_schema.py (`validate`)
-- symptom: `check_trace_schema` validates a stored trace's TYPES and enums only;
-  `null`/empty-dict are legal by design (absent is not measured). So a trace that
-  closed but wrote no gates/tokens/shape/phase_seconds is fully valid and CI is
-  green over it. "The record exists" and "the record has content" have no
-  machine check between them. Measured: of 96 stored traces, closed_at is filled
-  on 71 but many carry empty producer/shape fields.
-- relation to 0.1.650: `check_trace_field_writers` (GAP this closes a sibling of)
-  holds the SCHEMA-and-fill-rate axis — a declared field empty on EVERY trace.
-  This gap is the orthogonal per-RECORD axis: one trace empty where a peer is
-  full. The two are complementary, not the same.
-- why it is a gap and not a fix: a per-record completeness gate needs a policy
-  for which fields a given (source, entry_path) owes — conformance owes
-  model/effort, a real build does not (GAP-048). That policy is the design work.
-- check: a trace closed with source=conformance but no model/effort should be a
-  finding; a real-build trace with the same nulls should not.
+- closed: 0.1.656
+- surface: scripts/ops/run_conformance.py (`_conformance_trace` close)
+- symptom: the gap was framed as "a closed trace with empty content passes every
+  check — add a per-record completeness gate." A two-reviewer red-team (spec
+  `2026-08-30-per-record-completeness-design.md`) showed the gate is the WRONG
+  tool: a closed conformance trace lacks model/effort for legitimate reasons
+  (effort-only pins leave the model to the CLI default; model-only pins leave
+  effort null; a no-effort CLI records both null; unpinned runs are the
+  operator's choice), so a "conformance owes model/effort" gate reddens honest
+  nulls and exempts the actual orphan cost. The declined gate is recorded in
+  FAILURE_MODES' *Abandoned gates* (FM-27).
+- the REAL defect, fixed: `_conformance_trace` passed only `record["model"]` (the
+  pin) to close and dropped `record["model_ran"]` — the model the CLI's own
+  stream said it ran, already computed and already preferred by the display
+  board's `_model_cell`. So an unpinned claude-code/cursor run that DID report
+  its model closed model-null and pooled into a junk `(agent, None, None)` cost
+  cell (`agent_evals.cells()`). The close now prefers the pin and falls back to
+  `model_ran`, attributing every unpinned run whose platform reports a model;
+  Hermes/Gemini report none and stay honest-null. No gate, no new field.
+- the historical 35 model-less conformance traces (0.1.539–0.1.623) are
+  grandfathered: `model_ran`-at-close binds new runs, and they predate the
+  traces↔scores join (0.1.618) so they were never board-attributable anyway.
+- check: an unpinned driven record carrying a `model_ran` closes its trace WITH
+  that model; a pin still outweighs it; a no-model platform stays null
+  (tests/test_conformance_driver.py).
 
 ## GAP-047 · The client-name scan is best-effort in CI, leaving dev-side files unscanned on a no-terms machine
 

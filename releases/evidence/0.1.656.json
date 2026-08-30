@@ -1,0 +1,8 @@
+{
+ "version": "0.1.656",
+ "diff_base": "cfc49db73d606c94fac20034e990a5da64dceda2",
+ "spec": "specs/2026-08-30-per-record-completeness-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}

@@ -1622,8 +1622,19 @@ def _conformance_trace(agent: dict, task: dict, wd: pathlib.Path, record: dict) 
     argv = [sys.executable, str(tool), "close", "--id", tid,
             "--deliverable", str(one), "--agent", agent["id"],
             "--phase", "build", str(max(1, int(record.get("seconds") or 1)))]
-    if record.get("model") and not str(record["model"]).startswith("("):
-        argv += ["--model", record["model"]]
+    # THE MODEL THAT PRODUCED THE DELIVERABLE, so its cost lands in a real cell.
+    # Prefer the pin (the config the operator chose to measure); with no pin,
+    # fall back to `model_ran` — what the CLI's own stream said it used, already
+    # computed above and already preferred by the display board's `_model_cell`.
+    # Dropping it here is GAP-046's measured orphan cost: an unpinned
+    # claude-code/cursor run that DID report its model closed model-null and
+    # pooled into a junk `(agent, None, None)` cost cell. Hermes/Gemini report no
+    # model, so they stay honest-null. `model_ran` is a real name or None, never
+    # a `(…)` placeholder.
+    pin = record.get("model")
+    chosen_model = pin if (pin and not str(pin).startswith("(")) else record.get("model_ran")
+    if chosen_model and not str(chosen_model).startswith("("):
+        argv += ["--model", str(chosen_model)]
     if record.get("effort") and not str(record["effort"]).startswith("("):
         argv += ["--effort", record["effort"]]
     if record.get("cli_version"):

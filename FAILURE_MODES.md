@@ -400,6 +400,37 @@ Declined enforcement mechanisms, recorded with reasons so they are not
 re-proposed. (Declining is a decision; an undocumented decline gets re-argued
 every quarter.)
 
+## FM-27 · A per-record completeness gate over the trace store
+
+- detection: `check_trace_schema` validates a stored trace's types and enums
+  only, so a closed trace missing `model`/`effort`/tokens is legal and CI is
+  green over it (GAP-046). A gate that flagged "a closed conformance trace with
+  no model/effort" was the obvious next check beside `check_trace_field_writers`.
+- proposed: a per-record gate keyed on `(source)` — conformance owes
+  model+effort, a build owes neither (GAP-048) — enforced at close or scanned in
+  the store.
+- DECLINED, 2026-08-30, on a two-reviewer red-team (spec
+  `2026-08-30-per-record-completeness-design.md`). Three reasons.
+  **The policy reddens honest nulls.** A conformance trace lacks `model` for
+  good reasons: an effort-only pin (`--cell agent@high`) leaves the model to the
+  CLI default, which `run_conformance.py:940` records as `"(the CLI's default)"`
+  and the close deliberately drops to null rather than write a fake name; a
+  model-only pin leaves `effort` null; a no-effort CLI records both null. The
+  store holds 6 such legitimate single-axis pins the gate would false-fail.
+  **The gate exempts the actual defect.** The real orphan cost is the unpinned
+  runs, and "pinned owes model" exempts them — so the gate catches almost none of
+  the population it was proposed against.
+  **Close-time refusal is destructive.** If `cmd_close` refuses an incomplete
+  conformance close, `_conformance_trace` leaves the trace OPEN — `ledger.py`
+  then counts it an abandoned build, and the refused close discards the gates and
+  tokens it would have transcribed, turning a closed-orphan-with-data into an
+  abandoned-empty.
+- prevention: the measured defect was attribution, not completeness — the close
+  dropped `model_ran`. Threading it (GAP-046, 0.1.656) attributes the orphan cost
+  with no gate, no new field, and no way to abandon a trace. A store scan, if
+  ever wanted, is a REPORTS-never-fails operator line, not a gate: honest-null is
+  pin-dependent and the store cannot decide it.
+
 ## FM-25 · An enum of model names in the trace schema
 
 - detection: `model` is free text in `scripts/lib/trace_schema.py`, so a typo
