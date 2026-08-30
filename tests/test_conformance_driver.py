@@ -779,12 +779,17 @@ def test_effort_with_a_model_still_composes(tmp_path):
     assert out["model"] == "cursor-grok-4.6-high"
 
 
-def test_the_top_efforts_are_expressible():
+def test_the_top_efforts_are_expressible(tmp_path, monkeypatch):
     """`--effort` accepted only low|medium|high, so the highest level a
     comparison could ask for was `high` — on agents whose CLIs document `xhigh`
     and `max`, and on Cursor whose Grok 4.6 tops out at `xhigh`."""
     import contextlib
     import io
+    # `run` creates a results directory before it fails on the unknown agent;
+    # pin it to tmp_path so the test never writes into the real
+    # ~/Documents/LUMI-Style/_conformance/ (GAP-050 part 2 — it broke there on a
+    # dangling `latest` symlink left by a hand-deleted results dir).
+    monkeypatch.setattr(rc, "RESULTS", tmp_path)
     for level in ("xhigh", "max"):
         buf = io.StringIO()
         with contextlib.suppress(SystemExit), contextlib.redirect_stderr(buf):

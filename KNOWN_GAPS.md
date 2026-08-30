@@ -91,11 +91,18 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   results dir (`mkdir(exist_ok=True)` raises FileExistsError on a dangling
   symlink). The test depends on operator machine state.
 - why it is a gap and not a fix: (1) --fast is the author's fast loop by design;
-  the fix is to close-with-a-partial-marker rather than skip, which needs a
-  `partial` trace state the schema does not have. (2) the test should use
-  tmp_path; small, but bundled here as the same record-robustness theme.
-- check: a --fast build should leave a closeable record (partial-marked); the
-  effort test should pass regardless of ~/Documents contents.
+  the fix is to MARK the trace partial + stop the clock (not a full close, which
+  re-runs the checkers), which needs a `partial` trace state the schema does not
+  have — designed in `specs/2026-08-30-fast-partial-close-design.md` (R8, Option
+  B after review). (2) the test should use tmp_path; split out and fixed first.
+- part 2 CLOSED at 0.1.654: `test_the_top_efforts_are_expressible` pins
+  `rc.RESULTS` to `tmp_path`, so it never writes into the real ~/Documents and
+  passes regardless of operator machine state. Split from part 1 on review — it
+  shares no surface with the schema work and was urgent (it wrote to the owner's
+  real Documents). Part 1 remains open (the --fast partial mark).
+- check: a --fast build should leave a partial-marked, non-abandoned record
+  (part 1, pending); the effort test passes regardless of ~/Documents contents
+  (part 2, done — tests/test_conformance_driver.py).
 
 ## GAP-046 · A closed trace with empty content passes every check (no per-record completeness gate)
 
