@@ -74,6 +74,14 @@ found most of the survey absorbed by later releases — the corrected record:
 - **IDEA-7 shipped** (0.1.427) — `conformance/history.json`, `report
   --record`, and the evidence gate's freshness obligation are this item's
   acceptance in different words.
+- **IDEA-23 resolved** (0.1.657) — the 13 uncontrolled dependencies were ruled
+  (`specs/2026-08-30-dependency-rulings-design.md`): 11 are *material* (absent →
+  degrade to in-repo or fail loud), 1 is already in-repo (the vendored asset
+  source), and 1 (the out-of-bounds list) cannot be controlled — client names
+  cannot ship — so it is made loud instead. None needs bringing in-repo. The
+  rule the census earned is `OR-8c`: an uncontrolled dependency degrades or fails
+  loudly, never silently. The single place not yet met is the operator trace
+  store diverging unseen, which stays open as GAP-049.
 
 ## IDEA-1 · Implement M1, M2 and M6
 

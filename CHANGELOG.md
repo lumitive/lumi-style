@@ -1,3 +1,29 @@
+## 0.1.657 — the rule a borrowed tool must obey: degrade, or fail loudly, never silently
+
+The 2026-08-30 dependency census found thirteen things the package uses that live
+outside its own control. The owner ruled them
+(`specs/2026-08-30-dependency-rulings-design.md`): eleven are *material* — the
+tool reads them but does not rely on them, so their absence degrades to an in-repo
+fallback or fails out loud (a browser check is an evidence-gated operator step,
+never a silent CI pass; a results directory falls back to `conformance/results/`;
+the out-of-bounds list refuses at `check_privacy`, publish, and `check_secrets`);
+one is already in-repo (the vendored asset source); and one — the out-of-bounds
+list — cannot be controlled at all, because client names cannot ship, so it is
+made loud instead. None needs bringing in-repo: the deliverable path is
+standard-library only, so a deck already depends on nothing outside this
+repository, and the tooling either degrades to what it owns or refuses.
+
+The rule the census earned is now **`OR-8c`** in `references/operating-rules.md`:
+an uncontrolled dependency degrades to a controlled fallback OR fails loudly — it
+never silently changes a verdict. A borrowed tool is a decision; a silent wrong
+answer over a missing source is the one forbidden outcome. IDEA-23 is resolved to
+the rulings. The single place this rule is not yet met — the operator trace store
+diverging from the in-repo copy unseen — stays open as GAP-049, the one follow-up.
+
+No deliverable behaviour changes; this records a decision and writes down the rule
+that was being followed by habit. Cites
+`specs/2026-08-30-dependency-rulings-design.md`.
+
 ## 0.1.656 — an unpinned conformance run is attributed by the model that ran, not dropped into a junk cell
 
 GAP-046 was on the roadmap as "add a per-record completeness gate — a closed
