@@ -1,3 +1,50 @@
+## 0.1.652 — the client-name scan now says when it had nothing to search for, and both its readers agree
+
+`check_secrets`' client-name half (red line 9 — no engagement term in a tracked
+file) read the operator's `~/.lumi/terms/` list through `_operator_terms`, which
+returned `[]` for every kind of absence and then scanned for nothing while
+reporting green (GAP-047, FM-24 — the 2026-08-20 city-name-in-eight-files
+incident's exact mechanism). This closes the loud half of that gap.
+
+**The fix keys on `len(terms)`, not on whether a file or directory exists.** The
+first design split on `TERMS_DIR.is_dir()`; a two-reviewer red-team killed it —
+a `*.terms.txt` that EXISTS but holds only comments loads as `([], "loaded")`,
+so an `is_dir()` test never visits it and the same hole reopens on the empty-file
+path. `_operator_terms` now returns one of three states: `loaded` (a non-empty
+list — scan it), `provisioned_empty` (`~/.lumi/terms/` exists but yields no
+usable terms, whether an empty dir or a comment-only file — a FINDING, because
+the machine is set up for terms and the scan is blind), or `no_dir` (no
+directory at all — the one delegated structural skip, CI and fresh checkouts).
+
+**Both readers of the list now agree.** `check_privacy` was blind to the same
+empty-file case (a comment-only list printed `ok · 0 declared terms`, exit 0);
+its `main` now scores a loaded-but-empty list as `no_terms`, non-zero — the
+gating question there is `not terms`, not `status in DID_NOT_RUN`. `load_terms`
+is deliberately UNCHANGED (the split lives in the two readers), so its status
+vocabulary and the parity test that guards it stay intact. `_read_terms` also
+stops treating an indented `# comment` as a live scan term.
+
+**What this does NOT close, stated:** the `no_dir` skip returns `[]`, and
+check_repo's harness is binary per guard with no note channel, so on a machine
+with no `~/.lumi/terms` the half prints `ok` (with a stderr note naming the
+skip — surfaced in CI logs and direct runs, though `preflight.py` echoes a
+guard's stderr only when it fails, so the local canonical check does not show
+it on success). An engagement term in a dev-side tracked file
+(`specs/`, `KNOWN_GAPS.md`, `CLAUDE.md`, `FAILURE_MODES.md`, which the publish
+projection excludes) is still caught by nothing on such a machine. GAP-047 is
+narrowed to that residual; its full fix (an obligatory-before-push scan, the
+evidence-gate pattern) is deferred there. CHANGELOG.md is consumer-side and IS
+scanned at publish, so it is not part of the residual.
+
+**Deliberate red, planted first (conventions 11/15):** on a pinned tmp
+`TERMS_DIR` that is an empty directory AND one holding only a comment-only
+`*.terms.txt`, `check_secrets` goes red naming the missing list; a real list
+with the term present is caught (red line 9, term never echoed); `no_dir`
+returns `[]` with the stderr note; a real list with no hit is clean. The
+empty-file fixture is the branch the first design would have passed. Tests pin
+`check_privacy.TERMS_DIR` so they no longer read the host's real list (GAP-050
+fragility class). Cites `specs/2026-08-30-secrets-terms-absence-design.md`.
+
 ## 0.1.651 — the baseline's sibling gaps get ledger ids, so "still open" is tracked, not prose
 
 0.1.650 made ONE instance of the declaration–record gap enforceable and

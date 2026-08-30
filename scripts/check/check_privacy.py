@@ -144,8 +144,10 @@ TERMS_GLOB = "*.terms.txt"
 
 
 def _read_terms(path: pathlib.Path) -> list[str]:
+    # `.strip()` before the comment test so an indented `# note` is a comment,
+    # not a live term (it would otherwise be scanned for verbatim).
     return [ln.strip() for ln in path.read_text(encoding="utf-8").splitlines()
-            if ln.strip() and not ln.startswith("#")]
+            if ln.strip() and not ln.strip().startswith("#")]
 
 
 def load_terms(path: pathlib.Path | None):
@@ -247,11 +249,16 @@ def main():
             "layer3": "not mechanised — whether a passage of commercial analysis "
                       "is sensitive is a judgement, and it belongs to the "
                       "pre-delivery step",
+            # A loaded-but-empty list (comment-only *.terms.txt) means the scan
+            # had nothing to search for — the same "did not run" as a missing
+            # list, and it must not read as clean (GAP-047, FM-24). The gating
+            # question is `not terms`, not `status in DID_NOT_RUN`.
             "verdict": "FAIL" if layer1 else
-                       (status if status in DID_NOT_RUN else "ok"),
+                       (status if status in DID_NOT_RUN else
+                        ("no_terms" if not terms else "ok")),
         }
         reports.append(report)
-        if layer1 or status in DID_NOT_RUN:
+        if layer1 or not terms:
             worst = max(worst, 1)
 
     if a.json:
@@ -274,6 +281,10 @@ def main():
         elif r["declared_terms"] == "missing":
             print("  FAIL  layer 1 · declared terms: the file given to --terms "
                   "does not exist")
+        elif r["declared_terms"] == 0:
+            print("  FAIL  layer 1 · declared terms: a list was found but held "
+                  "no usable terms (comment-only or empty), so this half had "
+                  "nothing to search for and did not run.")
         elif not r["layer1_gating"]:
             print(f"  ok    layer 1 · {r['declared_terms']} declared term(s), none present")
         print("  ——    layer 3 is a person's: is any commercial analysis here "

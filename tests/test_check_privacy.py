@@ -140,6 +140,30 @@ def test_a_real_terms_file_with_no_hits_passes(tmp_path):
     assert '"verdict": "ok"' in out
 
 
+def test_a_loaded_but_empty_list_fails_rather_than_passing(tmp_path):
+    """A *.terms.txt that exists but is comment-only loads as ([], 'loaded') —
+    the scan had nothing to search for and must not read as clean (GAP-047,
+    the reader-parity half: check_secrets and check_privacy must agree)."""
+    lst = tmp_path / "terms.txt"
+    lst.write_text("# every term commented out\n\n")
+    code, out = _run("--terms", str(lst), "--json")
+    assert code == 1, "a loaded-but-empty list must not be scored as a pass"
+    assert '"verdict": "no_terms"' in out
+
+
+def test_a_loaded_but_empty_list_says_so_in_human_output_too(tmp_path):
+    """The human-mode print ladder must NOT reprint the reassuring
+    'ok · 0 declared term(s), none present' for a loaded-but-empty list — that
+    is FM-24 (prints clean when blind) in the operator-facing channel. Guards
+    the declared_terms==0 branch, which the --json test alone leaves untested."""
+    lst = tmp_path / "terms.txt"
+    lst.write_text("# every term commented out\n\n")
+    code, out = _run("--terms", str(lst))  # human mode: no --json
+    assert code == 1
+    assert "no usable terms" in out
+    assert "none present" not in out  # the clean-looking line must not appear
+
+
 def test_every_did_not_run_status_load_terms_can_return_is_handled():
     """A seventh status added to load_terms must not default to a pass.
 
