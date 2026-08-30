@@ -77,8 +77,9 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-050 · --fast skips the whole trace close, and a test writes into the real ~/Documents
 
-- status: open
+- status: fixed
 - opened: 0.1.651
+- closed: 0.1.655
 - surface: scripts/ops/check_deliverable.py (`if trace_id and not a.fast`),
   tests/test_conformance_driver.py (`test_the_top_efforts_are_expressible`)
 - symptom: two coupled record-robustness holes the baseline found. (1) `--fast`

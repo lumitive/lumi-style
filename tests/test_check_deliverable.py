@@ -147,6 +147,34 @@ def test_fast_narrows_the_matrix_and_says_it_is_not_a_delivery_reading(tmp_path)
         "hand over")
 
 
+TRACE_PY = ROOT / "scripts" / "ops" / "trace.py"
+
+
+def test_fast_marks_the_trace_partial_instead_of_leaving_it_abandoned(tmp_path):
+    """R8/GAP-050 deliberate-red: before Option B, `--fast` skipped the entire
+    close block, so a build that ended on a fast round left its trace open with
+    the build clock orphaned — indistinguishable from an abandoned build. Now a
+    `--fast` run stops the clock and MARKS the trace partial (no closed_at, no
+    verdicts), so it is a known fast-loop record, and a later full run closes
+    it. This test fails on the pre-fix code (the trace stays unmarked-open)."""
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    deck = str(ROOT / "fixtures" / "deck-pass.en.html")
+    tid = subprocess.run(
+        [sys.executable, str(TRACE_PY), "open", "--genre", "internal",
+         "--storyline", "status-report", "--entry-path", "A"],
+        capture_output=True, text=True, env=env).stdout.strip()
+    subprocess.run([sys.executable, str(DRIVER), deck, "--trace-id", tid,
+                    "--fast"], capture_output=True, text=True, env=env)
+    rec = json.loads((tmp_path / f"{tid}.json").read_text(encoding="utf-8"))
+    assert rec["partial"] is True, "a --fast run must mark the trace partial"
+    assert rec["closed_at"] is None, "a --fast run does not close the trace"
+    # a full (non-fast) run then closes it and clears the mark
+    subprocess.run([sys.executable, str(DRIVER), deck, "--trace-id", tid],
+                   capture_output=True, text=True, env=env)
+    rec = json.loads((tmp_path / f"{tid}.json").read_text(encoding="utf-8"))
+    assert rec["closed_at"] and rec["partial"] is False
+
+
 def test_fast_finds_the_same_gating_failures_as_the_full_matrix(tmp_path):
     """Every gate still runs; only the coverage claim is given up. A speed flag
     that also quietened a gate would be the worst thing in this repository."""

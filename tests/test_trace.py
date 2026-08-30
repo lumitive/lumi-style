@@ -117,6 +117,70 @@ def test_open_then_close_round_trip(tmp_path, monkeypatch):
         stored.unlink(missing_ok=True)
 
 
+def test_partial_marks_a_fast_round_without_closing_or_measuring(tmp_path, monkeypatch):
+    """A --fast round marks the trace partial and stops there (R8/GAP-050,
+    Option B): partial=True, no closed_at, no shape, and — the cost property —
+    no verdict transcription, so gates/graded/thresholds stay empty. Closing
+    every fast round would re-run the checkers, which is the cost --fast avoids."""
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    deck = str(ROOT / "fixtures" / "deck-pass.en.html")
+    opened = subprocess.run(
+        [sys.executable, str(TRACE_PY), "open", "--genre", "internal",
+         "--storyline", "status-report", "--entry-path", "A"],
+        capture_output=True, text=True, env=env)
+    tid = opened.stdout.strip()
+    marked = subprocess.run(
+        [sys.executable, str(TRACE_PY), "partial", "--id", tid,
+         "--deliverable", deck], capture_output=True, text=True, env=env)
+    assert marked.returncode == 0, marked.stderr
+    rec = json.loads((tmp_path / f"{tid}.json").read_text(encoding="utf-8"))
+    assert rec["partial"] is True
+    assert rec["closed_at"] is None, "a partial mark does not close the trace"
+    assert rec["shape"] == {}, "a fast round writes no delivery shape"
+    assert not rec["gates"] and not rec["graded"] and not rec["thresholds"], (
+        "the partial mark must not transcribe verdicts — that re-runs the "
+        "checkers, the cost --fast exists to avoid")
+    assert trace.validate(rec) == []
+
+
+def test_a_full_close_clears_a_partial_mark(tmp_path, monkeypatch):
+    """The final non-fast run closes the trace and clears the partial mark."""
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    deck = str(ROOT / "fixtures" / "deck-pass.en.html")
+    tid = subprocess.run(
+        [sys.executable, str(TRACE_PY), "open", "--genre", "internal",
+         "--storyline", "status-report", "--entry-path", "A"],
+        capture_output=True, text=True, env=env).stdout.strip()
+    subprocess.run([sys.executable, str(TRACE_PY), "partial", "--id", tid,
+                    "--deliverable", deck], capture_output=True, text=True, env=env)
+    subprocess.run([sys.executable, str(TRACE_PY), "close", "--id", tid,
+                    "--deliverable", deck, "--phase", "checks", "2"],
+                   capture_output=True, text=True, env=env)
+    rec = json.loads((tmp_path / f"{tid}.json").read_text(encoding="utf-8"))
+    assert rec["partial"] is False and rec["closed_at"], (
+        "a full close is a delivery record and clears the fast-loop mark")
+
+
+def test_a_closed_trace_cannot_be_re_marked_partial(tmp_path, monkeypatch):
+    """A closed trace is a delivery record; re-marking it partial would leave
+    closed_at set AND partial=True — a contradictory state (delivered to the cost
+    board, shapeless to the ledger). The mark refuses instead."""
+    env = {**os.environ, "LUMI_TRACES": str(tmp_path)}
+    deck = str(ROOT / "fixtures" / "deck-pass.en.html")
+    tid = subprocess.run(
+        [sys.executable, str(TRACE_PY), "open", "--genre", "internal",
+         "--storyline", "status-report", "--entry-path", "A"],
+        capture_output=True, text=True, env=env).stdout.strip()
+    subprocess.run([sys.executable, str(TRACE_PY), "close", "--id", tid,
+                    "--deliverable", deck, "--phase", "checks", "2"],
+                   capture_output=True, text=True, env=env)
+    again = subprocess.run([sys.executable, str(TRACE_PY), "partial", "--id", tid,
+                            "--deliverable", deck], capture_output=True, text=True, env=env)
+    assert again.returncode != 0 and "already closed" in again.stderr
+    rec = json.loads((tmp_path / f"{tid}.json").read_text(encoding="utf-8"))
+    assert rec["partial"] is False, "the closed trace stays a delivery record"
+
+
 # A checker that could not speak must not be recorded as a checker with nothing
 # to say. `_checker_json` discarded the return code and returned None on a parse
 # error, and `close` skipped a falsy report — so `[]` (an honest empty report)

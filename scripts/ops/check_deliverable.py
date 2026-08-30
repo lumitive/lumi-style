@@ -639,10 +639,12 @@ def main(argv=None) -> int:
     # `ledger.py` then reported them as abandoned — one manual `trace.py close`
     # each. The trace records what happened; refusing to close it on a failure
     # loses exactly the rounds worth studying.
-    if trace_id and not a.fast:
-        # Stop the build clock the scaffold started (if it is running), then
-        # close with THIS run's own duration as the checks phase. Both numbers
-        # are the tooling's; neither is typed.
+    if trace_id:
+        # Stop the build clock the scaffold started (if it is running), in
+        # EITHER mode. Before Option B (R8/GAP-050) a `--fast` round skipped
+        # this whole block, so the clock was left orphaned (65 measured) and
+        # the record read as abandoned. Both numbers are the tooling's; neither
+        # is typed.
         stop = [sys.executable, str(ROOT / "scripts/ops/trace.py"), "phase",
                 "stop", "build", "--id", trace_id]
         stopped = subprocess.run(stop, capture_output=True, text=True)
@@ -657,22 +659,31 @@ def main(argv=None) -> int:
             # the hole came from.
             print(f"note  phase stop build: {stopped.stderr.strip()}",
                   file=sys.stderr)
-        close = [sys.executable, str(ROOT / "scripts/ops/trace.py"), "close",
-                 "--id", trace_id, "--deliverable", str(a.file),
-                 "--phase", "checks", str(checks_seconds)]
-        # HAND OVER THE TWO READINGS THAT NEEDED A BROWSER. This run rendered
-        # the document; `trace.py close` does not and should not. Passing them
-        # is what lets the corpus keep a shape for every build instead of
-        # re-measuring old files by hand — which is why GAP-024's bar was
-        # drafted from five documents found one at a time and refuted by a
-        # sixth nobody had thought to check.
-        shape = _rendered_shape(runs)
-        for flag, key in (("--visual-share-median", "visual_share_median"),
-                          ("--repeated-skeleton-pages", "repeated_skeleton_pages"),
-                          ("--move-skeleton-clashes", "move_skeleton_clashes")):
-            if shape.get(key) is not None:
-                close += [flag, str(shape[key])]
-        proc = subprocess.run(close, capture_output=True, text=True)
+        if a.fast:
+            # A LOOP READING IS NOT A DELIVERY. Mark the trace partial rather
+            # than close it: cheap (no checker re-run, no closed_at, no shape),
+            # so the fast loop stays fast, and the record is non-abandoned and
+            # honest — it measured one geometry and reviewed no storyline. The
+            # final non-`--fast` run closes it and clears the mark.
+            step = [sys.executable, str(ROOT / "scripts/ops/trace.py"),
+                    "partial", "--id", trace_id, "--deliverable", str(a.file)]
+        else:
+            step = [sys.executable, str(ROOT / "scripts/ops/trace.py"), "close",
+                    "--id", trace_id, "--deliverable", str(a.file),
+                    "--phase", "checks", str(checks_seconds)]
+            # HAND OVER THE TWO READINGS THAT NEEDED A BROWSER. This run
+            # rendered the document; `trace.py close` does not and should not.
+            # Passing them is what lets the corpus keep a shape for every build
+            # instead of re-measuring old files by hand — which is why
+            # GAP-024's bar was drafted from five documents found one at a time
+            # and refuted by a sixth nobody had thought to check.
+            shape = _rendered_shape(runs)
+            for flag, key in (("--visual-share-median", "visual_share_median"),
+                              ("--repeated-skeleton-pages", "repeated_skeleton_pages"),
+                              ("--move-skeleton-clashes", "move_skeleton_clashes")):
+                if shape.get(key) is not None:
+                    step += [flag, str(shape[key])]
+        proc = subprocess.run(step, capture_output=True, text=True)
         print(proc.stdout.strip() or proc.stderr.strip())
         worst = max(worst, proc.returncode)
     return worst

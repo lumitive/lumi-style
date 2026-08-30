@@ -1,0 +1,8 @@
+{
+ "version": "0.1.655",
+ "diff_base": "6ccd7f1f80d2f541b9a7f3e7c87428f18a96982c",
+ "spec": "specs/2026-08-30-fast-partial-close-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}

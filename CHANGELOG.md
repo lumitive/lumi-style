@@ -1,3 +1,50 @@
+## 0.1.655 — a --fast build now leaves a partial-marked record instead of an orphan
+
+`check_deliverable.py` guarded the whole trace-close block with `if trace_id and
+not a.fast`, so a `--fast` (iteration) round skipped it entirely: the build clock
+the scaffold started was never stopped (65 orphaned clocks measured), and a build
+that ended on a fast round left its trace open forever — `ledger.py` then read it
+as **abandoned**, indistinguishable from a genuinely dropped build (GAP-050 part
+1).
+
+**The fix is a `partial` MARK, not a partial close (Option B, chosen over a
+partial close after a two-reviewer red-team).** A `--fast` round now stops the
+build clock and marks the trace `partial=True`, leaving `closed_at` null, writing
+no shape and — the cost property — transcribing no verdicts (a full close re-runs
+`check_prose`/`check_design`, the exact cost `--fast` exists to avoid). The final
+non-`--fast` run closes the trace and clears the mark. Because a partial carries
+no `closed_at`, no gates, no shape, it is invisible to every aggregate with **one**
+ledger line rather than a filter per consumer: `agent_runs.board()` already drops
+it (no gates/pages), and the abandoned filter now reads `not closed_at and not
+partial`. The alternative — writing `closed_at`+shape on a fast round — was
+rejected: it would have leaked a non-delivered document's `visual_share_median`
+into `ledger_shape`'s threshold distribution, drifted the cost axis, and
+mislabelled the generated index.
+
+**What ships:** a `partial` field (`trace_schema.py`, RUN partition, `ADDED_LATER`
+so it does not redden the fill-rate guard on the 96 traces predating it; in
+`validate` and the disjoint-and-exhaust partition); a `trace.py partial`
+subcommand (cheap — a shared `_crosscheck_geometry` helper, then the flag, no
+checker); the `check_deliverable.py` `--fast` restructure; `ledger.py` (abandoned
+excludes partial on the explicit flag, `ledger_beats`/`ledger_shape` exclude it,
+and a partial-count line reported separately); `partial` added to
+`build_trace_dictionary.py`'s `INDEX_FIELDS` (a partial-open is now
+distinguishable from a truly-abandoned open) with `evals/traces/README.md` and
+`index.jsonl` regenerated.
+
+**Deliberate red, mutation-verified:** with the pre-fix `and not a.fast` guard
+restored, `test_fast_marks_the_trace_partial_instead_of_leaving_it_abandoned`
+fails (the trace stays unmarked-open); with the fix it marks partial and a full
+run clears it. The partial mark is asserted to leave gates/graded/thresholds
+empty (no verdict transcription — the cost property). A closed trace refuses to
+be re-marked partial (it is a delivery record; a build round after delivery opens
+a new trace). FM-24 holds with `partial` in `ADDED_LATER`: the writers guard's
+blind branches are unchanged, and an all-empty late-arrival field is an honest
+absence rather than a hole. GAP-050 narrowed to closed (part 2 shipped at
+0.1.654). This ships the `partial` signal R5 (GAP-046, the per-record
+completeness gate) will consume to exempt fast-loop records.
+Cites `specs/2026-08-30-fast-partial-close-design.md`.
+
 ## 0.1.654 — a conformance test stops writing into the operator's real ~/Documents
 
 `test_the_top_efforts_are_expressible` called `rc.main(["run", ...])`, whose

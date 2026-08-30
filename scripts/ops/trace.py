@@ -329,6 +329,50 @@ def cmd_phase(a):
     print(f"{a.name} +{seconds}s (total {rec['phase_seconds'][a.name]}s)")
 
 
+def _crosscheck_geometry(rec, deliverable):
+    """A trace must not contradict its own deliverable. Reads the real <body>
+    (via markup.py, never the first regex match — that read `landscape` out of a
+    stylesheet comment, the fifth defect from one sentence) and refuses a trace
+    whose opened geometry disagrees with the document's declared stage. Shared by
+    `close` and `partial` so a fast-loop record is held to the same truth."""
+    try:
+        raw = pathlib.Path(deliverable).read_text(encoding="utf-8")
+    except OSError:
+        raw = ""
+    declared = markup.body_attr(raw, "data-geometry") if raw else None
+    if declared and rec.get("geometry"):
+        expected = STAGE_OF.get(declared)
+        if expected and expected != rec["geometry"]:
+            sys.exit(f"the document declares data-geometry={declared!r}, whose "
+                     f"stage is {expected!r}, and this trace was opened as "
+                     f"{rec['geometry']!r}. One of the two is wrong, and a trace "
+                     f"that disagrees with its own deliverable is worse than no "
+                     f"trace.")
+
+
+def cmd_partial(a):
+    """Mark a trace as a --fast (iteration) record and stop there: no closed_at,
+    no verdict transcription, no shape. Option B (R8) — a fast round measured one
+    geometry and reviewed no storyline, so its record carries `partial=True` and
+    nothing it did not earn. The trace stays open (closed_at null) but is NOT
+    abandoned: `ledger.py` excludes a partial from the abandoned count. The build
+    clock is stopped separately by the caller (`phase stop build`), so this is
+    cheap — it runs no checker. The final non-`--fast` close clears the mark."""
+    rec = _load(a.id)
+    if rec.get("closed_at"):
+        # A closed trace is a delivery record. Re-marking it partial would leave
+        # closed_at set AND partial=True — a state that reads as delivered to the
+        # cost board (gates on closed_at) but drops its shape in the ledger. A
+        # build round after delivery is a new build; open a new trace for it.
+        sys.exit(f"{a.id} is already closed (a delivery record) — a --fast round "
+                 f"must not re-mark a closed trace partial. Open a new trace.")
+    _crosscheck_geometry(rec, a.deliverable)
+    rec["partial"] = True
+    _fail_if_invalid(rec)
+    _save(rec)
+    print(f"marked {a.id} partial: a fast-loop record, not a delivery close")
+
+
 def cmd_close(a):
     rec = _load(a.id)
     # NOT `setdefault`: the schema blesses `null` as "not recorded" (absent and
@@ -339,6 +383,10 @@ def cmd_close(a):
     if not isinstance(rec.get("shape"), dict):
         rec["shape"] = {}
     rec["closed_at"] = _now()
+    # A full close is a delivery record, not a fast-loop mark. Flip any partial
+    # a --fast round set (Option B: a fast round marks partial, the final
+    # non-fast run closes and clears it).
+    rec["partial"] = False
     rec["outline_reviewed"] = bool(a.outline_reviewed)
     rec["titles_changed_after_approval"] = a.titles_changed_after_approval
     for phase, seconds in (a.phase or []):
@@ -377,25 +425,7 @@ def cmd_close(a):
     # and until 0.1.499 nothing could see it: the word `geometry` named three
     # unrelated vocabularies and no code connected any pair. The map is
     # declared once in the registry; this reads it.
-    try:
-        raw = pathlib.Path(a.deliverable).read_text(encoding="utf-8")
-    except OSError:
-        raw = ""
-    # THE REAL <body>, via the shared helper. This line originally used the
-    # first regex match and was caught, in its first run against a real
-    # portrait document, reading `landscape` out of the stylesheet's own
-    # comment — the FIFTH defect from that one sentence, written before
-    # markup.py existed to hold the lesson. The cross-check refused a correct
-    # trace, which is the exact inversion of what it is for.
-    declared = markup.body_attr(raw, "data-geometry") if raw else None
-    if declared and rec.get("geometry"):
-        expected = STAGE_OF.get(declared)
-        if expected and expected != rec["geometry"]:
-            sys.exit(f"the document declares data-geometry={declared!r}, whose "
-                     f"stage is {expected!r}, and this trace was opened as "
-                     f"{rec['geometry']!r}. One of the two is wrong, and a trace "
-                     f"that disagrees with its own deliverable is worse than no "
-                     f"trace.")
+    _crosscheck_geometry(rec, a.deliverable)
 
     # Verdicts are transcribed from the checkers, never supplied.
     prose, prose_spoke = _checker_json(
@@ -681,6 +711,12 @@ def main():
                         "There is no flag for typing a token count, for the "
                         "same reason there is none for typing a verdict.")
     c.set_defaults(func=cmd_close)
+
+    pt = sub.add_parser("partial", help="mark a --fast (iteration) trace as a "
+                                        "partial record — no close, no verdicts")
+    pt.add_argument("--id", required=True)
+    pt.add_argument("--deliverable", required=True)
+    pt.set_defaults(func=cmd_partial)
 
     nt = sub.add_parser("note", help="attach a note or labels to a trace, in "
                         "evals/trace-notes.json — never in the trace")
