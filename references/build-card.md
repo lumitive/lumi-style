@@ -1,4 +1,4 @@
-# LUMI build card · 0.1.655
+# LUMI build card · 0.1.656
 
 > **GENERATED** by `scripts/build/build_card.py` from `evals/rule-coverage.json`, `evals/gates.json` and `tokens/`. `--check` runs in CI. Never hand-edit: edit the rule, or the register, and regenerate.
 

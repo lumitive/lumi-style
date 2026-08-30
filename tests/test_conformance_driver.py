@@ -827,6 +827,60 @@ def test_a_misplaced_artifact_still_closes_its_cost_trace(tmp_path, monkeypatch)
     assert "--model" in closed and "--effort" in closed
 
 
+def test_an_unpinned_run_is_attributed_by_what_actually_ran(tmp_path, monkeypatch):
+    """GAP-046: an unpinned run records `(the CLI's default)` as its model, which
+    the close drops to null — so it pooled into a junk (agent, None, None) cost
+    cell. The close now falls back to `model_ran` (what the CLI's stream said it
+    used), attributing the cost. Deliberate-red: before the change no --model is
+    passed for this record."""
+    calls: list = []
+    def _rec(argv, **kw):
+        calls.append(argv)
+        return _ok("t-abc")
+    monkeypatch.setattr(rc.subprocess, "run", _rec)
+    record = {"verdict": "misplaced", "produced": [], "seconds": 9,
+              "misplaced": [str(tmp_path / "elsewhere" / "deck.en.html")],
+              "model": "(the CLI's default)", "model_ran": "grok-4.6",
+              "effort": "(not pinned)"}
+    rc._conformance_trace({"id": "cursor"}, _trace_task(), tmp_path, record)
+    closed = calls[-1]
+    assert "--model" in closed and "grok-4.6" in closed, (
+        "an unpinned run with a model_ran must be attributed by it, not dropped")
+    assert "--effort" not in closed, "an unpinned effort stays honest-null"
+
+
+def test_a_platform_that_reports_no_model_stays_null(tmp_path, monkeypatch):
+    """Hermes/Gemini announce no model; with no pin and no model_ran there is
+    nothing to attribute, and the trace stays honestly model-null."""
+    calls: list = []
+    def _rec(argv, **kw):
+        calls.append(argv)
+        return _ok("t-abc")
+    monkeypatch.setattr(rc.subprocess, "run", _rec)
+    record = {"verdict": "misplaced", "produced": [], "seconds": 9,
+              "misplaced": [str(tmp_path / "elsewhere" / "deck.en.html")],
+              "model": "(the CLI's default)", "model_ran": None,
+              "effort": "(not pinned)"}
+    rc._conformance_trace({"id": "hermes"}, _trace_task(), tmp_path, record)
+    assert "--model" not in calls[-1], "no pin and no model_ran -> honest null"
+
+
+def test_a_pin_still_outweighs_what_ran_at_close(tmp_path, monkeypatch):
+    """A pinned run records the config the operator chose to measure; the
+    fallback only fires when there is no pin."""
+    calls: list = []
+    def _rec(argv, **kw):
+        calls.append(argv)
+        return _ok("t-abc")
+    monkeypatch.setattr(rc.subprocess, "run", _rec)
+    record = {"verdict": "misplaced", "produced": [], "seconds": 9,
+              "misplaced": [str(tmp_path / "elsewhere" / "deck.en.html")],
+              "model": "claude-opus-5", "model_ran": "something-else", "effort": "high"}
+    rc._conformance_trace({"id": "claude-code"}, _trace_task(), tmp_path, record)
+    closed = calls[-1]
+    assert "claude-opus-5" in closed and "something-else" not in closed
+
+
 def test_a_timeout_is_still_refused(tmp_path, monkeypatch):
     # Its file is a draft, whatever its location, and a draft is not a result.
     monkeypatch.setattr(rc.subprocess, "run", lambda argv, **kw: _ok("t-abc"))

@@ -1,3 +1,40 @@
+## 0.1.656 — an unpinned conformance run is attributed by the model that ran, not dropped into a junk cell
+
+GAP-046 was on the roadmap as "add a per-record completeness gate — a closed
+conformance trace owes model/effort." A two-reviewer red-team (spec
+`2026-08-30-per-record-completeness-design.md`) established the gate is the WRONG
+tool and recut the fix.
+
+**Why the gate was declined (FM-27).** A conformance trace lacks `model` for
+legitimate reasons, not only bad ones: an effort-only pin (`--cell agent@high`)
+leaves the model to the CLI default, which `run_conformance.py:940` records as
+`"(the CLI's default)"` and the close deliberately drops to null rather than
+write a fake name; a model-only pin leaves `effort` null; a no-effort CLI records
+both null; an unpinned `--drive` run is the operator's own choice. A "conformance
+owes model/effort" gate would redden these honest nulls (6 real single-axis pins
+in the store) and — because it exempts unpinned runs — catch almost none of the
+actual orphan cost. And a close-time refusal is destructive: it leaves the trace
+open (counted abandoned) and discards the gates and tokens the close would have
+transcribed.
+
+**The real, narrow defect, fixed.** `_conformance_trace` passed only the pin
+(`record["model"]`) to close and threw away `record["model_ran"]` — the model the
+CLI's own stream said it ran, already computed and already preferred by the
+display board's `_model_cell`. So an unpinned claude-code/cursor run that DID
+report its model closed model-null and pooled into a junk `(agent, None, None)`
+cost cell. The close now prefers the pin and falls back to `model_ran`,
+attributing every unpinned run whose platform reports a model; Hermes and Gemini
+report none and stay honest-null. No gate, no new field, no schema change, no
+close refusal — `model` already types `str|None`. The 35 historical model-less
+traces are grandfathered (they predate the traces↔scores join at 0.1.618 and
+were never board-attributable).
+
+**Deliberate red, mutation-verified:** with the fallback removed,
+`test_an_unpinned_run_is_attributed_by_what_actually_ran` fails (no `--model`
+passed); with it, the unpinned run closes attributed, a pin still outweighs
+`model_ran`, and a no-model platform stays null. Closes GAP-046; records the
+declined gate as FM-27. Cites `specs/2026-08-30-per-record-completeness-design.md`.
+
 ## 0.1.655 — a --fast build now leaves a partial-marked record instead of an orphan
 
 `check_deliverable.py` guarded the whole trace-close block with `if trace_id and
