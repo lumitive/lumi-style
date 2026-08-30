@@ -1,116 +1,110 @@
-# A real build records its own cost, read from its session
+# A real build's cost: session is easy, build-slice is the hard part
 
-Date: 2026-08-30 · Status: design under owner review; not yet implemented.
-The release that implements it will cite this file. Roadmap item R7 (GAP-048).
+Date: 2026-08-30 · Status: recut after a two-reviewer red-team (one empirical on
+this session's real transcript). The owner's premise held; the "reuse existing
+plumbing" design did not. Ready for an owner scope decision. Roadmap item R7
+(GAP-048).
 
-## The premise correction that started this
+## The premise held; my "already built" claims did not
 
-GAP-048 was recorded as "accept-and-track: a real build's cost is structurally
-unobtainable inline." **That was wrong, and the owner caught it.** Every turn of
-a real build writes its token usage to the session transcript; the cost is
-readable during the build, and the build's own slice of it is complete the moment
-the build closes. What is not final until the session ends is the *whole
-session's* total — but that is not what a build trace needs. So the gap is not
-"cannot measure"; it is "the tool never reads what is already written."
+The owner's correction to GAP-048 was right and is confirmed on real data: a real
+build's token usage IS written to the session transcript, it IS the platform's
+own numbers (verifiable, not self-reported), the session is identifiable
+(`CLAUDE_CODE_SESSION_ID` → exactly one `~/.claude/projects/<id>.jsonl`), and
+reading an 18 MB / 12,200-line live transcript costs **0.26 s** — a non-issue.
+`session_cost.py`'s counter works, deduping 3,351 raw usage records to 1,926 real
+API calls (a naive sum would inflate ~1.7×).
 
-## What is already built (verified)
+But the first draft said "reuse existing plumbing," and the red-team proved that
+false in three load-bearing places:
 
-- **The counter exists and is correct.** `scripts/ops/session_cost.py` reads a
-  Claude Code transcript and sums `input_tokens`, `output_tokens`,
-  `cache_read_input_tokens`, `cache_creation_input_tokens`, **deduping by
-  `message.id`** (the trap that inflated one build's tokens 2.5–3.6×) and
-  bounding by `--since`/`--until`.
-- **The build can identify its own session.** `CLAUDE_CODE_SESSION_ID` is in the
-  environment of a build running under Claude Code; the transcript is the file
-  named `<id>.jsonl` under `~/.claude/projects/` (verified: it exists for the
-  current session). No guessing "the latest file" — the id is exact.
-- **The close already accepts a usage dump.** `trace.py close --usage <file>`
-  reads `input_tokens`/`output_tokens` (required) and `cache_read_tokens`/
-  `cache_write_tokens` (optional) and records them. The `--usage` path is how
-  conformance already fills these; a real build just never uses it.
-- **The numbers are the platform's own, not self-reported.** They come from the
-  transcript's API usage records, so recording them satisfies "a measurement is
-  transcribed, never typed" — the exact rule that made "a session agent would
-  have to self-report, which is unverifiable" a real objection for model/effort
-  but NOT for the usage the API itself wrote down.
+- **The time window does not exist.** `session_cost.py`'s `--since`/`--until` are
+  advertised in the docstring only; `main()` defines no such flags, `claude()`
+  takes the two params but never references them, and no record's timestamp is
+  ever read. The window the whole design turns on **must be built**, not reused.
+- **The model reader returns `None` on this format.** `_model_from_transcript`
+  reads the CLI's captured stdout stream (a `system`/`init` record with a
+  top-level `model`); the session `.jsonl` is a different shape — the model lives
+  in per-message `message.model`. Run on the real transcript, it returns `None`.
+  And it is a **cross-boundary import** anyway (`check_deliverable` is consumer,
+  `run_conformance` is dev — `shipped.json` forbids it). A new consumer-side
+  reader is needed.
+- **One session, three models.** This session's tokens span `claude-opus-5`,
+  `claude-fable-5`, `claude-opus-4-8`. A single `--model` over a summed token
+  count mislabels it — the cost board's premise is that a cell states what
+  produced it.
 
-## The design — read the build's session slice at close, hand it to `--usage`
+## The real problem the red-team surfaced: session cost ≠ build cost
 
-In `check_deliverable.py`'s **full-close path** (the non-`--fast` branch; a
-`--fast` round marks the trace partial and does not close — R8), after the run
-that closes the trace:
+The counter reads a SESSION's cost cleanly. Carving out one BUILD's slice is the
+hard part, and the naive "trace lifespan window" (`opened_at`→`closed_at`) is
+**unsound, not merely imprecise**:
 
-1. **Identify the session.** If `CLAUDE_CODE_SESSION_ID` is set, find
-   `<id>.jsonl` under `~/.claude/projects/`. Absent, or no file, or a platform
-   with no readable per-turn usage → **record nothing, and say so on stderr**
-   (OR-8c: a material dependency degrades or fails loudly, never silently — the
-   session transcript is exactly such a dependency).
-2. **Bound it to the build.** Convert the trace's `opened_at`→`closed_at` to
-   epoch and pass them as `--since`/`--until`, so the reading is the build's
-   slice of the session, not the whole session.
-3. **Map the field names** (the one translation): `cache_read_input_tokens` →
-   `cache_read_tokens`, `cache_creation_input_tokens` → `cache_write_tokens`;
-   `input_tokens`/`output_tokens` pass through. Write the four as a `usage.json`
-   and pass `--usage usage.json` to the close.
-4. **Record the model too.** The transcript names the model that ran; read it the
-   way conformance reads `model_ran` (reuse `run_conformance._model_from_transcript`
-   — one home) and pass `--model`. Effort is a session setting the transcript
-   does not carry, so it stays null (honest).
+- A trace spans N rounds and can be open for a long time (0.1.602). Its lifespan
+  sweeps in every session turn between open and close — other work, other
+  projects in the same directory — with no bound on the over-count.
+- The dominant number is **cache-read** (916M this session, vs 3.8K fresh input).
+  Cache-read grows with session LENGTH, not with build work. A lifespan window
+  attributes a session's context-growth to "this build." That is misleading, not
+  conservative.
 
-The result: a `source=build` trace gains real `input/output/cache tokens` and a
-real `model`, all from the platform's own record. The cost board, blank for real
-delivery today, gets its first real rows.
+So "record the lifespan window and name the over-count as imprecision" is
+rejected. The honest cut is one of two:
 
-## The open questions for review (the load-bearing ones)
+### Path A — session-scoped cost, labelled honestly (smaller)
+Record what the session cost, as **session cost**, not build cost. Build only:
+the `--since`/`--until` window (small), a consumer-side reader that maps the four
+usage fields (preserving `None` for absent cache — `_read_usage`'s "None is the
+answer, zero would be a claim"), and the wiring. Record the model(s) present, or
+leave model null when several ran. The number is real and verifiable but coarse:
+it answers "what did this delivery session cost," not "what did this one deck
+cost." Honest, and useful for a rough per-delivery figure.
 
-1. **Time-window attribution.** `opened_at`→`closed_at` spans every build round
-   (one trace spans N rounds, 0.1.602) but may also include session turns that
-   were NOT this build (the author answered an email mid-session). Is the whole
-   trace lifespan the right slice, or should the build phases be timestamped so
-   the window is build-only? The trace records phase *durations*, not absolute
-   phase timestamps — so a tighter window needs a new capture. Is the lifespan
-   window good enough (a focused build session ≈ the build), with the over-count
-   named as a known imprecision?
-2. **Reading the author's transcript.** The file is on the operator's own machine
-   and only token *numbers* + the model name are extracted (never content). But
-   it is a read outside the repo — confirm it is OR-8c-compliant (degrade/loud,
-   which the design does) and that extracting nothing but counts raises no
-   privacy concern.
-3. **Cost per close.** `session_cost` reads the whole JSONL; a long session makes
-   that a non-trivial read on every full close. Acceptable on the full-close
-   path (not the fast loop)? Or bound the read (it already streams)?
-4. **Platform scope.** Claude Code is confirmed (env var + transcript). Hermes has
-   a session id but a real build is driven by the author's own tool, not Hermes's
-   driver; Cursor exposes only an end-of-session total (no per-turn window). So
-   Claude Code is the realistic first target — is shipping it Claude-Code-only
-   (others record null, honestly) the right scope, or wait for all three?
-5. **Automatic vs opt-in.** Automatic when `CLAUDE_CODE_SESSION_ID` is present is
-   cleanest, but reading the transcript on every full close is a new default. A
-   flag (`--record-cost`) is more explicit but easy to forget. Which?
+### Path B — build-scoped cost, precise (bigger)
+Make a build-only window possible by **timestamping the build phases** — the
+trace records phase *durations* today, not absolute start/stop times, so a
+build-only window needs a new capture (a schema addition, like R8's `partial`).
+Then the window is the build's turns only, cache-read is bounded to them, and the
+model read over that window is usually one value. This is the number the cost
+board actually wants, and it is a real design of its own weight: window +
+phase-timestamp schema + consumer-side reader (usage AND per-message model, with
+the multi-model case handled) + wiring, each with OR-8c degrade-loud behaviour.
 
-## What ships (pending review's answers)
-- `scripts/ops/check_deliverable.py`: at full close, identify the session,
-  compute the build-window cost, map fields, pass `--usage` and `--model`.
-- possibly a small helper (in `session_cost.py` or `check_deliverable.py`) that
-  turns a `CLAUDE_CODE_SESSION_ID` into a transcript path and a bounded reading.
-- reuse `run_conformance._model_from_transcript` for the model (one home; if it
-  is not importable across the boundary, that move is part of the work).
-- tests: a synthetic transcript + a session id yields a `--usage` with the four
-  mapped counts and a `--model`; an absent env var records nothing and says so
-  (OR-8c deliberate-red); the field rename is asserted.
-- `KNOWN_GAPS.md`: GAP-048 → fixed for the readable platforms; any residual
-  (effort, non-Claude platforms) named.
+## Corrections carried from review (either path)
+- **Effort IS in the transcript** — top-level `effort: "high"` on every assistant
+  record, and `trace close --effort` accepts it. The first draft's "effort stays
+  null" was wrong; it can be recorded.
+- **Preserve None** — `session_cost` sums with `... or 0`, always emitting an
+  integer; the mapper must keep an absent cache field as `None`, not `0`, or it
+  contradicts `_read_usage`'s doctrine.
+- **The field rename already exists** as `session_cost.HERMES_FIELD` /
+  `run_conformance._usage_from_transcript` — reuse, one home; but from a
+  consumer-side location (H1).
+- **Automatic on `CLAUDE_CODE_SESSION_ID`, degrade loudly when absent** (OR-8c),
+  no flag — perf (0.26 s) and privacy (counts only) both clear it.
+- **Platform scope:** Claude Code only realistically (Cursor exposes an
+  end-of-session total, no window; a real build is not driven by Hermes's store).
+  Others record null, honestly; GAP-048 stays partially open with the residual
+  naming model/effort/non-Claude, not just "non-Claude."
+
+## The owner decision this surfaces
+The choice is Path A (session-scoped, coarse, now — small) or Path B
+(build-scoped, precise — a real design with a schema change). My recommendation:
+**Path B if real per-deck cost is the goal** (it is the number the board wants and
+the reason GAP-048 was opened), accepting it is a proper design pass, not a quick
+wiring; **Path A only if a rough per-delivery figure soon is worth more than
+precision.** Neither is the "small reuse" the first draft imagined — the red-team
+retired that.
+
+## Verification (once a path is chosen)
+- Deliberate red planted first: a build close records real, verifiable
+  tokens+model (path-appropriate scope); no session id → records nothing and
+  says so (OR-8c three-answers).
+- The field mapping preserves `None`; the window (Path B) is asserted to exclude
+  turns outside it.
+- preflight green; one release, one commit.
 
 ## What this is NOT
-- Not self-reported: the numbers are the transcript's own.
-- Not the whole-session total: it is the build's slice, bounded by the trace's
-  lifespan.
-- Not effort: the transcript does not carry it; it stays honestly null.
-- Not a `--fast` concern: fast rounds mark partial and never close (R8).
-
-## Verification (once the design settles)
-- Deliberate red planted first: a build close with a resolvable session records
-  non-null tokens+model; with no session id it records nothing AND prints the
-  skip (OR-8c three-answers — recorded / honest-null-and-said-so).
-- The field rename is asserted against `trace._read_usage`'s expected names.
-- preflight green; one release, one commit.
+- Not self-reported — the numbers are the transcript's own (holds).
+- Not the "reuse existing plumbing" the first draft claimed (retired).
+- Not a `--fast` concern — fast rounds mark partial and never close (R8, holds).
