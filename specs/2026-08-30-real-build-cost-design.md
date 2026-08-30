@@ -1,9 +1,52 @@
 # A real build's cost: session is easy, build-slice is the hard part
 
-Date: 2026-08-30 · Status: recut after a two-reviewer red-team (one empirical on
-this session's real transcript). The owner's premise held; the "reuse existing
-plumbing" design did not. Ready for an owner scope decision. Roadmap item R7
-(GAP-048).
+Date: 2026-08-30 · Status: **Path B chosen by the owner** (build-scoped, precise).
+Recut after a two-reviewer red-team (one empirical on this session's real
+transcript). The mechanism is below; a focused review of it comes before
+implementation. Roadmap item R7 (GAP-048).
+
+## Path B mechanism — persist the phase intervals the clock already computes
+
+The build-only window is buildable because the timestamps already exist at the
+moment they are needed. `trace.py cmd_phase` on `stop` reads the phase's start
+(`clocks[name]`, an ISO timestamp it wrote at `start`) and takes `now` — it holds
+**both ends of the interval** and today keeps only their difference
+(`phase_seconds[name] += seconds`). Path B persists the interval too:
+
+1. **Schema — `phase_windows`.** A new field: `{phase: [[start_iso, stop_iso], …]}`,
+   accumulated across rounds beside `phase_seconds`. RUN partition, `ADDED_LATER`
+   (empty on the 96 existing traces). One list per phase because a build spans N
+   rounds (0.1.602), so each round contributes an interval.
+2. **`cmd_phase` stop** appends `[started_iso, now_iso]` to `phase_windows[name]`
+   as it accumulates the seconds — the interval it already has in hand.
+3. **The authoring window** is the union of the intervals for the token-spending
+   phases — `discussion`, `outline`, `build` — and NOT `checks` (checks is the
+   tooling's own run, no model tokens). A build-only window, not the trace
+   lifespan: the turns between authoring phases (email, other work) fall in no
+   interval and are excluded. This is what makes the number build cost, not
+   session cost, and bounds the cache-read that otherwise dominates.
+4. **A consumer-side reader** (new; the existing readers are dev-side, H1) reads
+   the session transcript once, keeps each assistant record whose top-level ISO
+   `timestamp` falls in any authoring interval, and returns: the four usage
+   fields summed (deduped by `message.id`, mapped to `_read_usage`'s names,
+   **preserving `None` for an absent cache field**), and the model(s) seen —
+   from per-message `message.model`, not the CLI-stream reader that returns
+   `None` here (C2). Effort comes from the record's top-level `effort`.
+5. **check_deliverable full close** gathers the authoring window from the trace,
+   runs the reader, and passes `--usage`, `--model`, `--effort`. OR-8c: no
+   session id / no file / no authoring intervals → record nothing and say so.
+
+### The two sub-decisions the mechanism review must settle
+- **Are the authoring phases actually clocked in a real build?** If only `build`
+  is clocked (the scaffold starts it, check_deliverable stops it) and
+  `discussion`/`outline` are not, the window is build-phase-only and misses the
+  earlier authoring turns. The review must check what a real loop clocks; the
+  window is only as complete as the phases that are timed.
+- **Multi-model within the authoring window.** Even build turns can span models
+  (a compaction runs `fable`). The reader must decide: record the token-dominant
+  model, split per model, or null when no model holds a clear majority. The cost
+  board keys on one `(model, effort)`, so a rule is needed — recommend
+  dominant-model with the token share recorded, null below a threshold.
 
 ## The premise held; my "already built" claims did not
 
