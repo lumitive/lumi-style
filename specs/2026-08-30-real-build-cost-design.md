@@ -2,8 +2,9 @@
 
 Date: 2026-08-30 · Status: **Path B chosen by the owner** (build-scoped, precise).
 Recut after a two-reviewer red-team (one empirical on this session's real
-transcript). The mechanism is below; a focused review of it comes before
-implementation. Roadmap item R7 (GAP-048).
+transcript). The mechanism below is reviewed and corrected (window is build-phase
+cost mirroring the time axis; phase_windows in PRODUCER; dominant-model, no dead
+share field); ready to implement. Roadmap item R7 (GAP-048).
 
 ## Path B mechanism — persist the phase intervals the clock already computes
 
@@ -14,39 +15,73 @@ moment they are needed. `trace.py cmd_phase` on `stop` reads the phase's start
 (`phase_seconds[name] += seconds`). Path B persists the interval too:
 
 1. **Schema — `phase_windows`.** A new field: `{phase: [[start_iso, stop_iso], …]}`,
-   accumulated across rounds beside `phase_seconds`. RUN partition, `ADDED_LATER`
-   (empty on the 96 existing traces). One list per phase because a build spans N
-   rounds (0.1.602), so each round contributes an interval.
+   accumulated across rounds beside `phase_seconds`, in the **PRODUCER**
+   partition (it is the same measurement as `phase_seconds` — its start/stop pairs
+   ARE those durations; splitting the two spellings of one fact across partitions
+   is the drift `trace_schema.py:255` exists to stop). `ADDED_LATER` (empty on the
+   existing traces — re-verify the count at build). One list per phase because a
+   build spans N rounds (0.1.602).
 2. **`cmd_phase` stop** appends `[started_iso, now_iso]` to `phase_windows[name]`
-   as it accumulates the seconds — the interval it already has in hand.
-3. **The authoring window** is the union of the intervals for the token-spending
-   phases — `discussion`, `outline`, `build` — and NOT `checks` (checks is the
-   tooling's own run, no model tokens). A build-only window, not the trace
-   lifespan: the turns between authoring phases (email, other work) fall in no
-   interval and are excluded. This is what makes the number build cost, not
-   session cost, and bounds the cache-read that otherwise dominates.
-4. **A consumer-side reader** (new; the existing readers are dev-side, H1) reads
-   the session transcript once, keeps each assistant record whose top-level ISO
-   `timestamp` falls in any authoring interval, and returns: the four usage
-   fields summed (deduped by `message.id`, mapped to `_read_usage`'s names,
-   **preserving `None` for an absent cache field**), and the model(s) seen —
-   from per-message `message.model`, not the CLI-stream reader that returns
-   `None` here (C2). Effort comes from the record's top-level `effort`.
-5. **check_deliverable full close** gathers the authoring window from the trace,
-   runs the reader, and passes `--usage`, `--model`, `--effort`. OR-8c: no
-   session id / no file / no authoring intervals → record nothing and say so.
+   as it accumulates the seconds — both ends already in hand (`trace.py:309-311`),
+   a genuine 2-line change. It rides the same trace-first write as
+   `phase_seconds`, and is *more* crash-robust: a re-stop appends a superset
+   interval, unioning is idempotent, and the reader's `message.id` dedup counts
+   each call once — so GAP-043's double-count fear does not reach tokens.
+3. **The window is the clocked build cost, labelled as such — NOT total
+   authoring.** Only `build` is clocked in a real loop (`new_deck.py:616` is the
+   sole `phase start`; `check_deliverable.py:648` stops it). `discussion` and
+   `outline` are **deliberately never counted** — `operating-rules.md:192`:
+   charging for the thinking the user was asked to do pushes every build back
+   toward the template path, "the opposite of what the measurement is for." So the
+   window is the union of the **build** intervals, and the token number this
+   records is **build-phase cost**, excluding discussion/outline token spend by
+   the *same rule* the cost board already applies on the time axis
+   (`agent_runs.py:97` charges `build`+`checks` only; pinned by
+   `tests/test_agent_runs.py:49`). Consistency across the two axes is what makes
+   the number defensible — it is the repo's own definition of build cost, applied
+   to tokens. Not the trace lifespan: turns outside the build intervals fall in no
+   window and are excluded, bounding the cache-read that otherwise dominates.
+4. **A consumer-side reader** (new; the existing mappers are dev-side, H1) reads
+   the transcript once, keeps each assistant record whose top-level ISO
+   `timestamp` falls in a build interval, and returns: the four usage fields
+   summed (deduped by `message.id`, mapped to `_read_usage`'s names, **preserving
+   `None` for an absent cache field** — `session_cost`'s `… or 0` must not turn
+   absence into a `0` claim), the **dominant model** (from per-message
+   `message.model` — NOT `_model_from_transcript`, which returns `None` on this
+   format, C2) recorded as a string when its share of billable (output) tokens
+   clears a threshold else `null`, and `effort` from the record's top-level field.
+5. **check_deliverable full close** gathers the build window from the trace, runs
+   the reader, passes `--usage`/`--model`/`--effort`. OR-8c: no session id / no
+   file / no build window → record nothing and say so.
 
-### The two sub-decisions the mechanism review must settle
-- **Are the authoring phases actually clocked in a real build?** If only `build`
-  is clocked (the scaffold starts it, check_deliverable stops it) and
-  `discussion`/`outline` are not, the window is build-phase-only and misses the
-  earlier authoring turns. The review must check what a real loop clocks; the
-  window is only as complete as the phases that are timed.
-- **Multi-model within the authoring window.** Even build turns can span models
-  (a compaction runs `fable`). The reader must decide: record the token-dominant
-  model, split per model, or null when no model holds a clear majority. The cost
-  board keys on one `(model, effort)`, so a rule is needed — recommend
-  dominant-model with the token share recorded, null below a threshold.
+### The four integrity yardsticks, and how the design meets them
+This is the point, per the owner: the number must **stand up and be checkable**.
+1. **Reproducible.** `phase_windows` is recorded ON the trace, so anyone can
+   re-run the reader over the same window + transcript and get the same number.
+   The cost is evidence-backed, not asserted — and this is the backbone that also
+   settles yardstick 4.
+2. **Not collapsed.** The four token kinds (input / output / cache-read /
+   cache-write) stay four fields, priced differently; output is the billable
+   signal the board grades, cache-read is context. Never one lump.
+3. **Scope stated.** It is **build-phase cost**, the repo's established boundary
+   (time axis already excludes discussion/outline), labelled — not "total
+   authoring" dressed as precise.
+4. **Multi-model honest — settled by yardstick 1.** Record the dominant model or
+   `null`; do NOT persist a token-share field (it has no reader — an unconsumed
+   column is the FM-24 fake-coverage defect). The full per-model split is
+   *re-derivable* from the recorded window, so recording the dominant is honest,
+   auditable, and needs no dead field.
+
+### Deliberate-red is load-bearing here
+`ADDED_LATER` permanently withdraws `phase_windows` from the fill-rate guard (no
+dead-waiver reverse check), so nothing automatic catches `cmd_phase stop`
+regressing to never-append — the mechanism that PRODUCES the evidence. The
+deliberate-red (conventions 11/15 + FM-24) must therefore prove: `cmd_phase stop`
+appends an interval; `validate` rejects a malformed `phase_windows` (not a list of
+`[iso, iso]` pairs, or a phase outside `PHASES`); the reader excludes
+out-of-window turns and handles an absent window (old traces, un-clocked builds).
+`phase_windows` gets its own validation and its own test, in the style of
+`test_phase_seconds_*`.
 
 ## The premise held; my "already built" claims did not
 
