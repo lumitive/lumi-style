@@ -1,8 +1,9 @@
 # The client-name scan must say when it did not run
 
-Date: 2026-08-30 · Status: design revised after a two-reviewer red-team;
-ready to implement. The release that implements it will cite this file.
-Roadmap item R12 (GAP-047).
+Date: 2026-08-30 · Status: IMPLEMENTED at 0.1.652, which cites this file.
+Design revised after a two-reviewer red-team, then a three-agent pre-PR review
+(which added the file-at-TERMS_DIR fix and the human-mode reader-parity test).
+Roadmap item R12 (GAP-047); the residual is tracked there.
 
 ## What was found (verified in code this session)
 

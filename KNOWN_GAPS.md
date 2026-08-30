@@ -118,26 +118,45 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 - check: a trace closed with source=conformance but no model/effort should be a
   finding; a real-build trace with the same nulls should not.
 
-## GAP-047 · check_secrets skips the client-name scan silently when no terms list is present
+## GAP-047 · The client-name scan is best-effort in CI, leaving dev-side files unscanned on a no-terms machine
 
 - status: open
 - opened: 0.1.651
-- surface: scripts/check/check_repo.py (`_operator_terms`, `check_secrets`)
-- symptom: `_operator_terms()` returns `[]` when `~/.lumi/terms/*.terms.txt` is
-  absent, so `check_secrets` scans credential SHAPES (SECRET_PATTERNS, unaffected)
-  but runs NO client-name scan and reports green. The 2026-08-20 audit found a
-  city name in eight tracked files — exactly what this half catches. Contrast
-  check_privacy, which reports `not_attempted` (non-zero) with no list: "could
-  not run is not passed." The two readers of the same list disagree.
-- why it is a gap and not a simple fix: check_secrets runs in CI, where
-  `~/.lumi/terms` does not exist. A blunt "hard-fail with no list" would make CI
-  permanently red. The fix must distinguish a machine that HAS the terms
-  directory but an empty/missing list (should report) from CI's structural
-  absence (legal, but said out loud) — a design decision, not a one-liner.
-  publish.sh step-0 forces a terms list at publish time, so the hole is
-  local-development-only, but it is real there.
-- check: on a machine with `~/.lumi/terms` present but empty, check_secrets must
-  not silently pass its client-name half.
+- surface: scripts/check/check_repo.py (`_operator_terms`, `check_secrets`),
+  scripts/check/check_privacy.py, adapters/shipped.json
+- symptom: on a machine with no `~/.lumi/terms`, the client-name half returns
+  `[]` and exits 0, so an engagement term in a dev-side tracked file the publish
+  projection excludes (`specs/`, `KNOWN_GAPS.md`, `CLAUDE.md`, `FAILURE_MODES.md`)
+  is caught by nothing. The louder halves — a present-but-empty list, and the
+  two readers disagreeing — were closed at 0.1.652 (below); this is the residual.
+- narrowed at: 0.1.652 — the loud half is now closed (see below); this entry
+  now tracks only the residual it delegated.
+- closed at 0.1.652: `_operator_terms` keys on `len(terms)`, not on
+  status/file existence, so a `~/.lumi/terms/` that is present but yields no
+  usable terms (an empty dir, OR a comment-only `*.terms.txt` that loaded as
+  `([], "loaded")`) is a finding, not a silent green. `check_privacy` got the
+  matching guard (a loaded-but-empty list is `no_terms`, non-zero) so the two
+  readers of the list agree. The design decision that made this safe for CI:
+  distinguish "provisioned but no usable list" (fail) from "no directory at
+  all" (the delegated structural skip).
+- residual (still open): the `no_dir` skip returns `[]` and CI's harness is
+  binary per guard (no note channel), so on a machine with no `~/.lumi/terms`
+  the client-name half prints `ok` (with a stderr note, but exit 0). An
+  engagement term in a DEV-SIDE tracked file — `specs/`, `KNOWN_GAPS.md`,
+  `CLAUDE.md`, `FAILURE_MODES.md`, which `shipped.json` keeps out of the
+  publish projection — is then caught by nothing: check_privacy scans
+  deliverables not the repo, publish.sh step-3 scans the projection (which
+  excludes those files), and CI structurally has no list. (CHANGELOG.md is
+  consumer-side and IS scanned at publish, so it is NOT part of this residual.)
+- full fix (deferred): make the client-name scan obligatory before push with
+  the list present — an operator obligation recorded and checked, the evidence
+  gate's pattern. The scan intrinsically depends on an uncontrolled external
+  list (client names cannot ship in-repo), so the move is to make its absence
+  loud at the moment it matters, not to remove the dependency.
+- check: on a machine with `~/.lumi/terms/` present but empty (dir or
+  comment-only file), check_secrets fails its client-name half
+  (tests/test_secrets_guard.py); a loaded-but-empty list fails check_privacy
+  (tests/test_check_privacy.py).
 
 ## GAP-048 · A real build records no model/effort/usage; cost evidence exists only for conformance runs
 

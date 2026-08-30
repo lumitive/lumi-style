@@ -1,0 +1,8 @@
+{
+ "version": "0.1.652",
+ "diff_base": "44ab3ff274ee1d5b7277349e163c8b272a8794ba",
+ "spec": "specs/2026-08-30-secrets-terms-absence-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}

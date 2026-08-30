@@ -3313,11 +3313,33 @@ SECRET_PATTERNS = secret_patterns.PATTERNS
 
 
 def _operator_terms():
-    """-> compiled patterns from every list under the OR-8 directory, or []."""
-    terms, status = check_privacy.load_terms(None)
-    if status != "loaded":
-        return []
-    return [check_privacy.term_pattern(t) for t in terms]
+    """-> (patterns, status3) for the client-name scan.
+
+    status3 keys on whether the scan has anything to search FOR, not on whether
+    a directory or file exists — a present-but-comment-only *.terms.txt loads as
+    ([], "loaded") from load_terms (its (terms, status) order): provisioned,
+    nothing to search for, and it must not read as coverage (GAP-047, FM-24).
+    Three answers, not two:
+      loaded            — a non-empty list; scan it.
+      provisioned_empty — the configured path EXISTS but yields no usable terms
+                          (an empty dir, a dir of comment-only files, OR a FILE
+                          at the path rather than a directory): a finding,
+                          because this machine is set up for terms and the scan
+                          is blind. Keyed on .exists(), not .is_dir() — a
+                          LUMI_TERMS_DIR pointed at a list FILE is a populated
+                          list the glob cannot read, not a structural absence,
+                          and must not skip silently.
+      no_dir            — nothing at the path at all (CI, fresh checkout): the
+                          one delegated silence (check_privacy on deliverables +
+                          publish.sh's no-list refusal carry it where a list
+                          must exist).
+    """
+    terms, _status = check_privacy.load_terms(None)
+    if terms:
+        return [check_privacy.term_pattern(t) for t in terms], "loaded"
+    if check_privacy.TERMS_DIR.exists():
+        return [], "provisioned_empty"
+    return [], "no_dir"
 
 
 def check_secrets():
@@ -3341,10 +3363,28 @@ def check_secrets():
     # when this machine has them, are run over the tracked text too. Red
     # line 9's hard core (no client name in a tracked file) was held by habit
     # alone; the 2026-08-20 audit found a city name in eight tracked files.
-    # In CI the directory does not exist and the half is simply not run — a
-    # guard returns findings, not verdicts, so its absence is reported by
-    # check_privacy on the deliverable side rather than silently here.
-    terms = _operator_terms()
+    terms, terms_status = _operator_terms()
+    if terms_status == "provisioned_empty":
+        # Set up for terms but the scan has nothing to search for — a false
+        # green here is exactly the 2026-08-20 hole (GAP-047). A finding, not
+        # a silent skip: the operator populates the list or removes the dir.
+        errors.append("the ~/.lumi/terms/ path is present but yields no usable "
+                      "*.terms.txt; the client-name scan (red line 9) has "
+                      "nothing to search for. Populate the list, point "
+                      "LUMI_TERMS_DIR at the DIRECTORY holding the *.terms.txt "
+                      "(not the file itself), or remove the path to take the "
+                      "documented structural skip")
+    elif terms_status == "no_dir":
+        # No ~/.lumi/terms/ at all (CI, fresh checkout): a legal structural
+        # absence, delegated to check_privacy (deliverables) and publish.sh
+        # step-0 (refuses to publish with no list). check_repo's harness is
+        # binary per guard with no note channel, so the skip cannot be a
+        # non-failing verdict — but it must not be MUTE either (FM-24): say it
+        # on stderr so a reader sees the half did not run. The residual (a
+        # client name in a dev-only tracked file on a no-terms machine, e.g.
+        # specs/ or KNOWN_GAPS.md, which the projection excludes) is GAP-047.
+        print("note  secrets: client-name half skipped — no ~/.lumi/terms/ on "
+              "this machine (structural absence; see GAP-047)", file=sys.stderr)
     for relpath in names:
         if not relpath or relpath in SECRET_WAIVERS:
             continue
