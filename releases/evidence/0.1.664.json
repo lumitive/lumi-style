@@ -1,0 +1,24 @@
+{
+  "version": "0.1.664",
+  "diff_base": "0bab6701f06f52bdd8a83befd2d8f649c5f68438",
+  "spec": "specs/2026-08-31-insight-metrics-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "f04602e1e4dabf54880d35f1a127e018812a9c892b096ad3bdbb2f17779ea4dd",
+      "date": "2026-08-31"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board's newest run is 0.1.648, sixteen releases back. Refreshing it means driving at least two platform CLIs through all three tasks on the owner's API credentials with her installs current \u2014 her call, not a step a release takes on its own. This is the THIRD consecutive release carrying this waiver and that is stated rather than buried: a waiver repeated is a waiver becoming a rubber stamp, and the debt is the board's. What is unconfirmed: whether the twelve configurations still produce passing deliverables. This release adds a renderer no agent is yet wired to call, a rule in design-rules.md and the prompt tier, and a guard fix; no adapter, platform registry record, entry-point loading rule or token value changed, so no platform capability moved."
+    }
+  ]
+}

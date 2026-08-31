@@ -88,9 +88,9 @@ The seams. A part opener is a claim, a label, a run line and one silhouette.
 | Make part openers full lime fields carrying the claim in near-black at display size, and no other page. | `references/brand.md:273` | — | `—` | no |
 | Set part-opener display type at 80px on the slide and 72px on the sheet. | `references/brand.md:304` | — | `—` | no |
 | Invert the footer's handling marker with the rest of the footer on a lime opener. | `references/design-rules.md:109` | `footer.marker-colour` ← `RC-100` | `—` | no |
-| Invert the handling marker with the rest of the footer on the lime opener. | `references/design-rules.md:1129` | `footer.marker-colour` ← `RC-100` | `—` | no |
-| Use the filled silhouette set only for part-opener subject marks. | `references/design-rules.md:1174` | — | `opener_subject_mark` | yes |
-| Make an opener's subject mark fill-based, never stroke-based. | `references/design-rules.md:1233` | — | `opener_subject_mark` | yes |
+| Invert the handling marker with the rest of the footer on the lime opener. | `references/design-rules.md:1191` | `footer.marker-colour` ← `RC-100` | `—` | no |
+| Use the filled silhouette set only for part-opener subject marks. | `references/design-rules.md:1236` | — | `opener_subject_mark` | yes |
+| Make an opener's subject mark fill-based, never stroke-based. | `references/design-rules.md:1295` | — | `opener_subject_mark` | yes |
 | Make part openers the only full accent-field pages. | `references/design-rules.md:153` | — | `—` | no |
 | Set text on an accent field in solid --on-accent, never faded. | `references/design-rules.md:156` | — | `D1` | no |
 | Build hierarchy on an accent field from size, not colour. | `references/design-rules.md:157` | — | `—` | no |
@@ -172,30 +172,30 @@ Gathered separately at the owner's direction: these are the pages the argument i
 | Treat the title reserve as a ceiling — two title lines plus one support line — and shorten text rather than grow it. | `references/brand.md:260` | — | `reserve_overspent` | yes |
 | Set page titles at weight 700, 34px on the slide and 26px on the sheet. | `references/brand.md:313` | — | `—` | no |
 | Set support lines at 17px weight 500. | `references/brand.md:315` | — | `—` | no |
-| Label illustrative values as illustrative. | `references/design-rules.md:1000` | — | `—` | no |
-| Pick the page's shape from the analytical question, not from the chart type. | `references/design-rules.md:1006` | — | `—` | no |
-| Choose a figure by the relation the content has, never by how the shape looks. | `references/design-rules.md:1021` | — | `—` | no |
-| Make the relation in the data and the relation the shape encodes the same one. | `references/design-rules.md:1024` | — | `—` | no |
-| Do not draw a funnel whose values do not decrease, a 2x2 whose axes are not independent, or a waterfall that does not add up. | `references/design-rules.md:1025` | — | `—` | no |
-| Label any library shape dropped into a page. | `references/design-rules.md:1064` | — | `—` | no |
-| Put the page's own numbers inside the figure's geometry. | `references/design-rules.md:1066` | — | `D29` | no |
-| Colour SVG text with a style attribute rather than a fill presentation attribute. | `references/design-rules.md:1093` | — | `—` | no |
-| Keep the relation intact when layering, recolouring, scaling or rotating a library shape. | `references/design-rules.md:1098` | — | `—` | no |
-| Retint a library shape only along the accent ladder, never by introducing a colour. | `references/design-rules.md:1104` | — | `D20` | yes |
-| Size a label on a library shape in the shape's own units. | `references/design-rules.md:1106` | — | `—` | no |
-| Take every eyebrow, figure-node and row-head icon from the semantic inline set. | `references/design-rules.md:1171` | — | `—` | no |
-| Give pages with different subjects different icons rather than reusing one. | `references/design-rules.md:1192` | — | `—` | no |
-| Carry an icon naming the page's subject in every content page's eyebrow. | `references/design-rules.md:1200` | — | `D10` | no |
-| Give every labelled figure node and table row-head group an icon. | `references/design-rules.md:1202` | — | `D10` | no |
-| Anchor a right-anchored label on a full-width bar inside the fill. | `references/design-rules.md:1221` | — | `—` | no |
-| Keep figure labels within the body's terminology. | `references/design-rules.md:1258` | — | `—` | no |
-| Equalize card title heights in a row and stack stat numbers above their labels. | `references/design-rules.md:1261` | — | `—` | no |
-| Inside a figure set the value on or above its mark with the descriptor beneath. | `references/design-rules.md:1281` | — | `—` | no |
+| Label illustrative values as illustrative. | `references/design-rules.md:1001` | — | `—` | no |
+| Pick the page's shape from the analytical question, not from the chart type. | `references/design-rules.md:1068` | — | `—` | no |
+| Choose a figure by the relation the content has, never by how the shape looks. | `references/design-rules.md:1083` | — | `—` | no |
+| Make the relation in the data and the relation the shape encodes the same one. | `references/design-rules.md:1086` | — | `—` | no |
+| Do not draw a funnel whose values do not decrease, a 2x2 whose axes are not independent, or a waterfall that does not add up. | `references/design-rules.md:1087` | — | `—` | no |
+| Label any library shape dropped into a page. | `references/design-rules.md:1126` | — | `—` | no |
+| Put the page's own numbers inside the figure's geometry. | `references/design-rules.md:1128` | — | `D29` | no |
+| Colour SVG text with a style attribute rather than a fill presentation attribute. | `references/design-rules.md:1155` | — | `—` | no |
+| Keep the relation intact when layering, recolouring, scaling or rotating a library shape. | `references/design-rules.md:1160` | — | `—` | no |
+| Retint a library shape only along the accent ladder, never by introducing a colour. | `references/design-rules.md:1166` | — | `D20` | yes |
+| Size a label on a library shape in the shape's own units. | `references/design-rules.md:1168` | — | `—` | no |
+| Take every eyebrow, figure-node and row-head icon from the semantic inline set. | `references/design-rules.md:1233` | — | `—` | no |
+| Give pages with different subjects different icons rather than reusing one. | `references/design-rules.md:1254` | — | `—` | no |
+| Carry an icon naming the page's subject in every content page's eyebrow. | `references/design-rules.md:1262` | — | `D10` | no |
+| Give every labelled figure node and table row-head group an icon. | `references/design-rules.md:1264` | — | `D10` | no |
+| Anchor a right-anchored label on a full-width bar inside the fill. | `references/design-rules.md:1283` | — | `—` | no |
+| Keep figure labels within the body's terminology. | `references/design-rules.md:1320` | — | `—` | no |
+| Equalize card title heights in a row and stack stat numbers above their labels. | `references/design-rules.md:1323` | — | `—` | no |
+| Inside a figure set the value on or above its mark with the descriptor beneath. | `references/design-rules.md:1343` | — | `—` | no |
 | Keep chart data colours as the fixed CVD-validated triple regardless of brand palette. | `references/design-rules.md:140` | — | `—` | no |
-| Keep every drawn element inside its figure's viewBox. | `references/design-rules.md:1411` | — | `figure_clipped` | yes |
-| Edit a figure's viewBox with the shape, so the box a figure declares is the box it draws in. | `references/design-rules.md:1412` | — | `figure_viewbox` | yes |
-| Keep every figure label inside its own shape. | `references/design-rules.md:1415` | — | `—` | no |
-| Start side-by-side cells on one line with comparable weight. | `references/design-rules.md:1563` | — | `starved_column` | yes |
+| Keep every drawn element inside its figure's viewBox. | `references/design-rules.md:1473` | — | `figure_clipped` | yes |
+| Edit a figure's viewBox with the shape, so the box a figure declares is the box it draws in. | `references/design-rules.md:1474` | — | `figure_viewbox` | yes |
+| Keep every figure label inside its own shape. | `references/design-rules.md:1477` | — | `—` | no |
+| Start side-by-side cells on one line with comparable weight. | `references/design-rules.md:1625` | — | `starved_column` | yes |
 | Let hue encode only region identity in the globe's region form. | `references/design-rules.md:164` | — | `—` | no |
 | Never use a region hue outside a region shape. | `references/design-rules.md:169` | — | `—` | no |
 | Keep label text on a region fill at 4.5:1 or better. | `references/design-rules.md:183` | — | `—` | no |
@@ -304,8 +304,8 @@ Gathered separately at the owner's direction: these are the pages the argument i
 | Draw a table rather than a grid of rectangles containing sentences. | `references/design-rules.md:984` | — | `—` | no |
 | Use a stat callout when one number is the story. | `references/design-rules.md:988` | — | `—` | no |
 | Match form to content: composition or trend to segmented bars, a bridge to a waterfall, time commitments to a milestone timeline. | `references/design-rules.md:989` | — | `—` | no |
-| Label the values on the marks when a comparison is drawn as a figure. | `references/design-rules.md:995` | — | `—` | no |
-| Default a comparison table to columns as options and rows as dimensions. | `references/design-rules.md:998` | — | `—` | no |
+| Label the values on the marks when a comparison is drawn as a figure. | `references/design-rules.md:996` | — | `—` | no |
+| Default a comparison table to columns as options and rows as dimensions. | `references/design-rules.md:999` | — | `—` | no |
 | Put a proposal's recommendation on the first content page, stated as a decision. | `references/storyline-templates.md:133` | — | `—` | no |
 | Give the get-started page all four artifacts: repository link, install step per tier, first command, feedback channel. | `references/storyline-templates.md:187` | — | `—` | no |
 | Close every external-genre content page with a takeaway line. | `references/storyline-templates.md:277` | — | `D28` | no |
@@ -387,79 +387,79 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | In a field, draw exactly one mark per datum and take its intensity from the datum. | `references/brand.md:93` | — | `—` | no |
 | Render the footer's handling shield marker in --seal-t. | `references/design-rules.md:105` | `footer.marker-colour` | `—` | no |
 | Get hierarchy from the transparency ladders, never from new greys. | `references/design-rules.md:111` | — | `—` | no |
-| Carry the handling terms and the document's origin on every page. | `references/design-rules.md:1118` | — | `D12` | yes |
-| Put the confidentiality line then the organisation's site left of the footer rule. | `references/design-rules.md:1119` | — | `D12` | yes |
-| Put N / total on the right of the footer. | `references/design-rules.md:1120` | — | `D6` | no |
-| Open the handling terms with the shield reserved icon in the .foot .conf slot. | `references/design-rules.md:1124` | — | `—` | no |
 | Keep every step of the text ladder at 4.5:1 or better. | `references/design-rules.md:114` | — | `D1` | no |
-| Never print a repository or file path in a footer source line. | `references/design-rules.md:1147` | — | `D15` | yes |
-| Name something the reader can act on in a source line. | `references/design-rules.md:1148` | — | `—` | no |
 | Set text only in the text ladder tokens. | `references/design-rules.md:115` | — | `—` | no |
-| Let no author placeholder reach the reader. | `references/design-rules.md:1155` | — | `D14` | yes |
 | Never set text in the non-text ladder. | `references/design-rules.md:117` | — | `—` | no |
 | Colour marks a reader must distinguish from the text ladder. | `references/design-rules.md:118` | — | `—` | no |
-| Embed only the icons the document actually uses. | `references/design-rules.md:1187` | — | `—` | no |
-| Use the reserved icon bindings so a recurring meaning looks the same everywhere. | `references/design-rules.md:1195` | — | `—` | no |
-| Let an icon mean exactly one thing within one document. | `references/design-rules.md:1196` | — | `—` | no |
-| Render semantic icons at a minimum 14px effective size at the design viewport. | `references/design-rules.md:1205` | — | `—` | no |
-| Never add icons for decoration and never draw one ad hoc. | `references/design-rules.md:1206` | — | `—` | no |
-| Take every icon from the two sets this package ships; never draw one ad hoc. | `references/design-rules.md:1206` | — | `D33` | yes |
-| Put an icon on a text line in a flex container. | `references/design-rules.md:1224` | — | `—` | no |
-| Size an inline icon at roughly 1.4x the text it accompanies. | `references/design-rules.md:1228` | — | `—` | no |
-| Apply the 14px minimum to semantic inline icons only. | `references/design-rules.md:1230` | — | `—` | no |
-| Fix icon size and exclude icons from blanket container scaling. | `references/design-rules.md:1238` | — | `—` | no |
+| Carry the handling terms and the document's origin on every page. | `references/design-rules.md:1180` | — | `D12` | yes |
+| Put the confidentiality line then the organisation's site left of the footer rule. | `references/design-rules.md:1181` | — | `D12` | yes |
+| Put N / total on the right of the footer. | `references/design-rules.md:1182` | — | `D6` | no |
+| Open the handling terms with the shield reserved icon in the .foot .conf slot. | `references/design-rules.md:1186` | — | `—` | no |
+| Never print a repository or file path in a footer source line. | `references/design-rules.md:1209` | — | `D15` | yes |
+| Name something the reader can act on in a source line. | `references/design-rules.md:1210` | — | `—` | no |
+| Let no author placeholder reach the reader. | `references/design-rules.md:1217` | — | `D14` | yes |
 | Set dark-canvas text in cold white, never pure white. | `references/design-rules.md:124` | — | `—` | no |
-| Keep a title to one line where it fits and never past two. | `references/design-rules.md:1243` | `title.max-lines` | `title_two_lines` | yes |
-| Never narrow the title container to force a line break. | `references/design-rules.md:1245` | — | `—` | no |
-| Set display titles as a size range and let a long title take the lower end before cutting words. | `references/design-rules.md:1248` | — | `—` | no |
-| Never cut a title below its information floor when shortening it. | `references/design-rules.md:1251` | — | `—` | no |
-| State exact values and never round them for effect. | `references/design-rules.md:1269` | — | `—` | no |
-| Set label-plus-value spec strips with the values in the data voice. | `references/design-rules.md:1270` | — | `—` | no |
-| State negative or qualifying information inline, never in footnotes. | `references/design-rules.md:1271` | — | `—` | no |
-| Never pick the most flattering measurement condition for a headline number. | `references/design-rules.md:1274` | — | `—` | no |
-| Place a number before the words it belongs to. | `references/design-rules.md:1277` | — | `—` | no |
-| In a stat block put the figure first at display size with its sentence under it. | `references/design-rules.md:1278` | — | `—` | no |
-| Lead with the number where a title carries one. | `references/design-rules.md:1280` | — | `—` | no |
-| Render every section at exactly the page geometry's height. | `references/design-rules.md:1309` | — | `page_height` | yes |
-| Design the landscape format as a 1280x720 stage, checked at 1920x1080. | `references/design-rules.md:1321` | — | `—` | no |
-| Design the portrait format as a 794x1123 A4 sheet. | `references/design-rules.md:1323` | — | `—` | no |
-| Design a deliverable for one geometry and declare it. | `references/design-rules.md:1325` | — | `—` | no |
-| Default sales, marketing and consulting to 16:9 and training to A4 portrait. | `references/design-rules.md:1329` | — | `—` | no |
+| Embed only the icons the document actually uses. | `references/design-rules.md:1249` | — | `—` | no |
+| Use the reserved icon bindings so a recurring meaning looks the same everywhere. | `references/design-rules.md:1257` | — | `—` | no |
+| Let an icon mean exactly one thing within one document. | `references/design-rules.md:1258` | — | `—` | no |
+| Render semantic icons at a minimum 14px effective size at the design viewport. | `references/design-rules.md:1267` | — | `—` | no |
+| Never add icons for decoration and never draw one ad hoc. | `references/design-rules.md:1268` | — | `—` | no |
+| Take every icon from the two sets this package ships; never draw one ad hoc. | `references/design-rules.md:1268` | — | `D33` | yes |
+| Put an icon on a text line in a flex container. | `references/design-rules.md:1286` | — | `—` | no |
+| Size an inline icon at roughly 1.4x the text it accompanies. | `references/design-rules.md:1290` | — | `—` | no |
+| Apply the 14px minimum to semantic inline icons only. | `references/design-rules.md:1292` | — | `—` | no |
+| Fix icon size and exclude icons from blanket container scaling. | `references/design-rules.md:1300` | — | `—` | no |
+| Keep a title to one line where it fits and never past two. | `references/design-rules.md:1305` | `title.max-lines` | `title_two_lines` | yes |
+| Never narrow the title container to force a line break. | `references/design-rules.md:1307` | — | `—` | no |
+| Set display titles as a size range and let a long title take the lower end before cutting words. | `references/design-rules.md:1310` | — | `—` | no |
+| Never cut a title below its information floor when shortening it. | `references/design-rules.md:1313` | — | `—` | no |
 | Make a quiet element smaller or cut it rather than fading it below legibility. | `references/design-rules.md:133` | — | `D1` | no |
-| Never serve both geometries from one file. | `references/design-rules.md:1335` | — | `—` | no |
-| Compose portrait pages afresh rather than collapsing landscape layouts. | `references/design-rules.md:1345` | — | `—` | no |
+| State exact values and never round them for effect. | `references/design-rules.md:1331` | — | `—` | no |
+| Set label-plus-value spec strips with the values in the data voice. | `references/design-rules.md:1332` | — | `—` | no |
+| State negative or qualifying information inline, never in footnotes. | `references/design-rules.md:1333` | — | `—` | no |
+| Never pick the most flattering measurement condition for a headline number. | `references/design-rules.md:1336` | — | `—` | no |
+| Place a number before the words it belongs to. | `references/design-rules.md:1339` | — | `—` | no |
+| In a stat block put the figure first at display size with its sentence under it. | `references/design-rules.md:1340` | — | `—` | no |
+| Lead with the number where a title carries one. | `references/design-rules.md:1342` | — | `—` | no |
 | Check text on a filled surface against that surface. | `references/design-rules.md:135` | — | `D1` | no |
-| Add no window-keyed media queries that restyle the inside of the stage. | `references/design-rules.md:1389` | — | `—` | no |
-| Keep the footer rule and page number visible on every page at every matrix point. | `references/design-rules.md:1393` | — | `—` | no |
+| Render every section at exactly the page geometry's height. | `references/design-rules.md:1371` | — | `page_height` | yes |
+| Design the landscape format as a 1280x720 stage, checked at 1920x1080. | `references/design-rules.md:1383` | — | `—` | no |
+| Design the portrait format as a 794x1123 A4 sheet. | `references/design-rules.md:1385` | — | `—` | no |
+| Design a deliverable for one geometry and declare it. | `references/design-rules.md:1387` | — | `—` | no |
+| Default sales, marketing and consulting to 16:9 and training to A4 portrait. | `references/design-rules.md:1391` | — | `—` | no |
+| Never serve both geometries from one file. | `references/design-rules.md:1397` | — | `—` | no |
+| Compose portrait pages afresh rather than collapsing landscape layouts. | `references/design-rules.md:1407` | — | `—` | no |
 | Verify every colour against the surface it is printed on. | `references/design-rules.md:143` | — | `D1` | no |
-| Render each repeated role exactly one way across the document. | `references/design-rules.md:1436` | — | `role_split` | yes |
 | Place a status chip on its own wash rather than directly on the canvas. | `references/design-rules.md:144` | — | `—` | no |
-| Start content at one datum per geometry. | `references/design-rules.md:1440` | — | `datum` | yes |
-| Use one colour per chart component across pages and a shared baseline inside a stat band. | `references/design-rules.md:1441` | — | `—` | no |
-| Let nothing land on anything: no text on text and no text on any drawn element. | `references/design-rules.md:1474` | — | `collision` | yes |
-| Move the grid tracks with the type scale so a block never overflows onto its neighbour. | `references/design-rules.md:1488` | — | `—` | no |
-| Treat the title block's reserved height as a ceiling. | `references/design-rules.md:1492` | — | `reserve_overspent` | yes |
-| Never clamp or hide overflow in a title block. | `references/design-rules.md:1501` | — | `content_hidden` | yes |
-| Give every styled class a base rendering rather than styling it only inside a media query. | `references/design-rules.md:1510` | — | `—` | no |
-| Give every page a layout class the shipped tokens define. | `references/design-rules.md:1521` | — | `D22` | yes |
-| Let a geometry tighten spacing but never change type size. | `references/design-rules.md:1530` | — | `—` | no |
-| Keep the rendered ground under 1.40:1 against the canvas. | `references/design-rules.md:1549` | `ground.contrast-ceiling` ← `RC-060` | `—` | no |
-| Avoid adjacent-sibling selectors inside a grid. | `references/design-rules.md:1558` | — | `—` | no |
-| Keep the page frame's parts the same width and centred at unintended window sizes. | `references/design-rules.md:1583` | — | `—` | no |
-| Keep the deepest ink on a page above the footer rule. | `references/design-rules.md:1589` | — | `content_spill` | yes |
-| Make each page a fixed box, scaled and letterboxed. | `references/design-rules.md:1590` | — | `page_height` | yes |
-| Keep page content out of the letterbox gutter. | `references/design-rules.md:1592` | — | `—` | no |
-| Include an image only when it carries an argument the page cannot make otherwise. | `references/design-rules.md:1625` | — | `—` | no |
-| Embed every image in the file as a data: URI rather than linking it. | `references/design-rules.md:1635` | — | `D24` | yes |
-| Name every image's origin and terms on the page. | `references/design-rules.md:1639` | — | `D25` | yes |
-| Name the licence for any image that is not public domain or CC0. | `references/design-rules.md:1642` | — | `D25` | yes |
-| Treat every photograph into the palette, as a duotone or a mono plate. | `references/design-rules.md:1644` | — | `—` | no |
-| Never set text on raw photography. | `references/design-rules.md:1648` | — | `—` | no |
-| Place imagery only on the cover, a part opener, a full-bleed evidence page, or inside a .fig. | `references/design-rules.md:1652` | — | `—` | no |
-| Never place imagery behind body copy, behind a table, or as a repeating texture. | `references/design-rules.md:1653` | — | `—` | no |
-| Ban the stock-photograph tells by name. | `references/design-rules.md:1658` | — | `—` | no |
-| Downscale an embedded raster to the size it is actually rendered at. | `references/design-rules.md:1664` | — | `—` | no |
-| Embed a diagram as a vector rather than a raster. | `references/design-rules.md:1665` | — | `—` | no |
+| Add no window-keyed media queries that restyle the inside of the stage. | `references/design-rules.md:1451` | — | `—` | no |
+| Keep the footer rule and page number visible on every page at every matrix point. | `references/design-rules.md:1455` | — | `—` | no |
+| Render each repeated role exactly one way across the document. | `references/design-rules.md:1498` | — | `role_split` | yes |
+| Start content at one datum per geometry. | `references/design-rules.md:1502` | — | `datum` | yes |
+| Use one colour per chart component across pages and a shared baseline inside a stat band. | `references/design-rules.md:1503` | — | `—` | no |
+| Let nothing land on anything: no text on text and no text on any drawn element. | `references/design-rules.md:1536` | — | `collision` | yes |
+| Move the grid tracks with the type scale so a block never overflows onto its neighbour. | `references/design-rules.md:1550` | — | `—` | no |
+| Treat the title block's reserved height as a ceiling. | `references/design-rules.md:1554` | — | `reserve_overspent` | yes |
+| Never clamp or hide overflow in a title block. | `references/design-rules.md:1563` | — | `content_hidden` | yes |
+| Give every styled class a base rendering rather than styling it only inside a media query. | `references/design-rules.md:1572` | — | `—` | no |
+| Give every page a layout class the shipped tokens define. | `references/design-rules.md:1583` | — | `D22` | yes |
+| Let a geometry tighten spacing but never change type size. | `references/design-rules.md:1592` | — | `—` | no |
+| Keep the rendered ground under 1.40:1 against the canvas. | `references/design-rules.md:1611` | `ground.contrast-ceiling` ← `RC-060` | `—` | no |
+| Avoid adjacent-sibling selectors inside a grid. | `references/design-rules.md:1620` | — | `—` | no |
+| Keep the page frame's parts the same width and centred at unintended window sizes. | `references/design-rules.md:1645` | — | `—` | no |
+| Keep the deepest ink on a page above the footer rule. | `references/design-rules.md:1651` | — | `content_spill` | yes |
+| Make each page a fixed box, scaled and letterboxed. | `references/design-rules.md:1652` | — | `page_height` | yes |
+| Keep page content out of the letterbox gutter. | `references/design-rules.md:1654` | — | `—` | no |
+| Include an image only when it carries an argument the page cannot make otherwise. | `references/design-rules.md:1687` | — | `—` | no |
+| Embed every image in the file as a data: URI rather than linking it. | `references/design-rules.md:1697` | — | `D24` | yes |
+| Name every image's origin and terms on the page. | `references/design-rules.md:1701` | — | `D25` | yes |
+| Name the licence for any image that is not public domain or CC0. | `references/design-rules.md:1704` | — | `D25` | yes |
+| Treat every photograph into the palette, as a duotone or a mono plate. | `references/design-rules.md:1706` | — | `—` | no |
+| Never set text on raw photography. | `references/design-rules.md:1710` | — | `—` | no |
+| Place imagery only on the cover, a part opener, a full-bleed evidence page, or inside a .fig. | `references/design-rules.md:1714` | — | `—` | no |
+| Never place imagery behind body copy, behind a table, or as a repeating texture. | `references/design-rules.md:1715` | — | `—` | no |
+| Ban the stock-photograph tells by name. | `references/design-rules.md:1720` | — | `—` | no |
+| Downscale an embedded raster to the size it is actually rendered at. | `references/design-rules.md:1726` | — | `—` | no |
+| Embed a diagram as a vector rather than a raster. | `references/design-rules.md:1727` | — | `—` | no |
 | Never place the stylised mark geography and the 110m map geography in one view. | `references/design-rules.md:220` | — | `—` | no |
 | Use D-DIN as the single Latin face for titles, body and data. | `references/design-rules.md:324` | — | `D23` | no |
 | Set display titles ALL-CAPS at weight 700 with 0.92 leading. | `references/design-rules.md:326` | — | `—` | no |

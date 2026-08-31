@@ -561,8 +561,14 @@ PROBE = r"""
     // horizontal and vertical bars need no flag.
     const distorted = [];
     for (const fig of s.querySelectorAll('svg')) {
+      // `data-encoding` is how a mark says WHICH rule it was drawn to. A bar
+      // encodes by length and a bubble by AREA, so a bubble twice another's
+      // value draws sqrt(2) times the diameter, not twice — grading it as a
+      // length fails a correctly drawn figure, which is what this check did
+      // until scatter_svg.py existed to draw one.
       const marks = [...fig.querySelectorAll('[data-datum]')]
         .map(m => ({v: parseFloat(m.getAttribute('data-datum')),
+                    area: m.getAttribute('data-encoding') === 'area',
                     r: m.getBoundingClientRect()}))
         .filter(m => Number.isFinite(m.v) && m.v > 0);
       if (marks.length < 2) continue;
@@ -572,14 +578,16 @@ PROBE = r"""
       const top = marks.reduce((a, b) => (b.v > a.v ? b : a));
       if (!(top.r[dim] > 0)) continue;
       for (const m of marks) {
-        const expected = top.r[dim] * (m.v / top.v);
+        const ratio = m.area ? Math.sqrt(m.v / top.v) : (m.v / top.v);
+        const expected = top.r[dim] * ratio;
         // 2px OR 4% of the largest bar, whichever is larger: rounding and a
         // stroke are not distortion, and a tolerance tighter than the renderer
         // would fail honest drawings.
         const slack = Math.max(2, top.r[dim] * 0.04);
         if (Math.abs(m.r[dim] - expected) > slack)
           distorted.push({value: m.v, drew: Math.round(m.r[dim]),
-                          shouldDraw: Math.round(expected)});
+                          shouldDraw: Math.round(expected),
+                          encoding: m.area ? 'area' : 'length'});
       }
     }
 

@@ -716,8 +716,9 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-032 · `correlate` is in the move vocabulary and in no framework
 
-- status: open (the framework half is filled; the SHAPE half is not)
+- status: fixed
 - opened: 0.1.589
+- closed: 0.1.664
 - surface: assets/frameworks.json, references/analysis-rules.md
 - symptom: the five analytical moves are compare, decompose, position,
   **correlate** and bridge. `assets/frameworks.json` carries frameworks for
@@ -749,9 +750,17 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   circles and a Venn. The other seven correlation-tagged units are node webs
   and propellers. **This library ships no scatter**, so the entry is
   `drawn: "native"` — the same honest answer `waterfall` and `funnel` give.
-  Closing this fully means drawing one, which is design work and not a
-  registry edit. The lesson is DR-11's own: look at the unit, and the unit is
-  the SVG, never the tag.
+  The lesson is DR-11's own: look at the unit, and the unit is the SVG, never
+  the tag.
+- resolution (0.1.664): the drawing that was missing is a RECIPE and a TOOL,
+  not a library unit — a reusable scatter is a contradiction, because a
+  `<use>` embeds a symbol whole and a scatter's marks are its data.
+  `references/design-rules.md` DR-20 states what a scatter must carry and
+  `scripts/render/scatter_svg.py` draws it from a JSON spec, with colour for
+  series, circle AREA for a third measure, a smoothed trend line that names its
+  own form, and both a wide and a tall box. The recipe also reaches further
+  than a unit could: prose reaches all twelve platforms, a library file only the
+  tiers that can read files.
 - check: `check_repo.py` `moves served` (every AR-1 move has an entry, and one
   that binds a library shape — a SEPARATE guard from `frameworks`, which
   answers the other direction); `D32_shape_use` still prints `<move> not held`

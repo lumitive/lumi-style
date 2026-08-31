@@ -987,7 +987,8 @@ a reader more than the table would.
 
 Form selection: one number is the story → stat callout (big figure + small label,
 data voice); composition/trend → segmented bars / tick bands; a bridge between
-two numbers → waterfall; concept relations → icon-led flow diagram; time
+two numbers → waterfall; **two measures over the same set of things → scatter**;
+concept relations → icon-led flow diagram; time
 commitments → milestone timeline; **a comparison may be a table or a figure, and the
 condition is the same either way: the reader must be able to read the values
 off it.** A table was the rule here through 0.1.494 for a good reason — it is
@@ -998,6 +999,67 @@ unlabelled geometry is decoration wearing a table's job, and it is worse than
 the table it replaced. Columns = options, rows = dimensions is still the right
 default when the values are the point and there are more than a handful.
 Illustrative values must be labeled.
+
+### 4.0b · Drawing a correlation
+
+*Serves: **P-4**.* · id `DR-20`
+
+**A scatter is drawn, never embedded.** The shape library holds units that
+encode a RELATION and are placed whole; a scatter's marks ARE its data, so
+there is no reusable unit to place and there never can be. That is not a hole
+in the library — it is what `drawn: "native"` means, and `correlate` sat in
+AR-1 for seventy-four releases with no framework because the absence was read
+as one. The one unit the library tags `correlation` and notes as "scatter with
+bubbles" is an empty axis frame carrying a single bubble; binding it certified
+a drawing that could not hold one observation, let alone n of them.
+
+What a scatter must carry, and each item is a way it goes wrong without:
+
+1. **Both measures named, each with its unit**, on its own axis. An axis
+   labelled `Growth` is a claim the reader cannot check.
+2. **One mark per observation, and n stated.** A cloud of unstated size is a
+   picture of a sample nobody can weigh. Where marks are sized, say what the
+   size encodes — a bubble is a third measure and needs its own name and unit.
+3. **The direction stated in words**, in the takeaway or on the drawing:
+   *"the two rise together"*, *"they part above 40"*, *"there is no relation
+   here"*. A cloud with no stated direction leaves the reading to the reader,
+   which is AR-1's own tell for a missing correlate.
+4. **Whether cause is claimed, said plainly.** Two measures moving together is
+   an observation; *"X drives Y"* is a different assertion and needs a
+   different page. Saying "we have not tested direction" is a finding, not a
+   weakness.
+5. **Axis ranges that do not manufacture the shape.** A truncated axis makes a
+   weak relation look tight. Where a range is truncated, the axis says so.
+6. **The source line inside the drawing**, as every figure carries it (§4).
+
+A fitted line is optional and, if drawn, is a claim: it names its form and
+says whether it was fitted or drawn by eye. A line drawn by eye through a
+cloud that has no relation is the misuse this form is most often put to. Draw it
+as a smooth curve through computed points, never as a chain of segments — a
+polyline reads as data the figure does not have.
+
+**Three things a scatter may encode beyond position, each with a rule.**
+
+- **Colour** separates series. It takes the chart triple (`--d-blue`,
+  `--d-red`, `--d-teal`), which is CVD-validated, and every series named in the
+  drawing is named in words too. Colour that separates nothing is decoration.
+- **Size is a THIRD measure, encoded by AREA and never by radius.** `r ∝ √v`,
+  so a value four times another draws twice the radius. A radius drawn linearly
+  in the value exaggerates it by the square, and **a minimum radius is itself a
+  distortion** — it overstates exactly the marks a reader is least able to
+  check, so there is no floor and a zero has no ink. The key states the measure,
+  its unit, and that the circle's AREA carries it.
+- **Orientation** is the figure's box, wide or tall. A layout that only holds
+  in one of them is wrong in the other, and the way to find out is to render it:
+  the tall box is narrower, so a reading line that fits the wide figure runs
+  outside the tall one's viewBox where nothing but a browser can see it.
+
+**`scripts/render/scatter_svg.py` draws all of this from a JSON spec**, which is
+where the rules above are enforced rather than remembered: it refuses a sized
+scatter whose third measure is unnamed, refuses a zero area rather than
+flooring it, emits `.axname-x` / `.axname-y` so the layout gates can grade the
+names, and marks each sized circle `data-encoding="area"` so the proportion
+check grades it against the square root instead of the length.
 
 ### 4.0 · From question to framework to shape
 
