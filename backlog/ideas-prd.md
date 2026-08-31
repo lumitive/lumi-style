@@ -757,6 +757,19 @@ owner's H1–H6 scores — is what would earn [promotion], and it has not been r
 `corpus_id` also carries three incompatible vocabularies (thresholds A1/R1 vs
 reviews D15/D16, traces D15-D17), so the join cannot close.
 
+**Measured 2026-08-31, and it removes one candidate cause.** The local corpus
+registered two files TWICE — `adopting-lumi-style.0.1.449` as both `A1` and
+`D5`, and `Overseas_Signal_Radar.0.1.451` as both `R1` and `D3` — and
+`eval_agreement.py` keys its join on filename, so the two ANCHORS were expected
+to be silently overwritten inside the study. The duplicates were removed and
+**the study's output is byte-identical before and after**: 3 pairs, 3 of 3
+agree, both times. The duplication was real and is fixed; it was not what
+blocks the study. The join reaches only documents carrying human scores, and
+only two do (`D15`, `D16`), so the binding constraint is the SCORES, not the
+identifiers. That matters for which of the three options below is worth
+taking — consolidating `corpus_id` would tidy a vocabulary without adding a
+single pair to the study.
+
 **Why not now — and what the decision is.** Deleting removes the data interface
 of a deferred study; keeping without running the study leaves the board's top
 sort key inert. The owner's call: run the agreement study (H1-H6 vs these
