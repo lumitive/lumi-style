@@ -36,9 +36,9 @@ insight?
    alone with no reader able to say whether it is good.
 2. **Decompose** — break the whole into parts that are mutually exclusive
    and collectively exhaustive, then find the part that carries the story.
-   Input shape: a total and its parts. Frameworks: issue tree, waterfall,
-   Mekko, value chain. The tell: a total discussed as a total while one
-   segment drives all of the movement.
+   Input shape: a total and its parts. Frameworks: issue tree, driver tree,
+   value chain, funnel, market sizing. The tell: a total discussed as a total
+   while one segment drives all of the movement.
 3. **Position** — place items on two independent axes the reader cares
    about, then read the quadrants. Input shape: a set of items scoreable on
    two dimensions. Frameworks: 2x2, SWOT (strengths/weaknesses internal,
@@ -46,7 +46,7 @@ insight?
    properties that never becomes a map.
 4. **Correlate** — show that two quantities move together (or fail to), and
    say what drives what, or say plainly that direction is unknown. Input
-   shape: paired observations. Frameworks: scatter, driver tree. The tell:
+   shape: paired observations. Framework: scatter. The tell:
    two trends narrated side by side with the relation left to the reader.
 5. **Bridge** — explain the distance between two states of one quantity by
    naming the contributions. Input shape: a before, an after, and the

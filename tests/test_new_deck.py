@@ -293,8 +293,31 @@ def test_a_named_framework_wins_over_the_moves_first_candidate():
 
 
 def test_a_move_no_framework_draws_leaves_the_slot_a_prompt():
-    assert new_deck.shape_for("correlate") == ("", "")
+    """A move the registry cannot serve leaves the slot empty rather than
+    inventing a figure. `correlate` used to be the example — it had no
+    framework at all (GAP-032) — which meant this test died the moment the gap
+    closed at 0.1.663, and until then a reader could not tell whether it
+    asserted the rule or the hole. An unknown move is the honest fixture."""
+    assert new_deck.shape_for("triangulate") == ("", "")
     assert new_deck.shape_for("") == ("", "")
+
+
+def test_every_declared_move_now_arrives_with_guidance():
+    """The GENERATION side of GAP-032, which is the half that decides what an
+    author actually receives. A `correlate` page used to arrive with an empty
+    slot AND an empty note — nothing at all. It now arrives with its framework
+    named and its misuse line quoted, even though the library has no scatter to
+    embed (AG-10: a shape was bound to satisfy a checker, a review opened the
+    SVG, and the binding was withdrawn).
+
+    A shape is asserted where the library HAS one; a note is asserted
+    everywhere, because guidance is what the scaffold owes."""
+    for move in ("compare", "decompose", "position", "bridge"):
+        shape, note = new_deck.shape_for(move)
+        assert shape and note, f"{move} arrives with no shape"
+    shape, note = new_deck.shape_for("correlate")
+    assert shape == "", "the library ships no scatter; see GAP-032"
+    assert "scatter" in note and "natively" in note, note
 
 
 def test_an_outline_with_moves_yields_shape_slots(tmp_path):
@@ -472,3 +495,23 @@ def test_no_outline_emits_no_scope_note(tmp_path):
     html = scaffold("--genre", "internal", "--storyline", "market-analysis",
                     "--entry-path", "B", "--pages", "2")
     assert 'class="scope-note"' not in html
+
+
+def test_a_named_native_framework_is_answered_with_nothing_not_with_a_sibling():
+    """A review found this: naming a natively-drawn framework contributed no
+    shapes, so a SIBLING of the same move filled the pool — and the author who
+    asked for a benchmark table received Harvey balls, labelled
+    `harvey-scorecard`. Answering a request with a different framework is worse
+    than answering it with nothing."""
+    for native in ("benchmark-table", "radar"):
+        shape, note = new_deck.shape_for("compare", native)
+        assert shape == "", f"{native} handed back {shape!r}"
+        assert native in note and "natively" in note, note
+    shape, note = new_deck.shape_for("bridge", "waterfall")
+    assert shape == "" and "waterfall" in note, (shape, note)
+
+
+def test_a_named_shape_bearing_framework_still_resolves():
+    """The boundary: honouring the name must not stop it working."""
+    shape, note = new_deck.shape_for("compare", "harvey-scorecard")
+    assert shape.startswith("p156") and "harvey-scorecard" in note

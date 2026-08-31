@@ -657,6 +657,43 @@ rather than an accident. The owner's complaint was about presentation and the
 presentation is fixed; the semantics she proposed are the ones this entry
 declines.
 
+## AG-10 · Requiring every analytical move to bind a library shape
+
+Declined 0.1.663, after shipping it for one commit and watching it edit the
+content. The guard had two levels: a move with no framework at all fails
+(kept), and a move whose every framework is `drawn: "native"` fails too,
+because `_drawable_moves` reads `shapes` and D32 therefore holds no page to
+such a move.
+
+The second level is unsatisfiable honestly. Some frameworks are DRAWN rather
+than lifted — a waterfall, a funnel, a market sizing, a benchmark table, a
+radar, a scatter — and the register says so with `drawn: "native"`. Four moves
+survived the demand only because each happens to have a shape-bearing sibling;
+`correlate` has exactly one framework, so there was nothing to hide behind and
+**the guard's author bound the only correlation-tagged near-match to satisfy
+it, without opening the SVG**. A review opened it: an empty axis frame with a
+single bubble, sixteen paths of which fifteen are the axes and ticks. It cannot
+carry the slot its own entry declares ("one mark per observation, and how many
+there are"), and `<use>` embeds a symbol whole, so a second observation means a
+second pair of axes. The library's `note` field said "scatter with bubbles" and
+that describes the source page's family, not this unit — which is DR-11's rule
+("look at the unit before you use it, and the unit is the SVG") and convention
+15's, both broken by reading a tag instead of a drawing.
+
+**The failure is the shape of the demand, not the strictness of it.** A gate
+that a correct answer cannot satisfy does not get obeyed; it gets satisfied.
+The consequence would also have been paid by authors: `correlate` pages were
+exempt from D32 and became held, so a page drawing an honest twelve-point
+scatter from its own numbers failed a gating metric while the one-bubble frame
+passed.
+
+What is kept is the first level — a move the rules declare must have SOME
+entry, so `new_deck` has a misuse line to quote and an author has guidance.
+Whether a move can be drawn from the library is a fact about the library, and
+`D32_shape_use` already reports it per document (`<move> not held`). The
+mismatch that makes a natively-drawn figure fail D32 is GAP-051, where it is a
+recorded design question rather than a demand.
+
 ## AG-9 · Gating a planned implication against the page's text
 
 Declined 0.1.661, after building it. GAP-031 proposed comparing every

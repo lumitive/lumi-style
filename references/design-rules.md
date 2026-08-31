@@ -414,8 +414,8 @@ look like it.
   measure of every figure would red-line an accepted anchor, which is the defect
   the four shape bars were refused for.
   *The scope is the MOVE, and it is not a perfect proxy for "has a measure"*:
-  `decompose` is quantitative for a waterfall, a Mekko or a market sizing and is
-  NOT for an issue tree, which decomposes hypotheses. So an issue-tree page
+  `decompose` is quantitative for a driver tree, a funnel or a market sizing and
+  is NOT for an issue tree, which decomposes hypotheses. So an issue-tree page
   arrives with a slot it does not want. **That is not a defect in the
   mechanism**: the slot is a prompt, and `D14` asks only that an unresolved one
   never reach the reader — the author fills it where there is a measure and
