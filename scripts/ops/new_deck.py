@@ -304,8 +304,11 @@ def shape_for(move: str, framework: str = "",
     ARRIVES with the first shape of the first framework that draws it — or of
     the framework the outline names — in the figure slot, and the comment
     lists the alternatives. The choice stays the author's; the default is no
-    longer "nothing". A framework drawn natively (funnel, waterfall,
-    market-sizing) names no shape and the slot stays a prompt.
+    longer "nothing". A framework the registry marks `drawn: "native"` names no
+    shape, and a page that NAMES one gets an empty slot with a note saying why
+    — deliberately not a sibling framework's shape, which is what it used to
+    get. (Which frameworks those are is the registry's to say, not this
+    docstring's: it once listed three and there are five.)
 
     **`seed` is why three decks stopped looking like one deck.** Until 0.1.596
     this returned `shapes[0]` of the first matching framework — deterministic on
@@ -335,7 +338,13 @@ def shape_for(move: str, framework: str = "",
             if isinstance(v, dict) and v.get("move") == move]
     if framework:
         named = [(k, v) for k, v in entries.items() if k == framework]
-        hits = named + [h for h in hits if h[0] != framework]
+        # A NAMED framework is the answer, not the head of a queue. It used to
+        # be `named + the rest`, so naming a natively-drawn framework -- which
+        # contributes no shapes -- let a SIBLING of the same move fill the pool,
+        # and the author who asked for a benchmark table received Harvey balls
+        # labelled `harvey-scorecard`. Answering a request with a different
+        # framework is worse than answering it with nothing.
+        hits = named or hits
     # EVERY framework that draws this move, not just the first: the pool an
     # author chooses from should be the library's answer to the question, not
     # one entry's first row.
@@ -347,6 +356,14 @@ def shape_for(move: str, framework: str = "",
                 pool.append((k, x))
         drawn_natively = drawn_natively or bool(v.get("drawn"))
     if not pool:
+        # Native frameworks reach here, and the slot staying empty is correct --
+        # a waterfall is drawn from its own numbers. What was NOT correct was
+        # returning an empty note with it, so the scaffold said nothing about
+        # why there is no shape and an author read the silence as an oversight.
+        if any(v.get("drawn") == "native" for _k, v in hits):
+            name = hits[0][0]
+            return "", (f"{name} is drawn natively — no library shape; build "
+                        f"it from the page's own numbers")
         return "", ""
     # A stable digest of the page's own words, never `random`: the same outline
     # must rebuild the same deck byte for byte.

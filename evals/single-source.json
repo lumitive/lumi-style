@@ -205,7 +205,7 @@
      "regex": "\\[\\s*[\"']git[\"']",
      "what": "a private git invocation",
      "selftest": "p = subprocess.run([\"git\", \"ls-files\"], cwd=ROOT)",
-     "note": "the ARGV LITERAL, not `subprocess.run([\"git\"` \u2014 the first version required the two adjacent, and two callers that built the list into a variable first were invisible to it while the release claimed the consolidation was total."
+     "note": "the ARGV LITERAL, not `subprocess.run([\"git\"` — the first version required the two adjacent, and two callers that built the list into a variable first were invisible to it while the release claimed the consolidation was total."
     }
    ],
    "why": "sixteen invocations, three identical `git(*args)` helpers copied into three files, and a `git ls-files` in every guard that needed one, whose FAILURE handling disagreed. Most said `a scan that did not run is not a scan that passed`; two returned an empty list, one of them feeding the English-only red line, so the guard scanned nothing and printed what it prints on a clean tree. Several split on newlines, which is a bug waiting for a filename with a newline in it. A review then found two more the first pattern could not see, because they assembled the argv before calling."
@@ -280,13 +280,27 @@
    ],
    "why": "four call sites, four behaviours: `run` expanded ~ and resolved a bare name under the results root, `score` did neither and reported `does not exist; run run first` about a directory that existed, two history readers did neither, and a third expanded ~ only. Unnoticed for a hundred releases because run prints the absolute path for the next command - the tool routed its operator around its own defect.",
    "note": "the rule itself (bare name = run id, a separator or leading slash = path) is stated once in resolve_run's docstring, which is also where the 2026-08-21 directive about where results may be written is enforced."
+  },
+  {
+   "id": "analytical-moves",
+   "fact": "AR-1's five analytical moves",
+   "owner": "scripts/check/check_outline.py",
+   "why": "0.1.663 added a guard that needed the set and wrote the literal twice in one file, which is the third and fourth copies -- `analysis-rules.md` states them in prose and check_outline owns them in code. A private set is how a sixth move gets declared in the rules and enforced nowhere.",
+   "patterns": [
+    {
+     "regex": "\\{\\s*[\"']compare[\"']\\s*,\\s*[\"']decompose[\"']",
+     "what": "a private copy of the five moves",
+     "selftest": "moves = {\"compare\", \"decompose\", \"position\", \"correlate\", \"bridge\"}"
+    }
+   ],
+   "note": "The owner's shape is a module CONSTANT (`ANALYTICAL_MOVES`), not a `def`, so this entry carries no `defs` — `check_one_home` resolves `defs` as `^def name(`. The pattern is the whole enforcement: it catches a private set of the five moves anywhere but the owner."
   }
  ],
  "waivers": [
   {
    "path": "scripts/check/check_repo.py",
    "fact": "package-version",
-   "reason": "check_versions is the guard ON the stamp, so it must be able to read a MALFORMED one \u2014 `versioning.SKILL_STAMP` requires the closing quote and would report a broken stamp as no stamp at all. The looser regex is stated at the site with this reason."
+   "reason": "check_versions is the guard ON the stamp, so it must be able to read a MALFORMED one — `versioning.SKILL_STAMP` requires the closing quote and would report a broken stamp as no stamp at all. The looser regex is stated at the site with this reason."
   }
  ]
 }

@@ -818,9 +818,13 @@ def d32_shape_use(raw):
     did not exist.
 
     **A page is held only when its declared move is one the library can draw.**
-    `correlate` has no entry in `assets/frameworks.json` at all, so a page
-    declaring it would fail through no fault of its author; that gap is
-    recorded rather than charged to the page.
+    That exemption exists because `correlate` had no entry in
+    `assets/frameworks.json` at all until 0.1.663 (GAP-032), so a page
+    declaring it would have failed through no fault of its author. All five
+    moves are drawable now and the exemption currently exempts nothing; it
+    stays because the registry can lose a framework again, and `check_repo`'s
+    `moves served` guard is what makes that fail CI instead of silently
+    reopening the hole.
 
     The vendored library is 206 tagged units embedded on demand. Reuse is also
     the cheap path: on one measured pair of builds, the deck that drew its

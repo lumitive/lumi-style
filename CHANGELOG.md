@@ -1,3 +1,182 @@
+## 0.1.663 — a declared analytical move with nothing to draw it, and two vocabularies for one fact
+
+`references/analysis-rules.md` AR-1 declares five analytical moves and names the
+frameworks that draw each. `assets/frameworks.json` is the registry those names
+are supposed to resolve in — DR-16 states the chain as **question → framework →
+shape**, and AR-3 sends every author down it. The two had never been compared,
+and the gap was not subtle:
+
+- **`correlate` had ZERO registry entries** — GAP-032, open since 0.1.589. An
+  author following AR-1 to a correlate page reached a move the rules declare
+  and the package cannot answer: no question, no slots, no misuse line, nothing
+  for `new_deck` to seed. `check_design`'s D32 then skipped that page —
+  correctly, by its own docstring, and silently as far as any guard was
+  concerned.
+- **`waterfall` was filed under two moves inside AR-1 itself** — decompose in
+  item 2, bridge in item 5, twelve lines apart.
+- **`driver tree` was correlate in the rules and decompose in the registry.**
+- **`scatter`, `benchmark table`, `radar` and `Mekko` lived in the prose and
+  nowhere else**; and **`funnel` and `market-sizing` were in the registry and
+  named nowhere in AR-1** (both are named elsewhere in `references/` — a review
+  caught the first draft of this line claiming they were named by no rule at
+  all, which the rule corpus contradicts).
+
+**The guard was one-directional, which is why none of this was visible.**
+`check_frameworks` ran framework → move on every entry — legal move, resolvable
+shape, four required fields — and never move → framework. So it printed exactly
+what it prints on a complete registry whether the library served five moves or
+four. FM-24 at the guard layer.
+
+**Now it runs both ways — at ONE level, after a review deleted the second.**
+The first cut also failed a move whose every framework is `drawn: "native"`,
+reasoning that `_drawable_moves` cannot see it so D32 holds no page to it. That
+demand is unsatisfiable honestly, and it is what produced the bad binding above:
+four moves survived it only because each happens to have a shape-bearing
+sibling, and `correlate` has one framework with nothing to hide behind, so the
+guard's author bound a near-match to satisfy his own guard. **A gate a correct
+answer cannot satisfy does not get obeyed; it gets satisfied.** Refused as
+AG-10. What remains is the level that is always answerable: a move the rules
+declare must have SOME entry, so an author gets guidance. Whether the library
+can draw it is a fact about the library, which `D32_shape_use` already reports
+per document.
+
+**The names are held to the registry in both directions too.** A name only the
+rules know is convention 5 — a rule may not send an author to a figure the
+package does not ship. A name only the registry knows is one the rules never
+offer. And a name filed under two moves is the `waterfall` defect made
+mechanical. Where the industry term and the registry key differ (`2x2` /
+`two-by-two`, `9-box` / `nine-box`) the alias lives ONCE, as an `aka` field on
+the entry, rather than as a second mapping inside the guard — the register
+pattern `evals/single-source.json` uses one layer down.
+
+**What changed.** `scatter` is registered under `correlate` with its question,
+its slots and its misuse line, so the scaffold finally has something to hand an
+author. `benchmark-table` and `radar` are registered under `compare`. All three
+are `drawn: "native"`, which is what they are: a scatter, a table and a polygon
+are drawn from data, not lifted from a shape library. AR-1's two wrong lines are
+corrected, and `design-rules.md`'s restatement — which called a waterfall a
+`decompose` figure and named `Mekko` — is re-synced (convention 12).
+
+**GAP-032 does NOT close, and the reason is the most useful thing this release
+learned.** A first cut bound `scatter` to `p141-titleunit-of-measure-01`, the
+one unit tagged `relation: correlation` whose note reads "scatter with bubbles",
+and declared all five moves drawable. **A review opened the SVG.** Sixteen
+paths: fifteen are the axis frame and its ticks, and ONE is a bubble. It cannot
+carry the slot its own entry declares ("one mark per observation, and how many
+there are"), and `<use>` embeds a symbol whole, so a second observation brings a
+second pair of axes. The note describes the source page's family; the sibling
+units are single circles and a Venn, and the other seven correlation-tagged
+units are node webs. **This library ships no scatter.** The binding was
+withdrawn, the entry is `drawn: "native"`, and GAP-032 stays open on its shape
+half with that finding recorded — which is worth more than a false closure.
+`references/design-rules.md` DR-11 already said it: look at the unit, and the
+unit is the SVG. I read the tag.
+
+**What an author gets that they did not have.** `new_deck.py --outline` names
+the framework a declared move implies and quotes its misuse line into the
+scaffold. A `correlate` page previously got nothing at all there — empty slot,
+empty note. It now arrives naming `scatter`, carrying the misuse warning, and
+saying plainly that the figure is drawn from the page's own numbers because the
+library has no unit for it. That is the half that matters: 0.1.522 measured row labels
+landing 56 times and stat blocks 11 of 11 automatically against **zero**
+benchmark lines over fourteen pages, because a rule the generator does not emit
+is a rule that does not happen.
+
+**Two tests used the gap as their fixture, and both died when it closed.**
+`test_a_page_is_held_only_when_the_library_can_draw_its_move` and
+`test_a_move_no_framework_draws_leaves_the_slot_a_prompt` each used `correlate`
+as their undrawable example, so a reader could not tell whether they asserted
+the RULE (a move the registry cannot serve is exempted, and leaves the slot
+empty) or the STATE (correlate is that move). Both now make their own
+unserved move and assert the rule, and each gained a sibling asserting the
+closure — all five moves drawable, all five arriving with a shape.
+
+**The guard is two guards.** `check_frameworks` answers framework → move (is
+each entry legal, resolvable, complete); `moves served` answers move →
+framework (is each move served, and by something drawable). Bolting the second
+onto the first made six existing synthetic-tree tests fail on registries that
+were perfectly valid at the level they were testing — one error list for two
+questions hides which one was answered.
+
+The design record is `specs/2026-08-31-insight-metrics-design.md`, whose §6 item
+C3 named this as one of three structural repairs worth more than any new
+metric: *"a move that is declared but cannot be drawn is a hole dug for the
+author"*.
+
+**One waiver, and it is heavier than the last one.** The conformance board is
+fourteen releases behind and refreshing it needs the owner's credentials.
+0.1.661's waiver could say nothing agent-visible had moved; this one cannot —
+AR-1's framework names, one `design-rules.md` restatement and three registry
+entries are all content every platform loads. No platform CAPABILITY changed,
+and the direction of the change is toward more correct guidance, but whether
+the twelve configurations still produce passing deliverables under the
+corrected vocabulary is exactly what a refresh would answer.
+`releases/evidence/0.1.663.json` says so, and says that this is the second
+consecutive release carrying it — a waiver repeated is a waiver becoming a
+rubber stamp.
+
+**The review this shipped after found the guard blind, and it was the sharpest
+possible place to be blind.** `_ar1_frameworks` reported "unreadable" only when
+NOTHING parsed. A per-item miss just dropped that move's key — and since the
+name loop iterates the moves that PARSED and the served-check iterates the
+registry, a dropped move was never compared and the guard returned `[]`,
+**literally what a clean tree returns**. Three ordinary edits to
+`analysis-rules.md` each did it: rewording `Framework: scatter.` to `The
+framework is scatter.`, dropping the bold from `4. **Correlate**`, and renaming
+the move. A guard written to close FM-24 at the guard layer, committing FM-24 at
+the guard layer. It now holds the parse to all five moves and names the ones it
+could not read. **No test could have caught this**: the clean and the blind
+branch returned the same value, so any test asserting "a clean tree passes"
+passed on the blind tree too. Only a test OF the blind branch finds it, which is
+convention 11's second proof exactly.
+
+**A second bug the review found, in code this release only made reachable.**
+`shape_for` took a named framework as the HEAD of a queue rather than as the
+answer. Naming a natively-drawn framework contributes no shapes, so a sibling of
+the same move filled the pool — and **an author who asked for a benchmark table
+received Harvey balls, labelled `harvey-scorecard`**. The behaviour predates
+this release (it already mis-routed `waterfall`, `funnel` and `market-sizing`),
+but registering `benchmark-table` and `radar` put it on `compare`, where AR-1
+now names them first. A named framework is now the answer: if it is native the
+slot stays empty and the note says why, because answering a request with a
+different framework is worse than answering it with nothing.
+
+**One thing this release does NOT fix, recorded rather than left silent**:
+`_drawable_moves` keys on the move, not on the framework a page chose, so a page
+correctly drawing a waterfall or a benchmark table from its own numbers is
+reported `bare` by D32 — which gates at zero. Measured, and filed as **GAP-051**
+with why closing it is a design decision rather than a patch. It is GAP-032's
+shape one level down, and this release widened its reach to `compare` without
+creating the class. Withdrawing the `correlate` binding also withdrew a trap the
+first cut created there: a page drawing an honest twelve-point scatter would
+have failed D32 while the one-bubble frame passed.
+
+**One fact consolidated** (convention 19): this guard needed AR-1's five moves
+and wrote the literal twice in one file — the third and fourth copies, with
+`check_outline.ANALYTICAL_MOVES` already owning it. Both now read the owner, and
+`evals/single-source.json` gains `analytical-moves` so a fifth copy fails CI.
+Planted first, as the register requires: a private set in `check_design.py`
+fails with `a private copy of the five moves — the shared implementation is
+scripts/check/check_outline.py`.
+
+**The registry diff is 41 added and 0 deleted.** A first cut rewrote
+`assets/frameworks.json` through `json.dump(indent=1)` and produced 217 added /
+91 deleted on a 94-line file — three entries of real content, buried, with
+`git blame` reset on all eleven pre-existing ones. In a repository whose stated
+worst hazard is drift caught by reading diffs, that is not a formatting
+preference.
+
+**Deliberate red, planted first (conventions 11/15)**: the guard was written
+before the registry was fixed and named `correlate` immediately. All six
+failure shapes are exercised — a move with no entry, a move served only
+natively, a name only the rules know, a name only the registry knows, one name
+under two moves, and AR-1 unreadable — the last being FM-24's third answer,
+which reports a parse failure rather than agreement. Eight synthetic-tree tests
+carry them (`tests/test_frameworks_guard.py`, which already owned this guard's synthetic trees — a first draft opened a second home for them in `tests/test_check_repo_guards.py`), and the AR-1 parser was written
+against the real text rather than a guess about it: the lines wrap mid-sentence,
+SWOT carries a parenthetical with its own commas, and one item writes the
+singular `Framework:`.
+
 ## 0.1.662 — the guard against a contract that measures nothing was bypassed by an empty string
 
 0.1.660 made a data contract with no measured point a finding, because such a

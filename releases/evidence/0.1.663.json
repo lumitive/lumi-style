@@ -1,0 +1,32 @@
+{
+ "version": "0.1.663",
+ "diff_base": "85ec1097cc56f338f374c0f509adbf79b71a3a8a",
+ "spec": "specs/2026-08-31-insight-metrics-design.md",
+ "obligations": [
+  "layout-fixtures",
+  "scaffold-render",
+  "conformance-freshness"
+ ],
+ "checks": [
+  {
+   "id": "scaffold-render",
+   "command": "python3 scripts/ops/new_deck.py --genre internal --storyline market-analysis --pages 10 --parts A,B,C --no-trace --out fixtures/.scaffold-evidence.html && python3 scripts/check/inspect_layout.py --deliverable fixtures/.scaffold-evidence.html",
+   "exit_code": 0,
+   "stdout_sha256": "1d719140d8598963c5a384c98727fd0e51485c42be4446cff111c8100214bd3f",
+   "date": "2026-08-31"
+  },
+  {
+   "id": "layout-fixtures",
+   "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+   "exit_code": 0,
+   "stdout_sha256": "f04602e1e4dabf54880d35f1a127e018812a9c892b096ad3bdbb2f17779ea4dd",
+   "date": "2026-08-31"
+  }
+ ],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board's newest run is 0.1.648, fourteen releases back. Refreshing it means driving at least two platform CLIs through all three tasks on the owner's API credentials with her installs current, which is her call and not a step a release takes on its own. WHAT IS UNCONFIRMED IS LARGER HERE THAN AT 0.1.661 AND IS STATED AS SUCH: 0.1.661 changed only checker modules; this release changes rule content every platform loads -- AR-1's framework names in references/analysis-rules.md, one restatement in design-rules.md, and three new entries in assets/frameworks.json. Agent-visible guidance did move. The direction is toward more correct guidance: `correlate` gained the question, slots and misuse line it never had, and two names filed under the wrong move were corrected. No adapter, no platform registry record, no entry-point loading rule and no token value changed, so no platform CAPABILITY moved. But whether the twelve configurations still produce passing deliverables under the corrected vocabulary is exactly what a refresh would answer, and it has not been answered. This is the SECOND consecutive release carrying this waiver. A waiver repeated is a waiver becoming a rubber stamp, and the debt is recorded against the owner's refresh round rather than discharged here. The two obligations this release could discharge itself -- the browser layout gate and the scaffold render -- were EXECUTED rather than waived, and both recorded exit 0 with no gating finding."
+  }
+ ]
+}

@@ -683,9 +683,40 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   the way GAP-009 was closed — and `compare`'s pool measured afterwards, since
   it is the move that dominates every deck.
 
-## GAP-032 · `correlate` is in the move vocabulary and in no framework
+## GAP-051 · D32 demands a library shape on a page whose framework is drawn natively
 
 - status: open
+- opened: 0.1.663
+- surface: scripts/check/check_design.py `_drawable_moves` / `d32_shape_use`,
+  assets/frameworks.json, references/analysis-rules.md AR-1
+- symptom: `_drawable_moves()` keys on the **move**, not on the framework a page
+  actually chose. Five registry entries are `drawn: "native"` — `waterfall`,
+  `funnel`, `market-sizing`, and since 0.1.663 `benchmark-table` and `radar` —
+  and each shares its move with a shape-bearing framework. So the move is
+  "drawable", the page is held, and a page that correctly draws a waterfall or
+  a benchmark table from its own numbers is reported `bare` by a metric that
+  **gates at zero**. Measured: a two-page deck declaring `compare` and `bridge`,
+  each drawing its framework natively, returns
+  `{'held': 2, 'bare': ['p1','p2'], 'undrawable': []}`.
+- why it is not simply fixed: the page does not declare its framework in markup
+  — only its `data-analysis` move — so nothing in the document tells D32 which
+  of a move's frameworks was chosen. Closing it means either a `data-framework`
+  attribute (a markup change every generator and every checker would have to
+  learn) or teaching D32 to accept a natively-drawn figure, which requires
+  deciding what "drawn natively and correctly" looks like to a probe. Both are
+  design decisions, and convention 6's warning applies: inventing one to close
+  a gap is how a rule gets a number nobody chose.
+- note: this is GAP-032's shape one level down — a rule offering an author a
+  figure the gates then punish. 0.1.663 did not create the class (it existed for
+  `waterfall`, `funnel` and `market-sizing`) but it did widen it to `compare`,
+  and AR-1 lists `benchmark table` and `radar` ahead of the one `compare`
+  framework that resolves to a shape.
+- check: none. `D32_shape_use` reports the page as `bare`, which is the wrong
+  finding rather than a missing one.
+
+## GAP-032 · `correlate` is in the move vocabulary and in no framework
+
+- status: open (the framework half is filled; the SHAPE half is not)
 - opened: 0.1.589
 - surface: assets/frameworks.json, references/analysis-rules.md
 - symptom: the five analytical moves are compare, decompose, position,
@@ -702,8 +733,29 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   matrix?), and inventing one to close a gap is convention 6's warning. It
   needs the same treatment the other four had: a question, a framework, a
   shape, and a misuse note.
-- check: `D32_shape_use` prints `<move> not held (no framework in
-  assets/frameworks.json names a shape)` for every such move it meets
+- partly filled (0.1.663), and the rest is now KNOWN rather than open: this
+  entry asked for "a question, a framework, a shape, and a misuse note", and
+  three of those four now exist — `scatter` is registered under `correlate`
+  with its question, its slots and its misuse line, so `new_deck` has guidance
+  to hand an author and `check_repo`'s `moves served` guard keeps it there.
+  **The shape does not exist and this is now verified rather than assumed.**
+  0.1.663 first bound `p141-titleunit-of-measure-01`, the only unit tagged
+  `relation: correlation` whose `note` reads "scatter with bubbles". A review
+  opened the SVG: sixteen paths, of which fifteen are the axis frame and its
+  ticks and ONE is a bubble. It cannot carry this entry's own slot ("one mark
+  per observation, and how many there are"), and `<use>` embeds a symbol whole,
+  so a second observation would bring a second pair of axes. The `note`
+  describes the source page's family; the sibling units -02..-05 are single
+  circles and a Venn. The other seven correlation-tagged units are node webs
+  and propellers. **This library ships no scatter**, so the entry is
+  `drawn: "native"` — the same honest answer `waterfall` and `funnel` give.
+  Closing this fully means drawing one, which is design work and not a
+  registry edit. The lesson is DR-11's own: look at the unit, and the unit is
+  the SVG, never the tag.
+- check: `check_repo.py` `moves served` (every AR-1 move has an entry, and one
+  that binds a library shape — a SEPARATE guard from `frameworks`, which
+  answers the other direction); `D32_shape_use` still prints `<move> not held`
+  for any move that loses its framework
 
 ## GAP-030 · Red line 5 asks every figure for a source line and nothing reads it
 

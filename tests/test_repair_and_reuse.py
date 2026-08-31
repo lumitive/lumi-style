@@ -38,14 +38,39 @@ def test_one_shape_no_longer_clears_every_declared_move():
     assert out["held"] == 2
 
 
-def test_a_page_is_held_only_when_the_library_can_draw_its_move():
-    """`correlate` has no framework at all (GAP-032), so a page declaring it
-    would fail through no fault of its author."""
+def test_a_page_is_held_only_when_the_library_can_draw_its_move(monkeypatch):
+    """The exemption, which must survive the registry being complete.
+
+    This test used to use `correlate` as its undrawable example, because
+    `correlate` HAD no framework (GAP-032, closed at 0.1.663 by registering
+    `scatter`). Reusing a real gap as a fixture meant the test died the moment
+    the gap closed — and a reader could not tell whether it was asserting the
+    exemption or the gap. It now makes its own undrawable move, so it asserts
+    the rule rather than the state of the registry."""
+    monkeypatch.setattr(check_design, "_drawable_moves", lambda: {"compare"})
     raw = _deck(['<section class="page" id="p1" data-analysis="correlate">'
                  'no shape</section>'])
     out = check_design.d32_shape_use(raw)
     assert out["bare"] == []
     assert out["undrawable"] == ["correlate"]
+
+
+def test_which_moves_are_drawable_is_a_fact_about_the_library():
+    """A first cut of this asserted all five moves drawable, because 0.1.663
+    had bound a shape to `correlate` to satisfy a guard. A review opened that
+    SVG — an empty axis frame with one bubble — and the binding was withdrawn
+    (GAP-032, AG-10). `correlate`'s framework is `drawn: "native"`, so the move
+    is NOT drawable and a correlate page stays exempt from D32, which is the
+    honest state: this library ships no scatter.
+
+    What this test pins is that the exemption is derived from the registry
+    rather than hardcoded, so it moves the day someone draws one."""
+    drawable = check_design._drawable_moves()
+    assert {"compare", "decompose", "position", "bridge"} <= drawable
+    assert "correlate" not in drawable, (
+        "correlate became drawable — if a scatter unit was added to the "
+        "library, close GAP-032 and update this test; if a shape was bound to "
+        "satisfy a checker, read AG-10 first")
 
 
 def test_a_document_declaring_no_move_is_not_measured():

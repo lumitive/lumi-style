@@ -11,6 +11,7 @@
       "drawn": null
     },
     "two-by-two": {
+      "aka": ["2x2"],
       "question": "Which of these items deserves attention first, judged on the two dimensions that matter?",
       "move": "position",
       "slots": ["x axis (independent dimension 1)", "y axis (independent dimension 2)", "items placed by score", "the quadrant that carries the story, named"],
@@ -19,6 +20,7 @@
       "drawn": null
     },
     "nine-box": {
+      "aka": ["9-box"],
       "question": "Same as the 2x2 where two grades per axis are too coarse: which third of the portfolio invests, which holds, which exits?",
       "move": "position",
       "slots": ["x axis in three grades", "y axis in three grades", "items in cells", "the policy per band (invest / hold / exit)"],
@@ -89,6 +91,43 @@
       "misuse": "Horizons are commitments with dates, not maturity labels; a three-horizons page with no dates is a mood board",
       "shapes": ["p039-staircase-01", "p091-step-5-01", "p121-gantt10-01"],
       "drawn": null
+    },
+    "scatter": {
+      "question": "Do these two quantities move together, and how tightly?",
+      "move": "correlate",
+      "slots": [
+        "the two measures, each with its unit",
+        "one mark per observation, and how many there are",
+        "the direction stated in words, and whether it is a claim about cause"
+      ],
+      "misuse": "A cloud with no stated direction leaves the relation to the reader, which is the tell AR-1 names; and a direction read as cause without saying so is the same page asserting what it did not test",
+      "shapes": [],
+      "drawn": "native"
+    },
+    "benchmark-table": {
+      "question": "How does this number compare with the ones a reader would judge it against?",
+      "move": "compare",
+      "slots": [
+        "the measure and its unit",
+        "the subject's value",
+        "at least one reference value, each named and sourced",
+        "the gap, stated in the direction the reader cares about"
+      ],
+      "misuse": "References chosen because they flatter, or left unnamed, turn the comparison into an assertion; a table with one column is a number standing alone, which is the tell AR-1 names",
+      "shapes": [],
+      "drawn": "native"
+    },
+    "radar": {
+      "question": "Across several criteria at once, where is this strong and where is it thin?",
+      "move": "compare",
+      "slots": [
+        "three or more criteria, each on a comparable scale",
+        "one closed outline per subject",
+        "the scale's direction and its bounds"
+      ],
+      "misuse": "Axes on incomparable scales, or ordered arbitrarily, produce a shape whose area means nothing — the polygon reads as a finding it does not carry. Above roughly six axes it stops being legible",
+      "shapes": [],
+      "drawn": "native"
     }
   }
 }

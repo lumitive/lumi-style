@@ -5173,6 +5173,50 @@ def check_trace_field_writers():
     return errors
 
 
+def _analytical_moves():
+    """-> AR-1's five analytical moves, from the module that owns them.
+
+    `check_outline.ANALYTICAL_MOVES` is the owner (`evals/single-source.json`,
+    fact `analytical-moves`). This file carried the literal twice, which is the
+    moment convention 19 names: consolidate by pointing at the owner, not by
+    writing a third copy.
+    """
+    sys.path.insert(0, str(ROOT / "scripts" / "check"))
+    import check_outline
+    return check_outline.ANALYTICAL_MOVES
+
+
+def _fw_slug(name: str) -> str:
+    """A framework name as the registry spells it: lowercase, hyphenated."""
+    return re.sub(r"[^a-z0-9]+", "-", name.strip().lower()).strip("-")
+
+
+def _ar1_frameworks():
+    """-> {move: [framework name as AR-1 writes it]}, or None if unreadable.
+
+    AR-1 is a numbered list of five moves, each running several wrapped lines
+    with `Frameworks: a, b, c.` inside. Parsed against the real text rather
+    than against a guess about it (convention 15): the lines wrap mid-sentence,
+    SWOT carries a parenthetical gloss with its own commas, and `correlate`
+    writes the singular `Framework:`.
+    """
+    path = ROOT / "references" / "analysis-rules.md"
+    try:
+        text = path.read_text(encoding="utf-8")
+        block = text[text.index("1. **Compare**"):text.index("## 2 · ")]
+    except (OSError, ValueError):
+        return None
+    out = {}
+    for item in re.split(r"\n(?=\d+\.\s+\*\*)", block):
+        move = re.search(r"\*\*(\w+)\*\*", item)
+        joined = re.sub(r"\([^)]*\)", "", " ".join(item.split()))
+        names = re.search(r"Frameworks?:\s*(.+?)\.\s", joined)
+        if move and names:
+            out[move.group(1).lower()] = [n.strip() for n in
+                                          names.group(1).split(",") if n.strip()]
+    return out or None
+
+
 def check_frameworks():
     """The framework dictionary resolves, and every entry can be used.
 
@@ -5194,7 +5238,7 @@ def check_frameworks():
     except (OSError, _json.JSONDecodeError, KeyError) as exc:
         return [f"frameworks: could not read the two dictionaries: {exc}"]
     errors = []
-    moves = {"compare", "decompose", "position", "correlate", "bridge"}
+    moves = set(_analytical_moves())
     for name, entry in (fw.get("frameworks") or {}).items():
         for field in ("question", "move", "slots", "misuse"):
             if not entry.get(field):
@@ -5214,6 +5258,125 @@ def check_frameworks():
                           f"neither embed nor draw")
     if not (fw.get("frameworks") or {}):
         errors.append("frameworks.json declares no frameworks at all")
+
+    return errors
+
+
+def check_moves_served():
+    """Every analytical move AR-1 declares has a framework that can draw it.
+
+    A SECOND guard rather than more of `check_frameworks`, because they answer
+    different questions and one list of errors made that invisible.
+    `check_frameworks` runs framework -> move: is each entry legal, resolvable,
+    complete. This runs move -> framework: is each move SERVED. Nothing ran this
+    direction until 0.1.663, so `correlate` sat in AR-1 with zero entries for 74
+    releases (GAP-032) while the guard printed what it prints on a complete
+    registry -- FM-24 at the guard layer.
+    """
+    import json as _json
+    try:
+        fw = _json.loads((ROOT / "assets" / "frameworks.json")
+                         .read_text(encoding="utf-8"))
+    except (OSError, _json.JSONDecodeError) as exc:
+        return [f"moves served: could not read the framework dictionary: {exc}"]
+    errors = []
+    moves = set(_analytical_moves())
+    # AR-1's prose names frameworks, and until 0.1.663 nothing held those names
+    # to the registry. Measured then: `waterfall` was filed under BOTH decompose
+    # and bridge inside AR-1 itself; `driver tree` was correlate in AR-1 and
+    # decompose in the registry; `scatter`, `benchmark table`, `radar` and
+    # `Mekko` existed in the prose and nowhere else, while `funnel` and
+    # `market-sizing` existed in the registry and nowhere else. Two vocabularies
+    # for one fact, which is what `evals/single-source.json` exists to refuse
+    # one layer down.
+    alias = {}
+    for name, entry in (fw.get("frameworks") or {}).items():
+        alias[name] = name
+        for a in entry.get("aka") or []:
+            alias[_fw_slug(a)] = name
+    named = _ar1_frameworks()
+    if named is None:
+        # FM-24's third answer. A parser that cannot find AR-1's list has not
+        # checked the names, and must not print what a matching pair prints.
+        errors.append(
+            "could not read AR-1's numbered move list out of "
+            "references/analysis-rules.md, so the framework NAMES have not "
+            "been compared with the registry at all — this is a parse "
+            "failure, not agreement")
+    elif set(named) != moves:
+        # THE PARTIAL PARSE, and it is the same failure one level in. The first
+        # cut answered "unreadable" only when NOTHING parsed, so a per-item
+        # miss just dropped that move's key -- and the loop below iterates the
+        # moves that PARSED, so a dropped one is never compared, while the
+        # served-check below iterates the registry and still passes. Measured
+        # on the real file: rewording `Framework: scatter.` to `The framework
+        # is scatter.`, dropping the bold from `4. **Correlate**`, or renaming
+        # the move each silently drop `correlate` and print `[]` -- literally
+        # what a clean tree prints. A guard written to close FM-24 at the
+        # guard layer, committing FM-24 at the guard layer.
+        errors.append(
+            f"AR-1's move list parsed as {sorted(named)} rather than the five "
+            f"analytical moves; {sorted(moves - set(named))} yielded no "
+            f"`Frameworks:` line the parser could read, so those moves' names "
+            f"have NOT been compared with the registry — a parse failure, not "
+            f"agreement. AR-3's beat format is the authority for the prose: "
+            f"each item is `N. **Move** — … Frameworks: a, b, c. …`")
+    else:
+        for move, prose in sorted(named.items()):
+            resolved, unknown = set(), []
+            for raw in prose:
+                key = alias.get(_fw_slug(raw))
+                if key is None:
+                    unknown.append(raw)
+                else:
+                    resolved.add(key)
+            for raw in unknown:
+                errors.append(
+                    f"analysis-rules.md AR-1 names {raw!r} as a {move} "
+                    f"framework and frameworks.json has no such entry (nor an "
+                    f"`aka` for it) — a rule may not send an author to a "
+                    f"figure the package cannot draw")
+            registered = {n for n, e in (fw.get("frameworks") or {}).items()
+                          if e.get("move") == move}
+            for miss in sorted(registered - resolved):
+                errors.append(
+                    f"frameworks.json registers {miss!r} under {move} and "
+                    f"AR-1 does not name it — the registry is the dictionary "
+                    f"AR-3 sends authors to, and a framework only it knows "
+                    f"about is one the rules never offer")
+            for extra in sorted(resolved - registered):
+                errors.append(
+                    f"AR-1 names {extra!r} under {move} but frameworks.json "
+                    f"files it under {fw['frameworks'][extra].get('move')!r} "
+                    f"— one framework, two moves, and an author following "
+                    f"either is following the other's mistake")
+
+    # ONE level, not two. A first cut also failed a move whose every framework
+    # is `drawn: "native"`, on the reasoning that `_drawable_moves` cannot see
+    # it and D32 then holds no page to it. A review showed what that demand
+    # does: `correlate` has exactly one framework and no sibling to hide
+    # behind, so the guard made the HONEST answer illegal and the author of the
+    # guard bound the only correlation-tagged near-match without opening the
+    # SVG. It turned out to be an empty axis frame carrying ONE bubble -- a
+    # shape that cannot carry the slot its own entry declares ("one mark per
+    # observation"), certified as this package's scatter by a checker that
+    # wanted a non-empty list. That is the checker editing the content to
+    # satisfy itself, and this repository has the pattern written down.
+    #
+    # Some frameworks are DRAWN, not lifted: a waterfall, a funnel, a benchmark
+    # table, a radar, a scatter. `drawn: "native"` is the register saying so,
+    # and a guard may not overrule it. Refused in FAILURE_MODES as AG-10.
+    served: dict[object, list[str]] = {}
+    for name, entry in (fw.get("frameworks") or {}).items():
+        served.setdefault(entry.get("move"), []).append(name)
+    for move in sorted(moves):
+        if not served.get(move):
+            errors.append(
+                f"analytical move {move!r} (analysis-rules.md AR-1) has no "
+                f"entry in frameworks.json — a move the rules declare and the "
+                f"package cannot answer is a hole an author falls into: "
+                f"`new_deck` has no figure to seed, no misuse line to quote, "
+                f"and D32 skips the page rather than failing it")
     return errors
 
 
@@ -5225,6 +5388,7 @@ CHECKS = (
     ("brand registry", check_brand_registry),
     ("shape library", check_shape_library),
     ("frameworks", check_frameworks),
+    ("moves served", check_moves_served),
     ("scoring sheet parity", check_scoring_sheet_parity),
     ("metric id ranges", check_metric_id_ranges),
     ("gating claims", check_gating_claims),

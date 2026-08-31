@@ -248,10 +248,18 @@ def test_the_live_register_still_declares_what_the_consolidation_moved():
              "measured_of_trace"], 1),
         "recorded-axes": (["recorded_axes"], 1),
         "run-directory-resolution": (["resolve_run"], 1),
+        # No defs: the owner's shape is a module CONSTANT
+        # (`check_outline.ANALYTICAL_MOVES`), and `check_one_home` resolves
+        # `defs` as `^def name(`. The pattern carries the whole enforcement.
+        "analytical-moves": ([], 1),
     }
     assert set(facts) == set(expected), "a fact was added or removed"
     for fid, (defs, patterns) in expected.items():
-        assert facts[fid]["defs"] == defs, fid
+        # `.get`, because an entry whose owner exports a CONSTANT rather than a
+        # function carries no `defs` at all — `check_one_home` resolves `defs`
+        # as `^def name(`, so listing one there would name something the owner
+        # does not define. `analytical-moves` is the first such entry.
+        assert facts[fid].get("defs", []) == defs, fid
         assert len(facts[fid].get("patterns", [])) == patterns, fid
 
 
