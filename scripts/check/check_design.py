@@ -83,6 +83,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
 import color_math  # noqa: E402 — after the bootstrap, deliberately
 import css_tokens  # noqa: E402 — after the bootstrap, deliberately
+import figure_spec  # noqa: E402 — after the bootstrap
 import gate_registry  # noqa: E402 — after the bootstrap
 import markup  # noqa: E402 — after the bootstrap
 from deliverable_registry import (  # noqa: E402 — after the bootstrap
@@ -2526,6 +2527,7 @@ def measure(path):
         "D38_agenda_rows": d38_agenda_rows(raw),
         "D39_bookend_mark": d39_bookend_mark(raw),
         "D40_bookend_is_the_brand": d40_bookend_is_the_brand(raw),
+        "D42_figure_spec": d42_figure_spec(raw, path.parent),
         "D23_font_count": d23_font_count(
             raw, (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")),
     }
@@ -2811,6 +2813,69 @@ def _measured(point) -> bool:
     if isinstance(value, str):
         return bool(value.strip())
     return True
+
+
+_SPEC_DECL = re.compile(r'data-figure-spec="([^"]+)"')
+
+
+def d42_figure_spec(raw, base=None):
+    """A page that DECLARES its data must be able to produce it.
+
+    -> {declared, broken:[{page, ref, why}]}
+
+    **Nothing here asks a figure to declare a spec.** A schematic, a 2x2, the
+    globe and an icon row are correct answers that cannot satisfy such a demand
+    — AG-10, which this package declined after shipping it for one commit and
+    watching its author bind a wrong shape to satisfy his own guard. What gates
+    is the contradiction only: the page said the numbers are in that file, and
+    they are not, or they are not what the move needs.
+
+    `base` is the document's own directory, because the spec sits beside the
+    deck. Given no base the check reports `unmeasurable` rather than passing:
+    a reference nobody could resolve is not a reference that resolved, and this
+    metric's whole subject is references that do not.
+    """
+    decls = list(_SPEC_DECL.finditer(raw))
+    if not decls:
+        # `n/a`, NOT `ok`. A document that was never asked and a document that
+        # declared its data and delivered it must not print the same line —
+        # that is FM-24 inside a gate, and `evals/gates.json`'s `na_means` is
+        # where this silence is declared honest.
+        return None
+    broken = []
+    for m in decls:
+        ref = m.group(1)
+        pid = _page_id_before(raw, m.start())
+        if base is None:
+            # A declaration nobody could resolve is a broken declaration, never
+            # an absent one. Collapsing this into the `n/a` above would let a
+            # caller with no document directory report a clean sheet.
+            broken.append({"page": pid, "ref": ref,
+                           "why": "the document's directory is unknown, so "
+                                  "this reference could not be resolved"})
+            continue
+        target = base / ref
+        spec, problem = figure_spec.load(target)
+        if problem or spec is None:
+            broken.append({"page": pid, "ref": ref,
+                           "why": problem or f"{target}: no spec came back"})
+            continue
+        if figure_spec.is_skeleton(spec):
+            # NOT a finding. The scaffold writes the skeleton and D14 already
+            # refuses the visible slot that goes with it, so failing here would
+            # report one unfinished figure twice and send the author to the
+            # wrong file.
+            continue
+        found = figure_spec.problems(spec)
+        if found:
+            broken.append({"page": pid, "ref": ref, "why": found[0]})
+    return {"declared": len(decls), "broken": broken}
+
+
+def _page_id_before(raw, pos):
+    opens = list(re.finditer(r'<section class="page"[^>]*\bid="([^"]+)"',
+                             raw[:pos]))
+    return opens[-1].group(1) if opens else "(document)"
 
 
 def d21_data_contract(raw):
@@ -3111,6 +3176,10 @@ def grade(r):
                   if bm["differ"] else 0) if bm else "no pair of drawn bookends",
                  "=0 (gates)", not (bm and bm["differ"]), bm is None))
     bmm = r["D40_bookend_is_the_brand"]
+    d42 = r["D42_figure_spec"]
+    rows.append(("D42_figure_spec",
+                 len(d42["broken"]) if d42 else None, "=0 (gates)",
+                 not (d42 and d42["broken"]), d42 is None))
     rows.append(("D40_bookend_is_the_brand",
                  "; ".join(bmm) if bmm else 0,
                  "=0 (gates)", not bmm, bmm is None))

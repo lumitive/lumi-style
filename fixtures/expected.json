@@ -82,7 +82,8 @@
      "D38_agenda_page_spans": "ok",
      "D38_agenda_run_echo": "ok",
      "D39_bookend_mark": "ok",
-     "D40_bookend_is_the_brand": "ok"
+     "D40_bookend_is_the_brand": "ok",
+     "D42_figure_spec": "n/a"
     },
     "contains": {
      "D10_label_icons": [
@@ -214,7 +215,8 @@
      "D38_agenda_page_spans": "ok",
      "D38_agenda_run_echo": "n/a",
      "D39_bookend_mark": "FAIL",
-     "D40_bookend_is_the_brand": "FAIL"
+     "D40_bookend_is_the_brand": "FAIL",
+     "D42_figure_spec": "FAIL"
     },
     "contains": {
      "D16_visual_presence": [
@@ -385,7 +387,8 @@
      "D38_agenda_page_spans": "FAIL",
      "D38_agenda_run_echo": "ok",
      "D39_bookend_mark": "n/a",
-     "D40_bookend_is_the_brand": "FAIL"
+     "D40_bookend_is_the_brand": "FAIL",
+     "D42_figure_spec": "n/a"
     }
    },
    "layout": {

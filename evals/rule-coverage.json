@@ -4935,6 +4935,16 @@
    "metric": null,
    "gates": false,
    "why_unchecked": "a measure line is a noun phrase naming a quantity, which is not decidable from tokens: a unit-and-period predicate false-failed 5 of 7 real McKinsey and Bain measure lines, including Bain Figure 2's 'Global buyout assets under management', which carries neither. The scaffold hands the slot over as a bracketed TO FILL instead, and D14 gates on an unfilled one reaching the reader."
+  },
+  {
+   "id": "RC-492",
+   "source": "references/design-rules.md:1739",
+   "quote": "**What is required is that a declaration be true.**",
+   "gist": "A page declaring `data-figure-spec` names a file that exists, parses, and holds its move's universal and input-shape fields.",
+   "page_kind": "all",
+   "covers": "figure.data-declaration",
+   "metric": "D42",
+   "gates": true
   }
  ],
  "orphan_gates": {

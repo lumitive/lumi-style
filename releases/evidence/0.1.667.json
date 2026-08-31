@@ -1,0 +1,32 @@
+{
+  "version": "0.1.667",
+  "diff_base": "3b07b672baeb5bc9d5de870ef65778a9a3f50120",
+  "spec": "specs/2026-09-01-figure-data-contract-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "scaffold-render",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "f04602e1e4dabf54880d35f1a127e018812a9c892b096ad3bdbb2f17779ea4dd",
+      "date": "2026-09-01"
+    },
+    {
+      "id": "scaffold-render",
+      "command": "python3 scripts/ops/new_deck.py --outline fixtures/scaffold-evidence-outline.md --genre internal --pages 10 --parts A,B,C --no-trace --out fixtures/.scaffold-evidence.html && python3 scripts/check/inspect_layout.py --deliverable fixtures/.scaffold-evidence.html",
+      "exit_code": 0,
+      "stdout_sha256": "45d0766924b83fac7ad56ac924ee97cf6b639c7540028107aabf4c315029d25d",
+      "date": "2026-09-01"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board's newest run is 0.1.648, nineteen releases back. Refreshing it means driving at least two platform CLIs through all three tasks on the owner's API credentials with her installs current \u2014 her call, and she has deferred it while this plan runs. This is the FIFTH release carrying this waiver in six and that is stated rather than buried: a waiver repeated is a waiver becoming a rubber stamp. What is unconfirmed: whether the twelve configurations still produce passing deliverables. This release adds a rule sentence to `prompts/lumi-style-core.md` and one to `references/`, and a consumer-side module a `full` tier agent can now import \u2014 so what a driven agent is HANDED changed, and a refresh would answer whether agents take the new path. It changes no adapter, no platform registry record, no entry-point loading rule and no token value, so no platform CAPABILITY moved."
+    }
+  ]
+}

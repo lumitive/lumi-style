@@ -1,4 +1,4 @@
-# LUMI build card · 0.1.666
+# LUMI build card · 0.1.667
 
 > **GENERATED** by `scripts/build/build_card.py` from `evals/rule-coverage.json`, `evals/gates.json` and `tokens/`. `--check` runs in CI. Never hand-edit: edit the rule, or the register, and regenerate.
 
@@ -36,7 +36,7 @@ python3 scripts/ops/build.py --deck <out.html> --script <fill.py> \
 
 **The instruments are already inside it** — prose, design, layout, privacy and the Evals, one process, browser rendering while the text checks run. Run one directly only to re-check ONE finding while you fix it. Running the stack and then the instruments is the same work twice, and the expensive half is a browser.
 
-## The 53 gating verdicts
+## The 54 gating verdicts
 
 A gating failure has to be fixed; a graded one is a reading. **A gate binds a document built at or after its `since`** — an older document reports `not held`, which is neither pass nor failure. A document with no version stamp is held to all of them.
 
@@ -60,6 +60,7 @@ A gating failure has to be fixed; a graded one is a reading. **A gate binds a do
 | `D38_agenda_page_spans` | agenda | 0.1.554 | — |
 | `D39_bookend_mark` | brand-mark | 0.1.560 | the document has no pair of drawn bookends |
 | `D40_bookend_is_the_brand` | brand-mark | 0.1.560 | — |
+| `D42_figure_spec` | figure-data | 0.1.667 | the document declares no figure spec, which is a correct answer: nothing here asks a figure to have one (AG-10). It is an honest silence, not a measu… |
 | `M12_visible_cjk` | output-language | 0.1.373 | the document declares a language this metric does not read - Chinese. A document that declares NOTHING and carries CJK is `blind`, not n/a: it fails |
 | `M16_language_asked` | output-language | 0.1.587 | the document declares no language at all, so there is nothing to compare an ask against - M12 answers that document as `blind`, which fails. English… |
 | `M4_banned_hits` | banned-language | always | — |
@@ -100,7 +101,7 @@ A gating failure has to be fixed; a graded one is a reading. **A gate binds a do
 
 Only the rules a script can fail you for, from the register. The full contract — including the majority of rules that no check reads — is `references/page-contracts.md`.
 
-### Every page (55)
+### Every page (56)
 
 - **`D12`** Carry the handling terms and origin on every page, opening with the seal-red shield handling marker. — `SKILL.md:631`
 - **`D12`** Carry the handling terms and the document's origin on every page. — `references/design-rules.md:1180`
@@ -125,6 +126,7 @@ Only the rules a script can fail you for, from the register. The full contract �
 - **`D33`** Take every icon from the two sets this package ships; never draw one ad hoc. — `references/design-rules.md:1268`
 - **`D39`** Carry one mark twice — the cover's and the closing's are the same mark. — `references/brand.md:364`
 - **`D40`** Carry the locked field globe on the cover and the closing unless the document declares the replacement the owner asked for. — `references/storyline-templates.md:532`
+- **`D42`** A page declaring `data-figure-spec` names a file that exists, parses, and holds its move's universal and input-shape fields. — `references/design-rules.md:1739`
 - **`M12`** Keep an English deliverable free of Chinese in text a reader sees. — `references/writing-rules.md:39`
 - **`M16`** Default the output language to American English and the canvas to light unless the user asks otherwise. — `SKILL.md:86`
 - **`M16`** Write in American English when the user specifies no language. — `references/writing-rules.md:27`

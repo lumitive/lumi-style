@@ -2766,6 +2766,11 @@ PROMPT_MUST_CARRY: tuple[tuple[str, str], ...] = (
      "the 0.1.521 rule; the full tier's scaffold enforces it, the prompt tier has only the sentence"),
     ("may not call a deliverable verified",
      "OR-9's prohibition half; the registry carries it, and the prompt tier is the one that never runs a check"),
+    ("six whether a tool draws it or you write the svg by hand",
+     "the figure data contract's universal half (0.1.667). The full tier gets a "
+     "JSON spec a renderer refuses to draw without; the prompt tier gets one "
+     "pasted context and no tools, so the six fields reach it as prose or they "
+     "do not reach it at all — prose is 12/12, a Python renderer is 10"),
 )
 
 
@@ -3520,7 +3525,7 @@ def check_script_paths():
 # makes bare names resolve from any drawer depth).
 SIBLING_MODULES = (
     "geo_projection", "geo_frame", "globe_svg", "regionmap_svg", "sea_route",
-    "scatter_svg",
+    "scatter_svg", "figure_spec",
     "color_math", "css_tokens", "lock", "deliverable_registry",
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",

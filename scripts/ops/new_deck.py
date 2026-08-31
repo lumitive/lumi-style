@@ -73,6 +73,7 @@ import deliverable_registry  # noqa: E402
 import embed_font  # noqa: E402
 import embed_globe  # noqa: E402
 import embed_shapes  # noqa: E402
+import figure_spec  # noqa: E402
 import versioning  # noqa: E402
 
 # ONE ICON PER PAGE, ROTATED — not because rotation is right, but because the
@@ -206,7 +207,8 @@ def outline_sections(path: pathlib.Path | None):
         by_title[t] = {"move": move,
                        "finding": _field("finding", rest),
                        "implication": _field("implication", rest),
-                       "framework": _field("framework", rest)}
+                       "framework": _field("framework", rest),
+                       "data": _field("data", rest)}
     out = []
     for _h, titles in groups:
         for t in titles:
@@ -214,7 +216,8 @@ def outline_sections(path: pathlib.Path | None):
             out.append({"title": t, "move": d.get("move", ""),
                         "finding": d.get("finding", ""),
                         "implication": d.get("implication", ""),
-                        "framework": d.get("framework", "")})
+                        "framework": d.get("framework", ""),
+                        "data": d.get("data", "")})
     return out
 
 
@@ -1001,6 +1004,44 @@ def opener_mark(index: int) -> str:
     return f'<div class="openmark">{svg}</div>\n      {note}'
 
 
+def write_spec_skeletons(plan, out_path):
+    """Write a skeleton for every beat that points at one. -> [(path, move)].
+
+    **Skeletons only, and never over an existing file.** The scaffold's job is
+    to give the author a shape with every field present and no value invented;
+    the numbers are the author's, and a rebuild that overwrote them would
+    destroy the one artefact this whole chain exists to hold. A spec that is
+    already there is left exactly as it is.
+
+    Silent when there is no `--out`: the spec sits beside the deck, so without
+    a deck on disk there is no `beside`. The page still declares
+    `data-figure-spec`, and `check_design`'s D41 reports the dangling
+    reference — which is the correct reading of "the author has not written it
+    yet" rather than a scaffold guessing at a directory.
+    """
+    if not out_path:
+        return []
+    written = []
+    for sec in plan or []:
+        ref = str(sec.get("data") or "").strip()
+        move = str(sec.get("move") or "").strip().lower()
+        if not ref or move not in figure_spec.MOVE_FIELDS:
+            continue
+        target = (out_path.parent / ref).resolve()
+        if target.exists():
+            continue
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(
+                json.dumps(figure_spec.skeleton(move), indent=1,
+                           ensure_ascii=False) + "\n", encoding="utf-8")
+        except OSError as exc:
+            print(f"note  could not write {target}: {exc}", file=sys.stderr)
+            continue
+        written.append((target, move))
+    return written
+
+
 def main(argv):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--genre", choices=GENRES, default="internal")
@@ -1232,7 +1273,13 @@ def main(argv):
             # refuse, and the author who ignores it ships a finished-looking
             # page. The bracket is what D14 keys on and stays under its 60
             # character window; the command sits beside it, unbracketed.
-            toolslot = ""
+            toolslot, specdecl = "", ""
+            dataref = str(sec.get("data") or "").strip()
+            if dataref:
+                # THE PAGE NAMES ITS OWN SPEC. Without this the drawing and the
+                # numbers behind it have no link a checker can follow, which is
+                # the state 58 shipped figures were in: one declared its data.
+                specdecl = f' data-figure-spec="{html.escape(dataref)}"'
             if not shape:
                 fw_name, run = tool_for(move, sec.get("framework", ""))
                 if run:
@@ -1243,10 +1290,17 @@ def main(argv):
                     # a page that declares `correlate`. Caught by looking at the
                     # render, by nothing that measures it.
                     figure = FIG_PLACEHOLDER
+                    cmd = (run.replace("<spec.json>", dataref) if dataref
+                           else run)
+                    where = (f' The numbers go in <code>'
+                             f'{html.escape(dataref)}</code>, which the '
+                             f'scaffold has written as a skeleton.'
+                             if dataref else "")
                     toolslot = (
                         f'\n      <p class="notes">[TO FILL: draw this figure]'
                         f' &#183; {fw_name} is drawn from its own numbers, not '
-                        f'from a library shape. <code>{html.escape(run)}</code>'
+                        f'from a library shape.{where} '
+                        f'<code>{html.escape(cmd)}</code>'
                         f' renders one from a JSON spec: paste its SVG here in '
                         f'place of this line.</p>')
             fignote = (f"\n      <!-- {hint} -->" if hint else "")
@@ -1276,7 +1330,7 @@ def main(argv):
                     f'      <p class="scope-note" data-omitted="{o["section"]}">'
                     f'This deck does not cover {o["said"]}: {o["reason"]}.</p>'
                     for o in omissions)
-            out.append(f'''<section class="page" id="p{n}"{adecl}>
+            out.append(f'''<section class="page" id="p{n}"{adecl}{specdecl}>
   {g}
   <div class="body {lay}">
     <div class="lede">
@@ -1370,6 +1424,9 @@ def main(argv):
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(doc + "\n", encoding="utf-8")
         print(f"note  wrote {args.out}", file=sys.stderr)
+        for target, move in write_spec_skeletons(plan, args.out):
+            print(f"note  wrote {target} — a `{move}` skeleton with every "
+                  f"field present and no value invented", file=sys.stderr)
     else:
         print(doc)
     print(f"<!-- scaffold: {total} pages, standard order. Every icon reference "

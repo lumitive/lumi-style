@@ -1727,3 +1727,24 @@ file by a third over its bytes. Downscale to the size it is actually rendered
 at, and prefer a vector when the content is a diagram — a diagram embedded as a
 photograph of a diagram is a defect, not a shortcut.
 
+
+## DR-21 · A figure that names the file its numbers live in
+
+*Serves: **P-2**.* · id `DR-21`
+
+**A figure may declare the data it draws, and nothing here requires it to.** A
+schematic, a 2x2, a map and an icon row carry no measured quantity, and a rule
+demanding a data file of them is a rule no correct answer can satisfy.
+
+**What is required is that a declaration be true.** When a page carries
+`data-figure-spec="<path>"`, that file exists beside the document, parses, and
+holds what its analytical move needs: the period the numbers cover, the
+direction stated in words, whether cause is claimed, the source, the move
+itself, and the measures named with their units — plus the move's own input
+shape (AR-1). A page that names a file it cannot produce is telling the reader
+its numbers are somewhere they are not.
+
+This is the artefact a rebuild inherits, a translation redraws from, and the
+fact contract is compared against. It is never the fact contract itself: one
+source would make `unsourced` empty forever and red line 1's only instrument
+would go blind.

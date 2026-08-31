@@ -141,8 +141,13 @@ def _full_prompt_text():
     import deliverable_registry as d
     names = " ".join(f"`{n}`" for n in d.STORYLINES)
     bans = "; ".join(p for _, p in check_prose.BANNED)
-    return (f"{names}\n{bans}\nthe number first.\n"
-            f"this tier may not call a deliverable verified.\n")
+    # BUILT FROM `PROMPT_MUST_CARRY`, not retyped beside it. Two sentences were
+    # written here as literals, so adding a third to the constant failed this
+    # test rather than the prompt — the guard was right and its own fixture was
+    # the thing out of date.
+    carried = "\n".join(sentence for sentence, _why
+                        in check_repo.PROMPT_MUST_CARRY)
+    return f"{names}\n{bans}\n{carried}\n"
 
 
 def test_prompt_parity_passes_a_complete_prompt(tmp_path, monkeypatch):
