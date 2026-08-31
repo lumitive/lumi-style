@@ -110,3 +110,62 @@ def test_one_measured_point_among_labels_is_enough():
         _mfig({"series": [{"label": "A"}, {"label": "B", "value": 7}]},
              ["A", "B", "7"]))
     assert r["mismatches"] == []
+
+
+# --- 0.1.662: the guard that was bypassed one character later ----------------
+
+def test_an_empty_string_value_asserts_nothing():
+    """THE BYPASS, found by two independent reviewers on the release that
+    shipped the guard.
+
+    `""` is not `None`, so it cleared a `value is not None` test — and then
+    `shown` was `""` and the agreement search compiled to `(?<![\\d.])(?![\\d])`,
+    an empty pattern matching almost anywhere. The contract passed BOTH halves
+    having asserted nothing, printing output byte-identical to a measured,
+    agreeing one, and flipping `evals/gates.json`'s D21 subject from "held
+    nothing" to "held 1, ok". That is this guard's own accusation, committed by
+    this guard.
+
+    It is also the LIKELIER shape than the one the guard was written for: an
+    unfilled numeric slot in a template emits `""` far more naturally than it
+    omits the key, and D14 cannot see it because `""` is not `[TO FILL]`."""
+    for empty in ('""', '"  "', '"\\t"'):
+        found = _mismatches(
+            '{"series":[{"label":"Rural","value":' + empty + '}]}')
+        assert found and "no measured point" in found[0], (empty, found)
+
+
+def test_a_boolean_is_not_a_reading():
+    """`isinstance(False, int)` is true in Python, so `{"value": false}` went
+    through `f"{v:g}"` and reported *"declares Rural = 0"* — a number the
+    contract never wrote, checked against a drawing that never claimed it."""
+    found = _mismatches('{"series":[{"label":"Rural","value":false}]}')
+    assert found and "no measured point" in found[0], found
+    assert "= 0" not in found[0], f"invented a number the contract never wrote: {found[0]}"
+
+
+def test_zero_still_passes_after_the_string_fix():
+    """The other direction, and the trap this repository has fallen into
+    before (0.1.650 read a recorded `0` as "never recorded"). The test is on
+    the emptiness of the RENDERING, never on the truthiness of the value."""
+    assert cd.d21_data_contract(
+        '<figure><svg><text>Rural</text><text>0</text></svg>'
+        '<script type="application/json" class="f-data">'
+        '{"series":[{"label":"Rural","value":0}]}</script></figure>'
+    )["mismatches"] == []
+
+
+def test_a_contract_of_non_objects_keeps_its_own_message():
+    """The guard sits above the per-point loop, and its first cut `continue`d
+    past it — so `{"series":["a","b"]}` lost the accurate *"a series point is
+    not an object"* and got told to add a `value` to a string. Both FAIL, so no
+    gate moved; the author was simply handed the wrong repair."""
+    found = _mismatches('{"series":["Rural","Urban"]}')
+    assert found and "not an object" in found[0], found
+
+
+def test_a_measured_point_among_non_objects_is_still_read():
+    """The mixed case must not regress into either message alone."""
+    found = _mismatches('{"series":[{"label":"Rural","value":40},"junk"]}')
+    assert any("not an object" in m for m in found), found
+    assert not any("no measured point" in m for m in found), found

@@ -1,0 +1,8 @@
+{
+ "version": "0.1.662",
+ "diff_base": "8883638c697b768b3f1129b17a7751df7ae7f4b0",
+ "spec": "specs/2026-08-31-insight-metrics-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}
