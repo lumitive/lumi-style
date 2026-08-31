@@ -1,3 +1,43 @@
+## 0.1.660 — a data contract that measures nothing is now a finding, not a pass
+
+`D21_data_contract` holds a figure to the data it declares. Its value check is
+skipped when a series point has no `value` — absent is legal, because a figure
+may label a series it does not quantify. The consequence, measured: a contract of
+**labels alone**, over a drawing that carries those labels, returned **zero
+mismatches**. `{"series":[{"label":"North"},{"label":"South"}]}` passed.
+
+That matters because of what comes next. The declaration is opt-in and almost
+unused — **1 of 60 figures across three shipped decks** — and the plan
+(`specs/2026-08-31-insight-metrics-design.md` §6, C2) is to have the scaffold
+emit it. **The cheapest thing a scaffold can emit is a label-only contract**, and
+that would have flipped `evals/gates.json`'s D21 subject from "held nothing" to
+"held 1, ok" while the gate graded nothing at all. A gate that reads as activated
+and cannot fail is FM-24 wearing the shape of a fix, and it would have been
+invisible for the four to eleven releases this repository measures as its
+mean-time-to-notice.
+
+**The guard**: a contract none of whose series points carries a `value` is a
+finding — "a contract that asserts nothing cannot disagree with the drawing, so
+it grades nothing while reading as coverage." The remedy named in the message is
+either half of the truth: give a point a value, or drop the contract and declare
+the figure schematic.
+
+**`0` is a measured value.** The test is `value is not None`, never truthiness.
+A declared `0` asserts something and must pass; treating a falsy scalar as
+absence is a defect this repository has shipped before (0.1.650's fill-rate guard
+counted a recorded `0` as "never recorded" until a review caught it).
+
+**Deliberate red (conventions 11/15)**: the label-only contract over a matching
+drawing now fails and the test for it reddens when the guard is removed
+(verified). Three companions hold the boundaries — a contract that measures and
+agrees still passes, one that measures and disagrees still fails (the guard must
+not shadow what D21 was already for), and one measured point among labels is
+enough, because a contract is not required to be exhaustive.
+
+**No stored document changes verdict**: the one real contract in the corpus
+(`LUMI-Commercial-Agent-BP-chengdu`) declares values — 253, "1,010" — and still
+reports `ok`. The fixtures are unaffected.
+
 ## 0.1.659 — a quantitative page is handed its measure slot, and the gate that already exists refuses an unfilled one
 
 The owner asked whether her four checks — visual share, repeated skeletons,

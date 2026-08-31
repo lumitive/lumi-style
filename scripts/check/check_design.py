@@ -2801,6 +2801,23 @@ def d21_data_contract(raw):
         if not isinstance(series, list) or not series:
             mismatches.append(f"figure {declared}: declares no series")
             continue
+        # A CONTRACT THAT ASSERTS NOTHING CANNOT DISAGREE WITH THE DRAWING.
+        # The value check below is skipped when `value is None`, so a contract
+        # of labels alone — the cheapest thing a scaffold could emit — passes
+        # forever while `evals/gates.json` flips D21's subject from "held
+        # nothing" to "held 1, ok". The gate would read as activated and grade
+        # nothing, which is FM-24 wearing the shape of a fix. Measured before
+        # this guard existed: `{"series":[{"label":"North"},{"label":"South"}]}`
+        # over a drawing carrying both labels returned zero mismatches.
+        if not any(isinstance(pt, dict) and pt.get("value") is not None
+                   for pt in series):
+            mismatches.append(
+                f"figure {declared}: declares a contract with no measured "
+                f"point — a contract that asserts nothing cannot disagree "
+                f"with the drawing, so it grades nothing while reading as "
+                f"coverage. Give at least one series point a `value`, or "
+                f"drop the contract and declare the figure schematic")
+            continue
         for point in series:
             if not isinstance(point, dict):
                 mismatches.append(f"figure {declared}: a series point is not an object")

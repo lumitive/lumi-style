@@ -2,8 +2,11 @@
 
 Opt-in by design: a figure declaring nothing is not failed. What is not
 tolerated is a declaration that disagrees with the drawing, because a false
-contract is worse than no contract.
+contract is worse than no contract — nor one that asserts nothing, because a
+contract with no measured point cannot disagree with anything and would read as
+coverage while grading nothing (0.1.660).
 """
+import json
 import pathlib
 import sys
 
@@ -58,3 +61,52 @@ def test_unparseable_declared_data_fails():
 
 def test_a_declaration_with_no_series_fails():
     assert _mismatches('{"note": "nothing here"}')
+
+
+def _mfig(contract, drawn):
+    marks = "".join(f"<text>{t}</text>" for t in drawn)
+    return (f'<div class="fig"><svg>{marks}</svg>'
+            f'<script type="application/json" class="f-data">'
+            f'{json.dumps(contract)}</script></div>')
+
+
+def test_a_contract_with_no_measured_point_is_the_finding():
+    """The deliberate red. Both labels are on the drawing, so the existing
+    checks all pass — and the contract still says nothing."""
+    r = cd.d21_data_contract(
+        _mfig({"series": [{"label": "North"}, {"label": "South"}]},
+             ["North", "South"]))
+    assert r["declared"] == 1
+    assert any("no measured point" in m for m in r["mismatches"])
+
+
+def test_a_contract_that_measures_and_agrees_passes():
+    r = cd.d21_data_contract(
+        _mfig({"series": [{"label": "A", "value": 42}]}, ["A", "42"]))
+    assert r["mismatches"] == []
+
+
+def test_a_contract_that_measures_and_disagrees_still_fails():
+    """The guard must not shadow what D21 was already for."""
+    r = cd.d21_data_contract(
+        _mfig({"series": [{"label": "A", "value": 42}]}, ["A"]))
+    assert any("nowhere on the drawing" in m for m in r["mismatches"])
+
+
+def test_zero_is_a_measured_value_not_an_absent_one():
+    """`0` is a reading, and `None` is "not recorded". Treating the two alike is
+    the defect this repository has shipped more than once — a falsy scalar read
+    as absence."""
+    r = cd.d21_data_contract(
+        _mfig({"series": [{"label": "A", "value": 0}]}, ["A", "0"]))
+    assert r["mismatches"] == [], (
+        "a declared 0 is a measurement; the contract asserts something")
+
+
+def test_one_measured_point_among_labels_is_enough():
+    """A chart may label many series and quantify one; the contract is not
+    required to be exhaustive, only to assert something."""
+    r = cd.d21_data_contract(
+        _mfig({"series": [{"label": "A"}, {"label": "B", "value": 7}]},
+             ["A", "B", "7"]))
+    assert r["mismatches"] == []
