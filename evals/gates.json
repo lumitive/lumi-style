@@ -554,6 +554,14 @@
    "family": "handling-terms",
    "severity": "gate",
    "since": "always"
+  },
+  "D42_figure_spec": {
+   "checker": "design",
+   "family": "figure-data",
+   "severity": "gate",
+   "since": "0.1.667",
+   "subject": "D42_figure_spec",
+   "na_means": "the document declares no figure spec, which is a correct answer: nothing here asks a figure to have one (AG-10). It is an honest silence, not a measurement that did not happen."
   }
  }
 }

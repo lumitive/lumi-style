@@ -140,9 +140,16 @@ def test_the_registrys_command_actually_runs(tmp_path):
     assert run, "the correlate framework declares no tool"
     spec = tmp_path / "spec.json"
     spec.write_text(json.dumps({
+        # THE FULL CONTRACT. Before 0.1.667 a spec could omit `move`, `period`
+        # and `reading` and still draw: four of the six things DR-20 demands of
+        # any figure carrying a number were optional and nothing asked.
+        "move": "correlate",
+        "period": "the first twelve months",
+        "reading": "adoption rises with support hours, then flattens",
+        "cause": "direction not tested",
+        "source": "illustrative, not measured",
         "x": {"name": "Support hours", "unit": "hours/quarter"},
         "y": {"name": "Adoption", "unit": "% of seats"},
-        "source": "illustrative, not measured",
         "points": [{"x": 8, "y": 21}, {"x": 20, "y": 44}, {"x": 34, "y": 58},
                    {"x": 50, "y": 63}, {"x": 66, "y": 65}],
     }), encoding="utf-8")

@@ -291,6 +291,17 @@ an analytical move** — compare (against a benchmark), decompose (MECE),
 position (2x2/SWOT with independent axes), correlate (scatter), or bridge
 (waterfall).
 
+**Every figure that carries a number states six things, and they are the same
+six whether a tool draws it or you write the SVG by hand**: the MEASURE with
+its unit, the PERIOD the numbers cover, the READING — the direction, in words —
+whether CAUSE is claimed, the SOURCE the observations came from, and the
+analytical MOVE that produced the finding. Where a tool is available these live
+in a JSON spec beside the document and the tool refuses to draw without them;
+where it is not, they are still the six things a reader needs before the
+drawing means anything, so say them on the page. **A figure whose reader cannot
+tell what is counted, in what unit, over what period, from what source is a
+decoration.**
+
 **A correlate page is a SCATTER, and it is drawn from the data — there is no
 reusable shape for one, because the marks ARE the data.** It must carry, or it
 is not a scatter: both measures named with their units, one mark per
@@ -536,6 +547,6 @@ quality), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.666** snapshot, cut 2026-08-19. It is self-contained by
+> This file is the **0.1.667** snapshot, cut 2026-08-19. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

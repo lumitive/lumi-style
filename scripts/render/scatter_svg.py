@@ -50,10 +50,23 @@ from __future__ import annotations
 
 import argparse
 import html
-import json
 import math
 import pathlib
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
 import sys
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import figure_spec  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
@@ -178,9 +191,23 @@ def _trend_points(pts, window):
     return out
 
 
-def render(spec, orientation="landscape", trend="none", window=5):
+def render(spec, orientation="landscape", trend="none", window=5,
+           path="the spec"):
     if orientation not in BOX:
         raise SystemExit(f"orientation must be one of {sorted(BOX)}")
+    # THE CONTRACT FIRST, and the same one every renderer asks. Before 0.1.667
+    # this file carried its own partial checks — it refused an unnamed size
+    # measure and a non-positive size, and accepted a spec with no period, no
+    # source, no reading and no declared move, which are four of the six things
+    # DR-20 requires of any figure carrying a number. A drawing that cannot
+    # state its own terms should not be easy to emit.
+    figure_spec.refuse_if_unusable(dict(spec, move="correlate")
+                                   if not spec.get("move") else spec, path)
+    if str(spec.get("move", "correlate")).lower() != "correlate":
+        raise SystemExit(
+            f"{path} declares move {spec.get('move')!r}; this tool draws "
+            f"`correlate`. assets/frameworks.json says which tool draws which "
+            f"move.")
     W, H = BOX[orientation]
 
     pts = []
@@ -374,15 +401,13 @@ def main(argv=None):
                     help="points per trend window (default 5)")
     a = ap.parse_args(argv)
     path = pathlib.Path(a.data)
-    if not path.is_file():
-        sys.exit(f"no such spec: {path}")
-    try:
-        spec = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        sys.exit(f"{path}: not valid JSON — {exc}")
+    spec, problem = figure_spec.load(path)
+    if problem:
+        sys.exit(problem)
     if a.window < 2:
         sys.exit("--window needs at least 2 points to be a mean")
-    print(render(spec, orientation=a.orientation, trend=a.trend, window=a.window))
+    print(render(spec, orientation=a.orientation, trend=a.trend,
+                 window=a.window, path=str(path)))
 
 
 if __name__ == "__main__":

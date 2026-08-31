@@ -536,6 +536,14 @@ def page(i: int, total: int, spec, broken: bool, k: int) -> str:
     style = ""
     terms = TERMS
     src = ""
+    spec_decl = ""
+    if broken and k == 4:
+        # D42's PLANT. The page says its numbers are in a file, and the file is
+        # not there. Nothing asks a figure to declare a spec (AG-10); what this
+        # fixture carries is the contradiction — a declaration the document
+        # cannot honour. Anchored to `k`, never to `i`: two planted defects were
+        # lost when a re-split moved their page number, twice.
+        spec_decl = ' data-figure-spec="figures/does-not-exist.json"'
     if broken:
         if k == 2:
             gd = ("Leveraging a seamless framework, this callout showcases a robust "
@@ -756,7 +764,7 @@ def page(i: int, total: int, spec, broken: bool, k: int) -> str:
     if broken and k == 6:
         role += ' data-analysis="bridge"'
     return f"""
-<section class="page" id="p{i}"{role}>
+<section class="page" id="p{i}"{role}{spec_decl}>
   {GROUND}
   <div class="body {layout}">
     <div class="lede">
@@ -1370,8 +1378,70 @@ def build_zh(broken: bool, localized: bool = True) -> str:
 """
 
 
+def build_figure() -> str:
+    """A one-page deliverable whose figure is DRAWN FROM A SPEC.
+
+    It exists so the browser gates that grade a drawing have something to
+    grade. Measured before it existed: `inspect_layout --deliverable` reported
+    `figure_distorts` and `figure_axis_named` as `n/a` on every tracked
+    fixture, because not one of them carried a mark declaring the value it
+    draws. Two gates reported clean on a corpus that could not make them fail,
+    which is FM-01 at the fixture layer rather than in the checker.
+
+    The drawing comes from `scatter_svg.render` and the spec from
+    `fixtures/figures/scatter-demo.json`, so the fixture goes stale — loudly,
+    through `build_fixtures --check` — the moment either changes. A fixture
+    hand-copied from a renderer's output is a fixture that stops describing it.
+    """
+    import figure_spec
+    import scatter_svg
+    spec_path = ROOT / "fixtures" / "figures" / "scatter-demo.json"
+    spec, problem = figure_spec.load(spec_path)
+    if problem:
+        raise SystemExit(problem)
+    svg = scatter_svg.render(spec, trend="smooth", path=str(spec_path))
+    return f'''<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>A figure drawn from its own data</title>
+<style>
+{shipped_css()}
+</style></head>
+<body>
+{ground_defs()}
+{SPRITE}
+<section class="page cover-grid" id="cover" data-role="cover">
+  <div class="gd"></div>
+  <h1 class="ct">Support hours buy adoption only to a point</h1>
+  <p class="cs">A fixture whose one figure declares the data it draws.</p>
+  {opener_mark("globe")}
+  <p class="colophon">Every figure on the following page is drawn from the spec
+  it names; the numbers are illustrative and are sourced from that file.</p>
+{foot(1, 2)}
+</section>
+<section class="page" id="p2" data-analysis="correlate"
+         data-figure-spec="figures/scatter-demo.json">
+  <div class="gd"></div>
+  <div class="body stack">
+    <div class="lede">
+      <p class="eyebrow">Part A &#183; support economics</p>
+      <h2 class="t">Adoption rises with support hours, then flattens near forty</h2>
+      <p class="sup">Feature adoption, % of seats, first twelve months after signup.</p>
+    </div>
+    <div class="fill">
+      <div class="fig">{svg}
+      <div class="cap"><span class="n">Figure 1</span> Adoption flattens past
+      forty support hours</div></div>
+      <p class="take">Past forty hours more support stops buying adoption.</p>
+    </div>
+  </div>
+{foot(2, 2)}
+</section>
+</body></html>'''
+
+
 def targets() -> dict[str, str]:
     return {"fixtures/deck-pass.en.html": build(False),
+            "fixtures/deck-figure.en.html": build_figure(),
             "fixtures/deck-broken.en.html": build(True),
             "fixtures/deck-degenerate.en.html": build_degenerate(),
             "fixtures/prose-zh-pass.zh.html": build_zh(False),

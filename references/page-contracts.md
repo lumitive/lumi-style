@@ -7,7 +7,7 @@ place its rule is written.
 This page is an index, never an authority: where it disagrees with the
 file it cites, the file wins and this page is stale.
 
-**491 rules · 152 measured by a metric · 92 gated · 339 with no automated check.**
+**492 rules · 153 measured by a metric · 93 gated · 339 with no automated check.**
 
 That last number is the point of the page. A rule with no check is not
 a rule an agent will follow, because an agent iterates to the edge of
@@ -329,7 +329,7 @@ Gathered separately at the owner's direction: these are the pages the argument i
 
 The footer, the palette, the type ladder, the layout vocabulary — what binds regardless of which page it is.
 
-238 rules, 152 of them unchecked.
+239 rules, 152 of them unchecked.
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
@@ -460,6 +460,7 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Ban the stock-photograph tells by name. | `references/design-rules.md:1720` | — | `—` | no |
 | Downscale an embedded raster to the size it is actually rendered at. | `references/design-rules.md:1726` | — | `—` | no |
 | Embed a diagram as a vector rather than a raster. | `references/design-rules.md:1727` | — | `—` | no |
+| A page declaring `data-figure-spec` names a file that exists, parses, and holds its move's universal and input-shape fields. | `references/design-rules.md:1739` | `figure.data-declaration` | `D42` | yes |
 | Never place the stylised mark geography and the 110m map geography in one view. | `references/design-rules.md:220` | — | `—` | no |
 | Use D-DIN as the single Latin face for titles, body and data. | `references/design-rules.md:324` | — | `D23` | no |
 | Set display titles ALL-CAPS at weight 700 with 0.92 leading. | `references/design-rules.md:326` | — | `—` | no |

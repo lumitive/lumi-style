@@ -1,0 +1,14 @@
+{
+ "move": "correlate",
+ "period": "the first twelve months after signup",
+ "reading": "adoption rises with support hours to about forty, then flattens",
+ "cause": "direction not tested",
+ "source": "Illustrative figures, not measured.",
+ "x": {"name": "Support hours per account", "unit": "hours per quarter"},
+ "y": {"name": "Feature adoption", "unit": "% of seats"},
+ "size": {"name": "Accounts in the band", "unit": "accounts"},
+ "points": [{"x": 8, "y": 21, "size": 12}, {"x": 15, "y": 34, "size": 20},
+            {"x": 22, "y": 46, "size": 31}, {"x": 30, "y": 55, "size": 44},
+            {"x": 38, "y": 61, "size": 38}, {"x": 46, "y": 63, "size": 26},
+            {"x": 55, "y": 64, "size": 17}, {"x": 63, "y": 66, "size": 9}]
+}

@@ -18,7 +18,13 @@ import scatter_svg as sc  # noqa: E402
 
 
 def _spec(**over):
+    """A spec carrying the FULL contract — the universal half as well as the
+    correlate half. Before 0.1.667 this builder omitted `move` and `period`,
+    and the renderer drew happily: four of the six things DR-20 demands of any
+    figure carrying a number were absent and nothing asked."""
     spec = {
+        "move": "correlate",
+        "period": "the first twelve months",
         "x": {"name": "Setup time", "unit": "days"},
         "y": {"name": "Retention", "unit": "% of teams"},
         "reading": "retention falls with setup time",
@@ -86,7 +92,8 @@ def test_a_bubble_without_a_named_measure_is_refused():
     """DR-20 rule 2: a bubble is a THIRD measure. Ink whose meaning is not
     stated is ink the reader cannot check."""
     try:
-        sc.render(_spec(points=[{"x": 1, "y": 1, "size": 10}]))
+        sc.render(_spec(points=[{"x": 1, "y": 1, "size": 10},
+                                {"x": 2, "y": 2, "size": 20}]))
     except SystemExit as exc:
         assert "THIRD measure" in str(exc), exc
     else:
@@ -111,7 +118,12 @@ def test_a_spec_with_no_usable_point_is_refused():
     try:
         sc.render(_spec(points=[{"x": None, "y": 3}, {"y": 4}]))
     except SystemExit as exc:
-        assert "nothing to draw" in str(exc), exc
+        # The CONTRACT refuses it now, before the renderer looks: "fewer than
+        # two points with both an x and a y" is the same finding said earlier
+        # and in AR-1's words. The renderer's own `nothing to draw` survives
+        # for the case the contract cannot see — points whose values are
+        # non-empty strings, which satisfy "filled" and are not numbers.
+        assert "fewer than two points" in str(exc), exc
     else:
         raise AssertionError("an empty scatter was accepted")
 
@@ -132,7 +144,8 @@ def test_no_literal_colour_reaches_the_output():
     """design-rules §1: every mark takes a token, so the drawing follows the
     document's palette and its dark override."""
     svg = sc.render(_spec(series={"a": "red"},
-                          points=[{"x": 1, "y": 1, "series": "a"}]))
+                          points=[{"x": 1, "y": 1, "series": "a"},
+                                  {"x": 2, "y": 3, "series": "a"}]))
     assert not re.search(r"#[0-9a-fA-F]{3,6}\b", svg), svg
     assert "var(--d-red)" in svg
 
@@ -140,8 +153,9 @@ def test_no_literal_colour_reaches_the_output():
 def test_an_unknown_series_falls_back_rather_than_vanishing():
     """A typo in a series name must not drop the mark or emit a broken token."""
     svg = sc.render(_spec(series={"known": "teal"},
-                          points=[{"x": 1, "y": 1, "series": "mystery"}]))
-    assert svg.count("<circle") == 1
+                          points=[{"x": 1, "y": 1, "series": "mystery"},
+                                  {"x": 2, "y": 3, "series": "mystery"}]))
+    assert svg.count("<circle") == 2
     assert "var(--d-blue)" in svg
 
 
@@ -233,10 +247,10 @@ def test_the_cli_emits_a_drawing_and_refuses_a_bad_spec(tmp_path):
     out = subprocess.run(
         [sys.executable, str(ROOT / "scripts/render/scatter_svg.py"),
          "--data", str(bad)], capture_output=True, text=True, cwd=ROOT)
-    assert out.returncode != 0 and "not valid JSON" in out.stderr
+    assert out.returncode != 0 and "is not JSON" in out.stderr
 
     out = subprocess.run(
         [sys.executable, str(ROOT / "scripts/render/scatter_svg.py"),
          "--data", str(tmp_path / "nope.json")],
         capture_output=True, text=True, cwd=ROOT)
-    assert out.returncode != 0 and "no such spec" in out.stderr
+    assert out.returncode != 0 and "could not be read" in out.stderr

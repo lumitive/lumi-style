@@ -1,6 +1,6 @@
 # LUMI Style — Agent Instructions (Codex entry)
 
-> **lumi-style 0.1.666.** This file restates part of `references/`; where they
+> **lumi-style 0.1.667.** This file restates part of `references/`; where they
 > disagree, `references/` wins. The stamp is checked against `CHANGELOG.md` — it
 > went unstamped and unchecked until 0.1.352, and had already carried four
 > versions of withdrawn rules.
@@ -122,7 +122,7 @@ two-pass audit; §6b de-translationese when the Chinese was translated from
 English), and only then the pre-delivery checklist in the rubric. Measure both
 halves rather than reading them: `python3 scripts/check/check_prose.py <file>` for
 English prose, and `python3 scripts/check/check_design.py <file>` for any HTML
-deliverable. **D12, D14, D15, D19, D20, D21, D22, D24, D25, D27, D32, D33, D35, D37, D38, D39 and D40 gate; every other D-metric is reported for you
+deliverable. **D12, D14, D15, D19, D20, D21, D22, D24, D25, D27, D32, D33, D35, D37, D38, D39, D40 and D42 gate; every other D-metric is reported for you
 to judge** — a page is done when a human reads it as intentional, and a threshold
 satisfiable without improving the page ends the looking. (This line claimed
 "D1–D4 and D6 gate" for eight releases, naming four metrics that never did and
