@@ -253,6 +253,39 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   honest and is not the capability.
 - the release that lands the layout withdraws the refusal and cites this id.
 
+## GAP-052 · Seventeen rule-prose references to development-side files that no predicate can see
+
+- status: open
+- opened: 0.1.666
+- surface: scripts/check/check_repo.py (`check_rule_script_reach`,
+  `SCRIPT_PATH_RE`), references/, SKILL.md, AGENTS.md, prompts/
+- symptom: `rule script reach` keys on the literal
+  `scripts/<drawer>/<name>.py`. Inside its own scope that leaves two shapes
+  unseen, counted on the tree at 0.1.666: **9 mentions naming a development
+  tool by bare filename** (`check_repo.py`, `preflight.py` and the like, in
+  running prose where no path appears) and **8 naming a development-side
+  DOCUMENT** rather than a script. Both send a reader of the published package
+  to something they do not have, which is the same defect the guard exists for.
+- why it is not simply fixed: widening the predicate to bare filenames reopens
+  FM-23's objection exactly. `preflight.py` appears in correct prose about how
+  this repository is checked, and a guard matching the bare name would fail
+  that sentence and instruct its author to delete a useful reference — the
+  wrong-gate-edits-prose failure this repo has on record twice. Deciding
+  whether an English sentence attributes its reference is the phrase-trigger
+  class AG-1 declined.
+- what would close it: a rule that the published entry points state such facts
+  WITHOUT naming the file, checked by a predicate over a closed list of
+  development tool names rather than over grammar — a list that has one home
+  and can go stale loudly. Not attempted here because the list does not exist
+  yet and inventing it during a release is convention 15's mistake.
+- until then: the count is stated in the guard's docstring so a reader knows
+  the reach, and the sweep for these is `claim_sweep.py` plus a person, which
+  is convention 12's general rule rather than a special case.
+- check: a published entry point naming a development tool — by path, by bare
+  filename or as a document — must either state the fact without the name or
+  attribute it. Today only the path form is machine-checked; the other two are
+  read by a person, and this entry is what says so.
+
 ## GAP-044 · The cost axis has no home for cache reads, so a cached run reads as a cheap one
 
 - status: open

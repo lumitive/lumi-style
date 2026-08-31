@@ -25,7 +25,13 @@ LOG="$REPO/docs/nightly-review.log"      # docs/ is gitignored, so nothing here
 EXPIRES="2026-12-01"
 
 TODAY="$(date +%Y-%m-%d)"
-mkdir -p "$(dirname "$LOG")"
+# The log IS the deliverable, so a log that cannot be written must not look
+# like a night with nothing to say. cron mails stderr to a mailbox nobody
+# reads on macOS, so say it there and stop.
+mkdir -p "$(dirname "$LOG")" && : >> "$LOG" || {
+  echo "nightly_cron: cannot write $LOG — the review was not recorded" >&2
+  exit 1
+}
 
 {
   echo "════════════════════════════════════════════════════════════"
@@ -56,20 +62,40 @@ if [[ $RC -ne 0 ]]; then
   exit 0
 fi
 
-# The one line a person reads. Anything below "none" in a section is a finding
-# that needs a session; say how many rather than leaving the log to be scrolled.
-FINDINGS="$(echo "$OUT" | grep -cE '^  (\S+\.(md|py|json|sh):[0-9]+|0\.1\.[0-9]+ )')"
-# THREE answers, not two. "nothing shipped" and "nothing wrong" are different
-# facts, and the first version of this script printed the same line for both —
-# the exact defect the review it runs exists to find.
-if echo "$OUT" | grep -q "nothing shipped"; then
+# The one line a person reads, and it is READ FROM THE REPORT'S OWN STRUCTURE
+# rather than grepped out of its prose. The grep version counted 34 lines on a
+# real day: 16 of them were "a release happened", which is not a finding, and
+# ZERO of them were the four `★ REFUSED PRECEDENT` lines — the single thing
+# this apparatus exists for. A summary that cannot see the most severe class
+# and inflates itself with the least is worse than no summary.
+SUMMARY="$(/usr/bin/python3 scripts/ops/nightly_review.py --json 2>/dev/null \
+  | /usr/bin/python3 -c '
+import json, sys
+try:
+    r = json.load(sys.stdin)
+except Exception:
+    print("ERR 0 0"); raise SystemExit
+classes = ("dangling_citations", "coverage_claims", "new_guards")
+blind = sum(1 for c in classes if r.get(c) is None)
+found = sum(len(r[c] or []) for c in classes if c != "new_guards")
+found += sum(1 for g in (r.get("new_guards") or []) if g[2])
+print("OK", found, blind)')"
+read -r STATUS FINDINGS BLIND <<<"$SUMMARY"
+
+# FOUR answers, because there are four states and the first version had two.
+if [[ "$STATUS" != "OK" ]]; then
+  echo "→ the report could not be read as JSON. Nothing here is a clean bill." >> "$LOG"
+elif [[ "${BLIND:-0}" -gt 0 ]]; then
+  echo "→ $BLIND check(s) COULD NOT LOOK. That is not a clean bill; open a "\
+"session and run: python3 scripts/ops/nightly_review.py" >> "$LOG"
+elif echo "$OUT" | grep -q "nothing shipped"; then
   echo "→ nothing shipped today, so nothing was reviewed. That is not a clean "\
-"bill." >> "$LOG"
-elif [[ "$FINDINGS" -gt 0 ]]; then
-  echo "→ $FINDINGS line(s) need a person. Open a session and run:" >> "$LOG"
+"bill either." >> "$LOG"
+elif [[ "${FINDINGS:-0}" -gt 0 ]]; then
+  echo "→ $FINDINGS finding(s) need a person. Open a session and run:" >> "$LOG"
   echo "    python3 scripts/ops/nightly_review.py" >> "$LOG"
 else
-  echo "→ work shipped and nothing was flagged." >> "$LOG"
+  echo "→ work shipped, every check looked, and nothing was flagged." >> "$LOG"
 fi
 
 # ── INSTALL ─────────────────────────────────────────────────────────────────

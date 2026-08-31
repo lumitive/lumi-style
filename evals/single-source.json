@@ -294,6 +294,20 @@
     }
    ],
    "note": "The owner's shape is a module CONSTANT (`ANALYTICAL_MOVES`), not a `def`, so this entry carries no `defs` — `check_one_home` resolves `defs` as `^def name(`. The pattern is the whole enforcement: it catches a private set of the five moves anywhere but the owner."
+  },
+  {
+   "id": "rule-file-family",
+   "fact": "which files carry rule prose",
+   "owner": "scripts/check/check_rule_coverage.py",
+   "defs": [],
+   "patterns": [
+    {
+     "regex": "\\(\\s*\\\"references/\\\"\\s*,\\s*\\\"SKILL\\.md\\\"",
+     "selftest": "(\"references/\", \"SKILL.md\", \"AGENTS.md\", \"prompts/\",",
+     "why": "the family written out as a literal tuple anywhere but its owner"
+    }
+   ],
+   "why": "0.1.666. `check_rule_coverage` asks whether a rule may CITE a file and `check_rule_script_reach` asks whether a file INSTRUCTS an agent; each carried the family as its own tuple, and they already disagreed about CLAUDE.md. What each does with CLAUDE.md is a separate decision made by a mechanism (the consumer-side filter), not by a second list. It is owned by a development-side checker rather than `scripts/lib/`, because `cross-boundary paths` refused the shipped home: a fact naming CLAUDE.md may not ship."
   }
  ],
  "waivers": [

@@ -189,10 +189,21 @@ def test_the_reading_line_wraps_inside_the_narrow_box():
                     "three weeks and then flattens completely for every team")
     tall = sc.render(_spec(reading=long_reading), orientation="portrait")
     wide = sc.render(_spec(reading=long_reading), orientation="landscape")
-    n_tall = len(re.findall(r'class="flbl"[^>]*>n = 12|then flattens', tall))
     assert tall.count("<text") > wide.count("<text"), (
         "the narrow box did not wrap a line the wide box fits on one")
-    assert n_tall >= 1
+    # The wrap must stay INSIDE the drawing. `|` bound across the whole pattern
+    # in the first version of this assertion, so its second alternative was the
+    # bare substring `then flattens` — supplied by the test itself — and it
+    # held regardless of what the renderer did. The measured defect was
+    # geometric (a reading line ran 34 units past its own viewBox), so the
+    # assertion is geometric.
+    box = re.search(r'viewBox="0 0 [\d.]+ ([\d.]+)"', tall)
+    assert box, "the portrait figure declares no viewBox to measure against"
+    box_h = float(box.group(1))
+    ys = [float(y) for y in re.findall(r'<text[^>]*\by="([\d.]+)"', tall)]
+    assert ys and max(ys) <= box_h, (
+        f"a text run sits at y={max(ys)} in a box {box_h} tall — the wrap "
+        f"escaped the viewBox, which is the defect this test is named for")
 
 
 def test_an_unknown_orientation_is_refused():

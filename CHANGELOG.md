@@ -1,3 +1,124 @@
+## 0.1.666 — the review found nine of eleven mutations alive, and a guard written from a defect that could not see it
+
+0.1.665 shipped a chain from a declared analytical move to the command that
+draws the figure. Four reviewers then read it — one for code, one for silent
+failures, one for tests, one for claim accuracy — and between them found
+**twenty-six defects in work that was preflight-green**. This release is those
+fixes. Every finding below was re-measured before it was acted on; two were
+withdrawn on measurement and are not here.
+
+**The command the release exists to print did not run.** The registry said
+`python3 scripts/render/scatter_svg.py <spec.json>`; the renderer declares
+`--data` as `required=True`. An author on a `correlate` page would have typed
+it and got exit 2. `check_framework_tools` proved the file was tracked,
+consumer-side and named the same way twice — every static property held and the
+sentence did not work.
+
+**Worse, the guard written from that defect could not see it.**
+`_tool_flags_exist` checked the flags a command *does* pass and returned nothing
+when it passed none — which is the defect's exact shape. That is convention 15
+one level in: the model was checked against itself instead of against the
+material. It now also reads the target's `required=True` flags and demands
+them, and the original broken line is replayed as a test. A mutation review
+found this; reading the code did not, and the code had been read three times.
+
+**Nine of eleven mutations survived the suite.** Deleting both new guards from
+`CHECKS` — green. Neutering `_tool_flags_exist` to `return []` — green. Moving
+the printed command out of its `<code>` element into an attribute, so no reader
+and no gate could see it — green, which is 0.1.533's regression in a new
+costume. Replacing `tool_for`'s body with a two-line constant table — green,
+because the real registry has one tooled framework and one framework per move,
+so four tests were pinned to a one-point function. Dropping `AGENTS.md` and
+`prompts/` from the rule-file family — green, and `prompts/lumi-style-core.md`
+is the file whose readers have **no tools at all**. All are now killed, and the
+fix for the last one is itself a lesson: the first attempt iterated the constant
+under test, so shrinking it shrank the loop and the mutation survived twice. A
+self-referential assertion proves nothing about the thing it reads.
+
+**Four silent failures, each of which printed what a clean run prints.**
+
+- `nightly_review.class_a_dangling` had its body inside `if True:`, so
+  `claim_sweep`'s exit code was never read and the `return []` below it was
+  unreachable — while `main` still branched on a `None` the function could not
+  produce. A crashed sweeper printed `none` where six real findings sit. FM-24,
+  in the file written to detect FM-24.
+- `_git` returned `""` for both "no commits" and "git failed", so on a machine
+  where git is not on cron's PATH the job would have reported *"nothing shipped
+  today"* every night, forever, with the reason wrong rather than missing.
+- `precedent.entries` skipped a ledger it could not read. Losing
+  `FAILURE_MODES.md` alone still returned the other two ledgers and printed
+  `no precedent found` over a corpus with **every refusal missing from it**.
+- `frameworks_matching` swallowed a read failure into `[]`, the same value as
+  "this move has no framework". Measured on a truncated registry and on one
+  whose top-level key was renamed: both produced a page that declared
+  `correlate`, carried no tool slot, and therefore left `d14_placeholders`
+  nothing to refuse. The deck built green and looked finished. One reader now
+  owns the failure and exits loudly.
+
+**The nightly summary counted the wrong things.** Measured on a real day it
+counted 34 lines: 16 were "a release happened", which is not a finding, and
+**zero** were the four `★ REFUSED PRECEDENT` lines — the single thing the
+apparatus exists for. It now reads the report's JSON rather than grepping its
+prose, and has a fourth answer for *checks that could not look*, separate from
+*nothing shipped*.
+
+**`precedent.py` called four recorded failure modes written refusals.** It keyed
+on position — everything below `# Abandoned gates` — and FM-20, FM-21, FM-22 and
+FM-24 are filed there and carry `prevention:`, not `DECLINED`. So the marker
+fired on almost every search, and a marker that fires on everything carries no
+information. It now reads the entry: every `AG-` is an abandoned gate, and a
+declined `FM-` says so in its own body. The section heading is no longer
+load-bearing, which also closes the reflow that would have demoted every
+refusal at once.
+
+**Five counted claims were wrong, and one of them was the evidence for a
+blind-spot claim.** "37 false findings" is 27. "7 dev-side documents, 16 unseen"
+is 8 and 17 — in **five files**, including the sentence in `CLAUDE.md` that
+records this exact drift class. "Five natively drawn" is six. `precedent.py`'s
+docstring counted 37 refusals in two files against 14 in one, over three
+sources. A spec still carried `assemble.py:948`; there are fourteen such files,
+the longest is 850 lines, and none has that line. Where a number could be
+deleted rather than corrected, it was.
+
+**The release's own browser evidence graded a document that could not contain
+what the release added.** `scaffold-render` passed no `--outline`, so the deck
+declared no analytical move and every element the move unlocks was absent. The
+measurement succeeded because the thing measured was not there — this package's
+subject matter, one layer out. The canonical command now feeds a tracked
+outline, and the check has something to look at from here on.
+
+**`data-encoding="area"` was an unvalidated exemption from a gate.** A bar
+declaring it moved from a linear test to a square-root one, so a mark drawn at
+half the length of one worth four times as much passed the moment the attribute
+was added. The probe now corroborates the claim against geometry — an area mark
+is round or square — reports a claim its own geometry contradicts, and grades
+within an encoding rather than measuring a bar against a bubble's rule. Planted
+and caught; an honest eight-bubble scatter still passes.
+
+Also: `RULE_FILE_PREFIXES` had a copy in each of two checkers that already
+disagreed about `CLAUDE.md`, and is now one entry in `evals/single-source.json`
+owned by the development side — the shipped home was refused by
+`cross-boundary paths` the moment it was tried, because a fact naming
+`CLAUDE.md` may not ship. A falsy `tool` was dropped from the population
+`check_framework_tools` grades, which made that guard strongest today on a
+population of one and weaker with every framework that adopts a tool. A scatter
+carried `FOOT_PLAIN, FOOT_SIZED = 150, 150` under a comment saying the foot was
+computed. An assertion in the scatter tests had `|` binding across the whole
+pattern, so its second alternative was a substring the test itself supplied and
+it held regardless of the renderer; it is now the geometric assertion the
+defect it names deserves. GAP-052 records the seventeen references no predicate
+can see; IDEA-24 records the flat-figure-directory deferral with its condition.
+
+Against `specs/2026-09-01-figure-data-contract-design.md`, this release closes
+step 1's remaining checklist rows — 32 (the unseen references get a ledger id),
+33 (the rule-file scope is consolidated rather than copied), 34 (the scope is
+pinned by test) and 45 (the directory deferral gets a ledger id) — and adds the
+rows the review earned.
+
+**The plan's graded number has not moved:** 58 figures across three
+deliverables, 1 declaring its data, 10 marks declaring a value. This release and
+the last shipped prerequisites only, and no deliverable was rebuilt.
+
 ## 0.1.665 — half the drawing tools were unreachable, and a rule pointed at a file the reader does not have
 
 `scatter_svg.py` shipped at 0.1.664, and 0.1.664 also published a rule naming
@@ -19,7 +140,8 @@ actually governs publication, and hidden the whole set from `shipped.py`, whose
 path rule reads two levels only. Four changes instead of eighty-nine.
 
 **`rule script reach` — a rule file may not send its reader to a script the
-package omits.** Its first run on the tree, before any repair, verbatim:
+package omits.** Its first run on the tree, before any repair (abridged — each
+line continues with the three remedies the guard offers):
 
     FAIL  rule script reach
         references/design-rules.md:171 names scripts/build/build_region_palette.py, which the published package does not carry
@@ -42,12 +164,12 @@ scope is the rule prose an agent is TOLD TO FOLLOW, where a path is an
 instruction, and `README.md` is not in it and never will be. FM-23 is amended in
 place with that boundary, on convention 2. `CLAUDE.md` is in the rule-file
 family and DEV-side, so the consumer filter drops it with no special case;
-including it would have added **37 false findings**, every one correct prose.
+including it would have added **27 false findings**, every one correct prose.
 
 **What the guard cannot see is written into its own docstring**, because a draft
 of this entry claimed "0 false negatives" and that was false. It matches the
 literal `scripts/<drawer>/<name>.py`. Inside its own scope, 9 mentions name a
-development tool by bare filename and 7 name a development-side document; all 16
+development tool by bare filename and 8 name a development-side document; all 17
 go unseen, and widening to bare filenames reopens FM-23's objection exactly, so
 it is refused again rather than attempted.
 
@@ -66,7 +188,7 @@ order, and each caught:
     tool removed     -> no framework declares a `tool`, so no page that declares an analysis move can reach the script that draws it
 
 The last is FM-24's third answer and the state this guard was written from. It
-does **not** ask every natively-drawn framework to declare a tool: five are
+does **not** ask every natively-drawn framework to declare a tool: six are
 drawn natively and one has a script, so that gate is one no correct answer could
 satisfy, which is AG-10 and this repository has already paid for writing one.
 
@@ -78,7 +200,8 @@ deliverables used the shape library zero times: `d14_placeholders` strips
 comments and `<svg>` before it looks, so a slot hidden in either is a slot no
 gate can refuse and an author ships a finished-looking page. The bracket keys
 D14 and stays inside its 60-character window; the command sits beside it. A
-scaffold with no outline is unchanged, byte for byte.
+scaffold with no outline is unchanged apart from its version stamp, which every
+release moves — diffed against the previous tree to confirm it.
 
 `shape_for` and `tool_for` read **one** resolution, `frameworks_matching` —
 including the rule that a NAMED framework is the answer rather than the head of
@@ -91,8 +214,9 @@ declares `correlate`, beside a line saying "draw this figure": two answers to
 one question, from page one's demo furniture. Removing it left the caption
 floating over a dead half-page. The slot now sits **inside the figure box**,
 where the drawing goes, and the caption follows it. `inspect_layout
---deliverable` reported no gating finding on all three, which is convention 8
-exactly.
+--deliverable` reported no gating finding on any of the three renders, which is
+convention 8 exactly: the gates were green on the version with the contradiction
+in it, and on the version with the dead half-page.
 
 Also: `scripts/check/precedent.py` searches the refusal ledgers before a
 mechanism is designed — FM-23 was found by one keyword search that nobody had

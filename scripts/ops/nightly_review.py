@@ -20,8 +20,8 @@ What it checks, and which measured failure each maps to:
       false three times out of three.
   D · a mechanism re-proposed after refusal — any guard added today is searched
       against the abandoned-gates ledger by `precedent.py`.
-  E · a release that shipped with a repeated waiver, or claimed a number it did
-      not move.
+  E · today's releases and the waivers each recorded — listed for a person to
+      read, not compared across releases (see `class_e_release_hygiene`).
 
 **It reports and never fails.** A nightly job that can break a build is a
 nightly job someone turns off, and AG-1 declined the class of guard that decides
@@ -63,10 +63,13 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
-# A count next to a totalising word. Measured on the 2026-09-01 spec: every one
-# of "0 false negatives", "every row is machine-checkable" and "both give the
-# same two findings" was false, and each was written by the author about their
-# own instrument's reach.
+# A count next to a totalising word. It is a KEYWORD NET, not a classifier: it
+# reports a sentence for a person to read and never decides whether the claim is
+# true. Measured on the 2026-09-01 spec, both "0 false negatives" and "every row
+# is machine-checkable" were false and both match. A third false claim in the
+# same document — "both give the same two findings" — does NOT match, and is
+# named here so nobody reads the pattern as coverage: it is an unrun ASSERTION
+# rather than an overstated reach, which is class A's subject, not this one.
 OVERCLAIM = re.compile(
     r"(?:\b(?:0|zero|no)\s+(?:false|missing|uncovered|omitted)\b"
     r"|\bevery\s+(?:row|claim|one|link|entry|figure|rule)\b"
@@ -77,8 +80,13 @@ OVERCLAIM = re.compile(
 NEW_GUARD = re.compile(r"^\+def (check_\w+)\(", re.M)
 
 
-def _git(*args) -> str:
-    """-> stdout, or "" when git failed.
+def _git(*args) -> str | None:
+    """-> stdout, or None when git failed — never "" for both.
+
+    A failed `git` and an empty answer were one value until 0.1.666, and every
+    caller read the empty string as "nothing happened". On a machine where git
+    is not on cron's PATH that made the job print "nothing shipped today" every
+    night, forever, with the reason wrong rather than merely missing.
 
     `repo_files.run_git` is the one spelling of the invocation
     (`evals/single-source.json`). A private call here was caught by the very
@@ -87,36 +95,50 @@ def _git(*args) -> str:
     again. A comment naming the thing it forbids is the thing it forbids."""
     import repo_files
     code, out = repo_files.run_git(*args, root=ROOT)
-    return out if code == 0 else ""
+    return out if code == 0 else None
 
 
 def commits_since(days: int):
+    """-> the day's commits, or None when git could not be asked at all."""
     since = (dt.date.today() - dt.timedelta(days=max(days - 1, 0))).isoformat()
     log = _git("log", f"--since={since} 00:00", "--format=%H%x09%s")
+    if log is None:
+        return None
     return [tuple(row.split("\t", 1)) for row in log.splitlines() if "\t" in row]
 
 
 def changed_files(shas):
+    """-> the files today touched, or None if any `git show` failed."""
     if not shas:
         return []
     out: set[str] = set()
     for sha in shas:
-        out.update(f for f in _git("show", "--name-only", "--format=", sha).split()
-                   if f)
+        shown = _git("show", "--name-only", "--format=", sha)
+        if shown is None:
+            return None
+        out.update(f for f in shown.split() if f)
     return sorted(out)
 
 
 def class_a_dangling():
-    """-> citations that no longer resolve. claim_sweep already finds these."""
+    """-> citations that no longer resolve, or None when the sweep did not run.
+
+    **The exit code is read, and that is the whole point.** This function was
+    written with its body inside `if True:` — the fossil of a removed `try` —
+    so `returncode` was never looked at and the `return []` below it was
+    unreachable, while `main` still tested for a None this could not produce.
+    A `claim_sweep.py` that exits non-zero printed the same "none" as six real
+    findings being fixed. That is FM-24, in the file written to detect it.
+    """
     # claim_sweep is a CLI, not a library — it exposes no stable entry point,
     # so this reads its output rather than pretending to an import contract.
-    if True:
-        out = subprocess.run([sys.executable,
-                              str(ROOT / "scripts/check/claim_sweep.py")],
-                             capture_output=True, text=True)
-        return [row.strip() for row in out.stdout.splitlines()
-                if "does not exist" in row or "has moved" in row]
-    return []
+    out = subprocess.run([sys.executable,
+                          str(ROOT / "scripts/check/claim_sweep.py")],
+                         capture_output=True, text=True)
+    if out.returncode != 0:
+        return None
+    return [row.strip() for row in out.stdout.splitlines()
+            if "does not exist" in row or "has moved" in row]
 
 
 def class_b_overclaims(files, shas=()):
@@ -126,13 +148,17 @@ def class_b_overclaims(files, shas=()):
     bearing. What this removes is the sentence nobody re-read.
     """
     # ONLY the lines today ADDED. Scanning whole files re-reports every
-    # coverage sentence this repository has ever written -- 12 hits from
-    # CHANGELOG history on the first run, none of them today's work. A review
-    # that buries today's three findings under a decade of prose is a review
-    # nobody finishes reading.
+    # coverage sentence this repository has ever written -- CHANGELOG.md alone
+    # answers this pattern well over a hundred times, none of it today's work.
+    # A review that buries today's findings under a decade of prose is a review
+    # nobody finishes reading. (The count is deliberately not written here;
+    # convention 13, and the first version of this comment said 12.)
     added = set()
     for sha in shas:
-        for line in _git("show", "--format=", "-U0", sha).splitlines():
+        diff = _git("show", "--format=", "-U0", sha)
+        if diff is None:
+            return None          # a diff nobody could read is not a clean diff
+        for line in diff.splitlines():
             if line.startswith("+") and not line.startswith("+++"):
                 added.add(line[1:].strip())
     hits = []
@@ -160,24 +186,43 @@ def class_d_unsearched_guards(shas):
     found = []
     for sha in shas:
         diff = _git("show", "--format=", "-U0", sha)
+        if diff is None:
+            return None
         for name in NEW_GUARD.findall(diff):
             terms = [t for t in name.replace("check_", "").split("_") if len(t) > 3]
-            hits = precedent.search(terms, body=True) if terms else []
+            try:
+                hits = precedent.search(terms, body=True) if terms else []
+            except (OSError, ValueError):
+                # A ledger that could not be read is not a ledger with no
+                # refusal in it — the distinction this whole class is for.
+                return None
             found.append((name, sha[:8],
                           [(h[0], h[1]) for h in hits if h[4]]))
     return found
 
 
 def class_e_release_hygiene(commits):
-    """-> releases today, and whether each carried a waiver already carried."""
+    """-> today's releases and the waivers each one recorded.
+
+    It does NOT compare against earlier releases, and it reads no numbers. The
+    module docstring and this line both used to claim a repetition check and a
+    moved-number check; neither exists, and convention 14 says a capability
+    sentence cites the function that implements it. Reading a repeated waiver
+    off this list is a person's job for now.
+    """
     out = []
     for _sha, subject in commits:
-        m = re.match(r"^(0\.1\.\d+) — ", subject)
+        # Not `0\.1\.` — a series bump would have made this match nothing and
+        # print "none", which is what a day with no release prints.
+        m = re.match(r"^(\d+\.\d+\.\d+) — ", subject)
         if not m:
             continue
         ev = ROOT / "releases" / "evidence" / f"{m.group(1)}.json"
-        waivers = []
-        if ev.is_file():
+        if not ev.is_file():
+            # Not "no waivers". A release that wrote no evidence at all is the
+            # most severe thing this class can find, and it was unrepresentable.
+            waivers = ["<NO EVIDENCE FILE — check_evidence never ran for it>"]
+        else:
             try:
                 waivers = [w.get("id") for w in
                            json.loads(ev.read_text(encoding="utf-8")).get("waivers", [])]

@@ -606,7 +606,7 @@ repo itself.)
       convention 2's documented case; overruling one *without noticing it
       exists* is FM-15.
     - **Three described the instrument's reach as the requirement's** — "0 false
-      negatives" about a predicate that could not see sixteen further cases,
+      negatives" about a predicate that could not see seventeen further cases,
       "every row machine-checkable" where four were attested by a person.
       **A coverage claim states what its instrument cannot see, in the same
       sentence.** This is FM-24 moved up a layer: a document that reports its

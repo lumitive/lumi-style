@@ -191,7 +191,7 @@
    "drawn": "native",
    "tool": {
     "module": "scatter_svg",
-    "run": "python3 scripts/render/scatter_svg.py <spec.json>",
+    "run": "python3 scripts/render/scatter_svg.py --data <spec.json>",
     "draws": "a scatter from a JSON spec: two axes, optional third dimension as bubble AREA, an optional smoothed trend line, landscape or portrait. Every mark carries its own datum."
    }
   },

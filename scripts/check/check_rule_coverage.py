@@ -50,8 +50,28 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
     if _p not in _bs_sys.path:
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
 # --- end bootstrap ---
 import gating  # noqa: E402 — after the bootstrap
+
+# The files that carry RULE PROSE, as path prefixes, and the one home for that
+# fact (evals/single-source.json, `rule-file-family`). Two checkers ask it for
+# different reasons and had a tuple each: this one asks "may a rule CITE this
+# file", `check_repo.check_rule_script_reach` asks "does this file INSTRUCT an
+# agent". The family is one fact; what each does with `CLAUDE.md` is not.
+# Coverage keeps it — this repository's own conventions are rules and live
+# there. Reachability drops it, not by carrying a second tuple but because it
+# filters to the CONSUMER side and `CLAUDE.md` is development-side; including
+# it would add 27 findings, every one correct prose about tools a maintainer
+# does have.
+#
+# It lives HERE rather than in `scripts/lib/`, and that is not arbitrary:
+# `repo_files.py` ships, `CLAUDE.md` does not, and `cross-boundary paths`
+# refused the shipped home the moment it was tried. A fact naming a
+# development-only file belongs on the development side.
+RULE_FILE_PREFIXES = ("references/", "SKILL.md", "AGENTS.md", "prompts/",
+                      "CLAUDE.md")
+
 
 ROOT = next(p for p in pathlib.Path(__file__).resolve().parents
             if (p / "SKILL.md").exists())
@@ -82,8 +102,7 @@ def check_quote(root: pathlib.Path, source: str, quote: str) -> str:
     # cite a deliverable — and `check_repo`'s CJK exemption trusts this field,
     # so a sentence of Chinese lifted out of an HTML fixture passed the
     # english-only red line as "rule data".
-    if not source.startswith(("references/", "SKILL.md", "AGENTS.md",
-                              "prompts/", "CLAUDE.md")):
+    if not source.startswith(RULE_FILE_PREFIXES):
         return (f"cites {source.rsplit(':', 1)[0]!r}, which is not a rule file; "
                 f"a rule lives in references/ or an entry point")
     path_part, _, line_part = source.rpartition(":")
