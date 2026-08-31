@@ -168,9 +168,9 @@ meaning — the standing `light_ramp` already has. Semantic colour is untouched:
 `--acc`, `--seal`, `--amber`, `--brass` and the chart triple still mean what
 they mean, and a region hue never appears outside a region shape.
 
-The hues are generated, never picked: `scripts/build/build_region_palette.py` spaces
-them evenly around the OKLCH circle and assigns them so adjacent regions sit as
-far apart as the graph allows. Two regions count as adjacent when they share a
+The hues are generated, never picked: a build step spaces them evenly around
+the OKLCH circle and assigns them so that adjacent regions sit as far apart
+as the graph allows. Two regions count as adjacent when they share a
 border **or come within 1500 km**, because an ocean strait is not a visual
 separation — Europe and North America have no land border and face each other
 across 300 km at Greenland.

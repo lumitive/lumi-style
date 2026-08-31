@@ -1,133 +1,224 @@
 {
-  "$comment": "The framework dictionary: analytical question -> framework -> shapes. The generation-side complement to assets/shapes/tags.json, whose relation tags say what a shape CAN draw; an entry here says when an analysis CALLS for it. references/analysis-rules.md AR-4 is the rule; the `frameworks` guard in check_repo.py holds every shape id below to the library. `shapes: []` with `drawn: \"native\"` means the package ships no unit for it and the figure is drawn to design-rules section 4's form-selection row. Misuse lines are load-bearing: each names the way the framework becomes decoration.",
-  "version": 1,
-  "frameworks": {
-    "swot": {
-      "question": "Where does this organisation or product stand: what inside it helps or hurts, and what outside it opens or threatens?",
-      "move": "position",
-      "slots": ["strengths (internal, helping)", "weaknesses (internal, hurting)", "opportunities (external, opening)", "threats (external, closing)"],
-      "misuse": "A SWOT filled with restated facts is a list wearing a matrix; each cell entry must be a finding someone could dispute, and the internal/external line must actually hold",
-      "shapes": ["p126-2x2-01", "p128-2x2-extended-01"],
-      "drawn": null
-    },
-    "two-by-two": {
-      "aka": ["2x2"],
-      "question": "Which of these items deserves attention first, judged on the two dimensions that matter?",
-      "move": "position",
-      "slots": ["x axis (independent dimension 1)", "y axis (independent dimension 2)", "items placed by score", "the quadrant that carries the story, named"],
-      "misuse": "The axes must be independent and both actually used; a 2x2 whose items hug the diagonal is one axis pretending to be two",
-      "shapes": ["p126-2x2-01", "p005-2x2-cubed-01", "p006-2x2-tower-01", "p128-2x2-extended-01", "p116-3-01"],
-      "drawn": null
-    },
-    "nine-box": {
-      "aka": ["9-box"],
-      "question": "Same as the 2x2 where two grades per axis are too coarse: which third of the portfolio invests, which holds, which exits?",
-      "move": "position",
-      "slots": ["x axis in three grades", "y axis in three grades", "items in cells", "the policy per band (invest / hold / exit)"],
-      "misuse": "Nine cells demand enough items to populate them; a nine-box with four items is a 2x2 that borrowed importance",
-      "shapes": ["p130-3x3-01", "p131-3x3-extended-01", "p108-competitive-position-01"],
-      "drawn": null
-    },
-    "issue-tree": {
-      "question": "What are ALL the ways this could be true (or could be fixed), organised so nothing overlaps and nothing is missing?",
-      "move": "decompose",
-      "slots": ["the question at the root, phrased as a question", "MECE branches", "the branch the evidence prunes to, marked"],
-      "misuse": "A tree whose branches overlap, or whose leaves are departments rather than hypotheses, organises the org chart instead of the problem",
-      "shapes": ["p125-top-down-01", "p133-flow-down-01", "p043-level-1-01", "p044-level-2-01"],
-      "drawn": null
-    },
-    "driver-tree": {
-      "question": "Which lever moves this number, and by how much?",
-      "move": "decompose",
-      "slots": ["the metric at the root", "multiplicative or additive drivers as branches", "the driver with the movement, quantified"],
-      "misuse": "Branches must actually compose to the root (add or multiply); a driver tree that does not arithmetic back together is an org chart of numbers",
-      "shapes": ["p118-selling-margin-contributionsales-01", "p119-maximizeshareholdervalue-01"],
-      "drawn": null
-    },
-    "value-chain": {
-      "question": "Where along the sequence of activities is the value (or the cost, or the problem) actually created?",
-      "move": "decompose",
-      "slots": ["the stages in order", "the measure per stage", "the stage that carries the finding, marked"],
-      "misuse": "A chain drawn without a per-stage measure is a process diagram; the chain earns the name when a quantity rides it",
-      "shapes": ["p076-linear-a-01", "p077-linear-b-01", "p056-flow-5-title-01"],
-      "drawn": null
-    },
-    "funnel": {
-      "question": "Where in the conversion do we lose them?",
-      "move": "decompose",
-      "slots": ["stages in strictly decreasing order", "the count or rate per stage", "the step with the largest drop, named"],
-      "misuse": "A funnel must strictly decrease; equal or rising stages mean the relation is a process, not a funnel (design-rules section 4.1 already gates this as a truth condition)",
-      "shapes": [],
-      "drawn": "native"
-    },
-    "waterfall": {
-      "question": "What explains the distance between these two values of one quantity?",
-      "move": "bridge",
-      "slots": ["the start value", "signed contributions in order", "the end value; pieces sum exactly"],
-      "misuse": "The pieces must add to the gap; a waterfall that does not reconcile asserts an explanation the numbers refuse",
-      "shapes": [],
-      "drawn": "native"
-    },
-    "harvey-scorecard": {
-      "question": "How do these options compare across the criteria that matter, at a glance and without false precision?",
-      "move": "compare",
-      "slots": ["options as rows", "criteria as columns", "a filled degree per cell", "the winning row, stated"],
-      "misuse": "Harvey balls are ordinal; a scorecard that averages them into a decimal has laundered judgement into arithmetic",
-      "shapes": ["p156-very-attractiveaveragevery-unattractive-01", "p156-very-attractiveaveragevery-unattractive-05", "p156-very-attractiveaveragevery-unattractive-10"],
-      "drawn": null
-    },
-    "market-sizing": {
-      "question": "How big is the opportunity, built up from the business's own numbers rather than down from a report?",
-      "move": "decompose",
-      "slots": ["number of prospective customers, from the segments actually served", "value of each customer, from their value today", "attainable share where the claim needs one", "the product, computed and shown as a labeled arithmetic band"],
-      "misuse": "A top-down report figure pasted as the market is a citation wearing a sizing; the factors must come from the business's current customers and prices, and the arithmetic must be printed, not narrated",
-      "shapes": [],
-      "drawn": "native"
-    },
-    "three-horizons": {
-      "question": "What do we do now, next, and later, and why does the order hold?",
-      "move": "bridge",
-      "slots": ["horizon 1 (run), horizon 2 (build), horizon 3 (bet)", "what moves between them and when", "the commitment each horizon carries"],
-      "misuse": "Horizons are commitments with dates, not maturity labels; a three-horizons page with no dates is a mood board",
-      "shapes": ["p039-staircase-01", "p091-step-5-01", "p121-gantt10-01"],
-      "drawn": null
-    },
-    "scatter": {
-      "question": "Do these two quantities move together, and how tightly?",
-      "move": "correlate",
-      "slots": [
-        "the two measures, each with its unit",
-        "one mark per observation, and how many there are",
-        "the direction stated in words, and whether it is a claim about cause"
-      ],
-      "misuse": "A cloud with no stated direction leaves the relation to the reader, which is the tell AR-1 names; and a direction read as cause without saying so is the same page asserting what it did not test",
-      "shapes": [],
-      "drawn": "native"
-    },
-    "benchmark-table": {
-      "question": "How does this number compare with the ones a reader would judge it against?",
-      "move": "compare",
-      "slots": [
-        "the measure and its unit",
-        "the subject's value",
-        "at least one reference value, each named and sourced",
-        "the gap, stated in the direction the reader cares about"
-      ],
-      "misuse": "References chosen because they flatter, or left unnamed, turn the comparison into an assertion; a table with one column is a number standing alone, which is the tell AR-1 names",
-      "shapes": [],
-      "drawn": "native"
-    },
-    "radar": {
-      "question": "Across several criteria at once, where is this strong and where is it thin?",
-      "move": "compare",
-      "slots": [
-        "three or more criteria, each on a comparable scale",
-        "one closed outline per subject",
-        "the scale's direction and its bounds"
-      ],
-      "misuse": "Axes on incomparable scales, or ordered arbitrarily, produce a shape whose area means nothing — the polygon reads as a finding it does not carry. Above roughly six axes it stops being legible",
-      "shapes": [],
-      "drawn": "native"
-    }
+ "$comment": "The framework dictionary: analytical question -> framework -> shapes. The generation-side complement to assets/shapes/tags.json, whose relation tags say what a shape CAN draw; an entry here says when an analysis CALLS for it. references/analysis-rules.md AR-4 is the rule; the `frameworks` guard in check_repo.py holds every shape id below to the library. `shapes: []` with `drawn: \"native\"` means the package ships no unit for it and the figure is drawn to design-rules section 4's form-selection row. Misuse lines are load-bearing: each names the way the framework becomes decoration.",
+ "version": 1,
+ "frameworks": {
+  "swot": {
+   "question": "Where does this organisation or product stand: what inside it helps or hurts, and what outside it opens or threatens?",
+   "move": "position",
+   "slots": [
+    "strengths (internal, helping)",
+    "weaknesses (internal, hurting)",
+    "opportunities (external, opening)",
+    "threats (external, closing)"
+   ],
+   "misuse": "A SWOT filled with restated facts is a list wearing a matrix; each cell entry must be a finding someone could dispute, and the internal/external line must actually hold",
+   "shapes": [
+    "p126-2x2-01",
+    "p128-2x2-extended-01"
+   ],
+   "drawn": null
+  },
+  "two-by-two": {
+   "aka": [
+    "2x2"
+   ],
+   "question": "Which of these items deserves attention first, judged on the two dimensions that matter?",
+   "move": "position",
+   "slots": [
+    "x axis (independent dimension 1)",
+    "y axis (independent dimension 2)",
+    "items placed by score",
+    "the quadrant that carries the story, named"
+   ],
+   "misuse": "The axes must be independent and both actually used; a 2x2 whose items hug the diagonal is one axis pretending to be two",
+   "shapes": [
+    "p126-2x2-01",
+    "p005-2x2-cubed-01",
+    "p006-2x2-tower-01",
+    "p128-2x2-extended-01",
+    "p116-3-01"
+   ],
+   "drawn": null
+  },
+  "nine-box": {
+   "aka": [
+    "9-box"
+   ],
+   "question": "Same as the 2x2 where two grades per axis are too coarse: which third of the portfolio invests, which holds, which exits?",
+   "move": "position",
+   "slots": [
+    "x axis in three grades",
+    "y axis in three grades",
+    "items in cells",
+    "the policy per band (invest / hold / exit)"
+   ],
+   "misuse": "Nine cells demand enough items to populate them; a nine-box with four items is a 2x2 that borrowed importance",
+   "shapes": [
+    "p130-3x3-01",
+    "p131-3x3-extended-01",
+    "p108-competitive-position-01"
+   ],
+   "drawn": null
+  },
+  "issue-tree": {
+   "question": "What are ALL the ways this could be true (or could be fixed), organised so nothing overlaps and nothing is missing?",
+   "move": "decompose",
+   "slots": [
+    "the question at the root, phrased as a question",
+    "MECE branches",
+    "the branch the evidence prunes to, marked"
+   ],
+   "misuse": "A tree whose branches overlap, or whose leaves are departments rather than hypotheses, organises the org chart instead of the problem",
+   "shapes": [
+    "p125-top-down-01",
+    "p133-flow-down-01",
+    "p043-level-1-01",
+    "p044-level-2-01"
+   ],
+   "drawn": null
+  },
+  "driver-tree": {
+   "question": "Which lever moves this number, and by how much?",
+   "move": "decompose",
+   "slots": [
+    "the metric at the root",
+    "multiplicative or additive drivers as branches",
+    "the driver with the movement, quantified"
+   ],
+   "misuse": "Branches must actually compose to the root (add or multiply); a driver tree that does not arithmetic back together is an org chart of numbers",
+   "shapes": [
+    "p118-selling-margin-contributionsales-01",
+    "p119-maximizeshareholdervalue-01"
+   ],
+   "drawn": null
+  },
+  "value-chain": {
+   "question": "Where along the sequence of activities is the value (or the cost, or the problem) actually created?",
+   "move": "decompose",
+   "slots": [
+    "the stages in order",
+    "the measure per stage",
+    "the stage that carries the finding, marked"
+   ],
+   "misuse": "A chain drawn without a per-stage measure is a process diagram; the chain earns the name when a quantity rides it",
+   "shapes": [
+    "p076-linear-a-01",
+    "p077-linear-b-01",
+    "p056-flow-5-title-01"
+   ],
+   "drawn": null
+  },
+  "funnel": {
+   "question": "Where in the conversion do we lose them?",
+   "move": "decompose",
+   "slots": [
+    "stages in strictly decreasing order",
+    "the count or rate per stage",
+    "the step with the largest drop, named"
+   ],
+   "misuse": "A funnel must strictly decrease; equal or rising stages mean the relation is a process, not a funnel (design-rules section 4.1 already gates this as a truth condition)",
+   "shapes": [],
+   "drawn": "native"
+  },
+  "waterfall": {
+   "question": "What explains the distance between these two values of one quantity?",
+   "move": "bridge",
+   "slots": [
+    "the start value",
+    "signed contributions in order",
+    "the end value; pieces sum exactly"
+   ],
+   "misuse": "The pieces must add to the gap; a waterfall that does not reconcile asserts an explanation the numbers refuse",
+   "shapes": [],
+   "drawn": "native"
+  },
+  "harvey-scorecard": {
+   "question": "How do these options compare across the criteria that matter, at a glance and without false precision?",
+   "move": "compare",
+   "slots": [
+    "options as rows",
+    "criteria as columns",
+    "a filled degree per cell",
+    "the winning row, stated"
+   ],
+   "misuse": "Harvey balls are ordinal; a scorecard that averages them into a decimal has laundered judgement into arithmetic",
+   "shapes": [
+    "p156-very-attractiveaveragevery-unattractive-01",
+    "p156-very-attractiveaveragevery-unattractive-05",
+    "p156-very-attractiveaveragevery-unattractive-10"
+   ],
+   "drawn": null
+  },
+  "market-sizing": {
+   "question": "How big is the opportunity, built up from the business's own numbers rather than down from a report?",
+   "move": "decompose",
+   "slots": [
+    "number of prospective customers, from the segments actually served",
+    "value of each customer, from their value today",
+    "attainable share where the claim needs one",
+    "the product, computed and shown as a labeled arithmetic band"
+   ],
+   "misuse": "A top-down report figure pasted as the market is a citation wearing a sizing; the factors must come from the business's current customers and prices, and the arithmetic must be printed, not narrated",
+   "shapes": [],
+   "drawn": "native"
+  },
+  "three-horizons": {
+   "question": "What do we do now, next, and later, and why does the order hold?",
+   "move": "bridge",
+   "slots": [
+    "horizon 1 (run), horizon 2 (build), horizon 3 (bet)",
+    "what moves between them and when",
+    "the commitment each horizon carries"
+   ],
+   "misuse": "Horizons are commitments with dates, not maturity labels; a three-horizons page with no dates is a mood board",
+   "shapes": [
+    "p039-staircase-01",
+    "p091-step-5-01",
+    "p121-gantt10-01"
+   ],
+   "drawn": null
+  },
+  "scatter": {
+   "question": "Do these two quantities move together, and how tightly?",
+   "move": "correlate",
+   "slots": [
+    "the two measures, each with its unit",
+    "one mark per observation, and how many there are",
+    "the direction stated in words, and whether it is a claim about cause"
+   ],
+   "misuse": "A cloud with no stated direction leaves the relation to the reader, which is the tell AR-1 names; and a direction read as cause without saying so is the same page asserting what it did not test",
+   "shapes": [],
+   "drawn": "native",
+   "tool": {
+    "module": "scatter_svg",
+    "run": "python3 scripts/render/scatter_svg.py <spec.json>",
+    "draws": "a scatter from a JSON spec: two axes, optional third dimension as bubble AREA, an optional smoothed trend line, landscape or portrait. Every mark carries its own datum."
+   }
+  },
+  "benchmark-table": {
+   "question": "How does this number compare with the ones a reader would judge it against?",
+   "move": "compare",
+   "slots": [
+    "the measure and its unit",
+    "the subject's value",
+    "at least one reference value, each named and sourced",
+    "the gap, stated in the direction the reader cares about"
+   ],
+   "misuse": "References chosen because they flatter, or left unnamed, turn the comparison into an assertion; a table with one column is a number standing alone, which is the tell AR-1 names",
+   "shapes": [],
+   "drawn": "native"
+  },
+  "radar": {
+   "question": "Across several criteria at once, where is this strong and where is it thin?",
+   "move": "compare",
+   "slots": [
+    "three or more criteria, each on a comparable scale",
+    "one closed outline per subject",
+    "the scale's direction and its bounds"
+   ],
+   "misuse": "Axes on incomparable scales, or ordered arbitrarily, produce a shape whose area means nothing — the polygon reads as a finding it does not carry. Above roughly six axes it stops being legible",
+   "shapes": [],
+   "drawn": "native"
   }
+ }
 }

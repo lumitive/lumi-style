@@ -45,6 +45,7 @@ from __future__ import annotations
 import argparse
 import hashlib  # noqa: E402
 import html
+import html as _html
 import json
 import pathlib
 
@@ -329,22 +330,10 @@ def shape_for(move: str, framework: str = "",
     """
     if not move:
         return "", ""
-    try:
-        d = json.loads((ROOT / "assets" / "frameworks.json").read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return "", ""
-    entries = d.get("frameworks", d)
-    hits = [(k, v) for k, v in entries.items()
-            if isinstance(v, dict) and v.get("move") == move]
-    if framework:
-        named = [(k, v) for k, v in entries.items() if k == framework]
-        # A NAMED framework is the answer, not the head of a queue. It used to
-        # be `named + the rest`, so naming a natively-drawn framework -- which
-        # contributes no shapes -- let a SIBLING of the same move fill the pool,
-        # and the author who asked for a benchmark table received Harvey balls
-        # labelled `harvey-scorecard`. Answering a request with a different
-        # framework is worse than answering it with nothing.
-        hits = named or hits
+    # A NAMED framework is the answer, not the head of a queue -- see
+    # `frameworks_matching`, which owns that rule for this module and for
+    # `tool_for`.
+    hits = frameworks_matching(move, framework)
     # EVERY framework that draws this move, not just the first: the pool an
     # author chooses from should be the library's answer to the question, not
     # one entry's first row.
@@ -374,6 +363,58 @@ def shape_for(move: str, framework: str = "",
     return shape, (f"{framework_name} drawn with shape {shape}"
                    + (f"; alternatives: {others}" if others else "")
                    + (" — or draw the framework natively" if drawn_natively else ""))
+
+
+def frameworks_matching(move: str, framework: str = "") -> list[tuple]:
+    """-> [(name, entry)] the registry offers for this move, named one first.
+
+    ONE resolution, read by `shape_for` and `tool_for`. They had a copy each
+    for one commit, and the rule about a NAMED framework — that it is the
+    answer rather than the head of a queue — is a decision this repository
+    already paid to get right once (0.1.596: an author who asked for a
+    benchmark table received Harvey balls). Two copies of a decision is one
+    copy that will be corrected and one that will not.
+    """
+    if not move and not framework:
+        return []
+    try:
+        d = json.loads((ROOT / "assets" / "frameworks.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    entries = d.get("frameworks", d)
+    hits = [(k, v) for k, v in entries.items()
+            if isinstance(v, dict) and v.get("move") == move]
+    if framework:
+        hits = [(k, v) for k, v in entries.items() if k == framework] or hits
+    return hits
+
+
+def tool_for(move: str, framework: str = "") -> tuple[str, str]:
+    """-> (framework name, the command that draws it), or ("", "").
+
+    The last link of the chain, and the one that was missing. `shape_for`
+    answers a natively-drawn framework with an empty slot and a note saying
+    why — correct, and as far as it went: the author was told a waterfall is
+    built from its own numbers and left to find the tool themselves. Measured
+    at 0.1.664, `scatter_svg` had shipped a release earlier with zero callers,
+    a published rule pointing at it, and no path from a page that declares
+    `correlate` to the script that draws one.
+
+    0.1.533 settled how this is answered: the scaffold named its candidates in
+    a COMMENT and five deliverables used the shape library zero times. A
+    comment is not a path. So the command goes in the page's visible body,
+    where D14 refuses it until an author has done something about it — the
+    same treatment every other slot the scaffold leaves gets.
+
+    Resolution mirrors `shape_for` exactly, including that a NAMED framework is
+    the answer rather than the head of a queue: an author who asked for a
+    benchmark table is told nothing rather than told to run the scatter tool.
+    """
+    for name, entry in frameworks_matching(move, framework):
+        run = (entry.get("tool") or {}).get("run")
+        if run:
+            return name, run
+    return "", ""
 
 
 def shape_aspect(shape: str) -> float | None:
@@ -1161,6 +1202,30 @@ def main(argv):
             if shape:
                 figure = shape_figure(shape, "what this end names", "and what it leads to")
                 hint = (hint + "; " if hint else "") + shape_note
+            # A natively-drawn framework has no library shape, so this is where
+            # an author was previously left with a comment. The command goes in
+            # the VISIBLE body: `d14_placeholders` strips comments and <svg>
+            # before it looks, so a slot hidden in either is a slot no gate can
+            # refuse, and the author who ignores it ships a finished-looking
+            # page. The bracket is what D14 keys on and stays under its 60
+            # character window; the command sits beside it, unbracketed.
+            toolslot = ""
+            if not shape:
+                fw_name, run = tool_for(move, sec.get("framework", ""))
+                if run:
+                    # The demo drawing goes with it. Page one of a scaffold
+                    # carries SHAPE_FIGURE as furniture regardless of the move,
+                    # and seen next to "draw this figure" the two contradict:
+                    # the box held a four-headed arrow — a `position` unit — on
+                    # a page that declares `correlate`. Caught by looking at the
+                    # render, by nothing that measures it.
+                    figure = FIG_PLACEHOLDER
+                    toolslot = (
+                        f'\n      <p class="notes">[TO FILL: draw this figure]'
+                        f' &#183; {fw_name} is drawn from its own numbers, not '
+                        f'from a library shape. <code>{_html.escape(run)}</code>'
+                        f' renders one from a JSON spec: paste its SVG here in '
+                        f'place of this line.</p>')
             fignote = (f"\n      <!-- {hint} -->" if hint else "")
             lay = figure_layout(figno - 1, shape)
             # `.body.stack` is "one full-width centerpiece": its grid declares
@@ -1201,7 +1266,7 @@ def main(argv):
       <p class="sup">{sup}</p>
     </div>
 {cells_open}{fignote}
-      <div class="fig">{figure}
+      <div class="fig">{figure}{toolslot}
       <div class="cap"><span class="n">Figure {figno}</span> A title stating a
       conclusion</div></div>
       <!-- design-rules §4 rule 8: the caption holds the number and the name and

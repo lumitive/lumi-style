@@ -15,6 +15,7 @@ sync, and recording changes in the changelog.
 python3 scripts/preflight.py             # run EXACTLY what CI runs, read from ci.yml
 python3 scripts/check/check_repo.py            # repo invariants; exit 1 on any failure
 python3 scripts/check/claim_sweep.py           # counted claims + file:line citations; REPORTS, never fails
+python3 scripts/check/precedent.py <terms>     # has this mechanism been refused before? step zero for any new gate
 python3 scripts/ops/eval_corpus.py <file>    # a deliverable against evals/thresholds.json; REPORTS, never gates
 python3 scripts/check/check_prose.py <file>    # the prose metrics on a deliverable (the script's row table is the list)
 python3 scripts/check/check_outline.py <outline> [--against DECK]  # the storyline beat; --against gates the deck on its own plan
@@ -41,6 +42,7 @@ python3 scripts/check/check_fixtures.py        # run the checkers against the fi
 python3 scripts/check/check_js.py              # node --check over the 8 tracked .js files + 3 embedded probes
 python3 scripts/check/check_evidence.py        # --init | record --id X | --check: the evidence gate (see below)
 python3 scripts/ops/review_scores.py         # the six human dimensions over time; --check validates
+python3 scripts/ops/nightly_review.py        # what today shipped, against the measured failure classes; REPORTS
 python3 scripts/ops/run_conformance.py       # validate | detect [--ask-models] | run [--drive --cell] | score | report [--record] (local only: no keys in CI)
 python3 scripts/ops/agent_evals.py           # board [--write|--check] | suggest --agent ID | plan — the MULTI-AGENT evals, separate on purpose
 python3 scripts/build/build_readme_configs.py  # README's measured-configuration block; --check in CI
@@ -580,3 +582,52 @@ repo itself.)
     that guards nothing is worse than no entry, because it reads as coverage.
     That list grew by four the first time a review looked at it, which is why
     the authority is the code.
+
+20. **A design document is verified before it is shown, not after it is
+    questioned.** Measured on 2026-09-01: one spec went through four review
+    rounds and every round found defects — fifteen in total, and the owner had
+    to ask for each round. Sorted by what would actually have caught them, only
+    **three** needed an independent reader. The other twelve were preventable by
+    the author, and each has a cheap rule:
+
+    - **Five were numbers or citations asserted without being run.** A chain
+      link marked `ok` that measurement showed broken; `assemble.py:948` in a
+      tree whose longest such file is 850 lines; "both give the same two
+      findings" where one gives four; a grading baseline that string-sorted `r9`
+      after `r11` and so read a two-revision-old document. **Every quantitative
+      claim in a spec carries the command that produced it, and the command is
+      run at the moment the claim is written.** A number without its command is
+      a number nobody has checked, including its author.
+    - **Two re-proposed a mechanism this repository had already declined in
+      writing** — FM-23, and AG-10's shape twice in one session. **Before
+      designing any new gate, guard or mechanism, grep `FAILURE_MODES.md`'s
+      abandoned gates and `KNOWN_GAPS.md` for it.** That search is step zero,
+      not a review finding. Overruling a written refusal is legitimate and needs
+      convention 2's documented case; overruling one *without noticing it
+      exists* is FM-15.
+    - **Three described the instrument's reach as the requirement's** — "0 false
+      negatives" about a predicate that could not see sixteen further cases,
+      "every row machine-checkable" where four were attested by a person.
+      **A coverage claim states what its instrument cannot see, in the same
+      sentence.** This is FM-24 moved up a layer: a document that reports its
+      own blind spot as clean is the same defect as a check that does.
+    - **Two shrank the scope when a sub-part met resistance** — four changes
+      became three when one predicate failed, then effectively one file. **A
+      predicate that fails is a reason to change the predicate, never to drop
+      the requirement.** Where a plan carries a checklist, that checklist is
+      append-only: a row is re-scoped and re-measured, never deleted, and
+      retiring one needs a documented case.
+
+    **What remains for an independent reader is the fourth class**, and it is
+    the one that earns the cost: contradictions visible only on a full read. The
+    worst of them: a plan graded on a number that one of its own refusals
+    forbade it to move. No local check finds that; a reader who holds the whole
+    document at once does.
+
+    So: **run the adversarial review yourself, before presenting, and say what
+    it found.** Two readers is the measured shape — one attacking the design and
+    one strengthening it. The reviews on 2026-09-01 overturned the plan's
+    headline arithmetic, its scope, and its success criterion; none of that
+    survived to the owner, which is the point. A design shown without them has
+    not been finished, and the audit round the owner had to ask for four times
+    is the author's job, not hers.
