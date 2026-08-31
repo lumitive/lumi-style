@@ -3467,6 +3467,7 @@ def check_script_paths():
     if problem:
         return [problem]
     errors = []
+    tracked = set(names)
     for relpath in names:
         if not relpath:
             continue
@@ -3482,12 +3483,27 @@ def check_script_paths():
                 cited = match.group(0)
                 if (relpath, cited) in SCRIPT_PATH_WAIVERS:
                     continue
-                if not (ROOT / cited).is_file():
+                # TRACKED, not merely present. The guard scans tracked files
+                # and used to resolve their citations against the WORKING TREE,
+                # so a tracked file could cite an untracked one and pass —
+                # then break in a fresh clone, which is the single failure this
+                # guard exists to prevent ("green here, broken in a fresh
+                # clone", its own words). Planted and confirmed in a copy of
+                # the tree: `CLAUDE.md` citing an untracked script under
+                # scripts/ops printed `ok script paths`. (The planted path is
+                # NOT written here — this guard scans its own source, and a
+                # comment naming a script that does not exist is the very
+                # finding it reports.)
+                if cited not in tracked:
+                    gone = not (ROOT / cited).is_file()
                     errors.append(
-                        f"{relpath}:{n}: cites {cited}, which does not exist "
-                        f"— the script moved or was renamed; update the "
-                        f"mention, regenerate the artifact, or waive it in "
-                        f"SCRIPT_PATH_WAIVERS with a reason")
+                        f"{relpath}:{n}: cites {cited}, which "
+                        + ("does not exist — the script moved or was renamed"
+                           if gone else
+                           "exists here but is NOT TRACKED, so it is absent "
+                           "from a fresh clone and from the published package")
+                        + "; update the mention, regenerate the artifact, or "
+                        "waive it in SCRIPT_PATH_WAIVERS with a reason")
             for match in SCRIPT_PATH_CONSTRUCTED_RE.finditer(line):
                 segments = re.findall(r'"([^"]+)"', match.group(0))
                 cited = "/".join(segments)
@@ -3504,6 +3520,7 @@ def check_script_paths():
 # makes bare names resolve from any drawer depth).
 SIBLING_MODULES = (
     "geo_projection", "geo_frame", "globe_svg", "regionmap_svg", "sea_route",
+    "scatter_svg",
     "color_math", "css_tokens", "lock", "deliverable_registry",
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",

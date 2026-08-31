@@ -684,3 +684,47 @@ def test_cell_axes_the_blind_answers_differ_from_the_clean_one(tmp_path, monkeyp
             _register_tree(root, **kw)
         monkeypatch.setattr(check_repo, "ROOT", root)
         assert check_repo.check_cell_axes() != clean, name
+
+
+# --- script paths: TRACKED, not merely present ------------------------------
+
+def _sp_tree(tmp_path, cite, make_target, track_target):
+    root = tmp_path / "t"
+    (root / "scripts" / "ops").mkdir(parents=True)
+    (root / "CLAUDE.md").write_text(f"see `{cite}` for this\n", encoding="utf-8")
+    if make_target:
+        (root / cite).write_text("#!/usr/bin/env python3\n", encoding="utf-8")
+    subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+    subprocess.run(["git", "add", "CLAUDE.md"], cwd=root, check=True)
+    if make_target and track_target:
+        subprocess.run(["git", "add", cite], cwd=root, check=True)
+    return root
+
+
+def test_script_paths_a_tracked_citation_of_a_tracked_script_passes(tmp_path, monkeypatch):
+    monkeypatch.setattr(check_repo, "ROOT", _sp_tree(
+        tmp_path, "scripts/ops/real.py", make_target=True, track_target=True))
+    assert check_repo.check_script_paths() == []
+
+
+def test_script_paths_an_untracked_target_fails(tmp_path, monkeypatch):
+    """THE DELIBERATE RED. The guard scans TRACKED files and used to resolve
+    their citations against the WORKING TREE, so a tracked file citing an
+    untracked one printed `ok` — then broke in a fresh clone, which is the one
+    failure this guard exists to prevent, in its own words. Confirmed on a copy
+    of the real tree before the fix: `CLAUDE.md` citing an untracked script
+    under scripts/ops printed `ok script paths`."""
+    monkeypatch.setattr(check_repo, "ROOT", _sp_tree(
+        tmp_path, "scripts/ops/ghost.py", make_target=True, track_target=False))
+    errs = check_repo.check_script_paths()
+    assert any("NOT TRACKED" in e for e in errs), errs
+
+
+def test_script_paths_a_missing_target_still_says_it_is_missing(tmp_path, monkeypatch):
+    """The two answers must stay distinguishable: 'moved or renamed' and
+    'present but not tracked' are different repairs."""
+    monkeypatch.setattr(check_repo, "ROOT", _sp_tree(
+        tmp_path, "scripts/ops/gone.py", make_target=False, track_target=False))
+    errs = check_repo.check_script_paths()
+    assert any("does not exist" in e for e in errs), errs
+    assert not any("NOT TRACKED" in e for e in errs), errs

@@ -2552,7 +2552,7 @@
   },
   {
    "id": "RC-255",
-   "source": "references/design-rules.md:995",
+   "source": "references/design-rules.md:996",
    "quote": "A figure qualifies when it carries the values",
    "gist": "Label the values on the marks when a comparison is drawn as a figure.",
    "page_kind": "content",
@@ -2562,7 +2562,7 @@
   },
   {
    "id": "RC-256",
-   "source": "references/design-rules.md:998",
+   "source": "references/design-rules.md:999",
    "quote": "Columns = options, rows = dimensions",
    "gist": "Default a comparison table to columns as options and rows as dimensions.",
    "page_kind": "content",
@@ -2572,7 +2572,7 @@
   },
   {
    "id": "RC-257",
-   "source": "references/design-rules.md:1000",
+   "source": "references/design-rules.md:1001",
    "quote": "Illustrative values must be labeled.",
    "gist": "Label illustrative values as illustrative.",
    "page_kind": "content",
@@ -2582,7 +2582,7 @@
   },
   {
    "id": "RC-258",
-   "source": "references/design-rules.md:1006",
+   "source": "references/design-rules.md:1068",
    "quote": "starts one step earlier than a chart",
    "gist": "Pick the page's shape from the analytical question, not from the chart type.",
    "page_kind": "content",
@@ -2592,7 +2592,7 @@
   },
   {
    "id": "RC-259",
-   "source": "references/design-rules.md:1021",
+   "source": "references/design-rules.md:1083",
    "quote": "Choose by the relation the content has",
    "gist": "Choose a figure by the relation the content has, never by how the shape looks.",
    "page_kind": "content",
@@ -2602,7 +2602,7 @@
   },
   {
    "id": "RC-260",
-   "source": "references/design-rules.md:1024",
+   "source": "references/design-rules.md:1086",
    "quote": "relation the shape encodes must be the same one",
    "gist": "Make the relation in the data and the relation the shape encodes the same one.",
    "page_kind": "content",
@@ -2612,7 +2612,7 @@
   },
   {
    "id": "RC-261",
-   "source": "references/design-rules.md:1025",
+   "source": "references/design-rules.md:1087",
    "quote": "a 2×2 whose axes are not independent",
    "gist": "Do not draw a funnel whose values do not decrease, a 2x2 whose axes are not independent, or a waterfall that does not add up.",
    "page_kind": "content",
@@ -2622,7 +2622,7 @@
   },
   {
    "id": "RC-262",
-   "source": "references/design-rules.md:1064",
+   "source": "references/design-rules.md:1126",
    "quote": "unlabelled is decoration, and decoration on an argument page",
    "gist": "Label any library shape dropped into a page.",
    "page_kind": "content",
@@ -2632,7 +2632,7 @@
   },
   {
    "id": "RC-263",
-   "source": "references/design-rules.md:1066",
+   "source": "references/design-rules.md:1128",
    "quote": "The page's numbers go into the geometry, not beside it",
    "gist": "Put the page's own numbers inside the figure's geometry.",
    "page_kind": "content",
@@ -2642,7 +2642,7 @@
   },
   {
    "id": "RC-264",
-   "source": "references/design-rules.md:1093",
+   "source": "references/design-rules.md:1155",
    "quote": "rather than the one you chose. Use `style=",
    "gist": "Colour SVG text with a style attribute rather than a fill presentation attribute.",
    "page_kind": "content",
@@ -2652,7 +2652,7 @@
   },
   {
    "id": "RC-265",
-   "source": "references/design-rules.md:1098",
+   "source": "references/design-rules.md:1160",
    "quote": "What may not change is the relation",
    "gist": "Keep the relation intact when layering, recolouring, scaling or rotating a library shape.",
    "page_kind": "content",
@@ -2662,7 +2662,7 @@
   },
   {
    "id": "RC-266",
-   "source": "references/design-rules.md:1104",
+   "source": "references/design-rules.md:1166",
    "quote": "means moving it along that ladder, never introducing a",
    "gist": "Retint a library shape only along the accent ladder, never by introducing a colour.",
    "page_kind": "content",
@@ -2672,7 +2672,7 @@
   },
   {
    "id": "RC-267",
-   "source": "references/design-rules.md:1106",
+   "source": "references/design-rules.md:1168",
    "quote": "A label on a library shape is sized in the shape's own",
    "gist": "Size a label on a library shape in the shape's own units.",
    "page_kind": "content",
@@ -2682,7 +2682,7 @@
   },
   {
    "id": "RC-268",
-   "source": "references/design-rules.md:1118",
+   "source": "references/design-rules.md:1180",
    "quote": "Every page carries its handling terms",
    "gist": "Carry the handling terms and the document's origin on every page.",
    "page_kind": "all",
@@ -2692,7 +2692,7 @@
   },
   {
    "id": "RC-269",
-   "source": "references/design-rules.md:1119",
+   "source": "references/design-rules.md:1181",
    "quote": "the confidentiality line, then the organisation's site",
    "gist": "Put the confidentiality line then the organisation's site left of the footer rule.",
    "page_kind": "all",
@@ -2702,7 +2702,7 @@
   },
   {
    "id": "RC-270",
-   "source": "references/design-rules.md:1120",
+   "source": "references/design-rules.md:1182",
    "quote": "`N / total`. Pages travel alone",
    "gist": "Put N / total on the right of the footer.",
    "page_kind": "all",
@@ -2712,7 +2712,7 @@
   },
   {
    "id": "RC-271",
-   "source": "references/design-rules.md:1124",
+   "source": "references/design-rules.md:1186",
    "quote": "The terms open with the handling marker",
    "gist": "Open the handling terms with the shield reserved icon in the .foot .conf slot.",
    "page_kind": "all",
@@ -2722,7 +2722,7 @@
   },
   {
    "id": "RC-272",
-   "source": "references/design-rules.md:1129",
+   "source": "references/design-rules.md:1191",
    "quote": "the lime opener the marker inverts with the rest of the footer",
    "gist": "Invert the handling marker with the rest of the footer on the lime opener.",
    "page_kind": "opener",
@@ -2734,7 +2734,7 @@
   },
   {
    "id": "RC-273",
-   "source": "references/design-rules.md:1147",
+   "source": "references/design-rules.md:1209",
    "quote": "A repository path is not a reader-facing source line",
    "gist": "Never print a repository or file path in a footer source line.",
    "page_kind": "all",
@@ -2744,7 +2744,7 @@
   },
   {
    "id": "RC-274",
-   "source": "references/design-rules.md:1148",
+   "source": "references/design-rules.md:1210",
    "quote": "a system, an extract and its date",
    "gist": "Name something the reader can act on in a source line.",
    "page_kind": "all",
@@ -2754,7 +2754,7 @@
   },
   {
    "id": "RC-275",
-   "source": "references/design-rules.md:1155",
+   "source": "references/design-rules.md:1217",
    "quote": "no slot the author left for themselves may reach the",
    "gist": "Let no author placeholder reach the reader.",
    "page_kind": "all",
@@ -2764,7 +2764,7 @@
   },
   {
    "id": "RC-276",
-   "source": "references/design-rules.md:1171",
+   "source": "references/design-rules.md:1233",
    "quote": "Every eyebrow, figure node and row-head",
    "gist": "Take every eyebrow, figure-node and row-head icon from the semantic inline set.",
    "page_kind": "content",
@@ -2774,7 +2774,7 @@
   },
   {
    "id": "RC-277",
-   "source": "references/design-rules.md:1174",
+   "source": "references/design-rules.md:1236",
    "quote": "36 filled silhouettes, for part-opener subject marks",
    "gist": "Use the filled silhouette set only for part-opener subject marks.",
    "page_kind": "opener",
@@ -2784,7 +2784,7 @@
   },
   {
    "id": "RC-278",
-   "source": "references/design-rules.md:1187",
+   "source": "references/design-rules.md:1249",
    "quote": "Embed only what the document uses",
    "gist": "Embed only the icons the document actually uses.",
    "page_kind": "all",
@@ -2794,7 +2794,7 @@
   },
   {
    "id": "RC-279",
-   "source": "references/design-rules.md:1192",
+   "source": "references/design-rules.md:1254",
    "quote": "should not share one icon",
    "gist": "Give pages with different subjects different icons rather than reusing one.",
    "page_kind": "content",
@@ -2804,7 +2804,7 @@
   },
   {
    "id": "RC-280",
-   "source": "references/design-rules.md:1195",
+   "source": "references/design-rules.md:1257",
    "quote": "so the same concept looks the same in every deliverable",
    "gist": "Use the reserved icon bindings so a recurring meaning looks the same everywhere.",
    "page_kind": "all",
@@ -2814,7 +2814,7 @@
   },
   {
    "id": "RC-281",
-   "source": "references/design-rules.md:1196",
+   "source": "references/design-rules.md:1258",
    "quote": "within one document an icon still means",
    "gist": "Let an icon mean exactly one thing within one document.",
    "page_kind": "all",
@@ -2824,7 +2824,7 @@
   },
   {
    "id": "RC-282",
-   "source": "references/design-rules.md:1200",
+   "source": "references/design-rules.md:1262",
    "quote": "the section eyebrow on a content page carries the icon",
    "gist": "Carry an icon naming the page's subject in every content page's eyebrow.",
    "page_kind": "content",
@@ -2834,7 +2834,7 @@
   },
   {
    "id": "RC-283",
-   "source": "references/design-rules.md:1202",
+   "source": "references/design-rules.md:1264",
    "quote": "So does every labelled node inside a figure",
    "gist": "Give every labelled figure node and table row-head group an icon.",
    "page_kind": "content",
@@ -2844,7 +2844,7 @@
   },
   {
    "id": "RC-284",
-   "source": "references/design-rules.md:1205",
+   "source": "references/design-rules.md:1267",
    "quote": "effective size** at the design viewport",
    "gist": "Render semantic icons at a minimum 14px effective size at the design viewport.",
    "page_kind": "all",
@@ -2854,7 +2854,7 @@
   },
   {
    "id": "RC-285",
-   "source": "references/design-rules.md:1206",
+   "source": "references/design-rules.md:1268",
    "quote": "Never add icons to \"look rich\". Never draw",
    "gist": "Never add icons for decoration and never draw one ad hoc.",
    "page_kind": "all",
@@ -2864,7 +2864,7 @@
   },
   {
    "id": "RC-286",
-   "source": "references/design-rules.md:1206",
+   "source": "references/design-rules.md:1268",
    "quote": "Never add icons to \"look rich\". Never draw",
    "gist": "Take every icon from the two sets this package ships; never draw one ad hoc.",
    "page_kind": "all",
@@ -2874,7 +2874,7 @@
   },
   {
    "id": "RC-287",
-   "source": "references/design-rules.md:1221",
+   "source": "references/design-rules.md:1283",
    "quote": "must be anchored **inside the fill**",
    "gist": "Anchor a right-anchored label on a full-width bar inside the fill.",
    "page_kind": "content",
@@ -2884,7 +2884,7 @@
   },
   {
    "id": "RC-288",
-   "source": "references/design-rules.md:1224",
+   "source": "references/design-rules.md:1286",
    "quote": "An icon on a text line lives in a flex container",
    "gist": "Put an icon on a text line in a flex container.",
    "page_kind": "all",
@@ -2894,7 +2894,7 @@
   },
   {
    "id": "RC-289",
-   "source": "references/design-rules.md:1228",
+   "source": "references/design-rules.md:1290",
    "quote": "Size an inline icon at roughly 1.4× the text size",
    "gist": "Size an inline icon at roughly 1.4x the text it accompanies.",
    "page_kind": "all",
@@ -2904,7 +2904,7 @@
   },
   {
    "id": "RC-290",
-   "source": "references/design-rules.md:1230",
+   "source": "references/design-rules.md:1292",
    "quote": "The 14px minimum governs a SEMANTIC INLINE icon",
    "gist": "Apply the 14px minimum to semantic inline icons only.",
    "page_kind": "all",
@@ -2914,7 +2914,7 @@
   },
   {
    "id": "RC-291",
-   "source": "references/design-rules.md:1233",
+   "source": "references/design-rules.md:1295",
    "quote": "fill-based, never stroke-based",
    "gist": "Make an opener's subject mark fill-based, never stroke-based.",
    "page_kind": "opener",
@@ -2924,7 +2924,7 @@
   },
   {
    "id": "RC-292",
-   "source": "references/design-rules.md:1238",
+   "source": "references/design-rules.md:1300",
    "quote": "Icon size is fixed and never inherits container scaling",
    "gist": "Fix icon size and exclude icons from blanket container scaling.",
    "page_kind": "all",
@@ -2934,7 +2934,7 @@
   },
   {
    "id": "RC-293",
-   "source": "references/design-rules.md:1243",
+   "source": "references/design-rules.md:1305",
    "quote": "One title line is the goal; two is the ceiling",
    "gist": "Keep a title to one line where it fits and never past two.",
    "page_kind": "all",
@@ -2945,7 +2945,7 @@
   },
   {
    "id": "RC-294",
-   "source": "references/design-rules.md:1245",
+   "source": "references/design-rules.md:1307",
    "quote": "Never narrow the title container below the content width",
    "gist": "Never narrow the title container to force a line break.",
    "page_kind": "all",
@@ -2955,7 +2955,7 @@
   },
   {
    "id": "RC-295",
-   "source": "references/design-rules.md:1248",
+   "source": "references/design-rules.md:1310",
    "quote": "not a single size, and a long title takes the lower end",
    "gist": "Set display titles as a size range and let a long title take the lower end before cutting words.",
    "page_kind": "all",
@@ -2965,7 +2965,7 @@
   },
   {
    "id": "RC-296",
-   "source": "references/design-rules.md:1251",
+   "source": "references/design-rules.md:1313",
    "quote": "Never cut below the information floor",
    "gist": "Never cut a title below its information floor when shortening it.",
    "page_kind": "all",
@@ -2975,7 +2975,7 @@
   },
   {
    "id": "RC-297",
-   "source": "references/design-rules.md:1258",
+   "source": "references/design-rules.md:1320",
    "quote": "Figure vocabulary ⊆ body vocabulary",
    "gist": "Keep figure labels within the body's terminology.",
    "page_kind": "content",
@@ -2985,7 +2985,7 @@
   },
   {
    "id": "RC-298",
-   "source": "references/design-rules.md:1261",
+   "source": "references/design-rules.md:1323",
    "quote": "Cards in a row need internal alignment constraints",
    "gist": "Equalize card title heights in a row and stack stat numbers above their labels.",
    "page_kind": "content",
@@ -2995,7 +2995,7 @@
   },
   {
    "id": "RC-299",
-   "source": "references/design-rules.md:1269",
+   "source": "references/design-rules.md:1331",
    "quote": "Exact values, never rounded for effect",
    "gist": "State exact values and never round them for effect.",
    "page_kind": "all",
@@ -3005,7 +3005,7 @@
   },
   {
    "id": "RC-300",
-   "source": "references/design-rules.md:1270",
+   "source": "references/design-rules.md:1332",
    "quote": "Label + value spec strips (HEIGHT 70 m style)",
    "gist": "Set label-plus-value spec strips with the values in the data voice.",
    "page_kind": "all",
@@ -3015,7 +3015,7 @@
   },
   {
    "id": "RC-301",
-   "source": "references/design-rules.md:1271",
+   "source": "references/design-rules.md:1333",
    "quote": "qualifying information is stated inline in parentheses",
    "gist": "State negative or qualifying information inline, never in footnotes.",
    "page_kind": "all",
@@ -3025,7 +3025,7 @@
   },
   {
    "id": "RC-302",
-   "source": "references/design-rules.md:1274",
+   "source": "references/design-rules.md:1336",
    "quote": "never pick the most flattering measurement",
    "gist": "Never pick the most flattering measurement condition for a headline number.",
    "page_kind": "all",
@@ -3035,7 +3035,7 @@
   },
   {
    "id": "RC-303",
-   "source": "references/design-rules.md:1277",
+   "source": "references/design-rules.md:1339",
    "quote": "A number reads before the words it belongs to",
    "gist": "Place a number before the words it belongs to.",
    "page_kind": "all",
@@ -3045,7 +3045,7 @@
   },
   {
    "id": "RC-304",
-   "source": "references/design-rules.md:1278",
+   "source": "references/design-rules.md:1340",
    "quote": "the figure comes first at display size and the sentence sits",
    "gist": "In a stat block put the figure first at display size with its sentence under it.",
    "page_kind": "all",
@@ -3055,7 +3055,7 @@
   },
   {
    "id": "RC-305",
-   "source": "references/design-rules.md:1280",
+   "source": "references/design-rules.md:1342",
    "quote": "where a title carries a number** it leads",
    "gist": "Lead with the number where a title carries one.",
    "page_kind": "all",
@@ -3065,7 +3065,7 @@
   },
   {
    "id": "RC-306",
-   "source": "references/design-rules.md:1281",
+   "source": "references/design-rules.md:1343",
    "quote": "inside a figure** the value is set on",
    "gist": "Inside a figure set the value on or above its mark with the descriptor beneath.",
    "page_kind": "content",
@@ -3075,7 +3075,7 @@
   },
   {
    "id": "RC-307",
-   "source": "references/design-rules.md:1309",
+   "source": "references/design-rules.md:1371",
    "quote": "section renders at exactly the geometry's height",
    "gist": "Render every section at exactly the page geometry's height.",
    "page_kind": "all",
@@ -3085,7 +3085,7 @@
   },
   {
    "id": "RC-308",
-   "source": "references/design-rules.md:1321",
+   "source": "references/design-rules.md:1383",
    "quote": "16:9 landscape, 1280×720**, checked at 1920×1080",
    "gist": "Design the landscape format as a 1280x720 stage, checked at 1920x1080.",
    "page_kind": "all",
@@ -3095,7 +3095,7 @@
   },
   {
    "id": "RC-309",
-   "source": "references/design-rules.md:1323",
+   "source": "references/design-rules.md:1385",
    "quote": "A4 portrait, 794×1123** — printing and binding",
    "gist": "Design the portrait format as a 794x1123 A4 sheet.",
    "page_kind": "all",
@@ -3105,7 +3105,7 @@
   },
   {
    "id": "RC-310",
-   "source": "references/design-rules.md:1325",
+   "source": "references/design-rules.md:1387",
    "quote": "A deliverable is designed for ONE of them",
    "gist": "Design a deliverable for one geometry and declare it.",
    "page_kind": "all",
@@ -3115,7 +3115,7 @@
   },
   {
    "id": "RC-311",
-   "source": "references/design-rules.md:1329",
+   "source": "references/design-rules.md:1391",
    "quote": "projected, so 16:9; training is printed, annotated and bound",
    "gist": "Default sales, marketing and consulting to 16:9 and training to A4 portrait.",
    "page_kind": "all",
@@ -3125,7 +3125,7 @@
   },
   {
    "id": "RC-312",
-   "source": "references/design-rules.md:1335",
+   "source": "references/design-rules.md:1397",
    "quote": "Both editions of one file is not a thing this package",
    "gist": "Never serve both geometries from one file.",
    "page_kind": "all",
@@ -3135,7 +3135,7 @@
   },
   {
    "id": "RC-313",
-   "source": "references/design-rules.md:1345",
+   "source": "references/design-rules.md:1407",
    "quote": "Portrait is a composition, not a reflow",
    "gist": "Compose portrait pages afresh rather than collapsing landscape layouts.",
    "page_kind": "all",
@@ -3145,7 +3145,7 @@
   },
   {
    "id": "RC-314",
-   "source": "references/design-rules.md:1389",
+   "source": "references/design-rules.md:1451",
    "quote": "media queries that restyle the inside",
    "gist": "Add no window-keyed media queries that restyle the inside of the stage.",
    "page_kind": "all",
@@ -3155,7 +3155,7 @@
   },
   {
    "id": "RC-315",
-   "source": "references/design-rules.md:1393",
+   "source": "references/design-rules.md:1455",
    "quote": "number must be visible on every page at every matrix point",
    "gist": "Keep the footer rule and page number visible on every page at every matrix point.",
    "page_kind": "all",
@@ -3165,7 +3165,7 @@
   },
   {
    "id": "RC-316",
-   "source": "references/design-rules.md:1411",
+   "source": "references/design-rules.md:1473",
    "quote": "Every drawn element inside its viewBox",
    "gist": "Keep every drawn element inside its figure's viewBox.",
    "page_kind": "content",
@@ -3175,7 +3175,7 @@
   },
   {
    "id": "RC-317",
-   "source": "references/design-rules.md:1412",
+   "source": "references/design-rules.md:1474",
    "quote": "to y=212 inside a viewBox 208 tall is clipped",
    "gist": "Edit a figure's viewBox with the shape, so the box a figure declares is the box it draws in.",
    "page_kind": "content",
@@ -3185,7 +3185,7 @@
   },
   {
    "id": "RC-318",
-   "source": "references/design-rules.md:1415",
+   "source": "references/design-rules.md:1477",
    "quote": "Every label inside its own shape, at the corners",
    "gist": "Keep every figure label inside its own shape.",
    "page_kind": "content",
@@ -3195,7 +3195,7 @@
   },
   {
    "id": "RC-319",
-   "source": "references/design-rules.md:1436",
+   "source": "references/design-rules.md:1498",
    "quote": "count the distinct renderings. More than one is a finding",
    "gist": "Render each repeated role exactly one way across the document.",
    "page_kind": "all",
@@ -3205,7 +3205,7 @@
   },
   {
    "id": "RC-320",
-   "source": "references/design-rules.md:1440",
+   "source": "references/design-rules.md:1502",
    "quote": "one datum per geometry for where content",
    "gist": "Start content at one datum per geometry.",
    "page_kind": "all",
@@ -3215,7 +3215,7 @@
   },
   {
    "id": "RC-321",
-   "source": "references/design-rules.md:1441",
+   "source": "references/design-rules.md:1503",
    "quote": "one colour per chart component across pages",
    "gist": "Use one colour per chart component across pages and a shared baseline inside a stat band.",
    "page_kind": "all",
@@ -3225,7 +3225,7 @@
   },
   {
    "id": "RC-322",
-   "source": "references/design-rules.md:1474",
+   "source": "references/design-rules.md:1536",
    "quote": "Nothing may land on anything",
    "gist": "Let nothing land on anything: no text on text and no text on any drawn element.",
    "page_kind": "all",
@@ -3235,7 +3235,7 @@
   },
   {
    "id": "RC-323",
-   "source": "references/design-rules.md:1488",
+   "source": "references/design-rules.md:1550",
    "quote": "the tracks that hold it have to move with it",
    "gist": "Move the grid tracks with the type scale so a block never overflows onto its neighbour.",
    "page_kind": "all",
@@ -3245,7 +3245,7 @@
   },
   {
    "id": "RC-324",
-   "source": "references/design-rules.md:1492",
+   "source": "references/design-rules.md:1554",
    "quote": "reserves its height, and the reserve is a **ceiling**",
    "gist": "Treat the title block's reserved height as a ceiling.",
    "page_kind": "all",
@@ -3255,7 +3255,7 @@
   },
   {
    "id": "RC-325",
-   "source": "references/design-rules.md:1501",
+   "source": "references/design-rules.md:1563",
    "quote": "anything inside a lede is clipping. A clamp in a title",
    "gist": "Never clamp or hide overflow in a title block.",
    "page_kind": "all",
@@ -3265,7 +3265,7 @@
   },
   {
    "id": "RC-326",
-   "source": "references/design-rules.md:1510",
+   "source": "references/design-rules.md:1572",
    "quote": "Nothing may be styled only inside a media query",
    "gist": "Give every styled class a base rendering rather than styling it only inside a media query.",
    "page_kind": "all",
@@ -3275,7 +3275,7 @@
   },
   {
    "id": "RC-327",
-   "source": "references/design-rules.md:1521",
+   "source": "references/design-rules.md:1583",
    "quote": "reads a page whose `.body` class is not a shipped layout",
    "gist": "Give every page a layout class the shipped tokens define.",
    "page_kind": "all",
@@ -3285,7 +3285,7 @@
   },
   {
    "id": "RC-328",
-   "source": "references/design-rules.md:1530",
+   "source": "references/design-rules.md:1592",
    "quote": "A geometry may tighten spacing. It may not change type",
    "gist": "Let a geometry tighten spacing but never change type size.",
    "page_kind": "all",
@@ -3295,7 +3295,7 @@
   },
   {
    "id": "RC-329",
-   "source": "references/design-rules.md:1549",
+   "source": "references/design-rules.md:1611",
    "quote": "require it under 1.40:1 against the canvas",
    "gist": "Keep the rendered ground under 1.40:1 against the canvas.",
    "page_kind": "all",
@@ -3307,7 +3307,7 @@
   },
   {
    "id": "RC-330",
-   "source": "references/design-rules.md:1558",
+   "source": "references/design-rules.md:1620",
    "quote": "An adjacent-sibling selector inside a grid",
    "gist": "Avoid adjacent-sibling selectors inside a grid.",
    "page_kind": "all",
@@ -3317,7 +3317,7 @@
   },
   {
    "id": "RC-331",
-   "source": "references/design-rules.md:1563",
+   "source": "references/design-rules.md:1625",
    "quote": "Side-by-side cells start on one line and carry comparable",
    "gist": "Start side-by-side cells on one line with comparable weight.",
    "page_kind": "content",
@@ -3327,7 +3327,7 @@
   },
   {
    "id": "RC-332",
-   "source": "references/design-rules.md:1583",
+   "source": "references/design-rules.md:1645",
    "quote": "the page frame's parts stay the same width and centre",
    "gist": "Keep the page frame's parts the same width and centred at unintended window sizes.",
    "page_kind": "all",
@@ -3337,7 +3337,7 @@
   },
   {
    "id": "RC-333",
-   "source": "references/design-rules.md:1589",
+   "source": "references/design-rules.md:1651",
    "quote": "the deepest ink against the footer rule",
    "gist": "Keep the deepest ink on a page above the footer rule.",
    "page_kind": "all",
@@ -3347,7 +3347,7 @@
   },
   {
    "id": "RC-334",
-   "source": "references/design-rules.md:1590",
+   "source": "references/design-rules.md:1652",
    "quote": "A page is a fixed box or it is not a page",
    "gist": "Make each page a fixed box, scaled and letterboxed.",
    "page_kind": "all",
@@ -3357,7 +3357,7 @@
   },
   {
    "id": "RC-335",
-   "source": "references/design-rules.md:1592",
+   "source": "references/design-rules.md:1654",
    "quote": "the leftover window is a gutter that never holds page",
    "gist": "Keep page content out of the letterbox gutter.",
    "page_kind": "all",
@@ -3367,7 +3367,7 @@
   },
   {
    "id": "RC-336",
-   "source": "references/design-rules.md:1625",
+   "source": "references/design-rules.md:1687",
    "quote": "An image earns its place by carrying an argument",
    "gist": "Include an image only when it carries an argument the page cannot make otherwise.",
    "page_kind": "all",
@@ -3377,7 +3377,7 @@
   },
   {
    "id": "RC-337",
-   "source": "references/design-rules.md:1635",
+   "source": "references/design-rules.md:1697",
    "quote": "Embedded, never linked",
    "gist": "Embed every image in the file as a data: URI rather than linking it.",
    "page_kind": "all",
@@ -3387,7 +3387,7 @@
   },
   {
    "id": "RC-338",
-   "source": "references/design-rules.md:1639",
+   "source": "references/design-rules.md:1701",
    "quote": "Every image names its origin and the",
    "gist": "Name every image's origin and terms on the page.",
    "page_kind": "all",
@@ -3397,7 +3397,7 @@
   },
   {
    "id": "RC-339",
-   "source": "references/design-rules.md:1642",
+   "source": "references/design-rules.md:1704",
    "quote": "anything else needs the licence named",
    "gist": "Name the licence for any image that is not public domain or CC0.",
    "page_kind": "all",
@@ -3407,7 +3407,7 @@
   },
   {
    "id": "RC-340",
-   "source": "references/design-rules.md:1644",
+   "source": "references/design-rules.md:1706",
    "quote": "Tint it into the accent ladder — duotone against",
    "gist": "Treat every photograph into the palette, as a duotone or a mono plate.",
    "page_kind": "all",
@@ -3417,7 +3417,7 @@
   },
   {
    "id": "RC-341",
-   "source": "references/design-rules.md:1648",
+   "source": "references/design-rules.md:1710",
    "quote": "Text does not sit on an untreated image",
    "gist": "Never set text on raw photography.",
    "page_kind": "all",
@@ -3427,7 +3427,7 @@
   },
   {
    "id": "RC-342",
-   "source": "references/design-rules.md:1652",
+   "source": "references/design-rules.md:1714",
    "quote": "the cover, a part opener, a full-bleed evidence page",
    "gist": "Place imagery only on the cover, a part opener, a full-bleed evidence page, or inside a .fig.",
    "page_kind": "all",
@@ -3437,7 +3437,7 @@
   },
   {
    "id": "RC-343",
-   "source": "references/design-rules.md:1653",
+   "source": "references/design-rules.md:1715",
    "quote": "**Where it does not**: behind body copy",
    "gist": "Never place imagery behind body copy, behind a table, or as a repeating texture.",
    "page_kind": "all",
@@ -3447,7 +3447,7 @@
   },
   {
    "id": "RC-344",
-   "source": "references/design-rules.md:1658",
+   "source": "references/design-rules.md:1720",
    "quote": "written: the handshake, the glass tower",
    "gist": "Ban the stock-photograph tells by name.",
    "page_kind": "all",
@@ -3457,7 +3457,7 @@
   },
   {
    "id": "RC-345",
-   "source": "references/design-rules.md:1664",
+   "source": "references/design-rules.md:1726",
    "quote": "Downscale to the size it is actually rendered",
    "gist": "Downscale an embedded raster to the size it is actually rendered at.",
    "page_kind": "all",
@@ -3467,7 +3467,7 @@
   },
   {
    "id": "RC-346",
-   "source": "references/design-rules.md:1665",
+   "source": "references/design-rules.md:1727",
    "quote": "prefer a vector when the content is a diagram",
    "gist": "Embed a diagram as a vector rather than a raster.",
    "page_kind": "all",

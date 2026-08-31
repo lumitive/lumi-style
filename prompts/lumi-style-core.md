@@ -288,7 +288,21 @@ Say "uncertain" plainly.
 
 **A page earns its place by a finding, and a finding is a fact put through
 an analytical move** — compare (against a benchmark), decompose (MECE),
-position (2x2/SWOT with independent axes), correlate, or bridge (waterfall).
+position (2x2/SWOT with independent axes), correlate (scatter), or bridge
+(waterfall).
+
+**A correlate page is a SCATTER, and it is drawn from the data — there is no
+reusable shape for one, because the marks ARE the data.** It must carry, or it
+is not a scatter: both measures named with their units, one mark per
+observation with n stated, **the direction said in words** ("they rise
+together", "they part above 40", "there is no relation here"), and **whether
+cause is claimed, said plainly** — "we have not tested direction" is a finding,
+not a weakness. Axis ranges do not hug the data; a truncated axis says so. If a
+trend line is drawn it is a claim: name its form, say whether it was fitted or
+drawn by eye, and draw it as a smooth curve. If a mark's SIZE carries a third
+measure, name that measure and its unit, and size by circle AREA (radius as the
+square root of the value) — sizing by radius exaggerates by the square, and a
+minimum size overstates exactly the marks the reader can least check.
 Title = the finding; `.sup` = the measure; `.take` = the implication for
 THIS reader; the ask = the action. **On a page whose move is quantitative
 (compare / decompose / bridge / correlate) the support line names what is
@@ -522,6 +536,6 @@ quality), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.663** snapshot, cut 2026-08-19. It is self-contained by
+> This file is the **0.1.664** snapshot, cut 2026-08-19. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

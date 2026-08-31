@@ -1,3 +1,110 @@
+## 0.1.664 — the scatter this package could not draw, and a proportion gate that could not express a bubble
+
+GAP-032, open since 0.1.589: `correlate` is one of AR-1's five analytical moves
+and nothing could draw it. 0.1.663 gave it a framework, a question and a misuse
+line, and left the drawing open after a review showed the library's only
+`correlation`-tagged candidate to be an empty axis frame carrying one bubble.
+
+**The drawing that was missing is a RECIPE and a TOOL, not a library unit.** A
+`<use>` embeds a symbol whole; a scatter's marks ARE its data. So a reusable
+scatter is a contradiction, which is why the gap sat for seventy-four releases
+and why a shape tagged "scatter with bubbles" looked like an answer. The recipe
+also reaches further than a unit could: prose reaches all twelve platforms, a
+library file only the tiers that can read files.
+
+`references/design-rules.md` **DR-20** states what a scatter must carry — both
+measures named with units, one mark per observation with n stated, the direction
+said in words, whether cause is claimed said plainly, axis ranges that do not
+manufacture the shape, and the source inside the drawing.
+`scripts/render/scatter_svg.py` draws it from a JSON spec and **enforces those
+rules rather than remembering them**: it refuses a sized scatter whose third
+measure is unnamed, and refuses a zero area rather than flooring it.
+
+**Three things a scatter may encode beyond position**, each added because the
+owner asked for it and each carrying a rule:
+
+- **Colour** separates series, from the CVD-validated chart triple.
+- **Size is a third measure, encoded by AREA.** `r ∝ √v`, so four times the
+  value draws twice the radius.
+- **Orientation**, wide or tall, because a figure is placed in both.
+
+**The area encoding was wrong in the first cut, and the code said otherwise.**
+It carried `r = R_MIN + (R_MAX - R_MIN) * √(v/vmax)`, which draws a datum of 25
+against a maximum of 100 at **62% of the largest radius where area
+proportionality says 50%** — a 23% overstatement of exactly the marks a reader
+is least able to check, under a docstring that claimed to encode area. **A
+minimum radius is itself a distortion.** There is now no floor, a zero is
+refused rather than drawn, and a test pins the 1:2:3:4 ratio.
+
+**`inspect_layout`'s proportion gate could not express a bubble.** It grades a
+mark's rendered length against its value, linearly — which is right for a bar
+and wrong for a circle, so a correctly drawn bubble failed it. A sized mark now
+carries `data-encoding="area"` and the check grades it against the square root.
+The document says which rule the mark was drawn to; the check reads it, exactly
+as it already does for `.axname-x` / `.axname-y`.
+
+**Four defects the markup passed and the picture did not.** Every one was found
+by rendering the figure and looking at it, which is convention 8:
+
+- the first demo's **title named a different measure than the drawing showed**;
+- two labels **sharing one baseline** collided — invisible in the wide box,
+  obvious in the tall one, because a layout that depends on the box being wide
+  is wrong in the orientation nobody looked at;
+- the **size key sat below the plot**, and `figure_axis_overlap` takes the plot
+  to be every drawn thing that is not text, so a legend RING dragged the plot's
+  edge past the x-axis name; the key now sits above the plot, which is also
+  where a reader meets a scale before the marks that use it;
+- the reading line **ran 34 units outside the tall box's viewBox**, where
+  `figure_clipped` found it and nothing else could.
+
+**And the axis names were invisible in the way this package has already
+shipped once.** The first cut labelled both axes with a generic class, so
+`figure_axis_named` reported a figure that named no axis at all. The package
+ships `.axname-x` / `.axname-y` and `tokens/lumi-layouts.css` owns the rotation
+— its own comment records that every y-axis name shipped before 0.1.594 was
+flung outside its viewBox by a hand-rolled transform, with the probe agreeing
+because it measured the untransformed box.
+
+**It has no caller yet, and that is named rather than left to be discovered.**
+`build.py` and `new_deck.py` do not invoke it; an author runs it by hand and
+pastes the result. That is the shape 0.1.533 measured and rejected — the
+scaffold named candidate frameworks in a comment and the shape library's use
+count across five shipped deliverables was **zero**, because "a comment is not
+a path". Wiring it to the outline is the next release's work, and until then
+this tool is available rather than reached. `check_repo.SIBLING_MODULES` gains
+it **in preparation for that**, not as a repair: the guard only REQUIRES the
+modules under `scripts/lib/`, and this one lives in `scripts/render/`. What
+listing buys is that when the scaffold does import it, the guard can see the
+import and check the importer carries the path bootstrap — an unlisted module's
+importers are, in the guard's own words, "invisible to this guard". `sea_route`
+is listed on the same reasoning and has no importer either.
+
+**A guard fixed because this release walked into it.** `check_script_paths`
+scans TRACKED files and resolved their citations against the WORKING TREE, so a
+tracked file could cite an **untracked** one and print `ok` — then break in a
+fresh clone, which is the single failure the guard exists to prevent, in its own
+words. This release surfaced it: `references/design-rules.md` and
+`KNOWN_GAPS.md` both cite the new renderer, and the guard was green on a tree
+where that file was not yet in the repository. Planted and confirmed on a copy
+first — `CLAUDE.md` citing an untracked script printed `ok script paths` — then
+fixed, with the two answers kept distinguishable ("moved or renamed" and
+"present but not tracked" are different repairs). Three synthetic-tree tests.
+
+**It also caught its own author twice in the same pass**: the comment explaining
+the fix cited the example script by path, which does not exist; and the
+renderer's `token = …` line read as a credential assignment to the secret
+scanner. Both were the guards being right — the variable is a paint value and is
+now called one.
+
+The design record is `specs/2026-08-31-insight-metrics-design.md`.
+
+**Deliberate red (conventions 11/15)**: seventeen tests, including the
+no-floor ratio, the refusals, the wrap that only the narrow box needs, the
+curve being a curve, and a CLI that must reject a bad spec by exit code. Two
+demo pages — one wide, one tall — pass `check_design` and the browser layout
+gate with no gating finding, and are regenerated by
+`docs/scatter-demo/build_demo.py` rather than kept by hand.
+
 ## 0.1.663 — a declared analytical move with nothing to draw it, and two vocabularies for one fact
 
 `references/analysis-rules.md` AR-1 declares five analytical moves and names the
