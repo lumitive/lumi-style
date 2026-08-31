@@ -507,6 +507,21 @@ every quarter.)
   worklist, and every boundary rule carries a `why` a person can read, so the
   question "does this document name something a reader cannot open" is
   answerable without a guard that guesses at grammar.
+- **AMENDED 0.1.665. The refusal stands as written; a NARROWER guard ships
+  beside it, and the difference is which files it looks at.** `rule script
+  reach` scans only the rule prose an agent is TOLD TO FOLLOW — `references/`,
+  `SKILL.md`, `AGENTS.md`, `prompts/` — where a named path is an instruction
+  rather than a citation. `README.md:88`, the counterexample that carried this
+  refusal, is not in that scope and never will be, so the guard is never asked
+  to judge whether an English sentence attributes its reference. AG-1's
+  phrase-trigger class is untouched: nothing here reads grammar.
+  What this does NOT do, said plainly because a draft claimed "0 false
+  negatives" and that was false: it matches the literal
+  `scripts/<drawer>/<name>.py` only. Inside its own scope, 9 mentions name a
+  development tool by bare filename and 7 name a development-side document, and
+  all 16 go unseen. Widening to bare filenames reopens this refusal's objection
+  exactly — so it is refused again here rather than attempted, and the guard's
+  docstring carries the same sentence.
 
 ## FM-20 · The subset bar: a gate list written by hand beside a machine-readable one
 

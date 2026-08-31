@@ -1,3 +1,108 @@
+## 0.1.665 — half the drawing tools were unreachable, and a rule pointed at a file the reader does not have
+
+`scatter_svg.py` shipped at 0.1.664, and 0.1.664 also published a rule naming
+it. Measured on the tree the next morning: **the script was on the development
+side**, so a reader who follows `references/design-rules.md` DR-20 is sent to a
+file the package does not contain — and **nothing in the registry knew the tool
+existed**, so no page that declares `correlate` had any path to it. Zero
+callers, one release, every check green.
+
+The owner named the class before the measurement did: scattered and unhandled
+is, in practice, total loss at the point of use.
+`specs/2026-09-01-figure-data-contract-design.md` records the whole chain and
+what each link owes.
+
+**This release makes the chain reachable end to end**, and refuses to make it by
+moving files: a red-team pass on the directory proposal found the move would
+have mis-filed a route-finder that draws nothing, cut across the boundary that
+actually governs publication, and hidden the whole set from `shipped.py`, whose
+path rule reads two levels only. Four changes instead of eighty-nine.
+
+**`rule script reach` — a rule file may not send its reader to a script the
+package omits.** Its first run on the tree, before any repair, verbatim:
+
+    FAIL  rule script reach
+        references/design-rules.md:171 names scripts/build/build_region_palette.py, which the published package does not carry
+        references/design-rules.md:1057 names scripts/render/scatter_svg.py, which the published package does not carry
+
+The first was repaired by stating the fact without the path — the hues are
+generated evenly around the OKLCH circle, which is what a reader needs, and the
+generator's name is not. **At an identical line count**, because 230 entries in
+`evals/rule-coverage.json` pin lines below it. The second was repaired by
+shipping the tool: `scatter_svg` is now a `consumer_seeds` entry, and the count
+fell 2 → 1 → 0.
+
+**This revives a mechanism declined in writing, and says so in the same
+commit.** FM-23 declined extending the cross-boundary guard to markdown on
+2026-08-23, because an attributed mention is legitimate — `README.md` naming a
+development file and saying "in the development repository" in one sentence is
+correct prose, and a guard that cannot read English would delete it. The
+objection is answered by removing the case rather than by teaching grammar: the
+scope is the rule prose an agent is TOLD TO FOLLOW, where a path is an
+instruction, and `README.md` is not in it and never will be. FM-23 is amended in
+place with that boundary, on convention 2. `CLAUDE.md` is in the rule-file
+family and DEV-side, so the consumer filter drops it with no special case;
+including it would have added **37 false findings**, every one correct prose.
+
+**What the guard cannot see is written into its own docstring**, because a draft
+of this entry claimed "0 false negatives" and that was false. It matches the
+literal `scripts/<drawer>/<name>.py`. Inside its own scope, 9 mentions name a
+development tool by bare filename and 7 name a development-side document; all 16
+go unseen, and widening to bare filenames reopens FM-23's objection exactly, so
+it is refused again rather than attempted.
+
+**`framework tools` — the registry now says who draws each framework, and the
+guard holds the answer to the reader's side.** `assets/frameworks.json` gains an
+optional `tool` object; `scatter` is the first entry to carry one. Its own guard
+rather than a clause in `check_frameworks`, because the two have different
+subjects and different silences — and the silence is the point. Planted, in
+order, and each caught:
+
+    dev-side tool    -> names scripts/build/build_worldmap.py, which the published package does not carry
+    untracked file   -> names scripts/render/nope_svg.py, which is not a tracked file
+    two names        -> declares module 'wrong_name' but runs scripts/render/scatter_svg.py
+    no path at all   -> names no scripts/<drawer>/<file>.py, so an author is told to run nothing
+    not an object    -> frameworks.scatter.tool is str, not an object with `module` and `run`
+    tool removed     -> no framework declares a `tool`, so no page that declares an analysis move can reach the script that draws it
+
+The last is FM-24's third answer and the state this guard was written from. It
+does **not** ask every natively-drawn framework to declare a tool: five are
+drawn natively and one has a script, so that gate is one no correct answer could
+satisfy, which is AG-10 and this repository has already paid for writing one.
+
+**The command reaches the page, not a comment beside it.** `new_deck.py` gains
+`tool_for()`, and a page whose declared move resolves to a tooled framework now
+arrives with the command in its **visible body**. That placement is the whole
+lesson of 0.1.533, where the scaffold named its candidates in a comment and five
+deliverables used the shape library zero times: `d14_placeholders` strips
+comments and `<svg>` before it looks, so a slot hidden in either is a slot no
+gate can refuse and an author ships a finished-looking page. The bracket keys
+D14 and stays inside its 60-character window; the command sits beside it. A
+scaffold with no outline is unchanged, byte for byte.
+
+`shape_for` and `tool_for` read **one** resolution, `frameworks_matching` —
+including the rule that a NAMED framework is the answer rather than the head of
+a queue, which 0.1.596 paid to get right once and which two copies would have
+lost again.
+
+**Two defects the gates did not see and the render did.** Looking at the page,
+the first cut showed a four-headed arrow — a `position` unit — on a page that
+declares `correlate`, beside a line saying "draw this figure": two answers to
+one question, from page one's demo furniture. Removing it left the caption
+floating over a dead half-page. The slot now sits **inside the figure box**,
+where the drawing goes, and the caption follows it. `inspect_layout
+--deliverable` reported no gating finding on all three, which is convention 8
+exactly.
+
+Also: `scripts/check/precedent.py` searches the refusal ledgers before a
+mechanism is designed — FM-23 was found by one keyword search that nobody had
+run. `scripts/ops/nightly_review.py` and its cron wrapper run the mechanical
+half of a self-review against each day's commits, installed for three months at
+the owner's instruction. The wrapper's first commit hard-coded a home
+directory and `local paths` caught it; it now derives its own root.
+Convention 20 records the five failure classes and requires the adversarial
+review to be self-invoked rather than asked for.
+
 ## 0.1.664 — the scatter this package could not draw, and a proportion gate that could not express a bubble
 
 GAP-032, open since 0.1.589: `correlate` is one of AR-1's five analytical moves

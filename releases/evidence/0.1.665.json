@@ -1,0 +1,32 @@
+{
+  "version": "0.1.665",
+  "diff_base": "c658bf50f5d1021a44ddd56c666fb83250223982",
+  "spec": "specs/2026-09-01-figure-data-contract-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "scaffold-render",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "f04602e1e4dabf54880d35f1a127e018812a9c892b096ad3bdbb2f17779ea4dd",
+      "date": "2026-09-01"
+    },
+    {
+      "id": "scaffold-render",
+      "command": "python3 scripts/ops/new_deck.py --genre internal --storyline market-analysis --pages 10 --parts A,B,C --no-trace --out fixtures/.scaffold-evidence.html && python3 scripts/check/inspect_layout.py --deliverable fixtures/.scaffold-evidence.html",
+      "exit_code": 0,
+      "stdout_sha256": "1d719140d8598963c5a384c98727fd0e51485c42be4446cff111c8100214bd3f",
+      "date": "2026-09-01"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board's newest run is 0.1.648, seventeen releases back. Refreshing it means driving at least two platform CLIs through all three tasks on the owner's API credentials with her installs current \u2014 her call, not a step a release takes on its own, and she has explicitly deferred it while this work ran. This is the FOURTH consecutive release carrying this waiver and that is stated rather than buried: a waiver repeated is a waiver becoming a rubber stamp, and the debt is the board's. What is unconfirmed: whether the twelve configurations still produce passing deliverables. This release changes what an agent is HANDED \u2014 the scaffold now emits a command on a page whose move resolves to a tooled framework, and `scatter_svg` moved to the consumer side, so a `files` or `full` tier agent sees one script it did not see before. It changes no adapter, no platform registry record, no entry-point loading rule and no token value, so no platform CAPABILITY moved; what a refresh would confirm is whether agents actually take the new path, which is a question about adoption rather than about regression."
+    }
+  ]
+}

@@ -5234,6 +5234,105 @@ def _ar1_frameworks():
     return out or None
 
 
+# A rule an agent is told to follow may not name a tool the agent does not
+# receive. Kept as a module constant so the scope is one spelling, and matched
+# against `shipped.side_of`, which is the same boundary `publish.sh` projects.
+RULE_FILE_PREFIXES = ("references/", "SKILL.md", "AGENTS.md", "prompts/")
+GENERATED_BANNER = re.compile(r"GENERATED\b[^\n]*?`scripts/[\w/]+\.py`", re.I)
+RULE_SCRIPT_WAIVERS: dict[tuple[str, str], str] = {}
+
+
+def check_rule_script_reach():
+    """A rule file may not send its reader to a script the package omits.
+
+    **This revives a mechanism declined in writing, and the difference is the
+    scope.** FM-23 declined extending the cross-boundary guard to markdown
+    because an ATTRIBUTED mention is legitimate: `README.md` names a
+    development-side file and says "in the development repository" in the same
+    sentence, and a guard that cannot tell that from an instruction "would fail
+    correct prose and instruct the author to delete a useful reference".
+
+    That objection is answered by removing the case, not by teaching the guard
+    to read English. The scope here is the RULE PROSE AN AGENT IS TOLD TO
+    FOLLOW — `references/`, `SKILL.md`, `AGENTS.md`, `prompts/` — and a README
+    is not one of those, so attribution never has to be judged. `CLAUDE.md` is
+    in the rule-file family but is DEV-side, and the consumer filter drops it
+    with no special case; including it would add 37 false findings, every one
+    correct prose about this repository's own tools.
+
+    Generated indexes are excluded by the banner their own generators emit, not
+    by a list: a fourth generated file is excluded automatically, and a
+    generator that stops emitting its banner brings its file back into scope
+    loudly. That direction is deliberate — `release.py`'s docstring records a
+    hand-written subset of generators rotting three times.
+
+    Measured when written: 15 files in scope, 2 findings.
+
+    **What it does not see, stated because a draft of this claimed "0 false
+    negatives" and that was false**: it keys on the literal
+    `scripts/<drawer>/<name>.py`. Inside the same scope, 9 mentions name a
+    dev-only tool by bare filename and 7 name a dev-side document. Widening to
+    bare filenames reopens FM-23's objection exactly, so it is refused and
+    recorded rather than attempted.
+    """
+    import shipped
+    names, problem = repo_files.tracked_files(root=ROOT, what="rule-script scan")
+    if problem:
+        return [problem]
+    try:
+        consumer = shipped.consumer_scripts(ROOT)
+    except (OSError, ValueError) as exc:
+        # FM-24's third answer: an uncomputed boundary is not a clean one.
+        return [f"the consumer boundary could not be computed ({exc}), so no "
+                f"rule citation was checked against it — a scan that did not "
+                f"run is not a scan that passed"]
+    errors, scanned, excluded, used = [], 0, 0, set()
+    for name in sorted(names):
+        if not name.endswith(".md") or not name.startswith(RULE_FILE_PREFIXES):
+            continue
+        if shipped.side_of(name, ROOT, consumer) != "consumer":
+            continue
+        try:
+            text = (ROOT / name).read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            errors.append(f"{name} is in scope and could not be read ({exc}) "
+                          f"— its citations have not been checked")
+            continue
+        if GENERATED_BANNER.search("\n".join(text.splitlines()[:10])):
+            excluded += 1
+            continue
+        scanned += 1
+        for n, line in enumerate(text.splitlines(), 1):
+            for m in SCRIPT_PATH_RE.finditer(line):
+                cited = m.group(0)
+                if shipped.side_of(cited, ROOT, consumer) != "dev":
+                    continue
+                if (name, cited) in RULE_SCRIPT_WAIVERS:
+                    used.add((name, cited))
+                    continue
+                errors.append(
+                    f"{name}:{n} names {cited}, which the published package "
+                    f"does not carry — the reader is told about a file they do "
+                    f"not have (convention 5). Ship it (adapters/shipped.json "
+                    f"`consumer_seeds`), reword so the fact is stated without "
+                    f"the path, or waive it in RULE_SCRIPT_WAIVERS with a "
+                    f"reason")
+    if not scanned:
+        errors.append("no consumer-side, hand-written rule file was found at "
+                      "all — a scan with nothing to look at is not a scan that "
+                      "passed")
+    if not excluded:
+        errors.append("the generated-file exclusion matched nothing; either no "
+                      "generated reference exists or its banner changed, and "
+                      "this guard's false-positive rate depends on it")
+    for key in RULE_SCRIPT_WAIVERS:
+        if key not in used:
+            errors.append(f"rule-script waiver for {key[0]} / {key[1]} matched "
+                          f"nothing — an exemption that outlived its reason is "
+                          f"an exemption nobody decided")
+    return errors
+
+
 def check_frameworks():
     """The framework dictionary resolves, and every entry can be used.
 
@@ -5277,6 +5376,80 @@ def check_frameworks():
         errors.append("frameworks.json declares no frameworks at all")
 
     return errors
+
+
+def check_framework_tools():
+    """A framework that names the script drawing it names one the reader has.
+
+    **Its own guard, not a clause inside `check_frameworks`, because it has its
+    own subject and its own silence.** `check_frameworks` grades every entry;
+    this grades only the entries that declare a `tool`, and the difference
+    shows in the empty case: a registry where nothing declares a tool is a
+    registry with no path from "this page correlates two measures" to the
+    command that draws one. That is the state `scatter_svg` shipped into at
+    0.1.664 — a renderer in the tree, a published rule pointing at it, and zero
+    callers — and it printed exactly what a healthy registry prints.
+
+    **What it does NOT require, on AG-10's reasoning.** It does not ask every
+    natively-drawn framework to declare a tool. Five do today and one has a
+    script; a gate demanding the other four invent one is a gate no correct
+    answer can satisfy, and this repository has already paid for writing one of
+    those. What it asks of a DECLARED tool is only that it resolves: tracked,
+    consumer-side, and named the same way twice.
+    """
+    import json as _json
+
+    import shipped
+    fw_path = ROOT / "assets" / "frameworks.json"
+    try:
+        fw = _json.loads(fw_path.read_text(encoding="utf-8"))
+    except (OSError, _json.JSONDecodeError) as exc:
+        return [f"framework tools: could not read the registry: {exc}"]
+    tooled = {n: e["tool"] for n, e in (fw.get("frameworks") or {}).items()
+              if isinstance(e, dict) and e.get("tool")}
+    if not tooled:
+        # FM-24's third answer, and the one this guard exists for.
+        return ["no framework declares a `tool`, so no page that declares an "
+                "analysis move can reach the script that draws it — this "
+                "check looked at nothing, which is not the same as finding "
+                "nothing"]
+    try:
+        consumer = shipped.consumer_scripts(ROOT)
+    except (OSError, ValueError) as exc:
+        return [f"frameworks: a `tool` is declared but the consumer boundary "
+                f"could not be computed ({exc}) — the declaration has not been "
+                f"checked, which is not the same as it being sound"]
+    tracked, problem = repo_files.tracked_files(root=ROOT, what="framework tools")
+    if problem:
+        return [problem]
+    out = []
+    for name, tool in sorted(tooled.items()):
+        if not isinstance(tool, dict):
+            out.append(f"frameworks.{name}.tool is {type(tool).__name__}, not "
+                       f"an object with `module` and `run`")
+            continue
+        module, run = tool.get("module"), tool.get("run")
+        if not module or not run:
+            out.append(f"frameworks.{name}.tool needs both `module` (what to "
+                       f"import) and `run` (the command an author types)")
+            continue
+        hits = [m.group(0) for m in SCRIPT_PATH_RE.finditer(run)]
+        if not hits:
+            out.append(f"frameworks.{name}.tool.run names no scripts/<drawer>/"
+                       f"<file>.py, so an author is told to run nothing")
+            continue
+        for path in hits:
+            if path not in tracked:
+                out.append(f"frameworks.{name}.tool.run names {path}, which is "
+                           f"not a tracked file")
+            elif shipped.side_of(path, ROOT, consumer) != "consumer":
+                out.append(f"frameworks.{name}.tool.run names {path}, which the "
+                           f"published package does not carry — the author who "
+                           f"reads this registry cannot run it (convention 5)")
+            elif pathlib.Path(path).stem != module:
+                out.append(f"frameworks.{name}.tool declares module {module!r} "
+                           f"but runs {path} — two names for one tool")
+    return out
 
 
 def check_moves_served():
@@ -5405,6 +5578,8 @@ CHECKS = (
     ("brand registry", check_brand_registry),
     ("shape library", check_shape_library),
     ("frameworks", check_frameworks),
+    ("framework tools", check_framework_tools),
+    ("rule script reach", check_rule_script_reach),
     ("moves served", check_moves_served),
     ("scoring sheet parity", check_scoring_sheet_parity),
     ("metric id ranges", check_metric_id_ranges),
