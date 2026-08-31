@@ -1,4 +1,4 @@
-# LUMI build card · 0.1.660
+# LUMI build card · 0.1.661
 
 > **GENERATED** by `scripts/build/build_card.py` from `evals/rule-coverage.json`, `evals/gates.json` and `tokens/`. `--check` runs in CI. Never hand-edit: edit the rule, or the register, and regenerate.
 
@@ -102,7 +102,7 @@ Only the rules a script can fail you for, from the register. The full contract �
 
 ### Every page (55)
 
-- **`D12`** Carry the handling terms and origin on every page, opening with the seal-red shield handling marker. — `SKILL.md:625`
+- **`D12`** Carry the handling terms and origin on every page, opening with the seal-red shield handling marker. — `SKILL.md:631`
 - **`D12`** Carry the handling terms and the document's origin on every page. — `references/design-rules.md:1118`
 - **`D12`** Put the confidentiality line then the organisation's site left of the footer rule. — `references/design-rules.md:1119`
 - **`D14`** Let no unreplaced placeholder or author slot survive into the delivered document. — `SKILL.md:264`
@@ -147,7 +147,7 @@ Only the rules a script can fail you for, from the register. The full contract �
 - **`content_spill`** Keep the deepest ink on a page above the footer rule. — `references/design-rules.md:1589`
 - **`datum`** Start the content area at the same height on every page of a geometry. — `references/brand.md:253`
 - **`datum`** Start content at one datum per geometry. — `references/design-rules.md:1440`
-- **`deck_structure`** Open a deck with a cover and end it with a closing page, each carrying the single vector mark. — `SKILL.md:664`
+- **`deck_structure`** Open a deck with a cover and end it with a closing page, each carrying the single vector mark. — `SKILL.md:670`
 - **`deck_structure`** Open a deck with a cover and end it with a closing page. — `references/storyline-templates.md:497`
 - **`page_height`** Render every section at exactly the page geometry's height. — `references/design-rules.md:1309`
 - **`page_height`** Make each page a fixed box, scaled and letterboxed. — `references/design-rules.md:1590`

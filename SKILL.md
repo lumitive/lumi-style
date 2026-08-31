@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.660"
+  version: "0.1.661"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -500,8 +500,14 @@ without judging whether they cohere**, because that judgement is the point
 of the beat. Completeness is caught here or not at all: C5 reports and never
 gates.
 **After building, run it again with `--against <deck.html>`, and this half
-gates.** Every planned **title** must still be the title of a page, and
-every planned `implication:` is reported against that page's `.take`.
+gates.** Every planned **title** must still be the title of a page, and — if
+the outline declares implications at all — the document must carry a `.take`
+on at least one content page: an outline can declare the rung for every page
+and the build lose every one of them, which shipped once with every gate
+green. The *wording* of each planned `implication:` is reported against its
+page's `.take` and never gated, because a take rewritten better than its plan
+is a legitimate outcome and no check can tell that from one that lost the
+point.
 (The outline's bullet is the finding, written as the title it will
 become; the separate `finding:` field is the author's note to
 themselves and no check reads it.) It is

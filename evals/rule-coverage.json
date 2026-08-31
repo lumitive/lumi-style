@@ -394,7 +394,7 @@
   },
   {
    "id": "RC-040",
-   "source": "SKILL.md:625",
+   "source": "SKILL.md:631",
    "quote": "**D12**, the handling terms and origin",
    "gist": "Carry the handling terms and origin on every page, opening with the seal-red shield handling marker.",
    "page_kind": "all",
@@ -404,7 +404,7 @@
   },
   {
    "id": "RC-041",
-   "source": "SKILL.md:658",
+   "source": "SKILL.md:664",
    "quote": "**once, in the closing colophon**, small and out of the",
    "gist": "Stamp the lumi-style version once, in the closing colophon.",
    "page_kind": "closing",
@@ -414,7 +414,7 @@
   },
   {
    "id": "RC-042",
-   "source": "SKILL.md:664",
+   "source": "SKILL.md:670",
    "quote": "Decks open with a cover and end with a closing page",
    "gist": "Open a deck with a cover and end it with a closing page, each carrying the single vector mark.",
    "page_kind": "all",
@@ -424,7 +424,7 @@
   },
   {
    "id": "RC-043",
-   "source": "SKILL.md:665",
+   "source": "SKILL.md:671",
    "quote": "every part boundary gets a lime opener page",
    "gist": "Give every part boundary a lime opener page.",
    "page_kind": "opener",
@@ -434,7 +434,7 @@
   },
   {
    "id": "RC-044",
-   "source": "SKILL.md:666",
+   "source": "SKILL.md:672",
    "quote": "about five content pages between openers is the pacing",
    "gist": "Target about five content pages between part openers.",
    "page_kind": "all",
@@ -444,7 +444,7 @@
   },
   {
    "id": "RC-045",
-   "source": "SKILL.md:673",
+   "source": "SKILL.md:679",
    "quote": "decks embed the scoring table as the final page",
    "gist": "Embed the scoring table as the deck's final page.",
    "page_kind": "closing",
@@ -454,7 +454,7 @@
   },
   {
    "id": "RC-046",
-   "source": "SKILL.md:745",
+   "source": "SKILL.md:751",
    "quote": "No invented facts; every number carries its source",
    "gist": "Invent no facts, source every number, and label illustrative values as illustrative.",
    "page_kind": "all",
@@ -464,7 +464,7 @@
   },
   {
    "id": "RC-047",
-   "source": "SKILL.md:747",
+   "source": "SKILL.md:753",
    "quote": "No coined Chinese: new concepts with no established",
    "gist": "Coin no Chinese terms; take the English term where no established Chinese term exists.",
    "page_kind": "all",
@@ -474,7 +474,7 @@
   },
   {
    "id": "RC-048",
-   "source": "SKILL.md:749",
+   "source": "SKILL.md:755",
    "quote": "The sales storyline is **value and future**",
    "gist": "Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page.",
    "page_kind": "all",
@@ -484,7 +484,7 @@
   },
   {
    "id": "RC-049",
-   "source": "SKILL.md:751",
+   "source": "SKILL.md:757",
    "quote": "Every title names its subject and carries a verifiable fact",
    "gist": "Make every title name its subject and carry a verifiable fact.",
    "page_kind": "all",
@@ -494,7 +494,7 @@
   },
   {
    "id": "RC-050",
-   "source": "SKILL.md:752",
+   "source": "SKILL.md:758",
    "quote": "no single title frame across more than 60% of a",
    "gist": "Use no single title frame across more than 60% of a document.",
    "page_kind": "all",
@@ -504,7 +504,7 @@
   },
   {
    "id": "RC-051",
-   "source": "SKILL.md:753",
+   "source": "SKILL.md:759",
    "quote": "all titles concatenated must read as a complete argument",
    "gist": "Make all titles concatenated read as one complete argument.",
    "page_kind": "all",
@@ -514,7 +514,7 @@
   },
   {
    "id": "RC-052",
-   "source": "SKILL.md:754",
+   "source": "SKILL.md:760",
    "quote": "Charts: one accent color, conclusion-style titles",
    "gist": "Give charts one accent colour, conclusion-style titles, and a source line on every figure.",
    "page_kind": "content",
@@ -524,7 +524,7 @@
   },
   {
    "id": "RC-053",
-   "source": "SKILL.md:756",
+   "source": "SKILL.md:762",
    "quote": "AI never signs; money/safety conclusions never come from",
    "gist": "AI never signs, and money or safety conclusions never come from a language model.",
    "page_kind": "all",

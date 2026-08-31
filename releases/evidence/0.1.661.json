@@ -1,0 +1,15 @@
+{
+ "version": "0.1.661",
+ "diff_base": "7cac87cf8f585eafd238b4562b2d51c009b23c8d",
+ "spec": "specs/2026-08-31-insight-metrics-design.md",
+ "obligations": [
+  "conformance-freshness"
+ ],
+ "checks": [],
+ "waivers": [
+  {
+   "id": "conformance-freshness",
+   "reason": "The board's newest run is 0.1.648, thirteen releases back, and refreshing it means DRIVING at least two real platform CLIs through all three tasks on the owner's API credentials, with her installs current. That spends her quota and is her call, not a step this release may take on its own. What is unconfirmed is therefore narrow and stated: whether the twelve configurations still behave as the board records. Nothing in 0.1.661 touches a platform surface -- it changes two checker modules (check_outline's gating set and rung verdict, check_design's contract guard) plus prose in SKILL.md, the ledgers and the CHANGELOG. No adapter, no registry record, no entry-point loading rule and no token value changed, so there is no mechanism by which a platform's behaviour could have moved with this diff. The debt is real and it is the board's, not this release's; it is owed to the owner as a refresh round."
+  }
+ ]
+}

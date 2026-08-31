@@ -766,6 +766,28 @@ not a mechanical change. `check_trace_field_writers` (0.1.650) deliberately does
 NOT flag these — they are sparse-or-sub-key, not structurally dead — so they sit
 visible but unheld until the owner picks a direction.
 
+## IDEA-31 · `check_outline`'s gating verdicts are not in the gate register, so they have no `since`
+
+**Problem.** `evals/gates.json` declares every verdict a deliverable can
+receive, and CLAUDE.md's rule is that a gate binds a document built at or after
+its `since` — an older deliverable reports `not held`, "because the gate set
+applied was always HEAD's" and a deck accepted at one version was failed by a
+rule written after it. The register's checkers are 44 `design`, 27 `layout`, 16
+`prose` and 1 `privacy`. **There is no `outline` family at all.** So
+`check_outline --against`'s gating verdicts — `outline mirror`, `outline stale`,
+and since 0.1.661 `implication rung absent` — sit outside that mechanism
+entirely: no `since`, no `subject`, no `na_means`, and nothing in a clean sheet
+that can say how much they held.
+
+**Why not now.** It is not a row: the register's `held` computation reads a
+document's version stamp, and `check_outline` grades a PAIR (an outline and a
+document) rather than a document, so what `since` binds and what `subject`
+names both need deciding before any row is written. Registering it also changes
+what `run_conformance`'s all-gating block demands. Measured meanwhile: a review
+ran all 32 genuine outline/document pairs in the corpus and the gate produced
+one finding, on GAP-031's own defective document — so no correct stored work is
+mis-graded today, which is why this is a register gap rather than a defect.
+
 ## IDEA-23 · The skill depends on 13 uncontrolled external things; the axiom "depend on nothing outside its own control" needs each given a home
 
 **Problem.** The baseline external-dependency census found 3 controlled deps
