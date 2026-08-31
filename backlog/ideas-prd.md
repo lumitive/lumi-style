@@ -801,6 +801,30 @@ ran all 32 genuine outline/document pairs in the corpus and the gate produced
 one finding, on GAP-031's own defective document — so no correct stored work is
 mis-graded today, which is why this is a register gap rather than a defect.
 
+## IDEA-24 · One flat directory for the figure code, deferred rather than refused
+
+The owner's judgement — that scattered and unhandled is total loss at the point
+of use — was confirmed and is broader than the sentence: the registry knew about
+none of the drawing tools, two of the four renderers had no caller, and half the
+figure code was unreachable from a rule. 0.1.665 answered the REACHABILITY half
+with a registry field and two guards, and deliberately did not move a file.
+
+A red-team pass on the move found three things, each verified: the route-finder
+`sea_route.py` draws nothing at all (zero `svg` or `<path>` occurrences — it
+emits JSON coordinates for a course around land), so filing it under `figures/`
+is a factual error; the twelve files split six consumer / six development, so a
+directory boundary would cross the boundary that actually governs publication at
+ninety degrees; and `scripts/lib/shipped.py`'s path rule reads two levels only,
+so a sub-drawer would remove the whole set from the computation that decides what
+ships — building, by hand, the invisibility the move was meant to cure.
+
+**So it is deferred with a condition, not abandoned.** If it is done, it is
+FLAT (`scripts/figures/<verb>_<thing>.py`, never a sub-drawer) and it is its own
+change, because it answers "is this easy to find" and 0.1.665 answered "can this
+be reached" — two questions one commit should not mix. `claim_sweep.py` is the
+worklist for the move, not grep: 0.1.443 missed two code comments by hand and
+0.1.451 missed eight.
+
 ## IDEA-23 · The skill depends on 13 uncontrolled external things; the axiom "depend on nothing outside its own control" needs each given a home
 
 **Problem.** The baseline external-dependency census found 3 controlled deps

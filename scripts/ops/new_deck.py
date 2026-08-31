@@ -45,7 +45,6 @@ from __future__ import annotations
 import argparse
 import hashlib  # noqa: E402
 import html
-import html as _html
 import json
 import pathlib
 
@@ -266,6 +265,35 @@ def sup_for(move: str) -> str:
     return SUP_MEASURE if move in _quantitative_moves() else SUP_PROSE
 
 
+def _registry() -> dict:
+    """-> the framework registry, or exit loudly. Never an empty dict.
+
+    Three functions read `assets/frameworks.json` and each used to swallow
+    `OSError`/`ValueError` into its own empty answer. That made a truncated or
+    renamed registry indistinguishable from "this move has no framework": the
+    page still declared its move, carried no shape and no tool slot, and so
+    gave `d14_placeholders` nothing to refuse — a deck that renders finished
+    and is not. Measured on a truncated file and on one whose top-level key was
+    renamed; both were green.
+
+    The registry is a tracked, guarded asset, so a read failure is a broken
+    checkout rather than a data state, and exiting is the honest answer.
+    """
+    path = ROOT / "assets" / "frameworks.json"
+    try:
+        d = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise SystemExit(
+            f"{path}: the framework registry could not be read ({exc}). The "
+            f"scaffold cannot resolve a move's framework, shape or tool, and a "
+            f"deck built without it looks finished and is not.") from exc
+    entries = d.get("frameworks")
+    if not isinstance(entries, dict) or not entries:
+        raise SystemExit(f"{path}: parsed, but carries no `frameworks` object "
+                         f"— the registry is not the registry.")
+    return entries
+
+
 def framework_for(move: str) -> str:
     """-> a one-line hint naming the frameworks that draw this move, and the
     misuse each is known for.
@@ -279,11 +307,10 @@ def framework_for(move: str) -> str:
     """
     if not move:
         return ""
-    try:
-        d = json.loads((ROOT / "assets" / "frameworks.json").read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return ""
-    entries = d.get("frameworks", d)
+    # One reader of the registry (`frameworks_matching`) owns the failure
+    # message; this one asks it rather than swallowing the same exception into
+    # a different empty string.
+    entries = _registry()
     hits = [(k, v) for k, v in entries.items()
             if isinstance(v, dict) and v.get("move") == move]
     if not hits:
@@ -377,11 +404,7 @@ def frameworks_matching(move: str, framework: str = "") -> list[tuple]:
     """
     if not move and not framework:
         return []
-    try:
-        d = json.loads((ROOT / "assets" / "frameworks.json").read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return []
-    entries = d.get("frameworks", d)
+    entries = _registry()
     hits = [(k, v) for k, v in entries.items()
             if isinstance(v, dict) and v.get("move") == move]
     if framework:
@@ -1223,7 +1246,7 @@ def main(argv):
                     toolslot = (
                         f'\n      <p class="notes">[TO FILL: draw this figure]'
                         f' &#183; {fw_name} is drawn from its own numbers, not '
-                        f'from a library shape. <code>{_html.escape(run)}</code>'
+                        f'from a library shape. <code>{html.escape(run)}</code>'
                         f' renders one from a JSON spec: paste its SVG here in '
                         f'place of this line.</p>')
             fignote = (f"\n      <!-- {hint} -->" if hint else "")

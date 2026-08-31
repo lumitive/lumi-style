@@ -252,6 +252,10 @@ def test_the_live_register_still_declares_what_the_consolidation_moved():
         # (`check_outline.ANALYTICAL_MOVES`), and `check_one_home` resolves
         # `defs` as `^def name(`. The pattern carries the whole enforcement.
         "analytical-moves": ([], 1),
+        # Same shape as `analytical-moves`: the owner exports a module CONSTANT
+        # (`check_rule_coverage.RULE_FILE_PREFIXES`), so there is no `def` to
+        # list and the pattern carries the whole enforcement.
+        "rule-file-family": ([], 1),
     }
     assert set(facts) == set(expected), "a fact was added or removed"
     for fid, (defs, patterns) in expected.items():

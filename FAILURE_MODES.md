@@ -518,8 +518,8 @@ every quarter.)
   What this does NOT do, said plainly because a draft claimed "0 false
   negatives" and that was false: it matches the literal
   `scripts/<drawer>/<name>.py` only. Inside its own scope, 9 mentions name a
-  development tool by bare filename and 7 name a development-side document, and
-  all 16 go unseen. Widening to bare filenames reopens this refusal's objection
+  development tool by bare filename and 8 name a development-side document, and
+  all 17 go unseen. Widening to bare filenames reopens this refusal's objection
   exactly — so it is refused again here rather than attempted, and the guard's
   docstring carries the same sentence.
 

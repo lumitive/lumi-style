@@ -1,0 +1,26 @@
+{
+  "version": "0.1.666",
+  "diff_base": "35b3e604339f6535776dc9535ef17cd8a2b9ef4f",
+  "spec": "specs/2026-09-01-figure-data-contract-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "scaffold-render"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "f04602e1e4dabf54880d35f1a127e018812a9c892b096ad3bdbb2f17779ea4dd",
+      "date": "2026-09-01"
+    },
+    {
+      "id": "scaffold-render",
+      "command": "python3 scripts/ops/new_deck.py --outline fixtures/scaffold-evidence-outline.md --genre internal --pages 10 --parts A,B,C --no-trace --out fixtures/.scaffold-evidence.html && python3 scripts/check/inspect_layout.py --deliverable fixtures/.scaffold-evidence.html",
+      "exit_code": 0,
+      "stdout_sha256": "45d0766924b83fac7ad56ac924ee97cf6b639c7540028107aabf4c315029d25d",
+      "date": "2026-09-01"
+    }
+  ],
+  "waivers": []
+}

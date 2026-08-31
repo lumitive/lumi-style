@@ -5234,10 +5234,10 @@ def _ar1_frameworks():
     return out or None
 
 
-# A rule an agent is told to follow may not name a tool the agent does not
-# receive. Kept as a module constant so the scope is one spelling, and matched
-# against `shipped.side_of`, which is the same boundary `publish.sh` projects.
-RULE_FILE_PREFIXES = ("references/", "SKILL.md", "AGENTS.md", "prompts/")
+# The rule-file family lives in `check_rule_coverage` (evals/single-source.json,
+# `rule-file-family`), which asks the same question for a different reason and
+# had its own tuple. `CLAUDE.md` is in the family and is development-side, so
+# the consumer filter below drops it with no special case.
 GENERATED_BANNER = re.compile(r"GENERATED\b[^\n]*?`scripts/[\w/]+\.py`", re.I)
 RULE_SCRIPT_WAIVERS: dict[tuple[str, str], str] = {}
 
@@ -5257,7 +5257,7 @@ def check_rule_script_reach():
     FOLLOW — `references/`, `SKILL.md`, `AGENTS.md`, `prompts/` — and a README
     is not one of those, so attribution never has to be judged. `CLAUDE.md` is
     in the rule-file family but is DEV-side, and the consumer filter drops it
-    with no special case; including it would add 37 false findings, every one
+    with no special case; including it would add 27 false findings, every one
     correct prose about this repository's own tools.
 
     Generated indexes are excluded by the banner their own generators emit, not
@@ -5268,13 +5268,21 @@ def check_rule_script_reach():
 
     Measured when written: 15 files in scope, 2 findings.
 
+    **`SKILL.md` is in scope and cannot fail this**, which is a property rather
+    than an exemption: `shipped.consumer_scripts` seeds the consumer set from
+    SKILL.md's own invocations, so naming a script there is the act that ships
+    it. `AGENTS.md` and `prompts/` seed nothing and can fail it — and the
+    prompt tier is the population this exists for, since those readers have no
+    tools at all.
+
     **What it does not see, stated because a draft of this claimed "0 false
     negatives" and that was false**: it keys on the literal
     `scripts/<drawer>/<name>.py`. Inside the same scope, 9 mentions name a
-    dev-only tool by bare filename and 7 name a dev-side document. Widening to
+    dev-only tool by bare filename and 8 name a dev-side document. Widening to
     bare filenames reopens FM-23's objection exactly, so it is refused and
     recorded rather than attempted.
     """
+    import check_rule_coverage
     import shipped
     names, problem = repo_files.tracked_files(root=ROOT, what="rule-script scan")
     if problem:
@@ -5286,9 +5294,9 @@ def check_rule_script_reach():
         return [f"the consumer boundary could not be computed ({exc}), so no "
                 f"rule citation was checked against it — a scan that did not "
                 f"run is not a scan that passed"]
-    errors, scanned, excluded, used = [], 0, 0, set()
+    errors, scanned, excluded, cited, used = [], 0, 0, 0, set()
     for name in sorted(names):
-        if not name.endswith(".md") or not name.startswith(RULE_FILE_PREFIXES):
+        if not name.endswith(".md") or not name.startswith(check_rule_coverage.RULE_FILE_PREFIXES):
             continue
         if shipped.side_of(name, ROOT, consumer) != "consumer":
             continue
@@ -5304,19 +5312,24 @@ def check_rule_script_reach():
         scanned += 1
         for n, line in enumerate(text.splitlines(), 1):
             for m in SCRIPT_PATH_RE.finditer(line):
-                cited = m.group(0)
-                if shipped.side_of(cited, ROOT, consumer) != "dev":
+                path = m.group(0)
+                cited += 1
+                # `== "consumer"`, not `!= "dev"`. `side_of` returns None for a
+                # path no rule places, and skipping those is the hole its own
+                # docstring names: an unclassified file is not a passing file.
+                if shipped.side_of(path, ROOT, consumer) == "consumer":
                     continue
-                if (name, cited) in RULE_SCRIPT_WAIVERS:
-                    used.add((name, cited))
+                if (name, path) in RULE_SCRIPT_WAIVERS:
+                    used.add((name, path))
                     continue
                 errors.append(
-                    f"{name}:{n} names {cited}, which the published package "
+                    f"{name}:{n} names {path}, which the published package "
                     f"does not carry — the reader is told about a file they do "
-                    f"not have (convention 5). Ship it (adapters/shipped.json "
-                    f"`consumer_seeds`), reword so the fact is stated without "
-                    f"the path, or waive it in RULE_SCRIPT_WAIVERS with a "
-                    f"reason")
+                    f"not have (convention 5). If the path is real: ship it "
+                    f"(adapters/shipped.json `consumer_seeds`), reword so the "
+                    f"fact is stated without the path, or waive it in "
+                    f"RULE_SCRIPT_WAIVERS with a reason. If it is a typo, "
+                    f"`check_script_paths` says so in its own words")
     if not scanned:
         errors.append("no consumer-side, hand-written rule file was found at "
                       "all — a scan with nothing to look at is not a scan that "
@@ -5325,6 +5338,19 @@ def check_rule_script_reach():
         errors.append("the generated-file exclusion matched nothing; either no "
                       "generated reference exists or its banner changed, and "
                       "this guard's false-positive rate depends on it")
+    if scanned and not cited:
+        # The third blind branch, and the one a draft of this guard did not
+        # have. `SCRIPT_PATH_RE` is a bare literal shared with two other
+        # checks: the day the deliverable path is spelled `python3 -m
+        # lumi.render.scatter` instead, every citation vanishes from it and
+        # this guard reports clean on a question it has stopped asking.
+        # Measured with the pattern replaced by one matching nothing: 15 files
+        # scanned, 0 citations examined, verdict `ok`.
+        errors.append(f"{scanned} rule file(s) were scanned and SCRIPT_PATH_RE "
+                      f"matched no script citation in any of them — either the "
+                      f"rules stopped naming scripts by path or the pattern "
+                      f"stopped matching them, and a scan with nothing to look "
+                      f"at is not a scan that passed")
     for key in RULE_SCRIPT_WAIVERS:
         if key not in used:
             errors.append(f"rule-script waiver for {key[0]} / {key[1]} matched "
@@ -5391,10 +5417,11 @@ def check_framework_tools():
     callers — and it printed exactly what a healthy registry prints.
 
     **What it does NOT require, on AG-10's reasoning.** It does not ask every
-    natively-drawn framework to declare a tool. Five do today and one has a
-    script; a gate demanding the other four invent one is a gate no correct
-    answer can satisfy, and this repository has already paid for writing one of
-    those. What it asks of a DECLARED tool is only that it resolves: tracked,
+    natively-drawn framework to declare a tool. Most of them have no script and
+    a gate demanding they invent one is a gate no correct answer can satisfy —
+    AG-10, which this repository has already paid for writing once. (How many
+    are drawn natively is `assets/frameworks.json`'s to say. It was written here
+    as a number, and the number was wrong: six are, not five.) What it asks of a DECLARED tool is only that it resolves: tracked,
     consumer-side, and named the same way twice.
     """
     import json as _json
@@ -5405,8 +5432,18 @@ def check_framework_tools():
         fw = _json.loads(fw_path.read_text(encoding="utf-8"))
     except (OSError, _json.JSONDecodeError) as exc:
         return [f"framework tools: could not read the registry: {exc}"]
-    tooled = {n: e["tool"] for n, e in (fw.get("frameworks") or {}).items()
-              if isinstance(e, dict) and e.get("tool")}
+    frameworks = fw.get("frameworks")
+    if not isinstance(frameworks, dict) or not frameworks:
+        return ["framework tools: the registry carries no `frameworks` object, "
+                "so nothing was graded — a check that looked at nothing is not "
+                "a check that passed"]
+    # KEY PRESENCE, not truthiness. `e.get("tool")` dropped a `{}` or a `null`
+    # out of the graded population entirely, so a half-written declaration was
+    # ungraded AND left `tooled` non-empty for the blind branch below. That made
+    # the guard strongest today, on a population of one, and weaker with every
+    # framework that adopts a tool — the opposite of what it is for.
+    tooled = {n: e.get("tool") for n, e in frameworks.items()
+              if isinstance(e, dict) and "tool" in e}
     if not tooled:
         # FM-24's third answer, and the one this guard exists for.
         return ["no framework declares a `tool`, so no page that declares an "
@@ -5424,6 +5461,11 @@ def check_framework_tools():
         return [problem]
     out = []
     for name, tool in sorted(tooled.items()):
+        if not tool:
+            out.append(f"frameworks.{name} declares an empty `tool` ({tool!r}) "
+                       f"— a half-written declaration reads as no declaration "
+                       f"and is graded by nothing")
+            continue
         if not isinstance(tool, dict):
             out.append(f"frameworks.{name}.tool is {type(tool).__name__}, not "
                        f"an object with `module` and `run`")
@@ -5449,6 +5491,64 @@ def check_framework_tools():
             elif pathlib.Path(path).stem != module:
                 out.append(f"frameworks.{name}.tool declares module {module!r} "
                            f"but runs {path} — two names for one tool")
+            else:
+                out += _tool_flags_exist(name, path, run)
+    return out
+
+
+def _tool_flags_exist(name, path, run):
+    """-> whether every long flag the command uses is one the script defines.
+
+    **The defect this was written from.** The registry's first `run` line was
+    `python3 scripts/render/scatter_svg.py <spec.json>`, and the renderer takes
+    `--data PATH`: the scaffold printed a command on the page, an author would
+    have typed it, and it would have failed. Existence, trackedness and side
+    were all green — the guard proved the file was REACHABLE and said nothing
+    about whether the sentence beside it worked, which is this release's own
+    subject matter one level down.
+
+    Static, deliberately: it reads the script's source for the flag literal
+    rather than executing it. A guard that runs the tools it grades is a guard
+    that inherits their runtime, and `argparse` spellings are literals in the
+    source by construction.
+    """
+    try:
+        src = (ROOT / path).read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        return [f"frameworks.{name}.tool.run names {path}, which could not be "
+                f"read to check the command against it ({exc})"]
+    passed = set(re.findall(r"(?<![\w-])--[a-z][a-z0-9-]*", run))
+    out = [f"frameworks.{name}.tool.run passes {f}, which {path} does not "
+           f"define — the command printed on the page would fail"
+           for f in sorted(passed) if f'"{f}"' not in src and f"'{f}'" not in src]
+    # THE HALF THAT WOULD HAVE CAUGHT IT. The first version of this helper
+    # checked only the flags the command DOES pass, and returned `[]` when it
+    # passed none — which was the exact shape of the defect it was written from
+    # (`scatter_svg.py <spec.json>` against a renderer whose `--data` is
+    # required). A guard modelled on a defect that cannot see that defect is
+    # convention 15: the model was checked against itself and not against the
+    # material. A mutation review found it; reading the code did not.
+    out += [f"frameworks.{name}.tool.run does not pass {f}, which {path} "
+            f"declares required — the command printed on the page would exit "
+            f"before drawing anything"
+            for f in sorted(_required_flags(src) - passed)]
+    return out
+
+
+def _required_flags(src: str) -> set[str]:
+    """-> the long flags an argparse script refuses to run without.
+
+    Static and shallow on purpose: it reads the source rather than executing a
+    tool it is grading. `add_argument("--data", ..., required=True)` spans lines
+    in this codebase, so the scan is per-call rather than per-line.
+    """
+    out = set()
+    for call in re.findall(r"add_argument\((.*?)\)\s*$", src, re.S | re.M):
+        if "required=True" not in call:
+            continue
+        flag = re.search(r"[\"']((?:--[a-z][a-z0-9-]*))[\"']", call)
+        if flag:
+            out.add(flag.group(1))
     return out
 
 

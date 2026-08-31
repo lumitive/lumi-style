@@ -84,7 +84,7 @@ R_MAX, R_PLAIN = 17.0, 6.0
 # A layout that depends on the box being wide is a layout that is wrong in the
 # orientation nobody looked at.
 BOX = {"landscape": (1180, 600), "portrait": (620, 820)}
-FOOT_PLAIN, FOOT_SIZED = 150, 150
+FOOT = 150
 # The size key sits ABOVE the plot, not below it. `figure_axis_overlap` takes
 # the plot to be every drawn thing that is not text — which a legend RING is,
 # so a key below the baseline drags the plot's bottom edge past the x-axis name
@@ -215,7 +215,7 @@ def render(spec, orientation="landscape", trend="none", window=5):
     left = 126 if orientation == "landscape" else 104
     X0, X1 = left, W - 40
     Y0 = 44 + (HEAD_SIZED if sized else 0)
-    Y1 = H - (FOOT_SIZED if sized else FOOT_PLAIN)
+    Y1 = H - FOOT
 
     xlo, xhi, xstep = _nice(min(p["x"] for p in pts), max(p["x"] for p in pts))
     ylo, yhi, ystep = _nice(min(p["y"] for p in pts), max(p["y"] for p in pts))

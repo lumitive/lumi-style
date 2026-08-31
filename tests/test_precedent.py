@@ -8,6 +8,8 @@ headings in files the author had open. Nobody looked.
 import pathlib
 import sys
 
+import pytest
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "check"))
 
@@ -55,11 +57,12 @@ def test_no_hit_is_not_a_clean_bill(capsys):
 def test_an_unreadable_ledger_is_a_failed_search(tmp_path, capsys):
     """FM-24's third answer. A search that could not read the refusals must not
     print what a search finding nothing prints."""
-    assert precedent.entries(tmp_path) == []
+    with pytest.raises(ValueError):
+        precedent.entries(tmp_path)
     import unittest.mock
     with unittest.mock.patch.object(precedent, "ROOT", tmp_path):
         assert precedent.main(["anything"]) == 1
-    assert "failed search" in capsys.readouterr().err
+    assert "FAILED search" in capsys.readouterr().err
 
 
 def test_every_ledger_it_claims_to_search_is_readable():
@@ -68,3 +71,62 @@ def test_every_ledger_it_claims_to_search_is_readable():
     seen = {e[3] for e in precedent.entries()}
     assert seen == set(precedent.SOURCES), seen
     assert len(precedent.entries()) > 50
+
+
+# --- a failed search is not an empty one ---------------------------------
+
+def _ledgers(tmp_path, drop=(), blank=()):
+    import shutil
+    root = pathlib.Path(precedent.ROOT)
+    for name in precedent.SOURCES:
+        dst = tmp_path / name
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        if name in drop:
+            continue
+        if name in blank:
+            dst.write_text("nothing here carries a heading\n", encoding="utf-8")
+        else:
+            shutil.copy(root / name, dst)
+    return tmp_path
+
+
+def test_a_missing_ledger_raises_rather_than_returning_nothing(tmp_path):
+    """FM-24. Losing FAILURE_MODES.md alone used to leave the other two
+    ledgers' entries in the result, and the tool printed "no precedent found"
+    over a corpus with every refusal missing from it."""
+    root = _ledgers(tmp_path, drop=("FAILURE_MODES.md",))
+    with pytest.raises(ValueError, match="could not be read"):
+        precedent.entries(root)
+
+
+def test_a_ledger_that_matches_nothing_raises(tmp_path):
+    """The regex going stale prints exactly what a clean tree prints."""
+    root = _ledgers(tmp_path, blank=("KNOWN_GAPS.md",))
+    with pytest.raises(ValueError, match="yielded no entries"):
+        precedent.entries(root)
+
+
+def test_a_refusal_is_read_from_the_entry_not_its_position():
+    """Convention 15: read the material. FM-24 sits below `# Abandoned gates`
+    and is a RECORDED FAILURE MODE — it carries `prevention:`, not `DECLINED`.
+    Position alone mislabelled it and three others as written refusals, which
+    made the marker fire on almost every search and so carry no information."""
+    by_id = {e[0]: e for e in precedent.entries()}
+    assert by_id["FM-23"][4] is True, "a DECLINED entry must read as refused"
+    assert by_id["FM-24"][4] is False, "a failure mode must not read as refused"
+    assert by_id["FM-20"][4] is False
+    assert by_id["FM-22"][4] is False
+    assert by_id["FM-21"][4] is False
+    assert by_id["AG-10"][4] is True, "every AG- is an abandoned gate"
+
+
+def test_the_abandoned_gates_heading_is_no_longer_load_bearing():
+    """It was, and a markdown reflow demoting it to `##` silently turned every
+    refusal into a failure mode. Nothing reads it now, so that cannot happen."""
+    import inspect
+    body = inspect.getsource(precedent.entries)
+    code = "\n".join(x for x in body.splitlines()
+                     if not x.strip().startswith("#"))
+    assert "Abandoned gates" not in code, (
+        "the section heading is load-bearing again; a markdown reflow "
+        "demoting it would turn every refusal into a failure mode")

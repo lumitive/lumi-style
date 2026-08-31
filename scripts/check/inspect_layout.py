@@ -566,28 +566,59 @@ PROBE = r"""
       // value draws sqrt(2) times the diameter, not twice — grading it as a
       // length fails a correctly drawn figure, which is what this check did
       // until scatter_svg.py existed to draw one.
-      const marks = [...fig.querySelectorAll('[data-datum]')]
-        .map(m => ({v: parseFloat(m.getAttribute('data-datum')),
-                    area: m.getAttribute('data-encoding') === 'area',
-                    r: m.getBoundingClientRect()}))
+      // A DECLARATION THAT WEAKENS A GATE IS CORROBORATED, NEVER TAKEN.
+      // `data-encoding="area"` moves a mark from a linear test to a square-root
+      // one, so a bar drawn at half the length of one worth four times as much
+      // fails today and passes the moment the attribute is added to it. An
+      // area mark is round or square by construction; a long thin rectangle
+      // claiming area is a claim its own geometry contradicts, and that is
+      // reported rather than honoured.
+      const all = [...fig.querySelectorAll('[data-datum]')]
+        .map(m => {
+          const r = m.getBoundingClientRect();
+          const claimed = m.getAttribute('data-encoding') === 'area';
+          const tag = m.tagName.toLowerCase();
+          const square = r.width > 0 && r.height > 0
+                       && Math.abs(r.width - r.height)
+                          <= 0.15 * Math.max(r.width, r.height);
+          return {v: parseFloat(m.getAttribute('data-datum')),
+                  claimed: claimed,
+                  area: claimed && (tag === 'circle' || tag === 'ellipse'
+                                    || square),
+                  r: r};
+        })
         .filter(m => Number.isFinite(m.v) && m.v > 0);
-      if (marks.length < 2) continue;
-      const spread = k => Math.max(...marks.map(m => m.r[k]))
-                        - Math.min(...marks.map(m => m.r[k]));
-      const dim = spread('width') >= spread('height') ? 'width' : 'height';
-      const top = marks.reduce((a, b) => (b.v > a.v ? b : a));
-      if (!(top.r[dim] > 0)) continue;
-      for (const m of marks) {
-        const ratio = m.area ? Math.sqrt(m.v / top.v) : (m.v / top.v);
-        const expected = top.r[dim] * ratio;
-        // 2px OR 4% of the largest bar, whichever is larger: rounding and a
-        // stroke are not distortion, and a tolerance tighter than the renderer
-        // would fail honest drawings.
-        const slack = Math.max(2, top.r[dim] * 0.04);
-        if (Math.abs(m.r[dim] - expected) > slack)
-          distorted.push({value: m.v, drew: Math.round(m.r[dim]),
-                          shouldDraw: Math.round(expected),
-                          encoding: m.area ? 'area' : 'length'});
+      for (const m of all) {
+        if (m.claimed && !m.area)
+          distorted.push({value: m.v, drew: Math.round(m.r.width),
+                          shouldDraw: Math.round(m.r.height),
+                          encoding: 'area declared on a mark whose geometry is '
+                                  + 'not an area mark: ' + Math.round(m.r.width)
+                                  + 'x' + Math.round(m.r.height)});
+      }
+      // GRADED WITHIN AN ENCODING, not across. `top` used to be the largest
+      // mark of either kind, so one bar beside one bubble measured each against
+      // the other's rule.
+      for (const kind of [true, false]) {
+        const marks = all.filter(m => m.area === kind && !(m.claimed && !m.area));
+        if (marks.length < 2) continue;
+        const spread = k => Math.max(...marks.map(m => m.r[k]))
+                          - Math.min(...marks.map(m => m.r[k]));
+        const dim = spread('width') >= spread('height') ? 'width' : 'height';
+        const top = marks.reduce((a, b) => (b.v > a.v ? b : a));
+        if (!(top.r[dim] > 0)) continue;
+        for (const m of marks) {
+          const ratio = kind ? Math.sqrt(m.v / top.v) : (m.v / top.v);
+          const expected = top.r[dim] * ratio;
+          // 2px OR 4% of the largest bar, whichever is larger: rounding and a
+          // stroke are not distortion, and a tolerance tighter than the
+          // renderer would fail honest drawings.
+          const slack = Math.max(2, top.r[dim] * 0.04);
+          if (Math.abs(m.r[dim] - expected) > slack)
+            distorted.push({value: m.v, drew: Math.round(m.r[dim]),
+                            shouldDraw: Math.round(expected),
+                            encoding: kind ? 'area' : 'length'});
+        }
       }
     }
 
@@ -3955,7 +3986,10 @@ def deliverable_verdicts(rows, consistency):
         lambda h: f"{len(h)} pages draw a mark out of proportion to the value it "
                   f"declares: " + "; ".join(
                       f"{r['id']} " + ", ".join(
-                          f"{d['value']} drawn as {d['drew']}px, not {d['shouldDraw']}px"
+                          (f"{d['value']}: {d['encoding']}"
+                           if str(d.get("encoding", "")).startswith("area declared")
+                           else f"{d['value']} drawn as {d['drew']}px, not "
+                                f"{d['shouldDraw']}px ({d.get('encoding')})")
                           for d in r["distorted"][:2]) for r in h[:3]))
 
     # HOW MUCH OF THE DOCUMENT IS NOT DRAWN AT ALL. A ceiling on blank pages,

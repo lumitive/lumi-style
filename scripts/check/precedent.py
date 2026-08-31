@@ -9,15 +9,16 @@ finds it. In the same session AG-10's shape was re-committed twice.
 
 Overruling a written refusal is legitimate and needs convention 2's documented
 case. Overruling one **without noticing it exists** is FM-15, and it is the
-cheapest defect in this repository to prevent: the refusals are 37 structured
-headings in two files.
+cheapest defect in this repository to prevent: every refusal is a structured
+heading in a ledger, and `SOURCES` below says which ledgers. How many there are
+is whatever they hold today, never a number written here.
 
     python3 scripts/check/precedent.py prose cross-boundary
     python3 scripts/check/precedent.py --body scatter figure
 
-By default it searches the HEADINGS of `FAILURE_MODES.md` (failure modes and
-abandoned gates) and `KNOWN_GAPS.md`. `--body` widens to the entries' text,
-which is noisier and catches a mechanism described but not named.
+By default it searches the HEADINGS of every ledger in `SOURCES`. `--body`
+widens to the entries' text, which is noisier and catches a mechanism described
+but not named.
 
 It prints and never fails a run: deciding whether a hit is the same mechanism is
 a person's judgement, and AG-1 declined the class of guard that decides such
@@ -34,18 +35,23 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
-# id + title, and the paragraph under it. Both ledgers use `## <ID> · <title>`.
+# id and title only; the body is sliced by index in `entries()`. Every ledger
+# in SOURCES uses `## <ID> · <title>`.
 ENTRY = re.compile(r"^## ((?:FM|AG|GAP|IDEA)-\d+)\s*.\s*(.+)$", re.M)
 
 SOURCES = ("FAILURE_MODES.md", "KNOWN_GAPS.md", "backlog/ideas-prd.md")
 
 
 def entries(root: pathlib.Path | None = None):
-    """-> [(id, title, body, source)] over every ledger that carries refusals.
+    """-> [(id, title, body, source, refused)] over every ledger in SOURCES.
 
-    Returns the empty list only when no ledger could be read, which the caller
-    reports rather than treating as "nothing has ever been refused" — the
-    distinction FM-24 exists for.
+    **Raises `ValueError` when any ledger could not be read or yielded no
+    entries at all.** It used to `continue` past an unreadable file, so losing
+    `FAILURE_MODES.md` alone still returned the other two ledgers' entries and
+    the tool printed "no precedent found" over a corpus missing every refusal
+    in it. A partial search that reads as a complete one is the defect this
+    file exists to prevent, one layer up: the caller must be able to tell a
+    search that found nothing from a search that did not happen.
     """
     # Resolved at CALL time, not at definition. `root=ROOT` in the signature
     # binds the module value once, so a caller that changes ROOT — a test, or a
@@ -53,26 +59,42 @@ def entries(root: pathlib.Path | None = None):
     # reports "no precedent found". A search of the wrong tree that reads as a
     # clean bill is this file's own subject matter.
     root = ROOT if root is None else root
-    out = []
+    out, per_source = [], {}
     for name in SOURCES:
         path = root / name
         try:
             text = path.read_text(encoding="utf-8")
-        except OSError:
-            continue
-        # WHERE the entry sits decides what it means. FAILURE_MODES.md holds
-        # two halves under one heading style: recorded failure modes, and —
-        # after `# Abandoned gates` — mechanisms DECLINED with their reasons.
-        # An `FM-` id below that line is a refusal, and calling it "a recorded
-        # failure mode" is exactly the under-reading this tool exists to stop:
-        # FM-23, the one that prompted this file, lives there.
-        cut = text.find("\n# Abandoned gates")
+        except OSError as exc:
+            raise ValueError(f"{name} could not be read ({exc}); a search "
+                             f"missing a whole ledger is not a search") from exc
+        # WHAT THE ENTRY SAYS decides what it is, never where it sits. This
+        # keyed on the `# Abandoned gates` heading until 0.1.666 and was wrong
+        # about four entries out of eighteen: FM-20, FM-21, FM-22 and FM-24 are
+        # filed below that heading and are RECORDED FAILURE MODES — FM-24 is
+        # "the check that printed a clean result because it could not look" —
+        # so the tool printed "REFUSED — read it before designing further" over
+        # all four. A marker that fires on almost every input carries no
+        # information, and an author who learns to ignore it learns to ignore
+        # FM-23 with it.
+        #
+        # Read against the material instead (convention 15): every `AG-` id is
+        # an abandoned gate by construction, and a declined `FM-` says DECLINED
+        # in its own body with a date and a reason. Measured on this ledger:
+        # 14 AG entries and 4 declined FM entries, against 4 failure modes that
+        # position alone had mislabelled.
         marks = list(ENTRY.finditer(text))
         for i, m in enumerate(marks):
             end = marks[i + 1].start() if i + 1 < len(marks) else len(text)
-            refused = cut != -1 and m.start() > cut
-            out.append((m.group(1), m.group(2).strip(),
-                        text[m.end():end], name, refused))
+            body = text[m.end():end]
+            refused = m.group(1).startswith("AG-") or "DECLINED" in body
+            out.append((m.group(1), m.group(2).strip(), body, name, refused))
+        per_source[name] = len(marks)
+    empty = [n for n, c in per_source.items() if not c]
+    if empty:
+        raise ValueError(
+            f"{', '.join(empty)} parsed but yielded no entries — either the "
+            f"ledger is empty or ENTRY has stopped matching its headings. A "
+            f"source contributing nothing is not a source agreeing with you.")
     return out
 
 
@@ -95,13 +117,14 @@ def main(argv=None):
                     help="search the entries' text too, not only their titles")
     a = ap.parse_args(argv)
 
-    all_entries = entries()
-    if not all_entries:
-        print("could not read any ledger — this is a failed search, not an "
-              "absence of precedent", file=sys.stderr)
+    try:
+        all_entries = entries()
+        hits = search(a.terms, body=a.body)
+    except ValueError as exc:
+        print(f"the search did not run: {exc}", file=sys.stderr)
+        print("This is a FAILED search, not an absence of precedent.",
+              file=sys.stderr)
         return 1
-
-    hits = search(a.terms, body=a.body)
     scope = "title+body" if a.body else "title"
     print(f"searched {len(all_entries)} ledger entries ({scope}) "
           f"for {', '.join(a.terms)}")
@@ -114,8 +137,8 @@ def main(argv=None):
     print()
     for eid, title, src, matched, refused in hits:
         kind = ("REFUSED — read it before designing further" if refused else
-                {"AG": "REFUSED — read it before designing further",
-                 "FM": "a recorded failure mode",
+                {"FM": "a recorded failure mode",
+                 "AG": "a recorded failure mode",
                  "GAP": "an open gap",
                  "IDEA": "deferred work"}[eid.split("-")[0]])
         print(f"  {eid} · {title}")

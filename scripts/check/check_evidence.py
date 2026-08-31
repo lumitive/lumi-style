@@ -84,14 +84,21 @@ OBLIGATIONS: dict[str, tuple[str, str]] = {
     # nothing about the change. This one renders what `new_deck.py` ACTUALLY
     # emits, which is the only way a scaffold change gets looked at.
     "scaffold-render": (
-        "python3 scripts/ops/new_deck.py --genre internal "
-        "--storyline market-analysis --pages 10 --parts A,B,C --no-trace "
+        "python3 scripts/ops/new_deck.py "
+        "--outline fixtures/scaffold-evidence-outline.md --genre internal "
+        "--pages 10 --parts A,B,C --no-trace "
         "--out fixtures/.scaffold-evidence.html && "
         "python3 scripts/check/inspect_layout.py --deliverable "
         "fixtures/.scaffold-evidence.html",
         "the decidable layout gates on a freshly generated scaffold, in a real "
         "browser — the markup new_deck.py emits rather than a fixture that "
-        "happens to sit beside it",
+        "happens to sit beside it. **It passes an OUTLINE**, and that is not "
+        "decoration: without one the scaffold declares no analytical move, so "
+        "every element the move unlocks — the framework hint, the library "
+        "shape, the tool slot — is absent from the document being graded. The "
+        "0.1.665 evidence was recorded that way and rendered a deck in which "
+        "the element the release added could not appear: a measurement that "
+        "succeeded because the thing measured was not there",
     ),
     "globe-js": (
         "python3 scripts/check/check_globe.py",

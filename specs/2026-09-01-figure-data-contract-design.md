@@ -164,8 +164,12 @@ Consequences, measured on the owner's own material:
 
 - **57 business figures across three real deliverables; 1 declares its data.**
 - **355 delivered pages; 0 carry a declared analytical move**, although the
-  outline declares 17 of 17 and the scaffold emits all 17. `assemble.py:948`
-  deletes the scaffold's content run and pastes hand-authored pages.
+  outline declares 17 of 17 and the scaffold emits all 17. Each deliverable's
+  own `assemble.py`, in the owner's source directory, replaces the scaffold's
+  content run with hand-authored pages. (An earlier draft cited a line number
+  for this. There are fourteen such files, the longest is 850 lines, and none
+  has the line that was cited — convention 14's subject, in the document that
+  states it.)
 
 ## 5 · Root cause
 
