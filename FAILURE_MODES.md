@@ -657,6 +657,30 @@ rather than an accident. The owner's complaint was about presentation and the
 presentation is fixed; the semantics she proposed are the ones this entry
 declines.
 
+## AG-9 · Gating a planned implication against the page's text
+
+Declined 0.1.661, after building it. GAP-031 proposed comparing every
+`implication:` an outline declares against the whole page rather than only
+against `.take`. The
+predicate was implemented and run over **80 real outline/document pairs** before
+being judged, and it false-failed three ways that no amount of tuning removes:
+
+- a faithful **translation** scored 17 of 17 missing (`r17zh`), because the
+  outline is English and the deliverable is Chinese — the owner's real delivery
+  language;
+- a **rewritten** take scored 6 of 10, which is the 2026-08-19 refusal restated
+  by measurement: a take rewritten better than its plan is a legitimate outcome
+  and the check cannot tell it from a take that lost the point;
+- real outlines use the field for **build directives** ("state the positioning
+  in one sentence, three core values one per cell") that a correct page obeys
+  without quoting.
+
+The structural half — an outline declaring implications against a document where
+not one content page carries a takeaway — reads no prose, is language-blind by
+construction, and ships as `implication rung absent`. **Do not re-propose the
+text predicate without new material.** It is not an untested idea; it is a
+measured one.
+
 ## AG-7 · A quote-parity guard over the entry points
 
 Declined 0.1.498, and declined on evidence rather than on effort. The P1 plan

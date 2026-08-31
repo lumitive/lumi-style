@@ -321,6 +321,28 @@ def deck_pages(html: str) -> list[dict[str, str]]:
     return out
 
 
+# The checks whose verdicts decide the exit code. A `not_measured` from one of
+# these means "the thing I gate on could not be looked at", which convention 11
+# requires to count as a failure; a `not_measured` from any other check means
+# "there is no rubric for this input", which is an honest silence and must not.
+# Declared rather than discovered because no probe can tell those apart at
+# runtime -- and held to the code by `tests/test_check_outline.py`, which reads
+# the FAIL-emitting check names back out of this module and asserts they are
+# exactly this set. A gating check missing from here would gate on FAIL and go
+# quiet when it was blinded, which is the failure this constant exists to stop.
+# The `implication:` field of AR-3's one-line beat. Hoisted because it was
+# written three times inside `drift()` in two different spellings, which is how
+# a predicate and its own third-answer branch drift apart.
+IMPLICATION = re.compile(r"implication\s*:\s*(\S.*)$", re.I)
+IMPLICATION_KEY = re.compile(r"implication\s*:", re.I)
+
+
+GATING_CHECKS = frozenset({
+    "analysis vocabulary", "declared omission", "group size",
+    "implication rung absent", "outline mirror", "outline stale", "titles",
+})
+
+
 def drift(text: str, html: str):
     """-> findings comparing the outline's plan against the built document.
 
@@ -355,7 +377,7 @@ def drift(text: str, html: str):
     lost, checked = [], 0
     for a in analyses:
         title = a.get("after_title")
-        imp = re.search(r"implication\s*:\s*(.+)$", str(a.get("rest", "")), re.I)
+        imp = IMPLICATION.search(str(a.get("rest", "")))
         if not (title and imp and title in paired):
             continue
         checked += 1
@@ -370,14 +392,128 @@ def drift(text: str, html: str):
         unpaired = len(analyses) - checked
         tail = (f" ({unpaired} more could not be checked: their page is not in "
                 f"the document)" if unpaired else "")
+        if not checked:
+            # FM-24, three lines from the gate this release added for FM-24.
+            # `checked == 0` rendered as "all 0 planned implications reached a
+            # takeaway" -- a clean-sounding sentence about a comparison that
+            # never happened, printed on a document no page could be read out
+            # of. It is a `note` rather than `not_measured` because the gating
+            # answer for that document is already carried by
+            # `implication rung absent`; what this line owed was to stop
+            # claiming a result.
+            out.append({
+                "check": "implication rung", "verdict": "note",
+                "detail": f"none of the {len(analyses)} planned implications "
+                          f"could be compared with a takeaway — no planned "
+                          f"title reached a page the parser could read, so "
+                          f"this is not a result about the wording"})
+        else:
+            out.append({
+                "check": "implication rung",
+                "verdict": "note",
+                "detail": (f"{len(lost)} of {checked} planned implications "
+                           f"are not in their page's takeaway: "
+                           + ", ".join(lost[:10]) + tail
+                           if lost else
+                           f"all {checked} planned implications reached a "
+                           f"takeaway" + tail),
+            })
+    # GAP-031's structural half, and the ONLY half that is gateable. The gap's
+    # own wording proposed comparing the implication's TEXT against the whole
+    # page rather than against the take. That was built and measured against
+    # every outline/document pair on the author's machine, and it false-failed
+    # three ways: a faithful Chinese translation scored 17 of 17 MISSING (the
+    # owner's real delivery language); a rewritten take scored 6 of 10, which
+    # is the 2026-08-19 refusal word for word; and real outlines put build
+    # directives in the field ("state the positioning in one sentence") that a
+    # correct page obeys without quoting. A review then built the obvious
+    # rescue -- compare only when outline and page share a script -- and
+    # refuted it: LUMI's Chinese pages are majority-Latin by character count
+    # (protocol names, product names, figures), so the only threshold reaching
+    # zero false fails is "one CJK character exempts the page", which is a
+    # cheaper evasion than the one it prevents. AG-9 records all of it.
+    #
+    # So this reads NO PROSE. It asks the one question that has no language
+    # and no wording in it: the outline declared the rung, and did the build
+    # carry it anywhere at all?
+    #
+    # **Deliberately genre-blind, and this is the decision rather than an
+    # omission.** `check_design`'s D28 requires `.take` of EXTERNAL pages only
+    # and exempts the internal genre; that exemption is about whether the
+    # package REQUIRES a takeaway. This asks a different question -- whether
+    # the document kept a promise its own outline made -- and there the opt-in
+    # is the declaration, not the genre. An internal deck that declares ten
+    # implications and carries none has contradicted itself in a way no genre
+    # exempts.
+    declared = [a for a in analyses
+                if IMPLICATION.search(str(a.get("rest", "")))]
+    if declared:
+        if not pages:
+            # FM-24's third answer on the DOCUMENT axis, and it must not read
+            # like the clean one. Two shapes reach here and both are honest:
+            # a parse failure, and a document that parsed perfectly and has
+            # only cover/closing/opener pages.
+            out.append({
+                "check": "implication rung absent", "verdict": "not_measured",
+                "detail": f"the outline declares {len(declared)} implications, "
+                          f"but no content page could be read out of this "
+                          f"document — the rung has not been looked for"})
+        else:
+            # An empty `<p class="take"></p>` is the absence it looks like,
+            # and so is a whitespace-only or `&nbsp;` one -- `markup.visible_text`
+            # owns that fact and already returns `""` for all three, so there is
+            # no second copy of it here. (A first cut carried a redundant
+            # `.strip()`; no mutation of it could redden a test, which is the
+            # shape of a guard that reads as coverage and grades nothing.)
+            # A take of one full stop is NOT caught, and raising the floor to
+            # catch it is refused on the record: `evals/thresholds.json`'s
+            # status_note is this repository's measured case that a satisfiable
+            # number ends the looking.
+            carrying = [p for p in pages if p["take"]]
+            if not carrying:
+                # The wording stops at "missing from the build". It used to
+                # add "not reworded in it", and a review traced GAP-031's own
+                # document: one of its ten implications HAD been reworded, into
+                # a `.key`. A gate may not assert more than it looked at.
+                out.append({
+                    "check": "implication rung absent", "verdict": "FAIL",
+                    "detail": f"the outline declares {len(declared)} "
+                              f"implications and not one of {len(pages)} "
+                              f"content pages carries a takeaway — AR-2's "
+                              f"middle rung is missing from the build"})
+            else:
+                # Partial is a `note`, never `ok`. Making 1-of-10 and 10-of-10
+                # the same verdict is the silence this gate was written to end,
+                # committed by the gate itself; a review found a real 1-of-8
+                # deliverable, so partial is not hypothetical. It is reported
+                # rather than gated because the corpus gives no evidence for
+                # where the line belongs (convention 4: a floor at zero, not a
+                # rate).
+                out.append({
+                    "check": "implication rung absent",
+                    "verdict": "ok" if len(carrying) == len(pages) else "note",
+                    "detail": f"{len(carrying)} of {len(pages)} content pages "
+                              f"carry a takeaway"})
+    elif analyses and IMPLICATION_KEY.search(text):
+        # FM-24's third answer on the OUTLINE axis, which the first cut of this
+        # gate left with two. `rest` is only populated for the one-line beat
+        # AR-3 documents; an outline writing the three fields on separate lines
+        # still parses as beats, and every implication becomes invisible. That
+        # printed exactly what an outline declaring nothing prints, on a
+        # document where the rung had been deleted from every page.
+        # Measured before splitting these: 309 of 309 beats in the real corpus
+        # carry an implication, so beats-without-implications is not the
+        # ordinary case it might look like. The discriminator is the outline's
+        # own text -- if `implication:` is written anywhere and no beat yielded
+        # one, it was not read; if it appears nowhere, the silence is honest.
         out.append({
-            "check": "implication rung",
-            "verdict": "note",
-            "detail": (f"{len(lost)} of {checked} planned implications are "
-                       f"not in their page's takeaway: " + ", ".join(lost[:10]) + tail
-                       if lost else
-                       f"all {checked} planned implications reached a takeaway" + tail),
-        })
+            "check": "implication rung absent", "verdict": "not_measured",
+            "detail": f"{len(analyses)} analysis beats were read and none "
+                      f"carries a readable `implication:` field, yet the "
+                      f"outline writes one — AR-3's beat is ONE line "
+                      f"(`analysis: … | finding: … | implication: …`); the "
+                      f"rung has not been looked for"})
+
     if titles and not pages:
         # Nothing was read. `not_measured` is the tier this file introduced for
         # exactly this and then did not apply to its own new code: the first
@@ -500,9 +636,13 @@ def main():
     ap.add_argument("outline", type=pathlib.Path)
     ap.add_argument("--against", type=pathlib.Path, metavar="DECK.html",
                     help="the built document. Holds it to this outline: every "
-                         "planned title must have reached a page (gates), and "
-                         "every planned implication its page's takeaway "
-                         "(reported). Without it the outline is reviewed alone.")
+                         "planned title must have reached a page (gates); if "
+                         "the outline declares implications, the document must "
+                         "carry a takeaway on at least one content page "
+                         "(gates); and each planned implication is reported "
+                         "against its page's takeaway (reported, because a "
+                         "take rewritten better than its plan is a legitimate "
+                         "outcome). Without it the outline is reviewed alone.")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args()
     if not a.outline.is_file():
@@ -515,7 +655,27 @@ def main():
             sys.exit(f"no such document: {a.against}")
         more = drift(text, a.against.read_text(encoding="utf-8"))
         findings.extend(more)
-    failed = [f for f in findings if f["verdict"] == "FAIL"]
+    # `not_measured` counts -- convention 11's third answer applied to the exit
+    # code rather than only to the printed line -- but ONLY on a check that
+    # gates. `check_prose` is the precedent and it has two halves:
+    # `failed += ... if v in ("FAIL", "blind")` is the REPORTING counter, and
+    # the exit reads `gated += ... if v in ("FAIL", "blind") and "(gates)" in t`.
+    # A first cut of this borrowed the first half alone and gated every
+    # `not_measured` in the report. That broke a clean `proposal` outline:
+    # `type completeness` emits `not_measured` for the one storyline with no
+    # `TYPICAL_SECTIONS` row, so a perfectly good outline exited 1 -- and it
+    # overruled this module's own written refusal, stated three times in the
+    # docstring above, that completeness reports and never gates. The
+    # measurement that justified the change ("none of 80 pairs") had only ever
+    # visited the `--against` axis; `type completeness` fires on the other one.
+    #
+    # The consumer is `build.py:314`, which folds this exit code into the
+    # build's, so a document the parser could not read must not reach the only
+    # gating consumer as a passing stage -- GAP-031's own shape ("the right
+    # finding, in a line that reads as a note") one tier up.
+    failed = [f for f in findings
+              if f["verdict"] == "FAIL"
+              or (f["verdict"] == "not_measured" and f["check"] in GATING_CHECKS)]
 
     if a.json:
         print(json.dumps({"meta": meta, "titles": titles,
@@ -534,7 +694,7 @@ def main():
         detail = f["detail"]
         if isinstance(detail, list):
             detail = ", ".join(detail) if detail else "—"
-        print(f"  {mark}  {f['check']:22} {detail}")
+        print(f"  {mark}  {f['check']:23} {detail}")
 
     print("\n  THE READ-THROUGH — read these as one paragraph. Whether they")
     print("  cohere is the point of this beat, and this script does not judge it:\n")

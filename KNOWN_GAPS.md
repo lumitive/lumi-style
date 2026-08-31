@@ -736,8 +736,9 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
 
 ## GAP-031 · A deck can delete its takeaway rung and every gate stays green
 
-- status: open
+- status: fixed
 - opened: 0.1.587
+- closed: 0.1.661
 - surface: scripts/check/check_design.py D28, scripts/check/check_outline.py
 - symptom: `new_deck.py` seeds every content page with a `.take` line; a
   2026-08 build emitted **ten content pages and zero `.take` elements**, having
@@ -752,7 +753,17 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   gating verdict. The candidate is on `check_outline --against`: a planned
   implication that reached no page at all, in any element, rather than only "not
   in the takeaway".
-- check: none (check_outline reports it)
+- resolution (0.1.661): **the candidate above was built and is refuted.** Run
+  over 80 real outline/document pairs it false-failed three ways — a faithful
+  Chinese translation scored 17 of 17 missing (the owner's delivery language), a
+  rewritten take 6 of 10 (the 2026-08-19 refusal verbatim), and real outlines
+  put build directives in the field that a correct page obeys without quoting.
+  What ships instead reads no prose: `implication rung absent` FAILs when an
+  outline declaring implications meets a document where not one content page
+  carries a takeaway — the wholesale case this gap actually observed. The
+  wording comparison stays reported. Do not re-propose the text predicate
+  without new material; it has been measured.
+- check: scripts/check/check_outline.py `implication rung absent` (gates)
 
 ## GAP-029 · `gating.py` read one checker's convention into the other
 

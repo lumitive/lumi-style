@@ -1,3 +1,160 @@
+## 0.1.661 — the takeaway rung can no longer be deleted silently, and the obvious way to check it was measured and refused
+
+GAP-031, open since 0.1.587: a build emitted **ten content pages and zero
+`.take` elements**, substituting the tier-1 callout on five and nothing on the
+other five. AR-2's middle rung — the line carrying the reader's stake — was
+deleted wholesale and **the whole gate set of the day reported green**, in
+2026-08. `check_outline --against`
+said "10 of 10 planned implications are not in their page's takeaway", the right
+finding in a line that reads as a note.
+
+**The gap's own proposed remedy was built first, and it is refuted.** GAP-031
+names the candidate: "a planned implication that reached no page at all, in any
+element, rather than only 'not in the takeaway'". Implemented and run against
+**every outline/document pair on the author's machine — 80 pairs**, it
+false-failed three separate ways:
+
+- **Translation.** `r17zh` carries a faithful Chinese rendering of all seventeen
+  of its English implications. Text comparison scored **17 of 17 MISSING**. That
+  is the owner's real delivery language, so the gate would have red-lined
+  correct accepted work in the language the package ships in — the third
+  instance of a gate reading one language and judging another (D12 was the
+  first, D14's marker list the second).
+- **Rewriting.** Six of ten on the a2ui research deck. This is the 2026-08-19
+  refusal word for word: *"a take rewritten better than its outline is a
+  legitimate outcome, and the check cannot tell that from a take that lost the
+  point."* Building it did not make it decidable.
+- **The field is not always a reader implication.** Real outlines put build
+  directives in it — "state the positioning in one sentence, three core values
+  one per cell" — which a correct page obeys without quoting.
+
+**What ships reads no prose at all.** The gate asks the one question with no
+language and no wording in it: the outline declared the rung, and did the build
+carry it anywhere? `implication rung absent` FAILs when an outline declaring
+implications meets a document where **not one** content page carries a takeaway.
+The wording comparison stays exactly where 2026-08-19 put it — reported, never
+gated.
+
+**Why wholesale rather than per page**: the corpus gives no evidence for where
+a partial line belongs, so partial is reported and not gated (convention 4: a
+floor at zero, never a rate). It reports as `note`, never `ok`. A review made
+that correction and it is the sharp one: `ok` at 1-of-10 and `ok` at 10-of-10
+were the same verdict and the same exit code, which is the silence this gate
+exists to end, committed by the gate itself. **A first draft of this entry said
+"every real deliverable is all or nothing" and that is false** — the same review
+measured three partial documents, one of them a finished body fragment at 1 of
+8. The claim is withdrawn; what survives is that no partial document is a
+*finished deliverable in the corpus*, which is a weaker statement and the one
+the evidence supports.
+
+**Measured reach.** Of 80 pairs the gate grades, it fails 20: nineteen are
+`scaffold.html` half-builds predating the current generator, and the twentieth
+is **GAP-031's own recorded document**. A scaffold from today's `new_deck.py`
+passes 17 of 17 — the generator seeds each page's take from the outline's
+implication (`new_deck.py:1135`), so the gate and the scaffold agree.
+
+**Where it reaches, stated rather than assumed.** `check_outline --against`
+runs from `build.py` when the build is given `--outline` (`build.py:96`); it is
+NOT part of `check_deliverable`, which never imports it. So the gate binds a
+build that declares its plan, and a build that declares none is not silently
+passed — it is not graded, which is the honest reading and the reason GAP-031's
+document went green in the first place. Widening that is a separate change with
+its own question (where `check_deliverable` would get the outline from) and is
+not smuggled in here.
+
+**Both inputs get the third answer, and the second one was found by review.**
+The gate reads two things — what the outline declares, and what the document
+carries. The document axis had `not_measured` from the first draft. The outline
+axis did not: `rest` is populated only for the ONE-LINE beat AR-3 documents, so
+an outline writing the three fields on separate lines still parses as beats
+while every implication becomes invisible, and the gate went **silent — the same
+output as an outline declaring nothing** — on a document whose rung had been
+deleted from every page. That is FM-24 in the release whose entire justification
+is FM-24. The discriminator is the outline's own text: `implication:` written
+somewhere and no beat yielding one means it was not read; absent everywhere
+means the silence is honest. Measured before choosing: **309 of 309 beats in the
+real corpus carry an implication**, so a beat without one is not the ordinary
+case it could be mistaken for.
+
+**`not_measured` now counts as a failure — on a check that gates**, and the
+qualifier is the whole finding. Convention 11 says the third answer counts as a
+failure and `check_prose` is the precedent, but the precedent has TWO halves:
+`failed += … if v in ("FAIL", "blind")` is its reporting counter, and its exit
+reads `gated += … if v in ("FAIL", "blind") and "(gates)" in t`. A first cut of
+this release borrowed the first half alone and gated every `not_measured` in the
+report. **That broke a clean `proposal` outline** — `proposal` is the one
+storyline with no `TYPICAL_SECTIONS` row, so its `type completeness` check
+reports `not_measured` on a perfectly good outline, and a perfectly good build
+exited 1. Worse, it overruled a refusal written three times in the module's own
+docstring (*"C5 reports and never gates"*, *"structural compliance does not
+predict quality, so it cannot gate"*) without citing it — FM-15. The
+justification given ("measured over 80 pairs, `not_measured` occurs on none")
+was true and irrelevant: those 80 pairs are the `--against` axis, and
+`type completeness` fires on the outline-alone axis the measurement never
+visited. **A held-fixed axis is an unchecked axis**, which this repository has
+already written down once.
+
+The exit now reads `FAIL, or `not_measured` from a check in `GATING_CHECKS``.
+That set is declared rather than discovered — no probe can tell "the thing I
+gate on could not be looked at" from "there is no rubric for this input" at
+runtime — and it is held to the code by a parity test that reads the
+FAIL-emitting check names back out of the module's own source. A gating check
+missing from the set would gate on FAIL and go quiet when it was blinded, which
+is the failure the constant exists to stop.
+
+The consumer is `build.py:314`, which folds this exit code into the build's — so
+a document the parser could not read was reaching the only gating consumer as a
+passing stage, which is GAP-031's own shape ("the right finding, in a line that
+reads as a note") one tier up.
+
+**One more blind line, three lines from the new gate.** The pre-existing
+`implication rung` note rendered `checked == 0` as *"all 0 planned implications
+reached a takeaway"* — a clean-sounding sentence about a comparison that never
+happened, printed on a document no page could be read out of. It now says so.
+It stays a `note` rather than becoming `not_measured` because the gating answer
+for that document is already carried by `implication rung absent`; what the line
+owed was to stop claiming a result.
+
+**Restatements re-synced** (convention 12): `--against`'s help text and
+`SKILL.md`'s description of it both enumerated what the half gates, and both
+enumerations were now short by one.
+
+**Deliberate red (conventions 11/15)**: thirteen tests, and every one of the six
+mutations a review found surviving the first draft is now caught — gating on any
+declared analysis rather than a declared implication, dropping the `\S` that
+separates a filled field from a blank one, dropping the case-insensitivity,
+printing `ok` for a partial rung, deleting the outline-axis third answer, and
+counting only `FAIL` in the exit code. The suite also runs the real CLI, because
+`build.py` consumes the exit code and nothing tested that path.
+
+**A redundant guard was removed rather than kept.** The first draft filtered
+`p["take"].strip()`; no mutation of that `.strip()` could redden a test, because
+`markup.visible_text` already returns `""` for empty, whitespace-only and
+`&nbsp;` takes. A guard no test can distinguish from its own absence is the
+shape this release is about.
+
+The design record is `specs/2026-08-31-insight-metrics-design.md` (§8, the
+landing order's item 3).
+
+**This release ships with one waiver, and it is the conformance board's.** The
+board's newest run is 0.1.648, thirteen releases back, and refreshing it means
+driving at least two platform CLIs through all three tasks on the owner's
+credentials — her call, not a step a release takes on its own. What is
+unconfirmed is stated narrowly in `releases/evidence/0.1.661.json`: whether the
+twelve configurations still behave as the board records. Nothing here touches a
+platform surface — two checker modules, `SKILL.md` prose, and the ledgers — so
+no adapter, registry record, loading rule or token value moved.
+
+**Known and not fixed here**: `check_outline` has no entries in
+`evals/gates.json` — the register lists 44 design, 27 layout, 16 prose and 1
+privacy checker, and no outline. So this gating verdict has no `since`, and
+CLAUDE.md's rule that a gate binds only documents built at or after its version
+cannot apply to it. That is pre-existing (`outline mirror` has gated without a
+register entry since it was written) and no correct document fails today — a
+review ran all 32 genuine outline/document pairs and got one finding, GAP-031's
+own defective document. Registering the outline family is its own change and is
+recorded as IDEA-31 rather than smuggled in here.
+
 ## 0.1.660 — a data contract that measures nothing is now a finding, not a pass
 
 `D21_data_contract` holds a figure to the data it declares. Its value check is
