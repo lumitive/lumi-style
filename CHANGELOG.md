@@ -1,3 +1,64 @@
+## 0.1.662 — the guard against a contract that measures nothing was bypassed by an empty string
+
+0.1.660 made a data contract with no measured point a finding, because such a
+contract "cannot disagree with the drawing, so it grades nothing while reading
+as coverage". A pre-PR review broke it **one character later**, and two
+reviewers found it independently.
+
+The test was `pt.get("value") is not None`. `""` is not `None`, so it cleared
+the guard — and then `shown` was `""` and the agreement search below compiled to
+`(?<![\d.])(?![\d])`, an **empty pattern that matches almost anywhere**. So the
+contract passed both halves having asserted nothing, and returned output
+byte-identical to a measured, agreeing one:
+
+    {"series":[{"label":"North","value":""}]}   ->  declared=1  mismatches=[]
+    {"series":[{"label":"North","value":42}]}   ->  declared=1  mismatches=[]
+
+`evals/gates.json` declares D21's subject as `D21_data_contract.declared`, so
+the first of those counts as **held** and a document with no contract at all
+counts as not held. That is the accusation 0.1.660's own comment makes, carried
+out by 0.1.660's own guard.
+
+**It is also the likelier shape than the one the guard was written for.** The
+plan is to have the scaffold emit contracts; an unfilled numeric slot in a
+template emits `""` far more naturally than it omits the key, and `D14` cannot
+see it because `""` is not `[TO FILL]`.
+
+**The fix is a named predicate rather than a widened condition**, because the
+question is not "is this key set" but "does this point assert a reading the
+drawing can be held to". `_measured()` answers it for three shapes, each found
+by breaking the version written without it: a point that is not an object;
+`value` absent or `null` (the documented way to label a series a figure does
+not quantify); and a string that renders to nothing.
+
+**`0` still passes and a bool no longer does.** The test is on the emptiness of
+the RENDERING, never on the truthiness of the value — reading a falsy scalar as
+absence is a defect this repository shipped at 0.1.650, where a recorded `0`
+counted as "never recorded". The bool is the other direction: `isinstance(False,
+int)` is true in Python, so `{"value": false}` went through `f"{v:g}"` and
+reported *"declares Rural = 0"* — **a number the contract never wrote**, then
+checked it against a drawing that never claimed it.
+
+**The guard stopped shadowing the message it sits above.** Its first cut
+`continue`d past the per-point loop, so `{"series":["a","b"]}` lost the accurate
+*"a series point is not an object"* and was told to add a `value` to a string.
+Both fail, so no gate moved — the author was handed the wrong repair.
+
+**One unshipped mechanism dropped from the remedy** (convention 5): the message
+offered "or drop the contract and declare the figure schematic", and
+`data-figure-kind="schematic"` exists nowhere but a spec item scheduled for
+later. A rule may not mandate what the package does not ship, and that includes
+the escape hatch a failure message names.
+
+**Deliberate red (conventions 11/15)**: five tests, and all four mutations of
+the fix are caught — dropping the empty-string test, dropping the bool test,
+dropping the non-object fall-through, and disabling the guard entirely. **No
+regression on real material**: the only documents in the corpus carrying a
+contract (`LUMI-Commercial-Agent-BP-chengdu`, both languages) still report `ok`,
+and a review confirmed zero new findings across all 26 real `f-data` documents.
+
+The design record is `specs/2026-08-31-insight-metrics-design.md`.
+
 ## 0.1.661 — the takeaway rung can no longer be deleted silently, and the obvious way to check it was measured and refused
 
 GAP-031, open since 0.1.587: a build emitted **ten content pages and zero

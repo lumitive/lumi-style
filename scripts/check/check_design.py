@@ -2778,6 +2778,37 @@ def d25_image_provenance(raw):
     return {"rasters": n, "licence_named": bool(_LICENCE.search(said)) if n else True}
 
 
+def _measured(point) -> bool:
+    """Does this series point ASSERT a reading the drawing can be held to?
+
+    Three shapes are not assertions, and each was found by breaking the guard
+    that was written without them:
+
+    * a point that is not an object at all;
+    * `value` absent or `null` — the documented way to label a series a figure
+      does not quantify;
+    * `value` present as a string that renders to nothing (`""`, `"  "`). An
+      empty string is not `None`, so it cleared a `is not None` test and then
+      made the agreement search an EMPTY pattern that matches anywhere.
+
+    `0` and `0.0` ARE readings and must pass — the test is on the emptiness of
+    the RENDERING, never on the truthiness of the value, because reading a
+    falsy scalar as absence is a defect this repository has already shipped
+    (0.1.650 counted a recorded `0` as "never recorded"). A bool is NOT a
+    reading: `isinstance(False, int)` is true in Python, so `{"value": false}`
+    rendered through `f"{v:g}"` as `0` and reported "declares A = 0", a number
+    the contract never wrote.
+    """
+    if not isinstance(point, dict):
+        return False
+    value = point.get("value")
+    if value is None or isinstance(value, bool):
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    return True
+
+
 def d21_data_contract(raw):
     """-> {declared, mismatches:[...]} — three-way agreement, opt-in."""
     declared, mismatches = 0, []
@@ -2809,15 +2840,29 @@ def d21_data_contract(raw):
         # nothing, which is FM-24 wearing the shape of a fix. Measured before
         # this guard existed: `{"series":[{"label":"North"},{"label":"South"}]}`
         # over a drawing carrying both labels returned zero mismatches.
-        if not any(isinstance(pt, dict) and pt.get("value") is not None
-                   for pt in series):
-            mismatches.append(
-                f"figure {declared}: declares a contract with no measured "
-                f"point — a contract that asserts nothing cannot disagree "
-                f"with the drawing, so it grades nothing while reading as "
-                f"coverage. Give at least one series point a `value`, or "
-                f"drop the contract and declare the figure schematic")
-            continue
+        # `_measured`, not `is not None`. A review broke the first cut of this
+        # guard one character later: `{"value": ""}` is not `None`, so it
+        # cleared the guard, and then `shown` was `""` and the search below
+        # compiled to `(?<![\d.])(?![\d])` — an empty pattern that matches
+        # almost anywhere. The contract passed BOTH halves having asserted
+        # nothing, and printed byte-identical output to a measured, agreeing
+        # one. That is this guard's own accusation, committed by this guard,
+        # and it is the likelier shape in practice: an unfilled numeric slot in
+        # a template emits `""` far more naturally than it omits the key, and
+        # D14 does not see it because `""` is not `[TO FILL]`.
+        if not any(_measured(pt) for pt in series):
+            # A contract of NON-OBJECTS falls through to the per-point loop
+            # below, which already names that precisely. Reporting "no measured
+            # point" for `{"series": ["a", "b"]}` would hand the author the
+            # wrong remedy.
+            if any(isinstance(pt, dict) for pt in series):
+                mismatches.append(
+                    f"figure {declared}: declares a contract with no measured "
+                    f"point — a contract that asserts nothing cannot disagree "
+                    f"with the drawing, so it grades nothing while reading as "
+                    f"coverage. Give at least one series point a `value`, or "
+                    f"drop the contract")
+                continue
         for point in series:
             if not isinstance(point, dict):
                 mismatches.append(f"figure {declared}: a series point is not an object")
@@ -2826,10 +2871,11 @@ def d21_data_contract(raw):
             if label and label.lower() not in visible.lower():
                 mismatches.append(f"figure {declared}: declares the series "
                                   f"{label!r}, which is nowhere on the drawing")
-            value = point.get("value")
-            if value is None:
+            if not _measured(point):
                 continue
-            shown = f"{value:g}" if isinstance(value, (int, float)) else str(value)
+            value = point["value"]
+            shown = (f"{value:g}" if isinstance(value, (int, float))
+                     and not isinstance(value, bool) else str(value).strip())
             if not re.search(rf"(?<![\d.]){re.escape(shown)}(?![\d])", visible):
                 mismatches.append(f"figure {declared}: declares {label or 'a point'} "
                                   f"= {shown}, which appears nowhere on the drawing")
