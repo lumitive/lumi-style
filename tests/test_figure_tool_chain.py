@@ -28,8 +28,12 @@ def test_a_move_with_a_tooled_framework_resolves():
     assert "scatter_svg.py" in run
 
 
-def test_a_move_with_no_tooled_framework_resolves_to_nothing():
-    assert new_deck.tool_for("position") == ("", "")
+def test_a_framework_with_no_tool_resolves_to_nothing():
+    """`swot` draws from the shape library and has no renderer, which is a
+    correct answer: nothing asks a library-drawn framework to grow a tool
+    (AG-10). It named `position` until 0.1.672, when `two-by-two` got
+    `quadrant_svg` and the assertion started passing for the wrong reason."""
+    assert new_deck.tool_for("position", "swot") == ("", "")
 
 
 def test_a_named_framework_is_answered_or_not_at_all():

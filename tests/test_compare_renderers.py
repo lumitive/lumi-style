@@ -228,3 +228,17 @@ def test_the_registrys_command_actually_runs(framework, spec_fn, tmp_path):
 def test_a_skeleton_is_refused_by_both(mod):
     with pytest.raises(SystemExit, match="still the skeleton"):
         mod.render(fs.skeleton("compare"))
+
+
+def test_a_zero_subject_is_drawn_and_keeps_its_colour():
+    """A zero is often the whole finding and it has no length to carry it.
+    Drawn as a bar it is invisible: the first real deck built through this tool
+    said "zero commerce primitives" and showed three grey references with
+    nothing where the subject should be. Found by rendering it and looking."""
+    svg = bm.render(_bench(subject={"label": "Commerce primitives", "value": 0}))
+    assert '<rect data-datum="0"' not in svg, "a zero was drawn as a bar"
+    assert 'data-datum="0"' in svg, "the zero lost its datum"
+    zero = re.search(r'<line data-datum="0"[^>]*stroke="([^"]+)"', svg)
+    assert zero and zero.group(1) == "var(--acc)", (
+        "the zero subject lost the token that says it is the subject")
+    assert svg.count("<rect") == 2, "the references stopped drawing"

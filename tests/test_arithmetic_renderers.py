@@ -183,3 +183,70 @@ def test_the_registrys_command_actually_runs(framework, fn, tmp_path):
                           capture_output=True, text=True)
     assert done.returncode == 0, done.stderr[:400]
     assert done.stdout.lstrip().startswith("<svg")
+
+
+# --- what the first real deck built through this tool found ------------------
+
+def _shares(*values):
+    return _dec(total={"label": "All", "value": sum(values)},
+                parts=[{"label": f"part {i}", "value": v}
+                       for i, v in enumerate(values)])
+
+
+def test_a_zero_part_gets_a_mark_and_not_a_sliver():
+    """A zero part has no length, so it gets no segment — drawing one at a
+    floor gives it ink proportional to nothing. It keeps its label, because
+    "this category is empty" is often the whole finding: the first deck built
+    through this tool existed to say that 0 of 27 changed files touched the
+    specification."""
+    svg = bd.render(_shares(17, 7, 3, 0))
+    assert svg.count("<rect") == 3, "the zero part was drawn as a bar"
+    assert 'data-datum="0"' in svg, "the zero lost its datum"
+    assert "stroke-dasharray" in svg, "the zero has no mark at all"
+
+
+def test_outside_labels_never_land_on_each_other():
+    """Placing each label at its own segment's centre put two of them on top of
+    each other, and clamping the overflow back inside the box — the first fix —
+    pulled both to the right edge and did it again. They wrap to a second row
+    now. Found by rendering the page and looking; the browser gate then
+    confirmed it twice."""
+    import re
+    svg = bd.render(_dec(
+        total={"label": "All", "value": 27},
+        parts=[{"label": "samples/community", "value": 17},
+               {"label": "agent_sdks/python", "value": 7},
+               {"label": "docs, scripts and the lockfile", "value": 3},
+               {"label": "specification/", "value": 0}]))
+    outside = [(float(x), float(y), t) for x, y, t in re.findall(
+        r'<text class="flbl" x="([\d.]+)" y="([\d.]+)"[^>]*>([^<]*)</text>',
+        svg) if "fill=" not in t]
+    rows: dict[float, list] = {}
+    for x, y, t in outside:
+        rows.setdefault(y, []).append((x, len(t)))
+    for y, labels in rows.items():
+        labels.sort()
+        for (x1, n1), (x2, _n2) in zip(labels, labels[1:]):
+            assert x2 - x1 >= n1 * 4.0, (
+                f"two labels on row {y} are {x2 - x1:.0f} apart and the left "
+                f"one is {n1} characters wide")
+
+
+def test_everything_below_the_bar_moves_with_the_label_rows():
+    """A second row of labels that the axis name and the reading were drawn
+    over would trade one collision for another."""
+    import re
+    one = bd.render(_shares(60, 40))
+    two = bd.render(_dec(
+        total={"label": "All", "value": 27},
+        parts=[{"label": "samples/community", "value": 17},
+               {"label": "agent_sdks/python", "value": 7},
+               {"label": "docs, scripts and the lockfile", "value": 3},
+               {"label": "specification/", "value": 0}]))
+
+    def axis_y(svg):
+        m = re.search(r'<text class="axname-x"[^>]*y="([\d.]+)"', svg)
+        assert m, "the drawing names no x axis"
+        return float(m.group(1))
+    assert axis_y(two) > axis_y(one), (
+        "the axis name did not move down for the second row of labels")

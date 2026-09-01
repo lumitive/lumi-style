@@ -8,9 +8,12 @@
   "embed_regionmap",
   "eval_corpus",
   "export_pdf",
+  "figure_slots",
   "output_dir",
+  "quadrant_svg",
   "radar_svg",
   "scatter_svg",
+  "timeline_svg",
   "waterfall_svg"
  ],
  "seeds_comment": "Consumer-facing scripts SKILL.md does not name by path: the two the operator runs around a delivery (where it belongs, how it becomes a PDF), the corpus scorer, and the two embedders the deck scaffold calls. `scatter_svg` joins them at 0.1.665: DR-20 tells a reader this tool draws a scatter from a JSON spec, and a rule may not name a file the package omits — it shipped at 0.1.664 with zero callers and a published rule pointing at it. `benchmark_svg` joins them at 0.1.668, and the ORDER is the point: `framework tools` refuses a registry entry naming a development-side script, so a renderer ships before it is registered or the guard rejects the pair. Confirmed by trying it the other way first.",

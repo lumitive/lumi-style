@@ -537,13 +537,18 @@ def page(i: int, total: int, spec, broken: bool, k: int) -> str:
     terms = TERMS
     src = ""
     spec_decl = ""
-    if broken and k == 6:
+    if broken and k == 5:
         # THE DEEPER BRANCH. `k == 4` below plants a spec file that is not
         # there — the easiest failure `load()` can have. This one parses, is
-        # complete, and its parts do not sum to its total: the arithmetic
-        # assertion of 0.1.669, which no fixture reached until 0.1.671 and
-        # which therefore could not be told from a metric rewritten to return
-        # ok.
+        # complete, and its pieces do not reconcile: the arithmetic assertion
+        # of 0.1.669, which no fixture reached until 0.1.671 and which
+        # therefore could not be told from a metric rewritten to return ok.
+        #
+        # ON `k == 5`, NOT `k == 6`. D32's plant is the page that declares a
+        # move and draws nothing, and since 0.1.671 a page carrying a resolving
+        # `data-figure-spec` is no longer bare — so the two plants on one page
+        # cancelled, and `check_fixtures` caught D32 reporting ok where the
+        # suite expects FAIL. Two deliberate reds must not share a page.
         spec_decl = ' data-figure-spec="figures/broken-bridge.json"'
     if broken and k == 4:
         # D42's PLANT. The page says its numbers are in a file, and the file is

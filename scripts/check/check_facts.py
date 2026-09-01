@@ -136,6 +136,16 @@ def _visible(html: str) -> str:
     # `f-card`.
     s = re.sub(r'<svg[^>]*class="(?:[^"]*\s)?(?:gl|ground)(?:\s[^"]*)?".*?</svg>',
                " ", s, flags=re.S | re.I)
+    # AN AXIS TICK IS A SCALE MARK, NOT A CLAIM. `figure_scale.ticks` computes
+    # `0 5 10 15 20` from the data's own ceiling; no author states them, and
+    # they change when one datum changes. Counting them made the first deck
+    # built through the figure contract fail red line 1 on 10 and 20 — numbers
+    # nobody wrote — and the cheapest way to clear that is to add them to the
+    # fact contract, which is the checker writing the document. Only `.ftick`
+    # goes: `.fval` and `.flbl` carry the values and names a reader is asked to
+    # believe, and they stay.
+    s = re.sub(r'<text[^>]*class="(?:[^"]*\s)?ftick(?:\s[^"]*)?"[^>]*>.*?</text>',
+               " ", s, flags=re.S | re.I)
     s = markup.visible_text(s)
     s = re.sub(r"\b\d{1,3}\s*/\s*\d{1,3}\b", " ", s)
     # A telephone number is contact furniture. Left in, its runs read as three
