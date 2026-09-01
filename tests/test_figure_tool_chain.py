@@ -33,9 +33,15 @@ def test_a_move_with_no_tooled_framework_resolves_to_nothing():
 
 
 def test_a_named_framework_is_answered_or_not_at_all():
-    """AR-1's rule, and `shape_for`'s: an author who asked for a benchmark
-    table is told nothing rather than handed the scatter tool."""
-    assert new_deck.tool_for("compare", "benchmark-table") == ("", "")
+    """AR-1's rule, and `shape_for`'s: an author who names a framework is told
+    nothing rather than handed a sibling's tool.
+
+    It named `benchmark-table` until 0.1.668, when that framework got a tool of
+    its own and the assertion started passing for the wrong reason.
+    `harvey-scorecard` draws `compare` from library shapes and has none, which
+    is the shape this rule is about. `two_per_move` below tests the same rule
+    on a registry built to express it."""
+    assert new_deck.tool_for("compare", "harvey-scorecard") == ("", "")
 
 
 def test_an_empty_move_resolves_to_nothing():

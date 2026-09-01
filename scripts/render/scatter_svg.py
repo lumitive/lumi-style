@@ -66,6 +66,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
+import figure_scale  # noqa: E402
 import figure_spec  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -108,53 +109,20 @@ FOOT = 150
 HEAD_SIZED = 76
 
 
-def _num(v):
-    try:
-        f = float(v)
-    except (TypeError, ValueError):
-        return None
-    return f if math.isfinite(f) else None
+# The axis arithmetic and text fitting live in `scripts/lib/figure_scale.py`
+# (evals/single-source.json, `figure-scale`). They were private here until the
+# second renderer arrived; two copies of "how an axis picks its round numbers"
+# is the class that register exists to prevent.
+_num = figure_scale.num
+_wrap = figure_scale.wrap
 
 
 def _nice(lo, hi):
-    """-> (lo, hi, step) covering the data on round numbers.
-
-    A range chosen to hug the data is how an axis manufactures a relation
-    (DR-20 rule 5), so this rounds OUTWARD and never inward.
-    """
-    if hi <= lo:
-        hi = lo + 1.0
-    span = hi - lo
-    raw = span / 4.0
-    mag = 10 ** math.floor(math.log10(raw)) if raw > 0 else 1.0
-    step = next((m * mag for m in (1, 2, 2.5, 5, 10) if m * mag >= raw), 10 * mag)
-    return math.floor(lo / step) * step, math.ceil(hi / step) * step, step
-
-
-def _wrap(text, width_units, per_char=5.6):
-    """-> the line broken to fit `width_units`, as a list of lines.
-
-    Estimated from the character count rather than measured, because this tool
-    ships no font metrics — so the estimate is deliberately CONSERVATIVE. The
-    portrait box is 620 wide and the reading line ran 34 units outside its own
-    viewBox, where `figure_clipped` found it: a sentence that fits the wide
-    figure is not a sentence that fits the tall one.
-    """
-    budget = max(12, int(width_units / per_char))
-    lines, cur = [], ""
-    for word in str(text).split():
-        if cur and len(cur) + 1 + len(word) > budget:
-            lines.append(cur)
-            cur = word
-        else:
-            cur = f"{cur} {word}".strip()
-    if cur:
-        lines.append(cur)
-    return lines
+    return figure_scale.nice_range(lo, hi)
 
 
 def _fmt(v, step):
-    return f"{v:.0f}" if step >= 1 and abs(v - round(v)) < 1e-9 else f"{v:g}"
+    return figure_scale.fmt(v, step)
 
 
 def _catmull_rom(pts):

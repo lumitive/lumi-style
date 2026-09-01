@@ -2,14 +2,16 @@
  "schema": 1,
  "$comment": "Which side of the split each tracked file is on. WHY IT EXISTS: the design record calls for the public repository to be a mechanical projection of this one rather than a hand-copied subset, and a projection needs a boundary that a machine can compute. A LIST of what ships can omit a file silently; a PARTITION cannot, so `check_shipped_closure` requires every tracked file to be PLACED - matched by a rule, or computed from reachability if it is a script - and every rule to match a file. SCRIPTS ARE NOT LISTED HERE: their side is COMPUTED from reachability, seeded by the scripts SKILL.md tells an agent to run plus `consumer_seeds` below, so a script nobody can reach from the skill's own surface is development by default - the safe direction. FIELDS: `prefix` matches a path exactly, as a directory prefix, or - when it ends in `/` - the bare directory path itself; longest match wins; `side` is consumer or dev; `why` is the reason, because a boundary nobody can explain is a boundary nobody can maintain.",
  "consumer_seeds": [
+  "benchmark_svg",
   "embed_globe",
   "embed_regionmap",
   "eval_corpus",
   "export_pdf",
   "output_dir",
+  "radar_svg",
   "scatter_svg"
  ],
- "seeds_comment": "Consumer-facing scripts SKILL.md does not name by path: the two the operator runs around a delivery (where it belongs, how it becomes a PDF), the corpus scorer, and the two embedders the deck scaffold calls. `scatter_svg` joins them at 0.1.665: DR-20 tells a reader this tool draws a scatter from a JSON spec, and a rule may not name a file the package omits — it shipped at 0.1.664 with zero callers and a published rule pointing at it.",
+ "seeds_comment": "Consumer-facing scripts SKILL.md does not name by path: the two the operator runs around a delivery (where it belongs, how it becomes a PDF), the corpus scorer, and the two embedders the deck scaffold calls. `scatter_svg` joins them at 0.1.665: DR-20 tells a reader this tool draws a scatter from a JSON spec, and a rule may not name a file the package omits — it shipped at 0.1.664 with zero callers and a published rule pointing at it. `benchmark_svg` joins them at 0.1.668, and the ORDER is the point: `framework tools` refuses a registry entry naming a development-side script, so a renderer ships before it is registered or the guard rejects the pair. Confirmed by trying it the other way first.",
  "dev_pins": [
   {
    "stem": "check_globe",

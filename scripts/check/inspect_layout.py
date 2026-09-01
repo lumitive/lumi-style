@@ -573,21 +573,58 @@ PROBE = r"""
       // area mark is round or square by construction; a long thin rectangle
       // claiming area is a claim its own geometry contradicts, and that is
       // reported rather than honoured.
+      // A RADIAL encoding puts the value in the mark's distance from a
+      // declared centre, not in the mark's own size. Every vertex of a radar
+      // is the same dot, so measuring bounding boxes reports a correctly drawn
+      // radar as distorted — measured, on the first radar this package drew.
+      // The centre is read as a RENDERED element, so this stays a second
+      // implementation measuring pixels rather than trusting user units.
+      const originEl = fig.querySelector('[data-radial-origin]');
+      const origin = originEl ? (() => {
+        const o = originEl.getBoundingClientRect();
+        return {x: o.left + o.width / 2, y: o.top + o.height / 2};
+      })() : null;
       const all = [...fig.querySelectorAll('[data-datum]')]
         .map(m => {
           const r = m.getBoundingClientRect();
-          const claimed = m.getAttribute('data-encoding') === 'area';
+          const enc = m.getAttribute('data-encoding');
           const tag = m.tagName.toLowerCase();
           const square = r.width > 0 && r.height > 0
                        && Math.abs(r.width - r.height)
                           <= 0.15 * Math.max(r.width, r.height);
+          const cxm = r.left + r.width / 2, cym = r.top + r.height / 2;
           return {v: parseFloat(m.getAttribute('data-datum')),
-                  claimed: claimed,
-                  area: claimed && (tag === 'circle' || tag === 'ellipse'
-                                    || square),
+                  claimed: enc === 'area',
+                  radial: enc === 'radial',
+                  hasOrigin: !!origin,
+                  dist: origin ? Math.hypot(cxm - origin.x, cym - origin.y) : 0,
+                  area: enc === 'area' && (tag === 'circle' || tag === 'ellipse'
+                                           || square),
                   r: r};
         })
         .filter(m => Number.isFinite(m.v) && m.v > 0);
+      // A radial mark with no declared centre is a claim nothing can check.
+      for (const m of all) {
+        if (m.radial && !m.hasOrigin)
+          distorted.push({value: m.v, drew: 0, shouldDraw: 0,
+                          encoding: 'radial declared and no '
+                                  + 'data-radial-origin in the drawing, so the '
+                                  + 'distance encoding could not be measured'});
+      }
+      const radial = all.filter(m => m.radial && m.hasOrigin);
+      if (radial.length >= 2) {
+        const topR = radial.reduce((a, b) => (b.v > a.v ? b : a));
+        if (topR.dist > 0) {
+          for (const m of radial) {
+            const expected = topR.dist * (m.v / topR.v);
+            const slack = Math.max(3, topR.dist * 0.05);
+            if (Math.abs(m.dist - expected) > slack)
+              distorted.push({value: m.v, drew: Math.round(m.dist),
+                              shouldDraw: Math.round(expected),
+                              encoding: 'radial'});
+          }
+        }
+      }
       for (const m of all) {
         if (m.claimed && !m.area)
           distorted.push({value: m.v, drew: Math.round(m.r.width),
@@ -600,7 +637,8 @@ PROBE = r"""
       // mark of either kind, so one bar beside one bubble measured each against
       // the other's rule.
       for (const kind of [true, false]) {
-        const marks = all.filter(m => m.area === kind && !(m.claimed && !m.area));
+        const marks = all.filter(m => !m.radial && m.area === kind
+                                      && !(m.claimed && !m.area));
         if (marks.length < 2) continue;
         const spread = k => Math.max(...marks.map(m => m.r[k]))
                           - Math.min(...marks.map(m => m.r[k]));

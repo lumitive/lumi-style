@@ -206,11 +206,40 @@ def _move_problems(move: str, spec: dict) -> list[str]:
                 "number standing alone with no reader able to say whether it "
                 "is good is the tell that the move is missing (AR-1; "
                 "writing-rules.md WR-5 rule 0, the judgment anchor)")
+        # `criteria` is compare's OPTIONAL refinement, and it is what a radar
+        # draws: the same move across several criteria at once rather than on
+        # one measure. It is an extension rather than a sixth move because the
+        # question is AR-1's compare question — "where is this strong and where
+        # is it thin" is still setting a value against a reference — and adding
+        # a move to the five would put this module and
+        # `check_outline.ANALYTICAL_MOVES` out of step.
+        crit = spec.get("criteria")
+        if crit is not None:
+            if not isinstance(crit, list) or len(crit) < 3:
+                out.append(
+                    "`criteria` names the axes a radar compares across, and a "
+                    "radar needs at least three: two criteria are a pair of "
+                    "bars drawn as a triangle (AR-1)")
+            else:
+                for i, c in enumerate(crit):
+                    out += _pair_problems(f"criteria[{i}]", c, ("name",),
+                                          "AR-1: compare across criteria")
+                for who, obj in ([("subject", spec.get("subject"))]
+                                 + [(f"references[{i}]", r)
+                                    for i, r in enumerate(refs or [])]):
+                    vals = (obj or {}).get("values") if isinstance(obj, dict) else None
+                    if not isinstance(vals, list) or len(vals) != len(crit):
+                        out.append(
+                            f"`{who}` must carry one value per criterion — "
+                            f"{len(crit)} of them — because a radar with a "
+                            f"missing spoke draws a shape the data does not "
+                            f"have (AR-1)")
+        value_key = ("values",) if crit is not None else ("value",)
         out += _pair_problems("subject", spec.get("subject"),
-                              ("label", "value"), "AR-1: compare")
+                              ("label",) + value_key, "AR-1: compare")
         for i, ref in enumerate(refs or []):
-            out += _pair_problems(f"references[{i}]", ref, ("label", "value"),
-                                  "AR-1: compare")
+            out += _pair_problems(f"references[{i}]", ref,
+                                  ("label",) + value_key, "AR-1: compare")
     elif move == "decompose":
         if isinstance(spec.get("parts"), list) and not spec["parts"]:
             out.append(
