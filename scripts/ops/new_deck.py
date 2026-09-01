@@ -69,6 +69,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # --- end bootstrap ---
+import deck_content  # noqa: E402
 import deliverable_registry  # noqa: E402
 import embed_font  # noqa: E402
 import embed_globe  # noqa: E402
@@ -565,6 +566,51 @@ def shape_figure(shape: str, label_a: str, label_b: str) -> str:
         <text x="16" y="278" class="flbl" style="fill:var(--tx2)">{label_a}</text>
         <text x="624" y="278" text-anchor="end" class="flbl" style="fill:var(--tx2)">{label_b}</text>
       </svg>'''
+
+
+def _attrs(rows, want: int) -> str:
+    """-> the cover/closing attribute rows, from the content or as prompts.
+
+    The value holds ONE line and a value that overruns gets shortened — the
+    cover-grid contract, and the reason this renders rather than letting an
+    author paste rows in: `.attrs` is a grid whose two children are a key and a
+    value, and a hand-written row that nests them differently loses its
+    alignment on a page nothing measures.
+    """
+    if not rows:
+        rows = [["Label", "value"]] * want
+    out = []
+    for row in rows:
+        if isinstance(row, dict):
+            k, v = row.get("k", ""), row.get("v", "")
+        else:
+            k, v = (list(row) + ["", ""])[:2]
+        out.append(f'<div><span class="k">{html.escape(str(k))}</span>'
+                   f'<span class="v">{html.escape(str(v))}</span></div>')
+    return "\n      ".join(out)
+
+
+def _part(content, i: int, key: str, fallback: str) -> str:
+    """-> a part opener's claim or run line, from the content or as a prompt."""
+    rows = content.get("parts") or []
+    got = rows[i].get(key) if i < len(rows) else None
+    return html.escape(str(got)) if got else fallback
+
+
+def _finds(items) -> str:
+    """-> the findings row under a dense page's drawing."""
+    if not items:
+        return ""
+    rows = []
+    for i, f in enumerate(items, 1):
+        sem = deck_content.SEM.get(f.get("sem") or "", "")
+        body = (f'\n        <p>{html.escape(str(f["body"]))}</p>'
+                if f.get("body") else "")
+        rows.append(
+            f'      <div class="find{" " + sem if sem else ""}">'
+            f'<span class="fno">{i:02d}</span>\n'
+            f'        <h4>{html.escape(str(f["head"]))}</h4>{body}</div>')
+    return '    <div class="finds">\n' + "\n".join(rows) + "\n    </div>"
 
 
 def wordmark(override: str | None = None) -> str:
@@ -1116,6 +1162,14 @@ def main(argv):
                          "and declaring its analytical move, so the beat is an "
                          "INPUT rather than a document written and then "
                          "forgotten (analysis-rules.md AR-3).")
+    ap.add_argument("--content", type=pathlib.Path,
+                    help="the deck's CONTENT, as JSON, so the scaffold renders "
+                         "a document instead of prompts. Without it every slot "
+                         "arrives as furniture and the author edits the emitted "
+                         "markup — which measured 19 hand-written substitutions "
+                         "and 12 wrong guesses about markup shape on one "
+                         "ten-page deck. scripts/lib/deck_content.py holds the "
+                         "schema and every refusal.")
     ap.add_argument("--wordmark",
                     help="the cover/closing wordmark. Defaults to the default "
                          "brand's `wordmark` in brands/registry.json; pass this "
@@ -1170,6 +1224,22 @@ def main(argv):
         sys.exit(f"--lang-asked {args.lang_asked!r} is a fragment that would "
                  f"match anything. Quote what the user actually said.")
 
+    content, content_base = {}, None
+    if args.content:
+        try:
+            content, content_base = deck_content.load(args.content)
+        except deck_content.ContentError as exc:
+            # STOPS THE BUILD. A content file that cannot be rendered must not
+            # become a deck that silently drops what it was given — that is
+            # convention 17's measured failure, eleven facts lost between two
+            # builds with every gate green.
+            sys.exit(f"--content: {exc}")
+
+    def c(section, key, fallback):
+        """-> what the content file says, or the scaffold's own prompt."""
+        got = (content.get(section) or {}).get(key)
+        return html.escape(str(got)) if got not in (None, "") else fallback
+
     src = FIXTURE.read_text(encoding="utf-8")
     g = ground(src)
     parts = [x.strip() for x in args.parts.split(",") if x.strip()]
@@ -1187,7 +1257,16 @@ def main(argv):
         print(f"note  --pages {args.pages}, from the {len(plan)} section(s) in "
               f"{args.outline.name}", file=sys.stderr)
     if args.pages is None:
-        args.pages = DEFAULT_PAGES
+        args.pages = len(content.get("pages") or ()) or DEFAULT_PAGES
+    over = len(content.get("pages") or ()) - args.pages
+    if over > 0:
+        # CONTENT WITH NOWHERE TO GO IS CONTENT LOST. Emitting the first
+        # `--pages` of it and dropping the rest is exactly the shape convention
+        # 17 measured: eleven facts gone between two builds, every gate green,
+        # and nothing to compare the document against.
+        sys.exit(f"--content gives {len(content['pages'])} pages and the "
+                 f"scaffold emits {args.pages}; {over} would be dropped. "
+                 f"Raise --pages, or take those pages out of the content file.")
     # cover, agenda, closing, + openers; training appends its reference page.
     apparatus = 1 if args.genre == "training" else 0
     total = args.pages + 3 + len(parts) + apparatus
@@ -1205,9 +1284,9 @@ def main(argv):
   <div class="body cover-grid">
     <div class="typeblock">
       <p class="wordmark">{mark}</p>
-      <h1>A title that states the argument about its
-      <span class="subj">subject</span></h1>
-      <p class="sub">One sentence saying what this is.</p>
+      <h1>{c("cover", "title", "A title that states the argument about its")}
+      <span class="subj">{c("cover", "subject", "subject")}</span></h1>
+      <p class="sub">{c("cover", "sub", "One sentence saying what this is.")}</p>
     </div>
     <!-- The brand mark. Keep it: with no explicit instruction from the
          owner this is the mark, and D40 fails a deck that carries
@@ -1215,8 +1294,7 @@ def main(argv):
          replacement that was asked for. -->
     <div class="markcell" data-globe>{brand_globe()}</div>
     <div class="attrs">
-      <div><span class="k">Label</span><span class="v">value</span></div>
-      <div><span class="k">Label</span><span class="v">value</span></div>
+      {_attrs(content.get("cover", {}).get("attrs"), 2)}
     </div>
   </div>
   {foot(1, total)}
@@ -1235,14 +1313,31 @@ def main(argv):
         chunks[i * len(parts) // max(1, len(sections))].append(
             deliverable_registry.section_name(checklist_entry))
     rows = ""
+    agenda = content.get("agenda") or []
     for i, q in enumerate(parts):
-        run = (" &#183; ".join(chunks[i]) if sections
-               else "which pages, and what they cover")
+        row = agenda[i] if i < len(agenda) else {}
+        run = (html.escape(str(row["run"])) if row.get("run")
+               else (" &#183; ".join(chunks[i]) if sections
+                     else "which pages, and what they cover"))
+        # THE PART'S OWN CLAIM, quoted. D27 holds the agenda to the titles the
+        # document carries, and D38 requires the lime chip on every agenda
+        # claim — so both are satisfied by construction here rather than left
+        # to an author who writes the claim twice and drifts. The chip goes on
+        # the claim's last three words: it marks the phrase, and a chip around
+        # the whole line is a highlighted line, not a marked phrase.
+        part_claim = _part(content, i, "claim", "")
+        if part_claim:
+            words = part_claim.split()
+            head, tail = " ".join(words[:-3]), " ".join(words[-3:])
+            claim = (f'{head} <span class="hl">{tail}</span>' if head
+                     else f'<span class="hl">{tail}</span>')
+        else:
+            claim = (f'What Part {q} argues, its key phrase '
+                     f'<span class="hl">set in the light</span>')
         rows += (
             f'      <div class="lrow">\n'
             f'        <div class="ln">{i + 1:02d}</div>\n'
-            f'        <div><p class="gn">What Part {q} argues, its key phrase '
-            f'<span class="hl">set in the light</span></p>\n'
+            f'        <div><p class="gn">{claim}</p>\n'
             f'          <p class="gq">{run}</p></div>\n'
             f'      </div>\n')
     if args.storyline and not sections:
@@ -1283,8 +1378,8 @@ def main(argv):
   <div class="body full-bleed no-lede">
     <div class="bleed openframe">
       <div class="openpart">Part {part}</div>
-      <div class="openclaim">What this part argues</div>
-      <div class="openrun">How many pages, and what they cover.</div>
+      <div class="openclaim">{_part(content, pi, "claim", "What this part argues")}</div>
+      <div class="openrun">{_part(content, pi, "run", "How many pages, and what they cover.")}</div>
       {opener_mark(pi)}
     </div>
   </div>
@@ -1299,12 +1394,17 @@ def main(argv):
             # ARRIVES holding the finding it was planned to state and the
             # implication it was planned to leave, and declares the move that
             # produced them. Without one, the slots stay as prompts.
-            sec = plan[len(plan) and (pi * per + i) % len(plan)] if plan else {}
-            title = sec.get("title") or "A title naming its subject and carrying a fact"
-            take = sec.get("implication") or "The line the reader carries off this page."
+            idx = pi * per + i
+            sec = plan[len(plan) and idx % len(plan)] if plan else {}
+            pg = ((content.get("pages") or [])[idx]
+                  if idx < len(content.get("pages") or ()) else {})
+            title = (pg.get("title") or sec.get("title")
+                     or "A title naming its subject and carrying a fact")
+            take = (pg.get("take") or sec.get("implication")
+                    or "The line the reader carries off this page.")
             move = sec.get("move", "")
             hint = framework_for(move)
-            sup = sup_for(move)
+            sup = pg.get("sup") or sup_for(move)
             adecl = f' data-analysis="{move}"' if move else ""
             # SEEDED WITH THE PAGE'S OWN TITLE, so two documents about
             # different subjects do not arrive as the same drawings.
@@ -1350,6 +1450,17 @@ def main(argv):
             # three times over, in the release that added the tools — and
             # `correlate` hid it, being the one move with no shape at all.
             fw_name, run = tool_for(move, sec.get("framework", ""))
+            if pg.get("figure"):
+                # THE AUTHOR'S OWN DRAWING, inlined. It wins over the library
+                # shape and over the tool slot both: a page that arrives with
+                # its figure must not also carry "[TO FILL: draw this figure]",
+                # which is a slot D14 refuses and a reader reads as unfinished.
+                # `content_base` is set wherever a page can carry `figure`:
+                # both come from the same load. Named rather than asserted —
+                # `assert` is stripped under -O, and the S rules ban it here.
+                base = content_base or pathlib.Path()
+                figure = deck_content.figure_svg(base, pg["figure"])
+                shape, run, hint = "", "", ""
             if run and (dataref or not shape):
                 # The demo drawing goes with it. Page one of a scaffold
                 # carries SHAPE_FIGURE as furniture regardless of the move,
@@ -1373,7 +1484,11 @@ def main(argv):
                     f' renders one from a JSON spec: paste its SVG here in '
                     f'place of this line.</p>')
             fignote = (f"\n      <!-- {hint} -->" if hint else "")
-            lay = figure_layout(figno - 1, shape)
+            lay = pg.get("layout") or figure_layout(figno - 1, shape)
+            eyebrow = (html.escape(str(pg["eyebrow"])) if pg.get("eyebrow")
+                       else f"Part {part} &#183; this page&#8217;s label")
+            cap = (html.escape(str(pg["cap"])) if pg.get("cap")
+                   else "A title stating a\n      conclusion")
             # `.body.stack` is "one full-width centerpiece": its grid declares
             # `auto 1fr` — a lede and ONE cell. A page that hands it three
             # children puts the figure in an implicit auto row, and it renders
@@ -1399,11 +1514,40 @@ def main(argv):
                     f'      <p class="scope-note" data-omitted="{o["section"]}">'
                     f'This deck does not cover {o["said"]}: {o["reason"]}.</p>'
                     for o in omissions)
+            if lay == "dense":
+                # THE FIGURE IS THE PAGE. One look-for line, the drawing taking
+                # the whole middle row, and the findings under it — and nothing
+                # else, which is the layout's definition rather than a style.
+                # Its body is emitted here rather than through `cells_open`
+                # because that variable builds the two-cell shapes, and a dense
+                # page has one cell by construction.
+                figlead = (f'\n    <p class="figlead">'
+                           f'{html.escape(str(pg["figlead"]))}</p>'
+                           if pg.get("figlead") else "")
+                out.append(f'''<section class="page" id="p{n}"{adecl}{specdecl}>
+  {g}
+  <div class="body dense">
+    <div class="lede">
+      <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#{PAGE_ICONS[(n - 1) % len(PAGE_ICONS)]}"/></svg>{eyebrow}</p>
+      <h2 class="t">{title}</h2>
+      <p class="sup">{sup}</p>
+    </div>{figlead}
+    <div class="fill">
+      <div class="fig">{figure}
+      <div class="cap"><span class="n">Figure {figno}</span> {cap}</div></div>
+    </div>
+{_finds(pg.get("finds"))}
+  </div>
+  {foot(n, total)}
+</section>''')
+                n += 1
+                figno += 1
+                continue
             out.append(f'''<section class="page" id="p{n}"{adecl}{specdecl}>
   {g}
   <div class="body {lay}">
     <div class="lede">
-      <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#{PAGE_ICONS[(n - 1) % len(PAGE_ICONS)]}"/></svg>Part {part} &#183; this page&#8217;s label</p>
+      <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#{PAGE_ICONS[(n - 1) % len(PAGE_ICONS)]}"/></svg>{eyebrow}</p>
       <!-- The icon is a PLACEHOLDER rotated so no two pages start alike.
            design-rules §6: within one document an icon means exactly one
            thing, so replace it with this page's own subject.
@@ -1413,8 +1557,7 @@ def main(argv):
     </div>
 {cells_open}{fignote}
       <div class="fig">{figure}{toolslot}
-      <div class="cap"><span class="n">Figure {figno}</span> A title stating a
-      conclusion</div></div>
+      <div class="cap"><span class="n">Figure {figno}</span> {cap}</div></div>
       <!-- design-rules §4 rule 8: the caption holds the number and the name and
            NOTHING ELSE. The source line is the drawing's own last text node
            (rule 17) — see the `<text class="fnote">` at the foot of the figure
@@ -1458,9 +1601,9 @@ def main(argv):
   <div class="body cover-grid">
     <div class="typeblock">
       <p class="wordmark">{mark}</p>
-      <h2>What the reader carries out about its
-      <span class="subj">subject</span></h2>
-      <p class="sub">The argument in one paragraph.</p>
+      <h2>{c("closing", "title", "What the reader carries out about its")}
+      <span class="subj">{c("closing", "subject", "subject")}</span></h2>
+      <p class="sub">{c("closing", "sub", "The argument in one paragraph.")}</p>
     </div>
     <!-- The brand mark. Keep it: with no explicit instruction from the
          owner this is the mark, and D40 fails a deck that carries
@@ -1468,10 +1611,9 @@ def main(argv):
          replacement that was asked for. -->
     <div class="markcell" data-globe>{brand_globe()}</div>
     <div class="attrs">
-      <div><span class="k">Label</span><span class="v">value</span></div>
+      {_attrs(content.get("closing", {}).get("attrs"), 1)}
     </div>
-    <p class="colophon">Built with lumi-style {versioning.skill_version()} &#183; source: WHERE THE
-    NUMBERS CAME FROM.</p>
+    <p class="colophon">Built with lumi-style {versioning.skill_version()} &#183; source: {c("closing", "colophon", "WHERE THE NUMBERS CAME FROM.")}</p>
   </div>
   {foot(total, total)}
 </section>''')

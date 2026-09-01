@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.673"
+  version: "0.1.674"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -374,6 +374,21 @@ alternates `split-wide` and `stack` and gives a thin unit the whole width: 4 of
 11 under target, top share 42.9%. A `stack` page also emits ONE cell rather than
 two, because that grid declares `auto 1fr` and a third child starved the drawing
 to 3% of the page.
+**Hand it the content and it renders the document, rather than prompts you
+then edit.** `--content <content.json>` supplies the cover, the agenda's run
+lines, each part opener's claim, and per page the eyebrow, title, support line,
+layout, look-for line, figure file, caption, findings and takeaway.
+`scripts/lib/deck_content.py` holds the schema and every refusal, and the
+refusals are the point: a field nothing renders stops the build rather than
+being ignored, content for pages the scaffold does not emit stops it rather
+than being dropped, and a `figure` naming a file that is not there stops it
+rather than emitting a placeholder onto a page that then looks finished. The
+agenda row carries no claim of its own — it quotes its part opener's, so D27's
+mirror cannot break. **Without it the author's only interface to the words is
+regex surgery on the markup the scaffold just emitted**, which measured 19
+hand-written substitutions and 12 wrong guesses about markup shape on one
+ten-page deck, each guess costing an edit, a rebuild, a render and a look.
+
 **`python3 scripts/ops/build.py` is the whole build in one command** — scaffold,
 your fill script, `embed_shapes`, and the step-4 gate stack — and it is what a
 real build should run, because every separate command is an API round trip
@@ -625,6 +640,10 @@ off. (This sentence read "pass it the file and nothing else", which was about
 `--geometry` and was followed as a ban on every flag, including the two that
 make the loop cheap.) Add a second run with `--dark` if the deliverable ships a dark variant;
 one run renders one palette.
+**Look at the pages a finding names, not at all of them**: `python3
+scripts/ops/export_pdf.py <file> --png --pages 4,11` rasters two pages in about
+a second where the whole deck takes four. The look is the check; the numbers
+only say where to look.
 `python3 scripts/check/check_design.py <file>` reports the design metrics and
 gates on every row its own table marks `(gates)` — none of them a design
 judgement, and the script is the authority on which they are. These four are

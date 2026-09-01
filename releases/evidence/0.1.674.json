@@ -1,0 +1,32 @@
+{
+  "version": "0.1.674",
+  "diff_base": "36157830889ab6b0b3ae8a3a542862db46bdf94c",
+  "spec": "specs/2026-09-01-figure-data-contract-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness",
+    "scaffold-render"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "851dd6cffe2e56a020c41e722876610fbb71f7c235c480cb34fd4f32d5083611",
+      "date": "2026-09-01"
+    },
+    {
+      "id": "scaffold-render",
+      "command": "python3 scripts/ops/new_deck.py --outline fixtures/scaffold-evidence-outline.md --genre internal --pages 10 --parts A,B,C --no-trace --out fixtures/.scaffold-evidence.html && python3 scripts/check/inspect_layout.py --deliverable fixtures/.scaffold-evidence.html",
+      "exit_code": 0,
+      "stdout_sha256": "c18a93e6106b6cb340ee2ff85fa42709ba49d0a87996be4906455994e529a547",
+      "date": "2026-09-01"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "UNCONFIRMED: whether agents outside this session reach for `--content` instead of the regex surgery this release was written to replace. The release touches tokens/ and references/, so the obligation is correctly raised, and it is the RIGHT question \u2014 the interface only pays if it is the one an agent picks. Refreshing the board means driving >=2 agents through the task set with the owner's own keys and installs; one is hand-driven and the run is hers to authorise. Recording `validate` would prove nothing: it exits 0 on a stale board, which is why the gate refuses that path. Deferred to the next driven round, not discharged."
+    }
+  ]
+}
