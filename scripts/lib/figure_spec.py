@@ -67,7 +67,23 @@ from __future__ import annotations
 
 import json
 import pathlib
+
+# --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
+import pathlib as _bs_pathlib  # noqa: E402
 import re
+import sys as _bs_sys  # noqa: E402
+
+_SCRIPTS_ROOT = next(p for p in _bs_pathlib.Path(__file__).resolve().parents
+                     if p.name == "scripts")
+for _sub in ("lib", "render", "check", "build", "ops", ""):
+    _p = str(_SCRIPTS_ROOT / _sub) if _sub else str(_SCRIPTS_ROOT)
+    if _p not in _bs_sys.path:
+        _bs_sys.path.append(_p)
+del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
+
+import figure_scale  # noqa: E402
+
+num = figure_scale.num
 
 # What an unfilled slot looks like. It is the SAME marker `check_design`'s D14
 # refuses in a rendered document, so a skeleton that reaches a reader is caught
@@ -89,6 +105,27 @@ MOVE_FIELDS: dict[str, tuple[str, ...]] = {
 # Everything but the measures, which move (see the module docstring).
 UNIVERSAL_FIELDS: tuple[str, ...] = ("period", "reading", "cause", "source",
                                      "move")
+
+
+# **A CEILING, not a target.** Parts stated to one decimal do not sum to a total
+# stated to the same precision, and refusing that would fail correct data — so
+# the residual is allowed to be this share of the total and no more. It is
+# deliberately tight: at 0.5% a genuine missing part shows up in any figure
+# whose smallest slice a reader can see, and the cheap way to satisfy it is to
+# name the remainder as its own part, which is what a reader needed anyway.
+RESIDUAL_CEILING = 0.005
+
+# Below this the relative test is meaningless, so an absolute one takes over.
+# A total of 0.4 with parts of 0.1 and 0.2 is 25% out and must not pass because
+# the numbers are small.
+RESIDUAL_FLOOR = 1e-9
+
+
+def _reconciles(total, pieces) -> tuple[bool, float]:
+    """-> (whether the pieces account for the total, the residual)."""
+    residual = total - sum(pieces)
+    allowed = max(abs(total) * RESIDUAL_CEILING, RESIDUAL_FLOOR)
+    return abs(residual) <= allowed, residual
 
 
 def measures_of(spec: dict) -> list[tuple[str, dict]]:
@@ -130,12 +167,31 @@ def is_skeleton(spec: dict) -> bool:
     return bool(TO_FILL_RE.search(json.dumps(spec, ensure_ascii=False)))
 
 
+# The keys that carry a QUANTITY. A label may be any words; a value may not.
+# Found by writing the test for the arithmetic: `{"label": "a", "value": "lots"}`
+# satisfied "is filled", so the contract accepted it and only the renderer — one
+# layer later, and only for the moves that have one — refused to draw it.
+NUMERIC_KEYS = frozenset({"value", "delta", "x", "y"})
+
+
 def _pair_problems(where: str, obj, keys: tuple[str, ...], rule: str) -> list[str]:
     if not isinstance(obj, dict):
         return [f"`{where}` is {type(obj).__name__}, not an object with "
                 f"{' and '.join(keys)} ({rule})"]
-    return [f"`{where}` does not give its {k} ({rule})"
-            for k in keys if not _filled(obj.get(k))]
+    out = []
+    for k in keys:
+        if not _filled(obj.get(k)):
+            out.append(f"`{where}` does not give its {k} ({rule})")
+        elif k in NUMERIC_KEYS and num(obj.get(k)) is None:
+            out.append(f"`{where}`'s {k} is {obj[k]!r}, which is not a number. "
+                       f"A mark's length, position or area IS its value, so a "
+                       f"value nothing can read has no honest drawing ({rule})")
+        elif k == "values":
+            bad = [i for i, v in enumerate(obj[k] or []) if num(v) is None]
+            if bad:
+                out.append(f"`{where}`'s values are not all numbers "
+                           f"(positions {bad}) ({rule})")
+    return out
 
 
 def problems(spec) -> list[str]:
@@ -251,6 +307,7 @@ def _move_problems(move: str, spec: dict) -> list[str]:
         for i, part in enumerate(spec.get("parts") or []):
             out += _pair_problems(f"parts[{i}]", part, ("label", "value"),
                                   "AR-1: decompose")
+        out += _arithmetic(spec, "decompose")
     elif move == "bridge":
         if isinstance(spec.get("pieces"), list) and not spec["pieces"]:
             out.append(
@@ -263,6 +320,7 @@ def _move_problems(move: str, spec: dict) -> list[str]:
         for i, piece in enumerate(spec.get("pieces") or []):
             out += _pair_problems(f"pieces[{i}]", piece, ("label", "delta"),
                                   "AR-1: bridge")
+        out += _arithmetic(spec, "bridge")
     elif move == "position":
         if isinstance(spec.get("items"), list) and len(spec["items"]) < 2:
             out.append(
@@ -284,6 +342,54 @@ def _move_problems(move: str, spec: dict) -> list[str]:
                     "spec carries fewer than two points with both an x and a "
                     "y. One point is not a relation (AR-1)")
     return out
+
+
+def _arithmetic(spec: dict, move: str) -> list[str]:
+    """-> the finding when the numbers do not add up. **The prize.**
+
+    Every other check in this package is about the DOCUMENT: whether a class is
+    declared, a reference resolves, a mark is drawn in proportion. This is an
+    assertion about the author's DATA, and no existing check could make it,
+    because before this artefact nothing held both the total and its parts.
+
+    It is silent when a value cannot be read as a number — `problems` has
+    already said so in its own words, and two findings for one cause reads as
+    two defects.
+    """
+    def _n(obj, key):
+        return num(obj.get(key)) if isinstance(obj, dict) else None
+
+    if move == "decompose":
+        total = _n(spec.get("total"), "value")
+        parts = [_n(p, "value") for p in spec.get("parts") or []]
+        if total is None or not parts or any(v is None for v in parts):
+            return []
+        ok, residual = _reconciles(total, parts)
+        if ok:
+            return []
+        return [
+            f"the parts do not account for the total: they sum to "
+            f"{sum(parts):g} against a total of {total:g}, leaving {residual:g} "
+            f"unaccounted for. A decompose is MECE (AR-1) — mutually exclusive "
+            f"and collectively exhaustive — so either a part is missing, a "
+            f"value is wrong, or the remainder is real and belongs on the "
+            f"figure as its own named part rather than as a gap the reader "
+            f"cannot see"]
+
+    before = _n(spec.get("before"), "value")
+    after = _n(spec.get("after"), "value")
+    deltas = [_n(p, "delta") for p in spec.get("pieces") or []]
+    if before is None or after is None or not deltas or any(d is None for d in deltas):
+        return []
+    ok, residual = _reconciles(after - before, deltas)
+    if ok:
+        return []
+    return [
+        f"the pieces do not reconcile the change: they sum to {sum(deltas):g} "
+        f"against a move from {before:g} to {after:g}, which is "
+        f"{after - before:g} — {residual:g} unexplained. A bridge exists to "
+        f"attribute a change to its causes (AR-1), so a bridge that does not "
+        f"close is asserting a cause it has not found"]
 
 
 def load(path: pathlib.Path) -> tuple[dict | None, str | None]:

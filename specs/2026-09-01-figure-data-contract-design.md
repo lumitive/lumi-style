@@ -462,6 +462,24 @@ forever and red line 1's only instrument goes blind. The contract is written
 from the engagement; the spec is written for a figure; the check is that they
 agree.
 
+### 9.2b · `position` has a shape and no tool, deliberately
+
+The schema carries `position` — `axes` plus `items` — because a 2x2's data is
+expressible and a spec for one is a legitimate thing to write. **No tool draws
+it, and none is planned in this plan.**
+
+Three reasons, each checked: the registry's three `position` entries
+(`two-by-two`, `swot`, `nine-box`) are library-drawn and none declares
+`drawn: "native"`, so the framework already HAS its drawing; the move has no
+arithmetic invariant, so the assertion that makes `decompose` and `bridge`
+worth a tool does not exist here; and a 2x2's value is the labelled quadrant a
+person names, which a generator would have to invent. Demanding a spec of one
+is AG-10's trap in its clearest form.
+
+So `position` is **scoped out with its shape kept**: an author who wants the
+data recorded can write the spec and the contract will hold it, and no page is
+ever asked to produce one.
+
 ### 9.3 · What gates, and what does not
 
 **Nothing mandates that a figure have a spec.** Schematics, 2×2s, the globe and

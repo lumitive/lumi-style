@@ -130,7 +130,12 @@
    ],
    "misuse": "The pieces must add to the gap; a waterfall that does not reconcile asserts an explanation the numbers refuse",
    "shapes": [],
-   "drawn": "native"
+   "drawn": "native",
+   "tool": {
+    "module": "waterfall_svg",
+    "run": "python3 scripts/render/waterfall_svg.py --data <spec.json>",
+    "draws": "a before, an after, and the pieces that account for the distance between them, from one zero axis. It cannot draw a bridge whose deltas do not close — the contract refuses it."
+   }
   },
   "harvey-scorecard": {
    "question": "How do these options compare across the criteria that matter, at a glance and without false precision?",
@@ -160,7 +165,12 @@
    ],
    "misuse": "A top-down report figure pasted as the market is a citation wearing a sizing; the factors must come from the business's current customers and prices, and the arithmetic must be printed, not narrated",
    "shapes": [],
-   "drawn": "native"
+   "drawn": "native",
+   "tool": {
+    "module": "breakdown_svg",
+    "run": "python3 scripts/render/breakdown_svg.py --data <spec.json>",
+    "draws": "one bar broken into its parts in the author's own order, each carrying its own value. Not a pie: an angle is read less accurately than a length. It cannot draw parts that do not sum to their total."
+   }
   },
   "three-horizons": {
    "question": "What do we do now, next, and later, and why does the order hold?",

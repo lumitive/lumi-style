@@ -96,7 +96,10 @@ def test_a_negative_value_is_refused_rather_than_drawn():
 
 
 def test_an_unreadable_value_is_refused_rather_than_guessed():
-    with pytest.raises(SystemExit, match="carries no number"):
+    """The CONTRACT catches it now, one layer before the renderer: a quantity
+    that is not a number was "filled" until 0.1.669 and only the tools that
+    happened to have a numeric guard refused it."""
+    with pytest.raises(SystemExit, match="is not a number"):
         bm.render(_bench(subject={"label": "Us", "value": "many"}))
 
 
