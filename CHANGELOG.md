@@ -1,3 +1,62 @@
+## 0.1.669 — the arithmetic moves, and the first check in this package that is about the author's data
+
+Step 4 of `specs/2026-09-01-figure-data-contract-design.md`. `decompose` and
+`bridge` are the two moves whose figures make a claim that can be *wrong*
+rather than merely unclear, and the contract is now what says so.
+
+**A decompose whose parts do not sum to its total is refused. A bridge whose
+pieces do not reconcile before to after is refused.** These are the only
+assertions in this package about the author's DATA. Every other check asks
+something about the document — whether a class is declared, a reference
+resolves, a mark is drawn in proportion to the value beside it. None of them
+could make this one, because before the figure spec existed nothing held both
+the total and its parts.
+
+**The residual is a CEILING, and a tight one: 0.5% of the total.** Parts stated
+to one decimal do not sum exactly, and refusing that would fail correct data —
+but at half a percent a genuinely missing part shows up in any figure whose
+smallest slice a reader can see. The cheap way to satisfy it is to name the
+remainder as its own part, which is what the reader needed anyway. A relative
+test is meaningless near zero, so an absolute floor takes over: a total of 0.4
+with parts of 0.1 and 0.2 is 25% out and does not pass because the numbers are
+small.
+
+**`waterfall_svg` draws the bridge and `breakdown_svg` draws the decompose**,
+both shipped to `consumer_seeds` before their registry entries, as
+`framework tools` requires. The waterfall floats each piece from the running
+total on one zero axis and declares the MAGNITUDE it draws — the sign is in the
+colour and the label, because a probe measuring pixels has no way to read a
+negative length. The breakdown is one bar in the author's own order, never a
+pie: an angle is read less accurately than a length, and comparing two slices
+of a circle is the one comparison the eye is worst at.
+
+**A quantity that is not a number was passing the contract.** Found by writing
+the test for the arithmetic, not by reading the code: `{"label": "a", "value":
+"lots"}` satisfied "is filled", so the contract accepted it and only the tools
+that happened to carry their own numeric guard refused to draw it. `value`,
+`delta`, `x` and `y` must now parse as numbers, in the contract, one layer
+before any renderer.
+
+**Two defects the render found and the gates did not.** The breakdown
+alternated two tokens across its segments, so on a three-part bar the first and
+third were the same green — one colour one meaning, and two segments sharing a
+colour read as two segments of a kind. Only the leading part takes the accent
+now, and separability comes from a gap, which asserts nothing. And both new
+tools emitted `&#183;`, which answers a colour-literal probe (`#183`) and would
+have read as a defect in every figure that used it.
+
+**`position` is scoped out with its shape kept**, and §9.2b says why: its three
+registry entries are library-drawn and none declares `drawn: "native"`, so the
+framework already has its drawing; the move has no arithmetic invariant, so the
+assertion that makes the other two worth a tool does not exist; and a 2x2's
+value is the labelled quadrant a person names, which a generator would have to
+invent. An author who wants the data recorded can still write the spec and the
+contract will hold it. Demanding one is AG-10 in its clearest form.
+
+Planted and caught, all four: parts short by 12, a bridge missing a piece, a
+bridge whose running total crosses zero, and a negative part — the last sent to
+the bridge by name, because a signed movement is that move and not this one.
+
 ## 0.1.668 — `compare` gets its two drawings, and the shipping order is the guard's to enforce
 
 Step 3 of `specs/2026-09-01-figure-data-contract-design.md`. `correlate` could

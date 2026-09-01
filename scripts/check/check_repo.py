@@ -3526,7 +3526,7 @@ def check_script_paths():
 SIBLING_MODULES = (
     "geo_projection", "geo_frame", "globe_svg", "regionmap_svg", "sea_route",
     "scatter_svg", "figure_spec", "figure_scale", "benchmark_svg",
-    "radar_svg",
+    "radar_svg", "waterfall_svg", "breakdown_svg",
     "color_math", "css_tokens", "lock", "deliverable_registry",
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",
