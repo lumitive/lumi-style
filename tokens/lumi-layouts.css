@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.675 (2026-08-19)
+   LUMI page layouts · v0.1.676 (2026-08-19)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -331,6 +331,29 @@ svg .lbl-lg { font-size: 13.5px; fill: var(--tx1); }
    bare `vertical-rl` reads downward, which is the other convention and the
    wrong one here. */
 svg .axname-x { font-size: 11px; fill: var(--tx3); }
+
+/* ── the rest of the figure text vocabulary (v0.1.676) ───────────────────
+   These five classes were emitted by eight renderers and styled by NOTHING.
+   Every drawing looked right only because each renderer also wrote an inline
+   `style=` for size and colour — so the class was a hook with no rendering
+   behind it, and a renderer that forgot the inline style produced text at the
+   SVG default with no gate able to see it. That is the drift CLAUDE.md warns
+   about running the other way: a probe or a generator keying on class names is
+   asserting a vocabulary, and the vocabulary has to ship here.
+
+   `.fread` is the one the owner's review named directly. It carries the
+   sentence a reader takes off the figure — "read this and you have the
+   finding" — and it was rendering at the same weight as a tick label. It is
+   set one step above the labels and in the primary ink, so the drawing's own
+   conclusion is the most legible line in the drawing. Inline styles still
+   win where a renderer needs a specific size; these are the floor. */
+svg .flbl  { font-size: 12px; fill: var(--tx2); }
+svg .ftick { font-size: 11px; fill: var(--tx3); }
+svg .fval  { font-size: 12px; font-weight: 700; fill: var(--tx1); }
+svg .fread { font-size: 14px; font-weight: 600; fill: var(--tx1); }
+/* The provenance line, and the quietest text in the package. The review put
+   its place exactly: a note above the footer rule, not a main position. */
+svg .fnote { font-size: 11px; fill: var(--tx4); }
 /* `transform-box: fill-box` is not decoration. The CSS `rotate` property turns
    the element about `transform-origin`, and for an SVG element that origin
    defaults to the USER-SPACE ORIGIN (0 0) rather than the glyph — so
@@ -912,8 +935,22 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    so a layout with its own gap starts its second row at a different height
    from every other page in the deck and the whole document loses its datum —
    which is what an 18px gap here did, on its first render. */
-.body.dense { grid-template-rows: auto auto 1fr auto; }
-.body.dense.no-lede { grid-template-rows: auto 1fr auto; }
+/* THE TRACK COUNT FOLLOWS THE CHILDREN, and it has to: a fixed four-track
+   template on a page with three children put `.fill` in an `auto` track — so
+   the drawing grew to its own height instead of taking what was left — and
+   `.finds` in the `1fr`, which was then 0px tall with its text overflowing
+   past the footer rule on six pages of one deck. `:has()` asks the page what
+   it actually carries. (The same selector form is already used further up for
+   a cell holding a table.) */
+.body.dense { grid-template-rows: auto 1fr auto; }
+.body.dense:has(> .figlead) { grid-template-rows: auto auto 1fr auto; }
+.body.dense.no-lede { grid-template-rows: 1fr auto; }
+.body.dense.no-lede:has(> .figlead) { grid-template-rows: auto 1fr auto; }
+/* The findings row never gives way: it is `auto` by construction above, and
+   this keeps its own children from being compressed into an unreadable box
+   when the drawing is tall. The drawing is what shrinks — it is the track
+   that can. */
+.body.dense > .finds { min-height: min-content; }
 .body.dense > .lede, .body.dense > .span { grid-column: 1 / -1; }
 /* The look-for line: ONE sentence, and the ceiling is a ceiling. It names what
    the reader should look for in the drawing, so a line that grows into a

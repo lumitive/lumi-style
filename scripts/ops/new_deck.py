@@ -808,7 +808,7 @@ def open_trace(genre, geometry, storyline, entry_path, out_path=None):
 
 
 def preamble(genre, geometry, storyline=None, trace_id=None,
-             lang="en", ask_quote=None):
+             lang="en", ask_quote=None, title=None):
     """Everything before the first page: the token block AND the sprite.
 
     Taken from the fixture rather than rebuilt, because the fixture is the
@@ -840,7 +840,14 @@ def preamble(genre, geometry, storyline=None, trace_id=None,
     # knows: the person who either said it or did not.
     head = re.sub(r'(<html[^>]*\blang\s*=\s*)["\'][\w-]+["\']',
                   lambda m: f'{m.group(1)}"{lang}"', head, count=1)
-    head = re.sub(r"<title>.*?</title>", "<title>REPLACE ME</title>", head, count=1)
+    # THE BROWSER-TAB TITLE, from the content where there is one. It stays
+    # `REPLACE ME` otherwise, and D14 refuses that: a 34-page review reached
+    # its reader with `REPLACE ME` in the tab because nothing filled it and
+    # nothing asked. An author who has written a cover title has already
+    # written this one.
+    head = re.sub(r"<title>.*?</title>",
+                  f"<title>{html.escape(title) if title else 'REPLACE ME'}</title>",
+                  head, count=1)
     # The face rides along. design-rules.md requires it embedded, and when
     # embedding was a separate step, two deliverables in one week shipped with
     # zero @font-face blocks and rendered in the system stack. The fixture
@@ -1272,8 +1279,11 @@ def main(argv):
     total = args.pages + 3 + len(parts) + apparatus
     trace_id = None if args.no_trace else open_trace(
         args.genre, args.geometry, args.storyline, args.entry_path, args.out)
+    cover = content.get("cover") or {}
+    doc_title = " ".join(str(cover.get(k) or "").strip()
+                         for k in ("title", "subject")).strip()
     out = [preamble(args.genre, args.geometry, args.storyline, trace_id,
-                    args.lang, args.lang_asked)]
+                    args.lang, args.lang_asked, doc_title or None)]
 
     # The cover title carries TWO INKS: the claim in ink, the noun the deck is
     # about as lime on its own dark chip (`.subj`) — the same green the part
@@ -1404,7 +1414,8 @@ def main(argv):
                     or "The line the reader carries off this page.")
             move = sec.get("move", "")
             hint = framework_for(move)
-            sup = pg.get("sup") or sup_for(move)
+            sup, figlead_row = deck_content.look_for(pg)
+            sup = sup or sup_for(move)
             adecl = f' data-analysis="{move}"' if move else ""
             # SEEDED WITH THE PAGE'S OWN TITLE, so two documents about
             # different subjects do not arrive as the same drawings.
@@ -1522,8 +1533,8 @@ def main(argv):
                 # because that variable builds the two-cell shapes, and a dense
                 # page has one cell by construction.
                 figlead = (f'\n    <p class="figlead">'
-                           f'{html.escape(str(pg["figlead"]))}</p>'
-                           if pg.get("figlead") else "")
+                           f'{html.escape(figlead_row)}</p>'
+                           if figlead_row else "")
                 out.append(f'''<section class="page" id="p{n}"{adecl}{specdecl}>
   {g}
   <div class="body dense">

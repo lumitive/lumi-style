@@ -164,7 +164,7 @@ Gathered separately at the owner's direction: these are the pages the argument i
 | Shorten the title text when the title block does not fit. | `SKILL.md:506` | — | `reserve_overspent` | yes |
 | Never clamp or hide overflow on the title block. | `SKILL.md:507` | — | `content_hidden` | yes |
 | Give charts one accent colour, conclusion-style titles, and a source line on every figure. | `SKILL.md:785` | — | `—` | no |
-| Follow the question to framework to shape chain, drawing a declared move with the library shapes that framework names. | `references/analysis-rules.md:107` | — | `D32` | yes |
+| Follow the question to framework to shape chain, drawing a declared move with the library shapes that framework names. | `references/analysis-rules.md:108` | — | `D32` | yes |
 | Declare on every content section of an external document which of the five analytical moves produced its finding. | `references/analysis-rules.md:26` | — | `D31` | no |
 | Use --acc-live for strokes, chart marks and small fills inside figures. | `references/brand.md:189` | — | `—` | no |
 | Allow one lime event per body page and render it as a fill, never a rule, stroke or caption. | `references/brand.md:218` | — | `—` | no |

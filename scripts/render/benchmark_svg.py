@@ -130,8 +130,15 @@ def render(spec, orientation="landscape", path="the spec"):
             f"draw it as a bridge, which is the move for a signed change.")
 
     W, H = BOX[orientation]
+    # THE BOX HEIGHT IS THE ROWS' HEIGHT, not a constant. At a fixed 600 a
+    # four-bar figure carried 240 units of empty box, and on a `dense` page —
+    # where the drawing takes what the text leaves — `max-height` then scaled
+    # the whole thing down to about half the content width. The reader got a
+    # small chart with a large margin. Measured on the page, which is the only
+    # place a figure's size is visible.
     left = LABEL_W[orientation]
     top, right = 34, 40
+    H = min(H, round(top + FOOT + (BAR_MAX + BAR_GAP) * max(len(rows), 1)))
     plot_w = W - left - right
     plot_h = H - top - FOOT
 
@@ -175,7 +182,15 @@ def render(spec, orientation="landscape", path="the spec"):
     for i, (label, value, is_subject) in enumerate(rows):
         y = plot_top + i * band + (band - bar_h) / 2
         w = plot_w * (value / hi)
-        fill = "var(--acc)" if is_subject else "var(--tx3)"
+        # THE BARS CARRY THE BRAND. They were `--tx3` for every reference, so
+        # a figure whose SUBJECT is zero — the case this deck's catalog page
+        # is — drew nothing in the palette at all, and the owner's review said
+        # exactly that: the colours are wrong, there is no brand green. The
+        # ramp is the right token: `tokens/lumi-theme.css` says it is for
+        # fields and surfaces and carries no meaning, which is what a set of
+        # bars counting the same thing needs. `--acc` stays the subject's, and
+        # `one colour one meaning` is untouched.
+        fill = "var(--acc)" if is_subject else "var(--acc-4)"
         if value > 0:
             parts.append(
                 f'<rect data-datum="{figure_scale.fmt(value)}" x="{left:.1f}" '
@@ -206,7 +221,12 @@ def render(spec, orientation="landscape", path="the spec"):
     unit = str(measure.get("unit") or "")
     parts.append(
         f'<text class="axname-x" x="{left + plot_w / 2:.1f}" '
-        f'y="{plot_bottom + 56:.1f}" text-anchor="middle">'
+        f'y="{plot_bottom + 56:.1f}" text-anchor="middle" '
+        # THE AXIS NAME IS READ FROM THE ROOM, so it is set at the size a
+        # reader can read from it. The review: "the horizontal axis name is
+        # not prominent enough". It inherited `.axname-x`'s base size, which
+        # is written for a chart occupying half a page.
+        f'style="font-size:14px;font-weight:700">'
         f'{html.escape(str(measure["name"]))}'
         f'{" \u00b7 " + html.escape(unit) if unit else ""}</text>')
 

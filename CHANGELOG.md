@@ -1,3 +1,103 @@
+## 0.1.676 — the rebuild, and eleven things only the rendered page could say
+
+Step 5 of `specs/2026-09-01-build-cost-and-density-design.md`: the ten-page deck
+the owner reviewed, rebuilt with the tools of 0.1.672 through 0.1.675, page by
+page against what she said about each one. Everything below was found by
+building that deck and looking at it.
+
+**The build cost, measured against the same document.** The first build: a
+519-line assembly script, 19 hand-written substitutions, 12 wrong guesses about
+markup shape. This one: **one content file, zero substitutions, zero markup
+guesses** — the deck is `new_deck.py --content` and seven rendered figures.
+Every deliverable check reports clean, both fact verdicts hold, and no
+gating layout finding fires at the design stage or across the five off-shape
+windows.
+
+**A seventh renderer, `lanes_svg.py` — the layer map.** Her note on one page was
+that the drawing was complex, expressed none of the prose beside it, and left
+her asking what the relation between its left half and its right half was. The
+page's claim was that a stack has two layers with different properties; the
+figure had no layer in it. A layer map answers that in its structure: each layer
+is a named band that says what it is responsible for, each item is a chip inside
+its own band, and one criterion is drawn ON the chip. `lanes` joins `criteria`
+as compare's second refinement and the two are exclusive — a radar compares one
+subject across several axes, a layer map compares several subjects that sit in
+different layers, and a spec carrying both has not chosen its figure. An item
+whose lane is not declared is refused rather than defaulted into the first band:
+a default draws a claim the spec does not make, and the reader cannot see that
+it was a guess.
+
+**The figure text vocabulary now ships.** `flbl`, `ftick`, `fval`, `fread` and
+`fnote` were emitted by eight renderers and styled by NOTHING. Every drawing
+looked right only because each renderer also wrote an inline `style=`, so the
+class was a hook with no rendering behind it and a renderer that forgot the
+inline style produced text at the SVG default with no gate able to see it. That
+is the drift CLAUDE.md warns about running the other way — a generator keying on
+class names is asserting a vocabulary, and the vocabulary has to ship in
+`tokens/`. `.fread` is the one her review named: it carries the sentence a
+reader takes off the figure and it was set at tick-label weight.
+
+**Three boxes were bigger than their drawings**, and on a `dense` page — where
+the figure takes what the text leaves — `max-height` then scaled each whole
+figure down to roughly half the content width. The reader got a small chart with
+a large margin, with nothing red anywhere. The benchmark's box is the rows' height
+now, the breakdown's is its own last text node, and the quadrant's aspect is set
+by the height a dense page actually leaves. Measured, not chosen.
+
+**The bars carry the brand.** Every reference bar was `--tx3`, so a figure whose
+SUBJECT is zero — an empty commerce catalog, which is exactly the page she
+faulted — drew nothing in the palette at all. Her words were that the colours
+are wrong and there is no brand green. The ramp is the right token: the theme
+says it is for fields and surfaces and carries no meaning, which is what a set
+of bars counting one thing needs. `--acc` stays the subject's, and `one colour
+one meaning` is untouched.
+
+**The two-by-two's state vocabulary names the MARK, not the market.** It was
+`rival` / `exited` / `ours`, and the first non-competitive map this tool was
+asked to draw — a five-cell integration matrix — had to call every cell a rival
+to be drawn at all. A vocabulary that forces a wrong word into a spec file will
+be believed by whoever reads that spec next. They are `plain` / `faded` /
+`marked`; `faded` is still how a player who left the market stays on the map as
+a finding, and `marked` no longer takes the acid green — on the light canvas
+that measures 1.21:1, so the one position the figure exists to argue for was
+invisible. The lime guard watches TEXT and would not have caught a circle.
+
+**Four defects the rendered page found and no check could.**
+
+- The dense layout declared four grid tracks and got three children, so `.fill`
+  took an `auto` track and grew to its own height while `.finds` took the `1fr`
+  and was 0px tall with its text overflowing past the footer rule on six pages.
+  The track count follows the children now, via `:has()`.
+- The dense layout's own 18px row gap broke the deck's datum: `inspect_layout`
+  measures the first non-`.lede` child, so a layout with its own gap starts its
+  second row at a different height from every other page.
+- The quadrant's answer label was pinned to its quadrant's top-left corner and
+  printed straight through the one mark the figure exists to argue for. It goes
+  in the emptiest corner now — and the membership test that finds "emptiest" was
+  wrong on its first write, comparing a TOP fraction against a value that grows
+  upward, so it found no items anywhere and ranked all four corners equal.
+- Its body then wrapped to a fixed third of the quadrant and ran 15 units into
+  the same mark, in the wider windows only. It wraps to the room that is
+  actually there.
+
+**A false positive that would have edited the document.** `check_facts` held a
+two-by-two's placements to the fact contract and reported eight unsourced
+quantities on a correct figure. A 2x2's axes are ordinal — `quadrant_svg`
+refuses any placement outside 0 to 1 for that reason — so 0.42 is not a fact
+about the world and no contract can list it. The only ways to clear the finding
+were to invent facts or delete the figure, which is AG-10 exactly. `correlate`
+points keep their x and y: those ARE the measured data. And a key called `x`
+whose value is a mapping is an AXIS, not a value; it was being stringified into
+the report.
+
+**The browser-tab title comes from the content.** It was the scaffold's
+`REPLACE ME` slot, which D14 refuses and which reached a reader in a 34-page
+review once. An author who has written a cover title has written this one.
+
+*Deliberate red for the layer map:* one lane, an item in no declared lane, a
+free-text verdict and an item with no chip, each watched to fail before the
+renderer was wired to anything.
+
 ## 0.1.675 — PowerPoint, one composed page per slide
 
 Step 4 of `specs/2026-09-01-build-cost-and-density-design.md`.

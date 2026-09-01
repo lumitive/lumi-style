@@ -285,3 +285,42 @@ def test_a_real_figure_beside_the_apparatus_still_gates():
                              "Figure 10 · 41% of respondents agreed.</p></html>")
     assert "41" in r["unsourced_quantities"], (
         f"the gate stopped seeing a real figure: {r['unsourced_quantities']}")
+
+
+# --- a placement is not a quantity (0.1.676) --------------------------------
+
+def test_a_two_by_two_placement_is_not_held_to_the_fact_contract():
+    """AG-10: a two-by-two's axes are ordinal, and `quadrant_svg` refuses any
+    placement outside 0 to 1 because the number claims no precision. A fact
+    contract cannot list 0.42 — it is not a fact about the world. Held to
+    this, a correct integration matrix reported eight unsourced quantities and
+    the only ways to clear them were to invent facts or delete the figure."""
+    import check_facts
+    spec = {"move": "position",
+            "axes": {"x": {"name": "prerequisite", "unit": "host",
+                           "low": "none", "high": "renderer"},
+                     "y": {"name": "dynamism", "unit": "run time",
+                           "low": "static", "high": "generative"}},
+            "items": [{"label": "A", "x": 0.42, "y": 0.86, "note": "n"}]}
+    assert check_facts._spec_values(spec) == []
+
+
+def test_a_scatter_point_IS_held_to_it():
+    """The exclusion is the move's, not the field name's: a `correlate`
+    point's x and y are the measured data, and dropping them would blind red
+    line 1 on the one figure that is nothing but numbers."""
+    import check_facts
+    spec = {"move": "correlate",
+            "x": {"name": "hours", "unit": "h"}, "y": {"name": "seats", "unit": "%"},
+            "points": [{"x": 12, "y": 34}]}
+    assert sorted(check_facts._spec_values(spec)) == [12, 34]
+
+
+def test_an_axis_mapping_is_never_collected_as_a_value():
+    """`axes.x` is the x AXIS. It was appended whole and stringified, so the
+    report named a dict among the document's unsourced numbers."""
+    import check_facts
+    spec = {"move": "correlate",
+            "x": {"name": "hours", "unit": "h"}, "y": {"name": "seats", "unit": "%"},
+            "points": []}
+    assert check_facts._spec_values(spec) == []

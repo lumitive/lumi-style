@@ -37,7 +37,7 @@ def _quad(**over):
                       "y": {"name": "generated live", "unit": "ordinal",
                             "low": "static", "high": "generative"}},
                 items=[{"label": "A2UI over A2A", "x": .82, "y": .86,
-                        "note": "agent drives from the conversation", "state": "ours"},
+                        "note": "agent drives from the conversation", "state": "marked"},
                        {"label": "MCP Apps alone", "x": .14, "y": .34,
                         "note": "self-contained, own brand"}],
                 open={"at": "upper-right", "head": "generative and host-framed",
@@ -151,15 +151,21 @@ def test_an_exited_player_is_kept_and_dimmed():
     """Deleting them loses the finding; dimming them states it."""
     spec = _quad()
     spec["items"].append({"label": "Tome", "x": .3, "y": .55,
-                          "note": "exited slides, 2025-03", "state": "exited"})
+                          "note": "exited slides, 2025-03", "state": "faded"})
     svg = qd.render(spec)
     assert "Tome" in svg
     assert 'opacity="0.45"' in svg
 
 
-def test_our_position_takes_its_own_token():
+def test_the_marked_position_takes_the_accent_and_never_the_lime():
+    """It took `--lime` for one release, which was wrong on the light canvas:
+    the theme's own note says the acid green is a SURFACE there and never a
+    mark, and a 7px lime dot on white measures 1.21:1 — the reader cannot see
+    the one position the figure exists to argue for. `check_design`'s lime
+    guard watches TEXT and would not have caught a circle."""
     svg = qd.render(_quad())
-    assert "var(--lime)" in svg
+    assert "var(--acc)" in svg
+    assert "var(--lime)" not in svg
 
 
 def test_the_plot_is_one_rect_and_two_lines():
@@ -176,8 +182,15 @@ def test_a_placement_outside_the_axes_is_refused():
 
 
 def test_the_truth_condition_is_stated():
-    """DR-11: a 2x2 must say its axes are independent."""
-    assert "independent capabilities" in qd.render(_quad())
+    """DR-11: a 2x2 must say its axes are independent.
+
+    Read from the JOINED note rather than the raw markup: the source line
+    wraps to fit the box since 0.1.676, so the phrase legitimately spans two
+    `<text>` nodes and the reader still reads it. Asserting on the raw string
+    made a correct figure fail."""
+    svg = qd.render(_quad())
+    note = " ".join(re.findall(r'class="fnote"[^>]*>([^<]*)<', svg))
+    assert "independent capabilities" in note
 
 
 def test_both_axes_are_named_with_the_shipped_classes():
@@ -259,3 +272,21 @@ def test_a_two_stage_timeline_does_not_become_a_letterbox():
     assert got, "the drawing declares no viewBox"
     h = float(got.group(1))
     assert h >= tl.BOX_H_FLOOR["landscape"]
+
+
+def test_the_source_line_stays_inside_the_box():
+    """It ran 141 units past its own viewBox on the first real spec, where
+    `figure_clipped` found it. A drawing clipped by its own viewBox is
+    invisible rather than wrong, which is the failure mode worth a test."""
+    spec = _quad()
+    spec["source"] = ("A very long first-party provenance sentence naming the "
+                      "reading, the reader and the date it was taken, 2026-08-11.")
+    svg = qd.render(spec)
+    got = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', svg)
+    assert got
+    w, h = float(got.group(1)), float(got.group(2))
+    for m in re.finditer(r'<text x="([\d.]+)" y="([\d.]+)" class="fnote"', svg):
+        assert float(m.group(2)) <= h, "the note sits below its own box"
+    # And every line is short enough to fit the width it was wrapped to.
+    for line in re.findall(r'class="fnote"[^>]*>([^<]*)<', svg):
+        assert len(line) * 6.6 <= w, f"{line!r} is wider than the box"

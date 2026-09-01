@@ -205,13 +205,26 @@ def render(spec, orientation="landscape", path="the spec"):
     for j, line in enumerate(read_lines):
         parts_out.append(f'<text class="fread" x="{left:.1f}" '
                          f'y="{read_y + j * 20:.1f}">{html.escape(line)}</text>')
+    note_y = read_y + len(read_lines) * 20 + 24
     parts_out.append(
-        f'<text class="fnote" x="{left:.1f}" '
-        f'y="{min(read_y + len(read_lines) * 20 + 24, H - 12):.1f}">'
+        f'<text class="fnote" x="{left:.1f}" y="{note_y:.1f}">'
         f'{html.escape(str(spec["source"]))} · '
         f'{html.escape(str(spec["period"]))} · '
         f'{html.escape(str(spec["cause"]))}</text>')
     parts_out.append("</svg>")
+    # THE BOX IS THE DRAWING. At a fixed 600 a one-bar breakdown carried some
+    # 180 units of empty box, and on a `dense` page — where the drawing takes
+    # what the text leaves — `max-height` scaled the whole figure down to fit a
+    # height a third of which was nothing. The reader got a small chart with a
+    # large margin, on every gate green. The clamp above was doing the same
+    # damage from the other side: it pinned the source to the box floor when
+    # the labels ran long, which §4 rule 17 asks for as an ORDER and not as a
+    # position.
+    fitted_h = max(round(note_y + 12), top + BAR_H + 60)
+    if fitted_h != H:
+        parts_out[0] = parts_out[0].replace(
+            f'viewBox="0 0 {W} {H}"', f'viewBox="0 0 {W} {fitted_h}"').replace(
+            f'height="{H}"', f'height="{fitted_h}"')
     return "\n".join(parts_out)
 
 

@@ -327,7 +327,7 @@ def render(spec, tier: str = "light", orientation: str = "landscape",
     ]
     for j, line in enumerate(read_lines):
         out.append(f'<text class="fread" x="0" y="{foot_y + 26 + j * 20:.0f}" '
-                   f'style="font-size:13px">{html.escape(line)}</text>')
+                   f'style="font-size:14px;font-weight:600">{html.escape(line)}</text>')
     # LAST, and small: the evidence line is a note, not the page's subject.
     out.append(
         f'<text class="fnote" x="0" y="{note_y:.0f}" '

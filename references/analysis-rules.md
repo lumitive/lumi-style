@@ -32,7 +32,8 @@ insight?
 1. **Compare** — set the fact against a benchmark, a time series, or a peer
    group. The finding names the gap and its direction. Input shape: one
    value plus at least one reference value. Frameworks: benchmark table,
-   radar, Harvey scorecard. The tell that it is missing: a number standing
+   radar, Harvey scorecard, layer map (when the items sit in two or more
+   LAYERS and the split is itself the argument). The tell that it is missing: a number standing
    alone with no reader able to say whether it is good.
 2. **Decompose** — break the whole into parts that are mutually exclusive
    and collectively exhaustive, then find the part that carries the story.

@@ -48,6 +48,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
+import figure_scale  # noqa: E402
 import figure_spec  # noqa: E402 — after the bootstrap
 import markup  # noqa: E402 — after the bootstrap
 
@@ -341,16 +342,47 @@ def _canonical(value) -> str:
 
 
 def _spec_values(spec) -> list:
-    """-> every number a spec states, wherever its move keeps them."""
+    """-> every number a spec states AS A QUANTITY, wherever its move keeps it.
+
+    Two exclusions, and both are AG-10 — a gate a correct answer cannot satisfy
+    does not get obeyed, it gets satisfied:
+
+    **A `position` item's `x` and `y` are not quantities.** A two-by-two's axes
+    are ordinal, and `quadrant_svg` refuses any placement outside 0 to 1 for
+    exactly that reason: the number claims no precision, it says which side of
+    the middle the item sits on. A fact contract cannot list 0.42, because
+    0.42 is not a fact about the world. Held to this, a correct integration
+    matrix reported eight unsourced quantities and the only ways to clear them
+    were to invent facts or to delete the figure. `correlate` points keep their
+    `x` and `y`: those ARE the measured data.
+
+    **A key called `x` whose value is not a number is not a value.** `axes.x`
+    is the x AXIS — a mapping of name, unit and the ramp's ends — and it was
+    being appended whole and stringified, so the report named a dict among the
+    unsourced numbers. Only numeric leaves are collected now.
+    """
     found: list = []
+    ordinal = str(spec.get("move") or "").lower() == "position"
+
+    def take(v):
+        if figure_scale.num(v) is not None:
+            found.append(v)
 
     def walk(node):
         if isinstance(node, dict):
             for k, v in node.items():
-                if k in ("value", "delta", "x", "y"):
-                    found.append(v)
+                if k in ("value", "delta"):
+                    take(v)
+                elif k in ("x", "y"):
+                    if ordinal:
+                        continue        # a placement, not a measurement
+                    if isinstance(v, (dict, list)):
+                        walk(v)         # `axes.x` is an axis, not a value
+                    else:
+                        take(v)
                 elif k == "values":
-                    found.extend(v or [])
+                    for one in (v or []):
+                        take(one)
                 else:
                     walk(v)
         elif isinstance(node, list):

@@ -249,6 +249,23 @@
     "run": "python3 scripts/render/radar_svg.py --data <spec.json>",
     "draws": "compare across three or more criteria at once: one shared zero-to-max scale on every spoke, the subject in the accent, and the datum on each VERTEX rather than on the polygon — a radar's area grows with the square of its values."
    }
+  },
+  "layer-map": {
+   "question": "Which layer does each of these sit in, and what does each one cost?",
+   "move": "compare",
+   "slots": [
+    "two or more named layers, each with what it is responsible for",
+    "every item in exactly one layer, stated and never defaulted",
+    "one criterion drawn ON each item, as a chip"
+   ],
+   "misuse": "A layer map whose bands are categories rather than LAYERS is a grouped list: the split has to carry an argument the reader can act on. An item dropped into a band by default draws a claim the spec does not make, which is why the renderer refuses one.",
+   "shapes": [],
+   "drawn": "native",
+   "tool": {
+    "module": "lanes_svg",
+    "run": "python3 scripts/render/lanes_svg.py --data <spec.json>",
+    "draws": "compare as two or more labelled LAYERS: each band names what it is responsible for, each item is a chip inside its own band, and one criterion is drawn on the chip — so the reader takes the split and the verdict in one look rather than from a legend."
+   }
   }
  }
 }
