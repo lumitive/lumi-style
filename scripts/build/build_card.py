@@ -109,7 +109,11 @@ def _role_names() -> list[str]:
     wanted = ("eyebrow", "t", "sup", "lede", "take", "key", "red", "card",
               "ledname", "verdict", "swap", "vow", "tag", "grades", "gloss",
               "listhead", "gd", "cap", "srcline", "band", "stats", "stat",
-              "fig", "fill", "field", "colophon", "closenote", "launch")
+              "fig", "fill", "field", "colophon", "closenote", "launch",
+              # the dense figure page (0.1.673): the look-for line above the
+              # drawing, and the findings that close it. `figlead` rather than
+              # `lead` because `.lead` was already the big-number block.
+              "figlead", "finds", "find", "fno")
     present = [w for w in wanted if re.search(rf"\.{re.escape(w)}\b", css)]
     return present
 

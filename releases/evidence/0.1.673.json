@@ -1,0 +1,24 @@
+{
+  "version": "0.1.673",
+  "diff_base": "c2466013cdfcc5bf9caa0fab306bf3c14ef8c9a9",
+  "spec": "specs/2026-09-01-figure-data-contract-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "851dd6cffe2e56a020c41e722876610fbb71f7c235c480cb34fd4f32d5083611",
+      "date": "2026-09-01"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "UNCONFIRMED: whether the agents outside this session can compose the dense figure page and the findings row from the rules as written. This release touches tokens/ and references/, so the obligation is correctly raised. Refreshing the board means driving >=2 agents through the task set with the owner's own keys and installs; one of them is hand-driven and the run is hers to authorise, so it cannot happen inside this release. Recording `validate` would prove nothing \u2014 it exits 0 on a stale board, and the gate refuses that path for exactly this reason. The obligation is deferred to the next driven round, not discharged: until then the only evidence for the new layout is this repository's own render, which is a check on the CSS and not on whether an agent reaches for it."
+    }
+  ]
+}

@@ -494,6 +494,7 @@ look like it.
   | long prose with small supporting evidence | `split-narrow` |
   | a claim whose qualifications are as load-bearing as itself | `sidebar-notes` |
   | a three-stage sequence read downward | `thirds-v` |
+  | a figure that IS the page, with one lead line and its findings | `dense` |
   | a progression where direction carries meaning | `diagonal-flow` |
   | a part divider or section opener | `full-bleed` (the lime field) or `rail` |
   | a table of 6 or more columns | `stack`, no exceptions |
@@ -1748,3 +1749,42 @@ This is the artefact a rebuild inherits, a translation redraws from, and the
 fact contract is compared against. It is never the fact contract itself: one
 source would make `unsourced` empty forever and red line 1's only instrument
 would go blind.
+
+## DR-22 · A figure carries as much content as its move needs
+
+*Serves: **P-4**.* · id `DR-22`
+
+**A library shape with two words on it is an icon wearing a caption.** Until
+0.1.672 the only way to put words into one of the 206 vendored units was two
+labels at the drawing's bottom corners, so a staircase arrived with no dates, a
+flow with no stage names, and a two-by-two as an empty box with an axis word at
+each end. The pages built that way passed every gate — nothing measured how
+much the drawing said — and every one of them came back from the reader.
+
+**Each analytical move has a minimum the drawing must carry**, and it is the
+move's own input shape rather than a word count:
+
+| move | the drawing names | and would be empty without |
+|---|---|---|
+| `bridge` with `stages` | every stage: its date and its name | the axis the stages sit on |
+| `position` | every item: its dot, its name, its qualifier | the quadrant that carries the finding |
+| `decompose` | every part: its share and its name | the total the shares are of |
+| `compare` | every reference: its value and its name | the subject the references are against |
+| `correlate` | the axes with units, the fitted direction | the count of points and the period |
+
+`correlate` is the one move whose members are deliberately unnamed: a scatter's
+points are dots, and a rule demanding a label on each would fail the figure that
+is drawn correctly.
+
+**The floor is the move's, not a number written here.** `figure_slots.compose`
+refuses a composition with no slots for exactly this reason: a shape composed
+with nothing to say cannot be produced by accident, so the failure happens at
+the drawing rather than at the review.
+
+**Figure text stops at 12px, and that is a floor rather than a target.** The
+reference deck this rule was calibrated against goes to 9.3px and its own spec
+justifies the choice by scoping the audience to a meeting-room screen and a PDF
+read at arm's length. LUMI's delivery includes a projected screen, so the floor
+is higher and the trade is stated rather than inherited: a figure that only fits
+at 10px is a figure carrying a second page's worth of content, and the answer is
+to split it.

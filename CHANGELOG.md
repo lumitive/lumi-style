@@ -1,3 +1,79 @@
+## 0.1.673 — the figure page the reader asked for, and the gate that can see an empty drawing
+
+This continues `specs/2026-09-01-figure-data-contract-design.md`. 0.1.672
+built the renderers; this release gives them a page to live on, and gives
+the package a way to tell a full drawing from an empty one.
+
+**`.body.dense` — the figure IS the page.** One look-for line above the
+drawing, the drawing taking the whole middle row, and two to four findings
+below saying what it means. Nothing else may be on the page. It is a
+seventeenth layout rather than `stack` with a bigger figure because on a
+`stack` page the prose and the drawing compete for one vertical budget and the
+drawing loses: across the deck the owner reviewed, every figure page gave the
+drawing under half its content box.
+
+The findings row ships with it — `.finds` / `.find`, a third tier below
+`.take`: `.key` interrupts a page, `.take` closes it with the one sentence the
+reader keeps, and `.find` says what one region of the figure means. Four is a
+ceiling, and the comment in `tokens/` says why it is one.
+
+**Semantic lane colour.** One class on a container recolours everything inside
+it that paints from `--lc`, so a lane's colour is set once beside the words that
+say what the lane means. The four names are the four meanings this palette
+already carries — built/pass, red line, partial, reference — and NOT lane
+indices: an index-named set would let an author colour lane 3 green because it
+is third, and a reader would read that green as a verdict. `one colour one
+meaning` is untouched.
+
+**D43 `figure_content` — a drawing names every member its own spec declares.**
+This is the gate that was missing while every other one was green. A page states
+in its own spec file that the figure has five items; the drawing then names
+three. No taste is involved and no reviewer is needed, which is why it can gate.
+`correlate` is exempt by construction — a scatter's points are dots, and
+demanding a label on each would fail the figure drawn correctly (AG-10).
+
+Its third answer is `blind`, and it does not gate: a page whose figure is a
+raster cannot be read this way. The row prints three different strings — `0`,
+`N`, and `0, N unreadable` — so a document that could not be measured never
+reads as one that measured clean.
+
+*Deliberate red, planted on a free fixture page:* a valid, reconciling
+`decompose` spec whose drawing names two of its three parts. `1` where a clean
+run says `0`. The blind branch was exercised separately, on a page declaring a
+spec and drawing nothing: `0, 1 unreadable`. Three strings, three answers.
+
+*And the first implementation was wrong in the way convention 15 predicts.* It
+counted every `<svg>` on the page as the figure — but every page carries the
+ground behind it and an icon in its eyebrow, so a page with NO drawing came
+back `thin` and blamed the drawing for a defect that is the page's. One look at
+a real fixture found it. The predicate is now D5's: not `.ground`, not `.ic`,
+and carrying something actually drawn.
+
+**Three things the rendered page found that no gate did.** Convention 8, three
+times in one afternoon, on a page whose every metric was green:
+
+- `.finds` was written as a grid row and rendered as a stacked column, because
+  the base `.body > div` chain is (0,15,1) and `.finds` was (0,1,0) — the
+  eleventh instance of the note that chain already carries. The stack ate 350px
+  and the figure it was supposed to sit under was clamped to a fifth of its row.
+- The timeline's box was declared 1180x420 and its ink stopped at 276. A third
+  of the box was empty, which the page rendered as 115px between the drawing and
+  its own caption. **The width is a design decision; the height is now
+  measured**, with a floor so a two-stage timeline does not become a letterbox.
+- A card body overflowed into the next card. `figure_scale.wrap`'s 5.6 units per
+  character corresponds to a 10px face; the card is set at 12. It was safe
+  everywhere else because every other caller wraps a reading line into a box
+  hundreds of units wide, where a loose estimate costs a wasted line rather than
+  an overflow. `wrap` now takes `at_px` and derives the estimate from the size
+  the text is actually set at.
+
+**DR-22** states the rule the gate holds: a figure carries as much content as
+its move needs, per move rather than as a word count, and figure text stops at
+12px — a floor, and a decision rather than an inheritance. The reference deck
+this was calibrated against goes to 9.3px and scopes its audience to a
+meeting-room screen and a PDF read at arm's length; LUMI's delivery includes a
+projected screen, so the floor is higher and the trade is stated.
+
 ## 0.1.672 — a library shape could carry two words, and that is why every figure was too simple
 
 The owner reviewed the first deck built through the figure data contract and

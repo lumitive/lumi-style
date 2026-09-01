@@ -85,8 +85,28 @@ def fmt(v, step: float = 1.0) -> str:
             else f"{v:g}")
 
 
-def wrap(text, width_units: float, per_char: float = 5.6) -> list[str]:
-    """-> `text` broken to fit `width_units`, as a list of lines."""
+# Advance per character as a share of the font size, MEASURED rather than
+# guessed: a 34-character card body set at 12px occupied 221 units where the
+# 5.6 default budgeted 205, so it ran into the neighbouring card. 6.5 / 12 is
+# 0.54, and the ratio is rounded up because this estimate must err wide.
+#
+# The 5.6 default stays for callers that do not say their size. It corresponds
+# to a 10px face and is safe where it is used — every other caller wraps a
+# reading line into a box hundreds of units wide, where a loose estimate costs
+# a wasted line rather than an overflow. Passing `at_px` is how a caller
+# wrapping into a TIGHT box gets an estimate that holds.
+PER_CHAR_RATIO = 0.55
+
+
+def wrap(text, width_units: float, per_char: float = 5.6,
+         at_px: float | None = None) -> list[str]:
+    """-> `text` broken to fit `width_units`, as a list of lines.
+
+    `at_px` is the size the text will actually be set at. Give it whenever the
+    box is narrow enough that being wrong by a character matters.
+    """
+    if at_px is not None:
+        per_char = PER_CHAR_RATIO * float(at_px)
     budget = max(12, int(width_units / per_char))
     lines, cur = [], ""
     for word in str(text).split():

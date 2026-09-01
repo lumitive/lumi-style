@@ -139,7 +139,8 @@ claim carries its lime chip and no agenda row names a page span, and D39 and D40
 ask whether the brand mark is still on both bookends and is the locked field
 globe unless the document declares the replacement that was asked for, and D42
 asks whether a page that DECLARES the data behind its figure can produce
-it — all decidable, in the way
+it, and D43 asks whether the drawing names every member that spec
+declares — all decidable, in the way
 "does this page read as intentional" is not. **D15 is the second instance of
 one defect:** `.foot .src` was removed from `tokens/` in 0.1.366 after the first
 deliverable to meet it filled every client page with a build path, and a second

@@ -83,7 +83,8 @@
      "D38_agenda_run_echo": "ok",
      "D39_bookend_mark": "ok",
      "D40_bookend_is_the_brand": "ok",
-     "D42_figure_spec": "n/a"
+     "D42_figure_spec": "n/a",
+     "D43_figure_content": "n/a"
     },
     "contains": {
      "D10_label_icons": [
@@ -216,7 +217,8 @@
      "D38_agenda_run_echo": "n/a",
      "D39_bookend_mark": "FAIL",
      "D40_bookend_is_the_brand": "FAIL",
-     "D42_figure_spec": "FAIL"
+     "D42_figure_spec": "FAIL",
+     "D43_figure_content": "FAIL"
     },
     "contains": {
      "D16_visual_presence": [
@@ -388,7 +390,8 @@
      "D38_agenda_run_echo": "ok",
      "D39_bookend_mark": "n/a",
      "D40_bookend_is_the_brand": "FAIL",
-     "D42_figure_spec": "n/a"
+     "D42_figure_spec": "n/a",
+     "D43_figure_content": "n/a"
     }
    },
    "layout": {
@@ -543,6 +546,7 @@
      "D40_bookend_is_the_brand": "ok",
      "D41_role_echo": "ok",
      "D42_figure_spec": "ok",
+     "D43_figure_content": "ok",
      "D4_palette_literals": "ok",
      "D5_drawn_share": "ok",
      "D5_figure_parity": "ok",

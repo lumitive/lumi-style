@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.672 (2026-08-19)
+   LUMI page layouts · v0.1.673 (2026-08-19)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -783,12 +783,20 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    before it happens a tenth: both declare their own direction and gap, both
    are legitimate direct children, and only fixture accident had them nested in
    `.fill`. The mirror of the rule below: A NEW `.body > div` CHILD JOINS THIS
-   CHAIN, or its own declarations are dead on arrival. */
-.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field),
+   CHAIN, or its own declarations are dead on arrival.
+
+   `.finds` joined it the hard way and is the note's eleventh instance. It was
+   written with `display: grid; grid-auto-flow: column` and rendered as a flex
+   COLUMN, because this chain is (0,15,1) and `.finds` is (0,1,0). Three
+   findings stacked instead of sitting in a row, the stack ate 350px of the
+   page, and the figure the layout exists to make dominant was clamped by
+   `max-height` to a fifth of its row — every gate green, and the page plainly
+   wrong on sight. Convention 8, exactly. */
+.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field):not(.finds),
 .body > header {
   display: flex; flex-direction: column; min-height: 0; gap: 14px;
 }
-.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field) {
+.body > div:not(.spec):not(.band):not(.colophon):not(.legend):not(.geolegend):not(.lead):not(.lede):not(.typeblock):not(.markcell):not(.attrs):not(.closenote):not(.openframe):not(.grades):not(.field):not(.finds) {
   justify-content: center;
 }
 .body .fill > .fig { flex: 1; }
@@ -880,6 +888,92 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
 
 /* thirds-v — three stacked bands of roughly equal weight, read top to bottom. */
 .body.thirds-v { grid-template-rows: auto repeat(3, 1fr); }
+
+/* dense — the figure IS the page, and the prose is two thin runs around it.
+
+   Why a seventeenth layout rather than `stack` with a bigger drawing. On a
+   `stack` page the figure is a centerpiece the prose introduces, so the two
+   compete for the same vertical budget and the drawing loses: measured across
+   the deck the owner reviewed, the figure pages gave the drawing under half
+   the content box and the reader's verdict on every one of them was that the
+   picture said less than the paragraph beside it. `dense` inverts the
+   priority. One lead sentence above the drawing says what to look for, the
+   drawing takes the whole middle row, and two to four findings below say what
+   it means. Nothing else may be on the page — a third prose block here is the
+   `stack` page this layout exists to replace.
+
+   The middle row is `1fr` against two `auto` rows, so the drawing takes
+   whatever the two text runs leave rather than a fixed share. A fixed share is
+   the wrong instrument: the lead is one sentence and the findings are three
+   short ones, so their height is nearly constant and legislating the figure's
+   percentage would only fight the type scale. */
+.body.dense { grid-template-rows: auto auto 1fr auto; row-gap: 18px; }
+.body.dense.no-lede { grid-template-rows: auto 1fr auto; }
+.body.dense > .lede, .body.dense > .span { grid-column: 1 / -1; }
+/* The look-for line: ONE sentence, and the ceiling is a ceiling. It names what
+   the reader should look for in the drawing, so a line that grows into a
+   paragraph has taken the findings' job and the page has two conclusions.
+   It is NOT `.lead` — that name was already the big-number statistic block
+   (further down this file), and reusing it would have set this sentence at
+   lead-figure size on every dense page. */
+.figlead {
+  font-size: 15.5px; line-height: 1.5; color: var(--tx2);
+  max-width: var(--measure); margin: 0;
+}
+.body.dense > .fill { min-height: 0; }
+
+/* ── semantic lane colour (v0.1.673) ──────────────────────────────────────
+   One class on a container recolours everything inside it that paints from
+   `--lc`. The point is that a lane's colour is set ONCE, beside the words that
+   say what the lane means, instead of being repeated on every rule, chip and
+   bar the lane owns — which is how a figure ends up with a bar in one hue and
+   its own label in another.
+
+   THE NAMES ARE THE SEMANTIC VOCABULARY, not lane indices. `one colour one
+   meaning` (see the theme's ramp note) governs data, so these four are exactly
+   the four meanings this package's palette already carries: built/pass,
+   red line, partial, reference. An index-named set (`l0`, `l1`, `l2`) would
+   let an author colour lane 3 green because it is third, and the reader would
+   read that green as a verdict.
+
+   The neutral default is declared on `.body` rather than left to inherit: a
+   component with no semantic class must paint grey, not whatever lane colour
+   happens to be above it in the tree. */
+.body { --lc: var(--tx3); --lc-wash: transparent; }
+.sem-built { --lc: var(--acc);   --lc-wash: var(--acc-wash); }
+.sem-line  { --lc: var(--seal);  --lc-wash: var(--seal-wash); }
+.sem-part  { --lc: var(--amber); --lc-wash: var(--amber-wash); }
+.sem-ref   { --lc: var(--brass); --lc-wash: var(--brass-wash); }
+
+/* ── the findings row ─────────────────────────────────────────────────────
+   Two to four boxes under a drawing, each one thing the drawing shows. It is
+   a THIRD tier below `.take`: `.key` interrupts a page, `.take` closes it with
+   the one sentence the reader keeps, and `.find` says what one region of the
+   figure means. A page carries findings OR a takeaway, never both — two
+   closings is the defect, and `check_design` D28 counts the takeaway.
+
+   The numeral is mono and small because it is an index into the drawing, not a
+   rank: the reader uses it to find the region, and a numeral set at heading
+   weight reads as first, second, third in importance. */
+.finds { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+         gap: 20px; margin: 0; }
+.find {
+  border-left: 3px solid var(--lc); padding: 2px 0 2px 13px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.find > .fno {
+  font-family: var(--mono); font-size: 11.5px; font-weight: 700;
+  letter-spacing: .06em; color: var(--lc);
+}
+.find > h4 {
+  font-size: 14px; line-height: 1.3; font-weight: 700; color: var(--tx1);
+  margin: 0;
+}
+.find > p { font-size: 13px; line-height: 1.45; color: var(--tx2); margin: 0; }
+/* Four is the ceiling and it is a ceiling: `grid-auto-columns: 1fr` will keep
+   dividing, and at five the box is narrower than the measure a 13px sentence
+   needs, so the fifth finding wraps to four lines and the row grows into the
+   figure. A page with five findings has an outline problem, not a layout one. */
 
 /* ── horizontal family ───────────────────────────────────────────────── */
 
