@@ -6,6 +6,7 @@ The fixtures exercise these at the verdict level; these tests pin the pattern
 level — which string fires, which deliberately does not.
 """
 import pathlib
+import re
 
 import check_design
 import gate_registry
@@ -638,3 +639,85 @@ def test_wrap_at_px_is_tighter_than_the_loose_default():
     # And it is still the same function for everyone who does not say a size.
     assert figure_scale.wrap(text, 200.0) == figure_scale.wrap(text, 200.0,
                                                                per_char=5.6)
+
+
+# --- D29's third answer: numbers written as words -------------------------
+
+def test_d29_says_when_a_page_gave_it_no_number_to_look_for():
+    """0.1.673's headline FM-24 fix, and mutation review found it untested:
+    deleting the line that records it left the whole suite green. A page whose
+    title spells its numbers as English words gives this metric nothing to
+    compare, and for five of seven pages of one deck it printed the line a
+    fully-verified page prints."""
+    figure = ('<div class="fig"><svg role="img" viewBox="0 0 640 300">'
+              '<rect x="1" y="1" width="10" height="10"/>'
+              '<text class="flbl" x="2" y="2">a label</text></svg></div>')
+    words = _doc(page_body=f'<h2 class="t">Three versions in eight months</h2>'
+                           f'{figure}')
+    digits = _doc(page_body=f'<h2 class="t">3 versions in 8 months</h2>'
+                            f'{figure}')
+    said_in_words = check_design.d29_figure_numbers(words)
+    said_in_digits = check_design.d29_figure_numbers(digits)
+    assert said_in_words["unasked"], \
+        "a page stating no comparable number must say so, not report clean"
+    assert not said_in_digits["unasked"], \
+        "a page stating digits WAS asked, so it must not land in `unasked`"
+    # And the two must not be reportable as the same thing.
+    assert said_in_words != said_in_digits
+
+
+def test_d32s_data_contract_exemption_requires_an_actual_drawing():
+    """A page that declared a move, named a RESOLVING spec and drew nothing
+    passed D32, D42 and D43 all three: D42 only asks whether the file holds
+    what the move needs, D43 answers `blind` and by design does not gate, and
+    D32's exemption waved it through. Three gates each deferring to the next,
+    on the one condition D32 had caught before the exemption existed."""
+    fig = ('<div class="fig"><svg role="img" viewBox="0 0 640 300">'
+           '<rect x="1" y="1" width="9" height="9"/>'
+           '<text class="flbl">Installation</text></svg></div>')
+
+    def page(spec_attr, body):
+        return ('<!doctype html><html><head><title>T</title></head><body>'
+                f'<section class="page" id="p1" data-analysis="decompose"'
+                f'{spec_attr}><div class="body stack">{body}</div>'
+                f'{FOOT}</section></body></html>')
+
+    spec = ' data-figure-spec="figures/x.json"'
+    assert check_design.d32_shape_use(page("", "<p>Prose.</p>"))["bare"] == ["p1"]
+    assert check_design.d32_shape_use(page(spec, "<p>Prose.</p>"))["bare"] == ["p1"], \
+        "a declared data contract is not a drawing"
+    assert check_design.d32_shape_use(page(spec, fig))["bare"] == []
+
+
+# The figure text vocabulary DR-22's floor governs: what the composed-figure
+# interface and the renderers write. `.axname-x` / `.axname-y` are the axis
+# NAME, and `.lbl` / `.sm` / `.cap-w` are the older drawing vocabulary that
+# predates the floor at 11 to 11.5px — raising those changes every figure this
+# package has shipped, which is a design decision and not a hygiene one, so
+# DR-22 names its scope instead of quietly covering them.
+GOVERNED = {"flbl", "ftick", "fval", "fread", "fnote"}
+
+
+def test_no_figure_text_class_ships_below_the_floor_dr22_states():
+    """A rule and the tokens it governs, contradicting each other. DR-22 sets
+    the floor at 12px and `figure_slots` raises below it — and the release
+    that shipped the figure text vocabulary set two of its five classes to
+    11px. The guard could not see it: it reads the module's own role table and
+    never the stylesheet.
+
+    `.axname-x` and `.axname-y` are the axis NAME, which DR-22 does not
+    govern; they are named here so the exemption is a decision rather than a
+    gap in the pattern."""
+    import figure_slots
+    css = pathlib.Path("tokens/lumi-layouts.css").read_text(encoding="utf-8")
+    sizes = dict(re.findall(r"svg \.([\w-]+)\s*\{[^}]*font-size:\s*([\d.]+)px",
+                            css))
+    small = [f"{n} at {sizes[n]}px" for n in GOVERNED
+             if n in sizes and float(sizes[n]) < figure_slots.TEXT_FLOOR]
+    assert not small, f"below DR-22's {figure_slots.TEXT_FLOOR}px floor: {small}"
+    # And the set is complete: every class the renderers write must be here,
+    # or the floor governs a vocabulary and misses the one in use.
+    emitted = set()
+    for tool in pathlib.Path("scripts/render").glob("*_svg.py"):
+        emitted |= set(re.findall(r'class="(f[\w-]+)"', tool.read_text(encoding="utf-8")))
+    assert emitted <= GOVERNED, f"a renderer writes an ungoverned class: {emitted - GOVERNED}"

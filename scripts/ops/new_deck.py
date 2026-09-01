@@ -1540,14 +1540,15 @@ def main(argv):
   <div class="body dense">
     <div class="lede">
       <p class="eyebrow"><svg class="ic" aria-hidden="true"><use href="#{PAGE_ICONS[(n - 1) % len(PAGE_ICONS)]}"/></svg>{eyebrow}</p>
-      <h2 class="t">{title}</h2>
-      <p class="sup">{sup}</p>
+      <h2 class="t">{html.escape(title)}</h2>
+      <p class="sup">{html.escape(sup)}</p>
     </div>{figlead}
     <div class="fill">
       <div class="fig">{figure}
       <div class="cap"><span class="n">Figure {figno}</span> {cap}</div></div>
     </div>
 {_finds(pg.get("finds"))}
+    <p class="take">{html.escape(take)}</p>{scope_notes}
   </div>
   {foot(n, total)}
 </section>''')
@@ -1563,8 +1564,8 @@ def main(argv):
            design-rules §6: within one document an icon means exactly one
            thing, so replace it with this page's own subject.
            `embed_icons.py --search <term>` finds one among 2007. -->
-      <h2 class="t">{title}</h2>
-      <p class="sup">{sup}</p>
+      <h2 class="t">{html.escape(title)}</h2>
+      <p class="sup">{html.escape(sup)}</p>
     </div>
 {cells_open}{fignote}
       <div class="fig">{figure}{toolslot}
@@ -1575,7 +1576,7 @@ def main(argv):
            above. Run together in one caption the two read as one sentence, and
            the line break lands in the source so the name never appears to
            wrap. -->
-      <p class="take">{take}</p>{scope_notes}
+      <p class="take">{html.escape(take)}</p>{scope_notes}
     </div>
   </div>
   {foot(n, total)}

@@ -871,7 +871,13 @@ def d32_shape_use(raw):
         # On the SECTION TAG, which `_pages()` does not capture — the same
         # shape `_analysis_move` above exists for, and the reason the first cut
         # of this exemption matched nothing.
-        if _declares_spec(raw, pid):
+        # THE EXEMPTION REQUIRES A DRAWING, and for one release it did not.
+        # A page that declared a move, named a resolving spec and drew NOTHING
+        # passed all three of D32, D42 and D43: D42 only asks whether the file
+        # holds what the move needs, D43 answers `blind` and by design does not
+        # gate, and this `continue` handed the page past the one check that had
+        # caught it before. Three gates, each deferring to the next.
+        if _declares_spec(raw, pid) and _drawn_words(body) is not None:
             continue
         if not _SHAPE_USE.search(body):
             bare.append(pid)
@@ -2950,6 +2956,11 @@ def d42_figure_spec(raw, base=None):
 NAMED_MEMBERS = {
     ("compare", "references"): "label",
     ("compare", "criteria"): "name",
+    # THE LAYER MAP'S LANES. Added at 0.1.677 and missing from 0.1.676, which
+    # shipped the refinement and the renderer in one release: a layer map's
+    # bands are its whole argument, and this gate — written because a drawing
+    # said less than its spec — was not asking whether they were drawn.
+    ("compare", "lanes"): "name",
     ("decompose", "parts"): "label",
     ("position", "items"): "label",
     ("bridge", "pieces"): "label",
@@ -3033,7 +3044,7 @@ def d43_figure_content(raw, base=None):
     decls = list(_SPEC_DECL.finditer(raw))
     if not decls:
         return None
-    thin, blind, checked = [], [], 0
+    thin, blind, unasked, checked = [], [], [], 0
     for m in decls:
         ref, pid = m.group(1), _page_id_before(raw, m.start())
         if base is None:
@@ -3051,7 +3062,16 @@ def d43_figure_content(raw, base=None):
         move = str(spec.get("move") or "")
         wanted = [(f, key) for (mv, f), key in NAMED_MEMBERS.items() if mv == move]
         if not wanted:
-            continue        # correlate, or a move with nothing named to check
+            # A FOURTH ANSWER, and it prints. `correlate` is the honest case —
+            # a scatter's points are dots — but so is any move added to
+            # `MOVE_FIELDS` with no row in the table above, and `lanes` was
+            # exactly that for one release. Left as a bare `continue` this
+            # branch produced `{"checked": 0, "thin": [], "blind": []}`, whose
+            # row cell is the character `0`: byte-identical to a document where
+            # five figures each named every member. That is FM-24 in the gate
+            # written after FM-24, found by mutation review.
+            unasked.append({"page": pid, "ref": ref, "move": move})
+            continue
         drawn = _drawn_words(_enclosing_section(raw, m.start()))
         if drawn is None:
             blind.append({"page": pid, "ref": ref,
@@ -3060,18 +3080,29 @@ def d43_figure_content(raw, base=None):
                                  "not be read"})
             continue
         low = drawn.lower()
-        missing = []
+        missing, looked = [], 0
         for field, key in wanted:
             for i, member in enumerate(spec.get(field) or []):
                 if not isinstance(member, dict):
                     continue
                 cands = _names(member, key)
-                if cands and not any(c.lower() in low for c in cands):
+                if not cands:
+                    # A member with no name at all. D42 gates this — a part
+                    # with no label is refused by `figure_spec.problems` — so
+                    # it is not this gate's to fail; what matters is that it
+                    # must not be counted as a member this gate LOOKED at.
+                    continue
+                looked += 1
+                if not any(c.lower() in low for c in cands):
                     missing.append(f"{field}[{i}] {cands[0]!r}")
+        if not looked:
+            unasked.append({"page": pid, "ref": ref, "move": move})
+            continue
         checked += 1
         if missing:
             thin.append({"page": pid, "ref": ref, "missing": missing})
-    return {"checked": checked, "thin": thin, "blind": blind}
+    return {"checked": checked, "thin": thin, "blind": blind,
+            "unasked": unasked}
 
 
 def _enclosing_section(raw, pos):
@@ -3403,9 +3434,16 @@ def grade(r):
     # declared figure named every member, `N thin` when one did not, and
     # `0, N unreadable` when a figure could not be read at all. A check whose
     # blind branch prints what its clean branch prints is FM-24.
+    # THE ROW SAYS WHAT WAS LOOKED AT. `len(thin)` alone collapsed all four
+    # answers into one character: a mutation that deleted the `unreadable`
+    # clause survived the whole suite AND check_fixtures, because nothing
+    # tested this string. `checked` was computed and thrown away, so a document
+    # the gate never opened printed what a verified one prints.
     rows.append(("D43_figure_content",
-                 (f"{len(d43['thin'])}"
-                  + (f", {len(d43['blind'])} unreadable" if d43["blind"] else ""))
+                 (f"{len(d43['thin'])} of {d43['checked']} figure(s)"
+                  + (f", {len(d43['blind'])} unreadable" if d43["blind"] else "")
+                  + (f", {len(d43['unasked'])} this gate cannot grade"
+                     if d43["unasked"] else ""))
                  if d43 else None,
                  "=0 (gates)", not (d43 and d43["thin"]), d43 is None))
     rows.append(("D40_bookend_is_the_brand",

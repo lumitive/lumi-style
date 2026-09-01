@@ -1,0 +1,32 @@
+{
+  "version": "0.1.677",
+  "diff_base": "b0ae0df32722304b82de281191b14d89e49f5c0f",
+  "spec": "specs/2026-09-01-build-cost-and-density-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness",
+    "scaffold-render"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "ceba183d82a97ca1497203ff96532585eac2bb22a7b32caf464a8649b591a02f",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "scaffold-render",
+      "command": "python3 scripts/ops/new_deck.py --outline fixtures/scaffold-evidence-outline.md --genre internal --pages 10 --parts A,B,C --no-trace --out fixtures/.scaffold-evidence.html && python3 scripts/check/inspect_layout.py --deliverable fixtures/.scaffold-evidence.html",
+      "exit_code": 0,
+      "stdout_sha256": "40a1b7a73798919d33d0c4ec38167f18ae3076faf6649e333daf80f7d2dcd4a3",
+      "date": "2026-09-02"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "UNCONFIRMED: whether agents outside this session reach for the content interface, the dense layout and the layer map. The release touches tokens/ and references/, so the obligation is correctly raised. The board refresh means driving >=2 agents with the owner's own keys and installs; one is hand-driven and the run is hers to authorise. Recording `validate` proves nothing: it exits 0 on a stale board, which is why the gate refuses that path. Deferred to the next driven round, not discharged. This is the fifth consecutive release carrying it."
+    }
+  ]
+}

@@ -73,10 +73,24 @@ ROLE = {
 TEXT_FLOOR = 12.0
 
 
+
 class SlotError(ValueError):
     """A composition that cannot be drawn. Raised, never returned as an empty
     figure: a shape with no content is the defect this module was written for,
     so producing one silently would be the same failure one layer down."""
+
+
+# HELD AT IMPORT, not per call. The floor used to be checked inside `_text`,
+# against a size that comes only from `ROLE` above — so the branch could not
+# fire however wrong the table was, which is FM-01 by construction: a check
+# that has never been able to go red. Asserting the TABLE is the same rule
+# enforced where it can actually be broken, and `test_check_design_units`
+# holds the shipped stylesheet to the same number.
+_below = {r: v[1] for r, v in ROLE.items() if v[1] < TEXT_FLOOR}
+if _below:                                          # pragma: no cover
+    raise SlotError(f"the role table sets {_below} below the {TEXT_FLOOR}px "
+                    f"floor design-rules.md DR-22 states for figure text")
+del _below
 
 
 def geometry(shape_id: str) -> dict:
@@ -122,9 +136,6 @@ def _text(x: float, y: float, s: str, role: str = "body",
         raise SlotError(f"{role!r} is not a text role; the roles are "
                         f"{', '.join(sorted(ROLE))}")
     cls, size, colour, weight = ROLE[role]
-    if size < TEXT_FLOOR:
-        raise SlotError(f"role {role!r} is set at {size}px, below the {TEXT_FLOOR}px "
-                        f"floor design-rules.md states for figure text")
     return (f'<text class="{cls}" x="{x:.1f}" y="{y:.1f}" '
             f'text-anchor="{anchor}" style="fill:{colour};font-size:{size}px;'
             f'font-weight:{weight}">{html.escape(str(s))}</text>')

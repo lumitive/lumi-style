@@ -28,12 +28,11 @@ from here to there", and its dashes are the honesty: nothing to the right of
 today is built.
 
 **pro** — staged cards over a gradient band. Each card carries four levels:
-the date, the name, the body line, and a state pill. The band beneath ramps its
-axis from the accent at 22% to the accent at full, so the HUE carries past →
-present. The ramp starts at a visible tint rather than at the rule colour: at
-2px from `--ln2` it was a hairline nobody could see, and a gradient nobody sees
-carries nothing. This is the tier for "what each era could and could
-not do", and it is the only tier that states a limit per stage.
+the date, the name, the body line, and a state pill. The band beneath ramps
+from the rule colour to the accent, so the HUE carries past → present, and it
+is drawn at 3px because at 2 it read as a hairline and a gradient nobody sees
+carries nothing. This is the tier for "what each era could and could not do":
+the state pill is what the other two tiers have no room for.
 
 The spec is the figure data contract's **`bridge` half with its `stages`
 refinement** — not a sixth analytical move. AR-1 declares five and
@@ -94,9 +93,15 @@ TIERS = ("light", "general", "pro")
 # and as a drawing scaled down to fit a height it did not need. Every metric
 # was green. Found by looking at the rendered page — convention 8.
 #
-# The floor is a floor: a two-stage timeline should not become a letterbox.
+# THERE IS NO HEIGHT FLOOR, and there was one for one release. It protected
+# against nothing: measured across both tiers-by-orientations and 2 to 5
+# stages, the drawing's own height is 228 to 284 units in every case — the
+# layout is horizontal, so the stage count moves the box's WIDTH and not its
+# height. On landscape the floor of 220 never bound. On portrait the floor of
+# 420 always bound, so a portrait timeline carried 136 to 192 units of empty
+# box: the exact defect the fitted height was introduced to remove, still
+# present on the axis nobody rendered. A held-fixed axis is an unchecked axis.
 BOX_W = {"landscape": 1180, "portrait": 620}
-BOX_H_FLOOR = {"landscape": 220, "portrait": 420}
 
 STATES = ("done", "now", "open")
 
@@ -309,13 +314,13 @@ def render(spec, tier: str = "light", orientation: str = "landscape",
         raise SystemExit(f"orientation must be one of {sorted(BOX_W)}")
     stages = _check(spec, path)
     W = BOX_W[orientation]
-    body, foot_y = RENDERERS[tier](stages, spec, W, BOX_H_FLOOR[orientation])
+    body, foot_y = RENDERERS[tier](stages, spec, W, 0)
 
     measure = spec["measure"]
     unit = str(measure.get("unit") or "")
     read_lines = figure_scale.wrap(str(spec["reading"]), W - 40)
     note_y = foot_y + 30 + len(read_lines) * 20
-    H = max(BOX_H_FLOOR[orientation], round(note_y + 8))
+    H = round(note_y + 8)
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" '
            f'width="{W}" height="{H}" role="img" '
            f'aria-label="{html.escape(str(spec["reading"]))}">']

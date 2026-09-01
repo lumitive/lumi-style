@@ -33,9 +33,13 @@ the same decision as `scatter_svg` having no minimum radius. Each bar carries
 `data-datum`, so `inspect_layout`'s proportion probe re-derives the expected
 length with a second implementation and measures the rendered pixel.
 
-**The subject reads differently from its references, and only by weight.** One
-colour one meaning (design-rules §1): the subject takes the accent, the
-references take the neutral rule colour. No literal colour reaches the output.
+**The subject reads differently from its references, and only by token.** One
+colour one meaning (design-rules §1): the subject takes the accent proper and
+the references take a step of its ramp, which the theme declares as carrying no
+meaning — so a set of bars counting one thing is one hue, and the subject is
+still the only mark making a claim. They took the neutral ink until 0.1.677,
+which drew nothing in the palette at all on a figure whose subject is zero. No
+literal colour reaches the output.
 
 The source line is the drawing's own last text node (§4 rule 17), never the
 caption — run together in one caption the two read as one sentence.
@@ -50,6 +54,7 @@ import pathlib
 
 # --- scripts path bootstrap (canonical; the bootstrap guard enforces this) ---
 import pathlib as _bs_pathlib  # noqa: E402
+import re
 import sys
 import sys as _bs_sys  # noqa: E402
 
@@ -138,9 +143,22 @@ def render(spec, orientation="landscape", path="the spec"):
     # place a figure's size is visible.
     left = LABEL_W[orientation]
     top, right = 34, 40
-    H = min(H, round(top + FOOT + (BAR_MAX + BAR_GAP) * max(len(rows), 1)))
+    # THE FOOT IS THE FOOT THIS FIGURE NEEDS, not the constant. `FOOT` budgets
+    # one reading line; a two-line reading then pushed the source note into the
+    # `min(..., H - 14)` clamp below, which printed it ON the sentence it
+    # belongs to — landscape put a 14px note 10 units under a 14px line, and
+    # portrait drew it BETWEEN reading lines two and three. Introduced by
+    # 0.1.676's fitted height and measured at 0.1.677; on the fixed 600-unit
+    # box the clamp never bit because there was always slack to hide in.
+    #
+    # The sibling renderer removed the same clamp on the same day, with a
+    # comment saying why. The fix reached one of the two.
+    read_w = W - left - right
+    read_n = max(1, len(figure_scale.wrap(str(spec["reading"]), read_w, at_px=13)))
+    foot = FOOT + (read_n - 1) * 20
+    H = min(H, round(top + foot + (BAR_MAX + BAR_GAP) * max(len(rows), 1)))
     plot_w = W - left - right
-    plot_h = H - top - FOOT
+    plot_h = H - top - foot
 
     vmax = max(v for _lab, v, _s in rows)
     hi = figure_scale.nice_ceiling(vmax)
@@ -241,7 +259,18 @@ def render(spec, orientation="landscape", path="the spec"):
     # source to be the drawing's LAST TEXT NODE, which is an ordering rule; the
     # first cut read it as a position and left the source floating a third of a
     # page below the sentence it belongs to. The gates were green.
-    note_y = min(read_y + len(read_lines) * 20 + 24, H - 14)
+    # NO CLAMP. Pinning the note to the box floor is what put it on top of the
+    # reading; the box is sized for the reading above, so the note simply
+    # follows it. (breakdown_svg removed the identical clamp at 0.1.676.)
+    note_y = read_y + len(read_lines) * 20 + 24
+    # AND THE BOX HOLDS THE NOTE. A baseline exactly on the box floor clips the
+    # descenders of the line the drawing cites its source in; `min(H, ...)`
+    # above sizes for the bars, and this is the other bound.
+    if note_y + 8 > H:
+        H = round(note_y + 8)
+        parts[0] = re.sub(r'viewBox="0 0 ([\d.]+) [\d.]+"',
+                          rf'viewBox="0 0 \1 {H}"', parts[0])
+        parts[0] = re.sub(r'height="[\d.]+"', f'height="{H}"', parts[0])
     parts.append(
         f'<text class="fnote" x="{left:.1f}" y="{note_y:.1f}">'
         f'{html.escape(str(spec["source"]))} \u00b7 '

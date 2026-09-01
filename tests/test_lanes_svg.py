@@ -107,3 +107,75 @@ def test_the_box_is_measured_from_the_drawing():
 
     h2, h3 = _h(two), _h(three)
     assert h3 > h2, "a third band did not make the box taller"
+
+
+def test_a_layer_map_needs_no_value_it_never_draws(tmp_path):
+    """AG-10: a gate a correct answer cannot satisfy does not get obeyed, it
+    gets satisfied. `lanes_svg` reads no `value` at all, and for one release
+    the spec layer demanded one on the subject and on every reference — so a
+    correct six-item layer map was refused until fake numbers were invented,
+    and `check_facts` then required those inventions in the fact contract too.
+    """
+    import figure_spec
+    spec = _spec()
+    for item in [spec["subject"], *spec["references"]]:
+        item.pop("value", None)
+    assert figure_spec.problems(spec) == []
+    svg = ln.render(spec)
+    assert "A2UI" in svg and "single vendor" in svg
+
+
+def test_a_radar_still_needs_its_values():
+    """The relief is the layer map's, not compare's. A radar with no values
+    draws a shape the data does not have."""
+    import figure_spec
+    spec = _spec()
+    spec.pop("lanes")
+    spec["criteria"] = [{"name": "a"}, {"name": "b"}, {"name": "c"}]
+    assert any("value per criterion" in p for p in figure_spec.problems(spec))
+
+
+def test_a_declared_lane_with_no_items_is_refused():
+    """The mirror of the undeclared-lane refusal, and it was missing: a spec
+    whose items all sat in one band drew the other full-width and empty, which
+    is a two-layer claim on evidence for one."""
+    spec = _spec()
+    spec["subject"]["lane"] = "transport"
+    with pytest.raises(SystemExit, match="carry no items"):
+        ln.render(spec)
+
+
+def test_a_lane_declared_twice_is_refused():
+    spec = _spec()
+    spec["lanes"].append({"name": "transport", "note": "again"})
+    with pytest.raises(SystemExit, match="declared twice"):
+        ln.render(spec)
+
+
+def test_a_chip_that_needs_three_lines_is_refused():
+    """It ran past the chip's own bottom edge. `wrap` keeps emitting lines
+    however narrow the box, so nothing stopped it."""
+    spec = _spec()
+    # A CROWDED LANE, which is where it bit: five chips share the band, so
+    # each is narrow and a sentence-length criterion runs past the bottom.
+    spec["references"] = [
+        dict(spec["references"][0], label=f"P{i}",
+             chip=("a governance arrangement described at such length that it "
+                   "stops being a criterion and becomes the explanation of one"))
+        for i in range(5)]
+    with pytest.raises(SystemExit, match="chip holds two"):
+        ln.render(spec)
+
+
+def test_every_chip_stays_inside_its_own_box():
+    """Measured rather than asserted: the last chip line's baseline against the
+    chip rectangle's bottom edge."""
+    svg = ln.render(_spec())
+    chips = [(float(m.group(1)), float(m.group(2))) for m in
+             re.finditer(r'<rect x="[\d.]+" y="([\d.]+)" width="[\d.]+" '
+                         r'height="([\d.]+)" rx="6"', svg)]
+    assert chips, "no chip was drawn"
+    bottoms = [top + h for top, h in chips]
+    texts = [float(y) for y in re.findall(r'class="ftick" x="[\d.]+" y="([\d.]+)"', svg)]
+    for y in texts:
+        assert any(y <= b for b in bottoms), f"chip text at {y} is below every chip"

@@ -103,8 +103,13 @@ MOVE_FIELDS: dict[str, tuple[str, ...]] = {
 }
 
 # The collection each move's OPTIONAL refinement keeps, so the shape check runs
-# over it too. `criteria` turns a compare into a radar; `stages` turns a bridge
-# into a named path.
+# over it too. `criteria` turns a compare into a radar, `lanes` turns it into a
+# layer map, and `stages` turns a bridge into a named path.
+#
+# READ BY NOTHING, and kept as the register of what the refinements are —
+# `_COLLECTIONS` below is what the shape check iterates, and the two are
+# extended together. An entry that guards nothing reads as coverage
+# (convention 19), so this says which of the two does the work.
 _COLLECTION_EXTRAS = {"compare": ("criteria", "lanes"), "bridge": ("stages",)}
 
 # The field of each move that holds MANY things. Named rather than discovered
@@ -389,7 +394,21 @@ def _move_problems(move: str, spec: dict) -> list[str]:
                             f"{len(crit)} of them — because a radar with a "
                             f"missing spoke draws a shape the data does not "
                             f"have (AR-1)")
-        value_key = ("values",) if crit is not None else ("value",)
+        # A LAYER MAP CARRIES NO VALUE, and demanding one is AG-10 exactly.
+        # `lanes_svg` draws a name, a lane and a chip; it reads no `value` at
+        # all. Held to the plain compare shape, a correct six-item layer map
+        # was refused with eight problems until fake numbers were invented —
+        # and `check_facts` then collected those inventions and required the
+        # author to write them into the fact contract as well. The only ways
+        # out were to invent facts or delete the figure, which is the sentence
+        # 0.1.676 wrote about `position` while shipping the same trap one
+        # refinement over.
+        if lanes is not None:
+            value_key: tuple[str, ...] = ()
+        elif crit is not None:
+            value_key = ("values",)
+        else:
+            value_key = ("value",)
         out += _pair_problems("subject", spec.get("subject"),
                               ("label",) + value_key, "AR-1: compare")
         for i, ref in enumerate(refs or []):

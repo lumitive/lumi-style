@@ -98,6 +98,33 @@ COUNT_RE = re.compile(
 # they are citations, and this tool would report its own illustrations.
 CITE_RE = re.compile(r"\b([\w./-]+\.(?:py|md|json|css|js|sh|ya?ml)):(\d+)(?:-(\d+))?\b")
 
+# A citation that is QUOTED rather than made. The waiver carries its reason,
+# the way check_repo's METRIC_RANGE_WAIVERS does: a sentence reproducing a past
+# error verbatim is the only thing here that may cite a path the tree does not
+# hold, because correcting the quotation would destroy the record of what was
+# corrected.
+CITE_WAIVERS = {
+    ("CLAUDE.md", "assemble.py:948"):
+        "convention 20 quotes this citation as an EXAMPLE of a number asserted "
+        "without being run; the file is a deliverable source and lives outside "
+        "this repository by design",
+    ("scripts/check/claim_sweep.py", "assemble.py:948"):
+        "this table has to name the string it waives — the same reason "
+        "check_repo's METRIC_RANGE_WAIVERS waives its own row",
+}
+
+# WHAT THIS CANNOT SEE, said here because describing an instrument's reach as
+# its subject's is the defect one layer up (CLAUDE.md convention 20, third
+# class). A citation is checked for two things only: that the file resolves,
+# and that the line is inside it. **It is NOT checked for still saying what the
+# citing prose claims.** Measured on the nightly review of 2026-09-01:
+# `check_repo.py` cited `design-rules.md:1461` for a sentence about the ground
+# axis, which had moved to 1628 over 119 releases -- resolvable, in range, and
+# wrong. Nothing mechanical here finds that; a reader does.
+BLIND_TO = ("a citation whose file resolves and whose line is in range is "
+            "reported clean even when that line no longer says what the "
+            "citing sentence claims")
+
 
 def tracked() -> list[str]:
     listed, problem = repo_files.tracked_files(root=ROOT, what="claim sweep")
@@ -166,11 +193,36 @@ def sweep_refs() -> list[tuple[str, int, str, str]]:
         for n, line in enumerate(text.splitlines(), 1):
             for m in CITE_RE.finditer(line):
                 target, start = m.group(1), int(m.group(2))
-                # A bare filename resolves against the citing file's own folder
-                # first, then the repository root — the two forms both appear.
+                # A bare filename resolves against the citing file's own
+                # folder first, then the repository root, then by UNIQUE
+                # BASENAME across the tracked tree -- all three forms appear,
+                # and until 0.1.677 only the first two were tried. Measured on
+                # the nightly review of 2026-09-01: six citations reported as
+                # "the file does not exist", of which FIVE existed, at
+                # `scripts/ops/run_conformance.py`, `scripts/lib/agent_runs.py`,
+                # `scripts/ops/build.py`, `references/brand.md` and
+                # `references/design-rules.md`. A section that is five parts
+                # noise is a section a reader stops opening, which is the
+                # failure this whole script exists against.
                 here = (ROOT / relpath).parent / target
                 path = here if here.is_file() else ROOT / target
                 if not path.is_file():
+                    matches = [q for q in tracked()
+                               if q.rsplit("/", 1)[-1] == target]
+                    if len(matches) == 1:
+                        path = ROOT / matches[0]
+                    elif matches:
+                        # TWO HOMES IS A DIFFERENT FINDING, and a real one: the
+                        # citation is ambiguous and a reader cannot follow it.
+                        # Saying "does not exist" about a name that exists twice
+                        # would send them looking for nothing.
+                        out.append((relpath, n, m.group(0),
+                                    f"{len(matches)} tracked files are named "
+                                    f"{target}; the citation names no path"))
+                        continue
+                if not path.is_file():
+                    if (relpath, m.group(0)) in CITE_WAIVERS:
+                        continue
                     out.append((relpath, n, m.group(0),
                                 "the file does not exist"))
                     continue
@@ -225,6 +277,11 @@ def main(argv=None) -> int:
             print(f"note  {len(refs)} self-citation(s) that do not resolve")
             for relpath, n, cite, why in refs:
                 print(f"      {relpath}:{n}  cites {cite} — {why}")
+        # SAID ON EVERY RUN, clean or not. A clean line here means the files
+        # resolve and the lines are in range; it does NOT mean the citations are
+        # still true, and printing only "ok" let a citation that had drifted 167
+        # lines over 119 releases read as verified.
+        print(f"      (not measured: {BLIND_TO})")
 
     # ALWAYS ZERO. A reporting tool that can fail a run is a gate that was never
     # argued for, and this one was argued against (AG-1).

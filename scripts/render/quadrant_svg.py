@@ -79,7 +79,7 @@ BOX = {"landscape": (1180, 430), "portrait": (620, 560)}
 # The plot is wide and the quadrants stay readable as quadrants at 510 x 145.
 # The box's aspect is set by where the drawing LIVES: a `dense` page leaves the
 # figure about 280 units of height once the lede, the caption and the findings
-# have taken theirs, so a box taller than about 3:1 is scaled down to fit the
+# have taken theirs, so a box narrower than about 3:1 is scaled down to fit the
 # height and the reader gets a small map. Measured, not chosen.
 PLOT = {"x": 96.0, "y": 26.0, "w": 1020.0, "h": 290.0}
 
@@ -269,8 +269,10 @@ def render(spec, orientation="landscape", path="the spec"):
         cy = py + (1 - fy) * ph        # y grows upward on the page
         state = it.get("state") or "plain"
         fill, op = MARK[state]
-        # THE LABEL FLIPS PAST THE MIDPOINT, the same rule the light timeline
-        # follows. Set always to the right, the mark in the answer quadrant —
+        # THE LABEL FLIPS PAST 0.55, a little beyond the midpoint — the light
+        # timeline flips at the true midpoint, and this one is later on purpose:
+        # a mark sitting exactly on the centre line has room on both sides, and
+        # flipping it there made the two middle quadrants read inconsistently. Set always to the right, the mark in the answer quadrant —
         # the one the whole figure exists to argue for — ran its qualifier 17
         # units past the viewBox, where `figure_clipped` found it and where a
         # reader would have found nothing.

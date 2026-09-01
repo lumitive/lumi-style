@@ -1798,7 +1798,15 @@ refuses a composition with no slots for exactly this reason: a shape composed
 with nothing to say cannot be produced by accident, so the failure happens at
 the drawing rather than at the review.
 
-**Figure text stops at 12px, and that is a floor rather than a target.** The
+**Figure text stops at 12px, and that is a floor rather than a target.** It
+governs the classes a composed figure and the renderers write — `flbl`,
+`ftick`, `fval`, `fread`, `fnote` — and `figure_slots.TEXT_FLOOR` holds them
+to it. It does NOT govern the axis name, nor the older drawing vocabulary
+`.lbl` / `.sm` / `.cap-w`, which predates this rule at 11 to 11.5px: raising
+those changes every figure this package has shipped, so it is a design
+decision to be taken rather than a floor to be applied quietly. Saying which
+is which is the point — a floor whose scope is unstated was contradicted by
+its own token file for a release. The
 reference deck this rule was calibrated against goes to 9.3px and its own spec
 justifies the choice by scoping the audience to a meeting-room screen and a PDF
 read at arm's length. LUMI's delivery includes a projected screen, so the floor
