@@ -76,7 +76,11 @@ def test_every_move_names_a_measure_with_a_unit(move):
         spec["measure"].pop("unit")
     else:
         spec[where].pop("unit")
-    assert any("unit" in x for x in fs.problems(spec)), fs.problems(spec)
+    # ON `where`, not on the bare word "unit": that appears in the
+    # no-measure-at-all finding too, so with `measures_of` stubbed to return
+    # nothing the assertion still passed.
+    found = fs.problems(spec)
+    assert any(f"`{where}` does not give its unit" in x for x in found), found
 
 
 # --- the shapes, one per move ------------------------------------------------
@@ -196,3 +200,119 @@ def test_a_good_spec_loads_with_no_problem(tmp_path):
     p.write_text(json.dumps(_spec("compare")), encoding="utf-8")
     spec, problem = fs.load(p)
     assert problem is None and spec is not None and spec["move"] == "compare"
+
+
+# --- the constants, pinned by MESSAGE rather than read back -----------------
+# Mutation review: eight mutations survived a green suite because the tests
+# above parametrize over the constants under test, so deleting an entry deletes
+# its own test case. These assert on what a reader is told, which no shrinking
+# constant can satisfy. `problems()` is the ONLY guard the renderers have for
+# the universal half — they index `spec["cause"]`, `spec["source"]` and
+# `spec["period"]` directly — so a field silently leaving the tuple turns a
+# designed refusal into a raw KeyError.
+
+@pytest.mark.parametrize("field", ["period", "reading", "cause", "source",
+                                   "move"])
+def test_each_universal_field_is_named_in_the_constant(field):
+    assert field in fs.UNIVERSAL_FIELDS, (
+        f"{field} left UNIVERSAL_FIELDS; the renderers index it directly and "
+        f"would raise KeyError where they should refuse")
+
+
+@pytest.mark.parametrize("move,fields", [
+    ("compare", ("subject", "references")),
+    ("decompose", ("total", "parts")),
+    ("position", ("axes", "items")),
+    ("correlate", ("x", "y", "points")),
+    ("bridge", ("before", "after", "pieces")),
+])
+def test_each_move_keeps_the_shape_ar1_gives_it(move, fields):
+    """Spelled out, not read from `MOVE_FIELDS`. AR-1 fixes these shapes and a
+    tuple that quietly loses one lets a spec through that no tool can draw."""
+    assert fs.MOVE_FIELDS[move] == fields
+
+
+@pytest.mark.parametrize("move,field", [
+    ("decompose", "parts"), ("bridge", "pieces"), ("position", "items"),
+    ("correlate", "points"), ("compare", "subject"),
+])
+def test_a_missing_move_field_is_reported_by_message(move, field):
+    spec = _spec(move)
+    spec.pop(field)
+    found = fs.problems(spec)
+    assert any(f"`{field}`" in x for x in found), (move, field, found)
+
+
+@pytest.mark.parametrize("field", ["period", "reading", "cause", "source"])
+def test_a_missing_universal_field_names_both_rules(field):
+    spec = _spec("decompose")
+    spec.pop(field)
+    found = fs.problems(spec)
+    assert any(f"`{field}` is missing" in x and "DR-20" in x and "WR-5" in x
+               for x in found), (field, found)
+
+
+# --- the residual ceiling, on data that actually has a residual -------------
+
+def test_one_decimal_rounding_passes_and_the_ceiling_is_what_lets_it():
+    """The rounding test above uses 33.3+33.3+33.4, which sums to exactly 100 —
+    residual zero, absorbed by the floor. So `RESIDUAL_CEILING` could be 0 and
+    it still passed. This one has a real residual of 0.1 against a total of
+    100, which is 0.1% and inside the 0.5% ceiling."""
+    spec = _spec("decompose", total={"label": "All", "value": 100},
+                 parts=[{"label": "a", "value": 33.3},
+                        {"label": "b", "value": 33.3},
+                        {"label": "c", "value": 33.3}])
+    assert fs.problems(spec) == []
+    assert fs.RESIDUAL_CEILING >= 0.001, (
+        "a ceiling this tight refuses correct one-decimal data")
+
+
+def _residual(share):
+    """-> a decompose spec whose parts fall `share` of the total short."""
+    return _spec("decompose", total={"label": "All", "value": 1000.0},
+                 parts=[{"label": "a", "value": 1000.0 * (1 - share)}])
+
+
+@pytest.mark.parametrize("share,ok", [(0.004, True), (0.007, False)])
+def test_the_ceiling_sits_between_these_two_residuals(share, ok):
+    """LITERAL shares, not `total * RESIDUAL_CEILING`. The first version of
+    this test computed its own tolerance from the constant it was pinning, so
+    widening the constant widened the test with it and the mutation survived —
+    the same self-referential trap the parametrized tests above were written to
+    escape. 0.4% must pass and 0.7% must fail, which pins the ceiling however
+    it is spelled."""
+    assert (fs.problems(_residual(share)) == []) is ok
+
+
+def test_a_residual_exactly_at_the_ceiling_passes():
+    """`<=` and `<` were indistinguishable: no test produced a residual exactly
+    equal to what is allowed."""
+    assert fs.problems(_residual(fs.RESIDUAL_CEILING)) == []
+
+
+def test_the_bridge_tolerance_is_a_share_of_the_change_not_the_total():
+    """Two denominators under one named constant. A bridge from 1000 to 1010
+    allows 0.05, not 5 — and nothing said so."""
+    spec = _spec("bridge", before={"label": "a", "value": 1000},
+                 after={"label": "b", "value": 1010},
+                 pieces=[{"label": "p", "delta": 9.0}])
+    assert fs.problems(spec), (
+        "a 10% miss on the CHANGE passed because it is 0.1% of the level")
+
+
+# --- every numeric key, not just `value` ------------------------------------
+
+@pytest.mark.parametrize("move,where,key", [
+    ("decompose", "total", "value"),
+    ("bridge", "pieces", "delta"),
+    ("correlate", "points", "x"),
+    ("correlate", "points", "y"),
+    ("position", "items", "x"),
+])
+def test_every_quantity_key_must_be_a_number(move, where, key):
+    spec = _spec(move)
+    target = spec[where]
+    (target[0] if isinstance(target, list) else target)[key] = "lots"
+    found = fs.problems(spec)
+    assert any("is not a number" in x for x in found), (move, where, key, found)

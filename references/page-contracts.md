@@ -7,7 +7,7 @@ place its rule is written.
 This page is an index, never an authority: where it disagrees with the
 file it cites, the file wins and this page is stale.
 
-**492 rules · 153 measured by a metric · 93 gated · 339 with no automated check.**
+**493 rules · 153 measured by a metric · 93 gated · 340 with no automated check.**
 
 That last number is the point of the page. A rule with no check is not
 a rule an agent will follow, because an agent iterates to the edge of
@@ -329,7 +329,7 @@ Gathered separately at the owner's direction: these are the pages the argument i
 
 The footer, the palette, the type ladder, the layout vocabulary — what binds regardless of which page it is.
 
-239 rules, 152 of them unchecked.
+240 rules, 153 of them unchecked.
 
 | Rule | Where it is written | Property | Metric | Gates |
 | --- | --- | --- | --- | --- |
@@ -360,6 +360,7 @@ The footer, the palette, the type ladder, the layout vocabulary — what binds r
 | Make all titles concatenated read as one complete argument. | `SKILL.md:759` | — | `—` | no |
 | AI never signs, and money or safety conclusions never come from a language model. | `SKILL.md:762` | — | `—` | no |
 | Default the output language to American English and the canvas to light unless the user asks otherwise. | `SKILL.md:86` | — | `M16` | yes |
+| Every figure carrying a number states measure, period, reading, cause, source and move — the same six whether a tool draws it or the agent writes the SVG by hand. | `prompts/lumi-style-core.md:295` | `figure.universal-fields` | `—` | no |
 | Never draw a field texture with no data behind it; every mark maps to one real item. | `references/brand.md:101` | — | `—` | no |
 | Set the ground density by page class: strong on cover and closing, mid on part openers, faint on body pages. | `references/brand.md:108` | `ground.tier` | `—` | no |
 | Never put a blend mode on the ground. | `references/brand.md:115` | — | `D17` | no |

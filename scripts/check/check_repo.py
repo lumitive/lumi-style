@@ -5558,6 +5558,62 @@ def _required_flags(src: str) -> set[str]:
     return out
 
 
+def check_figure_spec_moves():
+    """The five analytical moves are one set, and both lists carry all five.
+
+    **This guard was cited three times before it existed.** `figure_spec.py`'s
+    comment said "`figure spec moves` in check_repo.py holds the two lists
+    together so a sixth move cannot be added to one and not the other" — and a
+    claim audit found no such entry in `CHECKS`. Mutation-tested both
+    directions on a clean tree: adding a sixth move to `MOVE_FIELDS`, and
+    deleting `position` from it, each left `check_repo` at 62/62 ok. A sentence
+    describing an enforcement nobody performs reads as coverage, which is worse
+    than no sentence.
+
+    `moves served` is the neighbouring guard and answers a different question:
+    it holds `ANALYTICAL_MOVES` to `analysis-rules.md` and to the framework
+    registry — is each move SERVED. This one asks whether the artefact that
+    holds a figure's data knows the same five moves the outline vocabulary
+    does, in both directions.
+    """
+    import check_outline
+    import figure_spec
+    declared = set(check_outline.ANALYTICAL_MOVES)
+    shaped = set(figure_spec.MOVE_FIELDS)
+    if not declared or not shaped:
+        # FM-24: two empty sets agree, and that is not agreement.
+        return [f"one of the move lists is empty (outline {len(declared)}, "
+                f"figure spec {len(shaped)}), so they were not compared"]
+    errors = []
+    for move in sorted(declared - shaped):
+        errors.append(f"`{move}` is an analytical move a page can declare and "
+                      f"figure_spec.MOVE_FIELDS gives it no input shape — an "
+                      f"author who writes a spec for it has nothing to write")
+    for move in sorted(shaped - declared):
+        errors.append(f"figure_spec.MOVE_FIELDS shapes `{move}`, which is not "
+                      f"one of check_outline.ANALYTICAL_MOVES — a spec no beat "
+                      f"can point at (analysis-rules.md AR-1)")
+    # Every shape names fields, and every field it names is one the skeleton
+    # writes. A move whose shape is empty would validate anything.
+    for move, fields in sorted(figure_spec.MOVE_FIELDS.items()):
+        if not fields:
+            errors.append(f"figure_spec.MOVE_FIELDS[{move!r}] names no fields, "
+                          f"so any spec declaring that move validates")
+            continue
+        try:
+            skeleton = figure_spec.skeleton(move)
+        except ValueError as exc:
+            errors.append(f"no skeleton for the shaped move {move!r} ({exc})")
+            continue
+        missing = [f for f in fields if f not in skeleton]
+        if missing:
+            errors.append(f"figure_spec.MOVE_FIELDS[{move!r}] requires "
+                          f"{', '.join(missing)}, which the skeleton does not "
+                          f"write — the scaffold hands the author a file its "
+                          f"own contract refuses")
+    return errors
+
+
 def check_moves_served():
     """Every analytical move AR-1 declares has a framework that can draw it.
 
@@ -5687,6 +5743,7 @@ CHECKS = (
     ("framework tools", check_framework_tools),
     ("rule script reach", check_rule_script_reach),
     ("moves served", check_moves_served),
+    ("figure spec moves", check_figure_spec_moves),
     ("scoring sheet parity", check_scoring_sheet_parity),
     ("metric id ranges", check_metric_id_ranges),
     ("gating claims", check_gating_claims),

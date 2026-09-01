@@ -111,18 +111,9 @@ HEAD_SIZED = 76
 
 # The axis arithmetic and text fitting live in `scripts/lib/figure_scale.py`
 # (evals/single-source.json, `figure-scale`). They were private here until the
-# second renderer arrived; two copies of "how an axis picks its round numbers"
-# is the class that register exists to prevent.
-_num = figure_scale.num
-_wrap = figure_scale.wrap
-
-
-def _nice(lo, hi):
-    return figure_scale.nice_range(lo, hi)
-
-
-def _fmt(v, step):
-    return figure_scale.fmt(v, step)
+# second renderer arrived, and the shims that replaced them were caught by the
+# register's own guard: a forwarding function is still a second name for one
+# fact. Callers name the module.
 
 
 def _catmull_rom(pts):
@@ -180,10 +171,10 @@ def render(spec, orientation="landscape", trend="none", window=5,
 
     pts = []
     for p in spec.get("points") or []:
-        x, y = _num(p.get("x")), _num(p.get("y"))
+        x, y = figure_scale.num(p.get("x")), figure_scale.num(p.get("y"))
         if x is None or y is None:
             continue
-        pts.append({"x": x, "y": y, "size": _num(p.get("size")),
+        pts.append({"x": x, "y": y, "size": figure_scale.num(p.get("size")),
                     "series": str(p.get("series") or "")})
     if not pts:
         raise SystemExit("no point carries both an x and a y — nothing to draw")
@@ -212,8 +203,8 @@ def render(spec, orientation="landscape", trend="none", window=5,
     Y0 = 44 + (HEAD_SIZED if sized else 0)
     Y1 = H - FOOT
 
-    xlo, xhi, xstep = _nice(min(p["x"] for p in pts), max(p["x"] for p in pts))
-    ylo, yhi, ystep = _nice(min(p["y"] for p in pts), max(p["y"] for p in pts))
+    xlo, xhi, xstep = figure_scale.nice_range(min(p["x"] for p in pts), max(p["x"] for p in pts))
+    ylo, yhi, ystep = figure_scale.nice_range(min(p["y"] for p in pts), max(p["y"] for p in pts))
 
     def sx(v):
         return X0 + (v - xlo) / (xhi - xlo) * (X1 - X0)
@@ -257,7 +248,7 @@ def render(spec, orientation="landscape", trend="none", window=5,
         o.append(f'<path d="M{X0} {y:.1f} L{X1} {y:.1f}" style="stroke:var(--ln3);'
                  f'stroke-width:1;fill:none"/>')
         o.append(f'<text x="{X0 - 10}" y="{y + 4:.1f}" text-anchor="end" class="flbl" '
-                 f'style="fill:var(--tx3)">{_fmt(v, ystep)}</text>')
+                 f'style="fill:var(--tx3)">{figure_scale.fmt(v, ystep)}</text>')
         v += ystep
 
     o.append(f'<path d="M{X0} {Y0} L{X0} {Y1} L{X1} {Y1}" '
@@ -269,12 +260,12 @@ def render(spec, orientation="landscape", trend="none", window=5,
         o.append(f'<path d="M{x:.1f} {Y1} L{x:.1f} {Y1 + 6}" '
                  f'style="stroke:var(--tx3);stroke-width:1"/>')
         o.append(f'<text x="{x:.1f}" y="{Y1 + 22}" text-anchor="middle" class="flbl" '
-                 f'style="fill:var(--tx3)">{_fmt(v, xstep)}</text>')
+                 f'style="fill:var(--tx3)">{figure_scale.fmt(v, xstep)}</text>')
         v += xstep
 
     mark = spec.get("mark") or {}
-    if _num(mark.get("at")) is not None:
-        mx = sx(_num(mark.get("at")))
+    if figure_scale.num(mark.get("at")) is not None:
+        mx = sx(figure_scale.num(mark.get("at")))
         o.append(f'<path d="M{mx:.1f} {Y0} L{mx:.1f} {Y1}" style="stroke:var(--tx3);'
                  f'stroke-width:1;stroke-dasharray:4 4;fill:none"/>')
         if mark.get("label"):
@@ -320,7 +311,7 @@ def render(spec, orientation="landscape", trend="none", window=5,
         line += f" · {cause}"
     # Y1+44 is the axis name's line; the reading gets its own at Y1+66, and
     # wraps rather than running out of the viewBox.
-    read_lines = _wrap(line, X1 - X0)
+    read_lines = figure_scale.wrap(line, X1 - X0)
     for i, ln in enumerate(read_lines):
         o.append(f'<text x="{X0}" y="{Y1 + 66 + i * 18}" class="flbl" '
                  f'style="fill:var(--tx2)">{e(ln)}</text>')

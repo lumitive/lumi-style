@@ -56,9 +56,25 @@ def test_bar_length_is_linear_in_the_value_from_zero():
 
 
 def test_there_is_no_baseline_flag():
-    assert "--baseline" not in bm.main.__doc__ if bm.main.__doc__ else True
-    src = (ROOT / "scripts/render/benchmark_svg.py").read_text(encoding="utf-8")
-    assert "add_argument(\"--baseline\"" not in src
+    """The first line of this test used to be
+    `assert "--baseline" not in bm.main.__doc__ if bm.main.__doc__ else True`,
+    which parses as `assert (X if doc else True)` — and `main` has no
+    docstring, so it was `assert True` and had never tested anything.
+
+    Asked of the PARSER, not of the source text: a grep for the string also
+    matches the docstring that promises the flag does not exist, and a rename
+    or a different quote style would slip past it.
+    """
+    import argparse
+    import contextlib
+    import io
+    with contextlib.redirect_stderr(io.StringIO()), \
+            pytest.raises(SystemExit) as raised:
+        bm.main(["--data", "x.json", "--baseline", "20"])
+    assert raised.value.code == 2, (
+        "the tool accepted a baseline; a truncated axis is this form's "
+        "commonest distortion and it must not be able to express one")
+    del argparse
 
 
 def test_every_bar_declares_its_own_value():

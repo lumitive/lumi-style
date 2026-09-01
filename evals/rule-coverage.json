@@ -4945,6 +4945,17 @@
    "covers": "figure.data-declaration",
    "metric": "D42",
    "gates": true
+  },
+  {
+   "id": "RC-493",
+   "source": "prompts/lumi-style-core.md:295",
+   "quote": "six whether a tool draws it or you write the SVG by hand",
+   "gist": "Every figure carrying a number states measure, period, reading, cause, source and move — the same six whether a tool draws it or the agent writes the SVG by hand.",
+   "page_kind": "all",
+   "covers": "figure.universal-fields",
+   "metric": null,
+   "gates": false,
+   "why_unchecked": "The prompt tier gets one pasted context and no tools, so nothing can check what an agent there produced beyond the deliverable gates that grade any document. Where a tool IS available the same six fields are enforced structurally — `figure_spec.problems` refuses a spec missing any of them and D42 fails the page that declares it — so this sentence is the 12/12 restatement of a rule that gates on 10 platforms, not an unchecked rule of its own."
   }
  ],
  "orphan_gates": {

@@ -573,7 +573,13 @@ first draft's arithmetic on three counts, each verified:
   C closes link 4 was wrong."* Even at step 5 the registry reaches at most one
   `tool` per natively-drawn framework. It is not closed by this plan, and
   pretending otherwise was the arithmetic inflating itself.
-- **Link 11** (numbers agree with the fact contract) is closed only in part. Its
+- **Link 11** (numbers agree with the fact contract) is closed only in part.
+- **Link 1** (an entry that receives the data) is credited to no step in the
+  table above, and the first version of this section did not say so — it named
+  links 4 and 11 as the two that stay open, which made "7 of 9" arithmetically
+  right and wrong about which two. There is no entry where an engagement's
+  numbers first become a spec; an author writes the skeleton by hand from the
+  beat. GAP-054 records it. **Three links stay open: 1, 4 and 11.** Its
   two named defects are that the owner's contract carries no `## FACTS` heading
   and that `--facts` is an optional flag rather than a build step. **Both live
   outside this repository**, exactly like the 355 pages of §9.5. Step 5 adds the
@@ -697,7 +703,7 @@ question means anything.
 | 39 | `position` is landed or scoped out | §11 covers four of AR-1's five moves while the registry files three entries under `position`. Either it gets a step and a refusal test, or §9 states why it is out of scope | 4 |
 | 40 | the drawing's other two outputs are graded | `inspect_layout --deliverable` reports `figure_axis_named` **held**, not `n/a`, and the SVG carries `.axname-x`, `.axname-y` and a source line inside the drawing. Today 15 number-scaling figures carry zero `.axname-*` | 2 |
 | 41 | the rule register catches up | RC-448 no longer reads `metric: null`, or states why an input-shape refusal is not a metric. `check_rule_coverage --check` green, run **without `--relocate`**, which would silently rewrite the 230 line pins below `design-rules.md:171` | 3 |
-| 42 | the chain arithmetic is asserted, not announced | each step's CHANGELOG names which of §4's links it moved broken→ok, with the command, and the running total. Steps 1–3 must reach 6; step 5 must reach 9 | all |
+| 42 | the chain arithmetic is asserted, not announced | each step's CHANGELOG names which of §4's links it moved broken→ok, with the command, and the running total, counted against §4's list of ten and naming the open links by number. **Re-scoped 0.1.671, append-only per row 44**: it read "steps 1–3 must reach 6; step 5 must reach 9", which §11's corrected table (3 after step 3, 7 after step 5) and §11's own bold refusal — *"a plan that claimed 9 of 9 would be claiming two links it cannot reach"* — both forbid. The row was written against §11's pre-audit arithmetic and never re-read when §4 fixed it. The targets are now §11's: **3 after step 3, 7 after step 5**, and the three open links are 1, 4 and 11 | all |
 | 43 | the graded number is printed every release | every release runs §12's baseline and pastes the three numbers into its entry. A release shipping only the prerequisites prints unchanged numbers and says, in those words, that the plan has not moved | all |
 | 44 | **the checklist is append-only** | a row may not be deleted, renumbered away or narrowed. A row whose predicate misfires is re-scoped and re-measured, never dropped — that is §2's failure, mechanised. Retiring one needs a documented case and a CHANGELOG line naming the row. Checked by diffing §12's row set across commits | all |
 | 45 | the flat-directory deferral has a ledger id | "deferred, not refused" becomes an `IDEA-` entry in `backlog/ideas-prd.md`, so it is a state something holds rather than a sentence in a spec | 1 |

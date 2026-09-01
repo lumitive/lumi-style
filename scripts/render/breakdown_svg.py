@@ -135,7 +135,10 @@ def render(spec, orientation="landscape", path="the spec"):
         # A label goes INSIDE only where its slice can hold it; otherwise it
         # goes below with a leader. A label wider than its segment is the
         # commonest way this figure form becomes unreadable.
-        text = f"{label} \u00b7 {figure_scale.fmt(value)}"
+        # ESCAPED. Every other label in every renderer goes through
+        # `html.escape`; this one did not, so a part called "R&D <x>" was
+        # injected raw into the drawing.
+        text = f"{html.escape(label)} \u00b7 {figure_scale.fmt(value)}"
         if w >= len(f"{label} · {figure_scale.fmt(value)}") * 6.4 + 20:
             parts_out.append(
                 f'<text class="flbl" x="{x + w / 2:.1f}" '

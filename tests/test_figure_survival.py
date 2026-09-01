@@ -106,8 +106,18 @@ def test_a_figures_numbers_reach_the_fact_check(tmp_path):
     doc = _deck(tmp_path, DEC)
     r = check_facts.compare(CONTRACT, doc.read_text(encoding="utf-8"),
                             base=doc.parent)
-    assert r["spec_quantities"] >= 4
-    assert "20" in r["unsourced_quantities"], r["unsourced_quantities"]
+    # EXACTLY four: total, and three parts. A `>=` passes anything that
+    # over-collects, and this number is 4 only because DEC's values have two or
+    # three digits — `check_facts.facts()` ignores a lone digit, so a radar
+    # spec of `[8, 4, 7]` contributes nothing at all. That limit is stated in
+    # `spec_quantities`' docstring and pinned below.
+    assert r["spec_quantities"] == 4
+    # ITS OWN VERDICT, against its own reading of the contract. Folding the
+    # spec's exact numbers into the prose-scraped set compared two
+    # vocabularies: `QUANTITY` cannot start on `0.` and ignores a lone digit,
+    # so `0.08` came back as the quantity 8 and correct data failed red line 1
+    # on a number neither file contained.
+    assert "20" in r["unsourced_spec_values"], r["unsourced_spec_values"]
 
 
 def test_a_spec_the_document_names_and_cannot_produce_is_reported(tmp_path):
@@ -119,12 +129,15 @@ def test_a_spec_the_document_names_and_cannot_produce_is_reported(tmp_path):
 
 
 def test_without_a_base_the_specs_are_not_silently_skipped(tmp_path):
-    """`compare` is a library entry point too. With no directory it cannot
-    resolve a reference — and reporting zero spec quantities is honest only
-    because `main` always passes the document's own directory."""
+    """`compare` is a library entry point and `base=None` is its default, so
+    the blind branch was the one a careless caller got. It now says so."""
     doc = _deck(tmp_path, DEC)
     r = check_facts.compare(CONTRACT, doc.read_text(encoding="utf-8"))
-    assert r["spec_quantities"] == 0 and r["spec_problems"] == []
+    assert r["spec_quantities"] == 0
+    assert r["spec_problems"], (
+        "a declared spec nobody could resolve printed what a document with no "
+        "specs prints — the hole this function was written to close, reopened "
+        "by its own default argument")
 
 
 def test_the_spec_may_not_be_the_contract(tmp_path):
@@ -188,3 +201,36 @@ def test_a_skeleton_never_becomes_a_drawing(move):
     for mod in (bd, sc):
         with pytest.raises(SystemExit):
             mod.render(fs.skeleton(move))
+
+
+def test_a_single_digit_value_does_not_reach_the_comparison(tmp_path):
+    """The instrument's reach, stated rather than assumed. `_canonical` gives
+    `8` and the contract side reads every number, so a lone digit DOES compare
+    — this pins which, because the first version of `spec_quantities` sent the
+    values through the prose scanner and lost them."""
+    spec = dict(DEC, total={"label": "All", "value": 9},
+                parts=[{"label": "a", "value": 5}, {"label": "b", "value": 4}])
+    doc = _deck(tmp_path, spec)
+    r = check_facts.compare("## FACTS\n\n- All is 9, a is 5, b is 4.\n",
+                            doc.read_text(encoding="utf-8"), base=doc.parent)
+    assert r["spec_quantities"] == 3
+    assert r["unsourced_spec_values"] == []
+
+
+def test_the_text_mode_exit_code_carries_every_gating_verdict(tmp_path):
+    """`scripts/ops/build.py` invokes check_facts WITHOUT `--json`, so the text
+    path is the one that gates a real build — and dropping `spec_problems` from
+    its exit expression survived the whole suite."""
+    import subprocess
+    import sys
+    doc = _deck(tmp_path, DEC)
+    (tmp_path / "figures/f1.json").unlink()
+    contract = tmp_path / "c.md"
+    contract.write_text(CONTRACT, encoding="utf-8")
+    done = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/check/check_facts.py"),
+         str(contract), str(doc)], capture_output=True, text=True)
+    assert done.returncode != 0, (
+        "a declared spec that could not be read exited 0 in the mode that "
+        "gates a build")
+    assert "figure spec" in done.stdout

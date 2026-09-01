@@ -1,0 +1,32 @@
+{
+  "version": "0.1.671",
+  "diff_base": "73a93448d6c03d316359aa02ca709355da4ada41",
+  "spec": "specs/2026-09-01-figure-data-contract-design.md",
+  "obligations": [
+    "scaffold-render",
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "scaffold-render",
+      "command": "python3 scripts/ops/new_deck.py --outline fixtures/scaffold-evidence-outline.md --genre internal --pages 10 --parts A,B,C --no-trace --out fixtures/.scaffold-evidence.html && python3 scripts/check/inspect_layout.py --deliverable fixtures/.scaffold-evidence.html",
+      "exit_code": 0,
+      "stdout_sha256": "45d0766924b83fac7ad56ac924ee97cf6b639c7540028107aabf4c315029d25d",
+      "date": "2026-09-01"
+    },
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "f04602e1e4dabf54880d35f1a127e018812a9c892b096ad3bdbb2f17779ea4dd",
+      "date": "2026-09-01"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "The board's newest run is 0.1.648, twenty-three releases back. Refreshing it means driving at least two platform CLIs through all three tasks on the owner's API credentials with her installs current \u2014 her call, and she has deferred it while this plan runs. This is the SIXTH release carrying this waiver in seven, and the checklist's row 23 asks for that sentence in the CHANGELOG entry rather than only here; 0.1.671's entry now carries it. What is unconfirmed: whether the twelve configurations still produce passing deliverables. This release is a remediation \u2014 it fixes checks, tests and prose, adds no rule an agent is handed and changes no adapter, platform registry record, entry-point loading rule or token value, so no platform capability moved. What DID change for a driven agent is that a beat naming its data now reaches four renderers instead of one, which a refresh would answer for adoption rather than for regression."
+    }
+  ]
+}
