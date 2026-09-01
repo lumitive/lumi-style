@@ -124,44 +124,83 @@ def render(spec, orientation="landscape", path="the spec"):
         f'{" " + html.escape(unit) if unit else ""}</text>',
     ]
 
+    # TWO PASSES. The first places every segment; the second lays the outside
+    # labels out so they cannot overlap. Placing each at its own segment's
+    # centre put "docs, scripts and the lockfile · 3" and "specification/ · 0"
+    # on top of each other in the first real deck built through this tool —
+    # and the zero was the finding the page existed to make. Found by
+    # rendering it and looking.
     x = float(left)
+    placed, outside = [], []
     for i, (label, value) in enumerate(parts):
         w = plot_w * (value / total)
-        drawn = max(w - (SEG_GAP if i < len(parts) - 1 else 0), 0.5)
-        parts_out.append(
-            f'<rect data-datum="{figure_scale.fmt(value)}" x="{x:.1f}" '
-            f'y="{top:.1f}" width="{drawn:.1f}" height="{BAR_H}" '
-            f'fill="{LEAD if i == 0 else REST}"/>')
-        # A label goes INSIDE only where its slice can hold it; otherwise it
-        # goes below with a leader. A label wider than its segment is the
-        # commonest way this figure form becomes unreadable.
-        # ESCAPED. Every other label in every renderer goes through
-        # `html.escape`; this one did not, so a part called "R&D <x>" was
-        # injected raw into the drawing.
         text = f"{html.escape(label)} \u00b7 {figure_scale.fmt(value)}"
-        if w >= len(f"{label} · {figure_scale.fmt(value)}") * 6.4 + 20:
+        # A ZERO PART IS A FINDING, not a sliver. It has no length, so it gets
+        # no segment — drawing one at a floor would give it ink proportional to
+        # nothing, which is the distortion the whole package refuses. It keeps
+        # its label, because "this category is empty" is often the point.
+        if value > 0:
+            drawn = max(w - (SEG_GAP if i < len(parts) - 1 else 0), 0.5)
             parts_out.append(
+                f'<rect data-datum="{figure_scale.fmt(value)}" x="{x:.1f}" '
+                f'y="{top:.1f}" width="{drawn:.1f}" height="{BAR_H}" '
+                f'fill="{LEAD if i == 0 else REST}"/>')
+        else:
+            parts_out.append(
+                f'<line data-datum="0" x1="{x:.1f}" y1="{top:.1f}" '
+                f'x2="{x:.1f}" y2="{top + BAR_H:.1f}" stroke="{REST}" '
+                f'stroke-width="1.5" stroke-dasharray="3 3"/>')
+        inside = (value > 0
+                  and w >= len(f"{label} \u00b7 {figure_scale.fmt(value)}") * 6.4 + 20)
+        if inside:
+            placed.append(
                 f'<text class="flbl" x="{x + w / 2:.1f}" '
                 f'y="{top + BAR_H / 2 + 5:.1f}" text-anchor="middle" '
                 f'fill="var(--bg)">{text}</text>')
         else:
-            parts_out.append(
-                f'<line x1="{x + w / 2:.1f}" y1="{top + BAR_H:.1f}" '
-                f'x2="{x + w / 2:.1f}" y2="{top + BAR_H + 16:.1f}" '
-                f'stroke="var(--ln1)" stroke-width="1"/>')
-            parts_out.append(
-                f'<text class="flbl" x="{x + w / 2:.1f}" '
-                f'y="{top + BAR_H + 32:.1f}" text-anchor="middle">'
-                f'{text}</text>')
+                # The LABEL'S OWN characters plus the separator and the value —
+            # `len(label) + 6` under-counted a three-digit value and a long
+            # separator, and the browser gate caught two labels still touching
+            # after the first fix. The per-character estimate is `.flbl`'s
+            # rendered width measured at the design viewport, rounded up.
+            outside.append((x + w / 2,
+                            len(f"{label} \u00b7 {figure_scale.fmt(value)}"),
+                            text, x + w / 2))
         x += w
+    parts_out += placed
+
+    # Left to right, each label pushed right of the one before it — and moved
+    # to a SECOND ROW when it will not fit, never clamped back inside the box.
+    # Clamping was the first fix and it defeated the push: the last two labels
+    # were both pulled to the right edge and landed on each other again, which
+    # the browser gate reported and the eye had already seen.
+    rows: list[float] = [float(left)]
+    for centre, chars, text, tick in sorted(outside):
+        half = chars * 4.6
+        right = left + plot_w
+        row = next((i for i, cursor in enumerate(rows)
+                    if max(centre, cursor + half) + half <= right), None)
+        if row is None:
+            rows.append(float(left))
+            row = len(rows) - 1
+        at = max(centre, rows[row] + half)
+        rows[row] = at + half + 14
+        y = top + BAR_H + 32 + row * 20
+        parts_out.append(
+            f'<line x1="{tick:.1f}" y1="{top + BAR_H:.1f}" x2="{at:.1f}" '
+            f'y2="{y - 14:.1f}" stroke="var(--ln1)" stroke-width="1"/>')
+        parts_out.append(
+            f'<text class="flbl" x="{at:.1f}" y="{y:.1f}" '
+            f'text-anchor="middle">{text}</text>')
+    label_rows = len(rows)
 
     parts_out.append(
         f'<text class="axname-x" x="{left + plot_w / 2:.1f}" '
-        f'y="{top + BAR_H + 66:.1f}" text-anchor="middle">'
+        f'y="{top + BAR_H + 46 + label_rows * 20:.1f}" text-anchor="middle">'
         f'{html.escape(str(spec["measure"]["name"]))}'
         f'{" · " + html.escape(unit) if unit else ""}</text>')
 
-    read_y = top + BAR_H + 104
+    read_y = top + BAR_H + 84 + label_rows * 20
     read_lines = figure_scale.wrap(str(spec["reading"]), plot_w)
     for j, line in enumerate(read_lines):
         parts_out.append(f'<text class="fread" x="{left:.1f}" '

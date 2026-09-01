@@ -1,0 +1,18 @@
+{
+  "version": "0.1.672",
+  "diff_base": "1b2020bd1c6010825b15e09bc6d046d073dae626",
+  "spec": "specs/2026-09-01-figure-data-contract-design.md",
+  "obligations": [
+    "layout-fixtures"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "f04602e1e4dabf54880d35f1a127e018812a9c892b096ad3bdbb2f17779ea4dd",
+      "date": "2026-09-01"
+    }
+  ],
+  "waivers": []
+}

@@ -1,3 +1,97 @@
+## 0.1.672 — a library shape could carry two words, and that is why every figure was too simple
+
+The owner reviewed the first deck built through the figure data contract and
+returned it page by page. Of the development path: the figure is too simple, it
+has no time axis, and the time points the page states appear nowhere on the
+drawing. Of the quadrant: too simple. Three more pages carried the same defect.
+
+**Every one of those traces to one function signature.**
+
+    def shape_figure(shape, label_a, label_b)
+
+206 vendored units, and the only way to put words into one was two labels
+dropped at the drawing's bottom corners. A `position` unit therefore arrived as
+an empty box; a staircase carried no dates; an arrow chain named none of its
+stages. It was never the author being brief — **the interface could not express
+more**, and no gate could see the difference.
+
+**`scripts/lib/figure_slots.py` is the interface that can.** Content goes into
+a unit by slot, addressed in the unit's own fractional space, and the three
+traps that cost a render-and-look cycle each are absorbed rather than
+documented: all 206 viewBoxes have non-zero origins and a `<use>` without
+explicit geometry renders off-canvas **and raises nothing**; `preserveAspectRatio`
+scales a near-square unit to about 245 of a 640-unit slot and centres it, so a
+slot placed as a fraction of the BOX lands outside the drawing — measured, and
+the reason the first 2x2 had its labels in the margin twice; and `fill=` on a
+`<text>` loses to the stylesheet, so every string this module writes uses
+`style="fill:…"`. **Composing a unit with no slots raises** rather than
+returning a figure: a shape with no content is the defect this replaces, so
+producing one silently would be the same failure one layer down.
+
+**`scripts/render/timeline_svg.py` — this package had no timeline at all.**
+`grep -n timeline tokens/lumi-layouts.css` returns two comment lines;
+`design-rules.md` said only which layout row a wide timeline belongs in and
+left the drawing to the author. Three tiers, because the owner named three:
+
+- **light** — points on one axis, each a dot on the axis with a stem and two
+  lines at its head. Stems cycle three heights so neighbours never collide,
+  and labels flip anchor past the midpoint so the last does not hang off.
+- **general** — blocks on a spine: solid is now, outlined is done, **dashed is
+  a forecast**, and a forecast's value hangs BELOW its block in the accent,
+  because a number inside a dashed box reads as measured.
+- **pro** — staged cards over a gradient band, each card carrying date, name,
+  body and a state pill. The band's hue ramps from the accent at 22% to full,
+  so the COLOUR carries past → present. It started at the rule colour and was
+  a hairline nobody could see; a gradient nobody sees carries nothing.
+
+A stage with no `date` is refused, by name. A timeline whose points carry no
+time is a row of boxes — which is exactly what the reviewed page had.
+
+**A timeline is not a sixth analytical move.** AR-1 declares five and
+`figure spec moves` holds `MOVE_FIELDS` to `ANALYTICAL_MOVES` in both
+directions, so a sixth would need convention 2's documented case. A version
+history IS a bridge — a before, an after, and the steps between — whose steps
+are named rather than numeric. `stages` refines `bridge` exactly as `criteria`
+refines `compare`, and carrying both `stages` and `pieces` is refused: the
+reader could not say which drawing they were looking at.
+
+**`scripts/render/quadrant_svg.py` — built to the standard she named**
+(`_calibration/calib2-market` Figure 4). Six things it does that the empty box
+did not: the answer quadrant washed and carrying a headline and a subline, and
+**only** that one labelled; both axes drawn outside the plot, arrowed, each
+with a low→high ramp so an axis is a scale rather than a word; every item a dot
+plus a name plus a **qualifier**; an exited player kept and dimmed, because
+deleting them loses the finding and dimming states it; our own position in its
+own token; and the truth condition DR-11 requires — the axes are independent.
+An item with no qualifier is refused: a name on a map is a logo.
+
+One defect the render found and the gate did not: `.axname-y` is set upright by
+`tokens/`, so the two horizontal ramp lines parked beside it crossed straight
+through it — three runs of text in one place. The ramp now rides the axis in
+the axis's own direction.
+
+**D29 could not see five of the seven pages it reported clean.** It collects
+the numeric tokens a page states and asks whether any reaches the figure — and
+a title that spells its numbers as words, *"Three versions in eight months"*,
+gives it nothing to look for. It printed `naked: []`, byte-identical to a page
+whose figure carries every number, on the very deck whose figures the owner
+opened and called empty. It now has a third answer and says how many pages it
+could not look at. FM-24, inside the gate written to catch a figure carrying no
+numbers.
+
+`three-horizons` and `two-by-two` now name their tools, each shipped to
+`consumer_seeds` before its registry entry, as `framework tools` requires.
+
+Two deliberate reds had come to share a page. `deck-broken`'s D32 plant is the
+page that declares a move and draws nothing, and 0.1.671 made a page carrying a
+resolving `data-figure-spec` no longer bare — so the arithmetic plant added the
+release before cancelled it, and D32 reported `ok` where the suite expects
+`FAIL`. `check_fixtures` caught it, which is what a corpus that pins verdicts
+is for. They are on separate pages now.
+
+This continues `specs/2026-09-01-figure-data-contract-design.md`: the contract
+holds a figure's numbers, and this is the half that holds its words.
+
 ## 0.1.671 — what four reviewers found in steps 2 through 5, and the three tools that could not be reached
 
 0.1.667–0.1.670 shipped preflight-green. Four reviewers then read them — for

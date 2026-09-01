@@ -38,7 +38,12 @@
     "p128-2x2-extended-01",
     "p116-3-01"
    ],
-   "drawn": null
+   "drawn": null,
+   "tool": {
+    "module": "quadrant_svg",
+    "run": "python3 scripts/render/quadrant_svg.py --data <spec.json>",
+    "draws": "two continua and the items placed on them: the answer quadrant washed and named, both axes carrying a low-to-high ramp, every item a dot plus a name plus a qualifier. An item with no qualifier is refused — a name on a map is a logo."
+   }
   },
   "nine-box": {
    "aka": [
@@ -186,7 +191,12 @@
     "p091-step-5-01",
     "p121-gantt10-01"
    ],
-   "drawn": null
+   "drawn": null,
+   "tool": {
+    "module": "timeline_svg",
+    "run": "python3 scripts/render/timeline_svg.py --data <spec.json> --tier pro",
+    "draws": "a path in time, in three tiers: points on an axis, blocks on a spine where dashed means not built, or staged cards over a gradient band. Every stage carries its own date and name — a timeline whose points carry no time is refused."
+   }
   },
   "scatter": {
    "question": "Do these two quantities move together, and how tightly?",

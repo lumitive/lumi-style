@@ -102,6 +102,11 @@ MOVE_FIELDS: dict[str, tuple[str, ...]] = {
     "bridge": ("before", "after", "pieces"),
 }
 
+# The collection each move's OPTIONAL refinement keeps, so the shape check runs
+# over it too. `criteria` turns a compare into a radar; `stages` turns a bridge
+# into a named path.
+_COLLECTION_EXTRAS = {"compare": ("criteria",), "bridge": ("stages",)}
+
 # The field of each move that holds MANY things. Named rather than discovered
 # because the shape check has to run before anything iterates them.
 _COLLECTIONS: dict[str, tuple[str, ...]] = {
@@ -109,7 +114,7 @@ _COLLECTIONS: dict[str, tuple[str, ...]] = {
     "decompose": ("parts",),
     "position": ("items",),
     "correlate": ("points",),
-    "bridge": ("pieces",),
+    "bridge": ("pieces", "stages"),
 }
 
 # Everything but the measures, which move (see the module docstring).
@@ -277,7 +282,10 @@ def problems(spec) -> list[str]:
                     f"inside it was read — this is not a spec that passed")
                 return out
 
-        for field in MOVE_FIELDS[move]:
+        required = MOVE_FIELDS[move]
+        if move == "bridge" and spec.get("stages") is not None:
+            required = ("stages",)
+        for field in required:
             # ABSENT, not merely empty. An empty `references` list is a
             # different finding from a missing one and `_move_problems` says
             # what it is — the judgment anchor, in WR-5's own words. Testing
@@ -287,7 +295,7 @@ def problems(spec) -> list[str]:
                 out.append(
                     f"a `{move}` figure needs `{field}`, and this spec does "
                     f"not carry it. AR-1's input shape for {move} is "
-                    f"{' + '.join(MOVE_FIELDS[move])}")
+                    f"{' + '.join(required)}")
         out += _move_problems(move, spec)
     return out
 
@@ -357,6 +365,33 @@ def _move_problems(move: str, spec: dict) -> list[str]:
                                   "AR-1: decompose")
         out += _arithmetic(spec, "decompose")
     elif move == "bridge":
+        # `stages` is bridge's OPTIONAL refinement, the way `criteria` refines
+        # compare: a path whose steps are NAMED rather than numeric. A version
+        # history — announced, stable, current, candidate — is a bridge whose
+        # pieces do not add up to anything, because the change it attributes is
+        # capability rather than quantity. It is an extension rather than a
+        # sixth move because AR-1 declares five and `figure spec moves` holds
+        # this module to `check_outline.ANALYTICAL_MOVES`; a sixth would need
+        # convention 2's documented case for a rule revision, and a timeline
+        # does not earn one.
+        stages, pieces = spec.get("stages"), spec.get("pieces")
+        if stages is not None and pieces is not None:
+            out.append(
+                "a `bridge` figure carries EITHER `pieces`, which must "
+                "reconcile the change arithmetically, OR `stages`, which name "
+                "a path the numbers do not add up along. Carrying both leaves "
+                "the reader unable to say which one the drawing is (AR-1)")
+            return out
+        if stages is not None:
+            if not isinstance(stages, list) or len(stages) < 2:
+                out.append(
+                    "a `bridge` drawn as a path needs at least two `stages`. "
+                    "One point in time is a date, not a path (AR-1)")
+                return out
+            for i, st in enumerate(stages):
+                out += _pair_problems(f"stages[{i}]", st, ("date", "name"),
+                                      "AR-1: bridge as a named path")
+            return out
         if isinstance(spec.get("pieces"), list) and not spec["pieces"]:
             out.append(
                 "a `bridge` figure attributes a change to pieces, and this "

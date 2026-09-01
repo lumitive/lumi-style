@@ -675,7 +675,7 @@ def d29_figure_numbers(raw):
     pages = _pages(raw)
     if not pages:
         return None
-    naked, with_figs = [], 0
+    naked, unasked, with_figs = [], [], 0
     for cls, pid, body in pages:
         if "cover" in cls or "closing" in cls or "opener" in cls:
             continue
@@ -691,6 +691,14 @@ def d29_figure_numbers(raw):
             stated.update(_NUM_TOKEN.findall(_flat_text(m.group(1))))
         stated = {s.rstrip(",.") for s in stated}
         if not stated:
+            # THE THIRD ANSWER. This was `continue`, so a page whose title
+            # spells its numbers as words — "Three versions in eight months" —
+            # gave the check nothing to look for and printed exactly what a
+            # page whose figure carries every number prints. Measured on the
+            # first deck built through the figure contract: `naked: []`, all
+            # green, on a figure the owner opened and called empty. FM-24, in
+            # the gate written to catch a figure that carries no numbers.
+            unasked.append(pid)
             continue
         drawn = set()
         for m in re.finditer(r"<text[^>]*>(.*?)</text>", body, re.S | re.I):
@@ -698,7 +706,8 @@ def d29_figure_numbers(raw):
         drawn = {s.rstrip(",.") for s in drawn}
         if not (stated & drawn):
             naked.append(pid)
-    return {"pages_with_figs": with_figs, "naked": naked}
+    return {"pages_with_figs": with_figs, "naked": naked,
+            "unasked": unasked}
 
 
 _CAP_N = re.compile(r'<span class="(?:[^"]*\s)?n(?:\s[^"]*)?"[^>]*>\s*'
@@ -770,6 +779,15 @@ def d41_role_echo(raw):
     return hits
 
 
+def _declares_spec(raw, pid) -> bool:
+    """-> whether this page names the file its figure's numbers live in."""
+    for pat in (rf'<section[^>]*id="{re.escape(pid)}"[^>]*data-figure-spec="',
+                rf'<section[^>]*data-figure-spec="[^"]*"[^>]*id="{re.escape(pid)}"'):
+        if re.search(pat, raw):
+            return True
+    return False
+
+
 def _analysis_move(raw, pid):
     """-> the move a page declares, or "".
 
@@ -839,6 +857,21 @@ def d32_shape_use(raw):
         if not move or move not in drawable:
             continue
         held += 1
+        # A PAGE THAT DECLARES ITS DATA HAS DRAWN FROM ITS OWN NUMBERS, which
+        # is the other correct answer to "what did this move produce" and the
+        # one D32 could not see. GAP-051: this keys on the MOVE, not on the
+        # framework a page chose, so a page correctly drawing a waterfall, a
+        # benchmark or a breakdown natively was reported `bare` by a metric
+        # that gates at zero. The gap named two ways out and said both were
+        # design decisions; this is neither — `data-figure-spec` is a fact
+        # already on the page, and D42 already fails the page if the file it
+        # names does not hold what the move needs. A figure drawn from a
+        # verified data contract is not a figure that skipped the library.
+        # On the SECTION TAG, which `_pages()` does not capture — the same
+        # shape `_analysis_move` above exists for, and the reason the first cut
+        # of this exemption matched nothing.
+        if _declares_spec(raw, pid):
+            continue
         if not _SHAPE_USE.search(body):
             bare.append(pid)
     return {"shapes": len(_SHAPE_USE.findall(raw)),
@@ -3272,8 +3305,11 @@ def grade(r):
                  "reported", True, tk is None))
     fn = r["D29_figure_numbers"]
     rows.append(("D29_figure_numbers",
-                 f"{len(fn['naked'])} of {fn['pages_with_figs']} figure pages "
-                 f"carry none of the page's numbers" if fn else None,
+                 (f"{len(fn['naked'])} of {fn['pages_with_figs']} figure pages "
+                  f"carry none of the page's numbers"
+                  + (f"; {len(fn['unasked'])} state their numbers as words, so "
+                     f"this could not look at them" if fn.get("unasked") else ""))
+                 if fn else None,
                  "reported", True, fn is None))
     fs = r["D30_figure_sequence"]
     rows.append(("D30_figure_sequence",

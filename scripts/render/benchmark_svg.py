@@ -176,9 +176,22 @@ def render(spec, orientation="landscape", path="the spec"):
         y = plot_top + i * band + (band - bar_h) / 2
         w = plot_w * (value / hi)
         fill = "var(--acc)" if is_subject else "var(--tx3)"
-        parts.append(
-            f'<rect data-datum="{figure_scale.fmt(value)}" x="{left:.1f}" '
-            f'y="{y:.1f}" width="{w:.1f}" height="{bar_h:.1f}" fill="{fill}"/>')
+        if value > 0:
+            parts.append(
+                f'<rect data-datum="{figure_scale.fmt(value)}" x="{left:.1f}" '
+                f'y="{y:.1f}" width="{w:.1f}" height="{bar_h:.1f}" '
+                f'fill="{fill}"/>')
+        else:
+            # A ZERO IS OFTEN THE FINDING, and it has no length to carry it.
+            # Drawn as a bar it is invisible, so a figure whose whole point was
+            # "zero commerce primitives" showed three grey references and
+            # nothing where the subject should be. It gets a mark at the axis
+            # origin instead — in its own colour, so the subject still reads as
+            # the subject. Found by rendering the first real deck and looking.
+            parts.append(
+                f'<line data-datum="0" x1="{left:.1f}" y1="{y:.1f}" '
+                f'x2="{left:.1f}" y2="{y + bar_h:.1f}" stroke="{fill}" '
+                f'stroke-width="3" stroke-dasharray="4 3"/>')
         parts.append(
             f'<text class="flbl" x="{left - 14:.1f}" '
             f'y="{y + bar_h / 2 + 5:.1f}" text-anchor="end">'
