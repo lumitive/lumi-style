@@ -1,0 +1,8 @@
+{
+ "version": "0.1.670",
+ "diff_base": "181a0782d7f9f9938d1854860a63afba7752c953",
+ "spec": "specs/2026-09-01-figure-data-contract-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}

@@ -418,6 +418,32 @@ def drift(text: str, html: str):
                            f"all {checked} planned implications reached a "
                            f"takeaway" + tail),
             })
+    # THE LOSS, REPORTED. Measured across 17 shipped documents and 355 pages:
+    # the outline declared 17 analytical moves and the documents carried ZERO,
+    # because each deliverable's own assembler replaces the scaffold's content
+    # run with hand-written pages. No change in this repository can move that
+    # number — but until this line the deletion was invisible, and after it, it
+    # is one line in every build that uses an outline. The repair is the
+    # author's, and it becomes a repair they can see.
+    #
+    # A note, never a gate: a document may legitimately drop a beat, and AG-9
+    # already declined the class of gate that judges whether a page's prose
+    # matches a plan. What this asserts is only arithmetic on declarations.
+    if analyses:
+        carried = len(re.findall(r'data-analysis="[a-z]+"', html))
+        out.append({
+            "check": "analysis landing",
+            "verdict": "note",
+            "detail": (f"the outline declares {len(analyses)} analytical "
+                       f"move(s); the document carries {carried}"
+                       + ("" if carried >= len(analyses) else
+                          f" — {len(analyses) - carried} did not reach the "
+                          f"page. A move a document does not declare is a "
+                          f"move no checker can hold it to, and the "
+                          f"commonest cause is an assembler that replaces "
+                          f"the scaffold's content run")),
+        })
+
     # GAP-031's structural half, and the ONLY half that is gateable. The gap's
     # own wording proposed comparing the implication's TEXT against the whole
     # page rather than against the take. That was built and measured against
