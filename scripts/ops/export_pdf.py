@@ -77,7 +77,8 @@ PAGE_SELECTOR = "section.page"
 
 
 def export(path: pathlib.Path, geometry: str, scale: float, png: bool,
-           out_dir: pathlib.Path | None, seen: set) -> int:
+           out_dir: pathlib.Path | None, seen: set,
+           only: set[int] | None = None) -> int:
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
@@ -150,22 +151,43 @@ def export(path: pathlib.Path, geometry: str, scale: float, png: bool,
 
             if png:
                 digits = max(2, len(str(len(sections))))
+                wanted = sorted(only) if only else None
+                if wanted:
+                    over = [k for k in wanted if k > len(sections) or k < 1]
+                    if over:
+                        # A PAGE NUMBER THAT DOES NOT EXIST IS A FAILURE, not a
+                        # quiet skip. The whole use is "raster the page the
+                        # gate named", and rastering nothing while exiting 0
+                        # answers that request with silence.
+                        print(f"FAIL  --pages names {over}, and {path.name} "
+                              f"has {len(sections)} pages")
+                        return 1
                 for i, s in enumerate(sections, 1):
+                    if wanted and i not in wanted:
+                        continue
                     s.scroll_into_view_if_needed()
                     target = out_dir / f"{stem}-{geometry}-p{i:0{digits}d}.png"
                     s.screenshot(path=str(target))
                 # A deck that shrank since the last export leaves higher-numbered
                 # pages from the old edition beside the fresh ones; a directory
                 # shipped wholesale then ships dead pages. Say so.
-                stale = [q for q in sorted(out_dir.glob(f"{stem}-{geometry}-p*.png"))
-                         if q.stem[len(f"{stem}-{geometry}-p"):].isdigit()
-                         and int(q.stem[len(f"{stem}-{geometry}-p"):]) > len(sections)]
+                stale = [] if wanted else [
+                        q for q in sorted(out_dir.glob(f"{stem}-{geometry}-p*.png"))
+                        if q.stem[len(f"{stem}-{geometry}-p"):].isdigit()
+                        and int(q.stem[len(f"{stem}-{geometry}-p"):]) > len(sections)]
                 if stale:
                     print(f"WARN  {len(stale)} stale page files from an earlier, "
                           f"longer export remain: {stale[0].name} … — delete them "
                           f"before shipping the directory")
-                print(f"ok    {len(sections)} pages at {scale:g}x "
-                      f"({int(w * scale)}x{int(h * scale)} px) -> {out_dir}")
+                shot = len(wanted) if wanted else len(sections)
+                # THE COUNT IS WHAT WAS WRITTEN, and it says so when it is a
+                # subset: `3 pages` after a `--pages 4,11` run would read as a
+                # full export of a three-page deck.
+                print(f"ok    {shot} page(s) at {scale:g}x "
+                      f"({int(w * scale)}x{int(h * scale)} px) -> {out_dir}"
+                      + (f" — {len(sections) - shot} page(s) not rastered, "
+                         f"--pages named {','.join(str(k) for k in wanted)}"
+                         if wanted else ""))
             else:
                 target = out_dir / f"{stem}-{geometry}.pdf"
                 page.pdf(path=str(target), width=f"{w}px", height=f"{h}px",
@@ -212,6 +234,11 @@ def main(argv):
                     help=f"device pixels per CSS pixel for --png; default "
                          f"{SCALE_DEFAULT:g} (4K on the landscape stage), "
                          f"floor {SCALE_FLOOR:g} (2K)")
+    ap.add_argument("--pages", metavar="N,N",
+                    help="raster only these page numbers, 1-based. The whole "
+                         "reason a look costs a minute is that it rasters all "
+                         "thirteen pages when a gate named two; this is the "
+                         "subset. --png only — a PDF is the document.")
     ap.add_argument("--out", default=None,
                     help="output directory; default is the input file's own")
     args = ap.parse_args(argv)
@@ -241,6 +268,23 @@ def main(argv):
         m = re.search(r'<body\b[^>]*\bdata-geometry=["\'](\w+)["\']', head)
         return m.group(1) if m else None
 
+    only = None
+    if args.pages:
+        if not args.png:
+            # A PDF IS THE DOCUMENT. Exporting three of its pages as a PDF and
+            # calling it the deliverable is the failure this refusal prevents;
+            # the subset exists for looking, not for shipping.
+            ap.error("--pages is for --png: a PDF is the whole document, and a "
+                     "three-page PDF of a thirteen-page deck is not an export, "
+                     "it is a mistake waiting to be sent")
+        try:
+            only = {int(x) for x in args.pages.replace(" ", "").split(",") if x}
+        except ValueError:
+            ap.error(f"--pages {args.pages!r}: comma-separated page numbers, "
+                     f"1-based, e.g. --pages 4,11")
+        if not only:
+            ap.error("--pages was given and names no page")
+
     geometry = args.geometry or ("portrait" if args.genre == "training" else "landscape")
 
     rc = 0
@@ -266,7 +310,8 @@ def main(argv):
             geometry = decl        # no flag given: follow the document
         try:
             rc = max(rc, export(path, geometry, args.scale, args.png,
-                                pathlib.Path(args.out) if args.out else None, seen))
+                                pathlib.Path(args.out) if args.out else None,
+                                seen, only))
         except Exception as exc:                             # noqa: BLE001
             print(f"FAIL  {name}: {type(exc).__name__}: {str(exc)[:160]}")
             rc = 1

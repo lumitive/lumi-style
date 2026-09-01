@@ -1472,7 +1472,11 @@ AUTHOR_FILL = (
     # at once. A scaffold that hands an author a document failing a check it
     # cannot see is the shape this file exists to close, so the clause is in
     # the scaffold and its slot is here.
-    "WHERE THE\n    NUMBERS CAME FROM",
+    # One line since 0.1.674: the colophon became a rendered field with a
+    # fallback, so the line break that used to sit inside it is gone. The
+    # `scaffold slots` guard caught this the moment the template changed,
+    # which is the whole reason a pattern is held to its emitter.
+    "WHERE THE NUMBERS CAME FROM",
 )
 SCAFFOLD_SLOTS = re.compile("|".join(re.escape(s) for s in AUTHOR_FILL))
 

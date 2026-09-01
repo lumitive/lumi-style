@@ -311,7 +311,7 @@ body.dark {
   --d-teal:    #3FA98C;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.673 (2026-08-19)
+   LUMI page layouts · v0.1.674 (2026-08-19)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -1219,7 +1219,12 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    the wrong instrument: the lead is one sentence and the findings are three
    short ones, so their height is nearly constant and legislating the figure's
    percentage would only fight the type scale. */
-.body.dense { grid-template-rows: auto auto 1fr auto; row-gap: 18px; }
+/* THE ROW GAP IS THE BASE'S, and that is a datum requirement rather than a
+   taste. `inspect_layout`'s datum probe measures the first NON-`.lede` child,
+   so a layout with its own gap starts its second row at a different height
+   from every other page in the deck and the whole document loses its datum —
+   which is what an 18px gap here did, on its first render. */
+.body.dense { grid-template-rows: auto auto 1fr auto; }
 .body.dense.no-lede { grid-template-rows: auto 1fr auto; }
 .body.dense > .lede, .body.dense > .span { grid-column: 1 / -1; }
 /* The look-for line: ONE sentence, and the ceiling is a ceiling. It names what

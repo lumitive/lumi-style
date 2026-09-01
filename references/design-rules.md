@@ -1417,7 +1417,12 @@ A layout is verified only across the **matrix**, not at a point:
   export multiplier only and never changes the CSS stage, because every
   `clamp()` in `tokens/` is written against the stage; the HTML edition needs
   no scale at all — the zoom stage adapts to the reader's window and pixel
-  density natively.
+  density natively. **`--pages N,N` rasters only the pages named**, for the
+  look that follows a gate naming two of thirteen; it is `--png` only, because
+  a three-page PDF of a thirteen-page deck is not an export. A page number the
+  document does not have is a failure rather than a quiet skip — the whole use
+  is to raster the page the gate named, and rastering nothing while exiting 0
+  answers that with silence.
 
 - **Output axis: a deliverable lands in the reader's workspace, not wherever the
   input happened to sit** (owner directive, 2026-08-09). **The default is

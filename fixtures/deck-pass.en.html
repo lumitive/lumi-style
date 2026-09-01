@@ -312,7 +312,7 @@ body.dark {
   --d-teal:    #3FA98C;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.673 (2026-08-19)
+   LUMI page layouts · v0.1.674 (2026-08-19)
    Sixteen page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
@@ -1220,7 +1220,12 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    the wrong instrument: the lead is one sentence and the findings are three
    short ones, so their height is nearly constant and legislating the figure's
    percentage would only fight the type scale. */
-.body.dense { grid-template-rows: auto auto 1fr auto; row-gap: 18px; }
+/* THE ROW GAP IS THE BASE'S, and that is a datum requirement rather than a
+   taste. `inspect_layout`'s datum probe measures the first NON-`.lede` child,
+   so a layout with its own gap starts its second row at a different height
+   from every other page in the deck and the whole document loses its datum —
+   which is what an 18px gap here did, on its first render. */
+.body.dense { grid-template-rows: auto auto 1fr auto; }
 .body.dense.no-lede { grid-template-rows: auto 1fr auto; }
 .body.dense > .lede, .body.dense > .span { grid-column: 1 / -1; }
 /* The look-for line: ONE sentence, and the ceiling is a ceiling. It names what
@@ -2446,7 +2451,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Classification</span><span class="v">Synthetic, client-free</span></div>
       <div><span class="k">Edition</span><span class="v">Regenerates with the tokens</span></div>
     </div>
-    <p class="colophon">Built with lumi-style 0.1.673 &#183; source: meter management system.</p>
+    <p class="colophon">Built with lumi-style 0.1.674 &#183; source: meter management system.</p>
   </div>
   <div class="foot"><div class="terms"><span class="conf"><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Confidential &#183; internal use &#183; do not forward</span></div><span class="site">www.example.org</span><span>01 / 20</span></div></section>
 <section class="page" id="agenda">
@@ -3104,7 +3109,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
       <div><span class="k">Owner</span><span class="v">The analysis team</span></div>
       <div><span class="k">Source</span><span class="v">Meter management system</span></div>
     </div>
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.673.
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.674.
     Source: meter management system; every number here is invented, and a
     bracketed slot must not ship.</p></div>
   </div>

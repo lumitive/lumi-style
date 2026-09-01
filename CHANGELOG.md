@@ -1,3 +1,79 @@
+## 0.1.674 — the scaffold takes content, and the loop stops rastering pages nobody asked about
+
+This continues `specs/2026-09-01-figure-data-contract-design.md`. The owner's
+first verdict on the ten-page build: it took too long, and that is unfriendly to
+a user. This closes the measured half of it — the build cost. The other half,
+whether an agent outside this session reaches for the new interface at all, is
+unmeasured: the multi-agent board is stale and its refresh is the owner's to
+authorise, so this release ships with that obligation waived and named.
+
+**`new_deck.py --content <content.json>`.** The scaffold accepted structure —
+how many pages, which parts, which moves — and nothing else, so the author's
+only interface to the WORDS was regex surgery on the markup it had just
+emitted. Measured on that build: a 519-line assembly script, 19 hand-written
+substitutions, and **12 wrong guesses about the shape of the markup** (a class
+name, a tag, a sprite id, the agenda's structure, an icon id, two cells that
+collapsed into one, an unclosed `</div>`, a colophon that wrapped across lines
+and defeated a single-line pattern, and figure coordinates that ignored
+`preserveAspectRatio`). Each wrong guess cost an edit, a rebuild, a render and
+a look. None of it was about the deck.
+
+The content file gives the cover, the agenda's run lines, each part opener's
+claim, and per page the eyebrow, title, support line, layout, look-for line,
+figure, caption, findings and takeaway. `scripts/lib/deck_content.py` holds the
+schema, and every refusal in it is an input shape rather than a gate — the deck
+cannot be built from content that fails one:
+
+- **A field nothing renders stops the build.** `titel` accepted and ignored
+  would be this interface reproducing the defect it was built to remove:
+  something the author wrote that never reaches the page.
+- **Content for pages the scaffold does not emit stops the build.** Rendering
+  the first `--pages` of it and dropping the rest is convention 17's measured
+  failure — eleven facts lost between two builds of one document, with all
+  forty-odd deliverable checks reporting clean because not one of them had
+  anything to compare the document to. `--pages` now also DEFAULTS to what the
+  content carries.
+- **A `figure` naming a file that is not there stops the build**, rather than
+  emitting the placeholder onto a page that then looks finished.
+- **The agenda row carries no claim of its own.** It quotes its part opener's,
+  because D27 holds the agenda to the titles the document carries and an author
+  allowed to write the claim twice writes it twice differently — which the first
+  content file built through this interface did, on its first run. The lime chip
+  D38 requires goes on by construction too.
+- **`sem` is one of four meanings, never free text and never an index.** Colour
+  is meaning here; an index-named set would let an author colour the third lane
+  green because it is third.
+
+**`export_pdf.py --png --pages 4,11`** rasters only the pages a finding named.
+Measured on a thirteen-page deck: 1.1s against 3.7s. A page number the document
+does not have is a failure rather than a quiet skip — the whole use is to look
+at the page the gate named, and rastering nothing while exiting 0 answers that
+with silence. It refuses without `--png`: a three-page PDF of a thirteen-page
+deck is not an export.
+
+*A correction to 0.1.672's account of the loop's cost.* That entry put the
+raster export at 60–90 seconds. Measured here on the same document it is
+**3.7s** for all thirteen pages. The expensive instrument is the other one:
+`inspect_layout --deliverable` is **21.2s** against **3.3s** for `--iterate
+--no-sheet`, and it ran twelve times in that build. The number was written from
+memory rather than from a run, which is convention 20's first class of defect
+in the file that warns about it.
+
+**OR-11** records what remains when a field genuinely does not exist: one
+`python3` heredoc carrying `(old, new)` pairs with `assert old in s` on each,
+never a chain of one-off `sed` calls — a substitution that matched nothing
+exits 0, leaves the document unchanged, and is next seen as a render that does
+not show the fix.
+
+*The guards caught two things while this landed, both of which are the point of
+having them.* `scaffold slots` failed the moment the colophon became a rendered
+field: its pattern carried the line break the old template emitted, and a
+pattern guarding nothing is worse than no pattern. And the dense layout's own
+18px row gap broke the deck's datum — `inspect_layout` measures the first
+non-`.lede` child, so a layout with its own gap starts its second row at a
+different height from every other page. The gap is the base's now, and the
+comment says why it has to be.
+
 ## 0.1.673 — the figure page the reader asked for, and the gate that can see an empty drawing
 
 This continues `specs/2026-09-01-figure-data-contract-design.md`. 0.1.672

@@ -341,3 +341,35 @@ scored document was already deleted, its corpus entry records the loss
 rather than to nothing; `review_scores.py --check` fails a scored id that
 resolves to neither a file nor an archive.
 
+
+## 11 · Hand the generator the content; edit the emitted markup only where it has no field
+
+*Serves: **P-2**.* · id `OR-11`
+
+**A build's cost is not in the writing. It is in the guessing.** Measured on
+one ten-page deck: a 519-line assembly script, 19 hand-written substitutions
+against the scaffold's own markup, and **12 wrong guesses about what that
+markup looked like** — a class name, a tag, a sprite id, the agenda's
+structure, an icon id, two cells that collapsed into one, an unclosed `</div>`,
+a colophon that wrapped across lines and defeated a single-line pattern, and a
+set of figure coordinates that ignored `preserveAspectRatio`. Each wrong guess
+cost an edit, a rebuild, a render and a look, and none of it was about the
+deck.
+
+So: **give `new_deck.py --content <content.json>` the words, and let it render
+them.** The shape stays where it is written, once, and a typo stops the build
+instead of vanishing.
+
+Where a field genuinely does not exist, surgery is still the answer, and then:
+
+- **One `python3` heredoc carrying a list of `(old, new)` pairs, with
+  `assert old in s` on every pair** — never a chain of one-off `sed` calls. A
+  substitution that matched nothing is the failure mode, and it is silent: the
+  script exits 0, the document is unchanged, and the next thing anyone looks at
+  is a render that does not show the fix.
+- **Never pipe a verification command, and never chain a commit to one.**
+  `preflight.py | tail && git commit` reads `tail`'s exit status. This is
+  convention 16 in the maintenance rules; it holds for deliverables too.
+- **Re-close the container.** Surgery inside a `.body` that removes or replaces
+  a block has twice lost the `</div>` before the footer. Count the div balance
+  after any structural edit.
