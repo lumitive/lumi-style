@@ -443,7 +443,8 @@ height, and the block that belongs in it is the centerpiece** — the last row i
 stack, band-hero and the split family, the MIDDLE row in hero-band, evenly split
 in thirds-v. Put a thin strip in the flexible row and the leftover height opens
 up under it. Vertical: stack, hero-band (dominant block over a thin strip),
-band-hero (its inverse), thirds-v. Horizontal: split 50/50, split-wide 38/62,
+band-hero (its inverse), thirds-v, dense (one lead line, the figure taking the
+whole middle, two to four findings below — and nothing else on the page). Horizontal: split 50/50, split-wide 38/62,
 split-narrow 62/38, columns-2/3/4. Composite: rail, quad, sidebar-notes,
 full-bleed, diagonal-flow, and cover-grid (the cover and the closing, set the
 same way: typeblock — the wordmark is the product or subject the document is for — mark
@@ -547,6 +548,6 @@ quality), **with a reason for
 each score, not just a number** — never self-score full marks before a reader has
 scored it.
 
-> This file is the **0.1.672** snapshot, cut 2026-08-19. It is self-contained by
+> This file is the **0.1.673** snapshot, cut 2026-08-19. It is self-contained by
 > design and therefore cannot check itself against upstream: if the date above is
 > more than a quarter old, fetch the current copy before relying on it.

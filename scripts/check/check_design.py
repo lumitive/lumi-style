@@ -120,6 +120,7 @@ LAYOUTS = {
     "stack", "hero-band", "band-hero", "thirds-v",
     "split", "split-wide", "split-narrow", "columns-2", "columns-3", "columns-4",
     "rail", "quad", "sidebar-notes", "full-bleed", "diagonal-flow", "cover-grid",
+    "dense",
 }
 
 # Class names the house style uses for a tier-1 callout (tinted + border + edge).
@@ -2561,6 +2562,7 @@ def measure(path):
         "D39_bookend_mark": d39_bookend_mark(raw),
         "D40_bookend_is_the_brand": d40_bookend_is_the_brand(raw),
         "D42_figure_spec": d42_figure_spec(raw, path.parent),
+        "D43_figure_content": d43_figure_content(raw, path.parent),
         "D23_font_count": d23_font_count(
             raw, (ROOT / "tokens" / "lumi-theme.css").read_text(encoding="utf-8")),
     }
@@ -2934,6 +2936,140 @@ def d42_figure_spec(raw, base=None):
     return {"declared": len(decls), "broken": broken}
 
 
+# The collection each named move draws, and the field that holds a member's
+# NAME. `correlate.points` is deliberately absent: a scatter's points are dots,
+# and demanding a label on each would fail the figure drawn correctly (AG-10).
+# Discovered by hand rather than from `_COLLECTIONS` on purpose — that tuple
+# says which fields hold many things, and this one says which of those the
+# reader is supposed to be able to read off the drawing. They are not the same
+# question, and deriving one from the other would silently add `points`.
+NAMED_MEMBERS = {
+    ("compare", "references"): "label",
+    ("compare", "criteria"): "name",
+    ("decompose", "parts"): "label",
+    ("position", "items"): "label",
+    ("bridge", "pieces"): "label",
+    ("bridge", "stages"): "name",
+}
+
+# The source line is provenance, not the drawing naming a member. Counting it
+# would let a figure pass because its own citation happened to contain an
+# item's word — measured on this package's own breakdown, whose source string
+# carries `specification`, which is also a part label.
+_FNOTE_TEXT = re.compile(r'<text[^>]*class="[^"]*\bfnote\b[^"]*"[^>]*>.*?</text>',
+                         re.S)
+_ANY_TEXT = re.compile(r"<text[^>]*>(.*?)</text>", re.S)
+
+
+def _drawn_words(section):
+    """-> everything the FIGURES in this section actually say, or None.
+
+    None means there was no figure to read — a raster, or a page that declared
+    a spec and drew nothing. It is a third answer and never an empty string: an
+    empty string compares equal to a drawing that names nothing, and those are
+    different facts (FM-24).
+
+    **Not every `<svg>` on a page is a figure**, and the first version of this
+    function believed otherwise. Every page carries the ground behind it and an
+    icon in its eyebrow, so a page with NO figure still held two `<svg>`
+    elements — and the fixture page that declares a spec and draws no figure at
+    all came back `thin` instead of unreadable, blaming the drawing for a
+    defect that is the page's. The predicate is D5's, kept in the same shape:
+    not `.ground`, not `.ic`, and carrying something actually drawn rather than
+    a single `<use>` of a sprite.
+    """
+    figs = [m.group(0)
+            for m in re.finditer(r'<svg(?![^>]*class="(?:ground|ic)")\b.*?</svg>',
+                                 section, re.S)
+            if re.search(rf"<(?:{'|'.join(SHAPES)}|text)\b", m.group(0))]
+    if not figs:
+        return None
+    body = _FNOTE_TEXT.sub(" ", " ".join(figs))
+    return markup.visible_text(" ".join(_ANY_TEXT.findall(body)))
+
+
+def _names(member, field):
+    """-> the strings that would count as this member being named."""
+    whole = str(member.get(field) or "").strip()
+    if not whole:
+        return []
+    # The longest word is the fallback because a drawing legitimately shortens
+    # a long label to fit — `Catalog and system functions` may be drawn over
+    # two lines or clipped to `Catalog and system`. Matching the whole string
+    # OR its longest word is strictly weaker than matching the whole string,
+    # so nothing that passes today starts failing; what it refuses is a drawing
+    # carrying no part of the name at all.
+    words = re.findall(r"[A-Za-z0-9_/.-]{4,}", whole)
+    longest = max(words, key=len) if words else whole
+    return [whole, longest]
+
+
+def d43_figure_content(raw, base=None):
+    """A drawing names every member the page's own spec declares.
+
+    -> {checked, thin:[{page, ref, missing}], blind:[{page, ref, why}]}
+
+    **This is the gate that was missing while every other one was green.** A
+    library shape could carry two words, so a two-by-two shipped as an empty
+    box with an axis word at each end and a staircase shipped with no dates —
+    and nothing measured how much the drawing said, because the metrics all
+    ask whether the markup is well formed rather than whether it speaks.
+
+    **It is a self-contradiction, never a judgement.** The document states, in
+    its own spec file, that the figure has these five items; the drawing then
+    names three of them. No taste is involved and no reviewer is needed, which
+    is why it can gate. A page that declares nothing is never asked.
+
+    **`blind` is the third answer and it does not gate.** A page whose figure
+    is a raster cannot be read this way, and failing it would be a gate a
+    correct answer cannot satisfy (AG-10). It is carried into the row instead,
+    so a document that could not be measured prints a different string from a
+    document that measured clean — the distinction convention 11 requires.
+    """
+    decls = list(_SPEC_DECL.finditer(raw))
+    if not decls:
+        return None
+    thin, blind, checked = [], [], 0
+    for m in decls:
+        ref, pid = m.group(1), _page_id_before(raw, m.start())
+        if base is None:
+            blind.append({"page": pid, "ref": ref,
+                          "why": "the document's directory is unknown, so the "
+                                 "spec could not be read"})
+            continue
+        spec, problem = figure_spec.load(base / ref)
+        if problem or spec is None:
+            # D42 gates this; here it is a measurement that did not happen, and
+            # saying so keeps `checked` honest about its own reach.
+            blind.append({"page": pid, "ref": ref,
+                          "why": problem or "no spec came back"})
+            continue
+        move = str(spec.get("move") or "")
+        wanted = [(f, key) for (mv, f), key in NAMED_MEMBERS.items() if mv == move]
+        if not wanted:
+            continue        # correlate, or a move with nothing named to check
+        drawn = _drawn_words(_enclosing_section(raw, m.start()))
+        if drawn is None:
+            blind.append({"page": pid, "ref": ref,
+                          "why": "the page declares this spec and holds no "
+                                 "inline <svg>, so what the figure says could "
+                                 "not be read"})
+            continue
+        low = drawn.lower()
+        missing = []
+        for field, key in wanted:
+            for i, member in enumerate(spec.get(field) or []):
+                if not isinstance(member, dict):
+                    continue
+                cands = _names(member, key)
+                if cands and not any(c.lower() in low for c in cands):
+                    missing.append(f"{field}[{i}] {cands[0]!r}")
+        checked += 1
+        if missing:
+            thin.append({"page": pid, "ref": ref, "missing": missing})
+    return {"checked": checked, "thin": thin, "blind": blind}
+
+
 def _enclosing_section(raw, pos):
     """-> the whole <section> the character at `pos` sits in, tag included."""
     start = raw.rfind("<section", 0, pos)
@@ -3258,6 +3394,16 @@ def grade(r):
     rows.append(("D42_figure_spec",
                  len(d42["broken"]) if d42 else None, "=0 (gates)",
                  not (d42 and d42["broken"]), d42 is None))
+    d43 = r["D43_figure_content"]
+    # THREE STRINGS, and that is the point of the middle branch: `0` when every
+    # declared figure named every member, `N thin` when one did not, and
+    # `0, N unreadable` when a figure could not be read at all. A check whose
+    # blind branch prints what its clean branch prints is FM-24.
+    rows.append(("D43_figure_content",
+                 (f"{len(d43['thin'])}"
+                  + (f", {len(d43['blind'])} unreadable" if d43["blind"] else ""))
+                 if d43 else None,
+                 "=0 (gates)", not (d43 and d43["thin"]), d43 is None))
     rows.append(("D40_bookend_is_the_brand",
                  "; ".join(bmm) if bmm else 0,
                  "=0 (gates)", not bmm, bmm is None))

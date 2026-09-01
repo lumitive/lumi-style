@@ -209,7 +209,10 @@ that routes the deck reads as its argument or as a table of contents, and **D39*
 (the cover's mark and the closing's are the same mark) and **D42** (a page
 that declares the file its numbers live in names a file that exists and holds
 what its move needs — nothing asks a figure to declare one, which is AG-10, so
-what gates is the contradiction alone) and **D40** (each bookend
+what gates is the contradiction alone) and **D43** (the drawing names every
+member that spec declares — the gate that was missing while a two-by-two
+shipped as an empty box with an axis word at each end and every other metric
+ran green) and **D40** (each bookend
 carries the locked field globe unless the document declares the replacement that
 was asked for) ask whether the brand is still on the pages that carry it. Every one of them is
 decidable in the way "does this page read as intentional" is not. The list is

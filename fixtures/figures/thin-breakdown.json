@@ -1,0 +1,12 @@
+{
+ "move": "decompose",
+ "period": "FY25",
+ "reading": "installation carries most of the cost",
+ "cause": "an allocation from the cost ledger, not a model",
+ "source": "Synthetic figures for a fixture, not measured.",
+ "measure": {"name": "Programme cost", "unit": "CNY m"},
+ "total": {"label": "Programme cost", "value": 100},
+ "parts": [{"label": "Installation", "value": 60},
+           {"label": "Survey", "value": 25},
+           {"label": "Reconciliation", "value": 15}]
+}

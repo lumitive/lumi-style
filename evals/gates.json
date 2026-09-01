@@ -1,567 +1,575 @@
 {
- "$comment": "Every verdict a deliverable can receive, and what this package knows about it. HAND-MAINTAINED for `family` and `since`; `checker` and `severity` are held to the checkers themselves by check_repo's `gate declarations` guard, so this file cannot lie about what gates. WHY IT EXISTS: a gate used to be a tuple in a function body classified by whether its display string contained the substring '(gates)'. Four readers parsed that string with three different rules, and three rows were misclassified in production - M4zh_banned_hits gated in check_prose's exit and was invisible to gating.py (the regex (M\\d+)_ cannot match M4zh_), while D37_caption_name_len and D38_agenda_run_echo said 'reported' in their own targets and were counted as gates by every consumer, because gating.py keyed on the D\\d+ PREFIX. FIELDS: `family` is the concept the verdict belongs to - the classification that was missing while the set grew one verdict at a time. `since` is the release that introduced it, read from git; 'always' means it predates the version history this CHANGELOG keeps (the old 1.6.0-3.3.0 scheme sorts above 0.1.560 and would have silenced six gates if written as a number). `privacy_terms` is the fiftieth gate and had no registry entry anywhere: check_privacy reports one `verdict` per FILE rather than a verdicts map, so it fits no row table, and `check_deliverable` promotes it to the gating bucket in code. It failed builds while `gating.py`, this register and `run_conformance`'s require set all had no idea it existed. `na_means` is present on a gate whose `n/a` means the predicate had nothing to look at, and absent on one whose `n/a` means it could not be measured — a distinction no checker holds, and the reason check_design's blind-gate rule could not tell a Chinese-only metric on an English deck from a commercial gate gone silent on unreadable markup. A document declaring an older build version is NOT held to a later gate - it reports `not held`, which is neither a pass nor a failure. `subject` names the measurement whose ABSENCE means the gate had nothing to grade while still printing `ok` — a deliberate ruling (a measured absence passes; `n/a` is for a gate that could not look), and the reason a board could print the same clean sheet over a deck holding eighteen gates and one holding fifteen. check_repo's `vacuous gates` guard DISCOVERS these by blanking each measurement in turn and watching which gating rows keep saying ok, so a fifth one cannot arrive undeclared. A dotted `subject` (`D25_image_provenance.rasters`) is the OTHER shape of absence — a measurement that is present and reports zero of the thing it grades — which the probe cannot discover, because nothing in the data separates a subject count from a violation count. Those are declared and their path is validated against the checker instead.",
- "schema": 1,
- "gates": {
-  "D10_label_icons": {
-   "checker": "design",
-   "family": "page-furniture",
-   "severity": "reported",
-   "since": "always"
-  },
-  "D12_commercial_footer": {
-   "checker": "design",
-   "family": "footer",
-   "severity": "gate",
-   "since": "always",
-   "subject": "D12_commercial_footer.pages"
-  },
-  "D13_lime_as_text": {
-   "checker": "design",
-   "family": "colour",
-   "severity": "graded",
-   "since": "always"
-  },
-  "D14_placeholders": {
-   "checker": "design",
-   "family": "completeness",
-   "severity": "gate",
-   "since": "0.1.367",
-   "subject": "always"
-  },
-  "D15_footer_path": {
-   "checker": "design",
-   "family": "footer",
-   "severity": "gate",
-   "since": "0.1.373",
-   "subject": "D15_footer_path.pages"
-  },
-  "D16_visual_presence": {
-   "checker": "design",
-   "family": "visual-weight",
-   "severity": "reported",
-   "since": "0.1.376"
-  },
-  "D17_export_weight": {
-   "checker": "design",
-   "family": "visual-weight",
-   "severity": "reported",
-   "since": "0.1.380"
-  },
-  "D18_region_labels": {
-   "checker": "design",
-   "family": "geography",
-   "severity": "graded",
-   "since": "0.1.387"
-  },
-  "D19_vocabulary": {
-   "checker": "design",
-   "family": "self-reference",
-   "severity": "gate",
-   "since": "0.1.409",
-   "subject": "always"
-  },
-  "D1_contrast": {
-   "checker": "design",
-   "family": "colour",
-   "severity": "graded",
-   "since": "always"
-  },
-  "D20_palette_fidelity": {
-   "checker": "design",
-   "family": "colour",
-   "severity": "gate",
-   "since": "0.1.454",
-   "subject": "D20_palette_fidelity.compared"
-  },
-  "D21_data_contract": {
-   "checker": "design",
-   "family": "figure-fidelity",
-   "severity": "gate",
-   "since": "0.1.472",
-   "subject": "D21_data_contract.declared"
-  },
-  "D22_layout_vocabulary": {
-   "checker": "design",
-   "family": "layout-vocabulary",
-   "severity": "gate",
-   "since": "0.1.481",
-   "subject": "D9_layout_variety.pages"
-  },
-  "D23_font_count": {
-   "checker": "design",
-   "family": "type",
-   "severity": "reported",
-   "since": "0.1.481"
-  },
-  "D24_images_embedded": {
-   "checker": "design",
-   "family": "imagery",
-   "severity": "gate",
-   "since": "0.1.493",
-   "subject": "D24_images_embedded.rasters"
-  },
-  "D25_image_provenance": {
-   "checker": "design",
-   "family": "imagery",
-   "severity": "gate",
-   "since": "0.1.493",
-   "subject": "D25_image_provenance.rasters"
-  },
-  "D26_declared_scope": {
-   "checker": "design",
-   "family": "deck-shape",
-   "severity": "graded",
-   "since": "0.1.502"
-  },
-  "D27_agenda_mirror": {
-   "checker": "design",
-   "family": "agenda",
-   "severity": "gate",
-   "since": "0.1.514",
-   "subject": "D27_agenda_mirror"
-  },
-  "D28_takeaway": {
-   "checker": "design",
-   "family": "page-furniture",
-   "severity": "reported",
-   "since": "0.1.514"
-  },
-  "D29_figure_numbers": {
-   "checker": "design",
-   "family": "figure-apparatus",
-   "severity": "reported",
-   "since": "0.1.514"
-  },
-  "D2_type_scale": {
-   "checker": "design",
-   "family": "type",
-   "severity": "reported",
-   "since": "always"
-  },
-  "D30_figure_sequence": {
-   "checker": "design",
-   "family": "figure-apparatus",
-   "severity": "reported",
-   "since": "0.1.522"
-  },
-  "D31_undeclared_sections": {
-   "checker": "design",
-   "family": "deck-shape",
-   "severity": "reported",
-   "since": "0.1.524"
-  },
-  "D32_shape_use": {
-   "checker": "design",
-   "family": "analysis-shapes",
-   "severity": "gate",
-   "since": "0.1.533",
-   "na_means": "no page declares an analysis move",
-   "subject": "D32_shape_use.analysis_pages"
-  },
-  "D33_icon_provenance": {
-   "checker": "design",
-   "family": "icons",
-   "severity": "gate",
-   "since": "0.1.549",
-   "subject": "D33_icon_provenance.checked"
-  },
-  "D34_icon_uniqueness": {
-   "checker": "design",
-   "family": "icons",
-   "severity": "reported",
-   "since": "0.1.549"
-  },
-  "D35_agenda_exclusive": {
-   "checker": "design",
-   "family": "agenda",
-   "severity": "gate",
-   "since": "0.1.549",
-   "subject": "D35_agenda_exclusive"
-  },
-  "D36_font_family": {
-   "checker": "design",
-   "family": "type",
-   "severity": "reported",
-   "since": "0.1.551"
-  },
-  "D37_caption_name_len": {
-   "checker": "design",
-   "family": "figure-labelling",
-   "severity": "reported",
-   "since": "0.1.551"
-  },
-  "D37_caption_scope": {
-   "checker": "design",
-   "family": "figure-labelling",
-   "severity": "gate",
-   "since": "0.1.551",
-   "na_means": "the document carries no figure caption",
-   "subject": "D37_caption_scope.captions"
-  },
-  "D38_agenda_highlight": {
-   "checker": "design",
-   "family": "agenda",
-   "severity": "gate",
-   "since": "0.1.554",
-   "subject": "D38_agenda_rows"
-  },
-  "D38_agenda_page_spans": {
-   "checker": "design",
-   "family": "agenda",
-   "severity": "gate",
-   "since": "0.1.554",
-   "subject": "D38_agenda_rows"
-  },
-  "D38_agenda_run_echo": {
-   "checker": "design",
-   "family": "agenda",
-   "severity": "reported",
-   "since": "0.1.554"
-  },
-  "D39_bookend_mark": {
-   "checker": "design",
-   "family": "brand-mark",
-   "severity": "gate",
-   "since": "0.1.560",
-   "na_means": "the document has no pair of drawn bookends",
-   "subject": "D39_bookend_mark"
-  },
-  "D3_tier1_page_share": {
-   "checker": "design",
-   "family": "callouts",
-   "severity": "graded",
-   "since": "always"
-  },
-  "D3_tier1_per_page": {
-   "checker": "design",
-   "family": "callouts",
-   "severity": "graded",
-   "since": "always"
-  },
-  "D40_bookend_is_the_brand": {
-   "checker": "design",
-   "family": "brand-mark",
-   "severity": "gate",
-   "since": "0.1.560",
-   "subject": "D40_bookend_is_the_brand"
-  },
-  "D4_palette_literals": {
-   "checker": "design",
-   "family": "colour",
-   "severity": "graded",
-   "since": "always"
-  },
-  "D41_role_echo": {
-   "checker": "design",
-   "family": "repetition",
-   "severity": "reported",
-   "since": "0.1.589"
-  },
-  "D5_drawn_share": {
-   "checker": "design",
-   "family": "figure-substance",
-   "severity": "reported",
-   "since": "0.1.374"
-  },
-  "D5_figure_parity": {
-   "checker": "design",
-   "family": "figure-substance",
-   "severity": "reported",
-   "since": "always"
-  },
-  "D6_footer": {
-   "checker": "design",
-   "family": "footer",
-   "severity": "graded",
-   "since": "always"
-  },
-  "D8_support_line": {
-   "checker": "design",
-   "family": "page-furniture",
-   "severity": "graded",
-   "since": "always"
-  },
-  "D9_layout_spread": {
-   "checker": "design",
-   "family": "layout-vocabulary",
-   "severity": "reported",
-   "since": "always"
-  },
-  "M10_triad_rate": {
-   "checker": "prose",
-   "family": "phrasing",
-   "severity": "graded",
-   "since": "always"
-  },
-  "M11_title_uniformity": {
-   "checker": "prose",
-   "family": "title",
-   "severity": "graded",
-   "since": "always"
-  },
-  "M12_visible_cjk": {
-   "checker": "prose",
-   "family": "output-language",
-   "severity": "gate",
-   "since": "0.1.373",
-   "na_means": "the document declares a language this metric does not read - Chinese. A document that declares NOTHING and carries CJK is `blind`, not n/a: it fails"
-  },
-  "M13_quantity_conflicts": {
-   "checker": "prose",
-   "family": "number-discipline",
-   "severity": "reported",
-   "since": "0.1.464"
-  },
-  "M14_parallel_frames": {
-   "checker": "prose",
-   "family": "phrasing",
-   "severity": "reported",
-   "since": "0.1.514"
-  },
-  "M15_page_prose": {
-   "checker": "prose",
-   "family": "visual-weight",
-   "severity": "reported",
-   "since": "0.1.522"
-  },
-  "M16_language_asked": {
-   "checker": "prose",
-   "family": "output-language",
-   "severity": "gate",
-   "since": "0.1.587",
-   "na_means": "the document declares no language at all, so there is nothing to compare an ask against - M12 answers that document as `blind`, which fails. English reads `ok` rather than n/a: it is the default and needs no record"
-  },
-  "M1_assertive_titles": {
-   "checker": "prose",
-   "family": "title",
-   "severity": "reported",
-   "since": "always"
-  },
-  "M2_number_sourcing": {
-   "checker": "prose",
-   "family": "number-discipline",
-   "severity": "graded",
-   "since": "always"
-  },
-  "M4_banned_hits": {
-   "checker": "prose",
-   "family": "banned-language",
-   "severity": "gate",
-   "since": "always"
-  },
-  "M4zh_banned_hits": {
-   "checker": "prose",
-   "family": "banned-language",
-   "severity": "gate",
-   "since": "always",
-   "na_means": "the document is not Chinese"
-  },
-  "M5_zh_punctuation": {
-   "checker": "prose",
-   "family": "punctuation",
-   "severity": "gate",
-   "since": "always",
-   "na_means": "the document is not Chinese"
-  },
-  "M6_unsourced_ranges": {
-   "checker": "prose",
-   "family": "number-discipline",
-   "severity": "gate",
-   "since": "always"
-  },
-  "M8_length_cv": {
-   "checker": "prose",
-   "family": "sentence-rhythm",
-   "severity": "graded",
-   "since": "always"
-  },
-  "M8_overlong_share": {
-   "checker": "prose",
-   "family": "sentence-rhythm",
-   "severity": "graded",
-   "since": "always"
-  },
-  "M9_dashes": {
-   "checker": "prose",
-   "family": "punctuation",
-   "severity": "gate",
-   "since": "always"
-  },
-  "agenda_run_wrap": {
-   "checker": "layout",
-   "family": "agenda",
-   "severity": "gate",
-   "since": "0.1.554"
-  },
-  "band_escape": {
-   "checker": "layout",
-   "family": "fit",
-   "severity": "gate",
-   "since": "0.1.541"
-  },
-  "bookend_title_length": {
-   "checker": "layout",
-   "family": "title",
-   "severity": "gate",
-   "since": "0.1.544"
-  },
-  "caption_name_wrap": {
-   "checker": "layout",
-   "family": "figure-labelling",
-   "severity": "gate",
-   "since": "0.1.551"
-  },
-  "collision": {
-   "checker": "layout",
-   "family": "fit",
-   "severity": "gate",
-   "since": "always"
-  },
-  "content_hidden": {
-   "checker": "layout",
-   "family": "fit",
-   "severity": "gate",
-   "since": "0.1.368"
-  },
-  "content_spill": {
-   "checker": "layout",
-   "family": "fit",
-   "severity": "gate",
-   "since": "0.1.368"
-  },
-  "datum": {
-   "checker": "layout",
-   "family": "role-consistency",
-   "severity": "gate",
-   "since": "always"
-  },
-  "deck_structure": {
-   "checker": "layout",
-   "family": "deck-shape",
-   "severity": "gate",
-   "since": "0.1.547"
-  },
-  "figure_axis_named": {
-   "checker": "layout",
-   "family": "figure-labelling",
-   "severity": "gate",
-   "since": "0.1.554"
-  },
-  "figure_axis_orientation": {
-   "checker": "layout",
-   "family": "figure-labelling",
-   "severity": "gate",
-   "since": "0.1.551"
-  },
-  "figure_axis_overlap": {
-   "checker": "layout",
-   "family": "figure-labelling",
-   "severity": "gate",
-   "since": "0.1.551"
-  },
-  "figure_clipped": {
-   "checker": "layout",
-   "family": "figure-integrity",
-   "severity": "gate",
-   "since": "0.1.385"
-  },
-  "figure_distorts": {
-   "checker": "layout",
-   "family": "figure-fidelity",
-   "severity": "gate",
-   "since": "0.1.453"
-  },
-  "figure_ink_collision": {
-   "checker": "layout",
-   "family": "figure-integrity",
-   "severity": "gate",
-   "since": "0.1.543"
-  },
-  "figure_viewbox": {
-   "checker": "layout",
-   "family": "figure-integrity",
-   "severity": "gate",
-   "since": "0.1.386"
-  },
-  "footer_baseline": {
-   "checker": "layout",
-   "family": "footer",
-   "severity": "gate",
-   "since": "0.1.447"
-  },
-  "footer_wrap": {
-   "checker": "layout",
-   "family": "footer",
-   "severity": "gate",
-   "since": "0.1.380"
-  },
-  "opener_pacing": {
-   "checker": "layout",
-   "family": "deck-shape",
-   "severity": "gate",
-   "since": "0.1.549"
-  },
-  "opener_subject_mark": {
-   "checker": "layout",
-   "family": "brand-mark",
-   "severity": "gate",
-   "since": "0.1.546"
-  },
-  "page_height": {
-   "checker": "layout",
-   "family": "fit",
-   "severity": "gate",
-   "since": "0.1.368"
-  },
-  "reserve_overspent": {
-   "checker": "layout",
-   "family": "fit",
-   "severity": "gate",
-   "since": "0.1.368"
-  },
-  "role_split": {
-   "checker": "layout",
-   "family": "role-consistency",
-   "severity": "gate",
-   "since": "0.1.368"
-  },
-  "role_weight": {
-   "checker": "layout",
-   "family": "role-consistency",
-   "severity": "gate",
-   "since": "0.1.551"
-  },
-  "starved_column": {
-   "checker": "layout",
-   "family": "fit",
-   "severity": "gate",
-   "since": "0.1.412"
-  },
-  "title_two_lines": {
-   "checker": "layout",
-   "family": "title",
-   "severity": "gate",
-   "since": "0.1.543"
-  },
-  "visual_absent": {
-   "checker": "layout",
-   "family": "visual-weight",
-   "severity": "gate",
-   "since": "0.1.453"
-  },
-  "privacy_terms": {
-   "checker": "privacy",
-   "family": "handling-terms",
-   "severity": "gate",
-   "since": "always"
-  },
-  "D42_figure_spec": {
-   "checker": "design",
-   "family": "figure-data",
-   "severity": "gate",
-   "since": "0.1.667",
-   "subject": "D42_figure_spec",
-   "na_means": "the document declares no figure spec, which is a correct answer: nothing here asks a figure to have one (AG-10). It is an honest silence, not a measurement that did not happen."
+  "$comment": "Every verdict a deliverable can receive, and what this package knows about it. HAND-MAINTAINED for `family` and `since`; `checker` and `severity` are held to the checkers themselves by check_repo's `gate declarations` guard, so this file cannot lie about what gates. WHY IT EXISTS: a gate used to be a tuple in a function body classified by whether its display string contained the substring '(gates)'. Four readers parsed that string with three different rules, and three rows were misclassified in production - M4zh_banned_hits gated in check_prose's exit and was invisible to gating.py (the regex (M\\d+)_ cannot match M4zh_), while D37_caption_name_len and D38_agenda_run_echo said 'reported' in their own targets and were counted as gates by every consumer, because gating.py keyed on the D\\d+ PREFIX. FIELDS: `family` is the concept the verdict belongs to - the classification that was missing while the set grew one verdict at a time. `since` is the release that introduced it, read from git; 'always' means it predates the version history this CHANGELOG keeps (the old 1.6.0-3.3.0 scheme sorts above 0.1.560 and would have silenced six gates if written as a number). `privacy_terms` is the fiftieth gate and had no registry entry anywhere: check_privacy reports one `verdict` per FILE rather than a verdicts map, so it fits no row table, and `check_deliverable` promotes it to the gating bucket in code. It failed builds while `gating.py`, this register and `run_conformance`'s require set all had no idea it existed. `na_means` is present on a gate whose `n/a` means the predicate had nothing to look at, and absent on one whose `n/a` means it could not be measured — a distinction no checker holds, and the reason check_design's blind-gate rule could not tell a Chinese-only metric on an English deck from a commercial gate gone silent on unreadable markup. A document declaring an older build version is NOT held to a later gate - it reports `not held`, which is neither a pass nor a failure. `subject` names the measurement whose ABSENCE means the gate had nothing to grade while still printing `ok` — a deliberate ruling (a measured absence passes; `n/a` is for a gate that could not look), and the reason a board could print the same clean sheet over a deck holding eighteen gates and one holding fifteen. check_repo's `vacuous gates` guard DISCOVERS these by blanking each measurement in turn and watching which gating rows keep saying ok, so a fifth one cannot arrive undeclared. A dotted `subject` (`D25_image_provenance.rasters`) is the OTHER shape of absence — a measurement that is present and reports zero of the thing it grades — which the probe cannot discover, because nothing in the data separates a subject count from a violation count. Those are declared and their path is validated against the checker instead.",
+  "schema": 1,
+  "gates": {
+    "D10_label_icons": {
+      "checker": "design",
+      "family": "page-furniture",
+      "severity": "reported",
+      "since": "always"
+    },
+    "D12_commercial_footer": {
+      "checker": "design",
+      "family": "footer",
+      "severity": "gate",
+      "since": "always",
+      "subject": "D12_commercial_footer.pages"
+    },
+    "D13_lime_as_text": {
+      "checker": "design",
+      "family": "colour",
+      "severity": "graded",
+      "since": "always"
+    },
+    "D14_placeholders": {
+      "checker": "design",
+      "family": "completeness",
+      "severity": "gate",
+      "since": "0.1.367",
+      "subject": "always"
+    },
+    "D15_footer_path": {
+      "checker": "design",
+      "family": "footer",
+      "severity": "gate",
+      "since": "0.1.373",
+      "subject": "D15_footer_path.pages"
+    },
+    "D16_visual_presence": {
+      "checker": "design",
+      "family": "visual-weight",
+      "severity": "reported",
+      "since": "0.1.376"
+    },
+    "D17_export_weight": {
+      "checker": "design",
+      "family": "visual-weight",
+      "severity": "reported",
+      "since": "0.1.380"
+    },
+    "D18_region_labels": {
+      "checker": "design",
+      "family": "geography",
+      "severity": "graded",
+      "since": "0.1.387"
+    },
+    "D19_vocabulary": {
+      "checker": "design",
+      "family": "self-reference",
+      "severity": "gate",
+      "since": "0.1.409",
+      "subject": "always"
+    },
+    "D1_contrast": {
+      "checker": "design",
+      "family": "colour",
+      "severity": "graded",
+      "since": "always"
+    },
+    "D20_palette_fidelity": {
+      "checker": "design",
+      "family": "colour",
+      "severity": "gate",
+      "since": "0.1.454",
+      "subject": "D20_palette_fidelity.compared"
+    },
+    "D21_data_contract": {
+      "checker": "design",
+      "family": "figure-fidelity",
+      "severity": "gate",
+      "since": "0.1.472",
+      "subject": "D21_data_contract.declared"
+    },
+    "D22_layout_vocabulary": {
+      "checker": "design",
+      "family": "layout-vocabulary",
+      "severity": "gate",
+      "since": "0.1.481",
+      "subject": "D9_layout_variety.pages"
+    },
+    "D23_font_count": {
+      "checker": "design",
+      "family": "type",
+      "severity": "reported",
+      "since": "0.1.481"
+    },
+    "D24_images_embedded": {
+      "checker": "design",
+      "family": "imagery",
+      "severity": "gate",
+      "since": "0.1.493",
+      "subject": "D24_images_embedded.rasters"
+    },
+    "D25_image_provenance": {
+      "checker": "design",
+      "family": "imagery",
+      "severity": "gate",
+      "since": "0.1.493",
+      "subject": "D25_image_provenance.rasters"
+    },
+    "D26_declared_scope": {
+      "checker": "design",
+      "family": "deck-shape",
+      "severity": "graded",
+      "since": "0.1.502"
+    },
+    "D27_agenda_mirror": {
+      "checker": "design",
+      "family": "agenda",
+      "severity": "gate",
+      "since": "0.1.514",
+      "subject": "D27_agenda_mirror"
+    },
+    "D28_takeaway": {
+      "checker": "design",
+      "family": "page-furniture",
+      "severity": "reported",
+      "since": "0.1.514"
+    },
+    "D29_figure_numbers": {
+      "checker": "design",
+      "family": "figure-apparatus",
+      "severity": "reported",
+      "since": "0.1.514"
+    },
+    "D2_type_scale": {
+      "checker": "design",
+      "family": "type",
+      "severity": "reported",
+      "since": "always"
+    },
+    "D30_figure_sequence": {
+      "checker": "design",
+      "family": "figure-apparatus",
+      "severity": "reported",
+      "since": "0.1.522"
+    },
+    "D31_undeclared_sections": {
+      "checker": "design",
+      "family": "deck-shape",
+      "severity": "reported",
+      "since": "0.1.524"
+    },
+    "D32_shape_use": {
+      "checker": "design",
+      "family": "analysis-shapes",
+      "severity": "gate",
+      "since": "0.1.533",
+      "na_means": "no page declares an analysis move",
+      "subject": "D32_shape_use.analysis_pages"
+    },
+    "D33_icon_provenance": {
+      "checker": "design",
+      "family": "icons",
+      "severity": "gate",
+      "since": "0.1.549",
+      "subject": "D33_icon_provenance.checked"
+    },
+    "D34_icon_uniqueness": {
+      "checker": "design",
+      "family": "icons",
+      "severity": "reported",
+      "since": "0.1.549"
+    },
+    "D35_agenda_exclusive": {
+      "checker": "design",
+      "family": "agenda",
+      "severity": "gate",
+      "since": "0.1.549",
+      "subject": "D35_agenda_exclusive"
+    },
+    "D36_font_family": {
+      "checker": "design",
+      "family": "type",
+      "severity": "reported",
+      "since": "0.1.551"
+    },
+    "D37_caption_name_len": {
+      "checker": "design",
+      "family": "figure-labelling",
+      "severity": "reported",
+      "since": "0.1.551"
+    },
+    "D37_caption_scope": {
+      "checker": "design",
+      "family": "figure-labelling",
+      "severity": "gate",
+      "since": "0.1.551",
+      "na_means": "the document carries no figure caption",
+      "subject": "D37_caption_scope.captions"
+    },
+    "D38_agenda_highlight": {
+      "checker": "design",
+      "family": "agenda",
+      "severity": "gate",
+      "since": "0.1.554",
+      "subject": "D38_agenda_rows"
+    },
+    "D38_agenda_page_spans": {
+      "checker": "design",
+      "family": "agenda",
+      "severity": "gate",
+      "since": "0.1.554",
+      "subject": "D38_agenda_rows"
+    },
+    "D38_agenda_run_echo": {
+      "checker": "design",
+      "family": "agenda",
+      "severity": "reported",
+      "since": "0.1.554"
+    },
+    "D39_bookend_mark": {
+      "checker": "design",
+      "family": "brand-mark",
+      "severity": "gate",
+      "since": "0.1.560",
+      "na_means": "the document has no pair of drawn bookends",
+      "subject": "D39_bookend_mark"
+    },
+    "D3_tier1_page_share": {
+      "checker": "design",
+      "family": "callouts",
+      "severity": "graded",
+      "since": "always"
+    },
+    "D3_tier1_per_page": {
+      "checker": "design",
+      "family": "callouts",
+      "severity": "graded",
+      "since": "always"
+    },
+    "D40_bookend_is_the_brand": {
+      "checker": "design",
+      "family": "brand-mark",
+      "severity": "gate",
+      "since": "0.1.560",
+      "subject": "D40_bookend_is_the_brand"
+    },
+    "D4_palette_literals": {
+      "checker": "design",
+      "family": "colour",
+      "severity": "graded",
+      "since": "always"
+    },
+    "D41_role_echo": {
+      "checker": "design",
+      "family": "repetition",
+      "severity": "reported",
+      "since": "0.1.589"
+    },
+    "D5_drawn_share": {
+      "checker": "design",
+      "family": "figure-substance",
+      "severity": "reported",
+      "since": "0.1.374"
+    },
+    "D5_figure_parity": {
+      "checker": "design",
+      "family": "figure-substance",
+      "severity": "reported",
+      "since": "always"
+    },
+    "D6_footer": {
+      "checker": "design",
+      "family": "footer",
+      "severity": "graded",
+      "since": "always"
+    },
+    "D8_support_line": {
+      "checker": "design",
+      "family": "page-furniture",
+      "severity": "graded",
+      "since": "always"
+    },
+    "D9_layout_spread": {
+      "checker": "design",
+      "family": "layout-vocabulary",
+      "severity": "reported",
+      "since": "always"
+    },
+    "M10_triad_rate": {
+      "checker": "prose",
+      "family": "phrasing",
+      "severity": "graded",
+      "since": "always"
+    },
+    "M11_title_uniformity": {
+      "checker": "prose",
+      "family": "title",
+      "severity": "graded",
+      "since": "always"
+    },
+    "M12_visible_cjk": {
+      "checker": "prose",
+      "family": "output-language",
+      "severity": "gate",
+      "since": "0.1.373",
+      "na_means": "the document declares a language this metric does not read - Chinese. A document that declares NOTHING and carries CJK is `blind`, not n/a: it fails"
+    },
+    "M13_quantity_conflicts": {
+      "checker": "prose",
+      "family": "number-discipline",
+      "severity": "reported",
+      "since": "0.1.464"
+    },
+    "M14_parallel_frames": {
+      "checker": "prose",
+      "family": "phrasing",
+      "severity": "reported",
+      "since": "0.1.514"
+    },
+    "M15_page_prose": {
+      "checker": "prose",
+      "family": "visual-weight",
+      "severity": "reported",
+      "since": "0.1.522"
+    },
+    "M16_language_asked": {
+      "checker": "prose",
+      "family": "output-language",
+      "severity": "gate",
+      "since": "0.1.587",
+      "na_means": "the document declares no language at all, so there is nothing to compare an ask against - M12 answers that document as `blind`, which fails. English reads `ok` rather than n/a: it is the default and needs no record"
+    },
+    "M1_assertive_titles": {
+      "checker": "prose",
+      "family": "title",
+      "severity": "reported",
+      "since": "always"
+    },
+    "M2_number_sourcing": {
+      "checker": "prose",
+      "family": "number-discipline",
+      "severity": "graded",
+      "since": "always"
+    },
+    "M4_banned_hits": {
+      "checker": "prose",
+      "family": "banned-language",
+      "severity": "gate",
+      "since": "always"
+    },
+    "M4zh_banned_hits": {
+      "checker": "prose",
+      "family": "banned-language",
+      "severity": "gate",
+      "since": "always",
+      "na_means": "the document is not Chinese"
+    },
+    "M5_zh_punctuation": {
+      "checker": "prose",
+      "family": "punctuation",
+      "severity": "gate",
+      "since": "always",
+      "na_means": "the document is not Chinese"
+    },
+    "M6_unsourced_ranges": {
+      "checker": "prose",
+      "family": "number-discipline",
+      "severity": "gate",
+      "since": "always"
+    },
+    "M8_length_cv": {
+      "checker": "prose",
+      "family": "sentence-rhythm",
+      "severity": "graded",
+      "since": "always"
+    },
+    "M8_overlong_share": {
+      "checker": "prose",
+      "family": "sentence-rhythm",
+      "severity": "graded",
+      "since": "always"
+    },
+    "M9_dashes": {
+      "checker": "prose",
+      "family": "punctuation",
+      "severity": "gate",
+      "since": "always"
+    },
+    "agenda_run_wrap": {
+      "checker": "layout",
+      "family": "agenda",
+      "severity": "gate",
+      "since": "0.1.554"
+    },
+    "band_escape": {
+      "checker": "layout",
+      "family": "fit",
+      "severity": "gate",
+      "since": "0.1.541"
+    },
+    "bookend_title_length": {
+      "checker": "layout",
+      "family": "title",
+      "severity": "gate",
+      "since": "0.1.544"
+    },
+    "caption_name_wrap": {
+      "checker": "layout",
+      "family": "figure-labelling",
+      "severity": "gate",
+      "since": "0.1.551"
+    },
+    "collision": {
+      "checker": "layout",
+      "family": "fit",
+      "severity": "gate",
+      "since": "always"
+    },
+    "content_hidden": {
+      "checker": "layout",
+      "family": "fit",
+      "severity": "gate",
+      "since": "0.1.368"
+    },
+    "content_spill": {
+      "checker": "layout",
+      "family": "fit",
+      "severity": "gate",
+      "since": "0.1.368"
+    },
+    "datum": {
+      "checker": "layout",
+      "family": "role-consistency",
+      "severity": "gate",
+      "since": "always"
+    },
+    "deck_structure": {
+      "checker": "layout",
+      "family": "deck-shape",
+      "severity": "gate",
+      "since": "0.1.547"
+    },
+    "figure_axis_named": {
+      "checker": "layout",
+      "family": "figure-labelling",
+      "severity": "gate",
+      "since": "0.1.554"
+    },
+    "figure_axis_orientation": {
+      "checker": "layout",
+      "family": "figure-labelling",
+      "severity": "gate",
+      "since": "0.1.551"
+    },
+    "figure_axis_overlap": {
+      "checker": "layout",
+      "family": "figure-labelling",
+      "severity": "gate",
+      "since": "0.1.551"
+    },
+    "figure_clipped": {
+      "checker": "layout",
+      "family": "figure-integrity",
+      "severity": "gate",
+      "since": "0.1.385"
+    },
+    "figure_distorts": {
+      "checker": "layout",
+      "family": "figure-fidelity",
+      "severity": "gate",
+      "since": "0.1.453"
+    },
+    "figure_ink_collision": {
+      "checker": "layout",
+      "family": "figure-integrity",
+      "severity": "gate",
+      "since": "0.1.543"
+    },
+    "figure_viewbox": {
+      "checker": "layout",
+      "family": "figure-integrity",
+      "severity": "gate",
+      "since": "0.1.386"
+    },
+    "footer_baseline": {
+      "checker": "layout",
+      "family": "footer",
+      "severity": "gate",
+      "since": "0.1.447"
+    },
+    "footer_wrap": {
+      "checker": "layout",
+      "family": "footer",
+      "severity": "gate",
+      "since": "0.1.380"
+    },
+    "opener_pacing": {
+      "checker": "layout",
+      "family": "deck-shape",
+      "severity": "gate",
+      "since": "0.1.549"
+    },
+    "opener_subject_mark": {
+      "checker": "layout",
+      "family": "brand-mark",
+      "severity": "gate",
+      "since": "0.1.546"
+    },
+    "page_height": {
+      "checker": "layout",
+      "family": "fit",
+      "severity": "gate",
+      "since": "0.1.368"
+    },
+    "reserve_overspent": {
+      "checker": "layout",
+      "family": "fit",
+      "severity": "gate",
+      "since": "0.1.368"
+    },
+    "role_split": {
+      "checker": "layout",
+      "family": "role-consistency",
+      "severity": "gate",
+      "since": "0.1.368"
+    },
+    "role_weight": {
+      "checker": "layout",
+      "family": "role-consistency",
+      "severity": "gate",
+      "since": "0.1.551"
+    },
+    "starved_column": {
+      "checker": "layout",
+      "family": "fit",
+      "severity": "gate",
+      "since": "0.1.412"
+    },
+    "title_two_lines": {
+      "checker": "layout",
+      "family": "title",
+      "severity": "gate",
+      "since": "0.1.543"
+    },
+    "visual_absent": {
+      "checker": "layout",
+      "family": "visual-weight",
+      "severity": "gate",
+      "since": "0.1.453"
+    },
+    "privacy_terms": {
+      "checker": "privacy",
+      "family": "handling-terms",
+      "severity": "gate",
+      "since": "always"
+    },
+    "D42_figure_spec": {
+      "checker": "design",
+      "family": "figure-data",
+      "severity": "gate",
+      "since": "0.1.667",
+      "subject": "D42_figure_spec",
+      "na_means": "the document declares no figure spec, which is a correct answer: nothing here asks a figure to have one (AG-10). It is an honest silence, not a measurement that did not happen."
+    },
+    "D43_figure_content": {
+      "checker": "design",
+      "family": "figure-data",
+      "severity": "gate",
+      "since": "0.1.673",
+      "subject": "D43_figure_content",
+      "na_means": "the document declares no figure spec, so no drawing was asked to name anything. An honest silence: nothing requires a figure to declare a spec (AG-10)."
+    }
   }
- }
 }

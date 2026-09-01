@@ -550,6 +550,19 @@ def page(i: int, total: int, spec, broken: bool, k: int) -> str:
         # cancelled, and `check_fixtures` caught D32 reporting ok where the
         # suite expects FAIL. Two deliberate reds must not share a page.
         spec_decl = ' data-figure-spec="figures/broken-bridge.json"'
+    if broken and k == 7:
+        # D43's PLANT, and it is a DIFFERENT defect from the two above: this
+        # spec resolves, parses and reconciles, so D42 has nothing to say about
+        # it. What is wrong is the drawing — it names two of the three parts
+        # the document's own file declares, which is the shape a two-by-two
+        # shipped as an empty box had, and which every metric in this package
+        # reported clean until 0.1.673.
+        #
+        # On `k == 7` because it is the only content page with no other
+        # deliberate red on it. Two plants on one page cancelled once already
+        # (the note on `k == 5`), and a plant whose red is really another
+        # plant's is a plant that can stop working silently.
+        spec_decl = ' data-figure-spec="figures/thin-breakdown.json"'
     if broken and k == 4:
         # D42's PLANT. The page says its numbers are in a file, and the file is
         # not there. Nothing asks a figure to declare a spec (AG-10); what this
@@ -629,8 +642,31 @@ def page(i: int, total: int, spec, broken: bool, k: int) -> str:
     # a deliverable that had none. Found by running the checker against real
     # agent output; the fixtures we wrote ourselves never used a placeholder.
     cell = ""
+    if broken and k == 7:
+        # APPENDED to the table below, never instead of it: that table carries
+        # the em-dash-placeholder case M9 must NOT count, and replacing it here
+        # would have left that false-positive guard in one fixture instead of
+        # two.
+        # The drawing for the plant above. Three bars, and only two of them
+        # named — `Reconciliation` is drawn and left anonymous, which is
+        # exactly what a reader cannot read off the page.
+        cell = ('<div class="fig">'
+                '<svg role="img" viewBox="0 0 640 300" aria-label="Programme '
+                'cost by activity">'
+                '<rect x="40" y="60" width="360" height="34" fill="var(--acc)"/>'
+                '<text class="flbl" x="40" y="52" style="fill:var(--tx1);'
+                'font-size:13px">Installation</text>'
+                '<rect x="40" y="130" width="150" height="34" fill="var(--acc-3)"/>'
+                '<text class="flbl" x="40" y="122" style="fill:var(--tx1);'
+                'font-size:13px">Survey</text>'
+                '<rect x="40" y="200" width="90" height="34" fill="var(--acc-2)"/>'
+                '<text class="fnote" x="40" y="286" style="fill:var(--tx4);'
+                'font-size:12px">Synthetic figures for a fixture, not measured.'
+                '</text></svg>'
+                '<div class="cap"><span class="n">Figure 2</span> Programme '
+                'cost by activity</div></div>')
     if k == 7:
-        cell = ('<table><tbody>'
+        cell += ('<table><tbody>'
                 '<tr><td>Rural feeders</td><td>41</td>'
                 '<td><span class="tag built">surveyed</span></td></tr>'
                 '<tr><td>Deferred</td><td>&#8212;</td>'

@@ -622,3 +622,19 @@ def test_d30_catches_an_appendix_cut_out_of_the_body():
 
 def test_d30_is_na_when_a_document_numbers_no_figures():
     assert check_design.d30_figure_sequence("<html><body><p>no figures</p></body></html>") is None
+
+
+# --- figure_scale.wrap: the estimate a tight box needs ----------------------
+
+def test_wrap_at_px_is_tighter_than_the_loose_default():
+    """The default corresponds to a 10px face. In a 200-unit card at 12px it
+    budgeted 36 characters where 31 fit, and the body ran into the next card —
+    on a page every gate passed. `at_px` derives the estimate from the size the
+    text is actually set at."""
+    import figure_scale
+    text = "34 component types, none commercial"
+    assert len(figure_scale.wrap(text, 200.0)) == 1
+    assert len(figure_scale.wrap(text, 200.0, at_px=12)) == 2
+    # And it is still the same function for everyone who does not say a size.
+    assert figure_scale.wrap(text, 200.0) == figure_scale.wrap(text, 200.0,
+                                                               per_char=5.6)

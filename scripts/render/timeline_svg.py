@@ -86,7 +86,17 @@ import figure_spec  # noqa: E402
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 TIERS = ("light", "general", "pro")
-BOX = {"landscape": (1180, 420), "portrait": (620, 700)}
+# THE WIDTH IS A DESIGN DECISION; THE HEIGHT IS MEASURED. It used to be a pair
+# — 1180 x 420 landscape — and the pro tier's ink stopped at y=276, so a third
+# of the box was empty. `.fig` sizes an SVG with `height: auto`, which makes
+# the box and the art the same thing only when the box IS the art: on the page
+# that emptiness rendered as 115px between the drawing and its own caption,
+# and as a drawing scaled down to fit a height it did not need. Every metric
+# was green. Found by looking at the rendered page — convention 8.
+#
+# The floor is a floor: a two-stage timeline should not become a letterbox.
+BOX_W = {"landscape": 1180, "portrait": 620}
+BOX_H_FLOOR = {"landscape": 220, "portrait": 420}
 
 STATES = ("done", "now", "open")
 
@@ -254,7 +264,11 @@ def _pro(stages, spec, W, H):
             f'{html.escape(str(s["name"]))}</text>',
         ]
         if s.get("body"):
-            for j, line in enumerate(figure_scale.wrap(str(s["body"]), cw - 20)):
+            # `at_px`, because this is the one box in the package narrow
+            # enough for the default estimate to overflow — and it did,
+            # into the next card, with every gate green.
+            for j, line in enumerate(
+                    figure_scale.wrap(str(s["body"]), cw - 24, at_px=12)):
                 parts.append(
                     f'<text x="{x + 12:.1f}" y="{top + 66 + j * 16:.0f}" '
                     f'class="flbl" style="fill:var(--tx2);font-size:12px">'
@@ -291,14 +305,17 @@ def render(spec, tier: str = "light", orientation: str = "landscape",
            path: str = "the spec") -> str:
     if tier not in TIERS:
         raise SystemExit(f"tier must be one of {', '.join(TIERS)}")
-    if orientation not in BOX:
-        raise SystemExit(f"orientation must be one of {sorted(BOX)}")
+    if orientation not in BOX_W:
+        raise SystemExit(f"orientation must be one of {sorted(BOX_W)}")
     stages = _check(spec, path)
-    W, H = BOX[orientation]
-    body, foot_y = RENDERERS[tier](stages, spec, W, H)
+    W = BOX_W[orientation]
+    body, foot_y = RENDERERS[tier](stages, spec, W, BOX_H_FLOOR[orientation])
 
     measure = spec["measure"]
     unit = str(measure.get("unit") or "")
+    read_lines = figure_scale.wrap(str(spec["reading"]), W - 40)
+    note_y = foot_y + 30 + len(read_lines) * 20
+    H = max(BOX_H_FLOOR[orientation], round(note_y + 8))
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" '
            f'width="{W}" height="{H}" role="img" '
            f'aria-label="{html.escape(str(spec["reading"]))}">']
@@ -308,13 +325,12 @@ def render(spec, tier: str = "light", orientation: str = "landscape",
         f'{html.escape(str(measure["name"]))}'
         f'{" · " + html.escape(unit) if unit else ""}</text>',
     ]
-    read_lines = figure_scale.wrap(str(spec["reading"]), W - 40)
     for j, line in enumerate(read_lines):
         out.append(f'<text class="fread" x="0" y="{foot_y + 26 + j * 20:.0f}" '
                    f'style="font-size:13px">{html.escape(line)}</text>')
     # LAST, and small: the evidence line is a note, not the page's subject.
     out.append(
-        f'<text class="fnote" x="0" y="{min(foot_y + 30 + len(read_lines) * 20, H - 8):.0f}" '
+        f'<text class="fnote" x="0" y="{note_y:.0f}" '
         f'style="fill:var(--tx4);font-size:12px">'
         f'{html.escape(str(spec["source"]))} · '
         f'{html.escape(str(spec["period"]))} · '
@@ -331,7 +347,7 @@ def main(argv=None):
                     help="light: points on an axis. general: blocks on a "
                          "spine, dashed where not built. pro: staged cards "
                          "over a gradient band, one limit stated per stage")
-    ap.add_argument("--orientation", choices=sorted(BOX), default="landscape")
+    ap.add_argument("--orientation", choices=sorted(BOX_W), default="landscape")
     a = ap.parse_args(argv)
     spec, problem = figure_spec.load(pathlib.Path(a.data))
     if problem:

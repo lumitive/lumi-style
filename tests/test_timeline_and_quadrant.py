@@ -230,3 +230,32 @@ def test_the_use_takes_the_units_own_geometry():
     use = found.group(0)
     for attr in ("x=", "y=", "width=", "height="):
         assert attr in use, attr
+
+
+# --- the box is the drawing, and the estimate is the type -------------------
+
+def test_the_box_is_measured_from_the_ink_not_declared():
+    """A fixed 420-unit box while the pro tier's ink stopped at 276 rendered as
+    115px between the drawing and its own caption, and as a drawing scaled down
+    to fit a height it did not need. Every gate was green. The floor holds a
+    two-stage timeline from becoming a letterbox; above it, the height is what
+    the drawing needs."""
+    spec = _path()
+    svg = tl.render(spec, tier="pro")
+    got = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', svg)
+    assert got, "the drawing declares no viewBox"
+    box = [float(v) for v in got.groups()]
+    ink = max(float(m) for m in re.findall(r'\b(?:y|cy|y1|y2)="([\d.]+)"', svg))
+    assert box[1] >= tl.BOX_H_FLOOR["landscape"]
+    # The slack above the lowest ink is a margin, never a third of the box.
+    assert box[1] - ink < 20, f"{box[1] - ink:.0f} units of empty box"
+
+
+def test_a_two_stage_timeline_does_not_become_a_letterbox():
+    spec = _path()
+    spec["stages"] = spec["stages"][:2]
+    svg = tl.render(spec, tier="pro")
+    got = re.search(r'viewBox="0 0 [\d.]+ ([\d.]+)"', svg)
+    assert got, "the drawing declares no viewBox"
+    h = float(got.group(1))
+    assert h >= tl.BOX_H_FLOOR["landscape"]
