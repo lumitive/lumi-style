@@ -23,6 +23,7 @@ python3 scripts/check/check_facts.py <contract> <file>  # the build against the 
 python3 scripts/check/check_design.py <file>   # the design metrics on a deliverable (the script's row table is the list)
 python3 scripts/check/inspect_layout.py <file> # render a deliverable and report what the layout does
 python3 scripts/ops/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
+python3 scripts/ops/export_pptx.py <file>    # one full-bleed page raster per slide (local, Playwright)
 python3 scripts/ops/output_dir.py            # where a deliverable belongs; --create needs the user's say-so
 python3 scripts/ops/new_deck.py              # emit a deck skeleton that already renders, in the standard order
 python3 scripts/build/embed_font.py            # @font-face block with the face inlined

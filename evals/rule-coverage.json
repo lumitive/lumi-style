@@ -394,7 +394,7 @@
   },
   {
    "id": "RC-040",
-   "source": "SKILL.md:650",
+   "source": "SKILL.md:656",
    "quote": "**D12**, the handling terms and origin",
    "gist": "Carry the handling terms and origin on every page, opening with the seal-red shield handling marker.",
    "page_kind": "all",
@@ -404,7 +404,7 @@
   },
   {
    "id": "RC-041",
-   "source": "SKILL.md:683",
+   "source": "SKILL.md:689",
    "quote": "**once, in the closing colophon**, small and out of the",
    "gist": "Stamp the lumi-style version once, in the closing colophon.",
    "page_kind": "closing",
@@ -414,7 +414,7 @@
   },
   {
    "id": "RC-042",
-   "source": "SKILL.md:689",
+   "source": "SKILL.md:695",
    "quote": "Decks open with a cover and end with a closing page",
    "gist": "Open a deck with a cover and end it with a closing page, each carrying the single vector mark.",
    "page_kind": "all",
@@ -424,7 +424,7 @@
   },
   {
    "id": "RC-043",
-   "source": "SKILL.md:690",
+   "source": "SKILL.md:696",
    "quote": "every part boundary gets a lime opener page",
    "gist": "Give every part boundary a lime opener page.",
    "page_kind": "opener",
@@ -434,7 +434,7 @@
   },
   {
    "id": "RC-044",
-   "source": "SKILL.md:691",
+   "source": "SKILL.md:697",
    "quote": "about five content pages between openers is the pacing",
    "gist": "Target about five content pages between part openers.",
    "page_kind": "all",
@@ -444,7 +444,7 @@
   },
   {
    "id": "RC-045",
-   "source": "SKILL.md:698",
+   "source": "SKILL.md:704",
    "quote": "decks embed the scoring table as the final page",
    "gist": "Embed the scoring table as the deck's final page.",
    "page_kind": "closing",
@@ -454,7 +454,7 @@
   },
   {
    "id": "RC-046",
-   "source": "SKILL.md:770",
+   "source": "SKILL.md:776",
    "quote": "No invented facts; every number carries its source",
    "gist": "Invent no facts, source every number, and label illustrative values as illustrative.",
    "page_kind": "all",
@@ -464,7 +464,7 @@
   },
   {
    "id": "RC-047",
-   "source": "SKILL.md:772",
+   "source": "SKILL.md:778",
    "quote": "No coined Chinese: new concepts with no established",
    "gist": "Coin no Chinese terms; take the English term where no established Chinese term exists.",
    "page_kind": "all",
@@ -474,7 +474,7 @@
   },
   {
    "id": "RC-048",
-   "source": "SKILL.md:774",
+   "source": "SKILL.md:780",
    "quote": "The sales storyline is **value and future**",
    "gist": "Keep the sales storyline on value and future and converge honesty boundaries onto a single trust page.",
    "page_kind": "all",
@@ -484,7 +484,7 @@
   },
   {
    "id": "RC-049",
-   "source": "SKILL.md:776",
+   "source": "SKILL.md:782",
    "quote": "Every title names its subject and carries a verifiable fact",
    "gist": "Make every title name its subject and carry a verifiable fact.",
    "page_kind": "all",
@@ -494,7 +494,7 @@
   },
   {
    "id": "RC-050",
-   "source": "SKILL.md:777",
+   "source": "SKILL.md:783",
    "quote": "no single title frame across more than 60% of a",
    "gist": "Use no single title frame across more than 60% of a document.",
    "page_kind": "all",
@@ -504,7 +504,7 @@
   },
   {
    "id": "RC-051",
-   "source": "SKILL.md:778",
+   "source": "SKILL.md:784",
    "quote": "all titles concatenated must read as a complete argument",
    "gist": "Make all titles concatenated read as one complete argument.",
    "page_kind": "all",
@@ -514,7 +514,7 @@
   },
   {
    "id": "RC-052",
-   "source": "SKILL.md:779",
+   "source": "SKILL.md:785",
    "quote": "Charts: one accent color, conclusion-style titles",
    "gist": "Give charts one accent colour, conclusion-style titles, and a source line on every figure.",
    "page_kind": "content",
@@ -524,7 +524,7 @@
   },
   {
    "id": "RC-053",
-   "source": "SKILL.md:781",
+   "source": "SKILL.md:787",
    "quote": "AI never signs; money/safety conclusions never come from",
    "gist": "AI never signs, and money or safety conclusions never come from a language model.",
    "page_kind": "all",
@@ -3145,7 +3145,7 @@
   },
   {
    "id": "RC-314",
-   "source": "references/design-rules.md:1457",
+   "source": "references/design-rules.md:1469",
    "quote": "media queries that restyle the inside",
    "gist": "Add no window-keyed media queries that restyle the inside of the stage.",
    "page_kind": "all",
@@ -3155,7 +3155,7 @@
   },
   {
    "id": "RC-315",
-   "source": "references/design-rules.md:1461",
+   "source": "references/design-rules.md:1473",
    "quote": "number must be visible on every page at every matrix point",
    "gist": "Keep the footer rule and page number visible on every page at every matrix point.",
    "page_kind": "all",
@@ -3165,7 +3165,7 @@
   },
   {
    "id": "RC-316",
-   "source": "references/design-rules.md:1479",
+   "source": "references/design-rules.md:1491",
    "quote": "Every drawn element inside its viewBox",
    "gist": "Keep every drawn element inside its figure's viewBox.",
    "page_kind": "content",
@@ -3175,7 +3175,7 @@
   },
   {
    "id": "RC-317",
-   "source": "references/design-rules.md:1480",
+   "source": "references/design-rules.md:1492",
    "quote": "to y=212 inside a viewBox 208 tall is clipped",
    "gist": "Edit a figure's viewBox with the shape, so the box a figure declares is the box it draws in.",
    "page_kind": "content",
@@ -3185,7 +3185,7 @@
   },
   {
    "id": "RC-318",
-   "source": "references/design-rules.md:1483",
+   "source": "references/design-rules.md:1495",
    "quote": "Every label inside its own shape, at the corners",
    "gist": "Keep every figure label inside its own shape.",
    "page_kind": "content",
@@ -3195,7 +3195,7 @@
   },
   {
    "id": "RC-319",
-   "source": "references/design-rules.md:1504",
+   "source": "references/design-rules.md:1516",
    "quote": "count the distinct renderings. More than one is a finding",
    "gist": "Render each repeated role exactly one way across the document.",
    "page_kind": "all",
@@ -3205,7 +3205,7 @@
   },
   {
    "id": "RC-320",
-   "source": "references/design-rules.md:1508",
+   "source": "references/design-rules.md:1520",
    "quote": "one datum per geometry for where content",
    "gist": "Start content at one datum per geometry.",
    "page_kind": "all",
@@ -3215,7 +3215,7 @@
   },
   {
    "id": "RC-321",
-   "source": "references/design-rules.md:1509",
+   "source": "references/design-rules.md:1521",
    "quote": "one colour per chart component across pages",
    "gist": "Use one colour per chart component across pages and a shared baseline inside a stat band.",
    "page_kind": "all",
@@ -3225,7 +3225,7 @@
   },
   {
    "id": "RC-322",
-   "source": "references/design-rules.md:1542",
+   "source": "references/design-rules.md:1554",
    "quote": "Nothing may land on anything",
    "gist": "Let nothing land on anything: no text on text and no text on any drawn element.",
    "page_kind": "all",
@@ -3235,7 +3235,7 @@
   },
   {
    "id": "RC-323",
-   "source": "references/design-rules.md:1556",
+   "source": "references/design-rules.md:1568",
    "quote": "the tracks that hold it have to move with it",
    "gist": "Move the grid tracks with the type scale so a block never overflows onto its neighbour.",
    "page_kind": "all",
@@ -3245,7 +3245,7 @@
   },
   {
    "id": "RC-324",
-   "source": "references/design-rules.md:1560",
+   "source": "references/design-rules.md:1572",
    "quote": "reserves its height, and the reserve is a **ceiling**",
    "gist": "Treat the title block's reserved height as a ceiling.",
    "page_kind": "all",
@@ -3255,7 +3255,7 @@
   },
   {
    "id": "RC-325",
-   "source": "references/design-rules.md:1569",
+   "source": "references/design-rules.md:1581",
    "quote": "anything inside a lede is clipping. A clamp in a title",
    "gist": "Never clamp or hide overflow in a title block.",
    "page_kind": "all",
@@ -3265,7 +3265,7 @@
   },
   {
    "id": "RC-326",
-   "source": "references/design-rules.md:1578",
+   "source": "references/design-rules.md:1590",
    "quote": "Nothing may be styled only inside a media query",
    "gist": "Give every styled class a base rendering rather than styling it only inside a media query.",
    "page_kind": "all",
@@ -3275,7 +3275,7 @@
   },
   {
    "id": "RC-327",
-   "source": "references/design-rules.md:1589",
+   "source": "references/design-rules.md:1601",
    "quote": "reads a page whose `.body` class is not a shipped layout",
    "gist": "Give every page a layout class the shipped tokens define.",
    "page_kind": "all",
@@ -3285,7 +3285,7 @@
   },
   {
    "id": "RC-328",
-   "source": "references/design-rules.md:1598",
+   "source": "references/design-rules.md:1610",
    "quote": "A geometry may tighten spacing. It may not change type",
    "gist": "Let a geometry tighten spacing but never change type size.",
    "page_kind": "all",
@@ -3295,7 +3295,7 @@
   },
   {
    "id": "RC-329",
-   "source": "references/design-rules.md:1617",
+   "source": "references/design-rules.md:1629",
    "quote": "require it under 1.40:1 against the canvas",
    "gist": "Keep the rendered ground under 1.40:1 against the canvas.",
    "page_kind": "all",
@@ -3307,7 +3307,7 @@
   },
   {
    "id": "RC-330",
-   "source": "references/design-rules.md:1626",
+   "source": "references/design-rules.md:1638",
    "quote": "An adjacent-sibling selector inside a grid",
    "gist": "Avoid adjacent-sibling selectors inside a grid.",
    "page_kind": "all",
@@ -3317,7 +3317,7 @@
   },
   {
    "id": "RC-331",
-   "source": "references/design-rules.md:1631",
+   "source": "references/design-rules.md:1643",
    "quote": "Side-by-side cells start on one line and carry comparable",
    "gist": "Start side-by-side cells on one line with comparable weight.",
    "page_kind": "content",
@@ -3327,7 +3327,7 @@
   },
   {
    "id": "RC-332",
-   "source": "references/design-rules.md:1651",
+   "source": "references/design-rules.md:1663",
    "quote": "the page frame's parts stay the same width and centre",
    "gist": "Keep the page frame's parts the same width and centred at unintended window sizes.",
    "page_kind": "all",
@@ -3337,7 +3337,7 @@
   },
   {
    "id": "RC-333",
-   "source": "references/design-rules.md:1657",
+   "source": "references/design-rules.md:1669",
    "quote": "the deepest ink against the footer rule",
    "gist": "Keep the deepest ink on a page above the footer rule.",
    "page_kind": "all",
@@ -3347,7 +3347,7 @@
   },
   {
    "id": "RC-334",
-   "source": "references/design-rules.md:1658",
+   "source": "references/design-rules.md:1670",
    "quote": "A page is a fixed box or it is not a page",
    "gist": "Make each page a fixed box, scaled and letterboxed.",
    "page_kind": "all",
@@ -3357,7 +3357,7 @@
   },
   {
    "id": "RC-335",
-   "source": "references/design-rules.md:1660",
+   "source": "references/design-rules.md:1672",
    "quote": "the leftover window is a gutter that never holds page",
    "gist": "Keep page content out of the letterbox gutter.",
    "page_kind": "all",
@@ -3367,7 +3367,7 @@
   },
   {
    "id": "RC-336",
-   "source": "references/design-rules.md:1693",
+   "source": "references/design-rules.md:1705",
    "quote": "An image earns its place by carrying an argument",
    "gist": "Include an image only when it carries an argument the page cannot make otherwise.",
    "page_kind": "all",
@@ -3377,7 +3377,7 @@
   },
   {
    "id": "RC-337",
-   "source": "references/design-rules.md:1703",
+   "source": "references/design-rules.md:1715",
    "quote": "Embedded, never linked",
    "gist": "Embed every image in the file as a data: URI rather than linking it.",
    "page_kind": "all",
@@ -3387,7 +3387,7 @@
   },
   {
    "id": "RC-338",
-   "source": "references/design-rules.md:1707",
+   "source": "references/design-rules.md:1719",
    "quote": "Every image names its origin and the",
    "gist": "Name every image's origin and terms on the page.",
    "page_kind": "all",
@@ -3397,7 +3397,7 @@
   },
   {
    "id": "RC-339",
-   "source": "references/design-rules.md:1710",
+   "source": "references/design-rules.md:1722",
    "quote": "anything else needs the licence named",
    "gist": "Name the licence for any image that is not public domain or CC0.",
    "page_kind": "all",
@@ -3407,7 +3407,7 @@
   },
   {
    "id": "RC-340",
-   "source": "references/design-rules.md:1712",
+   "source": "references/design-rules.md:1724",
    "quote": "Tint it into the accent ladder — duotone against",
    "gist": "Treat every photograph into the palette, as a duotone or a mono plate.",
    "page_kind": "all",
@@ -3417,7 +3417,7 @@
   },
   {
    "id": "RC-341",
-   "source": "references/design-rules.md:1716",
+   "source": "references/design-rules.md:1728",
    "quote": "Text does not sit on an untreated image",
    "gist": "Never set text on raw photography.",
    "page_kind": "all",
@@ -3427,7 +3427,7 @@
   },
   {
    "id": "RC-342",
-   "source": "references/design-rules.md:1720",
+   "source": "references/design-rules.md:1732",
    "quote": "the cover, a part opener, a full-bleed evidence page",
    "gist": "Place imagery only on the cover, a part opener, a full-bleed evidence page, or inside a .fig.",
    "page_kind": "all",
@@ -3437,7 +3437,7 @@
   },
   {
    "id": "RC-343",
-   "source": "references/design-rules.md:1721",
+   "source": "references/design-rules.md:1733",
    "quote": "**Where it does not**: behind body copy",
    "gist": "Never place imagery behind body copy, behind a table, or as a repeating texture.",
    "page_kind": "all",
@@ -3447,7 +3447,7 @@
   },
   {
    "id": "RC-344",
-   "source": "references/design-rules.md:1726",
+   "source": "references/design-rules.md:1738",
    "quote": "written: the handshake, the glass tower",
    "gist": "Ban the stock-photograph tells by name.",
    "page_kind": "all",
@@ -3457,7 +3457,7 @@
   },
   {
    "id": "RC-345",
-   "source": "references/design-rules.md:1732",
+   "source": "references/design-rules.md:1744",
    "quote": "Downscale to the size it is actually rendered",
    "gist": "Downscale an embedded raster to the size it is actually rendered at.",
    "page_kind": "all",
@@ -3467,7 +3467,7 @@
   },
   {
    "id": "RC-346",
-   "source": "references/design-rules.md:1733",
+   "source": "references/design-rules.md:1745",
    "quote": "prefer a vector when the content is a diagram",
    "gist": "Embed a diagram as a vector rather than a raster.",
    "page_kind": "all",
@@ -4938,7 +4938,7 @@
   },
   {
    "id": "RC-492",
-   "source": "references/design-rules.md:1745",
+   "source": "references/design-rules.md:1757",
    "quote": "**What is required is that a declaration be true.**",
    "gist": "A page declaring `data-figure-spec` names a file that exists, parses, and holds its move's universal and input-shape fields.",
    "page_kind": "all",
@@ -4959,7 +4959,7 @@
   },
   {
    "id": "RC-494",
-   "source": "references/design-rules.md:1769",
+   "source": "references/design-rules.md:1781",
    "quote": "Each analytical move has a minimum the drawing must carry",
    "gist": "Name in the drawing every member the figure's own spec declares.",
    "page_kind": "content",
@@ -4969,7 +4969,7 @@
   },
   {
    "id": "RC-495",
-   "source": "references/design-rules.md:1784",
+   "source": "references/design-rules.md:1796",
    "quote": "The floor is the move's, not a number written here",
    "gist": "Refuse to compose a library shape with no content rather than drawing an empty one.",
    "page_kind": "content",
@@ -4979,7 +4979,7 @@
   },
   {
    "id": "RC-496",
-   "source": "references/design-rules.md:1789",
+   "source": "references/design-rules.md:1801",
    "quote": "Figure text stops at 12px, and that is a floor rather than a target",
    "gist": "Set no text inside a figure below 12px.",
    "page_kind": "content",

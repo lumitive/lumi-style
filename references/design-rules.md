@@ -1424,6 +1424,18 @@ A layout is verified only across the **matrix**, not at a point:
   is to raster the page the gate named, and rastering nothing while exiting 0
   answers that with silence.
 
+- **PowerPoint axis.** `scripts/ops/export_pptx.py` writes one slide per page,
+  each a full-bleed raster of the composed page at the stage's own aspect —
+  13.333 x 7.5 inches landscape, A4 portrait — so nothing letterboxes and
+  nothing crops. **Bitmap, never reflow**, and that is a decision: a LUMI page
+  is a CSS grid, an SVG figure and a `clamp()` written against a fixed stage,
+  so rebuilding it as PowerPoint shapes would make the export a SECOND surface
+  to debug, where every defect found is a defect in a document the checkers
+  already passed. The cost is stated rather than hidden: the text is not
+  selectable and not editable, and a deck that must be edited in PowerPoint is
+  a deck to build in PowerPoint. A page whose raster did not come back is a
+  FAILURE and never a shorter deck.
+
 - **Output axis: a deliverable lands in the reader's workspace, not wherever the
   input happened to sit** (owner directive, 2026-08-09). **The default is
   `Documents/LUMI-Style/` under the user's home directory** — the same one place
