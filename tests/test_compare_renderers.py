@@ -83,8 +83,15 @@ def test_every_bar_declares_its_own_value():
 
 
 def test_the_subject_and_its_references_differ_only_by_token():
+    """The references take a RAMP step rather than the neutral ink since
+    0.1.676. They were `--tx3`, so a figure whose subject is zero — an empty
+    catalog, the case this was found on — drew nothing in the palette at all,
+    and the review said exactly that. The ramp is the right token: the theme
+    says it is for fields and surfaces and carries no meaning, which is what a
+    set of bars counting one thing needs."""
     svg = bm.render(_bench())
-    assert 'fill="var(--acc)"' in svg and 'fill="var(--tx3)"' in svg
+    assert 'fill="var(--acc)"' in svg and 'fill="var(--acc-4)"' in svg
+    assert 'fill="var(--tx3)"' not in svg
     assert not re.search(r"#[0-9a-fA-F]{3,6}\b", svg)
 
 
@@ -133,14 +140,24 @@ def test_the_wrong_move_is_refused_and_names_the_registry():
         bm.render(spec)
 
 
-def test_the_bars_are_centred_and_the_rules_span_only_them():
+def test_the_rules_span_only_the_bars_and_the_box_holds_no_empty_band():
     """Found by rendering it: a three-row figure left its bars at the top and
-    ran full-height tick lines through two thirds of empty box."""
+    ran full-height tick lines through two thirds of empty box.
+
+    The assertion changed at 0.1.676 and the concern did not. It used to check
+    that the bars started well down the box, which was a proxy for the slack
+    being shared — and the fix then was to centre them in a FIXED box. The box
+    is measured from the rows now, so there is no slack to share and the bars
+    starting near the top is the correct answer. What the test has to hold is
+    the thing that was actually wrong: a tick rule running through box the
+    drawing does not use."""
     svg = bm.render(_bench())
     ys = [float(y) for y in re.findall(r'data-datum="\d+"[^>]*y="([\d.]+)"', svg)]
     rule_tops = [float(y) for y in re.findall(r'<line [^>]*y1="([\d.]+)"', svg)]
-    assert min(ys) > 34 + 20, "the bars still start at the top of the box"
+    rule_bots = [float(y) for y in re.findall(r'<line [^>]*y2="([\d.]+)"', svg)]
     assert min(rule_tops) == pytest.approx(min(ys) - 9, abs=12)
+    # And the rules stop where the bars stop, rather than running to the floor.
+    assert max(rule_bots) < max(ys) + 80
 
 
 # --- the radar --------------------------------------------------------------

@@ -125,6 +125,26 @@ def load(path: pathlib.Path):
     return raw, base
 
 
+def look_for(page: dict) -> tuple[str, str]:
+    """-> (the support line, the separate look-for row) for one page.
+
+    **The look-for line goes in the support slot by default, and that is a
+    measured decision rather than a preference.** A dense page's figure row is
+    what the three text runs above and below it leave: the lede reserves a
+    fixed 139px whether or not its support line is used, so a SECOND paragraph
+    row costs another 76px of the drawing on every page — and the drawing is
+    what the layout exists for. Measured on the two-by-two, whose box is nearly
+    square: 205px of figure row, which scaled a 1180-unit drawing down to 465.
+
+    A page that gives BOTH keeps them separate, because then the author has
+    said the support line and the look-for line are different sentences.
+    """
+    sup, lead = str(page.get("sup") or ""), str(page.get("figlead") or "")
+    if lead and not sup:
+        return lead, ""
+    return sup, lead
+
+
 def _check_page(path, i, page, base) -> None:
     finds = page.get("finds") or []
     if not isinstance(finds, list):

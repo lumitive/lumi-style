@@ -105,12 +105,12 @@ MOVE_FIELDS: dict[str, tuple[str, ...]] = {
 # The collection each move's OPTIONAL refinement keeps, so the shape check runs
 # over it too. `criteria` turns a compare into a radar; `stages` turns a bridge
 # into a named path.
-_COLLECTION_EXTRAS = {"compare": ("criteria",), "bridge": ("stages",)}
+_COLLECTION_EXTRAS = {"compare": ("criteria", "lanes"), "bridge": ("stages",)}
 
 # The field of each move that holds MANY things. Named rather than discovered
 # because the shape check has to run before anything iterates them.
 _COLLECTIONS: dict[str, tuple[str, ...]] = {
-    "compare": ("references", "criteria"),
+    "compare": ("references", "criteria", "lanes"),
     "decompose": ("parts",),
     "position": ("items",),
     "correlate": ("points",),
@@ -325,7 +325,50 @@ def _move_problems(move: str, spec: dict) -> list[str]:
         # is it thin" is still setting a value against a reference — and adding
         # a move to the five would put this module and
         # `check_outline.ANALYTICAL_MOVES` out of step.
+        # `lanes` is compare's OTHER refinement, and it is exclusive with
+        # `criteria` for the same reason `stages` and `pieces` are exclusive on
+        # a bridge: the two answer different questions about the same move and
+        # a spec carrying both has not decided which figure it is. A radar
+        # compares one subject across several criteria; a lane figure compares
+        # several subjects that sit in different LAYERS, and the layer is the
+        # argument. Adding it here rather than as a sixth move is AR-1's rule:
+        # "where does each of these sit, and how do they differ" is still
+        # setting a value against a reference.
+        lanes = spec.get("lanes")
         crit = spec.get("criteria")
+        if lanes is not None and crit is not None:
+            out.append(
+                "a compare declares `criteria` (a radar: one subject across "
+                "several axes) or `lanes` (layers: several subjects in "
+                "different bands), never both — they are different figures of "
+                "the same move, and a spec carrying both has not chosen (AR-1)")
+        if lanes is not None:
+            if not isinstance(lanes, list) or len(lanes) < 2:
+                out.append(
+                    "`lanes` names the layers the items are split across, and "
+                    "a split needs at least two: with one lane there is "
+                    "nothing for the split to say and the figure is a row of "
+                    "chips (AR-1)")
+            else:
+                for i, lane in enumerate(lanes):
+                    out += _pair_problems(f"lanes[{i}]", lane, ("name",),
+                                          "AR-1: compare across lanes")
+                named = {str((lane or {}).get("name") or "").strip()
+                         for lane in lanes if isinstance(lane, dict)}
+                for who, obj in ([("subject", spec.get("subject"))]
+                                 + [(f"references[{i}]", r)
+                                    for i, r in enumerate(refs or [])]):
+                    got = str((obj or {}).get("lane") or "").strip() \
+                        if isinstance(obj, dict) else ""
+                    if got not in named:
+                        # NEVER A DEFAULT LANE. Dropping an item into the first
+                        # band draws a claim the spec does not make, and the
+                        # reader cannot see that it was a guess.
+                        out.append(
+                            f"`{who}` declares lane {got!r}, which is not one "
+                            f"of {', '.join(sorted(named))}. The lane is the "
+                            f"figure's whole argument, so it is stated rather "
+                            f"than defaulted (AR-1)")
         if crit is not None:
             if not isinstance(crit, list) or len(crit) < 3:
                 out.append(

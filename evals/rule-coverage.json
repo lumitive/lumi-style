@@ -544,7 +544,7 @@
   },
   {
    "id": "RC-055",
-   "source": "references/analysis-rules.md:107",
+   "source": "references/analysis-rules.md:108",
    "quote": "ids in the library that draw it. The selection chain is",
    "gist": "Follow the question to framework to shape chain, drawing a declared move with the library shapes that framework names.",
    "page_kind": "content",

@@ -1,4 +1,4 @@
-# LUMI build card · 0.1.675
+# LUMI build card · 0.1.676
 
 > **GENERATED** by `scripts/build/build_card.py` from `evals/rule-coverage.json`, `evals/gates.json` and `tokens/`. `--check` runs in CI. Never hand-edit: edit the rule, or the register, and regenerate.
 
@@ -192,7 +192,7 @@ Only the rules a script can fail you for, from the register. The full contract �
 
 - **`D20`** Retint a library shape only along the accent ladder, never by introducing a colour. — `references/design-rules.md:1167`
 - **`D21`** Have every mark that encodes a quantity declare that quantity in the markup. — `references/design-rules.md:895`
-- **`D32`** Follow the question to framework to shape chain, drawing a declared move with the library shapes that framework names. — `references/analysis-rules.md:107`
+- **`D32`** Follow the question to framework to shape chain, drawing a declared move with the library shapes that framework names. — `references/analysis-rules.md:108`
 - **`D37`** Keep the caption below a figure to the number and the name; the source line goes inside the drawing. — `references/design-rules.md:772`
 - **`D37`** Put the source line inside the drawing, not in the caption beside it. — `references/design-rules.md:773`
 - **`D43`** Name in the drawing every member the figure's own spec declares. — `references/design-rules.md:1781`
