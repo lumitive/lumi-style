@@ -1,3 +1,68 @@
+## 0.1.668 — `compare` gets its two drawings, and the shipping order is the guard's to enforce
+
+Step 3 of `specs/2026-09-01-figure-data-contract-design.md`. `correlate` could
+be drawn at 0.1.664 and specified at 0.1.667; `compare` — AR-1's first move,
+and the one every business figure reaches for — could be drawn by nothing.
+
+**`benchmark_svg` draws a value against the references a reader would judge it
+by.** Length from a zero axis, the subject in the accent and its references in
+the neutral rule colour, every bar carrying its own datum. **There is no
+`--baseline` and there never will be**: a truncated axis is this form's
+commonest distortion and the hardest for a reader to catch, so the tool cannot
+express it — the same decision as `scatter_svg` having no minimum radius.
+
+**`radar_svg` draws `compare` across three or more criteria at once.** Every
+spoke runs zero to one shared maximum; there is no per-axis range, because a
+radar with different axes draws a shape the data does not have and, unlike a
+bar, the distortion is invisible.
+
+**The contract grew a refinement rather than a sixth move.** `criteria` is
+optional on `compare`: with it, the subject and every reference carry one value
+per criterion, and a missing spoke is refused. It is an extension because the
+question is still AR-1's compare question — "where is this strong and where is
+it thin" is setting a value against a reference — and a sixth move would put
+`figure_spec.MOVE_FIELDS` and `check_outline.ANALYTICAL_MOVES` out of step.
+
+**The shipping order is enforced, not remembered.** The spec says each renderer
+reaches `consumer_seeds` **before** its registry entry. Tried the other way
+first, and `framework tools` refused it verbatim: *"names
+scripts/render/benchmark_svg.py, which is not a tracked file"*. The guard from
+0.1.666 is what makes the order a fact rather than a note.
+
+**`scripts/lib/figure_scale.py` is the axis arithmetic, once.** `scatter_svg`
+carried `_num`, `_nice`, `_wrap` and `_fmt` privately and the second renderer
+arrived; two copies of "how an axis picks its round numbers" is what
+`evals/single-source.json` exists to prevent, and two figures in one document
+disagreeing about their own ticks is what it looks like when they drift.
+
+**Three defects the gates did not see and the render did**, all found by
+exporting the page and looking at it:
+
+- The benchmark's three bars sat at the top of the box with full-height tick
+  rules running down through two thirds of empty space. The bars are now
+  centred and the rules span only them.
+- Its source line stayed pinned to the box floor while the bars moved up, so it
+  floated a third of a page below the sentence it belongs to. §4 rule 17 asks
+  for the source to be the drawing's LAST TEXT NODE — an ordering rule, read
+  the first time as a position.
+- The radar stacked both series names over its top spoke, where the first
+  criterion's label and the maximum tick already were: four text runs in one
+  place. They are now a legend at the side, and the scale reads up the vertical
+  spoke offset clear of the vertex that sits on the outer ring whenever the
+  subject scores the maximum.
+
+**And one the gate did see, which is the more interesting half.**
+`figure_distorts` failed the first correct radar: every vertex is the same
+4-unit dot, so a probe measuring bounding boxes read them as equal. The
+encoding is the vertex's DISTANCE FROM THE CENTRE, not its own size. Rather
+than drop the declaration — which would have made the gate report `n/a` on
+every radar this package ever draws — the probe learned the encoding:
+`data-encoding="radial"` with a `data-radial-origin` element it can measure,
+so it stays a second independent implementation reading rendered pixels.
+Planted both ways and both caught: a vertex drawn at half its radius while
+claiming its value, and a radial claim with no centre to measure from — the
+second reported as *could not be measured*, never as clean.
+
 ## 0.1.667 — the artefact that holds a figure's numbers, and the five shapes AR-1 has declared since it was written
 
 Step 2 of `specs/2026-09-01-figure-data-contract-design.md`. 0.1.665 made the

@@ -3525,7 +3525,8 @@ def check_script_paths():
 # makes bare names resolve from any drawer depth).
 SIBLING_MODULES = (
     "geo_projection", "geo_frame", "globe_svg", "regionmap_svg", "sea_route",
-    "scatter_svg", "figure_spec",
+    "scatter_svg", "figure_spec", "figure_scale", "benchmark_svg",
+    "radar_svg",
     "color_math", "css_tokens", "lock", "deliverable_registry",
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",

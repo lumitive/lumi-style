@@ -206,7 +206,12 @@
    ],
    "misuse": "References chosen because they flatter, or left unnamed, turn the comparison into an assertion; a table with one column is a number standing alone, which is the tell AR-1 names",
    "shapes": [],
-   "drawn": "native"
+   "drawn": "native",
+   "tool": {
+    "module": "benchmark_svg",
+    "run": "python3 scripts/render/benchmark_svg.py --data <spec.json>",
+    "draws": "a value against the references a reader would judge it by: length from a zero axis, the subject in the accent, each bar carrying its own datum. It cannot draw a bar with no reference — the judgment anchor is an input, not a gate."
+   }
   },
   "radar": {
    "question": "Across several criteria at once, where is this strong and where is it thin?",
@@ -218,7 +223,12 @@
    ],
    "misuse": "Axes on incomparable scales, or ordered arbitrarily, produce a shape whose area means nothing — the polygon reads as a finding it does not carry. Above roughly six axes it stops being legible",
    "shapes": [],
-   "drawn": "native"
+   "drawn": "native",
+   "tool": {
+    "module": "radar_svg",
+    "run": "python3 scripts/render/radar_svg.py --data <spec.json>",
+    "draws": "compare across three or more criteria at once: one shared zero-to-max scale on every spoke, the subject in the accent, and the datum on each VERTEX rather than on the polygon — a radar's area grows with the square of its values."
+   }
   }
  }
 }
