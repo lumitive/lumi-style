@@ -1,3 +1,62 @@
+## 0.1.670 — survival: a figure's numbers now outlive the build that drew them
+
+Step 5, the last of `specs/2026-09-01-figure-data-contract-design.md`. Steps 2
+through 4 built the artefact and the tools; this is what the artefact is FOR.
+
+**A drawn figure's numbers were invisible to red line 1.** `check_facts` strips
+`<svg>` as decorative — correctly, since a chart's axis ticks are not claims —
+so a deck could state a market size only inside its chart and
+`unsourced_quantities` came back empty. It now reads the values out of every
+spec the document declares and holds them to the contract like any other
+quantity. Measured on a two-file probe: a figure carrying a part the contract
+never mentions is reported, where before the run was clean.
+
+**And the spec may never be the contract — as a mechanism, not a sentence.**
+`unsourced = document quantities − contract quantities`; one file as both makes
+that set empty by construction and this check reports clean on any document at
+all. `check_facts` now refuses a run whose contract is one of the document's own
+declared specs, and says why.
+
+**A declared spec that cannot be read is a finding, never a silence.** A missing
+or unparseable spec used to leave `check_facts` with nothing to add and no way
+to say so — the same shape as a document with no figures.
+
+**The loss is visible.** `check_outline --against` reports *"the outline
+declares N analytical moves; the document carries M"*. Measured across the
+owner's 17 shipped documents and 355 pages: the outlines declared 17 and the
+documents carried **zero**, because each deliverable's own assembler replaces
+the scaffold's content run with hand-written pages. **No change in this
+repository can move that number**, and saying otherwise would be promising
+something this package cannot do. What it can do is stop the deletion being
+invisible. It is a note and never a gate: a document may legitimately drop a
+beat, and AG-9 already declined the class of gate that judges whether a page's
+prose matches a plan.
+
+**Two invariants are now pinned rather than assumed.** A rebuild from an
+unchanged spec is byte-identical — and the test that says so ships with its
+converse, because a renderer that ignored its input would also be
+byte-identical. A translation redraws from the same spec with translated
+labels, so every mark lands in the same place: the geometry is identical by
+construction and only the words differ. Before the artefact existed a
+translation had to copy the SVG, which is how a figure's numbers and its
+language got welded together.
+
+**Where the plan stands, and its own arithmetic.** Steps 1–5 are shipped. The
+honest ceiling was stated as 7 of 9 chain links, and the two that stay open are
+named rather than quietly counted: **link 4** (every registry entry names a
+tool) reaches 5 of 14 entries — the natively-drawn ones — because a
+library-drawn framework already has its drawing and demanding a tool of it is
+AG-10; **link 11** (the numbers agree with the fact contract) closes only in
+part, because its two named defects — a contract with no `## FACTS` heading and
+`--facts` being an optional flag rather than a build step — live in the owner's
+deliverable repository and not in this one.
+
+**The graded number has not moved and cannot be moved from here:** 58 figures
+across three deliverables, 1 declaring its data, 10 marks declaring a value.
+Every one of those documents predates the artefact. The instrument now exists,
+end to end — beat, spec, skeleton, tool, drawing, gate, fact check — and the
+next document built through it is what will move the number.
+
 ## 0.1.669 — the arithmetic moves, and the first check in this package that is about the author's data
 
 Step 4 of `specs/2026-09-01-figure-data-contract-design.md`. `decompose` and

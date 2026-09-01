@@ -48,6 +48,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
         _bs_sys.path.append(_p)
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
+import figure_spec  # noqa: E402 — after the bootstrap
 import markup  # noqa: E402 — after the bootstrap
 
 # A quantity worth tracking: currency, percentage, or a grouped/multi-digit
@@ -265,10 +266,68 @@ def facts(text: str, names: bool = True) -> tuple[set[str], set[str]]:
     return q, out
 
 
-def compare(contract: str, doc_html: str) -> dict:
+SPEC_DECL = re.compile(r'data-figure-spec="([^"]+)"')
+
+
+def spec_quantities(doc_html: str, base) -> tuple[set[str], list[str]]:
+    """-> (the quantities the declared figure specs carry, problems reading them).
+
+    **The hole this closes.** `_visible` strips `<svg>`, so a drawn figure's
+    numbers were invisible to this check: a deck could state a market size only
+    inside its chart and `unsourced` would be empty. The figure spec is where
+    those numbers now live, so they are read from the spec and held to the
+    contract like any other quantity in the document.
+
+    **The spec is never the contract.** `unsourced = document quantities −
+    contract quantities`; if one file were both, that set would be empty
+    forever and red line 1's only instrument would go blind. `main` refuses a
+    run whose contract is one of the document's own declared specs, so the
+    rule is a mechanism rather than a sentence.
+    """
+    if base is None:
+        return set(), []
+    out: set[str] = set()
+    problems: list[str] = []
+    for m in SPEC_DECL.finditer(doc_html):
+        ref = m.group(1)
+        spec, problem = figure_spec.load(base / ref)
+        if problem or spec is None:
+            problems.append(problem or f"{ref}: no spec came back")
+            continue
+        # Values only. A label is prose and belongs to the document's own text,
+        # which `_visible` already reads.
+        quantities, _names = facts(" ".join(_spec_values(spec)), names=False)
+        out |= quantities
+    return out, problems
+
+
+def _spec_values(spec) -> list[str]:
+    """-> every number a spec states, as text, wherever its move keeps them."""
+    found: list[str] = []
+
+    def walk(node):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                if k in ("value", "delta", "x", "y"):
+                    found.append(str(v))
+                elif k == "values":
+                    found.extend(str(x) for x in (v or []))
+                else:
+                    walk(v)
+        elif isinstance(node, list):
+            for x in node:
+                walk(x)
+
+    walk(spec)
+    return found
+
+
+def compare(contract: str, doc_html: str, base=None) -> dict:
     doc = _visible(doc_html)
     cq, cn = facts(permitted(contract))
     dq, _dn = facts(doc)
+    sq, spec_problems = spec_quantities(doc_html, base)
+    dq |= sq
     absent_names = sorted(x for x in cn if x not in doc)
     absent_q = sorted(x for x in cq if x not in dq)
     unsourced = sorted(x for x in dq if x not in cq)
@@ -289,7 +348,8 @@ def compare(contract: str, doc_html: str) -> dict:
     unmeasurable = not dq and bool(everything)
     return {"contract_quantities": len(cq), "contract_names": len(cn),
             "absent_quantities": absent_q, "absent_names": absent_names,
-            "unsourced_quantities": unsourced, "unmeasurable": unmeasurable}
+            "unsourced_quantities": unsourced, "unmeasurable": unmeasurable,
+            "spec_quantities": len(sq), "spec_problems": spec_problems}
 
 
 def main() -> int:
@@ -302,11 +362,27 @@ def main() -> int:
         if not p.is_file():
             sys.exit(f"no such file: {p}")
 
-    r = compare(a.contract.read_text(encoding="utf-8"),
-                a.document.read_text(encoding="utf-8"))
+    doc_html = a.document.read_text(encoding="utf-8")
+    # THE SPEC MAY NEVER BE THE CONTRACT, and this is the mechanism rather than
+    # the sentence. `unsourced = document quantities − contract quantities`; one
+    # file as both makes that set empty forever and red line 1's only instrument
+    # goes blind. The contract is written from the engagement, the spec is
+    # written for a figure, and the check is that they agree.
+    declared = {(a.document.parent / m.group(1)).resolve()
+                for m in SPEC_DECL.finditer(doc_html)}
+    if a.contract.resolve() in declared:
+        sys.exit(
+            f"{a.contract} is one of {a.document.name}'s own figure specs. A "
+            f"document cannot be its own fact contract: `unsourced` would be "
+            f"empty by construction and this check would report clean on any "
+            f"document at all. Write the contract from the engagement.")
+
+    r = compare(a.contract.read_text(encoding="utf-8"), doc_html,
+                base=a.document.parent)
     if a.json:
         print(json.dumps(r, indent=1, ensure_ascii=False))
-        return 1 if (r["unsourced_quantities"] or r["unmeasurable"]) else 0
+        return 1 if (r["unsourced_quantities"] or r["unmeasurable"]
+                     or r["spec_problems"]) else 0
 
     print(f"{a.document.name} against {a.contract.name}\n")
     n = len(r["absent_names"]) + len(r["absent_quantities"])
@@ -319,13 +395,23 @@ def main() -> int:
         print(f"  {'FAIL' if r['unsourced_quantities'] else 'ok  '}  "
               f"unsourced quantities   {len(r['unsourced_quantities'])} "
               f"(gates — red line 1): " + ", ".join(r["unsourced_quantities"][:12]))
+    if r["spec_problems"]:
+        print(f"  FAIL  figure specs           {len(r['spec_problems'])} "
+              f"declared spec(s) could not be read, so the numbers they hold "
+              f"were NOT compared: " + "; ".join(r["spec_problems"][:3]))
+    elif r["spec_quantities"]:
+        print(f"  note  from figure specs      {r['spec_quantities']} "
+              f"quantity(ies) read out of declared specs and held to the "
+              f"contract — `<svg>` is stripped as decorative, so before this "
+              f"they were invisible to the comparison")
     print(f"  note  absent from the document  {n} of "
           f"{r['contract_quantities'] + r['contract_names']} permitted facts")
     for x in r["absent_names"][:20]:
         print(f"          name  {x}")
     for x in r["absent_quantities"][:20]:
         print(f"          value {x}")
-    return 1 if (r["unsourced_quantities"] or r["unmeasurable"]) else 0
+    return 1 if (r["unsourced_quantities"] or r["unmeasurable"]
+                 or r["spec_problems"]) else 0
 
 
 if __name__ == "__main__":
