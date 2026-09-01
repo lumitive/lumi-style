@@ -253,6 +253,77 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   honest and is not the capability.
 - the release that lands the layout withdraws the refusal and cites this id.
 
+## GAP-055 · `check_facts` gates on verdicts the register has never carried
+
+- status: open
+- opened: 0.1.671
+- surface: evals/gates.json, scripts/check/check_facts.py (`main`),
+  scripts/check/check_repo.py (`check_gate_declarations`)
+- symptom: `evals/gates.json` declares 89 verdicts across four checkers —
+  design, prose, layout, privacy. `check_facts` is not among them, and it
+  gates: `unsourced_quantities` is red line 1's instrument and has never had a
+  register entry. 0.1.670 added two more, `spec_problems` and
+  `unsourced_spec_values`, so the branch widened an existing gap rather than
+  opening one.
+- why it is not simply fixed: `check_gate_declarations` reads a checker's
+  verdicts out of its `rows` table by walking the AST, and `check_facts` builds
+  no rows table — it prints its verdicts directly. Adding register entries
+  without teaching the guard makes it report the REGISTER as the liar, which is
+  the failure its own comment records talking an operator into demoting a live
+  commercial gate.
+- what would close it: give `check_facts` the same `rows` shape
+  `check_design` and `check_prose` use, then declare its verdicts. That is a
+  refactor of a red-line instrument and belongs in its own change, with its own
+  deliberate red.
+- check: a verdict that can fail a release is declared in `evals/gates.json`
+  with what it grades. Four checkers satisfy that today and one does not.
+
+## GAP-054 · The chain's link 1 is credited to no step, and two documents named the wrong two
+
+- status: open
+- opened: 0.1.671
+- surface: specs/2026-09-01-figure-data-contract-design.md §4, §11; CHANGELOG 0.1.670
+- symptom: §4 fixes the broken set at ten links and says the "nine" a later
+  count uses excludes link 4. Taking that denominator and §11's own step table,
+  the closed set is {7b, 7, 12, 3, 8, 9, 10} — seven — and the two left open
+  are link **1** (an entry that receives the data from the engagement) and link
+  **11**. §11 named 4 and 11 instead. "7 of 9" was right by accident.
+- why it matters: §4 exists BECAUSE an audit caught this document saying "nine"
+  in four places and enumerating a different nine in two of them. The same
+  class recurred one section later, which is what makes it a gap rather than a
+  typo.
+- what would close it: an entry that receives a figure's data — the point where
+  an engagement's numbers first become a spec. Today an author writes the
+  skeleton by hand from the beat. Nothing in this plan built that entry and
+  nothing pretended to.
+- check: any statement of how many chain links a step closes cites §4's list of
+  ten and names the open ones by number, or it is not a count anybody can check.
+
+## GAP-053 · `funnel` is drawn natively, shares `decompose`, and no tool can serve it
+
+- status: open
+- opened: 0.1.671
+- surface: assets/frameworks.json (`funnel`), scripts/lib/figure_spec.py
+  (`MOVE_FIELDS["decompose"]`), scripts/render/breakdown_svg.py
+- symptom: `funnel` declares `drawn: "native"` and its move is `decompose`, so
+  after 0.1.669 it looks like an entry `breakdown_svg` should serve. It is not.
+  A decompose spec asserts that the parts SUM to the total — MECE, and the
+  arithmetic gate enforces it — while a funnel's stages are nested: each is a
+  subset of the one before, and 100/60/25 sums to 185 against a total of 100.
+  Pointing `funnel` at `breakdown_svg` would draw the wrong figure and fail the
+  arithmetic on correct data.
+- why it is not simply fixed: the contract has no shape for a nested sequence.
+  Adding one is a sixth input shape rather than a sixth move, and it needs a
+  documented case — AR-1 lists funnel under decompose and this gap is the first
+  evidence that the two data shapes differ.
+- what would close it: a `stages` refinement of `decompose`, the way `criteria`
+  refines `compare`, with each stage held to be no larger than the one before —
+  and `funnel_svg` drawing it. Not attempted here because inventing an input
+  shape during a release is convention 15's mistake.
+- check: `check_repo` `framework tools` already refuses a tool that does not
+  resolve; what nothing checks is a framework pointed at a tool whose input
+  shape its data cannot satisfy, and this entry is what says so.
+
 ## GAP-052 · Seventeen rule-prose references to development-side files that no predicate can see
 
 - status: open

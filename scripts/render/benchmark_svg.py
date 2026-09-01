@@ -102,6 +102,20 @@ def render(spec, orientation="landscape", path="the spec"):
             f"`compare`. assets/frameworks.json says which tool draws which "
             f"move.")
 
+    if spec.get("criteria"):
+        # THE MIRROR OF `radar_svg`'s guard, which this file lacked. Both tools
+        # declare `move: "compare"` and the registry maps `compare` to both, so
+        # the move check above cannot separate them — and a correct radar spec
+        # passes the contract clean (it carries `values`, not `value`) and then
+        # died here on `spec["subject"]["value"]` with a raw KeyError. An
+        # author who picks the wrong one of two tools for one move gets the
+        # sentence, not a traceback.
+        raise SystemExit(
+            f"{path} carries `criteria`, so it compares across several axes at "
+            f"once: `radar_svg` draws that. This tool draws one measure "
+            f"against its references, where a bar is easier to read than a "
+            f"polygon.")
+
     rows = _rows(spec)
     bad = [lab for lab, v, _ in rows if v is None]
     if bad:

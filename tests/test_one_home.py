@@ -256,6 +256,8 @@ def test_the_live_register_still_declares_what_the_consolidation_moved():
         # (`check_rule_coverage.RULE_FILE_PREFIXES`), so there is no `def` to
         # list and the pattern carries the whole enforcement.
         "rule-file-family": ([], 1),
+        "figure-scale": (["num", "step_for", "nice_range", "nice_ceiling",
+                          "ticks", "fmt", "wrap"], 1),
     }
     assert set(facts) == set(expected), "a fact was added or removed"
     for fid, (defs, patterns) in expected.items():

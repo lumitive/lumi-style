@@ -537,6 +537,14 @@ def page(i: int, total: int, spec, broken: bool, k: int) -> str:
     terms = TERMS
     src = ""
     spec_decl = ""
+    if broken and k == 6:
+        # THE DEEPER BRANCH. `k == 4` below plants a spec file that is not
+        # there — the easiest failure `load()` can have. This one parses, is
+        # complete, and its parts do not sum to its total: the arithmetic
+        # assertion of 0.1.669, which no fixture reached until 0.1.671 and
+        # which therefore could not be told from a metric rewritten to return
+        # ok.
+        spec_decl = ' data-figure-spec="figures/broken-bridge.json"'
     if broken and k == 4:
         # D42's PLANT. The page says its numbers are in a file, and the file is
         # not there. Nothing asks a figure to declare a spec (AG-10); what this

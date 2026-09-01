@@ -1,15 +1,218 @@
+## 0.1.671 — what four reviewers found in steps 2 through 5, and the three tools that could not be reached
+
+0.1.667–0.1.670 shipped preflight-green. Four reviewers then read them — for
+silent failures, for surviving mutations, for claim accuracy, and against the
+plan's own 47-row checklist. Between them they found **thirty-two defects**,
+and this release is those fixes. Every finding was re-measured before it was
+acted on.
+
+**Three of the four new tools could not be reached from a page.** The tool slot
+was emitted under `if not shape:`, and four of the five moves have a
+shape-bearing framework — so `compare`, `decompose` and `bridge` all resolved to
+a library shape and `benchmark_svg`, `breakdown_svg` and `waterfall_svg` shipped
+with no path from a beat to them. **That is 0.1.664's defect exactly, three
+times over, in the releases that added the tools**, and `correlate` hid it by
+being the one move with no shape at all. A beat that names its data is a data
+figure now, so the tool wins; a page that takes the shape learns in its hint
+that the move can also be drawn from its numbers.
+
+**The contract returned "nothing wrong" for eight input shapes**, and its own
+docstring promised it never would. A collection that is not a list — `{}`
+instead of `[]`, the commonest JSON mistake there is — was skipped by the
+emptiness check, iterated zero times by the per-datum check, and returned early
+from the arithmetic, **for all five moves**. The renderers then drew from it:
+`breakdown_svg` emitted a titled, sourced figure with no bar in it, and
+`benchmark_svg` an `aria-label` reading *"against 0 reference value(s)"* while
+its own docstring said it cannot draw a bar without a reference. `move: 0` was
+"filled" and collapsed to `""`, gating off the entire move half. `axes` as a
+list raised `AttributeError` out of `check_design.measure` and aborted every
+metric on the document with a traceback.
+
+**And `correlate` — the move whose whole subject is paired observations — had no
+per-point reading at all.** A point whose x was the string `"TBD"` passed the
+contract and was silently dropped by the renderer's `continue`. Measured on a
+40-point spec with 38 such points: the contract reported nothing, the drawing
+carried two marks, and its own alt text said *"2 points"*. Thirty-eight
+observations vanished with nobody counting them.
+
+**A gate was red on correct data.** `check_facts` sent the spec's numbers
+through `QUANTITY`, a pattern built for prose that ignores a lone digit and
+cannot start on `0.`: `0.08` came back as the quantity **8**, `0.5` as nothing.
+A share-based decompose — the commonest one there is — failed red line 1 on a
+number neither file contained, and a false red gets "fixed" by editing the
+document. The spec's values now have their own verdict against their own
+reading of the contract; `QUANTITY`'s prose reach is untouched.
+
+**A figure could reach a reader with no source.** D42 skipped a spec that was
+still a skeleton, on the reasoning that D14 refuses the slot beside it — and
+D14 reads the document, not the file. Measured: a spec with real numbers
+everywhere and one leftover `[TO FILL]` source passed both gates. A skeleton is
+now D42's own finding, and so is a page whose `data-analysis` disagrees with its
+spec's `move` — the stale-file case a scaffold that never overwrites an author's
+numbers necessarily creates.
+
+**D42 reported only its first finding**, so the arithmetic — appended last, and
+the one assertion in this package about the author's data — could surface only
+when it was the sole problem on a spec.
+
+**The scaffold had four silent refusals.** A typo'd move wrote no skeleton and
+the page declared the file anyway; `data: ../escaped.json` wrote **outside the
+deck's directory**; a beat whose move changed left a stale spec behind with
+nothing comparing the two; and an unwritable disk exited 0. All four now say so,
+the containment is enforced, one predicate answers "will this be served" in both
+places, and the run exits non-zero when any spec was not written.
+
+**The landing note was blind three ways.** An outline with no moves printed
+nothing — indistinguishable from one whose `analysis:` lines the parser failed
+to read. **And it failed to read them whenever the author used a full-width
+colon**, which is what a Chinese editor produces: `analysis：compare` parsed as
+no beat at all, silently, taking the move, the finding and the implication with
+it. `check_outline` now accepts `：` everywhere it accepts `:`. The HTML pattern
+also demanded double quotes and lower case, so a formatter normalising to single
+quotes turned a fully landed deck into a maximum-loss report.
+
+**Three comments cited a guard that did not exist.** `figure_spec.py` said
+"`figure spec moves` in check_repo.py holds the two lists together so a sixth
+move cannot be added to one and not the other" — and `CHECKS` had no such entry.
+Mutation-tested both ways on a clean tree: adding a sixth move to `MOVE_FIELDS`,
+and deleting `position` from it, each left `check_repo` at 62/62 ok. The guard
+now exists, holds `MOVE_FIELDS` to `ANALYTICAL_MOVES` in both directions, and
+refuses a shaped move whose skeleton does not write the fields its own contract
+requires. Planted three ways, caught three ways.
+
+**Two more comments cited a register entry that did not exist**, and writing it
+immediately caught two forwarding shims left in `scatter_svg` — a function that
+forwards is still a second name for one fact. `figure-scale` is now in
+`evals/single-source.json` with its retired private spellings.
+
+### The claims that were wrong, and what is true instead
+
+- **"Two browser gates had never been able to fail."** False. `expected.json` on
+  `main` says `ok`/`ok`, `ok`/`FAIL`, `FAIL`/`n/a`, and all three fixtures
+  already carried `data-datum`. What was actually missing is a fixture
+  `figure_distorts` could PASS on — the weaker half of FM-01, which a checker
+  rewritten to fail everything would also satisfy.
+- **"`check_facts` strips `<svg>` as decorative."** False, and it was printed to
+  the author at runtime. `_visible` strips only the brand globe and the ground
+  device. The real hole is that a figure's numbers need not appear as text at
+  all — a bar's value is its geometry and its `data-datum`.
+- **"the outlines declared 17."** One outline's count standing in for the set,
+  and it reads as measured because it collides with the document count. The
+  paired total is **176** across the 17 documents; 355 pages and zero carried
+  are exact.
+- **"the natively-drawn ones."** Six entries are natively drawn, not five.
+  `funnel` is the sixth and has no tool — recorded as GAP-053, because a
+  funnel's stages are nested rather than MECE and `breakdown_svg` would draw
+  the wrong figure and fail the arithmetic on correct data.
+- **"the two links that stay open."** Three are open, and the unnamed one is
+  **link 1** — an entry that receives the data. GAP-054, and §11 now says so.
+- **"its test builder had omitted all four."** Two: `period` and `move`.
+- **Row 42 of the checklist graded the plan against a number one of the plan's
+  own refusals forbade it to reach** — "steps 1–3 must reach 6; step 5 must
+  reach 9" against §11's corrected 3 and 7. Re-scoped, append-only per row 44.
+  This is convention 20's worst class, in the document about it.
+
+### And what the mutation review found in the tests themselves
+
+**Fifty-nine mutations, twenty-three alive on a green suite**, and the pattern
+was not random: strong on behaviour the tests invoke, near-blind on the
+constants and the checkers.
+
+**Eight had one root cause — a test that parametrizes over the constant it is
+pinning.** Deleting `"cause"` from `UNIVERSAL_FIELDS` deletes its own test
+case, so the suite went 355 → 350 and stayed green — while the renderers index
+`spec["cause"]` directly and would raise `KeyError` where they should refuse.
+The same for four of the five moves' input shapes. They are now asserted by
+MESSAGE, spelled out, which no shrinking constant can satisfy.
+
+**The rounding test could not see the constant it was named for.** 33.3 + 33.3
++ 33.4 sums to exactly 100, so the residual was zero and absorbed by the floor:
+`RESIDUAL_CEILING` could have been **0** and the test still passed. It is now
+pinned by two literal shares — 0.4% must pass, 0.7% must fail — and the first
+fix was itself self-referential, computing its tolerance from the constant, so
+widening it widened the test too. Caught by re-running the mutation.
+
+**`d42_figure_spec` had no pytest test at all.** Seven mutations survived, two
+of them through CI as well — including deleting the branch that reports a
+malformed spec, which is the reason the gate exists. Its only red anywhere was
+a missing file. `tests/test_d42_figure_spec.py` now covers all four answers,
+both attribute orders, a page far from its declaration, and the arithmetic
+reaching the report.
+
+**`write_spec_skeletons` had no test either**, and the promise its docstring
+makes — never over an author's filled spec — was enforced by nothing. A rebuild
+replacing real numbers with a numberless skeleton is data loss found only by
+rendering.
+
+**Three assertions were vacuous.** One had broken operator precedence and had
+never tested anything (`assert X if doc else True`, on a function with no
+docstring). One asserted a substring that appears in two different findings.
+One was a `>=` on a count that is exactly four. All three now assert what they
+were named for — and the baseline test asks the argument parser rather than
+grepping the source, which also matched the docstring promising the flag does
+not exist.
+
+**And two live defects.** A correct radar spec handed to `benchmark_svg` died
+on a raw `KeyError`: both tools declare `move: "compare"` and the registry maps
+`compare` to both, so the move guard cannot separate them — `radar_svg` had the
+mirror guard and a test for it, and `benchmark_svg` had neither. The landing
+note compared TOTALS, so a *substitution* — the likeliest real edit — read as
+parity: a document carrying `correlate` twice against an outline declaring
+`correlate` and `position` reported "declares 2; the document carries 2", and
+the lost move was invisible in the line written to make it visible. It compares
+multisets now and names which move went missing.
+
+**The page/spec comparison this release added was itself blind two ways** —
+FM-24 inside a check written to fix an FM-24. It searched backwards a fixed
+4000 characters, so it found nothing when a page wrote `data-figure-spec`
+before `data-analysis`, and nothing again when the two sat further apart. It
+reads the enclosing `<section>` now. `_page_id_before` had the same shape: it
+required `id=` to follow `class="page"`, so `<section id="p1" class="page">`
+reported `(document)` and every finding on that page lost its address.
+
+### The rows this release settles, and the ones it does not
+
+Row 22 is met: the prompt-tier rule is RC-493, with why it is unchecked. Row 30
+is **not**: `check_facts` gates on verdicts `evals/gates.json` has never
+carried, and 0.1.670 added two more to that. It is recorded as GAP-055 rather
+than papered over — the register's comparison reads a `rows` table and
+`check_facts` builds none, so declaring its verdicts without teaching the guard
+would make it report the register as the liar.
+
+**Row 23, owed since 0.1.667 and stated here:** this is the **fifth consecutive
+release** carrying the `conformance-freshness` waiver. What is unconfirmed is
+whether the twelve configurations still produce passing deliverables. The board
+is nineteen releases behind and refreshing it is the owner's call.
+
+**Row 43, the graded number, unchanged and unmovable from here:** 58 figures
+across three deliverables, 1 declaring its data, 10 marks declaring a value.
+Every one of those documents predates the artefact.
+
+`specs/2026-09-01-figure-data-contract-design.md` is amended by this release as
+well as implemented by it: §11 now names link 1 as the third open link, and row
+42 of §12 is re-scoped to §11's corrected arithmetic — append-only, per row 44,
+which says a row is re-measured and never deleted.
+
 ## 0.1.670 — survival: a figure's numbers now outlive the build that drew them
 
 Step 5, the last of `specs/2026-09-01-figure-data-contract-design.md`. Steps 2
 through 4 built the artefact and the tools; this is what the artefact is FOR.
 
-**A drawn figure's numbers were invisible to red line 1.** `check_facts` strips
-`<svg>` as decorative — correctly, since a chart's axis ticks are not claims —
-so a deck could state a market size only inside its chart and
-`unsourced_quantities` came back empty. It now reads the values out of every
-spec the document declares and holds them to the contract like any other
-quantity. Measured on a two-file probe: a figure carrying a part the contract
-never mentions is reported, where before the run was clean.
+**A drawn figure's numbers were invisible to red line 1, and the reason is not
+the one this entry first gave.** `_visible` strips only the brand globe and the
+ground device (`svg.gl…`, `svg.ground…`); a drawing inside `.fig` is read, and
+its own docstring says so. The real hole is that **a figure's numbers need not
+appear as text in the drawing at all** — a bar's value lives in its geometry
+and its `data-datum` attribute, and neither is prose. `check_facts` now reads
+the values out of every spec the document declares and holds them to the
+contract, under their own verdict: the spec's exact numbers are compared with
+every number in the contract, because `QUANTITY` ignores a lone digit and
+cannot start on `0.` — right for prose, and wrong for a file where every value
+is a claim. Measured on a two-file probe whose numbers live only in the spec:
+`main` reported `unsourced 0` and exited clean; HEAD reports the part the
+contract never mentions. (The stripping rationale was wrong in this entry, in
+`check_facts`'s docstring, and in a line it PRINTED to the author. Corrected at
+0.1.671.)
 
 **And the spec may never be the contract — as a mechanism, not a sentence.**
 `unsourced = document quantities − contract quantities`; one file as both makes
@@ -23,9 +226,13 @@ to say so — the same shape as a document with no figures.
 
 **The loss is visible.** `check_outline --against` reports *"the outline
 declares N analytical moves; the document carries M"*. Measured across the
-owner's 17 shipped documents and 355 pages: the outlines declared 17 and the
-documents carried **zero**, because each deliverable's own assembler replaces
-the scaffold's content run with hand-written pages. **No change in this
+owner's 17 shipped documents: **355 pages, and zero carrying a declared move**,
+because each deliverable's own assembler replaces the scaffold's content run
+with hand-written pages. Pairing each document with its own revision's outline,
+those outlines declare **176** moves between them. (An earlier draft said "the
+outlines declared 17" — one outline's count standing in for the set, and it
+reads as measured because it collides with the document count. Corrected at
+0.1.671.) **No change in this
 repository can move that number**, and saying otherwise would be promising
 something this package cannot do. What it can do is stop the deletion being
 invisible. It is a note and never a gate: a document may legitimately drop a
@@ -44,12 +251,20 @@ language got welded together.
 **Where the plan stands, and its own arithmetic.** Steps 1–5 are shipped. The
 honest ceiling was stated as 7 of 9 chain links, and the two that stay open are
 named rather than quietly counted: **link 4** (every registry entry names a
-tool) reaches 5 of 14 entries — the natively-drawn ones — because a
-library-drawn framework already has its drawing and demanding a tool of it is
-AG-10; **link 11** (the numbers agree with the fact contract) closes only in
-part, because its two named defects — a contract with no `## FACTS` heading and
-`--facts` being an optional flag rather than a build step — live in the owner's
-deliverable repository and not in this one.
+tool) reaches 5 of 14 entries, because a library-drawn framework already has
+its drawing and demanding a tool of it is AG-10. Those five are not "the
+natively-drawn ones": **six** entries declare `drawn: "native"` and `funnel` is
+the sixth, left without a tool on its own reasoning and recorded as GAP-053 — a
+funnel's stages do not sum to a total, each is a subset of the one before, so
+`breakdown_svg` would be the wrong drawing and the contract has no shape for
+that data yet. **link 11** (the numbers agree with the fact contract) closes
+only in part, because its two named defects — a contract with no `## FACTS`
+heading and `--facts` being an optional flag rather than a build step — live in
+the owner's deliverable repository and not in this one. **And a third link is
+open that neither §11 nor the first draft of this entry named: link 1**, an
+entry that receives the data from the engagement. §11's step table credits it to
+no step, so "7 of 9" was arithmetically right and named the wrong two — which is
+§4's own subject, in the plan §4 was written to correct. Recorded as GAP-054.
 
 **The graded number has not moved and cannot be moved from here:** 58 figures
 across three deliverables, 1 declaring its data, 10 marks declaring a value.
@@ -235,7 +450,9 @@ hold.
 partial checks — it refused an unnamed size measure and a non-positive size —
 and accepted a spec with no period, no source, no reading and no declared move,
 which is four of the six things DR-20 requires. Its own test builder had
-omitted all four for three releases and nothing asked.
+omitted TWO of them — `period` and `move` — for three releases and nothing
+asked. (An earlier draft said all four; the builder carried `reading`, `cause`
+and `source` throughout. Corrected at 0.1.671.)
 
 **D42 gates the contradiction, and only that.** Nothing here asks a figure to
 declare a spec: a schematic, a 2x2, the globe and an icon row are correct
@@ -247,12 +464,18 @@ deliberately NOT a finding here: D14 already refuses the visible slot beside
 it, and reporting one unfinished figure twice sends the author to the wrong
 file.
 
-**Two browser gates had never been able to fail.** `figure_distorts` and
-`figure_axis_named` reported `n/a` on every tracked fixture, because not one
-carried a mark declaring the value it draws — FM-01 at the fixture layer rather
-than in the checker. `fixtures/deck-figure.en.html` is generated by
-`build_fixtures` from `scatter_svg.render` and a tracked spec, so both gates now
-report **held**, and the fixture goes stale loudly the moment either changes.
+**`figure_distorts` had no fixture it could PASS on.** It failed on
+`deck-degenerate` and reported `n/a` where there was nothing to grade, so the
+corpus proved it could go red and never that a correct figure clears it — the
+weaker half of FM-01, and the half a checker rewritten to fail everything would
+also satisfy. `fixtures/deck-figure.en.html` is generated by `build_fixtures`
+from `scatter_svg.render` and a tracked spec, so both `figure_distorts` and
+`figure_axis_named` now report **held and clean** on a drawing built the way the
+package builds them, and the fixture goes stale loudly the moment either
+changes. (An earlier draft of this paragraph said both gates reported `n/a` on
+every tracked fixture. `expected.json` on `main` says otherwise — `ok`, `ok`;
+`ok`, `FAIL`; `FAIL`, `n/a` — and all three fixtures already carried
+`data-datum` marks. Corrected at 0.1.671.)
 
 **The prompt tier gets the six fields as prose**, pinned by `PROMPT_MUST_CARRY`,
 because prose reaches 12 platforms and a Python renderer reaches 10. Deleting

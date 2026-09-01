@@ -1004,8 +1004,28 @@ def opener_mark(index: int) -> str:
     return f'<div class="openmark">{svg}</div>\n      {note}'
 
 
+def spec_servable(move: str, ref: str, out_path) -> bool:
+    """-> whether the scaffold will write a skeleton for this beat's `data:`.
+
+    The page emission and the skeleton writer used to answer this separately,
+    and disagreed: a beat pointing outside the deck's directory got no file and
+    a `data-figure-spec` anyway.
+    """
+    if not ref or str(move or "").strip().lower() not in figure_spec.MOVE_FIELDS:
+        return False
+    if out_path is None:
+        return True          # no deck on disk; the author places it themselves
+    home = out_path.parent.resolve()
+    return (out_path.parent / ref).resolve().is_relative_to(home)
+
+
 def write_spec_skeletons(plan, out_path):
-    """Write a skeleton for every beat that points at one. -> [(path, move)].
+    """Write a skeleton for every beat that points at one.
+
+    -> ([(path, move)] written, [what could not be done]). The second list is
+    why this returns a pair: four silent `continue`s meant a spec that was
+    never written, one left stale by a changed beat, one outside the deck's
+    directory and one an unwritable disk all produced the same nothing.
 
     **Skeletons only, and never over an existing file.** The scaffold's job is
     to give the author a shape with every field present and no value invented;
@@ -1015,20 +1035,47 @@ def write_spec_skeletons(plan, out_path):
 
     Silent when there is no `--out`: the spec sits beside the deck, so without
     a deck on disk there is no `beside`. The page still declares
-    `data-figure-spec`, and `check_design`'s D41 reports the dangling
+    `data-figure-spec`, and `check_design`'s D42 reports the dangling
     reference — which is the correct reading of "the author has not written it
     yet" rather than a scaffold guessing at a directory.
     """
     if not out_path:
-        return []
-    written = []
+        return [], []
+    written, notes = [], []
     for sec in plan or []:
         ref = str(sec.get("data") or "").strip()
         move = str(sec.get("move") or "").strip().lower()
-        if not ref or move not in figure_spec.MOVE_FIELDS:
+        if not ref:
+            continue
+        # SAID, not skipped. A refusal used to be a silent `continue`, so the
+        # author met the problem later, through a different tool, as "could
+        # not be read" — pointed at a file nobody had told them was never
+        # written. And a spec sits BESIDE the deck: `data: ../escaped.json`
+        # wrote outside the deck's directory, which is a silent success in the
+        # wrong place.
+        if not spec_servable(move, ref, out_path):
+            notes.append(
+                f"{ref} was NOT written: the beat declares move {move!r}, "
+                f"which is not one of "
+                f"{', '.join(sorted(figure_spec.MOVE_FIELDS))}"
+                if move not in figure_spec.MOVE_FIELDS else
+                f"{ref} was NOT written: it resolves outside the deck's own "
+                f"directory, and a figure spec lives beside the document it "
+                f"belongs to")
             continue
         target = (out_path.parent / ref).resolve()
         if target.exists():
+            existing, problem = figure_spec.load(target)
+            if problem:
+                notes.append(f"{ref} exists and could not be read ({problem}); "
+                             f"it was left exactly as it is")
+            elif str((existing or {}).get("move")) != move:
+                # Never overwrite the author's numbers — but never be silent
+                # about a file that no longer matches the beat pointing at it.
+                notes.append(f"{ref} exists and declares move "
+                             f"{(existing or {}).get('move')!r} while the beat "
+                             f"now declares {move!r}. It was left alone; "
+                             f"D42 fails the page until the two agree")
             continue
         try:
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -1036,10 +1083,10 @@ def write_spec_skeletons(plan, out_path):
                 json.dumps(figure_spec.skeleton(move), indent=1,
                            ensure_ascii=False) + "\n", encoding="utf-8")
         except OSError as exc:
-            print(f"note  could not write {target}: {exc}", file=sys.stderr)
+            notes.append(f"{ref} could not be written ({exc})")
             continue
         written.append((target, move))
-    return written
+    return written, notes
 
 
 def main(argv):
@@ -1266,6 +1313,13 @@ def main(argv):
             if shape:
                 figure = shape_figure(shape, "what this end names", "and what it leads to")
                 hint = (hint + "; " if hint else "") + shape_note
+                _tool_name, _tool_run = tool_for(move, sec.get("framework", ""))
+                if _tool_run:
+                    # The shape is the default and the tool is the other
+                    # answer. Naming it here costs nothing and is how an author
+                    # discovers that this move can be drawn from its numbers.
+                    hint += (f"; or draw it from data: add `data:` to the beat "
+                             f"and run {_tool_run}")
             # A natively-drawn framework has no library shape, so this is where
             # an author was previously left with a comment. The command goes in
             # the VISIBLE body: `d14_placeholders` strips comments and <svg>
@@ -1275,34 +1329,49 @@ def main(argv):
             # character window; the command sits beside it, unbracketed.
             toolslot, specdecl = "", ""
             dataref = str(sec.get("data") or "").strip()
+            # ONE RULE, asked in both places: a page declares its spec only
+            # where `write_spec_skeletons` would serve it. Declaring one it
+            # refused points the reader at a file that does not exist and
+            # never will.
+            if dataref and not spec_servable(move, dataref, args.out):
+                dataref = ""
             if dataref:
                 # THE PAGE NAMES ITS OWN SPEC. Without this the drawing and the
                 # numbers behind it have no link a checker can follow, which is
                 # the state 58 shipped figures were in: one declared its data.
                 specdecl = f' data-figure-spec="{html.escape(dataref)}"'
-            if not shape:
-                fw_name, run = tool_for(move, sec.get("framework", ""))
-                if run:
-                    # The demo drawing goes with it. Page one of a scaffold
-                    # carries SHAPE_FIGURE as furniture regardless of the move,
-                    # and seen next to "draw this figure" the two contradict:
-                    # the box held a four-headed arrow — a `position` unit — on
-                    # a page that declares `correlate`. Caught by looking at the
-                    # render, by nothing that measures it.
-                    figure = FIG_PLACEHOLDER
-                    cmd = (run.replace("<spec.json>", dataref) if dataref
-                           else run)
-                    where = (f' The numbers go in <code>'
-                             f'{html.escape(dataref)}</code>, which the '
-                             f'scaffold has written as a skeleton.'
-                             if dataref else "")
-                    toolslot = (
-                        f'\n      <p class="notes">[TO FILL: draw this figure]'
-                        f' &#183; {fw_name} is drawn from its own numbers, not '
-                        f'from a library shape.{where} '
-                        f'<code>{html.escape(cmd)}</code>'
-                        f' renders one from a JSON spec: paste its SVG here in '
-                        f'place of this line.</p>')
+            # A BEAT THAT NAMES ITS DATA IS A DATA FIGURE, and the tool wins
+            # over the library shape. This used to be `if not shape:`, so a
+            # move with ANY shape-bearing framework never reached its tool —
+            # and four of the five moves have one. Measured: `compare`,
+            # `decompose` and `bridge` all resolved to a shape, so
+            # `benchmark_svg`, `breakdown_svg` and `waterfall_svg` shipped with
+            # no path from a page to them. That is 0.1.664's defect exactly,
+            # three times over, in the release that added the tools — and
+            # `correlate` hid it, being the one move with no shape at all.
+            fw_name, run = tool_for(move, sec.get("framework", ""))
+            if run and (dataref or not shape):
+                # The demo drawing goes with it. Page one of a scaffold
+                # carries SHAPE_FIGURE as furniture regardless of the move,
+                # and seen next to "draw this figure" the two contradict:
+                # the box held a four-headed arrow — a `position` unit — on
+                # a page that declares `correlate`. Caught by looking at the
+                # render, by nothing that measures it.
+                figure = FIG_PLACEHOLDER
+                shape = ""
+                cmd = (run.replace("<spec.json>", dataref) if dataref
+                       else run)
+                where = (f' The numbers go in <code>'
+                         f'{html.escape(dataref)}</code>, which the '
+                         f'scaffold has written as a skeleton.'
+                         if dataref else "")
+                toolslot = (
+                    f'\n      <p class="notes">[TO FILL: draw this figure]'
+                    f' \u00b7 {fw_name} is drawn from its own numbers, not '
+                    f'from a library shape.{where} '
+                    f'<code>{html.escape(cmd)}</code>'
+                    f' renders one from a JSON spec: paste its SVG here in '
+                    f'place of this line.</p>')
             fignote = (f"\n      <!-- {hint} -->" if hint else "")
             lay = figure_layout(figno - 1, shape)
             # `.body.stack` is "one full-width centerpiece": its grid declares
@@ -1424,9 +1493,20 @@ def main(argv):
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(doc + "\n", encoding="utf-8")
         print(f"note  wrote {args.out}", file=sys.stderr)
-        for target, move in write_spec_skeletons(plan, args.out):
+        wrote, notes = write_spec_skeletons(plan, args.out)
+        for target, move in wrote:
             print(f"note  wrote {target} — a `{move}` skeleton with every "
                   f"field present and no value invented", file=sys.stderr)
+        for note in notes:
+            print(f"note  {note}", file=sys.stderr)
+        if notes:
+            # The scaffold did not do everything it was asked. On a read-only
+            # mount every page would point at a spec that was never written
+            # and the run still exited 0.
+            print(f"note  {len(notes)} figure spec(s) were not written; the "
+                  f"pages that name them will fail D42 until they are",
+                  file=sys.stderr)
+            return 1
     else:
         print(doc)
     print(f"<!-- scaffold: {total} pages, standard order. Every icon reference "

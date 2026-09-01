@@ -2816,6 +2816,7 @@ def _measured(point) -> bool:
 
 
 _SPEC_DECL = re.compile(r'data-figure-spec="([^"]+)"')
+_MOVE_DECL = re.compile(r'data-analysis="([a-z]+)"')
 
 
 def d42_figure_spec(raw, base=None):
@@ -2861,21 +2862,65 @@ def d42_figure_spec(raw, base=None):
                            "why": problem or f"{target}: no spec came back"})
             continue
         if figure_spec.is_skeleton(spec):
-            # NOT a finding. The scaffold writes the skeleton and D14 already
-            # refuses the visible slot that goes with it, so failing here would
-            # report one unfinished figure twice and send the author to the
-            # wrong file.
+            # A FINDING, and the comment that used to sit here was wrong.
+            # It said D14 already refuses the slot that goes with a skeleton —
+            # but `d14_placeholders` reads the document HTML and has never seen
+            # this file, and `new_deck` tells the author to delete that very
+            # note when they paste the drawing in. Measured: a spec with real
+            # numbers everywhere and one leftover `[TO FILL]` source passed
+            # both gates, and a figure reached a reader with no source at all.
+            broken.append({"page": pid, "ref": ref,
+                           "why": f"{ref} is still the scaffold's skeleton in "
+                                  f"at least one field. Nothing else can see "
+                                  f"it: D14 reads the document, not this file"})
+            continue
+        # THE ENCLOSING SECTION, not a character window and not "whatever came
+        # before". Searching backwards 4000 characters found nothing when the
+        # page wrote `data-figure-spec` before `data-analysis`, and nothing
+        # again when the two sat further apart than the window — both printing
+        # exactly what a correct page prints, which is FM-24 inside a check
+        # written to fix an FM-24.
+        declared_move = _MOVE_DECL.search(_enclosing_section(raw, m.start()))
+        if declared_move and declared_move.group(1) != str(spec.get("move")):
+            # The page and its spec disagree about what the figure IS. The
+            # scaffold never overwrites an author's spec — right — so changing
+            # a beat's move leaves a stale file behind, and nothing compared
+            # the two until this line.
+            broken.append({"page": pid, "ref": ref,
+                           "why": f"the page declares "
+                                  f"data-analysis=\"{declared_move.group(1)}\" "
+                                  f"and {ref} declares "
+                                  f"move=\"{spec.get('move')}\""})
             continue
         found = figure_spec.problems(spec)
-        if found:
-            broken.append({"page": pid, "ref": ref, "why": found[0]})
+        # EVERY finding, not `found[0]`. `problems` appends the arithmetic
+        # last, so the one assertion in this package about the author's DATA
+        # could only ever surface when it was the sole problem on the spec.
+        for why in found:
+            broken.append({"page": pid, "ref": ref, "why": why})
     return {"declared": len(decls), "broken": broken}
 
 
+def _enclosing_section(raw, pos):
+    """-> the whole <section> the character at `pos` sits in, tag included."""
+    start = raw.rfind("<section", 0, pos)
+    if start == -1:
+        return raw[:pos]
+    end = raw.find("</section>", pos)
+    return raw[start:end if end != -1 else len(raw)]
+
+
 def _page_id_before(raw, pos):
-    opens = list(re.finditer(r'<section class="page"[^>]*\bid="([^"]+)"',
-                             raw[:pos]))
-    return opens[-1].group(1) if opens else "(document)"
+    # ATTRIBUTE ORDER FREE. It required `id=` to follow `class="page"` on the
+    # tag, so `<section id="p1" class="page">` reported `(document)` and every
+    # finding on that page lost its address.
+    tag = _enclosing_section(raw, pos)[:400]
+    if 'class="page' not in tag and "class='page" not in tag:
+        opens = list(re.finditer(r"<section[^>]*\bid=[\"']([^\"']+)[\"']",
+                                 raw[:pos]))
+        return opens[-1].group(1) if opens else "(document)"
+    got = re.search(r"\bid=[\"']([^\"']+)[\"']", tag)
+    return got.group(1) if got else "(document)"
 
 
 def d21_data_contract(raw):

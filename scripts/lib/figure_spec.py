@@ -102,6 +102,16 @@ MOVE_FIELDS: dict[str, tuple[str, ...]] = {
     "bridge": ("before", "after", "pieces"),
 }
 
+# The field of each move that holds MANY things. Named rather than discovered
+# because the shape check has to run before anything iterates them.
+_COLLECTIONS: dict[str, tuple[str, ...]] = {
+    "compare": ("references", "criteria"),
+    "decompose": ("parts",),
+    "position": ("items",),
+    "correlate": ("points",),
+    "bridge": ("pieces",),
+}
+
 # Everything but the measures, which move (see the module docstring).
 UNIVERSAL_FIELDS: tuple[str, ...] = ("period", "reading", "cause", "source",
                                      "move")
@@ -139,8 +149,19 @@ def measures_of(spec: dict) -> list[tuple[str, dict]]:
     if move == "correlate":
         return [(k, spec.get(k) or {}) for k in ("x", "y")]
     if move == "position":
-        axes = spec.get("axes") or {}
-        return [(f"axes.{k}", (axes.get(k) or {})) for k in ("x", "y")]
+        axes = spec.get("axes")
+        if not isinstance(axes, dict):
+            # `[]` and `{}` both reach here, and `axes.get` on a list raised
+            # AttributeError that propagated out of `check_design.measure` and
+            # aborted every metric on the document with a traceback. A caller
+            # asking "what does this spec measure" gets an answer or an empty
+            # list, never an exception.
+            return [("axes.x", {}), ("axes.y", {})]
+        out: list[tuple[str, dict]] = []
+        for k in ("x", "y"):
+            got = axes.get(k)
+            out.append((f"axes.{k}", got if isinstance(got, dict) else {}))
+        return out
     if move in MOVE_FIELDS:
         return [("measure", spec.get("measure") or {})]
     return []
@@ -213,7 +234,16 @@ def problems(spec) -> list[str]:
                 f"cause is claimed, its source and the move that produced it "
                 f"(design-rules.md DR-20, writing-rules.md WR-5)")
 
-    move = str(spec.get("move") or "").strip().lower()
+    raw_move = spec.get("move")
+    if raw_move is not None and not isinstance(raw_move, str):
+        # `move: 0` was "filled" (a non-bool scalar), and `str(x or "")`
+        # collapsed it to "", which gated OFF the entire move half — so a spec
+        # with no shape at all came back clean. Realistic when a generator
+        # emits the move as an index rather than a name.
+        return [f"`move` is {type(raw_move).__name__} {raw_move!r}, not one of "
+                f"{', '.join(sorted(MOVE_FIELDS))}. Nothing in the move half of "
+                f"this spec was checked (analysis-rules.md AR-1)"]
+    move = str(raw_move or "").strip().lower()
     if move and move not in MOVE_FIELDS:
         out.append(f"`move` is {move!r}, which is not one of "
                    f"{', '.join(sorted(MOVE_FIELDS))} (analysis-rules.md AR-1)")
@@ -228,6 +258,24 @@ def problems(spec) -> list[str]:
         for where, obj in named:
             out += _pair_problems(where, obj, ("name", "unit"),
                                   "DR-20: name the measure and its unit")
+
+        # THE CONTAINER'S SHAPE FIRST. Every per-datum check below is either
+        # `isinstance(x, list) and not x` or `for i, y in enumerate(x or [])`,
+        # and a dict satisfies neither: `{}` is not a list and is falsy, so on
+        # `"parts": {}` the emptiness finding was skipped, the per-datum loop
+        # ran zero times, the arithmetic returned early — and `problems()` came
+        # back clean for all five moves. Measured. An author keying items by
+        # label instead of writing an array is the commonest JSON mistake
+        # there is, and the renderers then drew a titled, sourced figure with
+        # no marks in it.
+        for field in _COLLECTIONS.get(move, ()):
+            coll = spec.get(field)
+            if coll is not None and not isinstance(coll, list):
+                out.append(
+                    f"`{field}` is {type(coll).__name__}, not a list. AR-1's "
+                    f"input shape for {move} wants a list here, so nothing "
+                    f"inside it was read — this is not a spec that passed")
+                return out
 
         for field in MOVE_FIELDS[move]:
             # ABSENT, not merely empty. An empty `references` list is a
@@ -333,9 +381,35 @@ def _move_problems(move: str, spec: dict) -> list[str]:
     elif move == "correlate":
         pts = spec.get("points")
         if isinstance(pts, list):
+            # EVERY POINT IS READ, the way every other move's data is. This
+            # counted drawable points and nothing else until 0.1.671, so a
+            # point whose x was the string "TBD" satisfied "is filled", passed
+            # the contract, and was then silently dropped by the renderer's
+            # `continue`. Measured on a 40-point spec with 38 such points: the
+            # contract reported nothing, the drawing carried two marks, and its
+            # own alt text said "2 points". Thirty-eight observations
+            # disappeared with nobody counting them.
+            unreadable = []
+            for i, p in enumerate(pts):
+                if not isinstance(p, dict):
+                    out.append(f"`points[{i}]` is {type(p).__name__}, not an "
+                               f"observation with an x and a y (AR-1)")
+                    continue
+                bad = _pair_problems(f"points[{i}]", p, ("x", "y"),
+                                     "AR-1: correlate")
+                if bad:
+                    unreadable.append(i)
+                    out += bad[:1]
+            if len(unreadable) > 3:
+                out.append(
+                    f"{len(unreadable)} of {len(pts)} observations carry an x "
+                    f"or a y this contract cannot read. A discarded "
+                    f"observation is a datum the reader never learns was "
+                    f"collected")
             drawable = [p for p in pts
                         if isinstance(p, dict)
-                        and _filled(p.get("x")) and _filled(p.get("y"))]
+                        and num(p.get("x")) is not None
+                        and num(p.get("y")) is not None]
             if len(drawable) < 2:
                 out.append(
                     "a `correlate` figure shows PAIRED observations, and this "

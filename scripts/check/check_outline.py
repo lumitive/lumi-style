@@ -55,6 +55,7 @@ Usage
 from __future__ import annotations
 
 import argparse
+import collections
 import json
 import pathlib
 
@@ -118,11 +119,15 @@ def parse(text: str):
         line = raw.strip()
         if not line:
             continue
-        m = re.match(r"^(genre|storyline)\s*:\s*(\S+)", line, re.I)
+        m = re.match(r"^(genre|storyline)\s*[:：]\s*(\S+)", line, re.I)
         if m:
             meta[m.group(1).lower()] = m.group(2)
             continue
-        m = re.match(r"^analysis\s*:\s*(\S+)(.*)$", line, re.I)
+        # `：` as well as `:`. An outline authored in a Chinese editor carries
+        # the full-width colon, and every `analysis:` line in it parsed as
+        # nothing — silently, so the beat's move, finding and implication were
+        # all dropped and the document looked like one that declared none.
+        m = re.match(r"^analysis\s*[:：]\s*(\S+)(.*)$", line, re.I)
         if m:
             analyses.append({"move": m.group(1).strip().lower(),
                              "rest": m.group(2).strip(),
@@ -130,7 +135,7 @@ def parse(text: str):
                                              if current and current[1]
                                              else None)})
             continue
-        m = re.match(r"^omitted\s*:\s*(.+)$", line, re.I)
+        m = re.match(r"^omitted\s*[:：]\s*(.+)$", line, re.I)
         if m:
             body = m.group(1)
             # THREE SEPARATORS, TRIED IN ORDER. Only the em dash was accepted,
@@ -429,14 +434,46 @@ def drift(text: str, html: str):
     # A note, never a gate: a document may legitimately drop a beat, and AG-9
     # already declined the class of gate that judges whether a page's prose
     # matches a plan. What this asserts is only arithmetic on declarations.
-    if analyses:
-        carried = len(re.findall(r'data-analysis="[a-z]+"', html))
+    if not html.strip():
+        out.append({
+            "check": "analysis landing", "verdict": "note",
+            "detail": "the document was empty, so nothing was compared. This "
+                      "is not a report that no moves were lost"})
+    elif not analyses:
+        # SAID. An outline that declares no moves and an outline whose
+        # `analysis:` lines the parser failed to read printed the same
+        # nothing, and the absence read as "nothing was lost".
+        out.append({
+            "check": "analysis landing", "verdict": "note",
+            "detail": "the outline declares 0 analytical moves, so there is "
+                      "no landing rate to report. If that is wrong, check "
+                      "that the `analysis:` lines use an ASCII colon"})
+    else:
+        # Quotes either way, any case, spaces around the `=`: an HTML
+        # formatter that normalises to single quotes turned a fully landed
+        # deck into a maximum-loss report, which is the direction that
+        # fabricates a defect.
+        # THE MULTISET, not the count. Comparing totals made a SUBSTITUTION —
+        # the likeliest real edit — read as parity: a document carrying
+        # `correlate` twice against an outline declaring `correlate` and
+        # `position` reported "declares 2; the document carries 2" and the
+        # lost move was invisible in the line written to make it visible.
+        found = [m.group(1).lower() for m in re.finditer(
+            r'data-analysis\s*=\s*["\']([a-z]+)["\']', html, re.I)]
+        carried = len(found)
+        lost_moves = collections.Counter(
+            a.get("move", "") for a in analyses) - collections.Counter(found)
         out.append({
             "check": "analysis landing",
             "verdict": "note",
             "detail": (f"the outline declares {len(analyses)} analytical "
                        f"move(s); the document carries {carried}"
-                       + ("" if carried >= len(analyses) else
+                       + (f" — but {sum(lost_moves.values())} declared "
+                          f"move(s) are missing from it "
+                          f"({', '.join(sorted(lost_moves.elements()))}), so "
+                          f"the counts match and the plan did not survive"
+                          if carried >= len(analyses) and lost_moves else
+                          "" if carried >= len(analyses) else
                           f" — {len(analyses) - carried} did not reach the "
                           f"page. A move a document does not declare is a "
                           f"move no checker can hold it to, and the "

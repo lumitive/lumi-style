@@ -499,6 +499,58 @@
      "M15_page_prose": "n/a"
     }
    }
+  },
+  "deck-figure.en.html": {
+   "design": {
+    "argv": [],
+    "exit": 0,
+    "verdicts": {
+     "D10_label_icons": "ok",
+     "D12_commercial_footer": "ok",
+     "D13_lime_as_text": "ok",
+     "D14_placeholders": "ok",
+     "D15_footer_path": "ok",
+     "D16_visual_presence": "ok",
+     "D17_export_weight": "ok",
+     "D18_region_labels": "n/a",
+     "D19_vocabulary": "ok",
+     "D1_contrast": "ok",
+     "D20_palette_fidelity": "ok",
+     "D21_data_contract": "ok",
+     "D22_layout_vocabulary": "ok",
+     "D23_font_count": "ok",
+     "D24_images_embedded": "ok",
+     "D25_image_provenance": "ok",
+     "D26_declared_scope": "ok",
+     "D27_agenda_mirror": "ok",
+     "D28_takeaway": "n/a",
+     "D29_figure_numbers": "ok",
+     "D2_type_scale": "ok",
+     "D30_figure_sequence": "ok",
+     "D32_shape_use": "n/a",
+     "D33_icon_provenance": "ok",
+     "D34_icon_uniqueness": "n/a",
+     "D35_agenda_exclusive": "ok",
+     "D36_font_family": "ok",
+     "D37_caption_name_len": "ok",
+     "D37_caption_scope": "ok",
+     "D38_agenda_highlight": "ok",
+     "D38_agenda_page_spans": "ok",
+     "D38_agenda_run_echo": "n/a",
+     "D39_bookend_mark": "n/a",
+     "D3_tier1_page_share": "ok",
+     "D3_tier1_per_page": "ok",
+     "D40_bookend_is_the_brand": "ok",
+     "D41_role_echo": "ok",
+     "D42_figure_spec": "ok",
+     "D4_palette_literals": "ok",
+     "D5_drawn_share": "ok",
+     "D5_figure_parity": "ok",
+     "D6_footer": "ok",
+     "D8_support_line": "ok",
+     "D9_layout_spread": "ok"
+    }
+   }
   }
  }
 }

@@ -1,0 +1,11 @@
+{
+ "move": "bridge",
+ "period": "FY24 to FY25",
+ "reading": "price carries the rise",
+ "cause": "attribution from the finance walk, not a model",
+ "source": "Synthetic figures for a fixture, not measured.",
+ "measure": {"name": "Contribution", "unit": "CNY m"},
+ "before": {"label": "FY24", "value": 100},
+ "after": {"label": "FY25", "value": 140},
+ "pieces": [{"label": "Price", "delta": 25}]
+}

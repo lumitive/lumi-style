@@ -304,10 +304,38 @@
     {
      "regex": "\\(\\s*\\\"references/\\\"\\s*,\\s*\\\"SKILL\\.md\\\"",
      "selftest": "(\"references/\", \"SKILL.md\", \"AGENTS.md\", \"prompts/\",",
-     "why": "the family written out as a literal tuple anywhere but its owner"
+     "what": "the family written out as a literal tuple anywhere but its owner"
     }
    ],
    "why": "0.1.666. `check_rule_coverage` asks whether a rule may CITE a file and `check_rule_script_reach` asks whether a file INSTRUCTS an agent; each carried the family as its own tuple, and they already disagreed about CLAUDE.md. What each does with CLAUDE.md is a separate decision made by a mechanism (the consumer-side filter), not by a second list. It is owned by a development-side checker rather than `scripts/lib/`, because `cross-boundary paths` refused the shipped home: a fact naming CLAUDE.md may not ship."
+  },
+  {
+   "id": "figure-scale",
+   "fact": "axis arithmetic and text fitting for every figure renderer",
+   "owner": "scripts/lib/figure_scale.py",
+   "defs": [
+    "num",
+    "step_for",
+    "nice_range",
+    "nice_ceiling",
+    "ticks",
+    "fmt",
+    "wrap"
+   ],
+   "retired_defs": [
+    "_nice",
+    "_num",
+    "_wrap",
+    "_fmt"
+   ],
+   "patterns": [
+    {
+     "regex": "def _nice\\(|def _num\\(|def _wrap\\(",
+     "selftest": "def _nice(lo, hi):\n    \"\"\"-> (lo, hi, step) covering the data on round numbers.\"\"\"",
+     "what": "the private spellings scatter_svg carried before the second renderer arrived"
+    }
+   ],
+   "why": "0.1.671. `scatter_svg` held `_num`, `_nice`, `_wrap` and `_fmt` privately and five renderers now need them; two copies of how an axis picks its round numbers is one that gets corrected and one that does not, and two figures in one document then disagree about their own ticks. Two comments cited this entry before it existed."
   }
  ],
  "waivers": [
