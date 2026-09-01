@@ -1,0 +1,24 @@
+{
+  "version": "0.1.675",
+  "diff_base": "8b5b67d215ebc50dd31b036f0d85c99cd94f79f7",
+  "spec": "specs/2026-09-01-build-cost-and-density-design.md",
+  "obligations": [
+    "layout-fixtures",
+    "conformance-freshness"
+  ],
+  "checks": [
+    {
+      "id": "layout-fixtures",
+      "command": "python3 scripts/check/inspect_layout.py --deliverable fixtures/deck-pass.en.html",
+      "exit_code": 0,
+      "stdout_sha256": "851dd6cffe2e56a020c41e722876610fbb71f7c235c480cb34fd4f32d5083611",
+      "date": "2026-09-01"
+    }
+  ],
+  "waivers": [
+    {
+      "id": "conformance-freshness",
+      "reason": "UNCONFIRMED: whether an agent outside this session, asked for a PowerPoint, reaches for export_pptx.py rather than describing one. The release touches references/ and SKILL.md, so the obligation is correctly raised. The board refresh means driving >=2 agents with the owner's own keys and installs; one is hand-driven and the run is hers to authorise. Recording `validate` would prove nothing \u2014 it exits 0 on a stale board, which is why the gate refuses that path. Deferred to the next driven round, not discharged. What IS confirmed here is the artifact: python-pptx opens the package as 13 slides, each one picture at the full slide extent."
+    }
+  ]
+}

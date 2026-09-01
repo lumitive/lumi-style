@@ -1,3 +1,43 @@
+## 0.1.675 — PowerPoint, one composed page per slide
+
+Step 4 of `specs/2026-09-01-build-cost-and-density-design.md`.
+`scripts/ops/export_pptx.py`. One slide per `.page`, each a full-bleed raster of
+the composed page at the stage's own aspect — 13.333 x 7.5 inches landscape, A4
+portrait — so nothing letterboxes and nothing crops. The package is written with
+the standard library: a `.pptx` is a ZIP of XML.
+
+**Bitmap, never reflow, and that is the decision rather than the shortcut.** A
+LUMI page is a CSS grid, an SVG figure and a `clamp()` written against a fixed
+stage. Rebuilding that as PowerPoint shapes would make the export a SECOND
+surface to debug — a title that wraps differently, a figure that letterboxes, a
+footer on two baselines — and every defect found there would be a defect in a
+document the checkers had already passed. One raster per slide is exact by
+construction: what the reader opens is what `inspect_layout` measured.
+
+The cost is stated rather than hidden. The text is not selectable and not
+editable, and a deck that must be edited in PowerPoint is a deck to build in
+PowerPoint.
+
+**A page whose raster did not come back is a FAILURE, never a shorter deck.**
+The page count is read from the document's own `section.page` tags — with the
+stylesheet and the comments stripped first, because both are full of `.page`
+and counting either would report a missing slide on a complete deck — and a
+mismatch stops the run before anything is written. A deck quietly missing page
+seven is the export a reader presents from, and nothing downstream can tell a
+twelve-slide deck built from twelve pages from one built from thirteen.
+
+`--scale` defaults to 2 rather than the PDF tool's 3: a slide is shown at the
+projector's resolution and every page rides inside one file, so 3x buys nothing
+a viewer can see and triples what a recipient downloads. Past 20MB the tool says
+so and still writes the file — the operator may want the 4K edition for a room,
+and a tool that refuses what it was asked for teaches people to work around it.
+
+*Verified on a thirteen-page deck:* the package opens in `python-pptx` as 13
+slides at 12191970 x 6858000 EMU, each carrying one picture at exactly the slide
+extent. Every XML part parses and the zip passes its own integrity check. The
+missing-raster refusal was exercised on a three-page document handed two
+rasters: exit 1, nothing written.
+
 ## 0.1.674 — the scaffold takes content, and the loop stops rastering pages nobody asked about
 
 This continues `specs/2026-09-01-figure-data-contract-design.md`. The owner's

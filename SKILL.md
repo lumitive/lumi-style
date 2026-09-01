@@ -8,7 +8,7 @@ compatibility: >-
   inspect_layout.py and export_pdf.py additionally need local Playwright
   (Chromium) and Pillow; everything else runs anywhere.
 metadata:
-  version: "0.1.674"
+  version: "0.1.675"
 ---
 
 # LUMI Style · Design Language & Writing Style
@@ -640,6 +640,12 @@ off. (This sentence read "pass it the file and nothing else", which was about
 `--geometry` and was followed as a ban on every flag, including the two that
 make the loop cheap.) Add a second run with `--dark` if the deliverable ships a dark variant;
 one run renders one palette.
+**PowerPoint, when a reader asks for one**: `python3
+scripts/ops/export_pptx.py <file>` writes one slide per page, each a full-bleed
+raster at the stage's own aspect. It is a bitmap deck on purpose — the text is
+not editable, and the alternative is an export that has to be debugged
+separately from the document it came from. A page whose raster did not come back
+fails the run rather than producing a shorter deck.
 **Look at the pages a finding names, not at all of them**: `python3
 scripts/ops/export_pdf.py <file> --png --pages 4,11` rasters two pages in about
 a second where the whole deck takes four. The look is the check; the numbers
