@@ -1258,8 +1258,13 @@ def check_ground_ceiling():
     # version did, by reading ratios off any line mentioning "ground", and it
     # failed on `brand.md:193` — "5.21:1 on white, 3.23:1 on the dark ground",
     # two contrast figures for the LIME, on a line that happens to say ground —
-    # while missing `design-rules.md:1461`, where the word "Ground" is on the
-    # line above the number. One grep at the real material, per convention 15.
+    # while missing design-rules.md's own "Ground axis" bullet, where the word
+    # is on the line ABOVE the number. One grep at the real material, per
+    # convention 15. (The line number this cited was correct when written at
+    # 0.1.557 and had drifted 167 lines by 0.1.676, 119 releases later, without
+    # anything noticing -- claim_sweep resolves a citation and checks its range,
+    # never whether the line still says what the sentence claims. Convention 13:
+    # the section name cannot rot, the number could.)
     for rel in ("references/brand.md", "references/design-rules.md",
                 "tokens/lumi-layouts.css"):
         text = (ROOT / rel).read_text(encoding="utf-8")
@@ -3528,6 +3533,7 @@ SIBLING_MODULES = (
     "scatter_svg", "figure_spec", "figure_scale", "benchmark_svg",
     "radar_svg", "waterfall_svg", "breakdown_svg",
     "timeline_svg", "quadrant_svg", "figure_slots", "deck_content",
+    "lanes_svg",
     "color_math", "css_tokens", "lock", "deliverable_registry",
     "embed_globe", "embed_icons", "check_prose", "inspect_layout",
     "trace_schema", "rubric_items", "shipping", "fingerprint", "markup",

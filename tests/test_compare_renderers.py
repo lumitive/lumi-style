@@ -259,3 +259,38 @@ def test_a_zero_subject_is_drawn_and_keeps_its_colour():
     assert zero and zero.group(1) == "var(--acc)", (
         "the zero subject lost the token that says it is the subject")
     assert svg.count("<rect") == 2, "the references stopped drawing"
+
+
+def test_the_source_note_never_lands_on_the_reading_it_belongs_to():
+    """0.1.676's fitted box budgeted ONE reading line in a constant, and a
+    two-line reading then hit a clamp that pinned the note to the box floor:
+    landscape put a 14px source note 10 units under a 14px sentence, portrait
+    drew it BETWEEN reading lines two and three. Nothing measured it, and the
+    release entry called the box measured.
+
+    Swept on BOTH orientations and BOTH lengths, because the defect appeared
+    only on the pairing nobody rendered."""
+    long_reading = (
+        "the catalog is complete for every interface primitive a renderer is "
+        "asked to draw and entirely empty for commerce, which is the finding "
+        "this page exists to make plain to a reader deciding whether to build "
+        "a commercial vertical on this specification")
+    for reading in (_bench()["reading"], long_reading):
+        for orientation in ("landscape", "portrait"):
+            svg = bm.render(dict(_bench(), reading=reading),
+                            orientation=orientation)
+            box = re.search(r'viewBox="0 0 [\d.]+ ([\d.]+)"', svg)
+            assert box
+            height = float(box.group(1))
+            reads = [float(y) for y in
+                     re.findall(r'class="fread"[^>]*y="([\d.]+)"', svg)]
+            notes = [float(y) for y in
+                     re.findall(r'class="fnote"[^>]*y="([\d.]+)"', svg)]
+            assert reads and notes
+            for note in notes:
+                assert note > max(reads) + 16, (
+                    f"{orientation}: the source note at {note} sits in the "
+                    f"reading's line ladder {reads}")
+                assert note + 4 <= height, (
+                    f"{orientation}: the note at {note} is clipped by a "
+                    f"{height}-unit box")

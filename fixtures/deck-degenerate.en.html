@@ -315,8 +315,8 @@ body.dark {
   --d-teal:    #3FA98C;
 }
 /* ═══════════════════════════════════════════════════════════════════
-   LUMI page layouts · v0.1.676 (2026-08-19)
-   Sixteen page layouts as grid definitions. Copy this block into a deliverable
+   LUMI page layouts · v0.1.677 (2026-08-19)
+   The page layouts as grid definitions. Copy this block into a deliverable
    alongside lumi-theme.css; choose per page with the selection table in
    references/design-rules.md §3. Version lockstep: layouts carry the skill
    version, like the other two token files.
@@ -663,13 +663,21 @@ svg .axname-x { font-size: 11px; fill: var(--tx3); }
    set one step above the labels and in the primary ink, so the drawing's own
    conclusion is the most legible line in the drawing. Inline styles still
    win where a renderer needs a specific size; these are the floor. */
+/* 12px IS THE FLOOR, and these are the classes it governs. Two of them
+   shipped at 11 for one release, in the same stack that wrote DR-22's floor
+   and the `figure_slots` guard that raises below it — a rule and the tokens
+   it governs, contradicting each other, with nothing able to see it because
+   the guard reads the module's own role table and never the stylesheet. The
+   pre-existing `.axname-x` at 11px is the axis NAME, which DR-22 does not
+   cover; it stays where it was and is the reason the floor is stated per
+   class rather than per file. */
 svg .flbl  { font-size: 12px; fill: var(--tx2); }
-svg .ftick { font-size: 11px; fill: var(--tx3); }
+svg .ftick { font-size: 12px; fill: var(--tx3); }
 svg .fval  { font-size: 12px; font-weight: 700; fill: var(--tx1); }
 svg .fread { font-size: 14px; font-weight: 600; fill: var(--tx1); }
 /* The provenance line, and the quietest text in the package. The review put
    its place exactly: a note above the footer rule, not a main position. */
-svg .fnote { font-size: 11px; fill: var(--tx4); }
+svg .fnote { font-size: 12px; fill: var(--tx4); }
 /* `transform-box: fill-box` is not decoration. The CSS `rotate` property turns
    the element about `transform-origin`, and for an SVG element that origin
    defaults to the USER-SPACE ORIGIN (0 0) rather than the glyph — so
@@ -1126,7 +1134,7 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
 
    `.finds` joined it the hard way and is the note's eleventh instance. It was
    written with `display: grid; grid-auto-flow: column` and rendered as a flex
-   COLUMN, because this chain is (0,15,1) and `.finds` is (0,1,0). Three
+   COLUMN, because this chain is (0,16,1) and `.finds` is (0,1,0). Three
    findings stacked instead of sitting in a row, the stack ate 350px of the
    page, and the figure the layout exists to make dominant was clamped by
    `max-height` to a fifth of its row — every gate green, and the page plainly
@@ -1203,7 +1211,7 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    to write.
 
    The selector repeats the whole exclusion chain on purpose. The base chain is
-   (0,15,1) and the portrait one below is (0,16,2); a plain
+   (0,16,1) and the portrait one below is (0,16,2); a plain
    `.body .fill:has(> table)` is (0,3,0) and would lose to both silently, which
    is the failure this file has recorded ten times. `.page` in front takes this
    to (0,17,2), so it wins in both geometries without depending on source order. */
@@ -1258,10 +1266,10 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    past the footer rule on six pages of one deck. `:has()` asks the page what
    it actually carries. (The same selector form is already used further up for
    a cell holding a table.) */
-.body.dense { grid-template-rows: auto 1fr auto; }
-.body.dense:has(> .figlead) { grid-template-rows: auto auto 1fr auto; }
-.body.dense.no-lede { grid-template-rows: 1fr auto; }
-.body.dense.no-lede:has(> .figlead) { grid-template-rows: auto 1fr auto; }
+.body.dense { grid-template-rows: auto 1fr auto auto; }
+.body.dense:has(> .figlead) { grid-template-rows: auto auto 1fr auto auto; }
+.body.dense.no-lede { grid-template-rows: 1fr auto auto; }
+.body.dense.no-lede:has(> .figlead) { grid-template-rows: auto 1fr auto auto; }
 /* The findings row never gives way: it is `auto` by construction above, and
    this keeps its own children from being compressed into an unreadable box
    when the drawing is tall. The drawing is what shrinks — it is the track
@@ -1307,8 +1315,13 @@ dl.gloss dd { margin: 2px 0 0; font-size: 12.5px; color: var(--tx2); line-height
    Two to four boxes under a drawing, each one thing the drawing shows. It is
    a THIRD tier below `.take`: `.key` interrupts a page, `.take` closes it with
    the one sentence the reader keeps, and `.find` says what one region of the
-   figure means. A page carries findings OR a takeaway, never both — two
-   closings is the defect, and `check_design` D28 counts the takeaway.
+   figure means. A dense page carries BOTH — and the first version of this
+   comment asserted the opposite, with no evidence behind it, so the scaffold
+   accepted an author's takeaway and rendered nothing: seven of them vanished
+   from one deck before a review found it. The two are different jobs. A
+   finding is read OFF the drawing; the takeaway is what the reader does about
+   it, `check_design` D28 counts it, and the storyline templates ask for one on
+   every content page.
 
    The numeral is mono and small because it is an index into the drawing, not a
    rank: the reader uses it to find the region, and a numeral set at heading
@@ -2541,7 +2554,7 @@ ul { margin: 0; padding-left: 18px; color: var(--tx2); font-size: 14px; }
     <h2>The reporting position across the estate under review has not moved materially since the previous cycle closed and remains subject to the same constraints that were recorded at the time by the programme at the close</h2></div>
     <!-- D6_footer missing_source: the colophon names no provenance, and D6 asks
          the DOCUMENT once rather than every page. -->
-    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.676.</p></div>
+    <div class="closenote"><p class="colophon">Built with lumi-style 0.1.677.</p></div>
   </div>
   <div class="foot"><div class="terms"><span class="conf">Confidential &#183; internal use &#183; do not forward</span></div>
   <span class="site">www.example.org</span></div></section>

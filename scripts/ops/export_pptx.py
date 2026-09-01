@@ -21,9 +21,11 @@ The slide is the document's own stage: 13.333 x 7.5 inches for landscape,
 A4 for portrait, so the image fills the slide edge to edge with no letterbox
 and no crop.
 
-Dependency posture matches export_pdf.py: the rasters come from that tool, so
-this needs the same local Playwright and is never in CI beyond a syntax check.
-The PPTX itself is written with the standard library — a .pptx is a ZIP of XML.
+Dependency posture matches export_pdf.py: the RASTERS come from that tool, so
+making a deck needs the same local Playwright. The PPTX itself is written with
+the standard library — a .pptx is a ZIP of XML — which is why `build()` and
+`page_count()` are covered by `tests/test_export_pptx.py` and DO gate in CI;
+only the Playwright half sits outside it.
 
 Exit is non-zero only on mechanical failure: a page that produced no raster, an
 unreadable file, a document with no pages. A missing slide is a FAILURE and
@@ -154,9 +156,18 @@ SLIDE_XML = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 </p:pic></p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>
 </p:sld>"""
 
+# EVERY SLIDE MUST NAME ITS LAYOUT. The first version declared only the image,
+# and PowerPoint's response to a slide part with no `slideLayout` relationship
+# is the "found a problem with content" repair prompt. 0.1.675's entry called
+# the package verified because `python-pptx` opened it and reported thirteen
+# slides at the right size — which is true, and which that library cannot see:
+# it resolves the relationship lazily and only raises when asked for
+# `slide.slide_layout`. A coverage claim has to say what its instrument cannot
+# see, in the same sentence (CLAUDE.md convention 20), and that entry did not.
 SLIDE_RELS = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image{n}.png"/>
+<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>
 </Relationships>"""
 
 
@@ -235,6 +246,14 @@ def main(argv=None):
     ap.add_argument("--out", help="output directory; default is beside the "
                                   "input file, like the PDF")
     a = ap.parse_args(argv)
+    if a.scale < export_pdf.SCALE_FLOOR:
+        # THE FLOOR THE HELP TEXT ADVERTISES. It lived in `export_pdf.main`'s
+        # argparse, and this tool calls `export_pdf.export` directly — so the
+        # sentence "Floor is export_pdf's" was true of a code path this command
+        # never took, and `--scale 0.5` was accepted in silence.
+        ap.error(f"--scale {a.scale:g} is below the floor of "
+                 f"{export_pdf.SCALE_FLOOR:g}; a slide that soft is a slide "
+                 f"nobody can read from the back of the room")
 
     rc = 0
     for name in a.files:

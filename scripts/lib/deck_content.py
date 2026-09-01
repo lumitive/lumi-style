@@ -56,8 +56,14 @@ SECTIONS: dict[str, tuple[str, ...] | None] = {
 # file built here reproduced on its first run.
 AGENDA_FIELDS = ("run",)
 PART_FIELDS = ("letter", "claim", "run")
+# EVERY NAME HERE IS READ BY `new_deck.py`, and `test_deck_content.py` holds
+# the two together. `blocks` was in this tuple for one release and read by
+# nothing: a page carrying it built cleanly and the words never reached the
+# page — the `titel` defect in `_keys`' own docstring, promoted to the schema
+# by the module that refuses it. It is removed rather than implemented,
+# because a field is added when something renders it.
 PAGE_FIELDS = ("eyebrow", "title", "sup", "layout", "figlead", "figure",
-               "cap", "finds", "take", "blocks")
+               "cap", "finds", "take")
 FIND_FIELDS = ("head", "body", "sem")
 
 # The four meanings the palette carries, and the class each maps to. NOT lane

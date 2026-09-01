@@ -1,3 +1,110 @@
+## 0.1.677 — four reviewers, 32 live mutations, and six defects a reader would have seen
+
+Written from the pre-merge review of 0.1.672–0.1.676. Four readers ran in
+parallel, one of them mutation-testing the new gates: **46 planted defects, 32
+of which the test suite could not see.** Everything below was verified by hand
+before it was acted on, and continues
+`specs/2026-09-01-build-cost-and-density-design.md`.
+
+**Every slide in a PowerPoint export was missing its `slideLayout`
+relationship.** OPC requires one on each slide part, and PowerPoint answers its
+absence with the repair prompt. 0.1.675's entry called the package verified —
+truthfully, and by an instrument that cannot see this: `python-pptx` opens the
+file, reports thirteen slides at the right size, and resolves that relationship
+only when asked for `slide.slide_layout`. **A coverage claim states what its
+instrument cannot see, in the same sentence**, which is convention 20's third
+class, in the release that cites the convention. The package now declares every
+relationship the format requires and a test asserts each one by name.
+
+**`blocks` was a content field the schema accepted and nothing rendered.** A
+page carrying it built cleanly and the words never reached the reader — the
+`titel` defect that `_keys`' own docstring exists to refuse, committed by the
+module that refuses it, in the release whose headline claim is that this cannot
+happen. It is removed rather than implemented, and the general form is now a
+test: **every name in `PAGE_FIELDS` must appear in the scaffold**, so the next
+one fails on the day it is added.
+
+**Seven takeaways vanished from one deck.** `take` was accepted and dropped by
+the dense branch. The first fix was a refusal, and running it against the real
+content file proved the refusal was the wrong half: every page had written one,
+because the outline plans an implication per page and that IS the takeaway.
+Dense pages render it. The comment in `tokens/` asserting that a page carries
+findings OR a takeaway was mine, had no evidence behind it, and is replaced by
+what the two actually do — a finding is read off the drawing, the takeaway is
+what the reader does about it.
+
+**0.1.676's fitted benchmark box printed the source note on the sentence it
+belongs to.** `FOOT` budgets one reading line; a two-line reading then hit a
+clamp pinning the note to the box floor. Landscape put a 14px note ten units
+under a 14px line; portrait drew it BETWEEN reading lines two and three. The
+sibling renderer removed the identical clamp the same day with a comment saying
+why — the fix reached one of the two. The foot is now sized from the reading it
+must hold, the clamp is gone, and the test sweeps **both orientations and both
+lengths**, because the defect lived only on the pairing nobody rendered.
+
+**D43 had two more ways to print a clean sheet on a document it never opened.**
+A move with no row in its table — `correlate` by design, and `lanes` by
+omission, added one release earlier with the refinement it grades — returned
+`{"checked": 0, ...}`, whose row cell is the character `0`. Byte-identical to a
+document where every figure named every member. And a mutation deleting the
+`unreadable` clause survived the whole suite AND the fixtures, because nothing
+tested the string a reader reads. The row now says how many figures were
+checked and names both silences; four answers, four strings, each pinned by a
+test that fails when its clause is deleted.
+
+**A page could declare a move, name a resolving spec, and draw nothing.** D42
+only asks whether the file holds what the move needs; D43 answers `blind` and
+by design does not gate; and D32's new data-contract exemption waved it
+through. Three gates each deferring to the next, on the one condition D32
+caught before the exemption existed. The exemption now requires a drawing.
+
+**A layer map could not be specified without inventing numbers.** `lanes_svg`
+reads no `value` at all, and the spec layer demanded one on the subject and
+every reference — so a correct six-item figure was refused until fake numbers
+were written in, and `check_facts` then required those inventions in the fact
+contract too. The only ways out were to invent facts or delete the figure,
+which is the sentence 0.1.676 wrote about `position` while shipping the same
+trap one refinement over. AG-10, twice in one release.
+
+**A rule and its own tokens contradicted each other.** DR-22 sets the figure
+text floor at 12px; the release that shipped the figure text vocabulary set two
+of its five classes to 11. Nothing could see it: the guard read the module's
+role table and never the stylesheet. Both are raised, the guard moved to where
+it can fire — it was inside a function checking a size that comes only from a
+constant table, so it could not go red however wrong the table was — and DR-22
+now names its scope, because the older `.lbl` / `.sm` / `.cap-w` vocabulary
+predates it at 11 to 11.5px and raising those is a design decision rather than
+a hygiene one. **That one is Sophie's.**
+
+**The timeline's height floor protected nothing and caused what it prevented.**
+Measured across three tiers, two orientations and two to five stages, the
+drawing's own height is 228 to 284 units in every case — the layout is
+horizontal, so the stage count moves the box's width. On landscape the floor
+never bound; on portrait it always did, so a portrait timeline carried 136 to
+192 units of empty box. The floor is deleted and the test sweeps both axes.
+
+**Smaller, and each verified:** a lane declared with no items drew a full-width
+empty band, and a duplicate lane drew its items twice; a chip in a crowded band
+ran its third line past its own bottom edge; `--scale` advertised a floor that
+lived in another command's argument parser and accepted `0.5`; three content
+fields reached the markup unescaped; a stage with no name and neighbouring
+labels on one baseline were both undefended.
+
+*The self-referential assertions are gone.* Four places read the constant they
+pinned — the timeline's height floor, the slide size, the D43 table, and the
+tier list — so setting the slide to 4:3 or emptying three rows of the table
+left every test green. They assert literals now. **This is the third time this
+pattern has shipped here**, which is why the fix is a note in each test saying
+what the mutation was.
+
+*And the nightly citation sweep was five parts noise.* It resolved a bare
+filename against two paths only, so five citations that exist under `scripts/`
+and `references/` reported as missing beside one that had genuinely drifted 167
+lines over 119 releases. It resolves by unique basename now, waives the one
+citation this repository quotes deliberately, and **prints what it cannot see
+on every run**: that a citation whose file resolves and whose line is in range
+is reported clean even when the line no longer says what the sentence claims.
+
 ## 0.1.676 — the rebuild, and eleven things only the rendered page could say
 
 Step 5 of `specs/2026-09-01-build-cost-and-density-design.md`: the ten-page deck
@@ -13,7 +120,7 @@ Every deliverable check reports clean, both fact verdicts hold, and no
 gating layout finding fires at the design stage or across the five off-shape
 windows.
 
-**A seventh renderer, `lanes_svg.py` — the layer map.** Her note on one page was
+**An eighth renderer, `lanes_svg.py` — the layer map.** Her note on one page was
 that the drawing was complex, expressed none of the prose beside it, and left
 her asking what the relation between its left half and its right half was. The
 page's claim was that a stack has two layers with different properties; the
@@ -297,7 +404,7 @@ returned it page by page. Of the development path: the figure is too simple, it
 has no time axis, and the time points the page states appear nowhere on the
 drawing. Of the quadrant: too simple. Three more pages carried the same defect.
 
-**Every one of those traces to one function signature.**
+**Most of those trace to one function signature.**
 
     def shape_figure(shape, label_a, label_b)
 

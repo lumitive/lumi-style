@@ -48,7 +48,10 @@ def _quad(**over):
 
 # --- the timeline carries time ----------------------------------------------
 
-@pytest.mark.parametrize("tier", tl.TIERS)
+# LITERAL TIERS. Parametrizing over `tl.TIERS` shrinks the matrix when a tier
+# is removed rather than failing — the same shape as reading a constant to
+# assert against it.
+@pytest.mark.parametrize("tier", ("light", "general", "pro"))
 def test_every_stage_reaches_the_drawing(tier):
     """The defect this was written from: a staircase with four stages and two
     words on it. Every stage's date AND name must be in the SVG."""
@@ -58,7 +61,10 @@ def test_every_stage_reaches_the_drawing(tier):
         assert s["name"] in svg, (tier, s["name"])
 
 
-@pytest.mark.parametrize("tier", tl.TIERS)
+# LITERAL TIERS. Parametrizing over `tl.TIERS` shrinks the matrix when a tier
+# is removed rather than failing — the same shape as reading a constant to
+# assert against it.
+@pytest.mark.parametrize("tier", ("light", "general", "pro"))
 def test_a_stage_with_no_date_is_refused(tier):
     """The CONTRACT catches it first, and names which stage — a better message
     than the renderer's own. The renderer keeps its check as the last line of
@@ -102,7 +108,10 @@ def test_light_flips_its_labels_past_the_midpoint():
     assert 'text-anchor="start"' in svg and 'text-anchor="end"' in svg
 
 
-@pytest.mark.parametrize("tier", tl.TIERS)
+# LITERAL TIERS. Parametrizing over `tl.TIERS` shrinks the matrix when a tier
+# is removed rather than failing — the same shape as reading a constant to
+# assert against it.
+@pytest.mark.parametrize("tier", ("light", "general", "pro"))
 def test_the_axis_is_named_and_the_source_is_last(tier):
     svg = tl.render(_path(), tier=tier)
     assert 'class="axname-x"' in svg
@@ -110,7 +119,10 @@ def test_the_axis_is_named_and_the_source_is_last(tier):
     assert 'class="fnote"' in texts[-1], "the source is not the last text node"
 
 
-@pytest.mark.parametrize("tier", tl.TIERS)
+# LITERAL TIERS. Parametrizing over `tl.TIERS` shrinks the matrix when a tier
+# is removed rather than failing — the same shape as reading a constant to
+# assert against it.
+@pytest.mark.parametrize("tier", ("light", "general", "pro"))
 def test_no_literal_colour_reaches_the_timeline(tier):
     svg = tl.render(_path(), tier=tier)
     assert not re.search(r"#[0-9a-fA-F]{3,6}\b", svg), svg[:200]
@@ -259,19 +271,34 @@ def test_the_box_is_measured_from_the_ink_not_declared():
     assert got, "the drawing declares no viewBox"
     box = [float(v) for v in got.groups()]
     ink = max(float(m) for m in re.findall(r'\b(?:y|cy|y1|y2)="([\d.]+)"', svg))
-    assert box[1] >= tl.BOX_H_FLOOR["landscape"]
+    # A LITERAL, and a loose one: what this test is for is the SLACK below,
+    # not the absolute size. The first version asserted against the module's
+    # own floor constant, and mutation review set that floor to 20 with the
+    # test still green.
+    assert box[1] > 100
     # The slack above the lowest ink is a margin, never a third of the box.
     assert box[1] - ink < 20, f"{box[1] - ink:.0f} units of empty box"
 
 
-def test_a_two_stage_timeline_does_not_become_a_letterbox():
+@pytest.mark.parametrize("tier", ("light", "general", "pro"))
+@pytest.mark.parametrize("orientation", ("landscape", "portrait"))
+@pytest.mark.parametrize("count", (2, 5))
+def test_the_box_tracks_the_ink_on_both_orientations(tier, orientation, count):
+    """SWEPT ON BOTH AXES, because a held-fixed axis is an unchecked axis. A
+    height FLOOR shipped here for one release: on landscape it never bound, and
+    on portrait it always did — so a portrait timeline carried 136 to 192 units
+    of empty box, which is precisely the defect the fitted height had just been
+    introduced to remove, surviving on the orientation nobody rendered."""
     spec = _path()
-    spec["stages"] = spec["stages"][:2]
-    svg = tl.render(spec, tier="pro")
+    spec["stages"] = spec["stages"][:count]
+    svg = tl.render(spec, tier=tier, orientation=orientation)
     got = re.search(r'viewBox="0 0 [\d.]+ ([\d.]+)"', svg)
     assert got, "the drawing declares no viewBox"
-    h = float(got.group(1))
-    assert h >= tl.BOX_H_FLOOR["landscape"]
+    height = float(got.group(1))
+    ink = max(float(y) for y in re.findall(r'\by="([\d.]+)"', svg))
+    assert height >= ink, "the drawing runs below its own box"
+    assert height - ink < 20, (
+        f"{tier}/{orientation}/{count}: {height - ink:.0f} units of empty box")
 
 
 def test_the_source_line_stays_inside_the_box():
@@ -290,3 +317,33 @@ def test_the_source_line_stays_inside_the_box():
     # And every line is short enough to fit the width it was wrapped to.
     for line in re.findall(r'class="fnote"[^>]*>([^<]*)<', svg):
         assert len(line) * 6.6 <= w, f"{line!r} is wider than the box"
+
+
+def test_the_tier_list_is_the_three_this_suite_exercises():
+    """The literal parametrize above and the shipped set, held together in one
+    place — so adding a fourth tier fails here (add its cases) instead of
+    silently going untested."""
+    assert tl.TIERS == ("light", "general", "pro")
+
+
+def test_a_stage_with_no_name_is_refused():
+    """It renders as an empty box on the spine — a point in time the reader
+    cannot name, which is the row-of-boxes defect this renderer replaced."""
+    spec = _path()
+    spec["stages"][1].pop("name")
+    # The spec layer refuses first and names the stage; the renderer's own
+    # check is the second belt. Either message is the same refusal to a reader,
+    # so the assertion is on the stage being named, not on which layer spoke.
+    with pytest.raises(SystemExit, match=r"stages\[1\]"):
+        tl.render(spec, tier="pro")
+
+
+def test_neighbouring_light_tier_labels_sit_on_different_baselines():
+    """The stems cycle so adjacent names cannot overprint. Flattened to one
+    height they collide, which mutation review confirmed no test could see."""
+    svg = tl.render(_path(), tier="light")
+    stems = [(float(m.group(1)), float(m.group(2))) for m in
+             re.finditer(r'<line x1="([\d.]+)" y1="([\d.]+)"[^>]*stroke="var\(--ln2\)"', svg)]
+    assert len(stems) >= 3, "the light tier draws a stem per stage"
+    tops = [y for _x, y in stems]
+    assert len(set(tops[:3])) == 3, f"three neighbours share a baseline: {tops[:3]}"

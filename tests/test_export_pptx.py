@@ -156,3 +156,63 @@ def test_the_mail_ceiling_is_a_note_and_not_a_refusal(tmp_path, monkeypatch,
     out = capsys.readouterr().out
     assert "past what most mail systems accept" in out
     assert list(tmp_path.glob("*.pptx")), "the note did not stop the write"
+
+
+# --- the package is well formed, not merely readable ------------------------
+
+REQUIRED_RELS = {
+    "ppt/_rels/presentation.xml.rels": ["slideMaster", "theme", "slide"],
+    "ppt/slides/_rels/slide1.xml.rels": ["image", "slideLayout"],
+    "ppt/slideLayouts/_rels/slideLayout1.xml.rels": ["slideMaster"],
+    "ppt/slideMasters/_rels/slideMaster1.xml.rels": ["slideLayout", "theme"],
+}
+
+
+def test_every_part_declares_the_relationships_the_format_requires(tmp_path):
+    """The defect this is written from: every slide shipped with only its
+    image, and PowerPoint answers a slide part with no `slideLayout`
+    relationship with the "found a problem with content" repair prompt.
+
+    It went out called verified, because the instrument used — a library that
+    opens the package and reports its slides and their size — resolves that
+    relationship lazily and never raised. The claim was true about what was
+    measured and silent about what was not."""
+    target = tmp_path / "deck.pptx"
+    export_pptx.build(_pngs(tmp_path, 2), target, "landscape")
+    with zipfile.ZipFile(target) as z:
+        for part, kinds in REQUIRED_RELS.items():
+            rels = z.read(part).decode()
+            for kind in kinds:
+                assert f"/relationships/{kind}" in rels, \
+                    f"{part} declares no {kind} relationship"
+
+
+def test_every_slide_carries_its_layout_not_only_the_first(tmp_path):
+    target = tmp_path / "deck.pptx"
+    export_pptx.build(_pngs(tmp_path, 4), target, "landscape")
+    with zipfile.ZipFile(target) as z:
+        for i in range(1, 5):
+            rels = z.read(f"ppt/slides/_rels/slide{i}.xml.rels").decode()
+            assert "/relationships/slideLayout" in rels, f"slide {i}"
+
+
+def test_the_landscape_slide_is_the_widescreen_size_a_reader_expects(tmp_path):
+    """LITERAL NUMBERS, not the module's own constant. The mutation review set
+    `SLIDE["landscape"]` to a 4:3 box and both size tests stayed green, because
+    each read the value it was asserting — the deck would have opened 4:3 with
+    every 16:9 raster stretched across it."""
+    target = tmp_path / "deck.pptx"
+    export_pptx.build(_pngs(tmp_path, 1), target, "landscape")
+    with zipfile.ZipFile(target) as z:
+        pres = z.read("ppt/presentation.xml").decode()
+    # 13.333 x 7.5 inches at 914400 EMU per inch, which is 16:9.
+    assert '<p:sldSz cx="12191970" cy="6858000"/>' in pres
+    assert abs(12191970 / 6858000 - 16 / 9) < 0.001
+
+
+def test_the_portrait_slide_is_a4(tmp_path):
+    target = tmp_path / "deck.pptx"
+    export_pptx.build(_pngs(tmp_path, 1), target, "portrait")
+    with zipfile.ZipFile(target) as z:
+        pres = z.read("ppt/presentation.xml").decode()
+    assert '<p:sldSz cx="7560000" cy="10692000"/>' in pres

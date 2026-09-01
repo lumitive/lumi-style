@@ -117,6 +117,22 @@ def _check(spec, path):
                 f"{path}: {it.get('label')!r} carries no `chip`. A name in a "
                 f"lane says only which lane; the chip is the criterion being "
                 f"compared, and without it the figure has one dimension.")
+    empty = [lane for lane in lanes
+             if not [it for it in items if str(it.get("lane")).strip() == lane]]
+    if empty:
+        # A BAND DRAWN WITH NOTHING IN IT is a two-layer claim on evidence for
+        # one. The mirror refusal — an item in an undeclared lane — was written
+        # and this one was not, so a spec whose items all sat in one lane drew
+        # a full-width empty band and exited 0.
+        raise SystemExit(
+            f"{path}: lane(s) {', '.join(repr(x) for x in empty)} carry no "
+            f"items. A band drawn empty claims a layer the data does not "
+            f"support; drop the lane, or put something in it.")
+    dupes = [x for x in lanes if lanes.count(x) > 1]
+    if dupes:
+        raise SystemExit(
+            f"{path}: lane {dupes[0]!r} is declared twice, so its items would "
+            f"be drawn into both bands and counted twice by a reader.")
     return lanes, items
 
 
@@ -162,8 +178,18 @@ def render(spec, orientation: str = "landscape", path: str = "the spec") -> str:
                 f'font-weight:{800 if is_subject else 700}">'
                 f'{html.escape(str(it["label"]))}</text>',
             ]
-            for j, line in enumerate(figure_scale.wrap(
-                    str(it["chip"]), cw - 22, at_px=12)):
+            # THE CHIP HOLDS TWO LINES. `wrap`'s budget floor keeps emitting
+            # lines however narrow the box, so a long chip in a crowded lane
+            # ran its third line past the chip's own bottom edge. Two lines is
+            # what the 74-unit chip has room for; a third is a chip whose text
+            # is a sentence, and the refusal says so rather than drawing it.
+            chip_lines = figure_scale.wrap(str(it["chip"]), cw - 22, at_px=12)
+            if len(chip_lines) > 2:
+                raise SystemExit(
+                    f"{path}: {it['label']!r}'s chip needs {len(chip_lines)} "
+                    f"lines and the chip holds two. Shorten it — a chip is the "
+                    f"criterion, not the explanation.")
+            for j, line in enumerate(chip_lines):
                 parts.append(
                     f'<text class="ftick" x="{x + 11:.1f}" '
                     f'y="{top + 45 + j * 15:.0f}" '
