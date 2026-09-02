@@ -31,6 +31,7 @@ import argparse
 import base64
 import binascii
 import json
+import os
 import pathlib
 import subprocess
 import sys
@@ -278,9 +279,34 @@ OWNER_OWNED = (
 )
 
 
+def commit_trailers(flags: list[str]) -> list[str]:
+    """The trailers the release commit carries — read from the session, never written here.
+
+    The first version of this script named its author in a string literal, so
+    every release run by any other model was signed by that one. Who ran the
+    release is a fact only the session knows, so it arrives three ways:
+    `RELEASE_TRAILERS` (newline-separated lines, what the harness told the
+    agent to sign with), `--trailer` (repeatable), and the session link, built
+    from `CLAUDE_CODE_BRIDGE_SESSION_ID` when that is set and no trailer
+    already names a `Claude-Session:`. Nothing set means no trailer at all —
+    an unsigned commit is honest; a mis-signed one is not.
+    """
+    lines = [ln.strip() for ln in os.environ.get("RELEASE_TRAILERS", "").splitlines()]
+    lines += [ln.strip() for ln in flags]
+    lines = [ln for ln in lines if ln]
+    session = os.environ.get("CLAUDE_CODE_BRIDGE_SESSION_ID", "").strip()
+    if session and not any(ln.startswith("Claude-Session:") for ln in lines):
+        lines.append(f"Claude-Session: https://claude.ai/code/{session}")
+    return lines
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--version", required=True, help="the version being released")
+    ap.add_argument("--trailer", action="append", metavar="LINE",
+                    help="a commit trailer, e.g. 'Co-Authored-By: …'; repeatable. "
+                         "RELEASE_TRAILERS (newline-separated) is read too, and "
+                         "CLAUDE_CODE_BRIDGE_SESSION_ID adds the Claude-Session link")
     ap.add_argument("--spec", help="specs/*.md this release implements")
     ap.add_argument("--dry-run", action="store_true",
                     help="do everything except write, and stop before committing")
@@ -492,10 +518,12 @@ def main():
                      f"this release will not commit it for her")
         print(f"   left alone: {owned} (owner-owned; not this release's to commit)")
     subject = f"{new} — {heading_summary}"
-    rc, out = repo_files.run_git(
-        "commit", "-m", subject, "-m",
-        "Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>",
-        root=ROOT)
+    trailers = commit_trailers(a.trailer or [])
+    if not trailers:
+        print("   no attribution trailer: set RELEASE_TRAILERS or pass --trailer "
+              "if the agent that ran this release should be named")
+    message = ["-m", subject] + (["-m", "\n".join(trailers)] if trailers else [])
+    rc, out = repo_files.run_git("commit", *message, root=ROOT)
     if rc != 0:
         sys.exit(f"   git commit failed:\n{out}")
     print(f"   committed: {subject[:80]}")

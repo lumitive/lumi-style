@@ -165,3 +165,39 @@ def test_the_carry_treats_the_placeholder_as_unanswered():
     assert carries("")
     assert not carries("specs/2026-08-28-conformance-cell-design.md"), (
         "a real spec written by --init must not be overwritten by an older one")
+
+
+def test_release_hardcodes_no_author():
+    """The commit's attribution comes from the session, never from this file.
+
+    The first version carried `Co-Authored-By: Claude Opus 5 (1M context)` as a
+    literal, so every release made by any other model was signed by that one.
+    A trailer is a fact about who ran the release, and this file does not know.
+    """
+    src = RELEASE.read_text(encoding="utf-8")
+    code = re.sub(r'"""[\s\S]*?"""|^\s*#.*$', "", src, flags=re.M)
+    assert not re.search(r"Co-Authored-By:\s*\w", code), (
+        "release.py names an author itself; read RELEASE_TRAILERS or --trailer")
+
+
+def test_trailers_come_from_the_session(monkeypatch):
+    monkeypatch.delenv("RELEASE_TRAILERS", raising=False)
+    monkeypatch.delenv("CLAUDE_CODE_BRIDGE_SESSION_ID", raising=False)
+    assert release.commit_trailers([]) == []
+
+    monkeypatch.setenv("RELEASE_TRAILERS",
+                       "Co-Authored-By: Some Model <noreply@example.com>\n\n")
+    monkeypatch.setenv("CLAUDE_CODE_BRIDGE_SESSION_ID", "session_abc")
+    got = release.commit_trailers(["Reviewed-By: A Person <a@example.com>"])
+    assert got == [
+        "Co-Authored-By: Some Model <noreply@example.com>",
+        "Reviewed-By: A Person <a@example.com>",
+        "Claude-Session: https://claude.ai/code/session_abc",
+    ]
+
+
+def test_session_trailer_is_not_doubled(monkeypatch):
+    monkeypatch.setenv("CLAUDE_CODE_BRIDGE_SESSION_ID", "session_abc")
+    monkeypatch.setenv("RELEASE_TRAILERS", "Claude-Session: https://claude.ai/code/session_xyz")
+    got = release.commit_trailers([])
+    assert got == ["Claude-Session: https://claude.ai/code/session_xyz"]

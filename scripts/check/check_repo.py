@@ -3569,6 +3569,7 @@ SIBLING_MODULES = (
     "gate_registry", "stamps", "trace_store", "shipped",
     "state_dir", "agent_runs", "versioning", "platform_registry",
     "history", "agent_capability", "repo_files", "agent_cell", "jsonio",
+    "ci_rollup",
 )
 # Joined at runtime so this constant cannot satisfy the guard for THIS
 # file: check_repo imports siblings too and owes the real block.
