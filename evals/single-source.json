@@ -336,6 +336,20 @@
     }
    ],
    "why": "0.1.671. `scatter_svg` held `_num`, `_nice`, `_wrap` and `_fmt` privately and five renderers now need them; two copies of how an axis picks its round numbers is one that gets corrected and one that does not, and two figures in one document then disagree about their own ticks. Two comments cited this entry before it existed."
+  },
+  {
+   "id": "json-file-writing",
+   "fact": "how a tracked JSON file is written back: with the indent it already has",
+   "owner": "scripts/lib/jsonio.py",
+   "defs": [
+    "load_json",
+    "dump_json",
+    "detect_indent"
+   ],
+   "retired_defs": [
+    "_write_json"
+   ],
+   "why": "0.1.682. Twenty-six json.dump sites with indent=1 at twelve and indent=2 at fourteen, no shared writer, and four commits in three releases that re-indented a tracked file wholesale - scripts/check/surgical_diff.py's docstring has the four numbers, and its guard catches the commit. This is the writer that removes the cause for anything that writes through it: it reads the file's own indent. trace.py's private _write_json was the one helper that existed, and is retired into the atomic option here."
   }
  ],
  "waivers": [

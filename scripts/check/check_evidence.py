@@ -53,6 +53,7 @@ import sys  # noqa: E402
 from typing import Any  # noqa: E402
 
 import history  # noqa: E402
+import jsonio  # noqa: E402
 import repo_files  # noqa: E402
 import stamps  # noqa: E402 — after the bootstrap
 import versioning  # noqa: E402
@@ -367,7 +368,7 @@ def load(version: str) -> dict[str, Any]:
 
 def save(version: str, doc: dict[str, Any]) -> None:
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
-    evidence_path(version).write_text(json.dumps(doc, indent=2) + "\n", "utf-8")
+    jsonio.dump_json(evidence_path(version), doc)
 
 
 def cmd_init(version: str | None) -> int:

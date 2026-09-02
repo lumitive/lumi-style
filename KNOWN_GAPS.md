@@ -1696,6 +1696,29 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   evals/mutation-waivers.json; closing this means driving main() against a
   synthetic tree the way tests/test_record_producer.py drives run_conformance
 
+## GAP-057 · check_evidence's obligation and mode branches are reached by no test
+
+- status: open
+- opened: 0.1.682
+- surface: scripts/check/check_evidence.py (the `conformance-freshness`
+  special cases, the `record` mode dispatch, the numstat parser, the
+  spec-line threshold, the check-replacement filter)
+- symptom: 0.1.682 changed one line of the file — its JSON writer — and
+  `mutation_probe.py`, which mutates every changed file whole, found eight
+  survivors none of which the change had touched: `spec_lines_changed(base) >
+  SPEC_LINE_THRESHOLD`, both `== "conformance-freshness"` branches, `p.returncode
+  != 0`, `args.mode == "record"`, `len(parts) == 3`, and the `c.get("id") !=
+  obligation` filter. Five test files import the module and none reaches
+  them, so a flipped comparison in the evidence gate — the gate that decides
+  whether a release ships — would pass the suite. Same shape as GAP-056, and
+  found the same way.
+- check: python3 scripts/check/mutation_probe.py --file
+  scripts/check/check_evidence.py — twelve waiver lines today in
+  evals/mutation-waivers.json, the file's whole survivor set enumerated with
+  the probe's budget lifted (two survivors share one source line); closing
+  this means driving --init, record and --check against a synthetic release
+  diff, which is bigger than the patch that found it
+
 ## GAP-005 · Three of the owner's four deliverable categories have no accepted reference
 
 - status: open

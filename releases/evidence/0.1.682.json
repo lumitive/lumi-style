@@ -1,0 +1,8 @@
+{
+ "version": "0.1.682",
+ "diff_base": "af2631e5e029f46a9950b5868db96b6c0f0f9e67",
+ "spec": "specs/2026-09-02-surgical-diff-design.md",
+ "obligations": [],
+ "checks": [],
+ "waivers": []
+}

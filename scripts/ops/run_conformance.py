@@ -81,6 +81,7 @@ import eval_corpus  # noqa: E402
 import fingerprint  # noqa: E402
 import gating  # noqa: E402
 import history  # noqa: E402
+import jsonio  # noqa: E402
 import output_dir  # noqa: E402
 import platform_registry  # noqa: E402
 import trace_schema  # noqa: E402
@@ -172,7 +173,7 @@ def _is_delta(line: bytes) -> bool:
     keeping the deltas would put roughly one JSON line per output token into a
     file whose job is to be read by a person.
     """
-    if not line.startswith(b"{") or len(line) > 65536:
+    if not line.startswith(b"{") or len(line) <= 65536:
         return False
     try:
         doc = json.loads(line)
@@ -2880,8 +2881,7 @@ def cmd_report(tasks: list[dict], agents: list[dict], probed: dict,
                            for r in rows_now):
                     rows_now.append(row)
                     added += 1
-        hist_path.write_text(json.dumps(rows_now, indent=2) + "\n",
-                             encoding="utf-8")
+        jsonio.dump_json(hist_path, rows_now)
         print(f"\nrecorded {added} new history row(s) -> "
               f"{hist_path.relative_to(ROOT)} ({len(rows_now)} total)")
     return 0

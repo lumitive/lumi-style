@@ -53,6 +53,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 # --- end bootstrap ---
 import gating  # noqa: E402 — after the bootstrap
+import jsonio  # noqa: E402
 
 # The files that carry RULE PROSE, as path prefixes, and the one home for that
 # fact (evals/single-source.json, `rule-file-family`). Two checkers ask it for
@@ -325,8 +326,7 @@ def relocate(root: pathlib.Path) -> tuple[int, list[str]]:
         rule["source"] = f"{file_part}:{hits[0]}"
         moved += 1
     if moved:
-        path.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n",
-                        encoding="utf-8")
+        jsonio.dump_json(path, data)
     return moved, stuck
 
 

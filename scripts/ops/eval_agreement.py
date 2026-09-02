@@ -60,6 +60,7 @@ for _sub in ("lib", "render", "check", "build", "ops", ""):
 del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 
 import corpus  # noqa: E402
+import jsonio  # noqa: E402
 
 # --- end bootstrap ---
 import scoring_sheet  # noqa: E402
@@ -241,7 +242,7 @@ def main(argv=None) -> int:
             print("FAIL  eval_corpus returned no report, so there is nothing "
                   "to cache; the cache was left as it was.")
             return 1
-        CACHE.write_text(json.dumps(measured, indent=2) + "\n", encoding="utf-8")
+        jsonio.dump_json(CACHE, measured)
         print(f"measured {len(measured)} of {len(paths)} named document(s) -> "
               f"{CACHE.relative_to(ROOT)} (gitignored)")
         return 0

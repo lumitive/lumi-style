@@ -903,13 +903,16 @@ def test_a_crash_between_the_two_writes_keeps_the_span(tmp_path, monkeypatch):
     clock = trace_mod._clock_path("t-0123456789ab")
     assert clock.exists(), "the clock did not start"
 
-    real_write = trace_mod._write_json
+    # The clock and the trace now go through one writer (jsonio.dump_json,
+    # atomic=True); the clock is told apart by its path.
+    real_write = trace_mod.jsonio.dump_json
     order: list[str] = []
-    def _note_clock(path, doc):
-        order.append("clock")
-        return real_write(path, doc)
+    def _note_clock(path, doc, **kw):
+        if str(path) == str(clock):
+            order.append("clock")
+        return real_write(path, doc, **kw)
 
-    monkeypatch.setattr(trace_mod, "_write_json", _note_clock)
+    monkeypatch.setattr(trace_mod.jsonio, "dump_json", _note_clock)
     real_save = trace_mod._save
 
     def _save_then_die(record):

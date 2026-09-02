@@ -1,0 +1,4 @@
+{
+ "$comment": "Files whose reformat in the newest release was meant. scripts/check/surgical_diff.py refuses a commit in which a file has at least 60 changed lines of which at most a fifth survive `git diff -w`, unless the file is listed here with the release the reformat belongs to and why. A waiver is live only while its release is the newest CHANGELOG heading; after that it is dead, and a dead waiver is itself a finding, so this table cannot accumulate. This is not a place to make a finding go away: an entry is a decision with an address.",
+ "waivers": {}
+}

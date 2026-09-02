@@ -39,7 +39,6 @@ from __future__ import annotations
 import argparse
 import datetime as _dt
 import json
-import os
 import pathlib
 import sys
 import uuid
@@ -70,6 +69,7 @@ del _bs_pathlib, _bs_sys, _SCRIPTS_ROOT, _sub, _p
 # read by this writer and by check_repo.py's guard.
 import checker_report  # noqa: E402
 import fingerprint  # noqa: E402
+import jsonio  # noqa: E402
 import markup  # noqa: E402
 import state_dir  # noqa: E402
 import versioning  # noqa: E402
@@ -100,20 +100,15 @@ def _load(trace_id):
     return json.loads(p.read_text(encoding="utf-8"))
 
 
-def _write_json(path, doc):
-    """The same tmp + `os.replace` as `_save`, for the file beside the trace.
-
-    The phase CLOCK was written in place while the trace beside it was written
-    atomically, so a crash between the two banked the seconds and left the
-    clock running — and the next `phase stop` added the whole span again,
-    because `phase_seconds` accumulates. A truncated clock also made every later
-    phase command die in an uncaught `JSONDecodeError` naming neither traces
-    nor phases.
-    """
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
-    tmp.write_text(json.dumps(doc, indent=1) + "\n", encoding="utf-8")
-    os.replace(tmp, path)
+# The phase CLOCK beside a trace is written with `jsonio.dump_json(...,
+# atomic=True)` — the same tmp + `os.replace` as `_save`. It used to be written
+# in place while the trace was written atomically, so a crash between the two
+# banked the seconds and left the clock running, and the next `phase stop`
+# added the whole span again because `phase_seconds` accumulates; a truncated
+# clock also made every later phase command die in an uncaught
+# `JSONDecodeError` naming neither traces nor phases. The private helper that
+# fixed that (`_write_json`) is retired into jsonio, the one home for writing a
+# JSON file this repository tracks (evals/single-source.json).
 
 
 def _save(rec):
@@ -129,12 +124,7 @@ def _save(rec):
     Every mutation here is load → change → validate → REWRITE THE WHOLE FILE,
     so this is not a rare path; it runs on every phase stop and every close.
     """
-    path = _path(rec["trace_id"])
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
-    tmp.write_text(json.dumps(rec, indent=1, sort_keys=True) + "\n",
-                   encoding="utf-8")
-    os.replace(tmp, path)
+    jsonio.dump_json(_path(rec["trace_id"]), rec, sort_keys=True, atomic=True)
 
 
 def _checker_json(script, deliverable, extra=()):
@@ -302,7 +292,7 @@ def cmd_phase(a):
         if a.name in clocks:
             sys.exit(f"phase {a.name!r} is already running since {clocks[a.name]}")
         clocks[a.name] = now.isoformat(timespec="seconds")
-        _write_json(path, clocks)
+        jsonio.dump_json(path, clocks, atomic=True)
         print(f"{a.name} started")
         return
     if a.name not in clocks:
@@ -336,7 +326,7 @@ def cmd_phase(a):
     # design (the open clock inside the record) that removes the window.
     _save(rec)
     if clocks:
-        _write_json(path, clocks)
+        jsonio.dump_json(path, clocks, atomic=True)
     else:
         path.unlink(missing_ok=True)
     print(f"{a.name} +{seconds}s (total {rec['phase_seconds'][a.name]}s)")
@@ -572,11 +562,7 @@ def cmd_note(a):
     if not entry:
         sys.exit("nothing to write: pass --note or --tag.")
     notes[a.id] = entry
-    NOTES.parent.mkdir(parents=True, exist_ok=True)
-    tmp = NOTES.with_name(f"{NOTES.name}.{os.getpid()}.tmp")
-    tmp.write_text(json.dumps(notes, indent=1, sort_keys=True,
-                              ensure_ascii=False) + "\n", encoding="utf-8")
-    os.replace(tmp, NOTES)
+    jsonio.dump_json(NOTES, notes, sort_keys=True, atomic=True)
     print(f"{a.id}: tags={','.join(entry.get('tags') or []) or '—'} "
           f"note={'yes' if entry.get('note') else '—'} -> "
           f"{NOTES.name}")
