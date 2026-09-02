@@ -234,3 +234,28 @@ def test_claim_sweep_changed_scopes_to_the_touched_files(tmp_path, monkeypatch):
     assert changed == {"NOTES.md"}
     scoped = claim_sweep.sweep_counts(changed)
     assert all(rel == "NOTES.md" for rel, _n, _c in scoped)
+
+
+# 0.1.685 — the citation resolver's three comparisons were reached by no test
+# (the release's mutation probe found them alive when claim_sweep.py changed
+# one waiver key). One synthetic tree exercises each branch by its REASON
+# string, so a flipped comparison changes the verdict rather than the wording.
+
+def test_claim_sweep_refs_resolve_by_unique_basename_and_bound_lines(tmp_path, monkeypatch):
+    import claim_sweep
+    repo = _git_tree(tmp_path / "repo", {
+        "lib/helper.py": "a\nb\nc\n",
+        "one/twin.py": "x\n",
+        "two/twin.py": "y\n",
+        "NOTES.md": ("see lib/helper.py:2 (a path that resolves)\n"
+                     "see helper.py:9 (a unique basename, past its end)\n"
+                     "see twin.py:1 (a basename with two homes)\n"
+                     "see ghost.md:1 (nothing by that name)\n")})
+    monkeypatch.setattr(claim_sweep, "ROOT", repo)
+    findings = {(n, why) for rel, n, _cite, why in claim_sweep.sweep_refs()
+                if rel == "NOTES.md"}
+    assert findings == {
+        (2, "helper.py has 3 lines"),
+        (3, "2 tracked files are named twin.py; the citation names no path"),
+        (4, "the file does not exist"),
+    }

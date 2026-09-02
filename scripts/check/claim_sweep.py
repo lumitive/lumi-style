@@ -104,10 +104,11 @@ CITE_RE = re.compile(r"\b([\w./-]+\.(?:py|md|json|css|js|sh|ya?ml)):(\d+)(?:-(\d
 # hold, because correcting the quotation would destroy the record of what was
 # corrected.
 CITE_WAIVERS = {
-    ("CLAUDE.md", "assemble.py:948"):
-        "convention 20 quotes this citation as an EXAMPLE of a number asserted "
-        "without being run; the file is a deliverable source and lives outside "
-        "this repository by design",
+    ("MAINTENANCE.md", "assemble.py:948"):
+        "convention 20's case quotes this citation as an EXAMPLE of a number "
+        "asserted without being run (the sentence moved from CLAUDE.md at "
+        "0.1.681); the file is a deliverable source and lives outside this "
+        "repository by design",
     ("scripts/check/claim_sweep.py", "assemble.py:948"):
         "this table has to name the string it waives — the same reason "
         "check_repo's METRIC_RANGE_WAIVERS waives its own row",
