@@ -1,3 +1,38 @@
+## 0.1.683 — the rest of the history leaves the file that is read every turn
+
+Not a rule change. The third move in the series 0.1.681 and 0.1.682 began, and
+the last one available: `CLAUDE.md` is read into context on every turn of
+every session, and after the conventions' cases and the checks' long form had
+moved to `MAINTENANCE.md`, what was left of its history sat in three places.
+
+- **The CI outage protocol.** Five numbered steps and the 2026-08-06 outage
+  that wrote them. `CLAUDE.md` keeps the rule in one paragraph — ask the
+  status page, bound the wait with `scripts/ops/ci_wait.sh`, separate
+  correctness from the gate, `emergency_merge.sh` last — and the steps are now
+  *When CI is slow or down, in full* in `MAINTENANCE.md`.
+- **The drift cases.** The two stale spots the Architecture section still
+  named by hand (fixed at 0.1.349 and 0.1.333), the 0.1.349 audit of ten roles
+  against six class names, and the registry's version history (0.1.619,
+  0.1.637). The rules stay; the cases are *Drift, the cases* in
+  `MAINTENANCE.md`, which names `probe vocabulary` as the guard that holds the
+  second direction.
+- **The citation count.** `CLAUDE.md`'s conventions preamble carried the
+  `grep … | wc -l` count of convention citations, 95 at 0.1.681. Convention 13
+  says prefer deleting the number to maintaining it, and the number's only job
+  was to argue that the numbering is load-bearing, which the sentence now says
+  without it. `MAINTENANCE.md` keeps the command and the count.
+
+Three shorter paragraphs went the same way: the operating-rules bullet, the
+agent-evaluation paragraph, the `specs/` paragraph and the eval-inventory
+exception each lost the sentence that explained why they exist and kept the
+sentence that says what they are. **27.5 KB to 26.5 KB** — small, because
+0.1.681 and 0.1.682 took the large pieces; recorded because it is the last
+such move and the file is now rules, tables and the one guard-held paragraph.
+
+The `gating claims` paragraph is untouched, as the guard requires. Every
+version this release removed from `CLAUDE.md` is still cited in
+`MAINTENANCE.md`, so the `version citations` guard sees the same set.
+
 ## 0.1.682 — every changed line traces to the request, held by a gate; the checks' long form moves out
 
 This implements `specs/2026-09-02-surgical-diff-design.md`.

@@ -142,30 +142,15 @@ re-flowed into the entry points — stays with the reviewer.
 
 ## When CI is slow or down
 
-`main` takes changes only through a pull request, requires the `checks` status
-on it, and enforces both for admins, so a GitHub Actions incident blocks
-merging for everyone. (No approving review is required: the rule closes the
-direct push — including fast-forwarding `main` to a branch commit that already
-carries a green status — not the solo merge.) Do not wait it out by polling.
-
-1. **Ask the status page before waiting**, not after. One call to
-   `githubstatus.com/api/v2/components.json` answers whether waiting is worth
-   anything. Polling a capacity-constrained service also adds to the load causing
-   the outage.
-2. **Bound every wait.** `scripts/ops/ci_wait.sh <PR>` does both of the above: it
-   short-circuits when Actions is degraded, and otherwise checks three times over
-   about four minutes and then stops. Open-ended polling turns a service problem
-   into a person problem — during the 2026-08-06 outage it consumed most of a
-   working session and merged nothing.
-3. **Separate correctness from the gate.** `check_repo.py` answers "is this
-   change good", locally and in seconds. CI only unlocks the merge button. During
-   an outage, report the local verdict and hand over the decision rather than
-   blocking on a queue nobody can drain.
-4. **A cancelled run is a symptom, not a verdict.** Re-run it once. If it is
-   cancelled again during a declared incident, stop re-running.
-5. Merging anyway is `scripts/ops/emergency_merge.sh <PR>`, which verifies the merge
-   result locally before it unlocks anything and restores protection on every
-   exit path. It is the last resort, not the second.
+`main` takes changes only through a pull request with a green `checks` status,
+enforced for admins too, so a GitHub Actions incident blocks everyone. Do not
+wait it out by polling: **`scripts/ops/ci_wait.sh <PR>`** asks the status page
+first, short-circuits on a declared incident, and otherwise stops after about
+four minutes. Correctness is `check_repo.py`'s answer, locally; CI only unlocks
+the merge button, so during an outage report the local verdict and hand over
+the decision. A cancelled run is re-run once, never twice into an incident.
+`scripts/ops/emergency_merge.sh <PR>` is the last resort, not the second. The
+full protocol and the outage that wrote it are in `MAINTENANCE.md`.
 
 ## Architecture: one rule set, many entry points
 
@@ -176,7 +161,7 @@ carries a green status — not the solo merge.) Do not wait it out by polling.
 - `references/storyline-templates.md` — narrative skeletons, one per storyline in its roster (sales through the investor pitch), cover & closing templates, the pre-delivery critic gate
 - `references/design-rules.md` — color semantics, typography, chart rules, semantic icons, layout guards, verification matrix
 - `references/eval-rubric.md` — the M / D / C scoring rubric and the review protocol (the iteration engine)
-- `references/operating-rules.md` — how the work is done rather than what a deliverable is: the debug-log contract, the parallel-build protocol and its merge gate, questions-come-once, scaffold-never-fixture, and generate-a-world-figure-rather-than-draw-it. It exists because those five had their only home in an entry point, and an entry point is a restatement by design — a rule living only there has no source for its restatements to be checked against
+- `references/operating-rules.md` — how the work is done rather than what a deliverable is: the debug-log contract, the parallel-build protocol and its merge gate, questions-come-once, scaffold-never-fixture, and generate-a-world-figure-rather-than-draw-it. A rule that lives only in an entry point has no source its restatements can be checked against, so these live here
 - `references/eval-inventory.md` — **generated** (`scripts/build/build_eval_inventory.py`, `--check` in CI): every quantitative constraint extracted from the checkers, with its tier and whether any reference file states it
 
 `tokens/lumi-theme.css` and `tokens/design-tokens.json` are the authority for
@@ -204,28 +189,24 @@ and `agent_evals.py` answer whether a CONFIGURATION — `agent x model x effort`
 never an agent id — is worth running. The Score Evals declare axes and an
 ordering and **no numbers**: the bar is already `evals/gates.json`, applied by
 `agent_runs.board()` as an admission ticket, and a cost board without that
-ticket rewards writing thinner decks. `run_conformance.py` did NOT move with the
-analysis — four of its five couplings are to things that are not agent
-evaluation at all. Two mechanisms were declined rather than left open, in
-FAILURE_MODES' *Abandoned gates*: an enum of model names (FM-25) and binding the
-release gate to the configurations board (FM-26).
+ticket rewards writing thinner decks. `run_conformance.py` stays where it is —
+it is a driver, not an evaluation. An enum of model names (FM-25) and binding
+the release gate to the configurations board (FM-26) were declined in writing.
 
 `adapters/platforms.json` is the **platform registry** — the single source of
-install paths, capability tiers, entry files, the model vocabulary probe
-(0.1.619) and, since 0.1.637, the EFFORT vocabulary of every platform the
-harness can drive — because effort is not one tuple: one CLI accepts eight
-levels, one spells the level inside the model id, and one has no such
-concept. `adapters/*.md` are the per-platform loading notes, one per registry record and
+install paths, capability tiers, entry files, the model vocabulary probe and
+the EFFORT vocabulary of every platform the harness can drive, because effort
+is not one tuple: one CLI accepts eight levels, one spells the level inside the
+model id, and one has no such concept. `adapters/*.md` are the per-platform loading notes, one per registry record and
 **generated** by `scripts/build/build_entrypoints.py` — as are `GEMINI.md`,
 `.github/copilot-instructions.md`, `.cursor/rules/lumi-style.mdc`, the plugin
 manifests and `.well-known/skills/index.json`. Edit the registry, never the
 artifact; `--check` runs in CI. `SKILL.md`, `AGENTS.md`,
 `prompts/lumi-style-core.md` and `references/` stay hand-written, because
-assembled prose is worse prose and those are the files a reader actually reads —
-with one owner-directed exception: `references/eval-inventory.md` is generated,
-because it is a table of some one hundred and eighty numbers rather than prose,
-and a hand-written copy of the checkers' numbers is the drift class this
-repository has fixed twenty-six times.
+assembled prose is worse prose and those are the files a reader actually reads.
+The one exception is `references/eval-inventory.md`, above: a table of the
+checkers' numbers is generated, because a hand-written copy of it is
+convention 12's drift class.
 The notes also carry the precedence rule that `references/` wins on conflict. The
 `platform manifest` guard requires every registry claim to have a file behind it,
 every note to be claimed by a platform, and every *unverified* claim to carry a
@@ -240,29 +221,26 @@ it owes and the operator runs them.
 
 `specs/` holds design records for changes to **this package** — per change, a
 `YYYY-MM-DD-<topic>-design.md` and, once the design is settled, a
-`YYYY-MM-DD-<topic>-plan.md` that decomposes it into commits. It exists because `docs/` is gitignored
-on purpose (it is where validation runs write, and a deliverable committed there
-would breach the no-engagement-facts red line), so a design record had nowhere
-to live and was being lost between sessions. A spec is a record of what was
-decided and why, written before the work; it is **not** a source of rules. Rule
-prose stays in `references/`, values stay in `tokens/`, and the shipped rationale
-stays in `CHANGELOG.md`. A spec that has been implemented stays as history and is
-never cited as authority.
+`YYYY-MM-DD-<topic>-plan.md` that decomposes it into commits. (`docs/` is
+gitignored on purpose: validation runs write there, and a deliverable committed
+there would breach the no-engagement-facts red line.) A spec is a record of
+what was decided and why, written before the work; it is **not** a source of
+rules. Rule prose stays in `references/`, values stay in `tokens/`, and the
+shipped rationale stays in `CHANGELOG.md`. A spec that has been implemented
+stays as history and is never cited as authority.
 
 **Drift is this repo's main hazard, and the checks catch only its mechanical
 half — semantic drift between prose copies is invisible to them.** After changing
 `references/`, re-read all three entry points *and* `README.md`, which
 independently restates the file map, the design language, and the iteration
-protocol. (The two stale spots this section used to name — pre-0.1.332 hexes in
-`prompts/lumi-style-core.md` and a Simplified-Chinese default in `AGENTS.md` —
-were both fixed by 0.1.349 and 0.1.333 respectively; verified at 0.1.350.)
+protocol.
 
 **Drift also runs the other way: from a check into the rules.** A probe that
 keys on class names is asserting a vocabulary, and that vocabulary has to ship in
 `tokens/` or it is a private convention borrowed from whatever document the probe
-was developed against. 0.1.349 audited ten roles against six class names that
-existed nowhere in this repository. Prefer a check that reads the shipped tokens;
-where it cannot, make it name what it failed to find.
+was developed against. Prefer a check that reads the shipped tokens; where it
+cannot, make it name what it failed to find. The cases behind both directions
+are in `MAINTENANCE.md`.
 
 ## Maintenance conventions
 
@@ -272,8 +250,8 @@ else — the six non-negotiable *content* rules for deliverables, in SKILL.md.)
 **Each rule below is the whole rule. The shipped defect that forced it is in
 [`MAINTENANCE.md`](MAINTENANCE.md), which is the one home for the reasoning —
 read the entry there before applying, arguing with, or revising a convention.**
-The numbering is load-bearing — a convention is never renumbered. `grep -rhoE 'convention [0-9]+|CLAUDE\.md rule [0-9]+' scripts/ tests/ references/ SKILL.md AGENTS.md | wc -l` says 95 at 0.1.681;
-`convention 15` alone is twelve of them.
+The numbering is load-bearing — a convention is never renumbered, because the
+scripts, tests and references cite conventions by number.
 
 1. **Repository language is English only.** Chinese appears in rule files only
    as rule *data* for Chinese output (banned phrases, punctuation examples),

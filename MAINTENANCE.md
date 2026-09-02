@@ -449,3 +449,61 @@ point — the alternative is a rule that looks enforced and is not.
 Everything the checks cannot decide — above all whether a rule change was
 re-flowed into the entry points — stays with the reviewer.
 
+
+---
+
+# When CI is slow or down, in full
+
+The long form of `CLAUDE.md`'s section of the same name, moved here at
+0.1.683. The rule `CLAUDE.md` keeps is: ask the status page, bound the wait,
+separate correctness from the gate. This is the protocol and the outage that
+wrote it.
+
+`main` takes changes only through a pull request, requires the `checks` status
+on it, and enforces both for admins, so a GitHub Actions incident blocks
+merging for everyone. (No approving review is required: the rule closes the
+direct push — including fast-forwarding `main` to a branch commit that already
+carries a green status — not the solo merge.) Do not wait it out by polling.
+
+1. **Ask the status page before waiting**, not after. One call to
+   `githubstatus.com/api/v2/components.json` answers whether waiting is worth
+   anything. Polling a capacity-constrained service also adds to the load causing
+   the outage.
+2. **Bound every wait.** `scripts/ops/ci_wait.sh <PR>` does both of the above: it
+   short-circuits when Actions is degraded, and otherwise checks three times over
+   about four minutes and then stops. Open-ended polling turns a service problem
+   into a person problem — during the 2026-08-06 outage it consumed most of a
+   working session and merged nothing.
+3. **Separate correctness from the gate.** `check_repo.py` answers "is this
+   change good", locally and in seconds. CI only unlocks the merge button. During
+   an outage, report the local verdict and hand over the decision rather than
+   blocking on a queue nobody can drain.
+4. **A cancelled run is a symptom, not a verdict.** Re-run it once. If it is
+   cancelled again during a declared incident, stop re-running.
+5. Merging anyway is `scripts/ops/emergency_merge.sh <PR>`, which verifies the merge
+   result locally before it unlocks anything and restores protection on every
+   exit path. It is the last resort, not the second.
+
+---
+
+# Drift, the cases
+
+`CLAUDE.md`'s *Architecture* section states the two directions drift runs in.
+The cases that wrote those sentences, moved here at 0.1.683:
+
+- **Prose copies of the rules.** The two stale spots the section used to name
+  by hand — pre-0.1.332 hexes in `prompts/lumi-style-core.md` and a
+  Simplified-Chinese default in `AGENTS.md` — were fixed at 0.1.349 and
+  0.1.333 respectively, and verified at 0.1.350. The general remedy is
+  convention 12: sweep mechanically, because the hand-named list was itself a
+  prose copy that went stale.
+- **From a check into the rules.** 0.1.349 audited ten checker roles against
+  six class names that existed nowhere in this repository: the probes had been
+  developed against one document and were asserting its private vocabulary as
+  the brand's. The remedy is `check_repo`'s `probe vocabulary` guard — every
+  class a checker asserts has a base rendering in `tokens/` or a written
+  waiver — and its docstring carries the three shipped instances.
+- **The platform registry's history.** The model vocabulary probe entered
+  `adapters/platforms.json` at 0.1.619, and the effort vocabulary at 0.1.637,
+  when one platform's five effort levels were found being applied to every
+  platform the harness drives.
