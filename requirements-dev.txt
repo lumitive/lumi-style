@@ -9,3 +9,10 @@
 ruff==0.16.2
 mypy==2.3.0
 pytest==9.1.1
+# The suite is 2336 tests and was running on one core: 187s of CI's 247s, and
+# 432s locally where the browser tests do not skip. It parallelizes cleanly —
+# no test writes into the working tree and none depends on another's ordering —
+# so CI and preflight both run it under `-n auto`. Measured at 0.1.680:
+# 432s -> 119s on 8 workers, 136s on 4 (the runner's core count), 2336 passed
+# on both. Pinned like every other tool here so local and CI agree.
+pytest-xdist==3.8.0

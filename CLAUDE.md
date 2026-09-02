@@ -47,7 +47,7 @@ python3 scripts/ops/nightly_review.py        # what today shipped, against the m
 python3 scripts/ops/run_conformance.py       # validate | detect [--ask-models] | run [--drive --cell] | score | report [--record] (local only: no keys in CI)
 python3 scripts/ops/agent_evals.py           # board [--write|--check] | suggest --agent ID | plan — the MULTI-AGENT evals, separate on purpose
 python3 scripts/build/build_readme_configs.py  # README's measured-configuration block; --check in CI
-python3 -m pytest -q                     # the test suite under tests/; gates in CI
+python3 -m pytest -q -n auto             # the test suite under tests/; gates in CI
 python3 -m ruff check .                  # lint + the S security rules; gates in CI
 python3 -m mypy                          # type-check (check_untyped_defs floor); gates in CI
 bash    scripts/ops/ci_wait.sh <PR>          # bounded wait, short-circuits on outage
