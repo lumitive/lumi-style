@@ -310,6 +310,95 @@ is read on every turn, and what a checker's history explains is read when the
 checker is being changed. Nothing below was deleted; the sentences `CLAUDE.md`
 kept are the rules, and the ones here are why.
 
+## The commands, in full
+
+`CLAUDE.md` keeps the nine commands a release actually types; this is every
+script with its one-line purpose, moved here at 0.1.685. `scripts/README.md`
+is the map of the drawers, and `ls scripts/*/` is the list.
+
+```bash
+python3 scripts/preflight.py             # run EXACTLY what CI runs, read from ci.yml
+python3 scripts/check/check_repo.py            # repo invariants; exit 1 on any failure
+python3 scripts/check/claim_sweep.py           # counted claims + file:line citations; REPORTS, never fails
+python3 scripts/check/precedent.py <terms>     # has this mechanism been refused before? step zero for any new gate
+python3 scripts/ops/eval_corpus.py <file>    # a deliverable against evals/thresholds.json; REPORTS, never gates
+python3 scripts/check/check_prose.py <file>    # the prose metrics on a deliverable (the script's row table is the list)
+python3 scripts/check/check_outline.py <outline> [--against DECK]  # the storyline beat; --against gates the deck on its own plan
+python3 scripts/check/check_facts.py <contract> <file>  # the build against the facts it was built from
+python3 scripts/check/check_design.py <file>   # the design metrics on a deliverable (the script's row table is the list)
+python3 scripts/check/inspect_layout.py <file> # render a deliverable and report what the layout does
+python3 scripts/ops/export_pdf.py <file>     # PDF / 4K page rasters of a deliverable (local, Playwright)
+python3 scripts/ops/export_pptx.py <file>    # one full-bleed page raster per slide (local, Playwright)
+python3 scripts/ops/output_dir.py            # where a deliverable belongs; --create needs the user's say-so
+python3 scripts/ops/new_deck.py              # emit a deck skeleton that already renders, in the standard order
+python3 scripts/build/embed_font.py            # @font-face block with the face inlined
+python3 scripts/build/embed_icons.py           # <symbol> sprite of the semantic icon set
+python3 scripts/build/recolor_shapes.py        # the shape library from its vendored originals + tokens; --check in CI
+python3 scripts/build/build_geography.py       # regenerate assets/vectors/ from lat/lon data
+python3 scripts/build/build_worldmap.py        # shared-arc world topology + the golden grid
+python3 scripts/build/build_region_palette.py  # region hues; --selftest asserts the contrast floors
+python3 scripts/render/globe_svg.py             # one static SVG frame of the globe
+python3 scripts/render/regionmap_svg.py         # the flat region map, labels from the registry
+python3 scripts/build/embed_regionmap.py       # the map runtime as one inline <script>
+python3 scripts/check/check_globe.py           # globe maths + the JS port (needs Playwright)
+python3 scripts/build/embed_globe.py           # the globe runtime as one inline <script>
+python3 scripts/build/build_entrypoints.py     # regenerate every per-platform artifact; --check in CI
+python3 scripts/build/build_fixtures.py        # regenerate the tracked test fixtures; --check in CI
+python3 scripts/check/check_fixtures.py        # run the checkers against the fixtures and assert verdicts
+python3 scripts/check/check_js.py              # node --check over the 8 tracked .js files + 3 embedded probes
+python3 scripts/check/surgical_diff.py         # did a diff reformat a file it meant to edit? gates in release.py and CI
+python3 scripts/check/check_evidence.py        # --init | record --id X | --check: the evidence gate
+python3 scripts/ops/release.py --version X.Y.Z # the whole release flow; refuses to commit when preflight fails
+python3 scripts/ops/review_scores.py         # the six human dimensions over time; --check validates
+python3 scripts/ops/nightly_review.py        # what today shipped, against the measured failure classes; REPORTS
+python3 scripts/ops/run_conformance.py       # validate | detect [--ask-models] | run [--drive --cell] | score | report [--record] (local only: no keys in CI)
+python3 scripts/ops/agent_evals.py           # board [--write|--check] | suggest --agent ID | plan — the MULTI-AGENT evals, separate on purpose
+python3 scripts/build/build_readme_configs.py  # README's measured-configuration block; --check in CI
+python3 -m pytest -q -n auto             # the test suite under tests/; gates in CI
+python3 -m ruff check .                  # lint + the S security rules; gates in CI
+python3 -m mypy                          # type-check (check_untyped_defs floor); gates in CI
+bash    scripts/ops/ci_wait.sh <PR>          # bounded wait, short-circuits on outage
+```
+
+## The deliverable checkers, the sentences CLAUDE.md dropped at 0.1.685
+
+`check_prose.py` and `check_design.py` run in CI against `fixtures/`.
+`inspect_layout.py --deliverable` gates on the findings that are decidable
+rather than aesthetic — the code's `deliverable_verdicts` is the authority —
+and it exits 1 when a check could not be measured at all. `check_prose.py`
+reads the document's own `lang`: **M12** fails an English deliverable carrying
+visible Chinese, and a document carrying Chinese that declares no language is
+`blind`, which fails. A prose target of zero is a line, a share is a
+direction (GAP-029). `check_design.py` reports `UNMEASURABLE` below three of
+the ten core tokens, and **D20** alone looks the other way: every colour token
+the document declares that `tokens/` also defines must carry the shipped
+value. The **ban-list parity** guard reads: every phrase
+`references/writing-rules.md` §2 bans is either a pattern in the script or in
+`NOT_MECHANIZED` with a reason, and the script may not ban what §2 does not
+list. `prompts/lumi-style-core.md` was once described as "a strict subset of
+`references/`", which stopped being true when it grew rules of its own (never
+name a region by its colour in prose; the prompt-tier debug degradation
+format) — the reason `CLAUDE.md` calls it a derived restatement.
+
+**What each design gate asks** (`CLAUDE.md` keeps the list, held by the
+`gating claims` guard; this is the reading of it). D12 is a commercial
+requirement on the artifact and D15 is its mirror. D14 asks whether the
+document is finished. D19 — an icon pointing at no symbol, a `data-globe` mark
+with no runtime, a `var()` naming a colour the document never declared — asks
+whether the markup can render itself. D20 asks whether the palette is LUMI's
+at all; D22 whether the page structure is. D21 asks whether the drawing agrees
+with its own numbers. D24 and D25 are what made lifting the imagery
+restriction safe rather than a hope. D27 asks whether the agenda is the
+document's own story or a second one; D35 whether the page that routes the
+deck is only doing that; D38 whether it reads as the argument or as a table of
+contents. D32 asks whether the page did what it said it was doing. D33 asks
+whether the icons are the two shipped sets or somebody's hand. D37 asks
+whether two roles were run together into one sentence. D39 and D40 ask
+whether the brand is still on the pages that carry it. D42 gates the
+contradiction alone — nothing asks a figure to declare a data file, which is
+AG-10. D43 is the gate that was missing while a two-by-two shipped as an
+empty box with an axis word at each end and every other metric ran green.
+
 
 **The deliverable path is standard library only** — nothing in `scripts/`
 imports outside it at runtime. Development tools (ruff, mypy, pytest) are

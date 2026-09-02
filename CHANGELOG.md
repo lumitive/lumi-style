@@ -1,3 +1,40 @@
+## 0.1.685 — CLAUDE.md keeps the nine commands a release types; the rest of the table moves out
+
+Not a rule change. The fourth move in the series 0.1.681–0.1.683, prompted by
+an owner directive of 2026-09-02 to bring the per-turn context down: of the
+45 K tokens a session paid before its first message, `CLAUDE.md` was about 7 K,
+and Anthropic's own guidance for the file is short, readable, and pointing at
+documents rather than copying them.
+
+- **The command table.** Forty lines listing every script, of which a release
+  types nine — `preflight.py`, `check_repo.py`, `claim_sweep.py`,
+  `precedent.py`, `release.py`, `ci_wait.sh`, pytest, ruff, mypy. Those nine
+  stay; the whole table is *The commands, in full* in `MAINTENANCE.md`, and
+  `scripts/README.md` remains the map of the drawers. The `script paths`
+  guard checks cited scripts exist and does not ask `CLAUDE.md` to cite them
+  all; `check_rule_script_reach` only gets greener with fewer citations there.
+- **The gating paragraph** keeps every one of its metric ids — the `gating
+  claims` guard reads the ids lexically between its two anchors, and it stayed
+  green through the edit — and drops the clause after each id that said what
+  the gate asks. Those readings, the M12 / `blind` rule, `UNMEASURABLE`, D20's
+  direction, the ban-list parity wording and the history of
+  `prompts/lumi-style-core.md` are one section in `MAINTENANCE.md`.
+- **Three evidence sentences** left conventions 4, 12 and 20 ("three shipped
+  regressions", "twenty-six releases", "fifteen defects across four rounds");
+  `MAINTENANCE.md` already carried each case in full, so nothing moved.
+- **The `references/` list and the Architecture paragraphs** lost their second
+  sentences; every rule sentence stays.
+
+`CLAUDE.md`: **26.5 KB to 19.6 KB**. The 8.3 KB that remains largest is the
+twenty conventions, which are rules and stay whole. `claim_sweep.py`'s
+self-citation waiver for `assemble.py:948` is re-keyed to `MAINTENANCE.md`,
+where that sentence has lived since 0.1.681. The release's mutation probe then
+found the resolver in `sweep_refs` unwatched — three comparisons (unique
+basename, two homes, past-the-end line) survived — so
+`test_claim_sweep_refs_resolve_by_unique_basename_and_bound_lines` drives all
+three through a synthetic tree by their reason strings; five of five mutations
+now die.
+
 ## 0.1.684 — the CI wait judged one job as the PR; the release signed itself as the wrong model
 
 Not a rule change. Two defects in the tooling, both found while merging
