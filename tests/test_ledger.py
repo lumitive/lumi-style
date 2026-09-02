@@ -67,7 +67,12 @@ def test_nothing_is_dropped_from_the_queue():
                      thresholds={f"M{i}": "not_measured" for i in range(1, 12)})
               for i in range(1, 5)]
     drafts = ledger.candidates(traces)
-    assert len(drafts) > ledger.QUEUE_CAPACITY
+    # A LITERAL. Against `ledger.QUEUE_CAPACITY` this assertion held
+    # however wrong the capacity was — setting it to 0 makes "more
+    # drafts than the queue holds" trivially true, and the overflow
+    # this test is named for stops being tested.
+    assert len(drafts) > 5
+    assert ledger.QUEUE_CAPACITY == 5, "the capacity this test assumes"
     assert all(d["state"] in ("queued", "deferred") for d in drafts)
     assert any(d["state"] == "deferred" for d in drafts)
 

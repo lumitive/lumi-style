@@ -29,8 +29,13 @@ def test_the_broken_split_overruns_the_seam_ceiling_and_the_passing_one_does_not
     """`opener_pacing`'s only deliberate red lives in this tuple. Two fixtures
     fail the metric, so `check_fixtures`' per-metric coverage rule would not
     notice if this one stopped."""
-    assert max(bf.SPLIT_BROKEN) > il.OPENER_RUN_CEILING
-    assert max(bf.SPLIT_PASS) <= il.OPENER_RUN_CEILING
+    # LITERALS. Against `il.OPENER_RUN_CEILING` both held however wrong the
+    # ceiling was — set it to 0 and "the broken fixture overruns it" is
+    # trivially true, so the deliberate red this test exists to keep alive
+    # stops being verified. The ceiling is pinned separately, once.
+    assert il.OPENER_RUN_CEILING == 6, "the ceiling these two assume"
+    assert max(bf.SPLIT_BROKEN) > 6
+    assert max(bf.SPLIT_PASS) <= 6
 
 
 def test_the_three_opener_marks_are_geometrically_distinct():

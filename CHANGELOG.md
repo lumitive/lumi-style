@@ -1,3 +1,67 @@
+## 0.1.679 — three mechanisms, because writing the lesson down did not work
+
+This implements `specs/2026-09-02-compounding-mechanisms-design.md`.
+The owner asked whether each iteration is actually getting better. The measured
+answer was no for most of it, and the evidence is in this repository's own
+record: **every one of the seven defect classes the 0.1.677 review found was
+already written down.** FM-24 appears ten times; AG-10 four; "a test must not
+read the constant it pins" says in its own text that it had happened twice. All
+seven were committed again anyway.
+
+The dividing line is sharp. **A class that became something that RUNS went to
+zero** — markup guessing 12 to 0, hand-written substitutions 19 to 0, and each
+gate holds its class for good. **A class that became only a paragraph came
+back.** Convention 16 already says this: a rule written down and then broken
+does not need writing more firmly, it needs a tool that holds it. What this
+release does is stop making that argument and build the tools.
+
+**`self-referential tests` — a test may not assert a computed value against a
+constant of its subject.** Purely syntactic, so it is a guard rather than a
+review note. It follows the constant through local names, which is the whole
+difficulty: both real instances unpacked it a line earlier, and the first two
+cuts of the guard caught neither. It refuses numbers and containers, where the
+VALUE is the contract, and allows plain string sentinels, where the identity
+is — the first cut reported seventeen sentinels in one file as defects.
+**It found three instances no reviewer had**, including one that made a
+deliberately-planted red stop being verified.
+
+**The third answer is now a coverage rule, not a hope.** `check_fixtures`
+tracked whether a fixture could make each gate FAIL; that is FM-01's question,
+and it was standing in for FM-24's. A gate seen only failing counted as
+covered. Gates declared at or after 0.1.667 must now either declare what an
+n/a from them means AND have been seen saying it, or declare why they can never
+be n/a. Older gates are grandfathered rather than backfilled: a guard that
+fails on fifty-five rows the day it ships is a guard someone switches off.
+
+**`mutation_probe.py` runs in the release, bounded.** The 0.1.677 review
+planted 46 defects and the suite could not see 32 — the highest find rate of
+any instrument here, and the only one nobody ran automatically. It mutates only
+the files the release changed and runs only the tests that reach them, so it
+finishes in seconds instead of the seven minutes a full suite costs per
+mutation. A survivor fails the release; the answers are to write the test or to
+record it with a reason, and "it is only a report" is how the last ten FM-24
+instances shipped.
+
+*On its first real run it found that no test file imported `check_fixtures` at
+all* — the module that asserts every other checker still produces the verdicts
+the suite expects. `tests/test_fixture_coverage.py` now covers its third-answer
+rule; its own exit-code and verdict comparisons remain untested and are
+**GAP-056**, with nine survivors waived by that id rather than hidden.
+
+*Two defects in the new mechanisms, both caught by planting first.* The
+mutation waivers were keyed `file:line` and stopped matching the moment
+anything above them moved — the citation-drift class this repository fixed the
+same week, inside the mechanism written against that class; they are keyed on
+the source line's text now. And the shared path-bootstrap block reported a
+survivor in every module that carries it, so it is skipped by range rather
+than waived once per file, which is the hand-written inventory FM-20 refuses.
+
+**What is still not mechanised, and is the next round's work:** the three
+classes above are now held, and the other four from 0.1.677 — a claim written
+without reading the code, a fact changed without sweeping its restatements, a
+gate a correct answer cannot satisfy, and an instrument's reach described as
+the requirement's — are still only paragraphs. Each needs the same treatment.
+
 ## 0.1.678 — the three classes that sat below their own floor
 
 DR-22 sets the figure text floor at 12px. `.lbl`, `.sm` and `.cap-w` predated

@@ -1676,6 +1676,26 @@ GAP id fails CI. (The lumi project's KNOWN_GAPS rule, adopted 0.1.422.)
   two. `references/eval-rubric.md`'s own promotion rule asks for the same
   thing: two releases of real documents read against a metric before it gates.
 
+## GAP-056 · check_fixtures' own comparisons are tested by nothing
+
+- status: open
+- opened: 0.1.679
+- surface: scripts/check/check_fixtures.py (main's exit-code, verdict and
+  forbidden-value comparisons)
+- symptom: this module is the one that asserts every other checker still
+  produces the verdicts the suite expects, and until 0.1.679 no test file
+  imported it at all. `tests/test_fixture_coverage.py` now covers the
+  third-answer rule; the comparisons in `main()` — `code != expect["exit"]`,
+  `got != want`, `got == forbidden` — are still untested, so each survives
+  mutation by construction. Flipping any one of them turns the fixture suite
+  into a run that reports `all verdicts as expected` over verdicts it never
+  compared. Found by `mutation_probe.py` on its first release run, which is
+  the instrument working: nothing else in this package could see it.
+- check: python3 scripts/check/mutation_probe.py --file
+  scripts/check/check_fixtures.py — four survivors today, waived by id in
+  evals/mutation-waivers.json; closing this means driving main() against a
+  synthetic tree the way tests/test_record_producer.py drives run_conformance
+
 ## GAP-005 · Three of the owner's four deliverable categories have no accepted reference
 
 - status: open
